@@ -2,9 +2,9 @@
  * Orvius domain configuration.
  *
  * Production layout:
- *   orvius.com          → marketing (/)
- *   app.orvius.com      → admin + dashboard
- *   api.orvius.com      → webhooks (optional alias to same app)
+ *   orvius.im          → marketing (/)
+ *   app.orvius.im      → admin + dashboard
+ *   api.orvius.im      → webhooks (optional alias to same app)
  */
 
 export type DomainConfig = {
@@ -24,7 +24,7 @@ function cleanHost(value: string | undefined) {
 }
 
 export function getPrimaryDomain() {
-  return cleanHost(process.env.ORVIUS_PRIMARY_DOMAIN) ?? "orvius.com";
+  return cleanHost(process.env.ORVIUS_PRIMARY_DOMAIN) ?? "orvius.im";
 }
 
 export function getDomainConfig(): DomainConfig {
@@ -154,39 +154,21 @@ export function buildDnsRecords(deployTarget: "vercel" | "railway" | "custom") {
 
 export const DOMAIN_CANDIDATES = [
   {
-    domain: "orvius.com",
-    status: "taken",
-    note: "Parked/for sale — worth trying to acquire via broker",
+    domain: "orvius.im",
+    status: "owned",
+    note: "Your primary domain — currently pointed at Manus, needs DNS update",
     tier: "ideal",
   },
   {
-    domain: "getorvius.com",
-    status: "likely_available",
-    note: "Strong SaaS pattern (Stripe, Notion style)",
+    domain: "app.orvius.im",
+    status: "owned",
+    note: "Admin + dashboard subdomain",
     tier: "recommended",
   },
   {
-    domain: "useorvius.com",
-    status: "likely_available",
-    note: "Clear product intent",
+    domain: "api.orvius.im",
+    status: "owned",
+    note: "Twilio + Vapi webhooks",
     tier: "recommended",
-  },
-  {
-    domain: "orvius.ai",
-    status: "likely_available",
-    note: "Perfect for AI positioning",
-    tier: "recommended",
-  },
-  {
-    domain: "orvius.io",
-    status: "likely_available",
-    note: "Clean tech startup alternative",
-    tier: "good",
-  },
-  {
-    domain: "tryorvius.com",
-    status: "likely_available",
-    note: "Good for pilot / design partner phase",
-    tier: "good",
   },
 ] as const;

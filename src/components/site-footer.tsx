@@ -43,8 +43,8 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <a href="mailto:hello@orvius.com" className="hover:text-foreground">
-                  hello@orvius.com
+                <a href="mailto:hello@orvius.im" className="hover:text-foreground">
+                  hello@orvius.im
                 </a>
               </li>
             </ul>

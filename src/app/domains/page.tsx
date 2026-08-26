@@ -55,24 +55,24 @@ export default function DomainsPage() {
       </header>
 
       <section className="card mb-8 p-6">
-        <h2 className="text-lg font-semibold">Recommended path</h2>
+        <h2 className="text-lg font-semibold">Your domain: orvius.im</h2>
         <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-relaxed text-muted">
           <li>
-            <strong className="text-foreground">Buy now:</strong>{" "}
-            <code>getorvius.com</code> or <code>orvius.ai</code> (available,
-            strong for launch)
+            <strong className="text-foreground">Remove Manus DNS:</strong> delete
+            the <code>cname.manus.space</code> record in your registrar
           </li>
           <li>
-            <strong className="text-foreground">Parallel track:</strong> try to
-            acquire <code>orvius.com</code> via domain broker (ideal long-term)
+            <strong className="text-foreground">Deploy to Vercel</strong> and
+            add <code>orvius.im</code>, <code>app.orvius.im</code>,{" "}
+            <code>api.orvius.im</code> as custom domains
           </li>
           <li>
-            <strong className="text-foreground">Subdomains:</strong>{" "}
-            <code>app.</code> for dashboard, <code>api.</code> for webhooks
+            <strong className="text-foreground">Paste DNS records</strong> from
+            the table below (Vercel will show exact values)
           </li>
           <li>
-            <strong className="text-foreground">Deploy</strong> to Vercel, paste
-            DNS records below, set env vars
+            <strong className="text-foreground">Set env:</strong>{" "}
+            <code>NEXT_PUBLIC_APP_URL=https://api.orvius.im</code>
           </li>
         </ol>
       </section>
@@ -196,14 +196,18 @@ function TierBadge({ tier }: { tier: string }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const taken = status === "taken";
+  const colors: Record<string, string> = {
+    owned: "bg-green-500/15 text-green-300",
+    taken: "bg-red-500/15 text-red-300",
+    likely_available: "bg-green-500/15 text-green-300",
+  };
   return (
     <span
       className={`rounded-full px-2 py-1 text-xs ${
-        taken ? "bg-red-500/15 text-red-300" : "bg-green-500/15 text-green-300"
+        colors[status] ?? "bg-sky-500/15 text-sky-300"
       }`}
     >
-      {taken ? "taken" : "likely open"}
+      {status.replace("_", " ")}
     </span>
   );
 }
