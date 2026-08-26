@@ -15,7 +15,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Orvius — AI Receptionist for Service Businesses",
   description:
-    "Never miss a call. Orvius answers, qualifies, and books leads for home service businesses.",
+    "Never miss a call. Orvius answers, qualifies leads, books appointments, and alerts owners — built for HVAC, plumbing, electrical, and home services.",
+  openGraph: {
+    title: "Orvius — AI Receptionist for Service Businesses",
+    description:
+      "Never miss a call. AI receptionist for HVAC, plumbing, electrical & home services.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
