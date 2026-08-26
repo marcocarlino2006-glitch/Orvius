@@ -1,0 +1,13 @@
+services:
+  orvius:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - orvius-data:/app/prisma
+    restart: unless-stopped
+
+volumes:
+  orvius-data:

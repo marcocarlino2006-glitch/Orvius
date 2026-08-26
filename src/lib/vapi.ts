@@ -19,6 +19,13 @@ type VapiAssistantPayload = {
   serverUrl?: string;
   serverUrlSecret?: string;
   endCallFunctionEnabled?: boolean;
+  analysisPlan?: {
+    summaryPlan?: { enabled: boolean };
+    structuredDataPlan?: {
+      enabled: boolean;
+      schema: Record<string, unknown>;
+    };
+  };
 };
 
 function getVapiHeaders() {
@@ -102,6 +109,46 @@ export function buildVapiAssistantConfig(params: {
     serverUrl: params.webhookUrl,
     serverUrlSecret: params.webhookSecret,
     endCallFunctionEnabled: true,
+    analysisPlan: {
+      summaryPlan: { enabled: true },
+      structuredDataPlan: {
+        enabled: true,
+        schema: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: "Caller's full name",
+            },
+            phone: {
+              type: "string",
+              description: "Best callback phone number in E.164 if possible",
+            },
+            email: {
+              type: "string",
+              description: "Email if provided",
+            },
+            serviceType: {
+              type: "string",
+              description: "Requested service (HVAC, plumbing, etc.)",
+            },
+            urgency: {
+              type: "string",
+              enum: ["emergency", "same-day", "this-week", "flexible"],
+              description: "How urgent the request is",
+            },
+            address: {
+              type: "string",
+              description: "Service address or property location",
+            },
+            notes: {
+              type: "string",
+              description: "Additional details and appointment preference",
+            },
+          },
+        },
+      },
+    },
   };
 }
 

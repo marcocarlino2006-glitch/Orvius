@@ -7,6 +7,7 @@ import {
   updateAssistant,
 } from "@/lib/vapi";
 import { buildAssistantSystemPrompt, slugify } from "@/lib/business";
+import { getWebhookUrl, verifyAdminRequest } from "@/lib/env";
 import { z } from "zod";
 
 const createBusinessSchema = z.object({
@@ -23,12 +24,6 @@ const createBusinessSchema = z.object({
   vapiPhoneNumber: z.string().optional(),
 });
 
-function getWebhookUrl(request: NextRequest) {
-  const configured = process.env.NEXT_PUBLIC_APP_URL;
-  const origin = configured ?? request.nextUrl.origin;
-  return `${origin}/api/webhooks/vapi`;
-}
-
 export async function GET() {
   const businesses = await prisma.business.findMany({
     orderBy: { createdAt: "desc" },
@@ -43,6 +38,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!verifyAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = createBusinessSchema.parse(await request.json());
     const slug = body.slug?.trim() || slugify(body.name);
@@ -70,7 +69,7 @@ export async function POST(request: NextRequest) {
         businessName: body.name,
         systemPrompt,
         greeting,
-        webhookUrl: getWebhookUrl(request),
+        webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
         webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
       }),
     );
@@ -106,6 +105,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  if (!verifyAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const id = request.nextUrl.searchParams.get("id");
   if (!id) {
     return NextResponse.json({ error: "Missing business id" }, { status: 400 });
@@ -129,6 +132,10 @@ export async function DELETE(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  if (!verifyAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = createBusinessSchema
       .extend({ id: z.string() })
@@ -166,7 +173,7 @@ export async function PATCH(request: NextRequest) {
           model: "gpt-4o",
           messages: [{ role: "system", content: systemPrompt }],
         },
-        serverUrl: getWebhookUrl(request),
+        serverUrl: getWebhookUrl("/api/webhooks/vapi"),
         serverUrlSecret: process.env.VAPI_WEBHOOK_SECRET,
       });
     }

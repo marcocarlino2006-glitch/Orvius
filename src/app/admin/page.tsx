@@ -16,6 +16,13 @@ type Business = {
   _count?: { calls: number; leads: number };
 };
 
+type HealthStatus = {
+  configured: boolean;
+  webhookUrl: string;
+  smsWebhookUrl: string;
+  config: Array<{ name: string; configured: boolean; optional: boolean }>;
+};
+
 const defaultServices = JSON.stringify(
   [
     { name: "Emergency repair", description: "Same-day urgent service" },
@@ -46,6 +53,7 @@ export default function AdminPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [health, setHealth] = useState<HealthStatus | null>(null);
   const [form, setForm] = useState({
     name: "",
     ownerPhone: "",
@@ -72,6 +80,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadBusinesses();
+    fetch("/api/health")
+      .then((res) => res.json())
+      .then(setHealth)
+      .catch(() => null);
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -138,6 +150,46 @@ export default function AdminPage() {
           View dashboard
         </Link>
       </header>
+
+      {health && (
+        <section className="card mb-8 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">System status</h2>
+              <p className="mt-1 text-sm text-muted">
+                {health.configured
+                  ? "Credentials detected — ready to provision."
+                  : "Waiting on Twilio + Vapi keys. Add secrets in Cursor environment setup."}
+              </p>
+            </div>
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                health.configured
+                  ? "bg-green-500/15 text-green-300"
+                  : "bg-amber-500/15 text-amber-300"
+              }`}
+            >
+              {health.configured ? "Ready" : "Setup needed"}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {health.config.map((item) => (
+              <div
+                key={item.name}
+                className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
+              >
+                <span>{item.name}</span>
+                <span className={item.configured ? "text-green-300" : "text-muted"}>
+                  {item.configured ? "✓" : item.optional ? "optional" : "missing"}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-xs text-muted">
+            Webhook: {health.webhookUrl} · SMS: {health.smsWebhookUrl}
+          </p>
+        </section>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <form onSubmit={handleSubmit} className="card space-y-4 p-6">
