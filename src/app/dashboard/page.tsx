@@ -7,13 +7,14 @@ type DashboardData = {
   businessCount: number;
   callCount: number;
   leadCount: number;
+  waitlistCount: number;
   recentCalls: Array<{
     id: string;
     callerPhone: string | null;
     status: string;
     summary: string | null;
     createdAt: string;
-    business: { name: string };
+    business: { name: string } | null;
   }>;
   recentLeads: Array<{
     id: string;
@@ -22,7 +23,16 @@ type DashboardData = {
     serviceType: string | null;
     urgency: string | null;
     createdAt: string;
-    business: { name: string };
+    business: { name: string } | null;
+  }>;
+  waitlist: Array<{
+    id: string;
+    email: string;
+    businessName: string | null;
+    phone: string | null;
+    trade: string | null;
+    city: string | null;
+    createdAt: string;
   }>;
 };
 
@@ -63,10 +73,37 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <section className="mb-8 grid gap-4 md:grid-cols-3">
+      <section className="mb-8 grid gap-4 md:grid-cols-4">
+        <StatCard label="Waitlist" value={data?.waitlistCount ?? "—"} />
         <StatCard label="Businesses" value={data?.businessCount ?? "—"} />
         <StatCard label="Calls handled" value={data?.callCount ?? "—"} />
         <StatCard label="Leads captured" value={data?.leadCount ?? "—"} />
+      </section>
+
+      <section className="mb-8">
+        <Panel title="Waitlist signups">
+          {!data?.waitlist?.length ? (
+            <EmptyState text="No signups yet. Share the site or /pilot page to get your first design partners." />
+          ) : (
+            <ul className="space-y-3">
+              {data.waitlist.map((entry) => (
+                <li key={entry.id} className="rounded-xl border border-border p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium">{entry.businessName ?? entry.email}</p>
+                    <span className="text-xs text-muted">
+                      {new Date(entry.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted">{entry.email}</p>
+                  <p className="mt-2 text-sm">
+                    {[entry.trade, entry.city, entry.phone].filter(Boolean).join(" · ") ||
+                      "No details yet"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
@@ -78,7 +115,7 @@ export default function DashboardPage() {
               {data.recentCalls.map((call) => (
                 <li key={call.id} className="rounded-xl border border-border p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium">{call.business.name}</p>
+                    <p className="font-medium">{call.business?.name ?? "Unknown"}</p>
                     <span className="text-xs text-muted">
                       {new Date(call.createdAt).toLocaleString()}
                     </span>
@@ -108,7 +145,7 @@ export default function DashboardPage() {
                       {new Date(lead.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-muted">{lead.business.name}</p>
+                  <p className="mt-1 text-sm text-muted">{lead.business?.name ?? "Inbound"}</p>
                   <p className="mt-2 text-sm">
                     {lead.phone ?? "No phone"} · {lead.serviceType ?? "General inquiry"}
                   </p>

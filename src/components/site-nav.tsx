@@ -27,7 +27,7 @@ export function SiteNav() {
           <Link href="/admin" className="hidden text-sm text-muted hover:text-foreground sm:block">
             Sign in
           </Link>
-          <Link href="#early-access" className="btn btn-primary text-sm">
+          <Link href="/pilot" className="btn btn-primary text-sm">
             Get early access
           </Link>
         </div>

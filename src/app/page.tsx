@@ -183,7 +183,7 @@ export default function HomePage() {
                 <li>✓ Personal onboarding</li>
                 <li>✓ Unlimited calls during pilot</li>
               </ul>
-              <Link href="#early-access" className="btn btn-primary mt-8 block text-center">
+              <Link href="/pilot" className="btn btn-primary mt-8 block text-center">
                 Start free pilot
               </Link>
             </div>
@@ -200,7 +200,7 @@ export default function HomePage() {
                 <li>✓ Business memory & CRM</li>
                 <li>✓ Priority support</li>
               </ul>
-              <Link href="#early-access" className="btn btn-secondary mt-8 block text-center">
+              <Link href="/pilot" className="btn btn-secondary mt-8 block text-center">
                 Join waitlist
               </Link>
             </div>

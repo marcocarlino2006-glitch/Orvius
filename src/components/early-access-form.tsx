@@ -2,13 +2,47 @@
 
 import { useState } from "react";
 
-export function EarlyAccessForm() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+type FormProps = {
+  variant?: "compact" | "full";
+};
 
-  function handleSubmit(e: React.FormEvent) {
+export function EarlyAccessForm({ variant = "compact" }: FormProps) {
+  const [email, setEmail] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [trade, setTrade] = useState("");
+  const [city, setCity] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (email.trim()) setSubmitted(true);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          businessName: businessName || undefined,
+          phone: phone || undefined,
+          trade: trade || undefined,
+          city: city || undefined,
+          plan: "pilot",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Signup failed");
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -16,9 +50,72 @@ export function EarlyAccessForm() {
       <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-6 text-center">
         <p className="text-lg font-medium text-green-300">You&apos;re on the list.</p>
         <p className="mt-2 text-sm text-muted">
-          We&apos;ll reach out when your spot opens up.
+          We&apos;ll reach out within 24 hours to get you set up.
         </p>
       </div>
+    );
+  }
+
+  if (variant === "full") {
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Business name">
+            <input
+              className="input"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              placeholder="Summit HVAC"
+            />
+          </Field>
+          <Field label="Your email" required>
+            <input
+              type="email"
+              required
+              className="input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+            />
+          </Field>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Phone">
+            <input
+              className="input"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1 555 123 4567"
+            />
+          </Field>
+          <Field label="Trade">
+            <select
+              className="input"
+              value={trade}
+              onChange={(e) => setTrade(e.target.value)}
+            >
+              <option value="">Select trade</option>
+              <option value="hvac">HVAC</option>
+              <option value="plumbing">Plumbing</option>
+              <option value="electrical">Electrical</option>
+              <option value="roofing">Roofing</option>
+              <option value="other">Other home services</option>
+            </select>
+          </Field>
+        </div>
+        <Field label="City / service area">
+          <input
+            className="input"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Austin, TX"
+          />
+        </Field>
+        {error && <p className="text-sm text-red-300">{error}</p>}
+        <button disabled={loading} className="btn btn-primary w-full sm:w-auto">
+          {loading ? "Submitting..." : "Apply for free pilot"}
+        </button>
+      </form>
     );
   }
 
@@ -32,9 +129,30 @@ export function EarlyAccessForm() {
         onChange={(e) => setEmail(e.target.value)}
         className="input flex-1"
       />
-      <button type="submit" className="btn btn-primary whitespace-nowrap">
-        Join waitlist
+      <button disabled={loading} type="submit" className="btn btn-primary whitespace-nowrap">
+        {loading ? "..." : "Join waitlist"}
       </button>
+      {error && <p className="w-full text-sm text-red-300 sm:order-3">{error}</p>}
     </form>
+  );
+}
+
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <label>
+      <span className="label">
+        {label}
+        {required ? " *" : ""}
+      </span>
+      {children}
+    </label>
   );
 }

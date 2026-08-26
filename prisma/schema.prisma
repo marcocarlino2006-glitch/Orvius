@@ -50,8 +50,8 @@ model Call {
 
 model Lead {
   id          String   @id @default(cuid())
-  businessId  String
-  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  businessId  String?
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
   callId      String?  @unique
   call        Call?    @relation(fields: [callId], references: [id], onDelete: SetNull)
   name        String?
@@ -65,4 +65,17 @@ model Lead {
   source      String   @default("call")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model WaitlistEntry {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  businessName String?
+  phone        String?
+  trade        String?
+  city         String?
+  plan         String   @default("pilot")
+  status       String   @default("new")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
