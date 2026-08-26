@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  phone           String?
+  ownerPhone      String?
+  ownerEmail      String?
+  timezone        String   @default("America/New_York")
+  hoursJson       String   @default("{}")
+  servicesJson    String   @default("[]")
+  greeting        String?
+  vapiAssistantId String?
+  vapiPhoneNumber String?
+  twilioPhone     String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  calls Call[]
+  leads Lead[]
+}
+
+model Call {
+  id           String    @id @default(cuid())
+  businessId   String
+  business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  vapiCallId   String?   @unique
+  callerPhone  String?
+  direction    String    @default("inbound")
+  status       String    @default("in-progress")
+  durationSec  Int?
+  summary      String?
+  transcript   String?
+  recordingUrl String?
+  booked       Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  lead Lead?
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  callId      String?  @unique
+  call        Call?    @relation(fields: [callId], references: [id], onDelete: SetNull)
+  name        String?
+  phone       String?
+  email       String?
+  serviceType String?
+  urgency     String?
+  address     String?
+  notes       String?
+  status      String   @default("new")
+  source      String   @default("call")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
