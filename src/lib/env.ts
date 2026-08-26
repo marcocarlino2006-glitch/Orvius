@@ -7,8 +7,10 @@ const REQUIRED = [
   "VAPI_API_KEY",
 ] as const;
 
+import { getPublicAppUrl } from "@/lib/domains";
+
 export function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  return getPublicAppUrl();
 }
 
 export function getWebhookUrl(path: string) {

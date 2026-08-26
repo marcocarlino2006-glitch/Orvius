@@ -22,6 +22,9 @@ export default function HomePage() {
           <Link href="/dashboard" className="btn btn-secondary">
             Open dashboard
           </Link>
+          <Link href="/domains" className="btn btn-secondary">
+            Domain setup
+          </Link>
         </div>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
