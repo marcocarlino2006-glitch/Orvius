@@ -2,38 +2,34 @@ import Link from "next/link";
 
 export function SiteNav() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 text-sm font-bold text-white">
-            O
-          </span>
-          <span className="text-lg font-semibold tracking-tight">Orvius</span>
+    <header className="absolute inset-x-0 top-0 z-50">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <Link
+          href="/"
+          className="font-display text-xl font-700 tracking-tight text-paper md:text-2xl"
+          style={{ fontWeight: 700 }}
+        >
+          Orvius
         </Link>
 
-        <nav className="hidden items-center gap-8 text-sm text-muted md:flex">
-          <a href="#how-it-works" className="hover:text-foreground">
+        <nav className="hidden items-center gap-8 text-sm text-paper/80 md:flex">
+          <a href="#how" className="transition hover:text-paper">
             How it works
           </a>
-          <a href="#features" className="hover:text-foreground">
-            Features
+          <a href="#product" className="transition hover:text-paper">
+            Product
           </a>
-          <a href="#pricing" className="hover:text-foreground">
-            Pricing
-          </a>
-          <Link href="/demo" className="hover:text-foreground">
-            Demo
+          <Link href="/pilot" className="transition hover:text-paper">
+            Pilot
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Link href="/admin" className="hidden text-sm text-muted hover:text-foreground sm:block">
-            Sign in
-          </Link>
-          <Link href="/pilot" className="btn btn-primary text-sm">
-            Get early access
-          </Link>
-        </div>
+        <Link
+          href="/pilot"
+          className="rounded-md bg-paper px-4 py-2 font-display text-sm font-semibold text-ink transition hover:-translate-y-0.5"
+        >
+          Start free pilot
+        </Link>
       </div>
     </header>
   );

@@ -1,26 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Syne, Literata } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Syne({
+  variable: "--font-display",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const body = Literata({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "Orvius — AI Receptionist for Service Businesses",
+  title: "Orvius — Never miss another job",
   description:
-    "Never miss a call. Orvius answers, qualifies leads, books appointments, and alerts owners — built for HVAC, plumbing, electrical, and home services.",
+    "Orvius is the AI receptionist for service businesses. Answer every call, capture every lead, run with less friction.",
+  metadataBase: new URL("https://orvius.im"),
   openGraph: {
-    title: "Orvius — AI Receptionist for Service Businesses",
+    title: "Orvius — Never miss another job",
     description:
-      "Never miss a call. AI receptionist for HVAC, plumbing, electrical & home services.",
+      "AI receptionist for HVAC, plumbing, electrical & home services.",
     type: "website",
+    url: "https://orvius.im",
   },
 };
 
@@ -31,9 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${display.variable} ${body.variable} antialiased`}>
         {children}
       </body>
     </html>

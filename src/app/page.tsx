@@ -1,63 +1,20 @@
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
-import { EarlyAccessForm } from "@/components/early-access-form";
 import Link from "next/link";
 
 const steps = [
   {
-    num: "01",
-    title: "Call or text comes in",
-    body: "After hours, lunch rush, or while you're on a job — Orvius picks up instantly.",
+    title: "Orvius answers",
+    body: "Every inbound call and text — after hours, lunch rush, or while you're on a job.",
   },
   {
-    num: "02",
-    title: "AI qualifies the lead",
-    body: "Service type, urgency, address, and callback number — captured naturally.",
+    title: "Qualifies the lead",
+    body: "Service type, urgency, address, and callback number, captured cleanly.",
   },
   {
-    num: "03",
-    title: "Books or schedules follow-up",
-    body: "Appointment booked or callback request logged. No lead slips through.",
+    title: "You get the summary",
+    body: "Instant owner alert with everything you need to close the job.",
   },
-  {
-    num: "04",
-    title: "Owner gets notified",
-    body: "Clean summary via SMS or email. Every conversation logged in your dashboard.",
-  },
-];
-
-const features = [
-  {
-    title: "AI receptionist",
-    body: "Answers every inbound call and text like a trained front desk — 24/7.",
-  },
-  {
-    title: "Lead qualification",
-    body: "Captures service type, urgency, location, and contact info automatically.",
-  },
-  {
-    title: "Appointment booking",
-    body: "Schedules estimates and service calls directly into your calendar.",
-  },
-  {
-    title: "Owner alerts",
-    body: "Instant SMS summary so you know exactly who called and what they need.",
-  },
-  {
-    title: "Business memory",
-    body: "Every customer, call, and note in one place — your AI-powered CRM.",
-  },
-  {
-    title: "Human fallback",
-    body: "Transfers to you or takes a message when the AI isn't confident.",
-  },
-];
-
-const stats = [
-  { value: "24/7", label: "Coverage" },
-  { value: "<3s", label: "Answer time" },
-  { value: "100%", label: "Calls logged" },
-  { value: "$0", label: "Missed leads" },
 ];
 
 export default function HomePage() {
@@ -65,160 +22,141 @@ export default function HomePage() {
     <>
       <SiteNav />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.12)_0%,_transparent_60%)]" />
-        <div className="relative mx-auto max-w-6xl px-6 pb-20 pt-16 md:pb-28 md:pt-24">
-          <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-4 py-1.5 text-sm text-sky-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-            Now onboarding home service businesses
-          </div>
+      {/* Hero — one composition: brand, headline, sentence, CTA, full-bleed image */}
+      <section className="relative min-h-[100svh] overflow-hidden bg-ink text-paper">
+        <div className="absolute inset-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=2400&q=80"
+            alt="Service technician at work"
+            className="hero-media h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/70 to-ink/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-ink/30" />
+        </div>
 
-          <h1 className="mt-8 max-w-4xl text-4xl font-semibold leading-[1.1] tracking-tight md:text-6xl">
-            Never miss another job because a call went{" "}
-            <span className="bg-gradient-to-r from-sky-300 to-blue-400 bg-clip-text text-transparent">
-              unanswered
-            </span>
+        <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-6 pb-16 pt-28 md:pb-24 md:pt-32">
+          <p
+            className="animate-rise font-display text-6xl font-800 leading-none tracking-tight md:text-8xl lg:text-9xl"
+            style={{ fontWeight: 800 }}
+          >
+            Orvius
+          </p>
+
+          <h1 className="animate-rise-delay mt-6 max-w-xl font-display text-2xl font-600 leading-snug md:text-4xl">
+            Never miss another job because a call went unanswered.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">
-            Orvius is the AI receptionist for service businesses. It answers calls,
-            qualifies leads, books appointments, and keeps owners in the loop — so
-            you can focus on the work that pays.
+          <p className="animate-rise-delay-2 mt-4 max-w-md text-base leading-relaxed text-paper/75 md:text-lg">
+            The AI receptionist for service businesses — answers, qualifies, and
+            gets the lead to you.
           </p>
 
-          <div id="early-access" className="mt-10 max-w-lg">
-            <EarlyAccessForm />
-            <p className="mt-3 text-xs text-muted">
-              Free 30-day pilot for the first 10 businesses. No credit card.
+          <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
+            <Link href="/pilot" className="btn btn-primary bg-accent text-paper">
+              Start free pilot
+            </Link>
+            <a href="#how" className="btn btn-secondary border-paper/40 text-paper hover:bg-paper hover:text-ink">
+              See how it works
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Problem — one job */}
+      <section className="border-b border-line py-20 md:py-28">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="max-w-3xl font-display text-3xl font-700 leading-tight md:text-5xl">
+            Big companies have AI ops teams.
+            <span className="text-muted"> You have voicemail.</span>
+          </h2>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
+            A missed call isn&apos;t a missed message — it&apos;s a lost job.
+            Orvius makes sure every opportunity gets answered.
+          </p>
+        </div>
+      </section>
+
+      {/* How it works — one job, no cards */}
+      <section id="how" className="border-b border-line bg-surface/60 py-20 md:py-28">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="font-display text-3xl font-700 md:text-5xl">
+            From ring to owner alert
+          </h2>
+          <p className="mt-4 max-w-lg text-muted">
+            One loop. Built for HVAC, plumbing, electrical, and home services.
+          </p>
+
+          <ol className="mt-14 space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-12">
+            {steps.map((step, index) => (
+              <li key={step.title} className="relative">
+                <p className="font-display text-5xl font-700 text-accent/30">
+                  {String(index + 1).padStart(2, "0")}
+                </p>
+                <h3 className="mt-3 font-display text-2xl font-600">{step.title}</h3>
+                <p className="mt-3 leading-relaxed text-muted">{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Product — one job, one visual anchor */}
+      <section id="product" className="border-b border-line py-20 md:py-28">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 lg:grid-cols-2">
+          <div>
+            <h2 className="font-display text-3xl font-700 md:text-5xl">
+              Built for the truck, not the office
+            </h2>
+            <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
+              While you&apos;re on a job, Orvius answers the next one. You get a
+              clean summary by text — who called, what they need, how urgent it is.
             </p>
+            <Link href="/demo" className="btn btn-secondary mt-8">
+              Watch a demo call
+            </Link>
           </div>
 
-          <div className="mt-16 grid grid-cols-2 gap-6 md:grid-cols-4">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center md:text-left">
-                <p className="text-3xl font-semibold text-sky-300">{stat.value}</p>
-                <p className="mt-1 text-sm text-muted">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="border-y border-border/60 bg-card/30 py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-300">The problem</p>
-          <h2 className="mt-4 max-w-2xl text-3xl font-semibold md:text-4xl">
-            Big companies have AI ops teams. You have voicemail.
-          </h2>
-          <p className="mt-4 max-w-2xl text-muted leading-relaxed">
-            A missed call isn&apos;t just an inconvenience — it&apos;s a lost job worth
-            hundreds or thousands of dollars. Most small service businesses lose
-            20–40% of inbound leads simply because nobody picked up.
-          </p>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section id="how-it-works" className="py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-300">How it works</p>
-          <h2 className="mt-4 text-3xl font-semibold md:text-4xl">
-            From ring to booked in under 2 minutes
-          </h2>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {steps.map((step) => (
-              <div key={step.num} className="card p-6">
-                <p className="font-mono text-sm text-sky-300">{step.num}</p>
-                <h3 className="mt-3 font-medium">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="border-y border-border/60 bg-card/30 py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-300">Features</p>
-          <h2 className="mt-4 text-3xl font-semibold md:text-4xl">
-            Everything a front desk does — without the overhead
-          </h2>
-
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <div key={feature.title} className="rounded-xl border border-border p-6">
-                <h3 className="font-medium">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{feature.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-300">Pricing</p>
-          <h2 className="mt-4 text-3xl font-semibold md:text-4xl">
-            Simple pricing. Obvious ROI.
-          </h2>
-          <p className="mt-4 max-w-xl text-muted">
-            One saved job pays for months of Orvius. Start free, scale when it works.
-          </p>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:max-w-3xl">
-            <div className="card p-8">
-              <p className="text-sm font-medium text-sky-300">Pilot</p>
-              <p className="mt-4 text-4xl font-semibold">
-                Free
-                <span className="text-base font-normal text-muted"> / 30 days</span>
+          <div className="relative overflow-hidden rounded-lg bg-ink p-6 text-paper shadow-[0_24px_60px_rgba(14,16,19,0.18)] md:p-8">
+            <p className="text-xs uppercase tracking-[0.18em] text-paper/50">
+              Owner alert
+            </p>
+            <p className="mt-4 font-display text-2xl font-600 leading-snug">
+              New lead from Maria Lopez
+            </p>
+            <div className="mt-6 space-y-3 text-sm leading-relaxed text-paper/75">
+              <p>Phone: +1 512 555 0123</p>
+              <p>Service: AC not cooling</p>
+              <p>Urgency: Emergency</p>
+              <p>Address: 1842 Oak Street, Austin TX</p>
+              <p className="border-t border-white/10 pt-3">
+                Prefers today after 4pm. Orvius confirmed callback number.
               </p>
-              <ul className="mt-6 space-y-3 text-sm text-muted">
-                <li>✓ AI call + SMS receptionist</li>
-                <li>✓ Lead capture & owner alerts</li>
-                <li>✓ Personal onboarding</li>
-                <li>✓ Unlimited calls during pilot</li>
-              </ul>
-              <Link href="/pilot" className="btn btn-primary mt-8 block text-center">
-                Start free pilot
-              </Link>
-            </div>
-
-            <div className="card border-sky-500/40 p-8">
-              <p className="text-sm font-medium text-sky-300">Pro</p>
-              <p className="mt-4 text-4xl font-semibold">
-                $299
-                <span className="text-base font-normal text-muted"> / month</span>
-              </p>
-              <ul className="mt-6 space-y-3 text-sm text-muted">
-                <li>✓ Everything in Pilot</li>
-                <li>✓ Calendar booking integration</li>
-                <li>✓ Business memory & CRM</li>
-                <li>✓ Priority support</li>
-              </ul>
-              <Link href="/pilot" className="btn btn-secondary mt-8 block text-center">
-                Join waitlist
-              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="border-t border-border/60 bg-gradient-to-b from-sky-500/5 to-transparent py-20">
-        <div className="mx-auto max-w-2xl px-6 text-center">
-          <h2 className="text-3xl font-semibold md:text-4xl">
-            Stop losing jobs to voicemail
-          </h2>
-          <p className="mt-4 text-muted">
-            Join the first 10 home service businesses on Orvius. Free for 30 days.
-          </p>
-          <div className="mt-8">
-            <EarlyAccessForm />
+      {/* Pilot CTA — one job */}
+      <section className="py-20 md:py-28">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="relative overflow-hidden rounded-lg bg-accent px-8 py-14 text-paper md:px-14 md:py-20">
+            <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
+            <div className="absolute -bottom-20 left-1/3 h-64 w-64 rounded-full bg-black/10" />
+            <div className="relative max-w-2xl">
+              <h2 className="font-display text-3xl font-700 md:text-5xl">
+                First 10 shops get Orvius free for 30 days
+              </h2>
+              <p className="mt-4 text-lg text-paper/80">
+                We set it up with you. No credit card. Prove it on real calls.
+              </p>
+              <Link
+                href="/pilot"
+                className="btn mt-8 bg-paper text-ink hover:bg-white"
+              >
+                Apply for the pilot
+              </Link>
+            </div>
           </div>
         </div>
       </section>

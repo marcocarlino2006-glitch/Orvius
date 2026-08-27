@@ -1,81 +1,163 @@
 @import "tailwindcss";
 
 :root {
-  --background: #070b14;
-  --foreground: #eef2ff;
-  --card: #0f172a;
-  --muted: #94a3b8;
-  --accent: #38bdf8;
-  --accent-strong: #0ea5e9;
-  --success: #22c55e;
-  --border: #1e293b;
+  --background: #f3f1ec;
+  --foreground: #16181c;
+  --surface: #ebe7df;
+  --muted: #5c636c;
+  --accent: #0b6e63;
+  --accent-strong: #08584f;
+  --ink: #0e1013;
+  --line: #d4cfc4;
+  --paper: #faf8f4;
+  --card: #faf8f4;
+  --border: #d4cfc4;
+  --success: #0b6e63;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
+  --color-surface: var(--surface);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
-  --color-success: var(--success);
+  --color-ink: var(--ink);
+  --color-line: var(--line);
+  --color-paper: var(--paper);
+  --color-card: var(--card);
   --color-border: var(--border);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-success: var(--success);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
 body {
-  background: radial-gradient(circle at top, #111827 0%, #070b14 45%);
+  background:
+    radial-gradient(120% 80% at 10% -10%, #fffdf8 0%, transparent 55%),
+    radial-gradient(90% 60% at 100% 0%, #dfece8 0%, transparent 45%),
+    var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-body), Georgia, serif;
   min-height: 100vh;
 }
 
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+
 .card {
-  background: color-mix(in srgb, var(--card) 92%, white 8%);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
 }
 
 .input {
   width: 100%;
-  border-radius: 0.75rem;
-  border: 1px solid var(--border);
-  background: #0b1220;
-  padding: 0.75rem 1rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 0.85rem 1rem;
   color: var(--foreground);
+  font-family: var(--font-body), Georgia, serif;
 }
 
 .input:focus {
-  outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
   border-color: var(--accent);
 }
 
 .btn {
-  border-radius: 0.75rem;
-  padding: 0.75rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.4rem;
+  padding: 0.9rem 1.4rem;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-weight: 600;
-  transition: all 0.15s ease;
+  letter-spacing: -0.02em;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-strong), #2563eb);
-  color: white;
+  background: var(--accent);
+  color: #f7fffc;
 }
 
 .btn-primary:hover {
-  filter: brightness(1.08);
+  background: var(--accent-strong);
 }
 
 .btn-secondary {
-  background: #111827;
-  border: 1px solid var(--border);
-  color: var(--foreground);
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+}
+
+.btn-secondary:hover {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--muted);
-  margin-bottom: 0.375rem;
+  margin-bottom: 0.4rem;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: scale(1.08) translateY(0);
+  }
+  to {
+    transform: scale(1) translateY(-1.5%);
+  }
+}
+
+.animate-rise {
+  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-rise-delay {
+  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+.animate-rise-delay-2 {
+  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both;
+}
+
+.hero-media {
+  animation: drift 18s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-rise-delay,
+  .animate-rise-delay-2,
+  .hero-media {
+    animation: none;
+  }
 }

@@ -47,8 +47,10 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
 
   if (submitted) {
     return (
-      <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-6 text-center">
-        <p className="text-lg font-medium text-green-300">You&apos;re on the list.</p>
+      <div className="rounded-md border border-accent/30 bg-accent/10 p-6 text-center">
+        <p className="font-display text-lg font-600 text-accent-strong">
+          You&apos;re on the list.
+        </p>
         <p className="mt-2 text-sm text-muted">
           We&apos;ll reach out within 24 hours to get you set up.
         </p>
@@ -111,7 +113,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
             placeholder="Austin, TX"
           />
         </Field>
-        {error && <p className="text-sm text-red-300">{error}</p>}
+        {error && <p className="text-sm text-red-700">{error}</p>}
         <button disabled={loading} className="btn btn-primary w-full sm:w-auto">
           {loading ? "Submitting..." : "Apply for free pilot"}
         </button>
@@ -129,10 +131,16 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         onChange={(e) => setEmail(e.target.value)}
         className="input flex-1"
       />
-      <button disabled={loading} type="submit" className="btn btn-primary whitespace-nowrap">
+      <button
+        disabled={loading}
+        type="submit"
+        className="btn btn-primary whitespace-nowrap"
+      >
         {loading ? "..." : "Join waitlist"}
       </button>
-      {error && <p className="w-full text-sm text-red-300 sm:order-3">{error}</p>}
+      {error && (
+        <p className="w-full text-sm text-red-700 sm:order-3">{error}</p>
+      )}
     </form>
   );
 }
