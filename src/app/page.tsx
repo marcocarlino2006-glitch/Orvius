@@ -34,25 +34,28 @@ export default function HomePage() {
 
       <main>
         {/* Hero — Orvius is the composition */}
-        <section className="relative flex min-h-[100svh] items-end bg-paper">
-          <div className="mx-auto w-full max-w-6xl px-6 pb-16 pt-28 md:px-10 md:pb-24 md:pt-32">
-            <h1 className="animate-rise font-serif text-[clamp(4.5rem,18vw,13rem)] leading-[0.86] tracking-[-0.06em] text-ink">
+        <section className="relative flex min-h-[100svh] flex-col justify-between bg-paper">
+          <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-end px-6 pb-10 pt-28 md:px-10 md:pb-14">
+            <h1 className="animate-rise font-serif text-[clamp(5.5rem,22vw,15rem)] leading-[0.82] tracking-[-0.07em] text-ink">
               Orvius
             </h1>
+          </div>
 
-            <p className="animate-rise-delay mt-8 max-w-2xl font-serif text-2xl leading-snug tracking-[-0.02em] text-ink md:text-4xl md:leading-tight">
-              The front door of your business — always answered.
-            </p>
-
-            <p className="animate-rise-delay-2 mt-5 max-w-xl font-serif text-lg leading-relaxed text-muted md:text-xl">
-              AI operating partner for service businesses. Capture every lead.
-              Run with less friction.
-            </p>
-
-            <div className="animate-rise-delay-2 mt-10">
-              <Link href="/pilot" className="btn btn-primary">
-                Start free pilot
-              </Link>
+          <div className="border-t border-line">
+            <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 md:flex-row md:items-end md:justify-between md:px-10 md:py-12">
+              <div className="max-w-xl">
+                <p className="animate-rise-delay font-serif text-2xl leading-snug tracking-[-0.02em] text-ink md:text-3xl">
+                  The front door of your business — always answered.
+                </p>
+                <p className="animate-rise-delay-2 mt-4 font-serif text-lg leading-relaxed text-muted">
+                  AI operating partner for service businesses.
+                </p>
+              </div>
+              <div className="animate-rise-delay-2 shrink-0">
+                <Link href="/pilot" className="btn btn-primary">
+                  Start free pilot
+                </Link>
+              </div>
             </div>
           </div>
         </section>
