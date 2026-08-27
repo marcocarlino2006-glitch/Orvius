@@ -5,137 +5,130 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-line/60 bg-paper/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-8">
+      <header className="absolute inset-x-0 top-0 z-40">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 md:px-8">
           <Link
             href="/"
-            className="font-sans text-sm font-medium tracking-[0.14em] text-ink uppercase"
+            className="font-sans text-sm font-semibold tracking-[0.22em] text-paper uppercase"
           >
             Orvius
           </Link>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-5">
             <Link
               href="/dashboard"
-              className="hidden font-sans text-sm text-muted transition hover:text-ink md:inline"
+              className="hidden font-sans text-sm text-paper/50 transition hover:text-paper md:inline"
             >
               Product
             </Link>
-            <Link href="/pilot" className="btn btn-primary">
+            <Link href="/pilot" className="btn home-btn-primary">
               Start free pilot
             </Link>
           </div>
         </div>
       </header>
 
-      <main>
-        {/* Hero — big brand, tight composition */}
-        <section className="bg-paper">
-          <div className="mx-auto max-w-6xl px-6 py-14 md:px-8 md:py-16">
-            <h1 className="animate-rise font-serif text-[clamp(4rem,14vw,9.5rem)] leading-[0.9] tracking-[-0.055em] text-ink">
+      <main className="bg-[#07110e]">
+        {/* One composition: brand dominates the first viewport */}
+        <section className="orvius-atmosphere relative min-h-[100svh] overflow-hidden text-[#f2f7f4]">
+          <div className="orvius-grain absolute inset-0" aria-hidden />
+
+          <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-6 pb-14 pt-28 md:px-8 md:pb-16 md:pt-32">
+            <p className="anim-rise font-sans text-xs font-semibold tracking-[0.28em] text-[#3dd68c] uppercase">
+              AI operating partner
+            </p>
+
+            <h1 className="anim-rise anim-rise-delay-1 mt-5 font-serif text-[clamp(4.5rem,18vw,12.5rem)] leading-[0.82] tracking-[-0.07em] text-[#f2f7f4]">
               Orvius
             </h1>
 
-            <div className="animate-rise-delay mt-6 grid gap-8 border-t border-line pt-6 md:grid-cols-[1.4fr_0.8fr] md:items-end md:gap-12">
-              <div>
-                <p className="font-serif text-2xl leading-snug tracking-[-0.02em] text-ink md:text-3xl">
-                  The front door of your business — always answered.
-                </p>
-                <p className="mt-3 max-w-xl font-serif text-lg leading-relaxed text-muted">
-                  AI operating partner for service businesses. Capture every
-                  lead. Run with less friction.
-                </p>
-              </div>
-              <div className="md:justify-self-end">
-                <Link href="/pilot" className="btn btn-primary">
-                  Start free pilot
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+            <div className="anim-line mt-8 h-px w-full max-w-3xl bg-[#3dd68c]/70" />
 
-        {/* Statement */}
-        <section className="border-y border-line bg-ink text-paper">
-          <div className="mx-auto max-w-6xl px-6 py-14 md:px-8 md:py-16">
-            <h2 className="max-w-4xl font-serif text-3xl leading-[1.15] tracking-[-0.03em] md:text-5xl">
-              Big companies run on AI.
-              <span className="text-paper/45">
-                {" "}
-                Small businesses still run on missed calls.
-              </span>
-            </h2>
-          </div>
-        </section>
-
-        {/* How */}
-        <section className="bg-paper">
-          <div className="mx-auto max-w-6xl px-6 py-14 md:px-8 md:py-16">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="font-sans text-sm font-medium tracking-[0.16em] text-muted uppercase">
-                  How Orvius works
-                </p>
-                <h2 className="mt-2 font-serif text-3xl tracking-[-0.03em] md:text-4xl">
-                  From unanswered to booked.
-                </h2>
-              </div>
-            </div>
-
-            <div className="mt-10 grid gap-8 border-t border-line pt-10 md:grid-cols-3 md:gap-10">
-              {[
-                {
-                  title: "Answers",
-                  body: "Every inbound call and text — after hours, mid-job, or when no one can pick up.",
-                },
-                {
-                  title: "Qualifies",
-                  body: "Service, urgency, address, and callback — captured cleanly.",
-                },
-                {
-                  title: "Alerts you",
-                  body: "A precise owner summary with everything you need to close.",
-                },
-              ].map((item) => (
-                <div key={item.title}>
-                  <h3 className="font-serif text-2xl tracking-[-0.02em] text-ink">
-                    {item.title}
-                  </h3>
-                  <p className="mt-3 font-serif text-base leading-relaxed text-muted md:text-lg">
-                    {item.body}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Product */}
-        <section id="product" className="border-y border-line bg-surface/80">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-14 md:px-8 md:py-16 lg:grid-cols-2 lg:gap-14">
-            <div>
-              <p className="font-sans text-sm font-medium tracking-[0.16em] text-muted uppercase">
-                Product
+            <div className="anim-rise anim-rise-delay-2 mt-7 max-w-2xl">
+              <p className="font-serif text-2xl leading-snug text-[#f2f7f4] md:text-3xl">
+                The front door of your business — always answered.
               </p>
-              <h2 className="mt-2 font-serif text-3xl tracking-[-0.03em] md:text-4xl">
-                Built for the field.
-              </h2>
-              <p className="mt-4 max-w-md font-serif text-lg leading-relaxed text-muted">
-                While you&apos;re on a job, Orvius takes the next one. You get a
-                summary — not a voicemail.
+              <p className="mt-3 font-sans text-base leading-relaxed text-[#8aa399] md:text-lg">
+                For HVAC, plumbing, and electrical shops that lose jobs to
+                missed calls. Orvius picks up, qualifies, and puts the lead in
+                your hand.
               </p>
-              <Link href="/demo" className="btn btn-secondary mt-7">
-                Try a demo call
+            </div>
+
+            <div className="anim-rise anim-rise-delay-3 mt-9 flex flex-wrap items-center gap-4">
+              <Link href="/pilot" className="btn home-btn-primary">
+                Start free pilot
               </Link>
+              <Link href="/demo" className="btn home-btn-secondary">
+                Hear a demo call
+              </Link>
+              <span className="inline-flex items-center gap-2 font-sans text-sm text-[#8aa399]">
+                <span className="anim-pulse inline-block size-2 rounded-full bg-[#3dd68c]" />
+                Live for service businesses
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* How it works — one job */}
+        <section className="border-t border-white/10 bg-[#07110e] text-[#f2f7f4]">
+          <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-3 md:gap-8 md:px-8 md:py-20">
+            {[
+              {
+                step: "01",
+                title: "Answers",
+                body: "Every inbound call and text — after hours or mid-job.",
+              },
+              {
+                step: "02",
+                title: "Qualifies",
+                body: "Service, urgency, address, callback — captured cleanly.",
+              },
+              {
+                step: "03",
+                title: "Alerts you",
+                body: "A precise owner summary with what you need to close.",
+              },
+            ].map((item) => (
+              <div key={item.step}>
+                <p className="font-sans text-xs font-semibold tracking-[0.2em] text-[#3dd68c] uppercase">
+                  {item.step}
+                </p>
+                <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em]">
+                  {item.title}
+                </h2>
+                <p className="mt-3 max-w-xs font-sans text-base leading-relaxed text-[#8aa399]">
+                  {item.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Product proof */}
+        <section className="border-t border-white/10 bg-[#0f1c18]">
+          <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:px-8 md:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+            <div>
+              <h2 className="font-serif text-3xl leading-[1.12] tracking-[-0.03em] text-[#f2f7f4] md:text-5xl">
+                Big companies run on AI. Small businesses still run on missed
+                calls.
+              </h2>
+              <p className="mt-5 max-w-lg font-sans text-lg leading-relaxed text-[#8aa399]">
+                Orvius answers when you can&apos;t — then puts the lead in your
+                hand.
+              </p>
             </div>
 
-            <div className="rounded-2xl border border-line bg-paper p-7 md:p-8">
-              <p className="font-sans text-xs font-medium tracking-[0.18em] text-muted uppercase">
-                Orvius · Owner alert
-              </p>
-              <p className="mt-4 font-serif text-2xl leading-snug tracking-[-0.02em] text-ink md:text-3xl">
+            <div className="rounded-2xl border border-white/10 bg-[#07110e]/80 p-6 shadow-[0_0_0_1px_rgba(61,214,140,0.08)] md:p-8">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-sans text-xs font-semibold tracking-[0.18em] text-[#3dd68c] uppercase">
+                  Owner alert
+                </p>
+                <span className="font-sans text-xs text-[#8aa399]">just now</span>
+              </div>
+              <p className="mt-4 font-serif text-2xl text-[#f2f7f4] md:text-3xl">
                 New lead from Maria Lopez
               </p>
-              <dl className="mt-6 font-serif text-base text-muted md:text-lg">
+              <dl className="mt-6 space-y-0 font-sans text-sm text-[#8aa399]">
                 {[
                   ["Phone", "+1 512 555 0123"],
                   ["Service", "AC not cooling"],
@@ -144,12 +137,12 @@ export default function HomePage() {
                 ].map(([label, value], i, arr) => (
                   <div
                     key={label}
-                    className={`flex justify-between gap-6 py-2.5 ${
-                      i < arr.length - 1 ? "border-b border-line" : ""
+                    className={`flex justify-between gap-4 py-3 ${
+                      i < arr.length - 1 ? "border-b border-white/10" : ""
                     }`}
                   >
                     <dt>{label}</dt>
-                    <dd className="text-right text-ink">{value}</dd>
+                    <dd className="text-[#f2f7f4]">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -158,23 +151,19 @@ export default function HomePage() {
         </section>
 
         {/* Close */}
-        <section className="bg-ink text-paper">
-          <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-14 md:flex-row md:items-end md:justify-between md:px-8 md:py-16">
-            <div className="max-w-2xl">
-              <p className="font-serif text-5xl leading-none tracking-[-0.04em] md:text-6xl">
-                Orvius
-              </p>
-              <h2 className="mt-5 font-serif text-2xl leading-snug tracking-[-0.02em] md:text-3xl">
-                First ten shops. Thirty days free.
+        <section className="border-t border-white/10 bg-[#07110e]">
+          <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-16 md:flex-row md:items-end md:justify-between md:px-8 md:py-20">
+            <div>
+              <h2 className="font-serif text-3xl tracking-[-0.03em] text-[#f2f7f4] md:text-5xl">
+                First ten shops.
+                <br />
+                Thirty days free.
               </h2>
-              <p className="mt-3 font-serif text-lg text-paper/60">
-                We set it up with you. Prove it on real calls.
+              <p className="mt-4 max-w-md font-sans text-lg text-[#8aa399]">
+                We set Orvius up with you. Prove it on real calls.
               </p>
             </div>
-            <Link
-              href="/pilot"
-              className="btn shrink-0 bg-paper text-ink hover:bg-white"
-            >
+            <Link href="/pilot" className="btn home-btn-primary shrink-0">
               Apply for the pilot
             </Link>
           </div>
