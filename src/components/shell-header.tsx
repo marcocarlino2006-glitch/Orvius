@@ -120,7 +120,7 @@ export function ShellHeader({
             {nav ? (
               <button
                 type="button"
-                className={`shell-menu-toggle ${isVoid ? "shell-menu-toggle-void" : "shell-menu-toggle-chalk"}`}
+                className={`shell-menu-toggle md:hidden ${isVoid ? "shell-menu-toggle-void" : "shell-menu-toggle-chalk"}`}
                 aria-expanded={menuOpen}
                 aria-controls={menuId}
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
