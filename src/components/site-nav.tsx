@@ -21,6 +21,9 @@ export function SiteNav() {
           <a href="#pricing" className="hover:text-foreground">
             Pricing
           </a>
+          <Link href="/demo" className="hover:text-foreground">
+            Demo
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
