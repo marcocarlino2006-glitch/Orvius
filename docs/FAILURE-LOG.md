@@ -5,7 +5,8 @@ Track every miss in the wedge loop. Fix same-day. No repeat failures.
 | Date | Path | Failure | Severity | Status |
 |------|------|---------|----------|--------|
 | 2026-08-27 | Live call | Twilio/Vapi secrets empty in `.env` — cannot auth or provision | Blocker | **Fixed** |
-| 2026-08-27 | Provision | Demo business had no Vapi assistant | High | **Fixed** — assistant `efaa2715-7be9-4f25-862d-36f8f67981c6` |
+| 2026-08-27 | Vapi attach | Phone not linked to assistant | Blocker | **Fixed** — imported +18446439170 |
+| 2026-08-27 | Webhooks | api.orvius.im unreachable pre-DNS | High | **Mitigated** — tunnel + Vapi webhook updated |
 | 2026-08-27 | Deploy | `orvius.im` DNS still on Manus (503) | Blocker | Open |
 | 2026-08-27 | Deploy | No GitHub remote — cannot Vercel deploy | Blocker | Open |
 | 2026-08-27 | Owner SMS | `ENABLE_OWNER_SMS` not true / no owner phone on business | Medium | Open |
