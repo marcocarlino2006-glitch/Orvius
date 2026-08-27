@@ -1,28 +1,29 @@
 import type { Metadata } from "next";
-import { Syne, Literata } from "next/font/google";
+import { Newsreader, Outfit } from "next/font/google";
 import "./globals.css";
 
-const display = Syne({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-});
-
-const body = Literata({
-  variable: "--font-body",
+const serif = Newsreader({
+  variable: "--font-serif",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+});
+
+const sans = Outfit({
+  variable: "--font-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Orvius — Never miss another job",
+  title: "Orvius",
   description:
-    "Orvius is the AI receptionist for service businesses. Answer every call, capture every lead, run with less friction.",
+    "Orvius is the AI operating partner for service businesses. Every call answered. Every lead captured.",
   metadataBase: new URL("https://orvius.im"),
   openGraph: {
-    title: "Orvius — Never miss another job",
+    title: "Orvius",
     description:
-      "AI receptionist for HVAC, plumbing, electrical & home services.",
+      "The AI operating partner for service businesses.",
     type: "website",
     url: "https://orvius.im",
   },
@@ -35,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${body.variable} antialiased`}>
+      <body className={`${serif.variable} ${sans.variable} antialiased`}>
         {children}
       </body>
     </html>

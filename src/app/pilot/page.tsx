@@ -9,7 +9,7 @@ export default function PilotPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Link
             href="/"
-            className="font-display text-xl font-700 text-ink"
+            className="font-sans text-xl font-semibold text-ink"
             style={{ fontWeight: 700 }}
           >
             Orvius
@@ -21,7 +21,7 @@ export default function PilotPage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-6 py-16 md:py-24">
-        <h1 className="font-display text-4xl font-700 leading-tight md:text-5xl">
+        <h1 className="font-sans text-4xl font-semibold leading-tight md:text-5xl">
           Get Orvius answering your calls this week
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-muted">

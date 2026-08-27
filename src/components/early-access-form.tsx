@@ -48,7 +48,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
   if (submitted) {
     return (
       <div className="rounded-md border border-accent/30 bg-accent/10 p-6 text-center">
-        <p className="font-display text-lg font-600 text-accent-strong">
+        <p className="font-sans text-lg font-medium text-accent-strong">
           You&apos;re on the list.
         </p>
         <p className="mt-2 text-sm text-muted">

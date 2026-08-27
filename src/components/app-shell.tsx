@@ -24,7 +24,7 @@ export function AppShell({
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link
             href="/"
-            className="font-display text-xl font-700 tracking-tight text-ink"
+            className="font-sans text-xl font-semibold tracking-tight text-ink"
             style={{ fontWeight: 700 }}
           >
             Orvius
@@ -37,7 +37,7 @@ export function AppShell({
 
       <div className="mx-auto max-w-6xl px-6 pt-10">
         <div className="mb-8 max-w-2xl">
-          <h1 className="font-display text-3xl font-700 tracking-tight text-ink md:text-4xl">
+          <h1 className="font-sans text-3xl font-semibold tracking-tight text-ink md:text-4xl">
             {title}
           </h1>
           {subtitle && (

@@ -65,11 +65,11 @@ export function ProfileMenu({
         >
           <div className="border-b border-line px-4 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ink font-display text-sm font-700 text-paper">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ink font-sans text-sm font-semibold text-paper">
                 O
               </div>
               <div className="min-w-0">
-                <p className="truncate font-display text-base font-600 text-ink">
+                <p className="truncate font-sans text-base font-medium text-ink">
                   {businessName}
                 </p>
                 <p className="truncate text-xs text-muted">{statusLabel}</p>
@@ -86,7 +86,7 @@ export function ProfileMenu({
                 onClick={() => setOpen(false)}
                 className="flex items-start justify-between gap-3 px-4 py-2.5 transition hover:bg-surface"
               >
-                <span className="font-display text-sm font-600 text-ink">
+                <span className="font-sans text-sm font-medium text-ink">
                   {item.label}
                 </span>
                 <span className="text-right text-xs text-muted">{item.hint}</span>
@@ -98,7 +98,7 @@ export function ProfileMenu({
             <Link
               href="/"
               onClick={() => setOpen(false)}
-              className="block rounded-xl px-3 py-2.5 font-display text-sm font-600 text-ink transition hover:bg-surface"
+              className="block rounded-xl px-3 py-2.5 font-sans text-sm font-medium text-ink transition hover:bg-surface"
             >
               Marketing site
             </Link>
@@ -119,11 +119,11 @@ export function ProfileMenu({
         }}
         className="group flex items-center gap-3 rounded-full border border-line bg-paper py-2 pl-2 pr-4 shadow-[0_10px_30px_rgba(14,16,19,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(14,16,19,0.16)]"
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-sm font-700 text-paper transition group-hover:bg-accent">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-sans text-sm font-semibold text-paper transition group-hover:bg-accent">
           O
         </span>
         <span className="hidden text-left sm:block">
-          <span className="block font-display text-sm font-600 leading-none text-ink">
+          <span className="block font-sans text-sm font-medium leading-none text-ink">
             Orvius
           </span>
           <span className="mt-1 block text-[11px] leading-none text-muted">

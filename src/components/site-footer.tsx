@@ -2,34 +2,35 @@ import Link from "next/link";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-ink text-paper">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-12 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="font-display text-3xl font-700" style={{ fontWeight: 700 }}>
-            Orvius
-          </p>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-paper/70">
-            The AI operating partner for service businesses.
-          </p>
+    <footer className="bg-ink text-paper">
+      <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
+        <div className="flex flex-col justify-between gap-12 md:flex-row md:items-start">
+          <div>
+            <p className="font-sans text-lg font-medium tracking-tight">Orvius</p>
+            <p className="mt-4 max-w-sm font-serif text-lg leading-relaxed text-paper/60">
+              The AI operating partner for service businesses.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-x-10 gap-y-4 font-sans text-sm text-paper/65">
+            <Link href="/pilot" className="hover:text-paper">
+              Pilot
+            </Link>
+            <Link href="/demo" className="hover:text-paper">
+              Demo
+            </Link>
+            <Link href="/dashboard" className="hover:text-paper">
+              Product
+            </Link>
+            <a href="mailto:hello@orvius.im" className="hover:text-paper">
+              hello@orvius.im
+            </a>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-6 text-sm text-paper/70">
-          <Link href="/pilot" className="hover:text-paper">
-            Pilot
-          </Link>
-          <Link href="/demo" className="hover:text-paper">
-            Demo
-          </Link>
-          <a href="mailto:hello@orvius.im" className="hover:text-paper">
-            hello@orvius.im
-          </a>
-        </div>
-      </div>
-
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-paper/50">
-          <p>© {new Date().getFullYear()} Orvius · orvius.im</p>
-          <p>Built for HVAC, plumbing, electrical & home services</p>
+        <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-8 font-sans text-xs text-paper/40">
+          <p>© {new Date().getFullYear()} Orvius</p>
+          <p>orvius.im</p>
         </div>
       </div>
     </footer>
