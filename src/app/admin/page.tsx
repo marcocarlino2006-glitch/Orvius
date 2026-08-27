@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppShell } from "@/components/app-shell";
 import { useEffect, useState } from "react";
 
 type Business = {
@@ -134,23 +134,11 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-300">
-            Orvius Admin
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold">Business setup</h1>
-          <p className="mt-2 max-w-2xl text-muted">
-            Create a business, auto-provision a Vapi assistant, and connect your
-            Twilio number in the Vapi dashboard.
-          </p>
-        </div>
-        <Link href="/dashboard" className="btn btn-secondary">
-          View dashboard
-        </Link>
-      </header>
-
+    <AppShell
+      title="Business setup"
+      subtitle="Create a business, provision a Vapi assistant, and connect your Twilio number."
+      statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
+    >
       {health && (
         <section className="card mb-8 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -165,8 +153,8 @@ export default function AdminPage() {
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold ${
                 health.configured
-                  ? "bg-green-500/15 text-green-300"
-                  : "bg-amber-500/15 text-amber-300"
+                  ? "bg-green-500/15 text-green-700"
+                  : "bg-amber-500/15 text-amber-700"
               }`}
             >
               {health.configured ? "Ready" : "Setup needed"}
@@ -179,7 +167,7 @@ export default function AdminPage() {
                 className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
               >
                 <span>{item.name}</span>
-                <span className={item.configured ? "text-green-300" : "text-muted"}>
+                <span className={item.configured ? "text-green-700" : "text-muted"}>
                   {item.configured ? "✓" : item.optional ? "optional" : "missing"}
                 </span>
               </div>
@@ -348,7 +336,7 @@ export default function AdminPage() {
           </div>
         </section>
       </div>
-    </main>
+    </AppShell>
   );
 }
 

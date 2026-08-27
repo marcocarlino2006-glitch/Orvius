@@ -1,5 +1,6 @@
 "use client";
 
+import { AppShell } from "@/components/app-shell";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -51,24 +52,19 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-300">
-            Orvius
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold">Operations Dashboard</h1>
-          <p className="mt-2 max-w-2xl text-muted">
-            Monitor calls, leads, and business setup for your AI receptionist.
-          </p>
-        </div>
+    <AppShell
+      title="Operations"
+      subtitle="Calls, leads, waitlist, and business activity — in one place."
+      statusLabel="Founder workspace"
+    >
+      <div className="mb-6">
         <Link href="/admin" className="btn btn-primary">
           Manage businesses
         </Link>
-      </header>
+      </div>
 
       {error && (
-        <div className="card mb-6 border-red-500/40 p-4 text-red-300">
+        <div className="card mb-6 border-red-500/30 p-4 text-red-700">
           {error}
         </div>
       )}
@@ -150,7 +146,7 @@ export default function DashboardPage() {
                     {lead.phone ?? "No phone"} · {lead.serviceType ?? "General inquiry"}
                   </p>
                   {lead.urgency && (
-                    <p className="mt-1 text-sm text-amber-300">
+                    <p className="mt-1 text-sm text-amber-700">
                       Urgency: {lead.urgency}
                     </p>
                   )}
@@ -160,7 +156,7 @@ export default function DashboardPage() {
           )}
         </Panel>
       </section>
-    </main>
+    </AppShell>
   );
 }
 

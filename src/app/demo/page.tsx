@@ -1,5 +1,6 @@
 "use client";
 
+import { AppShell } from "@/components/app-shell";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -70,18 +71,11 @@ export default function DemoPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <header className="mb-8">
-        <Link href="/" className="text-sm text-sky-300 hover:underline">
-          ← Orvius
-        </Link>
-        <h1 className="mt-4 text-3xl font-semibold">Product demo</h1>
-        <p className="mt-2 max-w-2xl text-muted">
-          Simulate a completed receptionist call — no Twilio or Vapi required.
-          Use this to walk owners through what happens when Orvius answers.
-        </p>
-      </header>
-
+    <AppShell
+      title="Product demo"
+      subtitle="Simulate a completed receptionist call — no Twilio or Vapi required."
+      statusLabel="Sales walkthrough"
+    >
       <div className="mb-6 flex flex-wrap gap-2">
         {presets.map((preset) => (
           <button
@@ -161,7 +155,7 @@ export default function DemoPage() {
           />
         </Field>
 
-        {error && <p className="text-sm text-red-300">{error}</p>}
+        {error && <p className="text-sm text-red-700">{error}</p>}
 
         <button disabled={loading} className="btn btn-primary">
           {loading ? "Running demo call..." : "Simulate call → create lead"}
@@ -169,8 +163,8 @@ export default function DemoPage() {
       </form>
 
       {result && (
-        <div className="card mt-6 border-green-500/30 p-6">
-          <p className="text-sm font-medium text-green-300">Demo call completed</p>
+        <div className="card mt-6 border-green-600/30 p-6">
+          <p className="text-sm font-medium text-green-700">Demo call completed</p>
           <p className="mt-2 text-sm text-muted">Business: {result.business.name}</p>
           <p className="mt-3 leading-relaxed">{result.summary}</p>
           <div className="mt-4 flex flex-wrap gap-3">
@@ -183,7 +177,7 @@ export default function DemoPage() {
           </div>
         </div>
       )}
-    </main>
+    </AppShell>
   );
 }
 

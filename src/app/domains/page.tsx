@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppShell } from "@/components/app-shell";
 import { useEffect, useState } from "react";
 
 type DomainPlan = {
@@ -42,18 +42,11 @@ export default function DomainsPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <header className="mb-8">
-        <Link href="/" className="text-sm text-sky-300 hover:underline">
-          ← Orvius
-        </Link>
-        <h1 className="mt-4 text-3xl font-semibold">Domain strategy</h1>
-        <p className="mt-2 max-w-2xl text-muted">
-          Pick a domain, wire DNS, set env vars — then webhooks and the app run
-          on your brand instead of a temp tunnel.
-        </p>
-      </header>
-
+    <AppShell
+      title="Domain"
+      subtitle="Wire orvius.im DNS so marketing, app, and webhooks run on your brand."
+      statusLabel="orvius.im"
+    >
       <section className="card mb-8 p-6">
         <h2 className="text-lg font-semibold">Your domain: orvius.im</h2>
         <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-relaxed text-muted">
@@ -129,7 +122,7 @@ export default function DomainsPage() {
                     <tr key={`${record.type}-${record.name}`} className="border-t border-border">
                       <td className="py-3 pr-4 font-mono">{record.type}</td>
                       <td className="py-3 pr-4 font-mono">{record.name}</td>
-                      <td className="py-3 pr-4 font-mono text-sky-300">
+                      <td className="py-3 pr-4 font-mono text-accent">
                         {record.value}
                       </td>
                       <td className="py-3 text-muted">{record.purpose}</td>
@@ -142,7 +135,7 @@ export default function DomainsPage() {
 
           <section className="card mb-8 p-6">
             <h2 className="mb-4 text-lg font-semibold">Environment variables</h2>
-            <pre className="overflow-x-auto rounded-xl border border-border bg-black/30 p-4 text-sm leading-relaxed">
+            <pre className="overflow-x-auto rounded-xl border border-border bg-ink p-4 text-sm leading-relaxed text-paper">
               {Object.entries(plan.dns.env)
                 .map(([key, value]) => `${key}=${value}`)
                 .join("\n")}
@@ -169,7 +162,7 @@ export default function DomainsPage() {
           </section>
         </>
       )}
-    </main>
+    </AppShell>
   );
 }
 
@@ -184,9 +177,9 @@ function HostCard({ label, host }: { label: string; host: string }) {
 
 function TierBadge({ tier }: { tier: string }) {
   const colors: Record<string, string> = {
-    ideal: "bg-purple-500/15 text-purple-300",
-    recommended: "bg-green-500/15 text-green-300",
-    good: "bg-sky-500/15 text-sky-300",
+    ideal: "bg-accent/10 text-accent-strong",
+    recommended: "bg-green-500/15 text-green-700",
+    good: "bg-surface text-muted",
   };
   return (
     <span className={`rounded-full px-2 py-1 text-xs ${colors[tier] ?? ""}`}>
@@ -197,14 +190,14 @@ function TierBadge({ tier }: { tier: string }) {
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    owned: "bg-green-500/15 text-green-300",
-    taken: "bg-red-500/15 text-red-300",
-    likely_available: "bg-green-500/15 text-green-300",
+    owned: "bg-green-500/15 text-green-700",
+    taken: "bg-red-500/15 text-red-700",
+    likely_available: "bg-green-500/15 text-green-700",
   };
   return (
     <span
       className={`rounded-full px-2 py-1 text-xs ${
-        colors[status] ?? "bg-sky-500/15 text-sky-300"
+        colors[status] ?? "bg-surface text-muted"
       }`}
     >
       {status.replace("_", " ")}
