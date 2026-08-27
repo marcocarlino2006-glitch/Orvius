@@ -3,22 +3,22 @@ import { ProfileMenu } from "@/components/profile-menu";
 import Link from "next/link";
 
 /**
- * Homepage blueprint (from category-leader study):
- * Nav → Category hero → Statement → How → Product surface → Close
- * No images. One idea per section.
+ * Brand-first homepage:
+ * Orvius must survive the brand test — remove the nav and it still reads as Orvius.
+ * Tesla-scale wordmark + Anthropic restraint. No images.
  */
 export default function HomePage() {
   return (
     <>
-      <header className="sticky top-0 z-40 bg-paper/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5 md:px-8">
+      <header className="absolute inset-x-0 top-0 z-40">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 md:px-10">
           <Link
             href="/"
-            className="font-sans text-[1.05rem] font-medium tracking-tight text-ink"
+            className="font-sans text-sm font-medium tracking-[0.14em] text-ink uppercase"
           >
             Orvius
           </Link>
-          <div className="flex items-center gap-7">
+          <div className="flex items-center gap-8">
             <Link
               href="/dashboard"
               className="hidden font-sans text-sm text-muted transition hover:text-ink md:inline"
@@ -33,33 +33,36 @@ export default function HomePage() {
       </header>
 
       <main>
-        {/* 1. Category claim — Stripe/Linear pattern */}
-        <section className="bg-paper">
-          <div className="mx-auto max-w-5xl px-6 pb-24 pt-16 md:px-8 md:pb-32 md:pt-24">
-            <h1 className="animate-rise max-w-4xl font-serif text-5xl leading-[1.05] tracking-[-0.035em] text-ink md:text-7xl lg:text-[5.1rem]">
-              The AI operating partner for service businesses.
+        {/* Hero — Orvius is the composition */}
+        <section className="relative flex min-h-[100svh] items-end bg-paper">
+          <div className="mx-auto w-full max-w-6xl px-6 pb-16 pt-28 md:px-10 md:pb-24 md:pt-32">
+            <h1 className="animate-rise font-serif text-[clamp(4.5rem,18vw,13rem)] leading-[0.86] tracking-[-0.06em] text-ink">
+              Orvius
             </h1>
-            <p className="animate-rise-delay mt-8 max-w-2xl font-serif text-2xl leading-relaxed text-muted md:text-[1.75rem]">
-              Every call answered. Every lead captured. Start with the
-              receptionist — grow into the system that runs the business.
+
+            <p className="animate-rise-delay mt-8 max-w-2xl font-serif text-2xl leading-snug tracking-[-0.02em] text-ink md:text-4xl md:leading-tight">
+              The front door of your business — always answered.
             </p>
-            <div className="animate-rise-delay-2 mt-12 flex flex-wrap gap-3">
+
+            <p className="animate-rise-delay-2 mt-5 max-w-xl font-serif text-lg leading-relaxed text-muted md:text-xl">
+              AI operating partner for service businesses. Capture every lead.
+              Run with less friction.
+            </p>
+
+            <div className="animate-rise-delay-2 mt-10">
               <Link href="/pilot" className="btn btn-primary">
                 Start free pilot
-              </Link>
-              <Link href="#product" className="btn btn-secondary">
-                See the product
               </Link>
             </div>
           </div>
         </section>
 
-        {/* 2. Statement — Anthropic calm */}
-        <section className="border-y border-line bg-surface/70">
-          <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-            <h2 className="max-w-4xl font-serif text-4xl leading-[1.12] tracking-[-0.03em] text-ink md:text-5xl lg:text-[3.5rem]">
+        {/* Statement */}
+        <section className="border-y border-line bg-ink text-paper">
+          <div className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+            <h2 className="max-w-4xl font-serif text-4xl leading-[1.1] tracking-[-0.035em] md:text-6xl">
               Big companies run on AI.
-              <span className="text-muted">
+              <span className="text-paper/45">
                 {" "}
                 Small businesses still run on missed calls.
               </span>
@@ -67,33 +70,33 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 3. How — Apple one-idea clarity */}
+        {/* How */}
         <section className="bg-paper">
-          <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-            <p className="font-sans text-sm font-medium tracking-[0.16em] text-muted uppercase">
-              How it works
+          <div className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+            <p className="font-sans text-sm font-medium tracking-[0.18em] text-muted uppercase">
+              How Orvius works
             </p>
             <h2 className="mt-5 max-w-3xl font-serif text-4xl leading-tight tracking-[-0.03em] md:text-5xl">
               From unanswered to booked.
             </h2>
 
-            <div className="mt-16 grid gap-14 border-t border-line pt-14 md:grid-cols-3 md:gap-12">
+            <div className="mt-16 grid gap-16 border-t border-line pt-16 md:grid-cols-3 md:gap-12">
               {[
                 {
-                  title: "Orvius answers",
+                  title: "Answers",
                   body: "Every inbound call and text — after hours, mid-job, or when no one can pick up.",
                 },
                 {
-                  title: "Qualifies the work",
-                  body: "Service type, urgency, address, and callback number — captured cleanly.",
+                  title: "Qualifies",
+                  body: "Service, urgency, address, and callback — captured cleanly.",
                 },
                 {
-                  title: "You stay in control",
-                  body: "A precise owner alert with everything you need to close the job.",
+                  title: "Alerts you",
+                  body: "A precise owner summary with everything you need to close.",
                 },
               ].map((item) => (
                 <div key={item.title}>
-                  <h3 className="font-serif text-2xl tracking-[-0.02em] text-ink md:text-3xl">
+                  <h3 className="font-serif text-3xl tracking-[-0.03em] text-ink">
                     {item.title}
                   </h3>
                   <p className="mt-4 font-serif text-lg leading-relaxed text-muted">
@@ -105,11 +108,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 4. Product surface — Linear pattern (UI as proof) */}
-        <section id="product" className="border-y border-line bg-surface/70">
-          <div className="mx-auto grid max-w-5xl items-start gap-16 px-6 py-20 md:px-8 md:py-28 lg:grid-cols-2">
+        {/* Product */}
+        <section id="product" className="border-y border-line bg-surface/80">
+          <div className="mx-auto grid max-w-6xl items-start gap-16 px-6 py-24 md:px-10 md:py-32 lg:grid-cols-2">
             <div>
-              <p className="font-sans text-sm font-medium tracking-[0.16em] text-muted uppercase">
+              <p className="font-sans text-sm font-medium tracking-[0.18em] text-muted uppercase">
                 Product
               </p>
               <h2 className="mt-5 font-serif text-4xl leading-tight tracking-[-0.03em] md:text-5xl">
@@ -126,12 +129,12 @@ export default function HomePage() {
 
             <div className="rounded-2xl border border-line bg-paper p-8 md:p-10">
               <p className="font-sans text-xs font-medium tracking-[0.18em] text-muted uppercase">
-                Owner alert
+                Orvius · Owner alert
               </p>
               <p className="mt-5 font-serif text-3xl leading-snug tracking-[-0.02em] text-ink">
                 New lead from Maria Lopez
               </p>
-              <dl className="mt-8 space-y-0 font-serif text-lg text-muted">
+              <dl className="mt-8 font-serif text-lg text-muted">
                 {[
                   ["Phone", "+1 512 555 0123"],
                   ["Service", "AC not cooling"],
@@ -153,21 +156,19 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 5. Close — institutional */}
-        <section className="bg-ink text-paper">
-          <div className="mx-auto max-w-5xl px-6 py-24 md:px-8 md:py-32">
-            <h2 className="max-w-3xl font-serif text-4xl leading-[1.1] tracking-[-0.03em] md:text-6xl">
-              First ten shops.
-              <br />
-              Thirty days free.
-            </h2>
-            <p className="mt-7 max-w-xl font-serif text-xl leading-relaxed text-paper/60">
-              We set Orvius up with you. Prove it on real calls.
+        {/* Close */}
+        <section className="bg-paper">
+          <div className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+            <p className="font-serif text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.05em] text-ink">
+              Orvius
             </p>
-            <Link
-              href="/pilot"
-              className="btn mt-10 bg-paper text-ink hover:bg-white"
-            >
+            <h2 className="mt-8 max-w-3xl font-serif text-3xl leading-tight tracking-[-0.03em] text-ink md:text-5xl">
+              First ten shops. Thirty days free.
+            </h2>
+            <p className="mt-6 max-w-xl font-serif text-xl leading-relaxed text-muted">
+              We set it up with you. Prove it on real calls.
+            </p>
+            <Link href="/pilot" className="btn btn-primary mt-10">
               Apply for the pilot
             </Link>
           </div>
