@@ -68,7 +68,24 @@ async function main() {
   }
 
   const env = loadEnv();
-  const appUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  let appUrl = (env.NEXT_PUBLIC_APP_URL ?? "http://127.0.0.1:3000").replace(
+    /\/$/,
+    "",
+  );
+
+  if (!appUrl.includes("localhost") && !appUrl.includes("127.0.0.1")) {
+    try {
+      const probe = await fetch(`${appUrl}/api/health`, {
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!probe.ok) throw new Error("unreachable");
+    } catch {
+      appUrl = "http://127.0.0.1:3000";
+      console.log(`ℹ️  Production URL unreachable — using ${appUrl} for provisioning`);
+    }
+  }
+
+  const webhookBase = env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? appUrl;
 
   const checks = await Promise.all([
     check("Twilio", async () => {
@@ -138,7 +155,7 @@ async function main() {
     console.log("\n✅ Business already exists:");
     console.log(`   Name: ${biz.name}`);
     console.log(`   Assistant: ${biz.vapiAssistantId}`);
-    printNextSteps(appUrl, env);
+    printNextSteps(webhookBase, env);
     return;
   }
 
@@ -174,7 +191,7 @@ async function main() {
   console.log(`   Slug: ${created.slug}`);
   console.log(`   Vapi Assistant ID: ${created.vapiAssistantId}`);
 
-  printNextSteps(appUrl, env);
+  printNextSteps(webhookBase, env);
 }
 
 function printNextSteps(appUrl, env) {
