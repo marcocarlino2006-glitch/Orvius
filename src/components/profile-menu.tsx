@@ -37,7 +37,6 @@ export function ProfileMenu({
       if (event.key === "Escape") setOpen(false);
     }
 
-    // Defer so the opening click doesn't immediately close
     const timer = window.setTimeout(() => {
       document.addEventListener("pointerdown", onPointerDown);
     }, 0);
@@ -59,46 +58,50 @@ export function ProfileMenu({
       {open ? (
         <div
           id={menuId}
-          className="profile-popup mb-3 w-[min(20rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-line bg-paper shadow-[0_20px_50px_rgba(14,16,19,0.18)]"
+          className="mb-3 w-[min(20rem,calc(100vw-2.5rem))] overflow-hidden rounded-xl border border-rule bg-chalk shadow-[0_24px_60px_rgba(10,11,10,0.22)]"
           role="menu"
           data-orvius-profile-menu="true"
         >
-          <div className="border-b border-line px-4 py-4">
+          <div className="border-b border-rule px-4 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ink font-sans text-sm font-semibold text-paper">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-void font-sans text-sm font-semibold text-chalk">
                 O
               </div>
               <div className="min-w-0">
-                <p className="truncate font-sans text-base font-medium text-ink">
+                <p className="truncate font-sans text-sm font-semibold text-void">
                   {businessName}
                 </p>
-                <p className="truncate text-xs text-muted">{statusLabel}</p>
+                <p className="truncate font-sans text-xs text-ash">
+                  {statusLabel}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="py-2">
+          <div className="py-1.5">
             {links.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 role="menuitem"
                 onClick={() => setOpen(false)}
-                className="flex items-start justify-between gap-3 px-4 py-2.5 transition hover:bg-surface"
+                className="flex items-start justify-between gap-3 px-4 py-2.5 transition hover:bg-fog"
               >
-                <span className="font-sans text-sm font-medium text-ink">
+                <span className="font-sans text-sm font-medium text-void">
                   {item.label}
                 </span>
-                <span className="text-right text-xs text-muted">{item.hint}</span>
+                <span className="text-right font-sans text-xs text-ash">
+                  {item.hint}
+                </span>
               </Link>
             ))}
           </div>
 
-          <div className="border-t border-line px-2 py-2">
+          <div className="border-t border-rule px-2 py-2">
             <Link
               href="/"
               onClick={() => setOpen(false)}
-              className="block rounded-xl px-3 py-2.5 font-sans text-sm font-medium text-ink transition hover:bg-surface"
+              className="block rounded-md px-3 py-2.5 font-sans text-sm font-medium text-void transition hover:bg-fog"
             >
               Marketing site
             </Link>
@@ -123,10 +126,10 @@ export function ProfileMenu({
           O
         </span>
         <span className="hidden text-left sm:block">
-          <span className="block font-sans text-sm font-medium leading-none text-ink">
+          <span className="block font-sans text-sm font-medium leading-none text-void">
             Orvius
           </span>
-          <span className="mt-1 block text-[11px] leading-none text-muted">
+          <span className="mt-1 block font-sans text-[11px] leading-none text-ash">
             Menu
           </span>
         </span>

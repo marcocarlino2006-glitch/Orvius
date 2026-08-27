@@ -170,6 +170,41 @@ h3 {
   background: color-mix(in srgb, var(--void) 4%, transparent);
 }
 
+.btn-on-void {
+  background: var(--flare);
+  color: var(--chalk);
+}
+
+.btn-on-void:hover {
+  background: var(--flare-hot);
+}
+
+.btn-on-void-secondary {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--chalk) 28%, transparent);
+  color: var(--chalk);
+}
+
+.btn-on-void-secondary:hover {
+  border-color: color-mix(in srgb, var(--chalk) 55%, transparent);
+  background: color-mix(in srgb, var(--chalk) 6%, transparent);
+}
+
+.label {
+  display: block;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ash);
+}
+
+.panel-void {
+  background: color-mix(in srgb, var(--panel) 88%, var(--void));
+  border: 1px solid var(--rule-dark);
+  border-radius: 0.65rem;
+}
+
 /* Dark marketing plane */
 .orvius-atmosphere {
   background:
@@ -190,26 +225,6 @@ h3 {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
   opacity: 0.06;
   pointer-events: none;
-}
-
-.home-btn-primary {
-  background: var(--flare);
-  color: var(--chalk);
-}
-
-.home-btn-primary:hover {
-  background: var(--flare-hot);
-}
-
-.home-btn-secondary {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--chalk) 28%, transparent);
-  color: var(--chalk);
-}
-
-.home-btn-secondary:hover {
-  border-color: color-mix(in srgb, var(--chalk) 55%, transparent);
-  background: color-mix(in srgb, var(--chalk) 6%, transparent);
 }
 
 @keyframes rise-in {

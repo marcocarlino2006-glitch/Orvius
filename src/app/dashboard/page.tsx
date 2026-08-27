@@ -1,6 +1,13 @@
 "use client";
 
 import { AppShell } from "@/components/app-shell";
+import {
+  ShellAlert,
+  ShellEmpty,
+  ShellListItem,
+  ShellPanel,
+  ShellStat,
+} from "@/components/shell-primitives";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -57,133 +64,111 @@ export default function DashboardPage() {
       subtitle="Calls, leads, waitlist, and business activity — in one place."
       statusLabel="Founder workspace"
     >
-      <div className="mb-6">
+      <div className="mb-8">
         <Link href="/admin" className="btn btn-primary">
           Manage businesses
         </Link>
       </div>
 
-      {error && (
-        <div className="card mb-6 border-red-500/30 p-4 text-red-700">
-          {error}
+      {error ? (
+        <div className="mb-6">
+          <ShellAlert tone="error">{error}</ShellAlert>
         </div>
-      )}
+      ) : null}
 
       <section className="mb-8 grid gap-4 md:grid-cols-4">
-        <StatCard label="Waitlist" value={data?.waitlistCount ?? "—"} />
-        <StatCard label="Businesses" value={data?.businessCount ?? "—"} />
-        <StatCard label="Calls handled" value={data?.callCount ?? "—"} />
-        <StatCard label="Leads captured" value={data?.leadCount ?? "—"} />
+        <ShellStat label="Waitlist" value={data?.waitlistCount ?? "—"} />
+        <ShellStat label="Businesses" value={data?.businessCount ?? "—"} />
+        <ShellStat label="Calls handled" value={data?.callCount ?? "—"} />
+        <ShellStat label="Leads captured" value={data?.leadCount ?? "—"} />
       </section>
 
       <section className="mb-8">
-        <Panel title="Waitlist signups">
+        <ShellPanel title="Waitlist signups">
           {!data?.waitlist?.length ? (
-            <EmptyState text="No signups yet. Share the site or /pilot page to get your first design partners." />
+            <ShellEmpty>
+              No signups yet. Share the site or /pilot page to get your first
+              design partners.
+            </ShellEmpty>
           ) : (
             <ul className="space-y-3">
               {data.waitlist.map((entry) => (
-                <li key={entry.id} className="rounded-xl border border-border p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium">{entry.businessName ?? entry.email}</p>
-                    <span className="text-xs text-muted">
-                      {new Date(entry.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted">{entry.email}</p>
-                  <p className="mt-2 text-sm">
-                    {[entry.trade, entry.city, entry.phone].filter(Boolean).join(" · ") ||
-                      "No details yet"}
+                <ShellListItem
+                  key={entry.id}
+                  title={entry.businessName ?? entry.email}
+                  meta={new Date(entry.createdAt).toLocaleString()}
+                >
+                  <p className="mt-1 font-sans text-sm text-ash">{entry.email}</p>
+                  <p className="mt-2 font-sans text-sm text-void">
+                    {[entry.trade, entry.city, entry.phone]
+                      .filter(Boolean)
+                      .join(" · ") || "No details yet"}
                   </p>
-                </li>
+                </ShellListItem>
               ))}
             </ul>
           )}
-        </Panel>
+        </ShellPanel>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <Panel title="Recent calls">
+        <ShellPanel title="Recent calls">
           {!data?.recentCalls?.length ? (
-            <EmptyState text="No calls yet. Connect Vapi to your Twilio number and place a test call." />
+            <ShellEmpty>
+              No calls yet. Connect Vapi to your Twilio number and place a test
+              call.
+            </ShellEmpty>
           ) : (
             <ul className="space-y-3">
               {data.recentCalls.map((call) => (
-                <li key={call.id} className="rounded-xl border border-border p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium">{call.business?.name ?? "Unknown"}</p>
-                    <span className="text-xs text-muted">
-                      {new Date(call.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted">
+                <ShellListItem
+                  key={call.id}
+                  title={call.business?.name ?? "Unknown"}
+                  meta={new Date(call.createdAt).toLocaleString()}
+                >
+                  <p className="mt-1 font-sans text-sm text-ash">
                     {call.callerPhone ?? "Unknown caller"} · {call.status}
                   </p>
-                  {call.summary && (
-                    <p className="mt-2 text-sm leading-relaxed">{call.summary}</p>
-                  )}
-                </li>
+                  {call.summary ? (
+                    <p className="mt-2 font-sans text-sm leading-relaxed text-void">
+                      {call.summary}
+                    </p>
+                  ) : null}
+                </ShellListItem>
               ))}
             </ul>
           )}
-        </Panel>
+        </ShellPanel>
 
-        <Panel title="Recent leads">
+        <ShellPanel title="Recent leads">
           {!data?.recentLeads?.length ? (
-            <EmptyState text="Leads appear here after completed calls." />
+            <ShellEmpty>Leads appear here after completed calls.</ShellEmpty>
           ) : (
             <ul className="space-y-3">
               {data.recentLeads.map((lead) => (
-                <li key={lead.id} className="rounded-xl border border-border p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium">{lead.name ?? "Unknown"}</p>
-                    <span className="text-xs text-muted">
-                      {new Date(lead.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted">{lead.business?.name ?? "Inbound"}</p>
-                  <p className="mt-2 text-sm">
-                    {lead.phone ?? "No phone"} · {lead.serviceType ?? "General inquiry"}
+                <ShellListItem
+                  key={lead.id}
+                  title={lead.name ?? "Unknown"}
+                  meta={new Date(lead.createdAt).toLocaleString()}
+                >
+                  <p className="mt-1 font-sans text-sm text-ash">
+                    {lead.business?.name ?? "Inbound"}
                   </p>
-                  {lead.urgency && (
-                    <p className="mt-1 text-sm text-amber-700">
+                  <p className="mt-2 font-sans text-sm text-void">
+                    {lead.phone ?? "No phone"} ·{" "}
+                    {lead.serviceType ?? "General inquiry"}
+                  </p>
+                  {lead.urgency ? (
+                    <p className="mt-1 font-sans text-sm text-flare-dim">
                       Urgency: {lead.urgency}
                     </p>
-                  )}
-                </li>
+                  ) : null}
+                </ShellListItem>
               ))}
             </ul>
           )}
-        </Panel>
+        </ShellPanel>
       </section>
     </AppShell>
   );
-}
-
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="card p-6">
-      <p className="text-sm text-muted">{label}</p>
-      <p className="mt-2 text-3xl font-semibold">{value}</p>
-    </div>
-  );
-}
-
-function Panel({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="card p-6">
-      <h2 className="mb-4 text-lg font-semibold">{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-function EmptyState({ text }: { text: string }) {
-  return <p className="text-sm leading-relaxed text-muted">{text}</p>;
 }

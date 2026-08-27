@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/app-shell";
+import { FormField, ShellBadge } from "@/components/shell-primitives";
 import { useEffect, useState } from "react";
 
 type Business = {
@@ -150,15 +151,9 @@ export default function AdminPage() {
                   : "Waiting on Twilio + Vapi keys. Add secrets in Cursor environment setup."}
               </p>
             </div>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                health.configured
-                  ? "bg-green-500/15 text-green-700"
-                  : "bg-amber-500/15 text-amber-700"
-              }`}
-            >
+            <ShellBadge tone={health.configured ? "live" : "flare"}>
               {health.configured ? "Ready" : "Setup needed"}
-            </span>
+            </ShellBadge>
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {health.config.map((item) => (
@@ -167,7 +162,7 @@ export default function AdminPage() {
                 className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
               >
                 <span>{item.name}</span>
-                <span className={item.configured ? "text-green-700" : "text-muted"}>
+                <span className={item.configured ? "text-live" : "text-ash"}>
                   {item.configured ? "✓" : item.optional ? "optional" : "missing"}
                 </span>
               </div>
@@ -183,7 +178,7 @@ export default function AdminPage() {
         <form onSubmit={handleSubmit} className="card space-y-4 p-6">
           <h2 className="text-lg font-semibold">Add business</h2>
 
-          <Field label="Business name">
+          <FormField label="Business name">
             <input
               className="input"
               required
@@ -191,10 +186,10 @@ export default function AdminPage() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Summit HVAC"
             />
-          </Field>
+          </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Owner phone (SMS alerts)">
+            <FormField label="Owner phone (SMS alerts)">
               <input
                 className="input"
                 value={form.ownerPhone}
@@ -203,8 +198,8 @@ export default function AdminPage() {
                 }
                 placeholder="+15551234567"
               />
-            </Field>
-            <Field label="Owner email">
+            </FormField>
+            <FormField label="Owner email">
               <input
                 className="input"
                 type="email"
@@ -214,20 +209,20 @@ export default function AdminPage() {
                 }
                 placeholder="owner@company.com"
               />
-            </Field>
+            </FormField>
           </div>
 
-          <Field label="Custom greeting">
+          <FormField label="Custom greeting">
             <input
               className="input"
               value={form.greeting}
               onChange={(e) => setForm({ ...form, greeting: e.target.value })}
               placeholder="Thanks for calling Summit HVAC..."
             />
-          </Field>
+          </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Twilio number (E.164)">
+            <FormField label="Twilio number (E.164)">
               <input
                 className="input"
                 value={form.twilioPhone}
@@ -236,8 +231,8 @@ export default function AdminPage() {
                 }
                 placeholder="+15559876543"
               />
-            </Field>
-            <Field label="Vapi phone number (optional)">
+            </FormField>
+            <FormField label="Vapi phone number (optional)">
               <input
                 className="input"
                 value={form.vapiPhoneNumber}
@@ -246,10 +241,10 @@ export default function AdminPage() {
                 }
                 placeholder="+15559876543"
               />
-            </Field>
+            </FormField>
           </div>
 
-          <Field label="Hours JSON">
+          <FormField label="Hours JSON">
             <textarea
               className="input min-h-40 font-mono text-sm"
               value={form.hoursJson}
@@ -257,9 +252,9 @@ export default function AdminPage() {
                 setForm({ ...form, hoursJson: e.target.value })
               }
             />
-          </Field>
+          </FormField>
 
-          <Field label="Services JSON">
+          <FormField label="Services JSON">
             <textarea
               className="input min-h-40 font-mono text-sm"
               value={form.servicesJson}
@@ -267,10 +262,14 @@ export default function AdminPage() {
                 setForm({ ...form, servicesJson: e.target.value })
               }
             />
-          </Field>
+          </FormField>
 
-          {error && <p className="text-sm text-red-300">{error}</p>}
-          {success && <p className="text-sm text-green-300">{success}</p>}
+          {error ? (
+            <p className="font-sans text-sm text-flare-dim">{error}</p>
+          ) : null}
+          {success ? (
+            <p className="font-sans text-sm text-live">{success}</p>
+          ) : null}
 
           <button disabled={submitting} className="btn btn-primary">
             {submitting ? "Creating..." : "Create business + Vapi assistant"}
@@ -325,8 +324,8 @@ export default function AdminPage() {
             </ul>
           )}
 
-          <div className="mt-6 rounded-xl border border-sky-500/30 bg-sky-500/5 p-4 text-sm leading-relaxed text-muted">
-            <p className="font-medium text-foreground">Connect phone in Vapi</p>
+          <div className="mt-6 rounded-md border border-rule bg-fog p-4 font-sans text-sm leading-relaxed text-ash">
+            <p className="font-medium text-void">Connect phone in Vapi</p>
             <ol className="mt-2 list-decimal space-y-1 pl-5">
               <li>Create the business here (generates assistant).</li>
               <li>In Vapi, attach your Twilio number to that assistant.</li>
@@ -337,20 +336,5 @@ export default function AdminPage() {
         </section>
       </div>
     </AppShell>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label>
-      <span className="label">{label}</span>
-      {children}
-    </label>
   );
 }

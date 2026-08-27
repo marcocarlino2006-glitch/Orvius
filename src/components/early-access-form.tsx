@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FormField } from "@/components/shell-primitives";
 
 type FormProps = {
   variant?: "compact" | "full";
@@ -51,7 +52,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         <p className="font-sans text-lg font-medium text-live">
           You&apos;re on the list.
         </p>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 font-sans text-sm text-ash-soft">
           We&apos;ll reach out within 24 hours to get you set up.
         </p>
       </div>
@@ -62,15 +63,15 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Business name">
+          <FormField label="Business name">
             <input
               className="input"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
               placeholder="Summit HVAC"
             />
-          </Field>
-          <Field label="Your email" required>
+          </FormField>
+          <FormField label="Your email" required>
             <input
               type="email"
               required
@@ -79,18 +80,18 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
             />
-          </Field>
+          </FormField>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Phone">
+          <FormField label="Phone">
             <input
               className="input"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+1 555 123 4567"
             />
-          </Field>
-          <Field label="Trade">
+          </FormField>
+          <FormField label="Trade">
             <select
               className="input"
               value={trade}
@@ -103,18 +104,20 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               <option value="roofing">Roofing</option>
               <option value="other">Other home services</option>
             </select>
-          </Field>
+          </FormField>
         </div>
-        <Field label="City / service area">
+        <FormField label="City / service area">
           <input
             className="input"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="Austin, TX"
           />
-        </Field>
-        {error && <p className="text-sm text-red-700">{error}</p>}
-        <button disabled={loading} className="btn btn-primary w-full sm:w-auto">
+        </FormField>
+        {error ? (
+          <p className="font-sans text-sm text-flare-dim">{error}</p>
+        ) : null}
+        <button disabled={loading} className="btn btn-on-void w-full sm:w-auto">
           {loading ? "Submitting..." : "Apply for free pilot"}
         </button>
       </form>
@@ -138,29 +141,11 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
       >
         {loading ? "..." : "Join waitlist"}
       </button>
-      {error && (
-        <p className="w-full text-sm text-red-700 sm:order-3">{error}</p>
-      )}
+      {error ? (
+        <p className="w-full font-sans text-sm text-flare-dim sm:order-3">
+          {error}
+        </p>
+      ) : null}
     </form>
-  );
-}
-
-function Field({
-  label,
-  required,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <label>
-      <span className="label">
-        {label}
-        {required ? " *" : ""}
-      </span>
-      {children}
-    </label>
   );
 }

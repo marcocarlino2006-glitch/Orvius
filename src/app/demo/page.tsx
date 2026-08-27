@@ -1,6 +1,11 @@
 "use client";
 
 import { AppShell } from "@/components/app-shell";
+import {
+  FormField,
+  ShellAlert,
+  ShellPanel,
+} from "@/components/shell-primitives";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -89,28 +94,28 @@ export default function DemoPage() {
         ))}
       </div>
 
-      <form onSubmit={runDemo} className="card space-y-4 p-6">
+      <form onSubmit={runDemo} className="card space-y-4 p-6 md:p-7">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Caller name">
+          <FormField label="Caller name">
             <input
               className="input"
               required
               value={form.callerName}
               onChange={(e) => setForm({ ...form, callerName: e.target.value })}
             />
-          </Field>
-          <Field label="Caller phone">
+          </FormField>
+          <FormField label="Caller phone">
             <input
               className="input"
               required
               value={form.callerPhone}
               onChange={(e) => setForm({ ...form, callerPhone: e.target.value })}
             />
-          </Field>
+          </FormField>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Service needed">
+          <FormField label="Service needed">
             <input
               className="input"
               required
@@ -119,8 +124,8 @@ export default function DemoPage() {
                 setForm({ ...form, serviceType: e.target.value })
               }
             />
-          </Field>
-          <Field label="Urgency">
+          </FormField>
+          <FormField label="Urgency">
             <select
               className="input"
               value={form.urgency}
@@ -136,62 +141,52 @@ export default function DemoPage() {
               <option value="this-week">This week</option>
               <option value="flexible">Flexible</option>
             </select>
-          </Field>
+          </FormField>
         </div>
 
-        <Field label="Address">
+        <FormField label="Address">
           <input
             className="input"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
           />
-        </Field>
+        </FormField>
 
-        <Field label="Notes">
+        <FormField label="Notes">
           <textarea
             className="input min-h-24"
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
           />
-        </Field>
+        </FormField>
 
-        {error && <p className="text-sm text-red-700">{error}</p>}
+        {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
 
         <button disabled={loading} className="btn btn-primary">
           {loading ? "Running demo call..." : "Simulate call → create lead"}
         </button>
       </form>
 
-      {result && (
-        <div className="card mt-6 border-green-600/30 p-6">
-          <p className="text-sm font-medium text-green-700">Demo call completed</p>
-          <p className="mt-2 text-sm text-muted">Business: {result.business.name}</p>
-          <p className="mt-3 leading-relaxed">{result.summary}</p>
-          <div className="mt-4 flex flex-wrap gap-3">
+      {result ? (
+        <div className="mt-6">
+          <ShellPanel title="Demo call completed">
+          <p className="font-sans text-sm text-ash">
+            Business: {result.business.name}
+          </p>
+          <p className="mt-3 font-sans text-sm leading-relaxed text-void">
+            {result.summary}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <Link href="/dashboard" className="btn btn-secondary text-sm">
               View on dashboard
             </Link>
-            <span className="text-xs text-muted self-center">
+            <span className="font-sans text-xs text-ash">
               Lead ID: {result.leadId}
             </span>
           </div>
+          </ShellPanel>
         </div>
-      )}
+      ) : null}
     </AppShell>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label>
-      <span className="label">{label}</span>
-      {children}
-    </label>
   );
 }

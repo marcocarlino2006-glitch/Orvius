@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { ProfileMenu } from "@/components/profile-menu";
+import { ShellHeader } from "@/components/shell-header";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -16,35 +16,34 @@ export function AppShell({
   title,
   subtitle,
   businessName,
-  statusLabel,
+  statusLabel = "Founder workspace",
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-paper pb-28">
-      <header className="border-b border-line bg-paper/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4 md:px-8">
-          <Link
-            href="/"
-            className="font-sans text-[1.05rem] font-medium tracking-tight text-ink"
-          >
-            Orvius
-          </Link>
-          <p className="hidden font-sans text-sm text-muted md:block">
-            AI operating partner
-          </p>
-        </div>
-      </header>
+    <div className="min-h-screen bg-chalk pb-28">
+      <div className="h-px bg-flare/80" aria-hidden />
 
-      <div className="mx-auto max-w-5xl px-6 pt-10 md:px-8">
-        <div className="mb-10 max-w-2xl">
-          <h1 className="font-serif text-4xl leading-tight tracking-[-0.03em] text-ink md:text-5xl">
+      <ShellHeader
+        plane="chalk"
+        position="sticky"
+        cta={{ href: "/pilot", label: "Start free pilot" }}
+        secondaryHref={{ href: "/", label: "Home" }}
+      />
+
+      <div className="mx-auto max-w-5xl px-6 pt-12 md:px-8 md:pt-14">
+        <header className="mb-10 max-w-2xl border-b border-rule pb-8">
+          <p className="font-sans text-xs font-semibold tracking-[0.2em] text-flare uppercase">
+            Orvius product
+          </p>
+          <h1 className="mt-3 font-serif text-4xl leading-[1.06] tracking-[-0.04em] text-void md:text-5xl">
             {title}
           </h1>
           {subtitle ? (
-            <p className="mt-4 font-serif text-lg leading-relaxed text-muted">
+            <p className="mt-4 font-sans text-base leading-relaxed text-ash md:text-lg">
               {subtitle}
             </p>
           ) : null}
-        </div>
+        </header>
+
         {children}
       </div>
 

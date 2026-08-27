@@ -1,3 +1,4 @@
+import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ProfileMenu } from "@/components/profile-menu";
 import Link from "next/link";
@@ -5,27 +6,7 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <>
-      <header className="absolute inset-x-0 top-0 z-40">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 md:px-8">
-          <Link
-            href="/"
-            className="font-sans text-sm font-semibold tracking-[0.22em] text-chalk uppercase"
-          >
-            Orvius
-          </Link>
-          <div className="flex items-center gap-5">
-            <Link
-              href="/dashboard"
-              className="hidden font-sans text-sm text-ash-soft transition hover:text-chalk md:inline"
-            >
-              Product
-            </Link>
-            <Link href="/pilot" className="btn home-btn-primary">
-              Start free pilot
-            </Link>
-          </div>
-        </div>
-      </header>
+      <ShellHeader plane="void" position="absolute" />
 
       <main className="bg-void">
         <section className="orvius-atmosphere relative min-h-[100svh] overflow-hidden text-chalk">
@@ -54,10 +35,10 @@ export default function HomePage() {
             </div>
 
             <div className="anim-rise anim-rise-delay-3 mt-9 flex flex-wrap items-center gap-4">
-              <Link href="/pilot" className="btn home-btn-primary">
+              <Link href="/pilot" className="btn btn-on-void">
                 Start free pilot
               </Link>
-              <Link href="/demo" className="btn home-btn-secondary">
+              <Link href="/demo" className="btn btn-on-void-secondary">
                 Hear a demo call
               </Link>
               <span className="inline-flex items-center gap-2 font-sans text-sm text-ash-soft">
@@ -115,7 +96,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-void/90 p-6 shadow-[0_0_0_1px_rgba(232,70,28,0.12)] md:p-8">
+            <div className="panel-void p-6 shadow-[0_0_0_1px_rgba(232,70,28,0.12)] md:p-8">
               <div className="flex items-center justify-between gap-3">
                 <p className="font-sans text-xs font-semibold tracking-[0.18em] text-flare uppercase">
                   Owner alert
@@ -159,7 +140,7 @@ export default function HomePage() {
                 We set Orvius up with you. Prove it on real calls.
               </p>
             </div>
-            <Link href="/pilot" className="btn home-btn-primary shrink-0">
+            <Link href="/pilot" className="btn btn-on-void shrink-0">
               Apply for the pilot
             </Link>
           </div>
