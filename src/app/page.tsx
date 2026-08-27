@@ -37,7 +37,7 @@ const wedge = [
 export default function HomePage() {
   return (
     <>
-      <ShellHeader plane="void" position="absolute" />
+      <ShellHeader plane="void" position="sticky" surface="glass" />
 
       <main className="bg-void text-chalk">
         {/* I. Hero — category + product in one viewport */}

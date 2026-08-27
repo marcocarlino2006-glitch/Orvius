@@ -6,6 +6,7 @@ type MarketingShellProps = {
   children: React.ReactNode;
   statusLabel?: string;
   headerPosition?: "absolute" | "sticky";
+  headerSurface?: "solid" | "glass";
   showFooter?: boolean;
   cta?: { href: string; label: string } | false;
 };
@@ -13,13 +14,19 @@ type MarketingShellProps = {
 export function MarketingShell({
   children,
   statusLabel = "Founder workspace",
-  headerPosition = "absolute",
+  headerPosition = "sticky",
+  headerSurface = "glass",
   showFooter = true,
   cta,
 }: MarketingShellProps) {
   return (
     <>
-      <ShellHeader plane="void" position={headerPosition} cta={cta} />
+      <ShellHeader
+        plane="void"
+        position={headerPosition}
+        surface={headerSurface}
+        cta={cta}
+      />
       <div className="min-h-screen bg-void text-chalk">{children}</div>
       {showFooter ? <SiteFooter /> : null}
       <ProfileMenu statusLabel={statusLabel} />

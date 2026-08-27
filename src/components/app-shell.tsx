@@ -25,8 +25,13 @@ export function AppShell({
       <ShellHeader
         plane="chalk"
         position="sticky"
+        surface="solid"
         cta={{ href: "/pilot", label: "Start free pilot" }}
-        secondaryHref={{ href: "/", label: "Home" }}
+        nav={[
+          { href: "/", label: "Home" },
+          { href: "/demo", label: "Demo" },
+          { href: "/pilot", label: "Pilot" },
+        ]}
       />
 
       <div className="mx-auto max-w-5xl px-6 pt-10 md:px-8 md:pt-12">
