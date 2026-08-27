@@ -117,9 +117,9 @@ export function ProfileMenu({
           event.stopPropagation();
           setOpen((value) => !value);
         }}
-        className="group flex items-center gap-3 rounded-full border border-line bg-paper py-2 pl-2 pr-4 shadow-[0_10px_30px_rgba(14,16,19,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(14,16,19,0.16)]"
+        className="group flex items-center gap-3 rounded-full border border-rule bg-chalk py-2 pl-2 pr-4 shadow-[0_10px_30px_rgba(10,11,10,0.14)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(10,11,10,0.18)]"
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-sans text-sm font-semibold text-paper transition group-hover:bg-accent">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-void font-sans text-sm font-semibold text-chalk transition group-hover:bg-flare">
           O
         </span>
         <span className="hidden text-left sm:block">
