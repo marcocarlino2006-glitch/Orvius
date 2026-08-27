@@ -77,7 +77,7 @@ export default function DashboardPage() {
       ) : null}
 
       <section className="mb-8 grid gap-4 md:grid-cols-4">
-        <ShellStat label="Waitlist" value={data?.waitlistCount ?? "—"} />
+        <ShellStat label="Waitlist" value={data?.waitlistCount ?? "—"} highlight />
         <ShellStat label="Businesses" value={data?.businessCount ?? "—"} />
         <ShellStat label="Calls handled" value={data?.callCount ?? "—"} />
         <ShellStat label="Leads captured" value={data?.leadCount ?? "—"} />

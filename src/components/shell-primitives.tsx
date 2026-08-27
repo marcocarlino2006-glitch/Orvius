@@ -30,9 +30,9 @@ export function ShellPanel({
   action?: ReactNode;
 }) {
   return (
-    <section className="card p-6 md:p-7">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <h2 className="font-sans text-base font-semibold tracking-tight text-void">
+    <section className="card-elevated p-6 md:p-7">
+      <div className="mb-5 flex items-start justify-between gap-4 border-b border-rule pb-4">
+        <h2 className="font-sans text-[0.9375rem] font-semibold tracking-tight text-void">
           {title}
         </h2>
         {action}
@@ -45,16 +45,22 @@ export function ShellPanel({
 export function ShellStat({
   label,
   value,
+  highlight = false,
 }: {
   label: string;
   value: string | number;
+  highlight?: boolean;
 }) {
+  const active = highlight || (value !== "—" && value !== 0);
+
   return (
-    <div className="card p-5 md:p-6">
-      <p className="font-sans text-xs font-medium tracking-[0.12em] text-ash uppercase">
+    <div
+      className={`card p-5 md:p-6 ${active ? "stat-accent" : ""}`}
+    >
+      <p className="font-sans text-[0.6875rem] font-bold tracking-[0.16em] text-ash uppercase">
         {label}
       </p>
-      <p className="mt-2 font-sans text-3xl font-semibold tracking-tight text-void">
+      <p className="mt-2 font-sans text-[2rem] font-semibold leading-none tracking-tight text-void">
         {value}
       </p>
     </div>
@@ -77,7 +83,7 @@ export function ShellBadge({
 
   return (
     <span
-      className={`inline-flex rounded-md px-2.5 py-1 font-sans text-xs font-semibold ${toneClass}`}
+      className={`inline-flex rounded-[0.35rem] px-2.5 py-1 font-sans text-[0.6875rem] font-bold tracking-[0.06em] uppercase ${toneClass}`}
     >
       {children}
     </span>
@@ -86,7 +92,9 @@ export function ShellBadge({
 
 export function ShellEmpty({ children }: { children: ReactNode }) {
   return (
-    <p className="font-sans text-sm leading-relaxed text-ash">{children}</p>
+    <p className="rounded-md border border-dashed border-rule bg-fog/50 px-4 py-8 text-center font-sans text-sm leading-relaxed text-ash">
+      {children}
+    </p>
   );
 }
 
@@ -103,7 +111,7 @@ export function ShellAlert({
       : "border-live/25 bg-live/8 text-live";
 
   return (
-    <div className={`rounded-md border px-4 py-3 font-sans text-sm ${toneClass}`}>
+    <div className={`rounded-[0.45rem] border px-4 py-3 font-sans text-sm ${toneClass}`}>
       {children}
     </div>
   );
@@ -119,11 +127,13 @@ export function ShellListItem({
   children?: ReactNode;
 }) {
   return (
-    <li className="rounded-md border border-rule bg-white px-4 py-3.5">
+    <li className="rounded-[0.45rem] border border-rule bg-white px-4 py-3.5 transition hover:border-flare/25 hover:shadow-[var(--shadow-soft)]">
       <div className="flex items-start justify-between gap-3">
-        <p className="font-sans text-sm font-medium text-void">{title}</p>
+        <p className="font-sans text-sm font-semibold text-void">{title}</p>
         {meta ? (
-          <span className="shrink-0 font-sans text-xs text-ash">{meta}</span>
+          <span className="shrink-0 font-sans text-[0.6875rem] font-medium tracking-wide text-ash uppercase">
+            {meta}
+          </span>
         ) : null}
       </div>
       {children}

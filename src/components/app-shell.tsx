@@ -19,8 +19,8 @@ export function AppShell({
   statusLabel = "Founder workspace",
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-chalk pb-28">
-      <div className="h-px bg-flare/80" aria-hidden />
+    <div className="product-workspace min-h-screen pb-28">
+      <div className="h-[2px] bg-gradient-to-r from-flare via-flare/60 to-transparent" aria-hidden />
 
       <ShellHeader
         plane="chalk"
@@ -29,16 +29,14 @@ export function AppShell({
         secondaryHref={{ href: "/", label: "Home" }}
       />
 
-      <div className="mx-auto max-w-5xl px-6 pt-12 md:px-8 md:pt-14">
-        <header className="mb-10 max-w-2xl border-b border-rule pb-8">
-          <p className="font-sans text-xs font-semibold tracking-[0.2em] text-flare uppercase">
-            Orvius product
-          </p>
-          <h1 className="mt-3 font-serif text-4xl leading-[1.06] tracking-[-0.04em] text-void md:text-5xl">
+      <div className="mx-auto max-w-5xl px-6 pt-10 md:px-8 md:pt-12">
+        <header className="mb-10 max-w-2xl">
+          <p className="eyebrow">Orvius product</p>
+          <h1 className="mt-3 font-serif text-4xl leading-[1.04] tracking-[-0.045em] text-void md:text-[2.75rem]">
             {title}
           </h1>
           {subtitle ? (
-            <p className="mt-4 font-sans text-base leading-relaxed text-ash md:text-lg">
+            <p className="mt-4 max-w-lg font-sans text-[0.9375rem] leading-relaxed text-ash md:text-base">
               {subtitle}
             </p>
           ) : null}

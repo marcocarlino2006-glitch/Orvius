@@ -40,9 +40,7 @@ export function ShellPageIntro({
 }) {
   return (
     <div className={`max-w-2xl ${className}`}>
-      <p className="font-sans text-xs font-semibold tracking-[0.24em] text-flare uppercase">
-        {label}
-      </p>
+      <p className="eyebrow">{label}</p>
       <h1 className="mt-4 font-serif text-4xl leading-[1.08] tracking-[-0.04em] text-chalk md:text-5xl">
         {title}
       </h1>

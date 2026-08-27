@@ -1,7 +1,26 @@
+import { HomeHeroProduct, OwnerAlertCard, SectionEyebrow } from "@/components/owner-alert-card";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ProfileMenu } from "@/components/profile-menu";
 import Link from "next/link";
+
+const steps = [
+  {
+    n: "01",
+    title: "Answers",
+    body: "Every inbound call and text — after hours or mid-job.",
+  },
+  {
+    n: "02",
+    title: "Qualifies",
+    body: "Service, urgency, address, callback — captured cleanly.",
+  },
+  {
+    n: "03",
+    title: "Alerts you",
+    body: "A precise owner summary with what you need to close.",
+  },
+];
 
 export default function HomePage() {
   return (
@@ -9,140 +28,118 @@ export default function HomePage() {
       <ShellHeader plane="void" position="absolute" />
 
       <main className="bg-void">
+        {/* Split hero — brand + product in one viewport */}
         <section className="orvius-atmosphere relative min-h-[100svh] overflow-hidden text-chalk">
           <div className="orvius-grain absolute inset-0" aria-hidden />
 
-          <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-6 pb-14 pt-28 md:px-8 md:pb-16 md:pt-32">
-            <p className="anim-rise font-sans text-xs font-semibold tracking-[0.28em] text-flare uppercase">
-              AI operating partner
-            </p>
+          <div className="relative mx-auto grid min-h-[100svh] max-w-6xl items-end gap-12 px-6 pb-14 pt-28 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:pb-20 lg:pt-32 md:px-8">
+            <div className="max-w-xl">
+              <SectionEyebrow className="anim-rise">
+                AI operating partner
+              </SectionEyebrow>
 
-            <h1 className="anim-rise anim-rise-delay-1 mt-5 font-serif text-[clamp(4.5rem,18vw,12.5rem)] leading-[0.82] tracking-[-0.07em] text-chalk">
-              Orvius
-            </h1>
+              <h1 className="anim-rise anim-rise-delay-1 display-xl mt-6 font-serif text-chalk">
+                Orvius
+              </h1>
 
-            <div className="anim-line mt-8 h-px w-full max-w-3xl bg-flare/80" />
+              <div className="anim-line mt-7 h-px w-full max-w-xs bg-flare/75 lg:max-w-sm" />
 
-            <div className="anim-rise anim-rise-delay-2 mt-7 max-w-2xl">
-              <p className="font-serif text-2xl leading-snug text-chalk md:text-3xl">
+              <p className="anim-rise anim-rise-delay-2 mt-7 font-serif text-2xl leading-[1.15] text-chalk md:text-[1.65rem]">
                 The front door of your business — always answered.
               </p>
-              <p className="mt-3 font-sans text-base leading-relaxed text-ash-soft md:text-lg">
+              <p className="anim-rise anim-rise-delay-2 mt-4 max-w-md font-sans text-[0.9375rem] leading-relaxed text-ash-soft md:text-base">
                 For HVAC, plumbing, and electrical shops that lose jobs to
                 missed calls. Orvius picks up, qualifies, and puts the lead in
                 your hand.
               </p>
-            </div>
 
-            <div className="anim-rise anim-rise-delay-3 mt-9 flex flex-wrap items-center gap-4">
-              <Link href="/pilot" className="btn btn-on-void">
-                Start free pilot
-              </Link>
-              <Link href="/demo" className="btn btn-on-void-secondary">
-                Hear a demo call
-              </Link>
-              <span className="inline-flex items-center gap-2 font-sans text-sm text-ash-soft">
-                <span className="anim-pulse inline-block size-2 rounded-full bg-flare" />
-                Live for service businesses
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-white/10 bg-void text-chalk">
-          <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-3 md:gap-8 md:px-8 md:py-20">
-            {[
-              {
-                step: "01",
-                title: "Answers",
-                body: "Every inbound call and text — after hours or mid-job.",
-              },
-              {
-                step: "02",
-                title: "Qualifies",
-                body: "Service, urgency, address, callback — captured cleanly.",
-              },
-              {
-                step: "03",
-                title: "Alerts you",
-                body: "A precise owner summary with what you need to close.",
-              },
-            ].map((item) => (
-              <div key={item.step}>
-                <p className="font-sans text-xs font-semibold tracking-[0.2em] text-flare uppercase">
-                  {item.step}
-                </p>
-                <h2 className="mt-3 font-serif text-3xl tracking-[-0.03em]">
-                  {item.title}
-                </h2>
-                <p className="mt-3 max-w-xs font-sans text-base leading-relaxed text-ash-soft">
-                  {item.body}
-                </p>
+              <div className="anim-rise anim-rise-delay-3 mt-8 flex flex-wrap items-center gap-3">
+                <Link href="/pilot" className="btn btn-on-void">
+                  Start free pilot
+                </Link>
+                <Link href="/demo" className="btn btn-on-void-secondary">
+                  Hear a demo call
+                </Link>
               </div>
-            ))}
+
+              <p className="anim-rise anim-rise-delay-3 mt-5 inline-flex items-center gap-2 font-sans text-xs text-ash-soft">
+                <span className="anim-pulse inline-block size-1.5 rounded-full bg-flare" />
+                Built for service businesses
+              </p>
+            </div>
+
+            <HomeHeroProduct />
           </div>
         </section>
 
-        <section className="border-t border-white/10 bg-panel">
-          <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:px-8 md:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+        {/* How — editorial strip, not generic grid */}
+        <section className="border-t section-rule bg-void">
+          <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
+            <SectionEyebrow>The wedge</SectionEyebrow>
+            <p className="mt-4 max-w-2xl font-serif text-2xl leading-snug text-chalk md:text-3xl">
+              One job, done perfectly: never lose a lead to a missed call.
+            </p>
+
+            <div className="mt-12 grid gap-10 md:grid-cols-3 md:gap-0 md:divide-x md:divide-white/10">
+              {steps.map((item) => (
+                <div key={item.n} className="md:px-8 md:first:pl-0 md:last:pr-0">
+                  <p className="font-sans text-xs font-bold tracking-[0.22em] text-flare">
+                    {item.n}
+                  </p>
+                  <h2 className="mt-3 font-serif text-2xl tracking-[-0.03em] text-chalk">
+                    {item.title}
+                  </h2>
+                  <p className="mt-3 max-w-xs font-sans text-sm leading-relaxed text-ash-soft">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Statement */}
+        <section className="border-t section-rule bg-panel">
+          <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:px-8 md:py-24 lg:grid-cols-2 lg:items-center lg:gap-20">
             <div>
-              <h2 className="font-serif text-3xl leading-[1.12] tracking-[-0.03em] text-chalk md:text-5xl">
+              <SectionEyebrow>The gap</SectionEyebrow>
+              <h2 className="display-lg mt-5 font-serif text-chalk">
                 Big companies run on AI. Small businesses still run on missed
                 calls.
               </h2>
-              <p className="mt-5 max-w-lg font-sans text-lg leading-relaxed text-ash-soft">
+              <p className="mt-5 max-w-md font-sans text-base leading-relaxed text-ash-soft">
                 Orvius answers when you can&apos;t — then puts the lead in your
-                hand.
+                hand before your competitor does.
               </p>
+              <Link
+                href="/demo"
+                className="btn btn-on-void-secondary mt-8 inline-flex"
+              >
+                Try the demo
+              </Link>
             </div>
 
-            <div className="panel-void p-6 shadow-[0_0_0_1px_rgba(232,70,28,0.12)] md:p-8">
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-sans text-xs font-semibold tracking-[0.18em] text-flare uppercase">
-                  Owner alert
-                </p>
-                <span className="font-sans text-xs text-ash-soft">just now</span>
-              </div>
-              <p className="mt-4 font-serif text-2xl text-chalk md:text-3xl">
-                New lead from Maria Lopez
-              </p>
-              <dl className="mt-6 space-y-0 font-sans text-sm text-ash-soft">
-                {[
-                  ["Phone", "+1 512 555 0123"],
-                  ["Service", "AC not cooling"],
-                  ["Urgency", "Emergency"],
-                  ["Address", "1842 Oak Street"],
-                ].map(([label, value], i, arr) => (
-                  <div
-                    key={label}
-                    className={`flex justify-between gap-4 py-3 ${
-                      i < arr.length - 1 ? "border-b border-white/10" : ""
-                    }`}
-                  >
-                    <dt>{label}</dt>
-                    <dd className="text-chalk">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            <OwnerAlertCard variant="void" />
           </div>
         </section>
 
-        <section className="border-t border-white/10 bg-void">
-          <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-16 md:flex-row md:items-end md:justify-between md:px-8 md:py-20">
-            <div>
-              <h2 className="font-serif text-3xl tracking-[-0.03em] text-chalk md:text-5xl">
-                First ten shops.
-                <br />
-                Thirty days free.
-              </h2>
-              <p className="mt-4 max-w-md font-sans text-lg text-ash-soft">
-                We set Orvius up with you. Prove it on real calls.
-              </p>
+        {/* Close */}
+        <section className="border-t section-rule bg-void">
+          <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-24">
+            <div className="flex flex-col gap-8 border border-white/10 bg-panel/40 p-8 md:flex-row md:items-end md:justify-between md:p-10">
+              <div>
+                <SectionEyebrow>Design partners</SectionEyebrow>
+                <h2 className="display-lg mt-4 font-serif text-chalk">
+                  First ten shops. Thirty days free.
+                </h2>
+                <p className="mt-4 max-w-md font-sans text-base text-ash-soft">
+                  We set Orvius up with you. Prove it on real calls — not slides.
+                </p>
+              </div>
+              <Link href="/pilot" className="btn btn-on-void shrink-0">
+                Apply for the pilot
+              </Link>
             </div>
-            <Link href="/pilot" className="btn btn-on-void shrink-0">
-              Apply for the pilot
-            </Link>
           </div>
         </section>
       </main>

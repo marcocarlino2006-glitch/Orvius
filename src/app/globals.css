@@ -1,16 +1,8 @@
 @import "tailwindcss";
 
 /*
-  Orvius Chromatics — proprietary colorways
-  ----------------------------------------
-  VOID   night field (marketing + chrome)
-  PANEL  raised dark surface
-  CHALK  light field (product + paper)
-  FOG    light secondary surface
-  ASH    secondary text
-  RULE   borders / hairlines
-  FLARE  signal / CTA / brand pulse (ownable lacquer)
-  LIVE   success / healthy state only (never primary CTA flood)
+  Orvius Chromatics
+  VOID · PANEL · CHALK · FOG · ASH · RULE · FLARE · LIVE
 */
 
 :root {
@@ -21,7 +13,7 @@
   --ash: #6f6e67;
   --ash-soft: #9b9a90;
   --rule: #cccac2;
-  --rule-dark: rgba(242, 241, 236, 0.12);
+  --rule-dark: rgba(242, 241, 236, 0.1);
   --flare: #e8461c;
   --flare-hot: #ff5a2e;
   --flare-dim: #b83312;
@@ -29,7 +21,6 @@
   --live-soft: #3f8a66;
   --white: #ffffff;
 
-  /* App aliases — product surfaces stay coherent with brand */
   --background: var(--chalk);
   --foreground: var(--void);
   --surface: var(--fog);
@@ -42,6 +33,10 @@
   --card: var(--white);
   --border: var(--rule);
   --success: var(--live);
+
+  --shadow-soft: 0 1px 2px rgba(10, 11, 10, 0.04), 0 8px 24px rgba(10, 11, 10, 0.06);
+  --shadow-lift: 0 2px 4px rgba(10, 11, 10, 0.06), 0 16px 40px rgba(10, 11, 10, 0.1);
+  --shadow-product: 0 0 0 1px rgba(232, 70, 28, 0.1), 0 24px 64px rgba(10, 11, 10, 0.45);
 }
 
 @theme inline {
@@ -57,7 +52,6 @@
   --color-flare-dim: var(--flare-dim);
   --color-live: var(--live);
   --color-live-soft: var(--live-soft);
-
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
@@ -70,7 +64,6 @@
   --color-card: var(--card);
   --color-border: var(--border);
   --color-success: var(--success);
-
   --font-sans: var(--font-sans);
   --font-display: var(--font-serif);
   --font-serif: var(--font-serif);
@@ -78,6 +71,11 @@
 
 * {
   box-sizing: border-box;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--flare) 28%, transparent);
+  color: var(--void);
 }
 
 body {
@@ -94,7 +92,8 @@ nav,
 button,
 .btn,
 .label,
-.ui {
+.ui,
+.eyebrow {
   font-family: var(--font-sans), system-ui, sans-serif;
   letter-spacing: -0.01em;
 }
@@ -108,25 +107,62 @@ h3 {
   font-weight: 500;
 }
 
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--flare);
+}
+
+.display-xl {
+  font-size: clamp(3.5rem, 11vw, 7.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+}
+
+.display-lg {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+}
+
+.product-workspace {
+  background:
+    radial-gradient(900px 420px at 100% -10%, rgba(232, 70, 28, 0.04), transparent 55%),
+    linear-gradient(180deg, var(--chalk) 0%, color-mix(in srgb, var(--fog) 40%, var(--chalk)) 100%);
+}
+
 .card {
   background: var(--card);
   border: 1px solid var(--rule);
-  border-radius: 0.65rem;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.card-elevated {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-lift);
 }
 
 .input {
   width: 100%;
-  border-radius: 0.55rem;
+  border-radius: 0.45rem;
   border: 1px solid var(--rule);
   background: var(--white);
-  padding: 0.9rem 1rem;
+  padding: 0.875rem 1rem;
   color: var(--void);
   font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .input:focus {
-  outline: 2px solid color-mix(in srgb, var(--flare) 40%, transparent);
-  outline-offset: 1px;
+  border-color: color-mix(in srgb, var(--flare) 45%, var(--rule));
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--flare) 14%, transparent);
 }
 
 .btn {
@@ -134,16 +170,18 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.55rem;
-  padding: 0.85rem 1.35rem;
-  font-size: 0.925rem;
+  border-radius: 0.45rem;
+  padding: 0.8125rem 1.25rem;
+  font-size: 0.875rem;
   font-weight: 600;
   line-height: 1;
+  letter-spacing: -0.01em;
   transition:
     background 160ms ease,
     color 160ms ease,
     transform 160ms ease,
-    border-color 160ms ease;
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .btn:hover {
@@ -153,26 +191,29 @@ h3 {
 .btn-primary {
   background: var(--flare);
   color: var(--chalk);
+  box-shadow: 0 1px 2px rgba(232, 70, 28, 0.2);
 }
 
 .btn-primary:hover {
   background: var(--flare-hot);
+  box-shadow: 0 4px 16px rgba(232, 70, 28, 0.28);
 }
 
 .btn-secondary {
-  background: transparent;
+  background: var(--white);
   border: 1px solid var(--rule);
   color: var(--void);
 }
 
 .btn-secondary:hover {
-  border-color: color-mix(in srgb, var(--void) 35%, var(--rule));
-  background: color-mix(in srgb, var(--void) 4%, transparent);
+  border-color: color-mix(in srgb, var(--void) 22%, var(--rule));
+  background: var(--fog);
 }
 
 .btn-on-void {
   background: var(--flare);
   color: var(--chalk);
+  box-shadow: 0 1px 2px rgba(232, 70, 28, 0.25);
 }
 
 .btn-on-void:hover {
@@ -180,57 +221,82 @@ h3 {
 }
 
 .btn-on-void-secondary {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--chalk) 28%, transparent);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid color-mix(in srgb, var(--chalk) 22%, transparent);
   color: var(--chalk);
 }
 
 .btn-on-void-secondary:hover {
-  border-color: color-mix(in srgb, var(--chalk) 55%, transparent);
-  background: color-mix(in srgb, var(--chalk) 6%, transparent);
+  border-color: color-mix(in srgb, var(--chalk) 45%, transparent);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .label {
   display: block;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--ash);
 }
 
 .panel-void {
-  background: color-mix(in srgb, var(--panel) 88%, var(--void));
+  background: color-mix(in srgb, var(--panel) 90%, var(--void));
   border: 1px solid var(--rule-dark);
-  border-radius: 0.65rem;
+  border-radius: 0.5rem;
 }
 
-/* Dark marketing plane */
+.product-surface {
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.product-surface-void {
+  background: color-mix(in srgb, var(--panel) 85%, var(--void));
+  border: 1px solid var(--rule-dark);
+  box-shadow: var(--shadow-product);
+}
+
+.product-surface-chalk {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-lift);
+}
+
+.stat-accent {
+  border-left: 2px solid var(--flare);
+}
+
+.section-rule {
+  border-color: var(--rule-dark);
+}
+
 .orvius-atmosphere {
   background:
     radial-gradient(
-      1100px 640px at 14% -8%,
-      color-mix(in srgb, var(--flare) 22%, transparent),
-      transparent 58%
+      1000px 580px at 8% -6%,
+      color-mix(in srgb, var(--flare) 20%, transparent),
+      transparent 56%
     ),
     radial-gradient(
-      900px 520px at 88% 8%,
-      color-mix(in srgb, var(--flare) 8%, transparent),
-      transparent 52%
+      760px 480px at 92% 4%,
+      color-mix(in srgb, var(--flare) 6%, transparent),
+      transparent 50%
     ),
-    linear-gradient(180deg, #121312 0%, var(--void) 48%, #050505 100%);
+    linear-gradient(165deg, #111211 0%, var(--void) 46%, #050505 100%);
 }
 
 .orvius-grain {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
-  opacity: 0.06;
+  opacity: 0.05;
   pointer-events: none;
 }
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -241,7 +307,7 @@ h3 {
 @keyframes soft-pulse {
   0%,
   100% {
-    opacity: 0.4;
+    opacity: 0.35;
   }
   50% {
     opacity: 1;
@@ -258,28 +324,28 @@ h3 {
 }
 
 .anim-rise {
-  animation: rise-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: rise-in 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .anim-rise-delay-1 {
-  animation-delay: 120ms;
+  animation-delay: 100ms;
 }
 
 .anim-rise-delay-2 {
-  animation-delay: 240ms;
+  animation-delay: 220ms;
 }
 
 .anim-rise-delay-3 {
-  animation-delay: 360ms;
+  animation-delay: 340ms;
 }
 
 .anim-pulse {
-  animation: soft-pulse 2.4s ease-in-out infinite;
+  animation: soft-pulse 2.6s ease-in-out infinite;
 }
 
 .anim-line {
   transform-origin: left center;
-  animation: line-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
+  animation: line-draw 820ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
