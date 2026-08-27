@@ -4,6 +4,8 @@
 
 **Strategy:** Vertical first (home services) → wedge (AI receptionist) → retention → platform. Not “AI OS” on day one.
 
+**Operating rule:** Master the software before you scale the story. Pilots amplify whatever quality you already have — good or bad.
+
 **Domain:** orvius.im
 
 ---
@@ -12,130 +14,181 @@
 
 | Horizon | Outcome |
 |---------|---------|
-| **Now** | A shop never loses a job to a missed call/text |
-| **Next** | Orvius is the daily operating layer for that shop |
+| **Now** | Software we trust: every call/text handled cleanly |
+| **Next** | Shops run on that software daily |
 | **Later** | Category company: AI OS for service businesses |
 
 ---
 
 ## Phase 0 — Foundation (current)
 
-**Status:** In progress
+**Status:** Scaffold exists; mastery does not.
 
 | Item | State |
 |------|--------|
 | Thesis + wedge locked | Done |
-| Next.js MVP (admin, dashboard, webhooks, pilot, demo) | Done |
-| Brand chromatics (Void / Chalk / Flare / Live) | Done |
-| Marketing homepage (direction set, not final craft) | ~30% of bar |
-| Twilio + Vapi credentials in env | Present — must verify live |
-| `orvius.im` DNS | Still on Manus — must move |
-| GitHub remote + production deploy | Missing |
-| Live receptionist on a real number | Not proven |
-| Paying or pilot customers | Zero |
+| Next.js MVP (admin, dashboard, webhooks, pilot, demo) | Scaffold |
+| Brand chromatics (Void / Chalk / Flare / Live) | Done — protect it |
+| Marketing homepage | Direction set; craft unfinished |
+| Twilio + Vapi credentials in env | Present — unverified end-to-end |
+| Live receptionist on a real number | Not mastered |
+| Product UX coherence (home ↔ app) | Incomplete |
+| `orvius.im` DNS / GitHub / production | Blocked until software is trustworthy |
 
-**Exit criteria:** One real inbound call is answered by Orvius, qualified, and owner-alerted end-to-end.
-
----
-
-## Phase 1 — Live wedge (must complete next)
-
-**Goal:** Working AI receptionist for home services.
-
-1. Verify Twilio + Vapi: `npm run onboard`, inbound voice + SMS webhooks green
-2. Deploy app (Vercel or equivalent) with production env
-3. Point `orvius.im` off Manus → production (see `docs/DNS-ORVIUS-IM.md`)
-4. Connect GitHub; CI build on main
-5. Owner alert path: SMS (and optional email) with lead summary
-6. Founder dogfood: call the number 20×; fix every failure
-
-**Exit criteria:** You can demo a live number to a shop owner without apology.
+**Exit into Phase 1:** Founder commitment to mastery loop (build → dogfood → fix) before outreach volume.
 
 ---
 
-## Phase 2 — First 10 pilots
+## Phase 1 — Master the software ← NOW
 
-**Goal:** Design partners, not vanity waitlist.
+**Goal:** Know every path in the wedge cold. No demos that rely on luck.
 
-1. Close **10** HVAC / plumbing / electrical shops on 30-day free pilot (`docs/OUTREACH-PLAYBOOK.md`)
-2. Setup done *with* them (number forward or Orvius line)
-3. Weekly pulse: missed-call capture rate, leads created, owner reply time
-4. Kill or fix anything that breaks trust in week one
-5. Collect 3 written or recorded testimonials with numbers (“X jobs recovered”)
+Mastery means: you can run the product yourself, break it on purpose, explain every failure, and fix it the same day.
 
-**Exit criteria:** ≥5 active shops completing week 2 with measurable captured leads.
+### 1A — Core loop fluency
+
+| Capability | Mastery bar |
+|------------|-------------|
+| Inbound voice | Answers in &lt;2 rings; natural; never dead-air loops |
+| Qualification | Always gets service, urgency, address/callback when possible |
+| Owner alert | SMS (and dashboard) within seconds; readable on a job site |
+| Inbound SMS | Same qualify → alert path as voice |
+| After-hours | Behavior correct when shop is closed |
+| Failure modes | Bad audio, hangup mid-call, spam, callback request — handled |
+
+**Drill:** 50 founder calls + 20 texts across happy path and edge cases. Log every miss in a running failure list. Zero repeats of the same miss.
+
+### 1B — Product surfaces you can operate blindfolded
+
+| Surface | Mastery bar |
+|---------|-------------|
+| `/admin` | Create/configure a business in &lt;10 min without notes |
+| `/dashboard` | See calls, leads, status; trust the data |
+| `/demo` | Predictable sales walkthrough that matches live behavior |
+| `/pilot` | Honest promise that the product can keep |
+| Onboard script | `npm run onboard` + webhook wiring is muscle memory |
+| Health | `/api/health` and webhook status tell truth |
+
+### 1C — Software quality bar (wedge only)
+
+- Prompt pack: one excellent HVAC/plumbing/electrical receptionist (not generic)
+- Idempotent webhooks; no duplicate leads on retries
+- Clear lead model: new / urgent / callback / spam
+- Owner notification never silent-fails without a visible error
+- Local + staging environments that mirror production behavior
+- Chromatics applied across marketing **and** product (one company)
+
+### 1D — Founder certification (gate)
+
+Before any pilot outreach sprint:
+
+- [ ] Full E2E live call on a real number, recorded
+- [ ] Full E2E SMS lead
+- [ ] Admin setup from zero → live in one sitting
+- [ ] Dashboard matches what just happened
+- [ ] You can narrate the architecture in 5 minutes
+- [ ] Known bugs list is empty of *blocker* severity
+
+**Exit criteria:** You would put your own shop on Orvius tomorrow without hesitation.
 
 ---
 
-## Phase 3 — Retention product
+## Phase 2 — Harden + ship the mastered wedge
 
-**Goal:** Become daily habit, not a gadget.
+**Goal:** Same software, reliable in production.
+
+1. Deploy (Vercel or equivalent) with production secrets
+2. Point `orvius.im` off Manus (see `docs/DNS-ORVIUS-IM.md`)
+3. Connect GitHub; reproducible builds
+4. Staging number + production number
+5. Monitoring: failed webhooks, silent owner alerts, call errors
+6. Run the Phase 1 drill again **on production**
+
+**Exit criteria:** Production demo is as boringly reliable as local dogfood.
+
+---
+
+## Phase 3 — First 10 pilots (only after mastery)
+
+**Goal:** Design partners on software you already trust.
+
+1. Close **10** HVAC / plumbing / electrical shops (`docs/OUTREACH-PLAYBOOK.md`)
+2. Setup *with* them; same checklist every time
+3. Weekly pulse: capture rate, leads, owner reply time
+4. Every pilot bug → same-day fix → back into mastery suite
+5. 3 proof artifacts with numbers (“X jobs recovered”)
+
+**Exit criteria:** ≥5 active shops through week 2; no trust-breaking incidents unfixed &gt;24h.
+
+---
+
+## Phase 4 — Retention product
+
+**Goal:** Daily habit on top of a mastered wedge.
 
 | Build | Why |
 |-------|-----|
-| Lead inbox that owners actually open | Retention surface |
-| After-hours vs business-hours modes | Matches real ops |
-| Simple booking / callback commit | Closes the loop |
-| Per-trade prompt packs (HVAC, plumbing, electrical) | Quality + speed |
-| Basic analytics: calls answered, leads, emergencies | Proof of ROI |
+| Lead inbox owners actually open | Retention surface |
+| Business-hours vs after-hours modes | Real ops |
+| Booking / callback commit | Close the loop |
+| Per-trade prompt packs | Quality at scale |
+| Analytics: answered, leads, emergencies | ROI proof |
 
-**Exit criteria:** Owners check Orvius without you nudging them; ≥60% of pilots want to continue paid.
+**Exit criteria:** Owners open Orvius unprompted; ≥60% of pilots want paid.
 
 ---
 
-## Phase 4 — Paid wedge → expansion
+## Phase 5 — Paid → expand surface
 
-**Goal:** Revenue + expand the surface.
+**Goal:** Revenue, then widen only from usage.
 
-1. Pricing: simple monthly per location (start decisive; avoid custom chaos)
+1. Simple monthly per location
 2. Convert pilots → paid
-3. Add text-first / missed-call text-back as tightly as voice
-4. Multi-user (owner + dispatcher)
-5. Light CRM sync later (don’t boil the ocean)
-
-**Then expand (only after wedge retention is real):**
-- Scheduling / dispatch assist
-- Follow-ups and review asks
-- Parts / quote assist
-- Full “operating partner” daily brief
-
-**Exit criteria:** Consistent MRR from home-services wedge; clear next product bet from usage data.
+3. Missed-call text-back as tight as voice
+4. Owner + dispatcher seats
+5. Then: scheduling assist, follow-ups, daily brief — *from data*, not ambition
 
 ---
 
-## Phase 5 — Platform (later)
+## Phase 6 — Platform (later)
 
-**Goal:** Category company — AI OS for service businesses.
+Multi-location, job board of work, finance-lite only if retention demands it, new verticals only after home services is repeatable.
 
-- Multi-location / franchise
-- Workforce + job board of work (jobs, techs, status)
-- Finance-lite (invoices, deposits) only if retention demands it
-- Adjacent verticals *after* home services playbook is repeatable
-
-Do not advertise “AI OS” until the wedge is undeniable.
+Do not sell “AI OS” until the wedge is mastered and retained.
 
 ---
 
 ## Near-term sequence (do in order)
 
 ```
-1. Prove live call loop          ← NOW
-2. Deploy + DNS orvius.im
-3. 10 pilot outreach sprint
-4. Retention inbox + booking
-5. Paid conversion
-6. Expand surface from usage
+1. Master the software (Phase 1 drills)   ← NOW
+2. Harden + deploy + DNS (Phase 2)
+3. 10 pilots on trusted product (Phase 3)
+4. Retention surfaces (Phase 4)
+5. Paid + expand from usage (Phase 5)
 ```
+
+---
+
+## Mastery weekly rhythm
+
+| Day focus | Work |
+|-----------|------|
+| Build | One wedge gap (prompt, alert, admin, dashboard) |
+| Break | Dogfood calls/texts; try to break it |
+| Fix | Clear blocker list same day |
+| Record | Update failure log + what “good” sounds like |
+| Protect | No new features that dilute the wedge |
 
 ---
 
 ## What we will not do yet
 
-- Broad horizontal “any SMB” marketing
-- Heavy CRM rebuild
-- Image-heavy homepage sprawl without product proof
-- New color experiments that break Chromatics
-- Feature sprawl before 5 active pilots
+- Pilot volume before founder certification (Phase 1D)
+- Broad “any SMB” marketing
+- Feature sprawl outside the receptionist loop
+- Homepage redesign as a substitute for product mastery
+- New color systems that break Chromatics
 
 ---
 
@@ -143,20 +196,13 @@ Do not advertise “AI OS” until the wedge is undeniable.
 
 | Stage | Metric |
 |-------|--------|
-| Phase 1 | Live E2E call + owner alert |
-| Phase 2 | 10 pilots signed; 5 active week 2 |
-| Phase 3 | Pilot → paid intent ≥60% |
-| Phase 4 | MRR + net retention of locations |
-| Phase 5 | Category narrative earned by usage, not slides |
+| Phase 1 | Founder certification checklist complete |
+| Phase 2 | Production E2E = local E2E |
+| Phase 3 | 10 pilots; 5 active week 2 |
+| Phase 4 | Pilot → paid intent ≥60% |
+| Phase 5 | MRR + location retention |
+| Phase 6 | Category earned by usage |
 
 ---
 
-## Brand / product craft track (parallel, not blocking)
-
-- Protect **Orvius Chromatics** (Void, Chalk, Flare, Live)
-- Raise homepage + product UI to one coherent company
-- Ship craft improvements *after* live number proof, using real call artifacts
-
----
-
-*Last updated: 2026-08-27*
+*Last updated: 2026-08-27 — mastery-first revision*
