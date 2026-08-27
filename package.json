@@ -12,7 +12,8 @@
     "db:studio": "prisma studio",
     "setup:check": "node scripts/setup-check.mjs",
     "sync:env": "node scripts/sync-env.mjs",
-    "onboard": "node scripts/onboard.mjs"
+    "onboard": "node scripts/onboard.mjs",
+    "e2e:dogfood": "node scripts/e2e-dogfood.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
