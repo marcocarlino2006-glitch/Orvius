@@ -16,15 +16,26 @@ const sans = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Orvius",
+  title: {
+    default: "Orvius",
+    template: "%s · Orvius",
+  },
   description:
     "Orvius is the AI operating partner for service businesses. Every call answered. Every lead captured.",
   metadataBase: new URL("https://orvius.im"),
   openGraph: {
-    title: "Orvius",
-    description: "The AI operating partner for service businesses.",
+    title: "Orvius — Always answered",
+    description:
+      "The front door of your business — always answered. Built for HVAC, plumbing, and electrical.",
     type: "website",
     url: "https://orvius.im",
+    siteName: "Orvius",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Orvius — Always answered",
+    description:
+      "Every call answered. Every lead captured. Built for service businesses.",
   },
 };
 

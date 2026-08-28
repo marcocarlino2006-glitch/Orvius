@@ -48,7 +48,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
 
   if (submitted) {
     return (
-      <div className="rounded-md border border-live/30 bg-live/10 p-6 text-center">
+      <div className="success-pop rounded-md border border-live/30 bg-live/10 p-6 text-center">
         <p className="font-sans text-lg font-medium text-live">
           You&apos;re on the list.
         </p>
@@ -117,7 +117,10 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         {error ? (
           <p className="font-sans text-sm text-flare-dim">{error}</p>
         ) : null}
-        <button disabled={loading} className="btn btn-on-void w-full sm:w-auto">
+        <button
+          disabled={loading}
+          className={`btn btn-on-void w-full sm:w-auto ${loading ? "btn-loading" : ""}`}
+        >
           {loading ? "Submitting..." : "Apply for free pilot"}
         </button>
       </form>

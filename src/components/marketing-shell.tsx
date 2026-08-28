@@ -8,6 +8,7 @@ type MarketingShellProps = {
   headerPosition?: "absolute" | "sticky";
   headerSurface?: "solid" | "glass";
   showFooter?: boolean;
+  atmosphere?: boolean;
   cta?: { href: string; label: string } | false;
 };
 
@@ -17,6 +18,7 @@ export function MarketingShell({
   headerPosition = "sticky",
   headerSurface = "glass",
   showFooter = true,
+  atmosphere = false,
   cta,
 }: MarketingShellProps) {
   return (
@@ -27,7 +29,12 @@ export function MarketingShell({
         surface={headerSurface}
         cta={cta}
       />
-      <div className="min-h-screen bg-void text-chalk">{children}</div>
+      <div
+        className={`min-h-screen bg-void text-chalk ${atmosphere ? "orvius-atmosphere relative" : ""}`}
+      >
+        {atmosphere ? <div className="orvius-grain absolute inset-0" aria-hidden /> : null}
+        <div className={atmosphere ? "relative" : undefined}>{children}</div>
+      </div>
       {showFooter ? <SiteFooter /> : null}
       <ProfileMenu statusLabel={statusLabel} />
     </>
@@ -47,12 +54,12 @@ export function ShellPageIntro({
 }) {
   return (
     <div className={`max-w-2xl ${className}`}>
-      <p className="eyebrow">{label}</p>
-      <h1 className="mt-4 font-serif text-4xl leading-[1.08] tracking-[-0.04em] text-chalk md:text-5xl">
+      <p className="eyebrow anim-rise">{label}</p>
+      <h1 className="anim-rise anim-rise-delay-1 mt-4 font-serif text-4xl leading-[1.08] tracking-[-0.04em] text-chalk md:text-5xl">
         {title}
       </h1>
       {description ? (
-        <p className="mt-5 font-sans text-lg leading-relaxed text-ash-soft md:text-xl">
+        <p className="anim-rise anim-rise-delay-2 mt-5 font-sans text-lg leading-relaxed text-ash-soft md:text-xl">
           {description}
         </p>
       ) : null}
@@ -69,7 +76,7 @@ export function ShellVoidPanel({
 }) {
   return (
     <div
-      className={`panel-void shadow-[0_0_0_1px_rgba(232,70,28,0.08)] ${className}`}
+      className={`panel-void shadow-[0_0_0_1px_rgba(232,70,28,0.08)] transition-shadow duration-300 hover:shadow-[0_0_0_1px_rgba(232,70,28,0.18)] ${className}`}
     >
       {children}
     </div>

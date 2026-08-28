@@ -11,6 +11,7 @@ import {
   ShellStat,
 } from "@/components/shell-primitives";
 import { RevealOnScroll } from "@/components/reveal-on-scroll";
+import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -51,6 +52,7 @@ type DashboardData = {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -59,7 +61,8 @@ export default function DashboardPage() {
         return res.json();
       })
       .then(setData)
-      .catch((err) => setError(err.message));
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -68,6 +71,10 @@ export default function DashboardPage() {
       subtitle="Every call and text — captured, qualified, and ready to close."
       statusLabel="Operations"
     >
+      {loading ? (
+        <DashboardSkeleton />
+      ) : (
+        <>
       <LiveStatusBar />
 
       {error ? (
@@ -182,6 +189,8 @@ export default function DashboardPage() {
           )}
         </ShellPanel>
       </section>
+        </>
+      )}
     </AppShell>
   );
 }
