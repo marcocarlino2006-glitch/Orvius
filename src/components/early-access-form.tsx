@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { FormField } from "@/components/shell-primitives";
 
@@ -15,6 +16,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
   const [city, setCity] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -123,8 +125,28 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         {error ? (
           <p className="font-sans text-sm text-flare-dim">{error}</p>
         ) : null}
+        <label className="flex items-start gap-3 font-sans text-sm leading-relaxed text-ash-soft">
+          <input
+            type="checkbox"
+            required
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+            className="mt-1 size-4 shrink-0 accent-[var(--flare)]"
+          />
+          <span>
+            I agree to the{" "}
+            <Link href="/terms" className="text-chalk underline underline-offset-2">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-chalk underline underline-offset-2">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
         <button
-          disabled={loading}
+          disabled={loading || !acceptedTerms}
           className={`btn btn-on-void w-full sm:w-auto ${loading ? "btn-loading" : ""}`}
         >
           {loading ? "Submitting..." : "Apply for free pilot"}

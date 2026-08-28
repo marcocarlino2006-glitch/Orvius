@@ -162,12 +162,17 @@ export default function HomePage() {
                   We set Orvius up with you. Prove it on real calls.
                 </p>
               </div>
-              <Link
-                href="/pilot"
-                className="btn btn-on-void mt-8 shrink-0 md:mt-0"
-              >
-                Apply for the pilot
-              </Link>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row md:mt-0">
+                <Link
+                  href="/pricing"
+                  className="btn btn-on-void-secondary shrink-0"
+                >
+                  View pricing
+                </Link>
+                <Link href="/pilot" className="btn btn-on-void shrink-0">
+                  Apply for the pilot
+                </Link>
+              </div>
               </div>
             </RevealOnScroll>
           </div>

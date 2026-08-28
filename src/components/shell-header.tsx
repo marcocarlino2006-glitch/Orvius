@@ -15,6 +15,7 @@ type ShellHeaderProps = {
 
 const defaultNav: NavLink[] = [
   { href: "/dashboard", label: "Product" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/demo", label: "Demo" },
   { href: "/pilot", label: "Pilot" },
 ];

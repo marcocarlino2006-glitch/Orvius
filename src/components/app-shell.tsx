@@ -32,6 +32,7 @@ export function AppShell({
         cta={{ href: "/pilot", label: "Start free pilot" }}
         nav={[
           { href: "/", label: "Home" },
+          { href: "/pricing", label: "Pricing" },
           { href: "/demo", label: "Demo" },
           { href: "/pilot", label: "Pilot" },
         ]}
