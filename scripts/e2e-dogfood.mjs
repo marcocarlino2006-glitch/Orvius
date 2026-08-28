@@ -113,14 +113,20 @@ async function main() {
     process.exit(1);
   }
 
-  await prisma.business.update({
-    where: { id: business.id },
-    data: {
-      twilioPhone: TEST_INBOUND,
-      vapiPhoneNumber: TEST_INBOUND,
-      ownerPhone: business.ownerPhone ?? TEST_OWNER,
-    },
-  });
+  const liveLine = env.TWILIO_PHONE_NUMBER ?? business.twilioPhone ?? TEST_INBOUND;
+  const assistantId = business.vapiAssistantId;
+
+  // Ensure business record matches live line (never overwrite with fake test number)
+  if (business.twilioPhone !== liveLine || business.vapiPhoneNumber !== liveLine) {
+    await prisma.business.update({
+      where: { id: business.id },
+      data: {
+        twilioPhone: liveLine,
+        vapiPhoneNumber: liveLine,
+        ownerPhone: business.ownerPhone ?? env.ORVIUS_OWNER_PHONE ?? TEST_OWNER,
+      },
+    });
+  }
 
   const vapiCallId = `e2e_${Date.now()}`;
 
@@ -139,8 +145,9 @@ async function main() {
             type: "call-started",
             call: {
               id: vapiCallId,
+              assistantId,
               customer: { number: TEST_SMS_FROM },
-              phoneNumber: { number: TEST_INBOUND },
+              phoneNumber: { number: liveLine },
             },
           },
         }),
@@ -166,8 +173,9 @@ async function main() {
             type: "end-of-call-report",
             call: {
               id: vapiCallId,
+              assistantId,
               customer: { number: TEST_SMS_FROM },
-              phoneNumber: { number: TEST_INBOUND },
+              phoneNumber: { number: liveLine },
             },
             summary:
               "Caller needs emergency AC repair. Name: James Carter. Address captured.",
@@ -197,7 +205,7 @@ async function main() {
     await check("Twilio SMS webhook → lead", async () => {
       const form = new URLSearchParams();
       form.set("From", TEST_SMS_FROM);
-      form.set("To", TEST_INBOUND);
+      form.set("To", liveLine);
       form.set("Body", "Hi, my AC stopped working. Can someone come today?");
 
       const res = await fetch(`${appUrl}/api/webhooks/twilio/sms`, {

@@ -157,6 +157,7 @@ export type VapiWebhookMessage = {
     type: string;
     call?: {
       id: string;
+      assistantId?: string;
       customer?: { number?: string };
       phoneNumber?: { number?: string };
     };

@@ -17,7 +17,11 @@
     "vapi:webhook": "node scripts/configure-vapi-webhook.mjs",
     "vapi:phone": "node scripts/import-vapi-phone.mjs",
     "go-live": "node scripts/go-live.mjs",
-    "pre-post:check": "node scripts/pre-post-check.mjs"
+    "pre-post:check": "node scripts/pre-post-check.mjs",
+    "master:wedge": "node scripts/master-wedge.mjs",
+    "wedge:drill": "node scripts/wedge-drill.mjs",
+    "sync:prompt": "node scripts/sync-prompt.mjs",
+    "restore:phones": "node scripts/restore-live-phones.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",

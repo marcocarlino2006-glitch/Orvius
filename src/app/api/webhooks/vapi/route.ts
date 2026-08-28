@@ -6,7 +6,11 @@ import {
 } from "@/lib/vapi";
 import { notifyOwner } from "@/lib/notifications";
 
-async function findBusinessForCall(vapiCallId: string, phoneNumber?: string) {
+async function findBusinessForCall(
+  vapiCallId: string,
+  phoneNumber?: string,
+  assistantId?: string,
+) {
   const call = await prisma.call.findUnique({
     where: { vapiCallId },
     include: { business: true },
@@ -16,12 +20,30 @@ async function findBusinessForCall(vapiCallId: string, phoneNumber?: string) {
     return call.business;
   }
 
+  if (assistantId) {
+    const byAssistant = await prisma.business.findFirst({
+      where: { vapiAssistantId: assistantId, isActive: true },
+    });
+    if (byAssistant) return byAssistant;
+  }
+
   if (phoneNumber) {
-    return prisma.business.findFirst({
+    const byPhone = await prisma.business.findFirst({
       where: {
+        isActive: true,
         OR: [{ vapiPhoneNumber: phoneNumber }, { twilioPhone: phoneNumber }],
       },
     });
+    if (byPhone) return byPhone;
+  }
+
+  // Single-business fallback for MVP deployments
+  const businesses = await prisma.business.findMany({
+    where: { isActive: true },
+    take: 2,
+  });
+  if (businesses.length === 1) {
+    return businesses[0];
   }
 
   return null;
@@ -45,15 +67,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, skipped: "missing call id" });
   }
 
-  const inboundNumber =
-    message.call?.phoneNumber?.number ?? message.call?.customer?.number;
+  const inboundNumber = message.call?.phoneNumber?.number;
+  const assistantId = message.call?.assistantId;
 
-  const business = await findBusinessForCall(vapiCallId, inboundNumber);
+  const business = await findBusinessForCall(
+    vapiCallId,
+    inboundNumber,
+    assistantId,
+  );
 
   if (!business) {
     console.warn("No business matched for Vapi call", {
       vapiCallId,
       inboundNumber,
+      assistantId,
     });
     return NextResponse.json({ ok: true, skipped: "business not found" });
   }
@@ -136,24 +163,40 @@ export async function POST(request: NextRequest) {
     });
 
     const ownerMessage = [
-      `New lead from ${lead.name ?? "unknown caller"}`,
+      `New lead${lead.name ? `: ${lead.name}` : ""}`,
       lead.phone ? `Phone: ${lead.phone}` : null,
       lead.serviceType ? `Service: ${lead.serviceType}` : null,
       lead.urgency ? `Urgency: ${lead.urgency}` : null,
       lead.address ? `Address: ${lead.address}` : null,
-      `Summary: ${summary}`,
     ]
       .filter(Boolean)
       .join("\n");
 
-    await notifyOwner({
+    const notifyResult = await notifyOwner({
       ownerPhone: business.ownerPhone,
       ownerEmail: business.ownerEmail,
       businessName: business.name,
       message: ownerMessage,
     });
 
-    return NextResponse.json({ ok: true, callId: call.id, leadId: lead.id });
+    if (
+      process.env.ENABLE_OWNER_SMS === "true" &&
+      business.ownerPhone &&
+      !notifyResult.sms
+    ) {
+      console.error("Owner SMS failed for call", {
+        vapiCallId,
+        businessId: business.id,
+        ownerPhone: business.ownerPhone,
+      });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      callId: call.id,
+      leadId: lead.id,
+      ownerNotified: Boolean(notifyResult.sms || notifyResult.email),
+    });
   }
 
   return NextResponse.json({ ok: true, type });
