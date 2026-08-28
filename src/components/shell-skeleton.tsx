@@ -40,6 +40,60 @@ export function SkeletonLeadCard() {
   );
 }
 
+export function AdminSkeleton() {
+  return (
+    <div className="animate-pulse-soft" aria-busy="true" aria-label="Loading admin">
+      <div className="live-status-bar mb-8">
+        <SkeletonBar wide className="h-5 max-w-lg" />
+      </div>
+
+      <section className="card mb-8 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <SkeletonBar className="h-3 w-24" />
+            <SkeletonBar wide className="mt-3 h-7 max-w-[12rem]" />
+          </div>
+          <SkeletonBar className="h-6 w-12 rounded-full" />
+        </div>
+        <ul className="mt-5 space-y-2">
+          {[1, 2, 3, 4].map((i) => (
+            <li
+              key={i}
+              className="flex items-center justify-between rounded-md border border-rule px-3 py-2.5"
+            >
+              <SkeletonBar className="h-4 w-40" />
+              <SkeletonBar className="h-4 w-12" />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <section className="card space-y-4 p-6 md:p-7">
+          <SkeletonBar className="h-5 w-32" />
+          <SkeletonBar wide className="h-10" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <SkeletonBar wide className="h-10" />
+            <SkeletonBar wide className="h-10" />
+          </div>
+          <SkeletonBar wide className="h-10" />
+          <SkeletonBar wide className="h-40" />
+          <SkeletonBar wide className="h-40" />
+          <SkeletonBar wide className="h-11 max-w-[16rem]" />
+        </section>
+
+        <section className="card p-6 md:p-7">
+          <SkeletonBar className="h-5 w-40" />
+          <div className="mt-5 space-y-4">
+            <SkeletonLeadCard />
+            <SkeletonLeadCard />
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 export function DashboardSkeleton() {
   return (
     <div className="animate-pulse-soft" aria-busy="true" aria-label="Loading dashboard">

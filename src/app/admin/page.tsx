@@ -3,6 +3,7 @@
 import { AppShell } from "@/components/app-shell";
 import { LiveStatusBar } from "@/components/live-status-bar";
 import { FormField, ShellBadge } from "@/components/shell-primitives";
+import { AdminSkeleton, SkeletonBar } from "@/components/shell-skeleton";
 import { useEffect, useState } from "react";
 
 type Business = {
@@ -182,6 +183,18 @@ export default function AdminPage() {
     },
   ];
 
+  if (loading && !health) {
+    return (
+      <AppShell
+        title="Business setup"
+        subtitle="Provision a shop, connect the live line, and verify owner alerts."
+        statusLabel="Loading"
+      >
+        <AdminSkeleton />
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell
       title="Business setup"
@@ -331,7 +344,12 @@ export default function AdminPage() {
             Connected businesses
           </h2>
           {loading ? (
-            <p className="mt-4 font-sans text-sm text-ash">Loading...</p>
+            <div className="mt-5 space-y-4" aria-busy="true">
+              <div className="rounded-md border border-rule bg-fog/40 p-4">
+                <SkeletonBar wide className="h-4" />
+                <SkeletonBar wide className="mt-3 h-3 max-w-[70%]" />
+              </div>
+            </div>
           ) : businesses.length === 0 ? (
             <p className="mt-4 font-sans text-sm text-ash">
               No businesses yet. Create your first one to provision a Vapi
