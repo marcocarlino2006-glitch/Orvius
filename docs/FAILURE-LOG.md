@@ -9,7 +9,9 @@ Track every miss in the wedge loop. Fix same-day. No repeat failures.
 | 2026-08-27 | Webhooks | api.orvius.im unreachable pre-DNS | High | **Mitigated** — tunnel + Vapi webhook updated |
 | 2026-08-27 | Deploy | `orvius.im` DNS still on Manus (503) | Blocker | Open |
 | 2026-08-27 | Deploy | No GitHub remote — cannot Vercel deploy | Blocker | Open |
-| 2026-08-27 | Owner SMS | `ENABLE_OWNER_SMS` not true / no owner phone on business | Medium | Open |
+| 2026-08-27 | Owner SMS | `ENABLE_OWNER_SMS` not true / no owner phone on business | Medium | Open — set in /admin |
+| 2026-08-28 | Pre-post | Real inbound phone call not verified by founder | Blocker | Open |
+| 2026-08-28 | Pre-post | Product surfaces below homepage bar | Medium | **In progress** — dashboard/demo/admin upgraded |
 
 ## Severity
 

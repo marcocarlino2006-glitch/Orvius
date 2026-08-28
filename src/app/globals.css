@@ -349,6 +349,36 @@ h3 {
   animation: product-float 6s ease-in-out infinite;
 }
 
+.product-float-none {
+  animation: none;
+}
+
+.lead-inbox-card {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  box-shadow: var(--shadow-soft);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.lead-inbox-card:hover {
+  border-color: color-mix(in srgb, var(--flare) 30%, var(--rule));
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-1px);
+}
+
+.live-status-bar {
+  border-radius: 0.5rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-soft);
+}
+
 @keyframes product-float {
   0%,
   100% {

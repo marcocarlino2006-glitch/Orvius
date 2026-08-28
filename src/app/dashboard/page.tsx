@@ -1,6 +1,8 @@
 "use client";
 
 import { AppShell } from "@/components/app-shell";
+import { LeadInboxCard } from "@/components/lead-inbox-card";
+import { LiveStatusBar } from "@/components/live-status-bar";
 import {
   ShellAlert,
   ShellEmpty,
@@ -30,6 +32,7 @@ type DashboardData = {
     phone: string | null;
     serviceType: string | null;
     urgency: string | null;
+    address: string | null;
     createdAt: string;
     business: { name: string } | null;
   }>;
@@ -60,15 +63,11 @@ export default function DashboardPage() {
 
   return (
     <AppShell
-      title="Operations"
-      subtitle="Calls, leads, waitlist, and business activity — in one place."
-      statusLabel="Founder workspace"
+      title="Lead inbox"
+      subtitle="Every call and text — captured, qualified, and ready to close."
+      statusLabel="Operations"
     >
-      <div className="mb-8">
-        <Link href="/admin" className="btn btn-primary">
-          Manage businesses
-        </Link>
-      </div>
+      <LiveStatusBar />
 
       {error ? (
         <div className="mb-6">
@@ -76,47 +75,60 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      <section className="mb-8 grid gap-4 md:grid-cols-4">
-        <ShellStat label="Waitlist" value={data?.waitlistCount ?? "—"} highlight />
-        <ShellStat label="Businesses" value={data?.businessCount ?? "—"} />
+      <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ShellStat label="Leads captured" value={data?.leadCount ?? "—"} highlight />
         <ShellStat label="Calls handled" value={data?.callCount ?? "—"} />
-        <ShellStat label="Leads captured" value={data?.leadCount ?? "—"} />
+        <ShellStat label="Businesses" value={data?.businessCount ?? "—"} />
+        <ShellStat label="Pilot waitlist" value={data?.waitlistCount ?? "—"} />
       </section>
 
-      <section className="mb-8">
-        <ShellPanel title="Waitlist signups">
-          {!data?.waitlist?.length ? (
-            <ShellEmpty>
-              No signups yet. Share the site or /pilot page to get your first
-              design partners.
-            </ShellEmpty>
-          ) : (
-            <ul className="space-y-3">
-              {data.waitlist.map((entry) => (
-                <ShellListItem
-                  key={entry.id}
-                  title={entry.businessName ?? entry.email}
-                  meta={new Date(entry.createdAt).toLocaleString()}
-                >
-                  <p className="mt-1 font-sans text-sm text-ash">{entry.email}</p>
-                  <p className="mt-2 font-sans text-sm text-void">
-                    {[entry.trade, entry.city, entry.phone]
-                      .filter(Boolean)
-                      .join(" · ") || "No details yet"}
-                  </p>
-                </ShellListItem>
-              ))}
-            </ul>
-          )}
-        </ShellPanel>
+      <section className="mb-10">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Inbox</p>
+            <h2 className="mt-2 font-serif text-2xl tracking-[-0.04em] text-void">
+              Recent leads
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/demo" className="btn btn-secondary text-sm">
+              Run demo call
+            </Link>
+            <Link href="/admin" className="btn btn-primary text-sm">
+              Manage businesses
+            </Link>
+          </div>
+        </div>
+
+        {!data?.recentLeads?.length ? (
+          <ShellEmpty>
+            No leads yet. Call your live line or run a demo to populate the
+            inbox.
+          </ShellEmpty>
+        ) : (
+          <ul className="grid gap-4 lg:grid-cols-2">
+            {data.recentLeads.map((lead) => (
+              <li key={lead.id}>
+                <LeadInboxCard
+                  name={lead.name ?? "Unknown caller"}
+                  phone={lead.phone}
+                  service={lead.serviceType}
+                  urgency={lead.urgency}
+                  address={lead.address}
+                  business={lead.business?.name ?? null}
+                  createdAt={lead.createdAt}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
         <ShellPanel title="Recent calls">
           {!data?.recentCalls?.length ? (
             <ShellEmpty>
-              No calls yet. Connect Vapi to your Twilio number and place a test
-              call.
+              Calls appear here after inbound voice activity.
             </ShellEmpty>
           ) : (
             <ul className="space-y-3">
@@ -140,29 +152,25 @@ export default function DashboardPage() {
           )}
         </ShellPanel>
 
-        <ShellPanel title="Recent leads">
-          {!data?.recentLeads?.length ? (
-            <ShellEmpty>Leads appear here after completed calls.</ShellEmpty>
+        <ShellPanel title="Pilot waitlist">
+          {!data?.waitlist?.length ? (
+            <ShellEmpty>
+              Design partner applications appear here from /pilot.
+            </ShellEmpty>
           ) : (
             <ul className="space-y-3">
-              {data.recentLeads.map((lead) => (
+              {data.waitlist.map((entry) => (
                 <ShellListItem
-                  key={lead.id}
-                  title={lead.name ?? "Unknown"}
-                  meta={new Date(lead.createdAt).toLocaleString()}
+                  key={entry.id}
+                  title={entry.businessName ?? entry.email}
+                  meta={new Date(entry.createdAt).toLocaleString()}
                 >
-                  <p className="mt-1 font-sans text-sm text-ash">
-                    {lead.business?.name ?? "Inbound"}
-                  </p>
+                  <p className="mt-1 font-sans text-sm text-ash">{entry.email}</p>
                   <p className="mt-2 font-sans text-sm text-void">
-                    {lead.phone ?? "No phone"} ·{" "}
-                    {lead.serviceType ?? "General inquiry"}
+                    {[entry.trade, entry.city, entry.phone]
+                      .filter(Boolean)
+                      .join(" · ") || "No details yet"}
                   </p>
-                  {lead.urgency ? (
-                    <p className="mt-1 font-sans text-sm text-flare-dim">
-                      Urgency: {lead.urgency}
-                    </p>
-                  ) : null}
                 </ShellListItem>
               ))}
             </ul>

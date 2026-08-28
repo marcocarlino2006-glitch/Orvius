@@ -39,6 +39,8 @@ export function getConfigStatus() {
     appUrl: getAppUrl(),
     webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
     smsWebhookUrl: getWebhookUrl("/api/webhooks/twilio/sms"),
+    twilioPhone: process.env.TWILIO_PHONE_NUMBER?.trim() || null,
+    ownerSmsEnabled: process.env.ENABLE_OWNER_SMS === "true",
     items: [...required, ...optionalStatus],
   };
 }

@@ -18,6 +18,8 @@ export async function GET() {
     appUrl: config.appUrl,
     webhookUrl: config.webhookUrl,
     smsWebhookUrl: config.smsWebhookUrl,
+    twilioPhone: config.twilioPhone,
+    ownerSmsEnabled: config.ownerSmsEnabled,
     stats: { businessCount, leadCount, callCount },
     config: config.items,
     nextSteps: config.ready

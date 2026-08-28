@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/app-shell";
+import { LiveStatusBar } from "@/components/live-status-bar";
 import { FormField, ShellBadge } from "@/components/shell-primitives";
 import { useEffect, useState } from "react";
 
@@ -19,8 +20,11 @@ type Business = {
 
 type HealthStatus = {
   configured: boolean;
+  twilioPhone: string | null;
+  ownerSmsEnabled: boolean;
   webhookUrl: string;
   smsWebhookUrl: string;
+  stats: { businessCount: number; leadCount: number; callCount: number };
   config: Array<{ name: string; configured: boolean; optional: boolean }>;
 };
 
@@ -55,6 +59,7 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
+  const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     name: "",
     ownerPhone: "",
@@ -72,6 +77,11 @@ export default function AdminPage() {
       const res = await fetch("/api/businesses");
       const data = await res.json();
       setBusinesses(data);
+      setOwnerEdits(
+        Object.fromEntries(
+          data.map((b: Business) => [b.id, b.ownerPhone ?? ""]),
+        ),
+      );
     } catch {
       setError("Failed to load businesses");
     } finally {
@@ -123,6 +133,21 @@ export default function AdminPage() {
     }
   }
 
+  async function saveOwnerPhone(id: string) {
+    setError(null);
+    const res = await fetch("/api/businesses", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ownerPhone: ownerEdits[id] }),
+    });
+    if (!res.ok) {
+      setError("Failed to update owner phone");
+      return;
+    }
+    setSuccess("Owner phone updated — SMS alerts will use this number.");
+    await loadBusinesses();
+  }
+
   async function handleDelete(id: string) {
     if (!confirm("Delete this business and its Vapi assistant?")) return;
 
@@ -134,49 +159,70 @@ export default function AdminPage() {
     await loadBusinesses();
   }
 
+  const checklist = [
+    {
+      label: "Twilio + Vapi credentials",
+      done: health?.configured ?? false,
+    },
+    {
+      label: "Business provisioned",
+      done: (health?.stats.businessCount ?? 0) > 0,
+    },
+    {
+      label: "Owner SMS enabled",
+      done: health?.ownerSmsEnabled ?? false,
+    },
+    {
+      label: "At least one lead captured",
+      done: (health?.stats.leadCount ?? 0) > 0,
+    },
+  ];
+
   return (
     <AppShell
       title="Business setup"
-      subtitle="Create a business, provision a Vapi assistant, and connect your Twilio number."
+      subtitle="Provision a shop, connect the live line, and verify owner alerts."
       statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
     >
-      {health && (
-        <section className="card mb-8 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold">System status</h2>
-              <p className="mt-1 text-sm text-muted">
-                {health.configured
-                  ? "Credentials detected — ready to provision."
-                  : "Waiting on Twilio + Vapi keys. Add secrets in Cursor environment setup."}
-              </p>
-            </div>
-            <ShellBadge tone={health.configured ? "live" : "flare"}>
-              {health.configured ? "Ready" : "Setup needed"}
-            </ShellBadge>
+      <LiveStatusBar />
+
+      <section className="card mb-8 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="eyebrow">Pre-post gate</p>
+            <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+              Go-live checklist
+            </h2>
           </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {health.config.map((item) => (
-              <div
-                key={item.name}
-                className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
-              >
-                <span>{item.name}</span>
-                <span className={item.configured ? "text-live" : "text-ash"}>
-                  {item.configured ? "✓" : item.optional ? "optional" : "missing"}
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 text-xs text-muted">
+          <ShellBadge tone={checklist.every((c) => c.done) ? "live" : "flare"}>
+            {checklist.filter((c) => c.done).length}/{checklist.length}
+          </ShellBadge>
+        </div>
+        <ul className="mt-5 space-y-2">
+          {checklist.map((item) => (
+            <li
+              key={item.label}
+              className="flex items-center justify-between rounded-md border border-rule px-3 py-2.5 font-sans text-sm"
+            >
+              <span className="text-void">{item.label}</span>
+              <span className={item.done ? "text-live font-medium" : "text-ash"}>
+                {item.done ? "Done" : "Open"}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {health ? (
+          <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
             Webhook: {health.webhookUrl} · SMS: {health.smsWebhookUrl}
           </p>
-        </section>
-      )}
+        ) : null}
+      </section>
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <form onSubmit={handleSubmit} className="card space-y-4 p-6">
-          <h2 className="text-lg font-semibold">Add business</h2>
+        <form onSubmit={handleSubmit} className="card space-y-4 p-6 md:p-7">
+          <h2 className="font-sans text-[0.9375rem] font-semibold text-void">
+            Add business
+          </h2>
 
           <FormField label="Business name">
             <input
@@ -276,61 +322,77 @@ export default function AdminPage() {
           </button>
         </form>
 
-        <section className="card p-6">
-          <h2 className="mb-4 text-lg font-semibold">Connected businesses</h2>
+        <section className="card p-6 md:p-7">
+          <h2 className="font-sans text-[0.9375rem] font-semibold text-void">
+            Connected businesses
+          </h2>
           {loading ? (
-            <p className="text-sm text-muted">Loading...</p>
+            <p className="mt-4 font-sans text-sm text-ash">Loading...</p>
           ) : businesses.length === 0 ? (
-            <p className="text-sm text-muted">
+            <p className="mt-4 font-sans text-sm text-ash">
               No businesses yet. Create your first one to provision a Vapi
               assistant.
             </p>
           ) : (
-            <ul className="space-y-4">
+            <ul className="mt-5 space-y-4">
               {businesses.map((business) => (
                 <li
                   key={business.id}
-                  className="rounded-xl border border-border p-4"
+                  className="rounded-md border border-rule bg-fog/40 p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium">{business.name}</p>
-                      <p className="text-sm text-muted">/{business.slug}</p>
+                      <p className="font-sans text-sm font-semibold text-void">
+                        {business.name}
+                      </p>
+                      <p className="font-sans text-xs text-ash">/{business.slug}</p>
                     </div>
                     <button
                       onClick={() => handleDelete(business.id)}
-                      className="text-sm text-red-300 hover:underline"
+                      className="font-sans text-xs text-flare-dim hover:underline"
                     >
                       Delete
                     </button>
                   </div>
-                  <dl className="mt-3 space-y-1 text-sm text-muted">
-                    <div>
-                      Assistant:{" "}
-                      <span className="font-mono text-foreground">
-                        {business.vapiAssistantId ?? "—"}
-                      </span>
-                    </div>
+                  <dl className="mt-3 space-y-1 font-sans text-xs text-ash">
                     <div>
                       Calls / Leads: {business._count?.calls ?? 0} /{" "}
                       {business._count?.leads ?? 0}
                     </div>
-                    <div>
-                      Twilio: {business.twilioPhone ?? "Not set"}
-                    </div>
+                    <div>Twilio: {business.twilioPhone ?? "Not set"}</div>
                   </dl>
+                  <div className="mt-4 flex gap-2">
+                    <input
+                      className="input text-sm"
+                      value={ownerEdits[business.id] ?? ""}
+                      onChange={(e) =>
+                        setOwnerEdits({
+                          ...ownerEdits,
+                          [business.id]: e.target.value,
+                        })
+                      }
+                      placeholder="+1 owner phone for SMS"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => saveOwnerPhone(business.id)}
+                      className="btn btn-secondary shrink-0 text-sm"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
 
-          <div className="mt-6 rounded-md border border-rule bg-fog p-4 font-sans text-sm leading-relaxed text-ash">
-            <p className="font-medium text-void">Connect phone in Vapi</p>
+          <div className="mt-6 rounded-md border border-rule bg-white p-4 font-sans text-sm leading-relaxed text-ash">
+            <p className="font-medium text-void">Test before you post</p>
             <ol className="mt-2 list-decimal space-y-1 pl-5">
-              <li>Create the business here (generates assistant).</li>
-              <li>In Vapi, attach your Twilio number to that assistant.</li>
-              <li>Set webhook URL to your deployed `/api/webhooks/vapi`.</li>
-              <li>Place a test call and verify lead + owner SMS.</li>
+              <li>Call your live Twilio number from your phone.</li>
+              <li>Confirm lead appears in /dashboard.</li>
+              <li>Confirm owner SMS arrives within 30 seconds.</li>
+              <li>Deploy to Vercel and update Vapi webhook URL.</li>
             </ol>
           </div>
         </section>

@@ -1,9 +1,17 @@
-import Link from "next/link";
+import type { ReactNode } from "react";
 
 type OwnerAlertCardProps = {
   variant?: "void" | "chalk";
   className?: string;
   compact?: boolean;
+  lead?: {
+    name?: string;
+    phone?: string;
+    service?: string;
+    urgency?: string;
+    address?: string;
+    channel?: string;
+  };
 };
 
 type AlertField = {
@@ -12,19 +20,53 @@ type AlertField = {
   accent?: boolean;
 };
 
-const alertFields: AlertField[] = [
-  { label: "Phone", value: "+1 512 555 0123" },
-  { label: "Service", value: "AC not cooling" },
-  { label: "Urgency", value: "Emergency", accent: true },
-  { label: "Address", value: "1842 Oak Street" },
-];
+function formatUrgencyLabel(value: string) {
+  if (value === "emergency") return "Emergency";
+  if (value === "same-day") return "Same day";
+  if (value === "this-week") return "This week";
+  if (value === "flexible") return "Flexible";
+  return value;
+}
+
+export function leadFromDemoForm(form: {
+  callerName: string;
+  callerPhone: string;
+  serviceType: string;
+  urgency: string;
+  address: string;
+}) {
+  return {
+    name: form.callerName,
+    phone: form.callerPhone,
+    service: form.serviceType,
+    urgency: formatUrgencyLabel(form.urgency),
+    address: form.address,
+    channel: "Simulated call · demo",
+  };
+}
 
 export function OwnerAlertCard({
   variant = "void",
   className = "",
   compact = false,
+  lead,
 }: OwnerAlertCardProps) {
   const isVoid = variant === "void";
+
+  const name = lead?.name ?? "Maria Lopez";
+  const phone = lead?.phone ?? "+1 512 555 0123";
+  const service = lead?.service ?? "AC not cooling";
+  const urgency = lead?.urgency ?? "Emergency";
+  const address = lead?.address ?? "1842 Oak Street";
+  const channel = lead?.channel ?? "Inbound call · after hours";
+  const isEmergency = urgency.toLowerCase().includes("emergency");
+
+  const fields: AlertField[] = [
+    { label: "Phone", value: phone },
+    { label: "Service", value: service },
+    { label: "Urgency", value: urgency, accent: isEmergency },
+    { label: "Address", value: address },
+  ];
 
   return (
     <div
@@ -51,14 +93,12 @@ export function OwnerAlertCard({
             compact ? "text-xl" : "text-2xl md:text-[1.75rem]"
           } ${isVoid ? "text-chalk" : "text-void"}`}
         >
-          New lead from Maria Lopez
+          New lead from {name}
         </p>
-        <p className="mt-1 font-sans text-[13px] text-ash-soft">
-          Inbound call · after hours
-        </p>
+        <p className="mt-1 font-sans text-[13px] text-ash-soft">{channel}</p>
 
         <dl className="mt-5 space-y-0 font-sans text-[13px]">
-          {alertFields.map(({ label, value, accent }, i, arr) => (
+          {fields.map(({ label, value, accent }, i, arr) => (
             <div
               key={label}
               className={`flex justify-between gap-4 py-2.5 ${
@@ -125,7 +165,7 @@ export function SectionEyebrow({
   children,
   className = "",
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }) {
   return <p className={`eyebrow ${className}`}>{children}</p>;
