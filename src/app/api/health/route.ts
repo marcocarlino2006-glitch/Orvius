@@ -4,11 +4,24 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const config = getConfigStatus();
-  const [businessCount, leadCount, callCount] = await Promise.all([
+  const [businessCount, leadCount, callCount, primaryBusiness] = await Promise.all([
     prisma.business.count(),
     prisma.lead.count(),
     prisma.call.count(),
+    prisma.business.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: { ownerPhone: true },
+    }),
   ]);
+
+  const twilioPhone = config.twilioPhone;
+  const ownerPhone = primaryBusiness?.ownerPhone ?? null;
+  const ownerPhoneIsTwilioLine =
+    Boolean(ownerPhone && twilioPhone && ownerPhone === twilioPhone);
+  const ownerSmsReachable =
+    config.ownerSmsEnabled &&
+    Boolean(ownerPhone) &&
+    !ownerPhoneIsTwilioLine;
 
   return NextResponse.json({
     ok: true,
@@ -20,6 +33,9 @@ export async function GET() {
     smsWebhookUrl: config.smsWebhookUrl,
     twilioPhone: config.twilioPhone,
     ownerSmsEnabled: config.ownerSmsEnabled,
+    ownerPhoneConfigured: Boolean(ownerPhone),
+    ownerPhoneIsTwilioLine,
+    ownerSmsReachable,
     stats: { businessCount, leadCount, callCount },
     config: config.items,
     nextSteps: config.ready

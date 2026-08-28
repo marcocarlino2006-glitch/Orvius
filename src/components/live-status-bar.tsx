@@ -8,6 +8,8 @@ type HealthData = {
   configured: boolean;
   twilioPhone: string | null;
   ownerSmsEnabled: boolean;
+  ownerPhoneIsTwilioLine?: boolean;
+  ownerSmsReachable?: boolean;
   webhookUrl: string;
   stats: { businessCount: number; leadCount: number; callCount: number };
 };
@@ -50,12 +52,29 @@ export function LiveStatusBar() {
         </div>
       </div>
 
-      {!health.configured || !health.ownerSmsEnabled ? (
+      {!health.configured ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule bg-fog/60 px-4 py-3">
           <p className="font-sans text-sm text-ash">
-            {!health.configured
-              ? "Add Twilio + Vapi credentials to go live."
-              : "Enable ENABLE_OWNER_SMS and set owner phone in admin for SMS alerts."}
+            Add Twilio + Vapi credentials to go live.
+          </p>
+          <Link href="/admin" className="btn btn-secondary text-sm">
+            Open setup
+          </Link>
+        </div>
+      ) : health.ownerPhoneIsTwilioLine ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-flare/25 bg-flare/8 px-4 py-3">
+          <p className="font-sans text-sm text-flare-dim">
+            Owner phone is the Twilio line — SMS alerts won&apos;t reach your
+            cell. Set your personal number in admin.
+          </p>
+          <Link href="/admin" className="btn btn-secondary text-sm">
+            Fix owner phone
+          </Link>
+        </div>
+      ) : !health.ownerSmsEnabled || !health.ownerSmsReachable ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule bg-fog/60 px-4 py-3">
+          <p className="font-sans text-sm text-ash">
+            Enable ENABLE_OWNER_SMS and set owner phone in admin for alerts.
           </p>
           <Link href="/admin" className="btn btn-secondary text-sm">
             Open setup

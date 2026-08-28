@@ -21,7 +21,8 @@
     "master:wedge": "node scripts/master-wedge.mjs",
     "wedge:drill": "node scripts/wedge-drill.mjs",
     "sync:prompt": "node scripts/sync-prompt.mjs",
-    "restore:phones": "node scripts/restore-live-phones.mjs"
+    "restore:phones": "node scripts/restore-live-phones.mjs",
+    "deploy:check": "node scripts/deploy-check.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",

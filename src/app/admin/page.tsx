@@ -22,6 +22,8 @@ type HealthStatus = {
   configured: boolean;
   twilioPhone: string | null;
   ownerSmsEnabled: boolean;
+  ownerPhoneIsTwilioLine?: boolean;
+  ownerSmsReachable?: boolean;
   webhookUrl: string;
   smsWebhookUrl: string;
   stats: { businessCount: number; leadCount: number; callCount: number };
@@ -169,8 +171,10 @@ export default function AdminPage() {
       done: (health?.stats.businessCount ?? 0) > 0,
     },
     {
-      label: "Owner SMS enabled",
-      done: health?.ownerSmsEnabled ?? false,
+      label: "Owner SMS reachable",
+      done:
+        (health?.ownerSmsReachable ?? false) &&
+        !(health?.ownerPhoneIsTwilioLine ?? false),
     },
     {
       label: "At least one lead captured",
