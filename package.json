@@ -22,7 +22,8 @@
     "wedge:drill": "node scripts/wedge-drill.mjs",
     "sync:prompt": "node scripts/sync-prompt.mjs",
     "restore:phones": "node scripts/restore-live-phones.mjs",
-    "deploy:check": "node scripts/deploy-check.mjs"
+    "deploy:check": "node scripts/deploy-check.mjs",
+    "stripe:setup": "node scripts/stripe-setup.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
@@ -30,6 +31,7 @@
     "puppeteer": "^25.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "stripe": "^18.5.0",
     "twilio": "^5.5.0",
     "zod": "^3.24.2"
   },

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { CheckoutButton } from "@/components/checkout-button";
 import { EarlyAccessForm } from "@/components/early-access-form";
 import {
   MarketingShell,
@@ -18,9 +20,11 @@ export const metadata: Metadata = {
 function PricingCard({
   plan,
   featured = false,
+  actions,
 }: {
   plan: typeof pricing.pilot | typeof pricing.pro;
   featured?: boolean;
+  actions?: ReactNode;
 }) {
   const isPilot = plan.price === 0;
 
@@ -76,14 +80,16 @@ function PricingCard({
         ))}
       </ul>
 
-      <Link
-        href={plan.href}
-        className={`btn mt-8 w-full justify-center ${
-          featured ? "btn-on-void" : "btn-on-void-secondary"
-        }`}
-      >
-        {plan.cta}
-      </Link>
+      {actions ?? (
+        <Link
+          href={plan.href}
+          className={`btn mt-8 w-full justify-center ${
+            featured ? "btn-on-void" : "btn-on-void-secondary"
+          }`}
+        >
+          {plan.cta}
+        </Link>
+      )}
     </div>
   );
 }
@@ -100,7 +106,23 @@ export default function PricingPage() {
 
         <RevealOnScroll className="mt-12 grid gap-6 lg:grid-cols-2 lg:gap-8">
           <PricingCard plan={pricing.pilot} featured />
-          <PricingCard plan={pricing.pro} />
+          <PricingCard
+            plan={pricing.pro}
+            actions={
+              <div className="mt-8 space-y-3">
+                <Link
+                  href="/pilot"
+                  className="btn btn-on-void-secondary w-full justify-center"
+                >
+                  Start with free pilot
+                </Link>
+                <CheckoutButton label="Subscribe — $299/mo" />
+                <p className="text-center font-sans text-[11px] leading-relaxed text-ash">
+                  Subscribe after your pilot, or when you&apos;re ready to go live.
+                </p>
+              </div>
+            }
+          />
         </RevealOnScroll>
 
         <RevealOnScroll className="mt-16">

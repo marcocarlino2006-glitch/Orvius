@@ -28,6 +28,12 @@ Copy everything from your `.env` into Vercel → Settings → Environment Variab
 | `VAPI_*` | Your Vapi credentials |
 | `ORVIUS_*` | Domain config |
 | `ENABLE_OWNER_SMS` | `true` when owner phones are set |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_PRICE_ID` | From `npm run stripe:setup` ($299/mo Orvius Pro) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+
+**Stripe webhook (after deploy):** `https://api.orvius.im/api/billing/webhook`  
+Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 
 **Important:** Change `prisma/schema.prisma` provider to `postgresql` and run migrations before production scale. For first deploy testing, Turso SQLite-compatible works.
 
@@ -58,4 +64,5 @@ NEXT_PUBLIC_APP_URL=https://api.orvius.im npm run onboard
 - `https://orvius.im` — marketing
 - `https://app.orvius.im/admin` — business setup
 - `https://api.orvius.im/api/health` — green
+- `https://orvius.im/pricing` — pilot + Stripe checkout
 - Call +18446439170 → lead on dashboard

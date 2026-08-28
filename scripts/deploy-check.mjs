@@ -61,6 +61,15 @@ for (const key of required) {
   );
 }
 
+const appUrl = env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
+if (appUrl.includes("localhost") || appUrl.includes("127.0.0.1")) {
+  results.push(
+    warn("NEXT_PUBLIC_APP_URL is localhost — set to https://api.orvius.im before production"),
+  );
+} else if (appUrl.includes("orvius.im")) {
+  results.push(pass("NEXT_PUBLIC_APP_URL points at production domain"));
+}
+
 if (env.DATABASE_URL?.startsWith("file:")) {
   results.push(
     warn(
@@ -89,6 +98,28 @@ if (env.ENABLE_OWNER_SMS === "true") {
   results.push(warn("ENABLE_OWNER_SMS not true"));
 }
 
+const stripeReady =
+  env.STRIPE_SECRET_KEY?.trim() &&
+  env.STRIPE_PRICE_ID?.trim() &&
+  env.STRIPE_WEBHOOK_SECRET?.trim();
+
+if (stripeReady) {
+  results.push(pass("Stripe billing configured"));
+} else {
+  results.push(
+    warn("Stripe not fully configured — run npm run stripe:setup after deploy"),
+  );
+}
+
+for (const page of ["pricing", "terms", "privacy"]) {
+  const pagePath = resolve(root, "src/app", page, "page.tsx");
+  results.push(
+    existsSync(pagePath)
+      ? pass(`/${page} page present`)
+      : fail(`/${page} page missing`),
+  );
+}
+
 try {
   const res = await fetch("http://127.0.0.1:3000/api/health");
   if (res.ok) {
@@ -104,11 +135,27 @@ try {
   results.push(warn("Dev server not running"));
 }
 
-console.log("\n📋 After deploy:");
-console.log("   1. Add domains on Vercel (orvius.im, app, api)");
-console.log("   2. Update Namecheap DNS — docs/DNS-ORVIUS-IM.md");
-console.log("   3. WEBHOOK_BASE_URL=https://api.orvius.im npm run vapi:webhook");
-console.log("   4. Call your Twilio number → verify /dashboard\n");
+try {
+  const res = await fetch("https://orvius.im", { redirect: "follow" });
+  if (res.ok) {
+    results.push(pass("orvius.im responds — DNS may be live"));
+  } else {
+    results.push(
+      warn(`orvius.im returns ${res.status} — update DNS (remove Manus CNAME)`),
+    );
+  }
+} catch {
+  results.push(warn("Could not reach orvius.im"));
+}
+
+console.log("\n📋 Deploy sequence:");
+console.log("   1. git push → import on Vercel (docs/DEPLOY-VERCEL.md)");
+console.log("   2. Add env vars + Turso/Neon DATABASE_URL");
+console.log("   3. Domains: orvius.im, app.orvius.im, api.orvius.im");
+console.log("   4. Namecheap DNS — docs/DNS-ORVIUS-IM.md");
+console.log("   5. npm run stripe:setup → add STRIPE_* to Vercel");
+console.log("   6. WEBHOOK_BASE_URL=https://api.orvius.im npm run vapi:webhook");
+console.log("   7. Call Twilio line → verify /dashboard + owner SMS\n");
 
 const blockers = results.filter((r) => r === false);
 if (blockers.length) {
