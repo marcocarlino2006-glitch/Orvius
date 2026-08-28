@@ -188,6 +188,11 @@ h3 {
   transform: translateY(-1px);
 }
 
+.btn:active {
+  transform: translateY(0);
+  transition-duration: 80ms;
+}
+
 .btn-primary {
   background: var(--flare);
   color: var(--chalk);
@@ -287,6 +292,31 @@ h3 {
     linear-gradient(165deg, #111211 0%, var(--void) 46%, #050505 100%);
 }
 
+.orvius-atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    720px 520px at 18% 8%,
+    color-mix(in srgb, var(--flare) 14%, transparent),
+    transparent 68%
+  );
+  opacity: 0.45;
+  animation: hero-glow-breathe 12s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes hero-glow-breathe {
+  from {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0.65;
+    transform: scale(1.04);
+  }
+}
+
 .orvius-grain {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
   opacity: 0.045;
@@ -346,11 +376,34 @@ h3 {
 }
 
 .product-float {
-  animation: product-float 6s ease-in-out infinite;
+  animation:
+    rise-in 680ms cubic-bezier(0.22, 1, 0.36, 1) 220ms both,
+    product-float 6s ease-in-out 1.2s infinite;
 }
 
 .product-float-none {
   animation: none;
+}
+
+.product-glow {
+  box-shadow:
+    var(--shadow-product),
+    0 0 48px color-mix(in srgb, var(--flare) 12%, transparent);
+  animation: product-glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes product-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      var(--shadow-product),
+      0 0 40px color-mix(in srgb, var(--flare) 8%, transparent);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-product),
+      0 0 56px color-mix(in srgb, var(--flare) 16%, transparent);
+  }
 }
 
 .lead-inbox-card {
@@ -390,8 +443,42 @@ h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .product-float {
+  .orvius-atmosphere::after {
     animation: none;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  .product-float,
+  .product-glow {
+    animation: none;
+  }
+
+  .reveal,
+  .reveal-visible,
+  .reveal-group > .reveal-item,
+  .reveal-group.reveal-group-visible > .reveal-item {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .anim-rise,
+  .anim-rise-delay-1,
+  .anim-rise-delay-2,
+  .anim-rise-delay-3,
+  .anim-pulse,
+  .anim-line,
+  .transcript-line,
+  .transcript-foot,
+  .shell-mobile-nav,
+  .shell-header-backdrop {
+    animation: none;
+  }
+
+  .transcript-line,
+  .transcript-foot {
+    opacity: 1;
   }
 }
 
@@ -404,6 +491,63 @@ h3 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-group > .reveal-item {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-group.reveal-group-visible > .reveal-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-group > .reveal-item:nth-child(1) {
+  transition-delay: calc(var(--reveal-stagger, 90ms) * 0);
+}
+.reveal-group > .reveal-item:nth-child(2) {
+  transition-delay: calc(var(--reveal-stagger, 90ms) * 1);
+}
+.reveal-group > .reveal-item:nth-child(3) {
+  transition-delay: calc(var(--reveal-stagger, 90ms) * 2);
+}
+.reveal-group > .reveal-item:nth-child(4) {
+  transition-delay: calc(var(--reveal-stagger, 90ms) * 3);
+}
+.reveal-group > .reveal-item:nth-child(5) {
+  transition-delay: calc(var(--reveal-stagger, 90ms) * 4);
+}
+.reveal-group > .reveal-item:nth-child(6) {
+  transition-delay: calc(var(--reveal-stagger, 90ms) * 5);
 }
 
 @keyframes soft-pulse {
@@ -450,20 +594,13 @@ h3 {
   animation: line-draw 820ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .anim-rise,
-  .anim-rise-delay-1,
-  .anim-rise-delay-2,
-  .anim-rise-delay-3,
-  .anim-pulse,
-  .anim-line {
-    animation: none;
-  }
-}
-
 /* Shell header */
 .shell-header {
   z-index: 40;
+  transition:
+    background 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    backdrop-filter 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .shell-header-bar {
@@ -616,6 +753,18 @@ h3 {
 .shell-mobile-nav {
   position: relative;
   z-index: 1;
+  animation: nav-slide-down 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes nav-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .shell-header-void .shell-mobile-nav {
@@ -653,11 +802,53 @@ h3 {
   background: var(--fog);
 }
 
+.transcript-line {
+  opacity: 0;
+}
+
+.reveal-visible .transcript-line {
+  animation: rise-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal-visible .transcript-line:nth-child(1) {
+  animation-delay: 0.15s;
+}
+.reveal-visible .transcript-line:nth-child(2) {
+  animation-delay: 0.35s;
+}
+.reveal-visible .transcript-line:nth-child(3) {
+  animation-delay: 0.55s;
+}
+
+.transcript-foot {
+  opacity: 0;
+}
+
+.reveal-visible .transcript-foot {
+  animation: rise-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.75s both;
+}
+
+.preview-crossfade {
+  transition:
+    opacity 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .shell-header-backdrop {
   border: 0;
   background: rgba(10, 11, 10, 0.55);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+  animation: backdrop-fade 220ms ease both;
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .sr-only {

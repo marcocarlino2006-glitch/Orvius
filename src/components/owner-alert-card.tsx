@@ -138,20 +138,20 @@ export function CallTranscriptProof({ className = "" }: { className?: string }) 
         Live receptionist
       </p>
       <div className="mt-5 space-y-4 font-sans text-[13px] leading-relaxed text-ash-soft">
-        <p>
+        <p className="transcript-line">
           <span className="text-chalk">Orvius</span> · Thanks for calling Summit
           HVAC. How can I help?
         </p>
-        <p>
+        <p className="transcript-line">
           <span className="text-chalk/80">Caller</span> · My AC stopped cooling.
           Can someone come today?
         </p>
-        <p>
+        <p className="transcript-line">
           <span className="text-chalk">Orvius</span> · I can help. What&apos;s the
           address and best callback number?
         </p>
       </div>
-      <div className="mt-6 flex items-center gap-2 border-t border-white/8 pt-5">
+      <div className="transcript-foot mt-6 flex items-center gap-2 border-t border-white/8 pt-5">
         <span className="size-1.5 rounded-full bg-live" />
         <p className="font-sans text-xs text-chalk">
           Lead captured · owner notified

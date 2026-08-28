@@ -1,4 +1,5 @@
 import { CallTranscriptProof, OwnerAlertCard, SectionEyebrow } from "@/components/owner-alert-card";
+import { RevealGroup, RevealOnScroll } from "@/components/reveal-on-scroll";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ProfileMenu } from "@/components/profile-menu";
@@ -83,7 +84,7 @@ export default function HomePage() {
 
             <OwnerAlertCard
               variant="void"
-              className="anim-rise anim-rise-delay-2 w-full max-w-md lg:max-w-none lg:justify-self-end"
+              className="product-float product-glow w-full max-w-md lg:max-w-none lg:justify-self-end"
             />
           </div>
         </section>
@@ -91,22 +92,24 @@ export default function HomePage() {
         {/* II. Wedge — one job, editorial columns */}
         <section className="home-section border-t border-white/8 bg-void">
           <div className="mx-auto max-w-6xl px-6 md:px-8">
-            <div className="home-section-head">
-              <SectionEyebrow>The wedge</SectionEyebrow>
-              <p className="home-section-title mt-5 font-serif text-chalk">
-                One job. Done perfectly.
-              </p>
-              <p className="mt-4 max-w-xl font-sans text-[0.9375rem] leading-relaxed text-ash-soft">
-                Never lose a lead to a missed call. That&apos;s where Orvius
-                starts — and earns the right to run more of your business.
-              </p>
-            </div>
+            <RevealOnScroll>
+              <div className="home-section-head">
+                <SectionEyebrow>The wedge</SectionEyebrow>
+                <p className="home-section-title mt-5 font-serif text-chalk">
+                  One job. Done perfectly.
+                </p>
+                <p className="mt-4 max-w-xl font-sans text-[0.9375rem] leading-relaxed text-ash-soft">
+                  Never lose a lead to a missed call. That&apos;s where Orvius
+                  starts — and earns the right to run more of your business.
+                </p>
+              </div>
+            </RevealOnScroll>
 
-            <div className="mt-14 grid gap-12 md:grid-cols-3 md:gap-0 md:divide-x md:divide-white/8">
+            <RevealGroup className="mt-14 grid gap-12 md:grid-cols-3 md:gap-0 md:divide-x md:divide-white/8">
               {wedge.map((item) => (
                 <div
                   key={item.n}
-                  className="md:px-10 md:first:pl-0 md:last:pr-0"
+                  className="reveal-item md:px-10 md:first:pl-0 md:last:pr-0"
                 >
                   <p className="font-sans text-[11px] font-bold tracking-[0.24em] text-flare">
                     {item.n}
@@ -119,32 +122,37 @@ export default function HomePage() {
                   </p>
                 </div>
               ))}
-            </div>
+            </RevealGroup>
           </div>
         </section>
 
         {/* III. Statement — typographic proof, no duplicate card */}
         <section className="home-section border-t border-white/8 bg-panel">
           <div className="mx-auto grid max-w-6xl gap-16 px-6 md:px-8 lg:grid-cols-2 lg:items-start lg:gap-20">
-            <div>
-              <SectionEyebrow>The gap</SectionEyebrow>
-              <h2 className="home-statement mt-6 font-serif text-chalk">
-                Big companies run on AI. Small businesses still run on missed
-                calls.
-              </h2>
-              <p className="mt-6 max-w-md font-sans text-[0.9375rem] leading-[1.65] text-ash-soft">
-                Orvius gives service shops the same front door intelligence —
-                without hiring a receptionist.
-              </p>
-            </div>
-            <CallTranscriptProof />
+            <RevealOnScroll>
+              <div>
+                <SectionEyebrow>The gap</SectionEyebrow>
+                <h2 className="home-statement mt-6 font-serif text-chalk">
+                  Big companies run on AI. Small businesses still run on missed
+                  calls.
+                </h2>
+                <p className="mt-6 max-w-md font-sans text-[0.9375rem] leading-[1.65] text-ash-soft">
+                  Orvius gives service shops the same front door intelligence —
+                  without hiring a receptionist.
+                </p>
+              </div>
+            </RevealOnScroll>
+            <RevealOnScroll delay={120}>
+              <CallTranscriptProof />
+            </RevealOnScroll>
           </div>
         </section>
 
         {/* IV. Close — calm inevitability */}
         <section className="home-section border-t border-white/8 bg-void">
           <div className="mx-auto max-w-6xl px-6 md:px-8">
-            <div className="home-close border border-white/10 bg-panel/50 p-8 md:flex md:items-end md:justify-between md:p-12">
+            <RevealOnScroll>
+              <div className="home-close border border-white/10 bg-panel/50 p-8 md:flex md:items-end md:justify-between md:p-12">
               <div className="max-w-lg">
                 <SectionEyebrow>Design partners</SectionEyebrow>
                 <h2 className="home-close-title mt-5 font-serif text-chalk">
@@ -160,7 +168,8 @@ export default function HomePage() {
               >
                 Apply for the pilot
               </Link>
-            </div>
+              </div>
+            </RevealOnScroll>
           </div>
         </section>
       </main>

@@ -10,6 +10,7 @@ import {
   ShellPanel,
   ShellStat,
 } from "@/components/shell-primitives";
+import { RevealOnScroll } from "@/components/reveal-on-scroll";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -75,12 +76,14 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <RevealOnScroll>
+        <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <ShellStat label="Leads captured" value={data?.leadCount ?? "—"} highlight />
         <ShellStat label="Calls handled" value={data?.callCount ?? "—"} />
         <ShellStat label="Businesses" value={data?.businessCount ?? "—"} />
         <ShellStat label="Pilot waitlist" value={data?.waitlistCount ?? "—"} />
-      </section>
+        </section>
+      </RevealOnScroll>
 
       <section className="mb-10">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
@@ -107,9 +110,10 @@ export default function DashboardPage() {
           </ShellEmpty>
         ) : (
           <ul className="grid gap-4 lg:grid-cols-2">
-            {data.recentLeads.map((lead) => (
+            {data.recentLeads.map((lead, i) => (
               <li key={lead.id}>
-                <LeadInboxCard
+                <RevealOnScroll delay={i * 70}>
+                  <LeadInboxCard
                   name={lead.name ?? "Unknown caller"}
                   phone={lead.phone}
                   service={lead.serviceType}
@@ -117,7 +121,8 @@ export default function DashboardPage() {
                   address={lead.address}
                   business={lead.business?.name ?? null}
                   createdAt={lead.createdAt}
-                />
+                  />
+                </RevealOnScroll>
               </li>
             ))}
           </ul>

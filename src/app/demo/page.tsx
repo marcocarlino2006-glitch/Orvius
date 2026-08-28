@@ -207,8 +207,9 @@ export default function DemoPage() {
           <p className="eyebrow">Owner sees this</p>
           <OwnerAlertCard
             variant="chalk"
-            className="mt-4 product-float-none shadow-[var(--shadow-lift)]"
+            className="preview-crossfade mt-4 product-float-none shadow-[var(--shadow-lift)]"
             lead={previewLead}
+            key={`${form.callerName}-${form.urgency}-${form.serviceType}`}
           />
           <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
             Updates live as you edit the form. This is the alert that lands on
