@@ -100,11 +100,11 @@ export default function DashboardPage() {
               Recent leads
             </h2>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/demo" className="btn btn-secondary text-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Link href="/demo" className="btn btn-secondary w-full text-sm sm:w-auto">
               Run demo call
             </Link>
-            <Link href="/admin" className="btn btn-primary text-sm">
+            <Link href="/admin" className="btn btn-primary w-full text-sm sm:w-auto">
               Manage businesses
             </Link>
           </div>

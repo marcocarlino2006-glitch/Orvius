@@ -89,14 +89,28 @@ export default function DemoPage() {
       statusLabel="Sales walkthrough"
     >
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
-        <div>
-          <div className="mb-6 flex flex-wrap gap-2">
+        <aside className="order-1 lg:order-2 lg:sticky lg:top-28">
+          <p className="eyebrow">Owner sees this</p>
+          <OwnerAlertCard
+            variant="chalk"
+            className="preview-crossfade mt-4 product-float-none shadow-[var(--shadow-lift)]"
+            lead={previewLead}
+            key={`${form.callerName}-${form.urgency}-${form.serviceType}`}
+          />
+          <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
+            Updates live as you edit the form. This is the alert that lands on
+            the owner&apos;s phone and dashboard.
+          </p>
+        </aside>
+
+        <div className="order-2 lg:order-1">
+          <div className="demo-preset-scroll mb-6 flex gap-2 overflow-x-auto pb-1">
             {presets.map((preset) => (
               <button
                 key={preset.label}
                 type="button"
                 onClick={() => setForm(preset)}
-                className={`btn text-sm ${
+                className={`btn shrink-0 text-sm ${
                   form.label === preset.label ? "btn-primary" : "btn-secondary"
                 }`}
               >
@@ -179,7 +193,7 @@ export default function DemoPage() {
 
             {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
 
-            <button disabled={loading} className="btn btn-primary">
+            <button disabled={loading} className="btn btn-primary w-full sm:w-auto">
               {loading ? "Running demo call..." : "Simulate call → create lead"}
             </button>
           </form>
@@ -194,7 +208,7 @@ export default function DemoPage() {
                   {result.summary}
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <Link href="/dashboard" className="btn btn-primary text-sm">
+                  <Link href="/dashboard" className="btn btn-primary w-full text-sm sm:w-auto">
                     View in inbox
                   </Link>
                 </div>
@@ -202,20 +216,6 @@ export default function DemoPage() {
             </div>
           ) : null}
         </div>
-
-        <aside className="lg:sticky lg:top-28">
-          <p className="eyebrow">Owner sees this</p>
-          <OwnerAlertCard
-            variant="chalk"
-            className="preview-crossfade mt-4 product-float-none shadow-[var(--shadow-lift)]"
-            lead={previewLead}
-            key={`${form.callerName}-${form.urgency}-${form.serviceType}`}
-          />
-          <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
-            Updates live as you edit the form. This is the alert that lands on
-            the owner&apos;s phone and dashboard.
-          </p>
-        </aside>
       </div>
     </AppShell>
   );

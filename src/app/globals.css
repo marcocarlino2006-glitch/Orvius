@@ -131,6 +131,7 @@ h3 {
   background:
     radial-gradient(900px 420px at 100% -10%, rgba(232, 70, 28, 0.04), transparent 55%),
     linear-gradient(180deg, var(--chalk) 0%, color-mix(in srgb, var(--fog) 40%, var(--chalk)) 100%);
+  padding-bottom: max(7rem, env(safe-area-inset-bottom, 0px));
 }
 
 .card {
@@ -163,6 +164,14 @@ h3 {
   border-color: color-mix(in srgb, var(--flare) 45%, var(--rule));
   outline: none;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--flare) 14%, transparent);
+}
+
+@media (max-width: 767px) {
+  .input,
+  .input select,
+  select.input {
+    font-size: 16px;
+  }
 }
 
 .btn {
@@ -422,6 +431,31 @@ h3 {
   border-color: color-mix(in srgb, var(--flare) 30%, var(--rule));
   box-shadow: var(--shadow-lift);
   transform: translateY(-1px);
+}
+
+@media (max-width: 639px) {
+  .lead-inbox-detail {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .lead-inbox-detail dd {
+    text-align: left;
+  }
+
+  .lead-inbox-value {
+    display: block;
+    word-break: break-word;
+  }
+}
+
+.demo-preset-scroll {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.demo-preset-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .live-status-bar {

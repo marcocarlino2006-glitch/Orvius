@@ -37,7 +37,7 @@ export default function PilotPage() {
     <MarketingShell headerPosition="sticky" cta={false} atmosphere>
       <main className="mx-auto max-w-6xl px-6 pb-24 pt-28 md:px-8 md:pt-32">
         <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-16">
-          <div>
+          <div className="order-2 lg:order-1">
             <ShellPageIntro
               label="Free pilot"
               title="Get Orvius answering your calls this week."
@@ -69,7 +69,7 @@ export default function PilotPage() {
             </RevealOnScroll>
           </div>
 
-          <div className="space-y-6">
+          <div className="order-1 space-y-6 lg:order-2">
             <RevealOnScroll delay={80}>
               <OwnerAlertCard
                 variant="void"

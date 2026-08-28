@@ -80,29 +80,49 @@ export function LeadInboxCard({
           ) : null}
         </div>
 
-        <dl className="mt-5 space-y-0 font-sans text-[13px]">
+        <dl className="lead-inbox-details mt-5 space-y-0 font-sans text-[13px]">
           {(
             [
-              { label: "Phone", value: phone ?? "Unknown" },
-              { label: "Service", value: service ?? "General inquiry" },
+              { label: "Phone", value: phone ?? "Unknown", href: phone ? `tel:${phone}` : null },
+              { label: "Service", value: service ?? "General inquiry", href: null },
               ...(address
-                ? [{ label: "Address", value: address }]
+                ? [{ label: "Address", value: address, href: null }]
                 : []),
-            ] as { label: string; value: string }[]
-          ).map(({ label, value }, i, arr) => (
+            ] as { label: string; value: string; href: string | null }[]
+          ).map(({ label, value, href }, i, arr) => (
             <div
               key={label}
-              className={`flex justify-between gap-4 py-2.5 ${
+              className={`lead-inbox-detail flex justify-between gap-4 py-2.5 ${
                 i < arr.length - 1 ? "border-b border-rule/80" : ""
               }`}
             >
               <dt className="text-ash">{label}</dt>
-              <dd className="text-right font-medium tabular-nums text-void">
-                {value}
+              <dd className="text-right font-medium text-void">
+                {href ? (
+                  <a
+                    href={href}
+                    className="lead-inbox-link tabular-nums text-flare-dim hover:text-flare"
+                  >
+                    {value}
+                  </a>
+                ) : (
+                  <span className="lead-inbox-value">{value}</span>
+                )}
               </dd>
             </div>
           ))}
         </dl>
+
+        {phone ? (
+          <div className="lead-inbox-actions mt-4 flex gap-2 border-t border-rule/80 pt-4 sm:hidden">
+            <a href={`tel:${phone}`} className="btn btn-primary flex-1 text-sm">
+              Call lead
+            </a>
+            <a href={`sms:${phone}`} className="btn btn-secondary flex-1 text-sm">
+              Text
+            </a>
+          </div>
+        ) : null}
       </div>
     </article>
   );

@@ -69,6 +69,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
               placeholder="Summit HVAC"
+              autoComplete="organization"
             />
           </FormField>
           <FormField label="Your email" required>
@@ -79,6 +80,8 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
+              autoComplete="email"
+              inputMode="email"
             />
           </FormField>
         </div>
@@ -86,9 +89,12 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
           <FormField label="Phone">
             <input
               className="input"
+              type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+1 555 123 4567"
+              autoComplete="tel"
+              inputMode="tel"
             />
           </FormField>
           <FormField label="Trade">

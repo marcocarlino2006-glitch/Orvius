@@ -19,7 +19,7 @@ export function AppShell({
   statusLabel = "Founder workspace",
 }: AppShellProps) {
   return (
-    <div className="product-workspace min-h-screen pb-28">
+    <div className="product-workspace min-h-screen">
       <div
         className="h-[2px] bg-gradient-to-r from-flare via-flare/60 to-transparent"
         aria-hidden
