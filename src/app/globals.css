@@ -2067,6 +2067,68 @@ h3 {
   margin-top: 0.5rem;
 }
 
+/* Google sign in */
+.google-sign-in-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.375rem;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  color: var(--void);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--shadow-soft);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.google-sign-in-btn:hover {
+  border-color: color-mix(in srgb, var(--void) 18%, var(--rule));
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-1px);
+}
+
+.os-user-panel {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--fog) 35%, var(--white));
+}
+
+.os-user-name {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.os-user-email {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--ash);
+  word-break: break-all;
+}
+
+.os-sign-out {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ash);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.os-sign-out:hover {
+  color: var(--void);
+}
+
 /* Orvius OS rings */
 .os-rings {
   list-style: none;

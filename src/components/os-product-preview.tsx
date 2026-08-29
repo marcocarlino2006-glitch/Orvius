@@ -77,7 +77,7 @@ export function OsProductPreviewSection() {
             captures leads. Ring 2 remembers them forever.
           </p>
           <Link
-            href="/dashboard"
+            href="/login"
             className="editorial-link editorial-link-inline font-sans"
           >
             Open the product →

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Manrope } from "next/font/google";
+import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
@@ -48,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${display.variable} ${sans.variable} antialiased`}>
-        {children}
+        <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>
     </html>

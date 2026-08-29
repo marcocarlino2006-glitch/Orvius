@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import { ProfileMenu } from "@/components/profile-menu";
 import {
   getOsRingMeta,
@@ -35,6 +36,7 @@ export function OsShell({
   actions,
 }: OsShellProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const liveRing = getOsRingMeta(osCurrentRing);
 
   return (
@@ -109,6 +111,23 @@ export function OsShell({
               ))}
             </ul>
           </nav>
+
+          <div className="os-user-panel">
+            {session?.user ? (
+              <>
+                <p className="os-sidebar-label font-sans">Signed in</p>
+                <p className="os-user-name font-sans">{session.user.name ?? "User"}</p>
+                <p className="os-user-email font-sans">{session.user.email}</p>
+                <button
+                  type="button"
+                  className="os-sign-out font-sans"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  Sign out
+                </button>
+              </>
+            ) : null}
+          </div>
 
           <div className="os-sidebar-rings">
             <p className="os-sidebar-label font-sans">OS map</p>

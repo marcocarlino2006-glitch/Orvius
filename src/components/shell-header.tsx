@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useEffect, useId, useState } from "react";
 
 type NavLink = { href: string; label: string };
@@ -24,9 +25,10 @@ export function ShellHeader({
   plane = "void",
   position = "sticky",
   surface = "solid",
-  cta = { href: "/pilot", label: "Start free pilot" },
+  cta = { href: "/login", label: "Sign in" },
   nav = defaultNav,
 }: ShellHeaderProps) {
+  const { data: session } = useSession();
   const isVoid = plane === "void";
   const isGlass = surface === "glass" && isVoid;
   const menuId = useId();
@@ -81,6 +83,10 @@ export function ShellHeader({
     ? "shell-nav-link shell-nav-link-void"
     : "shell-nav-link shell-nav-link-chalk";
 
+  const headerCta = session?.user
+    ? { href: "/dashboard", label: "Dashboard" }
+    : cta;
+
   return (
     <>
       <header className={shellClass}>
@@ -107,14 +113,14 @@ export function ShellHeader({
           ) : null}
 
           <div className="flex items-center gap-3 md:gap-4">
-            {cta ? (
+            {headerCta ? (
               <Link
-                href={cta.href}
+                href={headerCta.href}
                 className={`btn hidden sm:inline-flex ${
                   isVoid ? "btn-on-void" : "btn-primary"
                 }`}
               >
-                {cta.label}
+                {headerCta.label}
               </Link>
             ) : null}
 
@@ -165,15 +171,15 @@ export function ShellHeader({
                   </li>
                 ))}
               </ul>
-              {cta ? (
+              {headerCta ? (
                 <Link
-                  href={cta.href}
+                  href={headerCta.href}
                   className={`btn mt-4 w-full justify-center ${
                     isVoid ? "btn-on-void" : "btn-primary"
                   }`}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {cta.label}
+                  {headerCta.label}
                 </Link>
               ) : null}
             </nav>

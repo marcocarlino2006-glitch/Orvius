@@ -1,10 +1,10 @@
+import { HomeHeroActions } from "@/components/home-hero-actions";
 import {
   CallTranscriptProof,
   OwnerAlertCard,
 } from "@/components/owner-alert-card";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
-import { ProfileMenu } from "@/components/profile-menu";
 import { OsRings } from "@/components/os-rings";
 import { OsProductPreviewSection } from "@/components/os-product-preview";
 import { company } from "@/lib/company";
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      <ShellHeader plane="chalk" cta={false} />
+      <ShellHeader plane="chalk" cta={{ href: "/login", label: "Sign in" }} />
 
       <main className="editorial bg-chalk text-void">
         {/* Hero — one idea, maximum space */}
@@ -35,14 +35,7 @@ export default function HomePage() {
               {company.mission} Rings 1–2 are live — front door and customer
               records — for {company.trades.join(", ")}.
             </p>
-            <div className="editorial-actions font-sans">
-              <Link href="/pilot" className="editorial-cta">
-                Start free pilot
-              </Link>
-              <Link href="/demo" className="editorial-link">
-                Hear a demo call
-              </Link>
-            </div>
+            <HomeHeroActions />
           </div>
         </section>
 
@@ -122,11 +115,11 @@ export default function HomePage() {
               Built for the long run.
             </p>
             <div className="editorial-actions font-sans">
-              <Link href="/pilot" className="editorial-cta">
-                Apply for free pilot
+              <Link href="/login" className="editorial-cta">
+                Sign in
               </Link>
-              <Link href="/pricing" className="editorial-link">
-                Pricing
+              <Link href="/pilot" className="editorial-link">
+                Apply for pilot
               </Link>
             </div>
           </div>
@@ -134,7 +127,6 @@ export default function HomePage() {
       </main>
 
       <SiteFooter />
-      <ProfileMenu statusLabel="Founder workspace" />
     </>
   );
 }
