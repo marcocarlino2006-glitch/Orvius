@@ -13,7 +13,7 @@ export default function PrivacyPage() {
       label="Legal"
       title="Privacy Policy"
       description={`${company.legalName} (&quot;we&quot;) operates ${company.productName}. This policy explains how we handle information when you use our website and Service.`}
-      updated="August 28, 2026"
+      updated={company.legalUpdated}
     >
       <LegalSection title="1. Who we are">
         <p>

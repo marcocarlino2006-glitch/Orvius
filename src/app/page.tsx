@@ -2,18 +2,20 @@ import { CallTranscriptProof, OwnerAlertCard, SectionEyebrow } from "@/component
 import { RevealGroup, RevealOnScroll } from "@/components/reveal-on-scroll";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
+import { TrustStrip } from "@/components/trust-strip";
 import { ProfileMenu } from "@/components/profile-menu";
+import { company, platformPillars } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Orvius — The front door of your business, always answered",
+  title: "Orvius — The AI operating partner for service businesses",
   description:
-    "AI operating partner for HVAC, plumbing, and electrical shops. Orvius picks up, qualifies, and puts every lead in your hand — before your competitor does.",
+    "Orvius is the AI operating partner for HVAC, plumbing, and electrical businesses. Every call answered. Every lead captured. Built for the long run by Solution Development LLC.",
   openGraph: {
-    title: "Orvius — Always answered",
+    title: "Orvius — AI operating partner for service businesses",
     description:
-      "Every call answered. Every lead captured. Built for service businesses.",
+      "The front door of your business — always answered. Platform built for home service operators.",
   },
 };
 
@@ -59,13 +61,13 @@ export default function HomePage() {
               <div className="anim-line mt-8 h-px w-16 bg-flare" />
 
               <p className="anim-rise anim-rise-delay-2 home-claim mt-8 font-serif text-chalk">
-                The front door of your business — always answered.
+                The operating layer for service businesses — starting at the
+                front door.
               </p>
 
               <p className="anim-rise anim-rise-delay-2 mt-5 max-w-md font-sans text-[0.9375rem] leading-[1.65] text-ash-soft">
-                For HVAC, plumbing, and electrical shops. Orvius picks up,
-                qualifies, and puts the lead in your hand — before your
-                competitor does.
+                {company.mission} Today: every call answered, every lead
+                qualified, every owner alerted.
               </p>
 
               <div className="anim-rise anim-rise-delay-3 mt-10 flex flex-wrap items-center gap-3">
@@ -89,18 +91,57 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* II. Wedge — one job, editorial columns */}
+        {/* II. Platform — how it works today */}
         <section className="home-section border-t border-white/8 bg-void">
           <div className="mx-auto max-w-6xl px-6 md:px-8">
             <RevealOnScroll>
               <div className="home-section-head">
-                <SectionEyebrow>The wedge</SectionEyebrow>
+                <SectionEyebrow>Platform</SectionEyebrow>
+                <p className="home-section-title mt-5 font-serif text-chalk">
+                  Reception first. Operations next.
+                </p>
+                <p className="mt-4 max-w-2xl font-sans text-[0.9375rem] leading-relaxed text-ash-soft">
+                  {company.productName} starts where revenue is won or lost — the
+                  inbound call — then expands across the shop. One intelligence
+                  layer, built for {company.trades.join(", ")}, and the trades
+                  that follow.
+                </p>
+              </div>
+            </RevealOnScroll>
+
+            <RevealGroup className="mt-14 grid gap-12 md:grid-cols-3 md:gap-0 md:divide-x md:divide-white/8">
+              {platformPillars.map((item, i) => (
+                <div
+                  key={item.title}
+                  className="reveal-item md:px-10 md:first:pl-0 md:last:pr-0"
+                >
+                  <p className="font-sans text-[11px] font-bold tracking-[0.24em] text-flare">
+                    {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h2 className="mt-4 font-serif text-[1.65rem] tracking-[-0.03em] text-chalk">
+                    {item.title}
+                  </h2>
+                  <p className="mt-3 max-w-[14rem] font-sans text-sm leading-relaxed text-ash-soft">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
+            </RevealGroup>
+          </div>
+        </section>
+
+        {/* III. Wedge proof — one job done perfectly */}
+        <section className="home-section border-t border-white/8 bg-panel/30">
+          <div className="mx-auto max-w-6xl px-6 md:px-8">
+            <RevealOnScroll>
+              <div className="home-section-head">
+                <SectionEyebrow>Live today</SectionEyebrow>
                 <p className="home-section-title mt-5 font-serif text-chalk">
                   One job. Done perfectly.
                 </p>
                 <p className="mt-4 max-w-xl font-sans text-[0.9375rem] leading-relaxed text-ash-soft">
-                  Never lose a lead to a missed call. That&apos;s where Orvius
-                  starts — and earns the right to run more of your business.
+                  Answer → qualify → alert. The receptionist loop that pays for
+                  itself on the first booked job.
                 </p>
               </div>
             </RevealOnScroll>
@@ -126,7 +167,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* III. Statement — typographic proof, no duplicate card */}
+        {/* IV. Statement — typographic proof */}
         <section className="home-section border-t border-white/8 bg-panel">
           <div className="mx-auto grid max-w-6xl gap-16 px-6 md:px-8 lg:grid-cols-2 lg:items-start lg:gap-20">
             <RevealOnScroll>
@@ -137,8 +178,9 @@ export default function HomePage() {
                   calls.
                 </h2>
                 <p className="mt-6 max-w-md font-sans text-[0.9375rem] leading-[1.65] text-ash-soft">
-                  Orvius gives service shops the same front door intelligence —
-                  without hiring a receptionist.
+                  {company.productName} gives service shops the same front-door
+                  intelligence — without hiring a receptionist or buying
+                  enterprise software they will never use.
                 </p>
               </div>
             </RevealOnScroll>
@@ -148,21 +190,30 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* IV. Close — calm inevitability */}
+        <TrustStrip />
+
+        {/* V. Close */}
         <section className="home-section border-t border-white/8 bg-void">
           <div className="mx-auto max-w-6xl px-6 md:px-8">
             <RevealOnScroll>
               <div className="home-close border border-white/10 bg-panel/50 p-8 md:flex md:items-end md:justify-between md:p-12">
               <div className="max-w-lg">
-                <SectionEyebrow>Design partners</SectionEyebrow>
+                <SectionEyebrow>Get started</SectionEyebrow>
                 <h2 className="home-close-title mt-5 font-serif text-chalk">
-                  First ten shops. Thirty days free.
+                  Built for the long run. Start with a free pilot.
                 </h2>
                 <p className="mt-4 font-sans text-[0.9375rem] leading-relaxed text-ash-soft">
-                  We set Orvius up with you. Prove it on real calls.
+                  We onboard your shop personally. Prove {company.productName} on
+                  real calls — then scale on your line.
                 </p>
               </div>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row md:mt-0">
+                <Link
+                  href="/about"
+                  className="btn btn-on-void-secondary shrink-0"
+                >
+                  About Orvius
+                </Link>
                 <Link
                   href="/pricing"
                   className="btn btn-on-void-secondary shrink-0"
@@ -170,7 +221,7 @@ export default function HomePage() {
                   View pricing
                 </Link>
                 <Link href="/pilot" className="btn btn-on-void shrink-0">
-                  Apply for the pilot
+                  Apply for pilot
                 </Link>
               </div>
               </div>

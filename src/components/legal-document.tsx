@@ -38,6 +38,10 @@ export function LegalDocument({
             {company.contactEmail}
           </a>
           {" · "}
+          <Link href="/legal" className="footer-link text-chalk">
+            Legal center
+          </Link>
+          {" · "}
           <Link href="/pricing" className="footer-link text-chalk">
             Pricing
           </Link>

@@ -1,16 +1,18 @@
 import Link from "next/link";
-import { company } from "@/lib/company";
+import { company, legalPages } from "@/lib/company";
 
 const productLinks = [
-  { href: "/pricing", label: "Pricing" },
-  { href: "/pilot", label: "Pilot" },
-  { href: "/demo", label: "Demo" },
   { href: "/dashboard", label: "Product" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/demo", label: "Demo" },
+  { href: "/pilot", label: "Pilot" },
 ];
 
-const legalLinks = [
-  { href: "/terms", label: "Terms" },
-  { href: "/privacy", label: "Privacy" },
+const companyLinks = [
+  { href: "/about", label: "About" },
+  { href: "/legal", label: "Legal center" },
+  { href: "/security", label: "Security" },
+  ...legalPages.map((p) => ({ href: p.href, label: p.title })),
 ];
 
 export function SiteFooter() {
@@ -18,7 +20,7 @@ export function SiteFooter() {
     <footer className="site-footer border-t border-white/10 bg-void text-chalk">
       <div className="site-footer-flare mx-auto max-w-6xl px-6 md:px-8" aria-hidden />
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.2fr_1fr_1fr] md:px-8 md:py-16">
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.2fr_1fr_1.2fr] md:px-8 md:py-16">
         <div>
           <p className="font-sans text-sm font-semibold tracking-[0.2em] uppercase">
             {company.productName}
@@ -30,7 +32,7 @@ export function SiteFooter() {
             {company.trades.join(" · ")}
           </p>
           <p className="mt-6 font-sans text-xs leading-relaxed text-ash">
-            A product of {company.legalName}
+            Operated by {company.legalName}
           </p>
         </div>
 
@@ -51,10 +53,10 @@ export function SiteFooter() {
 
         <nav aria-label="Legal">
           <p className="font-sans text-[10px] font-bold tracking-[0.2em] text-ash uppercase">
-            Company
+            Legal & company
           </p>
           <ul className="mt-4 flex flex-col gap-3 font-sans text-sm">
-            {legalLinks.map((link) => (
+            {companyLinks.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="footer-link text-ash-soft">
                   {link.label}
@@ -77,7 +79,7 @@ export function SiteFooter() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-5 font-sans text-xs text-ash md:px-8">
           <p>
             © {new Date().getFullYear()} {company.legalName}. {company.productName}{" "}
-            is a product of {company.legalName}.
+            is a product of {company.legalName}. All rights reserved.
           </p>
           <p>{company.domain}</p>
         </div>

@@ -16,6 +16,7 @@ type Business = {
   vapiAssistantId: string | null;
   vapiPhoneNumber: string | null;
   twilioPhone: string | null;
+  billingStatus?: string;
   _count?: { calls: number; leads: number };
 };
 
@@ -382,6 +383,12 @@ export default function AdminPage() {
                       {business._count?.leads ?? 0}
                     </div>
                     <div>Twilio: {business.twilioPhone ?? "Not set"}</div>
+                    <div>
+                      Billing:{" "}
+                      <span className="font-medium capitalize text-void">
+                        {business.billingStatus ?? "pilot"}
+                      </span>
+                    </div>
                   </dl>
                   <div className="mt-4 flex gap-2">
                     <input

@@ -111,7 +111,7 @@ if (stripeReady) {
   );
 }
 
-for (const page of ["pricing", "terms", "privacy"]) {
+for (const page of ["pricing", "terms", "privacy", "legal", "about", "cookies", "sms-terms", "refunds", "security"]) {
   const pagePath = resolve(root, "src/app", page, "page.tsx");
   results.push(
     existsSync(pagePath)

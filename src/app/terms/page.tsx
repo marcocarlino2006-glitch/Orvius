@@ -14,7 +14,7 @@ export default function TermsPage() {
       label="Legal"
       title="Terms of Service"
       description={`These terms govern your use of ${company.productName}, an AI receptionist service operated by ${company.legalName}.`}
-      updated="August 28, 2026"
+      updated={company.legalUpdated}
     >
       <LegalSection title="1. Agreement">
         <p>
@@ -155,7 +155,17 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="12. Contact">
+      <LegalSection title="12. Related policies">
+        <p>
+          See also our{" "}
+          <Link href="/privacy">Privacy Policy</Link>,{" "}
+          <Link href="/sms-terms">SMS Terms</Link>,{" "}
+          <Link href="/refunds">Refunds & Cancellation</Link>, and{" "}
+          <Link href="/legal">Legal center</Link>.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="13. Contact">
         <p>
           {company.legalName}
           <br />
