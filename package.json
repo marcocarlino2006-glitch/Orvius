@@ -24,6 +24,7 @@
     "restore:phones": "node scripts/restore-live-phones.mjs",
     "backfill:customers": "node scripts/backfill-customers.mjs",
     "deploy:check": "node scripts/deploy-check.mjs",
+    "export:vercel-env": "node scripts/export-vercel-env.mjs",
     "stripe:setup": "node scripts/stripe-setup.mjs"
   },
   "dependencies": {

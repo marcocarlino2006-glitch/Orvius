@@ -12,7 +12,9 @@ Orvius uses **Google OAuth** for dashboard access.
 
 ```
 http://localhost:3000/api/auth/callback/google
-https://YOUR-DOMAIN/api/auth/callback/google
+https://orvius.im/api/auth/callback/google
+https://app.orvius.im/api/auth/callback/google
+https://api.orvius.im/api/auth/callback/google
 ```
 
 ## 2. Add to `.env`

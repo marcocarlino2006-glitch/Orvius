@@ -111,6 +111,19 @@ if (stripeReady) {
   );
 }
 
+const authReady =
+  env.AUTH_SECRET?.trim() &&
+  env.GOOGLE_CLIENT_ID?.trim() &&
+  env.GOOGLE_CLIENT_SECRET?.trim();
+
+if (authReady) {
+  results.push(pass("Google sign-in configured"));
+} else {
+  results.push(
+    fail("Google sign-in missing — add GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (docs/AUTH-GOOGLE.md)"),
+  );
+}
+
 for (const page of ["pricing", "terms", "privacy", "legal", "about", "cookies", "sms-terms", "refunds", "security"]) {
   const pagePath = resolve(root, "src/app", page, "page.tsx");
   results.push(
