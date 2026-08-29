@@ -70,15 +70,25 @@ export function OwnerAlertCard({
 
   return (
     <div
-      className={`product-surface product-float ${isVoid ? "product-surface-void" : "product-surface-chalk"} ${className}`}
+      className={`product-surface ${isVoid ? "product-surface-void" : "product-surface-chalk"} ${className}`}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-white/8 px-5 py-3.5 md:px-6">
+      <div
+        className={`flex items-center justify-between gap-3 border-b px-5 py-3.5 md:px-6 ${
+          isVoid ? "border-white/8" : "border-rule"
+        }`}
+      >
         <div className="flex items-center gap-2.5">
           <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-flare opacity-35" />
+            {isVoid ? (
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-flare opacity-35" />
+            ) : null}
             <span className="relative inline-flex size-2 rounded-full bg-flare" />
           </span>
-          <p className="font-sans text-[10px] font-bold tracking-[0.22em] text-flare uppercase">
+          <p
+            className={`font-sans text-[10px] font-bold tracking-[0.22em] uppercase ${
+              isVoid ? "text-flare" : "text-ash"
+            }`}
+          >
             Owner alert
           </p>
         </div>
@@ -131,29 +141,47 @@ export function OwnerAlertCard({
   );
 }
 
-export function CallTranscriptProof({ className = "" }: { className?: string }) {
+export function CallTranscriptProof({
+  variant = "void",
+  className = "",
+}: {
+  variant?: "void" | "chalk";
+  className?: string;
+}) {
+  const isVoid = variant === "void";
+
   return (
-    <div className={`panel-void p-6 md:p-8 ${className}`}>
-      <p className="font-sans text-[10px] font-bold tracking-[0.22em] text-flare uppercase">
+    <div
+      className={`p-6 md:p-8 ${isVoid ? "panel-void" : "panel-chalk"} ${className}`}
+    >
+      <p className="font-sans text-[10px] font-bold tracking-[0.22em] text-ash uppercase">
         Live receptionist
       </p>
-      <div className="mt-5 space-y-4 font-sans text-[13px] leading-relaxed text-ash-soft">
+      <div className="mt-5 space-y-4 font-sans text-[13px] leading-relaxed text-ash">
         <p className="transcript-line">
-          <span className="text-chalk">Orvius</span> · Thanks for calling Summit
-          HVAC. How can I help?
+          <span className={isVoid ? "text-chalk" : "text-void"}>Orvius</span> ·
+          Thanks for calling Summit HVAC. How can I help?
         </p>
         <p className="transcript-line">
-          <span className="text-chalk/80">Caller</span> · My AC stopped cooling.
-          Can someone come today?
+          <span className={isVoid ? "text-chalk/80" : "text-void/70"}>
+            Caller
+          </span>{" "}
+          · My AC stopped cooling. Can someone come today?
         </p>
         <p className="transcript-line">
-          <span className="text-chalk">Orvius</span> · I can help. What&apos;s the
-          address and best callback number?
+          <span className={isVoid ? "text-chalk" : "text-void"}>Orvius</span> ·
+          I can help. What&apos;s the address and best callback number?
         </p>
       </div>
-      <div className="transcript-foot mt-6 flex items-center gap-2 border-t border-white/8 pt-5">
+      <div
+        className={`transcript-foot mt-6 flex items-center gap-2 border-t pt-5 ${
+          isVoid ? "border-white/8" : "border-rule"
+        }`}
+      >
         <span className="size-1.5 rounded-full bg-live" />
-        <p className="font-sans text-xs text-chalk">
+        <p
+          className={`font-sans text-xs ${isVoid ? "text-chalk" : "text-void"}`}
+        >
           Lead captured · owner notified
         </p>
       </div>

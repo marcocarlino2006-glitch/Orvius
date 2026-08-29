@@ -261,6 +261,13 @@ h3 {
   border-radius: 0.5rem;
 }
 
+.panel-chalk {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-soft);
+}
+
 .product-surface {
   overflow: hidden;
   border-radius: 0.5rem;
@@ -1010,6 +1017,14 @@ h3 {
   -webkit-backdrop-filter: blur(14px);
 }
 
+.shell-header-chalk .shell-wordmark {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.125rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+
 .shell-nav-link {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.875rem;
@@ -1415,4 +1430,169 @@ h3 {
 .legal-prose strong {
   color: var(--chalk);
   font-weight: 600;
+}
+
+/* Editorial homepage — Claude / Anthropic restraint */
+.editorial-wrap {
+  width: 100%;
+  max-width: 68rem;
+  margin-inline: auto;
+  padding-inline: clamp(1.5rem, 4vw, 2rem);
+}
+
+.editorial-hero {
+  padding-top: clamp(5rem, 14vh, 9rem);
+  padding-bottom: clamp(5rem, 14vh, 9rem);
+}
+
+.editorial-display {
+  font-size: clamp(2.75rem, 6.5vw, 4.75rem);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  font-weight: 500;
+  max-width: 18ch;
+}
+
+.editorial-lead {
+  margin-top: clamp(1.75rem, 3vw, 2.5rem);
+  max-width: 42ch;
+  font-size: clamp(1.0625rem, 1.6vw, 1.1875rem);
+  line-height: 1.65;
+  color: var(--ash);
+}
+
+.editorial-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem 2rem;
+  margin-top: clamp(2rem, 4vw, 3rem);
+}
+
+.editorial-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.875rem 1.5rem;
+  border-radius: 999px;
+  background: var(--void);
+  color: var(--chalk);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.editorial-cta:hover {
+  background: color-mix(in srgb, var(--void) 88%, var(--ash));
+  transform: translateY(-1px);
+}
+
+.editorial-link {
+  color: var(--void);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: color-mix(in srgb, var(--void) 30%, transparent);
+  transition: text-decoration-color 160ms ease;
+}
+
+.editorial-link:hover {
+  text-decoration-color: var(--void);
+}
+
+.editorial-link-inline {
+  display: inline-block;
+  margin-top: 1.5rem;
+}
+
+.editorial-section {
+  padding-block: clamp(5rem, 12vh, 8rem);
+  border-top: 1px solid var(--rule);
+}
+
+.editorial-section-muted {
+  background: color-mix(in srgb, var(--fog) 45%, var(--chalk));
+}
+
+.editorial-split {
+  display: grid;
+  gap: clamp(3rem, 6vw, 5rem);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .editorial-split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .editorial-split-reverse .editorial-copy {
+    order: 2;
+  }
+}
+
+.editorial-heading {
+  font-size: clamp(1.875rem, 3.5vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  max-width: 16ch;
+}
+
+.editorial-body {
+  margin-top: 1.25rem;
+  max-width: 42ch;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--ash);
+}
+
+.editorial-card {
+  border-radius: 0.625rem;
+}
+
+.editorial-statement {
+  padding-block: clamp(6rem, 16vh, 10rem);
+  border-top: 1px solid var(--rule);
+  background: var(--void);
+  color: var(--chalk);
+}
+
+.editorial-quote {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  max-width: 20ch;
+}
+
+.editorial-quote-sub {
+  margin-top: 1.75rem;
+  max-width: 38ch;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--ash-soft);
+}
+
+.editorial-close {
+  padding-block: clamp(5rem, 12vh, 8rem);
+  border-top: 1px solid var(--rule);
+}
+
+.editorial-close-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .editorial-close-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.editorial-close-text {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
 }
