@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s · Orvius",
   },
   description:
-    "Orvius is the AI operating partner for service businesses. Every call answered. Every lead captured.",
+    "Orvius is the operating system for service businesses. Every call answered. Every lead captured.",
   metadataBase: new URL("https://orvius.im"),
   openGraph: {
     title: "Orvius — Always answered",

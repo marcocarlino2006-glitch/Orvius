@@ -8,14 +8,76 @@ export const company = {
   legalEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
-  tagline: "The AI operating partner for service businesses.",
+  tagline: "The operating system for service businesses.",
   mission:
-    "Give every service business the same front-door intelligence big operators use — starting with calls, built for the full shop.",
+    "One intelligence layer for the full shop — every call, every customer, every job. We start at the front door.",
   jurisdictionNote:
     "the state in which Solution Development LLC is organized",
   smsProgramName: "Orvius Owner Alerts",
   legalUpdated: "August 29, 2026",
 } as const;
+
+/** Orvius OS — expansion rings. One ring at a time; never skip. */
+export const osRings = [
+  {
+    ring: 1,
+    name: "Front door",
+    module: "Answer · qualify · alert",
+    status: "live" as const,
+    body: "Every call and text handled. Owner notified with a clean summary.",
+  },
+  {
+    ring: 2,
+    name: "Customers",
+    module: "Record · history · recognition",
+    status: "next" as const,
+    body: "Every caller becomes a customer. Full history from first touch.",
+  },
+  {
+    ring: 3,
+    name: "Jobs",
+    module: "Book · confirm · schedule",
+    status: "planned" as const,
+    body: "Leads become booked appointments — not sticky notes.",
+  },
+  {
+    ring: 4,
+    name: "Field",
+    module: "Dispatch · assign · status",
+    status: "planned" as const,
+    body: "Who goes where. The day runs from one screen.",
+  },
+  {
+    ring: 5,
+    name: "Money",
+    module: "Estimate · invoice · pay",
+    status: "planned" as const,
+    body: "Revenue flows through the system — not scattered tools.",
+  },
+  {
+    ring: 6,
+    name: "Intelligence",
+    module: "AI on every layer",
+    status: "planned" as const,
+    body: "Smarter with every call, job, and payment.",
+  },
+  {
+    ring: 7,
+    name: "Platform",
+    module: "API · integrations · ecosystem",
+    status: "planned" as const,
+    body: "Other tools plug into Orvius — not the other way around.",
+  },
+  {
+    ring: 8,
+    name: "Marketplace",
+    module: "Homeowners · match · trust",
+    status: "planned" as const,
+    body: "Consumers find Orvius-certified pros. Two-sided network.",
+  },
+] as const;
+
+export const osCurrentRing = 1;
 
 export const legalPages = [
   {

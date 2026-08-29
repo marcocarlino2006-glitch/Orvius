@@ -5,16 +5,16 @@ import {
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ProfileMenu } from "@/components/profile-menu";
+import { OsRings } from "@/components/os-rings";
 import { company } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Orvius — The AI operating partner for service businesses",
-  description:
-    "Orvius is the AI operating partner for HVAC, plumbing, and electrical businesses. Every call answered. Every lead captured.",
+  title: "Orvius — The operating system for service businesses",
+  description: company.tagline + " Every call answered. Every lead captured.",
   openGraph: {
-    title: "Orvius — AI operating partner for service businesses",
+    title: "Orvius — " + company.tagline,
     description:
       "The front door of your business — always answered. Built for home service operators.",
   },
@@ -29,13 +29,10 @@ export default function HomePage() {
         {/* Hero — one idea, maximum space */}
         <section className="editorial-hero">
           <div className="editorial-wrap">
-            <h1 className="editorial-display font-serif">
-              The AI operating partner for service businesses.
-            </h1>
+            <h1 className="editorial-display font-serif">{company.tagline}</h1>
             <p className="editorial-lead font-sans">
-              Every call answered. Every lead qualified. Every owner alerted —
-              for {company.trades.join(", ")}, and the shops that depend on
-              them.
+              {company.mission} Ring 1 — the front door — is live today for{" "}
+              {company.trades.join(", ")}.
             </p>
             <div className="editorial-actions font-sans">
               <Link href="/pilot" className="editorial-cta">
@@ -95,6 +92,23 @@ export default function HomePage() {
                 Listen to a demo →
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* OS — the full system */}
+        <section className="editorial-section">
+          <div className="editorial-wrap">
+            <h2 className="editorial-heading font-serif">The OS.</h2>
+            <p className="editorial-body font-sans max-w-2xl">
+              Orvius is not a feature. It is the system the shop runs on — one
+              ring at a time. We do not skip ahead.
+            </p>
+            <div className="mt-12">
+              <OsRings limit={4} />
+            </div>
+            <Link href="/about" className="editorial-link editorial-link-inline font-sans">
+              Full OS map →
+            </Link>
           </div>
         </section>
 

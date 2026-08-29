@@ -30,7 +30,7 @@ export default function OpenGraphImage() {
             fontWeight: 700,
           }}
         >
-          AI operating partner
+          Operating system
         </div>
         <div
           style={{

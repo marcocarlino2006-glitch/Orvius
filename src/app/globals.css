@@ -1596,3 +1596,125 @@ h3 {
   line-height: 1.1;
   letter-spacing: -0.04em;
 }
+
+/* Orvius OS rings */
+.os-rings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--rule);
+  border-radius: 0.625rem;
+  overflow: hidden;
+}
+
+.os-ring {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.os-ring:first-child {
+  border-top: none;
+}
+
+.os-ring-light {
+  background: var(--white);
+}
+
+.os-ring-light.os-ring-live {
+  background: color-mix(in srgb, var(--fog) 50%, var(--white));
+}
+
+.os-ring-dark {
+  background: color-mix(in srgb, var(--panel) 90%, var(--void));
+  border-top-color: var(--rule-dark);
+}
+
+.os-ring-dark.os-ring-live {
+  background: color-mix(in srgb, var(--panel) 70%, var(--void));
+}
+
+.os-ring-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 3rem;
+}
+
+.os-ring-num {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--ash);
+}
+
+.os-ring-dark .os-ring-num {
+  color: var(--ash-soft);
+}
+
+.os-ring-live .os-ring-num {
+  color: var(--flare);
+}
+
+.os-ring-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.25rem;
+  background: var(--void);
+  color: var(--chalk);
+}
+
+.os-ring-badge-next {
+  background: color-mix(in srgb, var(--flare) 12%, var(--white));
+  color: var(--flare-dim);
+}
+
+.os-ring-dark .os-ring-badge-next {
+  background: color-mix(in srgb, var(--flare) 18%, transparent);
+  color: var(--flare);
+}
+
+.os-ring-name {
+  font-size: 1.25rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--void);
+}
+
+.os-ring-dark .os-ring-name {
+  color: var(--chalk);
+}
+
+.os-ring-module {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.os-ring-dark .os-ring-module {
+  color: var(--ash-soft);
+}
+
+.os-ring-body {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ash);
+  max-width: 48ch;
+}
+
+.os-ring-dark .os-ring-body {
+  color: var(--ash-soft);
+}
