@@ -87,10 +87,11 @@ export function ShellHeader({
         <div className="shell-header-bar mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 md:px-8">
           <Link
             href="/"
-            className={`shell-wordmark ${isVoid ? "text-chalk" : "text-void"}`}
+            className={`shell-logo ${isVoid ? "text-chalk" : "text-void"}`}
             onClick={() => setMenuOpen(false)}
           >
-            Orvius
+            <span className="shell-logo-mark" aria-hidden />
+            <span className="shell-wordmark">Orvius</span>
           </Link>
 
           {nav ? (
