@@ -1,10 +1,5 @@
-import {
-  MarketingShell,
-  ShellPageIntro,
-  ShellVoidPanel,
-} from "@/components/marketing-shell";
+import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { OsRings } from "@/components/os-rings";
-import { RevealOnScroll } from "@/components/reveal-on-scroll";
 import { company } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -16,61 +11,65 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <MarketingShell headerPosition="sticky" cta={false} atmosphere>
-      <main className="mx-auto max-w-6xl px-6 pb-24 pt-28 md:px-8 md:pt-32">
-        <ShellPageIntro
-          label="Company"
-          title={company.tagline}
-          description={company.mission}
-        />
+    <MarketingShell cta={false}>
+      <section className="editorial-hero">
+        <div className="editorial-wrap">
+          <ShellPageIntro
+            label="Company"
+            title={company.tagline}
+            description={company.mission}
+          />
+        </div>
+      </section>
 
-        <RevealOnScroll className="mt-12 max-w-3xl">
-          <p className="font-sans text-[0.9375rem] leading-relaxed text-ash-soft">
+      <section className="editorial-section">
+        <div className="editorial-wrap max-w-3xl">
+          <p className="font-sans text-[0.9375rem] leading-relaxed text-ash">
             {company.productName} is developed and operated by{" "}
             {company.legalName}. We focus on {company.trades.join(", ")} — where
             missed calls become lost revenue.
           </p>
-          <p className="mt-5 font-sans text-[0.9375rem] leading-relaxed text-ash-soft">
-            The front door is Ring 1. It is live. Everything after — customers,
-            jobs, field, money, intelligence, platform, marketplace — builds on
-            that foundation. One ring at a time. Never skip.
+          <p className="mt-5 font-sans text-[0.9375rem] leading-relaxed text-ash">
+            We started at the front door — answering and qualifying every call.
+            Customer records followed. Jobs, dispatch, billing, and everything
+            else builds on that foundation. One layer at a time.
           </p>
-        </RevealOnScroll>
+        </div>
+      </section>
 
-        <RevealOnScroll className="mt-16">
-          <ShellVoidPanel className="p-6 md:p-10">
-            <p className="eyebrow">Orvius OS</p>
-            <p className="mt-3 font-serif text-2xl tracking-[-0.03em] text-chalk">
-              Eight rings. One system.
-            </p>
-            <div className="mt-10">
-              <OsRings variant="dark" />
-            </div>
-          </ShellVoidPanel>
-        </RevealOnScroll>
+      <section className="editorial-section editorial-section-muted">
+        <div className="editorial-wrap">
+          <h2 className="editorial-heading font-serif">The system.</h2>
+          <p className="editorial-body font-sans max-w-2xl">
+            Orvius expands in layers — each one a complete module, not a
+            half-built feature. What&apos;s live today is what shops actually use.
+          </p>
+          <div className="mt-12">
+            <OsRings />
+          </div>
+        </div>
+      </section>
 
-        <RevealOnScroll className="mt-16">
-          <ShellVoidPanel className="p-6 md:p-8">
-            <p className="eyebrow">Legal entity</p>
-            <p className="mt-3 font-serif text-2xl tracking-[-0.03em] text-chalk">
-              {company.legalName}
-            </p>
-            <p className="mt-4 font-sans text-sm leading-relaxed text-ash-soft">
+      <section className="editorial-section">
+        <div className="editorial-wrap editorial-split">
+          <div className="editorial-copy">
+            <h2 className="editorial-heading font-serif">{company.legalName}</h2>
+            <p className="editorial-body font-sans">
               Contracts, invoices, and subscriptions are with {company.legalName}.
               {company.productName} is our product brand for service-business
               operators.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/legal" className="btn btn-on-void-secondary">
-                Legal center
-              </Link>
-              <Link href="/pricing" className="btn btn-on-void">
-                View pricing
-              </Link>
-            </div>
-          </ShellVoidPanel>
-        </RevealOnScroll>
-      </main>
+          </div>
+          <div className="editorial-actions font-sans">
+            <Link href="/legal" className="editorial-link">
+              Legal center →
+            </Link>
+            <Link href="/pricing" className="editorial-cta">
+              View pricing
+            </Link>
+          </div>
+        </div>
+      </section>
     </MarketingShell>
   );
 }

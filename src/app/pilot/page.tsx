@@ -1,11 +1,7 @@
-import {
-  MarketingShell,
-  ShellPageIntro,
-  ShellVoidPanel,
-} from "@/components/marketing-shell";
+import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { EarlyAccessForm } from "@/components/early-access-form";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
-import { RevealGroup, RevealOnScroll } from "@/components/reveal-on-scroll";
+import { company, pricing } from "@/lib/company";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -14,85 +10,71 @@ export const metadata: Metadata = {
     "First ten HVAC, plumbing, and electrical shops. Thirty days free. Orvius answers every call.",
 };
 
-const benefits = [
-  {
-    n: "01",
-    title: "Answers every call",
-    body: "24/7 receptionist — after hours, weekends, mid-job.",
-  },
-  {
-    n: "02",
-    title: "Qualifies the lead",
-    body: "Service, urgency, address, callback — clean every time.",
-  },
-  {
-    n: "03",
-    title: "Alerts you instantly",
-    body: "SMS + dashboard — everything you need to close.",
-  },
-];
-
 export default function PilotPage() {
   return (
-    <MarketingShell headerPosition="sticky" cta={false} atmosphere>
-      <main className="mx-auto max-w-6xl px-6 pb-24 pt-28 md:px-8 md:pt-32">
-        <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-16">
-          <div className="order-2 lg:order-1">
-            <ShellPageIntro
-              label="Free pilot"
-              title="Get Orvius answering your calls this week."
-              description="Ten home-service businesses. Thirty days free. We set it up with you — no credit card."
-            />
+    <MarketingShell cta={false}>
+      <section className="editorial-hero">
+        <div className="editorial-wrap">
+          <ShellPageIntro
+            label="Free pilot"
+            title="Get Orvius answering your calls this week."
+            description="Ten home-service businesses. Thirty days free. We set it up with you — no credit card."
+          />
+        </div>
+      </section>
 
-            <RevealGroup className="mt-12 space-y-5 border-t border-white/10 pt-8">
-              {benefits.map((item) => (
-                <div key={item.n} className="reveal-item flex gap-4">
-                  <p className="font-sans text-[11px] font-bold tracking-[0.24em] text-flare">
-                    {item.n}
-                  </p>
-                  <div>
-                    <p className="font-serif text-lg tracking-[-0.03em] text-chalk">
-                      {item.title}
-                    </p>
-                    <p className="mt-1 font-sans text-sm leading-relaxed text-ash-soft">
-                      {item.body}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </RevealGroup>
-
-            <RevealOnScroll className="mt-10 lg:hidden">
-              <ShellVoidPanel className="p-6 md:p-8">
-                <EarlyAccessForm variant="full" />
-              </ShellVoidPanel>
-            </RevealOnScroll>
+      <section className="editorial-section">
+        <div className="editorial-wrap editorial-split">
+          <div className="editorial-copy">
+            <h2 className="editorial-heading font-serif">What you get.</h2>
+            <p className="editorial-body font-sans">
+              A full AI receptionist on your business line — answering after hours,
+              on weekends, and when you&apos;re mid-job.
+            </p>
+            <p className="mt-6 font-sans text-[0.9375rem] leading-relaxed text-ash">
+              Every lead qualified with service, urgency, address, and callback
+              details. Owner alerts via SMS and dashboard — everything you need to
+              close.
+            </p>
+            <p className="mt-4 font-sans text-[0.9375rem] leading-relaxed text-ash">
+              Built for {company.trades.join(", ")}. Operated by{" "}
+              {company.legalName}.
+            </p>
           </div>
+          <OwnerAlertCard variant="chalk" className="editorial-card" />
+        </div>
+      </section>
 
-          <div className="order-1 space-y-6 lg:order-2">
-            <RevealOnScroll delay={80}>
-              <OwnerAlertCard
-                variant="void"
-                className="product-float product-glow"
-              />
-            </RevealOnScroll>
-            <RevealOnScroll delay={160} className="hidden lg:block">
-              <ShellVoidPanel className="p-6 md:p-8">
-                <p className="eyebrow">Apply now</p>
-                <p className="mt-3 font-serif text-xl tracking-[-0.03em] text-chalk">
-                  First ten shops
-                </p>
-                <p className="mt-2 font-sans text-sm text-ash-soft">
-                  We onboard you personally. Live on your number within days.
-                </p>
-                <div className="mt-6">
-                  <EarlyAccessForm variant="full" />
-                </div>
-              </ShellVoidPanel>
-            </RevealOnScroll>
+      <section className="editorial-section editorial-section-muted">
+        <div className="editorial-wrap editorial-split editorial-split-reverse">
+          <div className="panel-chalk p-6 md:p-8">
+            <p className="font-sans text-[11px] font-bold tracking-[0.2em] text-ash uppercase">
+              Apply now
+            </p>
+            <p className="mt-3 font-serif text-xl tracking-[-0.03em] text-void">
+              First ten shops
+            </p>
+            <p className="mt-2 font-sans text-sm leading-relaxed text-ash">
+              We onboard you personally. Live on your number within days.
+            </p>
+            <div className="mt-6">
+              <EarlyAccessForm variant="full" />
+            </div>
+          </div>
+          <div className="editorial-copy">
+            <h2 className="editorial-heading font-serif">How it works.</h2>
+            <p className="editorial-body font-sans">
+              Apply below. We review each shop and reach out within 24 hours. If
+              you&apos;re a fit, we configure your line, services, and hours
+              together — then go live.
+            </p>
+            <p className="mt-6 font-sans text-[0.9375rem] leading-relaxed text-ash">
+              Thirty days free. No credit card. After the pilot, continue at $
+              {pricing.pro.price}/month or walk away — no hard feelings.
+            </p>
           </div>
         </div>
-      </main>
+      </section>
     </MarketingShell>
   );
 }

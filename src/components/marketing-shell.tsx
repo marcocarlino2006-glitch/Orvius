@@ -1,42 +1,22 @@
-import { ProfileMenu } from "@/components/profile-menu";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 
 type MarketingShellProps = {
   children: React.ReactNode;
-  statusLabel?: string;
-  headerPosition?: "absolute" | "sticky";
-  headerSurface?: "solid" | "glass";
   showFooter?: boolean;
-  atmosphere?: boolean;
   cta?: { href: string; label: string } | false;
 };
 
 export function MarketingShell({
   children,
-  statusLabel = "Founder workspace",
-  headerPosition = "sticky",
-  headerSurface = "glass",
   showFooter = true,
-  atmosphere = false,
-  cta,
+  cta = { href: "/login", label: "Sign in" },
 }: MarketingShellProps) {
   return (
     <>
-      <ShellHeader
-        plane="void"
-        position={headerPosition}
-        surface={headerSurface}
-        cta={cta}
-      />
-      <div
-        className={`min-h-screen bg-void text-chalk ${atmosphere ? "orvius-atmosphere relative" : ""}`}
-      >
-        {atmosphere ? <div className="orvius-grain absolute inset-0" aria-hidden /> : null}
-        <div className={atmosphere ? "relative" : undefined}>{children}</div>
-      </div>
+      <ShellHeader plane="chalk" position="sticky" cta={cta} />
+      <div className="editorial min-h-screen bg-chalk text-void">{children}</div>
       {showFooter ? <SiteFooter /> : null}
-      <ProfileMenu statusLabel={statusLabel} />
     </>
   );
 }
@@ -53,13 +33,15 @@ export function ShellPageIntro({
   className?: string;
 }) {
   return (
-    <div className={`max-w-2xl ${className}`}>
-      <p className="eyebrow anim-rise">{label}</p>
-      <h1 className="anim-rise anim-rise-delay-1 mt-4 font-serif text-4xl leading-[1.08] tracking-[-0.04em] text-chalk md:text-5xl">
+    <div className={className}>
+      <p className="font-sans text-[11px] font-bold tracking-[0.2em] text-ash uppercase">
+        {label}
+      </p>
+      <h1 className="mt-4 font-serif text-4xl leading-[1.08] tracking-[-0.04em] text-void md:text-5xl">
         {title}
       </h1>
       {description ? (
-        <p className="anim-rise anim-rise-delay-2 mt-5 font-sans text-lg leading-relaxed text-ash-soft md:text-xl">
+        <p className="mt-5 max-w-2xl font-sans text-lg leading-relaxed text-ash md:text-xl">
           {description}
         </p>
       ) : null}
@@ -67,18 +49,15 @@ export function ShellPageIntro({
   );
 }
 
-export function ShellVoidPanel({
+export function ShellChalkPanel({
   children,
   className = "",
 }: {
   children: React.ReactNode;
   className?: string;
 }) {
-  return (
-    <div
-      className={`panel-void shadow-[0_0_0_1px_rgba(232,70,28,0.08)] transition-shadow duration-300 hover:shadow-[0_0_0_1px_rgba(232,70,28,0.18)] ${className}`}
-    >
-      {children}
-    </div>
-  );
+  return <div className={`panel-chalk ${className}`}>{children}</div>;
 }
+
+/** @deprecated Use ShellChalkPanel — kept for gradual migration */
+export const ShellVoidPanel = ShellChalkPanel;

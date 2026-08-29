@@ -1400,7 +1400,7 @@ h3 {
   font-size: 1.0625rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--chalk);
+  color: var(--void);
   margin-bottom: 0.75rem;
 }
 
@@ -1424,11 +1424,11 @@ h3 {
 }
 
 .legal-prose a:hover {
-  color: var(--chalk);
+  color: var(--void);
 }
 
 .legal-prose strong {
-  color: var(--chalk);
+  color: var(--void);
   font-weight: 600;
 }
 

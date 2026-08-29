@@ -1,7 +1,4 @@
-import {
-  MarketingShell,
-  ShellPageIntro,
-} from "@/components/marketing-shell";
+import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { company } from "@/lib/company";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -22,31 +19,38 @@ export function LegalDocument({
   children,
 }: LegalDocumentProps) {
   return (
-    <MarketingShell headerPosition="sticky" cta={{ href: "/pilot", label: "Start free pilot" }}>
-      <main className="mx-auto max-w-3xl px-6 pb-24 pt-28 md:px-8 md:pt-32">
-        <ShellPageIntro label={label} title={title} description={description} />
-        <p className="mt-6 font-sans text-xs tracking-wide text-ash uppercase">
-          Last updated {updated} · {company.legalName}
-        </p>
-        <article className="legal-prose mt-10">{children}</article>
-        <p className="mt-12 border-t border-white/10 pt-8 font-sans text-sm text-ash-soft">
-          Questions?{" "}
-          <a
-            href={`mailto:${company.contactEmail}`}
-            className="footer-link text-chalk"
-          >
-            {company.contactEmail}
-          </a>
-          {" · "}
-          <Link href="/legal" className="footer-link text-chalk">
-            Legal center
-          </Link>
-          {" · "}
-          <Link href="/pricing" className="footer-link text-chalk">
-            Pricing
-          </Link>
-        </p>
-      </main>
+    <MarketingShell cta={{ href: "/pilot", label: "Apply for pilot" }}>
+      <section className="editorial-hero">
+        <div className="editorial-wrap max-w-3xl">
+          <ShellPageIntro label={label} title={title} description={description} />
+          <p className="mt-6 font-sans text-xs tracking-wide text-ash uppercase">
+            Last updated {updated} · {company.legalName}
+          </p>
+        </div>
+      </section>
+
+      <section className="editorial-section">
+        <div className="editorial-wrap max-w-3xl">
+          <article className="legal-prose">{children}</article>
+          <p className="mt-12 border-t border-rule pt-8 font-sans text-sm text-ash">
+            Questions?{" "}
+            <a
+              href={`mailto:${company.contactEmail}`}
+              className="editorial-link"
+            >
+              {company.contactEmail}
+            </a>
+            {" · "}
+            <Link href="/legal" className="editorial-link">
+              Legal center
+            </Link>
+            {" · "}
+            <Link href="/pricing" className="editorial-link">
+              Pricing
+            </Link>
+          </p>
+        </div>
+      </section>
     </MarketingShell>
   );
 }

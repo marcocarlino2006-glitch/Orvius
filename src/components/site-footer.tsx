@@ -17,15 +17,13 @@ const companyLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="site-footer border-t border-white/10 bg-void text-chalk">
-      <div className="site-footer-flare mx-auto max-w-6xl px-6 md:px-8" aria-hidden />
-
+    <footer className="site-footer border-t border-rule bg-chalk text-void">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.2fr_1fr_1.2fr] md:px-8 md:py-16">
         <div>
           <p className="font-sans text-sm font-semibold tracking-[0.2em] uppercase">
             {company.productName}
           </p>
-          <p className="mt-3 max-w-xs font-serif text-lg leading-relaxed text-ash-soft">
+          <p className="mt-3 max-w-xs font-serif text-lg leading-relaxed text-ash">
             {company.tagline}
           </p>
           <p className="mt-4 font-sans text-[11px] font-semibold tracking-[0.18em] text-ash uppercase">
@@ -43,7 +41,7 @@ export function SiteFooter() {
           <ul className="mt-4 flex flex-col gap-3 font-sans text-sm">
             {productLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="footer-link text-ash-soft">
+                <Link href={link.href} className="footer-link text-ash hover:text-void">
                   {link.label}
                 </Link>
               </li>
@@ -58,7 +56,7 @@ export function SiteFooter() {
           <ul className="mt-4 flex flex-col gap-3 font-sans text-sm">
             {companyLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="footer-link text-ash-soft">
+                <Link href={link.href} className="footer-link text-ash hover:text-void">
                   {link.label}
                 </Link>
               </li>
@@ -66,7 +64,7 @@ export function SiteFooter() {
             <li>
               <a
                 href={`mailto:${company.contactEmail}`}
-                className="footer-link text-ash-soft"
+                className="footer-link text-ash hover:text-void"
               >
                 {company.contactEmail}
               </a>
@@ -75,7 +73,7 @@ export function SiteFooter() {
         </nav>
       </div>
 
-      <div className="border-t border-white/8">
+      <div className="border-t border-rule">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-5 font-sans text-xs text-ash md:px-8">
           <p>
             © {new Date().getFullYear()} {company.legalName}. {company.productName}{" "}

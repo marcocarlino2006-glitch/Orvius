@@ -135,11 +135,11 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
           />
           <span>
             I agree to the{" "}
-            <Link href="/terms" className="text-chalk underline underline-offset-2">
+            <Link href="/terms" className="editorial-link">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" className="text-chalk underline underline-offset-2">
+            <Link href="/privacy" className="editorial-link">
               Privacy Policy
             </Link>
             .
@@ -147,7 +147,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         </label>
         <button
           disabled={loading || !acceptedTerms}
-          className={`btn btn-on-void w-full sm:w-auto ${loading ? "btn-loading" : ""}`}
+          className={`btn btn-primary w-full sm:w-auto ${loading ? "btn-loading" : ""}`}
         >
           {loading ? "Submitting..." : "Apply for free pilot"}
         </button>
