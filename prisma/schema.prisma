@@ -8,34 +8,60 @@ datasource db {
 }
 
 model Business {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String   @unique
-  phone           String?
-  ownerPhone      String?
-  ownerEmail      String?
-  timezone        String   @default("America/New_York")
-  hoursJson       String   @default("{}")
-  servicesJson    String   @default("[]")
-  greeting        String?
-  vapiAssistantId String?
-  vapiPhoneNumber String?
-  twilioPhone     String?
-  isActive        Boolean  @default(true)
+  id                   String   @id @default(cuid())
+  name                 String
+  slug                 String   @unique
+  phone                String?
+  ownerPhone           String?
+  ownerEmail           String?
+  timezone             String   @default("America/New_York")
+  hoursJson            String   @default("{}")
+  servicesJson         String   @default("[]")
+  greeting             String?
+  vapiAssistantId      String?
+  vapiPhoneNumber      String?
+  twilioPhone          String?
+  isActive             Boolean  @default(true)
   stripeCustomerId     String?
-  stripeSubscriptionId   String?
-  billingStatus          String   @default("pilot")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  stripeSubscriptionId String?
+  billingStatus        String   @default("pilot")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  calls     Call[]
+  leads     Lead[]
+  customers Customer[]
+}
+
+model Customer {
+  id                String   @id @default(cuid())
+  businessId        String
+  business          Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name              String?
+  phone             String
+  phoneNormalized   String
+  email             String?
+  address           String?
+  notes             String?
+  interactionCount  Int      @default(1)
+  firstSeenAt       DateTime @default(now())
+  lastSeenAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   calls Call[]
   leads Lead[]
+
+  @@unique([businessId, phoneNormalized])
+  @@index([businessId, lastSeenAt])
 }
 
 model Call {
   id           String    @id @default(cuid())
   businessId   String
   business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId   String?
+  customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   vapiCallId   String?   @unique
   callerPhone  String?
   direction    String    @default("inbound")
@@ -52,11 +78,13 @@ model Call {
 }
 
 model Lead {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   businessId  String?
   business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
-  callId      String?  @unique
-  call        Call?    @relation(fields: [callId], references: [id], onDelete: SetNull)
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  callId      String?   @unique
+  call        Call?     @relation(fields: [callId], references: [id], onDelete: SetNull)
   name        String?
   phone       String?
   email       String?
@@ -64,10 +92,10 @@ model Lead {
   urgency     String?
   address     String?
   notes       String?
-  status      String   @default("new")
-  source      String   @default("call")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String    @default("new")
+  source      String    @default("call")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model WaitlistEntry {

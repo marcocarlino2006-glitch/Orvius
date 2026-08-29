@@ -9,7 +9,9 @@ type ProfileMenuProps = {
 };
 
 const links = [
-  { href: "/dashboard", label: "Dashboard", hint: "Calls, leads, waitlist" },
+  { href: "/dashboard", label: "Overview", hint: "OS hub · stats" },
+  { href: "/dashboard/inbox", label: "Inbox", hint: "Leads · Ring 1" },
+  { href: "/dashboard/customers", label: "Customers", hint: "Records · Ring 2" },
   { href: "/admin", label: "Business setup", hint: "Receptionist & config" },
   { href: "/demo", label: "Demo call", hint: "Sales walkthrough" },
   { href: "/pilot", label: "Pilot applications", hint: "Design partner form" },

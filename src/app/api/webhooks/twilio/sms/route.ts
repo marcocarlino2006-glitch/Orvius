@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { linkTouchToCustomer } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { notifyOwner } from "@/lib/notifications";
 
@@ -38,6 +39,13 @@ export async function POST(request: NextRequest) {
       source: "sms",
       status: "new",
     },
+  });
+
+  await linkTouchToCustomer({
+    businessId: business.id,
+    leadId: lead.id,
+    phone: from,
+    notes: body,
   });
 
   await notifyOwner({

@@ -4,6 +4,7 @@ import {
   extractLeadFromStructuredData,
   type VapiWebhookMessage,
 } from "@/lib/vapi";
+import { linkTouchToCustomer } from "@/lib/customer";
 import { notifyOwner } from "@/lib/notifications";
 
 async function findBusinessForCall(
@@ -160,6 +161,17 @@ export async function POST(request: NextRequest) {
         address: structured.address ?? undefined,
         notes: structured.notes ?? summary,
       },
+    });
+
+    await linkTouchToCustomer({
+      businessId: business.id,
+      callId: call.id,
+      leadId: lead.id,
+      phone: lead.phone ?? call.callerPhone,
+      name: lead.name,
+      email: lead.email,
+      address: lead.address,
+      notes: lead.notes,
     });
 
     const ownerMessage = [

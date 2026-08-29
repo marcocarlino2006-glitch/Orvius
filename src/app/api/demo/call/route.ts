@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { linkTouchToCustomer } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { notifyOwner } from "@/lib/notifications";
 import { z } from "zod";
@@ -87,6 +88,16 @@ export async function POST(request: NextRequest) {
         source: "demo",
         status: "new",
       },
+    });
+
+    await linkTouchToCustomer({
+      businessId: business.id,
+      callId: call.id,
+      leadId: lead.id,
+      phone: body.callerPhone,
+      name: body.callerName,
+      address: body.address ?? null,
+      notes: body.notes ?? summary,
     });
 
     if (business.ownerPhone) {

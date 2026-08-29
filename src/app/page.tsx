@@ -6,6 +6,7 @@ import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ProfileMenu } from "@/components/profile-menu";
 import { OsRings } from "@/components/os-rings";
+import { OsProductPreviewSection } from "@/components/os-product-preview";
 import { company } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -31,8 +32,8 @@ export default function HomePage() {
           <div className="editorial-wrap">
             <h1 className="editorial-display font-serif">{company.tagline}</h1>
             <p className="editorial-lead font-sans">
-              {company.mission} Ring 1 — the front door — is live today for{" "}
-              {company.trades.join(", ")}.
+              {company.mission} Rings 1–2 are live — front door and customer
+              records — for {company.trades.join(", ")}.
             </p>
             <div className="editorial-actions font-sans">
               <Link href="/pilot" className="editorial-cta">
@@ -94,6 +95,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <OsProductPreviewSection />
 
         {/* OS — the full system */}
         <section className="editorial-section">

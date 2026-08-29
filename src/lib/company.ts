@@ -30,14 +30,14 @@ export const osRings = [
     ring: 2,
     name: "Customers",
     module: "Record · history · recognition",
-    status: "next" as const,
+    status: "live" as const,
     body: "Every caller becomes a customer. Full history from first touch.",
   },
   {
     ring: 3,
     name: "Jobs",
     module: "Book · confirm · schedule",
-    status: "planned" as const,
+    status: "next" as const,
     body: "Leads become booked appointments — not sticky notes.",
   },
   {
@@ -77,7 +77,7 @@ export const osRings = [
   },
 ] as const;
 
-export const osCurrentRing = 1;
+export const osCurrentRing = 2;
 
 export const legalPages = [
   {

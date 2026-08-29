@@ -1,6 +1,10 @@
+"use client";
+
+import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
 
 type LeadInboxCardProps = {
+  id?: string;
   name: string;
   phone: string | null;
   service: string | null;
@@ -9,6 +13,9 @@ type LeadInboxCardProps = {
   business: string | null;
   channel?: string;
   createdAt: string;
+  customerId?: string | null;
+  returning?: boolean;
+  linked?: boolean;
 };
 
 function formatUrgency(urgency: string | null) {
@@ -21,6 +28,7 @@ function isEmergency(urgency: string | null) {
 }
 
 export function LeadInboxCard({
+  id,
   name,
   phone,
   service,
@@ -29,11 +37,14 @@ export function LeadInboxCard({
   business,
   channel = "Inbound",
   createdAt,
+  customerId,
+  returning = false,
+  linked = true,
 }: LeadInboxCardProps) {
   const emergency = isEmergency(urgency);
 
-  return (
-    <article className="lead-inbox-card">
+  const card = (
+    <article className={`lead-inbox-card ${linked && id ? "lead-inbox-card-link" : ""}`}>
       <div className="flex items-start justify-between gap-3 border-b border-rule px-5 py-3.5">
         <div className="flex items-center gap-2">
           <span className="relative flex size-2">
@@ -73,11 +84,14 @@ export function LeadInboxCard({
               {channel} · {business ?? "Orvius"}
             </p>
           </div>
-          {urgency ? (
-            <ShellBadge tone={emergency ? "flare" : "neutral"}>
-              {formatUrgency(urgency)}
-            </ShellBadge>
-          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {urgency ? (
+              <ShellBadge tone={emergency ? "flare" : "neutral"}>
+                {formatUrgency(urgency)}
+              </ShellBadge>
+            ) : null}
+            {returning ? <ShellBadge tone="live">Returning</ShellBadge> : null}
+          </div>
         </div>
 
         <dl className="lead-inbox-details mt-5 space-y-0 font-sans text-[13px]">
@@ -102,6 +116,7 @@ export function LeadInboxCard({
                   <a
                     href={href}
                     className="lead-inbox-link tabular-nums text-flare-dim hover:text-flare"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {value}
                   </a>
@@ -113,12 +128,30 @@ export function LeadInboxCard({
           ))}
         </dl>
 
+        {customerId ? (
+          <Link
+            href={`/dashboard/customers/${customerId}`}
+            className="customer-timeline-link mt-4 inline-block font-sans text-xs"
+            onClick={(e) => e.stopPropagation()}
+          >
+            View customer record →
+          </Link>
+        ) : null}
+
         {phone ? (
           <div className="lead-inbox-actions mt-4 flex gap-2 border-t border-rule/80 pt-4 sm:hidden">
-            <a href={`tel:${phone}`} className="btn btn-primary flex-1 text-sm">
+            <a
+              href={`tel:${phone}`}
+              className="btn btn-primary flex-1 text-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
               Call lead
             </a>
-            <a href={`sms:${phone}`} className="btn btn-secondary flex-1 text-sm">
+            <a
+              href={`sms:${phone}`}
+              className="btn btn-secondary flex-1 text-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
               Text
             </a>
           </div>
@@ -126,4 +159,14 @@ export function LeadInboxCard({
       </div>
     </article>
   );
+
+  if (linked && id) {
+    return (
+      <Link href={`/dashboard/inbox/${id}`} className="block">
+        {card}
+      </Link>
+    );
+  }
+
+  return card;
 }
