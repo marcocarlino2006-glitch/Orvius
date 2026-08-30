@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell } from "@/components/app-shell";
+import { OsShell } from "@/components/os-shell";
 import { RevealOnScroll } from "@/components/reveal-on-scroll";
 import {
   ShellBadge,
@@ -63,10 +63,15 @@ export default function DomainsPage() {
   }, []);
 
   return (
-    <AppShell
+    <OsShell
       title="Domain"
       subtitle="Wire orvius.im DNS so marketing, app, and webhooks run on your brand."
       statusLabel="orvius.im"
+      actions={
+        <a href="/dashboard" className="btn btn-void text-sm">
+          Dashboard
+        </a>
+      }
     >
       <RevealOnScroll>
         <ShellPanel title="Go-live checklist">
@@ -212,7 +217,7 @@ export default function DomainsPage() {
           </RevealOnScroll>
         </div>
       )}
-    </AppShell>
+    </OsShell>
   );
 }
 

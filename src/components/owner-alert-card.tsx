@@ -85,8 +85,8 @@ export function OwnerAlertCard({
             <span className="relative inline-flex size-2 rounded-full bg-flare" />
           </span>
           <p
-            className={`font-sans text-[10px] font-bold tracking-[0.22em] uppercase ${
-              isVoid ? "text-flare" : "text-ash"
+            className={`home-os-kicker ${
+              isVoid ? "home-os-kicker-flare" : ""
             }`}
           >
             Owner alert
@@ -154,9 +154,7 @@ export function CallTranscriptProof({
     <div
       className={`p-6 md:p-8 ${isVoid ? "panel-void" : "panel-chalk"} ${className}`}
     >
-      <p className="font-sans text-[10px] font-bold tracking-[0.22em] text-ash uppercase">
-        Live receptionist
-      </p>
+      <p className="home-os-kicker">Front door</p>
       <div className="mt-5 space-y-4 font-sans text-[13px] leading-relaxed text-ash">
         <p className="transcript-line">
           <span className={isVoid ? "text-chalk" : "text-void"}>Orvius</span> ·
@@ -196,5 +194,5 @@ export function SectionEyebrow({
   children: ReactNode;
   className?: string;
 }) {
-  return <p className={`eyebrow ${className}`}>{children}</p>;
+  return <p className={`home-os-kicker ${className}`}>{children}</p>;
 }

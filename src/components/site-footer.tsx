@@ -36,9 +36,7 @@ export function SiteFooter() {
         </div>
 
         <nav aria-label="Product">
-          <p className="font-sans text-[10px] font-bold tracking-[0.2em] text-ash uppercase">
-            Product
-          </p>
+          <p className="home-os-kicker">Product</p>
           <ul className="mt-4 flex flex-col gap-3 font-sans text-sm">
             {productLinks.map((link) => (
               <li key={link.href}>
@@ -51,9 +49,7 @@ export function SiteFooter() {
         </nav>
 
         <nav aria-label="Legal">
-          <p className="font-sans text-[10px] font-bold tracking-[0.2em] text-ash uppercase">
-            Legal & company
-          </p>
+          <p className="home-os-kicker">Legal & company</p>
           <ul className="mt-4 flex flex-col gap-3 font-sans text-sm">
             {companyLinks.map((link) => (
               <li key={link.href}>

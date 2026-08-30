@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell } from "@/components/app-shell";
+import { OsShell } from "@/components/os-shell";
 import { LiveStatusBar } from "@/components/live-status-bar";
 import { FormField, ShellBadge } from "@/components/shell-primitives";
 import { AdminSkeleton, SkeletonBar } from "@/components/shell-skeleton";
@@ -186,18 +186,18 @@ export default function AdminPage() {
 
   if (loading && !health) {
     return (
-      <AppShell
+      <OsShell
         title="Business setup"
         subtitle="Provision a shop, connect the live line, and verify owner alerts."
         statusLabel="Loading"
       >
         <AdminSkeleton />
-      </AppShell>
+      </OsShell>
     );
   }
 
   return (
-    <AppShell
+    <OsShell
       title="Business setup"
       subtitle="Provision a shop, connect the live line, and verify owner alerts."
       statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
@@ -207,7 +207,7 @@ export default function AdminPage() {
       <section className="card mb-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="eyebrow">Pre-post gate</p>
+            <p className="home-os-kicker">Pre-post gate</p>
             <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
               Go-live checklist
             </h2>
@@ -335,7 +335,7 @@ export default function AdminPage() {
             <p className="font-sans text-sm text-live">{success}</p>
           ) : null}
 
-          <button disabled={submitting} className="btn btn-primary">
+          <button disabled={submitting} className="btn btn-void">
             {submitting ? "Creating..." : "Create business + Vapi assistant"}
           </button>
         </form>
@@ -426,6 +426,6 @@ export default function AdminPage() {
           </div>
         </section>
       </div>
-    </AppShell>
+    </OsShell>
   );
 }

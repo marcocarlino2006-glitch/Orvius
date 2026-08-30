@@ -25,12 +25,13 @@ export default async function LoginPage({
       <main className="editorial bg-chalk text-void">
         <section className="editorial-hero">
           <div className="editorial-wrap max-w-lg">
-            <h1 className="font-serif text-[clamp(2rem,4vw,2.75rem)] leading-[1.08] tracking-[-0.04em]">
+            <p className="home-os-kicker">Orvius OS</p>
+            <h1 className="mt-4 font-serif text-[clamp(2rem,4vw,2.75rem)] leading-[1.08] tracking-[-0.04em]">
               Sign in to Orvius
             </h1>
             <p className="editorial-lead font-sans">
-              Use your Google account to open the OS dashboard — inbox,
-              customers, and calls for your shop.
+              Use your Google account to open the OS — inbox, customers, jobs,
+              and the field board.
             </p>
 
             {error ? (

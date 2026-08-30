@@ -57,7 +57,11 @@ export function LeadInboxCard({
               }`}
             />
           </span>
-          <p className="font-sans text-[10px] font-bold tracking-[0.22em] text-flare uppercase">
+          <p
+            className={`home-os-kicker ${
+              emergency ? "home-os-kicker-flare" : ""
+            }`}
+          >
             {emergency ? "Emergency lead" : "New lead"}
           </p>
         </div>

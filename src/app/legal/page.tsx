@@ -45,9 +45,7 @@ export default function LegalHubPage() {
           </ul>
 
           <div className="mt-12">
-            <p className="font-sans text-[11px] font-bold tracking-[0.2em] text-ash uppercase">
-              Contact
-            </p>
+            <p className="home-os-kicker">Contact</p>
             <p className="mt-3 font-sans text-sm leading-relaxed text-ash">
               Legal and privacy requests:{" "}
               <a

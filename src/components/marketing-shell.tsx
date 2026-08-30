@@ -34,9 +34,7 @@ export function ShellPageIntro({
 }) {
   return (
     <div className={className}>
-      <p className="font-sans text-[11px] font-bold tracking-[0.2em] text-ash uppercase">
-        {label}
-      </p>
+      <p className="home-os-kicker">{label}</p>
       <h1 className="mt-4 font-serif text-4xl leading-[1.08] tracking-[-0.04em] text-void md:text-5xl">
         {title}
       </h1>

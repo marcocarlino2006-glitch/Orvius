@@ -108,11 +108,11 @@ h3 {
 }
 
 .eyebrow {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--flare);
+  color: var(--ash);
 }
 
 .display-xl {
@@ -203,23 +203,12 @@ h3 {
 }
 
 .btn-primary {
-  background: var(--flare);
-  color: var(--chalk);
-  box-shadow: 0 1px 2px rgba(232, 70, 28, 0.2);
-}
-
-.btn-void {
   background: var(--void);
   color: var(--chalk);
 }
 
-.btn-void:hover {
-  background: color-mix(in srgb, var(--void) 88%, var(--ash));
-}
-
 .btn-primary:hover {
-  background: var(--flare-hot);
-  box-shadow: 0 4px 16px rgba(232, 70, 28, 0.28);
+  background: color-mix(in srgb, var(--void) 88%, var(--ash));
 }
 
 .btn-secondary {
@@ -233,14 +222,22 @@ h3 {
   background: var(--fog);
 }
 
-.btn-on-void {
-  background: var(--flare);
+.btn-void {
+  background: var(--void);
   color: var(--chalk);
-  box-shadow: 0 1px 2px rgba(232, 70, 28, 0.25);
+}
+
+.btn-void:hover {
+  background: color-mix(in srgb, var(--void) 88%, var(--ash));
+}
+
+.btn-on-void {
+  background: var(--chalk);
+  color: var(--void);
 }
 
 .btn-on-void:hover {
-  background: var(--flare-hot);
+  background: color-mix(in srgb, var(--chalk) 88%, var(--fog));
 }
 
 .btn-on-void-secondary {
@@ -1491,11 +1488,12 @@ h3 {
 .editorial-cta {
   display: inline-flex;
   align-items: center;
-  padding: 0.875rem 1.5rem;
-  border-radius: 999px;
+  justify-content: center;
+  padding: 0.8125rem 1.25rem;
+  border-radius: 0.45rem;
   background: var(--void);
   color: var(--chalk);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   transition: background 160ms ease, transform 160ms ease;
@@ -1634,9 +1632,9 @@ h3 {
 
 /* Homepage — Cursor structure, Orvius identity */
 .home-kicker {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ash);
   margin-bottom: 1rem;
@@ -3010,8 +3008,8 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding: 0.875rem 1.375rem;
-  border-radius: 999px;
+  padding: 0.8125rem 1.25rem;
+  border-radius: 0.45rem;
   border: 1px solid var(--rule);
   background: var(--white);
   color: var(--void);

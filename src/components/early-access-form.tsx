@@ -147,7 +147,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         </label>
         <button
           disabled={loading || !acceptedTerms}
-          className={`btn btn-primary w-full sm:w-auto ${loading ? "btn-loading" : ""}`}
+          className={`btn btn-void w-full sm:w-auto ${loading ? "btn-loading" : ""}`}
         >
           {loading ? "Submitting..." : "Apply for free pilot"}
         </button>
@@ -168,7 +168,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
       <button
         disabled={loading}
         type="submit"
-        className="btn btn-primary whitespace-nowrap"
+        className="btn btn-void whitespace-nowrap"
       >
         {loading ? "..." : "Join waitlist"}
       </button>

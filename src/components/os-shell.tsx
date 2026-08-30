@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { ProfileMenu } from "@/components/profile-menu";
 import {
   getOsRingMeta,
   osCurrentRing,
@@ -163,8 +162,6 @@ export function OsShell({
 
         <main className="os-content">{children}</main>
       </div>
-
-      <ProfileMenu businessName={businessName} statusLabel={statusLabel} />
     </div>
   );
 }

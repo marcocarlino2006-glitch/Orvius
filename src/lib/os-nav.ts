@@ -20,6 +20,7 @@ export const osProductNav: OsNavItem[] = [
 export const osWorkspaceNav: OsNavItem[] = [
   { href: "/demo", label: "Demo" },
   { href: "/admin", label: "Admin" },
+  { href: "/domains", label: "Domains" },
   { href: "/", label: "Marketing site" },
 ];
 

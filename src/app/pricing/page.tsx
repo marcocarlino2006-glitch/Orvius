@@ -27,13 +27,11 @@ export default function PricingPage() {
       <section className="editorial-section">
         <div className="editorial-wrap editorial-split">
           <div className="editorial-copy">
-            <p className="font-sans text-[11px] font-bold tracking-[0.2em] text-ash uppercase">
-              Design partner pilot
-            </p>
+            <p className="home-os-kicker">Design partner pilot</p>
             <h2 className="editorial-heading font-serif">Thirty days free.</h2>
             <p className="editorial-body font-sans">
-              We onboard you personally. Your line goes live within days — full AI
-              receptionist, lead inbox, and owner alerts. No credit card required.
+              We onboard you personally. Your line goes live within days — front
+              door, inbox, jobs, and owner alerts. No credit card required.
             </p>
             <ul className="mt-6 space-y-2 font-sans text-[0.9375rem] leading-relaxed text-ash">
               {pricing.pilot.highlights.map((item) => (
@@ -48,9 +46,7 @@ export default function PricingPage() {
           </div>
 
           <div className="editorial-copy">
-            <p className="font-sans text-[11px] font-bold tracking-[0.2em] text-ash uppercase">
-              After pilot
-            </p>
+            <p className="home-os-kicker">After pilot</p>
             <h2 className="editorial-heading font-serif">
               ${pricing.pro.price} per month.
             </h2>

@@ -20,14 +20,14 @@ export function OsProductPreview() {
             <span className="os-preview-nav-item os-preview-nav-item-active">
               Jobs
             </span>
+            <span className="os-preview-nav-item">Dispatch</span>
             <span className="os-preview-nav-item">Customers</span>
-            <span className="os-preview-nav-item">Calls</span>
           </nav>
         </div>
         <div className="os-preview-main">
           <p className="font-serif text-lg tracking-[-0.03em] text-void">Overview</p>
           <p className="mt-1 font-sans text-[11px] text-ash">
-            Rings 1–3 live
+            Rings 1–4 live
           </p>
           <div className="os-preview-stat-row mt-4">
             <div className="os-preview-stat">

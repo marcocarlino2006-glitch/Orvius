@@ -14,7 +14,7 @@ export function TrustStrip() {
       <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
         <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-md">
-            <p className="eyebrow">Enterprise readiness</p>
+            <p className="home-os-kicker">Enterprise readiness</p>
             <h2 className="mt-4 font-serif text-[clamp(1.75rem,3vw,2.25rem)] leading-[1.1] tracking-[-0.04em] text-chalk">
               Operated by {company.legalName}
             </h2>

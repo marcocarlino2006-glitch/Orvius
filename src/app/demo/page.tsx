@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell } from "@/components/app-shell";
+import { OsShell } from "@/components/os-shell";
 import {
   leadFromDemoForm,
   OwnerAlertCard,
@@ -83,14 +83,14 @@ export default function DemoPage() {
   }
 
   return (
-    <AppShell
+    <OsShell
       title="Demo call"
-      subtitle="Walk a shop owner through exactly what Orvius captures — live preview on the right."
-      statusLabel="Sales walkthrough"
+      subtitle="Walk a shop owner through exactly what Orvius captures."
+      statusLabel="Demo"
     >
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
         <aside className="order-1 lg:order-2 lg:sticky lg:top-28">
-          <p className="eyebrow">Owner sees this</p>
+          <p className="home-os-kicker">Owner sees this</p>
           <OwnerAlertCard
             variant="chalk"
             className="preview-crossfade mt-4 product-float-none shadow-[var(--shadow-lift)]"
@@ -111,7 +111,7 @@ export default function DemoPage() {
                 type="button"
                 onClick={() => setForm(preset)}
                 className={`btn shrink-0 text-sm ${
-                  form.label === preset.label ? "btn-primary" : "btn-secondary"
+                  form.label === preset.label ? "btn-void" : "btn-secondary"
                 }`}
               >
                 {preset.label}
@@ -193,8 +193,8 @@ export default function DemoPage() {
 
             {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
 
-            <button disabled={loading} className="btn btn-primary w-full sm:w-auto">
-              {loading ? "Running demo call..." : "Simulate call → create lead"}
+            <button disabled={loading} className="btn btn-void w-full sm:w-auto">
+              {loading ? "Running demo call..." : "Simulate call"}
             </button>
           </form>
 
@@ -208,8 +208,8 @@ export default function DemoPage() {
                   {result.summary}
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <Link href="/dashboard" className="btn btn-primary w-full text-sm sm:w-auto">
-                    View in inbox
+                  <Link href="/dashboard" className="btn btn-void w-full text-sm sm:w-auto">
+                    Open dashboard
                   </Link>
                 </div>
               </ShellPanel>
@@ -217,6 +217,6 @@ export default function DemoPage() {
           ) : null}
         </div>
       </div>
-    </AppShell>
+    </OsShell>
   );
 }

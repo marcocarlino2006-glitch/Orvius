@@ -28,8 +28,8 @@ export default function PilotPage() {
           <div className="editorial-copy">
             <h2 className="editorial-heading font-serif">What you get.</h2>
             <p className="editorial-body font-sans">
-              A full AI receptionist on your business line — answering after hours,
-              on weekends, and when you&apos;re mid-job.
+              The front door of the OS — answering after hours, on weekends, and
+              when you&apos;re mid-job.
             </p>
             <p className="mt-6 font-sans text-[0.9375rem] leading-relaxed text-ash">
               Every lead qualified with service, urgency, address, and callback
@@ -48,9 +48,7 @@ export default function PilotPage() {
       <section className="editorial-section editorial-section-muted">
         <div className="editorial-wrap editorial-split editorial-split-reverse">
           <div className="panel-chalk p-6 md:p-8">
-            <p className="font-sans text-[11px] font-bold tracking-[0.2em] text-ash uppercase">
-              Apply now
-            </p>
+            <p className="home-os-kicker">Apply now</p>
             <p className="mt-3 font-serif text-xl tracking-[-0.03em] text-void">
               First ten shops
             </p>
