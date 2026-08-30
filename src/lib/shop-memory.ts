@@ -101,19 +101,19 @@ function formatWhen(iso: Date | string | null | undefined) {
 
 export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
   const q = query.trim();
+  const wantsToday = /\btoday\b/i.test(q);
+  const wantsTomorrow = /\btomorrow\b/i.test(q);
+  const wantsJobs = /\b(job|jobs|schedule|booked|calendar|board)\b/i.test(q);
+  const wantsCalls = /\b(call|calls|who called|phone)\b/i.test(q);
+  const wantsEmergency = /emergenc/i.test(q);
   const terms = tokens(q);
+  if (wantsEmergency && !terms.includes("emergency")) terms.push("emergency");
   const phone = normalizePhone(q) ?? (q.replace(/\D/g, "").length >= 7 ? q.replace(/\D/g, "") : null);
   const now = new Date();
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
   const endOfTomorrow = new Date(startOfToday);
   endOfTomorrow.setDate(endOfTomorrow.getDate() + 2);
-
-  const wantsToday = /\btoday\b/i.test(q);
-  const wantsTomorrow = /\btomorrow\b/i.test(q);
-  const wantsJobs = /\b(job|jobs|schedule|booked|calendar|board)\b/i.test(q);
-  const wantsCalls = /\b(call|calls|who called|phone)\b/i.test(q);
-  const wantsEmergency = /\bemergency\b/i.test(q);
 
   const [customers, jobs, leads, calls, stats] = await Promise.all([
     prisma.customer.findMany({
@@ -199,6 +199,7 @@ export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
     if (phone && (customer.phoneNormalized.includes(phone) || customer.phone.includes(phone))) {
       score += 12;
     }
+    score += 4;
     if (score <= 0 && terms.length) continue;
     if (!terms.length && !phone) continue;
     hits.push({
@@ -244,6 +245,7 @@ export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
     if (phone && (job.customer?.phone.includes(phone) || job.lead?.phone?.includes(phone))) {
       score += 8;
     }
+    score += 3;
     if (score <= 0 && !wantsJobs && terms.length) continue;
     if (!terms.length && !wantsJobs && !wantsToday && !wantsTomorrow) continue;
     hits.push({
