@@ -208,6 +208,15 @@ h3 {
   box-shadow: 0 1px 2px rgba(232, 70, 28, 0.2);
 }
 
+.btn-void {
+  background: var(--void);
+  color: var(--chalk);
+}
+
+.btn-void:hover {
+  background: color-mix(in srgb, var(--void) 88%, var(--ash));
+}
+
 .btn-primary:hover {
   background: var(--flare-hot);
   box-shadow: 0 4px 16px rgba(232, 70, 28, 0.28);
@@ -1053,6 +1062,16 @@ h3 {
   background: color-mix(in srgb, var(--void) 4%, transparent);
 }
 
+.shell-header-cta {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .shell-header-cta {
+    display: inline-flex;
+  }
+}
+
 .shell-menu-toggle {
   display: inline-flex;
   align-items: center;
@@ -1064,6 +1083,12 @@ h3 {
   transition:
     border-color 160ms ease,
     background 160ms ease;
+}
+
+@media (min-width: 768px) {
+  .shell-menu-toggle {
+    display: none;
+  }
 }
 
 .shell-menu-toggle-void {

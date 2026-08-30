@@ -115,8 +115,8 @@ export function ShellHeader({
             {headerCta ? (
               <Link
                 href={headerCta.href}
-                className={`btn hidden sm:inline-flex ${
-                  isVoid ? "btn-on-void" : "btn-primary"
+                className={`btn shell-header-cta ${
+                  isVoid ? "btn-on-void" : "btn-void"
                 }`}
               >
                 {headerCta.label}
@@ -174,7 +174,7 @@ export function ShellHeader({
                 <Link
                   href={headerCta.href}
                   className={`btn mt-4 w-full justify-center ${
-                    isVoid ? "btn-on-void" : "btn-primary"
+                    isVoid ? "btn-on-void" : "btn-void"
                   }`}
                   onClick={() => setMenuOpen(false)}
                 >
