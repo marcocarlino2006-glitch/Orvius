@@ -8,7 +8,7 @@ type NavLink = { href: string; label: string };
 
 type ShellHeaderProps = {
   plane?: "void" | "chalk";
-  position?: "absolute" | "sticky";
+  position?: "absolute" | "sticky" | "fixed";
   surface?: "solid" | "glass";
   cta?: { href: string; label: string } | false;
   nav?: NavLink[] | false;
@@ -24,7 +24,7 @@ export function ShellHeader({
   plane = "void",
   position = "sticky",
   surface = "solid",
-  cta = { href: "/pilot", label: "Free pilot" },
+  cta = { href: "/pilot", label: "Get started" },
   nav = defaultNav,
 }: ShellHeaderProps) {
   const { data: session } = useSession();
@@ -61,7 +61,7 @@ export function ShellHeader({
   }, [menuOpen]);
 
   const elevated = isGlass ? scrolled : true;
-  const positionClass = isGlass
+  const positionClass = isGlass || position === "fixed"
     ? "fixed inset-x-0 top-0"
     : position === "absolute"
       ? "absolute inset-x-0 top-0"

@@ -30,29 +30,29 @@ const entries = [
 
 export function HomeChangelog() {
   return (
-    <section className="editorial-section" aria-labelledby="changelog-heading">
+    <section className="premium-changelog" aria-labelledby="changelog-heading">
       <div className="editorial-wrap">
-        <div className="home-change-head">
+        <div className="premium-changelog-head">
           <div>
-            <p className="home-kicker font-sans">Changelog</p>
-            <h2 id="changelog-heading" className="editorial-heading font-serif">
+            <p className="premium-kicker font-sans">Changelog</p>
+            <h2 id="changelog-heading" className="premium-section-title font-serif">
               What is live.
             </h2>
-            <p className="editorial-body font-sans">
+            <p className="premium-body font-sans">
               Shipped in order. Nothing here is a mock.
             </p>
           </div>
           <Link href="/about" className="editorial-link font-sans">
-            See the full system →
+            Full system →
           </Link>
         </div>
 
-        <ol className="home-change">
+        <ol className="premium-changelog-list">
           {entries.map((item) => (
-            <li key={item.title} className="home-change-row">
-              <time className="home-change-date font-sans">{item.date}</time>
-              <span className="home-change-name font-serif">{item.title}</span>
-              <span className="home-change-mod font-sans">{item.detail}</span>
+            <li key={item.title} className="premium-changelog-row">
+              <time className="premium-changelog-date font-sans">{item.date}</time>
+              <span className="premium-changelog-name font-serif">{item.title}</span>
+              <span className="premium-changelog-detail font-sans">{item.detail}</span>
             </li>
           ))}
         </ol>

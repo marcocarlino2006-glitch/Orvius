@@ -6,7 +6,7 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <>
-      <ShellHeader plane="chalk" cta={{ href: "/pilot", label: "Free pilot" }} />
+      <ShellHeader plane="chalk" cta={{ href: "/pilot", label: "Get started" }} />
       <main className="editorial flex min-h-[80svh] flex-col items-center justify-center bg-chalk px-6 text-center text-void">
         <div className="max-w-md">
           <BrandIntro

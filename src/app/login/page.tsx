@@ -21,7 +21,7 @@ export default async function LoginPage({
 
   return (
     <>
-      <ShellHeader plane="chalk" cta={{ href: "/pilot", label: "Free pilot" }} nav={false} />
+      <ShellHeader plane="chalk" cta={{ href: "/pilot", label: "Get started" }} nav={false} />
 
       <main className="editorial bg-chalk text-void">
         <section className="editorial-hero">

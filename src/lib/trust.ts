@@ -2,7 +2,7 @@
 export const trustSignals = [
   { value: "4", label: "OS modules live", detail: "Front door through field" },
   { value: "24/7", label: "Call coverage", detail: "Nights, weekends, peak" },
-  { value: "30 days", label: "Free pilot", detail: "No credit card" },
+  { value: "$299", label: "Flat monthly", detail: "No per-minute billing" },
   { value: "2–15", label: "Trucks", detail: "Owner-operator shops" },
 ] as const;
 

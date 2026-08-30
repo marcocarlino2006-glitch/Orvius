@@ -11,7 +11,7 @@ type MarketingShellProps = {
 export function MarketingShell({
   children,
   showFooter = true,
-  cta = { href: "/pilot", label: "Free pilot" },
+  cta = { href: "/pilot", label: "Get started" },
 }: MarketingShellProps) {
   return (
     <>

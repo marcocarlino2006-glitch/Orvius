@@ -129,11 +129,11 @@ export const platformPillars = [
 
 export const pricing = {
   pilot: {
-    name: "Design partner pilot",
+    name: "Design partner program",
     price: 0,
     period: "30 days",
     limit: "Limited availability",
-    cta: "Apply for free pilot",
+    cta: "Apply for design partner",
     href: "/pilot",
     highlights: [
       "Full AI receptionist on your business line",
@@ -146,7 +146,7 @@ export const pricing = {
     name: "Orvius Pro",
     price: 299,
     period: "per month",
-    cta: "Start with pilot",
+    cta: "Get started",
     href: "/pilot",
     highlights: [
       "Unlimited inbound calls & texts handled",

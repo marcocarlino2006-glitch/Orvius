@@ -4,127 +4,96 @@ import { CheckoutButton } from "@/components/checkout-button";
 import { EarlyAccessForm } from "@/components/early-access-form";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingComparison } from "@/components/pricing-comparison";
-import { TrustMetrics } from "@/components/trust-metrics";
 import { company, pricing } from "@/lib/company";
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Orvius design partner pilot — thirty days free. Then simple monthly pricing built for HVAC, plumbing, and electrical shops.",
+    "Orvius Pro — $299/mo flat for HVAC, plumbing, and electrical shops. Design partner program available.",
 };
 
 export default function PricingPage() {
   return (
     <MarketingShell>
-      <section className="editorial-hero">
+      <section className="premium-pricing-hero">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Pricing"
-            title="Prove it free. Pay when it works."
-            subline={`${company.productName} — one missed emergency call costs more than a month.`}
-            description="Built for owner-operators running 2–15 trucks. Not ServiceTitan. Not bolt-on AI."
+            title="One price. Every call answered."
+            subline={`$${pricing.pro.price}/mo flat — built for owner-operators, not enterprise rollouts.`}
+            description="No per-minute surprises. No bolt-on AI that leaves your CRM empty."
           />
-          <div className="mt-10">
-            <TrustMetrics />
-          </div>
         </div>
       </section>
 
-      <section className="editorial-section editorial-section-muted">
+      <section className="premium-band premium-band-chalk">
         <div className="editorial-wrap">
-          <p className="home-kicker font-sans">Compare</p>
-          <h2 className="editorial-heading font-serif">What you&apos;re replacing.</h2>
-          <div className="mt-10">
-            <PricingComparison />
-          </div>
+          <PricingComparison />
         </div>
       </section>
 
-      <section className="editorial-section">
-        <div className="editorial-wrap editorial-split">
-          <div className="editorial-copy">
-            <p className="home-os-kicker">Design partner pilot</p>
-            <h2 className="editorial-heading font-serif">Thirty days free.</h2>
-            <p className="editorial-body font-sans">
-              We onboard you personally. Your line goes live within days — front
-              door, inbox, jobs, and owner alerts. No credit card required.
+      <section className="premium-band">
+        <div className="editorial-wrap premium-pricing-tiers">
+          <article className="premium-tier">
+            <p className="premium-kicker font-sans">Design partner</p>
+            <h2 className="premium-tier-price font-serif">30 days</h2>
+            <p className="premium-body font-sans">
+              Personal onboarding. Your line live within days. We cover
+              infrastructure during the program.
             </p>
-            <ul className="mt-6 space-y-2 font-sans text-[0.9375rem] leading-relaxed text-ash">
+            <ul className="premium-tier-list font-sans">
               {pricing.pilot.highlights.map((item) => (
-                <li key={item}>· {item}</li>
+                <li key={item}>{item}</li>
               ))}
             </ul>
-            <div className="mt-8">
-              <Link href="/pilot" className="editorial-cta">
-                Apply for free pilot
-              </Link>
-            </div>
-          </div>
+            <Link href="/pilot" className="editorial-cta">
+              Apply
+            </Link>
+          </article>
 
-          <div className="editorial-copy">
-            <p className="home-os-kicker">After pilot</p>
-            <h2 className="editorial-heading font-serif">
-              ${pricing.pro.price} per month.
+          <article className="premium-tier premium-tier-featured">
+            <p className="premium-kicker font-sans">Orvius Pro</p>
+            <h2 className="premium-tier-price font-serif">
+              ${pricing.pro.price}
+              <span className="premium-tier-period font-sans">/mo</span>
             </h2>
-            <p className="editorial-body font-sans">
-              Flat monthly billing. Cancel anytime. One price — no per-minute
-              surprises.
+            <p className="premium-body font-sans">
+              Flat monthly. Unlimited inbound calls and texts. Cancel anytime.
             </p>
-            <ul className="mt-6 space-y-2 font-sans text-[0.9375rem] leading-relaxed text-ash">
+            <ul className="premium-tier-list font-sans">
               {pricing.pro.highlights.map((item) => (
-                <li key={item}>· {item}</li>
+                <li key={item}>{item}</li>
               ))}
             </ul>
-            <div className="mt-8 space-y-3">
-              <CheckoutButton label={`Subscribe — $${pricing.pro.price}/mo`} variant="primary" />
-              <p className="font-sans text-xs leading-relaxed text-ash">
-                Subscribe after your pilot, or when you&apos;re ready to go live.
-              </p>
-            </div>
-          </div>
+            <CheckoutButton label="Subscribe" variant="primary" />
+          </article>
         </div>
       </section>
 
-      <section className="editorial-statement">
-        <div className="editorial-wrap">
-          <p className="editorial-quote font-serif">
+      <section className="premium-close">
+        <div className="editorial-wrap premium-close-inner">
+          <p className="premium-kicker font-sans">ROI</p>
+          <h2 className="premium-close-title font-serif">
             One booked job pays for the month.
-          </p>
-          <p className="editorial-quote-sub font-sans">
-            A single after-hours AC repair or water-heater job often clears $
-            {pricing.pro.price}. {company.productName} exists so you never lose that
-            call to voicemail — or your competitor.
+          </h2>
+          <p className="premium-close-lead font-sans">
+            A single after-hours repair often clears ${pricing.pro.price}. Orvius
+            exists so that call never hits voicemail.
           </p>
         </div>
       </section>
 
-      <section className="editorial-section editorial-section-muted">
+      <section className="premium-band premium-band-chalk">
         <div className="editorial-wrap editorial-split">
-          <div className="editorial-copy">
-            <h2 className="editorial-heading font-serif">Join the pilot.</h2>
-            <p className="editorial-body font-sans">
-              Limited availability. We work with each shop directly — not a
-              self-serve signup flow.
+          <div>
+            <h2 className="premium-section-title font-serif">Join the program.</h2>
+            <p className="premium-body font-sans">
+              Limited availability. We onboard each shop directly.
             </p>
           </div>
           <div className="panel-chalk p-6 md:p-8">
             <EarlyAccessForm variant="full" />
           </div>
-        </div>
-      </section>
-
-      <section className="editorial-section">
-        <div className="editorial-wrap">
-          <p className="max-w-3xl font-sans text-xs leading-relaxed text-ash">
-            <strong className="font-semibold text-void">Billing.</strong> Pilot is
-            free for thirty days. After the pilot, {company.productName} Pro is $
-            {pricing.pro.price}/month unless otherwise agreed in writing. Payments
-            are processed by {company.legalName}. See{" "}
-            <Link href="/terms" className="editorial-link">
-              Terms of Service
-            </Link>{" "}
-            for full details.
-          </p>
         </div>
       </section>
     </MarketingShell>

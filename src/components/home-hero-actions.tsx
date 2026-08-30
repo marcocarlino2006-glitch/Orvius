@@ -1,13 +1,19 @@
 import Link from "next/link";
 
-export function HomeHeroActions() {
+type HomeHeroActionsProps = {
+  variant?: "light" | "void";
+};
+
+export function HomeHeroActions({ variant = "light" }: HomeHeroActionsProps) {
+  const linkClass = variant === "void" ? "editorial-link-on-void" : "editorial-link";
+
   return (
     <div className="editorial-actions font-sans">
       <Link href="/pilot" className="editorial-cta">
-        Free pilot
+        Get started
       </Link>
-      <Link href="/demo" className="editorial-link">
-        Hear a call
+      <Link href="/demo" className={linkClass}>
+        Watch demo
       </Link>
     </div>
   );

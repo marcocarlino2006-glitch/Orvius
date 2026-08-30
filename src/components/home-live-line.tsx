@@ -4,7 +4,11 @@ import { useState } from "react";
 
 const LINE = "+1 844 643 9170";
 
-export function HomeLiveLine() {
+type HomeLiveLineProps = {
+  variant?: "light" | "void";
+};
+
+export function HomeLiveLine({ variant = "light" }: HomeLiveLineProps) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -18,7 +22,7 @@ export function HomeLiveLine() {
   }
 
   return (
-    <div className="home-command">
+    <div className={`home-command ${variant === "void" ? "home-command-void" : ""}`}>
       <code className="home-command-code font-sans">{LINE}</code>
       <button type="button" className="home-command-copy font-sans" onClick={copy}>
         {copied ? "Copied" : "Copy"}
