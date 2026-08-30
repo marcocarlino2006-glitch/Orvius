@@ -1749,6 +1749,33 @@ h3 {
   justify-content: center;
 }
 
+.home-hero-live {
+  width: 100%;
+  max-width: 36rem;
+  margin-top: 2rem;
+}
+
+.home-hero-live-label {
+  margin-bottom: 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--signal);
+  text-align: center;
+}
+
+.home-hero-live .home-command {
+  margin-top: 0;
+}
+
+.home-hero-live-proof {
+  margin-top: 0.85rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
 .home-pair {
   display: grid;
   gap: clamp(2.5rem, 5vw, 4rem);
