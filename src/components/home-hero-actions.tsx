@@ -1,5 +1,4 @@
 import { auth } from "@/auth";
-import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import Link from "next/link";
 
 export async function HomeHeroActions() {
@@ -9,10 +8,10 @@ export async function HomeHeroActions() {
     return (
       <div className="editorial-actions font-sans">
         <Link href="/dashboard" className="editorial-cta">
-          Go to dashboard
+          Open the OS
         </Link>
         <Link href="/demo" className="editorial-link">
-          Hear a demo call
+          Hear a call
         </Link>
       </div>
     );
@@ -20,9 +19,11 @@ export async function HomeHeroActions() {
 
   return (
     <div className="editorial-actions font-sans">
-      <GoogleSignInButton callbackUrl="/dashboard" />
+      <Link href="/login" className="editorial-cta">
+        Sign in
+      </Link>
       <Link href="/demo" className="editorial-link">
-        Hear a demo call
+        Hear a call
       </Link>
     </div>
   );

@@ -23,21 +23,21 @@ export const metadata: Metadata = {
     template: "%s · Orvius",
   },
   description:
-    "Orvius is the operating system for service businesses. Every call answered. Every lead captured.",
+    "Orvius is the operating system for service businesses. The system of record for HVAC, plumbing, and electrical.",
   metadataBase: new URL("https://orvius.im"),
   openGraph: {
-    title: "Orvius — Always answered",
+    title: "Orvius — The operating system for service businesses",
     description:
-      "The front door of your business — always answered. Built for HVAC, plumbing, and electrical.",
+      "The system of record for the trades. Every call, every customer, every job.",
     type: "website",
     url: "https://orvius.im",
     siteName: "Orvius",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Orvius — Always answered",
+    title: "Orvius — The operating system for service businesses",
     description:
-      "Every call answered. Every lead captured. Built for service businesses.",
+      "The system of record for HVAC, plumbing, and electrical.",
   },
 };
 

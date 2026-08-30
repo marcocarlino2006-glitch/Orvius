@@ -1,23 +1,27 @@
+import { HomeChangelog } from "@/components/home-changelog";
 import { HomeHeroActions } from "@/components/home-hero-actions";
 import {
-  CallTranscriptProof,
-  OwnerAlertCard,
-} from "@/components/owner-alert-card";
+  HomeOsAsk,
+  HomeOsCall,
+  HomeOsDispatch,
+  HomeOsFrame,
+  HomeOsJobs,
+  HomeProductStage,
+} from "@/components/home-product-stage";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
-import { OsRings } from "@/components/os-rings";
-import { OsProductPreviewSection } from "@/components/os-product-preview";
 import { company } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Orvius — The operating system for service businesses",
-  description: company.tagline + " Every call answered. Every lead captured.",
+  description:
+    "The system of record for HVAC, plumbing, and electrical. Every call, every customer, every job.",
   openGraph: {
     title: "Orvius — " + company.tagline,
     description:
-      "The front door of your business — always answered. Built for home service operators.",
+      "The system of record for the trades. One operating system — starting at the front door.",
   },
 };
 
@@ -26,77 +30,126 @@ export default function HomePage() {
     <>
       <ShellHeader plane="chalk" cta={{ href: "/login", label: "Sign in" }} />
 
-      <main className="editorial bg-chalk text-void">
-        <section className="editorial-hero">
-          <div className="editorial-wrap">
-            <h1 className="editorial-display font-serif">{company.tagline}</h1>
-            <p className="editorial-lead font-sans">
-              Every call answered. Every customer remembered. Built for{" "}
-              {company.trades.join(", ")} — live in the field today.
+      <main className="editorial home-page bg-chalk text-void">
+        <section className="home-hero">
+          <div className="editorial-wrap home-hero-copy">
+            <h1 className="home-display font-serif">{company.tagline}</h1>
+            <p className="home-lead font-sans">
+              The system of record for HVAC, plumbing, and electrical. Every
+              call, every customer, every job — one operating system.
             </p>
             <HomeHeroActions />
+          </div>
+          <div className="home-hero-stage">
+            <div className="editorial-wrap">
+              <HomeProductStage />
+            </div>
           </div>
         </section>
 
         <section className="editorial-section">
           <div className="editorial-wrap editorial-split">
             <div className="editorial-copy">
+              <p className="home-kicker font-sans">Front door</p>
               <h2 className="editorial-heading font-serif">
-                Your front door, handled.
+                Every inbound line, answered.
               </h2>
               <p className="editorial-body font-sans">
-                Orvius answers inbound calls and texts, captures service details
-                with precision, and sends the owner a clean summary — while
-                you&apos;re on the job, after hours, or at peak season.
+                Orvius takes the call, qualifies the work, and writes the
+                record. The owner gets a clean alert — on the job, after hours,
+                or at peak season. The front door does not go to voicemail.
               </p>
             </div>
-            <OwnerAlertCard variant="chalk" className="editorial-card" />
-          </div>
-        </section>
-
-        <section className="editorial-statement">
-          <div className="editorial-wrap">
-            <p className="editorial-quote font-serif">
-              Big operators run on intelligence. Small shops still run on missed
-              calls.
-            </p>
-            <p className="editorial-quote-sub font-sans">
-              Orvius closes that gap — without hiring, without enterprise
-              software bloat.
-            </p>
+            <HomeOsFrame active="call">
+              <HomeOsCall />
+            </HomeOsFrame>
           </div>
         </section>
 
         <section className="editorial-section editorial-section-muted">
           <div className="editorial-wrap editorial-split editorial-split-reverse">
-            <CallTranscriptProof variant="chalk" className="editorial-card" />
+            <HomeOsFrame active="jobs">
+              <HomeOsJobs />
+            </HomeOsFrame>
             <div className="editorial-copy">
+              <p className="home-kicker font-sans">Jobs</p>
               <h2 className="editorial-heading font-serif">
-                Live on real calls today.
+                A lead becomes a job.
               </h2>
               <p className="editorial-body font-sans">
-                Summit HVAC runs on Orvius now — emergencies, same-day requests,
-                and routine inquiries handled without a receptionist on payroll.
+                The same system that answered the phone books the appointment.
+                Customers persist. History follows the number. Nothing lives on
+                a sticky note.
               </p>
-              <Link href="/demo" className="editorial-link editorial-link-inline">
-                Listen to a demo →
-              </Link>
             </div>
           </div>
         </section>
 
-        <OsProductPreviewSection />
-
         <section className="editorial-section">
-          <div className="editorial-wrap">
-            <h2 className="editorial-heading font-serif">The full system.</h2>
-            <p className="editorial-body font-sans max-w-2xl">
-              Orvius is not a feature. It is the operating system your shop runs
-              on — built one layer at a time, starting with the front door.
-            </p>
-            <div className="mt-12">
-              <OsRings limit={4} />
+          <div className="editorial-wrap editorial-split">
+            <div className="editorial-copy">
+              <p className="home-kicker font-sans">Field</p>
+              <h2 className="editorial-heading font-serif">
+                The board is the day.
+              </h2>
+              <p className="editorial-body font-sans">
+                Who goes where. En route, on site, complete. Dispatch runs from
+                one board — not a group text. The field is a layer of the OS.
+              </p>
             </div>
+            <HomeOsFrame active="dispatch">
+              <HomeOsDispatch />
+            </HomeOsFrame>
+          </div>
+        </section>
+
+        <section className="editorial-section editorial-section-muted">
+          <div className="editorial-wrap editorial-split editorial-split-reverse">
+            <HomeOsFrame active="ask">
+              <HomeOsAsk />
+            </HomeOsFrame>
+            <div className="editorial-copy">
+              <p className="home-kicker font-sans">Ask</p>
+              <h2 className="editorial-heading font-serif">
+                The shop has a memory.
+              </h2>
+              <p className="editorial-body font-sans">
+                Ask answers from the records already in the OS — calls, customers,
+                jobs, dispatch. Not a chatbot. A mouth on the system of record.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="editorial-statement">
+          <div className="editorial-wrap">
+            <p className="home-kicker home-kicker-on-void font-sans">In production</p>
+            <p className="editorial-quote font-serif">
+              Summit HVAC runs on Orvius.
+            </p>
+            <p className="editorial-quote-sub font-sans">
+              Emergencies, same-day requests, and after-hours calls — handled
+              without a receptionist on payroll. Live line{" "}
+              <span className="tabular-nums text-chalk">+1 844 643 9170</span>.
+            </p>
+            <Link href="/demo" className="editorial-link-on-void font-sans">
+              Hear a call →
+            </Link>
+          </div>
+        </section>
+
+        <HomeChangelog />
+
+        <section className="editorial-section editorial-section-muted">
+          <div className="editorial-wrap home-company">
+            <p className="home-kicker font-sans">Company</p>
+            <p className="home-company-line font-serif">
+              Orvius is building the operating system for the trades.
+            </p>
+            <p className="editorial-body font-sans">
+              We start at the front door and expand one ring at a time. A
+              product of {company.legalName}.
+            </p>
             <Link href="/about" className="editorial-link editorial-link-inline font-sans">
               About Orvius →
             </Link>
@@ -106,9 +159,9 @@ export default function HomePage() {
         <section className="editorial-close">
           <div className="editorial-wrap editorial-close-inner">
             <p className="editorial-close-text font-serif">
-              Built for the long run.
+              {company.tagline}
             </p>
-            <div className="editorial-actions font-sans">
+            <div className="editorial-actions font-sans" style={{ marginTop: 0 }}>
               <Link href="/login" className="editorial-cta">
                 Sign in
               </Link>
