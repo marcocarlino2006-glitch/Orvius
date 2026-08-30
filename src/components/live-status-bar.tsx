@@ -31,14 +31,14 @@ export function LiveStatusBar() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <ShellBadge tone={health.configured ? "live" : "flare"}>
-            {health.configured ? "System ready" : "Setup needed"}
+            {health.configured ? "Live" : "Setup needed"}
           </ShellBadge>
           {health.twilioPhone ? (
             <p className="font-sans text-sm text-void">
-              Live line{" "}
+              Line{" "}
               <a
                 href={`tel:${health.twilioPhone}`}
-                className="font-semibold tabular-nums text-flare-dim hover:text-flare"
+                className="font-semibold tabular-nums text-void hover:text-ash"
               >
                 {health.twilioPhone}
               </a>

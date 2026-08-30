@@ -43,9 +43,9 @@ function JobChip({ job }: { job: BoardJob }) {
     : "TBD";
 
   return (
-    <Link href={`/dashboard/jobs/${job.id}`} className="dispatch-job font-sans">
-      <div className="flex items-start justify-between gap-2">
-        <p className="font-semibold text-void">{time}</p>
+    <Link href={`/dashboard/jobs/${job.id}`} className="home-os-chip dispatch-job-chip">
+      <div className="home-os-chip-head">
+        <p className="home-os-chip-time">{time}</p>
         <ShellBadge
           tone={
             job.status === "on_site" || job.status === "en_route"
@@ -58,9 +58,9 @@ function JobChip({ job }: { job: BoardJob }) {
           {jobStatusLabel(job.status)}
         </ShellBadge>
       </div>
-      <p className="mt-2 font-serif text-base tracking-[-0.03em] text-void">{job.title}</p>
-      <p className="mt-1 text-sm text-ash">{who}</p>
-      {job.address ? <p className="mt-1 text-xs text-ash">{job.address}</p> : null}
+      <p className="home-os-chip-title font-serif">{job.title}</p>
+      <p className="home-os-chip-sub">{who}</p>
+      {job.address ? <p className="home-os-chip-sub">{job.address}</p> : null}
     </Link>
   );
 }
@@ -125,9 +125,9 @@ export default function DispatchPage() {
   return (
     <OsShell
       title="Dispatch"
-      subtitle="Ring 4 — who goes where. The day runs from this board."
+      subtitle="Who goes where. The day runs from this board."
       actions={
-        <Link href="/dashboard/jobs" className="btn btn-secondary text-sm">
+        <Link href="/dashboard/jobs" className="btn btn-void text-sm">
           All jobs
         </Link>
       }
@@ -152,7 +152,7 @@ export default function DispatchPage() {
               placeholder="Name"
             />
           </label>
-          <button type="submit" className="btn btn-primary" disabled={adding}>
+          <button type="submit" className="btn btn-void" disabled={adding}>
             {adding ? "Adding…" : "Add to crew"}
           </button>
         </form>
@@ -173,7 +173,7 @@ export default function DispatchPage() {
           {columns.map((col) => (
             <section key={col.key} className="dispatch-col">
               <header className="dispatch-col-head">
-                <h2 className="font-serif text-lg tracking-[-0.03em] text-void">{col.title}</h2>
+                <p className="home-os-kicker">{col.title}</p>
                 <p className="font-sans text-xs text-ash">
                   {col.jobs.length} job{col.jobs.length === 1 ? "" : "s"}
                 </p>

@@ -82,7 +82,7 @@ export default function LeadDetailPage() {
       subtitle={`Lead · ${lead.business?.name ?? "Orvius"} · ${lead.source}`}
       actions={
         lead.phone ? (
-          <a href={`tel:${lead.phone}`} className="btn btn-primary text-sm">
+          <a href={`tel:${lead.phone}`} className="btn btn-void text-sm">
             Call lead
           </a>
         ) : null

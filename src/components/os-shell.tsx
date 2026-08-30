@@ -32,7 +32,7 @@ export function OsShell({
   title,
   subtitle,
   businessName,
-  statusLabel = "Founder workspace",
+  statusLabel = "Operations",
   actions,
 }: OsShellProps) {
   const pathname = usePathname();
@@ -47,14 +47,12 @@ export function OsShell({
             <span className="os-sidebar-mark" aria-hidden />
             <span>
               <span className="os-sidebar-name font-serif">{company.productName}</span>
-              <span className="os-sidebar-sub font-sans">Operating system</span>
+              <span className="os-sidebar-sub font-sans">OS</span>
             </span>
           </Link>
 
           <div className="os-ring-status">
-            <p className="font-sans text-[10px] font-bold tracking-[0.18em] text-ash uppercase">
-              Active ring
-            </p>
+            <p className="home-os-kicker">Live</p>
             <p className="mt-2 font-serif text-lg tracking-[-0.03em] text-void">
               {String(osCurrentRing).padStart(2, "0")} · {liveRing?.name}
             </p>
@@ -151,6 +149,10 @@ export function OsShell({
       <div className="os-main">
         <header className="os-topbar">
           <div className="os-topbar-copy">
+            <p className="os-topbar-live font-sans">
+              <span className="home-os-live-dot" />
+              {businessName ?? "Orvius"} · Rings 1–{osCurrentRing} live
+            </p>
             <h1 className="os-topbar-title font-serif">{title}</h1>
             {subtitle ? (
               <p className="os-topbar-sub font-sans">{subtitle}</p>

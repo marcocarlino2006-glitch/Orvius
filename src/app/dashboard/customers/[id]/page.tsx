@@ -86,7 +86,7 @@ export default function CustomerDetailPage() {
       subtitle={`Customer record · ${customer.business?.name ?? "Orvius"}`}
       actions={
         customer.phone ? (
-          <a href={`tel:${customer.phone}`} className="btn btn-primary text-sm">
+          <a href={`tel:${customer.phone}`} className="btn btn-void text-sm">
             Call
           </a>
         ) : null

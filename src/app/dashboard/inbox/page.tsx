@@ -38,10 +38,10 @@ export default function InboxPage() {
   return (
     <OsShell
       title="Inbox"
-      subtitle="Every qualified lead from calls and texts — ready to close."
+      subtitle="Every qualified lead from calls and texts."
       actions={
-        <Link href="/demo" className="btn btn-secondary text-sm">
-          Demo call
+        <Link href="/demo" className="btn btn-void text-sm">
+          Hear a call
         </Link>
       }
     >

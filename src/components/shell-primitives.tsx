@@ -54,15 +54,9 @@ export function ShellStat({
   const active = highlight || (value !== "—" && value !== 0);
 
   return (
-    <div
-      className={`card p-5 md:p-6 ${active ? "stat-accent" : ""}`}
-    >
-      <p className="font-sans text-[0.6875rem] font-bold tracking-[0.16em] text-ash uppercase">
-        {label}
-      </p>
-      <p className="mt-2 font-sans text-[2rem] font-semibold leading-none tracking-tight text-void">
-        {value}
-      </p>
+    <div className={`os-stat ${active ? "os-stat-live" : ""}`}>
+      <p className="os-stat-label font-sans">{label}</p>
+      <p className="os-stat-value font-sans">{value}</p>
     </div>
   );
 }
@@ -76,15 +70,13 @@ export function ShellBadge({
 }) {
   const toneClass =
     tone === "live"
-      ? "bg-live/12 text-live"
+      ? "home-os-pill home-os-pill-live"
       : tone === "flare"
-        ? "bg-flare/12 text-flare-dim"
-        : "bg-fog text-ash";
+        ? "home-os-pill home-os-pill-flare"
+        : "home-os-pill";
 
   return (
-    <span
-      className={`inline-flex rounded-[0.35rem] px-2.5 py-1 font-sans text-[0.6875rem] font-bold tracking-[0.06em] uppercase ${toneClass}`}
-    >
+    <span className={toneClass}>
       {children}
     </span>
   );
@@ -127,7 +119,7 @@ export function ShellListItem({
   children?: ReactNode;
 }) {
   return (
-    <li className="rounded-[0.45rem] border border-rule bg-white px-4 py-3.5 transition hover:border-flare/25 hover:shadow-[var(--shadow-soft)]">
+    <li className="rounded-[0.45rem] border border-rule bg-white px-4 py-3.5">
       <div className="flex items-start justify-between gap-3">
         <p className="font-sans text-sm font-semibold text-void">{title}</p>
         {meta ? (

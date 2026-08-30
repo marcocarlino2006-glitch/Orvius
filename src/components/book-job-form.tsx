@@ -79,7 +79,7 @@ export function BookJobForm({
       <button
         type="submit"
         disabled={loading}
-        className={`btn btn-primary ${loading ? "btn-loading" : ""}`}
+        className={`btn btn-void ${loading ? "btn-loading" : ""}`}
       >
         {loading ? "Booking…" : "Book job"}
       </button>

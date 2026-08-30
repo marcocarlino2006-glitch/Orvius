@@ -32,7 +32,7 @@ export default function CallsPage() {
   }, []);
 
   return (
-    <OsShell title="Calls" subtitle="Inbound voice activity across your shops.">
+    <OsShell title="Calls" subtitle="Inbound voice. The record starts here.">
       {loading ? (
         <p className="font-sans text-sm text-ash">Loading…</p>
       ) : (

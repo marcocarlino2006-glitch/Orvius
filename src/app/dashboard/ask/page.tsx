@@ -1,7 +1,6 @@
 "use client";
 
 import { OsShell } from "@/components/os-shell";
-import { ShellBadge } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -68,7 +67,7 @@ export default function AskPage() {
   return (
     <OsShell
       title="Ask"
-      subtitle="The shop brain. Answers from your calls, customers, and jobs — not the public internet."
+      subtitle="Answers from the records already in the OS — not the public internet."
     >
       <form
         className="ask-form"
@@ -84,7 +83,7 @@ export default function AskPage() {
           placeholder="Ask about a customer, a job, or who called…"
           autoComplete="off"
         />
-        <button type="submit" disabled={loading} className="btn btn-primary">
+        <button type="submit" disabled={loading} className="btn btn-void">
           {loading ? "Remembering…" : "Ask"}
         </button>
       </form>
@@ -117,14 +116,12 @@ export default function AskPage() {
       <ol className="ask-turns">
         {turns.map((turn, index) => (
           <li key={`${turn.question}-${index}`} className="ask-turn">
-            <p className="ask-q font-sans">{turn.question}</p>
+            <p className="ask-q font-serif">{turn.question}</p>
             <div className="ask-a">
-              <div className="mb-3 flex flex-wrap gap-2">
-                <ShellBadge tone="live">
-                  {turn.source === "memory+model" ? "Memory + model" : "Shop memory"}
-                </ShellBadge>
-              </div>
-              <p className="font-sans text-[0.9375rem] leading-relaxed text-void whitespace-pre-wrap">
+              <p className="home-os-ask-source">
+                {turn.source === "memory+model" ? "Memory + model" : "From OS memory"}
+              </p>
+              <p className="mt-3 font-sans text-[0.9375rem] leading-relaxed text-void whitespace-pre-wrap">
                 {turn.answer}
               </p>
               {turn.hits.length ? (

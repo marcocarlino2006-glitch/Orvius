@@ -142,7 +142,7 @@ export function LeadInboxCard({
           <div className="lead-inbox-actions mt-4 flex gap-2 border-t border-rule/80 pt-4 sm:hidden">
             <a
               href={`tel:${phone}`}
-              className="btn btn-primary flex-1 text-sm"
+              className="btn btn-void flex-1 text-sm"
               onClick={(e) => e.stopPropagation()}
             >
               Call lead

@@ -126,11 +126,11 @@ export default function JobDetailPage() {
       subtitle={`Job · ${job.business?.name ?? "Orvius"}`}
       actions={
         <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
-            Dispatch board
+          <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+            Dispatch
           </Link>
           {phone ? (
-            <a href={`tel:${phone}`} className="btn btn-primary text-sm">
+            <a href={`tel:${phone}`} className="btn btn-void text-sm">
               Call customer
             </a>
           ) : null}
@@ -215,7 +215,7 @@ export default function JobDetailPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => patch({ status: next.status })}
-                className="btn btn-primary text-sm"
+                className="btn btn-void text-sm"
               >
                 {saving ? "Saving…" : next.label}
               </button>

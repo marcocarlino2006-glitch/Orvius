@@ -85,11 +85,11 @@ export default function DashboardPage() {
   return (
     <OsShell
       title="Overview"
-      subtitle="Rings 1–3 live — front door, customers, and jobs."
+      subtitle="Rings 1–4 live — front door, customers, jobs, and the field."
       statusLabel="Operations"
       actions={
-        <Link href="/demo" className="btn btn-primary text-sm">
-          Run demo call
+        <Link href="/demo" className="btn btn-void text-sm">
+          Hear a call
         </Link>
       }
     >
@@ -116,7 +116,7 @@ export default function DashboardPage() {
           <section className="mb-10">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="eyebrow">Ring 3</p>
+                <p className="home-os-kicker">Jobs</p>
                 <h2 className="mt-2 font-serif text-2xl tracking-[-0.04em] text-void">
                   Upcoming jobs
                 </h2>
@@ -154,7 +154,7 @@ export default function DashboardPage() {
           <section className="mb-10">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="eyebrow">Ring 2</p>
+                <p className="home-os-kicker">Customers</p>
                 <h2 className="mt-2 font-serif text-2xl tracking-[-0.04em] text-void">
                   Customer records
                 </h2>
@@ -190,7 +190,7 @@ export default function DashboardPage() {
           <section className="mb-10">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="eyebrow">Ring 1</p>
+                <p className="home-os-kicker">Front door</p>
                 <h2 className="mt-2 font-serif text-2xl tracking-[-0.04em] text-void">
                   Recent leads
                 </h2>

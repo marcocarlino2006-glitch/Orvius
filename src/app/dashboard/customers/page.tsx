@@ -43,7 +43,7 @@ export default function CustomersPage() {
   return (
     <OsShell
       title="Customers"
-      subtitle="Ring 2 — every caller becomes a permanent record with full history."
+      subtitle="Every caller becomes a permanent record. History follows the number."
     >
       <div className="mb-6">
         <input

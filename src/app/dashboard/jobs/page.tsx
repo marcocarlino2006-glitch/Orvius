@@ -38,10 +38,10 @@ export default function JobsPage() {
   return (
     <OsShell
       title="Jobs"
-      subtitle="Ring 3 — leads become booked appointments, not sticky notes."
+      subtitle="A lead becomes a booked appointment — not a sticky note."
       actions={
-        <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
-          Dispatch board
+        <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+          Dispatch
         </Link>
       }
     >

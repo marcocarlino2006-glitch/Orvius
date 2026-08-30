@@ -22,7 +22,7 @@ const links = [
 
 export function ProfileMenu({
   businessName = "Orvius",
-  statusLabel = "Founder workspace",
+  statusLabel = "Operations",
 }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
