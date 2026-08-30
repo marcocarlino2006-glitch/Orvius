@@ -91,7 +91,7 @@ export function HomeProductStage() {
             <span className="home-os-wordmark font-serif">Orvius</span>
             <span className="home-os-shop">Summit HVAC</span>
           </div>
-          <span className="home-os-shop-meta">Rings 1–4 · Field live</span>
+          <span className="home-os-shop-meta">RING 04 · FIELD LIVE</span>
         </div>
 
         <div className="home-os-workspace">
@@ -147,7 +147,7 @@ export function HomeProductStage() {
                 Who is free for the Oakridge emergency?
               </p>
               <Link href="/login" className="home-os-composer-btn">
-                Ask
+                Run
               </Link>
             </div>
           </div>

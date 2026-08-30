@@ -34,12 +34,23 @@ export default function HomePage() {
       <main className="editorial home-page bg-chalk text-void">
         <section className="home-hero">
           <div className="editorial-wrap home-hero-copy">
-            <p className="home-brand-kicker font-sans">Orvius</p>
+            <p className="home-brand-kicker font-sans">System online</p>
             <h1 className="home-display font-serif">{company.tagline}</h1>
             <p className="home-trust font-sans">
-              Live today for HVAC, plumbing, and electrical.
+              HVAC. Plumbing. Electrical. One system of record — live.
+            </p>
+            <p className="home-telemetry font-sans">
+              <span>Ring 04 · Field</span>
+              <span>Summit HVAC</span>
+              <span>+1 844 643 9170</span>
             </p>
             <HomeHeroActions />
+          </div>
+
+          <div className="home-hero-stage">
+            <div className="home-stage-wrap">
+              <HomeProductStage />
+            </div>
           </div>
 
           <div className="editorial-wrap home-pair">
@@ -66,12 +77,6 @@ export default function HomePage() {
               <Link href="/login" className="editorial-link editorial-link-inline font-sans">
                 Open the product →
               </Link>
-            </div>
-          </div>
-
-          <div className="home-hero-stage">
-            <div className="home-stage-wrap">
-              <HomeProductStage />
             </div>
           </div>
         </section>
@@ -249,10 +254,10 @@ export default function HomePage() {
 
         <section className="editorial-close">
           <div className="editorial-wrap home-close">
-            <p className="home-brand-kicker font-sans">Orvius</p>
+            <p className="home-kicker font-sans">Open the system</p>
             <p className="home-display font-serif">{company.tagline}</p>
             <p className="home-trust font-sans">
-              Live today for HVAC, plumbing, and electrical.
+              HVAC. Plumbing. Electrical. One system of record — live.
             </p>
             <HomeHeroActions />
           </div>
