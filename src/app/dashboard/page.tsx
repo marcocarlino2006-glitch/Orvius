@@ -269,6 +269,11 @@ export default function DashboardPage() {
             <ShellPanel title="Quick actions">
               <ul className="space-y-3 font-sans text-sm">
                 <li>
+                  <Link href="/dashboard/ask" className="os-quick-link">
+                    Ask the shop brain
+                  </Link>
+                </li>
+                <li>
                   <Link href="/admin" className="os-quick-link">
                     Manage businesses & lines
                   </Link>

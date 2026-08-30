@@ -11,6 +11,7 @@ type ProfileMenuProps = {
 const links = [
   { href: "/dashboard", label: "Overview", hint: "OS hub · stats" },
   { href: "/dashboard/inbox", label: "Inbox", hint: "Leads · Ring 1" },
+  { href: "/dashboard/ask", label: "Ask", hint: "Shop brain · memory" },
   { href: "/dashboard/jobs", label: "Jobs", hint: "Book · Ring 3" },
   { href: "/dashboard/customers", label: "Customers", hint: "Records · Ring 2" },
   { href: "/admin", label: "Business setup", hint: "Receptionist & config" },

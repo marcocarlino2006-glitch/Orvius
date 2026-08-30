@@ -2250,3 +2250,102 @@ h3 {
 .os-ring-dark .os-ring-body {
   color: var(--ash-soft);
 }
+
+.ask-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ask-input {
+  flex: 1 1 16rem;
+}
+
+.ask-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.ask-chip {
+  border: 1px solid var(--rule);
+  background: var(--white);
+  color: var(--void);
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.ask-chip:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--void) 22%, var(--rule));
+  background: var(--fog);
+}
+
+.ask-empty {
+  margin-top: 2.5rem;
+  max-width: 42ch;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--ash);
+}
+
+.ask-turns {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ask-q {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ash);
+}
+
+.ask-a {
+  margin-top: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  background: var(--white);
+}
+
+.ask-hits {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ask-hit {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.375rem;
+  background: color-mix(in srgb, var(--fog) 70%, var(--white));
+}
+
+.ask-hit:hover {
+  background: var(--fog);
+}
+
+.ask-hit-type {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.ask-hit-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.ask-hit-sum {
+  font-size: 0.8125rem;
+  color: var(--ash);
+}

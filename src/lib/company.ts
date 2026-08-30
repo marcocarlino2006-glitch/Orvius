@@ -59,7 +59,7 @@ export const osRings = [
     name: "Intelligence",
     module: "AI on every layer",
     status: "planned" as const,
-    body: "Smarter with every call, job, and payment.",
+    body: "Smarter with every call, job, and payment. Ask lives on the records already in the OS.",
   },
   {
     ring: 7,

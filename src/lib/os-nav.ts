@@ -11,7 +11,8 @@ export const osProductNav: OsNavItem[] = [
   { href: "/dashboard", label: "Overview", ring: 1 },
   { href: "/dashboard/inbox", label: "Inbox", ring: 1 },
   { href: "/dashboard/customers", label: "Customers", ring: 2 },
-  { href: "/dashboard/jobs", label: "Jobs", ring: 3, badge: "New" },
+  { href: "/dashboard/jobs", label: "Jobs", ring: 3 },
+  { href: "/dashboard/ask", label: "Ask", badge: "New" },
   { href: "/dashboard/calls", label: "Calls", ring: 1 },
 ];
 
