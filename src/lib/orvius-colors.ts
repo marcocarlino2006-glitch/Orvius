@@ -1,6 +1,9 @@
 /**
  * Orvius Chromatics — source of truth for brand colorways.
  * CSS mirrors these values in `src/app/globals.css`.
+ *
+ * Signal is the brand: oxidized copper — pipes, wire, heat exchange.
+ * Flare is emergency only. Live is field status.
  */
 export const orviusColors = {
   void: "#0A0B0A",
@@ -10,6 +13,9 @@ export const orviusColors = {
   ash: "#6F6E67",
   ashSoft: "#9B9A90",
   rule: "#CCCAC2",
+  signal: "#1A8A7C",
+  signalHot: "#36B5A5",
+  signalDim: "#11665C",
   flare: "#E8461C",
   flareHot: "#FF5A2E",
   flareDim: "#B83312",

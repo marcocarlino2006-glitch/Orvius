@@ -21,7 +21,8 @@ export function SiteFooter() {
     <footer className="site-footer border-t border-rule bg-chalk text-void">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.2fr_1fr_1.2fr] md:px-8 md:py-16">
         <div>
-          <p className="font-sans text-sm font-semibold tracking-[0.2em] uppercase">
+          <p className="flex items-center gap-2 font-sans text-sm font-semibold tracking-[0.2em] uppercase">
+            <span className="shell-logo-mark" aria-hidden />
             {company.productName}
           </p>
           <p className="mt-3 max-w-xs font-serif text-lg leading-relaxed text-ash">

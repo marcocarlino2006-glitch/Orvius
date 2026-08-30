@@ -34,6 +34,7 @@ export default function HomePage() {
       <main className="editorial home-page bg-chalk text-void">
         <section className="home-hero">
           <div className="editorial-wrap home-hero-copy">
+            <p className="home-brand-kicker font-sans">Orvius</p>
             <h1 className="home-display font-serif">{company.tagline}</h1>
             <p className="home-trust font-sans">
               Live today for HVAC, plumbing, and electrical.
@@ -248,7 +249,7 @@ export default function HomePage() {
 
         <section className="editorial-close">
           <div className="editorial-wrap home-close">
-            <p className="home-kicker font-sans">Open Orvius now.</p>
+            <p className="home-brand-kicker font-sans">Orvius</p>
             <p className="home-display font-serif">{company.tagline}</p>
             <p className="home-trust font-sans">
               Live today for HVAC, plumbing, and electrical.

@@ -1,6 +1,7 @@
+import { orviusColors } from "@/lib/orvius-colors";
 import { ImageResponse } from "next/og";
 
-export const alt = "Orvius — The front door of your business, always answered";
+export const alt = "Orvius — The operating system for service businesses";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -14,7 +15,7 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "linear-gradient(165deg, #111211 0%, #0A0B0A 46%, #050505 100%)",
+          background: `linear-gradient(165deg, #12332F 0%, ${orviusColors.void} 42%, #050505 100%)`,
           padding: "72px 80px",
         }}
       >
@@ -22,14 +23,22 @@ export default function OpenGraphImage() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 12,
-            color: "#E8461C",
+            gap: 14,
+            color: orviusColors.signalHot,
             fontSize: 14,
             letterSpacing: "0.24em",
             textTransform: "uppercase",
             fontWeight: 700,
           }}
         >
+          <div
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: 3,
+              background: `linear-gradient(135deg, ${orviusColors.signalHot}, ${orviusColors.signal})`,
+            }}
+          />
           Operating system
         </div>
         <div
@@ -44,7 +53,7 @@ export default function OpenGraphImage() {
               display: "flex",
               fontSize: 96,
               fontWeight: 500,
-              color: "#F2F1EC",
+              color: orviusColors.chalk,
               letterSpacing: "-0.06em",
               lineHeight: 0.9,
             }}
@@ -56,7 +65,7 @@ export default function OpenGraphImage() {
               display: "flex",
               width: 64,
               height: 2,
-              background: "#E8461C",
+              background: orviusColors.signal,
             }}
           />
           <div
@@ -65,11 +74,11 @@ export default function OpenGraphImage() {
               maxWidth: 720,
               fontSize: 36,
               lineHeight: 1.15,
-              color: "#F2F1EC",
+              color: orviusColors.chalk,
               letterSpacing: "-0.03em",
             }}
           >
-            The front door of your business — always answered.
+            The operating system for service businesses.
           </div>
         </div>
         <div
@@ -77,7 +86,7 @@ export default function OpenGraphImage() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            color: "#9B9A90",
+            color: orviusColors.ashSoft,
             fontSize: 22,
           }}
         >

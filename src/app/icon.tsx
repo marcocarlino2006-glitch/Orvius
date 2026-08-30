@@ -1,3 +1,4 @@
+import { orviusColors } from "@/lib/orvius-colors";
 import { ImageResponse } from "next/og";
 
 export const size = { width: 32, height: 32 };
@@ -13,17 +14,16 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0A0B0A",
+          background: `linear-gradient(135deg, ${orviusColors.signalHot} 0%, ${orviusColors.signal} 55%, ${orviusColors.signalDim} 100%)`,
           borderRadius: 8,
-          border: "1px solid rgba(232, 70, 28, 0.35)",
         }}
       >
         <div
           style={{
-            color: "#E8461C",
-            fontSize: 20,
+            color: orviusColors.chalk,
+            fontSize: 18,
             fontWeight: 700,
-            letterSpacing: "-0.04em",
+            letterSpacing: "-0.06em",
           }}
         >
           O
