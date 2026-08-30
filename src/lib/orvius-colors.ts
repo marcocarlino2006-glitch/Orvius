@@ -2,8 +2,7 @@
  * Orvius Chromatics — source of truth for brand colorways.
  * CSS mirrors these values in `src/app/globals.css`.
  *
- * Signal is the brand: heat orange. Flare is the same family for alerts.
- * Live is field status.
+ * Signal is Amazon orange. Flare is emergency red-orange. Live is field status.
  */
 export const orviusColors = {
   void: "#0A0B0A",
@@ -13,9 +12,9 @@ export const orviusColors = {
   ash: "#6F6E67",
   ashSoft: "#9B9A90",
   rule: "#CCCAC2",
-  signal: "#E8461C",
-  signalHot: "#FF5A2E",
-  signalDim: "#B83312",
+  signal: "#FF9900",
+  signalHot: "#FFB020",
+  signalDim: "#E47911",
   flare: "#E8461C",
   flareHot: "#FF5A2E",
   flareDim: "#B83312",

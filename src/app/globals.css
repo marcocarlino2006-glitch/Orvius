@@ -2,8 +2,7 @@
 
 /*
   Orvius Chromatics
-  SIGNAL is the brand — heat orange.
-  FLARE is the same family for alerts. LIVE is field status.
+  SIGNAL is Amazon orange. FLARE is emergency. LIVE is field status.
 */
 
 :root {
@@ -15,9 +14,9 @@
   --ash-soft: #9b9a90;
   --rule: #cccac2;
   --rule-dark: rgba(242, 241, 236, 0.1);
-  --signal: #e8461c;
-  --signal-hot: #ff5a2e;
-  --signal-dim: #b83312;
+  --signal: #ff9900;
+  --signal-hot: #ffb020;
+  --signal-dim: #e47911;
   --flare: #e8461c;
   --flare-hot: #ff5a2e;
   --flare-dim: #b83312;
@@ -212,11 +211,11 @@ h3 {
 
 .btn-primary {
   background: var(--signal);
-  color: var(--chalk);
+  color: var(--void);
 }
 
 .btn-primary:hover {
-  background: color-mix(in srgb, var(--signal) 82%, var(--void));
+  background: var(--signal-dim);
 }
 
 .btn-secondary {
@@ -232,13 +231,13 @@ h3 {
 
 .btn-void {
   background: var(--signal);
-  color: var(--chalk);
+  color: var(--void);
 }
 
 .btn-void:hover,
 .btn-primary:hover {
-  background: color-mix(in srgb, var(--signal) 82%, var(--void));
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--signal) 22%, transparent);
+  background: var(--signal-dim);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--signal) 28%, transparent);
 }
 
 .btn-on-void {
@@ -1504,7 +1503,7 @@ h3 {
   padding: 1.05rem 1.7rem;
   border-radius: 0.5rem;
   background: var(--signal);
-  color: var(--chalk);
+  color: var(--void);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -1512,7 +1511,7 @@ h3 {
 }
 
 .editorial-cta:hover {
-  background: color-mix(in srgb, var(--signal) 82%, var(--void));
+  background: var(--signal-dim);
   transform: translateY(-1px);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--signal) 28%, transparent);
 }
@@ -2098,13 +2097,13 @@ h3 {
   padding: 0.4rem 0.85rem;
   border-radius: 0.375rem;
   background: var(--signal);
-  color: var(--chalk);
+  color: var(--void);
   font-size: 0.75rem;
   font-weight: 600;
 }
 
 .home-os-composer-btn:hover {
-  background: color-mix(in srgb, var(--signal) 82%, var(--void));
+  background: var(--signal-dim);
 }
 
 .home-os-panel-head {
@@ -2818,7 +2817,7 @@ h3 {
 
 .os-nav-link-active {
   background: var(--signal);
-  color: var(--chalk);
+  color: var(--void);
 }
 
 .os-nav-link-disabled {
@@ -2838,8 +2837,8 @@ h3 {
 }
 
 .os-nav-link-active .os-nav-badge {
-  background: color-mix(in srgb, var(--chalk) 16%, transparent);
-  color: var(--chalk);
+  background: color-mix(in srgb, var(--void) 12%, transparent);
+  color: var(--void);
 }
 
 .os-sidebar-rings {
@@ -3333,7 +3332,7 @@ h3 {
   padding: 0.2rem 0.45rem;
   border-radius: 0.25rem;
   background: var(--signal);
-  color: var(--chalk);
+  color: var(--void);
 }
 
 .os-ring-badge-next {
