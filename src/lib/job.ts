@@ -1,38 +1,43 @@
 import { prisma } from "@/lib/prisma";
 import { jobTitle, suggestedSchedule } from "@/lib/job-schedule";
+import type { JobStatus } from "@/lib/job-status";
 
 export { suggestedSchedule, jobTitle } from "@/lib/job-schedule";
+export { JOB_STATUSES, isJobStatus, jobStatusLabel } from "@/lib/job-status";
+export type { JobStatus } from "@/lib/job-status";
 
-export const JOB_STATUSES = [
-  "scheduled",
-  "confirmed",
-  "completed",
-  "cancelled",
-] as const;
+export const JOB_INCLUDE = {
+  business: { select: { id: true, name: true } },
+  customer: {
+    select: { id: true, name: true, phone: true, address: true, interactionCount: true },
+  },
+  lead: { select: { id: true, name: true, phone: true } },
+  technician: { select: { id: true, name: true, phone: true } },
+} as const;
 
-export type JobStatus = (typeof JOB_STATUSES)[number];
-
-export function isJobStatus(value: string): value is JobStatus {
-  return JOB_STATUSES.includes(value as JobStatus);
-}
-
-export function serializeJob<T extends { scheduledAt: Date | null; createdAt: Date; updatedAt: Date; confirmedAt?: Date | null; completedAt?: Date | null }>(
-  job: T,
-) {
+export function serializeJob<
+  T extends {
+    scheduledAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    confirmedAt?: Date | null;
+    dispatchedAt?: Date | null;
+    onSiteAt?: Date | null;
+    completedAt?: Date | null;
+  },
+>(job: T) {
   return {
     ...job,
     scheduledAt: job.scheduledAt?.toISOString() ?? null,
     confirmedAt: job.confirmedAt?.toISOString() ?? null,
+    dispatchedAt: job.dispatchedAt?.toISOString() ?? null,
+    onSiteAt: job.onSiteAt?.toISOString() ?? null,
     completedAt: job.completedAt?.toISOString() ?? null,
     createdAt: job.createdAt.toISOString(),
     updatedAt: job.updatedAt.toISOString(),
   };
 }
 
-/**
- * Ring 3 — turn a qualified lead into a scheduled job.
- * One job per lead. Idempotent if already booked.
- */
 export async function createJobFromLead(params: {
   leadId: string;
   scheduledAt?: Date | string | null;
@@ -103,10 +108,14 @@ export async function updateJobStatus(jobId: string, status: JobStatus) {
   const data: {
     status: JobStatus;
     confirmedAt?: Date;
+    dispatchedAt?: Date;
+    onSiteAt?: Date;
     completedAt?: Date;
   } = { status };
 
   if (status === "confirmed") data.confirmedAt = new Date();
+  if (status === "en_route") data.dispatchedAt = new Date();
+  if (status === "on_site") data.onSiteAt = new Date();
   if (status === "completed") data.completedAt = new Date();
 
   return prisma.job.update({

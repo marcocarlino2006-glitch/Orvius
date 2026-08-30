@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
+import { jobStatusLabel } from "@/lib/job-status";
 
 type JobCardProps = {
   id: string;
@@ -10,10 +11,13 @@ type JobCardProps = {
   customerName?: string | null;
   phone?: string | null;
   urgency?: string | null;
+  technicianName?: string | null;
 };
 
 function statusTone(status: string) {
-  if (status === "confirmed") return "live" as const;
+  if (status === "confirmed" || status === "en_route" || status === "on_site") {
+    return "live" as const;
+  }
   if (status === "completed") return "neutral" as const;
   if (status === "cancelled") return "flare" as const;
   return "flare" as const;
@@ -28,6 +32,7 @@ export function JobCard({
   customerName,
   phone,
   urgency,
+  technicianName,
 }: JobCardProps) {
   return (
     <Link href={`/dashboard/jobs/${id}`} className="customer-record-card">
@@ -37,7 +42,7 @@ export function JobCard({
             <h3 className="truncate font-serif text-xl tracking-[-0.03em] text-void">
               {title}
             </h3>
-            <ShellBadge tone={statusTone(status)}>{status}</ShellBadge>
+            <ShellBadge tone={statusTone(status)}>{jobStatusLabel(status)}</ShellBadge>
             {urgency ? (
               <ShellBadge
                 tone={urgency.toLowerCase().includes("emergency") ? "flare" : "neutral"}
@@ -49,6 +54,7 @@ export function JobCard({
           <p className="mt-1 font-sans text-sm text-ash">
             {customerName ?? "Customer"}
             {phone ? ` · ${phone}` : ""}
+            {technicianName ? ` · ${technicianName}` : ""}
           </p>
         </div>
       </div>

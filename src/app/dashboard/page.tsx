@@ -62,6 +62,7 @@ type DashboardData = {
     urgency: string | null;
     customer: { name: string | null; phone: string } | null;
     lead: { name: string | null; phone: string | null } | null;
+    technician?: { name: string } | null;
   }>;
 };
 
@@ -142,6 +143,7 @@ export default function DashboardPage() {
                       urgency={job.urgency}
                       customerName={job.customer?.name ?? job.lead?.name}
                       phone={job.customer?.phone ?? job.lead?.phone}
+                      technicianName={job.technician?.name}
                     />
                   </li>
                 ))}
@@ -268,6 +270,11 @@ export default function DashboardPage() {
 
             <ShellPanel title="Quick actions">
               <ul className="space-y-3 font-sans text-sm">
+                <li>
+                  <Link href="/dashboard/dispatch" className="os-quick-link">
+                    Open dispatch board
+                  </Link>
+                </li>
                 <li>
                   <Link href="/dashboard/ask" className="os-quick-link">
                     Ask the shop brain

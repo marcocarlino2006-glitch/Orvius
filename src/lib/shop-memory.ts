@@ -127,6 +127,7 @@ export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
       include: {
         customer: { select: { name: true, phone: true } },
         lead: { select: { name: true, phone: true } },
+        technician: { select: { name: true } },
       },
     }),
     prisma.lead.findMany({
@@ -229,6 +230,7 @@ export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
       job.status,
       job.urgency,
       who,
+      job.technician?.name,
     );
     let score = scoreText(text, terms);
     if (wantsJobs) score += 2;
@@ -255,6 +257,7 @@ export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
       title: job.title,
       summary: [
         job.status,
+        job.technician?.name ?? "unassigned",
         who,
         job.address,
         `scheduled ${formatWhen(job.scheduledAt)}`,

@@ -44,14 +44,14 @@ export const osRings = [
     ring: 4,
     name: "Field",
     module: "Dispatch · assign · status",
-    status: "next" as const,
-    body: "Who goes where. The day runs from one screen.",
+    status: "live" as const,
+    body: "Who goes where. The day runs from one board.",
   },
   {
     ring: 5,
     name: "Money",
     module: "Estimate · invoice · pay",
-    status: "planned" as const,
+    status: "next" as const,
     body: "Revenue flows through the system — not scattered tools.",
   },
   {
@@ -77,7 +77,7 @@ export const osRings = [
   },
 ] as const;
 
-export const osCurrentRing = 3;
+export const osCurrentRing = 4;
 
 export const legalPages = [
   {

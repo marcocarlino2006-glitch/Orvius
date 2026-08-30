@@ -2349,3 +2349,42 @@ h3 {
   font-size: 0.8125rem;
   color: var(--ash);
 }
+
+.dispatch-board {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  align-items: start;
+}
+
+.dispatch-col {
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  background: var(--white);
+  padding: 1rem;
+  min-height: 12rem;
+}
+
+.dispatch-col-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.dispatch-job {
+  display: block;
+  padding: 0.875rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.375rem;
+  background: color-mix(in srgb, var(--fog) 55%, var(--white));
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.dispatch-job:hover {
+  border-color: color-mix(in srgb, var(--void) 18%, var(--rule));
+  background: var(--fog);
+}

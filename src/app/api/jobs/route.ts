@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
-import { createJobFromLead, serializeJob } from "@/lib/job";
+import { JOB_INCLUDE, createJobFromLead, serializeJob } from "@/lib/job";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const jobs = await prisma.job.findMany({
     take: 80,
     orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
-    include: {
-      business: { select: { name: true } },
-      customer: {
-        select: { id: true, name: true, phone: true, interactionCount: true },
-      },
-      lead: { select: { id: true, name: true, phone: true } },
-    },
+    include: JOB_INCLUDE,
   });
 
   return NextResponse.json({
@@ -40,13 +34,7 @@ export async function POST(request: Request) {
 
     const full = await prisma.job.findUnique({
       where: { id: job.id },
-      include: {
-        business: { select: { name: true } },
-        customer: {
-          select: { id: true, name: true, phone: true, interactionCount: true },
-        },
-        lead: { select: { id: true, name: true, phone: true } },
-      },
+      include: JOB_INCLUDE,
     });
 
     return NextResponse.json({ job: full ? serializeJob(full) : serializeJob(job) });

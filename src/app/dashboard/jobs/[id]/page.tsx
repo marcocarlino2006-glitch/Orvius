@@ -2,9 +2,12 @@
 
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
+import { jobStatusLabel } from "@/lib/job-status";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+
+type Tech = { id: string; name: string; phone: string | null };
 
 type JobDetail = {
   id: string;
@@ -16,7 +19,11 @@ type JobDetail = {
   notes: string | null;
   scheduledAt: string | null;
   confirmedAt: string | null;
+  dispatchedAt: string | null;
+  onSiteAt: string | null;
   completedAt: string | null;
+  technicianId: string | null;
+  technician: Tech | null;
   business: { id: string; name: string } | null;
   customer: {
     id: string;
@@ -34,7 +41,9 @@ type JobDetail = {
 
 const NEXT_STATUS: Record<string, { label: string; status: string } | null> = {
   scheduled: { label: "Confirm job", status: "confirmed" },
-  confirmed: { label: "Mark complete", status: "completed" },
+  confirmed: { label: "Dispatch — en route", status: "en_route" },
+  en_route: { label: "Mark on site", status: "on_site" },
+  on_site: { label: "Mark complete", status: "completed" },
   completed: null,
   cancelled: null,
 };
@@ -43,18 +52,24 @@ export default function JobDetailPage() {
   const params = useParams<{ id: string }>();
   const jobId = params.id;
   const [job, setJob] = useState<JobDetail | null>(null);
+  const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
     if (!jobId) return;
-    fetch(`/api/jobs/${jobId}`)
-      .then(async (res) => {
+    Promise.all([
+      fetch(`/api/jobs/${jobId}`).then(async (res) => {
         if (!res.ok) throw new Error("Job not found");
         return res.json();
+      }),
+      fetch("/api/technicians").then((res) => res.json()),
+    ])
+      .then(([jobData, techData]) => {
+        setJob(jobData.job);
+        setCrew(techData.technicians ?? []);
       })
-      .then((data) => setJob(data.job))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [jobId]);
@@ -63,7 +78,7 @@ export default function JobDetailPage() {
     load();
   }, [load]);
 
-  async function setStatus(status: string) {
+  async function patch(body: Record<string, unknown>) {
     if (!jobId) return;
     setSaving(true);
     setError(null);
@@ -71,11 +86,11 @@ export default function JobDetailPage() {
       const res = await fetch(`/api/jobs/${jobId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Update failed");
-      setJob((current) => (current ? { ...current, ...data.job } : data.job));
+      setJob(data.job);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -110,11 +125,16 @@ export default function JobDetailPage() {
       title={job.title}
       subtitle={`Job · ${job.business?.name ?? "Orvius"}`}
       actions={
-        phone ? (
-          <a href={`tel:${phone}`} className="btn btn-primary text-sm">
-            Call customer
-          </a>
-        ) : null
+        <div className="flex flex-wrap gap-2">
+          <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
+            Dispatch board
+          </Link>
+          {phone ? (
+            <a href={`tel:${phone}`} className="btn btn-primary text-sm">
+              Call customer
+            </a>
+          ) : null}
+        </div>
       }
     >
       {error ? (
@@ -124,14 +144,23 @@ export default function JobDetailPage() {
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-        <ShellPanel title="Schedule">
+        <ShellPanel title="Field">
           <div className="flex flex-wrap gap-2">
-            <ShellBadge tone={job.status === "confirmed" ? "live" : "flare"}>
-              {job.status}
+            <ShellBadge
+              tone={
+                job.status === "en_route" || job.status === "on_site" ? "live" : "flare"
+              }
+            >
+              {jobStatusLabel(job.status)}
             </ShellBadge>
             {job.urgency ? (
               <ShellBadge tone="neutral">{job.urgency.replace(/-/g, " ")}</ShellBadge>
             ) : null}
+            {job.technician ? (
+              <ShellBadge tone="live">{job.technician.name}</ShellBadge>
+            ) : (
+              <ShellBadge tone="neutral">Unassigned</ShellBadge>
+            )}
           </div>
 
           <dl className="mt-6 space-y-4 font-sans text-sm">
@@ -163,12 +192,29 @@ export default function JobDetailPage() {
             ) : null}
           </dl>
 
+          <label className="mt-6 block font-sans">
+            <span className="label">Assign technician</span>
+            <select
+              className="input mt-1.5"
+              disabled={saving}
+              value={job.technicianId ?? ""}
+              onChange={(e) => patch({ technicianId: e.target.value || null })}
+            >
+              <option value="">Unassigned</option>
+              {crew.map((tech) => (
+                <option key={tech.id} value={tech.id}>
+                  {tech.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <div className="mt-6 flex flex-wrap gap-3">
             {next ? (
               <button
                 type="button"
                 disabled={saving}
-                onClick={() => setStatus(next.status)}
+                onClick={() => patch({ status: next.status })}
                 className="btn btn-primary text-sm"
               >
                 {saving ? "Saving…" : next.label}
@@ -178,7 +224,7 @@ export default function JobDetailPage() {
               <button
                 type="button"
                 disabled={saving}
-                onClick={() => setStatus("cancelled")}
+                onClick={() => patch({ status: "cancelled" })}
                 className="btn btn-secondary text-sm"
               >
                 Cancel job

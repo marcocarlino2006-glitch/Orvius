@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 const SUGGESTIONS = [
-  "What's on the board today?",
+  "Who is on the board today?",
   "Who called about AC?",
   "Any emergencies?",
   "Tell me about Maria",

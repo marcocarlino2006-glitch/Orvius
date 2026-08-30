@@ -49,6 +49,7 @@ export async function GET() {
         business: { select: { name: true } },
         customer: { select: { id: true, name: true, phone: true } },
         lead: { select: { id: true, name: true, phone: true } },
+        technician: { select: { id: true, name: true } },
       },
     }),
     prisma.waitlistEntry.findMany({

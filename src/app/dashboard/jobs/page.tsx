@@ -16,6 +16,7 @@ type JobRow = {
   urgency: string | null;
   customer: { name: string | null; phone: string } | null;
   lead: { name: string | null; phone: string | null } | null;
+  technician?: { name: string } | null;
 };
 
 export default function JobsPage() {
@@ -39,8 +40,8 @@ export default function JobsPage() {
       title="Jobs"
       subtitle="Ring 3 — leads become booked appointments, not sticky notes."
       actions={
-        <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
-          Book from inbox
+        <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
+          Dispatch board
         </Link>
       }
     >
@@ -71,6 +72,7 @@ export default function JobsPage() {
                     urgency={job.urgency}
                     customerName={job.customer?.name ?? job.lead?.name}
                     phone={job.customer?.phone ?? job.lead?.phone}
+                    technicianName={job.technician?.name}
                   />
                 </li>
               ))}
