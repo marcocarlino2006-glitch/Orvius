@@ -2,19 +2,19 @@
  * Orvius Chromatics — source of truth for brand colorways.
  * CSS mirrors these values in `src/app/globals.css`.
  *
- * Signal is Amazon orange. Flare is emergency red-orange. Live is field status.
+ * Signal is warm clay (Claude-inspired terracotta). Flare is emergency. Live is field status.
  */
 export const orviusColors = {
-  void: "#0A0B0A",
-  panel: "#141614",
-  chalk: "#F2F1EC",
-  fog: "#E6E5DF",
-  ash: "#6F6E67",
-  ashSoft: "#9B9A90",
-  rule: "#CCCAC2",
-  signal: "#FF9900",
-  signalHot: "#FFB020",
-  signalDim: "#E47911",
+  void: "#111110",
+  panel: "#1A1A18",
+  chalk: "#F8F8F6",
+  fog: "#EEEEE9",
+  ash: "#6B6A65",
+  ashSoft: "#989792",
+  rule: "#D4D4CE",
+  signal: "#D97757",
+  signalHot: "#E8956D",
+  signalDim: "#C2613F",
   flare: "#E8461C",
   flareHot: "#FF5A2E",
   flareDim: "#B83312",

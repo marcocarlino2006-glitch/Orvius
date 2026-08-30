@@ -7,7 +7,7 @@ export function CaseStudySection() {
       <div className="editorial-wrap cursor-split">
         <div className="cursor-split-copy tier-reveal">
           <p className="cursor-label font-sans">In production</p>
-          <h2 id="case-study-heading" className="cursor-section-title font-sans">
+          <h2 id="case-study-heading" className="cursor-section-title font-serif">
             {summitCaseStudy.name} runs on Orvius.
           </h2>
           <p className="cursor-body font-sans">{summitCaseStudy.summary}</p>

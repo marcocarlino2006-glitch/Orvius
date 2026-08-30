@@ -32,7 +32,7 @@ export default function HomePage() {
             <p className="cursor-trust-kicker font-sans">
               Trusted by service businesses running 2–15 trucks
             </p>
-            <h1 className="cursor-hero-title font-sans">
+            <h1 className="cursor-hero-title font-serif">
               Never miss a call again.
             </h1>
             <p className="cursor-hero-sub font-sans">{company.tagline}</p>
@@ -59,7 +59,7 @@ export default function HomePage() {
 
         <section className="cursor-close">
           <div className="editorial-wrap cursor-close-inner tier-reveal">
-            <h2 className="cursor-close-title font-sans">Try Orvius now.</h2>
+            <h2 className="cursor-close-title font-serif">Try Orvius now.</h2>
             <p className="cursor-close-sub font-sans">
               ${pricing.pro.price}/mo flat · one booked job covers the month
             </p>

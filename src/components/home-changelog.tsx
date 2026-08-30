@@ -12,7 +12,7 @@ export function HomeChangelog() {
     <section className="cursor-changelog" aria-labelledby="changelog-heading">
       <div className="editorial-wrap">
         <div className="cursor-changelog-head">
-          <h2 id="changelog-heading" className="cursor-section-title font-sans">
+          <h2 id="changelog-heading" className="cursor-section-title font-serif">
             Changelog
           </h2>
           <Link href="/about" className="cursor-link font-sans">
