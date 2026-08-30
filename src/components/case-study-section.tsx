@@ -3,33 +3,27 @@ import { summitCaseStudy } from "@/lib/trust";
 
 export function CaseStudySection() {
   return (
-    <section className="tier-case" aria-labelledby="case-study-heading">
-      <div className="editorial-wrap tier-case-grid">
-        <div className="tier-case-copy tier-reveal">
-          <p className="tier-label font-sans">In production</p>
-          <h2 id="case-study-heading" className="tier-case-title font-serif">
+    <section className="cursor-section" aria-labelledby="case-study-heading">
+      <div className="editorial-wrap cursor-split">
+        <div className="cursor-split-copy tier-reveal">
+          <p className="cursor-label font-sans">In production</p>
+          <h2 id="case-study-heading" className="cursor-section-title font-sans">
             {summitCaseStudy.name} runs on Orvius.
           </h2>
-          <p className="tier-case-body font-sans">{summitCaseStudy.summary}</p>
-          <blockquote className="tier-case-quote font-serif">
-            &ldquo;{summitCaseStudy.quote}&rdquo;
-          </blockquote>
-          <p className="tier-case-meta font-sans">
-            {summitCaseStudy.trade} · {summitCaseStudy.location} · {summitCaseStudy.crew}
-          </p>
+          <p className="cursor-body font-sans">{summitCaseStudy.summary}</p>
+          <Link href="/demo" className="cursor-link font-sans">
+            Watch demo →
+          </Link>
         </div>
 
-        <div className="tier-case-stats tier-reveal tier-reveal-delay">
+        <div className="cursor-stats tier-reveal tier-reveal-delay">
           {summitCaseStudy.outcomes.map((outcome) => (
-            <div key={outcome.label} className="tier-case-stat">
-              <p className="tier-case-stat-value font-serif">{outcome.value}</p>
-              <p className="tier-case-stat-label font-sans">{outcome.label}</p>
-              <p className="tier-case-stat-detail font-sans">{outcome.detail}</p>
+            <div key={outcome.label} className="cursor-stat">
+              <p className="cursor-stat-value font-sans">{outcome.value}</p>
+              <p className="cursor-stat-label font-sans">{outcome.label}</p>
+              <p className="cursor-stat-detail font-sans">{outcome.detail}</p>
             </div>
           ))}
-          <Link href="/demo" className="tier-btn tier-btn-primary tier-case-cta font-sans">
-            Watch demo
-          </Link>
         </div>
       </div>
     </section>

@@ -119,9 +119,9 @@ export function ShellHeader({
             {headerCta ? (
               <Link
                 href={headerCta.href}
-                className={`tier-btn tier-btn-primary tier-btn-sm shell-header-cta ${
-                  isVoid ? "" : ""
-                }`}
+                className={`tier-btn tier-btn-sm ${
+                  isVoid ? "tier-btn-light" : "tier-btn-primary"
+                } shell-header-cta`}
               >
                 {headerCta.label}
               </Link>
@@ -177,7 +177,7 @@ export function ShellHeader({
               {headerCta ? (
                 <Link
                   href={headerCta.href}
-                  className="tier-btn tier-btn-primary mt-4 w-full justify-center"
+                  className="tier-btn tier-btn-light mt-4 w-full justify-center"
                   onClick={() => setMenuOpen(false)}
                 >
                   {headerCta.label}

@@ -1,8 +1,9 @@
 import { CaseStudySection } from "@/components/case-study-section";
+import { HomeChangelog } from "@/components/home-changelog";
 import { HomeHeroActions } from "@/components/home-hero-actions";
 import { HomeLiveLine } from "@/components/home-live-line";
 import { HomeProductStage } from "@/components/home-product-stage";
-import { OrviusOsStrip } from "@/components/orvius-os-strip";
+import { SocialProofSection } from "@/components/social-proof-section";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TierProofStrip } from "@/components/tier-proof-strip";
@@ -13,11 +14,6 @@ export const metadata: Metadata = {
   title: "Never miss a call again",
   description:
     "Orvius is the operating system for HVAC, plumbing, and electrical shops. Every call answered. Every lead qualified. Every job in one place.",
-  openGraph: {
-    title: "Orvius — Never miss a call again",
-    description:
-      "The operating system for service businesses. Built for owner-operators on the truck — not behind a desk.",
-  },
 };
 
 export default function HomePage() {
@@ -30,44 +26,42 @@ export default function HomePage() {
         cta={{ href: "/pilot", label: "Get started" }}
       />
 
-      <main className="tier-page">
-        <section className="tier-hero">
-          <div className="tier-mesh" aria-hidden />
-          <div className="tier-grain" aria-hidden />
-
-          <div className="editorial-wrap tier-hero-top tier-reveal">
-            <OrviusOsStrip variant="rail" />
-            <h1 className="tier-hero-title font-serif">
+      <main className="cursor-page">
+        <section className="cursor-hero">
+          <div className="editorial-wrap cursor-hero-copy tier-reveal">
+            <p className="cursor-trust-kicker font-sans">
+              Trusted by service businesses running 2–15 trucks
+            </p>
+            <h1 className="cursor-hero-title font-sans">
               Never miss a call again.
             </h1>
-            <p className="tier-hero-subline font-sans">{company.tagline}</p>
+            <p className="cursor-hero-sub font-sans">{company.tagline}</p>
             <HomeHeroActions variant="void" />
-            <div className="tier-hero-live">
+            <div className="cursor-live">
               <HomeLiveLine variant="void" />
-              <p className="tier-hero-live-meta font-sans">
+              <p className="cursor-live-meta font-sans">
                 Live · Summit HVAC · {company.trades.join(" · ")}
               </p>
             </div>
           </div>
 
-          <div className="tier-cinema tier-reveal tier-reveal-delay">
-            <div className="tier-cinema-wrap">
+          <div className="cursor-product tier-reveal tier-reveal-delay">
+            <div className="editorial-wrap">
               <HomeProductStage />
             </div>
           </div>
         </section>
 
         <CaseStudySection />
-
+        <SocialProofSection />
         <TierProofStrip />
+        <HomeChangelog />
 
-        <section className="tier-close">
-          <div className="editorial-wrap tier-close-inner tier-reveal">
-            <h2 className="tier-close-title font-serif">
-              Never miss a call again.
-            </h2>
-            <p className="tier-close-lead font-sans">
-              ${pricing.pro.price}/mo flat. One booked job covers the month.
+        <section className="cursor-close">
+          <div className="editorial-wrap cursor-close-inner tier-reveal">
+            <h2 className="cursor-close-title font-sans">Try Orvius now.</h2>
+            <p className="cursor-close-sub font-sans">
+              ${pricing.pro.price}/mo flat · one booked job covers the month
             </p>
             <HomeHeroActions variant="void" />
           </div>
