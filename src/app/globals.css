@@ -2,8 +2,8 @@
 
 /*
   Orvius Chromatics
-  SIGNAL is the brand — oxidized copper, the metal of the trades.
-  FLARE is emergency only. LIVE is field status.
+  SIGNAL is the brand — heat orange.
+  FLARE is the same family for alerts. LIVE is field status.
 */
 
 :root {
@@ -15,9 +15,9 @@
   --ash-soft: #9b9a90;
   --rule: #cccac2;
   --rule-dark: rgba(242, 241, 236, 0.1);
-  --signal: #1a8a7c;
-  --signal-hot: #36b5a5;
-  --signal-dim: #11665c;
+  --signal: #e8461c;
+  --signal-hot: #ff5a2e;
+  --signal-dim: #b83312;
   --flare: #e8461c;
   --flare-hot: #ff5a2e;
   --flare-dim: #b83312;
