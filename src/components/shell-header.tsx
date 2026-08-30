@@ -89,7 +89,7 @@ export function ShellHeader({
   return (
     <>
       <header className={shellClass}>
-        <div className="shell-header-bar mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 md:px-8">
+        <div className="shell-header-bar mx-auto flex max-w-[80rem] items-center justify-between gap-6 px-6 md:px-8">
           <Link
             href="/"
             className={`shell-brand ${isVoid ? "text-chalk" : "text-void"}`}
@@ -119,8 +119,8 @@ export function ShellHeader({
             {headerCta ? (
               <Link
                 href={headerCta.href}
-                className={`btn shell-header-cta ${
-                  isVoid ? "btn-on-void" : "btn-void"
+                className={`tier-btn tier-btn-primary tier-btn-sm shell-header-cta ${
+                  isVoid ? "" : ""
                 }`}
               >
                 {headerCta.label}
@@ -177,9 +177,7 @@ export function ShellHeader({
               {headerCta ? (
                 <Link
                   href={headerCta.href}
-                  className={`btn mt-4 w-full justify-center ${
-                    isVoid ? "btn-on-void" : "btn-void"
-                  }`}
+                  className="tier-btn tier-btn-primary mt-4 w-full justify-center"
                   onClick={() => setMenuOpen(false)}
                 >
                   {headerCta.label}

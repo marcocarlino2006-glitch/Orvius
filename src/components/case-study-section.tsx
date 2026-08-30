@@ -3,32 +3,31 @@ import { summitCaseStudy } from "@/lib/trust";
 
 export function CaseStudySection() {
   return (
-    <section className="premium-case" aria-labelledby="case-study-heading">
-      <div className="editorial-wrap premium-case-grid">
-        <div className="premium-case-copy">
-          <p className="premium-kicker font-sans">In production</p>
-          <h2 id="case-study-heading" className="premium-section-title font-serif">
+    <section className="tier-case" aria-labelledby="case-study-heading">
+      <div className="editorial-wrap tier-case-grid">
+        <div className="tier-case-copy tier-reveal">
+          <p className="tier-label font-sans">In production</p>
+          <h2 id="case-study-heading" className="tier-case-title font-serif">
             {summitCaseStudy.name} runs on Orvius.
           </h2>
-          <p className="premium-body font-sans">{summitCaseStudy.summary}</p>
-          <p className="premium-case-meta font-sans">
-            {summitCaseStudy.trade} · {summitCaseStudy.location} · {summitCaseStudy.crew}
-          </p>
-          <blockquote className="premium-quote font-serif">
+          <p className="tier-case-body font-sans">{summitCaseStudy.summary}</p>
+          <blockquote className="tier-case-quote font-serif">
             &ldquo;{summitCaseStudy.quote}&rdquo;
           </blockquote>
-          <p className="premium-quote-by font-sans">{summitCaseStudy.attribution}</p>
+          <p className="tier-case-meta font-sans">
+            {summitCaseStudy.trade} · {summitCaseStudy.location} · {summitCaseStudy.crew}
+          </p>
         </div>
 
-        <div className="premium-case-stats">
+        <div className="tier-case-stats tier-reveal tier-reveal-delay">
           {summitCaseStudy.outcomes.map((outcome) => (
-            <div key={outcome.label} className="premium-stat">
-              <p className="premium-stat-value font-serif">{outcome.value}</p>
-              <p className="premium-stat-label font-sans">{outcome.label}</p>
-              <p className="premium-stat-detail font-sans">{outcome.detail}</p>
+            <div key={outcome.label} className="tier-case-stat">
+              <p className="tier-case-stat-value font-serif">{outcome.value}</p>
+              <p className="tier-case-stat-label font-sans">{outcome.label}</p>
+              <p className="tier-case-stat-detail font-sans">{outcome.detail}</p>
             </div>
           ))}
-          <Link href="/demo" className="editorial-cta premium-case-cta font-sans">
+          <Link href="/demo" className="tier-btn tier-btn-primary tier-case-cta font-sans">
             Watch demo
           </Link>
         </div>

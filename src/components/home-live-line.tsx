@@ -22,9 +22,11 @@ export function HomeLiveLine({ variant = "light" }: HomeLiveLineProps) {
   }
 
   return (
-    <div className={`home-command ${variant === "void" ? "home-command-void" : ""}`}>
-      <code className="home-command-code font-sans">{LINE}</code>
-      <button type="button" className="home-command-copy font-sans" onClick={copy}>
+    <div
+      className={`tier-live ${variant === "void" ? "tier-live-void" : "tier-live-light"}`}
+    >
+      <code className="tier-live-number font-sans">{LINE}</code>
+      <button type="button" className="tier-live-copy font-sans" onClick={copy}>
         {copied ? "Copied" : "Copy"}
       </button>
     </div>

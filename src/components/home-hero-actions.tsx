@@ -5,14 +5,15 @@ type HomeHeroActionsProps = {
 };
 
 export function HomeHeroActions({ variant = "light" }: HomeHeroActionsProps) {
-  const linkClass = variant === "void" ? "editorial-link-on-void" : "editorial-link";
+  const secondaryClass =
+    variant === "void" ? "tier-btn tier-btn-ghost" : "tier-btn tier-btn-secondary";
 
   return (
-    <div className="editorial-actions font-sans">
-      <Link href="/pilot" className="editorial-cta">
+    <div className="tier-actions font-sans">
+      <Link href="/pilot" className="tier-btn tier-btn-primary">
         Get started
       </Link>
-      <Link href="/demo" className={linkClass}>
+      <Link href="/demo" className={secondaryClass}>
         Watch demo
       </Link>
     </div>

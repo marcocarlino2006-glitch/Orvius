@@ -53,7 +53,7 @@ export function HomeProductStage() {
   const current = surfaces.find((item) => item.id === surface) ?? surfaces[0];
 
   return (
-    <div className="home-stage">
+    <div className="home-stage tier-stage">
       <div className="home-stage-tabs" role="tablist" aria-label="Product surfaces">
         {surfaces.map((item) => (
           <button
