@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { CheckoutButton } from "@/components/checkout-button";
 import { EarlyAccessForm } from "@/components/early-access-form";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
+import { PricingComparison } from "@/components/pricing-comparison";
+import { TrustMetrics } from "@/components/trust-metrics";
 import { company, pricing } from "@/lib/company";
 
 export const metadata: Metadata = {
@@ -22,6 +24,19 @@ export default function PricingPage() {
             subline={`${company.productName} — one missed emergency call costs more than a month.`}
             description="Built for owner-operators running 2–15 trucks. Not ServiceTitan. Not bolt-on AI."
           />
+          <div className="mt-10">
+            <TrustMetrics />
+          </div>
+        </div>
+      </section>
+
+      <section className="editorial-section editorial-section-muted">
+        <div className="editorial-wrap">
+          <p className="home-kicker font-sans">Compare</p>
+          <h2 className="editorial-heading font-serif">What you&apos;re replacing.</h2>
+          <div className="mt-10">
+            <PricingComparison />
+          </div>
         </div>
       </section>
 
@@ -52,8 +67,8 @@ export default function PricingPage() {
               ${pricing.pro.price} per month.
             </h2>
             <p className="editorial-body font-sans">
-              Flat monthly billing. Cancel anytime. Invoices from{" "}
-              {company.legalName}.
+              Flat monthly billing. Cancel anytime. One price — no per-minute
+              surprises.
             </p>
             <ul className="mt-6 space-y-2 font-sans text-[0.9375rem] leading-relaxed text-ash">
               {pricing.pro.highlights.map((item) => (

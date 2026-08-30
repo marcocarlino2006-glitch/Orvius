@@ -1690,12 +1690,13 @@ h3 {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(color-mix(in srgb, var(--signal) 9%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--signal) 9%, transparent) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 8%, #000 10%, transparent 72%);
+    linear-gradient(color-mix(in srgb, var(--signal) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--signal) 5%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 8%, transparent 68%);
   pointer-events: none;
   z-index: 0;
+  opacity: 0.65;
 }
 
 .home-hero > * {
@@ -3694,4 +3695,281 @@ h3 {
 
 .dispatch-job-chip:hover {
   border-color: color-mix(in srgb, var(--void) 22%, var(--rule));
+}
+
+/* Trust layer */
+.trust-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 40rem;
+  margin-top: 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .trust-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.trust-metric {
+  padding: 1rem 0.85rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  text-align: center;
+}
+
+.trust-metrics-dark .trust-metric {
+  border-color: color-mix(in srgb, var(--chalk) 12%, transparent);
+  background: color-mix(in srgb, var(--panel) 88%, var(--void));
+}
+
+.trust-metric-value {
+  font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--void);
+}
+
+.trust-metrics-dark .trust-metric-value {
+  color: var(--chalk);
+}
+
+.trust-metric-label {
+  margin-top: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--void);
+}
+
+.trust-metrics-dark .trust-metric-label {
+  color: var(--chalk);
+}
+
+.trust-metric-detail {
+  margin-top: 0.2rem;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--ash);
+}
+
+.trust-metrics-dark .trust-metric-detail {
+  color: var(--ash-soft);
+}
+
+.case-study {
+  padding-block: clamp(5rem, 12vh, 8rem);
+  border-top: 1px solid var(--rule);
+  background:
+    radial-gradient(60% 80% at 0% 50%, color-mix(in srgb, var(--signal) 8%, transparent), transparent 58%),
+    color-mix(in srgb, var(--fog) 35%, var(--chalk));
+}
+
+.case-study-grid {
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 4rem);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .case-study-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+  }
+}
+
+.case-study-meta {
+  margin-top: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
+.case-study-panel {
+  padding: 1.75rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  box-shadow: var(--shadow-soft);
+}
+
+.case-study-outcomes {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.case-study-outcome {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--fog) 35%, var(--white));
+}
+
+.case-study-outcome-value {
+  grid-row: span 2;
+  align-self: center;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  color: var(--signal-dim);
+}
+
+.case-study-outcome-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.case-study-outcome-detail {
+  font-size: 0.75rem;
+  color: var(--ash);
+}
+
+.case-study-quote {
+  margin: 1.5rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.case-study-quote p {
+  font-size: 1.125rem;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.case-study-attribution {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.trust-bar {
+  padding-block: clamp(3rem, 8vh, 5rem);
+  border-top: 1px solid var(--rule);
+  background: var(--void);
+  color: var(--chalk);
+}
+
+.trust-bar-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  border: 1px solid color-mix(in srgb, var(--chalk) 10%, transparent);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--chalk) 8%, transparent);
+}
+
+@media (min-width: 640px) {
+  .trust-bar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .trust-bar-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.trust-bar-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1.15rem 1.25rem;
+  background: color-mix(in srgb, var(--panel) 92%, var(--void));
+}
+
+.trust-bar-dot {
+  flex-shrink: 0;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  background: var(--live-soft);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--live) 45%, transparent);
+}
+
+.trust-bar-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--chalk);
+}
+
+.trust-bar-detail {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--ash-soft);
+}
+
+.trust-bar-foot {
+  margin-top: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--ash-soft);
+}
+
+.trust-bar-foot .editorial-link {
+  color: var(--chalk);
+}
+
+.pricing-compare {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .pricing-compare {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.pricing-compare-row {
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+}
+
+.pricing-compare-row-highlight {
+  border-color: color-mix(in srgb, var(--signal) 40%, var(--rule));
+  background: color-mix(in srgb, var(--signal) 7%, var(--white));
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--signal) 12%, transparent);
+}
+
+.pricing-compare-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.pricing-compare-cost {
+  margin-top: 0.65rem;
+  font-size: 1.65rem;
+  letter-spacing: -0.03em;
+  color: var(--void);
+}
+
+.pricing-compare-row-highlight .pricing-compare-cost {
+  color: var(--signal-dim);
+}
+
+.pricing-compare-pain {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ash);
 }

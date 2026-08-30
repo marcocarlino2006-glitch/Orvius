@@ -1,10 +1,10 @@
 import { BrandIntro } from "@/components/brand-intro";
+import { CaseStudySection } from "@/components/case-study-section";
 import { HomeChangelog } from "@/components/home-changelog";
 import { HomeHeroActions } from "@/components/home-hero-actions";
 import { HomeLiveLine } from "@/components/home-live-line";
 import {
   HomeOsAsk,
-  HomeOsCall,
   HomeOsDispatch,
   HomeOsFrame,
   HomeOsJobs,
@@ -13,6 +13,8 @@ import {
 import { OrviusOsStrip } from "@/components/orvius-os-strip";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
+import { TrustBar } from "@/components/trust-bar";
+import { TrustMetrics } from "@/components/trust-metrics";
 import { company, pricing } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -43,6 +45,7 @@ export default function HomePage() {
               description="Answers, qualifies, and texts you the lead — while you're on the job, after hours, or at peak season. One saved emergency pays for the month."
             />
             <OrviusOsStrip variant="hero" />
+            <TrustMetrics />
             <div className="home-hero-live">
               <p className="home-hero-live-label font-sans">Call the live line</p>
               <HomeLiveLine />
@@ -88,6 +91,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <CaseStudySection />
 
         <section className="editorial-section">
           <div className="editorial-wrap editorial-split editorial-split-reverse">
@@ -185,23 +190,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="editorial-statement">
-          <div className="editorial-wrap">
-            <p className="home-kicker home-kicker-on-void font-sans">In production</p>
-            <p className="editorial-quote font-serif">
-              Summit HVAC runs on Orvius.
-            </p>
-            <p className="editorial-quote-sub font-sans">
-              Emergencies, same-day requests, and after-hours calls — handled
-              without a receptionist on payroll.
-            </p>
-            <Link href="/demo" className="editorial-link-on-void font-sans">
-              Hear a call →
-            </Link>
-          </div>
-        </section>
-
         <HomeChangelog />
+
+        <TrustBar />
 
         <section className="editorial-close">
           <div className="editorial-wrap home-close">

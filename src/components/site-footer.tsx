@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { HomeLiveLine } from "@/components/home-live-line";
-import { OrviusOsStrip } from "@/components/orvius-os-strip";
 import { company, legalPages } from "@/lib/company";
 
 const productLinks = [
@@ -10,11 +8,11 @@ const productLinks = [
   { href: "/about", label: "Company" },
 ];
 
-const companyLinks = [
-  { href: "/about", label: "About" },
+const legalLinks = [
   { href: "/legal", label: "Legal center" },
   { href: "/security", label: "Security" },
-  ...legalPages.map((p) => ({ href: p.href, label: p.title })),
+  { href: "/terms", label: "Terms" },
+  { href: "/privacy", label: "Privacy" },
 ];
 
 export function SiteFooter() {
@@ -22,7 +20,7 @@ export function SiteFooter() {
     <footer className="site-footer border-t border-rule bg-chalk text-void">
       <div className="site-footer-accent" aria-hidden />
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.3fr_1fr_1fr] md:px-8 md:py-16">
+      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-14 md:grid-cols-[1.4fr_1fr_1fr] md:px-8 md:py-16">
         <div>
           <p className="flex items-center gap-2.5 font-sans text-sm font-semibold tracking-[0.2em] uppercase">
             <span className="shell-logo-mark" aria-hidden />
@@ -37,25 +35,12 @@ export function SiteFooter() {
           <p className="mt-4 font-sans text-[11px] font-semibold tracking-[0.18em] text-ash uppercase">
             {company.trades.join(" · ")}
           </p>
-
-          <div className="mt-8">
-            <OrviusOsStrip variant="light" />
-          </div>
-
-          <div className="mt-8">
-            <p className="home-os-kicker">Live line</p>
-            <HomeLiveLine />
-          </div>
-
-          <div className="mt-8">
-            <Link href="/pilot" className="editorial-cta">
-              Free pilot
-            </Link>
-          </div>
-
-          <p className="mt-6 font-sans text-xs leading-relaxed text-ash">
-            Operated by {company.legalName}
-          </p>
+          <a
+            href={`mailto:${company.contactEmail}`}
+            className="footer-link mt-6 inline-block font-sans text-sm text-ash hover:text-void"
+          >
+            {company.contactEmail}
+          </a>
         </div>
 
         <nav aria-label="Product">
@@ -72,23 +57,22 @@ export function SiteFooter() {
         </nav>
 
         <nav aria-label="Legal">
-          <p className="home-os-kicker">Legal & company</p>
+          <p className="home-os-kicker">Legal</p>
           <ul className="mt-4 flex flex-col gap-3 font-sans text-sm">
-            {companyLinks.map((link) => (
+            {legalLinks.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="footer-link text-ash hover:text-void">
                   {link.label}
                 </Link>
               </li>
             ))}
-            <li>
-              <a
-                href={`mailto:${company.contactEmail}`}
-                className="footer-link text-ash hover:text-void"
-              >
-                {company.contactEmail}
-              </a>
-            </li>
+            {legalPages.slice(4).map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="footer-link text-ash hover:text-void">
+                  {link.title}
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
       </div>
@@ -96,8 +80,7 @@ export function SiteFooter() {
       <div className="border-t border-rule">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-5 font-sans text-xs text-ash md:px-8">
           <p>
-            © {new Date().getFullYear()} {company.legalName}. {company.productName}{" "}
-            is a product of {company.legalName}. All rights reserved.
+            © {new Date().getFullYear()} {company.legalName}. All rights reserved.
           </p>
           <p>{company.domain}</p>
         </div>

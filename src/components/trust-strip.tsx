@@ -5,7 +5,7 @@ const badges = [
   { label: "TCPA-compliant SMS", detail: "Owner alerts with opt-out" },
   { label: "Encrypted in transit", detail: "TLS on all endpoints" },
   { label: "Per-tenant isolation", detail: "Your data, your shop" },
-  { label: "Legal entity", detail: company.legalName },
+  { label: "Cancel anytime", detail: "No annual lock-in" },
 ] as const;
 
 export function TrustStrip() {
@@ -14,14 +14,14 @@ export function TrustStrip() {
       <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
         <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-md">
-            <p className="home-os-kicker">Enterprise readiness</p>
+            <p className="home-os-kicker">Security & compliance</p>
             <h2 className="mt-4 font-serif text-[clamp(1.75rem,3vw,2.25rem)] leading-[1.1] tracking-[-0.04em] text-chalk">
-              Operated by {company.legalName}
+              Built for shops that need reliability
             </h2>
             <p className="mt-4 font-sans text-sm leading-relaxed text-ash-soft">
-              Contracts, billing, and legal policies are with our registered
-              company. {company.productName} is built for shops that need
-              reliability from day one — not a side project.
+              {company.productName} handles inbound calls, customer records, and
+              owner alerts with the controls a real shop expects — not a side
+              project.
             </p>
           </div>
 
