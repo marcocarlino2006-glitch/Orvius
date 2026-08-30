@@ -13,13 +13,14 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <MarketingShell cta={false}>
+    <MarketingShell>
       <section className="editorial-hero">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Pricing"
             title="Prove it free. Pay when it works."
-            description={`${company.productName} is priced for owner-operators — one missed emergency call costs more than a month of service.`}
+            subline={`${company.productName} — one missed emergency call costs more than a month.`}
+            description="Built for owner-operators running 2–15 trucks. Not ServiceTitan. Not bolt-on AI."
           />
         </div>
       </section>

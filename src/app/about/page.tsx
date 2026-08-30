@@ -11,12 +11,13 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <MarketingShell cta={false}>
+    <MarketingShell>
       <section className="editorial-hero">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Company"
-            title={company.tagline}
+            title="The operating system for service businesses."
+            subline="We start at the front door. One layer at a time."
             description={company.mission}
           />
         </div>

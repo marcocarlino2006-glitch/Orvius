@@ -15,7 +15,7 @@ type ShellHeaderProps = {
 };
 
 const defaultNav: NavLink[] = [
-  { href: "/dashboard", label: "Product" },
+  { href: "/demo", label: "Demo" },
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "Company" },
 ];
@@ -24,7 +24,7 @@ export function ShellHeader({
   plane = "void",
   position = "sticky",
   surface = "solid",
-  cta = { href: "/login", label: "Sign in" },
+  cta = { href: "/pilot", label: "Free pilot" },
   nav = defaultNav,
 }: ShellHeaderProps) {
   const { data: session } = useSession();
@@ -96,7 +96,10 @@ export function ShellHeader({
             onClick={() => setMenuOpen(false)}
           >
             <span className="shell-logo-mark" aria-hidden />
-            <span className="shell-wordmark">Orvius</span>
+            <span className="shell-brand-text">
+              <span className="shell-wordmark">Orvius</span>
+              <span className="shell-brand-os font-sans">OS</span>
+            </span>
           </Link>
 
           {nav ? (

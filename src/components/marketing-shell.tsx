@@ -1,3 +1,4 @@
+import { BrandIntro } from "@/components/brand-intro";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -10,7 +11,7 @@ type MarketingShellProps = {
 export function MarketingShell({
   children,
   showFooter = true,
-  cta = { href: "/login", label: "Sign in" },
+  cta = { href: "/pilot", label: "Free pilot" },
 }: MarketingShellProps) {
   return (
     <>
@@ -24,26 +25,25 @@ export function MarketingShell({
 export function ShellPageIntro({
   label,
   title,
+  subline,
   description,
   className = "",
 }: {
   label: string;
   title: string;
+  subline?: string;
   description?: string;
   className?: string;
 }) {
   return (
-    <div className={className}>
-      <p className="home-os-kicker">{label}</p>
-      <h1 className="mt-4 font-serif text-4xl leading-[1.08] tracking-[-0.04em] text-void md:text-5xl">
-        {title}
-      </h1>
-      {description ? (
-        <p className="mt-5 max-w-2xl font-sans text-lg leading-relaxed text-ash md:text-xl">
-          {description}
-        </p>
-      ) : null}
-    </div>
+    <BrandIntro
+      className={className}
+      kicker={label}
+      title={title}
+      subline={subline}
+      description={description}
+      align="left"
+    />
   );
 }
 

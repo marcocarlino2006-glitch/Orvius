@@ -991,6 +991,24 @@ h3 {
   gap: 0.65rem;
 }
 
+.shell-brand-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.shell-brand-os {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--signal);
+}
+
+.shell-header-void .shell-brand-os {
+  color: var(--signal-hot);
+}
+
 .shell-logo-mark {
   display: block;
   width: 1.35rem;
@@ -1715,6 +1733,140 @@ h3 {
   font-size: clamp(1.125rem, 1.7vw, 1.35rem);
   line-height: 1.45;
   color: var(--ash);
+}
+
+.home-os-subline {
+  margin-top: 1.15rem;
+  max-width: 34ch;
+  font-size: clamp(1.0625rem, 1.55vw, 1.25rem);
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.brand-intro-center {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.brand-intro-left {
+  text-align: left;
+}
+
+.brand-intro-left .home-brand-kicker {
+  margin-bottom: 1rem;
+}
+
+.brand-intro-title {
+  font-size: clamp(2.35rem, 4.8vw, 3.75rem);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  font-weight: 500;
+  max-width: 18ch;
+}
+
+.brand-intro-left .home-trust,
+.brand-intro-left .home-os-subline {
+  max-width: 42ch;
+}
+
+.orvius-os-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+}
+
+.orvius-os-strip-light {
+  justify-content: flex-start;
+}
+
+.orvius-os-strip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+}
+
+.orvius-os-strip-live {
+  border-color: color-mix(in srgb, var(--signal) 35%, var(--rule));
+  background: color-mix(in srgb, var(--signal) 7%, var(--white));
+}
+
+.orvius-os-strip-next {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--signal) 25%, var(--rule));
+  background: color-mix(in srgb, var(--fog) 40%, var(--white));
+}
+
+.orvius-os-strip-hero .orvius-os-strip-item {
+  background: color-mix(in srgb, var(--white) 88%, var(--fog));
+  box-shadow: 0 1px 2px rgba(10, 11, 10, 0.04);
+}
+
+.orvius-os-strip-hero .orvius-os-strip-live {
+  background: color-mix(in srgb, var(--signal) 10%, var(--white));
+  box-shadow: 0 0 20px color-mix(in srgb, var(--signal) 14%, transparent);
+}
+
+.orvius-os-strip-num {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--ash);
+}
+
+.orvius-os-strip-live .orvius-os-strip-num {
+  color: var(--signal-dim);
+}
+
+.orvius-os-strip-name {
+  font-size: 0.9375rem;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.orvius-os-strip-badge {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.2rem;
+  background: var(--signal);
+  color: var(--void);
+}
+
+.orvius-os-strip-badge-next {
+  background: color-mix(in srgb, var(--signal) 14%, var(--white));
+  color: var(--signal-dim);
+}
+
+.site-footer {
+  position: relative;
+}
+
+.site-footer-accent {
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--signal-dim) 0%,
+    var(--signal) 45%,
+    var(--signal-hot) 100%
+  );
+}
+
+.home-trio-card {
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
 }
 
 .home-telemetry {

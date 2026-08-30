@@ -1,3 +1,4 @@
+import { BrandIntro } from "@/components/brand-intro";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 import Link from "next/link";
@@ -5,18 +6,18 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <>
-      <ShellHeader plane="chalk" position="sticky" cta={false} />
+      <ShellHeader plane="chalk" cta={{ href: "/pilot", label: "Free pilot" }} />
       <main className="editorial flex min-h-[80svh] flex-col items-center justify-center bg-chalk px-6 text-center text-void">
         <div className="max-w-md">
-          <p className="home-os-kicker">404</p>
-          <h1 className="mt-4 font-serif text-4xl tracking-[-0.04em] md:text-5xl">
-            Page not found
-          </h1>
-          <p className="mt-4 font-sans text-[0.9375rem] leading-relaxed text-ash">
-            This route doesn&apos;t exist. Head back to Orvius — every call,
-            every customer, every job.
-          </p>
-          <div className="editorial-actions mt-8 justify-center font-sans">
+          <BrandIntro
+            kicker="404"
+            title="Page not found."
+            subline="This route doesn't exist in the OS."
+            description="Head back to Orvius — every call, every customer, every job."
+            align="center"
+            titleClassName="!text-4xl md:!text-5xl !max-w-none"
+          />
+          <div className="editorial-actions justify-center font-sans">
             <Link href="/" className="editorial-cta">
               Back to home
             </Link>

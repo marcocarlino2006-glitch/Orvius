@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { HomeLiveLine } from "@/components/home-live-line";
+import { OrviusOsStrip } from "@/components/orvius-os-strip";
 import { company, legalPages } from "@/lib/company";
 
 const productLinks = [
-  { href: "/dashboard", label: "Product" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/demo", label: "Demo" },
-  { href: "/pilot", label: "Pilot" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/pilot", label: "Free pilot" },
   { href: "/about", label: "Company" },
 ];
 
@@ -19,18 +20,39 @@ const companyLinks = [
 export function SiteFooter() {
   return (
     <footer className="site-footer border-t border-rule bg-chalk text-void">
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.2fr_1fr_1.2fr] md:px-8 md:py-16">
+      <div className="site-footer-accent" aria-hidden />
+
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.3fr_1fr_1fr] md:px-8 md:py-16">
         <div>
-          <p className="flex items-center gap-2 font-sans text-sm font-semibold tracking-[0.2em] uppercase">
+          <p className="flex items-center gap-2.5 font-sans text-sm font-semibold tracking-[0.2em] uppercase">
             <span className="shell-logo-mark" aria-hidden />
-            {company.productName}
+            <span className="shell-brand-text">
+              <span>{company.productName}</span>
+              <span className="shell-brand-os">OS</span>
+            </span>
           </p>
-          <p className="mt-3 max-w-xs font-serif text-lg leading-relaxed text-ash">
+          <p className="mt-3 max-w-sm font-serif text-xl leading-snug tracking-[-0.03em] text-void">
             {company.tagline}
           </p>
           <p className="mt-4 font-sans text-[11px] font-semibold tracking-[0.18em] text-ash uppercase">
             {company.trades.join(" · ")}
           </p>
+
+          <div className="mt-8">
+            <OrviusOsStrip variant="light" />
+          </div>
+
+          <div className="mt-8">
+            <p className="home-os-kicker">Live line</p>
+            <HomeLiveLine />
+          </div>
+
+          <div className="mt-8">
+            <Link href="/pilot" className="editorial-cta">
+              Free pilot
+            </Link>
+          </div>
+
           <p className="mt-6 font-sans text-xs leading-relaxed text-ash">
             Operated by {company.legalName}
           </p>

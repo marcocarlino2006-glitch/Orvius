@@ -12,12 +12,13 @@ export const metadata: Metadata = {
 
 export default function PilotPage() {
   return (
-    <MarketingShell cta={false}>
+    <MarketingShell>
       <section className="editorial-hero">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Free pilot"
             title="Get Orvius answering your calls this week."
+            subline="The front door of the OS — live on your line within days."
             description="Ten home-service businesses. Thirty days free. We set it up with you — no credit card."
           />
         </div>

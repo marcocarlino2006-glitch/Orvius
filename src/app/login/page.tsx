@@ -1,3 +1,4 @@
+import { BrandIntro } from "@/components/brand-intro";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { ShellHeader } from "@/components/shell-header";
 import { company } from "@/lib/company";
@@ -20,19 +21,18 @@ export default async function LoginPage({
 
   return (
     <>
-      <ShellHeader plane="chalk" cta={false} nav={false} />
+      <ShellHeader plane="chalk" cta={{ href: "/pilot", label: "Free pilot" }} nav={false} />
 
       <main className="editorial bg-chalk text-void">
         <section className="editorial-hero">
           <div className="editorial-wrap max-w-lg">
-            <p className="home-os-kicker">Orvius OS</p>
-            <h1 className="mt-4 font-serif text-[clamp(2rem,4vw,2.75rem)] leading-[1.08] tracking-[-0.04em]">
-              Sign in to Orvius
-            </h1>
-            <p className="editorial-lead font-sans">
-              Use your Google account to open the OS — inbox, customers, jobs,
-              and the field board.
-            </p>
+            <BrandIntro
+              kicker="Orvius OS"
+              title="Sign in to your shop."
+              subline="Inbox, customers, jobs, and the field board — one operating system."
+              align="left"
+              titleClassName="!text-[clamp(2rem,4vw,2.75rem)] !max-w-none"
+            />
 
             {error ? (
               <p className="mt-6 rounded-md border border-flare/25 bg-flare/8 px-4 py-3 font-sans text-sm text-flare-dim">
@@ -45,9 +45,14 @@ export default async function LoginPage({
               <GoogleSignInButton callbackUrl={callbackUrl} />
             </div>
 
-            <Link href="/" className="editorial-link editorial-link-inline mt-8 font-sans">
-              ← Back to homepage
-            </Link>
+            <div className="editorial-actions mt-8 font-sans">
+              <Link href="/" className="editorial-link">
+                ← Back to homepage
+              </Link>
+              <Link href="/pilot" className="editorial-link">
+                Apply for free pilot
+              </Link>
+            </div>
           </div>
         </section>
       </main>
