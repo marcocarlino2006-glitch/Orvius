@@ -1,4 +1,4 @@
-import { osCurrentRing, osRings } from "@/lib/company";
+import { osRings } from "@/lib/company";
 
 type OsRingsProps = {
   variant?: "light" | "dark";
@@ -12,7 +12,7 @@ export function OsRings({ variant = "light", limit }: OsRingsProps) {
   return (
     <ol className="os-rings">
       {rings.map((item) => {
-        const isLive = item.ring === osCurrentRing;
+        const isLive = item.status === "live";
         const isNext = item.status === "next";
 
         return (

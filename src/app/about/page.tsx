@@ -31,7 +31,8 @@ export default function AboutPage() {
           </p>
           <p className="mt-5 font-sans text-[0.9375rem] leading-relaxed text-ash">
             We started at the front door — answering and qualifying every call.
-            Customer records followed. Jobs, dispatch, billing, and everything
+            Customer records followed. Jobs are live: a lead becomes a booked
+            appointment, not a sticky note. Dispatch, billing, and everything
             else builds on that foundation. One layer at a time.
           </p>
         </div>

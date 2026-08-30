@@ -140,7 +140,7 @@ export async function linkTouchToCustomer(params: {
 
 export type TimelineEvent = {
   id: string;
-  type: "call" | "lead";
+  type: "call" | "lead" | "job";
   at: string;
   title: string;
   summary: string | null;
@@ -150,12 +150,16 @@ export type TimelineEvent = {
 };
 
 export async function getCustomerTimeline(customerId: string): Promise<TimelineEvent[]> {
-  const [calls, leads] = await Promise.all([
+  const [calls, leads, jobs] = await Promise.all([
     prisma.call.findMany({
       where: { customerId },
       orderBy: { createdAt: "desc" },
     }),
     prisma.lead.findMany({
+      where: { customerId },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.job.findMany({
       where: { customerId },
       orderBy: { createdAt: "desc" },
     }),
@@ -181,6 +185,16 @@ export async function getCustomerTimeline(customerId: string): Promise<TimelineE
       source: lead.source,
       urgency: lead.urgency,
       status: lead.status,
+    })),
+    ...jobs.map((job) => ({
+      id: job.id,
+      type: "job" as const,
+      at: (job.scheduledAt ?? job.createdAt).toISOString(),
+      title: job.title,
+      summary: job.address,
+      source: "job",
+      urgency: job.urgency,
+      status: job.status,
     })),
   ];
 

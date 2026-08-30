@@ -34,7 +34,7 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <ShellBadge tone={event.type === "call" ? "live" : "flare"}>
+                <ShellBadge tone={event.type === "job" ? "live" : event.type === "call" ? "live" : "flare"}>
                   {event.type}
                 </ShellBadge>
                 {event.urgency ? (
@@ -69,6 +69,14 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
                 className="customer-timeline-link font-sans"
               >
                 View call →
+              </Link>
+            ) : null}
+            {event.type === "job" ? (
+              <Link
+                href={`/dashboard/jobs/${event.id}`}
+                className="customer-timeline-link font-sans"
+              >
+                View job →
               </Link>
             ) : null}
           </div>

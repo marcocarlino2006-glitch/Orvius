@@ -28,6 +28,14 @@ export async function GET(_request: Request, { params }: Params) {
           createdAt: true,
         },
       },
+      job: {
+        select: {
+          id: true,
+          status: true,
+          scheduledAt: true,
+          title: true,
+        },
+      },
     },
   });
 
@@ -44,6 +52,12 @@ export async function GET(_request: Request, { params }: Params) {
         ? {
             ...lead.call,
             createdAt: lead.call.createdAt.toISOString(),
+          }
+        : null,
+      job: lead.job
+        ? {
+            ...lead.job,
+            scheduledAt: lead.job.scheduledAt?.toISOString() ?? null,
           }
         : null,
     },

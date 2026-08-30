@@ -4,10 +4,11 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const config = getConfigStatus();
-  const [businessCount, leadCount, callCount, primaryBusiness] = await Promise.all([
+  const [businessCount, leadCount, callCount, jobCount, primaryBusiness] = await Promise.all([
     prisma.business.count(),
     prisma.lead.count(),
     prisma.call.count(),
+    prisma.job.count(),
     prisma.business.findFirst({
       orderBy: { createdAt: "asc" },
       select: { ownerPhone: true },
@@ -36,7 +37,7 @@ export async function GET() {
     ownerPhoneConfigured: Boolean(ownerPhone),
     ownerPhoneIsTwilioLine,
     ownerSmsReachable,
-    stats: { businessCount, leadCount, callCount },
+    stats: { businessCount, leadCount, callCount, jobCount },
     config: config.items,
     nextSteps: config.ready
       ? [

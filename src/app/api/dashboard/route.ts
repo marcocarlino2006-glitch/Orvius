@@ -7,16 +7,19 @@ export async function GET() {
     callCount,
     leadCount,
     customerCount,
+    jobCount,
     waitlistCount,
     recentCalls,
     recentLeads,
     recentCustomers,
+    recentJobs,
     waitlist,
   ] = await Promise.all([
     prisma.business.count(),
     prisma.call.count(),
     prisma.lead.count(),
     prisma.customer.count(),
+    prisma.job.count(),
     prisma.waitlistEntry.count(),
     prisma.call.findMany({
       take: 8,
@@ -39,6 +42,15 @@ export async function GET() {
       orderBy: { lastSeenAt: "desc" },
       include: { business: { select: { name: true } } },
     }),
+    prisma.job.findMany({
+      take: 6,
+      orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
+      include: {
+        business: { select: { name: true } },
+        customer: { select: { id: true, name: true, phone: true } },
+        lead: { select: { id: true, name: true, phone: true } },
+      },
+    }),
     prisma.waitlistEntry.findMany({
       take: 8,
       orderBy: { createdAt: "desc" },
@@ -50,10 +62,12 @@ export async function GET() {
     callCount,
     leadCount,
     customerCount,
+    jobCount,
     waitlistCount,
     recentCalls,
     recentLeads,
     recentCustomers,
+    recentJobs,
     waitlist,
   });
 }

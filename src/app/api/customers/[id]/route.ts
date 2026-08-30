@@ -11,7 +11,7 @@ export async function GET(_request: Request, { params }: Params) {
     where: { id },
     include: {
       business: { select: { id: true, name: true } },
-      _count: { select: { leads: true, calls: true } },
+      _count: { select: { leads: true, calls: true, jobs: true } },
     },
   });
 
@@ -36,6 +36,7 @@ export async function GET(_request: Request, { params }: Params) {
       business: customer.business,
       leadCount: customer._count.leads,
       callCount: customer._count.calls,
+      jobCount: customer._count.jobs,
       returning: customer.interactionCount > 1,
     },
     timeline,

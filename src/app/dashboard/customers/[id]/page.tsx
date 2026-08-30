@@ -23,11 +23,12 @@ type CustomerDetail = {
   business: { id: string; name: string } | null;
   leadCount: number;
   callCount: number;
+  jobCount: number;
 };
 
 type TimelineEvent = {
   id: string;
-  type: "call" | "lead";
+  type: "call" | "lead" | "job";
   at: string;
   title: string;
   summary: string | null;
@@ -133,7 +134,7 @@ export default function CustomerDetailPage() {
                 {new Date(customer.lastSeenAt).toLocaleString()}
               </dd>
             </div>
-            <div className="grid grid-cols-2 gap-4 border-t border-rule pt-4">
+            <div className="grid grid-cols-3 gap-4 border-t border-rule pt-4">
               <div>
                 <dt className="text-ash">Calls</dt>
                 <dd className="mt-1 text-2xl font-semibold text-void">{customer.callCount}</dd>
@@ -141,6 +142,10 @@ export default function CustomerDetailPage() {
               <div>
                 <dt className="text-ash">Leads</dt>
                 <dd className="mt-1 text-2xl font-semibold text-void">{customer.leadCount}</dd>
+              </div>
+              <div>
+                <dt className="text-ash">Jobs</dt>
+                <dd className="mt-1 text-2xl font-semibold text-void">{customer.jobCount ?? 0}</dd>
               </div>
             </div>
           </dl>

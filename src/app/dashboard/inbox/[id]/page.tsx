@@ -1,5 +1,6 @@
 "use client";
 
+import { BookJobForm } from "@/components/book-job-form";
 import { LeadInboxCard } from "@/components/lead-inbox-card";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
@@ -27,6 +28,12 @@ type LeadDetail = {
     durationSec: number | null;
     status: string;
     createdAt: string;
+  } | null;
+  job: {
+    id: string;
+    status: string;
+    scheduledAt: string | null;
+    title: string;
   } | null;
 };
 
@@ -98,6 +105,30 @@ export default function LeadDetailPage() {
         />
 
         <div className="space-y-6">
+          {lead.job ? (
+            <ShellPanel title="Job">
+              <p className="font-sans text-sm text-ash">
+                Booked as {lead.job.title} · {lead.job.status}
+                {lead.job.scheduledAt
+                  ? ` · ${new Date(lead.job.scheduledAt).toLocaleString()}`
+                  : ""}
+              </p>
+              <Link
+                href={`/dashboard/jobs/${lead.job.id}`}
+                className="customer-timeline-link mt-3 inline-block font-sans"
+              >
+                Open job →
+              </Link>
+            </ShellPanel>
+          ) : (
+            <ShellPanel title="Book this lead">
+              <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
+                Turn this lead into a scheduled job on the calendar.
+              </p>
+              <BookJobForm leadId={lead.id} urgency={lead.urgency} />
+            </ShellPanel>
+          )}
+
           {lead.customer ? (
             <ShellPanel title="Customer record">
               <p className="font-sans text-sm text-ash">

@@ -18,17 +18,22 @@ export function OsProductPreview() {
             <span className="os-preview-nav-item">Overview</span>
             <span className="os-preview-nav-item">Inbox</span>
             <span className="os-preview-nav-item os-preview-nav-item-active">
-              Customers
+              Jobs
             </span>
+            <span className="os-preview-nav-item">Customers</span>
             <span className="os-preview-nav-item">Calls</span>
           </nav>
         </div>
         <div className="os-preview-main">
           <p className="font-serif text-lg tracking-[-0.03em] text-void">Overview</p>
           <p className="mt-1 font-sans text-[11px] text-ash">
-            Ring 1 + Ring 2 live
+            Rings 1–3 live
           </p>
           <div className="os-preview-stat-row mt-4">
+            <div className="os-preview-stat">
+              <p>Jobs</p>
+              <p>12</p>
+            </div>
             <div className="os-preview-stat">
               <p>Customers</p>
               <p>24</p>
@@ -37,18 +42,14 @@ export function OsProductPreview() {
               <p>Leads</p>
               <p>31</p>
             </div>
-            <div className="os-preview-stat">
-              <p>Calls</p>
-              <p>28</p>
-            </div>
           </div>
           <div className="os-preview-card">
-            <p className="font-sans text-[10px] font-bold tracking-[0.16em] text-flare uppercase">
-              Returning
+            <p className="font-sans text-[10px] font-bold tracking-[0.16em] text-live uppercase">
+              Booked
             </p>
             <p className="mt-1 font-serif text-base text-void">Maria Lopez</p>
             <p className="mt-1 font-sans text-[11px] text-ash">
-              3 interactions · AC not cooling
+              Today 4:00 PM · AC not cooling
             </p>
           </div>
           <div className="os-preview-card">
@@ -73,8 +74,8 @@ export function OsProductPreviewSection() {
         <div className="editorial-copy">
           <h2 className="editorial-heading font-serif">The OS, not a feature.</h2>
           <p className="editorial-body font-sans">
-            One workspace for the front door and every customer who calls. Ring 1
-            captures leads. Ring 2 remembers them forever.
+            One workspace for the front door, every customer, and every booked
+            job. The shop runs here — not on sticky notes.
           </p>
           <Link
             href="/login"

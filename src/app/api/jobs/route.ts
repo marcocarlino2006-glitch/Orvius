@@ -1,0 +1,58 @@
+import { NextResponse } from "next/server";
+import { createJobFromLead, serializeJob } from "@/lib/job";
+import { prisma } from "@/lib/prisma";
+
+export async function GET() {
+  const jobs = await prisma.job.findMany({
+    take: 80,
+    orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
+    include: {
+      business: { select: { name: true } },
+      customer: {
+        select: { id: true, name: true, phone: true, interactionCount: true },
+      },
+      lead: { select: { id: true, name: true, phone: true } },
+    },
+  });
+
+  return NextResponse.json({
+    jobs: jobs.map(serializeJob),
+  });
+}
+
+export async function POST(request: Request) {
+  const body = (await request.json()) as {
+    leadId?: string;
+    scheduledAt?: string | null;
+    notes?: string | null;
+  };
+
+  if (!body.leadId?.trim()) {
+    return NextResponse.json({ error: "leadId required" }, { status: 400 });
+  }
+
+  try {
+    const job = await createJobFromLead({
+      leadId: body.leadId.trim(),
+      scheduledAt: body.scheduledAt,
+      notes: body.notes,
+    });
+
+    const full = await prisma.job.findUnique({
+      where: { id: job.id },
+      include: {
+        business: { select: { name: true } },
+        customer: {
+          select: { id: true, name: true, phone: true, interactionCount: true },
+        },
+        lead: { select: { id: true, name: true, phone: true } },
+      },
+    });
+
+    return NextResponse.json({ job: full ? serializeJob(full) : serializeJob(job) });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not book job";
+    const status = message === "Lead not found" ? 404 : 400;
+    return NextResponse.json({ error: message }, { status });
+  }
+}

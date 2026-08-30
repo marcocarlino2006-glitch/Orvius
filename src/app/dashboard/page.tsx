@@ -1,6 +1,7 @@
 "use client";
 
 import { CustomerRecordCard } from "@/components/customer-record-card";
+import { JobCard } from "@/components/job-card";
 import { LeadInboxCard } from "@/components/lead-inbox-card";
 import { LiveStatusBar } from "@/components/live-status-bar";
 import { OsShell } from "@/components/os-shell";
@@ -20,6 +21,7 @@ type DashboardData = {
   callCount: number;
   leadCount: number;
   customerCount: number;
+  jobCount: number;
   waitlistCount: number;
   recentCalls: Array<{
     id: string;
@@ -51,6 +53,16 @@ type DashboardData = {
     lastSeenAt: string;
     business: { name: string } | null;
   }>;
+  recentJobs: Array<{
+    id: string;
+    title: string;
+    status: string;
+    scheduledAt: string | null;
+    address: string | null;
+    urgency: string | null;
+    customer: { name: string | null; phone: string } | null;
+    lead: { name: string | null; phone: string | null } | null;
+  }>;
 };
 
 export default function DashboardPage() {
@@ -72,7 +84,7 @@ export default function DashboardPage() {
   return (
     <OsShell
       title="Overview"
-      subtitle="Ring 1 + Ring 2 live — front door and customer records."
+      subtitle="Rings 1–3 live — front door, customers, and jobs."
       statusLabel="Operations"
       actions={
         <Link href="/demo" className="btn btn-primary text-sm">
@@ -93,11 +105,48 @@ export default function DashboardPage() {
           ) : null}
 
           <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <ShellStat label="Customers" value={data?.customerCount ?? "—"} highlight />
+            <ShellStat label="Jobs" value={data?.jobCount ?? "—"} highlight />
+            <ShellStat label="Customers" value={data?.customerCount ?? "—"} />
             <ShellStat label="Leads" value={data?.leadCount ?? "—"} />
             <ShellStat label="Calls" value={data?.callCount ?? "—"} />
             <ShellStat label="Businesses" value={data?.businessCount ?? "—"} />
-            <ShellStat label="Pilot waitlist" value={data?.waitlistCount ?? "—"} />
+          </section>
+
+          <section className="mb-10">
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="eyebrow">Ring 3</p>
+                <h2 className="mt-2 font-serif text-2xl tracking-[-0.04em] text-void">
+                  Upcoming jobs
+                </h2>
+              </div>
+              <Link href="/dashboard/jobs" className="editorial-link font-sans text-sm">
+                View all jobs →
+              </Link>
+            </div>
+
+            {!data?.recentJobs?.length ? (
+              <ShellEmpty>
+                Book a lead from the inbox — jobs appear here on the calendar.
+              </ShellEmpty>
+            ) : (
+              <ul className="grid gap-4 lg:grid-cols-2">
+                {data.recentJobs.map((job) => (
+                  <li key={job.id}>
+                    <JobCard
+                      id={job.id}
+                      title={job.title}
+                      status={job.status}
+                      scheduledAt={job.scheduledAt}
+                      address={job.address}
+                      urgency={job.urgency}
+                      customerName={job.customer?.name ?? job.lead?.name}
+                      phone={job.customer?.phone ?? job.lead?.phone}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="mb-10">
