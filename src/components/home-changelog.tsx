@@ -1,10 +1,34 @@
-import { osRings } from "@/lib/company";
 import Link from "next/link";
 
-export function HomeChangelog() {
-  const live = osRings.filter((ring) => ring.status === "live");
-  const next = osRings.find((ring) => ring.status === "next");
+const entries = [
+  {
+    date: "Aug 30, 2026",
+    title: "Field dispatch is live",
+    detail: "Assign a technician. En route, on site, complete.",
+  },
+  {
+    date: "Aug 30, 2026",
+    title: "Ask answers from OS memory",
+    detail: "Calls, customers, jobs, and the board — one mouth.",
+  },
+  {
+    date: "Aug 30, 2026",
+    title: "A lead becomes a job",
+    detail: "Book, confirm, and schedule from the same record.",
+  },
+  {
+    date: "Aug 29, 2026",
+    title: "Customer records from first call",
+    detail: "History follows the number. Returning callers are known.",
+  },
+  {
+    date: "Aug 26, 2026",
+    title: "The front door answers after hours",
+    detail: "Qualify the work. Alert the owner. Write the record.",
+  },
+] as const;
 
+export function HomeChangelog() {
   return (
     <section className="editorial-section" aria-labelledby="changelog-heading">
       <div className="editorial-wrap">
@@ -15,35 +39,22 @@ export function HomeChangelog() {
               What is live.
             </h2>
             <p className="editorial-body font-sans">
-              One ring at a time. Nothing here is a mock. Shops use this today.
+              Shipped in order. Nothing here is a mock.
             </p>
           </div>
           <Link href="/about" className="editorial-link font-sans">
-            Full system →
+            See the full system →
           </Link>
         </div>
 
         <ol className="home-change">
-          {[...live].reverse().map((item) => (
-            <li key={item.ring} className="home-change-row">
-              <span className="home-change-num font-sans">
-                {String(item.ring).padStart(2, "0")}
-              </span>
-              <span className="home-change-name font-serif">{item.name}</span>
-              <span className="home-change-mod font-sans">{item.module}</span>
-              <span className="home-change-status font-sans">Live</span>
+          {entries.map((item) => (
+            <li key={item.title} className="home-change-row">
+              <time className="home-change-date font-sans">{item.date}</time>
+              <span className="home-change-name font-serif">{item.title}</span>
+              <span className="home-change-mod font-sans">{item.detail}</span>
             </li>
           ))}
-          {next ? (
-            <li className="home-change-row home-change-row-next">
-              <span className="home-change-num font-sans">
-                {String(next.ring).padStart(2, "0")}
-              </span>
-              <span className="home-change-name font-serif">{next.name}</span>
-              <span className="home-change-mod font-sans">{next.module}</span>
-              <span className="home-change-status font-sans">Next</span>
-            </li>
-          ) : null}
         </ol>
       </div>
     </section>

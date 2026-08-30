@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
 const surfaces = [
-  { id: "call", label: "Call" },
-  { id: "jobs", label: "Jobs" },
-  { id: "dispatch", label: "Dispatch" },
+  { id: "call", label: "Call", path: "orvius.im/inbox" },
+  { id: "jobs", label: "Jobs", path: "orvius.im/jobs" },
+  { id: "dispatch", label: "Dispatch", path: "orvius.im/dispatch" },
+  { id: "ask", label: "Ask", path: "orvius.im/ask" },
 ] as const;
 
 type SurfaceId = (typeof surfaces)[number]["id"];
@@ -19,8 +21,36 @@ const nav = [
   { id: "ask", label: "Ask" },
 ] as const;
 
+const rail = [
+  {
+    group: "After hours",
+    surface: "call" as const,
+    items: [
+      { id: "maria", title: "Emergency AC", meta: "Maria Lopez · 9:14 PM" },
+      { id: "james", title: "No hot water", meta: "James Park · 6:41 AM" },
+    ],
+  },
+  {
+    group: "Today",
+    surface: "jobs" as const,
+    items: [
+      { id: "oak", title: "Annual maintenance", meta: "Oakridge · 8:00 AM" },
+      { id: "pine", title: "No hot water", meta: "411 Pine · 9:30 AM" },
+    ],
+  },
+  {
+    group: "Crew",
+    surface: "dispatch" as const,
+    items: [
+      { id: "marcus", title: "Marcus Chen", meta: "En route · Oakridge" },
+      { id: "elena", title: "Elena Ruiz", meta: "On site · 411 Pine" },
+    ],
+  },
+] as const;
+
 export function HomeProductStage() {
   const [surface, setSurface] = useState<SurfaceId>("call");
+  const current = surfaces.find((item) => item.id === surface) ?? surfaces[0];
 
   return (
     <div className="home-stage">
@@ -40,11 +70,89 @@ export function HomeProductStage() {
           </button>
         ))}
       </div>
-      <HomeOsFrame active={surface}>
-        {surface === "call" ? <HomeOsCall /> : null}
-        {surface === "jobs" ? <HomeOsJobs /> : null}
-        {surface === "dispatch" ? <HomeOsDispatch /> : null}
-      </HomeOsFrame>
+
+      <div className="home-os home-os-hero">
+        <div className="home-os-chrome font-sans">
+          <span className="home-os-chrome-dots" aria-hidden>
+            <span />
+            <span />
+            <span />
+          </span>
+          <span className="home-os-url">{current.path}</span>
+          <span className="home-os-live">
+            <span className="home-os-live-dot" />
+            Live
+          </span>
+        </div>
+
+        <div className="home-os-titlebar font-sans">
+          <div className="home-os-titlebar-brand">
+            <span className="home-os-mark" aria-hidden />
+            <span className="home-os-wordmark font-serif">Orvius</span>
+            <span className="home-os-shop">Summit HVAC</span>
+          </div>
+          <span className="home-os-shop-meta">Rings 1–4 · Field live</span>
+        </div>
+
+        <div className="home-os-workspace">
+          <aside className="home-os-rail" aria-label="Shop activity">
+            {rail.map((section) => (
+              <div key={section.group} className="home-os-rail-group">
+                <p className="home-os-kicker">{section.group}</p>
+                {section.items.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`home-os-rail-item ${
+                      surface === section.surface ? "home-os-rail-item-active" : ""
+                    }`}
+                    onClick={() => setSurface(section.surface)}
+                  >
+                    <span className="home-os-rail-title">{item.title}</span>
+                    <span className="home-os-rail-meta">{item.meta}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </aside>
+
+          <div className="home-os-workspace-main">
+            <div className="home-os-body home-os-body-hero">
+              <aside className="home-os-sidebar" aria-hidden>
+                <p className="home-os-sidebar-label">OS</p>
+                <nav className="home-os-nav">
+                  {nav.map((item) => (
+                    <span
+                      key={item.id}
+                      className={`home-os-nav-item ${
+                        item.id === surface ? "home-os-nav-item-active" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  ))}
+                </nav>
+              </aside>
+              <div className="home-os-main">
+                {surface === "call" ? <HomeOsCall dense /> : null}
+                {surface === "jobs" ? <HomeOsJobs dense /> : null}
+                {surface === "dispatch" ? <HomeOsDispatch dense /> : null}
+                {surface === "ask" ? <HomeOsAsk dense /> : null}
+              </div>
+            </div>
+
+            <div className="home-os-composer font-sans">
+              <p className="home-os-composer-label">Ask</p>
+              <p className="home-os-composer-placeholder">
+                Who is free for the Oakridge emergency?
+              </p>
+              <Link href="/login" className="home-os-composer-btn">
+                Ask
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -93,11 +201,14 @@ export function HomeOsFrame({
   );
 }
 
-export function HomeOsCall() {
+export function HomeOsCall({ dense = false }: { dense?: boolean }) {
   return (
     <div className="home-os-call">
       <div className="home-os-panel">
-        <p className="home-os-kicker">Inbound · after hours</p>
+        <div className="home-os-panel-head">
+          <p className="home-os-kicker">Inbound · after hours</p>
+          <p className="home-os-list-meta">2m 14s · 4 fields</p>
+        </div>
         <p className="home-os-line">
           <span>Orvius</span> Thanks for calling Summit HVAC. How can I help?
         </p>
@@ -108,9 +219,20 @@ export function HomeOsCall() {
           <span>Orvius</span> I can help. What&apos;s the address and a callback
           number?
         </p>
+        {dense ? (
+          <>
+            <p className="home-os-line home-os-line-muted">
+              <span>Caller</span> 1842 Oak Street. 512-555-0123.
+            </p>
+            <p className="home-os-line">
+              <span>Orvius</span> Treating this as an emergency. I&apos;m notifying
+              the owner now.
+            </p>
+          </>
+        ) : null}
         <p className="home-os-foot">
           <span className="home-os-live-dot" />
-          Qualified · owner notified
+          Qualified · owner SMS sent
         </p>
       </div>
       <div className="home-os-panel">
@@ -134,17 +256,25 @@ export function HomeOsCall() {
             <dd className="tabular-nums">+1 512 555 0123</dd>
           </div>
         </dl>
+        {dense ? (
+          <p className="home-os-note">
+            Captured while the owner was on a job. Not yet assigned — Marcus Chen
+            is closest.
+          </p>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export function HomeOsJobs() {
+export function HomeOsJobs({ dense = false }: { dense?: boolean }) {
   return (
     <div className="home-os-list">
       <div className="home-os-list-head">
         <p className="home-os-kicker">Today</p>
-        <p className="home-os-list-meta">3 booked · 1 emergency</p>
+        <p className="home-os-list-meta">
+          {dense ? "4 booked · 1 emergency · 2 techs" : "3 booked · 1 emergency"}
+        </p>
       </div>
       <article className="home-os-row">
         <div>
@@ -159,36 +289,48 @@ export function HomeOsJobs() {
       <article className="home-os-row">
         <div>
           <p className="home-os-row-title font-serif">No hot water</p>
-          <p className="home-os-row-sub">James Park · 411 Pine</p>
+          <p className="home-os-row-sub">James Park · 411 Pine · Elena Ruiz</p>
         </div>
         <div className="home-os-row-aside">
           <p className="home-os-row-time">9:30 AM</p>
-          <span className="home-os-pill">Confirmed</span>
+          <span className="home-os-pill home-os-pill-live">On site</span>
         </div>
       </article>
       <article className="home-os-row">
         <div>
           <p className="home-os-row-title font-serif">Annual maintenance</p>
-          <p className="home-os-row-sub">Oakridge Offices · 2 units</p>
+          <p className="home-os-row-sub">Oakridge Offices · 2 units · Marcus Chen</p>
         </div>
         <div className="home-os-row-aside">
-          <p className="home-os-row-time">Tue 8:00 AM</p>
-          <span className="home-os-pill">Scheduled</span>
+          <p className="home-os-row-time">8:00 AM</p>
+          <span className="home-os-pill home-os-pill-live">En route</span>
         </div>
       </article>
+      {dense ? (
+        <article className="home-os-row">
+          <div>
+            <p className="home-os-row-title font-serif">Filter change</p>
+            <p className="home-os-row-sub">Returning · 902 Maple · unassigned</p>
+          </div>
+          <div className="home-os-row-aside">
+            <p className="home-os-row-time">Tue 11:00 AM</p>
+            <span className="home-os-pill">Scheduled</span>
+          </div>
+        </article>
+      ) : null}
     </div>
   );
 }
 
-export function HomeOsDispatch() {
+export function HomeOsDispatch({ dense = false }: { dense?: boolean }) {
   return (
     <div className="home-os-board">
       <div className="home-os-col">
-        <p className="home-os-kicker">Unassigned</p>
+        <p className="home-os-kicker">Unassigned · 1</p>
         <article className="home-os-chip">
           <p className="home-os-chip-time">2:00 PM</p>
           <p className="home-os-chip-title font-serif">Emergency AC</p>
-          <p className="home-os-chip-sub">Maria Lopez</p>
+          <p className="home-os-chip-sub">Maria Lopez · Oak Street</p>
         </article>
       </div>
       <div className="home-os-col">
@@ -201,6 +343,13 @@ export function HomeOsDispatch() {
           <p className="home-os-chip-title font-serif">Maintenance</p>
           <p className="home-os-chip-sub">Oakridge Offices</p>
         </article>
+        {dense ? (
+          <article className="home-os-chip">
+            <p className="home-os-chip-time">1:00 PM</p>
+            <p className="home-os-chip-title font-serif">Filter change</p>
+            <p className="home-os-chip-sub">902 Maple</p>
+          </article>
+        ) : null}
       </div>
       <div className="home-os-col">
         <p className="home-os-kicker">Elena Ruiz</p>
@@ -217,18 +366,32 @@ export function HomeOsDispatch() {
   );
 }
 
-export function HomeOsAsk() {
+export function HomeOsAsk({ dense = false }: { dense?: boolean }) {
   return (
     <div className="home-os-ask">
-      <p className="home-os-kicker">Ask</p>
+      <p className="home-os-kicker">Ask · from OS memory</p>
       <p className="home-os-ask-q font-serif">Who called after hours last night?</p>
       <div className="home-os-ask-a">
         <p>
           Maria Lopez. Emergency AC, 1842 Oak Street. Captured at 9:14 PM.
-          Owner alerted. Not yet assigned.
+          Owner alerted. Not yet assigned — Marcus Chen is closest after Oakridge.
         </p>
-        <p className="home-os-ask-source">From OS memory · Inbox + Jobs</p>
+        <p className="home-os-ask-source">Inbox · Jobs · Dispatch</p>
       </div>
+      {dense ? (
+        <>
+          <p className="home-os-ask-q home-os-ask-q-follow font-serif">
+            Put her on Marcus after Oakridge.
+          </p>
+          <div className="home-os-ask-a">
+            <p>
+              Drafted: Emergency AC assigned to Marcus Chen at 2:00 PM, after
+              Oakridge maintenance. Confirm in dispatch to make it live.
+            </p>
+            <p className="home-os-ask-source">Field · not yet written</p>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

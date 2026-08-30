@@ -1,5 +1,6 @@
 import { HomeChangelog } from "@/components/home-changelog";
 import { HomeHeroActions } from "@/components/home-hero-actions";
+import { HomeLiveLine } from "@/components/home-live-line";
 import {
   HomeOsAsk,
   HomeOsCall,
@@ -34,20 +35,67 @@ export default function HomePage() {
         <section className="home-hero">
           <div className="editorial-wrap home-hero-copy">
             <h1 className="home-display font-serif">{company.tagline}</h1>
-            <p className="home-lead font-sans">
-              The system of record for HVAC, plumbing, and electrical. Every
-              call, every customer, every job — one operating system.
+            <p className="home-trust font-sans">
+              Live today for HVAC, plumbing, and electrical.
             </p>
             <HomeHeroActions />
           </div>
+
+          <div className="editorial-wrap home-pair">
+            <div>
+              <h2 className="home-pair-title font-serif">
+                The front door is always answered.
+              </h2>
+              <p className="home-pair-body font-sans">
+                Every call qualified. Owner notified. The record is written
+                before anyone picks up a wrench.
+              </p>
+              <Link href="/demo" className="editorial-link editorial-link-inline font-sans">
+                Hear a call →
+              </Link>
+            </div>
+            <div>
+              <h2 className="home-pair-title font-serif">
+                The day runs from one board.
+              </h2>
+              <p className="home-pair-body font-sans">
+                A lead becomes a job. A job gets a technician. Status is the
+                day — not a group text.
+              </p>
+              <Link href="/login" className="editorial-link editorial-link-inline font-sans">
+                Open the product →
+              </Link>
+            </div>
+          </div>
+
           <div className="home-hero-stage">
-            <div className="editorial-wrap">
+            <div className="home-stage-wrap">
               <HomeProductStage />
             </div>
           </div>
         </section>
 
         <section className="editorial-section">
+          <div className="editorial-wrap home-across">
+            <div className="editorial-copy">
+              <p className="home-kicker font-sans">On the line</p>
+              <h2 className="editorial-heading font-serif">
+                In every hour, on every layer.
+              </h2>
+              <p className="editorial-body font-sans">
+                Phone, SMS, inbox, jobs, dispatch, Ask. The shop does not
+                switch tools when the work moves. Orvius is the system of
+                record from the first ring.
+              </p>
+            </div>
+            <HomeLiveLine />
+            <p className="home-across-note font-sans">
+              Call the live line. Summit HVAC is on it today.
+            </p>
+          </div>
+        </section>
+
+        <section className="editorial-section editorial-section-muted">
           <div className="editorial-wrap editorial-split">
             <div className="editorial-copy">
               <p className="home-kicker font-sans">Front door</p>
@@ -59,6 +107,9 @@ export default function HomePage() {
                 record. The owner gets a clean alert — on the job, after hours,
                 or at peak season. The front door does not go to voicemail.
               </p>
+              <Link href="/demo" className="editorial-link editorial-link-inline font-sans">
+                Hear a call →
+              </Link>
             </div>
             <HomeOsFrame active="call">
               <HomeOsCall />
@@ -66,7 +117,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="editorial-section editorial-section-muted">
+        <section className="editorial-section">
           <div className="editorial-wrap editorial-split editorial-split-reverse">
             <HomeOsFrame active="jobs">
               <HomeOsJobs />
@@ -81,11 +132,14 @@ export default function HomePage() {
                 Customers persist. History follows the number. Nothing lives on
                 a sticky note.
               </p>
+              <Link href="/login" className="editorial-link editorial-link-inline font-sans">
+                Open jobs →
+              </Link>
             </div>
           </div>
         </section>
 
-        <section className="editorial-section">
+        <section className="editorial-section editorial-section-muted">
           <div className="editorial-wrap editorial-split">
             <div className="editorial-copy">
               <p className="home-kicker font-sans">Field</p>
@@ -96,6 +150,9 @@ export default function HomePage() {
                 Who goes where. En route, on site, complete. Dispatch runs from
                 one board — not a group text. The field is a layer of the OS.
               </p>
+              <Link href="/login" className="editorial-link editorial-link-inline font-sans">
+                Open dispatch →
+              </Link>
             </div>
             <HomeOsFrame active="dispatch">
               <HomeOsDispatch />
@@ -103,7 +160,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="editorial-section editorial-section-muted">
+        <section className="editorial-section">
           <div className="editorial-wrap editorial-split editorial-split-reverse">
             <HomeOsFrame active="ask">
               <HomeOsAsk />
@@ -117,6 +174,39 @@ export default function HomePage() {
                 Ask answers from the records already in the OS — calls, customers,
                 jobs, dispatch. Not a chatbot. A mouth on the system of record.
               </p>
+              <Link href="/login" className="editorial-link editorial-link-inline font-sans">
+                Open Ask →
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="editorial-section editorial-section-muted">
+          <div className="editorial-wrap">
+            <p className="home-kicker font-sans">The system</p>
+            <h2 className="editorial-heading font-serif">Built to be the default.</h2>
+            <div className="home-trio">
+              <article>
+                <h3 className="home-trio-title font-serif">Always on</h3>
+                <p className="home-trio-body font-sans">
+                  Nights, weekends, peak season. The front door does not close
+                  when the shop is on a job.
+                </p>
+              </article>
+              <article>
+                <h3 className="home-trio-title font-serif">One record</h3>
+                <p className="home-trio-body font-sans">
+                  Call, customer, job, technician. The work does not scatter
+                  across a phone, a notepad, and a group chat.
+                </p>
+              </article>
+              <article>
+                <h3 className="home-trio-title font-serif">Built to last</h3>
+                <p className="home-trio-body font-sans">
+                  Four rings live. Money is next. Then intelligence, platform,
+                  marketplace — in that order.
+                </p>
+              </article>
             </div>
           </div>
         </section>
@@ -157,18 +247,13 @@ export default function HomePage() {
         </section>
 
         <section className="editorial-close">
-          <div className="editorial-wrap editorial-close-inner">
-            <p className="editorial-close-text font-serif">
-              {company.tagline}
+          <div className="editorial-wrap home-close">
+            <p className="home-kicker font-sans">Open Orvius now.</p>
+            <p className="home-display font-serif">{company.tagline}</p>
+            <p className="home-trust font-sans">
+              Live today for HVAC, plumbing, and electrical.
             </p>
-            <div className="editorial-actions font-sans" style={{ marginTop: 0 }}>
-              <Link href="/login" className="editorial-cta">
-                Sign in
-              </Link>
-              <Link href="/pilot" className="editorial-link">
-                Apply for pilot
-              </Link>
-            </div>
+            <HomeHeroActions />
           </div>
         </section>
       </main>
