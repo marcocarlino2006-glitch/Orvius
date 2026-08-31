@@ -4,14 +4,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "orvius-cookie-consent";
+const DEFER_MS = 10000;
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY) !== "accepted") {
+    if (localStorage.getItem(STORAGE_KEY) === "accepted") return;
+
+    const timer = setTimeout(() => {
       setVisible(true);
-    }
+    }, DEFER_MS);
+
+    return () => clearTimeout(timer);
   }, []);
 
   function accept() {
@@ -23,31 +28,27 @@ export function CookieConsent() {
 
   return (
     <div
-      className="cookie-consent fixed inset-x-0 bottom-0 z-50 border-t border-rule bg-chalk/95 px-6 py-4 backdrop-blur-md md:px-8"
+      className="cookie-consent cookie-consent-minimal fixed bottom-4 right-4 z-50 max-w-sm rounded-xl border border-rule bg-chalk/95 p-4 shadow-lift backdrop-blur-md"
       role="dialog"
       aria-label="Cookie notice"
     >
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <p className="max-w-2xl font-sans text-sm leading-relaxed text-ash">
-          We use essential cookies to run orvius.im and optional analytics as
-          described in our{" "}
-          <Link href="/cookies" className="editorial-link">
-            Cookie Policy
-          </Link>
-          . By continuing, you agree to our{" "}
-          <Link href="/terms" className="editorial-link">
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="editorial-link">
-            Privacy Policy
-          </Link>
-          .
-        </p>
-        <button type="button" onClick={accept} className="editorial-cta shrink-0">
-          Accept
-        </button>
-      </div>
+      <p className="font-sans text-xs leading-relaxed text-ash">
+        Essential cookies only.{" "}
+        <Link href="/cookies" className="editorial-link">
+          Policy
+        </Link>
+        {" · "}
+        <Link href="/privacy" className="editorial-link">
+          Privacy
+        </Link>
+      </p>
+      <button
+        type="button"
+        onClick={accept}
+        className="cookie-consent-accept mt-3 font-sans text-xs font-medium"
+      >
+        Accept
+      </button>
     </div>
   );
 }

@@ -1,9 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-type RevealProps = {
+type RevealOnScrollProps = {
   children: ReactNode;
   className?: string;
   delay?: number;
@@ -13,18 +12,13 @@ export function RevealOnScroll({
   children,
   className = "",
   delay = 0,
-}: RevealProps) {
+}: RevealOnScrollProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVisible(true);
-      return;
-    }
+    const node = ref.current;
+    if (!node) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -33,66 +27,18 @@ export function RevealOnScroll({
           observer.disconnect();
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
+      { threshold: 0.14, rootMargin: "0px 0px -40px 0px" },
     );
 
-    observer.observe(el);
+    observer.observe(node);
     return () => observer.disconnect();
   }, []);
 
   return (
     <div
       ref={ref}
-      className={`reveal ${visible ? "reveal-visible" : ""} ${className}`}
+      className={`reveal-on-scroll ${visible ? "reveal-on-scroll-visible" : ""} ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  );
-}
-
-type RevealGroupProps = {
-  children: ReactNode;
-  className?: string;
-  stagger?: number;
-};
-
-export function RevealGroup({
-  children,
-  className = "",
-  stagger = 90,
-}: RevealGroupProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVisible(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1, rootMargin: "0px 0px -5% 0px" },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className={`reveal-group ${visible ? "reveal-group-visible" : ""} ${className}`}
-      style={{ ["--reveal-stagger" as string]: `${stagger}ms` }}
     >
       {children}
     </div>
