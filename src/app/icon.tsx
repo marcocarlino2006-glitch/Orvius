@@ -19,7 +19,7 @@ export default function Icon() {
           borderRadius: 8,
         }}
       >
-        <OrviusMarkGraphic size={26} gradientId="orvius-icon" />
+        <OrviusMarkGraphic size={28} gradientId="orvius-icon" coreId="orvius-icon-core" />
       </div>
     ),
     { ...size },

@@ -44,7 +44,7 @@ export function OsShell({
       <aside className="os-sidebar">
         <div className="os-sidebar-inner">
           <Link href="/dashboard" className="os-sidebar-brand">
-            <OrviusLogo size="sm" variant="chalk" showOs markOnly />
+            <OrviusLogo size="md" variant="chalk" showOs markOnly />
             <span>
               <span className="os-sidebar-name font-serif">{company.productName}</span>
               <span className="os-sidebar-sub font-sans">OS</span>

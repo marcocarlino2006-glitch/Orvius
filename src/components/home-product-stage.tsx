@@ -88,7 +88,7 @@ export function HomeProductStage() {
 
         <div className="home-os-titlebar font-sans">
           <div className="home-os-titlebar-brand">
-            <OrviusMark size={16} className="home-os-mark" />
+            <OrviusMark size={22} className="home-os-mark" />
             <span className="home-os-wordmark font-serif">Orvius</span>
             <span className="home-os-shop">Summit HVAC</span>
           </div>
@@ -171,7 +171,7 @@ export function HomeOsFrame({
     <div className="home-os">
       <div className="home-os-titlebar font-sans">
         <div className="home-os-titlebar-brand">
-          <OrviusMark size={16} className="home-os-mark" />
+          <OrviusMark size={22} className="home-os-mark" />
           <span className="home-os-wordmark font-serif">Orvius</span>
           <span className="home-os-shop">{shop}</span>
         </div>

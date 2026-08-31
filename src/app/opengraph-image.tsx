@@ -27,7 +27,7 @@ export default function OpenGraphImage() {
             gap: 16,
           }}
         >
-          <OrviusMarkGraphic size={48} gradientId="orvius-og-mark" />
+          <OrviusMarkGraphic size={64} gradientId="orvius-og-mark" coreId="orvius-og-core" />
           <div
             style={{
               display: "flex",

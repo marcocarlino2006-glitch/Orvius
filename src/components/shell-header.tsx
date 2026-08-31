@@ -97,7 +97,7 @@ export function ShellHeader({
             onClick={() => setMenuOpen(false)}
           >
             <OrviusLogo
-              size="md"
+              size="lg"
               variant={isVoid ? "void" : "chalk"}
               showOs
             />
