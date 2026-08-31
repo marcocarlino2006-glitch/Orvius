@@ -8,7 +8,16 @@ Orvius uses **Google OAuth** for dashboard access.
 2. Create project (or select existing)
 3. **OAuth consent screen** → External → add your email as test user
 4. **Create credentials** → OAuth client ID → **Web application**
-5. Authorized redirect URIs:
+5. **Authorized JavaScript origins:**
+
+```
+http://localhost:3000
+https://orvius.im
+https://app.orvius.im
+https://api.orvius.im
+```
+
+6. **Authorized redirect URIs** (Auth.js path — note `callback/google`, not `google/callback`):
 
 ```
 http://localhost:3000/api/auth/callback/google
@@ -17,7 +26,9 @@ https://app.orvius.im/api/auth/callback/google
 https://api.orvius.im/api/auth/callback/google
 ```
 
-## 2. Add to `.env`
+Remove legacy Manus URLs and any `/api/auth/google/callback` entries — they will not work with Orvius.
+
+## 2. Add to `.env` and Vercel
 
 ```bash
 AUTH_SECRET=   # openssl rand -base64 32
