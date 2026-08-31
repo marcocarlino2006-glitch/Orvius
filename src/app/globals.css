@@ -1103,6 +1103,11 @@ h3 {
   -webkit-backdrop-filter: blur(14px);
 }
 
+.shell-header-chalk.shell-header-glass:not(.shell-header-elevated) {
+  background: transparent;
+  border-bottom: 1px solid transparent;
+}
+
 .shell-header-chalk .shell-wordmark {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 1.0625rem;
@@ -7001,3 +7006,221 @@ h3 {
   box-shadow: 0 12px 36px rgba(26, 25, 23, 0.12);
 }
 .call-demo-void .call-demo-number { color: var(--mist); }
+
+/* ═══════════════════════════════════════════════════════
+   Unified marketing system — one light language sitewide
+   ═══════════════════════════════════════════════════════ */
+
+.marketing-page {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 767px) {
+  .marketing-page {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.marketing-hero {
+  padding-top: clamp(5.5rem, 11vh, 7rem);
+  padding-bottom: clamp(2rem, 4vh, 3rem);
+  border-bottom: 1px solid var(--rule);
+  background:
+    radial-gradient(ellipse 70% 50% at 80% 0%, color-mix(in srgb, var(--signal) 6%, transparent), transparent 60%),
+    var(--chalk);
+  color: var(--void);
+}
+
+.marketing-hero-center { text-align: center; }
+
+.marketing-hero-title {
+  margin-top: 0.75rem;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+  color: var(--void);
+  max-width: 22ch;
+}
+
+.marketing-hero-title-sm {
+  font-size: clamp(1.75rem, 4vw, 2.5rem) !important;
+  max-width: none !important;
+}
+
+.brand-intro-left .marketing-hero-title { max-width: 24ch; }
+
+.brand-intro-subline {
+  margin-top: 0.75rem;
+  color: var(--void);
+}
+
+.brand-intro-description {
+  margin-top: 0.75rem;
+  max-width: 42rem;
+}
+
+.marketing-hero-call {
+  margin-top: 2rem;
+  max-width: 28rem;
+}
+
+.marketing-section {
+  padding-block: clamp(4rem, 9vh, 6.5rem);
+  border-top: 1px solid var(--rule);
+  background: var(--white);
+  color: var(--void);
+}
+
+.marketing-section-muted {
+  background: var(--chalk);
+}
+
+.marketing-split {
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 4rem);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .marketing-split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .marketing-split-reverse > :first-child {
+    order: 2;
+  }
+}
+
+.marketing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+
+.marketing-pricing-tiers {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .marketing-pricing-tiers {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.marketing-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.75rem 1.625rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  box-shadow: var(--shadow-soft);
+}
+
+.marketing-tier-featured {
+  border-color: color-mix(in srgb, var(--signal) 30%, var(--rule));
+  background: color-mix(in srgb, var(--signal) 4%, var(--white));
+  box-shadow: var(--shadow-lift);
+}
+
+.marketing-tier-price {
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.marketing-tier-featured .marketing-tier-price {
+  color: var(--signal-dim);
+}
+
+.marketing-tier-period {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ash);
+  margin-left: 0.15rem;
+}
+
+.marketing-tier-list {
+  margin: 0.25rem 0 0.5rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ash);
+}
+
+.marketing-tier-list li + li {
+  margin-top: 0.35rem;
+}
+
+.marketing-tier-list li::before {
+  content: "· ";
+  color: var(--signal-dim);
+  font-weight: 700;
+}
+
+.marketing-close {
+  padding-block: clamp(4rem, 9vh, 6rem);
+  border-top: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
+  background: var(--warm-close);
+  color: var(--void);
+}
+
+.marketing-close-inner {
+  max-width: 40rem;
+}
+
+.marketing-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.cursor-footer-light {
+  border-top: 1px solid var(--rule);
+  background: var(--chalk);
+  color: var(--void);
+}
+
+.cursor-footer-light .cursor-footer-tag,
+.cursor-footer-light .cursor-footer-nav a,
+.cursor-footer-light .cursor-footer-email,
+.cursor-footer-light .cursor-footer-bar {
+  color: var(--ash);
+}
+
+.cursor-footer-light .cursor-footer-nav a:hover,
+.cursor-footer-light .cursor-footer-email:hover {
+  color: var(--void);
+}
+
+.cursor-footer-light .cursor-footer-bar {
+  border-top-color: var(--rule);
+}
+
+.marketing-page .pro-section-title {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  color: var(--void);
+}
+
+.marketing-page .pro-section-kicker {
+  color: var(--signal-dim);
+}
+
+.brand-intro-center .marketing-hero-title {
+  max-width: 18ch;
+  margin-inline: auto;
+}
+
+.brand-intro-center .brand-intro-description,
+.brand-intro-center .brand-intro-subline {
+  margin-inline: auto;
+}

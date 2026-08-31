@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <MarketingShell>
-      <section className="editorial-hero">
+      <section className="marketing-hero">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Company"
@@ -23,14 +23,14 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="editorial-section">
+      <section className="marketing-section">
         <div className="editorial-wrap max-w-3xl">
-          <p className="font-sans text-[0.9375rem] leading-relaxed text-ash">
+          <p className="home-platform-lead font-sans">
             {company.productName} is developed and operated by{" "}
             {company.legalName}. We focus on {company.trades.join(", ")} — where
             missed calls become lost revenue.
           </p>
-          <p className="mt-5 font-sans text-[0.9375rem] leading-relaxed text-ash">
+          <p className="mt-5 home-platform-lead font-sans">
             We started at the front door — answering and qualifying every call.
             Customer records followed. Jobs are live: a lead becomes a booked
             appointment, not a sticky note. Dispatch, billing, and everything
@@ -39,10 +39,10 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="editorial-section editorial-section-muted">
+      <section className="marketing-section marketing-section-muted">
         <div className="editorial-wrap">
-          <h2 className="editorial-heading font-serif">The system.</h2>
-          <p className="editorial-body font-sans max-w-2xl">
+          <h2 className="home-platform-title font-sans">The system.</h2>
+          <p className="home-platform-lead font-sans max-w-2xl">
             Orvius expands in layers — each one a complete module, not a
             half-built feature. What&apos;s live today is what shops actually use.
           </p>
@@ -52,21 +52,21 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="editorial-section">
-        <div className="editorial-wrap editorial-split">
-          <div className="editorial-copy">
-            <h2 className="editorial-heading font-serif">{company.legalName}</h2>
-            <p className="editorial-body font-sans">
+      <section className="marketing-section">
+        <div className="editorial-wrap marketing-split">
+          <div>
+            <h2 className="home-platform-title font-sans">{company.legalName}</h2>
+            <p className="home-platform-lead font-sans">
               Contracts, invoices, and subscriptions are with {company.legalName}.
               {company.productName} is our product brand for service-business
               operators.
             </p>
           </div>
-          <div className="editorial-actions font-sans">
-            <Link href="/legal" className="editorial-link">
+          <div className="marketing-actions font-sans">
+            <Link href="/legal" className="home-platform-link">
               Legal center →
             </Link>
-            <Link href="/pricing" className="editorial-cta">
+            <Link href="/pricing" className="tier-btn tier-btn-primary">
               View pricing
             </Link>
           </div>

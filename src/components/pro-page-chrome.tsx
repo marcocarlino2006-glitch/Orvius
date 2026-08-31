@@ -106,7 +106,7 @@ export function ProSectionHead({ kicker, title, action, className = "" }: ProSec
     <div className={`pro-section-head ${className}`}>
       <div>
         <p className="pro-section-kicker font-sans">{kicker}</p>
-        <h3 className="pro-section-title font-serif">{title}</h3>
+        <h3 className="pro-section-title font-sans">{title}</h3>
       </div>
       {action}
     </div>

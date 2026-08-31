@@ -15,11 +15,11 @@ const links = [
 
 export function SiteFooter() {
   return (
-    <footer className="cursor-footer">
+    <footer className="cursor-footer cursor-footer-light">
       <div className="editorial-wrap cursor-footer-inner font-sans">
         <div className="cursor-footer-brand">
           <p className="cursor-footer-logo">
-            <OrviusLogo size="lg" variant="void" showOs={false} />
+            <OrviusLogo size="lg" variant="chalk" showOs={false} />
           </p>
           <p className="cursor-footer-tag">{company.tagline}</p>
           <a href={`mailto:${company.contactEmail}`} className="cursor-footer-email">

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function LegalHubPage() {
   return (
     <MarketingShell cta={false}>
-      <section className="editorial-hero">
+      <section className="marketing-hero">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Legal"
@@ -24,7 +24,7 @@ export default function LegalHubPage() {
         </div>
       </section>
 
-      <section className="editorial-section">
+      <section className="marketing-section">
         <div className="editorial-wrap max-w-3xl">
           <ul className="divide-y divide-rule border-y border-rule">
             {legalPages.map((page) => (
@@ -45,12 +45,12 @@ export default function LegalHubPage() {
           </ul>
 
           <div className="mt-12">
-            <p className="home-os-kicker">Contact</p>
+            <p className="home-platform-kicker font-sans">Contact</p>
             <p className="mt-3 font-sans text-sm leading-relaxed text-ash">
               Legal and privacy requests:{" "}
               <a
                 href={`mailto:${company.legalEmail}`}
-                className="editorial-link"
+                className="home-platform-link"
               >
                 {company.legalEmail}
               </a>

@@ -5,7 +5,7 @@ import { EarlyAccessForm } from "@/components/early-access-form";
 import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingComparison } from "@/components/pricing-comparison";
-import { company, pricing } from "@/lib/company";
+import { pricing } from "@/lib/company";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <MarketingShell>
-      <section className="premium-pricing-hero">
+      <section className="marketing-hero">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Pricing"
@@ -24,47 +24,47 @@ export default function PricingPage() {
             subline={`$${pricing.pro.price}/mo flat — built for owner-operators, not enterprise rollouts.`}
             description="No per-minute surprises. No bolt-on AI that leaves your CRM empty."
           />
-          <div className="pilot-live-call">
+          <div className="marketing-hero-call">
             <HomeCallDemo variant="light" size="section" />
           </div>
         </div>
       </section>
 
-      <section className="premium-band premium-band-chalk">
+      <section className="marketing-section">
         <div className="editorial-wrap">
           <PricingComparison />
         </div>
       </section>
 
-      <section className="premium-band">
-        <div className="editorial-wrap premium-pricing-tiers">
-          <article className="premium-tier">
-            <p className="premium-kicker font-sans">Design partner</p>
-            <h2 className="premium-tier-price font-serif">30 days</h2>
-            <p className="premium-body font-sans">
+      <section className="marketing-section marketing-section-muted">
+        <div className="editorial-wrap marketing-pricing-tiers">
+          <article className="marketing-tier">
+            <p className="home-platform-kicker font-sans">Design partner</p>
+            <h2 className="marketing-tier-price font-sans">30 days</h2>
+            <p className="home-platform-lead font-sans">
               Personal onboarding. Your line live within days. We cover
               infrastructure during the program.
             </p>
-            <ul className="premium-tier-list font-sans">
+            <ul className="marketing-tier-list font-sans">
               {pricing.pilot.highlights.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
-            <Link href="/pilot" className="editorial-cta">
+            <Link href="/pilot" className="tier-btn tier-btn-primary">
               Apply
             </Link>
           </article>
 
-          <article className="premium-tier premium-tier-featured">
-            <p className="premium-kicker font-sans">Orvius Pro</p>
-            <h2 className="premium-tier-price font-serif">
+          <article className="marketing-tier marketing-tier-featured">
+            <p className="home-platform-kicker font-sans">Orvius Pro</p>
+            <h2 className="marketing-tier-price font-sans">
               ${pricing.pro.price}
-              <span className="premium-tier-period font-sans">/mo</span>
+              <span className="marketing-tier-period font-sans">/mo</span>
             </h2>
-            <p className="premium-body font-sans">
+            <p className="home-platform-lead font-sans">
               Flat monthly. Unlimited inbound calls and texts. Cancel anytime.
             </p>
-            <ul className="premium-tier-list font-sans">
+            <ul className="marketing-tier-list font-sans">
               {pricing.pro.highlights.map((item) => (
                 <li key={item}>{item}</li>
               ))}
@@ -74,24 +74,24 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="premium-close">
-        <div className="editorial-wrap premium-close-inner">
-          <p className="premium-kicker font-sans">ROI</p>
-          <h2 className="premium-close-title font-serif">
+      <section className="marketing-close">
+        <div className="editorial-wrap marketing-close-inner">
+          <p className="home-platform-kicker font-sans">ROI</p>
+          <h2 className="home-platform-title font-sans">
             One booked job pays for the month.
           </h2>
-          <p className="premium-close-lead font-sans">
+          <p className="home-platform-lead font-sans">
             A single after-hours repair often clears ${pricing.pro.price}. Orvius
             exists so that call never hits voicemail.
           </p>
         </div>
       </section>
 
-      <section className="premium-band premium-band-chalk">
-        <div className="editorial-wrap editorial-split">
+      <section className="marketing-section">
+        <div className="editorial-wrap marketing-split">
           <div>
-            <h2 className="premium-section-title font-serif">Join the program.</h2>
-            <p className="premium-body font-sans">
+            <h2 className="home-platform-title font-sans">Join the program.</h2>
+            <p className="home-platform-lead font-sans">
               Limited availability. We onboard each shop directly.
             </p>
           </div>

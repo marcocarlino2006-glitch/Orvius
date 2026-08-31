@@ -9,7 +9,7 @@ export function PricingComparison() {
           className={`pricing-compare-row ${row.highlight ? "pricing-compare-row-highlight" : ""}`}
         >
           <p className="pricing-compare-label font-sans">{row.label}</p>
-          <p className="pricing-compare-cost font-serif">{row.cost}</p>
+          <p className="pricing-compare-cost font-sans">{row.cost}</p>
           <p className="pricing-compare-pain font-sans">{row.pain}</p>
         </div>
       ))}
