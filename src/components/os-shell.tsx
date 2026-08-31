@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import {
   getOsRingMeta,
   osCurrentRing,
@@ -10,7 +11,6 @@ import {
   osWorkspaceNav,
   osRings,
 } from "@/lib/os-nav";
-import { company } from "@/lib/company";
 import { OrviusLogo } from "@/components/orvius-logo";
 
 type OsShellProps = {
@@ -31,12 +31,27 @@ export function OsShell({
   children,
   title,
   subtitle,
-  businessName,
+  businessName: businessNameProp,
   actions,
 }: OsShellProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const liveRing = getOsRingMeta(osCurrentRing);
+  const [businessName, setBusinessName] = useState(businessNameProp ?? "Your shop");
+
+  useEffect(() => {
+    if (businessNameProp) {
+      setBusinessName(businessNameProp);
+      return;
+    }
+
+    fetch("/api/ring1")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.business?.name) setBusinessName(data.business.name);
+      })
+      .catch(() => null);
+  }, [businessNameProp]);
 
   return (
     <div className="os-shell os-shell-pro min-h-screen">
@@ -48,7 +63,7 @@ export function OsShell({
 
           <div className="os-ring-status os-ring-status-pro">
             <p className="os-sidebar-label font-sans">Current ring</p>
-            <p className="os-ring-status-title font-serif">
+            <p className="os-ring-status-title font-sans">
               {String(osCurrentRing).padStart(2, "0")} · {liveRing?.name}
             </p>
             <p className="os-ring-status-module font-sans">{liveRing?.module}</p>
@@ -142,9 +157,9 @@ export function OsShell({
           <div className="os-topbar-copy">
             <p className="os-topbar-live font-sans">
               <span className="home-os-live-dot" />
-              {businessName ?? "Summit HVAC"} · Rings 1–{osCurrentRing} live
+              {businessName} · Rings 1–{osCurrentRing} live
             </p>
-            <h1 className="os-topbar-title font-serif">{title}</h1>
+            <h1 className="os-topbar-title font-sans">{title}</h1>
             {subtitle ? (
               <p className="os-topbar-sub font-sans">{subtitle}</p>
             ) : null}

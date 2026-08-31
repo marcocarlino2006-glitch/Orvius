@@ -3,7 +3,7 @@ import { HomeCaseQuote } from "@/components/home-case-quote";
 import { HomeLineHero } from "@/components/home-line-hero";
 import { HomeProductStage } from "@/components/home-product-stage";
 import { PublicLayout } from "@/components/marketing-shell";
-import { demoLineHref } from "@/lib/demo-line";
+import { demoLineHref, DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { pricing } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -49,7 +49,7 @@ export default function HomePage() {
         <div className="editorial-wrap tier1-close-inner font-sans">
           <p className="tier1-eyebrow">Ready when you are</p>
           <a href={demoLineHref()} className="tier1-close-line">
-            +1 844 643 9170
+            {DEMO_LINE_DISPLAY}
           </a>
           <div className="tier1-actions tier1-close-actions">
             <a href={demoLineHref()} className="inst-btn inst-btn-primary">

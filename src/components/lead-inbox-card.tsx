@@ -85,7 +85,7 @@ export function LeadInboxCard({
       <div className="px-5 py-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-serif text-xl tracking-[-0.035em] text-void">
+            <h3 className="font-sans text-xl font-semibold tracking-[-0.035em] text-void">
               {name}
             </h3>
             <p className="mt-1 font-sans text-[13px] text-ash">

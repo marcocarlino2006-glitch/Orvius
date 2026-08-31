@@ -39,7 +39,7 @@ export function JobCard({
       <div className="customer-record-head">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate font-serif text-xl tracking-[-0.03em] text-void">
+            <h3 className="truncate font-sans text-xl font-semibold tracking-[-0.03em] text-void">
               {title}
             </h3>
             <ShellBadge tone={statusTone(status)}>{jobStatusLabel(status)}</ShellBadge>

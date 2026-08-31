@@ -6,6 +6,7 @@ import { LEAD_STATUSES } from "@/components/lead-status-actions";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -77,7 +78,6 @@ export default function InboxPage() {
           ? `${newCount} new lead${newCount === 1 ? "" : "s"} — Ring 1 output`
           : "Every qualified lead from calls and texts."
       }
-      businessName="Summit HVAC"
       actions={
         <Link href="/demo" className="btn btn-void text-sm">
           Hear a call
@@ -140,10 +140,16 @@ export default function InboxPage() {
           ) : null}
 
           {!leads.length ? (
-            <ShellEmpty>
+            <ShellEmpty
+              action={
+                <a href={demoLineHref()} className="btn btn-void text-sm">
+                  Call {DEMO_LINE_DISPLAY}
+                </a>
+              }
+            >
               {filter
                 ? "No leads in this filter. Try another tab or run a test call."
-                : "No leads yet. Run a demo call or test your live line."}
+                : "No leads yet. Call the live demo line — every qualified lead lands here."}
             </ShellEmpty>
           ) : (
             <ul className="grid gap-4 lg:grid-cols-2">

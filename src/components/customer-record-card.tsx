@@ -33,7 +33,7 @@ export function CustomerRecordCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate font-serif text-xl tracking-[-0.03em] text-void">
+            <h3 className="truncate font-sans text-xl font-semibold tracking-[-0.03em] text-void">
               {label}
             </h3>
             {returning ? <ShellBadge tone="live">Returning</ShellBadge> : null}

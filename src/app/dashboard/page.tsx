@@ -9,7 +9,6 @@ export default function DashboardPage() {
     <OsShell
       title="Front door"
       subtitle="Ring 1 — answer, qualify, alert. The wedge that never sleeps."
-      businessName="Summit HVAC"
       actions={
         <Link href="/dashboard/inbox" className="btn btn-void text-sm">
           Open inbox
@@ -22,7 +21,7 @@ export default function DashboardPage() {
         <div className="pro-section-head">
           <div>
             <p className="pro-section-kicker font-sans">Rings 2–4</p>
-            <h3 className="pro-section-title font-serif">Deeper in the OS</h3>
+            <h3 className="pro-section-title font-sans">Deeper in the OS</h3>
           </div>
         </div>
         <div className="ring1-more-grid font-sans">

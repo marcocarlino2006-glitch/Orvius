@@ -15,8 +15,8 @@ export function HomeLineHero() {
           Production line · {DEMO_LINE_BUSINESS}
         </p>
 
-        <h1 id="tier1-hero-heading" className="sr-only">
-          Call the Orvius live demo line
+        <h1 id="tier1-hero-heading" className="tier1-hero-heading font-sans">
+          Call the live line.
         </h1>
         <a href={demoLineHref()} className="tier1-hero-line font-sans">
           {DEMO_LINE_DISPLAY}

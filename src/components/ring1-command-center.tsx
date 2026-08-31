@@ -110,7 +110,7 @@ export function Ring1CommandCenter() {
             <span className="home-os-live-dot" />
             Ring 01 · Front door · Live
           </p>
-          <h2 className="ring1-command-title font-serif">
+          <h2 className="ring1-command-title font-sans">
             Every call answered. Every lead captured.
           </h2>
           <p className="ring1-command-lead font-sans">
@@ -152,25 +152,25 @@ export function Ring1CommandCenter() {
         ) : (
           <>
             <div className="ring1-metric">
-              <p className="ring1-metric-value font-serif">{m?.callsToday ?? 0}</p>
+              <p className="ring1-metric-value font-sans">{m?.callsToday ?? 0}</p>
               <p className="ring1-metric-label font-sans">Calls today</p>
             </div>
             <div className="ring1-metric">
-              <p className="ring1-metric-value font-serif">{m?.leadsToday ?? 0}</p>
+              <p className="ring1-metric-value font-sans">{m?.leadsToday ?? 0}</p>
               <p className="ring1-metric-label font-sans">Leads today</p>
             </div>
             <div className="ring1-metric ring1-metric-highlight">
-              <p className="ring1-metric-value font-serif">{m?.newLeads ?? 0}</p>
+              <p className="ring1-metric-value font-sans">{m?.newLeads ?? 0}</p>
               <p className="ring1-metric-label font-sans">New in inbox</p>
             </div>
             <div className="ring1-metric">
-              <p className="ring1-metric-value font-serif">
+              <p className="ring1-metric-value font-sans">
                 {m?.answerRate != null ? `${m.answerRate}%` : "100%"}
               </p>
               <p className="ring1-metric-label font-sans">Answer rate</p>
             </div>
             <div className="ring1-metric ring1-metric-wide">
-              <p className="ring1-metric-value font-serif ring1-metric-value-sm">
+              <p className="ring1-metric-value font-sans ring1-metric-value-sm">
                 {formatRelative(m?.lastCallAt ?? null)}
               </p>
               <p className="ring1-metric-label font-sans">
@@ -186,7 +186,7 @@ export function Ring1CommandCenter() {
           <div className="pro-section-head">
             <div>
               <p className="pro-section-kicker font-sans">Inbox</p>
-              <h3 className="pro-section-title font-serif">Latest leads</h3>
+              <h3 className="pro-section-title font-sans">Latest leads</h3>
             </div>
             <Link href="/dashboard/inbox" className="pro-section-link font-sans">
               Open full inbox →
@@ -227,7 +227,7 @@ export function Ring1CommandCenter() {
           <div className="pro-section-head">
             <div>
               <p className="pro-section-kicker font-sans">Calls</p>
-              <h3 className="pro-section-title font-serif">Recent conversations</h3>
+              <h3 className="pro-section-title font-sans">Recent conversations</h3>
             </div>
             <Link href="/dashboard/calls" className="pro-section-link font-sans">
               Full call log →

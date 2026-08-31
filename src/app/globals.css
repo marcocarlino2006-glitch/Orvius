@@ -5370,8 +5370,8 @@ h3 {
   animation: cinema-ring 1.4s ease-out infinite;
 }
 .call-demo-number {
-  font-size: clamp(1.375rem, 3.5vw, 1.875rem);
-  font-weight: 600; letter-spacing: 0.04em;
+  font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+  font-weight: 600; letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
   color: var(--chalk);
   text-decoration: none;
@@ -5774,8 +5774,9 @@ h3 {
 }
 
 .os-topbar-pro .os-topbar-title {
-  font-size: clamp(1.875rem, 3.2vw, 2.625rem);
-  letter-spacing: -0.035em;
+  font-size: clamp(1.625rem, 2.8vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
 .os-content-pro {
@@ -5926,6 +5927,30 @@ h3 {
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--ash);
+}
+
+.pro-empty-state {
+  border: 1px dashed color-mix(in srgb, var(--void) 12%, var(--rule));
+  border-radius: 0.625rem;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--signal) 5%, transparent), transparent 65%),
+    color-mix(in srgb, var(--fog) 45%, var(--white));
+  padding: 2.75rem 1.5rem;
+  text-align: center;
+}
+
+.pro-empty-state-text {
+  max-width: 36ch;
+  margin: 0 auto;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--ash);
+}
+
+.pro-empty-state-action {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
 }
 
 .pro-list-item {
@@ -6217,8 +6242,8 @@ h3 {
 }
 .ring1-command-line { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.5rem; }
 .ring1-command-number {
-  font-size: clamp(1.25rem, 2.5vw, 1.625rem); font-weight: 600;
-  letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+  font-size: clamp(1.0625rem, 2vw, 1.375rem); font-weight: 600;
+  letter-spacing: 0.06em; font-variant-numeric: tabular-nums;
   color: var(--mist); text-decoration: none;
 }
 .ring1-command-number:hover { color: var(--signal-hot); }
@@ -7621,15 +7646,25 @@ h3 {
   z-index: 1;
 }
 
+.tier1-hero-heading {
+  margin-top: 1.25rem;
+  max-width: 16ch;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: var(--void);
+}
+
 .tier1-hero-line {
   display: block;
-  margin-top: 1.5rem;
-  font-size: clamp(3rem, 10vw, 6.25rem);
-  font-weight: 700;
-  line-height: 0.92;
-  letter-spacing: 0.015em;
+  margin-top: 1rem;
+  font-size: clamp(1.5rem, 3.5vw, 2.125rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
-  color: var(--void);
+  color: var(--signal-dim);
   text-decoration: none;
   transition: color 180ms ease;
 }
@@ -7969,11 +8004,11 @@ h3 {
 .tier1-close-line {
   display: block;
   margin-top: 0.65rem;
-  font-size: clamp(2.25rem, 6vw, 4rem);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
-  color: var(--void);
+  color: var(--signal-dim);
   text-decoration: none;
 }
 

@@ -5,6 +5,7 @@ import { Ring1LiveStrip } from "@/components/ring1-live-strip";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -50,7 +51,6 @@ export default function CallsPage() {
     <OsShell
       title="Calls"
       subtitle={`Ring 1 · ${total} inbound conversation${total === 1 ? "" : "s"} on record`}
-      businessName="Summit HVAC"
       actions={
         <Link href="/dashboard/inbox" className="btn btn-void text-sm">
           Open inbox
@@ -70,7 +70,13 @@ export default function CallsPage() {
           ) : null}
 
           {!calls.length ? (
-            <ShellEmpty>
+            <ShellEmpty
+              action={
+                <a href={demoLineHref()} className="btn btn-void text-sm">
+                  Call {DEMO_LINE_DISPLAY}
+                </a>
+              }
+            >
               No calls yet. Test the live line — every conversation lands here with
               transcript and lead link.
             </ShellEmpty>

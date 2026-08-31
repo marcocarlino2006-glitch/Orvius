@@ -54,7 +54,7 @@ export function ShellStat({
   return (
     <div className={`pro-stat ${active ? "pro-stat-live" : ""}`}>
       <p className="pro-stat-label font-sans">{label}</p>
-      <p className="pro-stat-value font-serif">{value}</p>
+      <p className="pro-stat-value font-sans">{value}</p>
     </div>
   );
 }
@@ -80,9 +80,18 @@ export function ShellBadge({
   );
 }
 
-export function ShellEmpty({ children }: { children: ReactNode }) {
+export function ShellEmpty({
+  children,
+  action,
+}: {
+  children: ReactNode;
+  action?: ReactNode;
+}) {
   return (
-    <p className="pro-empty font-sans">{children}</p>
+    <div className="pro-empty-state font-sans">
+      <p className="pro-empty-state-text">{children}</p>
+      {action ? <div className="pro-empty-state-action">{action}</div> : null}
+    </div>
   );
 }
 
