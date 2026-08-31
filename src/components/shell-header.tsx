@@ -15,6 +15,32 @@ type ShellHeaderProps = {
   nav?: NavLink[] | false;
 };
 
+function HeaderCtaLink({
+  href,
+  label,
+  className,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  className: string;
+  onClick?: () => void;
+}) {
+  if (href.startsWith("tel:") || href.startsWith("mailto:")) {
+    return (
+      <a href={href} className={className} onClick={onClick}>
+        {label}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={className} onClick={onClick}>
+      {label}
+    </Link>
+  );
+}
+
 const defaultNav: NavLink[] = [
   { href: "/demo", label: "Demo" },
   { href: "/pricing", label: "Pricing" },
@@ -118,14 +144,17 @@ export function ShellHeader({
 
           <div className="flex items-center gap-3 md:gap-4">
             {headerCta ? (
-              <Link
+              <HeaderCtaLink
                 href={headerCta.href}
+                label={headerCta.label}
                 className={`tier-btn tier-btn-sm ${
-                  isVoid ? "tier-btn-light" : "tier-btn-primary"
+                  headerCta.href.startsWith("tel:")
+                    ? "tier-btn-call tier-btn-call-sm"
+                    : isVoid
+                      ? "tier-btn-light"
+                      : "tier-btn-primary"
                 } shell-header-cta`}
-              >
-                {headerCta.label}
-              </Link>
+              />
             ) : null}
 
             {nav ? (
@@ -176,13 +205,16 @@ export function ShellHeader({
                 ))}
               </ul>
               {headerCta ? (
-                <Link
+                <HeaderCtaLink
                   href={headerCta.href}
-                  className="tier-btn tier-btn-light mt-4 w-full justify-center"
+                  label={headerCta.label}
+                  className={`tier-btn mt-4 w-full justify-center ${
+                    headerCta.href.startsWith("tel:")
+                      ? "tier-btn-call"
+                      : "tier-btn-light"
+                  }`}
                   onClick={() => setMenuOpen(false)}
-                >
-                  {headerCta.label}
-                </Link>
+                />
               ) : null}
             </nav>
           </div>

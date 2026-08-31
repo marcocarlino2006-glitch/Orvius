@@ -1,34 +1,18 @@
 "use client";
 
-import { useState } from "react";
-
-const LINE = "+1 844 643 9170";
+import { HomeCallDemo } from "@/components/home-call-demo";
 
 type HomeLiveLineProps = {
   variant?: "light" | "void";
 };
 
+/** @deprecated Prefer HomeCallDemo — kept for compatibility */
 export function HomeLiveLine({ variant = "light" }: HomeLiveLineProps) {
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(LINE.replace(/\s/g, ""));
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
-    } catch {
-      setCopied(false);
-    }
-  }
-
   return (
-    <div
-      className={`tier-live ${variant === "void" ? "tier-live-void" : "tier-live-light"}`}
-    >
-      <code className="tier-live-number font-sans">{LINE}</code>
-      <button type="button" className="tier-live-copy font-sans" onClick={copy}>
-        {copied ? "Copied" : "Copy"}
-      </button>
-    </div>
+    <HomeCallDemo
+      variant={variant}
+      size="compact"
+      showHint={false}
+    />
   );
 }

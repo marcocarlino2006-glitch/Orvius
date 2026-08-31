@@ -1,6 +1,7 @@
 "use client";
 
 import { OsShell } from "@/components/os-shell";
+import { HomeCallDemo } from "@/components/home-call-demo";
 import {
   leadFromDemoForm,
   OwnerAlertCard,
@@ -85,9 +86,13 @@ export default function DemoPage() {
   return (
     <OsShell
       title="Demo call"
-      subtitle="Walk a shop owner through exactly what Orvius captures."
+      subtitle="Walk a shop owner through exactly what Orvius captures — or call the live line first."
       statusLabel="Demo"
     >
+      <div className="demo-live-banner">
+        <HomeCallDemo variant="light" size="compact" />
+      </div>
+
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
         <aside className="order-1 lg:order-2 lg:sticky lg:top-28">
           <p className="home-os-kicker">Owner sees this</p>

@@ -1,5 +1,6 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { EarlyAccessForm } from "@/components/early-access-form";
+import { HomeCallDemo } from "@/components/home-call-demo";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { company, pricing } from "@/lib/company";
 import type { Metadata } from "next";
@@ -19,8 +20,11 @@ export default function PilotPage() {
             label="Design partner"
             title="Get Orvius on your line this week."
             subline="30-day program · personal onboarding · no credit card"
-            description="We configure your line, services, and hours together — then go live."
+            description="Call the live demo first if you want proof — then apply below."
           />
+          <div className="pilot-live-call">
+            <HomeCallDemo variant="light" size="section" />
+          </div>
         </div>
       </section>
 

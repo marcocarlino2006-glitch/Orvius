@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { platformPillars } from "@/lib/company";
+import { demoLineHref } from "@/lib/demo-line";
 import { summitCaseStudy } from "@/lib/trust";
 import { RevealOnScroll } from "@/components/reveal-on-scroll";
 
@@ -41,9 +42,14 @@ export function HomePlatformSection() {
         </RevealOnScroll>
 
         <RevealOnScroll delay={160}>
-          <Link href="/demo" className="cursor-link font-sans cursor-platform-link">
-            Watch demo →
-          </Link>
+          <div className="cursor-platform-actions font-sans">
+            <a href={demoLineHref()} className="cursor-link cursor-platform-link-call">
+              Call live demo →
+            </a>
+            <Link href="/demo" className="cursor-link cursor-platform-link">
+              Simulate in browser →
+            </Link>
+          </div>
         </RevealOnScroll>
       </div>
     </section>
