@@ -54,7 +54,7 @@ export function LiveStatusBar() {
   if (!health) return null;
 
   return (
-    <section className="live-status-bar">
+    <section className="live-status-bar live-status-bar-pro">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <ShellBadge tone={health.configured ? "live" : "flare"}>

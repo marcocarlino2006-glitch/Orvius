@@ -42,7 +42,7 @@ Your domain is registered at **Namecheap** (registrar-servers.com).
 
 7. Set Vercel environment variables:
    ```
-   NEXT_PUBLIC_APP_URL=https://api.orvius.im
+   NEXT_PUBLIC_APP_URL=https://app.orvius.im
    ORVIUS_PRIMARY_DOMAIN=orvius.im
    ORVIUS_APP_DOMAIN=app.orvius.im
    ORVIUS_API_DOMAIN=api.orvius.im

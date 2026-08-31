@@ -82,7 +82,7 @@ export default function InboxPage() {
         </Link>
       }
     >
-      <div className="inbox-filters mb-6 flex flex-wrap gap-2">
+      <div className="inbox-filters pro-filter-bar mb-6 flex flex-wrap gap-2">
         {FILTERS.map((item) => {
           const count =
             item.value === ""

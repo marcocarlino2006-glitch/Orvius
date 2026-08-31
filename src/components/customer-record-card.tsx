@@ -26,7 +26,7 @@ export function CustomerRecordCard({
   const label = customerDisplayName(name, phone);
 
   return (
-    <Link href={`/dashboard/customers/${id}`} className="customer-record-card">
+    <Link href={`/dashboard/customers/${id}`} className="customer-record-card pro-card">
       <div className="customer-record-head">
         <div className="customer-record-avatar font-sans" aria-hidden>
           {label.charAt(0).toUpperCase()}

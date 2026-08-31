@@ -49,7 +49,11 @@ export function LeadInboxCard({
   const emergency = isEmergency(urgency);
 
   const card = (
-    <article className={`lead-inbox-card ${linked && id ? "lead-inbox-card-link" : ""}`}>
+    <article
+      className={`lead-inbox-card pro-card ${emergency ? "lead-inbox-card-emergency" : ""} ${
+        linked && id ? "lead-inbox-card-link" : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-3 border-b border-rule px-5 py-3.5">
         <div className="flex items-center gap-2">
           <span className="relative flex size-2">

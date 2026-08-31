@@ -105,7 +105,7 @@ export default function DashboardPage() {
             </div>
           ) : null}
 
-          <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5 pro-stat-grid">
             <ShellStat label="Jobs" value={data?.jobCount ?? "—"} highlight />
             <ShellStat label="Customers" value={data?.customerCount ?? "—"} />
             <ShellStat label="Leads" value={data?.leadCount ?? "—"} />
@@ -113,15 +113,13 @@ export default function DashboardPage() {
             <ShellStat label="Businesses" value={data?.businessCount ?? "—"} />
           </section>
 
-          <section className="mb-10">
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+          <section className="mb-10 pro-section">
+            <div className="pro-section-head">
               <div>
-                <p className="home-os-kicker">Jobs</p>
-                <h2 className="mt-2 font-serif text-2xl tracking-[-0.04em] text-void">
-                  Upcoming jobs
-                </h2>
+                <p className="pro-section-kicker font-sans">Jobs</p>
+                <h2 className="pro-section-title font-serif">Upcoming jobs</h2>
               </div>
-              <Link href="/dashboard/jobs" className="editorial-link font-sans text-sm">
+              <Link href="/dashboard/jobs" className="pro-section-link font-sans">
                 View all jobs →
               </Link>
             </div>
@@ -151,15 +149,13 @@ export default function DashboardPage() {
             )}
           </section>
 
-          <section className="mb-10">
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+          <section className="mb-10 pro-section">
+            <div className="pro-section-head">
               <div>
-                <p className="home-os-kicker">Customers</p>
-                <h2 className="mt-2 font-serif text-2xl tracking-[-0.04em] text-void">
-                  Customer records
-                </h2>
+                <p className="pro-section-kicker font-sans">Customers</p>
+                <h2 className="pro-section-title font-serif">Customer records</h2>
               </div>
-              <Link href="/dashboard/customers" className="editorial-link font-sans text-sm">
+              <Link href="/dashboard/customers" className="pro-section-link font-sans">
                 View all customers →
               </Link>
             </div>
@@ -187,15 +183,13 @@ export default function DashboardPage() {
             )}
           </section>
 
-          <section className="mb-10">
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+          <section className="mb-10 pro-section">
+            <div className="pro-section-head">
               <div>
-                <p className="home-os-kicker">Front door</p>
-                <h2 className="mt-2 font-serif text-2xl tracking-[-0.04em] text-void">
-                  Recent leads
-                </h2>
+                <p className="pro-section-kicker font-sans">Front door</p>
+                <h2 className="pro-section-title font-serif">Recent leads</h2>
               </div>
-              <Link href="/dashboard/inbox" className="editorial-link font-sans text-sm">
+              <Link href="/dashboard/inbox" className="pro-section-link font-sans">
                 Open inbox →
               </Link>
             </div>

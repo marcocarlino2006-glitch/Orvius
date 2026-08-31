@@ -1,6 +1,5 @@
-import { BrandIntro } from "@/components/brand-intro";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
-import { ShellHeader } from "@/components/shell-header";
+import { OrviusLogo } from "@/components/orvius-logo";
 import { company } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -20,42 +19,51 @@ export default async function LoginPage({
   const error = params.error;
 
   return (
-    <>
-      <ShellHeader plane="chalk" cta={{ href: "/pilot", label: "Get started" }} nav={false} />
+    <main className="login-pro">
+      <section className="login-pro-brand">
+        <div className="login-pro-brand-inner">
+          <OrviusLogo size="lg" variant="void" showOs />
+          <p className="login-pro-kicker font-sans">Orvius OS</p>
+          <h1 className="login-pro-title font-serif">
+            The operating system for your shop.
+          </h1>
+          <p className="login-pro-lead font-sans">
+            Inbox, customers, jobs, dispatch — one intelligence layer for every
+            call, every customer, every job.
+          </p>
+          <ul className="login-pro-rings font-sans">
+            <li>01 · Answer · qualify · alert</li>
+            <li>02 · Customer records</li>
+            <li>03 · Jobs & scheduling</li>
+            <li>04 · Field dispatch</li>
+          </ul>
+        </div>
+      </section>
 
-      <main className="editorial bg-chalk text-void">
-        <section className="editorial-hero">
-          <div className="editorial-wrap max-w-lg">
-            <BrandIntro
-              kicker="Orvius OS"
-              title="Sign in to your shop."
-              subline="Inbox, customers, jobs, and the field board — one operating system."
-              align="left"
-              titleClassName="!text-[clamp(2rem,4vw,2.75rem)] !max-w-none"
-            />
+      <section className="login-pro-form">
+        <div className="login-pro-form-inner">
+          <h2 className="login-pro-form-title font-serif">Sign in to your shop</h2>
+          <p className="login-pro-form-sub font-sans">
+            Use the Google account connected to your Orvius workspace.
+          </p>
 
-            {error ? (
-              <p className="mt-6 rounded-md border border-flare/25 bg-flare/8 px-4 py-3 font-sans text-sm text-flare-dim">
-                Sign in failed. Check that your Google account is allowed, then
-                try again.
-              </p>
-            ) : null}
+          {error ? (
+            <p className="login-pro-error font-sans">
+              Sign in failed. Check that your Google account is allowed, then try
+              again.
+            </p>
+          ) : null}
 
-            <div className="mt-8">
-              <GoogleSignInButton callbackUrl={callbackUrl} />
-            </div>
-
-            <div className="editorial-actions mt-8 font-sans">
-              <Link href="/" className="editorial-link">
-                ← Back to homepage
-              </Link>
-              <Link href="/pilot" className="editorial-link">
-                Apply for free pilot
-              </Link>
-            </div>
+          <div className="login-pro-actions">
+            <GoogleSignInButton callbackUrl={callbackUrl} />
           </div>
-        </section>
-      </main>
-    </>
+
+          <div className="login-pro-links font-sans">
+            <Link href="/">← Homepage</Link>
+            <Link href="/pilot">Apply for design partner</Link>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

@@ -30,14 +30,12 @@ export function ShellPanel({
   action?: ReactNode;
 }) {
   return (
-    <section className="card-elevated p-6 md:p-7">
-      <div className="mb-5 flex items-start justify-between gap-4 border-b border-rule pb-4">
-        <h2 className="font-sans text-[0.9375rem] font-semibold tracking-tight text-void">
-          {title}
-        </h2>
+    <section className="pro-panel">
+      <div className="pro-panel-head">
+        <h2 className="pro-panel-title font-sans">{title}</h2>
         {action}
       </div>
-      {children}
+      <div className="pro-panel-body">{children}</div>
     </section>
   );
 }
@@ -54,9 +52,9 @@ export function ShellStat({
   const active = highlight || (value !== "—" && value !== 0);
 
   return (
-    <div className={`os-stat ${active ? "os-stat-live" : ""}`}>
-      <p className="os-stat-label font-sans">{label}</p>
-      <p className="os-stat-value font-sans">{value}</p>
+    <div className={`pro-stat ${active ? "pro-stat-live" : ""}`}>
+      <p className="pro-stat-label font-sans">{label}</p>
+      <p className="pro-stat-value font-serif">{value}</p>
     </div>
   );
 }
@@ -84,9 +82,7 @@ export function ShellBadge({
 
 export function ShellEmpty({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-md border border-dashed border-rule bg-fog/50 px-4 py-8 text-center font-sans text-sm leading-relaxed text-ash">
-      {children}
-    </p>
+    <p className="pro-empty font-sans">{children}</p>
   );
 }
 
@@ -119,14 +115,10 @@ export function ShellListItem({
   children?: ReactNode;
 }) {
   return (
-    <li className="rounded-[0.45rem] border border-rule bg-white px-4 py-3.5">
-      <div className="flex items-start justify-between gap-3">
-        <p className="font-sans text-sm font-semibold text-void">{title}</p>
-        {meta ? (
-          <span className="shrink-0 font-sans text-[0.6875rem] font-medium tracking-wide text-ash uppercase">
-            {meta}
-          </span>
-        ) : null}
+    <li className="pro-list-item">
+      <div className="pro-list-item-head">
+        <p className="pro-list-item-title font-sans">{title}</p>
+        {meta ? <span className="pro-list-item-meta font-sans">{meta}</span> : null}
       </div>
       {children}
     </li>

@@ -32,7 +32,6 @@ export function OsShell({
   title,
   subtitle,
   businessName,
-  statusLabel = "Operations",
   actions,
 }: OsShellProps) {
   const pathname = usePathname();
@@ -40,25 +39,19 @@ export function OsShell({
   const liveRing = getOsRingMeta(osCurrentRing);
 
   return (
-    <div className="os-shell min-h-screen bg-chalk text-void">
-      <aside className="os-sidebar">
+    <div className="os-shell os-shell-pro min-h-screen">
+      <aside className="os-sidebar os-sidebar-pro">
         <div className="os-sidebar-inner">
           <Link href="/dashboard" className="os-sidebar-brand">
-            <OrviusLogo size="md" variant="chalk" showOs markOnly />
-            <span>
-              <span className="os-sidebar-name font-serif">{company.productName}</span>
-              <span className="os-sidebar-sub font-sans">OS</span>
-            </span>
+            <OrviusLogo size="md" variant="void" showOs />
           </Link>
 
-          <div className="os-ring-status">
-            <p className="home-os-kicker">Live</p>
-            <p className="mt-2 font-serif text-lg tracking-[-0.03em] text-void">
+          <div className="os-ring-status os-ring-status-pro">
+            <p className="os-sidebar-label font-sans">Current ring</p>
+            <p className="os-ring-status-title font-serif">
               {String(osCurrentRing).padStart(2, "0")} · {liveRing?.name}
             </p>
-            <p className="mt-1 font-sans text-xs leading-relaxed text-ash">
-              {liveRing?.module}
-            </p>
+            <p className="os-ring-status-module font-sans">{liveRing?.module}</p>
           </div>
 
           <nav className="os-sidebar-nav" aria-label="Product">
@@ -110,22 +103,20 @@ export function OsShell({
             </ul>
           </nav>
 
-          <div className="os-user-panel">
-            {session?.user ? (
-              <>
-                <p className="os-sidebar-label font-sans">Signed in</p>
-                <p className="os-user-name font-sans">{session.user.name ?? "User"}</p>
-                <p className="os-user-email font-sans">{session.user.email}</p>
-                <button
-                  type="button"
-                  className="os-sign-out font-sans"
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                >
-                  Sign out
-                </button>
-              </>
-            ) : null}
-          </div>
+          {session?.user ? (
+            <div className="os-user-panel os-user-panel-pro">
+              <p className="os-sidebar-label font-sans">Signed in</p>
+              <p className="os-user-name font-sans">{session.user.name ?? "User"}</p>
+              <p className="os-user-email font-sans">{session.user.email}</p>
+              <button
+                type="button"
+                className="os-sign-out font-sans"
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                Sign out
+              </button>
+            </div>
+          ) : null}
 
           <div className="os-sidebar-rings">
             <p className="os-sidebar-label font-sans">OS map</p>
@@ -146,12 +137,12 @@ export function OsShell({
         </div>
       </aside>
 
-      <div className="os-main">
-        <header className="os-topbar">
+      <div className="os-main os-main-pro">
+        <header className="os-topbar os-topbar-pro">
           <div className="os-topbar-copy">
             <p className="os-topbar-live font-sans">
               <span className="home-os-live-dot" />
-              {businessName ?? "Orvius"} · Rings 1–{osCurrentRing} live
+              {businessName ?? "Summit HVAC"} · Rings 1–{osCurrentRing} live
             </p>
             <h1 className="os-topbar-title font-serif">{title}</h1>
             {subtitle ? (
@@ -161,7 +152,7 @@ export function OsShell({
           {actions ? <div className="os-topbar-actions">{actions}</div> : null}
         </header>
 
-        <main className="os-content">{children}</main>
+        <main className="os-content os-content-pro">{children}</main>
       </div>
     </div>
   );
