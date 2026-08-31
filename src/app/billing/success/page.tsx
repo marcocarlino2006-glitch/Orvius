@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function BillingSuccessPage() {
   return (
     <MarketingShell cta={false}>
-      <section className="editorial-hero">
+      <section className="marketing-hero">
         <div className="editorial-wrap max-w-3xl">
           <ShellPageIntro
             label="Billing"
@@ -21,7 +21,7 @@ export default function BillingSuccessPage() {
         </div>
       </section>
 
-      <section className="editorial-section">
+      <section className="marketing-section">
         <div className="editorial-wrap max-w-3xl">
           <div className="panel-chalk p-6 md:p-8">
             <ol className="list-decimal space-y-3 pl-5 font-sans text-sm leading-relaxed text-ash">
@@ -30,7 +30,7 @@ export default function BillingSuccessPage() {
               </li>
               <li>
                 Confirm leads still flow in{" "}
-                <Link href="/dashboard" className="editorial-link">
+                <Link href="/dashboard" className="home-platform-link">
                   your dashboard
                 </Link>
                 .
@@ -39,7 +39,7 @@ export default function BillingSuccessPage() {
                 Need help? Email{" "}
                 <a
                   href={`mailto:${company.contactEmail}`}
-                  className="editorial-link"
+                  className="home-platform-link"
                 >
                   {company.contactEmail}
                 </a>
@@ -47,11 +47,11 @@ export default function BillingSuccessPage() {
               </li>
             </ol>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/dashboard" className="editorial-cta">
+            <div className="mt-8 marketing-actions">
+              <Link href="/dashboard" className="tier-btn tier-btn-primary">
                 Open dashboard
               </Link>
-              <Link href="/admin" className="editorial-link">
+              <Link href="/admin" className="home-platform-link">
                 Business setup →
               </Link>
             </div>
