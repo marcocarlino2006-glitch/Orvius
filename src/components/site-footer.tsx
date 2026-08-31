@@ -4,6 +4,7 @@ import { OrviusLogo } from "@/components/orvius-logo";
 
 const productLinks = [
   { href: "/demo", label: "Live demo" },
+  { href: "/login", label: "Sign in" },
   { href: "/pricing", label: "Pricing" },
   { href: "/pilot", label: "Design partner" },
 ];

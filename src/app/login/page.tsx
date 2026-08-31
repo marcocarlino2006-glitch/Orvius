@@ -57,7 +57,10 @@ export default async function LoginPage({
           ) : null}
 
           <div className="tier1-login-actions">
-            <GoogleSignInButton callbackUrl={callbackUrl} />
+            <GoogleSignInButton
+              callbackUrl={callbackUrl}
+              className="google-sign-in-btn google-sign-in-btn-full"
+            />
           </div>
 
           <div className="tier1-login-links font-sans">

@@ -109,9 +109,11 @@ export function ShellHeader({
     ? "shell-nav-link shell-nav-link-void"
     : "shell-nav-link shell-nav-link-chalk";
 
-  const headerCta = session?.user
+  const signedIn = Boolean(session?.user);
+  const headerCta = signedIn
     ? { href: "/dashboard", label: "Dashboard" }
     : cta;
+  const signInHref = "/login";
 
   return (
     <>
@@ -142,6 +144,12 @@ export function ShellHeader({
           ) : null}
 
           <div className="flex items-center gap-3 md:gap-4">
+            {!signedIn ? (
+              <Link href={signInHref} className={`${linkClass} hidden sm:inline-flex`}>
+                Sign in
+              </Link>
+            ) : null}
+
             {headerCta ? (
               <HeaderCtaLink
                 href={headerCta.href}
@@ -203,6 +211,17 @@ export function ShellHeader({
                   </li>
                 ))}
               </ul>
+              {!signedIn ? (
+                <Link
+                  href={signInHref}
+                  className={`shell-mobile-link mt-4 block ${
+                    isVoid ? "shell-mobile-link-void" : "shell-mobile-link-chalk"
+                  }`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Sign in
+                </Link>
+              ) : null}
               {headerCta ? (
                 <HeaderCtaLink
                   href={headerCta.href}

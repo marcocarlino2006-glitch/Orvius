@@ -148,7 +148,7 @@ export function HomeProductStage() {
                 Who is free for the Oakridge emergency?
               </p>
               <Link href="/login" className="home-os-composer-btn">
-                Run
+                Sign in
               </Link>
             </div>
           </div>

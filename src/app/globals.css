@@ -3467,6 +3467,14 @@ h3 {
   transform: translateY(-1px);
 }
 
+.google-sign-in-btn-full {
+  width: 100%;
+}
+
+.tier1-login-actions .google-sign-in-btn {
+  min-height: 3rem;
+}
+
 .os-user-panel {
   padding: 0.75rem;
   border-radius: 0.5rem;
