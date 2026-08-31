@@ -1,5 +1,6 @@
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { getAuthConfigStatus } from "@/lib/auth-env";
 import { company } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -17,6 +18,8 @@ export default async function LoginPage({
   const params = await searchParams;
   const callbackUrl = params.callbackUrl ?? "/dashboard";
   const error = params.error;
+  const auth = getAuthConfigStatus();
+  const missing = auth.items.filter((item) => !item.optional && !item.configured);
 
   return (
     <main className="tier1-login">
@@ -52,8 +55,54 @@ export default async function LoginPage({
 
           {error ? (
             <p className="tier1-login-error font-sans">
-              Sign in failed. Verify your account is authorized, then try again.
+              {error === "Configuration"
+                ? "Google sign-in is not configured yet. Add OAuth credentials in Vercel (see steps below)."
+                : "Sign in failed. Verify your account is authorized, then try again."}
             </p>
+          ) : null}
+
+          {!auth.ready ? (
+            <div className="tier1-login-setup font-sans">
+              <p className="tier1-login-setup-title">Google OAuth not linked yet</p>
+              <p className="tier1-login-setup-lead">
+                The sign-in button will not work until you connect Google OAuth in
+                Vercel. This takes about 5 minutes.
+              </p>
+              <ol className="tier1-login-setup-steps">
+                <li>
+                  Open{" "}
+                  <a
+                    href="https://console.cloud.google.com/apis/credentials"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                        Google Cloud Console → Credentials
+                  </a>
+                  , create an OAuth client (Web application).
+                </li>
+                <li>
+                  Add these redirect URIs:
+                  <ul className="tier1-login-setup-uris">
+                    {auth.redirectUris.map((uri) => (
+                      <li key={uri}>
+                        <code>{uri}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+                <li>
+                  In Vercel → Project → Settings → Environment Variables, add:
+                  <ul className="tier1-login-setup-uris">
+                    {missing.map((item) => (
+                      <li key={item.name}>
+                        <code>{item.name}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+                <li>Redeploy, then return here and sign in.</li>
+              </ol>
+            </div>
           ) : null}
 
           <div className="tier1-login-actions">
