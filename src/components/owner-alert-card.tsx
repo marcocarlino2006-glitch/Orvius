@@ -78,12 +78,11 @@ export function OwnerAlertCard({
         }`}
       >
         <div className="flex items-center gap-2.5">
-          <span className="relative flex size-2">
-            {isVoid ? (
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-flare opacity-35" />
-            ) : null}
-            <span className="relative inline-flex size-2 rounded-full bg-flare" />
-          </span>
+          {isVoid && isEmergency ? (
+            <span className="live-dot live-dot-flare" aria-hidden />
+          ) : (
+            <span className="live-dot live-dot-flare" aria-hidden />
+          )}
           <p
             className={`home-os-kicker ${
               isVoid ? "home-os-kicker-flare" : ""

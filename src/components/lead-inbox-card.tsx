@@ -56,16 +56,11 @@ export function LeadInboxCard({
     >
       <div className="flex items-start justify-between gap-3 border-b border-rule px-5 py-3.5">
         <div className="flex items-center gap-2">
-          <span className="relative flex size-2">
-            {emergency ? (
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-flare opacity-35" />
-            ) : null}
-            <span
-              className={`relative inline-flex size-2 rounded-full ${
-                emergency ? "bg-flare" : "bg-live"
-              }`}
-            />
-          </span>
+          {emergency ? (
+            <span className="live-dot live-dot-flare" aria-hidden />
+          ) : (
+            <span className="live-dot live-dot-green" aria-hidden />
+          )}
           <p
             className={`home-os-kicker ${
               emergency ? "home-os-kicker-flare" : ""

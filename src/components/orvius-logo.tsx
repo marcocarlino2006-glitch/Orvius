@@ -5,15 +5,10 @@ import { useId } from "react";
 type OrviusMarkProps = {
   size?: number;
   className?: string;
-  animated?: boolean;
 };
 
-/** Four-ring signal mark — clean, static, premium SaaS. */
-export function OrviusMark({
-  size = 24,
-  className = "",
-  animated = false,
-}: OrviusMarkProps) {
+/** Four-ring signal mark — static, no motion. */
+export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   const uid = useId().replace(/:/g, "");
   const gradId = `orvius-grad-${uid}`;
 
@@ -24,7 +19,7 @@ export function OrviusMark({
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`orvius-mark ${animated ? "orvius-mark-animated" : ""} ${className}`.trim()}
+      className={`orvius-mark ${className}`.trim()}
       aria-hidden
     >
       <defs>
@@ -63,13 +58,7 @@ export function OrviusMark({
         fill="none"
         opacity="0.78"
       />
-      <circle
-        cx="16"
-        cy="16"
-        r="2.75"
-        fill={`url(#${gradId})`}
-        className="orvius-mark-core"
-      />
+      <circle cx="16" cy="16" r="2.75" fill={`url(#${gradId})`} />
     </svg>
   );
 }

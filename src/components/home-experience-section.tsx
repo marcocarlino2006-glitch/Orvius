@@ -1,5 +1,4 @@
 import { HomeCallDemo } from "@/components/home-call-demo";
-import { RevealOnScroll } from "@/components/reveal-on-scroll";
 
 const steps = [
   {
@@ -23,36 +22,31 @@ export function HomeExperienceSection() {
   return (
     <section className="home-experience home-experience-light" aria-labelledby="experience-heading">
       <div className="editorial-wrap">
-        <RevealOnScroll>
-          <div className="home-experience-head home-experience-head-center">
-            <h2 id="experience-heading" className="home-experience-title font-serif">
-              How it works
-            </h2>
-            <p className="home-experience-lead font-sans">
-              Three steps from missed call to booked job — without you picking up the phone.
-            </p>
-          </div>
-        </RevealOnScroll>
+        <div className="home-experience-head home-experience-head-center">
+          <h2 id="experience-heading" className="home-experience-title font-sans">
+            One emergency call, end to end
+          </h2>
+          <p className="home-experience-lead font-sans">
+            What happens when a homeowner calls after hours — without voicemail,
+            hold music, or a blank CRM.
+          </p>
+        </div>
 
-        <RevealOnScroll delay={80}>
-          <ol className="home-experience-grid font-sans">
-            {steps.map((item) => (
-              <li key={item.step} className="home-experience-grid-item">
-                <span className="home-experience-grid-num" aria-hidden>
-                  {item.step}
-                </span>
-                <h3 className="home-experience-grid-title">{item.title}</h3>
-                <p className="home-experience-grid-body">{item.body}</p>
-              </li>
-            ))}
-          </ol>
-        </RevealOnScroll>
+        <ol className="home-experience-grid font-sans">
+          {steps.map((item) => (
+            <li key={item.step} className="home-experience-grid-item">
+              <span className="home-experience-grid-num" aria-hidden>
+                {item.step}
+              </span>
+              <h3 className="home-experience-grid-title">{item.title}</h3>
+              <p className="home-experience-grid-body">{item.body}</p>
+            </li>
+          ))}
+        </ol>
 
-        <RevealOnScroll delay={120}>
-          <div className="home-experience-call">
-            <HomeCallDemo variant="light" size="section" />
-          </div>
-        </RevealOnScroll>
+        <div className="home-experience-call">
+          <HomeCallDemo variant="light" size="section" />
+        </div>
       </div>
     </section>
   );

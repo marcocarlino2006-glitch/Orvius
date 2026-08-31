@@ -40,7 +40,7 @@ export function HomeCallDemo({
   return (
     <div className={rootClass}>
       <div className="call-demo-live font-sans" aria-hidden>
-        <span className="call-demo-pulse" />
+        <span className="live-dot live-dot-green" />
         Live now
       </div>
 

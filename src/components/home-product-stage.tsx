@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { OrviusMark } from "@/components/orvius-logo";
+import { OrviusLogo } from "@/components/orvius-logo";
 
 const surfaces = [
   { id: "call", label: "Call", path: "orvius.im/inbox" },
@@ -88,8 +88,8 @@ export function HomeProductStage() {
 
         <div className="home-os-titlebar font-sans">
           <div className="home-os-titlebar-brand">
-            <OrviusMark size={22} className="home-os-mark" />
-            <span className="home-os-wordmark font-serif">Orvius</span>
+            <OrviusLogo size="sm" variant="chalk" markOnly />
+            <span className="home-os-wordmark font-sans">Orvius</span>
             <span className="home-os-shop">Summit HVAC</span>
           </div>
           <span className="home-os-shop-meta">RING 04 · FIELD LIVE</span>
@@ -171,8 +171,8 @@ export function HomeOsFrame({
     <div className="home-os">
       <div className="home-os-titlebar font-sans">
         <div className="home-os-titlebar-brand">
-          <OrviusMark size={22} className="home-os-mark" />
-          <span className="home-os-wordmark font-serif">Orvius</span>
+          <OrviusLogo size="sm" variant="chalk" markOnly />
+          <span className="home-os-wordmark font-sans">Orvius</span>
           <span className="home-os-shop">{shop}</span>
         </div>
         <span className="home-os-live">
@@ -238,7 +238,7 @@ export function HomeOsCall({ dense = false }: { dense?: boolean }) {
       </div>
       <div className="home-os-panel">
         <p className="home-os-kicker home-os-kicker-flare">Owner alert</p>
-        <p className="home-os-name font-serif">Maria Lopez</p>
+        <p className="home-os-name font-sans">Maria Lopez</p>
         <dl className="home-os-dl">
           <div>
             <dt>Service</dt>
@@ -279,7 +279,7 @@ export function HomeOsJobs({ dense = false }: { dense?: boolean }) {
       </div>
       <article className="home-os-row">
         <div>
-          <p className="home-os-row-title font-serif">AC not cooling</p>
+          <p className="home-os-row-title font-sans">AC not cooling</p>
           <p className="home-os-row-sub">Maria Lopez · 1842 Oak Street</p>
         </div>
         <div className="home-os-row-aside">
@@ -289,7 +289,7 @@ export function HomeOsJobs({ dense = false }: { dense?: boolean }) {
       </article>
       <article className="home-os-row">
         <div>
-          <p className="home-os-row-title font-serif">No hot water</p>
+          <p className="home-os-row-title font-sans">No hot water</p>
           <p className="home-os-row-sub">James Park · 411 Pine · Elena Ruiz</p>
         </div>
         <div className="home-os-row-aside">
@@ -299,7 +299,7 @@ export function HomeOsJobs({ dense = false }: { dense?: boolean }) {
       </article>
       <article className="home-os-row">
         <div>
-          <p className="home-os-row-title font-serif">Annual maintenance</p>
+          <p className="home-os-row-title font-sans">Annual maintenance</p>
           <p className="home-os-row-sub">Oakridge Offices · 2 units · Marcus Chen</p>
         </div>
         <div className="home-os-row-aside">
@@ -310,7 +310,7 @@ export function HomeOsJobs({ dense = false }: { dense?: boolean }) {
       {dense ? (
         <article className="home-os-row">
           <div>
-            <p className="home-os-row-title font-serif">Filter change</p>
+            <p className="home-os-row-title font-sans">Filter change</p>
             <p className="home-os-row-sub">Returning · 902 Maple · unassigned</p>
           </div>
           <div className="home-os-row-aside">
@@ -330,7 +330,7 @@ export function HomeOsDispatch({ dense = false }: { dense?: boolean }) {
         <p className="home-os-kicker">Unassigned · 1</p>
         <article className="home-os-chip">
           <p className="home-os-chip-time">2:00 PM</p>
-          <p className="home-os-chip-title font-serif">Emergency AC</p>
+          <p className="home-os-chip-title font-sans">Emergency AC</p>
           <p className="home-os-chip-sub">Maria Lopez · Oak Street</p>
         </article>
       </div>
@@ -341,13 +341,13 @@ export function HomeOsDispatch({ dense = false }: { dense?: boolean }) {
             <p className="home-os-chip-time">8:00 AM</p>
             <span className="home-os-pill home-os-pill-live">En route</span>
           </div>
-          <p className="home-os-chip-title font-serif">Maintenance</p>
+          <p className="home-os-chip-title font-sans">Maintenance</p>
           <p className="home-os-chip-sub">Oakridge Offices</p>
         </article>
         {dense ? (
           <article className="home-os-chip">
             <p className="home-os-chip-time">1:00 PM</p>
-            <p className="home-os-chip-title font-serif">Filter change</p>
+            <p className="home-os-chip-title font-sans">Filter change</p>
             <p className="home-os-chip-sub">902 Maple</p>
           </article>
         ) : null}
@@ -359,7 +359,7 @@ export function HomeOsDispatch({ dense = false }: { dense?: boolean }) {
             <p className="home-os-chip-time">9:30 AM</p>
             <span className="home-os-pill home-os-pill-live">On site</span>
           </div>
-          <p className="home-os-chip-title font-serif">No hot water</p>
+          <p className="home-os-chip-title font-sans">No hot water</p>
           <p className="home-os-chip-sub">411 Pine</p>
         </article>
       </div>
@@ -371,7 +371,7 @@ export function HomeOsAsk({ dense = false }: { dense?: boolean }) {
   return (
     <div className="home-os-ask">
       <p className="home-os-kicker">Ask · from OS memory</p>
-      <p className="home-os-ask-q font-serif">Who called after hours last night?</p>
+      <p className="home-os-ask-q font-sans">Who called after hours last night?</p>
       <div className="home-os-ask-a">
         <p>
           Maria Lopez. Emergency AC, 1842 Oak Street. Captured at 9:14 PM.
@@ -381,7 +381,7 @@ export function HomeOsAsk({ dense = false }: { dense?: boolean }) {
       </div>
       {dense ? (
         <>
-          <p className="home-os-ask-q home-os-ask-q-follow font-serif">
+          <p className="home-os-ask-q home-os-ask-q-follow font-sans">
             Put her on Marcus after Oakridge.
           </p>
           <div className="home-os-ask-a">

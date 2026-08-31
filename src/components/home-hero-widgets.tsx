@@ -13,7 +13,7 @@ export function HomeHeroWidgets() {
       <article className="home-widget home-widget-live">
         <header className="home-widget-head font-sans">
           <span className="home-widget-live-label">
-            <span className="call-demo-pulse" aria-hidden />
+            <span className="live-dot live-dot-signal" aria-hidden />
             Live call
           </span>
           <time>{now}</time>
@@ -28,15 +28,15 @@ export function HomeHeroWidgets() {
       </article>
 
       <article className="home-widget home-widget-stat">
-        <p className="home-widget-kicker font-sans">Recovered today</p>
-        <p className="home-widget-stat-value home-widget-stat-live font-serif">+$1,240</p>
-        <p className="home-widget-stat-sub font-sans">4 jobs booked</p>
+        <p className="home-widget-kicker font-sans">Owner alert</p>
+        <p className="home-widget-stat-value home-widget-stat-live font-sans">&lt; 60s</p>
+        <p className="home-widget-stat-sub font-sans">SMS with service, address, callback</p>
       </article>
 
       <article className="home-widget home-widget-stat">
-        <p className="home-widget-kicker font-sans">Answer time</p>
-        <p className="home-widget-stat-value home-widget-stat-signal font-serif">1.8s</p>
-        <p className="home-widget-stat-sub font-sans">Every call, 24/7</p>
+        <p className="home-widget-kicker font-sans">Demo shop</p>
+        <p className="home-widget-stat-value home-widget-stat-signal font-sans">Summit HVAC</p>
+        <p className="home-widget-stat-sub font-sans">Austin · 8 techs · live on Orvius</p>
       </article>
     </div>
   );
