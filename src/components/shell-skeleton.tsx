@@ -7,7 +7,7 @@ export function SkeletonBar({
 }) {
   return (
     <div
-      className={`skeleton ${wide ? "h-10 w-full" : "h-4 w-24"} rounded-md ${className}`}
+      className={`ring1-shimmer ${wide ? "h-10 w-full" : "h-4 w-24"} rounded-md ${className}`}
       aria-hidden
     />
   );
@@ -15,17 +15,17 @@ export function SkeletonBar({
 
 export function SkeletonStat() {
   return (
-    <div className="card p-5 md:p-6">
-      <SkeletonBar className="h-3 w-20" />
-      <SkeletonBar wide className="mt-3 h-8 max-w-[4rem]" />
+    <div className="pro-stat ring1-metric-loading" aria-hidden>
+      <SkeletonBar className="ring1-shimmer-label h-3 w-20" />
+      <SkeletonBar className="ring1-shimmer-value mt-3 h-8 max-w-[4rem]" />
     </div>
   );
 }
 
 export function SkeletonLeadCard() {
   return (
-    <div className="lead-inbox-card p-5">
-      <div className="flex justify-between gap-3 border-b border-rule pb-3">
+    <div className="lead-inbox-card pro-card p-5" aria-hidden>
+      <div className="flex justify-between gap-3 border-b border-rule px-0 pb-3">
         <SkeletonBar className="h-3 w-24" />
         <SkeletonBar className="h-3 w-16" />
       </div>
@@ -40,67 +40,45 @@ export function SkeletonLeadCard() {
   );
 }
 
+export function SkeletonLiveStrip() {
+  return (
+    <div className="ring1-live-strip ring1-metric-loading mb-6" aria-hidden>
+      <div>
+        <SkeletonBar className="h-3 w-20" />
+        <SkeletonBar className="mt-2 h-5 w-36" />
+      </div>
+      <SkeletonBar className="h-9 w-24 rounded-md" />
+    </div>
+  );
+}
+
 export function AdminSkeleton() {
   return (
-    <div className="animate-pulse-soft" aria-busy="true" aria-label="Loading admin">
-      <div className="live-status-bar mb-8">
-        <SkeletonBar wide className="h-5 max-w-lg" />
-      </div>
-
-      <section className="card mb-8 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <SkeletonBar className="h-3 w-24" />
-            <SkeletonBar wide className="mt-3 h-7 max-w-[12rem]" />
-          </div>
+    <div aria-busy="true" aria-label="Loading admin">
+      <SkeletonLiveStrip />
+      <section className="pro-panel mb-8">
+        <div className="pro-panel-head">
+          <SkeletonBar className="h-4 w-32" />
           <SkeletonBar className="h-6 w-12 rounded-full" />
         </div>
-        <ul className="mt-5 space-y-2">
+        <div className="pro-panel-body space-y-2">
           {[1, 2, 3, 4].map((i) => (
-            <li
-              key={i}
-              className="flex items-center justify-between rounded-md border border-rule px-3 py-2.5"
-            >
+            <div key={i} className="pro-list-item flex items-center justify-between">
               <SkeletonBar className="h-4 w-40" />
               <SkeletonBar className="h-4 w-12" />
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </section>
-
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="card space-y-4 p-6 md:p-7">
-          <SkeletonBar className="h-5 w-32" />
-          <SkeletonBar wide className="h-10" />
-          <div className="grid gap-4 md:grid-cols-2">
-            <SkeletonBar wide className="h-10" />
-            <SkeletonBar wide className="h-10" />
-          </div>
-          <SkeletonBar wide className="h-10" />
-          <SkeletonBar wide className="h-40" />
-          <SkeletonBar wide className="h-40" />
-          <SkeletonBar wide className="h-11 max-w-[16rem]" />
-        </section>
-
-        <section className="card p-6 md:p-7">
-          <SkeletonBar className="h-5 w-40" />
-          <div className="mt-5 space-y-4">
-            <SkeletonLeadCard />
-            <SkeletonLeadCard />
-          </div>
-        </section>
-      </div>
     </div>
   );
 }
 
 export function DashboardSkeleton() {
   return (
-    <div className="animate-pulse-soft" aria-busy="true" aria-label="Loading dashboard">
-      <div className="live-status-bar mb-8">
-        <SkeletonBar wide className="h-5 max-w-md" />
-      </div>
-      <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div aria-busy="true" aria-label="Loading dashboard">
+      <SkeletonLiveStrip />
+      <section className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SkeletonStat />
         <SkeletonStat />
         <SkeletonStat />

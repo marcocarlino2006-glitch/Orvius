@@ -1,5 +1,6 @@
 "use client";
 
+import { ProRingBanner } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellBadge, ShellEmpty } from "@/components/shell-primitives";
 import { jobStatusLabel } from "@/lib/job-status";
@@ -41,26 +42,30 @@ function JobChip({ job }: { job: BoardJob }) {
         minute: "2-digit",
       })
     : "TBD";
+  const emergency = job.urgency?.toLowerCase() === "emergency";
 
   return (
-    <Link href={`/dashboard/jobs/${job.id}`} className="home-os-chip dispatch-job-chip">
-      <div className="home-os-chip-head">
-        <p className="home-os-chip-time">{time}</p>
-        <ShellBadge
-          tone={
-            job.status === "on_site" || job.status === "en_route"
-              ? "live"
-              : job.status === "completed"
-                ? "neutral"
-                : "flare"
-          }
-        >
-          {jobStatusLabel(job.status)}
-        </ShellBadge>
+    <Link href={`/dashboard/jobs/${job.id}`} className="dispatch-job-chip pro-card">
+      <div className="dispatch-job-chip-head">
+        <p className="dispatch-job-chip-time font-sans">{time}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {emergency ? <ShellBadge tone="flare">Emergency</ShellBadge> : null}
+          <ShellBadge
+            tone={
+              job.status === "on_site" || job.status === "en_route"
+                ? "live"
+                : job.status === "completed"
+                  ? "neutral"
+                  : "flare"
+            }
+          >
+            {jobStatusLabel(job.status)}
+          </ShellBadge>
+        </div>
       </div>
-      <p className="home-os-chip-title font-serif">{job.title}</p>
-      <p className="home-os-chip-sub">{who}</p>
-      {job.address ? <p className="home-os-chip-sub">{job.address}</p> : null}
+      <p className="dispatch-job-chip-title font-serif">{job.title}</p>
+      <p className="dispatch-job-chip-sub font-sans">{who}</p>
+      {job.address ? <p className="dispatch-job-chip-sub font-sans">{job.address}</p> : null}
     </Link>
   );
 }
@@ -113,46 +118,61 @@ export default function DispatchPage() {
   const columns = useMemo(() => {
     if (!board) return [];
     return [
-      { key: "unassigned", title: "Unassigned", jobs: board.unassigned },
+      { key: "unassigned", title: "Unassigned", jobs: board.unassigned, accent: true },
       ...board.columns.map((col) => ({
         key: col.technician.id,
         title: col.technician.name,
         jobs: col.jobs,
+        accent: false,
       })),
     ];
   }, [board]);
+
+  const dayLabel = new Date(`${day}T12:00:00`).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <OsShell
       title="Dispatch"
       subtitle="Who goes where. The day runs from this board."
+      businessName="Summit HVAC"
       actions={
         <Link href="/dashboard/jobs" className="btn btn-void text-sm">
           All jobs
         </Link>
       }
     >
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <label className="font-sans">
-          <span className="label">Day</span>
+      <ProRingBanner
+        ring={4}
+        name="Dispatch"
+        description={`${dayLabel} · ${board?.jobCount ?? 0} job${board?.jobCount === 1 ? "" : "s"} on the board`}
+        live
+      />
+
+      <div className="pro-toolbar mb-6">
+        <label className="pro-toolbar-field font-sans">
+          <span className="pro-toolbar-label">Day</span>
           <input
             type="date"
-            className="input mt-1.5"
+            className="input pro-toolbar-input"
             value={day}
             onChange={(e) => setDay(e.target.value)}
           />
         </label>
-        <form onSubmit={addTech} className="flex flex-wrap items-end gap-2">
-          <label className="font-sans">
-            <span className="label">Add technician</span>
+        <form onSubmit={addTech} className="pro-toolbar-form">
+          <label className="pro-toolbar-field font-sans">
+            <span className="pro-toolbar-label">Add technician</span>
             <input
-              className="input mt-1.5"
+              className="input pro-toolbar-input"
               value={techName}
               onChange={(e) => setTechName(e.target.value)}
-              placeholder="Name"
+              placeholder="Crew member name"
             />
           </label>
-          <button type="submit" className="btn btn-void" disabled={adding}>
+          <button type="submit" className="btn btn-void text-sm" disabled={adding}>
             {adding ? "Adding…" : "Add to crew"}
           </button>
         </form>
@@ -165,21 +185,39 @@ export default function DispatchPage() {
       ) : null}
 
       {loading && !board ? (
-        <p className="font-sans text-sm text-ash">Loading board…</p>
+        <div className="dispatch-board">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="dispatch-col dispatch-col-loading" aria-hidden>
+              <div className="ring1-shimmer h-4 w-24 rounded" />
+              <div className="mt-4 space-y-3">
+                <div className="ring1-shimmer h-20 w-full rounded-md" />
+                <div className="ring1-shimmer h-20 w-full rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : !board?.jobCount && !board?.columns.length ? (
         <ShellEmpty>No jobs on this day. Book a lead, then assign a tech.</ShellEmpty>
       ) : (
         <div className="dispatch-board">
           {columns.map((col) => (
-            <section key={col.key} className="dispatch-col">
+            <section
+              key={col.key}
+              className={`dispatch-col ${col.accent ? "dispatch-col-unassigned" : ""}`}
+            >
               <header className="dispatch-col-head">
-                <p className="home-os-kicker">{col.title}</p>
-                <p className="font-sans text-xs text-ash">
-                  {col.jobs.length} job{col.jobs.length === 1 ? "" : "s"}
-                </p>
+                <div>
+                  <p className="pro-section-kicker font-sans">{col.title}</p>
+                  <p className="dispatch-col-count font-sans">
+                    {col.jobs.length} job{col.jobs.length === 1 ? "" : "s"}
+                  </p>
+                </div>
+                {col.accent && col.jobs.length > 0 ? (
+                  <ShellBadge tone="flare">Needs assign</ShellBadge>
+                ) : null}
               </header>
               {col.jobs.length ? (
-                <ul className="space-y-3">
+                <ul className="dispatch-col-list">
                   {col.jobs.map((job) => (
                     <li key={job.id}>
                       <JobChip job={job} />
@@ -187,7 +225,7 @@ export default function DispatchPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="font-sans text-sm text-ash">Clear.</p>
+                <p className="dispatch-col-empty font-sans">Clear.</p>
               )}
             </section>
           ))}

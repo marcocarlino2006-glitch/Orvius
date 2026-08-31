@@ -1,17 +1,18 @@
 "use client";
 
-import { OsShell } from "@/components/os-shell";
 import { HomeCallDemo } from "@/components/home-call-demo";
 import {
   leadFromDemoForm,
   OwnerAlertCard,
   SectionEyebrow,
 } from "@/components/owner-alert-card";
+import { ProSectionHead } from "@/components/pro-page-chrome";
 import {
   FormField,
   ShellAlert,
   ShellPanel,
 } from "@/components/shell-primitives";
+import { OsShell } from "@/components/os-shell";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -87,139 +88,152 @@ export default function DemoPage() {
     <OsShell
       title="Demo call"
       subtitle="Walk a shop owner through exactly what Orvius captures — or call the live line first."
-      statusLabel="Demo"
+      businessName="Summit HVAC"
     >
-      <div className="demo-live-banner">
-        <HomeCallDemo variant="light" size="compact" />
-      </div>
+      <div className="demo-pro">
+        <div className="demo-pro-banner">
+          <HomeCallDemo variant="light" size="compact" />
+        </div>
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
-        <aside className="order-1 lg:order-2 lg:sticky lg:top-28">
-          <p className="home-os-kicker">Owner sees this</p>
-          <OwnerAlertCard
-            variant="chalk"
-            className="preview-crossfade mt-4 product-float-none shadow-[var(--shadow-lift)]"
-            lead={previewLead}
-            key={`${form.callerName}-${form.urgency}-${form.serviceType}`}
-          />
-          <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
-            Updates live as you edit the form. This is the alert that lands on
-            the owner&apos;s phone and dashboard.
-          </p>
-        </aside>
+        <div className="demo-pro-grid">
+          <div className="demo-pro-main">
+            <ProSectionHead
+              kicker="Simulate"
+              title="Run a demo call"
+            />
 
-        <div className="order-2 lg:order-1">
-          <div className="demo-preset-scroll mb-6 flex gap-2 overflow-x-auto pb-1">
-            {presets.map((preset) => (
-              <button
-                key={preset.label}
-                type="button"
-                onClick={() => setForm(preset)}
-                className={`btn shrink-0 text-sm ${
-                  form.label === preset.label ? "btn-void" : "btn-secondary"
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
+            <div className="demo-preset-scroll mb-6 flex gap-2 overflow-x-auto pb-1">
+              {presets.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => setForm(preset)}
+                  className={`btn shrink-0 text-sm ${
+                    form.label === preset.label ? "btn-void" : "btn-secondary"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={runDemo} className="pro-panel">
+              <div className="pro-panel-head">
+                <h2 className="pro-panel-title font-sans">Simulate inbound call</h2>
+              </div>
+              <div className="pro-panel-body space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField label="Caller name">
+                    <input
+                      className="input"
+                      required
+                      value={form.callerName}
+                      onChange={(e) =>
+                        setForm({ ...form, callerName: e.target.value })
+                      }
+                    />
+                  </FormField>
+                  <FormField label="Caller phone">
+                    <input
+                      className="input"
+                      required
+                      value={form.callerPhone}
+                      onChange={(e) =>
+                        setForm({ ...form, callerPhone: e.target.value })
+                      }
+                    />
+                  </FormField>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField label="Service needed">
+                    <input
+                      className="input"
+                      required
+                      value={form.serviceType}
+                      onChange={(e) =>
+                        setForm({ ...form, serviceType: e.target.value })
+                      }
+                    />
+                  </FormField>
+                  <FormField label="Urgency">
+                    <select
+                      className="input"
+                      value={form.urgency}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          urgency: e.target.value as typeof form.urgency,
+                        })
+                      }
+                    >
+                      <option value="emergency">Emergency</option>
+                      <option value="same-day">Same day</option>
+                      <option value="this-week">This week</option>
+                      <option value="flexible">Flexible</option>
+                    </select>
+                  </FormField>
+                </div>
+
+                <FormField label="Address">
+                  <input
+                    className="input"
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  />
+                </FormField>
+
+                <FormField label="Notes">
+                  <textarea
+                    className="input min-h-24"
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  />
+                </FormField>
+
+                {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
+
+                <button disabled={loading} className="btn btn-void w-full sm:w-auto">
+                  {loading ? "Running demo call..." : "Simulate call"}
+                </button>
+              </div>
+            </form>
+
+            {result ? (
+              <div className="mt-6">
+                <ShellPanel title="Demo call completed">
+                  <p className="font-sans text-sm text-ash">
+                    Business: {result.business.name}
+                  </p>
+                  <p className="mt-3 font-sans text-sm leading-relaxed text-void">
+                    {result.summary}
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <Link href="/dashboard/inbox" className="btn btn-void w-full text-sm sm:w-auto">
+                      Open inbox
+                    </Link>
+                    <Link href="/dashboard" className="btn btn-secondary w-full text-sm sm:w-auto">
+                      Command center
+                    </Link>
+                  </div>
+                </ShellPanel>
+              </div>
+            ) : null}
           </div>
 
-          <form onSubmit={runDemo} className="card space-y-4 p-6 md:p-7">
-            <SectionEyebrow>Simulate inbound call</SectionEyebrow>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Caller name">
-                <input
-                  className="input"
-                  required
-                  value={form.callerName}
-                  onChange={(e) =>
-                    setForm({ ...form, callerName: e.target.value })
-                  }
-                />
-              </FormField>
-              <FormField label="Caller phone">
-                <input
-                  className="input"
-                  required
-                  value={form.callerPhone}
-                  onChange={(e) =>
-                    setForm({ ...form, callerPhone: e.target.value })
-                  }
-                />
-              </FormField>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Service needed">
-                <input
-                  className="input"
-                  required
-                  value={form.serviceType}
-                  onChange={(e) =>
-                    setForm({ ...form, serviceType: e.target.value })
-                  }
-                />
-              </FormField>
-              <FormField label="Urgency">
-                <select
-                  className="input"
-                  value={form.urgency}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      urgency: e.target.value as typeof form.urgency,
-                    })
-                  }
-                >
-                  <option value="emergency">Emergency</option>
-                  <option value="same-day">Same day</option>
-                  <option value="this-week">This week</option>
-                  <option value="flexible">Flexible</option>
-                </select>
-              </FormField>
-            </div>
-
-            <FormField label="Address">
-              <input
-                className="input"
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-              />
-            </FormField>
-
-            <FormField label="Notes">
-              <textarea
-                className="input min-h-24"
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              />
-            </FormField>
-
-            {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
-
-            <button disabled={loading} className="btn btn-void w-full sm:w-auto">
-              {loading ? "Running demo call..." : "Simulate call"}
-            </button>
-          </form>
-
-          {result ? (
-            <div className="mt-6">
-              <ShellPanel title="Demo call completed">
-                <p className="font-sans text-sm text-ash">
-                  Business: {result.business.name}
-                </p>
-                <p className="mt-3 font-sans text-sm leading-relaxed text-void">
-                  {result.summary}
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <Link href="/dashboard" className="btn btn-void w-full text-sm sm:w-auto">
-                    Open dashboard
-                  </Link>
-                </div>
-              </ShellPanel>
-            </div>
-          ) : null}
+          <aside className="demo-pro-preview">
+            <SectionEyebrow>Owner sees this</SectionEyebrow>
+            <OwnerAlertCard
+              variant="chalk"
+              className="preview-crossfade mt-4 product-float-none shadow-[var(--shadow-lift)]"
+              lead={previewLead}
+              key={`${form.callerName}-${form.urgency}-${form.serviceType}`}
+            />
+            <p className="demo-pro-preview-note font-sans">
+              Updates live as you edit the form. This is the alert that lands on
+              the owner&apos;s phone and dashboard.
+            </p>
+          </aside>
         </div>
       </div>
     </OsShell>

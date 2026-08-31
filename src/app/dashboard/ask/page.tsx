@@ -1,6 +1,8 @@
 "use client";
 
+import { ProRingBanner } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
+import { ShellAlert } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -68,62 +70,81 @@ export default function AskPage() {
     <OsShell
       title="Ask"
       subtitle="Answers from the records already in the OS — not the public internet."
+      businessName="Summit HVAC"
     >
-      <form
-        className="ask-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void ask(question);
-        }}
-      >
-        <input
-          className="input ask-input"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask about a customer, a job, or who called…"
-          autoComplete="off"
-        />
-        <button type="submit" disabled={loading} className="btn btn-void">
-          {loading ? "Remembering…" : "Ask"}
-        </button>
-      </form>
+      <ProRingBanner
+        name="Ask"
+        description="Memory across every call, customer, and job. Ask in plain language — get answers from your shop's record."
+      />
 
-      <div className="ask-suggestions">
-        {SUGGESTIONS.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className="ask-chip font-sans"
-            onClick={() => void ask(item)}
-            disabled={loading}
+      <div className="ask-hero pro-panel">
+        <div className="ask-hero-inner">
+          <form
+            className="ask-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void ask(question);
+            }}
           >
-            {item}
-          </button>
-        ))}
+            <input
+              className="input ask-input"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Ask about a customer, a job, or who called…"
+              autoComplete="off"
+            />
+            <button type="submit" disabled={loading} className="btn btn-void ask-submit">
+              {loading ? "Remembering…" : "Ask"}
+            </button>
+          </form>
+
+          <div className="ask-suggestions">
+            {SUGGESTIONS.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className="ask-chip font-sans"
+                onClick={() => void ask(item)}
+                disabled={loading}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {error ? (
-        <p className="mt-4 font-sans text-sm text-flare-dim">{error}</p>
+        <div className="mt-4">
+          <ShellAlert tone="error">{error}</ShellAlert>
+        </div>
       ) : null}
 
       {!turns.length && !loading ? (
-        <p className="ask-empty font-sans">
-          ChatGPT forgets because it never ran the shop. Orvius answers from the
-          record — every call, customer, and booked job.
-        </p>
+        <div className="ask-empty-state">
+          <p className="ask-empty-title font-serif">
+            ChatGPT forgets because it never ran the shop.
+          </p>
+          <p className="ask-empty font-sans">
+            Orvius answers from the record — every call, customer, and booked job.
+            Try one of the suggestions above.
+          </p>
+        </div>
       ) : null}
 
       <ol className="ask-turns">
         {turns.map((turn, index) => (
-          <li key={`${turn.question}-${index}`} className="ask-turn">
-            <p className="ask-q font-serif">{turn.question}</p>
+          <li key={`${turn.question}-${index}`} className="ask-turn pro-panel">
+            <div className="ask-turn-head">
+              <p className="pro-section-kicker font-sans">You asked</p>
+              <p className="ask-q font-serif">{turn.question}</p>
+            </div>
             <div className="ask-a">
-              <p className="home-os-ask-source">
+              <p className="ask-source font-sans">
+                <span className="home-os-live-dot" aria-hidden />
                 {turn.source === "memory+model" ? "Memory + model" : "From OS memory"}
               </p>
-              <p className="mt-3 font-sans text-[0.9375rem] leading-relaxed text-void whitespace-pre-wrap">
-                {turn.answer}
-              </p>
+              <p className="ask-answer font-sans whitespace-pre-wrap">{turn.answer}</p>
               {turn.hits.length ? (
                 <ul className="ask-hits">
                   {turn.hits.map((hit) => (

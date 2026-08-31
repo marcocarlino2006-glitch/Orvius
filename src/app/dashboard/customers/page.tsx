@@ -1,10 +1,11 @@
 "use client";
 
 import { CustomerRecordCard } from "@/components/customer-record-card";
+import { ProRingBanner, ProSearchBar, ProStatRow } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CustomerRow = {
   id: string;
@@ -40,32 +41,63 @@ export default function CustomersPage() {
       .finally(() => setLoading(false));
   }, [query]);
 
+  const stats = useMemo(() => {
+    const returning = customers.filter((c) => c.returning).length;
+    const totalInteractions = customers.reduce((sum, c) => sum + c.interactionCount, 0);
+    return [
+      { label: "Customers", value: customers.length },
+      { label: "Returning", value: returning, highlight: returning > 0 },
+      { label: "Interactions", value: totalInteractions },
+      {
+        label: "Avg per customer",
+        value: customers.length
+          ? Math.round((totalInteractions / customers.length) * 10) / 10
+          : "—",
+      },
+    ];
+  }, [customers]);
+
   return (
     <OsShell
       title="Customers"
       subtitle="Every caller becomes a permanent record. History follows the number."
+      businessName="Summit HVAC"
     >
-      <div className="mb-6">
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search name, phone, address…"
-          className="input max-w-md"
-        />
-      </div>
+      <ProRingBanner
+        ring={2}
+        name="Customers"
+        description="Permanent records from every call and text. Returning callers recognized automatically."
+        live
+      />
 
-      {loading ? (
+      {loading && !customers.length ? (
         <DashboardSkeleton />
       ) : (
         <>
+          {!loading ? <ProStatRow stats={stats} className="mb-6" /> : null}
+
+          <ProSearchBar
+            value={query}
+            onChange={setQuery}
+            placeholder="Search name, phone, address…"
+            className="mb-6 max-w-lg"
+          />
+
           {error ? (
             <div className="mb-6">
               <ShellAlert tone="error">{error}</ShellAlert>
             </div>
           ) : null}
 
-          {!customers.length ? (
+          {loading ? (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} aria-hidden>
+                  <div className="pro-stat ring1-metric-loading min-h-[11rem] rounded-md" />
+                </div>
+              ))}
+            </div>
+          ) : !customers.length ? (
             <ShellEmpty>
               No customers yet. They are created automatically from calls and texts.
             </ShellEmpty>

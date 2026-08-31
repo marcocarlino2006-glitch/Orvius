@@ -1,11 +1,12 @@
 "use client";
 
 import { JobCard } from "@/components/job-card";
+import { ProRingBanner, ProStatRow } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type JobRow = {
   id: string;
@@ -35,20 +36,56 @@ export default function JobsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const stats = useMemo(() => {
+    const active = jobs.filter(
+      (j) => !["completed", "cancelled"].includes(j.status),
+    ).length;
+    const today = jobs.filter((j) => {
+      if (!j.scheduledAt) return false;
+      const d = new Date(j.scheduledAt);
+      const now = new Date();
+      return (
+        d.getFullYear() === now.getFullYear() &&
+        d.getMonth() === now.getMonth() &&
+        d.getDate() === now.getDate()
+      );
+    }).length;
+    const emergency = jobs.filter((j) =>
+      j.urgency?.toLowerCase().includes("emergency"),
+    ).length;
+
+    return [
+      { label: "Total jobs", value: jobs.length },
+      { label: "Active", value: active, highlight: active > 0 },
+      { label: "Today", value: today, highlight: today > 0 },
+      { label: "Emergency", value: emergency, highlight: emergency > 0 },
+    ];
+  }, [jobs]);
+
   return (
     <OsShell
       title="Jobs"
       subtitle="A lead becomes a booked appointment — not a sticky note."
+      businessName="Summit HVAC"
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch
         </Link>
       }
     >
+      <ProRingBanner
+        ring={3}
+        name="Jobs"
+        description="Book from the inbox. Schedule, assign, and track every job in one place."
+        live
+      />
+
       {loading ? (
         <DashboardSkeleton />
       ) : (
         <>
+          <ProStatRow stats={stats} className="mb-6" />
+
           {error ? (
             <div className="mb-6">
               <ShellAlert tone="error">{error}</ShellAlert>

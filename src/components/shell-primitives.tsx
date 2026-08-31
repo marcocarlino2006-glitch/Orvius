@@ -93,13 +93,8 @@ export function ShellAlert({
   tone: "error" | "success";
   children: ReactNode;
 }) {
-  const toneClass =
-    tone === "error"
-      ? "border-flare/25 bg-flare/8 text-flare-dim"
-      : "border-live/25 bg-live/8 text-live";
-
   return (
-    <div className={`rounded-[0.45rem] border px-4 py-3 font-sans text-sm ${toneClass}`}>
+    <div className={`pro-alert pro-alert-${tone} font-sans`}>
       {children}
     </div>
   );
