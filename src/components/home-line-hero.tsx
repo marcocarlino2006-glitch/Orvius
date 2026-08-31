@@ -8,35 +8,39 @@ import { company, pricing } from "@/lib/company";
 
 export function HomeLineHero() {
   return (
-    <section className="shop-hero" aria-labelledby="shop-hero-heading">
-      <div className="editorial-wrap shop-hero-inner">
-        <p className="shop-hero-shop font-sans">
-          Live on {DEMO_LINE_BUSINESS} · {company.trades.join(" · ")}
+    <section className="tier1-hero" aria-labelledby="tier1-hero-heading">
+      <div className="tier1-hero-glow" aria-hidden />
+      <div className="editorial-wrap tier1-hero-inner">
+        <p className="tier1-eyebrow font-sans">
+          Production line · {DEMO_LINE_BUSINESS}
         </p>
 
-        <h1 id="shop-hero-heading" className="sr-only">
+        <h1 id="tier1-hero-heading" className="sr-only">
           Call the Orvius live demo line
         </h1>
-        <a href={demoLineHref()} className="shop-hero-line font-sans">
+        <a href={demoLineHref()} className="tier1-hero-line font-sans">
           {DEMO_LINE_DISPLAY}
         </a>
 
-        <p className="shop-hero-lead font-sans">
-          Call it now. Orvius answers like your shop — qualifies the job, texts
-          the owner, writes the lead to the board.
+        <p className="tier1-hero-statement font-sans">
+          {company.tagline}
+        </p>
+        <p className="tier1-hero-lead font-sans">
+          Call now. Orvius answers, qualifies, and notifies the owner — while
+          your crew is on the tools. Built for {company.trades.join(", ")}.
         </p>
 
-        <div className="shop-hero-actions font-sans">
-          <a href={demoLineHref()} className="shop-hero-call">
-            Call now
+        <div className="tier1-actions font-sans">
+          <a href={demoLineHref()} className="inst-btn inst-btn-primary">
+            Call live line
           </a>
-          <Link href="/demo" className="shop-hero-secondary">
-            Run a simulation
+          <Link href="/demo" className="inst-btn inst-btn-ghost">
+            Browser simulation
           </Link>
         </div>
 
-        <p className="shop-hero-foot font-sans">
-          ${pricing.pro.price}/mo flat · 30-day design partner · cancel anytime
+        <p className="tier1-hero-foot font-sans">
+          ${pricing.pro.price}/mo · unlimited inbound · cancel anytime
         </p>
       </div>
     </section>

@@ -12,7 +12,7 @@ type PublicLayoutProps = {
   cta?: { href: string; label: string } | false;
 };
 
-/** Shared chrome for homepage and all marketing pages — one light system. */
+/** Shared chrome — institutional tier, one visual system. */
 export function PublicLayout({
   children,
   showFooter = true,
@@ -28,7 +28,9 @@ export function PublicLayout({
         cta={cta}
       />
       {showStickyCall ? <HomeStickyCall /> : null}
-      <main className="cursor-page cursor-page-light marketing-page">{children}</main>
+      <main className="cursor-page cursor-page-light marketing-page tier1-page">
+        {children}
+      </main>
       {showFooter ? <SiteFooter /> : null}
     </>
   );

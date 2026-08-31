@@ -19,19 +19,22 @@ export default async function LoginPage({
   const error = params.error;
 
   return (
-    <main className="login-pro">
-      <section className="login-pro-brand">
-        <div className="login-pro-brand-inner">
-          <OrviusLogo size="lg" variant="void" showOs />
-          <p className="login-pro-kicker font-sans">Orvius OS</p>
-          <h1 className="login-pro-title font-serif">
-            The operating system for your shop.
-          </h1>
-          <p className="login-pro-lead font-sans">
-            Inbox, customers, jobs, dispatch — one intelligence layer for every
-            call, every customer, every job.
+    <main className="tier1-login">
+      <section className="tier1-login-brand">
+        <div className="tier1-login-brand-glow" aria-hidden />
+        <div className="tier1-login-brand-inner">
+          <OrviusLogo size="lg" variant="void" showOs={false} />
+          <p className="tier1-eyebrow tier1-eyebrow-light font-sans">
+            {company.productName}
           </p>
-          <ul className="login-pro-rings font-sans">
+          <h1 className="tier1-login-title font-sans">
+            Sign in to your workspace.
+          </h1>
+          <p className="tier1-login-lead font-sans">
+            Inbox, customers, jobs, dispatch — one system of record for every
+            call, customer, and job.
+          </p>
+          <ul className="tier1-login-rings font-sans">
             <li>01 · Answer · qualify · alert</li>
             <li>02 · Customer records</li>
             <li>03 · Jobs & scheduling</li>
@@ -40,27 +43,26 @@ export default async function LoginPage({
         </div>
       </section>
 
-      <section className="login-pro-form">
-        <div className="login-pro-form-inner">
-          <h2 className="login-pro-form-title font-serif">Sign in to your shop</h2>
-          <p className="login-pro-form-sub font-sans">
-            Use the Google account connected to your Orvius workspace.
+      <section className="tier1-login-form">
+        <div className="tier1-login-form-inner">
+          <h2 className="tier1-form-title font-sans">Workspace access</h2>
+          <p className="tier1-form-sub font-sans">
+            Use the Google account connected to your Orvius shop.
           </p>
 
           {error ? (
-            <p className="login-pro-error font-sans">
-              Sign in failed. Check that your Google account is allowed, then try
-              again.
+            <p className="tier1-login-error font-sans">
+              Sign in failed. Verify your account is authorized, then try again.
             </p>
           ) : null}
 
-          <div className="login-pro-actions">
+          <div className="tier1-login-actions">
             <GoogleSignInButton callbackUrl={callbackUrl} />
           </div>
 
-          <div className="login-pro-links font-sans">
-            <Link href="/">← Homepage</Link>
-            <Link href="/pilot">Apply for design partner</Link>
+          <div className="tier1-login-links font-sans">
+            <Link href="/">← orvius.im</Link>
+            <Link href="/pilot">Design partner program</Link>
           </div>
         </div>
       </section>

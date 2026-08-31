@@ -73,9 +73,9 @@ export function CheckoutButton({
             type="button"
             disabled={loading}
             onClick={() => startCheckout()}
-            className={`btn w-full justify-center ${
-              variant === "primary" ? "btn-void" : "btn-secondary"
-            } ${loading ? "btn-loading" : ""}`}
+          className={`inst-btn w-full justify-center ${
+            variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
+          } ${loading ? "opacity-70" : ""}`}
           >
             {loading ? "Redirecting..." : label}
           </button>
@@ -85,9 +85,9 @@ export function CheckoutButton({
           type="button"
           disabled={loading}
           onClick={() => startCheckout()}
-          className={`btn w-full justify-center ${
-            variant === "primary" ? "btn-void" : "btn-secondary"
-          } ${loading ? "btn-loading" : ""}`}
+          className={`inst-btn w-full justify-center ${
+            variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
+          } ${loading ? "opacity-70" : ""}`}
         >
           {loading ? "Redirecting..." : label}
         </button>

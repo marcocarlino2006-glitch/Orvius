@@ -146,12 +146,12 @@ export function ShellHeader({
               <HeaderCtaLink
                 href={headerCta.href}
                 label={headerCta.label}
-                className={`tier-btn tier-btn-sm ${
+                className={`${
                   headerCta.href.startsWith("tel:")
-                    ? "tier-btn-call tier-btn-call-sm"
+                    ? "inst-btn inst-btn-primary inst-btn-sm"
                     : isVoid
-                      ? "tier-btn-light"
-                      : "tier-btn-primary"
+                      ? "inst-btn inst-btn-outline-light inst-btn-sm"
+                      : "inst-btn inst-btn-primary inst-btn-sm"
                 } shell-header-cta`}
               />
             ) : null}
@@ -207,10 +207,10 @@ export function ShellHeader({
                 <HeaderCtaLink
                   href={headerCta.href}
                   label={headerCta.label}
-                  className={`tier-btn mt-4 w-full justify-center ${
+                  className={`inst-btn mt-4 w-full justify-center ${
                     headerCta.href.startsWith("tel:")
-                      ? "tier-btn-call"
-                      : "tier-btn-light"
+                      ? "inst-btn-primary"
+                      : "inst-btn-primary"
                   }`}
                   onClick={() => setMenuOpen(false)}
                 />

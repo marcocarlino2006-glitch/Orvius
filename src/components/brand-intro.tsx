@@ -8,7 +8,6 @@ type BrandIntroProps = {
   className?: string;
 };
 
-/** Unified marketing typography — matches homepage section headers. */
 export function BrandIntro({
   kicker,
   title,
@@ -22,15 +21,15 @@ export function BrandIntro({
 
   return (
     <div className={`brand-intro ${alignClass} ${className}`.trim()}>
-      {kicker ? <p className="home-platform-kicker font-sans">{kicker}</p> : null}
-      <h1 className={`marketing-hero-title font-sans ${titleClassName}`.trim()}>
+      {kicker ? <p className="tier1-eyebrow font-sans">{kicker}</p> : null}
+      <h1 className={`tier1-page-title font-sans ${titleClassName}`.trim()}>
         {title}
       </h1>
       {subline ? (
-        <p className="home-platform-lead font-sans brand-intro-subline">{subline}</p>
+        <p className="tier1-section-lead font-sans brand-intro-subline">{subline}</p>
       ) : null}
       {description ? (
-        <p className="home-platform-lead font-sans brand-intro-description">{description}</p>
+        <p className="tier1-section-lead font-sans brand-intro-description">{description}</p>
       ) : null}
     </div>
   );

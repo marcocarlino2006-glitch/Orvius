@@ -24,43 +24,43 @@ const transcript = [
 
 export function HomeCallStory() {
   return (
-    <section className="shop-story" aria-labelledby="shop-story-heading">
-      <div className="editorial-wrap shop-story-grid">
-        <div className="shop-story-copy">
-          <h2 id="shop-story-heading" className="shop-story-title font-sans">
-            9:14 PM. Owner on a job. Phone still gets answered.
+    <section className="tier1-story" aria-labelledby="tier1-story-heading">
+      <div className="editorial-wrap tier1-story-grid">
+        <div>
+          <p className="tier1-eyebrow font-sans">Field record</p>
+          <h2 id="tier1-story-heading" className="tier1-section-title font-sans">
+            After hours. Owner on site. Line still answered.
           </h2>
-          <p className="shop-story-lead font-sans">
-            This is what happened on Summit HVAC&apos;s line last night — not a
-            pitch deck, an actual after-hours call.
+          <p className="tier1-section-lead font-sans">
+            Summit HVAC · 9:14 PM · emergency AC · production transcript.
           </p>
 
-          <div className="shop-transcript font-sans" role="log" aria-label="Call transcript">
-            <div className="shop-transcript-head">
+          <div className="tier1-transcript font-sans" role="log" aria-label="Call transcript">
+            <div className="tier1-transcript-head">
               <span>Inbound · after hours</span>
               <span>2m 14s</span>
             </div>
             {transcript.map((row, index) => (
               <p
                 key={index}
-                className={`shop-transcript-line ${
-                  "muted" in row && row.muted ? "shop-transcript-line-muted" : ""
+                className={`tier1-transcript-line ${
+                  "muted" in row && row.muted ? "tier1-transcript-line-muted" : ""
                 }`}
               >
                 <span>{row.who}</span>
                 {row.line}
               </p>
             ))}
-            <p className="shop-transcript-foot">
+            <p className="tier1-transcript-foot">
               <span className="live-dot live-dot-green" aria-hidden />
-              Qualified · owner SMS sent · lead in inbox
+              Qualified · owner notified · lead in inbox
             </p>
           </div>
         </div>
 
-        <div className="shop-story-alert">
-          <p className="shop-story-alert-label font-sans">Owner phone · 9:16 PM</p>
-          <OwnerAlertCard variant="chalk" className="shop-story-card" />
+        <div className="tier1-story-side">
+          <p className="tier1-story-side-label font-sans">Owner notification</p>
+          <OwnerAlertCard variant="chalk" className="tier1-story-card" />
         </div>
       </div>
     </section>

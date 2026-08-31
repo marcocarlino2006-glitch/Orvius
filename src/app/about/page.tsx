@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <MarketingShell>
-      <section className="marketing-hero">
+      <section className="tier1-hero tier1-hero-compact">
+        <div className="tier1-hero-glow" aria-hidden />
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Company"
@@ -23,14 +24,14 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="marketing-section">
+      <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
-          <p className="home-platform-lead font-sans">
+          <p className="tier1-section-lead font-sans">
             {company.productName} is developed and operated by{" "}
             {company.legalName}. We focus on {company.trades.join(", ")} — where
             missed calls become lost revenue.
           </p>
-          <p className="mt-5 home-platform-lead font-sans">
+          <p className="mt-5 tier1-section-lead font-sans">
             We started at the front door — answering and qualifying every call.
             Customer records followed. Jobs are live: a lead becomes a booked
             appointment, not a sticky note. Dispatch, billing, and everything
@@ -39,10 +40,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="marketing-section marketing-section-muted">
+      <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap">
-          <h2 className="home-platform-title font-sans">The system.</h2>
-          <p className="home-platform-lead font-sans max-w-2xl">
+          <p className="tier1-eyebrow font-sans">Platform</p>
+          <h2 className="tier1-section-title font-sans">The system.</h2>
+          <p className="tier1-section-lead font-sans max-w-2xl">
             Orvius expands in layers — each one a complete module, not a
             half-built feature. What&apos;s live today is what shops actually use.
           </p>
@@ -52,21 +54,21 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="marketing-section">
-        <div className="editorial-wrap marketing-split">
+      <section className="tier1-story">
+        <div className="editorial-wrap tier1-story-grid">
           <div>
-            <h2 className="home-platform-title font-sans">{company.legalName}</h2>
-            <p className="home-platform-lead font-sans">
+            <h2 className="tier1-section-title font-sans">{company.legalName}</h2>
+            <p className="tier1-section-lead font-sans">
               Contracts, invoices, and subscriptions are with {company.legalName}.
               {company.productName} is our product brand for service-business
               operators.
             </p>
           </div>
-          <div className="marketing-actions font-sans">
-            <Link href="/legal" className="home-platform-link">
-              Legal center →
+          <div className="tier1-actions">
+            <Link href="/legal" className="inst-btn inst-btn-ghost">
+              Legal center
             </Link>
-            <Link href="/pricing" className="tier-btn tier-btn-primary">
+            <Link href="/pricing" className="inst-btn inst-btn-primary">
               View pricing
             </Link>
           </div>
