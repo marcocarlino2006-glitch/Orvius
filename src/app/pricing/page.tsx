@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { CheckoutButton } from "@/components/checkout-button";
 import { EarlyAccessForm } from "@/components/early-access-form";
+import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingComparison } from "@/components/pricing-comparison";
 import { company, pricing } from "@/lib/company";
@@ -23,6 +24,9 @@ export default function PricingPage() {
             subline={`$${pricing.pro.price}/mo flat — built for owner-operators, not enterprise rollouts.`}
             description="No per-minute surprises. No bolt-on AI that leaves your CRM empty."
           />
+          <div className="pilot-live-call">
+            <HomeCallDemo variant="light" size="section" />
+          </div>
         </div>
       </section>
 
