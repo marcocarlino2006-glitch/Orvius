@@ -5795,6 +5795,241 @@ h3 {
   border-top: 1px solid color-mix(in srgb, var(--chalk) 10%, transparent);
 }
 
+.os-profile-menu {
+  position: relative;
+  width: 100%;
+}
+
+.os-profile-menu-panel {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--chalk) 12%, transparent);
+  background: linear-gradient(180deg, var(--panel) 0%, var(--void-deep) 100%);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  animation: cookie-slide-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.os-profile-menu-header {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--chalk) 8%, transparent);
+}
+
+.os-profile-menu-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.os-profile-menu-header-copy {
+  min-width: 0;
+}
+
+.os-profile-menu-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mist);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.os-profile-menu-email {
+  margin-top: 0.1rem;
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--mist) 55%, var(--ash));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.os-profile-menu-plan {
+  margin-top: 0.35rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal-hot);
+}
+
+.os-profile-menu-links {
+  padding: 0.35rem 0;
+}
+
+.os-profile-menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--mist) 88%, var(--ash));
+  text-decoration: none;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.os-profile-menu-link:hover {
+  background: color-mix(in srgb, var(--mist) 6%, transparent);
+  color: var(--mist);
+}
+
+.os-profile-menu-hint {
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--mist) 45%, var(--ash));
+}
+
+.os-profile-menu-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.35rem 0 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--chalk) 8%, transparent);
+}
+
+.os-profile-menu-signout {
+  margin: 0 0.5rem;
+  padding: 0.625rem 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--mist) 70%, var(--ash));
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-profile-menu-signout:hover {
+  background: color-mix(in srgb, var(--flare) 10%, transparent);
+  color: var(--signal-hot);
+}
+
+.os-profile-menu-chevron {
+  margin-left: auto;
+  font-size: 0.625rem;
+  color: color-mix(in srgb, var(--mist) 45%, var(--ash));
+  flex-shrink: 0;
+}
+
+.account-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 960px) {
+  .account-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.account-stack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.account-dl {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.account-dl dt {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.account-dl dd {
+  margin-top: 0.2rem;
+  font-size: 0.9375rem;
+  color: var(--void);
+}
+
+.account-settings-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.account-settings-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
+  background: color-mix(in srgb, var(--fog) 30%, var(--white));
+}
+
+.account-settings-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.account-settings-value {
+  margin-top: 0.15rem;
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
+.account-plan-badge {
+  padding: 1rem 1.125rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--signal) 22%, var(--rule));
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--signal) 8%, transparent), transparent 70%), var(--white);
+}
+
+.account-plan-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.account-plan-price {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--ash);
+}
+
+.account-plan-list {
+  margin: 1rem 0 0;
+  padding-left: 1.125rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--ash);
+}
+
+.account-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.account-legal-links a {
+  color: var(--ash);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.account-legal-links a:hover {
+  color: var(--void);
+}
+
 .os-sidebar-user {
   display: flex;
   align-items: center;

@@ -1,23 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type CheckoutButtonProps = {
   label?: string;
   className?: string;
   variant?: "primary" | "secondary";
+  email?: string;
 };
 
 export function CheckoutButton({
   label = "Subscribe after pilot",
   className = "",
   variant = "secondary",
+  email: emailProp = "",
 }: CheckoutButtonProps) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(emailProp);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsEmail, setNeedsEmail] = useState(false);
+
+  useEffect(() => {
+    if (emailProp) {
+      setEmail(emailProp);
+      setNeedsEmail(false);
+    }
+  }, [emailProp]);
 
   async function startCheckout(submittedEmail?: string) {
     const checkoutEmail = (submittedEmail ?? email).trim();
@@ -57,7 +66,7 @@ export function CheckoutButton({
 
   return (
     <div className={className}>
-      {needsEmail ? (
+      {needsEmail && !emailProp ? (
         <div className="space-y-3">
           <input
             type="email"
@@ -73,9 +82,9 @@ export function CheckoutButton({
             type="button"
             disabled={loading}
             onClick={() => startCheckout()}
-          className={`inst-btn w-full justify-center ${
-            variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
-          } ${loading ? "opacity-70" : ""}`}
+            className={`inst-btn w-full justify-center ${
+              variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
+            } ${loading ? "opacity-70" : ""}`}
           >
             {loading ? "Redirecting..." : label}
           </button>
