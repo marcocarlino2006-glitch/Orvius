@@ -16,7 +16,7 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: `linear-gradient(165deg, #2A1A08 0%, ${orviusColors.void} 42%, #050505 100%)`,
+          background: `linear-gradient(165deg, ${orviusColors.fog} 0%, ${orviusColors.chalk} 100%)`,
           padding: "72px 80px",
         }}
       >
@@ -27,7 +27,7 @@ export default function OpenGraphImage() {
             gap: 16,
           }}
         >
-          <OrviusMarkGraphic size={64} gradientId="orvius-og-mark" coreId="orvius-og-core" />
+          <OrviusMarkGraphic size={64} gradientId="orvius-og-mark" />
           <div
             style={{
               display: "flex",
@@ -39,24 +39,12 @@ export default function OpenGraphImage() {
               style={{
                 display: "flex",
                 fontSize: 28,
-                fontWeight: 600,
-                color: orviusColors.chalk,
-                letterSpacing: "-0.03em",
+                fontWeight: 700,
+                color: orviusColors.void,
+                letterSpacing: "-0.04em",
               }}
             >
               Orvius
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: orviusColors.signalHot,
-              }}
-            >
-              OS
             </div>
           </div>
         </div>
@@ -72,8 +60,8 @@ export default function OpenGraphImage() {
             style={{
               display: "flex",
               fontSize: 88,
-              fontWeight: 400,
-              color: orviusColors.chalk,
+              fontWeight: 700,
+              color: orviusColors.void,
               letterSpacing: "-0.04em",
               lineHeight: 0.95,
               maxWidth: 900,
@@ -95,7 +83,7 @@ export default function OpenGraphImage() {
               maxWidth: 720,
               fontSize: 32,
               lineHeight: 1.2,
-              color: orviusColors.ashSoft,
+              color: orviusColors.ash,
               letterSpacing: "-0.02em",
             }}
           >

@@ -87,8 +87,7 @@
   --color-border: var(--border);
   --color-success: var(--success);
   --font-sans: var(--font-sans);
-  --font-display: var(--font-serif);
-  --font-serif: var(--font-serif);
+  --font-display: var(--font-sans);
 }
 
 * {
@@ -126,9 +125,9 @@ button,
 h1,
 h2,
 h3 {
-  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
-  letter-spacing: -0.025em;
-  font-weight: 400;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.03em;
+  font-weight: 600;
 }
 
 .eyebrow {
@@ -1017,99 +1016,56 @@ h3 {
 .orvius-logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.625rem;
 }
 .orvius-logo-text {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.45rem;
 }
 .orvius-logo-wordmark {
-  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
   font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.035em;
+  font-weight: 700;
+  letter-spacing: -0.04em;
   line-height: 1;
 }
 .orvius-logo-os {
   font-size: 0.5625rem;
   font-weight: 700;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
 }
-.orvius-logo-void .orvius-logo-wordmark { color: var(--chalk); }
-.orvius-logo-void .orvius-logo-os { color: var(--signal-hot); }
+.orvius-logo-void .orvius-logo-wordmark { color: var(--mist); }
+.orvius-logo-void .orvius-logo-os {
+  color: var(--signal-hot);
+  background: color-mix(in srgb, var(--signal) 18%, transparent);
+}
 .orvius-logo-chalk .orvius-logo-wordmark { color: var(--void); }
-.orvius-logo-chalk .orvius-logo-os { color: var(--signal-dim); }
-.orvius-logo-mark {
-  flex-shrink: 0;
-  filter:
-    drop-shadow(0 0 10px color-mix(in srgb, var(--signal) 45%, transparent))
-    drop-shadow(0 0 24px color-mix(in srgb, var(--signal) 18%, transparent));
+.orvius-logo-chalk .orvius-logo-os {
+  color: var(--signal-dim);
+  background: color-mix(in srgb, var(--signal) 10%, var(--fog));
 }
+.orvius-logo-mark { flex-shrink: 0; }
 .orvius-logo-sm .orvius-logo-wordmark { font-size: 1rem; }
 .orvius-logo-sm .orvius-logo-os { font-size: 0.5rem; }
 .orvius-logo-md .orvius-logo-wordmark { font-size: 1.125rem; }
-.orvius-logo-lg .orvius-logo-wordmark { font-size: 1.3125rem; }
-.orvius-logo-lg .orvius-logo-os { font-size: 0.625rem; }
-.orvius-logo-xl .orvius-logo-wordmark { font-size: 1.5rem; }
-.orvius-logo-xl .orvius-logo-os { font-size: 0.6875rem; }
+.orvius-logo-lg .orvius-logo-wordmark { font-size: 1.25rem; }
+.orvius-logo-lg .orvius-logo-os { font-size: 0.5625rem; }
+.orvius-logo-xl .orvius-logo-wordmark { font-size: 1.375rem; }
+.orvius-logo-xl .orvius-logo-os { font-size: 0.5625rem; }
 
-/* Sci-fi mark motion */
-.orvius-mark-animated .orvius-orbit-a {
-  transform-origin: 16px 16px;
-  animation: orvius-orbit-a 14s linear infinite;
-}
-.orvius-mark-animated .orvius-orbit-b {
-  transform-origin: 16px 16px;
-  animation: orvius-orbit-b 9s linear infinite reverse;
-}
-.orvius-mark-animated .orvius-orbit-c {
-  transform-origin: 16px 16px;
-  animation: orvius-orbit-c 6s linear infinite;
-}
 .orvius-mark-animated .orvius-mark-core {
-  animation: orvius-core-pulse 2.8s ease-in-out infinite;
-}
-.orvius-mark-animated .orvius-mark-halo {
-  animation: orvius-halo-pulse 2.8s ease-in-out infinite;
-}
-.orvius-mark-animated .orvius-mark-beam {
-  animation: orvius-beam-pulse 2.8s ease-in-out infinite;
-}
-@keyframes orvius-orbit-a {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-@keyframes orvius-orbit-b {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
-}
-@keyframes orvius-orbit-c {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  animation: orvius-core-pulse 2.4s ease-in-out infinite;
 }
 @keyframes orvius-core-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.82; }
-}
-@keyframes orvius-halo-pulse {
-  0%, 100% { opacity: 0.12; transform: scale(1); transform-origin: center; }
-  50% { opacity: 0.22; transform: scale(1.08); transform-origin: center; }
-}
-@keyframes orvius-beam-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.65; }
+  50% { opacity: 0.75; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .orvius-mark-animated .orvius-orbit-a,
-  .orvius-mark-animated .orvius-orbit-b,
-  .orvius-mark-animated .orvius-orbit-c,
-  .orvius-mark-animated .orvius-mark-core,
-  .orvius-mark-animated .orvius-mark-halo,
-  .orvius-mark-animated .orvius-mark-beam {
-    animation: none;
-  }
+  .orvius-mark-animated .orvius-mark-core { animation: none; }
 }
 
 .shell-brand-text {
@@ -1131,10 +1087,10 @@ h3 {
 }
 
 .shell-wordmark {
-  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.9375rem;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   text-transform: none;
   transition: color 160ms ease;
 }
@@ -6225,7 +6181,7 @@ h3 {
   background: radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--signal) 8%, transparent), transparent 70%), var(--white);
 }
 .ring1-inbox-stat-value {
-  display: block; font-family: var(--font-serif), Georgia, serif;
+  display: block; font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 1.5rem; line-height: 1; letter-spacing: -0.04em; color: var(--void);
 }
 .ring1-inbox-stat-label {

@@ -1,21 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Newsreader } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
-const sans = Inter({
+const sans = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
-
-const serif = Newsreader({
-  variable: "--font-serif",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -50,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${serif.variable} antialiased`}>
+      <body className={`${sans.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

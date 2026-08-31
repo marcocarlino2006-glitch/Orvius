@@ -1,25 +1,25 @@
 /**
  * Orvius Chromatics — source of truth for brand colorways.
  * CSS mirrors these values in `src/app/globals.css`.
- *
- * Signal is warm clay (Claude-inspired terracotta). Flare is emergency. Live is field status.
  */
 export const orviusColors = {
-  void: "#111110",
-  panel: "#1A1A18",
-  chalk: "#F8F8F6",
-  fog: "#EEEEE9",
-  ash: "#6B6A65",
-  ashSoft: "#989792",
-  rule: "#D4D4CE",
-  signal: "#D97757",
-  signalHot: "#E8956D",
-  signalDim: "#C2613F",
-  flare: "#E8461C",
-  flareHot: "#FF5A2E",
-  flareDim: "#B83312",
-  live: "#2F6B4F",
-  liveSoft: "#3F8A66",
+  void: "#1A1917",
+  voidDeep: "#323230",
+  panel: "#3F3F3C",
+  mist: "#ECEAE6",
+  chalk: "#F9F9F7",
+  fog: "#F2F1ED",
+  ash: "#6F6E69",
+  ashSoft: "#94938D",
+  rule: "#E5E4DF",
+  signal: "#F0704A",
+  signalHot: "#F58868",
+  signalDim: "#E05A32",
+  flare: "#EF4444",
+  flareHot: "#F87171",
+  flareDim: "#DC2626",
+  live: "#1F9D68",
+  liveSoft: "#2EB578",
   white: "#FFFFFF",
 } as const;
 
