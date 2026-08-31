@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
 import {
   osCurrentRing,
   osProductNav,
@@ -10,6 +9,8 @@ import {
 } from "@/lib/os-nav";
 import { useBusiness } from "@/lib/use-business";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { OsAskDock } from "@/components/os-ask-dock";
+import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 
 type OsShellProps = {
   children: React.ReactNode;
@@ -33,7 +34,6 @@ export function OsShell({
   actions,
 }: OsShellProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
   const { business } = useBusiness();
   const businessName = businessNameProp ?? business?.name ?? "Your business";
   const newLeads = business?.metrics.newLeads ?? 0;
@@ -107,20 +107,7 @@ export function OsShell({
             </ul>
           </nav>
 
-          {session?.user ? (
-            <div className="os-user-panel os-user-panel-pro">
-              <p className="os-sidebar-label font-sans">Signed in</p>
-              <p className="os-user-name font-sans">{session.user.name ?? "User"}</p>
-              <p className="os-user-email font-sans">{session.user.email}</p>
-              <button
-                type="button"
-                className="os-sign-out font-sans"
-                onClick={() => signOut({ callbackUrl: "/" })}
-              >
-                Sign out
-              </button>
-            </div>
-          ) : null}
+          <OsSidebarFooter />
         </div>
       </aside>
 
@@ -141,6 +128,7 @@ export function OsShell({
         </header>
 
         <main className="os-content os-content-pro">{children}</main>
+        <OsAskDock />
       </div>
     </div>
   );
