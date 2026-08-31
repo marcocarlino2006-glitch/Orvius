@@ -15,11 +15,10 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: orviusColors.voidDeep,
-          borderRadius: 8,
+          background: orviusColors.void,
         }}
       >
-        <OrviusMarkGraphic size={28} gradientId="orvius-icon" />
+        <OrviusMarkGraphic size={30} gradientId="orvius-icon" />
       </div>
     ),
     { ...size },

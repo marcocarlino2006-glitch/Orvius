@@ -1057,6 +1057,26 @@ h3 {
 .orvius-logo-xl .orvius-logo-wordmark { font-size: 1.375rem; }
 .orvius-logo-xl .orvius-logo-os { font-size: 0.5625rem; }
 
+.orvius-logo-scifi .orvius-logo-wordmark {
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.orvius-logo-scifi.orvius-logo-sm .orvius-logo-wordmark { font-size: 0.6875rem; }
+.orvius-logo-scifi.orvius-logo-md .orvius-logo-wordmark { font-size: 0.75rem; }
+.orvius-logo-scifi.orvius-logo-lg .orvius-logo-wordmark { font-size: 0.8125rem; }
+.orvius-logo-scifi.orvius-logo-xl .orvius-logo-wordmark { font-size: 0.875rem; }
+.orvius-logo-scifi .orvius-logo-os {
+  letter-spacing: 0.14em;
+  border-radius: 0.125rem;
+  border: 1px solid color-mix(in srgb, var(--signal) 40%, transparent);
+  background: color-mix(in srgb, var(--signal) 6%, transparent);
+}
+.orvius-logo-mark {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 5px color-mix(in srgb, var(--signal) 16%, transparent));
+}
+
 .shell-brand-text {
   display: inline-flex;
   align-items: baseline;
