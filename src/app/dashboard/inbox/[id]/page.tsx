@@ -1,10 +1,12 @@
 "use client";
 
 import { BookJobForm } from "@/components/book-job-form";
-import { LeadInboxCard } from "@/components/lead-inbox-card";
+import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
+import { TranscriptCinema } from "@/components/transcript-cinema";
+import { Ring1LiveStrip } from "@/components/ring1-live-strip";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
+import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -37,6 +39,11 @@ type LeadDetail = {
     title: string;
   } | null;
 };
+
+function formatUrgency(value: string | null) {
+  if (!value) return "Flexible";
+  return value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export default function LeadDetailPage() {
   const params = useParams<{ id: string }>();
@@ -77,10 +84,16 @@ export default function LeadDetailPage() {
     );
   }
 
+  const channel =
+    lead.source === "sms"
+      ? "SMS inquiry"
+      : `Inbound call · ${lead.business?.name ?? "Orvius"}`;
+
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
-      subtitle={`Lead · ${lead.business?.name ?? "Orvius"} · ${lead.source}`}
+      subtitle={`Ring 1 lead · ${lead.business?.name ?? "Orvius"}`}
+      businessName={lead.business?.name ?? "Summit HVAC"}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {lead.phone ? (
@@ -96,7 +109,9 @@ export default function LeadDetailPage() {
         </div>
       }
     >
-      <div className="mb-6">
+      <Ring1LiveStrip showInboxLink={false} />
+
+      <div className="ring1-lead-status mb-6">
         <LeadStatusActions
           leadId={lead.id}
           status={lead.status}
@@ -104,27 +119,34 @@ export default function LeadDetailPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <LeadInboxCard
-          id={lead.id}
-          name={lead.name ?? "Unknown caller"}
-          phone={lead.phone}
-          service={lead.serviceType}
-          urgency={lead.urgency}
-          address={lead.address}
-          business={lead.business?.name ?? null}
-          channel={lead.source}
-          createdAt={lead.createdAt}
-          customerId={lead.customer?.id ?? null}
-          returning={(lead.customer?.interactionCount ?? 0) > 1}
-          linked={false}
-        />
+      <div className="ring1-lead-grid">
+        <div className="ring1-lead-primary">
+          <OwnerAlertCard
+            variant="void"
+            lead={{
+              name: lead.name ?? undefined,
+              phone: lead.phone ?? undefined,
+              service: lead.serviceType ?? undefined,
+              urgency: formatUrgency(lead.urgency),
+              address: lead.address ?? undefined,
+              channel,
+            }}
+          />
 
-        <div className="space-y-6">
+          {lead.call?.transcript ? (
+            <TranscriptCinema
+              transcript={lead.call.transcript}
+              variant="chalk"
+              className="mt-6"
+            />
+          ) : null}
+        </div>
+
+        <div className="ring1-lead-side space-y-6">
           {lead.job ? (
-            <ShellPanel title="Job">
+            <ShellPanel title="Job booked">
               <p className="font-sans text-sm text-ash">
-                Booked as {lead.job.title} · {lead.job.status}
+                {lead.job.title} · {lead.job.status}
                 {lead.job.scheduledAt
                   ? ` · ${new Date(lead.job.scheduledAt).toLocaleString()}`
                   : ""}
@@ -139,17 +161,17 @@ export default function LeadDetailPage() {
           ) : (
             <ShellPanel title="Book this lead">
               <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
-                Turn this lead into a scheduled job on the calendar.
+                Turn this Ring 1 lead into a scheduled job.
               </p>
               <BookJobForm leadId={lead.id} urgency={lead.urgency} />
             </ShellPanel>
           )}
 
           {lead.customer ? (
-            <ShellPanel title="Customer record">
+            <ShellPanel title="Customer">
               <p className="font-sans text-sm text-ash">
-                Linked to customer with {lead.customer.interactionCount} interaction
-                {lead.customer.interactionCount === 1 ? "" : "s"}.
+                {lead.customer.interactionCount} interaction
+                {lead.customer.interactionCount === 1 ? "" : "s"} on record.
               </p>
               <Link
                 href={`/dashboard/customers/${lead.customer.id}`}
@@ -161,28 +183,21 @@ export default function LeadDetailPage() {
           ) : null}
 
           {lead.call ? (
-            <ShellPanel title="Call transcript">
-              <div className="mb-4 flex flex-wrap gap-2">
-                <ShellBadge tone="live">{lead.call.status}</ShellBadge>
-                {lead.call.durationSec ? (
-                  <ShellBadge tone="neutral">{lead.call.durationSec}s</ShellBadge>
-                ) : null}
-              </div>
+            <ShellPanel title="Call record">
+              <p className="font-sans text-sm text-ash">
+                {lead.call.status}
+                {lead.call.durationSec ? ` · ${lead.call.durationSec}s` : ""}
+              </p>
               {lead.call.summary ? (
-                <p className="font-sans text-sm leading-relaxed text-void">
+                <p className="mt-3 font-sans text-sm leading-relaxed text-void">
                   {lead.call.summary}
                 </p>
               ) : null}
-              {lead.call.transcript ? (
-                <pre className="mt-4 max-h-80 overflow-auto rounded-md border border-rule bg-fog/40 p-4 font-sans text-xs leading-relaxed whitespace-pre-wrap text-void">
-                  {lead.call.transcript}
-                </pre>
-              ) : null}
               <Link
                 href={`/dashboard/calls/${lead.call.id}`}
-                className="customer-timeline-link mt-4 inline-block font-sans"
+                className="customer-timeline-link mt-3 inline-block font-sans"
               >
-                View call record →
+                Full call record →
               </Link>
             </ShellPanel>
           ) : null}

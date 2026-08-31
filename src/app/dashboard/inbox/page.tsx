@@ -1,6 +1,7 @@
 "use client";
 
 import { LeadInboxCard } from "@/components/lead-inbox-card";
+import { Ring1LiveStrip } from "@/components/ring1-live-strip";
 import { LEAD_STATUSES } from "@/components/lead-status-actions";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
@@ -73,15 +74,39 @@ export default function InboxPage() {
       title="Inbox"
       subtitle={
         newCount > 0
-          ? `${newCount} new lead${newCount === 1 ? "" : "s"} waiting`
+          ? `${newCount} new lead${newCount === 1 ? "" : "s"} — Ring 1 output`
           : "Every qualified lead from calls and texts."
       }
+      businessName="Summit HVAC"
       actions={
         <Link href="/demo" className="btn btn-void text-sm">
           Hear a call
         </Link>
       }
     >
+      <Ring1LiveStrip showInboxLink={false} />
+
+      {counts ? (
+        <div className="ring1-inbox-stats font-sans" aria-label="Inbox summary">
+          <div className="ring1-inbox-stat">
+            <span className="ring1-inbox-stat-value">{counts.total}</span>
+            <span className="ring1-inbox-stat-label">Total leads</span>
+          </div>
+          <div className="ring1-inbox-stat ring1-inbox-stat-highlight">
+            <span className="ring1-inbox-stat-value">{counts.new}</span>
+            <span className="ring1-inbox-stat-label">New</span>
+          </div>
+          <div className="ring1-inbox-stat">
+            <span className="ring1-inbox-stat-value">{counts.contacted}</span>
+            <span className="ring1-inbox-stat-label">Contacted</span>
+          </div>
+          <div className="ring1-inbox-stat">
+            <span className="ring1-inbox-stat-value">{counts.booked}</span>
+            <span className="ring1-inbox-stat-label">Booked</span>
+          </div>
+        </div>
+      ) : null}
+
       <div className="inbox-filters pro-filter-bar mb-6 flex flex-wrap gap-2">
         {FILTERS.map((item) => {
           const count =

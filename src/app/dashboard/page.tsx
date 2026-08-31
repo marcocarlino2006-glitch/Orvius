@@ -1,299 +1,53 @@
 "use client";
 
-import { CustomerRecordCard } from "@/components/customer-record-card";
-import { JobCard } from "@/components/job-card";
-import { LeadInboxCard } from "@/components/lead-inbox-card";
-import { LiveStatusBar } from "@/components/live-status-bar";
+import { Ring1CommandCenter } from "@/components/ring1-command-center";
 import { OsShell } from "@/components/os-shell";
-import {
-  ShellAlert,
-  ShellEmpty,
-  ShellListItem,
-  ShellPanel,
-  ShellStat,
-} from "@/components/shell-primitives";
-import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
-type DashboardData = {
-  businessCount: number;
-  callCount: number;
-  leadCount: number;
-  customerCount: number;
-  jobCount: number;
-  waitlistCount: number;
-  recentCalls: Array<{
-    id: string;
-    callerPhone: string | null;
-    status: string;
-    summary: string | null;
-    createdAt: string;
-    business: { name: string } | null;
-    customer: { id: string; name: string | null; interactionCount: number } | null;
-  }>;
-  recentLeads: Array<{
-    id: string;
-    name: string | null;
-    phone: string | null;
-    serviceType: string | null;
-    urgency: string | null;
-    address: string | null;
-    createdAt: string;
-    business: { name: string } | null;
-    customer: { id: string; name: string | null; interactionCount: number } | null;
-  }>;
-  recentCustomers: Array<{
-    id: string;
-    name: string | null;
-    phone: string;
-    email: string | null;
-    address: string | null;
-    interactionCount: number;
-    lastSeenAt: string;
-    business: { name: string } | null;
-  }>;
-  recentJobs: Array<{
-    id: string;
-    title: string;
-    status: string;
-    scheduledAt: string | null;
-    address: string | null;
-    urgency: string | null;
-    customer: { name: string | null; phone: string } | null;
-    lead: { name: string | null; phone: string | null } | null;
-    technician?: { name: string } | null;
-  }>;
-};
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to load dashboard");
-        return res.json();
-      })
-      .then(setData)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
-
   return (
     <OsShell
-      title="Overview"
-      subtitle="Rings 1–4 live — front door, customers, jobs, and the field."
-      statusLabel="Operations"
+      title="Front door"
+      subtitle="Ring 1 — answer, qualify, alert. The wedge that never sleeps."
+      businessName="Summit HVAC"
       actions={
-        <Link href="/demo" className="btn btn-void text-sm">
-          Hear a call
+        <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+          Open inbox
         </Link>
       }
     >
-      {loading ? (
-        <DashboardSkeleton />
-      ) : (
-        <>
-          <LiveStatusBar />
+      <Ring1CommandCenter />
 
-          {error ? (
-            <div className="mb-6">
-              <ShellAlert tone="error">{error}</ShellAlert>
-            </div>
-          ) : null}
-
-          <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5 pro-stat-grid">
-            <ShellStat label="Jobs" value={data?.jobCount ?? "—"} highlight />
-            <ShellStat label="Customers" value={data?.customerCount ?? "—"} />
-            <ShellStat label="Leads" value={data?.leadCount ?? "—"} />
-            <ShellStat label="Calls" value={data?.callCount ?? "—"} />
-            <ShellStat label="Businesses" value={data?.businessCount ?? "—"} />
-          </section>
-
-          <section className="mb-10 pro-section">
-            <div className="pro-section-head">
-              <div>
-                <p className="pro-section-kicker font-sans">Jobs</p>
-                <h2 className="pro-section-title font-serif">Upcoming jobs</h2>
-              </div>
-              <Link href="/dashboard/jobs" className="pro-section-link font-sans">
-                View all jobs →
-              </Link>
-            </div>
-
-            {!data?.recentJobs?.length ? (
-              <ShellEmpty>
-                Book a lead from the inbox — jobs appear here on the calendar.
-              </ShellEmpty>
-            ) : (
-              <ul className="grid gap-4 lg:grid-cols-2">
-                {data.recentJobs.map((job) => (
-                  <li key={job.id}>
-                    <JobCard
-                      id={job.id}
-                      title={job.title}
-                      status={job.status}
-                      scheduledAt={job.scheduledAt}
-                      address={job.address}
-                      urgency={job.urgency}
-                      customerName={job.customer?.name ?? job.lead?.name}
-                      phone={job.customer?.phone ?? job.lead?.phone}
-                      technicianName={job.technician?.name}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="mb-10 pro-section">
-            <div className="pro-section-head">
-              <div>
-                <p className="pro-section-kicker font-sans">Customers</p>
-                <h2 className="pro-section-title font-serif">Customer records</h2>
-              </div>
-              <Link href="/dashboard/customers" className="pro-section-link font-sans">
-                View all customers →
-              </Link>
-            </div>
-
-            {!data?.recentCustomers?.length ? (
-              <ShellEmpty>
-                Customers appear when calls or texts create a contact record.
-              </ShellEmpty>
-            ) : (
-              <ul className="grid gap-4 lg:grid-cols-2">
-                {data.recentCustomers.map((customer) => (
-                  <li key={customer.id}>
-                    <CustomerRecordCard
-                      id={customer.id}
-                      name={customer.name}
-                      phone={customer.phone}
-                      email={customer.email}
-                      address={customer.address}
-                      interactionCount={customer.interactionCount}
-                      lastSeenAt={customer.lastSeenAt}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="mb-10 pro-section">
-            <div className="pro-section-head">
-              <div>
-                <p className="pro-section-kicker font-sans">Front door</p>
-                <h2 className="pro-section-title font-serif">Recent leads</h2>
-              </div>
-              <Link href="/dashboard/inbox" className="pro-section-link font-sans">
-                Open inbox →
-              </Link>
-            </div>
-
-            {!data?.recentLeads?.length ? (
-              <ShellEmpty>
-                No leads yet. Call your live line or run a demo.
-              </ShellEmpty>
-            ) : (
-              <ul className="grid gap-4 lg:grid-cols-2">
-                {data.recentLeads.map((lead) => (
-                  <li key={lead.id}>
-                    <LeadInboxCard
-                      id={lead.id}
-                      name={lead.name ?? "Unknown caller"}
-                      phone={lead.phone}
-                      service={lead.serviceType}
-                      urgency={lead.urgency}
-                      address={lead.address}
-                      business={lead.business?.name ?? null}
-                      createdAt={lead.createdAt}
-                      customerId={lead.customer?.id ?? null}
-                      returning={(lead.customer?.interactionCount ?? 0) > 1}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="grid gap-6 lg:grid-cols-2">
-            <ShellPanel
-              title="Recent calls"
-              action={
-                <Link href="/dashboard/calls" className="font-sans text-xs text-ash hover:text-void">
-                  View all
-                </Link>
-              }
-            >
-              {!data?.recentCalls?.length ? (
-                <ShellEmpty>Calls appear after inbound voice activity.</ShellEmpty>
-              ) : (
-                <ul className="space-y-3">
-                  {data.recentCalls.map((call) => (
-                    <ShellListItem
-                      key={call.id}
-                      title={call.business?.name ?? "Unknown"}
-                      meta={new Date(call.createdAt).toLocaleString()}
-                    >
-                      <p className="mt-1 font-sans text-sm text-ash">
-                        {call.callerPhone ?? "Unknown caller"} · {call.status}
-                        {call.customer && call.customer.interactionCount > 1
-                          ? " · Returning customer"
-                          : ""}
-                      </p>
-                      {call.summary ? (
-                        <p className="mt-2 font-sans text-sm leading-relaxed text-void">
-                          {call.summary}
-                        </p>
-                      ) : null}
-                      <Link
-                        href={`/dashboard/calls/${call.id}`}
-                        className="customer-timeline-link mt-2 inline-block font-sans"
-                      >
-                        View call →
-                      </Link>
-                    </ShellListItem>
-                  ))}
-                </ul>
-              )}
-            </ShellPanel>
-
-            <ShellPanel title="Quick actions">
-              <ul className="space-y-3 font-sans text-sm">
-                <li>
-                  <Link href="/dashboard/dispatch" className="os-quick-link">
-                    Open dispatch board
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/ask" className="os-quick-link">
-                    Ask the shop brain
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/admin" className="os-quick-link">
-                    Manage businesses & lines
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/demo" className="os-quick-link">
-                    Simulate inbound call
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/pilot" className="os-quick-link">
-                    Pilot applications
-                  </Link>
-                </li>
-              </ul>
-            </ShellPanel>
-          </section>
-        </>
-      )}
+      <section className="ring1-more pro-section">
+        <div className="pro-section-head">
+          <div>
+            <p className="pro-section-kicker font-sans">Rings 2–4</p>
+            <h3 className="pro-section-title font-serif">Deeper in the OS</h3>
+          </div>
+        </div>
+        <div className="ring1-more-grid font-sans">
+          <Link href="/dashboard/customers" className="ring1-more-card pro-card">
+            <span className="ring1-more-num">02</span>
+            <span className="ring1-more-label">Customers</span>
+            <span className="ring1-more-desc">Records & history</span>
+          </Link>
+          <Link href="/dashboard/jobs" className="ring1-more-card pro-card">
+            <span className="ring1-more-num">03</span>
+            <span className="ring1-more-label">Jobs</span>
+            <span className="ring1-more-desc">Book & schedule</span>
+          </Link>
+          <Link href="/dashboard/dispatch" className="ring1-more-card pro-card">
+            <span className="ring1-more-num">04</span>
+            <span className="ring1-more-label">Dispatch</span>
+            <span className="ring1-more-desc">Field board</span>
+          </Link>
+          <Link href="/dashboard/calls" className="ring1-more-card pro-card">
+            <span className="ring1-more-num">↳</span>
+            <span className="ring1-more-label">Call log</span>
+            <span className="ring1-more-desc">Every conversation</span>
+          </Link>
+        </div>
+      </section>
     </OsShell>
   );
 }

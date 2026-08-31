@@ -1,7 +1,10 @@
 "use client";
 
+import { CallRecordCard } from "@/components/call-record-card";
+import { Ring1LiveStrip } from "@/components/ring1-live-strip";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellBadge, ShellEmpty, ShellListItem, ShellPanel } from "@/components/shell-primitives";
+import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
+import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -10,31 +13,54 @@ type CallRow = {
   callerPhone: string | null;
   status: string;
   summary: string | null;
+  durationSec: number | null;
+  booked: boolean;
   createdAt: string;
   business: { name: string } | null;
   customer: { id: string; name: string | null; interactionCount: number } | null;
+  lead: {
+    id: string;
+    name: string | null;
+    serviceType: string | null;
+    urgency: string | null;
+  } | null;
 };
 
 export default function CallsPage() {
   const [calls, setCalls] = useState<CallRow[]>([]);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/dashboard")
+    fetch("/api/calls?limit=50")
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to load calls");
         return res.json();
       })
-      .then((data) => setCalls(data.recentCalls ?? []))
+      .then((data) => {
+        setCalls(data.calls ?? []);
+        setTotal(data.total ?? 0);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
   return (
-    <OsShell title="Calls" subtitle="Inbound voice. The record starts here.">
+    <OsShell
+      title="Calls"
+      subtitle={`Ring 1 · ${total} inbound conversation${total === 1 ? "" : "s"} on record`}
+      businessName="Summit HVAC"
+      actions={
+        <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+          Open inbox
+        </Link>
+      }
+    >
+      <Ring1LiveStrip />
+
       {loading ? (
-        <p className="font-sans text-sm text-ash">Loading…</p>
+        <DashboardSkeleton />
       ) : (
         <>
           {error ? (
@@ -44,40 +70,31 @@ export default function CallsPage() {
           ) : null}
 
           {!calls.length ? (
-            <ShellEmpty>No calls yet.</ShellEmpty>
+            <ShellEmpty>
+              No calls yet. Test the live line — every conversation lands here with
+              transcript and lead link.
+            </ShellEmpty>
           ) : (
-            <ShellPanel title="Recent calls">
-              <ul className="space-y-3">
-                {calls.map((call) => (
-                  <ShellListItem
-                    key={call.id}
-                    title={call.business?.name ?? "Unknown business"}
-                    meta={new Date(call.createdAt).toLocaleString()}
-                  >
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <ShellBadge tone="live">{call.status}</ShellBadge>
-                      {call.customer && call.customer.interactionCount > 1 ? (
-                        <ShellBadge tone="neutral">Returning</ShellBadge>
-                      ) : null}
-                    </div>
-                    <p className="mt-2 font-sans text-sm text-ash">
-                      {call.callerPhone ?? "Unknown caller"}
-                    </p>
-                    {call.summary ? (
-                      <p className="mt-2 font-sans text-sm leading-relaxed text-void">
-                        {call.summary}
-                      </p>
-                    ) : null}
-                    <Link
-                      href={`/dashboard/calls/${call.id}`}
-                      className="customer-timeline-link mt-2 inline-block font-sans"
-                    >
-                      View call →
-                    </Link>
-                  </ShellListItem>
-                ))}
-              </ul>
-            </ShellPanel>
+            <ul className="grid gap-4">
+              {calls.map((call) => (
+                <li key={call.id}>
+                  <CallRecordCard
+                    id={call.id}
+                    callerPhone={call.callerPhone}
+                    status={call.status}
+                    summary={call.summary}
+                    durationSec={call.durationSec}
+                    booked={call.booked}
+                    createdAt={call.createdAt}
+                    businessName={call.business?.name}
+                    leadName={call.lead?.name}
+                    serviceType={call.lead?.serviceType}
+                    urgency={call.lead?.urgency}
+                    returning={(call.customer?.interactionCount ?? 0) > 1}
+                  />
+                </li>
+              ))}
+            </ul>
           )}
         </>
       )}

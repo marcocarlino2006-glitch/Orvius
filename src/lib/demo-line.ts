@@ -6,3 +6,8 @@ export const DEMO_LINE_BUSINESS = "Summit HVAC";
 export function demoLineHref() {
   return `tel:${DEMO_LINE_TEL}`;
 }
+
+export function telHref(phone: string) {
+  const normalized = phone.replace(/[^\d+]/g, "");
+  return `tel:${normalized}`;
+}
