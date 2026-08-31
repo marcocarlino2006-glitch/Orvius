@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireBusinessSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
   const { id } = await params;
 
-  const call = await prisma.call.findUnique({
-    where: { id },
+  const call = await prisma.call.findFirst({
+    where: { id, businessId: business.id },
     include: {
       business: { select: { id: true, name: true } },
       customer: {

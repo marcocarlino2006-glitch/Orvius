@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { company, pricing } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
 import {
@@ -7,6 +8,7 @@ import {
   getStripePriceId,
   isStripeConfigured,
 } from "@/lib/stripe";
+import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
 
 const checkoutSchema = z.object({
@@ -27,17 +29,30 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = checkoutSchema.parse(await request.json());
+    const authSession = await auth();
+    const sessionEmail = authSession?.user?.email?.toLowerCase();
+
+    if (!sessionEmail) {
+      return NextResponse.json({ error: "Sign in to subscribe" }, { status: 401 });
+    }
+
+    if (sessionEmail !== body.email.toLowerCase()) {
+      return forbiddenResponse();
+    }
+
     const stripe = getStripe();
     const baseUrl = getAppBaseUrl();
 
     const business = body.businessId
-      ? await prisma.business.findUnique({ where: { id: body.businessId } })
+      ? await prisma.business.findFirst({
+          where: { id: body.businessId, ownerEmail: sessionEmail },
+        })
       : await prisma.business.findFirst({
-          where: { ownerEmail: body.email },
+          where: { ownerEmail: sessionEmail },
           orderBy: { createdAt: "asc" },
         });
 
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer_email: body.email,
       line_items: [
@@ -65,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      url: session.url,
+      url: checkoutSession.url,
       plan: pricing.pro.name,
       amount: pricing.pro.price,
     });

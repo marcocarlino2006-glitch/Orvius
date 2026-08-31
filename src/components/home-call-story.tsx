@@ -32,7 +32,7 @@ export function HomeCallStory() {
             After hours. Owner on site. Line still answered.
           </h2>
           <p className="tier1-section-lead font-sans">
-            Summit HVAC · 9:14 PM · emergency AC · production transcript.
+            Summit HVAC · 9:14 PM · emergency AC · representative call flow.
           </p>
 
           <div className="tier1-transcript font-sans" role="log" aria-label="Call transcript">

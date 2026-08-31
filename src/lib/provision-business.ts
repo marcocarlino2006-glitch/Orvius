@@ -1,14 +1,24 @@
-import { prisma } from "@/lib/prisma";
 import {
   buildAssistantSystemPrompt,
   slugify,
   type ServiceOffering,
 } from "@/lib/business";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
-import { buildVapiAssistantConfig, createAssistant } from "@/lib/vapi";
+import { prisma } from "@/lib/prisma";
+import {
+  canProvisionDedicatedLine,
+  configureSmsWebhook,
+  purchaseLocalNumber,
+} from "@/lib/twilio-phone";
+import { type Trade } from "@/lib/trades";
+import {
+  buildVapiAssistantConfig,
+  createAssistant,
+  importTwilioPhoneToVapi,
+} from "@/lib/vapi";
 
-export const TRADES = ["HVAC", "Plumbing", "Electrical"] as const;
-export type Trade = (typeof TRADES)[number];
+export type { Trade } from "@/lib/trades";
+export { TRADES } from "@/lib/trades";
 
 export const DEFAULT_HOURS_JSON = JSON.stringify({
   monday: { open: "08:00", close: "18:00" },
@@ -66,6 +76,11 @@ export type ProvisionInput = {
   timezone?: string;
 };
 
+export type ProvisionResult = {
+  business: Awaited<ReturnType<typeof prisma.business.create>>;
+  dedicatedLine: boolean;
+};
+
 async function uniqueSlug(name: string): Promise<string> {
   const base = slugify(name) || "shop";
   let candidate = base;
@@ -79,7 +94,22 @@ async function uniqueSlug(name: string): Promise<string> {
   return candidate;
 }
 
-export async function provisionBusiness(input: ProvisionInput) {
+async function provisionDedicatedLine(params: {
+  shopName: string;
+  ownerPhone: string;
+  assistantId: string;
+}) {
+  const phone = await purchaseLocalNumber(params.ownerPhone);
+  await configureSmsWebhook(phone);
+  await importTwilioPhoneToVapi({
+    number: phone,
+    assistantId: params.assistantId,
+    name: `${params.shopName} line`,
+  });
+  return phone;
+}
+
+export async function provisionBusiness(input: ProvisionInput): Promise<ProvisionResult> {
   const email = input.ownerEmail.toLowerCase().trim();
   const existing = await findBusinessForOwner(email);
   if (existing) {
@@ -116,7 +146,23 @@ export async function provisionBusiness(input: ProvisionInput) {
     vapiAssistantId = assistant.id;
   }
 
-  return prisma.business.create({
+  let shopLine: string | null = platformLine;
+  let dedicatedLine = false;
+
+  if (vapiAssistantId && canProvisionDedicatedLine()) {
+    try {
+      shopLine = await provisionDedicatedLine({
+        shopName: name,
+        ownerPhone: input.ownerPhone,
+        assistantId: vapiAssistantId,
+      });
+      dedicatedLine = true;
+    } catch (error) {
+      console.error("Dedicated line provisioning failed, using platform line:", error);
+    }
+  }
+
+  const business = await prisma.business.create({
     data: {
       name,
       slug,
@@ -126,9 +172,12 @@ export async function provisionBusiness(input: ProvisionInput) {
       greeting,
       hoursJson,
       servicesJson,
-      twilioPhone: platformLine,
+      twilioPhone: shopLine,
+      vapiPhoneNumber: shopLine,
       vapiAssistantId,
       billingStatus: "pilot",
     },
   });
+
+  return { business, dedicatedLine };
 }

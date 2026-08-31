@@ -67,7 +67,7 @@ export default function OpenGraphImage() {
               maxWidth: 900,
             }}
           >
-            Never miss a call again.
+            Never miss the front door.
           </div>
           <div
             style={{
@@ -87,7 +87,7 @@ export default function OpenGraphImage() {
               letterSpacing: "-0.02em",
             }}
           >
-            The operating system for service businesses.
+            Call +1 844 643 9170 · orvius.im
           </div>
         </div>
 

@@ -76,8 +76,8 @@ export type AskResult = {
   stats: ShopMemory["stats"];
 };
 
-export async function askShop(question: string): Promise<AskResult> {
-  const memory = await retrieveShopMemory(question);
+export async function askShop(question: string, businessId: string): Promise<AskResult> {
+  const memory = await retrieveShopMemory(question, businessId);
   const grounded = composeMemoryAnswer(memory);
   const polished = await polishWithVapi(question, memory);
 

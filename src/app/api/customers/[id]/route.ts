@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import { getCustomerTimeline, customerDisplayName } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
+import { requireBusinessSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
   const { id } = await params;
 
-  const customer = await prisma.customer.findUnique({
-    where: { id },
+  const customer = await prisma.customer.findFirst({
+    where: { id, businessId: business.id },
     include: {
       business: { select: { id: true, name: true } },
       _count: { select: { leads: true, calls: true, jobs: true } },

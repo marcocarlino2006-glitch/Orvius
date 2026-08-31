@@ -34,6 +34,9 @@ export function HomeLineHero() {
           <a href={demoLineHref()} className="inst-btn inst-btn-primary">
             Call live line
           </a>
+          <Link href="/login" className="inst-btn inst-btn-ghost">
+            Get started
+          </Link>
           <Link href="/demo" className="inst-btn inst-btn-ghost">
             Browser simulation
           </Link>

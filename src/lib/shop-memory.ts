@@ -99,7 +99,10 @@ function formatWhen(iso: Date | string | null | undefined) {
   });
 }
 
-export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
+export async function retrieveShopMemory(
+  query: string,
+  businessId: string,
+): Promise<ShopMemory> {
   const q = query.trim();
   const wantsToday = /\btoday\b/i.test(q);
   const wantsTomorrow = /\btomorrow\b/i.test(q);
@@ -114,14 +117,17 @@ export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
   startOfToday.setHours(0, 0, 0, 0);
   const endOfTomorrow = new Date(startOfToday);
   endOfTomorrow.setDate(endOfTomorrow.getDate() + 2);
+  const tenant = { businessId };
 
   const [customers, jobs, leads, calls, stats] = await Promise.all([
     prisma.customer.findMany({
+      where: tenant,
       take: 200,
       orderBy: { lastSeenAt: "desc" },
       include: { business: { select: { name: true } } },
     }),
     prisma.job.findMany({
+      where: tenant,
       take: 120,
       orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
       include: {
@@ -131,20 +137,22 @@ export async function retrieveShopMemory(query: string): Promise<ShopMemory> {
       },
     }),
     prisma.lead.findMany({
+      where: tenant,
       take: 80,
       orderBy: { createdAt: "desc" },
       include: { customer: { select: { name: true } } },
     }),
     prisma.call.findMany({
+      where: tenant,
       take: 80,
       orderBy: { createdAt: "desc" },
       include: { customer: { select: { name: true } } },
     }),
     Promise.all([
-      prisma.customer.count(),
-      prisma.job.count(),
-      prisma.lead.count(),
-      prisma.call.count(),
+      prisma.customer.count({ where: tenant }),
+      prisma.job.count({ where: tenant }),
+      prisma.lead.count({ where: tenant }),
+      prisma.call.count({ where: tenant }),
     ]),
   ]);
 

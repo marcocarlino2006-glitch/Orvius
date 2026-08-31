@@ -19,9 +19,9 @@ export default function PilotPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Design partner"
-            title="Get Orvius on your line this week."
+            title="Get your dedicated line."
             subline="30-day program · personal onboarding · no credit card"
-            description="Call the live demo first. Then apply below."
+            description="Call the live demo first. Then sign in or apply below."
           />
           <div className="tier1-hero-call">
             <HomeCallDemo variant="light" size="section" />
@@ -53,7 +53,9 @@ export default function PilotPage() {
             <p className="tier1-eyebrow font-sans">Apply</p>
             <p className="tier1-card-title font-sans">Limited shops</p>
             <p className="tier1-section-lead font-sans">
-              We onboard you personally. Live on your number within days.
+              Sign in to provision your shop in minutes — dedicated local line,
+              AI receptionist, and owner alerts. We onboard design partners
+              personally when you need porting or custom setup.
             </p>
             <div className="mt-6">
               <EarlyAccessForm variant="full" />

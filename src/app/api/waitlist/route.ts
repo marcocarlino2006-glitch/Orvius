@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { notifyOwner } from "@/lib/notifications";
+import { verifyAdminRequest } from "@/lib/env";
 import { z } from "zod";
 
 const waitlistSchema = z.object({
@@ -12,7 +13,11 @@ const waitlistSchema = z.object({
   plan: z.enum(["pilot", "pro"]).optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!verifyAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const entries = await prisma.waitlistEntry.findMany({
     orderBy: { createdAt: "desc" },
   });

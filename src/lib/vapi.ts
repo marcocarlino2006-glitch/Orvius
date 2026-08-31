@@ -83,6 +83,54 @@ export async function deleteAssistant(assistantId: string) {
   });
 }
 
+export async function importTwilioPhoneToVapi(params: {
+  number: string;
+  assistantId: string;
+  name: string;
+}) {
+  const sid = process.env.TWILIO_ACCOUNT_SID?.trim();
+  const token = process.env.TWILIO_AUTH_TOKEN?.trim();
+  if (!sid || !token) {
+    throw new Error("Twilio credentials are not configured");
+  }
+
+  const list = await vapiRequest<Array<{ id: string; number?: string }>>(
+    "/phone-number?limit=100",
+  );
+
+  const normalized = params.number.replace(/\s/g, "");
+  const existing = Array.isArray(list)
+    ? list.find(
+        (entry) =>
+          entry.number === params.number ||
+          entry.number?.replace(/\s/g, "") === normalized,
+      )
+    : undefined;
+
+  if (existing?.id) {
+    await vapiRequest(`/phone-number/${existing.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ assistantId: params.assistantId }),
+    });
+    return { id: existing.id, number: params.number };
+  }
+
+  const created = await vapiRequest<{ id: string }>("/phone-number", {
+    method: "POST",
+    body: JSON.stringify({
+      provider: "twilio",
+      number: params.number,
+      twilioAccountSid: sid,
+      twilioAuthToken: token,
+      assistantId: params.assistantId,
+      name: params.name,
+      smsEnabled: true,
+    }),
+  });
+
+  return { id: created.id, number: params.number };
+}
+
 export function buildVapiAssistantConfig(params: {
   businessName: string;
   systemPrompt: string;

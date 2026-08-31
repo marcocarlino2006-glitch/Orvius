@@ -24,7 +24,11 @@ const createBusinessSchema = z.object({
   vapiPhoneNumber: z.string().optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!verifyAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const businesses = await prisma.business.findMany({
     orderBy: { createdAt: "desc" },
     include: {

@@ -8,8 +8,8 @@ const APP_URL = process.env.APP_URL ?? "http://127.0.0.1:3000";
 
 const checks = [];
 
-async function fetchJson(path) {
-  const res = await fetch(`${APP_URL}${path}`);
+async function fetchJson(path, init) {
+  const res = await fetch(`${APP_URL}${path}`, init);
   if (!res.ok) throw new Error(`${path} → ${res.status}`);
   return res.json();
 }
@@ -44,7 +44,7 @@ try {
   if (health.stats.businessCount > 0) {
     pass("Business", `${health.stats.businessCount} business provisioned`);
   } else {
-    fail("Business", "No business — run /admin or npm run onboard");
+    fail("Business", "No business — run onboarding or npm run onboard");
   }
 
   if (health.stats.leadCount > 0) {
@@ -56,7 +56,7 @@ try {
   if (health.ownerSmsEnabled) {
     pass("Owner SMS", "ENABLE_OWNER_SMS=true");
   } else {
-    warn("Owner SMS", "Set ENABLE_OWNER_SMS=true and owner phone in /admin");
+    warn("Owner SMS", "Set ENABLE_OWNER_SMS=true and owner phone in settings");
   }
 
   if (health.twilioPhone) {
@@ -72,6 +72,17 @@ try {
     warn("Production URL", "Using tunnel — deploy to Vercel before posting");
   } else {
     pass("Production URL", appUrl);
+  }
+
+  try {
+    const unauthLeads = await fetch(`${APP_URL}/api/leads`);
+    if (unauthLeads.status === 401) {
+      pass("Tenant isolation", "Dashboard APIs require sign-in");
+    } else {
+      fail("Tenant isolation", `/api/leads returned ${unauthLeads.status} without auth`);
+    }
+  } catch (err) {
+    warn("Tenant isolation", err instanceof Error ? err.message : String(err));
   }
 } catch (err) {
   fail("Health check", err instanceof Error ? err.message : String(err));

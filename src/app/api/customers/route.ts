@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { customerDisplayName } from "@/lib/customer";
+import { prisma } from "@/lib/prisma";
+import { requireBusinessSession } from "@/lib/tenant";
 
 export async function GET(request: Request) {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim();
   const limit = Math.min(Number(searchParams.get("limit") ?? 50), 100);
+  const tenant = { businessId: business.id };
 
   const customers = await prisma.customer.findMany({
     where: q
       ? {
+          ...tenant,
           OR: [
             { name: { contains: q } },
             { phone: { contains: q } },
@@ -18,7 +25,7 @@ export async function GET(request: Request) {
             { address: { contains: q } },
           ],
         }
-      : undefined,
+      : tenant,
     orderBy: { lastSeenAt: "desc" },
     take: limit,
     include: {

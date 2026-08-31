@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { requireBusinessSession } from "@/lib/tenant";
 
 function startOfToday() {
   const d = new Date();
@@ -9,35 +9,12 @@ function startOfToday() {
 }
 
 export async function GET() {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
   const today = startOfToday();
-  const session = await auth();
-  const ownerEmail = session?.user?.email?.toLowerCase();
-
-  const business = ownerEmail
-    ? await prisma.business.findFirst({
-        where: { isActive: true, ownerEmail },
-        orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          name: true,
-          twilioPhone: true,
-          vapiPhoneNumber: true,
-          ownerPhone: true,
-        },
-      })
-    : await prisma.business.findFirst({
-        where: { isActive: true },
-        orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          name: true,
-          twilioPhone: true,
-          vapiPhoneNumber: true,
-          ownerPhone: true,
-        },
-      });
-
-  const businessFilter = business ? { businessId: business.id } : {};
+  const businessFilter = { businessId: business.id };
 
   const [
     callsToday,
@@ -79,22 +56,24 @@ export async function GET() {
   ]);
 
   const line =
-    business?.vapiPhoneNumber ??
-    business?.twilioPhone ??
+    business.vapiPhoneNumber ??
+    business.twilioPhone ??
     process.env.TWILIO_PHONE_NUMBER?.trim() ??
     null;
 
   return NextResponse.json({
-    business: business
-      ? { name: business.name, line, ownerPhone: business.ownerPhone }
-      : null,
+    business: {
+      name: business.name,
+      line,
+      ownerPhone: business.ownerPhone,
+    },
     metrics: {
       callsToday,
       leadsToday,
       newLeads,
       totalCalls,
       totalLeads,
-      answerRate: totalCalls > 0 ? 100 : null,
+      answerRate: null,
       lastCallAt: lastCall?.createdAt.toISOString() ?? null,
       lastCaller: lastCall?.callerPhone ?? null,
     },

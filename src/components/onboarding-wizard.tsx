@@ -2,8 +2,8 @@
 
 import { OrviusLogo } from "@/components/orvius-logo";
 import { company, osRings, pricing } from "@/lib/company";
-import { DEMO_LINE_DISPLAY } from "@/lib/demo-line";
-import { TRADES, type Trade } from "@/lib/provision-business";
+import { telHref } from "@/lib/demo-line";
+import { TRADES, type Trade } from "@/lib/trades";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -25,6 +25,7 @@ export function OnboardingWizard() {
   const [greeting, setGreeting] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [provisionedLine, setProvisionedLine] = useState<string | null>(null);
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
   const defaultGreeting = name.trim()
@@ -61,9 +62,14 @@ export function OnboardingWizard() {
         }),
       });
 
-      const json = (await res.json()) as { error?: string };
+      const json = (await res.json()) as { error?: string; line?: string | null };
       if (!res.ok) {
         setError(json.error ?? "Setup failed. Try again.");
+        return;
+      }
+
+      if (json.line) {
+        setProvisionedLine(json.line);
         return;
       }
 
@@ -272,9 +278,9 @@ export function OnboardingWizard() {
                 />
               </label>
               <p className="onboarding-footnote font-sans">
-                Your line will route through the Orvius platform ({DEMO_LINE_DISPLAY}{" "}
-                until a dedicated number is assigned). Test calls appear in your
-                inbox immediately.
+                Orvius provisions a dedicated local line for your shop at signup
+                and attaches your AI receptionist. Place a test call — leads
+                appear in your inbox immediately.
               </p>
               {error ? (
                 <p className="onboarding-error font-sans" role="alert">
@@ -297,6 +303,34 @@ export function OnboardingWizard() {
                   onClick={finish}
                 >
                   {submitting ? "Creating shop…" : "Open command center"}
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {provisionedLine ? (
+            <>
+              <h1 className="onboarding-title font-sans">Your line is live.</h1>
+              <p className="onboarding-lead font-sans">
+                {name.trim()} is ready. Call your shop line now — Orvius will
+                answer, qualify the caller, and drop the lead in your inbox.
+              </p>
+              <a href={telHref(provisionedLine)} className="onboarding-hero-line font-sans">
+                {provisionedLine}
+              </a>
+              <div className="onboarding-actions">
+                <a href={telHref(provisionedLine)} className="btn btn-void font-sans">
+                  Call your line
+                </a>
+                <button
+                  type="button"
+                  className="btn btn-ghost font-sans"
+                  onClick={() => {
+                    router.replace("/dashboard");
+                    router.refresh();
+                  }}
+                >
+                  Open command center
                 </button>
               </div>
             </>

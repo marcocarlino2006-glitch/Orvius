@@ -4,8 +4,8 @@ import {
   findBusinessForOwner,
   isOnboardingComplete,
   provisionBusiness,
-  TRADES,
 } from "@/lib/provision-business";
+import { TRADES } from "@/lib/trades";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = createSchema.parse(await request.json());
-    const business = await provisionBusiness({
+    const { business, dedicatedLine } = await provisionBusiness({
       name: body.name,
       trade: body.trade,
       ownerEmail: email,
@@ -71,9 +71,13 @@ export async function POST(request: NextRequest) {
       timezone: body.timezone,
     });
 
+    const line = business.vapiPhoneNumber ?? business.twilioPhone;
+
     return NextResponse.json(
       {
         complete: true,
+        dedicatedLine,
+        line,
         business: {
           id: business.id,
           name: business.name,

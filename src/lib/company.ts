@@ -58,7 +58,7 @@ export const osRings = [
     ring: 6,
     name: "Intelligence",
     module: "AI on every layer",
-    status: "planned" as const,
+    status: "live" as const,
     body: "Smarter with every call, job, and payment. Ask lives on the records already in the OS.",
   },
   {
@@ -136,7 +136,8 @@ export const pricing = {
     cta: "Apply for design partner",
     href: "/pilot",
     highlights: [
-      "Full AI receptionist on your business line",
+      "Dedicated local line assigned at onboarding",
+      "Full AI receptionist on your shop number",
       "Lead inbox + owner SMS alerts",
       "Personal onboarding with the Orvius team",
       "No credit card required",

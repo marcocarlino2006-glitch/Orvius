@@ -11,11 +11,11 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Orvius — The operating system for service businesses",
   description:
-    "Call +1 844 643 9170. Orvius answers, qualifies, and alerts the owner in under 60 seconds. Built for HVAC, plumbing, and electrical.",
+    "Call +1 844 643 9170 for the live demo. Orvius answers, qualifies, and alerts the owner — inbox, jobs, dispatch, and Ask in one OS. Built for HVAC, plumbing, and electrical.",
   openGraph: {
     title: "Orvius — Call the live demo",
     description:
-      "Production line. Real receptionist. Hear what your customers will hear.",
+      "Live demo line. AI receptionist, qualified leads, owner alerts — one system of record for the trades.",
   },
 };
 
@@ -33,8 +33,9 @@ export default function HomePage() {
               Inbox, jobs, dispatch, ask — one system of record.
             </h2>
             <p className="tier1-section-lead tier1-section-lead-light font-sans">
-              Every ring writes to the same customer and job history. What you
-              see here is production — not a mockup.
+              Every ring writes to the same customer and job history. Sign in to
+              set up your shop — dedicated line, AI receptionist, and command
+              center included.
             </p>
           </div>
           <HomeProductStage />
@@ -57,6 +58,9 @@ export default function HomePage() {
             </a>
             <Link href="/pilot" className="inst-btn inst-btn-ghost">
               Design partner program
+            </Link>
+            <Link href="/login" className="inst-btn inst-btn-ghost">
+              Get started
             </Link>
           </div>
           <p className="tier1-close-foot">

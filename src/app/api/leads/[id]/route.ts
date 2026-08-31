@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { forbiddenResponse, requireBusinessSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
   const { id } = await params;
 
-  const lead = await prisma.lead.findUnique({
-    where: { id },
+  const lead = await prisma.lead.findFirst({
+    where: { id, businessId: business.id },
     include: {
       business: { select: { id: true, name: true } },
       customer: {
@@ -65,6 +70,10 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
   const { id } = await params;
   const body = (await request.json()) as { status?: string };
 
@@ -75,6 +84,14 @@ export async function PATCH(request: Request, { params }: Params) {
   const allowed = new Set(["new", "contacted", "booked", "lost", "spam"]);
   if (!allowed.has(body.status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+
+  const existing = await prisma.lead.findFirst({
+    where: { id, businessId: business.id },
+    select: { id: true },
+  });
+  if (!existing) {
+    return forbiddenResponse();
   }
 
   const lead = await prisma.lead.update({

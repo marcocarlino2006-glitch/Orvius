@@ -17,12 +17,12 @@ export const metadata: Metadata = {
     template: "%s · Orvius",
   },
   description:
-    "Orvius is the operating system for service businesses. The system of record for HVAC, plumbing, and electrical.",
+    "Orvius is the operating system for service businesses — dedicated line, AI receptionist, inbox, jobs, dispatch, and Ask. Built for HVAC, plumbing, and electrical.",
   metadataBase: new URL("https://orvius.im"),
   openGraph: {
     title: "Orvius — The operating system for service businesses",
     description:
-      "The system of record for the trades. Every call, every customer, every job.",
+      "Call +1 844 643 9170 for the live demo. Dedicated shop line, qualified leads, owner alerts — one OS for the trades.",
     type: "website",
     url: "https://orvius.im",
     siteName: "Orvius",

@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import { JOB_INCLUDE, isJobStatus, serializeJob, updateJobStatus } from "@/lib/job";
 import { prisma } from "@/lib/prisma";
+import { forbiddenResponse, requireBusinessSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
   const { id } = await params;
 
-  const job = await prisma.job.findUnique({
-    where: { id },
+  const job = await prisma.job.findFirst({
+    where: { id, businessId: business.id },
     include: JOB_INCLUDE,
   });
 
@@ -20,6 +25,10 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
   const { id } = await params;
   const body = (await request.json()) as {
     status?: string;
@@ -28,9 +37,11 @@ export async function PATCH(request: Request, { params }: Params) {
     technicianId?: string | null;
   };
 
-  const existing = await prisma.job.findUnique({ where: { id } });
+  const existing = await prisma.job.findFirst({
+    where: { id, businessId: business.id },
+  });
   if (!existing) {
-    return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    return forbiddenResponse();
   }
 
   if (body.status) {

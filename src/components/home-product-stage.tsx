@@ -82,7 +82,7 @@ export function HomeProductStage() {
           <span className="home-os-url">{current.path}</span>
           <span className="home-os-live">
             <span className="home-os-live-dot" />
-            Live
+            Preview
           </span>
         </div>
 
@@ -92,7 +92,7 @@ export function HomeProductStage() {
             <span className="home-os-wordmark font-sans">Orvius</span>
             <span className="home-os-shop">Summit HVAC</span>
           </div>
-          <span className="home-os-shop-meta">RING 04 · FIELD LIVE</span>
+          <span className="home-os-shop-meta">RING 04 · FIELD</span>
         </div>
 
         <div className="home-os-workspace">
