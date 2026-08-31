@@ -2,35 +2,47 @@
 
 type Ring1TrustStripProps = {
   businessName?: string | null;
+  line?: string | null;
   className?: string;
 };
 
-const signals = [
-  { label: "Line status", value: "Operational", live: true },
-  { label: "Coverage", value: "24/7 · After hours" },
-  { label: "Owner alerts", value: "< 60s SMS" },
-  { label: "Lead capture", value: "Automatic" },
-];
+export function Ring1TrustStrip({
+  businessName,
+  line,
+  className = "",
+}: Ring1TrustStripProps) {
+  const tenant = businessName ?? "Your business";
 
-export function Ring1TrustStrip({ businessName, className = "" }: Ring1TrustStripProps) {
   return (
-    <div className={`ring1-trust-strip ${className}`} role="status" aria-label="Ring 1 system status">
+    <div
+      className={`ring1-trust-strip ${className}`}
+      role="status"
+      aria-label="Line status"
+    >
       <div className="ring1-trust-strip-brand font-sans">
-        <span className="home-os-live-dot" />
-        <span>
-          {businessName ?? "Summit HVAC"} · Ring 1 front door
-        </span>
+        <span className="pro-live-dot" />
+        <span>{tenant} · Line active</span>
       </div>
       <ul className="ring1-trust-strip-list font-sans">
-        {signals.map((item) => (
-          <li key={item.label} className="ring1-trust-strip-item">
-            <span className="ring1-trust-strip-label">{item.label}</span>
-            <span className={`ring1-trust-strip-value ${item.live ? "ring1-trust-strip-live" : ""}`}>
-              {item.live ? <span className="home-os-live-dot" aria-hidden /> : null}
-              {item.value}
-            </span>
-          </li>
-        ))}
+        <li className="ring1-trust-strip-item">
+          <span className="ring1-trust-strip-label">Coverage</span>
+          <span className="ring1-trust-strip-value ring1-trust-strip-live">
+            <span className="pro-live-dot" aria-hidden />
+            24/7
+          </span>
+        </li>
+        <li className="ring1-trust-strip-item">
+          <span className="ring1-trust-strip-label">Owner alerts</span>
+          <span className="ring1-trust-strip-value">&lt; 60s SMS</span>
+        </li>
+        <li className="ring1-trust-strip-item">
+          <span className="ring1-trust-strip-label">Inbound</span>
+          <span className="ring1-trust-strip-value">{line ?? "Not configured"}</span>
+        </li>
+        <li className="ring1-trust-strip-item">
+          <span className="ring1-trust-strip-label">Lead capture</span>
+          <span className="ring1-trust-strip-value">Automatic</span>
+        </li>
       </ul>
     </div>
   );

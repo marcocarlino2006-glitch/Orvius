@@ -17,7 +17,7 @@ export function ProRingBanner({ ring, name, description, live }: ProRingBannerPr
   return (
     <div className="pro-ring-banner">
       <p className="pro-ring-banner-kicker font-sans">
-        {live ? <span className="home-os-live-dot" aria-hidden /> : null}
+        {live ? <span className="pro-live-dot" aria-hidden /> : null}
         {prefix}
         {live ? " · Live" : ""}
       </p>
@@ -78,7 +78,9 @@ export function ProStatRow({ stats, className = "" }: ProStatRowProps) {
       ? "grid-cols-3"
       : stats.length <= 2
         ? "grid-cols-2"
-        : "grid-cols-2 sm:grid-cols-4";
+        : stats.length === 4
+          ? "grid-cols-2 sm:grid-cols-4"
+          : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5";
 
   return (
     <div className={`pro-stat-grid grid gap-3 ${gridClass} ${className}`}>
@@ -109,6 +111,64 @@ export function ProSectionHead({ kicker, title, action, className = "" }: ProSec
         <h3 className="pro-section-title font-sans">{title}</h3>
       </div>
       {action}
+    </div>
+  );
+}
+
+type ProEmptyStateProps = {
+  title: string;
+  body?: string;
+  action?: ReactNode;
+  compact?: boolean;
+};
+
+export function ProEmptyState({ title, body, action, compact }: ProEmptyStateProps) {
+  return (
+    <div className={`pro-empty-state font-sans ${compact ? "pro-empty-state-compact" : ""}`}>
+      <p className="pro-empty-state-title">{title}</p>
+      {body ? <p className="pro-empty-state-text">{body}</p> : null}
+      {action ? <div className="pro-empty-state-action">{action}</div> : null}
+    </div>
+  );
+}
+
+type ProFilterOption = {
+  value: string;
+  label: string;
+  count?: number;
+};
+
+type ProFilterBarProps = {
+  options: ProFilterOption[];
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+};
+
+export function ProFilterBar({
+  options,
+  value,
+  onChange,
+  className = "",
+}: ProFilterBarProps) {
+  return (
+    <div className={`pro-filter-bar ${className}`} role="tablist" aria-label="Filter">
+      {options.map((option) => {
+        const active = value === option.value;
+        return (
+          <button
+            key={option.value || "all"}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            className={`pro-filter-tab font-sans ${active ? "pro-filter-tab-active" : ""}`}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+            {typeof option.count === "number" ? ` (${option.count})` : ""}
+          </button>
+        );
+      })}
     </div>
   );
 }

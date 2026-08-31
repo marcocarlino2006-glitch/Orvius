@@ -3,8 +3,9 @@
 import { LeadInboxCard } from "@/components/lead-inbox-card";
 import { Ring1LiveStrip } from "@/components/ring1-live-strip";
 import { LEAD_STATUSES } from "@/components/lead-status-actions";
+import { ProFilterBar, ProStatRow, ProEmptyState } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
+import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import Link from "next/link";
@@ -75,7 +76,7 @@ export default function InboxPage() {
       title="Inbox"
       subtitle={
         newCount > 0
-          ? `${newCount} new lead${newCount === 1 ? "" : "s"} — Ring 1 output`
+          ? `${newCount} new lead${newCount === 1 ? "" : "s"} awaiting follow-up`
           : "Every qualified lead from calls and texts."
       }
       actions={
@@ -87,47 +88,30 @@ export default function InboxPage() {
       <Ring1LiveStrip showInboxLink={false} />
 
       {counts ? (
-        <div className="ring1-inbox-stats font-sans" aria-label="Inbox summary">
-          <div className="ring1-inbox-stat">
-            <span className="ring1-inbox-stat-value">{counts.total}</span>
-            <span className="ring1-inbox-stat-label">Total leads</span>
-          </div>
-          <div className="ring1-inbox-stat ring1-inbox-stat-highlight">
-            <span className="ring1-inbox-stat-value">{counts.new}</span>
-            <span className="ring1-inbox-stat-label">New</span>
-          </div>
-          <div className="ring1-inbox-stat">
-            <span className="ring1-inbox-stat-value">{counts.contacted}</span>
-            <span className="ring1-inbox-stat-label">Contacted</span>
-          </div>
-          <div className="ring1-inbox-stat">
-            <span className="ring1-inbox-stat-value">{counts.booked}</span>
-            <span className="ring1-inbox-stat-label">Booked</span>
-          </div>
-        </div>
+        <ProStatRow
+          className="mb-6"
+          stats={[
+            { label: "Total leads", value: counts.total },
+            { label: "New", value: counts.new, highlight: true },
+            { label: "Contacted", value: counts.contacted },
+            { label: "Booked", value: counts.booked },
+          ]}
+        />
       ) : null}
 
-      <div className="inbox-filters pro-filter-bar mb-6 flex flex-wrap gap-2">
-        {FILTERS.map((item) => {
-          const count =
+      <ProFilterBar
+        className="mb-6"
+        value={filter}
+        onChange={setFilter}
+        options={FILTERS.map((item) => ({
+          value: item.value,
+          label: item.label,
+          count:
             item.value === ""
               ? counts?.total
-              : counts?.[item.value as keyof LeadCounts];
-          return (
-            <button
-              key={item.value || "all"}
-              type="button"
-              className={`btn text-sm ${
-                filter === item.value ? "btn-void" : "btn-secondary"
-              }`}
-              onClick={() => setFilter(item.value)}
-            >
-              {item.label}
-              {typeof count === "number" ? ` (${count})` : ""}
-            </button>
-          );
-        })}
-      </div>
+              : counts?.[item.value as keyof LeadCounts],
+        }))}
+      />
 
       {loading ? (
         <DashboardSkeleton />
@@ -140,17 +124,19 @@ export default function InboxPage() {
           ) : null}
 
           {!leads.length ? (
-            <ShellEmpty
+            <ProEmptyState
+              title={filter ? "No leads in this filter" : "No leads yet"}
+              body={
+                filter
+                  ? "Try another status or run a test call on your live line."
+                  : "Call your line — every qualified lead lands here with service, urgency, and callback."
+              }
               action={
                 <a href={demoLineHref()} className="btn btn-void text-sm">
                   Call {DEMO_LINE_DISPLAY}
                 </a>
               }
-            >
-              {filter
-                ? "No leads in this filter. Try another tab or run a test call."
-                : "No leads yet. Call the live demo line — every qualified lead lands here."}
-            </ShellEmpty>
+            />
           ) : (
             <ul className="grid gap-4 lg:grid-cols-2">
               {leads.map((lead) => (

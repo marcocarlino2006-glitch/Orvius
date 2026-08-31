@@ -62,8 +62,8 @@ export function LeadInboxCard({
             <span className="live-dot live-dot-green" aria-hidden />
           )}
           <p
-            className={`home-os-kicker ${
-              emergency ? "home-os-kicker-flare" : ""
+            className={`pro-kicker ${
+              emergency ? "pro-kicker-flare" : ""
             }`}
           >
             {emergency ? "Emergency lead" : "New lead"}

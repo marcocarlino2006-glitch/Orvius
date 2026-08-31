@@ -30,7 +30,7 @@ export function Ring1LiveStrip({ showInboxLink = true }: Ring1LiveStripProps) {
     <div className="ring1-live-strip">
       <div className="ring1-live-strip-main">
         <p className="ring1-live-strip-kicker font-sans">
-          <span className="home-os-live-dot" />
+          <span className="pro-live-dot" />
           Live line
         </p>
         <a href={lineHref} className="ring1-live-strip-number font-sans">

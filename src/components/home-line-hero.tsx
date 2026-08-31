@@ -40,7 +40,8 @@ export function HomeLineHero() {
         </div>
 
         <p className="tier1-hero-foot font-sans">
-          ${pricing.pro.price}/mo · unlimited inbound · cancel anytime
+          ${pricing.pro.price}/mo · unlimited inbound · cancel anytime · built for
+          every shop that runs on the phone
         </p>
       </div>
     </section>

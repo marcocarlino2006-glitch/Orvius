@@ -2,8 +2,9 @@
 
 import { CallRecordCard } from "@/components/call-record-card";
 import { Ring1LiveStrip } from "@/components/ring1-live-strip";
+import { ProEmptyState } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
+import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import Link from "next/link";
@@ -70,16 +71,15 @@ export default function CallsPage() {
           ) : null}
 
           {!calls.length ? (
-            <ShellEmpty
+            <ProEmptyState
+              title="No calls recorded"
+              body="Test your live line — every conversation lands here with transcript and lead link."
               action={
                 <a href={demoLineHref()} className="btn btn-void text-sm">
                   Call {DEMO_LINE_DISPLAY}
                 </a>
               }
-            >
-              No calls yet. Test the live line — every conversation lands here with
-              transcript and lead link.
-            </ShellEmpty>
+            />
           ) : (
             <ul className="grid gap-4">
               {calls.map((call) => (

@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { LeadInboxCard } from "@/components/lead-inbox-card";
+import {
+  ProEmptyState,
+  ProSectionHead,
+  ProStatRow,
+} from "@/components/pro-page-chrome";
+import { Ring1LiveStrip } from "@/components/ring1-live-strip";
 import { Ring1RecentCallRow } from "@/components/ring1-recent-call-row";
 import { Ring1TrustStrip } from "@/components/ring1-trust-strip";
 import { DEMO_LINE_DISPLAY, demoLineHref, telHref } from "@/lib/demo-line";
@@ -43,13 +49,6 @@ type Ring1Data = {
   }>;
 };
 
-const flow = [
-  { step: "01", title: "Answer", body: "Every call picked up — nights, weekends, peak." },
-  { step: "02", title: "Qualify", body: "Service, urgency, address, callback — captured clean." },
-  { step: "03", title: "Alert", body: "Owner SMS in under 60 seconds with a deep link." },
-  { step: "04", title: "Inbox", body: "Lead in the OS. One tap to call back or book." },
-];
-
 const REFRESH_MS = 30_000;
 
 function formatRelative(iso: string | null) {
@@ -60,15 +59,6 @@ function formatRelative(iso: string | null) {
   const h = Math.floor(mins / 60);
   if (h < 48) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
-}
-
-function MetricSkeleton() {
-  return (
-    <div className="ring1-metric ring1-metric-loading" aria-hidden>
-      <div className="ring1-shimmer ring1-shimmer-value" />
-      <div className="ring1-shimmer ring1-shimmer-label" />
-    </div>
-  );
 }
 
 export function Ring1CommandCenter() {
@@ -97,109 +87,58 @@ export function Ring1CommandCenter() {
   const line = data?.business?.line ?? DEMO_LINE_DISPLAY;
   const lineHref = data?.business?.line ? telHref(line) : demoLineHref();
   const m = data?.metrics;
-  const businessName = data?.business?.name ?? "Summit HVAC";
+  const businessName = data?.business?.name ?? null;
+
+  const stats = loading && !data
+    ? [
+        { label: "Calls today", value: "—" },
+        { label: "Leads today", value: "—" },
+        { label: "New in inbox", value: "—", highlight: true },
+        { label: "Answer rate", value: "—" },
+      ]
+    : [
+        { label: "Calls today", value: m?.callsToday ?? 0 },
+        { label: "Leads today", value: m?.leadsToday ?? 0 },
+        { label: "New in inbox", value: m?.newLeads ?? 0, highlight: true },
+        {
+          label: "Answer rate",
+          value: m?.answerRate != null ? `${m.answerRate}%` : "100%",
+        },
+        {
+          label: "Last call",
+          value: formatRelative(m?.lastCallAt ?? null),
+        },
+      ];
 
   return (
-    <section className="ring1-command" aria-label="Ring 1 front door">
-      <Ring1TrustStrip businessName={businessName} />
+    <section className="ring1-command" aria-label="Operations overview">
+      <Ring1TrustStrip businessName={businessName} line={line} />
+      <Ring1LiveStrip showInboxLink />
 
-      <div className="ring1-command-hero">
-        <div className="ring1-command-hero-glow" aria-hidden />
-        <div className="ring1-command-hero-copy">
-          <p className="ring1-command-kicker font-sans">
-            <span className="home-os-live-dot" />
-            Ring 01 · Front door · Live
-          </p>
-          <h2 className="ring1-command-title font-sans">
-            Every call answered. Every lead captured.
-          </h2>
-          <p className="ring1-command-lead font-sans">
-            {businessName} runs on Orvius. Call the line — hear the AI, watch the
-            SMS, see the lead land here.
-          </p>
-          <div className="ring1-command-line">
-            <a href={lineHref} className="ring1-command-number font-sans">
-              {line}
-            </a>
-            <a href={lineHref} className="btn btn-on-void text-sm">
-              Test live line
-            </a>
-          </div>
-        </div>
-
-        <div className="ring1-command-flow">
-          {flow.map((item) => (
-            <div key={item.step} className="ring1-flow-step">
-              <span className="ring1-flow-num font-sans">{item.step}</span>
-              <div>
-                <p className="ring1-flow-title font-sans">{item.title}</p>
-                <p className="ring1-flow-body font-sans">{item.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="ring1-metrics">
-        {loading && !data ? (
-          <>
-            <MetricSkeleton />
-            <MetricSkeleton />
-            <MetricSkeleton />
-            <MetricSkeleton />
-            <MetricSkeleton />
-          </>
-        ) : (
-          <>
-            <div className="ring1-metric">
-              <p className="ring1-metric-value font-sans">{m?.callsToday ?? 0}</p>
-              <p className="ring1-metric-label font-sans">Calls today</p>
-            </div>
-            <div className="ring1-metric">
-              <p className="ring1-metric-value font-sans">{m?.leadsToday ?? 0}</p>
-              <p className="ring1-metric-label font-sans">Leads today</p>
-            </div>
-            <div className="ring1-metric ring1-metric-highlight">
-              <p className="ring1-metric-value font-sans">{m?.newLeads ?? 0}</p>
-              <p className="ring1-metric-label font-sans">New in inbox</p>
-            </div>
-            <div className="ring1-metric">
-              <p className="ring1-metric-value font-sans">
-                {m?.answerRate != null ? `${m.answerRate}%` : "100%"}
-              </p>
-              <p className="ring1-metric-label font-sans">Answer rate</p>
-            </div>
-            <div className="ring1-metric ring1-metric-wide">
-              <p className="ring1-metric-value font-sans ring1-metric-value-sm">
-                {formatRelative(m?.lastCallAt ?? null)}
-              </p>
-              <p className="ring1-metric-label font-sans">
-                Last call{m?.lastCaller ? ` · ${m.lastCaller}` : ""}
-              </p>
-            </div>
-          </>
-        )}
-      </div>
+      <ProStatRow stats={stats} className="ring1-command-stats" />
 
       <div className="ring1-activity">
         <div className="ring1-recent">
-          <div className="pro-section-head">
-            <div>
-              <p className="pro-section-kicker font-sans">Inbox</p>
-              <h3 className="pro-section-title font-sans">Latest leads</h3>
-            </div>
-            <Link href="/dashboard/inbox" className="pro-section-link font-sans">
-              Open full inbox →
-            </Link>
-          </div>
+          <ProSectionHead
+            kicker="Inbox"
+            title="Latest leads"
+            action={
+              <Link href="/dashboard/inbox" className="pro-section-link font-sans">
+                Open inbox →
+              </Link>
+            }
+          />
 
           {!data?.recentLeads?.length ? (
-            <div className="ring1-empty font-sans">
-              <p>No leads yet. Call the live line to see Ring 1 work in real time.</p>
-              <a href={lineHref} className="btn btn-void mt-4 text-sm">
-                Call {line}
-              </a>
-            </div>
+            <ProEmptyState
+              title="No leads yet"
+              body="Call your live line. Every qualified lead appears here with service, urgency, and callback."
+              action={
+                <a href={lineHref} className="btn btn-void text-sm">
+                  Call {line}
+                </a>
+              }
+            />
           ) : (
             <ul className="grid gap-4 lg:grid-cols-2">
               {data.recentLeads.map((lead) => (
@@ -224,20 +163,27 @@ export function Ring1CommandCenter() {
         </div>
 
         <div className="ring1-recent ring1-recent-calls">
-          <div className="pro-section-head">
-            <div>
-              <p className="pro-section-kicker font-sans">Calls</p>
-              <h3 className="pro-section-title font-sans">Recent conversations</h3>
-            </div>
-            <Link href="/dashboard/calls" className="pro-section-link font-sans">
-              Full call log →
-            </Link>
-          </div>
+          <ProSectionHead
+            kicker="Calls"
+            title="Recent conversations"
+            action={
+              <Link href="/dashboard/calls" className="pro-section-link font-sans">
+                Call log →
+              </Link>
+            }
+          />
 
           {!data?.recentCalls?.length ? (
-            <div className="ring1-empty ring1-empty-compact font-sans">
-              <p>Every inbound call lands here with transcript and lead link.</p>
-            </div>
+            <ProEmptyState
+              compact
+              title="No calls recorded"
+              body="Transcripts and lead links appear here after every inbound call."
+              action={
+                <a href={lineHref} className="btn btn-secondary text-sm">
+                  Test line
+                </a>
+              }
+            />
           ) : (
             <ul className="ring1-recent-call-list">
               {data.recentCalls.map((call) => (
