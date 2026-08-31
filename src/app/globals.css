@@ -1048,7 +1048,6 @@ h3 {
   color: var(--signal-dim);
   background: color-mix(in srgb, var(--signal) 10%, var(--fog));
 }
-.orvius-logo-mark { flex-shrink: 0; }
 .orvius-logo-sm .orvius-logo-wordmark { font-size: 1rem; }
 .orvius-logo-sm .orvius-logo-os { font-size: 0.5rem; }
 .orvius-logo-md .orvius-logo-wordmark { font-size: 1.125rem; }
@@ -1058,23 +1057,29 @@ h3 {
 .orvius-logo-xl .orvius-logo-os { font-size: 0.5625rem; }
 
 .orvius-logo-scifi .orvius-logo-wordmark {
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-weight: 500;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
-.orvius-logo-scifi.orvius-logo-sm .orvius-logo-wordmark { font-size: 0.6875rem; }
-.orvius-logo-scifi.orvius-logo-md .orvius-logo-wordmark { font-size: 0.75rem; }
-.orvius-logo-scifi.orvius-logo-lg .orvius-logo-wordmark { font-size: 0.8125rem; }
-.orvius-logo-scifi.orvius-logo-xl .orvius-logo-wordmark { font-size: 0.875rem; }
+.orvius-logo-scifi.orvius-logo-sm .orvius-logo-wordmark { font-size: 0.625rem; }
+.orvius-logo-scifi.orvius-logo-md .orvius-logo-wordmark { font-size: 0.6875rem; }
+.orvius-logo-scifi.orvius-logo-lg .orvius-logo-wordmark { font-size: 0.75rem; }
+.orvius-logo-scifi.orvius-logo-xl .orvius-logo-wordmark { font-size: 0.8125rem; }
 .orvius-logo-scifi .orvius-logo-os {
-  letter-spacing: 0.14em;
-  border-radius: 0.125rem;
-  border: 1px solid color-mix(in srgb, var(--signal) 40%, transparent);
-  background: color-mix(in srgb, var(--signal) 6%, transparent);
+  letter-spacing: 0.16em;
+  border-radius: 0;
+  border: 1px solid color-mix(in srgb, var(--signal) 55%, transparent);
+  background: transparent;
+  padding: 0.18rem 0.38rem;
+}
+.orvius-mark-reticle {
+  flex-shrink: 0;
+  filter:
+    drop-shadow(0 0 6px color-mix(in srgb, var(--signal) 35%, transparent))
+    drop-shadow(0 1px 2px rgba(26, 25, 23, 0.35));
 }
 .orvius-logo-mark {
   flex-shrink: 0;
-  filter: drop-shadow(0 1px 5px color-mix(in srgb, var(--signal) 16%, transparent));
 }
 
 .shell-brand-text {

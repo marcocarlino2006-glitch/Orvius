@@ -8,7 +8,6 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Hex signal mark — Tesla-inspired sci-fi, static. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   const uid = useId().replace(/:/g, "");
   const gradId = `orvius-mark-${uid}`;
@@ -17,7 +16,7 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
     <OrviusMarkSvg
       gradientId={gradId}
       size={size}
-      className={`orvius-mark ${className}`.trim()}
+      className={`orvius-mark orvius-mark-reticle ${className}`.trim()}
     />
   );
 }
@@ -30,7 +29,7 @@ type OrviusLogoProps = {
   className?: string;
 };
 
-const markSizes = { sm: 26, md: 32, lg: 36, xl: 44 } as const;
+const markSizes = { sm: 28, md: 34, lg: 38, xl: 46 } as const;
 
 export function OrviusLogo({
   size = "md",
