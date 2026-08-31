@@ -1,28 +1,42 @@
 @import "tailwindcss";
 
 /*
-  Orvius Chromatics
-  SIGNAL is warm clay terracotta. FLARE is emergency. LIVE is field status.
+  Orvius Chromatics — Coral Clean
+  Bright coral accent · off-white canvas · Claude-soft dark cards
 */
 
 :root {
-  --void: #111110;
-  --panel: #1a1a18;
-  --chalk: #f8f8f6;
-  --fog: #eeeee9;
-  --ash: #6b6a65;
-  --ash-soft: #989792;
-  --rule: #d4d4ce;
-  --rule-dark: rgba(248, 248, 246, 0.1);
-  --signal: #d97757;
-  --signal-hot: #e8956d;
-  --signal-dim: #c2613f;
-  --flare: #e8461c;
-  --flare-hot: #ff5a2e;
-  --flare-dim: #b83312;
-  --live: #2f6b4f;
-  --live-soft: #3f8a66;
+  /* Canvas */
+  --chalk: #f9f9f7;
+  --fog: #f2f1ed;
+  --warm-close: #f6f2ec;
   --white: #ffffff;
+
+  /* Ink & dark UI (Claude-soft — never pitch black) */
+  --void: #1a1917;
+  --void-deep: #323230;
+  --panel: #3f3f3c;
+  --mist: #eceae6;
+
+  /* Neutrals */
+  --ash: #6f6e69;
+  --ash-soft: #94938d;
+  --rule: #e5e4df;
+  --rule-dark: rgba(236, 234, 230, 0.14);
+
+  /* Coral accent — primary brand action */
+  --signal: #f0704a;
+  --signal-hot: #f58868;
+  --signal-dim: #e05a32;
+
+  /* Success / recovered revenue */
+  --live: #1f9d68;
+  --live-soft: #2eb578;
+
+  /* Emergency */
+  --flare: #ef4444;
+  --flare-hot: #f87171;
+  --flare-dim: #dc2626;
 
   --background: var(--chalk);
   --foreground: var(--void);
@@ -37,15 +51,16 @@
   --border: var(--rule);
   --success: var(--live);
 
-  --shadow-soft: 0 1px 2px rgba(10, 11, 10, 0.04), 0 8px 24px rgba(10, 11, 10, 0.06);
-  --shadow-lift: 0 2px 4px rgba(10, 11, 10, 0.06), 0 16px 40px rgba(10, 11, 10, 0.1);
-  --shadow-product: 0 0 0 1px color-mix(in srgb, var(--signal) 18%, transparent),
-    0 24px 64px rgba(10, 11, 10, 0.45);
+  --shadow-soft: 0 1px 2px rgba(26, 25, 23, 0.04), 0 8px 24px rgba(26, 25, 23, 0.06);
+  --shadow-lift: 0 2px 4px rgba(26, 25, 23, 0.06), 0 16px 40px rgba(26, 25, 23, 0.08);
+  --shadow-product: 0 0 0 1px color-mix(in srgb, var(--signal) 16%, transparent),
+    0 20px 56px rgba(26, 25, 23, 0.12);
 }
 
 @theme inline {
   --color-void: var(--void);
   --color-panel: var(--panel);
+  --color-mist: var(--mist);
   --color-chalk: var(--chalk);
   --color-fog: var(--fog);
   --color-ash: var(--ash);
@@ -322,7 +337,7 @@ h3 {
       color-mix(in srgb, var(--flare) 6%, transparent),
       transparent 50%
     ),
-    linear-gradient(165deg, #111211 0%, var(--void) 46%, #050505 100%);
+    linear-gradient(165deg, var(--void-deep) 0%, var(--void) 46%, color-mix(in srgb, var(--void) 88%, var(--void-deep)) 100%);
 }
 
 .orvius-atmosphere::after {
@@ -4685,12 +4700,13 @@ h3 {
 }
 .tier-btn:hover { transform: translateY(-1px); }
 .tier-btn-primary {
-  background: var(--signal); color: var(--void);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--signal-hot) 80%, transparent), 0 8px 28px color-mix(in srgb, var(--signal) 32%, transparent);
+  background: var(--signal);
+  color: var(--white);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--signal-dim) 60%, transparent), 0 8px 28px color-mix(in srgb, var(--signal) 28%, transparent);
 }
 .tier-btn-primary:hover {
   background: var(--signal-hot);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--signal-hot) 80%, transparent), 0 12px 36px color-mix(in srgb, var(--signal) 40%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--signal-dim) 60%, transparent), 0 12px 36px color-mix(in srgb, var(--signal) 36%, transparent);
 }
 .tier-btn-secondary { background: var(--white); border-color: var(--rule); color: var(--void); }
 .tier-btn-secondary:hover { border-color: color-mix(in srgb, var(--void) 20%, var(--rule)); background: var(--fog); }
@@ -5334,7 +5350,7 @@ h3 {
 /* Call demo — product-led CTA */
 .tier-btn-call {
   background: linear-gradient(135deg, var(--signal) 0%, var(--signal-dim) 100%);
-  color: var(--chalk);
+  color: var(--white);
   border: 1px solid color-mix(in srgb, var(--signal-hot) 30%, transparent);
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--signal) 20%, transparent),
@@ -5600,25 +5616,25 @@ h3 {
 
 .os-sidebar-pro {
   background:
-    radial-gradient(ellipse 120% 80% at 0% 0%, color-mix(in srgb, var(--signal) 8%, transparent), transparent 50%),
-    linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, var(--void)) 0%, var(--void) 100%);
-  border-color: color-mix(in srgb, var(--chalk) 8%, transparent);
+    radial-gradient(ellipse 120% 80% at 0% 0%, color-mix(in srgb, var(--signal) 5%, transparent), transparent 50%),
+    linear-gradient(180deg, var(--panel) 0%, var(--void-deep) 100%);
+  border-color: color-mix(in srgb, var(--mist) 10%, transparent);
 }
 
 .os-sidebar-pro .os-sidebar-label {
-  color: color-mix(in srgb, var(--chalk) 45%, var(--ash));
+  color: color-mix(in srgb, var(--mist) 50%, var(--ash));
 }
 
 .os-sidebar-pro .os-sidebar-name,
 .os-sidebar-pro .os-user-name {
-  color: var(--chalk);
+  color: var(--mist);
 }
 
 .os-sidebar-pro .os-sidebar-sub,
 .os-sidebar-pro .os-user-email,
 .os-sidebar-pro .os-sidebar-ring-item,
 .os-sidebar-pro .os-sign-out {
-  color: color-mix(in srgb, var(--chalk) 55%, var(--ash));
+  color: color-mix(in srgb, var(--mist) 58%, var(--ash));
 }
 
 .os-ring-status-pro {
@@ -5644,25 +5660,25 @@ h3 {
 }
 
 .os-sidebar-pro .os-nav-link {
-  color: color-mix(in srgb, var(--chalk) 72%, var(--ash));
+  color: color-mix(in srgb, var(--mist) 72%, var(--ash));
   border-radius: 0.4375rem;
   padding: 0.5rem 0.625rem;
 }
 
 .os-sidebar-pro .os-nav-link:hover {
-  background: color-mix(in srgb, var(--chalk) 8%, transparent);
-  color: var(--chalk);
+  background: color-mix(in srgb, var(--mist) 8%, transparent);
+  color: var(--mist);
 }
 
 .os-sidebar-pro .os-nav-link-active {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--signal) 88%, var(--void)) 0%, var(--signal-dim) 100%);
-  color: var(--chalk);
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--signal) 25%, transparent);
+  background: linear-gradient(135deg, var(--signal) 0%, var(--signal-dim) 100%);
+  color: var(--white);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--signal) 22%, transparent);
 }
 
 .os-sidebar-pro .os-nav-badge {
-  background: color-mix(in srgb, var(--chalk) 12%, transparent);
-  color: color-mix(in srgb, var(--chalk) 85%, var(--ash));
+  background: color-mix(in srgb, var(--mist) 12%, transparent);
+  color: color-mix(in srgb, var(--mist) 88%, var(--ash));
 }
 
 .os-sidebar-pro .os-sidebar-ring-live {
@@ -5755,8 +5771,8 @@ h3 {
 }
 
 .customer-record-avatar {
-  background: linear-gradient(135deg, var(--void) 0%, color-mix(in srgb, var(--panel) 80%, var(--void)) 100%);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--chalk) 12%, transparent);
+  background: linear-gradient(135deg, var(--void-deep) 0%, var(--panel) 100%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--mist) 12%, transparent);
 }
 
 /* Pro stats */
@@ -5967,10 +5983,10 @@ h3 {
   align-items: center;
   padding: clamp(2rem, 6vh, 4rem);
   background:
-    radial-gradient(ellipse 70% 60% at 20% 0%, color-mix(in srgb, var(--signal) 14%, transparent), transparent 65%),
-    radial-gradient(ellipse 50% 40% at 80% 100%, color-mix(in srgb, var(--live) 8%, transparent), transparent 70%),
-    var(--void);
-  color: var(--chalk);
+    radial-gradient(ellipse 70% 60% at 20% 0%, color-mix(in srgb, var(--signal) 10%, transparent), transparent 65%),
+    radial-gradient(ellipse 50% 40% at 80% 100%, color-mix(in srgb, var(--live) 6%, transparent), transparent 70%),
+    linear-gradient(165deg, var(--void-deep) 0%, var(--panel) 100%);
+  color: var(--mist);
 }
 
 .login-pro-brand-inner {
@@ -5983,7 +5999,7 @@ h3 {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--chalk) 55%, var(--ash));
+  color: color-mix(in srgb, var(--mist) 55%, var(--ash));
 }
 
 .login-pro-title {
@@ -5997,7 +6013,7 @@ h3 {
   margin-top: 1rem;
   font-size: 1rem;
   line-height: 1.65;
-  color: color-mix(in srgb, var(--chalk) 78%, var(--ash));
+  color: color-mix(in srgb, var(--mist) 78%, var(--ash));
 }
 
 .login-pro-rings {
@@ -6007,7 +6023,7 @@ h3 {
   display: grid;
   gap: 0.5rem;
   font-size: 0.8125rem;
-  color: color-mix(in srgb, var(--chalk) 62%, var(--ash));
+  color: color-mix(in srgb, var(--mist) 62%, var(--ash));
 }
 
 .login-pro-form {
@@ -6100,12 +6116,12 @@ h3 {
   display: grid; gap: 1.5rem;
   padding: clamp(1.5rem, 3vw, 2rem);
   border-radius: 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--signal) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--signal) 14%, transparent);
   background:
-    radial-gradient(ellipse 80% 70% at 0% 0%, color-mix(in srgb, var(--signal) 14%, transparent), transparent 55%),
-    linear-gradient(165deg, var(--void) 0%, color-mix(in srgb, var(--panel) 92%, var(--void)) 100%);
-  color: var(--chalk);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--chalk) 6%, transparent), 0 24px 64px rgba(0, 0, 0, 0.35);
+    radial-gradient(ellipse 80% 70% at 0% 0%, color-mix(in srgb, var(--signal) 10%, transparent), transparent 55%),
+    linear-gradient(165deg, var(--void-deep) 0%, var(--panel) 100%);
+  color: var(--mist);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mist) 6%, transparent), 0 20px 48px rgba(26, 25, 23, 0.14);
 }
 .ring1-command-hero-glow {
   position: absolute; inset: -40% -20% auto -20%; height: 70%;
@@ -6135,25 +6151,25 @@ h3 {
 .ring1-command-lead {
   margin-top: 0.875rem; max-width: 42ch;
   font-size: 0.9375rem; line-height: 1.6;
-  color: color-mix(in srgb, var(--chalk) 72%, var(--ash));
+  color: color-mix(in srgb, var(--mist) 72%, var(--ash));
 }
 .ring1-command-line { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.5rem; }
 .ring1-command-number {
   font-size: clamp(1.25rem, 2.5vw, 1.625rem); font-weight: 600;
   letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
-  color: var(--chalk); text-decoration: none;
+  color: var(--mist); text-decoration: none;
 }
 .ring1-command-number:hover { color: var(--signal-hot); }
 .ring1-command-flow { display: grid; gap: 0.65rem; }
 .ring1-flow-step {
   display: grid; grid-template-columns: auto 1fr; gap: 0.875rem;
   padding: 0.75rem 0.875rem; border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--chalk) 8%, transparent);
-  background: color-mix(in srgb, var(--chalk) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mist) 8%, transparent);
+  background: color-mix(in srgb, var(--mist) 4%, transparent);
 }
 .ring1-flow-num { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.1em; color: var(--signal-hot); }
-.ring1-flow-title { font-size: 0.8125rem; font-weight: 600; color: var(--chalk); }
-.ring1-flow-body { margin-top: 0.2rem; font-size: 0.75rem; line-height: 1.45; color: color-mix(in srgb, var(--chalk) 58%, var(--ash)); }
+.ring1-flow-title { font-size: 0.8125rem; font-weight: 600; color: var(--mist); }
+.ring1-flow-body { margin-top: 0.2rem; font-size: 0.75rem; line-height: 1.45; color: color-mix(in srgb, var(--mist) 58%, var(--ash)); }
 .ring1-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
 @media (min-width: 768px) { .ring1-metrics { grid-template-columns: repeat(5, 1fr); } }
 .ring1-metric {
@@ -6294,7 +6310,7 @@ h3 {
 .call-record-icon {
   position: relative; display: flex; align-items: center; justify-content: center;
   width: 2.25rem; height: 2.25rem; border-radius: 0.5rem;
-  background: linear-gradient(135deg, var(--void), color-mix(in srgb, var(--panel) 80%, var(--void)));
+  background: linear-gradient(135deg, var(--void-deep), var(--panel));
   flex-shrink: 0;
 }
 .call-record-pulse {
@@ -6842,3 +6858,109 @@ h3 {
   padding: 0.5rem 0.95rem;
   font-size: 0.8125rem;
 }
+
+/* Claude dark + Manus-inspired light homepage */
+.cursor-page-light { background: var(--chalk); color: var(--void); }
+.cursor-hero-light {
+  padding-top: clamp(5.5rem, 11vh, 7rem);
+  padding-bottom: clamp(3rem, 6vh, 4.5rem);
+  border-bottom: 1px solid var(--rule);
+  background: radial-gradient(ellipse 70% 50% at 80% 0%, color-mix(in srgb, var(--signal) 6%, transparent), transparent 60%), var(--chalk);
+  color: var(--void);
+}
+.cursor-hero-grid { display: grid; gap: 3rem; align-items: center; }
+@media (min-width: 1024px) { .cursor-hero-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 4rem; } }
+.cursor-hero-title-light { font-size: clamp(2.75rem, 6vw, 4.5rem); max-width: 14ch; color: var(--void); }
+.cursor-hero-sub-light { color: var(--ash); max-width: 40ch; }
+.cursor-trust-kicker-light { color: var(--signal-dim); }
+.cursor-hero-micro { margin-top: 1rem; font-size: 0.8125rem; color: var(--ash-soft); }
+.cursor-hero-visual { width: 100%; max-width: 26rem; margin-inline: auto; }
+@media (min-width: 1024px) { .cursor-hero-visual { margin-inline: 0; max-width: none; } }
+.home-hero-widgets { display: flex; flex-direction: column; gap: 0.875rem; }
+.home-widget { border-radius: 0.75rem; border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule)); box-shadow: var(--shadow-soft); }
+.home-widget-live {
+  padding: 1.125rem 1.25rem; background: var(--panel);
+  border-color: color-mix(in srgb, var(--mist) 10%, transparent); color: var(--mist);
+  box-shadow: 0 12px 40px rgba(26, 25, 23, 0.12);
+}
+.home-widget-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.home-widget-live-label {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.625rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal-hot);
+}
+.home-widget-head time { font-size: 0.75rem; color: color-mix(in srgb, var(--mist) 55%, var(--ash)); }
+.home-widget-phone {
+  display: block; margin-top: 0.75rem; font-size: 1.25rem; font-weight: 600;
+  letter-spacing: 0.04em; font-variant-numeric: tabular-nums; color: var(--mist); text-decoration: none;
+}
+.home-widget-phone:hover { color: var(--signal-hot); }
+.home-widget-meta { margin-top: 0.25rem; font-size: 0.8125rem; color: color-mix(in srgb, var(--mist) 62%, var(--ash)); }
+.home-widget-quote {
+  margin: 1rem 0 0; padding-top: 1rem; border-top: 1px solid color-mix(in srgb, var(--mist) 10%, transparent);
+  font-size: 0.875rem; font-style: italic; line-height: 1.55; color: color-mix(in srgb, var(--mist) 78%, var(--ash));
+}
+.home-widget-stat { padding: 1rem 1.25rem; background: var(--white); }
+.home-widget-kicker { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+.home-widget-stat-value { margin-top: 0.35rem; font-size: 1.75rem; line-height: 1; letter-spacing: -0.04em; }
+.home-widget-stat-live { color: var(--live); }
+.home-widget-stat-signal { color: var(--signal-dim); }
+.home-widget-stat-sub { margin-top: 0.25rem; font-size: 0.8125rem; color: var(--ash); }
+.cursor-page-light .home-proof-bar { border-color: var(--rule); background: var(--white); }
+.cursor-page-light .home-proof-bar-value { color: var(--signal-dim); }
+.cursor-page-light .home-proof-bar-label { color: var(--void); }
+.cursor-page-light .home-proof-bar-detail { color: var(--ash); }
+.home-experience-light { border-top: 1px solid var(--rule); background: var(--white); color: var(--void); }
+.home-experience-head-center { text-align: center; max-width: 40rem; margin-inline: auto; }
+.home-experience-title { font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.03em; color: var(--void); }
+.home-experience-lead { margin-top: 0.75rem; font-size: 1rem; line-height: 1.6; color: var(--ash); }
+.home-experience-grid { list-style: none; margin: 3rem 0 0; padding: 0; display: grid; gap: 2.5rem; }
+@media (min-width: 768px) { .home-experience-grid { grid-template-columns: repeat(3, 1fr); gap: 2rem; } }
+.home-experience-grid-item { position: relative; padding-top: 0.5rem; }
+.home-experience-grid-num {
+  display: block; font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 700; line-height: 1;
+  letter-spacing: -0.04em; color: color-mix(in srgb, var(--void) 8%, var(--rule)); user-select: none;
+}
+.home-experience-grid-title { margin-top: 0.75rem; font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.02em; color: var(--void); }
+.home-experience-grid-body { margin-top: 0.5rem; font-size: 0.9375rem; line-height: 1.6; color: var(--ash); }
+.cursor-page-light .cursor-platform,
+.cursor-page-light .cursor-section,
+.cursor-page-light .home-compare,
+.cursor-page-light .home-case-quote,
+.cursor-page-light .cursor-changelog { border-top-color: var(--rule); background: var(--chalk); color: var(--void); }
+.cursor-page-light .cursor-label,
+.cursor-page-light .cursor-label-light { color: var(--signal-dim); }
+.cursor-page-light .cursor-section-title { color: var(--void); }
+.cursor-page-light .cursor-body { color: var(--ash); }
+.cursor-page-light .cursor-stat { background: var(--white); border: 1px solid var(--rule); }
+.cursor-page-light .cursor-stat-value,
+.cursor-page-light .cursor-stat-label { color: var(--void); }
+.cursor-page-light .cursor-stat-detail { color: var(--ash); }
+.cursor-page-light .cursor-platform-stats { border: 1px solid var(--rule); border-radius: 0.625rem; overflow: hidden; }
+.cursor-page-light .cursor-feature-title { color: var(--void); }
+.cursor-page-light .cursor-feature-body { color: var(--ash); }
+.cursor-page-light .cursor-link { color: var(--void); text-decoration-color: color-mix(in srgb, var(--void) 25%, transparent); }
+.cursor-page-light .cursor-link:hover { text-decoration-color: var(--void); }
+.cursor-page-light .home-compare-row { border-color: var(--rule); background: var(--white); }
+.cursor-page-light .home-compare-cost { color: var(--void); }
+.cursor-page-light .home-compare-pain { color: var(--ash); }
+.cursor-close-warm { border-top: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule)); background: var(--warm-close); color: var(--void); }
+.cursor-close-title-light { color: var(--void); }
+.cursor-close-sub-light { color: var(--ash); }
+.cursor-page-light .cursor-footer { background: var(--chalk); color: var(--void); border-top-color: var(--rule); }
+.cursor-page-light .cursor-footer-tag,
+.cursor-page-light .cursor-footer-nav a,
+.cursor-page-light .cursor-footer-email,
+.cursor-page-light .cursor-footer-bar { color: var(--ash); }
+.cursor-page-light .cursor-footer-nav a:hover,
+.cursor-page-light .cursor-footer-email:hover { color: var(--void); }
+.cursor-page-light .cursor-footer-bar { border-top-color: var(--rule); }
+.product-surface-void,
+.panel-void { background: var(--panel); color: var(--mist); }
+.os-sidebar-pro .os-ring-status-title,
+.os-sidebar-pro .os-nav-link-active { color: var(--mist); }
+.call-demo-void {
+  border-color: color-mix(in srgb, var(--mist) 12%, transparent);
+  background: var(--panel);
+  box-shadow: 0 12px 36px rgba(26, 25, 23, 0.12);
+}
+.call-demo-void .call-demo-number { color: var(--mist); }

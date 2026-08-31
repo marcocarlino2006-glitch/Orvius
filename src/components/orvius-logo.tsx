@@ -33,14 +33,14 @@ export function OrviusMark({
     >
       <defs>
         <linearGradient id={gradId} x1="2" y1="0" x2="30" y2="32">
-          <stop offset="0%" stopColor="#F0B090" />
-          <stop offset="45%" stopColor="#E8956D" />
-          <stop offset="100%" stopColor="#C2613F" />
+          <stop offset="0%" stopColor="#F8A88A" />
+          <stop offset="45%" stopColor="#F58868" />
+          <stop offset="100%" stopColor="#E05A32" />
         </linearGradient>
         <radialGradient id={coreId} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#FFF8F2" />
-          <stop offset="35%" stopColor="#E8956D" />
-          <stop offset="100%" stopColor="#D97757" />
+          <stop offset="0%" stopColor="#FFF5F0" />
+          <stop offset="35%" stopColor="#F58868" />
+          <stop offset="100%" stopColor="#F0704A" />
         </radialGradient>
         <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1.1" result="blur" />

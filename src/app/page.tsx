@@ -4,7 +4,7 @@ import { HomeChangelog } from "@/components/home-changelog";
 import { HomeCompareSection } from "@/components/home-compare-section";
 import { HomeExperienceSection } from "@/components/home-experience-section";
 import { HomeHeroActions } from "@/components/home-hero-actions";
-import { HomeHeroCinema } from "@/components/home-hero-cinema";
+import { HomeHeroWidgets } from "@/components/home-hero-widgets";
 import { HomePlatformSection } from "@/components/home-platform-section";
 import { HomeProofBar } from "@/components/home-proof-bar";
 import { HomeStickyCall } from "@/components/home-sticky-call";
@@ -29,7 +29,7 @@ export default function HomePage() {
   return (
     <>
       <ShellHeader
-        plane="void"
+        plane="chalk"
         surface="glass"
         position="fixed"
         cta={{ href: "tel:+18446439170", label: "Call demo" }}
@@ -37,28 +37,33 @@ export default function HomePage() {
 
       <HomeStickyCall />
 
-      <main className="cursor-page">
-        <section className="cursor-hero">
-          <div className="editorial-wrap cursor-hero-copy tier-reveal">
-            <p className="cursor-trust-kicker font-sans">
-              <span className="cursor-live-dot" aria-hidden />
-              Live demo · call now
-            </p>
-            <h1 className="cursor-hero-title font-serif">
-              Hear Orvius answer your shop&apos;s phone.
-            </h1>
-            <p className="cursor-hero-sub font-sans">
-              {company.tagline} Call the line below — real AI, real leads, real
-              owner SMS in under 60 seconds.
-            </p>
-            <div className="cursor-live cursor-live-prominent">
-              <HomeCallDemo variant="void" size="hero" />
+      <main className="cursor-page cursor-page-light">
+        <section className="cursor-hero cursor-hero-light">
+          <div className="editorial-wrap cursor-hero-grid tier-reveal">
+            <div className="cursor-hero-copy">
+              <p className="cursor-trust-kicker cursor-trust-kicker-light font-sans">
+                <span className="cursor-live-dot" aria-hidden />
+                The operating system for business
+              </p>
+              <h1 className="cursor-hero-title cursor-hero-title-light font-serif">
+                Stop losing revenue to missed calls.
+              </h1>
+              <p className="cursor-hero-sub cursor-hero-sub-light font-sans">
+                {company.tagline} Orvius answers in under 2 seconds, qualifies
+                the lead, and alerts the owner — while you&apos;re on the tools.
+              </p>
+              <div className="cursor-live cursor-live-light">
+                <HomeCallDemo variant="light" size="hero" />
+              </div>
+              <HomeHeroActions variant="light" />
+              <p className="cursor-hero-micro font-sans">
+                No credit card · 30-day design partner · Cancel anytime
+              </p>
             </div>
-            <HomeHeroActions variant="void" />
-          </div>
 
-          <div className="cursor-product cursor-product-bleed tier-reveal tier-reveal-delay">
-            <HomeHeroCinema />
+            <div className="cursor-hero-visual">
+              <HomeHeroWidgets />
+            </div>
           </div>
         </section>
 
@@ -76,20 +81,20 @@ export default function HomePage() {
           <HomeChangelog />
         </RevealOnScroll>
 
-        <section className="cursor-close">
+        <section className="cursor-close cursor-close-warm">
           <RevealOnScroll>
             <div className="editorial-wrap cursor-close-inner">
-              <p className="cursor-label font-sans">Still deciding?</p>
-              <h2 className="cursor-close-title font-serif">
-                Call it. Then decide.
+              <p className="cursor-label cursor-label-light font-sans">Still deciding?</p>
+              <h2 className="cursor-close-title cursor-close-title-light font-serif">
+                Ready to stop losing revenue?
               </h2>
-              <p className="cursor-close-sub font-sans">
-                ${pricing.pro.price}/mo flat · one booked job covers the month
+              <p className="cursor-close-sub cursor-close-sub-light font-sans">
+                ${pricing.pro.price}/mo flat · call the live line first, then decide
               </p>
               <div className="cursor-close-call">
-                <HomeCallDemo variant="void" size="section" showHint={false} />
+                <HomeCallDemo variant="light" size="section" showHint={false} />
               </div>
-              <HomeHeroActions variant="void" />
+              <HomeHeroActions variant="light" />
             </div>
           </RevealOnScroll>
         </section>
