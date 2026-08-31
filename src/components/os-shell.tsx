@@ -11,6 +11,7 @@ import {
   osRings,
 } from "@/lib/os-nav";
 import { company } from "@/lib/company";
+import { OrviusLogo } from "@/components/orvius-logo";
 
 type OsShellProps = {
   children: React.ReactNode;
@@ -43,7 +44,7 @@ export function OsShell({
       <aside className="os-sidebar">
         <div className="os-sidebar-inner">
           <Link href="/dashboard" className="os-sidebar-brand">
-            <span className="os-sidebar-mark" aria-hidden />
+            <OrviusLogo size="sm" variant="chalk" showOs markOnly />
             <span>
               <span className="os-sidebar-name font-serif">{company.productName}</span>
               <span className="os-sidebar-sub font-sans">OS</span>

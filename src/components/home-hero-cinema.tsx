@@ -12,6 +12,7 @@ import {
   HomeOsDispatch,
   HomeOsJobs,
 } from "@/components/home-product-stage";
+import { OrviusMark } from "@/components/orvius-logo";
 
 type SurfaceId = "call" | "jobs" | "dispatch";
 
@@ -263,7 +264,7 @@ export function HomeHeroCinema() {
 
         <div className="home-os-titlebar font-sans">
           <div className="home-os-titlebar-brand">
-            <span className="home-os-mark" aria-hidden />
+            <OrviusMark size={16} className="home-os-mark" />
             <span className="home-os-wordmark font-serif">Orvius</span>
             <span className="home-os-shop">Summit HVAC</span>
           </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useId, useState } from "react";
+import { OrviusLogo } from "@/components/orvius-logo";
 
 type NavLink = { href: string; label: string };
 
@@ -95,11 +96,11 @@ export function ShellHeader({
             className={`shell-brand ${isVoid ? "text-chalk" : "text-void"}`}
             onClick={() => setMenuOpen(false)}
           >
-            <span className="shell-logo-mark" aria-hidden />
-            <span className="shell-brand-text">
-              <span className="shell-wordmark">Orvius</span>
-              <span className="shell-brand-os font-sans">OS</span>
-            </span>
+            <OrviusLogo
+              size="md"
+              variant={isVoid ? "void" : "chalk"}
+              showOs
+            />
           </Link>
 
           {nav ? (

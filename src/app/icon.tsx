@@ -1,3 +1,4 @@
+import { OrviusMarkGraphic } from "@/lib/orvius-mark-graphic";
 import { orviusColors } from "@/lib/orvius-colors";
 import { ImageResponse } from "next/og";
 
@@ -14,20 +15,11 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: `linear-gradient(135deg, ${orviusColors.signalHot} 0%, ${orviusColors.signal} 55%, ${orviusColors.signalDim} 100%)`,
+          background: orviusColors.void,
           borderRadius: 8,
         }}
       >
-        <div
-          style={{
-            color: orviusColors.void,
-            fontSize: 18,
-            fontWeight: 700,
-            letterSpacing: "-0.06em",
-          }}
-        >
-          O
-        </div>
+        <OrviusMarkGraphic size={26} gradientId="orvius-icon" />
       </div>
     ),
     { ...size },

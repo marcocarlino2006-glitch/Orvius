@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { company } from "@/lib/company";
+import { OrviusLogo } from "@/components/orvius-logo";
 
 const links = [
   { href: "/demo", label: "Demo" },
@@ -18,8 +19,7 @@ export function SiteFooter() {
       <div className="editorial-wrap cursor-footer-inner font-sans">
         <div className="cursor-footer-brand">
           <p className="cursor-footer-logo">
-            <span className="shell-logo-mark" aria-hidden />
-            Orvius
+            <OrviusLogo size="sm" variant="void" showOs={false} />
           </p>
           <p className="cursor-footer-tag">{company.tagline}</p>
           <a href={`mailto:${company.contactEmail}`} className="cursor-footer-email">

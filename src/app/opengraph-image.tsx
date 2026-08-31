@@ -1,3 +1,4 @@
+import { OrviusMarkGraphic } from "@/lib/orvius-mark-graphic";
 import { orviusColors } from "@/lib/orvius-colors";
 import { ImageResponse } from "next/og";
 
@@ -23,24 +24,43 @@ export default function OpenGraphImage() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 14,
-            color: orviusColors.signalHot,
-            fontSize: 14,
-            letterSpacing: "0.24em",
-            textTransform: "uppercase",
-            fontWeight: 700,
+            gap: 16,
           }}
         >
+          <OrviusMarkGraphic size={48} gradientId="orvius-og-mark" />
           <div
             style={{
-              width: 12,
-              height: 12,
-              borderRadius: 3,
-              background: `linear-gradient(135deg, ${orviusColors.signalHot}, ${orviusColors.signal})`,
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
             }}
-          />
-          Operating system
+          >
+            <div
+              style={{
+                display: "flex",
+                fontSize: 28,
+                fontWeight: 600,
+                color: orviusColors.chalk,
+                letterSpacing: "-0.03em",
+              }}
+            >
+              Orvius
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: orviusColors.signalHot,
+              }}
+            >
+              OS
+            </div>
+          </div>
         </div>
+
         <div
           style={{
             display: "flex",
@@ -51,14 +71,15 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              fontSize: 96,
-              fontWeight: 500,
+              fontSize: 88,
+              fontWeight: 400,
               color: orviusColors.chalk,
-              letterSpacing: "-0.06em",
-              lineHeight: 0.9,
+              letterSpacing: "-0.04em",
+              lineHeight: 0.95,
+              maxWidth: 900,
             }}
           >
-            Orvius
+            Never miss a call again.
           </div>
           <div
             style={{
@@ -72,15 +93,16 @@ export default function OpenGraphImage() {
             style={{
               display: "flex",
               maxWidth: 720,
-              fontSize: 36,
-              lineHeight: 1.15,
-              color: orviusColors.chalk,
-              letterSpacing: "-0.03em",
+              fontSize: 32,
+              lineHeight: 1.2,
+              color: orviusColors.ashSoft,
+              letterSpacing: "-0.02em",
             }}
           >
             The operating system for service businesses.
           </div>
         </div>
+
         <div
           style={{
             display: "flex",

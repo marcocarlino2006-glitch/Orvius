@@ -991,7 +991,49 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
+  transition: opacity 160ms ease;
 }
+
+.shell-brand:hover {
+  opacity: 0.88;
+}
+
+/* Orvius logo lockup */
+.orvius-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.orvius-logo-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.orvius-logo-wordmark {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.orvius-logo-os {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.orvius-logo-void .orvius-logo-wordmark { color: var(--chalk); }
+.orvius-logo-void .orvius-logo-os { color: var(--signal-hot); }
+.orvius-logo-chalk .orvius-logo-wordmark { color: var(--void); }
+.orvius-logo-chalk .orvius-logo-os { color: var(--signal-dim); }
+.orvius-logo-mark {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--signal) 22%, transparent));
+}
+.orvius-logo-sm .orvius-logo-wordmark { font-size: 0.9375rem; }
+.orvius-logo-sm .orvius-logo-os { font-size: 0.5rem; }
+.orvius-logo-lg .orvius-logo-wordmark { font-size: 1.1875rem; }
+.orvius-logo-lg .orvius-logo-os { font-size: 0.625rem; }
 
 .shell-brand-text {
   display: inline-flex;
@@ -1009,24 +1051,6 @@ h3 {
 
 .shell-header-void .shell-brand-os {
   color: var(--signal-hot);
-}
-
-.shell-logo-mark {
-  display: block;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 0.375rem;
-  background: linear-gradient(145deg, var(--signal-hot) 0%, var(--signal) 50%, var(--signal-dim) 100%);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--signal) 28%, transparent);
-  position: relative;
-}
-
-.shell-logo-mark::after {
-  content: "";
-  position: absolute;
-  inset: 0.3rem;
-  border-radius: 0.125rem;
-  background: color-mix(in srgb, var(--void) 75%, transparent);
 }
 
 .shell-wordmark {
@@ -2424,12 +2448,8 @@ h3 {
 }
 
 .home-os-mark {
-  width: 0.85rem;
-  height: 0.85rem;
-  border-radius: 0.18rem;
-  background: linear-gradient(135deg, var(--signal-hot), var(--signal));
   flex-shrink: 0;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--signal) 50%, transparent);
+  display: block;
 }
 
 .home-os-wordmark {
@@ -2937,14 +2957,6 @@ h3 {
 
 .os-sidebar-brand:hover {
   opacity: 0.85;
-}
-
-.os-sidebar-mark {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 0.15rem;
-  background: linear-gradient(135deg, var(--signal-hot), var(--signal));
-  box-shadow: 0 0 10px color-mix(in srgb, var(--signal) 40%, transparent);
 }
 
 .os-sidebar-name {
@@ -4912,8 +4924,8 @@ h3 {
 }
 @media (min-width: 768px) { .cursor-footer-inner { grid-template-columns: 1fr auto; align-items: start; } }
 .cursor-footer-logo {
-  display: flex; align-items: center; gap: 0.6rem;
-  font-size: 0.875rem; font-weight: 600;
+  display: flex;
+  align-items: center;
 }
 .cursor-footer-tag { margin-top: 0.75rem; font-size: 0.875rem; color: var(--ash-soft); max-width: 24ch; }
 .cursor-footer-email { display: inline-block; margin-top: 1rem; font-size: 0.8125rem; color: var(--ash); }
