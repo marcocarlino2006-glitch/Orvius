@@ -138,7 +138,6 @@ export default function DispatchPage() {
     <OsShell
       title="Dispatch"
       subtitle="Who goes where. The day runs from this board."
-      businessName="Summit HVAC"
       actions={
         <Link href="/dashboard/jobs" className="btn btn-void text-sm">
           All jobs

@@ -70,7 +70,6 @@ export default function AskPage() {
     <OsShell
       title="Ask"
       subtitle="Answers from the records already in the OS — not the public internet."
-      businessName="Summit HVAC"
     >
       <ProRingBanner
         name="Ask"

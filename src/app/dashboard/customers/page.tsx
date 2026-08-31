@@ -61,7 +61,6 @@ export default function CustomersPage() {
     <OsShell
       title="Customers"
       subtitle="Every caller becomes a permanent record. History follows the number."
-      businessName="Summit HVAC"
     >
       <ProRingBanner
         ring={2}

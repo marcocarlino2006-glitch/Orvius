@@ -66,7 +66,6 @@ export default function JobsPage() {
     <OsShell
       title="Jobs"
       subtitle="A lead becomes a booked appointment — not a sticky note."
-      businessName="Summit HVAC"
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch
