@@ -14,13 +14,40 @@ type HealthData = {
   stats: { businessCount: number; leadCount: number; callCount: number };
 };
 
+type DashboardPulse = {
+  newLeadCount: number;
+  lastCallAt: string | null;
+};
+
+function formatRelativeTime(iso: string) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 export function LiveStatusBar() {
   const [health, setHealth] = useState<HealthData | null>(null);
+  const [pulse, setPulse] = useState<DashboardPulse | null>(null);
 
   useEffect(() => {
     fetch("/api/health")
       .then((res) => res.json())
       .then(setHealth)
+      .catch(() => null);
+
+    fetch("/api/dashboard")
+      .then((res) => res.json())
+      .then((data) =>
+        setPulse({
+          newLeadCount: data.newLeadCount ?? 0,
+          lastCallAt: data.lastCallAt ?? null,
+        }),
+      )
       .catch(() => null);
   }, []);
 
@@ -44,8 +71,20 @@ export function LiveStatusBar() {
               </a>
             </p>
           ) : null}
+          {pulse?.lastCallAt ? (
+            <p className="font-sans text-xs text-ash">
+              Last call {formatRelativeTime(pulse.lastCallAt)}
+            </p>
+          ) : (
+            <p className="font-sans text-xs text-ash">No calls yet</p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-4 font-sans text-xs text-ash">
+          {pulse && pulse.newLeadCount > 0 ? (
+            <Link href="/dashboard/inbox" className="font-semibold text-flare-dim hover:text-flare">
+              {pulse.newLeadCount} new lead{pulse.newLeadCount === 1 ? "" : "s"}
+            </Link>
+          ) : null}
           <span>{health.stats.callCount} calls</span>
           <span>{health.stats.leadCount} leads</span>
           <span>{health.stats.businessCount} shops</span>

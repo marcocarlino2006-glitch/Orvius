@@ -7,14 +7,14 @@ const REQUIRED = [
   "VAPI_API_KEY",
 ] as const;
 
-import { getPublicAppUrl } from "@/lib/domains";
+import { getAppBaseUrl, getApiBaseUrl } from "@/lib/domains";
 
 export function getAppUrl() {
-  return getPublicAppUrl();
+  return getAppBaseUrl();
 }
 
 export function getWebhookUrl(path: string) {
-  return `${getAppUrl().replace(/\/$/, "")}${path}`;
+  return `${getApiBaseUrl().replace(/\/$/, "")}${path}`;
 }
 
 export function isConfigured(key: string) {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
+import { LeadStatusBadge } from "@/components/lead-status-actions";
 
 type LeadInboxCardProps = {
   id?: string;
@@ -12,10 +13,12 @@ type LeadInboxCardProps = {
   address?: string | null;
   business: string | null;
   channel?: string;
+  status?: string;
   createdAt: string;
   customerId?: string | null;
   returning?: boolean;
   linked?: boolean;
+  booked?: boolean;
 };
 
 function formatUrgency(urgency: string | null) {
@@ -36,10 +39,12 @@ export function LeadInboxCard({
   address,
   business,
   channel = "Inbound",
+  status = "new",
   createdAt,
   customerId,
   returning = false,
   linked = true,
+  booked = false,
 }: LeadInboxCardProps) {
   const emergency = isEmergency(urgency);
 
@@ -89,6 +94,10 @@ export function LeadInboxCard({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            {status && status !== "new" ? (
+              <LeadStatusBadge status={status} />
+            ) : null}
+            {booked ? <ShellBadge tone="live">Job booked</ShellBadge> : null}
             {urgency ? (
               <ShellBadge tone={emergency ? "flare" : "neutral"}>
                 {formatUrgency(urgency)}

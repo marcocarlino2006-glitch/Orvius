@@ -1,4 +1,5 @@
 import twilio from "twilio";
+import { getLeadInboxUrl } from "@/lib/domains";
 
 export function getTwilioClient() {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -16,9 +17,19 @@ export async function notifyOwner(params: {
   ownerEmail?: string | null;
   businessName: string;
   message: string;
+  leadId?: string;
 }) {
-  const { ownerPhone, ownerEmail, businessName, message } = params;
+  const { ownerPhone, ownerEmail, businessName, message, leadId } = params;
   const results: { sms?: string; email?: string } = {};
+
+  const smsBody = [
+    `[Orvius] ${businessName}`,
+    "",
+    message,
+    leadId ? `\nOpen lead: ${getLeadInboxUrl(leadId)}` : null,
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
 
   if (
     process.env.ENABLE_OWNER_SMS === "true" &&
@@ -28,7 +39,7 @@ export async function notifyOwner(params: {
     try {
       const client = getTwilioClient();
       const sms = await client.messages.create({
-        body: `[Orvius] ${businessName}\n\n${message}`,
+        body: smsBody,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: ownerPhone,
       });
@@ -39,7 +50,6 @@ export async function notifyOwner(params: {
   }
 
   if (ownerEmail) {
-    // Email can be wired to Resend/SendGrid later; log for MVP visibility.
     console.info(`Owner email notification for ${ownerEmail}: ${message}`);
     results.email = "logged";
   }

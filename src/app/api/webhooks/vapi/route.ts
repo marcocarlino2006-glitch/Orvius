@@ -189,6 +189,7 @@ export async function POST(request: NextRequest) {
       ownerEmail: business.ownerEmail,
       businessName: business.name,
       message: ownerMessage,
+      leadId: lead.id,
     });
 
     if (

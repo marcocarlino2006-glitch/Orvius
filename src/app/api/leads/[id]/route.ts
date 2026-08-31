@@ -72,6 +72,11 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: "status required" }, { status: 400 });
   }
 
+  const allowed = new Set(["new", "contacted", "booked", "lost", "spam"]);
+  if (!allowed.has(body.status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+
   const lead = await prisma.lead.update({
     where: { id },
     data: { status: body.status },

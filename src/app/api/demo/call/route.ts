@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
         ]
           .filter(Boolean)
           .join("\n"),
+        leadId: lead.id,
       });
     }
 

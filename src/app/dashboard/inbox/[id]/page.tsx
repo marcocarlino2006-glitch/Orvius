@@ -2,6 +2,7 @@
 
 import { BookJobForm } from "@/components/book-job-form";
 import { LeadInboxCard } from "@/components/lead-inbox-card";
+import { LeadStatusActions } from "@/components/lead-status-actions";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
@@ -81,13 +82,28 @@ export default function LeadDetailPage() {
       title={lead.name ?? "Unknown caller"}
       subtitle={`Lead · ${lead.business?.name ?? "Orvius"} · ${lead.source}`}
       actions={
-        lead.phone ? (
-          <a href={`tel:${lead.phone}`} className="btn btn-void text-sm">
-            Call lead
-          </a>
-        ) : null
+        <div className="flex flex-wrap items-center gap-2">
+          {lead.phone ? (
+            <>
+              <a href={`tel:${lead.phone}`} className="btn btn-void text-sm">
+                Call lead
+              </a>
+              <a href={`sms:${lead.phone}`} className="btn btn-secondary text-sm">
+                Text lead
+              </a>
+            </>
+          ) : null}
+        </div>
       }
     >
+      <div className="mb-6">
+        <LeadStatusActions
+          leadId={lead.id}
+          status={lead.status}
+          onUpdated={(status) => setLead({ ...lead, status })}
+        />
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <LeadInboxCard
           id={lead.id}

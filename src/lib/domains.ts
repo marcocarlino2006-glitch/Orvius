@@ -47,6 +47,22 @@ export function getPublicAppUrl() {
   return `${protocol}://${domains.app}`;
 }
 
+/** Dashboard, Stripe redirects, owner SMS links */
+export function getAppBaseUrl() {
+  return getPublicAppUrl();
+}
+
+/** Vapi + Twilio webhooks */
+export function getApiBaseUrl() {
+  const domains = getDomainConfig();
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  return `${protocol}://${domains.api}`;
+}
+
+export function getLeadInboxUrl(leadId: string) {
+  return `${getAppBaseUrl()}/dashboard/inbox/${leadId}`;
+}
+
 export function getAllowedHosts() {
   const domains = getDomainConfig();
   const hosts = new Set<string>([
@@ -113,7 +129,7 @@ export function buildDnsRecords(deployTarget: "vercel" | "railway" | "custom") {
         },
       ],
       env: {
-        NEXT_PUBLIC_APP_URL: `https://${domains.api}`,
+        NEXT_PUBLIC_APP_URL: `https://${domains.app}`,
         ORVIUS_PRIMARY_DOMAIN: domains.primary,
         ORVIUS_APP_DOMAIN: domains.app,
         ORVIUS_API_DOMAIN: domains.api,

@@ -52,12 +52,8 @@ export async function POST(request: NextRequest) {
     ownerPhone: business.ownerPhone,
     ownerEmail: business.ownerEmail,
     businessName: business.name,
-    message: [
-      "New SMS lead",
-      `From: ${from}`,
-      `Message: ${body}`,
-      `Lead ID: ${lead.id}`,
-    ].join("\n"),
+    message: [`New SMS lead`, `From: ${from}`, `Message: ${body}`].join("\n"),
+    leadId: lead.id,
   });
 
   return twimlResponse(SMS_REPLY);

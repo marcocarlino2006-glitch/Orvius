@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { getStripeAppBaseUrl } from "@/lib/stripe-url";
 
 let stripeClient: Stripe | null = null;
 
@@ -23,13 +24,7 @@ export function getStripe() {
 }
 
 export function getAppBaseUrl() {
-  const url =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.VERCEL_URL?.trim();
-
-  if (!url) return "http://127.0.0.1:3000";
-  if (url.startsWith("http")) return url.replace(/\/$/, "");
-  return `https://${url}`;
+  return getStripeAppBaseUrl();
 }
 
 export function getStripePriceId() {
