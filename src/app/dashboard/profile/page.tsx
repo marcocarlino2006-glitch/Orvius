@@ -93,7 +93,7 @@ export default function DashboardProfilePage() {
           ) : (
             <p className="font-sans text-sm leading-relaxed text-ash">
               No shop linked yet.{" "}
-              <Link href="/admin" className="pro-section-link">
+              <Link href="/dashboard/onboarding" className="pro-section-link">
                 Complete setup
               </Link>{" "}
               to connect your line.

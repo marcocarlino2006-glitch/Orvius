@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 function startOfToday() {
@@ -9,18 +10,34 @@ function startOfToday() {
 
 export async function GET() {
   const today = startOfToday();
+  const session = await auth();
+  const ownerEmail = session?.user?.email?.toLowerCase();
 
-  const business = await prisma.business.findFirst({
-    where: { isActive: true },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      name: true,
-      twilioPhone: true,
-      vapiPhoneNumber: true,
-      ownerPhone: true,
-    },
-  });
+  const business = ownerEmail
+    ? await prisma.business.findFirst({
+        where: { isActive: true, ownerEmail },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          name: true,
+          twilioPhone: true,
+          vapiPhoneNumber: true,
+          ownerPhone: true,
+        },
+      })
+    : await prisma.business.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          name: true,
+          twilioPhone: true,
+          vapiPhoneNumber: true,
+          ownerPhone: true,
+        },
+      });
+
+  const businessFilter = business ? { businessId: business.id } : {};
 
   const [
     callsToday,
@@ -32,16 +49,18 @@ export async function GET() {
     recentLeads,
     recentCalls,
   ] = await Promise.all([
-    prisma.call.count({ where: { createdAt: { gte: today } } }),
-    prisma.lead.count({ where: { createdAt: { gte: today } } }),
-    prisma.lead.count({ where: { status: "new" } }),
-    prisma.call.count(),
-    prisma.lead.count(),
+    prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
+    prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
+    prisma.lead.count({ where: { ...businessFilter, status: "new" } }),
+    prisma.call.count({ where: businessFilter }),
+    prisma.lead.count({ where: businessFilter }),
     prisma.call.findFirst({
+      where: businessFilter,
       orderBy: { createdAt: "desc" },
       select: { createdAt: true, status: true, callerPhone: true },
     }),
     prisma.lead.findMany({
+      where: businessFilter,
       take: 4,
       orderBy: { createdAt: "desc" },
       include: {
@@ -50,6 +69,7 @@ export async function GET() {
       },
     }),
     prisma.call.findMany({
+      where: businessFilter,
       take: 5,
       orderBy: { createdAt: "desc" },
       include: {
