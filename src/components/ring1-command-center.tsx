@@ -8,15 +8,9 @@ import {
   ProSectionHead,
   ProStatRow,
 } from "@/components/pro-page-chrome";
-import { ProAlertSpeedBadge } from "@/components/pro-alert-speed-badge";
-import { ProAlertBanner } from "@/components/pro-alert-banner";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
-import { ProPriorityBanner } from "@/components/pro-priority-banner";
-import { ProShopHealth } from "@/components/pro-shop-health";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
-import { ProSignalBar } from "@/components/pro-signal-bar";
-import { ProOwnerStandards } from "@/components/pro-owner-standards";
-import { ProWedgeReadiness } from "@/components/pro-wedge-readiness";
+import { ProTodayAlerts, ProTodayPulse } from "@/components/pro-today-status";
 import { Ring1RecentCallRow } from "@/components/ring1-recent-call-row";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -135,24 +129,13 @@ export function Ring1CommandCenter() {
 
   return (
     <section className="ring1-command" aria-label="Today">
-      <ProPriorityBanner
-        count={newLeads}
-        href="/dashboard/inbox"
-        actionLabel="Open inbox"
-        detail="Qualified leads waiting for callback or booking."
+      <ProTodayPulse health={data?.health ?? null} newLeads={newLeads} />
+
+      <ProTodayAlerts
+        health={data?.health ?? null}
+        wedge={data?.wedge ?? null}
+        newLeads={newLeads}
       />
-
-      <ProAlertBanner health={data?.health ?? null} />
-
-      <ProWedgeReadiness readiness={data?.wedge ?? null} />
-
-      <ProOwnerStandards health={data?.health ?? null} compact />
-
-      <ProSignalBar />
-
-      <ProAlertSpeedBadge health={data?.health ?? null} />
-
-      <ProShopHealth health={data?.health} compact />
 
       <ProStatRow stats={stats} className="ring1-command-stats" />
 
@@ -183,7 +166,7 @@ export function Ring1CommandCenter() {
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
-            <ul className="grid gap-4 lg:grid-cols-2">
+            <ul className="ring1-lead-grid">
               {data.recentLeads.map((lead) => (
                 <li key={lead.id}>
                   <LeadInboxCard

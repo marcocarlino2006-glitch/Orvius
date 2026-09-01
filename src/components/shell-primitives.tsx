@@ -63,18 +63,11 @@ export function ShellBadge({
   tone,
   children,
 }: {
-  tone: "live" | "flare" | "neutral";
+  tone: "live" | "flare" | "neutral" | "muted";
   children: ReactNode;
 }) {
-  const toneClass =
-    tone === "live"
-      ? "home-os-pill home-os-pill-live"
-      : tone === "flare"
-        ? "home-os-pill home-os-pill-flare"
-        : "home-os-pill";
-
   return (
-    <span className={toneClass}>
+    <span className={`status-pill status-pill-${tone}`}>
       {children}
     </span>
   );

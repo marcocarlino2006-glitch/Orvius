@@ -53,8 +53,8 @@ export function LeadInboxCard({
     <article
       className={`lead-inbox-card pro-card ${emergency ? "lead-inbox-card-emergency" : ""}`}
     >
-      <div className="flex items-start justify-between gap-3 border-b border-rule px-5 py-3.5">
-        <div className="flex items-center gap-2">
+      <div className="lead-inbox-card-header">
+        <div className="lead-inbox-card-kicker-row">
           {emergency ? (
             <span className="live-dot live-dot-flare" aria-hidden />
           ) : status === "new" ? (
@@ -64,10 +64,7 @@ export function LeadInboxCard({
             {emergency ? "Emergency" : status === "new" ? "Needs follow-up" : "Lead"}
           </p>
         </div>
-        <time
-          dateTime={createdAt}
-          className="font-sans text-[10px] tracking-wide text-ash uppercase"
-        >
+        <time dateTime={createdAt} className="lead-inbox-card-time font-sans">
           {new Date(createdAt).toLocaleString(undefined, {
             month: "short",
             day: "numeric",
@@ -77,25 +74,21 @@ export function LeadInboxCard({
         </time>
       </div>
 
-      <div className="px-5 py-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="lead-inbox-card-body">
+        <div className="lead-inbox-card-title-row">
           <div>
             {id ? (
               <Link href={`/dashboard/inbox/${id}`} className="lead-inbox-name-link">
-                <h3 className="font-sans text-xl font-semibold tracking-[-0.035em] text-void">
-                  {name}
-                </h3>
+                <h3 className="lead-inbox-card-name font-sans">{name}</h3>
               </Link>
             ) : (
-              <h3 className="font-sans text-xl font-semibold tracking-[-0.035em] text-void">
-                {name}
-              </h3>
+              <h3 className="lead-inbox-card-name font-sans">{name}</h3>
             )}
-            <p className="mt-1 font-sans text-[13px] text-ash">
+            <p className="lead-inbox-card-sub font-sans">
               {channel} · {service ?? "General inquiry"}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="lead-inbox-card-badges">
             {status !== "new" ? <LeadStatusBadge status={status} /> : null}
             {booked ? <ShellBadge tone="live">Booked</ShellBadge> : null}
             {urgency ? (
