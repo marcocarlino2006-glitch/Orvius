@@ -5805,6 +5805,7 @@ h3 {
   bottom: calc(100% + 0.5rem);
   left: 0;
   right: 0;
+  z-index: 60;
   overflow: hidden;
   border-radius: 0.75rem;
   border: 1px solid color-mix(in srgb, var(--chalk) 12%, transparent);
@@ -6079,12 +6080,17 @@ h3 {
   text-overflow: ellipsis;
 }
 
-.os-sidebar-user-email {
+.os-sidebar-user-email,
+.os-sidebar-user-plan {
   font-size: 0.6875rem;
   color: color-mix(in srgb, var(--mist) 55%, var(--ash));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.os-profile-menu-open .os-profile-menu-chevron {
+  color: var(--mist);
 }
 
 .os-ask-dock {
@@ -6097,6 +6103,19 @@ h3 {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.625rem;
+}
+
+@media (max-width: 1023px) {
+  .os-ask-dock {
+    left: auto;
+    right: 1rem;
+    align-items: flex-end;
+  }
+
+  .os-sidebar-footer {
+    position: relative;
+    z-index: 55;
+  }
 }
 
 @media (min-width: 1024px) {

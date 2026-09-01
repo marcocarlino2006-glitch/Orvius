@@ -9,9 +9,11 @@ type AccountData = {
   business: {
     name: string;
     billingStatus: string;
+    billingPlan: string | null;
   } | null;
   billing: {
     status: string;
+    planId: string | null;
     plan: { name: string; price: number };
   };
 };
@@ -20,7 +22,6 @@ type MenuItem = {
   href: string;
   label: string;
   hint?: string;
-  external?: boolean;
 };
 
 const accountLinks: MenuItem[] = [
@@ -41,19 +42,15 @@ function initials(name: string | null | undefined, email: string | null | undefi
   return email?.slice(0, 2).toUpperCase() ?? "OR";
 }
 
-function billingLabel(status: string) {
-  switch (status) {
-    case "active":
-      return "Orvius Pro";
-    case "pilot":
-      return "Design partner";
-    case "past_due":
-      return "Past due";
-    case "canceled":
-      return "Canceled";
-    default:
-      return "No plan";
+function planDisplayLabel(account: AccountData | null): string {
+  const status = account?.billing?.status ?? account?.business?.billingStatus ?? "none";
+
+  if (status === "pilot") return pricing.pilot.name;
+  if (status === "active" || status === "past_due") {
+    return account?.billing?.plan?.name ?? "Active plan";
   }
+  if (status === "canceled") return "Canceled";
+  return "No plan";
 }
 
 export function OsSidebarFooter() {
@@ -98,10 +95,13 @@ export function OsSidebarFooter() {
   const name = session.user.name ?? "User";
   const email = session.user.email ?? "";
   const businessName = account?.business?.name ?? "Your business";
-  const planLabel = billingLabel(account?.billing.status ?? "none");
+  const planLabel = planDisplayLabel(account);
 
   return (
-    <div ref={rootRef} className="os-profile-menu os-sidebar-footer font-sans">
+    <div
+      ref={rootRef}
+      className={`os-profile-menu os-sidebar-footer font-sans ${open ? "os-profile-menu-open" : ""}`}
+    >
       {open ? (
         <div
           id={menuId}
@@ -162,6 +162,7 @@ export function OsSidebarFooter() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
+        aria-label={`Account menu for ${name}`}
         onClick={() => setOpen((value) => !value)}
       >
         <span className="os-sidebar-avatar" aria-hidden>
@@ -169,10 +170,10 @@ export function OsSidebarFooter() {
         </span>
         <span className="os-sidebar-user-meta">
           <span className="os-sidebar-user-name">{name}</span>
-          <span className="os-sidebar-user-email">{planLabel}</span>
+          <span className="os-sidebar-user-plan">{planLabel}</span>
         </span>
         <span className="os-profile-menu-chevron" aria-hidden>
-          {open ? "▾" : "▴"}
+          {open ? "▴" : "▾"}
         </span>
       </button>
     </div>
