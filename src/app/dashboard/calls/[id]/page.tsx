@@ -2,7 +2,7 @@
 
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { TranscriptCinema } from "@/components/transcript-cinema";
-import { Ring1LiveStrip } from "@/components/ring1-live-strip";
+import { ProSignalBar } from "@/components/pro-signal-bar";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
@@ -88,7 +88,7 @@ export default function CallDetailPage() {
         ) : null
       }
     >
-      <Ring1LiveStrip showInboxLink={false} />
+      <ProSignalBar showInboxLink={false} compact />
 
       <div className="ring1-lead-grid">
         <div className="ring1-lead-primary">

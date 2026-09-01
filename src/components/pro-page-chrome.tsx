@@ -11,15 +11,14 @@ type ProRingBannerProps = {
 };
 
 export function ProRingBanner({ ring, name, description, live }: ProRingBannerProps) {
-  const prefix =
-    ring != null ? `Ring ${String(ring).padStart(2, "0")} · ${name}` : name;
+  const prefix = ring != null ? `${name}` : name;
 
   return (
     <div className="pro-ring-banner">
       <p className="pro-ring-banner-kicker font-sans">
         {live ? <span className="pro-live-dot" aria-hidden /> : null}
         {prefix}
-        {live ? " · Live" : ""}
+        {live ? " · Active" : ""}
       </p>
       <p className="pro-ring-banner-desc font-sans">{description}</p>
     </div>

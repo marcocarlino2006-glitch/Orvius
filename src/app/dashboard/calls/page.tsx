@@ -1,12 +1,12 @@
 "use client";
 
 import { CallRecordCard } from "@/components/call-record-card";
-import { Ring1LiveStrip } from "@/components/ring1-live-strip";
+import { ProSignalBar } from "@/components/pro-signal-bar";
 import { ProEmptyState } from "@/components/pro-page-chrome";
+import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
-import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -51,14 +51,14 @@ export default function CallsPage() {
   return (
     <OsShell
       title="Calls"
-      subtitle={`Ring 1 · ${total} inbound conversation${total === 1 ? "" : "s"} on record`}
+      subtitle={`${total} conversation${total === 1 ? "" : "s"} on record`}
       actions={
         <Link href="/dashboard/inbox" className="btn btn-void text-sm">
-          Open inbox
+          Inbox
         </Link>
       }
     >
-      <Ring1LiveStrip />
+      <ProSignalBar compact />
 
       {loading ? (
         <DashboardSkeleton />
@@ -72,13 +72,9 @@ export default function CallsPage() {
 
           {!calls.length ? (
             <ProEmptyState
-              title="No calls recorded"
-              body="Test your live line — every conversation lands here with transcript and lead link."
-              action={
-                <a href={demoLineHref()} className="btn btn-void text-sm">
-                  Call {DEMO_LINE_DISPLAY}
-                </a>
-              }
+              title="No calls yet"
+              body="Every inbound call is transcribed and linked to a lead in your inbox."
+              action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
             <ul className="grid gap-4">

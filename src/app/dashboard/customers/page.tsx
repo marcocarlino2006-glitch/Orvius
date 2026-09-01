@@ -1,10 +1,17 @@
 "use client";
 
 import { CustomerRecordCard } from "@/components/customer-record-card";
-import { ProRingBanner, ProSearchBar, ProStatRow } from "@/components/pro-page-chrome";
+import {
+  ProRingBanner,
+  ProSearchBar,
+  ProStatRow,
+  ProEmptyState,
+} from "@/components/pro-page-chrome";
+import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
+import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 type CustomerRow = {
@@ -47,7 +54,7 @@ export default function CustomersPage() {
     return [
       { label: "Customers", value: customers.length },
       { label: "Returning", value: returning, highlight: returning > 0 },
-      { label: "Interactions", value: totalInteractions },
+      { label: "Touchpoints", value: totalInteractions },
       {
         label: "Avg per customer",
         value: customers.length
@@ -60,12 +67,11 @@ export default function CustomersPage() {
   return (
     <OsShell
       title="Customers"
-      subtitle="Every caller becomes a permanent record. History follows the number."
+      subtitle="Every caller becomes a record. History follows the number."
     >
       <ProRingBanner
-        ring={2}
-        name="Customers"
-        description="Permanent records from every call and text. Returning callers recognized automatically."
+        name="Customer records"
+        description="Built automatically from calls and texts. Returning callers recognized on the next ring."
         live
       />
 
@@ -97,9 +103,18 @@ export default function CustomersPage() {
               ))}
             </div>
           ) : !customers.length ? (
-            <ShellEmpty>
-              No customers yet. They are created automatically from calls and texts.
-            </ShellEmpty>
+            <ProEmptyState
+              title="No customers yet"
+              body="They appear automatically when someone calls or texts your shop line."
+              action={
+                <div className="flex flex-wrap gap-2">
+                  <ProShopLineCta showNumber={false} />
+                  <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
+                    Open inbox
+                  </Link>
+                </div>
+              }
+            />
           ) : (
             <ul className="grid gap-4 lg:grid-cols-2">
               {customers.map((customer) => (

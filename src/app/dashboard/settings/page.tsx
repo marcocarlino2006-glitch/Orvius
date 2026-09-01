@@ -1,6 +1,7 @@
 "use client";
 
 import { OsShell } from "@/components/os-shell";
+import { ProSignalBar } from "@/components/pro-signal-bar";
 import { ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -26,30 +27,33 @@ export default function DashboardSettingsPage() {
   }, []);
 
   const business = account?.business;
+  const line = business?.vapiPhoneNumber ?? business?.twilioPhone;
 
   return (
     <OsShell
       title="Settings"
-      subtitle="Line configuration, alerts, and workspace preferences."
+      subtitle="Your line, receptionist, and owner alerts."
     >
-      <div className="account-stack">
-        <ShellPanel title="Front door">
+      <ProSignalBar showInboxLink={false} />
+
+      <div className="account-stack mt-6">
+        <ShellPanel title="Shop line">
           <ul className="account-settings-list font-sans">
             <li>
               <div>
-                <p className="account-settings-label">Live line</p>
-                <p className="account-settings-value">
-                  {business?.twilioPhone ?? business?.vapiPhoneNumber ?? "Not configured"}
-                </p>
+                <p className="account-settings-label">Inbound number</p>
+                <p className="account-settings-value">{line ?? "Not configured"}</p>
               </div>
               <Link href="/admin" className="btn btn-secondary text-sm">
-                Configure
+                Advanced
               </Link>
             </li>
             <li>
               <div>
-                <p className="account-settings-label">Receptionist & greeting</p>
-                <p className="account-settings-value">Vapi assistant, hours, services</p>
+                <p className="account-settings-label">AI receptionist</p>
+                <p className="account-settings-value">
+                  Greeting, hours, and services for callers
+                </p>
               </div>
               <Link href="/admin" className="btn btn-secondary text-sm">
                 Edit
@@ -62,9 +66,9 @@ export default function DashboardSettingsPage() {
           <ul className="account-settings-list font-sans">
             <li>
               <div>
-                <p className="account-settings-label">SMS alerts</p>
+                <p className="account-settings-label">SMS to your mobile</p>
                 <p className="account-settings-value">
-                  {business?.ownerPhone ?? "Add owner cell for lead SMS"}
+                  {business?.ownerPhone ?? "Add your cell to get lead summaries"}
                 </p>
               </div>
               <Link href="/admin" className="btn btn-secondary text-sm">
@@ -72,15 +76,9 @@ export default function DashboardSettingsPage() {
               </Link>
             </li>
           </ul>
-        </ShellPanel>
-
-        <ShellPanel title="Domain & DNS">
-          <p className="font-sans text-sm leading-relaxed text-ash">
-            orvius.im · app.orvius.im · api.orvius.im
+          <p className="mt-4 font-sans text-xs leading-relaxed text-ash-soft">
+            Reply STOP to opt out. Standard message rates may apply.
           </p>
-          <Link href="/domains" className="btn btn-secondary mt-4 text-sm">
-            Domain guide
-          </Link>
         </ShellPanel>
       </div>
     </OsShell>

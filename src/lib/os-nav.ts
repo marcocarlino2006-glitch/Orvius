@@ -9,7 +9,7 @@ export type OsNavItem = {
 
 export const osProductNav: OsNavItem[] = [
   { href: "/dashboard", label: "Overview", ring: 1 },
-  { href: "/dashboard/inbox", label: "Inbox", ring: 1, badge: "Live" },
+  { href: "/dashboard/inbox", label: "Inbox", ring: 1 },
   { href: "/dashboard/calls", label: "Calls", ring: 1 },
   { href: "/dashboard/customers", label: "Customers", ring: 2 },
   { href: "/dashboard/jobs", label: "Jobs", ring: 3 },
@@ -18,9 +18,9 @@ export const osProductNav: OsNavItem[] = [
 ];
 
 export const osWorkspaceNav: OsNavItem[] = [
-  { href: "/admin", label: "Setup" },
-  { href: "/demo", label: "Live demo" },
-  { href: "/", label: "orvius.im" },
+  { href: "/dashboard/settings", label: "Settings" },
+  { href: "/dashboard/profile", label: "Profile" },
+  { href: "/dashboard/billing", label: "Billing" },
 ];
 
 export function getOsRingMeta(ring: number) {

@@ -9373,3 +9373,172 @@ h3 {
   color: var(--signal);
 }
 
+/* ── Dashboard signal chrome ── */
+.pro-signal-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--signal) 18%, var(--rule));
+  background:
+    radial-gradient(ellipse 80% 80% at 0% 0%, color-mix(in srgb, var(--signal) 5%, transparent), transparent 55%),
+    var(--white);
+  box-shadow: var(--shadow-soft);
+}
+
+.pro-signal-bar-compact {
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.pro-signal-bar-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.pro-signal-bar-line {
+  display: block;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--void);
+  text-decoration: none;
+}
+
+.pro-signal-bar-line:hover {
+  color: var(--signal);
+}
+
+.pro-signal-bar-setup {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--signal);
+  text-decoration: none;
+}
+
+.pro-signal-bar-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
+.pro-signal-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.pro-signal-bar-alert {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--void);
+  background: color-mix(in srgb, var(--flare) 12%, var(--white));
+  border: 1px solid color-mix(in srgb, var(--flare) 28%, var(--rule));
+}
+
+.pro-signal-bar-alert:hover {
+  background: color-mix(in srgb, var(--flare) 18%, var(--white));
+}
+
+.pro-priority-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.125rem;
+  border-radius: 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--flare) 30%, var(--rule));
+  background: color-mix(in srgb, var(--flare) 8%, var(--white));
+}
+
+.pro-priority-banner-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.pro-priority-banner-detail {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
+
+.os-sidebar-inline-link {
+  color: var(--signal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.os-sidebar-pro .os-sidebar-inline-link {
+  color: color-mix(in srgb, var(--signal) 85%, white);
+}
+
+.ring1-more-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.125rem 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  min-height: 5.5rem;
+}
+
+.ring1-more-card .ring1-more-label {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.ring1-more-card .ring1-more-desc {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
+
+.ring1-more-card:hover .ring1-more-label {
+  color: var(--signal);
+}
+
+.ask-empty-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.ask-q {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.dispatch-job-chip-title {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+

@@ -4,7 +4,7 @@ import { BookJobForm } from "@/components/book-job-form";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
 import { TranscriptCinema } from "@/components/transcript-cinema";
-import { Ring1LiveStrip } from "@/components/ring1-live-strip";
+import { ProSignalBar } from "@/components/pro-signal-bar";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
@@ -109,7 +109,7 @@ export default function LeadDetailPage() {
         </div>
       }
     >
-      <Ring1LiveStrip showInboxLink={false} />
+      <ProSignalBar showInboxLink={false} compact />
 
       <div className="ring1-lead-status mb-6">
         <LeadStatusActions

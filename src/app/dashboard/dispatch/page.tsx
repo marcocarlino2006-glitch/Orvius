@@ -145,9 +145,8 @@ export default function DispatchPage() {
       }
     >
       <ProRingBanner
-        ring={4}
-        name="Dispatch"
-        description={`${dayLabel} · ${board?.jobCount ?? 0} job${board?.jobCount === 1 ? "" : "s"} on the board`}
+        name="Today's board"
+        description={`${dayLabel} · ${board?.jobCount ?? 0} job${board?.jobCount === 1 ? "" : "s"} scheduled`}
         live
       />
 
@@ -196,7 +195,12 @@ export default function DispatchPage() {
           ))}
         </div>
       ) : !board?.jobCount && !board?.columns.length ? (
-        <ShellEmpty>No jobs on this day. Book a lead, then assign a tech.</ShellEmpty>
+        <ShellEmpty>
+          No jobs scheduled for this day.{" "}
+          <Link href="/dashboard/inbox" className="pro-section-link">
+            Book from inbox
+          </Link>
+        </ShellEmpty>
       ) : (
         <div className="dispatch-board">
           {columns.map((col) => (
@@ -224,7 +228,7 @@ export default function DispatchPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="dispatch-col-empty font-sans">Clear.</p>
+                <p className="dispatch-col-empty font-sans">Nothing scheduled</p>
               )}
             </section>
           ))}

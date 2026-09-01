@@ -47,15 +47,22 @@ export function OsShell({
           </Link>
 
           <div className="os-ring-status os-ring-status-pro">
-            <p className="os-sidebar-label font-sans">Workspace</p>
+            <p className="os-sidebar-label font-sans">Your shop</p>
             <p className="os-ring-status-title font-sans">{businessName}</p>
             <p className="os-ring-status-module font-sans">
-              {business?.line ?? "Configure your line in Setup"}
+              {business?.line ?? (
+                <>
+                  Line not set ·{" "}
+                  <Link href="/dashboard/settings" className="os-sidebar-inline-link">
+                    Settings
+                  </Link>
+                </>
+              )}
             </p>
           </div>
 
-          <nav className="os-sidebar-nav" aria-label="Operations">
-            <p className="os-sidebar-label font-sans">Operations</p>
+          <nav className="os-sidebar-nav" aria-label="Daily work">
+            <p className="os-sidebar-label font-sans">Daily work</p>
             <ul>
               {osProductNav.map((item) => {
                 const ring = item.ring ?? osCurrentRing;
@@ -89,8 +96,8 @@ export function OsShell({
             </ul>
           </nav>
 
-          <nav className="os-sidebar-nav" aria-label="Workspace links">
-            <p className="os-sidebar-label font-sans">More</p>
+          <nav className="os-sidebar-nav" aria-label="Account">
+            <p className="os-sidebar-label font-sans">Account</p>
             <ul>
               {osWorkspaceNav.map((item) => (
                 <li key={item.href}>
@@ -116,8 +123,11 @@ export function OsShell({
           <div className="os-topbar-copy">
             <p className="os-topbar-live font-sans">
               <span className="pro-live-dot" />
-              {businessName}
-              {newLeads > 0 ? ` · ${newLeads} new lead${newLeads === 1 ? "" : "s"}` : " · Line active"}
+              {newLeads > 0
+                ? `${newLeads} lead${newLeads === 1 ? "" : "s"} need follow-up`
+                : business?.line
+                  ? business.line
+                  : "Finish setup in Settings"}
             </p>
             <h1 className="os-topbar-title font-sans">{title}</h1>
             {subtitle ? (

@@ -8,10 +8,10 @@ import {
   ProSectionHead,
   ProStatRow,
 } from "@/components/pro-page-chrome";
-import { Ring1LiveStrip } from "@/components/ring1-live-strip";
+import { ProPriorityBanner } from "@/components/pro-priority-banner";
+import { ProShopLineCta } from "@/components/pro-shop-line-cta";
+import { ProSignalBar } from "@/components/pro-signal-bar";
 import { Ring1RecentCallRow } from "@/components/ring1-recent-call-row";
-import { Ring1TrustStrip } from "@/components/ring1-trust-strip";
-import { DEMO_LINE_DISPLAY, demoLineHref, telHref } from "@/lib/demo-line";
 
 type Ring1Data = {
   business: { name: string; line: string | null; ownerPhone: string | null } | null;
@@ -52,7 +52,7 @@ type Ring1Data = {
 const REFRESH_MS = 30_000;
 
 function formatRelative(iso: string | null) {
-  if (!iso) return "No calls yet";
+  if (!iso) return "—";
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (mins < 1) return "Just now";
   if (mins < 60) return `${mins}m ago`;
@@ -84,25 +84,23 @@ export function Ring1CommandCenter() {
     return () => clearInterval(interval);
   }, [load]);
 
-  const line = data?.business?.line ?? DEMO_LINE_DISPLAY;
-  const lineHref = data?.business?.line ? telHref(line) : demoLineHref();
   const m = data?.metrics;
-  const businessName = data?.business?.name ?? null;
+  const newLeads = m?.newLeads ?? 0;
 
   const stats = loading && !data
     ? [
         { label: "Calls today", value: "—" },
         { label: "Leads today", value: "—" },
-        { label: "New in inbox", value: "—", highlight: true },
-        { label: "Answer rate", value: "—" },
+        { label: "Needs follow-up", value: "—", highlight: true },
+        { label: "Last call", value: "—" },
       ]
     : [
         { label: "Calls today", value: m?.callsToday ?? 0 },
         { label: "Leads today", value: m?.leadsToday ?? 0 },
-        { label: "New in inbox", value: m?.newLeads ?? 0, highlight: true },
         {
-          label: "Answer rate",
-          value: m?.answerRate != null ? `${m.answerRate}%` : "100%",
+          label: "Needs follow-up",
+          value: newLeads,
+          highlight: newLeads > 0,
         },
         {
           label: "Last call",
@@ -111,9 +109,15 @@ export function Ring1CommandCenter() {
       ];
 
   return (
-    <section className="ring1-command" aria-label="Operations overview">
-      <Ring1TrustStrip businessName={businessName} line={line} />
-      <Ring1LiveStrip showInboxLink />
+    <section className="ring1-command" aria-label="Today">
+      <ProPriorityBanner
+        count={newLeads}
+        href="/dashboard/inbox"
+        actionLabel="Open inbox"
+        detail="Qualified leads waiting for callback or booking."
+      />
+
+      <ProSignalBar />
 
       <ProStatRow stats={stats} className="ring1-command-stats" />
 
@@ -124,7 +128,7 @@ export function Ring1CommandCenter() {
             title="Latest leads"
             action={
               <Link href="/dashboard/inbox" className="pro-section-link font-sans">
-                Open inbox →
+                View all →
               </Link>
             }
           />
@@ -132,12 +136,8 @@ export function Ring1CommandCenter() {
           {!data?.recentLeads?.length ? (
             <ProEmptyState
               title="No leads yet"
-              body="Call your live line. Every qualified lead appears here with service, urgency, and callback."
-              action={
-                <a href={lineHref} className="btn btn-void text-sm">
-                  Call {line}
-                </a>
-              }
+              body="Call your shop line. Orvius qualifies every caller and drops the lead here — service, urgency, address, and callback."
+              action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
             <ul className="grid gap-4 lg:grid-cols-2">
@@ -151,7 +151,7 @@ export function Ring1CommandCenter() {
                     urgency={lead.urgency}
                     address={lead.address}
                     business={lead.business?.name ?? null}
-                    channel={lead.source === "sms" ? "SMS" : "Inbound call"}
+                    channel={lead.source === "sms" ? "Text" : "Call"}
                     status={lead.status}
                     createdAt={lead.createdAt}
                     returning={lead.returning}
@@ -168,7 +168,7 @@ export function Ring1CommandCenter() {
             title="Recent conversations"
             action={
               <Link href="/dashboard/calls" className="pro-section-link font-sans">
-                Call log →
+                Full log →
               </Link>
             }
           />
@@ -176,13 +176,9 @@ export function Ring1CommandCenter() {
           {!data?.recentCalls?.length ? (
             <ProEmptyState
               compact
-              title="No calls recorded"
-              body="Transcripts and lead links appear here after every inbound call."
-              action={
-                <a href={lineHref} className="btn btn-secondary text-sm">
-                  Test line
-                </a>
-              }
+              title="No calls yet"
+              body="Every inbound call lands here with transcript and lead link."
+              action={<ProShopLineCta label="Test your line" showNumber={false} variant="secondary" />}
             />
           ) : (
             <ul className="ring1-recent-call-list">

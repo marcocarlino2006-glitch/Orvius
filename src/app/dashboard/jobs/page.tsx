@@ -1,9 +1,13 @@
 "use client";
 
 import { JobCard } from "@/components/job-card";
-import { ProRingBanner, ProStatRow } from "@/components/pro-page-chrome";
+import {
+  ProRingBanner,
+  ProStatRow,
+  ProEmptyState,
+} from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellEmpty } from "@/components/shell-primitives";
+import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -65,7 +69,7 @@ export default function JobsPage() {
   return (
     <OsShell
       title="Jobs"
-      subtitle="A lead becomes a booked appointment — not a sticky note."
+      subtitle="Book from the inbox. Track every appointment in one place."
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch
@@ -73,9 +77,8 @@ export default function JobsPage() {
       }
     >
       <ProRingBanner
-        ring={3}
-        name="Jobs"
-        description="Book from the inbox. Schedule, assign, and track every job in one place."
+        name="Scheduled work"
+        description="Turn qualified leads into booked jobs — then assign crew on the dispatch board."
         live
       />
 
@@ -92,9 +95,15 @@ export default function JobsPage() {
           ) : null}
 
           {!jobs.length ? (
-            <ShellEmpty>
-              No jobs yet. Open a lead in the inbox and book it onto the calendar.
-            </ShellEmpty>
+            <ProEmptyState
+              title="No jobs booked yet"
+              body="Open a lead in the inbox, capture the details, and book the appointment."
+              action={
+                <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+                  Go to inbox
+                </Link>
+              }
+            />
           ) : (
             <ul className="grid gap-4 lg:grid-cols-2">
               {jobs.map((job) => (

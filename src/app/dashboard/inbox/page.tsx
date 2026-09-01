@@ -1,14 +1,17 @@
 "use client";
 
 import { LeadInboxCard } from "@/components/lead-inbox-card";
-import { Ring1LiveStrip } from "@/components/ring1-live-strip";
+import { ProSignalBar } from "@/components/pro-signal-bar";
 import { LEAD_STATUSES } from "@/components/lead-status-actions";
-import { ProFilterBar, ProStatRow, ProEmptyState } from "@/components/pro-page-chrome";
+import {
+  ProFilterBar,
+  ProStatRow,
+  ProEmptyState,
+} from "@/components/pro-page-chrome";
+import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
-import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type LeadRow = {
@@ -76,23 +79,21 @@ export default function InboxPage() {
       title="Inbox"
       subtitle={
         newCount > 0
-          ? `${newCount} new lead${newCount === 1 ? "" : "s"} awaiting follow-up`
-          : "Every qualified lead from calls and texts."
+          ? `${newCount} lead${newCount === 1 ? "" : "s"} need your follow-up`
+          : "Qualified leads from every call and text."
       }
       actions={
-        <Link href="/demo" className="btn btn-void text-sm">
-          Hear a call
-        </Link>
+        <ProShopLineCta label="Call your line" showNumber={false} />
       }
     >
-      <Ring1LiveStrip showInboxLink={false} />
+      <ProSignalBar showInboxLink={false} compact />
 
       {counts ? (
         <ProStatRow
           className="mb-6"
           stats={[
-            { label: "Total leads", value: counts.total },
-            { label: "New", value: counts.new, highlight: true },
+            { label: "Total", value: counts.total },
+            { label: "Needs follow-up", value: counts.new, highlight: counts.new > 0 },
             { label: "Contacted", value: counts.contacted },
             { label: "Booked", value: counts.booked },
           ]}
@@ -125,17 +126,13 @@ export default function InboxPage() {
 
           {!leads.length ? (
             <ProEmptyState
-              title={filter ? "No leads in this filter" : "No leads yet"}
+              title={filter ? "Nothing in this filter" : "No leads yet"}
               body={
                 filter
-                  ? "Try another status or run a test call on your live line."
-                  : "Call your line — every qualified lead lands here with service, urgency, and callback."
+                  ? "Try another status or place a test call on your shop line."
+                  : "When someone calls, Orvius captures service, urgency, address, and callback — then drops it here."
               }
-              action={
-                <a href={demoLineHref()} className="btn btn-void text-sm">
-                  Call {DEMO_LINE_DISPLAY}
-                </a>
-              }
+              action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
             <ul className="grid gap-4 lg:grid-cols-2">
@@ -149,7 +146,7 @@ export default function InboxPage() {
                     urgency={lead.urgency}
                     address={lead.address}
                     business={lead.business?.name ?? null}
-                    channel={lead.source === "sms" ? "SMS" : "Inbound call"}
+                    channel={lead.source === "sms" ? "Text" : "Call"}
                     status={lead.status}
                     createdAt={lead.createdAt}
                     customerId={lead.customer?.id ?? null}
