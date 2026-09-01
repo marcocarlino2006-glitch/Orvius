@@ -1,6 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+const NOTIFICATION_RETRY_MINUTES = [1, 5, 15, 60, 240];
+
+function getNotificationRetryAt(attempts, now = Date.now()) {
+  const minutes = NOTIFICATION_RETRY_MINUTES[
+    Math.min(attempts, NOTIFICATION_RETRY_MINUTES.length - 1)
+  ];
+  return new Date(now + minutes * 60_000);
+}
+
 function normalizePhone(phone) {
   if (!phone?.trim()) return null;
   const digits = phone.replace(/\D/g, "");
@@ -48,4 +57,22 @@ test("owner phone cannot match shop line", () => {
 test("dedupe keys are stable per inbound event", () => {
   assert.equal(buildLeadAlertDedupeKey({ vapiCallId: "call_123" }), "call:call_123");
   assert.equal(buildLeadAlertDedupeKey({ messageSid: "SM123" }), "sms:SM123");
+});
+
+test("notification retry backoff escalates to 4 hours", () => {
+  const base = Date.parse("2026-01-01T00:00:00.000Z");
+  assert.deepEqual(NOTIFICATION_RETRY_MINUTES, [1, 5, 15, 60, 240]);
+
+  assert.equal(
+    getNotificationRetryAt(0, base).toISOString(),
+    "2026-01-01T00:01:00.000Z",
+  );
+  assert.equal(
+    getNotificationRetryAt(4, base).toISOString(),
+    "2026-01-01T04:00:00.000Z",
+  );
+  assert.equal(
+    getNotificationRetryAt(99, base).toISOString(),
+    "2026-01-01T04:00:00.000Z",
+  );
 });

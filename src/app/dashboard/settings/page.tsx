@@ -2,10 +2,13 @@
 
 import { OsShell } from "@/components/os-shell";
 import { ProAlertBanner } from "@/components/pro-alert-banner";
+import { ProAlertSpeedBadge } from "@/components/pro-alert-speed-badge";
 import { ProShopHealth } from "@/components/pro-shop-health";
 import { ProSignalBar } from "@/components/pro-signal-bar";
+import { ProWedgeReadiness } from "@/components/pro-wedge-readiness";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import type { ShopHealth } from "@/lib/shop-health";
+import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
 
 type AccountResponse = {
@@ -18,6 +21,7 @@ type AccountResponse = {
     vapiPhoneNumber: string | null;
   } | null;
   health: ShopHealth | null;
+  wedge: WedgeReadiness | null;
   alerts: {
     smsEnabled: boolean;
     emailConfigured: boolean;
@@ -140,6 +144,8 @@ export default function DashboardSettingsPage() {
       {account?.health ? (
         <>
           <ProAlertBanner health={account.health} />
+          <ProWedgeReadiness readiness={account.wedge} showWhenReady />
+          <ProAlertSpeedBadge health={account.health} />
           <ProShopHealth health={account.health} />
         </>
       ) : null}

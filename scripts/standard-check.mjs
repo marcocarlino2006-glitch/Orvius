@@ -90,6 +90,15 @@ const clarityFiles = [
   "src/app/dashboard/inbox/[id]/page.tsx",
   "src/components/profile-menu.tsx",
   "src/components/pro-wedge-readiness.tsx",
+  "src/components/pro-signal-bar.tsx",
+  "src/app/dashboard/settings/page.tsx",
+];
+
+const HONESTY_UI_PATTERNS = [
+  { pattern: /<\s*60s/i, label: "hardcoded alert speed claim" },
+  { pattern: /never miss/i, label: "never miss" },
+  { pattern: /100%/i, label: "100%" },
+  { pattern: /guaranteed/i, label: "guaranteed" },
 ];
 
 for (const rel of clarityFiles) {
@@ -103,6 +112,27 @@ for (const rel of clarityFiles) {
 
 if (!checks.some((c) => c.name.startsWith("Clarity") && c.ok === false)) {
   pass("Clarity scan", "No Ring/Vapi/command-center jargon in key owner UI");
+}
+
+// ── Honesty (dashboard UI — measured claims only) ──
+for (const rel of clarityFiles) {
+  const content = readFileSync(join(root, rel), "utf8");
+  for (const risk of HONESTY_UI_PATTERNS) {
+    if (risk.pattern.test(content)) {
+      fail(`Honesty UI ${rel}`, `Unverified claim: ${risk.label}`);
+    }
+  }
+}
+if (!checks.some((c) => c.name.startsWith("Honesty UI") && c.ok === false)) {
+  pass("Honesty UI", "No hardcoded speed or overclaim copy in owner dashboard");
+}
+
+// ── Dead trust strip removed ──
+try {
+  readFileSync(join(root, "src/components/ring1-trust-strip.tsx"), "utf8");
+  fail("Trust UI", "ring1-trust-strip.tsx still present — use measured ProAlertSpeedBadge");
+} catch {
+  pass("Trust UI", "No hardcoded trust strip; alert speed is measured");
 }
 
 // ── Honesty (marketing scan) ──
@@ -145,6 +175,14 @@ try {
   pass("Operating standard", "docs/STANDARD.md present");
 } catch {
   fail("Operating standard", "docs/STANDARD.md missing");
+}
+
+// ── CI gate script ──
+try {
+  readFileSync(join(root, "scripts/ci-gate.mjs"), "utf8");
+  pass("CI gate", "scripts/ci-gate.mjs present (npm run ci)");
+} catch {
+  fail("CI gate", "scripts/ci-gate.mjs missing");
 }
 
 const blockers = checks.filter((c) => c.ok === false);

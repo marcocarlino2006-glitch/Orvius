@@ -42,7 +42,7 @@ export function SkeletonLeadCard() {
 
 export function SkeletonLiveStrip() {
   return (
-    <div className="ring1-live-strip ring1-metric-loading mb-6" aria-hidden>
+    <div className="pro-signal-bar ring1-metric-loading mb-6" aria-hidden>
       <div>
         <SkeletonBar className="h-3 w-20" />
         <SkeletonBar className="mt-2 h-5 w-36" />

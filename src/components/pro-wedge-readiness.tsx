@@ -5,10 +5,30 @@ import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
 type ProWedgeReadinessProps = {
   readiness?: WedgeReadiness | null;
+  /** Show a compact success state when all items pass (e.g. Settings). */
+  showWhenReady?: boolean;
 };
 
-export function ProWedgeReadiness({ readiness }: ProWedgeReadinessProps) {
-  if (!readiness || readiness.ready) return null;
+export function ProWedgeReadiness({
+  readiness,
+  showWhenReady = false,
+}: ProWedgeReadinessProps) {
+  if (!readiness) return null;
+
+  if (readiness.ready) {
+    if (!showWhenReady) return null;
+    return (
+      <div className="pro-wedge-readiness pro-wedge-readiness-ready" role="status">
+        <div className="pro-wedge-readiness-head font-sans">
+          <p className="pro-wedge-readiness-kicker">Go-live checklist</p>
+          <p className="pro-wedge-readiness-title">Production ready</p>
+          <p className="pro-wedge-readiness-detail">
+            All {readiness.total} checks passed — your shop line, alerts, and inbox are live.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const remaining = readiness.total - readiness.score;
 

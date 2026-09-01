@@ -20,6 +20,8 @@
     "pre-post:check": "node scripts/pre-post-check.mjs",
     "test:trust": "node --experimental-strip-types --test scripts/trust-stack.test.mjs",
     "standard:check": "node scripts/standard-check.mjs",
+    "ci": "node scripts/ci-gate.mjs",
+    "ci:quick": "npm run build && npm run test:trust && npm run standard:check",
     "wedge:ready": "node scripts/wedge-ready.mjs",
     "master:wedge": "node scripts/master-wedge.mjs",
     "wedge:drill": "node scripts/wedge-drill.mjs",

@@ -5,8 +5,9 @@ import { logError, logInfo } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { getTwilioClient } from "@/lib/twilio-client";
 
+export const NOTIFICATION_RETRY_MINUTES = [1, 5, 15, 60, 240];
 const MAX_ATTEMPTS = 5;
-const RETRY_MINUTES = [1, 5, 15, 60, 240];
+const RETRY_MINUTES = NOTIFICATION_RETRY_MINUTES;
 
 export type ChannelDeliveryStatus = "sent" | "failed" | "skipped" | "duplicate";
 
@@ -31,9 +32,13 @@ function isUniqueConstraintError(error: unknown) {
   );
 }
 
-function retryAt(attempts: number) {
+export function getNotificationRetryAt(attempts: number, now = Date.now()) {
   const minutes = RETRY_MINUTES[Math.min(attempts, RETRY_MINUTES.length - 1)];
-  return new Date(Date.now() + minutes * 60_000);
+  return new Date(now + minutes * 60_000);
+}
+
+function retryAt(attempts: number) {
+  return getNotificationRetryAt(attempts);
 }
 
 function buildBodies(params: {

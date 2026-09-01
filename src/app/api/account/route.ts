@@ -10,6 +10,7 @@ import {
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import { isStripeConfigured } from "@/lib/stripe";
 import { getShopHealth } from "@/lib/shop-health";
+import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { z } from "zod";
 
 const patchSchema = z.object({
@@ -47,6 +48,7 @@ export async function GET() {
   });
 
   const health = business ? await getShopHealth(business.id) : null;
+  const wedge = business && health ? await getWedgeReadiness(business.id, health) : null;
 
   return NextResponse.json({
     user: {
@@ -56,6 +58,7 @@ export async function GET() {
     },
     business,
     health,
+    wedge,
     alerts: {
       smsEnabled: process.env.ENABLE_OWNER_SMS === "true",
       emailConfigured: isEmailConfigured(),

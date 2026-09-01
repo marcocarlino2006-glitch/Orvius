@@ -9788,6 +9788,15 @@ h3 {
   text-decoration: underline;
 }
 
+.pro-wedge-readiness-ready {
+  border-color: color-mix(in srgb, var(--live) 28%, var(--rule));
+  background: color-mix(in srgb, var(--live) 6%, var(--white));
+}
+
+.pro-wedge-readiness-ready .pro-wedge-readiness-title {
+  color: var(--live);
+}
+
 .pro-alert-speed {
   display: flex;
   align-items: center;
