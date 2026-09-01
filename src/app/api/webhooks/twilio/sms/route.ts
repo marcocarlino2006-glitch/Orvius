@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { linkTouchToCustomer } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import {
   buildLeadAlertDedupeKey,
-  notifyOwner,
+  enqueueOwnerAlert,
+  processNotificationQueue,
 } from "@/lib/notifications";
 import {
   getTwilioSmsWebhookUrl,
   validateTwilioRequest,
 } from "@/lib/webhook-auth";
+import { recordWebhookEvent } from "@/lib/webhook-events";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -87,7 +90,7 @@ export async function POST(request: NextRequest) {
     notes: body,
   });
 
-  const notifyResult = await notifyOwner({
+  await enqueueOwnerAlert({
     businessId: business.id,
     ownerPhone: business.ownerPhone,
     ownerEmail: business.ownerEmail,
@@ -99,18 +102,26 @@ export async function POST(request: NextRequest) {
     }),
   });
 
-  if (
-    notifyResult.sms?.status === "failed" ||
-    notifyResult.email?.status === "failed"
-  ) {
-    logError("twilio.sms.owner_alert_failed", {
-      messageSid,
-      businessId: business.id,
-      leadId: lead.id,
-      sms: notifyResult.sms,
-      email: notifyResult.email,
-    });
-  }
+  await recordWebhookEvent({
+    source: "twilio-sms",
+    externalId: messageSid || lead.id,
+    eventType: "inbound",
+    businessId: business.id,
+    status: "processed",
+    payload: { from, to, leadId: lead.id },
+  });
+
+  after(async () => {
+    try {
+      await processNotificationQueue(10);
+    } catch (error) {
+      logError("twilio.sms.queue_process_failed", {
+        messageSid,
+        businessId: business.id,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
+  });
 
   return twimlResponse(SMS_REPLY);
 }

@@ -4,6 +4,7 @@ import {
   type ServiceOffering,
 } from "@/lib/business";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
+import { logError } from "@/lib/logger";
 import {
   getShopLines,
   validateOwnerPhoneForAlerts,
@@ -13,11 +14,13 @@ import {
   canProvisionDedicatedLine,
   configureSmsWebhook,
   purchaseLocalNumber,
+  releasePhoneNumber,
 } from "@/lib/twilio-phone";
 import { type Trade } from "@/lib/trades";
 import {
   buildVapiAssistantConfig,
   createAssistant,
+  deleteAssistant,
   importTwilioPhoneToVapi,
 } from "@/lib/vapi";
 
@@ -113,6 +116,33 @@ async function provisionDedicatedLine(params: {
   return phone;
 }
 
+async function rollbackProvision(params: {
+  vapiAssistantId: string | null;
+  shopLine: string | null;
+}) {
+  if (params.shopLine) {
+    try {
+      await releasePhoneNumber(params.shopLine);
+    } catch (error) {
+      logError("provision.rollback.phone_failed", {
+        shopLine: params.shopLine,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
+  }
+
+  if (params.vapiAssistantId) {
+    try {
+      await deleteAssistant(params.vapiAssistantId);
+    } catch (error) {
+      logError("provision.rollback.assistant_failed", {
+        vapiAssistantId: params.vapiAssistantId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
+  }
+}
+
 export async function provisionBusiness(input: ProvisionInput): Promise<ProvisionResult> {
   const email = input.ownerEmail.toLowerCase().trim();
   const existing = await findBusinessForOwner(email);
@@ -146,62 +176,69 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   });
 
   let vapiAssistantId: string | null = null;
-  if (isConfigured("VAPI_API_KEY")) {
-    const assistant = await createAssistant(
-      buildVapiAssistantConfig({
-        businessName: name,
-        systemPrompt,
-        greeting,
-        webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-        webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
-      }),
-    );
-    vapiAssistantId = assistant.id;
-  }
-
   let shopLine: string | null = platformLine;
   let dedicatedLine = false;
 
-  if (vapiAssistantId && canProvisionDedicatedLine()) {
-    try {
-      shopLine = await provisionDedicatedLine({
-        shopName: name,
-        ownerPhone: input.ownerPhone,
-        assistantId: vapiAssistantId,
-      });
-      dedicatedLine = true;
-    } catch (error) {
-      console.error("Dedicated line provisioning failed, using platform line:", error);
+  try {
+    if (isConfigured("VAPI_API_KEY")) {
+      const assistant = await createAssistant(
+        buildVapiAssistantConfig({
+          businessName: name,
+          systemPrompt,
+          greeting,
+          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+        }),
+      );
+      vapiAssistantId = assistant.id;
     }
+
+    if (vapiAssistantId && canProvisionDedicatedLine()) {
+      try {
+        shopLine = await provisionDedicatedLine({
+          shopName: name,
+          ownerPhone: input.ownerPhone,
+          assistantId: vapiAssistantId,
+        });
+        dedicatedLine = true;
+      } catch (error) {
+        logError("provision.dedicated_line_failed", {
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      }
+    }
+
+    const postProvisionCheck = validateOwnerPhoneForAlerts({
+      ownerPhone: input.ownerPhone,
+      shopLines: getShopLines({
+        twilioPhone: shopLine,
+        vapiPhoneNumber: shopLine,
+      }),
+    });
+    if (!postProvisionCheck.ok) {
+      throw new Error(postProvisionCheck.reason);
+    }
+
+    const business = await prisma.business.create({
+      data: {
+        name,
+        slug,
+        ownerEmail: email,
+        ownerPhone: input.ownerPhone.trim(),
+        timezone: input.timezone ?? "America/New_York",
+        greeting,
+        hoursJson,
+        servicesJson,
+        twilioPhone: shopLine,
+        vapiPhoneNumber: shopLine,
+        vapiAssistantId,
+        billingStatus: "pilot",
+      },
+    });
+
+    return { business, dedicatedLine };
+  } catch (error) {
+    await rollbackProvision({ vapiAssistantId, shopLine: dedicatedLine ? shopLine : null });
+    throw error;
   }
-
-  const postProvisionCheck = validateOwnerPhoneForAlerts({
-    ownerPhone: input.ownerPhone,
-    shopLines: getShopLines({
-      twilioPhone: shopLine,
-      vapiPhoneNumber: shopLine,
-    }),
-  });
-  if (!postProvisionCheck.ok) {
-    throw new Error(postProvisionCheck.reason);
-  }
-
-  const business = await prisma.business.create({
-    data: {
-      name,
-      slug,
-      ownerEmail: email,
-      ownerPhone: input.ownerPhone.trim(),
-      timezone: input.timezone ?? "America/New_York",
-      greeting,
-      hoursJson,
-      servicesJson,
-      twilioPhone: shopLine,
-      vapiPhoneNumber: shopLine,
-      vapiAssistantId,
-      billingStatus: "pilot",
-    },
-  });
-
-  return { business, dedicatedLine };
 }

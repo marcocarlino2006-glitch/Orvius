@@ -44,3 +44,7 @@ export function validateTwilioRequest(params: {
 export function getTwilioSmsWebhookUrl() {
   return getWebhookUrl("/api/webhooks/twilio/sms");
 }
+
+export function getTwilioStatusWebhookUrl() {
+  return getWebhookUrl("/api/webhooks/twilio/status");
+}

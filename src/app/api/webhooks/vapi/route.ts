@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   extractLeadFromStructuredData,
@@ -7,10 +8,15 @@ import {
 import { linkTouchToCustomer } from "@/lib/customer";
 import {
   buildLeadAlertDedupeKey,
-  notifyOwner,
+  enqueueOwnerAlert,
+  processNotificationQueue,
 } from "@/lib/notifications";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
+import {
+  hasProcessedWebhookEvent,
+  recordWebhookEvent,
+} from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 
 async function findBusinessForCall(
@@ -81,6 +87,14 @@ export async function POST(request: NextRequest) {
   );
 
   if (!business) {
+    await recordWebhookEvent({
+      source: "vapi",
+      externalId: vapiCallId,
+      eventType: type,
+      status: "skipped",
+      payload: { type, inboundNumber, assistantId },
+      error: "business not found",
+    });
     logWarn("vapi.webhook.business_not_found", {
       vapiCallId,
       inboundNumber,
@@ -105,10 +119,29 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await recordWebhookEvent({
+      source: "vapi",
+      externalId: vapiCallId,
+      eventType: type,
+      businessId: business.id,
+      status: "processed",
+      payload: { type },
+    });
+
     return NextResponse.json({ ok: true });
   }
 
   if (type === "end-of-call-report") {
+    if (
+      await hasProcessedWebhookEvent({
+        source: "vapi",
+        externalId: vapiCallId,
+        eventType: type,
+      })
+    ) {
+      return NextResponse.json({ ok: true, duplicate: true });
+    }
+
     const summary =
       message.summary ??
       message.analysis?.summary ??
@@ -184,7 +217,6 @@ export async function POST(request: NextRequest) {
       return {
         call,
         lead,
-        shouldNotify: claim.count === 1,
         duplicate: claim.count === 0,
       };
     });
@@ -201,11 +233,13 @@ export async function POST(request: NextRequest) {
     });
 
     if (txResult.duplicate) {
-      logInfo("vapi.webhook.duplicate_end_of_call", {
-        vapiCallId,
+      await recordWebhookEvent({
+        source: "vapi",
+        externalId: vapiCallId,
+        eventType: type,
         businessId: business.id,
-        callId: txResult.call.id,
-        leadId: txResult.lead.id,
+        status: "duplicate",
+        payload: { callId: txResult.call.id, leadId: txResult.lead.id },
       });
       return NextResponse.json({
         ok: true,
@@ -225,37 +259,44 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join("\n");
 
-    const notifyResult = await notifyOwner({
+    const dedupeKey = buildLeadAlertDedupeKey({ vapiCallId });
+
+    await enqueueOwnerAlert({
       businessId: business.id,
       ownerPhone: business.ownerPhone,
       ownerEmail: business.ownerEmail,
       businessName: business.name,
       message: ownerMessage,
       leadId: txResult.lead.id,
-      dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),
+      dedupeKey,
     });
 
-    if (
-      notifyResult.sms?.status === "failed" ||
-      notifyResult.email?.status === "failed"
-    ) {
-      logError("vapi.webhook.owner_alert_failed", {
-        vapiCallId,
-        businessId: business.id,
-        sms: notifyResult.sms,
-        email: notifyResult.email,
-      });
-    }
+    await recordWebhookEvent({
+      source: "vapi",
+      externalId: vapiCallId,
+      eventType: type,
+      businessId: business.id,
+      status: "processed",
+      payload: { callId: txResult.call.id, leadId: txResult.lead.id },
+    });
+
+    after(async () => {
+      try {
+        await processNotificationQueue(10);
+      } catch (error) {
+        logError("vapi.webhook.queue_process_failed", {
+          vapiCallId,
+          businessId: business.id,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      }
+    });
 
     return NextResponse.json({
       ok: true,
       callId: txResult.call.id,
       leadId: txResult.lead.id,
-      ownerNotified: Boolean(
-        notifyResult.sms?.status === "sent" ||
-          notifyResult.email?.status === "sent",
-      ),
-      duplicate: notifyResult.duplicate ?? false,
+      queued: true,
     });
   }
 

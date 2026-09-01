@@ -1,5 +1,11 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run db:generate && npm run build",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/cron/notifications",
+      "schedule": "* * * * *"
+    }
+  ]
 }

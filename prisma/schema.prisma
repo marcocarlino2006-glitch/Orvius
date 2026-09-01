@@ -35,6 +35,7 @@ model Business {
   jobs             Job[]
   technicians      Technician[]
   ownerNotifications OwnerNotification[]
+  webhookEvents      WebhookEvent[]
 }
 
 model Customer {
@@ -169,17 +170,44 @@ model WaitlistEntry {
 }
 
 model OwnerNotification {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  leadId     String?
-  channel    String
-  dedupeKey  String
-  status     String
-  error      String?
-  createdAt  DateTime @default(now())
+  id           String    @id @default(cuid())
+  businessId   String
+  business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  leadId       String?
+  channel      String
+  dedupeKey    String
+  status       String
+  error        String?
+  businessName String?
+  message      String?
+  ownerPhone   String?
+  ownerEmail   String?
+  attempts     Int       @default(0)
+  nextRetryAt  DateTime?
+  deliveryId   String?
+  deliveryStatus String?
+  processedAt  DateTime?
+  createdAt    DateTime  @default(now())
 
   @@unique([businessId, dedupeKey, channel])
   @@index([businessId, createdAt])
   @@index([businessId, status])
+  @@index([status, nextRetryAt])
+}
+
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  source      String
+  externalId  String
+  eventType   String
+  businessId  String?
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  status      String
+  payloadJson String?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([source, externalId, eventType])
+  @@index([businessId, createdAt])
+  @@index([source, createdAt])
 }

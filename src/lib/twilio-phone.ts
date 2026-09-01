@@ -1,4 +1,4 @@
-import { getTwilioClient } from "@/lib/notifications";
+import { getTwilioClient } from "@/lib/twilio-client";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
 
 function areaCodeFromPhone(phone: string): number | undefined {
@@ -35,6 +35,18 @@ export async function purchaseLocalNumber(ownerPhone?: string | null) {
   });
 
   return purchased.phoneNumber;
+}
+
+export async function releasePhoneNumber(phoneNumber: string) {
+  const client = getTwilioClient();
+  const numbers = await client.incomingPhoneNumbers.list({
+    phoneNumber,
+    limit: 1,
+  });
+  const entry = numbers[0];
+  if (entry) {
+    await client.incomingPhoneNumbers(entry.sid).remove();
+  }
 }
 
 export async function configureSmsWebhook(phoneNumber: string) {

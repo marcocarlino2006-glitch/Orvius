@@ -28,6 +28,8 @@ export function getConfigStatus() {
     "OPENAI_API_KEY",
     "RESEND_API_KEY",
     "RESEND_FROM",
+    "CRON_SECRET",
+    "TWILIO_STATUS_CALLBACK_URL",
   ];
   const required = REQUIRED.map((name) => ({
     name,
@@ -45,6 +47,7 @@ export function getConfigStatus() {
     appUrl: getAppUrl(),
     webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
     smsWebhookUrl: getWebhookUrl("/api/webhooks/twilio/sms"),
+    twilioStatusWebhookUrl: getWebhookUrl("/api/webhooks/twilio/status"),
     twilioPhone: process.env.TWILIO_PHONE_NUMBER?.trim() || null,
     ownerSmsEnabled: process.env.ENABLE_OWNER_SMS === "true",
     items: [...required, ...optionalStatus],
