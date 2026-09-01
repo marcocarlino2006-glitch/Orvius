@@ -1,16 +1,14 @@
 # Billing setup
 
-Orvius Pro is **$299/month** flat. Pricing copy lives in `src/lib/company.ts`. Stripe must have a matching product and price before self-serve checkout works.
+Orvius has **three paid plans** plus a free design partner program:
 
-## Current state (honest)
+| Plan | Price | Best for |
+|------|-------|----------|
+| **Line** | $149/mo | Front door — AI receptionist, inbox, owner SMS |
+| **Pro** | $299/mo | Full workspace — customers, jobs, dispatch, Ask |
+| **Fleet** | $499/mo | 6+ trucks — priority support, multi-tech dispatch |
 
-If you have not run setup, these are missing:
-
-- `STRIPE_SECRET_KEY` — Stripe API secret
-- `STRIPE_PRICE_ID` — recurring $299/mo price id (created by setup script)
-- `STRIPE_WEBHOOK_SECRET` — so subscriptions sync to your database after payment
-
-Until all three are set, the site shows **Apply for design partner** instead of Subscribe. That is intentional.
+Plan copy lives in `src/lib/pricing-plans.ts`. Stripe must have matching products and price IDs before self-serve checkout works.
 
 ## Check status
 
@@ -18,63 +16,49 @@ Until all three are set, the site shows **Apply for design partner** instead of 
 npm run billing:check
 ```
 
-This validates env vars and confirms the Stripe price matches $299/mo.
-
-## Step 1 — Stripe account + secret key
-
-1. Create account: https://dashboard.stripe.com/register
-2. Developers → API keys
-3. Copy **Secret key** → add to `.env` and Vercel:
+## Step 1 — Stripe secret key
 
 ```
 STRIPE_SECRET_KEY=sk_test_...
 ```
 
-Use test keys until you are ready for live charges.
-
-## Step 2 — Create product + price
-
-With `STRIPE_SECRET_KEY` in `.env`:
+## Step 2 — Create all three prices
 
 ```bash
 npm run stripe:setup
 ```
 
-This creates **Orvius Pro** at **$299/mo** in Stripe (or reuses existing) and writes `STRIPE_PRICE_ID` to `.env`.
+Writes to `.env`:
+
+```
+STRIPE_PRICE_ID_LINE=price_...
+STRIPE_PRICE_ID_PRO=price_...
+STRIPE_PRICE_ID_FLEET=price_...
+STRIPE_PRICE_ID=price_...        # legacy alias for Pro
+```
 
 Add the same vars to Vercel.
 
-## Step 3 — Webhook (required for subscription sync)
+## Step 3 — Webhook
 
-After deploy, in Stripe Dashboard → Developers → Webhooks → Add endpoint:
+URL: `https://api.orvius.im/api/billing/webhook`
 
-| Field | Value |
-|-------|-------|
-| URL | `https://api.orvius.im/api/billing/webhook` |
-| Events | `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` |
-
-Copy the signing secret:
+Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 
 ```
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-Without this, checkout may work but `billingStatus` on the shop will not update.
-
 ## Step 4 — Verify
 
 ```bash
-npm run billing:check   # all green
-npm run deploy:check    # includes billing warning if still missing
+npm run billing:check
 ```
 
-Then test: sign in → Dashboard → Billing → Subscribe → complete test checkout in Stripe test mode.
+Each plan's Subscribe button only appears when that plan's price ID is configured.
 
-## What is not done yet
+## Not done yet
 
-- Live Stripe account / bank payout setup (your Stripe Dashboard)
-- Production webhook on api.orvius.im (needs deploy + DNS)
-- Customer portal for cancel/update card (future)
-- Pilot → paid conversion automation (manual checkout link for now)
-
-Do not market self-serve Subscribe until `npm run billing:check` passes in production.
+- Feature gating by plan tier (all plans get full product today — tier differentiation is pricing/copy until we gate)
+- Stripe Customer Portal
+- Plan upgrades/downgrades in-app

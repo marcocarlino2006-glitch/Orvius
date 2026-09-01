@@ -1,38 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { company, pricing } from "@/lib/company";
+import { company } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
 import {
   getAppBaseUrl,
   getBillingReadiness,
   getStripe,
-  getStripePriceId,
   isStripeCheckoutConfigured,
   isStripeConfigured,
+  isStripePlanConfigured,
+  requireStripePriceIdForPlan,
 } from "@/lib/stripe";
+import {
+  getPaidPlans,
+  getPlanById,
+  isPlanCheckoutReady,
+  type PaidPlanId,
+} from "@/lib/pricing-plans";
 import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
 
 const checkoutSchema = z.object({
   email: z.string().email(),
   businessId: z.string().optional(),
+  planId: z.enum(["line", "pro", "fleet"]).default("pro"),
 });
 
 export async function POST(request: NextRequest) {
-  if (!isStripeCheckoutConfigured()) {
-    const readiness = getBillingReadiness();
-    return NextResponse.json(
-      {
-        error:
-          "Billing is not configured yet. Apply for the pilot and we will send a checkout link after your trial.",
-        billing: readiness,
-      },
-      { status: 503 },
-    );
-  }
-
   try {
     const body = checkoutSchema.parse(await request.json());
+
+    if (!isPlanCheckoutReady(body.planId)) {
+      const readiness = getBillingReadiness();
+      return NextResponse.json(
+        {
+          error:
+            "Billing is not configured yet for this plan. Apply for the pilot and we will send a checkout link after your trial.",
+          billing: readiness,
+        },
+        { status: 503 },
+      );
+    }
+
     const authSession = await auth();
     const sessionEmail = authSession?.user?.email?.toLowerCase();
 
@@ -44,6 +53,7 @@ export async function POST(request: NextRequest) {
       return forbiddenResponse();
     }
 
+    const plan = getPlanById(body.planId);
     const stripe = getStripe();
     const baseUrl = getAppBaseUrl();
 
@@ -61,7 +71,7 @@ export async function POST(request: NextRequest) {
       customer_email: body.email,
       line_items: [
         {
-          price: getStripePriceId(),
+          price: requireStripePriceIdForPlan(body.planId),
           quantity: 1,
         },
       ],
@@ -71,12 +81,14 @@ export async function POST(request: NextRequest) {
       billing_address_collection: "auto",
       subscription_data: {
         metadata: {
-          product: "orvius-pro",
+          product: plan.stripeProductKey ?? `orvius-${body.planId}`,
+          planId: body.planId,
           businessId: business?.id ?? "",
         },
       },
       metadata: {
-        product: "orvius-pro",
+        product: plan.stripeProductKey ?? `orvius-${body.planId}`,
+        planId: body.planId,
         businessId: business?.id ?? "",
         legalEntity: company.legalName,
       },
@@ -85,8 +97,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       url: checkoutSession.url,
-      plan: pricing.pro.name,
-      amount: pricing.pro.price,
+      plan: plan.name,
+      planId: body.planId,
+      amount: plan.price,
     });
   } catch (error) {
     const message =
@@ -101,12 +114,21 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   const readiness = getBillingReadiness();
+  const plans = getPaidPlans().map((plan) => ({
+    id: plan.id,
+    name: plan.name,
+    price: plan.price,
+    tagline: plan.tagline,
+    featured: plan.featured ?? false,
+    checkoutReady: isPlanCheckoutReady(plan.id as PaidPlanId),
+    configured: isStripePlanConfigured(plan.id as PaidPlanId),
+  }));
+
   return NextResponse.json({
     configured: isStripeConfigured(),
     checkoutReady: isStripeCheckoutConfigured(),
     readiness,
-    plan: pricing.pro.name,
-    price: pricing.pro.price,
+    plans,
     currency: "usd",
     legalEntity: company.legalName,
   });

@@ -100,7 +100,9 @@ if (env.ENABLE_OWNER_SMS === "true") {
 
 const stripeReady =
   env.STRIPE_SECRET_KEY?.trim() &&
-  env.STRIPE_PRICE_ID?.trim() &&
+  env.STRIPE_PRICE_ID_LINE?.trim() &&
+  env.STRIPE_PRICE_ID_PRO?.trim() &&
+  env.STRIPE_PRICE_ID_FLEET?.trim() &&
   env.STRIPE_WEBHOOK_SECRET?.trim();
 
 if (stripeReady) {

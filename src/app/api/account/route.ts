@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { company, pricing } from "@/lib/company";
+import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
 import { isEmailConfigured } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import {
@@ -39,6 +39,7 @@ export async function GET() {
       twilioPhone: true,
       vapiPhoneNumber: true,
       billingStatus: true,
+      billingPlan: true,
       stripeCustomerId: true,
       stripeSubscriptionId: true,
       createdAt: true,
@@ -49,6 +50,12 @@ export async function GET() {
 
   const health = business ? await getShopHealth(business.id) : null;
   const wedge = business && health ? await getWedgeReadiness(business.id, health) : null;
+
+  const currentPlanId = business?.billingPlan ?? null;
+  const currentPlan =
+    currentPlanId && ["line", "pro", "fleet"].includes(currentPlanId)
+      ? getPlanById(currentPlanId as "line" | "pro" | "fleet")
+      : null;
 
   return NextResponse.json({
     user: {
@@ -66,7 +73,9 @@ export async function GET() {
     billing: {
       configured: isStripeConfigured(),
       status: business?.billingStatus ?? "none",
-      plan: pricing.pro,
+      planId: currentPlanId,
+      plan: currentPlan ?? pricing.pro,
+      plans: pricingPlans,
       pilot: pricing.pilot,
       legalEntity: company.legalName,
       hasSubscription: Boolean(business?.stripeSubscriptionId),

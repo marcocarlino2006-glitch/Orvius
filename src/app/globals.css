@@ -8764,9 +8764,62 @@ h3 {
 
 @media (min-width: 768px) {
   .tier1-pricing-plans {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
+}
+
+@media (min-width: 1100px) {
+  .tier1-pricing-plans {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.account-grid-plans {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .account-grid-plans {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .account-grid-plans {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.account-billing-plan {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.account-billing-plan:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.account-billing-plan-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.account-billing-plan-price {
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
+.account-billing-plan-detail {
+  margin-top: 0.15rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ash);
 }
 
 .tier1-plan {

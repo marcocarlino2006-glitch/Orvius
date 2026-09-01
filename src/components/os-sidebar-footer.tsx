@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
-import { pricing } from "@/lib/company";
+import { getLowestPaidPrice, pricing } from "@/lib/company";
 
 type AccountData = {
   business: {
@@ -26,7 +26,7 @@ type MenuItem = {
 const accountLinks: MenuItem[] = [
   { href: "/dashboard/profile", label: "Profile", hint: "Account & shop" },
   { href: "/dashboard/settings", label: "Settings", hint: "Line & alerts" },
-  { href: "/dashboard/pricing", label: "Pricing", hint: `$${pricing.pro.price}/mo` },
+  { href: "/dashboard/pricing", label: "Pricing", hint: `From $${getLowestPaidPrice()}/mo` },
   { href: "/dashboard/billing", label: "Billing", hint: "Plan & invoices" },
 ];
 

@@ -25,6 +25,7 @@ model Business {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   billingStatus        String   @default("pilot")
+  billingPlan          String?
   lineVerifiedAt       DateTime?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

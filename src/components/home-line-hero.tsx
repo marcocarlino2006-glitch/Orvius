@@ -4,7 +4,7 @@ import {
   DEMO_LINE_BUSINESS,
   demoLineHref,
 } from "@/lib/demo-line";
-import { company, pricing } from "@/lib/company";
+import { company, getLowestPaidPrice } from "@/lib/company";
 
 export function HomeLineHero() {
   return (
@@ -43,7 +43,7 @@ export function HomeLineHero() {
         </div>
 
         <p className="tier1-hero-foot font-sans">
-          ${pricing.pro.price}/mo · unlimited inbound · cancel anytime · built for
+          From ${getLowestPaidPrice()}/mo · Line, Pro, or Fleet · cancel anytime · built for
           every shop that runs on the phone
         </p>
       </div>

@@ -4,7 +4,7 @@ import { HomeLineHero } from "@/components/home-line-hero";
 import { HomeProductStage } from "@/components/home-product-stage";
 import { PublicLayout } from "@/components/marketing-shell";
 import { demoLineHref, DEMO_LINE_DISPLAY } from "@/lib/demo-line";
-import { pricing } from "@/lib/company";
+import { getLowestPaidPrice } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -64,7 +64,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="tier1-close-foot">
-            ${pricing.pro.price}/mo flat · cancel anytime
+            From ${getLowestPaidPrice()}/mo · cancel anytime
           </p>
         </div>
       </section>

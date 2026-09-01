@@ -3,7 +3,21 @@ import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
+import { isPaidPlanId } from "@/lib/pricing-plans";
+
 export const runtime = "nodejs";
+
+function resolveBillingPlan(subscription: Stripe.Subscription): string | null {
+  const planId = subscription.metadata.planId?.trim();
+  if (planId && isPaidPlanId(planId)) return planId;
+
+  const product = subscription.metadata.product?.trim();
+  if (product === "orvius-line") return "line";
+  if (product === "orvius-pro") return "pro";
+  if (product === "orvius-fleet") return "fleet";
+
+  return null;
+}
 
 async function syncSubscription(
   subscription: Stripe.Subscription,
@@ -44,6 +58,7 @@ async function syncSubscription(
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscription.id,
       billingStatus,
+      billingPlan: resolveBillingPlan(subscription),
       ownerEmail: business.ownerEmail ?? customerEmail ?? undefined,
     },
   });
@@ -86,12 +101,13 @@ export async function POST(request: Request) {
             : session.subscription.id,
         );
 
-        if (session.metadata?.businessId && !subscription.metadata.businessId) {
+        if (session.metadata?.businessId || session.metadata?.planId) {
           await stripe.subscriptions.update(subscription.id, {
             metadata: {
               ...subscription.metadata,
-              businessId: session.metadata.businessId,
-              product: "orvius-pro",
+              businessId: session.metadata.businessId ?? subscription.metadata.businessId ?? "",
+              planId: session.metadata.planId ?? subscription.metadata.planId ?? "pro",
+              product: session.metadata.product ?? subscription.metadata.product ?? "orvius-pro",
             },
           });
         }

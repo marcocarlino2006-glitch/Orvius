@@ -2,22 +2,30 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { PaidPlanId } from "@/lib/pricing-plans";
 
 type CheckoutButtonProps = {
+  planId: PaidPlanId;
   label?: string;
   className?: string;
   variant?: "primary" | "secondary";
   email?: string;
 };
 
+type PlanBillingStatus = {
+  configured: boolean;
+  checkoutReady: boolean;
+};
+
 type BillingStatus = {
   configured: boolean;
   checkoutReady: boolean;
-  price: number;
+  plans: Record<PaidPlanId, PlanBillingStatus>;
 };
 
 export function CheckoutButton({
-  label = "Subscribe after pilot",
+  planId,
+  label,
   className = "",
   variant = "secondary",
   email: emailProp = "",
@@ -28,6 +36,8 @@ export function CheckoutButton({
   const [needsEmail, setNeedsEmail] = useState(false);
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
+
+  const buttonLabel = label ?? "Subscribe";
 
   useEffect(() => {
     if (emailProp) {
@@ -40,17 +50,35 @@ export function CheckoutButton({
     fetch("/api/billing/checkout")
       .then((res) => res.json())
       .then((data) => {
+        const plans = (data.plans ?? []) as Array<{
+          id: PaidPlanId;
+          checkoutReady: boolean;
+          configured: boolean;
+        }>;
+        const planMap = Object.fromEntries(
+          plans.map((plan) => [
+            plan.id,
+            { configured: plan.configured, checkoutReady: plan.checkoutReady },
+          ]),
+        ) as Record<PaidPlanId, PlanBillingStatus>;
+
         setBilling({
           configured: Boolean(data.configured),
           checkoutReady: Boolean(data.checkoutReady),
-          price: data.price ?? 299,
+          plans: planMap,
         });
       })
       .catch(() => {
-        setBilling({ configured: false, checkoutReady: false, price: 299 });
+        setBilling({
+          configured: false,
+          checkoutReady: false,
+          plans: {} as Record<PaidPlanId, PlanBillingStatus>,
+        });
       })
       .finally(() => setBillingLoading(false));
   }, []);
+
+  const planReady = billing?.plans[planId]?.checkoutReady ?? false;
 
   async function startCheckout(submittedEmail?: string) {
     const checkoutEmail = (submittedEmail ?? email).trim();
@@ -67,7 +95,7 @@ export function CheckoutButton({
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: checkoutEmail }),
+        body: JSON.stringify({ email: checkoutEmail, planId }),
       });
       const data = await res.json();
 
@@ -104,15 +132,15 @@ export function CheckoutButton({
     );
   }
 
-  if (!billing?.configured) {
+  if (!planReady) {
     return (
       <div className={className}>
-        <Link href="/pilot" className={`inst-btn inst-btn-primary w-full justify-center`}>
+        <Link href="/pilot" className="inst-btn inst-btn-primary w-full justify-center">
           Apply for design partner
         </Link>
         <p className="mt-3 font-sans text-sm text-ash">
-          Self-serve checkout is not live yet. Start with the free 30-day program — we
-          will send a checkout link when billing is ready.
+          Self-serve checkout for this plan is not live yet. Start with the free 30-day
+          program — we will send a checkout link when billing is ready.
         </p>
       </div>
     );
@@ -140,7 +168,7 @@ export function CheckoutButton({
               variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
             } ${loading ? "opacity-70" : ""}`}
           >
-            {loading ? "Redirecting..." : label}
+            {loading ? "Redirecting..." : buttonLabel}
           </button>
         </div>
       ) : (
@@ -152,7 +180,7 @@ export function CheckoutButton({
             variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
           } ${loading ? "opacity-70" : ""}`}
         >
-          {loading ? "Redirecting..." : label}
+          {loading ? "Redirecting..." : buttonLabel}
         </button>
       )}
 

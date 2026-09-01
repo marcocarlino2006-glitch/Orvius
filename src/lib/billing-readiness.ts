@@ -1,27 +1,38 @@
-import { pricing } from "@/lib/company";
+import {
+  getConfiguredPaidPlans,
+  getPaidPlans,
+  getStripePriceIdForPlan,
+  isPlanCheckoutReady,
+  type PaidPlanId,
+} from "@/lib/pricing-plans";
 
 export type BillingConfig = {
   secretKey: boolean;
-  priceId: boolean;
   webhookSecret: boolean;
   publishableKey: boolean;
+  planPriceIds: Record<PaidPlanId, boolean>;
 };
 
 export type BillingReadiness = {
   checkoutReady: boolean;
   fullyReady: boolean;
   config: BillingConfig;
-  priceCents: number;
+  configuredPlans: PaidPlanId[];
   missing: string[];
   nextSteps: string[];
 };
 
 export function getBillingConfig(): BillingConfig {
+  const paidPlans = getPaidPlans();
+  const planPriceIds = Object.fromEntries(
+    paidPlans.map((plan) => [plan.id, Boolean(getStripePriceIdForPlan(plan.id))]),
+  ) as Record<PaidPlanId, boolean>;
+
   return {
     secretKey: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
-    priceId: Boolean(process.env.STRIPE_PRICE_ID?.trim()),
     webhookSecret: Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim()),
     publishableKey: Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim()),
+    planPriceIds,
   };
 }
 
@@ -29,15 +40,22 @@ export function getBillingReadiness(): BillingReadiness {
   const config = getBillingConfig();
   const missing: string[] = [];
   const nextSteps: string[] = [];
+  const paidPlans = getPaidPlans();
+  const configuredPlans = getConfiguredPaidPlans();
 
   if (!config.secretKey) {
     missing.push("STRIPE_SECRET_KEY");
     nextSteps.push("Add STRIPE_SECRET_KEY from Stripe Dashboard → Developers → API keys");
   }
 
-  if (!config.priceId) {
-    missing.push("STRIPE_PRICE_ID");
-    nextSteps.push(`Run npm run stripe:setup to create the $${pricing.pro.price}/mo Orvius Pro price`);
+  for (const plan of paidPlans) {
+    if (!config.planPriceIds[plan.id]) {
+      missing.push(plan.stripePriceEnvKey ?? `STRIPE_PRICE_ID_${plan.id.toUpperCase()}`);
+    }
+  }
+
+  if (missing.some((key) => key.startsWith("STRIPE_PRICE_ID"))) {
+    nextSteps.push("Run npm run stripe:setup to create Line, Pro, and Fleet prices");
   }
 
   if (!config.webhookSecret) {
@@ -49,18 +67,25 @@ export function getBillingReadiness(): BillingReadiness {
 
   if (!config.publishableKey) {
     missing.push("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY");
-    nextSteps.push("Add publishable key from Stripe Dashboard (optional for Checkout redirect flow)");
+    nextSteps.push("Add publishable key from Stripe Dashboard (optional for Checkout redirect)");
   }
 
-  const checkoutReady = config.secretKey && config.priceId;
-  const fullyReady = checkoutReady && config.webhookSecret;
+  const checkoutReady = config.secretKey && configuredPlans.length > 0;
+  const fullyReady =
+    checkoutReady &&
+    config.webhookSecret &&
+    configuredPlans.length === paidPlans.length;
 
   return {
     checkoutReady,
     fullyReady,
     config,
-    priceCents: pricing.pro.price * 100,
+    configuredPlans,
     missing,
     nextSteps,
   };
+}
+
+export function isAnyPlanCheckoutReady(): boolean {
+  return getPaidPlans().some((plan) => isPlanCheckoutReady(plan.id));
 }

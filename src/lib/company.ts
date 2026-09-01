@@ -127,34 +127,5 @@ export const platformPillars = [
   },
 ] as const;
 
-export const pricing = {
-  pilot: {
-    name: "Design partner program",
-    price: 0,
-    period: "30 days",
-    limit: "Limited availability",
-    cta: "Apply for design partner",
-    href: "/pilot",
-    highlights: [
-      "Dedicated local line assigned at onboarding",
-      "Full AI receptionist on your shop number",
-      "Lead inbox + owner SMS alerts",
-      "Personal onboarding with the Orvius team",
-      "No credit card required",
-    ],
-  },
-  pro: {
-    name: "Orvius Pro",
-    price: 299,
-    period: "per month",
-    cta: "Get started",
-    href: "/pilot",
-    highlights: [
-      "Unlimited inbound calls & texts handled",
-      "Qualified leads with urgency, service, and address",
-      "Owner alerts via SMS + dashboard",
-      "Business hours & services you control",
-      "Email support · cancel anytime",
-    ],
-  },
-} as const;
+export { pricing, pricingPlans, getPaidPlans, getPlanById, getFeaturedPlan, getLowestPaidPrice } from "@/lib/pricing-plans";
+export type { PlanId, PaidPlanId, PricingPlan } from "@/lib/pricing-plans";

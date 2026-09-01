@@ -2,7 +2,7 @@
 export const trustSignals = [
   { value: "5", label: "Workspace areas", detail: "Inbox through Ask" },
   { value: "24/7", label: "Call coverage", detail: "Nights, weekends, peak" },
-  { value: "$299", label: "Flat monthly", detail: "No per-minute billing" },
+  { value: "$149+", label: "Flat monthly", detail: "Line, Pro, or Fleet" },
   { value: "2–15", label: "Trucks", detail: "Owner-operator shops" },
 ] as const;
 
@@ -58,9 +58,21 @@ export const pricingComparison = [
     highlight: false,
   },
   {
-    label: "Orvius",
+    label: "Orvius Line",
+    cost: "$149/mo",
+    pain: "Call → lead → owner alert.",
+    highlight: false,
+  },
+  {
+    label: "Orvius Pro",
     cost: "$299/mo",
     pain: "Call → lead → job in one workspace.",
     highlight: true,
+  },
+  {
+    label: "Orvius Fleet",
+    cost: "$499/mo",
+    pain: "Multi-tech dispatch + priority support.",
+    highlight: false,
   },
 ] as const;

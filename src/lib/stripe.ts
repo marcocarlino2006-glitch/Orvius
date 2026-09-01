@@ -3,21 +3,31 @@ import { getStripeAppBaseUrl } from "@/lib/stripe-url";
 import {
   getBillingConfig,
   getBillingReadiness,
+  isAnyPlanCheckoutReady,
   type BillingReadiness,
 } from "@/lib/billing-readiness";
+import {
+  isPlanCheckoutReady,
+  requireStripePriceIdForPlan,
+  type PaidPlanId,
+} from "@/lib/pricing-plans";
 
 export { getBillingConfig, getBillingReadiness, type BillingReadiness };
 
 let stripeClient: Stripe | null = null;
 
-/** Checkout can start — secret key + price id present. */
+/** At least one plan can start checkout — secret key + that plan's price id. */
 export function isStripeCheckoutConfigured() {
-  return getBillingReadiness().checkoutReady;
+  return isAnyPlanCheckoutReady();
 }
 
-/** Subscriptions sync after payment — includes webhook secret. */
+/** All paid plans + webhook configured — safe to show Subscribe everywhere. */
 export function isStripeConfigured() {
   return getBillingReadiness().fullyReady;
+}
+
+export function isStripePlanConfigured(planId: PaidPlanId) {
+  return isPlanCheckoutReady(planId) && Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
 }
 
 export function getStripe() {
@@ -37,10 +47,9 @@ export function getAppBaseUrl() {
   return getStripeAppBaseUrl();
 }
 
-export function getStripePriceId() {
-  const priceId = process.env.STRIPE_PRICE_ID?.trim();
-  if (!priceId) {
-    throw new Error("STRIPE_PRICE_ID is not configured");
-  }
-  return priceId;
+/** @deprecated Use requireStripePriceIdForPlan(planId) */
+export function getStripePriceId(planId: PaidPlanId = "pro") {
+  return requireStripePriceIdForPlan(planId);
 }
+
+export { requireStripePriceIdForPlan };

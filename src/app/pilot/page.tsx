@@ -68,8 +68,9 @@ export default function PilotPage() {
               you&apos;re a fit, we configure your line together — then go live.
             </p>
             <p className="mt-6 tier1-section-lead font-sans">
-              After the program, continue at ${pricing.pro.price}/month or walk
-              away — no hard feelings.
+              After the program, choose Line (${pricing.line.price}/mo), Pro ($
+              {pricing.pro.price}/mo), or Fleet (${pricing.fleet.price}/mo) — or
+              walk away with no hard feelings.
             </p>
           </div>
         </div>
