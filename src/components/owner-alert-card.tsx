@@ -98,7 +98,7 @@ export function OwnerAlertCard({
 
       <div className={`px-5 md:px-6 ${compact ? "py-4" : "py-5 md:py-6"}`}>
         <p
-          className={`font-serif tracking-[-0.035em] ${
+          className={`type-title ${
             compact ? "text-xl" : "text-2xl md:text-[1.75rem]"
           } ${isVoid ? "text-chalk" : "text-void"}`}
         >

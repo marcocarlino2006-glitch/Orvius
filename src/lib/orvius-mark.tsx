@@ -1,5 +1,5 @@
 /**
- * Orvius mark — geometric O. Flat. No gradients.
+ * Orvius mark — open ring + signal dot. The line is live.
  */
 
 export type OrviusMarkSvgProps = {
@@ -36,7 +36,11 @@ export function OrviusMarkSvg({
         cy="16"
         r="7"
         strokeWidth="2"
+        strokeDasharray="36 7"
+        strokeLinecap="round"
+        transform="rotate(-90 16 16)"
       />
+      <circle className="orvius-mark-signal" cx="16" cy="9" r="1.5" />
     </svg>
   );
 }

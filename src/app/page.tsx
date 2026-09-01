@@ -4,7 +4,6 @@ import { HomeLineHero } from "@/components/home-line-hero";
 import { HomePlatformGrid } from "@/components/home-platform-grid";
 import { HomeTrustStrip } from "@/components/home-trust-strip";
 import { PublicLayout } from "@/components/marketing-shell";
-import { demoLineHref, DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { getLowestPaidPrice } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -48,20 +47,24 @@ export default function HomePage() {
 
       <section className="tier1-close inst-close">
         <div className="editorial-wrap tier1-close-inner">
-          <p className="tier1-eyebrow tier1-eyebrow-light type-eyebrow">Ready when you are</p>
-          <a href={demoLineHref()} className="tier1-close-line type-phone">
-            {DEMO_LINE_DISPLAY}
-          </a>
+          <p className="tier1-eyebrow tier1-eyebrow-light type-eyebrow">Design partner</p>
+          <h2 className="tier1-section-title tier1-section-title-light type-headline">
+            We onboard every shop personally.
+          </h2>
+          <p className="tier1-section-lead tier1-section-lead-light font-sans">
+            30 days free. Dedicated line, AI receptionist, owner alerts — we
+            configure your shop together before you pay a cent.
+          </p>
           <div className="tier1-actions tier1-close-actions">
-            <a href={demoLineHref()} className="inst-btn inst-btn-light">
-              Call the demo
-            </a>
-            <Link href="/login" className="inst-btn inst-btn-outline-light">
-              Get started
+            <Link href="/pilot" className="inst-btn inst-btn-light">
+              Apply for design partner
+            </Link>
+            <Link href="/pricing" className="inst-btn inst-btn-outline-light">
+              View pricing
             </Link>
           </div>
           <p className="tier1-close-foot tier1-close-foot-light font-sans">
-            From ${getLowestPaidPrice()}/mo · cancel anytime
+            From ${getLowestPaidPrice()}/mo after program · cancel anytime
           </p>
         </div>
       </section>

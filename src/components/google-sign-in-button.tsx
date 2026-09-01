@@ -10,7 +10,7 @@ type GoogleSignInButtonProps = {
 
 export function GoogleSignInButton({
   callbackUrl = "/dashboard",
-  className = "google-sign-in-btn",
+  className = "inst-btn inst-btn-oauth inst-btn-full",
   label = "Sign in with Google",
 }: GoogleSignInButtonProps) {
   return (

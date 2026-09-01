@@ -60,7 +60,7 @@ export function OsShell({
   const sidebar = (
     <div className="os-sidebar-inner">
       <Link href="/dashboard" className="os-sidebar-brand">
-            <OrviusLogo size="md" variant="void" wordmarkOnly />
+            <OrviusLogo size="md" variant="void" />
       </Link>
 
       <div className="os-ring-status os-ring-status-pro">

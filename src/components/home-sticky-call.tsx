@@ -20,9 +20,10 @@ export function HomeStickyCall() {
 
   return (
     <div className="home-sticky-call font-sans" role="complementary" aria-label="Call live demo">
-      <a href={demoLineHref()} className="home-sticky-call-btn">
-        <span className="home-sticky-call-pulse" aria-hidden />
-        Call {DEMO_LINE_DISPLAY}
+      <a href={demoLineHref()} className="home-sticky-call-link">
+        <span className="live-dot live-dot-green" aria-hidden />
+        <span className="home-sticky-call-label">Live line</span>
+        <span className="home-sticky-call-number type-phone">{DEMO_LINE_DISPLAY}</span>
       </a>
     </div>
   );
