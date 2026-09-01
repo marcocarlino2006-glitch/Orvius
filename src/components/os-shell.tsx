@@ -8,6 +8,9 @@ import {
   osWorkspaceNav,
 } from "@/lib/os-nav";
 import { useBusiness } from "@/lib/use-business";
+import { usePlanAccess } from "@/lib/use-plan-access";
+import { getPlanById } from "@/lib/pricing-plans";
+import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { OsAskDock } from "@/components/os-ask-dock";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
@@ -35,8 +38,10 @@ export function OsShell({
 }: OsShellProps) {
   const pathname = usePathname();
   const { business } = useBusiness();
+  const { access } = usePlanAccess();
   const businessName = businessNameProp ?? business?.name ?? "Your business";
   const newLeads = business?.metrics.newLeads ?? 0;
+  const showAskDock = access?.canAccess("ask") ?? true;
 
   return (
     <div className="os-shell os-shell-pro min-h-screen">
@@ -66,12 +71,20 @@ export function OsShell({
             <ul>
               {osProductNav.map((item) => {
                 const ring = item.ring ?? osCurrentRing;
-                const enabled = ring <= osCurrentRing + 1;
+                const ringEnabled = ring <= osCurrentRing + 1;
+                const navModule = navHrefToModule(item.href);
+                const planAllowed = navModule
+                  ? (access?.canAccess(navModule) ?? true)
+                  : true;
+                const enabled = ringEnabled && planAllowed;
                 const active = navActive(pathname, item.href);
                 const badge =
                   item.href === "/dashboard/inbox" && newLeads > 0
                     ? String(newLeads)
                     : item.badge;
+                const upgradePlan = navModule
+                  ? getPlanById(minimumPlanForModule(navModule))
+                  : null;
 
                 return (
                   <li key={item.href}>
@@ -84,6 +97,15 @@ export function OsShell({
                         {badge ? (
                           <span className="os-nav-badge">{badge}</span>
                         ) : null}
+                      </Link>
+                    ) : planAllowed === false && upgradePlan ? (
+                      <Link
+                        href="/dashboard/pricing"
+                        className="os-nav-link os-nav-link-locked font-sans"
+                        title={`Upgrade to ${upgradePlan.name}`}
+                      >
+                        <span>{item.label}</span>
+                        <span className="os-nav-lock">Pro</span>
                       </Link>
                     ) : (
                       <span className="os-nav-link os-nav-link-disabled font-sans">
@@ -138,7 +160,7 @@ export function OsShell({
         </header>
 
         <main className="os-content os-content-pro">{children}</main>
-        <OsAskDock />
+        {showAskDock ? <OsAskDock /> : null}
       </div>
     </div>
   );

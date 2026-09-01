@@ -7,15 +7,18 @@ type PricingPlanCardProps = {
   plan: PricingPlan;
   email?: string;
   layout?: "marketing" | "dashboard";
+  recommended?: boolean;
 };
 
 export function PricingPlanCard({
   plan,
   email = "",
   layout = "marketing",
+  recommended = false,
 }: PricingPlanCardProps) {
   const isPilot = plan.id === "pilot";
   const featured = plan.featured ?? false;
+  const highlight = recommended || featured;
 
   const priceBlock = isPilot ? (
     <p className="font-sans text-2xl font-semibold tracking-[-0.03em] text-void">
@@ -70,7 +73,12 @@ export function PricingPlanCard({
   }
 
   return (
-    <article className={`tier1-plan ${featured ? "tier1-plan-featured" : ""}`}>
+    <article
+      className={`tier1-plan ${highlight ? "tier1-plan-featured" : ""} ${recommended ? "tier1-plan-recommended" : ""}`}
+    >
+      {recommended ? (
+        <p className="tier1-plan-badge font-sans">Best fit for you</p>
+      ) : null}
       <p className="tier1-eyebrow font-sans">{plan.name}</p>
       {isPilot ? (
         <p className="tier1-plan-price font-sans">{plan.period}</p>
@@ -81,6 +89,9 @@ export function PricingPlanCard({
         </p>
       )}
       <p className="tier1-section-lead font-sans">{plan.tagline}</p>
+      {!isPilot && plan.idealFor ? (
+        <p className="tier1-plan-ideal font-sans">Built for: {plan.idealFor}</p>
+      ) : null}
       {highlights}
       {action}
     </article>

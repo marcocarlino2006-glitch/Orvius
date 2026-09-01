@@ -2,15 +2,15 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
-import { PricingPlanCard } from "@/components/pricing-plan-card";
-import { getFeaturedPlan, getLowestPaidPrice, pricingPlans } from "@/lib/company";
+import { PricingPagePlans } from "@/components/pricing-page-plans";
+import { getFeaturedPlan, getLowestPaidPrice } from "@/lib/company";
 
 const featured = getFeaturedPlan();
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Orvius plans from $149/mo — Line, Pro, and Fleet for HVAC, plumbing, and electrical shops.",
+    "Orvius plans from $149/mo — pick Line, Pro, or Fleet based on what your shop needs.",
 };
 
 export default function PricingPage() {
@@ -22,8 +22,8 @@ export default function PricingPage() {
           <ShellPageIntro
             label="Pricing"
             title={`From $${getLowestPaidPrice()} per month. Flat.`}
-            subline="Pick the plan that matches your shop. No per-minute billing. Cancel anytime."
-            description="Line for the front door. Pro for the full workspace. Fleet for shops running 6+ trucks."
+            subline="Pick the plan that matches your shop — not the other way around."
+            description="Line for missed calls. Pro for lead-to-job. Fleet for multi-truck dispatch."
           />
           <div className="tier1-hero-call">
             <HomeCallDemo variant="light" size="section" />
@@ -32,11 +32,7 @@ export default function PricingPage() {
       </section>
 
       <section className="tier1-story">
-        <div className="editorial-wrap tier1-pricing-plans">
-          {pricingPlans.map((plan) => (
-            <PricingPlanCard key={plan.id} plan={plan} />
-          ))}
-        </div>
+        <PricingPagePlans />
       </section>
 
       <section className="tier1-close">

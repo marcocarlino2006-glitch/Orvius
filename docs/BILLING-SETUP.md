@@ -8,7 +8,15 @@ Orvius has **three paid plans** plus a free design partner program:
 | **Pro** | $299/mo | Full workspace — customers, jobs, dispatch, Ask |
 | **Fleet** | $499/mo | 6+ trucks — priority support, multi-tech dispatch |
 
-Plan copy lives in `src/lib/pricing-plans.ts`. Stripe must have matching products and price IDs before self-serve checkout works.
+Plan copy and **need-based matching** live in `src/lib/pricing-plans.ts` and `src/lib/plan-needs.ts`.
+
+| Plan | Price | Need it if… | Modules |
+|------|-------|-------------|---------|
+| **Line** | $149/mo | You miss after-hours calls | Today, Inbox, Calls |
+| **Pro** | $299/mo | Leads don't become jobs | + Customers, Jobs, Dispatch, Ask |
+| **Fleet** | $499/mo | 6+ trucks, dispatch chaos | Pro + priority support |
+
+Pilot shops get **Pro access** during the 30-day program. Line subscribers see upgrade prompts for Pro modules.
 
 ## Check status
 

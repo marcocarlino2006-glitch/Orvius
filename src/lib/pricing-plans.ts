@@ -13,6 +13,8 @@ export type PricingPlan = {
   cta: string;
   href?: string;
   featured?: boolean;
+  /** Who this plan is built for */
+  idealFor: string;
   highlights: readonly string[];
   /** Stripe env var for this plan's price id */
   stripePriceEnvKey?: string;
@@ -30,6 +32,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     limit: "Limited availability",
     cta: "Apply for design partner",
     href: "/pilot",
+    idealFor: "Shops validating Orvius before committing",
     highlights: [
       "Dedicated local line assigned at onboarding",
       "Full AI receptionist on your shop number",
@@ -47,6 +50,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     cta: "Subscribe",
     stripePriceEnvKey: "STRIPE_PRICE_ID_LINE",
     stripeProductKey: "orvius-line",
+    idealFor: "Owner-operators who need every call answered and alerted",
     highlights: [
       "Dedicated shop line + AI receptionist",
       "Qualified leads with urgency, service, and address",
@@ -65,6 +69,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     cta: "Subscribe",
     stripePriceEnvKey: "STRIPE_PRICE_ID_PRO",
     stripeProductKey: "orvius-pro",
+    idealFor: "Shops turning leads into jobs with 3–5 trucks",
     highlights: [
       "Everything in Line",
       "Customer records & call history",
@@ -82,6 +87,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     cta: "Subscribe",
     stripePriceEnvKey: "STRIPE_PRICE_ID_FLEET",
     stripeProductKey: "orvius-fleet",
+    idealFor: "Fleet shops with 6+ techs and daily dispatch load",
     highlights: [
       "Everything in Pro",
       "Multi-tech dispatch workflows",

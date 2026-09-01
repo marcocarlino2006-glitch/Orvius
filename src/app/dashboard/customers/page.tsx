@@ -9,6 +9,7 @@ import {
 } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
+import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
@@ -69,6 +70,7 @@ export default function CustomersPage() {
       title="Customers"
       subtitle="Every caller becomes a record. History follows the number."
     >
+      <PlanUpgradeGate module="customers">
       <ProRingBanner
         name="Customer records"
         description="Built automatically from calls and texts. Returning callers recognized on the next ring."
@@ -135,6 +137,7 @@ export default function CustomersPage() {
           )}
         </>
       )}
+      </PlanUpgradeGate>
     </OsShell>
   );
 }

@@ -7,6 +7,7 @@ import {
   ProEmptyState,
 } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
+import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
@@ -76,6 +77,7 @@ export default function JobsPage() {
         </Link>
       }
     >
+      <PlanUpgradeGate module="jobs">
       <ProRingBanner
         name="Scheduled work"
         description="Turn qualified leads into booked jobs — then assign crew on the dispatch board."
@@ -125,6 +127,7 @@ export default function JobsPage() {
           )}
         </>
       )}
+      </PlanUpgradeGate>
     </OsShell>
   );
 }

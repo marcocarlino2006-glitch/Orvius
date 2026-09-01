@@ -18,7 +18,7 @@
     "vapi:phone": "node scripts/import-vapi-phone.mjs",
     "go-live": "node scripts/go-live.mjs",
     "pre-post:check": "node scripts/pre-post-check.mjs",
-    "test:trust": "node --experimental-strip-types --test scripts/trust-stack.test.mjs",
+    "test:trust": "node --experimental-strip-types --test scripts/trust-stack.test.mjs scripts/plan-needs.test.mjs",
     "standard:check": "node scripts/standard-check.mjs",
     "ci": "node scripts/ci-gate.mjs",
     "ci:quick": "npm run build && npm run test:trust && npm run standard:check",

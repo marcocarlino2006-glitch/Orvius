@@ -128,4 +128,6 @@ export const platformPillars = [
 ] as const;
 
 export { pricing, pricingPlans, getPaidPlans, getPlanById, getFeaturedPlan, getLowestPaidPrice } from "@/lib/pricing-plans";
+export { shopNeeds, shopSizes, recommendPlan } from "@/lib/plan-needs";
 export type { PlanId, PaidPlanId, PricingPlan } from "@/lib/pricing-plans";
+export type { ShopNeedId, ShopSizeId, ShopNeed, ShopSize, PlanRecommendation } from "@/lib/plan-needs";

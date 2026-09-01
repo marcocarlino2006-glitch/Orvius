@@ -2,6 +2,7 @@
 
 import { ProRingBanner } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
+import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useState } from "react";
@@ -71,6 +72,7 @@ export default function AskPage() {
       title="Ask"
       subtitle="Plain-language answers from your calls, customers, and jobs — not the internet."
     >
+      <PlanUpgradeGate module="ask">
       <ProRingBanner
         name="Shop memory"
         description="Search your record by name, phone, schedule, or urgency. Every answer links back to the source."
@@ -161,6 +163,7 @@ export default function AskPage() {
           </li>
         ))}
       </ol>
+      </PlanUpgradeGate>
     </OsShell>
   );
 }

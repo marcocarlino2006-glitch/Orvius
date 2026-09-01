@@ -2,6 +2,7 @@
 
 import { ProRingBanner } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
+import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert, ShellBadge, ShellEmpty } from "@/components/shell-primitives";
 import { jobStatusLabel } from "@/lib/job-status";
 import Link from "next/link";
@@ -144,6 +145,7 @@ export default function DispatchPage() {
         </Link>
       }
     >
+      <PlanUpgradeGate module="dispatch">
       <ProRingBanner
         name="Today's board"
         description={`${dayLabel} · ${board?.jobCount ?? 0} job${board?.jobCount === 1 ? "" : "s"} scheduled`}
@@ -234,6 +236,7 @@ export default function DispatchPage() {
           ))}
         </div>
       )}
+      </PlanUpgradeGate>
     </OsShell>
   );
 }
