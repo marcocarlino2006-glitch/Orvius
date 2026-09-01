@@ -61,7 +61,7 @@ export default async function LoginPage({
             </p>
           ) : null}
 
-          {!auth.ready ? (
+          {process.env.NODE_ENV === "development" && !auth.ready ? (
             <details className="tier1-login-setup font-sans">
               <summary className="tier1-login-setup-title">
                 Google OAuth setup (for developers)

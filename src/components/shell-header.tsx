@@ -118,7 +118,7 @@ export function ShellHeader({
   return (
     <>
       <header className={shellClass}>
-        <div className="shell-header-bar mx-auto flex max-w-[80rem] items-center justify-between gap-6 px-6 md:px-8">
+        <div className="shell-header-bar editorial-wrap flex items-center justify-between gap-6">
           <Link
             href="/"
             className={`shell-brand ${isVoid ? "text-chalk" : "text-void"}`}

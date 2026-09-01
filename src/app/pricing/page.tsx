@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
+import { demoLineHref } from "@/lib/demo-line";
 import { getFeaturedPlan, getLowestPaidPrice } from "@/lib/company";
 
 const featured = getFeaturedPlan();
@@ -17,7 +18,6 @@ export default function PricingPage() {
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact">
-        <div className="tier1-hero-glow" aria-hidden />
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Pricing"
@@ -45,13 +45,14 @@ export default function PricingPage() {
             A single after-hours repair often clears ${featured.price}. Orvius
             exists so that call is never voicemail.
           </p>
-          <p className="mt-4 font-sans text-sm text-ash">
-            Not sure which plan?{" "}
-            <Link href="/pilot" className="home-platform-link">
-              Start with the free design partner program
+          <div className="tier1-actions tier1-close-actions">
+            <a href={demoLineHref()} className="inst-btn inst-btn-primary">
+              Call live demo
+            </a>
+            <Link href="/pilot" className="inst-btn inst-btn-ghost">
+              Design partner program
             </Link>
-            .
-          </p>
+          </div>
         </div>
       </section>
     </MarketingShell>

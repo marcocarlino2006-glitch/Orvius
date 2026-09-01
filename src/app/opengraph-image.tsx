@@ -16,7 +16,7 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: `linear-gradient(165deg, ${orviusColors.fog} 0%, ${orviusColors.chalk} 100%)`,
+          background: orviusColors.chalk,
           padding: "72px 80px",
         }}
       >
@@ -31,22 +31,14 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              gap: 4,
+              fontSize: 22,
+              fontWeight: 600,
+              color: orviusColors.void,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 22,
-                fontWeight: 600,
-                color: orviusColors.void,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-              }}
-            >
-              Orvius
-            </div>
+            ORVIUS
           </div>
         </div>
 
@@ -60,16 +52,15 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              fontSize: 72,
+              fontSize: 64,
               fontWeight: 600,
               color: orviusColors.void,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              lineHeight: 1.05,
+              letterSpacing: "-0.035em",
+              lineHeight: 1.08,
               maxWidth: 900,
             }}
           >
-            Never miss the front door.
+            Call the live line.
           </div>
           <div
             style={{
@@ -83,13 +74,13 @@ export default function OpenGraphImage() {
             style={{
               display: "flex",
               maxWidth: 720,
-              fontSize: 32,
-              lineHeight: 1.2,
+              fontSize: 30,
+              lineHeight: 1.35,
               color: orviusColors.ash,
               letterSpacing: "-0.02em",
             }}
           >
-            Call +1 844 643 9170 · orvius.im
+            +1 844 643 9170 · The operating system for service businesses
           </div>
         </div>
 

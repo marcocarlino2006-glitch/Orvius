@@ -38,9 +38,9 @@ export function PricingNeedsPicker({ onRecommend }: PricingNeedsPickerProps) {
   return (
     <section className="pricing-needs" aria-label="Find your plan">
       <div className="pricing-needs-head font-sans">
-        <p className="pricing-needs-kicker">Start with your need</p>
-        <h2 className="pricing-needs-title">Which plan fits your shop?</h2>
-        <p className="pricing-needs-lead">
+        <p className="pricing-needs-kicker type-eyebrow">Start with your need</p>
+        <h2 className="pricing-needs-title type-headline">Which plan fits your shop?</h2>
+        <p className="pricing-needs-lead type-lead">
           Pick what you need most — we will highlight the right plan below.
         </p>
       </div>
@@ -85,7 +85,7 @@ export function PricingNeedsPicker({ onRecommend }: PricingNeedsPickerProps) {
 
       {need || size ? (
         <div className="pricing-needs-result font-sans" role="status">
-          <p className="pricing-needs-result-kicker">Recommended</p>
+          <p className="pricing-needs-result-kicker type-eyebrow">Recommended</p>
           <p className="pricing-needs-result-plan">
             {recommendation.planName} · ${recommendation.price}/mo
           </p>

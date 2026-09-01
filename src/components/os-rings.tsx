@@ -28,7 +28,7 @@ export function OsRings({ variant = "light", limit }: OsRingsProps) {
               {isNext ? <span className="os-ring-badge os-ring-badge-next">Next</span> : null}
             </div>
             <div className="os-ring-content">
-              <p className="os-ring-name font-serif">{item.name}</p>
+              <p className="os-ring-name type-title">{item.name}</p>
               <p className="os-ring-module font-sans">{item.module}</p>
               <p className="os-ring-body font-sans">{item.body}</p>
             </div>

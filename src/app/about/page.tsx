@@ -13,7 +13,6 @@ export default function AboutPage() {
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact">
-        <div className="tier1-hero-glow" aria-hidden />
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Company"
@@ -31,7 +30,7 @@ export default function AboutPage() {
             {company.legalName}. We focus on {company.trades.join(", ")} — where
             missed calls become lost revenue.
           </p>
-          <p className="mt-5 tier1-section-lead font-sans">
+          <p className="tier1-section-lead font-sans">
             We started at the front door — answering and qualifying every call.
             Customer records followed. Jobs are live: a lead becomes a booked
             appointment, not a sticky note. Dispatch, billing, and everything
@@ -42,13 +41,13 @@ export default function AboutPage() {
 
       <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap">
-          <p className="tier1-eyebrow font-sans">Platform</p>
-          <h2 className="tier1-section-title font-sans">The system.</h2>
+          <p className="tier1-eyebrow type-eyebrow">Platform</p>
+          <h2 className="tier1-section-title type-headline">The system.</h2>
           <p className="tier1-section-lead font-sans max-w-2xl">
             Orvius expands in layers — each one a complete module, not a
             half-built feature. What&apos;s live today is what shops actually use.
           </p>
-          <div className="mt-12">
+          <div className="tier1-rings">
             <OsRings />
           </div>
         </div>
@@ -57,7 +56,7 @@ export default function AboutPage() {
       <section className="tier1-story">
         <div className="editorial-wrap tier1-story-grid">
           <div>
-            <h2 className="tier1-section-title font-sans">{company.legalName}</h2>
+            <h2 className="tier1-section-title type-headline">{company.legalName}</h2>
             <p className="tier1-section-lead font-sans">
               Contracts, invoices, and subscriptions are with {company.legalName}.
               {company.productName} is our product brand for service-business

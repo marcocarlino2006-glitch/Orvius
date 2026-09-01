@@ -86,7 +86,7 @@ export default function DemoPage() {
 
   return (
     <MarketingShell>
-      <section className="marketing-hero">
+      <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Demo"
@@ -94,13 +94,13 @@ export default function DemoPage() {
             subline="Same product — two ways to experience it."
             description="Start with the live line if you want the real thing. Or run a preset scenario below."
           />
-          <div className="marketing-hero-call">
+          <div className="tier1-hero-call">
             <HomeCallDemo variant="light" size="section" />
           </div>
         </div>
       </section>
 
-      <section className="marketing-section marketing-section-muted">
+      <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap demo-pro">
           <div className="demo-pro-grid">
             <div className="demo-pro-main">
@@ -112,10 +112,10 @@ export default function DemoPage() {
                     key={preset.label}
                     type="button"
                     onClick={() => setForm(preset)}
-                    className={`tier-btn tier-btn-sm shrink-0 ${
+                    className={`inst-btn inst-btn-sm shrink-0 ${
                       form.label === preset.label
-                        ? "tier-btn-primary"
-                        : "tier-btn-secondary"
+                        ? "inst-btn-primary"
+                        : "inst-btn-ghost"
                     }`}
                   >
                     {preset.label}
@@ -201,7 +201,7 @@ export default function DemoPage() {
 
                   <button
                     disabled={loading}
-                    className="tier-btn tier-btn-primary w-full sm:w-auto"
+                    className="inst-btn inst-btn-primary w-full sm:w-auto"
                   >
                     {loading ? "Running demo call..." : "Simulate call"}
                   </button>
@@ -220,13 +220,13 @@ export default function DemoPage() {
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <Link
                         href="/dashboard/inbox"
-                        className="tier-btn tier-btn-primary tier-btn-sm w-full sm:w-auto"
+                        className="inst-btn inst-btn-primary inst-btn-sm w-full sm:w-auto"
                       >
                         Open inbox
                       </Link>
                       <Link
                         href="/dashboard"
-                        className="tier-btn tier-btn-secondary tier-btn-sm w-full sm:w-auto"
+                        className="inst-btn inst-btn-ghost inst-btn-sm w-full sm:w-auto"
                       >
                         Command center
                       </Link>

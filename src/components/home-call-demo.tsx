@@ -39,17 +39,17 @@ export function HomeCallDemo({
 
   return (
     <div className={rootClass}>
-      <div className="call-demo-live font-sans" aria-hidden>
+      <div className="call-demo-live type-eyebrow" aria-hidden>
         <span className="live-dot live-dot-green" />
         Live now
       </div>
 
-      <a href={demoLineHref()} className="call-demo-number font-sans">
+      <a href={demoLineHref()} className="call-demo-number type-phone">
         {DEMO_LINE_DISPLAY}
       </a>
 
       <div className="call-demo-actions font-sans">
-        <a href={demoLineHref()} className="call-demo-call tier-btn tier-btn-call">
+        <a href={demoLineHref()} className="inst-btn inst-btn-primary inst-btn-sm">
           Call live demo
         </a>
         <button type="button" className="call-demo-copy" onClick={copy}>
@@ -58,7 +58,7 @@ export function HomeCallDemo({
       </div>
 
       {showHint ? (
-        <p className="call-demo-hint font-sans">
+        <p className="call-demo-hint type-caption">
           {DEMO_LINE_BUSINESS} · Ask for an emergency AC repair · Owner SMS in
           under 60 seconds
         </p>

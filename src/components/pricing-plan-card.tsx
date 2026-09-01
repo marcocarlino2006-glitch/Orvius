@@ -77,9 +77,9 @@ export function PricingPlanCard({
       className={`tier1-plan ${highlight ? "tier1-plan-featured" : ""} ${recommended ? "tier1-plan-recommended" : ""}`}
     >
       {recommended ? (
-        <p className="tier1-plan-badge font-sans">Best fit for you</p>
+        <p className="tier1-plan-badge type-caption">Recommended</p>
       ) : null}
-      <p className="tier1-eyebrow font-sans">{plan.name}</p>
+      <p className="tier1-eyebrow type-eyebrow">{plan.name}</p>
       {isPilot ? (
         <p className="tier1-plan-price font-sans">{plan.period}</p>
       ) : (
