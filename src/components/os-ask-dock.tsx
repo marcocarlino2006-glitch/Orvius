@@ -22,7 +22,7 @@ type AskTurn = {
 const QUICK_ASK = [
   "Who called today?",
   "Any new leads?",
-  "Who is on dispatch?",
+  "Who is scheduled today?",
 ];
 
 export function OsAskDock() {
