@@ -4,6 +4,10 @@ import {
   type ServiceOffering,
 } from "@/lib/business";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
+import {
+  getShopLines,
+  validateOwnerPhoneForAlerts,
+} from "@/lib/owner-alerts";
 import { prisma } from "@/lib/prisma";
 import {
   canProvisionDedicatedLine,
@@ -118,12 +122,21 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
 
   const name = input.name.trim();
   const slug = await uniqueSlug(name);
+  const platformLine = process.env.TWILIO_PHONE_NUMBER?.trim() || null;
+
+  const phoneCheck = validateOwnerPhoneForAlerts({
+    ownerPhone: input.ownerPhone,
+    shopLines: [platformLine],
+  });
+  if (!phoneCheck.ok) {
+    throw new Error(phoneCheck.reason);
+  }
+
   const greeting =
     input.greeting?.trim() ||
     `Thank you for calling ${name}. How can I help you today?`;
   const hoursJson = DEFAULT_HOURS_JSON;
   const servicesJson = servicesForTrade(input.trade);
-  const platformLine = process.env.TWILIO_PHONE_NUMBER?.trim() || null;
 
   const systemPrompt = buildAssistantSystemPrompt({
     name,
@@ -160,6 +173,17 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
     } catch (error) {
       console.error("Dedicated line provisioning failed, using platform line:", error);
     }
+  }
+
+  const postProvisionCheck = validateOwnerPhoneForAlerts({
+    ownerPhone: input.ownerPhone,
+    shopLines: getShopLines({
+      twilioPhone: shopLine,
+      vapiPhoneNumber: shopLine,
+    }),
+  });
+  if (!postProvisionCheck.ok) {
+    throw new Error(postProvisionCheck.reason);
   }
 
   const business = await prisma.business.create({

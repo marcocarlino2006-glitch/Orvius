@@ -9565,6 +9565,18 @@ h3 {
   color: var(--ash);
 }
 
+.pro-alert-banner-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ash);
+}
+
+.pro-alert-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .pro-shop-health {
   margin-bottom: 1.25rem;
   padding: 1rem 1.125rem;
@@ -9614,6 +9626,36 @@ h3 {
   font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--ash);
+}
+
+.pro-shop-health-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.pro-shop-health-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pro-shop-health-meta dt {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.pro-shop-health-meta dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--void);
 }
 
 .pro-shop-health-checks {

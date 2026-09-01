@@ -75,9 +75,10 @@ model Call {
   summary      String?
   transcript   String?
   recordingUrl String?
-  booked       Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  booked           Boolean   @default(false)
+  ownerNotifiedAt  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   lead Lead?
 }
@@ -90,6 +91,7 @@ model Lead {
   customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   callId      String?   @unique
   call        Call?     @relation(fields: [callId], references: [id], onDelete: SetNull)
+  externalId  String?
   name        String?
   phone       String?
   email       String?
@@ -103,6 +105,9 @@ model Lead {
   updatedAt   DateTime  @updatedAt
 
   job Job?
+
+  @@unique([businessId, externalId])
+  @@index([businessId, createdAt])
 }
 
 model Job {
@@ -169,10 +174,12 @@ model OwnerNotification {
   business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   leadId     String?
   channel    String
+  dedupeKey  String
   status     String
   error      String?
   createdAt  DateTime @default(now())
 
+  @@unique([businessId, dedupeKey, channel])
   @@index([businessId, createdAt])
   @@index([businessId, status])
 }

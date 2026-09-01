@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { company, pricing } from "@/lib/company";
+import { isEmailConfigured } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
+import {
+  getShopLines,
+  validateOwnerPhoneForAlerts,
+} from "@/lib/owner-alerts";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import { isStripeConfigured } from "@/lib/stripe";
+import { getShopHealth } from "@/lib/shop-health";
 import { z } from "zod";
 
 const patchSchema = z.object({
   ownerPhone: z.string().min(10).optional(),
+  ownerEmail: z.string().email().optional(),
   greeting: z.string().max(280).optional(),
 });
 
@@ -20,7 +27,7 @@ export async function GET() {
   }
 
   const business = await prisma.business.findFirst({
-    where: { ownerEmail: email },
+    where: { ownerEmail: email, isActive: true },
     orderBy: { createdAt: "asc" },
     select: {
       id: true,
@@ -35,8 +42,11 @@ export async function GET() {
       stripeSubscriptionId: true,
       createdAt: true,
       greeting: true,
+      lineVerifiedAt: true,
     },
   });
+
+  const health = business ? await getShopHealth(business.id) : null;
 
   return NextResponse.json({
     user: {
@@ -45,6 +55,11 @@ export async function GET() {
       image: session.user.image ?? null,
     },
     business,
+    health,
+    alerts: {
+      smsEnabled: process.env.ENABLE_OWNER_SMS === "true",
+      emailConfigured: isEmailConfigured(),
+    },
     billing: {
       configured: isStripeConfigured(),
       status: business?.billingStatus ?? "none",
@@ -76,21 +91,39 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "No shop linked" }, { status: 404 });
     }
 
+    if (body.ownerPhone !== undefined) {
+      const phoneCheck = validateOwnerPhoneForAlerts({
+        ownerPhone: body.ownerPhone.trim(),
+        shopLines: getShopLines(existing),
+      });
+      if (!phoneCheck.ok) {
+        return NextResponse.json({ error: phoneCheck.reason }, { status: 400 });
+      }
+    }
+
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {
         ...(body.ownerPhone !== undefined
           ? { ownerPhone: body.ownerPhone.trim() }
           : {}),
+        ...(body.ownerEmail !== undefined
+          ? { ownerEmail: body.ownerEmail.trim().toLowerCase() }
+          : {}),
         ...(body.greeting !== undefined ? { greeting: body.greeting.trim() } : {}),
       },
     });
+
+    let assistantSynced = true;
+    let syncError: string | null = null;
 
     if (body.greeting !== undefined) {
       try {
         await syncBusinessAssistant(business);
       } catch (error) {
-        console.error("Assistant sync failed:", error);
+        assistantSynced = false;
+        syncError =
+          error instanceof Error ? error.message : "Assistant sync failed";
       }
     }
 
@@ -99,10 +132,13 @@ export async function PATCH(request: Request) {
         id: business.id,
         name: business.name,
         ownerPhone: business.ownerPhone,
+        ownerEmail: business.ownerEmail,
         greeting: business.greeting,
         twilioPhone: business.twilioPhone,
         vapiPhoneNumber: business.vapiPhoneNumber,
       },
+      assistantSynced,
+      syncError,
     });
   } catch (error) {
     const message =

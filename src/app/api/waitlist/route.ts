@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
         ]
           .filter(Boolean)
           .join("\n"),
+        dedupeKey: `waitlist:${entry.id}`,
       });
     }
 

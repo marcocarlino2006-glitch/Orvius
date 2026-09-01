@@ -22,7 +22,13 @@ export function isConfigured(key: string) {
 }
 
 export function getConfigStatus() {
-  const optional = ["VAPI_WEBHOOK_SECRET", "ORVIUS_ADMIN_KEY", "OPENAI_API_KEY"];
+  const optional = [
+    "VAPI_WEBHOOK_SECRET",
+    "ORVIUS_ADMIN_KEY",
+    "OPENAI_API_KEY",
+    "RESEND_API_KEY",
+    "RESEND_FROM",
+  ];
   const required = REQUIRED.map((name) => ({
     name,
     configured: isConfigured(name),
@@ -60,10 +66,12 @@ export function generateAdminKey() {
   return randomBytes(24).toString("hex");
 }
 
+import { isProduction } from "@/lib/runtime";
+
 export function verifyAdminRequest(request: Request) {
   const configured = getAdminKey();
   if (!configured) {
-    return true;
+    return !isProduction();
   }
 
   const header = request.headers.get("authorization");

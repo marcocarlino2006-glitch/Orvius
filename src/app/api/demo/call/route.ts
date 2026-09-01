@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { linkTouchToCustomer } from "@/lib/customer";
+import { verifyAdminRequest } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
-import { notifyOwner } from "@/lib/notifications";
+import {
+  buildLeadAlertDedupeKey,
+  notifyOwner,
+} from "@/lib/notifications";
+import { isProduction } from "@/lib/runtime";
 import { z } from "zod";
 
 const demoCallSchema = z.object({
@@ -20,6 +25,10 @@ const demoCallSchema = z.object({
  * Creates call + lead and optionally notifies owner.
  */
 export async function POST(request: NextRequest) {
+  if (isProduction() && !verifyAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = demoCallSchema.parse(await request.json());
 
@@ -62,10 +71,12 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join(" ");
 
+    const vapiCallId = `demo_${Date.now()}`;
+
     const call = await prisma.call.create({
       data: {
         businessId: business.id,
-        vapiCallId: `demo_${Date.now()}`,
+        vapiCallId,
         callerPhone: body.callerPhone,
         status: "completed",
         durationSec: 95,
@@ -79,6 +90,7 @@ export async function POST(request: NextRequest) {
       data: {
         businessId: business.id,
         callId: call.id,
+        externalId: vapiCallId,
         name: body.callerName,
         phone: body.callerPhone,
         serviceType: body.serviceType,
@@ -117,6 +129,7 @@ export async function POST(request: NextRequest) {
           .filter(Boolean)
           .join("\n"),
         leadId: lead.id,
+        dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),
       });
     }
 

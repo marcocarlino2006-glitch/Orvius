@@ -13,16 +13,11 @@ export async function GET() {
     process.env.TWILIO_PHONE_NUMBER?.trim() ??
     null;
 
-  const [firstCall, firstLead, recentLead] = await Promise.all([
+  const [completedCall, recentLead] = await Promise.all([
     prisma.call.findFirst({
       where: { businessId: business.id, status: "completed" },
       orderBy: { createdAt: "desc" },
       select: { id: true, createdAt: true, callerPhone: true },
-    }),
-    prisma.lead.findFirst({
-      where: { businessId: business.id },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, name: true, createdAt: true, source: true },
     }),
     prisma.lead.findFirst({
       where: {
@@ -30,21 +25,21 @@ export async function GET() {
         createdAt: { gte: business.createdAt },
       },
       orderBy: { createdAt: "desc" },
-      select: { id: true, name: true, createdAt: true },
+      select: { id: true, name: true, createdAt: true, source: true },
     }),
   ]);
 
-  const verified = Boolean(business.lineVerifiedAt || firstCall || firstLead);
+  const verified = Boolean(business.lineVerifiedAt || completedCall);
 
   return NextResponse.json({
     verified,
     line,
     lineVerifiedAt: business.lineVerifiedAt?.toISOString() ?? null,
-    firstCall: firstCall
+    firstCall: completedCall
       ? {
-          id: firstCall.id,
-          at: firstCall.createdAt.toISOString(),
-          callerPhone: firstCall.callerPhone,
+          id: completedCall.id,
+          at: completedCall.createdAt.toISOString(),
+          callerPhone: completedCall.callerPhone,
         }
       : null,
     firstLead: recentLead
@@ -52,6 +47,7 @@ export async function GET() {
           id: recentLead.id,
           name: recentLead.name,
           at: recentLead.createdAt.toISOString(),
+          source: recentLead.source,
         }
       : null,
   });

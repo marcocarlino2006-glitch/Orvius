@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { linkTouchToCustomer } from "@/lib/customer";
+import { logError, logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
-import { notifyOwner } from "@/lib/notifications";
+import {
+  buildLeadAlertDedupeKey,
+  notifyOwner,
+} from "@/lib/notifications";
+import {
+  getTwilioSmsWebhookUrl,
+  validateTwilioRequest,
+} from "@/lib/webhook-auth";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -11,6 +19,21 @@ export async function POST(request: NextRequest) {
   const from = String(form.get("From") ?? "");
   const to = String(form.get("To") ?? "");
   const body = String(form.get("Body") ?? "").trim();
+  const messageSid = String(form.get("MessageSid") ?? "").trim();
+
+  const formEntries = Object.fromEntries(
+    [...form.entries()].map(([key, value]) => [key, String(value)]),
+  );
+
+  if (
+    !validateTwilioRequest({
+      signature: request.headers.get("x-twilio-signature"),
+      url: getTwilioSmsWebhookUrl(),
+      formEntries,
+    })
+  ) {
+    return NextResponse.json({ error: "Invalid Twilio signature" }, { status: 403 });
+  }
 
   if (!from || !to || !body) {
     return twimlResponse("");
@@ -24,15 +47,31 @@ export async function POST(request: NextRequest) {
   });
 
   if (!business) {
-    console.warn("SMS received but no business matched", { from, to });
+    logWarn("twilio.sms.business_not_found", { from, to, messageSid });
     return twimlResponse(
       "Thanks for your message. We'll follow up as soon as possible.",
     );
   }
 
+  if (messageSid) {
+    const existing = await prisma.lead.findFirst({
+      where: { businessId: business.id, externalId: messageSid },
+      select: { id: true },
+    });
+    if (existing) {
+      logInfo("twilio.sms.duplicate", {
+        messageSid,
+        businessId: business.id,
+        leadId: existing.id,
+      });
+      return twimlResponse(SMS_REPLY);
+    }
+  }
+
   const lead = await prisma.lead.create({
     data: {
       businessId: business.id,
+      externalId: messageSid || null,
       phone: from,
       notes: body,
       serviceType: "SMS inquiry",
@@ -48,14 +87,30 @@ export async function POST(request: NextRequest) {
     notes: body,
   });
 
-  await notifyOwner({
+  const notifyResult = await notifyOwner({
     businessId: business.id,
     ownerPhone: business.ownerPhone,
     ownerEmail: business.ownerEmail,
     businessName: business.name,
     message: [`New SMS lead`, `From: ${from}`, `Message: ${body}`].join("\n"),
     leadId: lead.id,
+    dedupeKey: buildLeadAlertDedupeKey({
+      messageSid: messageSid || lead.id,
+    }),
   });
+
+  if (
+    notifyResult.sms?.status === "failed" ||
+    notifyResult.email?.status === "failed"
+  ) {
+    logError("twilio.sms.owner_alert_failed", {
+      messageSid,
+      businessId: business.id,
+      leadId: lead.id,
+      sms: notifyResult.sms,
+      email: notifyResult.email,
+    });
+  }
 
   return twimlResponse(SMS_REPLY);
 }
@@ -79,7 +134,6 @@ function escapeXml(value: string) {
     .replace(/'/g, "&apos;");
 }
 
-// Twilio may validate with GET in some setups
 export async function GET() {
   return NextResponse.json({ ok: true, endpoint: "twilio-sms-webhook" });
 }

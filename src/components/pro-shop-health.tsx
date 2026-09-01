@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 import type { ShopHealth, ShopHealthStatus } from "@/lib/shop-health";
 
 const STATUS_LABEL: Record<ShopHealthStatus, string> = {
@@ -15,26 +14,17 @@ type ProShopHealthProps = {
   compact?: boolean;
 };
 
-export function ProShopHealth({ health: initial, compact = false }: ProShopHealthProps) {
-  const [health, setHealth] = useState<ShopHealth | null>(initial ?? null);
+function formatWhen(iso: string | null | undefined) {
+  if (!iso) return "—";
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const h = Math.floor(mins / 60);
+  if (h < 48) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/shop/health");
-      if (!res.ok) return;
-      setHealth(await res.json());
-    } catch {
-      /* keep last snapshot */
-    }
-  }, []);
-
-  useEffect(() => {
-    if (initial) return;
-    load();
-    const interval = setInterval(load, 60_000);
-    return () => clearInterval(interval);
-  }, [initial, load]);
-
+export function ProShopHealth({ health, compact = false }: ProShopHealthProps) {
   if (!health) return null;
 
   const failedChecks = health.checks.filter((check) => !check.ok);
@@ -53,10 +43,27 @@ export function ProShopHealth({ health: initial, compact = false }: ProShopHealt
         <p className="pro-shop-health-title font-sans">{STATUS_LABEL[health.status]}</p>
         {!compact && health.line && !health.lineVerified ? (
           <p className="pro-shop-health-detail font-sans">
-            Place a test call to confirm callers reach your inbox.
+            Place a completed test call to confirm callers reach your inbox.
           </p>
         ) : null}
       </div>
+
+      {!compact ? (
+        <dl className="pro-shop-health-meta font-sans">
+          <div>
+            <dt>Last call</dt>
+            <dd>{formatWhen(health.lastCallAt)}</dd>
+          </div>
+          <div>
+            <dt>Last lead</dt>
+            <dd>{formatWhen(health.lastLeadAt)}</dd>
+          </div>
+          <div>
+            <dt>Last alert</dt>
+            <dd>{formatWhen(health.lastAlertAt)}</dd>
+          </div>
+        </dl>
+      ) : null}
 
       {failedChecks.length > 0 ? (
         <ul className="pro-shop-health-checks font-sans">

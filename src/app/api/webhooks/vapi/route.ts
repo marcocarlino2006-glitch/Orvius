@@ -5,7 +5,13 @@ import {
   type VapiWebhookMessage,
 } from "@/lib/vapi";
 import { linkTouchToCustomer } from "@/lib/customer";
-import { notifyOwner } from "@/lib/notifications";
+import {
+  buildLeadAlertDedupeKey,
+  notifyOwner,
+} from "@/lib/notifications";
+import { logError, logInfo, logWarn } from "@/lib/logger";
+import { isProduction } from "@/lib/runtime";
+import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 
 async function findBusinessForCall(
   vapiCallId: string,
@@ -38,25 +44,22 @@ async function findBusinessForCall(
     if (byPhone) return byPhone;
   }
 
-  // Single-business fallback for MVP deployments
-  const businesses = await prisma.business.findMany({
-    where: { isActive: true },
-    take: 2,
-  });
-  if (businesses.length === 1) {
-    return businesses[0];
+  if (!isProduction()) {
+    const businesses = await prisma.business.findMany({
+      where: { isActive: true },
+      take: 2,
+    });
+    if (businesses.length === 1) {
+      return businesses[0];
+    }
   }
 
   return null;
 }
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.VAPI_WEBHOOK_SECRET;
-  if (secret) {
-    const incoming = request.headers.get("x-vapi-secret");
-    if (incoming !== secret) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!verifyVapiWebhookSecret(request.headers.get("x-vapi-secret"))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const payload = (await request.json()) as VapiWebhookMessage;
@@ -78,10 +81,11 @@ export async function POST(request: NextRequest) {
   );
 
   if (!business) {
-    console.warn("No business matched for Vapi call", {
+    logWarn("vapi.webhook.business_not_found", {
       vapiCallId,
       inboundNumber,
       assistantId,
+      type,
     });
     return NextResponse.json({ ok: true, skipped: "business not found" });
   }
@@ -105,24 +109,6 @@ export async function POST(request: NextRequest) {
   }
 
   if (type === "end-of-call-report") {
-    const existingCall = await prisma.call.findUnique({
-      where: { vapiCallId },
-      select: {
-        id: true,
-        status: true,
-        lead: { select: { id: true } },
-      },
-    });
-
-    if (existingCall?.status === "completed") {
-      return NextResponse.json({
-        ok: true,
-        duplicate: true,
-        callId: existingCall.id,
-        leadId: existingCall.lead?.id ?? null,
-      });
-    }
-
     const summary =
       message.summary ??
       message.analysis?.summary ??
@@ -134,80 +120,110 @@ export async function POST(request: NextRequest) {
       message.analysis?.structuredData,
     );
 
-    const call = await prisma.call.upsert({
-      where: { vapiCallId },
-      create: {
-        businessId: business.id,
-        vapiCallId,
-        callerPhone: structured.phone ?? message.call?.customer?.number ?? null,
-        status: "completed",
-        summary,
-        transcript,
-        durationSec,
-        recordingUrl,
-      },
-      update: {
-        status: "completed",
-        summary,
-        transcript,
-        durationSec,
-        recordingUrl,
-        callerPhone: structured.phone ?? message.call?.customer?.number ?? undefined,
-      },
-    });
+    const txResult = await prisma.$transaction(async (tx) => {
+      const call = await tx.call.upsert({
+        where: { vapiCallId },
+        create: {
+          businessId: business.id,
+          vapiCallId,
+          callerPhone: structured.phone ?? message.call?.customer?.number ?? null,
+          status: "completed",
+          summary,
+          transcript,
+          durationSec,
+          recordingUrl,
+        },
+        update: {
+          status: "completed",
+          summary,
+          transcript,
+          durationSec,
+          recordingUrl,
+          callerPhone: structured.phone ?? message.call?.customer?.number ?? undefined,
+        },
+      });
 
-    const lead = await prisma.lead.upsert({
-      where: { callId: call.id },
-      create: {
-        businessId: business.id,
-        callId: call.id,
-        name: structured.name ?? null,
-        phone: structured.phone ?? call.callerPhone,
-        email: structured.email ?? null,
-        serviceType: structured.serviceType ?? null,
-        urgency: structured.urgency ?? null,
-        address: structured.address ?? null,
-        notes: structured.notes ?? summary,
-        source: "call",
-      },
-      update: {
-        name: structured.name ?? undefined,
-        phone: structured.phone ?? undefined,
-        email: structured.email ?? undefined,
-        serviceType: structured.serviceType ?? undefined,
-        urgency: structured.urgency ?? undefined,
-        address: structured.address ?? undefined,
-        notes: structured.notes ?? summary,
-      },
+      const lead = await tx.lead.upsert({
+        where: { callId: call.id },
+        create: {
+          businessId: business.id,
+          callId: call.id,
+          externalId: vapiCallId,
+          name: structured.name ?? null,
+          phone: structured.phone ?? call.callerPhone,
+          email: structured.email ?? null,
+          serviceType: structured.serviceType ?? null,
+          urgency: structured.urgency ?? null,
+          address: structured.address ?? null,
+          notes: structured.notes ?? summary,
+          source: "call",
+        },
+        update: {
+          name: structured.name ?? undefined,
+          phone: structured.phone ?? undefined,
+          email: structured.email ?? undefined,
+          serviceType: structured.serviceType ?? undefined,
+          urgency: structured.urgency ?? undefined,
+          address: structured.address ?? undefined,
+          notes: structured.notes ?? summary,
+        },
+      });
+
+      const claim = await tx.call.updateMany({
+        where: { id: call.id, ownerNotifiedAt: null },
+        data: { ownerNotifiedAt: new Date() },
+      });
+
+      if (!business.lineVerifiedAt) {
+        await tx.business.update({
+          where: { id: business.id },
+          data: { lineVerifiedAt: new Date() },
+        });
+      }
+
+      return {
+        call,
+        lead,
+        shouldNotify: claim.count === 1,
+        duplicate: claim.count === 0,
+      };
     });
 
     await linkTouchToCustomer({
       businessId: business.id,
-      callId: call.id,
-      leadId: lead.id,
-      phone: lead.phone ?? call.callerPhone,
-      name: lead.name,
-      email: lead.email,
-      address: lead.address,
-      notes: lead.notes,
+      callId: txResult.call.id,
+      leadId: txResult.lead.id,
+      phone: txResult.lead.phone ?? txResult.call.callerPhone,
+      name: txResult.lead.name,
+      email: txResult.lead.email,
+      address: txResult.lead.address,
+      notes: txResult.lead.notes,
     });
 
+    if (txResult.duplicate) {
+      logInfo("vapi.webhook.duplicate_end_of_call", {
+        vapiCallId,
+        businessId: business.id,
+        callId: txResult.call.id,
+        leadId: txResult.lead.id,
+      });
+      return NextResponse.json({
+        ok: true,
+        duplicate: true,
+        callId: txResult.call.id,
+        leadId: txResult.lead.id,
+      });
+    }
+
     const ownerMessage = [
-      `New lead${lead.name ? `: ${lead.name}` : ""}`,
-      lead.phone ? `Phone: ${lead.phone}` : null,
-      lead.serviceType ? `Service: ${lead.serviceType}` : null,
-      lead.urgency ? `Urgency: ${lead.urgency}` : null,
-      lead.address ? `Address: ${lead.address}` : null,
+      `New lead${txResult.lead.name ? `: ${txResult.lead.name}` : ""}`,
+      txResult.lead.phone ? `Phone: ${txResult.lead.phone}` : null,
+      txResult.lead.serviceType ? `Service: ${txResult.lead.serviceType}` : null,
+      txResult.lead.urgency ? `Urgency: ${txResult.lead.urgency}` : null,
+      txResult.lead.address ? `Address: ${txResult.lead.address}` : null,
     ]
       .filter(Boolean)
       .join("\n");
-
-    if (!business.lineVerifiedAt) {
-      await prisma.business.update({
-        where: { id: business.id },
-        data: { lineVerifiedAt: new Date() },
-      });
-    }
 
     const notifyResult = await notifyOwner({
       businessId: business.id,
@@ -215,27 +231,31 @@ export async function POST(request: NextRequest) {
       ownerEmail: business.ownerEmail,
       businessName: business.name,
       message: ownerMessage,
-      leadId: lead.id,
+      leadId: txResult.lead.id,
+      dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),
     });
 
     if (
-      process.env.ENABLE_OWNER_SMS === "true" &&
-      business.ownerPhone &&
-      !notifyResult.sms &&
-      notifyResult.smsFailed
+      notifyResult.sms?.status === "failed" ||
+      notifyResult.email?.status === "failed"
     ) {
-      console.error("Owner SMS failed for call", {
+      logError("vapi.webhook.owner_alert_failed", {
         vapiCallId,
         businessId: business.id,
-        ownerPhone: business.ownerPhone,
+        sms: notifyResult.sms,
+        email: notifyResult.email,
       });
     }
 
     return NextResponse.json({
       ok: true,
-      callId: call.id,
-      leadId: lead.id,
-      ownerNotified: Boolean(notifyResult.sms || notifyResult.email),
+      callId: txResult.call.id,
+      leadId: txResult.lead.id,
+      ownerNotified: Boolean(
+        notifyResult.sms?.status === "sent" ||
+          notifyResult.email?.status === "sent",
+      ),
+      duplicate: notifyResult.duplicate ?? false,
     });
   }
 
