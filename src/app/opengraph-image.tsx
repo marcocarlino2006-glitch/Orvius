@@ -38,10 +38,11 @@ export default function OpenGraphImage() {
             <div
               style={{
                 display: "flex",
-                fontSize: 28,
-                fontWeight: 700,
+                fontSize: 22,
+                fontWeight: 600,
                 color: orviusColors.void,
-                letterSpacing: "-0.04em",
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
               }}
             >
               Orvius
@@ -59,11 +60,12 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              fontSize: 88,
-              fontWeight: 700,
+              fontSize: 72,
+              fontWeight: 600,
               color: orviusColors.void,
-              letterSpacing: "-0.04em",
-              lineHeight: 0.95,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              lineHeight: 1.05,
               maxWidth: 900,
             }}
           >

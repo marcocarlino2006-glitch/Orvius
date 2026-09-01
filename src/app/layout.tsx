@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
+import { DM_Sans, Plus_Jakarta_Sans } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
@@ -11,10 +11,11 @@ const sans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const display = Instrument_Serif({
-  variable: "--font-display",
+/** Brand wordmark + marketing headlines — clean, tracked, professional. */
+const brand = DM_Sans({
+  variable: "--font-brand",
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -49,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${display.variable} antialiased`}>
+      <body className={`${sans.variable} ${brand.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

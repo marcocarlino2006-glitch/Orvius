@@ -93,7 +93,7 @@
   --color-border: var(--border);
   --color-success: var(--success);
   --font-sans: var(--font-sans);
-  --font-display: var(--font-display);
+  --font-brand: var(--font-brand);
 }
 
 * {
@@ -127,13 +127,15 @@ button,
   letter-spacing: -0.011em;
 }
 
-.font-display,
+.font-brand,
+.orvius-logo-wordmark,
 .tier1-hero-heading,
-.tier1-hero-line,
-.tier1-section-title {
-  font-family: var(--font-display), Georgia, "Times New Roman", serif;
-  font-weight: 400;
-  letter-spacing: -0.02em;
+.tier1-section-title,
+.tier1-login-title {
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .font-serif,
@@ -1027,74 +1029,91 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo lockup */
+/* Orvius logo — Verve-clean lockup */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.75rem;
 }
+
 .orvius-logo-text {
   display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
+  align-items: baseline;
+  gap: 0.5rem;
 }
-.orvius-logo-wordmark {
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-.orvius-logo-os {
-  font-size: 0.5625rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
-  background: color-mix(in srgb, var(--signal) 12%, transparent);
-}
-.orvius-logo-void .orvius-logo-wordmark { color: var(--mist); }
-.orvius-logo-void .orvius-logo-os {
-  color: var(--signal-hot);
-  background: color-mix(in srgb, var(--signal) 18%, transparent);
-}
-.orvius-logo-chalk .orvius-logo-wordmark { color: var(--void); }
-.orvius-logo-chalk .orvius-logo-os {
-  color: var(--signal-dim);
-  background: color-mix(in srgb, var(--signal) 10%, var(--fog));
-}
-.orvius-logo-sm .orvius-logo-wordmark { font-size: 1rem; }
-.orvius-logo-sm .orvius-logo-os { font-size: 0.5rem; }
-.orvius-logo-md .orvius-logo-wordmark { font-size: 1.125rem; }
-.orvius-logo-lg .orvius-logo-wordmark { font-size: 1.25rem; }
-.orvius-logo-lg .orvius-logo-os { font-size: 0.5625rem; }
-.orvius-logo-xl .orvius-logo-wordmark { font-size: 1.375rem; }
-.orvius-logo-xl .orvius-logo-os { font-size: 0.5625rem; }
 
-.orvius-logo-scifi .orvius-logo-wordmark {
-  font-weight: 500;
-  letter-spacing: 0.22em;
+.orvius-logo-wordmark {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  line-height: 1;
   text-transform: uppercase;
 }
-.orvius-logo-scifi.orvius-logo-sm .orvius-logo-wordmark { font-size: 0.625rem; }
-.orvius-logo-scifi.orvius-logo-md .orvius-logo-wordmark { font-size: 0.6875rem; }
-.orvius-logo-scifi.orvius-logo-lg .orvius-logo-wordmark { font-size: 0.75rem; }
-.orvius-logo-scifi.orvius-logo-xl .orvius-logo-wordmark { font-size: 0.8125rem; }
-.orvius-logo-scifi .orvius-logo-os {
-  letter-spacing: 0.16em;
-  border-radius: 0;
-  border: 1px solid color-mix(in srgb, var(--signal) 55%, transparent);
-  background: transparent;
-  padding: 0.18rem 0.38rem;
+
+.orvius-logo-tag {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash);
 }
-.orvius-mark-reticle {
-  flex-shrink: 0;
-  filter:
-    drop-shadow(0 0 6px color-mix(in srgb, var(--signal) 35%, transparent))
-    drop-shadow(0 1px 2px rgba(26, 25, 23, 0.35));
+
+.orvius-logo-void .orvius-logo-wordmark {
+  color: var(--mist);
 }
+
+.orvius-logo-void .orvius-logo-tag {
+  color: color-mix(in srgb, var(--mist) 55%, var(--ash));
+}
+
+.orvius-logo-chalk .orvius-logo-wordmark {
+  color: var(--void);
+}
+
+.orvius-logo-chalk .orvius-logo-tag {
+  color: var(--ash);
+}
+
+.orvius-logo-sm .orvius-logo-wordmark { font-size: 0.6875rem; letter-spacing: 0.16em; }
+.orvius-logo-md .orvius-logo-wordmark { font-size: 0.8125rem; }
+.orvius-logo-lg .orvius-logo-wordmark { font-size: 0.875rem; letter-spacing: 0.2em; }
+.orvius-logo-xl .orvius-logo-wordmark { font-size: 0.9375rem; letter-spacing: 0.2em; }
+
 .orvius-logo-mark {
   flex-shrink: 0;
+}
+
+/* Mark — flat monogram */
+.orvius-mark-frame {
+  fill: var(--void);
+}
+
+.orvius-mark-ring {
+  stroke: var(--signal);
+}
+
+.orvius-logo-void .orvius-mark-frame {
+  fill: var(--mist);
+}
+
+.orvius-logo-void .orvius-mark-ring {
+  stroke: var(--void);
+}
+
+.orvius-logo-chalk .orvius-mark-frame {
+  fill: var(--void);
+}
+
+.orvius-logo-chalk .orvius-mark-ring {
+  stroke: var(--signal);
+}
+
+.orvius-mark-graphic-og .orvius-mark-frame {
+  fill: var(--void);
+}
+
+.orvius-mark-graphic-og .orvius-mark-ring {
+  stroke: var(--signal);
 }
 
 .shell-brand-text {
@@ -8286,26 +8305,24 @@ h3 {
 }
 
 .tier1-eyebrow {
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-weight: 600;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--signal-dim);
+  color: var(--ash);
 }
 
 .tier1-eyebrow-light {
-  color: color-mix(in srgb, var(--signal-hot) 88%, var(--mist));
+  color: color-mix(in srgb, var(--mist) 72%, var(--ash));
 }
 
 .tier1-hero {
   position: relative;
-  padding-top: clamp(6.5rem, 13vh, 9rem);
-  padding-bottom: clamp(4rem, 8vh, 6rem);
+  padding-top: clamp(7rem, 14vh, 10rem);
+  padding-bottom: clamp(4.5rem, 9vh, 6.5rem);
   border-bottom: 1px solid var(--rule);
-  background:
-    radial-gradient(ellipse 90% 60% at 15% -10%, color-mix(in srgb, var(--signal) 7%, transparent), transparent 55%),
-    radial-gradient(ellipse 60% 50% at 95% 20%, color-mix(in srgb, var(--void) 4%, transparent), transparent 50%),
-    var(--chalk);
+  background: var(--chalk);
   overflow: hidden;
 }
 
@@ -8314,11 +8331,7 @@ h3 {
 }
 
 .tier1-hero-glow {
-  position: absolute;
-  inset: -30% -10% auto -10%;
-  height: 80%;
-  background: radial-gradient(ellipse 45% 40% at 50% 50%, color-mix(in srgb, var(--signal) 9%, transparent), transparent 70%);
-  pointer-events: none;
+  display: none;
 }
 
 .tier1-hero-inner {
@@ -8327,22 +8340,24 @@ h3 {
 }
 
 .tier1-hero-heading {
-  margin-top: 1.25rem;
-  max-width: 14ch;
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  font-weight: 400;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  margin-top: 1.5rem;
+  max-width: 18ch;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--void);
 }
 
 .tier1-hero-line {
   display: block;
-  margin-top: 1rem;
-  font-size: clamp(1.625rem, 3.8vw, 2.375rem);
-  font-weight: 400;
-  line-height: 1.08;
-  letter-spacing: 0.02em;
+  margin-top: 1.25rem;
+  font-size: clamp(1.375rem, 3vw, 2rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   font-variant-numeric: tabular-nums;
   color: var(--signal);
   text-decoration: none;
@@ -8398,12 +8413,13 @@ h3 {
 
 .tier1-section-title {
   margin-top: 0.75rem;
-  font-size: clamp(1.75rem, 3.2vw, 2.75rem);
-  line-height: 1.08;
-  letter-spacing: -0.03em;
+  font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: 0.08em;
   font-weight: 600;
+  text-transform: uppercase;
   color: var(--void);
-  max-width: 22ch;
+  max-width: 28ch;
 }
 
 .tier1-section-title-light {
@@ -9154,10 +9170,11 @@ h3 {
 
 .tier1-login-title {
   margin-top: 1.25rem;
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-size: clamp(1.375rem, 2.5vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: 0.1em;
   font-weight: 600;
+  text-transform: uppercase;
 }
 
 .tier1-login-lead {
@@ -9238,21 +9255,32 @@ h3 {
 
 .tier1-login-setup {
   margin-top: 1.25rem;
-  padding: 1rem 1.125rem;
-  border-radius: 0.4375rem;
-  border: 1px solid color-mix(in srgb, var(--signal) 22%, var(--rule));
-  background: color-mix(in srgb, var(--signal) 5%, var(--white));
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: var(--fog);
 }
 
 .tier1-login-setup-title {
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
+  color: var(--ash);
+  cursor: pointer;
+  list-style: none;
+}
+
+.tier1-login-setup-title::-webkit-details-marker {
+  display: none;
+}
+
+.tier1-login-setup[open] .tier1-login-setup-title {
   color: var(--void);
+  margin-bottom: 0.5rem;
 }
 
 .tier1-login-setup-lead {
   margin-top: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--ash);
 }
