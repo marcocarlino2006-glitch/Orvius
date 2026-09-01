@@ -19,7 +19,7 @@ function statusTone(status: string) {
     return "live" as const;
   }
   if (status === "completed") return "neutral" as const;
-  if (status === "cancelled") return "flare" as const;
+  if (status === "cancelled") return "muted" as const;
   return "flare" as const;
 }
 
@@ -34,53 +34,60 @@ export function JobCard({
   urgency,
   technicianName,
 }: JobCardProps) {
+  const emergency = urgency?.toLowerCase().includes("emergency");
+
   return (
-    <Link href={`/dashboard/jobs/${id}`} className="customer-record-card pro-card">
-      <div className="customer-record-head">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate font-sans text-xl font-semibold tracking-[-0.03em] text-void">
-              {title}
-            </h3>
-            <ShellBadge tone={statusTone(status)}>{jobStatusLabel(status)}</ShellBadge>
-            {urgency ? (
-              <ShellBadge
-                tone={urgency.toLowerCase().includes("emergency") ? "flare" : "neutral"}
-              >
-                {urgency.replace(/-/g, " ")}
-              </ShellBadge>
-            ) : null}
-          </div>
-          <p className="mt-1 font-sans text-sm text-ash">
-            {customerName ?? "Customer"}
-            {phone ? ` · ${phone}` : ""}
-            {technicianName ? ` · ${technicianName}` : ""}
+    <Link href={`/dashboard/jobs/${id}`} className="job-card pro-card">
+      <div className="job-card-header">
+        <div className="job-card-kicker-row">
+          {emergency ? (
+            <span className="live-dot live-dot-flare" aria-hidden />
+          ) : (
+            <span className="live-dot live-dot-green" aria-hidden />
+          )}
+          <p className={`pro-kicker ${emergency ? "pro-kicker-flare" : ""}`}>
+            {emergency ? "Emergency" : "Scheduled job"}
           </p>
+        </div>
+        <div className="job-card-badges">
+          <ShellBadge tone={statusTone(status)}>{jobStatusLabel(status)}</ShellBadge>
+          {urgency && !emergency ? (
+            <ShellBadge tone="neutral">{urgency.replace(/-/g, " ")}</ShellBadge>
+          ) : null}
         </div>
       </div>
 
-      <dl className="customer-record-meta font-sans">
-        <div>
-          <dt>Scheduled</dt>
-          <dd>
-            {scheduledAt
-              ? new Date(scheduledAt).toLocaleString(undefined, {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })
-              : "Unscheduled"}
-          </dd>
-        </div>
-        {address ? (
-          <div className="customer-record-wide">
-            <dt>Address</dt>
-            <dd>{address}</dd>
+      <div className="job-card-body">
+        <h3 className="job-card-title font-sans">{title}</h3>
+        <p className="job-card-sub font-sans">
+          {customerName ?? "Customer"}
+          {phone ? ` · ${phone}` : ""}
+          {technicianName ? ` · ${technicianName}` : ""}
+        </p>
+
+        <dl className="job-card-meta font-sans">
+          <div>
+            <dt>Scheduled</dt>
+            <dd>
+              {scheduledAt
+                ? new Date(scheduledAt).toLocaleString(undefined, {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })
+                : "Unscheduled"}
+            </dd>
           </div>
-        ) : null}
-      </dl>
+          {address ? (
+            <div className="job-card-meta-wide">
+              <dt>Address</dt>
+              <dd>{address}</dd>
+            </div>
+          ) : null}
+        </dl>
+      </div>
     </Link>
   );
 }

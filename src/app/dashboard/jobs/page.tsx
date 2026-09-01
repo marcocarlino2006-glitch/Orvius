@@ -1,8 +1,8 @@
 "use client";
 
 import { JobCard } from "@/components/job-card";
+import { ProPageStrip } from "@/components/pro-page-strip";
 import {
-  ProRingBanner,
   ProStatRow,
   ProEmptyState,
 } from "@/components/pro-page-chrome";
@@ -78,17 +78,13 @@ export default function JobsPage() {
       }
     >
       <PlanUpgradeGate module="jobs">
-      <ProRingBanner
-        name="Scheduled work"
-        description="Turn qualified leads into booked jobs — then assign crew on the dispatch board."
-        live
-      />
+      <ProPageStrip />
 
       {loading ? (
         <DashboardSkeleton />
       ) : (
         <>
-          <ProStatRow stats={stats} className="mb-6" />
+          <ProStatRow stats={stats} className="pro-page-stats" />
 
           {error ? (
             <div className="mb-6">
@@ -107,7 +103,7 @@ export default function JobsPage() {
               }
             />
           ) : (
-            <ul className="grid gap-4 lg:grid-cols-2">
+            <ul className="ring1-lead-grid">
               {jobs.map((job) => (
                 <li key={job.id}>
                   <JobCard

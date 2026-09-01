@@ -1,7 +1,7 @@
 "use client";
 
 import { LeadInboxCard } from "@/components/lead-inbox-card";
-import { ProSignalBar } from "@/components/pro-signal-bar";
+import { ProPageStrip } from "@/components/pro-page-strip";
 import { LEAD_STATUSES } from "@/components/lead-status-actions";
 import {
   ProFilterBar,
@@ -86,11 +86,11 @@ export default function InboxPage() {
         <ProShopLineCta label="Call your line" showNumber={false} />
       }
     >
-      <ProSignalBar showInboxLink={false} compact />
+      <ProPageStrip followUpCount={newCount} />
 
       {counts ? (
         <ProStatRow
-          className="mb-6"
+          className="pro-page-stats"
           stats={[
             { label: "Total", value: counts.total },
             { label: "Needs follow-up", value: counts.new, highlight: counts.new > 0 },
@@ -101,7 +101,7 @@ export default function InboxPage() {
       ) : null}
 
       <ProFilterBar
-        className="mb-6"
+        className="pro-page-filters"
         value={filter}
         onChange={setFilter}
         options={FILTERS.map((item) => ({
@@ -135,7 +135,7 @@ export default function InboxPage() {
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
-            <ul className="grid gap-4 lg:grid-cols-2">
+            <ul className="ring1-lead-grid">
               {leads.map((lead) => (
                 <li key={lead.id}>
                   <LeadInboxCard

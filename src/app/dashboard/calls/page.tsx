@@ -1,7 +1,7 @@
 "use client";
 
 import { CallRecordCard } from "@/components/call-record-card";
-import { ProSignalBar } from "@/components/pro-signal-bar";
+import { ProPageStrip } from "@/components/pro-page-strip";
 import { ProEmptyState } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
@@ -58,7 +58,7 @@ export default function CallsPage() {
         </Link>
       }
     >
-      <ProSignalBar compact />
+      <ProPageStrip />
 
       {loading ? (
         <DashboardSkeleton />
@@ -77,7 +77,7 @@ export default function CallsPage() {
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
-            <ul className="grid gap-4">
+            <ul className="pro-record-grid">
               {calls.map((call) => (
                 <li key={call.id}>
                   <CallRecordCard

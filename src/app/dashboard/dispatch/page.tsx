@@ -1,6 +1,6 @@
 "use client";
 
-import { ProRingBanner } from "@/components/pro-page-chrome";
+import { ProPageStrip } from "@/components/pro-page-strip";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert, ShellBadge, ShellEmpty } from "@/components/shell-primitives";
@@ -64,7 +64,7 @@ function JobChip({ job }: { job: BoardJob }) {
           </ShellBadge>
         </div>
       </div>
-      <p className="dispatch-job-chip-title font-serif">{job.title}</p>
+      <p className="dispatch-job-chip-title font-sans">{job.title}</p>
       <p className="dispatch-job-chip-sub font-sans">{who}</p>
       {job.address ? <p className="dispatch-job-chip-sub font-sans">{job.address}</p> : null}
     </Link>
@@ -146,13 +146,16 @@ export default function DispatchPage() {
       }
     >
       <PlanUpgradeGate module="dispatch">
-      <ProRingBanner
-        name="Today's board"
-        description={`${dayLabel} · ${board?.jobCount ?? 0} job${board?.jobCount === 1 ? "" : "s"} scheduled`}
-        live
-      />
+      <ProPageStrip />
 
-      <div className="pro-toolbar mb-6">
+      <div className="pro-dispatch-head font-sans">
+        <p className="pro-dispatch-day">{dayLabel}</p>
+        <p className="pro-dispatch-count">
+          {board?.jobCount ?? 0} job{board?.jobCount === 1 ? "" : "s"} scheduled
+        </p>
+      </div>
+
+      <div className="pro-toolbar pro-page-toolbar">
         <label className="pro-toolbar-field font-sans">
           <span className="pro-toolbar-label">Day</span>
           <input

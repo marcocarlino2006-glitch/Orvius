@@ -15,10 +15,10 @@ export function HomeLineHero() {
           Production line · {DEMO_LINE_BUSINESS}
         </p>
 
-        <h1 id="tier1-hero-heading" className="tier1-hero-heading font-sans">
+        <h1 id="tier1-hero-heading" className="tier1-hero-heading font-display">
           Call the live line.
         </h1>
-        <a href={demoLineHref()} className="tier1-hero-line font-sans">
+        <a href={demoLineHref()} className="tier1-hero-line font-display">
           {DEMO_LINE_DISPLAY}
         </a>
 

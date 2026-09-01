@@ -1,13 +1,8 @@
 "use client";
 
 import { OsShell } from "@/components/os-shell";
-import { ProAlertBanner } from "@/components/pro-alert-banner";
-import { ProAlertSpeedBadge } from "@/components/pro-alert-speed-badge";
-import { ProShopHealth } from "@/components/pro-shop-health";
-import { ProSignalBar } from "@/components/pro-signal-bar";
-import { ProOwnerStandards } from "@/components/pro-owner-standards";
-import { ProSuccessJourney } from "@/components/pro-success-journey";
-import { ProWedgeReadiness } from "@/components/pro-wedge-readiness";
+import { ProPageStrip } from "@/components/pro-page-strip";
+import { ProSetupHub } from "@/components/pro-setup-hub";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -141,25 +136,14 @@ export default function DashboardSettingsPage() {
 
   return (
     <OsShell title="Settings" subtitle="Your line, greeting, and owner alerts.">
-      <ProSignalBar showInboxLink={false} />
+      <ProPageStrip />
 
-      {account?.health ? (
-        <>
-          <ProAlertBanner health={account.health} />
-          <ProWedgeReadiness readiness={account.wedge} showWhenReady />
-          <ProSuccessJourney wedge={account.wedge} />
-          <ProOwnerStandards health={account.health} />
-          <ProAlertSpeedBadge health={account.health} />
-          <ProShopHealth health={account.health} />
-        </>
-      ) : null}
+      <ProSetupHub health={account?.health} wedge={account?.wedge} />
 
-      <form className="account-stack mt-6" onSubmit={save}>
+      <form className="account-stack pro-settings-form" onSubmit={save}>
         <ShellPanel title="Shop line">
-          <p className="account-settings-value font-sans text-lg font-semibold text-void">
-            {line ?? "Not configured"}
-          </p>
-          <p className="mt-2 font-sans text-sm text-ash">
+          <p className="account-settings-value font-sans">{line ?? "Not configured"}</p>
+          <p className="account-settings-hint font-sans">
             This is the number customers call. Orvius answers and routes leads to your inbox.
           </p>
         </ShellPanel>
@@ -208,7 +192,7 @@ export default function DashboardSettingsPage() {
             </span>
           </label>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="pro-settings-test-row">
             <button
               type="button"
               className="btn btn-secondary text-sm"
@@ -217,7 +201,7 @@ export default function DashboardSettingsPage() {
             >
               {testing ? "Sending test…" : "Send test alert"}
             </button>
-            <span className="font-sans text-xs text-ash self-center">
+            <span className="pro-settings-test-meta font-sans">
               SMS {account?.alerts.smsEnabled ? "enabled" : "off"} · Email{" "}
               {account?.alerts.emailConfigured ? "ready" : "not configured"}
             </span>

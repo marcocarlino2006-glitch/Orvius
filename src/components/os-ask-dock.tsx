@@ -25,6 +25,47 @@ const QUICK_ASK = [
   "Who is scheduled today?",
 ];
 
+function AskIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path
+        d="M9 1.5l1.1 3.4h3.6l-2.9 2.1 1.1 3.4L9 8.3l-2.9 2.1 1.1-3.4-2.9-2.1h3.6L9 1.5Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 14.5h10"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+      <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M8 13V3M8 3l-4 4M8 3l4 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function OsAskDock() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -99,7 +140,7 @@ export function OsAskDock() {
                 aria-label="Close Ask"
                 onClick={() => setOpen(false)}
               >
-                ×
+                <CloseIcon />
               </button>
             </div>
           </div>
@@ -164,7 +205,7 @@ export function OsAskDock() {
               disabled={loading || !question.trim()}
               aria-label="Send question"
             >
-              {loading ? "…" : "↑"}
+              {loading ? "…" : <SendIcon />}
             </button>
           </form>
         </div>
@@ -177,7 +218,7 @@ export function OsAskDock() {
         onClick={() => setOpen((value) => !value)}
       >
         <span className="os-ask-dock-trigger-mark" aria-hidden>
-          ◆
+          <AskIcon />
         </span>
         <span className="os-ask-dock-trigger-label">Ask Orvius</span>
       </button>
