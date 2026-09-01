@@ -1,6 +1,5 @@
 "use client";
 
-import { useId } from "react";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
 
 type OrviusMarkProps = {
@@ -9,14 +8,10 @@ type OrviusMarkProps = {
 };
 
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
-  const uid = useId().replace(/:/g, "");
-  const gradId = `orvius-mark-${uid}`;
-
   return (
     <OrviusMarkSvg
-      gradientId={gradId}
       size={size}
-      className={`orvius-mark orvius-mark-reticle ${className}`.trim()}
+      className={`orvius-mark ${className}`.trim()}
     />
   );
 }
@@ -29,7 +24,7 @@ type OrviusLogoProps = {
   className?: string;
 };
 
-const markSizes = { sm: 28, md: 34, lg: 38, xl: 46 } as const;
+const markSizes = { sm: 22, md: 26, lg: 30, xl: 34 } as const;
 
 export function OrviusLogo({
   size = "md",
@@ -40,13 +35,13 @@ export function OrviusLogo({
 }: OrviusLogoProps) {
   return (
     <span
-      className={`orvius-logo orvius-logo-${size} orvius-logo-${variant} orvius-logo-scifi ${className}`}
+      className={`orvius-logo orvius-logo-${size} orvius-logo-${variant} ${className}`}
     >
-      <OrviusMark size={markSizes[size]} className="orvius-logo-mark" />
+      <OrviusMarkSvg size={markSizes[size]} className="orvius-logo-mark" />
       {!markOnly ? (
         <span className="orvius-logo-text">
-          <span className="orvius-logo-wordmark font-sans">Orvius</span>
-          {showOs ? <span className="orvius-logo-os font-sans">OS</span> : null}
+          <span className="orvius-logo-wordmark font-brand">Orvius</span>
+          {showOs ? <span className="orvius-logo-tag font-brand">OS</span> : null}
         </span>
       ) : null}
     </span>

@@ -88,7 +88,7 @@ export function OnboardingWizard() {
 
       <div className="onboarding-frame">
         <header className="onboarding-header">
-          <OrviusLogo size="md" variant="void" showOs />
+          <OrviusLogo size="md" variant="void" />
           <p className="onboarding-eyebrow font-sans">{company.productName} setup</p>
         </header>
 

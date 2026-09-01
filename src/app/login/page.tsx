@@ -26,11 +26,11 @@ export default async function LoginPage({
       <section className="tier1-login-brand">
         <div className="tier1-login-brand-glow" aria-hidden />
         <div className="tier1-login-brand-inner">
-          <OrviusLogo size="lg" variant="void" showOs={false} />
+          <OrviusLogo size="lg" variant="void" />
           <p className="tier1-eyebrow tier1-eyebrow-light font-sans">
             {company.productName}
           </p>
-          <h1 className="tier1-login-title font-sans">
+          <h1 className="tier1-login-title font-brand">
             Sign in to your workspace.
           </h1>
           <p className="tier1-login-lead font-sans">
@@ -62,8 +62,10 @@ export default async function LoginPage({
           ) : null}
 
           {!auth.ready ? (
-            <div className="tier1-login-setup font-sans">
-              <p className="tier1-login-setup-title">Google OAuth not linked yet</p>
+            <details className="tier1-login-setup font-sans">
+              <summary className="tier1-login-setup-title">
+                Google OAuth setup (for developers)
+              </summary>
               <p className="tier1-login-setup-lead">
                 The sign-in button will not work until you connect Google OAuth in
                 Vercel. This takes about 5 minutes.
@@ -102,7 +104,7 @@ export default async function LoginPage({
                 </li>
                 <li>Redeploy, then return here and sign in.</li>
               </ol>
-            </div>
+            </details>
           ) : null}
 
           <div className="tier1-login-actions">
