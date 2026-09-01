@@ -2,7 +2,7 @@
 
 import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
 import { OrviusLogo } from "@/components/orvius-logo";
-import { company, osRings, pricing } from "@/lib/company";
+import { company, pricing } from "@/lib/company";
 import { TRADES, type Trade } from "@/lib/trades";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -116,20 +116,28 @@ export function OnboardingWizard() {
               </h1>
               <p className="onboarding-lead font-sans">
                 In a few steps you&apos;ll connect your shop, set owner alerts, and
-                open your command center — inbox, customers, jobs, and dispatch in
-                one system of record.
+                open your dashboard — inbox, customers, jobs, and dispatch in one
+                place.
               </p>
               <ul className="onboarding-rings font-sans">
-                {osRings.slice(0, 4).map((ring) => (
-                  <li key={ring.ring}>
-                    <span className="onboarding-ring-num">
-                      {String(ring.ring).padStart(2, "0")}
-                    </span>
-                    <span>
-                      <strong>{ring.name}</strong> · {ring.module}
-                    </span>
-                  </li>
-                ))}
+                <li>
+                  <span className="onboarding-ring-num">01</span>
+                  <span>
+                    <strong>Answer every call</strong> · AI receptionist on your line
+                  </span>
+                </li>
+                <li>
+                  <span className="onboarding-ring-num">02</span>
+                  <span>
+                    <strong>Alert you instantly</strong> · SMS and email when a lead lands
+                  </span>
+                </li>
+                <li>
+                  <span className="onboarding-ring-num">03</span>
+                  <span>
+                    <strong>Work from one inbox</strong> · Callback, text, and book from one screen
+                  </span>
+                </li>
               </ul>
               <div className="onboarding-actions">
                 <button
@@ -302,7 +310,7 @@ export function OnboardingWizard() {
                   disabled={submitting}
                   onClick={finish}
                 >
-                  {submitting ? "Creating shop…" : "Open command center"}
+                  {submitting ? "Creating shop…" : "Open your dashboard"}
                 </button>
               </div>
             </>

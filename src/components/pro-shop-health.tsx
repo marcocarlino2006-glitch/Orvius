@@ -62,6 +62,14 @@ export function ProShopHealth({ health, compact = false }: ProShopHealthProps) {
             <dt>Last alert</dt>
             <dd>{formatWhen(health.lastAlertAt)}</dd>
           </div>
+          <div>
+            <dt>Alert speed</dt>
+            <dd>
+              {health.alertLatencyP95Sec != null
+                ? `P95 ${health.alertLatencyP95Sec}s`
+                : "—"}
+            </dd>
+          </div>
         </dl>
       ) : null}
 

@@ -1,6 +1,6 @@
 /** Defensible proof points — capability claims, not fabricated metrics. */
 export const trustSignals = [
-  { value: "5", label: "OS modules live", detail: "Front door through Ask" },
+  { value: "5", label: "Workspace areas", detail: "Inbox through Ask" },
   { value: "24/7", label: "Call coverage", detail: "Nights, weekends, peak" },
   { value: "$299", label: "Flat monthly", detail: "No per-minute billing" },
   { value: "2–15", label: "Trucks", detail: "Owner-operator shops" },
@@ -14,7 +14,7 @@ export const summitCaseStudy = {
   partnerSince: "2026",
   headline: "After-hours emergencies handled without stopping work.",
   summary:
-    "Summit runs Orvius on their live line. Every inbound call is qualified, written to the OS, and pushed to the owner by SMS — including nights, weekends, and peak season.",
+    "Summit runs Orvius on their live line. Every inbound call is qualified, saved to their dashboard, and pushed to the owner by SMS — including nights, weekends, and peak season.",
   outcomes: [
     {
       value: "SMS",
@@ -27,8 +27,8 @@ export const summitCaseStudy = {
       detail: "Answered when crew is on the tools",
     },
     {
-      value: "4 rings",
-      label: "OS depth",
+      value: "Full",
+      label: "Shop record",
       detail: "Inbox, customers, jobs, dispatch",
     },
   ],
@@ -60,7 +60,7 @@ export const pricingComparison = [
   {
     label: "Orvius",
     cost: "$299/mo",
-    pain: "Call → lead → job in one OS.",
+    pain: "Call → lead → job in one workspace.",
     highlight: true,
   },
 ] as const;

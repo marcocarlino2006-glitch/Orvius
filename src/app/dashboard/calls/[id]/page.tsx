@@ -78,7 +78,7 @@ export default function CallDetailPage() {
   return (
     <OsShell
       title="Inbound call"
-      subtitle={`Ring 1 · ${call.business?.name ?? "Orvius"} · ${new Date(call.createdAt).toLocaleString()}`}
+      subtitle={`${call.business?.name ?? "Your shop"} · ${new Date(call.createdAt).toLocaleString()}`}
       businessName={call.business?.name ?? "Summit HVAC"}
       actions={
         call.callerPhone ? (

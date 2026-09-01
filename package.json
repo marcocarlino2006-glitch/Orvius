@@ -19,6 +19,7 @@
     "go-live": "node scripts/go-live.mjs",
     "pre-post:check": "node scripts/pre-post-check.mjs",
     "test:trust": "node --experimental-strip-types --test scripts/trust-stack.test.mjs",
+    "standard:check": "node scripts/standard-check.mjs",
     "master:wedge": "node scripts/master-wedge.mjs",
     "wedge:drill": "node scripts/wedge-drill.mjs",
     "sync:prompt": "node scripts/sync-prompt.mjs",

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { isEmailConfigured } from "@/lib/email";
-import { isConfigured } from "@/lib/env";
+import { getAlertMetrics } from "@/lib/alert-metrics";
 import {
   getShopLines,
   ownerPhoneConflictsWithShopLine,
@@ -26,6 +26,11 @@ export type ShopHealth = {
   lastLeadAt: string | null;
   lastAlertAt: string | null;
   failedAlerts24h: number;
+  pendingAlerts: number;
+  stuckPendingAlerts: number;
+  alertLatencyP50Sec: number | null;
+  alertLatencyP95Sec: number | null;
+  alertSpeedOk: boolean;
   recentFailures: Array<{
     channel: string;
     error: string | null;
@@ -59,7 +64,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
 
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  const [lastCall, lastLead, failedAlerts, recentFailures, lastSuccess] =
+  const [lastCall, lastLead, failedAlerts, recentFailures, lastSuccess, alertMetrics] =
     await Promise.all([
       prisma.call.findFirst({
         where: { businessId, status: "completed" },
@@ -85,6 +90,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
         orderBy: { createdAt: "desc" },
         select: { createdAt: true, channel: true },
       }),
+      getAlertMetrics(businessId),
     ]);
 
   const smsEnabled = process.env.ENABLE_OWNER_SMS === "true";
@@ -98,6 +104,9 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
   const assistantOk = Boolean(business.vapiAssistantId);
   const lineVerified = Boolean(business.lineVerifiedAt);
   const emailReady = isEmailConfigured();
+  const alertSpeedOk =
+    alertMetrics.alertLatencyP95Sec === null ||
+    alertMetrics.alertLatencyP95Sec <= 60;
 
   const checks: ShopHealthCheck[] = [
     {
@@ -159,10 +168,26 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
           : "Optional",
     },
     {
-      id: "vapi",
-      label: "Voice platform",
-      ok: isConfigured("VAPI_API_KEY"),
-      detail: isConfigured("VAPI_API_KEY") ? "Connected" : "VAPI_API_KEY missing",
+      id: "alert-speed",
+      label: "Alert speed",
+      ok: alertSpeedOk && alertMetrics.stuckPendingAlerts === 0,
+      detail:
+        alertMetrics.alertLatencyP95Sec != null
+          ? `P95 ${alertMetrics.alertLatencyP95Sec}s to owner (target ≤60s)`
+          : alertMetrics.pendingAlerts > 0
+            ? `${alertMetrics.pendingAlerts} alert(s) queued`
+            : "No recent deliveries to measure yet",
+    },
+    {
+      id: "alert-queue",
+      label: "Alert queue",
+      ok: alertMetrics.stuckPendingAlerts === 0,
+      detail:
+        alertMetrics.stuckPendingAlerts > 0
+          ? `${alertMetrics.stuckPendingAlerts} alert(s) stuck over 5 minutes`
+          : alertMetrics.pendingAlerts > 0
+            ? `${alertMetrics.pendingAlerts} sending now`
+            : "Clear",
     },
   ];
 
@@ -172,7 +197,8 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     failedAlerts > 0 ||
     ownerPhoneConflict ||
     (smsEnabled && !ownerPhoneOk) ||
-    !isConfigured("VAPI_API_KEY");
+    alertMetrics.stuckPendingAlerts > 0 ||
+    !alertSpeedOk;
 
   let status: ShopHealthStatus = "healthy";
   if (criticalFailed) status = "critical";
@@ -189,6 +215,11 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     lastLeadAt: lastLead?.createdAt.toISOString() ?? null,
     lastAlertAt: lastSuccess?.createdAt.toISOString() ?? null,
     failedAlerts24h: failedAlerts,
+    pendingAlerts: alertMetrics.pendingAlerts,
+    stuckPendingAlerts: alertMetrics.stuckPendingAlerts,
+    alertLatencyP50Sec: alertMetrics.alertLatencyP50Sec,
+    alertLatencyP95Sec: alertMetrics.alertLatencyP95Sec,
+    alertSpeedOk,
     recentFailures: recentFailures.map((item) => ({
       channel: item.channel,
       error: item.error,

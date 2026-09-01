@@ -95,7 +95,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
             router.refresh();
           }}
         >
-          {verified ? "Open command center" : "Skip for now"}
+          {verified ? "Open your dashboard" : "Skip for now"}
         </button>
       </div>
 
