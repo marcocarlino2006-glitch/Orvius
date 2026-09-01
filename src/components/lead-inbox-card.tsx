@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
+import { LeadQuickActions } from "@/components/lead-quick-actions";
 import { LeadStatusBadge } from "@/components/lead-status-actions";
 
 type LeadInboxCardProps = {
@@ -17,8 +18,8 @@ type LeadInboxCardProps = {
   createdAt: string;
   customerId?: string | null;
   returning?: boolean;
-  linked?: boolean;
   booked?: boolean;
+  onStatusChange?: (status: string) => void;
 };
 
 function formatUrgency(urgency: string | null) {
@@ -43,30 +44,24 @@ export function LeadInboxCard({
   createdAt,
   customerId,
   returning = false,
-  linked = true,
   booked = false,
+  onStatusChange,
 }: LeadInboxCardProps) {
   const emergency = isEmergency(urgency);
 
-  const card = (
+  return (
     <article
-      className={`lead-inbox-card pro-card ${emergency ? "lead-inbox-card-emergency" : ""} ${
-        linked && id ? "lead-inbox-card-link" : ""
-      }`}
+      className={`lead-inbox-card pro-card ${emergency ? "lead-inbox-card-emergency" : ""}`}
     >
       <div className="flex items-start justify-between gap-3 border-b border-rule px-5 py-3.5">
         <div className="flex items-center gap-2">
           {emergency ? (
             <span className="live-dot live-dot-flare" aria-hidden />
-          ) : (
+          ) : status === "new" ? (
             <span className="live-dot live-dot-green" aria-hidden />
-          )}
-          <p
-            className={`pro-kicker ${
-              emergency ? "pro-kicker-flare" : ""
-            }`}
-          >
-            {emergency ? "Emergency lead" : "New lead"}
+          ) : null}
+          <p className={`pro-kicker ${emergency ? "pro-kicker-flare" : ""}`}>
+            {emergency ? "Emergency" : status === "new" ? "Needs follow-up" : "Lead"}
           </p>
         </div>
         <time
@@ -85,18 +80,24 @@ export function LeadInboxCard({
       <div className="px-5 py-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-sans text-xl font-semibold tracking-[-0.035em] text-void">
-              {name}
-            </h3>
+            {id ? (
+              <Link href={`/dashboard/inbox/${id}`} className="lead-inbox-name-link">
+                <h3 className="font-sans text-xl font-semibold tracking-[-0.035em] text-void">
+                  {name}
+                </h3>
+              </Link>
+            ) : (
+              <h3 className="font-sans text-xl font-semibold tracking-[-0.035em] text-void">
+                {name}
+              </h3>
+            )}
             <p className="mt-1 font-sans text-[13px] text-ash">
-              {channel} · {business ?? "Orvius"}
+              {channel} · {service ?? "General inquiry"}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {status && status !== "new" ? (
-              <LeadStatusBadge status={status} />
-            ) : null}
-            {booked ? <ShellBadge tone="live">Job booked</ShellBadge> : null}
+            {status !== "new" ? <LeadStatusBadge status={status} /> : null}
+            {booked ? <ShellBadge tone="live">Booked</ShellBadge> : null}
             {urgency ? (
               <ShellBadge tone={emergency ? "flare" : "neutral"}>
                 {formatUrgency(urgency)}
@@ -110,10 +111,7 @@ export function LeadInboxCard({
           {(
             [
               { label: "Phone", value: phone ?? "Unknown", href: phone ? `tel:${phone}` : null },
-              { label: "Service", value: service ?? "General inquiry", href: null },
-              ...(address
-                ? [{ label: "Address", value: address, href: null }]
-                : []),
+              ...(address ? [{ label: "Address", value: address, href: null }] : []),
             ] as { label: string; value: string; href: string | null }[]
           ).map(({ label, value, href }, i, arr) => (
             <div
@@ -125,11 +123,7 @@ export function LeadInboxCard({
               <dt className="text-ash">{label}</dt>
               <dd className="text-right font-medium text-void">
                 {href ? (
-                  <a
-                    href={href}
-                    className="lead-inbox-link tabular-nums text-flare-dim hover:text-flare"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <a href={href} className="lead-inbox-link tabular-nums text-flare-dim hover:text-flare">
                     {value}
                   </a>
                 ) : (
@@ -141,44 +135,20 @@ export function LeadInboxCard({
         </dl>
 
         {customerId ? (
-          <Link
-            href={`/dashboard/customers/${customerId}`}
-            className="customer-timeline-link mt-4 inline-block font-sans text-xs"
-            onClick={(e) => e.stopPropagation()}
-          >
-            View customer record →
+          <Link href={`/dashboard/customers/${customerId}`} className="customer-timeline-link mt-4 inline-block font-sans text-xs">
+            Customer record →
           </Link>
         ) : null}
 
-        {phone ? (
-          <div className="lead-inbox-actions mt-4 flex gap-2 border-t border-rule/80 pt-4 sm:hidden">
-            <a
-              href={`tel:${phone}`}
-              className="btn btn-void flex-1 text-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Call lead
-            </a>
-            <a
-              href={`sms:${phone}`}
-              className="btn btn-secondary flex-1 text-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Text
-            </a>
-          </div>
+        {id ? (
+          <LeadQuickActions
+            leadId={id}
+            phone={phone}
+            status={status}
+            onStatusChange={onStatusChange}
+          />
         ) : null}
       </div>
     </article>
   );
-
-  if (linked && id) {
-    return (
-      <Link href={`/dashboard/inbox/${id}`} className="block">
-        {card}
-      </Link>
-    );
-  }
-
-  return card;
 }

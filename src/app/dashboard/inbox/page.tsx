@@ -152,6 +152,20 @@ export default function InboxPage() {
                     customerId={lead.customer?.id ?? null}
                     returning={(lead.customer?.interactionCount ?? 0) > 1}
                     booked={Boolean(lead.job)}
+                    onStatusChange={(next) => {
+                      setLeads((prev) =>
+                        prev.map((item) =>
+                          item.id === lead.id ? { ...item, status: next } : item,
+                        ),
+                      );
+                      if (next === "contacted" && counts) {
+                        setCounts({
+                          ...counts,
+                          new: Math.max(0, counts.new - 1),
+                          contacted: counts.contacted + 1,
+                        });
+                      }
+                    }}
                   />
                 </li>
               ))}

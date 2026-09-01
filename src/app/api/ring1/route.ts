@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getDispatchBoard } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { requireBusinessSession } from "@/lib/tenant";
 
@@ -25,6 +26,7 @@ export async function GET() {
     lastCall,
     recentLeads,
     recentCalls,
+    dispatchBoard,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -53,6 +55,7 @@ export async function GET() {
         lead: { select: { name: true, serviceType: true } },
       },
     }),
+    getDispatchBoard(business.id),
   ]);
 
   const line =
@@ -99,5 +102,17 @@ export async function GET() {
       leadName: call.lead?.name ?? null,
       serviceType: call.lead?.serviceType ?? null,
     })),
+    dispatchToday: {
+      jobCount: dispatchBoard.jobCount,
+      unassigned: dispatchBoard.unassigned.length,
+      jobs: [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)].sort(
+        (a, b) => {
+          if (!a.scheduledAt && !b.scheduledAt) return 0;
+          if (!a.scheduledAt) return 1;
+          if (!b.scheduledAt) return -1;
+          return a.scheduledAt.localeCompare(b.scheduledAt);
+        },
+      ),
+    },
   });
 }

@@ -8,6 +8,7 @@ import {
   ProSectionHead,
   ProStatRow,
 } from "@/components/pro-page-chrome";
+import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProPriorityBanner } from "@/components/pro-priority-banner";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProSignalBar } from "@/components/pro-signal-bar";
@@ -47,6 +48,21 @@ type Ring1Data = {
     leadName: string | null;
     serviceType: string | null;
   }>;
+  dispatchToday: {
+    jobCount: number;
+    unassigned: number;
+    jobs: Array<{
+      id: string;
+      title: string;
+      status: string;
+      scheduledAt: string | null;
+      address: string | null;
+      urgency: string | null;
+      technician?: { name: string } | null;
+      customer?: { name: string | null; phone: string } | null;
+      lead?: { name: string | null; phone: string | null } | null;
+    }>;
+  };
 };
 
 const REFRESH_MS = 30_000;
@@ -121,6 +137,14 @@ export function Ring1CommandCenter() {
 
       <ProStatRow stats={stats} className="ring1-command-stats" />
 
+      {data?.dispatchToday ? (
+        <ProDispatchToday
+          jobs={data.dispatchToday.jobs}
+          unassigned={data.dispatchToday.unassigned}
+          jobCount={data.dispatchToday.jobCount}
+        />
+      ) : null}
+
       <div className="ring1-activity">
         <div className="ring1-recent">
           <ProSectionHead
@@ -155,6 +179,25 @@ export function Ring1CommandCenter() {
                     status={lead.status}
                     createdAt={lead.createdAt}
                     returning={lead.returning}
+                    onStatusChange={(next) => {
+                      setData((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              metrics: {
+                                ...prev.metrics,
+                                newLeads: Math.max(
+                                  0,
+                                  prev.metrics.newLeads - (next === "contacted" ? 1 : 0),
+                                ),
+                              },
+                              recentLeads: prev.recentLeads.map((item) =>
+                                item.id === lead.id ? { ...item, status: next } : item,
+                              ),
+                            }
+                          : prev,
+                      );
+                    }}
                   />
                 </li>
               ))}
