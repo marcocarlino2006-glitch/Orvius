@@ -25,14 +25,16 @@ model Business {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   billingStatus        String   @default("pilot")
+  lineVerifiedAt       DateTime?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  calls     Call[]
-  leads     Lead[]
-  customers Customer[]
-  jobs      Job[]
-  technicians Technician[]
+  calls            Call[]
+  leads            Lead[]
+  customers        Customer[]
+  jobs             Job[]
+  technicians      Technician[]
+  ownerNotifications OwnerNotification[]
 }
 
 model Customer {
@@ -159,4 +161,18 @@ model WaitlistEntry {
   status       String   @default("new")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model OwnerNotification {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  leadId     String?
+  channel    String
+  status     String
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([businessId, createdAt])
+  @@index([businessId, status])
 }

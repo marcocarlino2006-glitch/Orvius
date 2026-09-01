@@ -1,8 +1,8 @@
 "use client";
 
+import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { company, osRings, pricing } from "@/lib/company";
-import { telHref } from "@/lib/demo-line";
 import { TRADES, type Trade } from "@/lib/trades";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -309,31 +309,7 @@ export function OnboardingWizard() {
           ) : null}
 
           {provisionedLine ? (
-            <>
-              <h1 className="onboarding-title font-sans">Your line is live.</h1>
-              <p className="onboarding-lead font-sans">
-                {name.trim()} is ready. Call your shop line now — Orvius will
-                answer, qualify the caller, and drop the lead in your inbox.
-              </p>
-              <a href={telHref(provisionedLine)} className="onboarding-hero-line font-sans">
-                {provisionedLine}
-              </a>
-              <div className="onboarding-actions">
-                <a href={telHref(provisionedLine)} className="btn btn-void font-sans">
-                  Call your line
-                </a>
-                <button
-                  type="button"
-                  className="btn btn-ghost font-sans"
-                  onClick={() => {
-                    router.replace("/dashboard");
-                    router.refresh();
-                  }}
-                >
-                  Open command center
-                </button>
-              </div>
-            </>
+            <OnboardingCallVerify line={provisionedLine} shopName={name.trim()} />
           ) : null}
         </div>
       </div>

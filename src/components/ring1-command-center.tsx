@@ -8,11 +8,14 @@ import {
   ProSectionHead,
   ProStatRow,
 } from "@/components/pro-page-chrome";
+import { ProAlertBanner } from "@/components/pro-alert-banner";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProPriorityBanner } from "@/components/pro-priority-banner";
+import { ProShopHealth } from "@/components/pro-shop-health";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProSignalBar } from "@/components/pro-signal-bar";
 import { Ring1RecentCallRow } from "@/components/ring1-recent-call-row";
+import type { ShopHealth } from "@/lib/shop-health";
 
 type Ring1Data = {
   business: { name: string; line: string | null; ownerPhone: string | null } | null;
@@ -63,6 +66,7 @@ type Ring1Data = {
       lead?: { name: string | null; phone: string | null } | null;
     }>;
   };
+  health?: ShopHealth;
 };
 
 const REFRESH_MS = 30_000;
@@ -133,7 +137,11 @@ export function Ring1CommandCenter() {
         detail="Qualified leads waiting for callback or booking."
       />
 
+      <ProAlertBanner health={data?.health ?? null} />
+
       <ProSignalBar />
+
+      <ProShopHealth health={data?.health} compact />
 
       <ProStatRow stats={stats} className="ring1-command-stats" />
 

@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
   });
 
   await notifyOwner({
+    businessId: business.id,
     ownerPhone: business.ownerPhone,
     ownerEmail: business.ownerEmail,
     businessName: business.name,

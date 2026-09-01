@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
 
     if (business.ownerPhone) {
       await notifyOwner({
+        businessId: business.id,
         ownerPhone: business.ownerPhone,
         ownerEmail: business.ownerEmail,
         businessName: business.name,

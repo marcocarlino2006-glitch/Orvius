@@ -9373,6 +9373,56 @@ h3 {
   color: var(--signal);
 }
 
+.onboarding-verify {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.onboarding-verify-status {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.onboarding-verify-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.onboarding-verify-badge-ok {
+  color: var(--white);
+  background: var(--signal);
+}
+
+.onboarding-verify-badge-wait {
+  border: 1px solid color-mix(in srgb, var(--signal) 25%, var(--rule));
+  background: color-mix(in srgb, var(--signal) 6%, var(--white));
+}
+
+.onboarding-verify-waiting {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
+.onboarding-verify-link {
+  color: var(--signal);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.onboarding-verify-link:hover {
+  text-decoration: underline;
+}
+
 /* ── Dashboard signal chrome ── */
 .pro-signal-bar {
   display: flex;
@@ -9485,6 +9535,123 @@ h3 {
   font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--ash);
+}
+
+.pro-alert-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.125rem;
+  border-radius: 0.625rem;
+  border: 1px solid color-mix(in srgb, #c0392b 35%, var(--rule));
+  background: color-mix(in srgb, #c0392b 7%, var(--white));
+}
+
+.pro-alert-banner-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.pro-alert-banner-detail {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
+
+.pro-shop-health {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.125rem;
+  border-radius: 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
+  background: var(--white);
+  box-shadow: var(--shadow-soft);
+}
+
+.pro-shop-health-compact {
+  padding: 0.875rem 1rem;
+}
+
+.pro-shop-health-healthy {
+  border-color: color-mix(in srgb, var(--signal) 18%, var(--rule));
+}
+
+.pro-shop-health-attention {
+  border-color: color-mix(in srgb, var(--flare) 28%, var(--rule));
+  background: color-mix(in srgb, var(--flare) 5%, var(--white));
+}
+
+.pro-shop-health-critical {
+  border-color: color-mix(in srgb, #c0392b 30%, var(--rule));
+  background: color-mix(in srgb, #c0392b 5%, var(--white));
+}
+
+.pro-shop-health-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.pro-shop-health-title {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.pro-shop-health-detail {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
+
+.pro-shop-health-checks {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pro-shop-health-check {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.pro-shop-health-check-label {
+  font-weight: 600;
+  color: var(--void);
+}
+
+.pro-shop-health-check-detail {
+  color: var(--ash);
+}
+
+.pro-shop-health-cta {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--signal);
+  text-decoration: none;
+}
+
+.pro-shop-health-cta:hover {
+  text-decoration: underline;
 }
 
 .os-sidebar-inline-link {

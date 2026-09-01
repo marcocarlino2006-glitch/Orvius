@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDispatchBoard } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
+import { getShopHealth } from "@/lib/shop-health";
 import { requireBusinessSession } from "@/lib/tenant";
 
 function startOfToday() {
@@ -27,6 +28,7 @@ export async function GET() {
     recentLeads,
     recentCalls,
     dispatchBoard,
+    health,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -56,6 +58,7 @@ export async function GET() {
       },
     }),
     getDispatchBoard(business.id),
+    getShopHealth(business.id),
   ]);
 
   const line =
@@ -114,5 +117,6 @@ export async function GET() {
         },
       ),
     },
+    health,
   });
 }

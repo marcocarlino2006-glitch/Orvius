@@ -105,6 +105,24 @@ export async function POST(request: NextRequest) {
   }
 
   if (type === "end-of-call-report") {
+    const existingCall = await prisma.call.findUnique({
+      where: { vapiCallId },
+      select: {
+        id: true,
+        status: true,
+        lead: { select: { id: true } },
+      },
+    });
+
+    if (existingCall?.status === "completed") {
+      return NextResponse.json({
+        ok: true,
+        duplicate: true,
+        callId: existingCall.id,
+        leadId: existingCall.lead?.id ?? null,
+      });
+    }
+
     const summary =
       message.summary ??
       message.analysis?.summary ??
@@ -184,7 +202,15 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join("\n");
 
+    if (!business.lineVerifiedAt) {
+      await prisma.business.update({
+        where: { id: business.id },
+        data: { lineVerifiedAt: new Date() },
+      });
+    }
+
     const notifyResult = await notifyOwner({
+      businessId: business.id,
       ownerPhone: business.ownerPhone,
       ownerEmail: business.ownerEmail,
       businessName: business.name,
@@ -195,7 +221,8 @@ export async function POST(request: NextRequest) {
     if (
       process.env.ENABLE_OWNER_SMS === "true" &&
       business.ownerPhone &&
-      !notifyResult.sms
+      !notifyResult.sms &&
+      notifyResult.smsFailed
     ) {
       console.error("Owner SMS failed for call", {
         vapiCallId,
