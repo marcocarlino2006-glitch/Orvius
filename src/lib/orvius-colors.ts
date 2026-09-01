@@ -1,17 +1,17 @@
 /**
- * Orvius Chromatics — source of truth for brand colorways.
+ * Orvius Chromatics — white canvas, black ink.
  * CSS mirrors these values in `src/app/globals.css`.
  */
 export const orviusColors = {
-  void: "#1A1917",
-  voidDeep: "#323230",
-  panel: "#3F3F3C",
-  mist: "#ECEAE6",
-  chalk: "#F9F9F7",
-  fog: "#F2F1ED",
-  ash: "#6F6E69",
-  ashSoft: "#94938D",
-  rule: "#E5E4DF",
+  void: "#0A0A0A",
+  voidDeep: "#1A1A1A",
+  panel: "#262626",
+  mist: "#F5F5F5",
+  chalk: "#FFFFFF",
+  fog: "#FAFAFA",
+  ash: "#737373",
+  ashSoft: "#A3A3A3",
+  rule: "#E5E5E5",
   signal: "#F0704A",
   signalHot: "#F58868",
   signalDim: "#E05A32",

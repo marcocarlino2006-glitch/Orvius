@@ -13,8 +13,8 @@ export const typeScale = {
 } as const;
 
 export const logoSizes = {
-  sm: { mark: 20, wordmark: "0.6875rem", tracking: "0.2em" },
-  md: { mark: 24, wordmark: "0.8125rem", tracking: "0.22em" },
-  lg: { mark: 28, wordmark: "0.9375rem", tracking: "0.24em" },
-  xl: { mark: 32, wordmark: "1.0625rem", tracking: "0.26em" },
+  sm: { mark: 20, wordmark: "0.6875rem", tracking: "0.16em" },
+  md: { mark: 24, wordmark: "0.8125rem", tracking: "0.18em" },
+  lg: { mark: 28, wordmark: "0.9375rem", tracking: "0.2em" },
+  xl: { mark: 32, wordmark: "1.0625rem", tracking: "0.22em" },
 } as const;

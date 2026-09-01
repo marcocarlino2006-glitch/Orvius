@@ -16,7 +16,7 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: orviusColors.chalk,
+          background: orviusColors.white,
           padding: "72px 80px",
         }}
       >
@@ -67,7 +67,7 @@ export default function OpenGraphImage() {
               display: "flex",
               width: 64,
               height: 2,
-              background: orviusColors.signal,
+              background: orviusColors.void,
             }}
           />
           <div

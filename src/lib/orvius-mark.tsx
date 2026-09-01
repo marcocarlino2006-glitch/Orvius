@@ -1,5 +1,5 @@
 /**
- * Orvius mark — open ring + signal dot. The line is live.
+ * Orvius mark — bold open ring. Monochrome. No frame.
  */
 
 export type OrviusMarkSvgProps = {
@@ -22,25 +22,16 @@ export function OrviusMarkSvg({
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      <rect
-        className="orvius-mark-frame"
-        x="2"
-        y="2"
-        width="28"
-        height="28"
-        rx="7"
-      />
       <circle
         className="orvius-mark-ring"
         cx="16"
         cy="16"
-        r="7"
-        strokeWidth="2"
-        strokeDasharray="36 7"
+        r="10.5"
+        strokeWidth="2.5"
+        strokeDasharray="58 8"
         strokeLinecap="round"
-        transform="rotate(-90 16 16)"
+        transform="rotate(90 16 16)"
       />
-      <circle className="orvius-mark-signal" cx="16" cy="9" r="1.5" />
     </svg>
   );
 }

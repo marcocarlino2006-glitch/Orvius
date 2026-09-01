@@ -28,11 +28,11 @@ export default function HomePage() {
       <section className="tier1-product inst-product" aria-label="Orvius platform">
         <div className="editorial-wrap tier1-product-inner">
           <div className="tier1-product-head">
-            <p className="tier1-eyebrow tier1-eyebrow-light type-eyebrow">Platform</p>
-            <h2 className="tier1-section-title tier1-section-title-light type-headline">
+            <p className="tier1-eyebrow type-eyebrow">Platform</p>
+            <h2 className="tier1-section-title type-headline">
               One system of record for the shop.
             </h2>
-            <p className="tier1-section-lead tier1-section-lead-light font-sans">
+            <p className="tier1-section-lead font-sans">
               Line, inbox, jobs, dispatch, and Ask — built for owner-operators
               who run on the phone, not generic CRM software.
             </p>
@@ -45,25 +45,25 @@ export default function HomePage() {
 
       <HomeCaseQuote />
 
-      <section className="tier1-close inst-close">
+      <section className="tier1-close">
         <div className="editorial-wrap tier1-close-inner">
-          <p className="tier1-eyebrow tier1-eyebrow-light type-eyebrow">Design partner</p>
-          <h2 className="tier1-section-title tier1-section-title-light type-headline">
+          <p className="tier1-eyebrow type-eyebrow">Design partner</p>
+          <h2 className="tier1-section-title type-headline">
             We onboard every shop personally.
           </h2>
-          <p className="tier1-section-lead tier1-section-lead-light font-sans">
+          <p className="tier1-section-lead font-sans">
             30 days free. Dedicated line, AI receptionist, owner alerts — we
             configure your shop together before you pay a cent.
           </p>
           <div className="tier1-actions tier1-close-actions">
-            <Link href="/pilot" className="inst-btn inst-btn-light">
+            <Link href="/pilot" className="inst-btn inst-btn-primary">
               Apply for design partner
             </Link>
-            <Link href="/pricing" className="inst-btn inst-btn-outline-light">
+            <Link href="/pricing" className="inst-btn inst-btn-ghost">
               View pricing
             </Link>
           </div>
-          <p className="tier1-close-foot tier1-close-foot-light font-sans">
+          <p className="tier1-close-foot font-sans">
             From ${getLowestPaidPrice()}/mo after program · cancel anytime
           </p>
         </div>
