@@ -54,7 +54,7 @@ export default function DashboardPricingPage() {
             />
           </div>
           <p className="mt-3 font-sans text-xs text-ash">
-            Billed by {company.legalName} · secure checkout via Stripe
+            Billed by {company.legalName} when checkout is live
           </p>
         </ShellPanel>
       </div>

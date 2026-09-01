@@ -166,7 +166,7 @@ console.log("   1. git push → import on Vercel (docs/DEPLOY-VERCEL.md)");
 console.log("   2. Add env vars + Turso/Neon DATABASE_URL");
 console.log("   3. Domains: orvius.im, app.orvius.im, api.orvius.im");
 console.log("   4. Namecheap DNS — docs/DNS-ORVIUS-IM.md");
-console.log("   5. npm run stripe:setup → add STRIPE_* to Vercel");
+console.log("   5. npm run stripe:setup → npm run billing:check → add STRIPE_* to Vercel (docs/BILLING-SETUP.md)");
 console.log("   6. WEBHOOK_BASE_URL=https://api.orvius.im npm run vapi:webhook");
 console.log("   7. Call Twilio line → verify /dashboard + owner SMS\n");
 

@@ -4,8 +4,10 @@ import { company, pricing } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
 import {
   getAppBaseUrl,
+  getBillingReadiness,
   getStripe,
   getStripePriceId,
+  isStripeCheckoutConfigured,
   isStripeConfigured,
 } from "@/lib/stripe";
 import { forbiddenResponse } from "@/lib/tenant";
@@ -17,11 +19,13 @@ const checkoutSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  if (!isStripeConfigured()) {
+  if (!isStripeCheckoutConfigured()) {
+    const readiness = getBillingReadiness();
     return NextResponse.json(
       {
         error:
           "Billing is not configured yet. Apply for the pilot and we will send a checkout link after your trial.",
+        billing: readiness,
       },
       { status: 503 },
     );
@@ -96,8 +100,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  const readiness = getBillingReadiness();
   return NextResponse.json({
     configured: isStripeConfigured(),
+    checkoutReady: isStripeCheckoutConfigured(),
+    readiness,
     plan: pricing.pro.name,
     price: pricing.pro.price,
     currency: "usd",

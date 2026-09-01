@@ -1,13 +1,23 @@
 import Stripe from "stripe";
 import { getStripeAppBaseUrl } from "@/lib/stripe-url";
+import {
+  getBillingConfig,
+  getBillingReadiness,
+  type BillingReadiness,
+} from "@/lib/billing-readiness";
+
+export { getBillingConfig, getBillingReadiness, type BillingReadiness };
 
 let stripeClient: Stripe | null = null;
 
+/** Checkout can start — secret key + price id present. */
+export function isStripeCheckoutConfigured() {
+  return getBillingReadiness().checkoutReady;
+}
+
+/** Subscriptions sync after payment — includes webhook secret. */
 export function isStripeConfigured() {
-  return Boolean(
-    process.env.STRIPE_SECRET_KEY?.trim() &&
-      process.env.STRIPE_PRICE_ID?.trim(),
-  );
+  return getBillingReadiness().fullyReady;
 }
 
 export function getStripe() {

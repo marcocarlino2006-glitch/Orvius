@@ -1,15 +1,26 @@
 # Orvius operating standard
 
-We hold ourselves to institutional bar **before** scale — not after. This is the chase.
+We are building toward institutional quality — not claiming we are there yet. This doc tracks what we actually hold ourselves to today.
 
 ## Principles
 
 1. **The wedge is sacred** — Call → qualify → alert → inbox → action. Nothing ships that weakens this loop.
 2. **Nothing fails silently** — Every alert attempt is logged. Owners see failures. We see queue depth.
 3. **Owner language** — Dashboard copy is for a shop owner at 6am, not for us debugging webhooks.
-4. **Honest product** — Every marketing claim must be true in production today.
+4. **Honest product** — Every marketing claim must be true in production today. No Subscribe button until Stripe is configured.
 5. **Word of mouth** — Build so well that one owner tells another. No blitz outbound to hide product gaps.
-6. **Expand when pulled** — Jobs, dispatch, Ask deepen the record. They do not replace Ring 1 mastery.
+6. **Expand when pulled** — Jobs, dispatch, Ask deepen the record. They do not replace front-door mastery.
+
+## Prerequisites (not optional for paid launch)
+
+| Area | Status check | Blocker if missing |
+|------|--------------|-------------------|
+| **Billing** | `npm run billing:check` | No self-serve checkout; pilot only |
+| **Trust wedge** | `npm run wedge:ready` | Shop not production-ready |
+| **Deploy** | `npm run deploy:check` | Twilio, Vapi, auth, database |
+| **Turso schema** | `npm run db:push` on prod DB | New columns/tables missing |
+
+See `docs/BILLING-SETUP.md` for Stripe product, price id, and webhook setup.
 
 ## Scorecard
 
@@ -22,14 +33,15 @@ Run `npm run standard:check` before every deploy and public post.
 | **Isolation** | Shop A never sees Shop B? | All tenant APIs return 401 without session |
 | **Speed** | Owner notified before they forget the call? | P95 alert latency under 60 seconds |
 | **Recovery** | Owner knows when something breaks? | Failed/stuck alerts visible in Today + Settings |
-| **Honesty** | Site claims match production? | Marketing audit passes in standard check |
+| **Honesty** | Site claims match production? | No fake Subscribe; billing check passes before paid marketing |
 
 ## Ship gates
 
-**Do not deploy or post if any blocker fails.**
+**Do not deploy paid checkout or post pricing CTAs if billing blockers fail.**
 
 - `npm run build`
 - `npm run test:trust`
+- `npm run billing:check` (before enabling Subscribe)
 - `npm run standard:check`
 - `npm run ci` (build + trust tests + live standard check — run before deploy)
 - `npm run ci:quick` (build + trust tests + standard check without starting server)
@@ -52,5 +64,6 @@ For each design partner shop:
 - Vanity metrics on the homepage
 - Cold outbound volume
 - Per-minute billing complexity
+- Claiming "institutional" or "multi-billion" bar before billing, retention, and ops proof exist
 
 When in doubt: **make the loop bulletproof for one shop, then the next.**

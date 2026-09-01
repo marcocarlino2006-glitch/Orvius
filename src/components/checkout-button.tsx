@@ -10,6 +10,12 @@ type CheckoutButtonProps = {
   email?: string;
 };
 
+type BillingStatus = {
+  configured: boolean;
+  checkoutReady: boolean;
+  price: number;
+};
+
 export function CheckoutButton({
   label = "Subscribe after pilot",
   className = "",
@@ -20,6 +26,8 @@ export function CheckoutButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsEmail, setNeedsEmail] = useState(false);
+  const [billing, setBilling] = useState<BillingStatus | null>(null);
+  const [billingLoading, setBillingLoading] = useState(true);
 
   useEffect(() => {
     if (emailProp) {
@@ -27,6 +35,22 @@ export function CheckoutButton({
       setNeedsEmail(false);
     }
   }, [emailProp]);
+
+  useEffect(() => {
+    fetch("/api/billing/checkout")
+      .then((res) => res.json())
+      .then((data) => {
+        setBilling({
+          configured: Boolean(data.configured),
+          checkoutReady: Boolean(data.checkoutReady),
+          price: data.price ?? 299,
+        });
+      })
+      .catch(() => {
+        setBilling({ configured: false, checkoutReady: false, price: 299 });
+      })
+      .finally(() => setBillingLoading(false));
+  }, []);
 
   async function startCheckout(submittedEmail?: string) {
     const checkoutEmail = (submittedEmail ?? email).trim();
@@ -62,6 +86,36 @@ export function CheckoutButton({
     } finally {
       setLoading(false);
     }
+  }
+
+  if (billingLoading) {
+    return (
+      <div className={className}>
+        <button
+          type="button"
+          disabled
+          className={`inst-btn w-full justify-center opacity-60 ${
+            variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
+          }`}
+        >
+          Loading…
+        </button>
+      </div>
+    );
+  }
+
+  if (!billing?.configured) {
+    return (
+      <div className={className}>
+        <Link href="/pilot" className={`inst-btn inst-btn-primary w-full justify-center`}>
+          Apply for design partner
+        </Link>
+        <p className="mt-3 font-sans text-sm text-ash">
+          Self-serve checkout is not live yet. Start with the free 30-day program — we
+          will send a checkout link when billing is ready.
+        </p>
+      </div>
+    );
   }
 
   return (
