@@ -1,5 +1,5 @@
 /**
- * Orvius mark — minimal monogram. Flat, no gradients. Works at 16px and 512px.
+ * Orvius mark — geometric O. Flat. No gradients.
  */
 
 export type OrviusMarkSvgProps = {
@@ -24,18 +24,18 @@ export function OrviusMarkSvg({
     >
       <rect
         className="orvius-mark-frame"
-        x="1.5"
-        y="1.5"
-        width="29"
-        height="29"
-        rx="8"
+        x="2"
+        y="2"
+        width="28"
+        height="28"
+        rx="7"
       />
       <circle
         className="orvius-mark-ring"
         cx="16"
         cy="16"
-        r="8.25"
-        strokeWidth="2.25"
+        r="7"
+        strokeWidth="2"
       />
     </svg>
   );

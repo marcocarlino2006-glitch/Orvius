@@ -27,8 +27,8 @@ export function HomeCallStory() {
     <section className="tier1-story" aria-labelledby="tier1-story-heading">
       <div className="editorial-wrap tier1-story-grid">
         <div>
-          <p className="tier1-eyebrow font-sans">Field record</p>
-          <h2 id="tier1-story-heading" className="tier1-section-title font-brand">
+          <p className="tier1-eyebrow type-eyebrow">Field record</p>
+          <h2 id="tier1-story-heading" className="tier1-section-title type-headline">
             After hours. Owner on site. Line still answered.
           </h2>
           <p className="tier1-section-lead font-sans">

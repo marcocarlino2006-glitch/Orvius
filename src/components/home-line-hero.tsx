@@ -10,21 +10,21 @@ export function HomeLineHero() {
   return (
     <section className="tier1-hero inst-hero" aria-labelledby="tier1-hero-heading">
       <div className="editorial-wrap tier1-hero-inner">
-        <p className="tier1-eyebrow font-brand">
+        <p className="tier1-eyebrow type-eyebrow">
           Live production line · {DEMO_LINE_BUSINESS}
         </p>
 
-        <h1 id="tier1-hero-heading" className="tier1-hero-heading font-brand">
+        <h1 id="tier1-hero-heading" className="tier1-hero-heading type-display">
           Call the live line.
         </h1>
-        <a href={demoLineHref()} className="tier1-hero-line font-brand">
+        <a href={demoLineHref()} className="tier1-hero-line type-phone">
           {DEMO_LINE_DISPLAY}
         </a>
 
         <p className="tier1-hero-statement font-sans">
           {company.tagline}
         </p>
-        <p className="tier1-hero-lead font-sans">
+        <p className="tier1-hero-lead type-lead">
           Orvius answers, qualifies, and alerts the owner — while your crew is
           on the tools. Built for {company.trades.join(", ")}.
         </p>

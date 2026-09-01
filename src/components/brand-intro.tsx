@@ -21,8 +21,8 @@ export function BrandIntro({
 
   return (
     <div className={`brand-intro ${alignClass} ${className}`.trim()}>
-      {kicker ? <p className="tier1-eyebrow font-sans">{kicker}</p> : null}
-      <h1 className={`tier1-page-title font-brand ${titleClassName}`.trim()}>
+      {kicker ? <p className="tier1-eyebrow type-eyebrow">{kicker}</p> : null}
+      <h1 className={`tier1-page-title type-headline ${titleClassName}`.trim()}>
         {title}
       </h1>
       {subline ? (

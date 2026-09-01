@@ -127,6 +127,7 @@ export function ShellHeader({
             <OrviusLogo
               size="lg"
               variant={isVoid ? "void" : "chalk"}
+              wordmarkOnly
             />
           </Link>
 

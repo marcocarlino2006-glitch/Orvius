@@ -7,7 +7,7 @@ export function HomeCaseQuote() {
       <div className="tier1-quote-glow" aria-hidden />
       <div className="editorial-wrap tier1-quote-inner">
         <blockquote className="tier1-quote-block">
-          <p id="case-quote-heading" className="tier1-quote-text font-brand">
+          <p id="case-quote-heading" className="tier1-quote-text type-title">
             &ldquo;{summitCaseStudy.quote}&rdquo;
           </p>
           <footer className="tier1-quote-meta font-sans">

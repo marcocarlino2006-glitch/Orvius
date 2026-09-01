@@ -1,5 +1,6 @@
 "use client";
 
+import { brandWordmark } from "@/lib/brand-typography";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
 
 type OrviusMarkProps = {
@@ -19,30 +20,34 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
 type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
-  showOs?: boolean;
+  /** Wordmark only — header/footer default */
+  wordmarkOnly?: boolean;
   markOnly?: boolean;
   className?: string;
 };
 
-const markSizes = { sm: 22, md: 26, lg: 30, xl: 34 } as const;
+const markSizes = { sm: 20, md: 24, lg: 28, xl: 32 } as const;
 
 export function OrviusLogo({
   size = "md",
   variant = "chalk",
-  showOs = false,
+  wordmarkOnly = false,
   markOnly = false,
   className = "",
 }: OrviusLogoProps) {
+  const showMark = !wordmarkOnly;
+  const showWordmark = !markOnly;
+
   return (
     <span
       className={`orvius-logo orvius-logo-${size} orvius-logo-${variant} ${className}`}
+      aria-label={brandWordmark}
     >
-      <OrviusMarkSvg size={markSizes[size]} className="orvius-logo-mark" />
-      {!markOnly ? (
-        <span className="orvius-logo-text">
-          <span className="orvius-logo-wordmark font-brand">Orvius</span>
-          {showOs ? <span className="orvius-logo-tag font-brand">OS</span> : null}
-        </span>
+      {showMark ? (
+        <OrviusMarkSvg size={markSizes[size]} className="orvius-logo-mark" />
+      ) : null}
+      {showWordmark ? (
+        <span className="orvius-logo-wordmark type-wordmark">{brandWordmark}</span>
       ) : null}
     </span>
   );

@@ -60,6 +60,37 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.625rem;
   --radius-xl: 0.75rem;
+
+  /* Typography scale */
+  --text-caption: 0.6875rem;
+  --text-small: 0.8125rem;
+  --text-body: 1rem;
+  --text-lead: 1.0625rem;
+  --text-title: 1.125rem;
+  --tracking-tight: -0.035em;
+  --tracking-snug: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.06em;
+  --tracking-brand: 0.22em;
+  --leading-tight: 1.12;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.65;
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --section-y: clamp(4.5rem, 9vh, 6.5rem);
+  --content-gap: var(--space-6);
   --kicker-tracking: 0.14em;
 }
 
@@ -121,21 +152,82 @@ nav,
 button,
 .btn,
 .label,
-.ui,
-.eyebrow {
+.ui {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
-  letter-spacing: -0.011em;
+  letter-spacing: var(--tracking-snug);
 }
 
-.font-brand,
-.orvius-logo-wordmark,
-.tier1-hero-heading,
-.tier1-section-title,
-.tier1-login-title {
+/* ── Type system ── */
+
+.type-wordmark {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-brand);
   text-transform: uppercase;
+  line-height: 1;
+}
+
+.type-eyebrow {
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  letter-spacing: var(--kicker-tracking);
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.type-display {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.25rem, 4.8vw, 3.375rem);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--void);
+}
+
+.type-headline {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-snug);
+  color: var(--void);
+}
+
+.type-title {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--void);
+}
+
+.type-phone {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.375rem, 2.8vw, 1.875rem);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--signal);
+  text-decoration: none;
+}
+
+.type-phone:hover {
+  color: var(--signal-dim);
+}
+
+.type-lead {
+  font-size: var(--text-lead);
+  line-height: var(--leading-relaxed);
+  color: var(--ash);
+}
+
+.type-caption {
+  font-size: var(--text-caption);
+  line-height: var(--leading-normal);
+  color: var(--ash-soft);
 }
 
 .font-serif,
@@ -143,7 +235,7 @@ h1,
 h2,
 h3 {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-snug);
   font-weight: 600;
 }
 
@@ -1029,92 +1121,45 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — Verve-clean lockup */
+/* Orvius logo */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-}
-
-.orvius-logo-text {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  gap: var(--space-3);
 }
 
 .orvius-logo-wordmark {
   font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  line-height: 1;
-  text-transform: uppercase;
 }
 
-.orvius-logo-tag {
-  font-size: 0.5625rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ash);
-}
-
-.orvius-logo-void .orvius-logo-wordmark {
-  color: var(--mist);
-}
-
-.orvius-logo-void .orvius-logo-tag {
-  color: color-mix(in srgb, var(--mist) 55%, var(--ash));
-}
-
-.orvius-logo-chalk .orvius-logo-wordmark {
-  color: var(--void);
-}
-
-.orvius-logo-chalk .orvius-logo-tag {
-  color: var(--ash);
-}
-
-.orvius-logo-sm .orvius-logo-wordmark { font-size: 0.6875rem; letter-spacing: 0.16em; }
+.orvius-logo-sm .orvius-logo-wordmark { font-size: 0.6875rem; letter-spacing: 0.2em; }
 .orvius-logo-md .orvius-logo-wordmark { font-size: 0.8125rem; }
-.orvius-logo-lg .orvius-logo-wordmark { font-size: 0.875rem; letter-spacing: 0.2em; }
-.orvius-logo-xl .orvius-logo-wordmark { font-size: 0.9375rem; letter-spacing: 0.2em; }
+.orvius-logo-lg .orvius-logo-wordmark { font-size: 0.9375rem; letter-spacing: 0.24em; }
+.orvius-logo-xl .orvius-logo-wordmark { font-size: 1.0625rem; letter-spacing: 0.26em; }
+
+.orvius-logo-void .orvius-logo-wordmark { color: var(--mist); }
+.orvius-logo-chalk .orvius-logo-wordmark { color: var(--void); }
 
 .orvius-logo-mark {
   flex-shrink: 0;
 }
 
-/* Mark — flat monogram */
 .orvius-mark-frame {
   fill: var(--void);
 }
 
 .orvius-mark-ring {
   stroke: var(--signal);
+  fill: none;
 }
 
-.orvius-logo-void .orvius-mark-frame {
-  fill: var(--mist);
-}
+.orvius-logo-void .orvius-mark-frame { fill: var(--mist); }
+.orvius-logo-void .orvius-mark-ring { stroke: var(--void); }
+.orvius-logo-chalk .orvius-mark-frame { fill: var(--void); }
+.orvius-logo-chalk .orvius-mark-ring { stroke: var(--signal); }
 
-.orvius-logo-void .orvius-mark-ring {
-  stroke: var(--void);
-}
-
-.orvius-logo-chalk .orvius-mark-frame {
-  fill: var(--void);
-}
-
-.orvius-logo-chalk .orvius-mark-ring {
-  stroke: var(--signal);
-}
-
-.orvius-mark-graphic-og .orvius-mark-frame {
-  fill: var(--void);
-}
-
-.orvius-mark-graphic-og .orvius-mark-ring {
-  stroke: var(--signal);
-}
+.orvius-mark-graphic-og .orvius-mark-frame { fill: var(--void); }
+.orvius-mark-graphic-og .orvius-mark-ring { stroke: var(--signal); fill: none; }
 
 .shell-brand-text {
   display: inline-flex;
@@ -1605,9 +1650,9 @@ h3 {
 /* Editorial homepage — Claude / Anthropic restraint */
 .editorial-wrap {
   width: 100%;
-  max-width: 80rem;
+  max-width: 72rem;
   margin-inline: auto;
-  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+  padding-inline: clamp(1.5rem, 5vw, 3rem);
 }
 
 .editorial-hero {
@@ -8310,22 +8355,17 @@ h3 {
 }
 
 .tier1-eyebrow {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ash);
+  /* spacing hooks — pair with .type-eyebrow */
 }
 
 .tier1-eyebrow-light {
-  color: color-mix(in srgb, var(--mist) 72%, var(--ash));
+  color: color-mix(in srgb, var(--mist) 65%, var(--ash));
 }
 
 .tier1-hero {
   position: relative;
-  padding-top: clamp(7rem, 14vh, 10rem);
-  padding-bottom: clamp(4.5rem, 9vh, 6.5rem);
+  padding-top: clamp(7.5rem, 15vh, 10rem);
+  padding-bottom: var(--section-y);
   border-bottom: 1px solid var(--rule);
   background: var(--chalk);
   overflow: hidden;
@@ -8345,112 +8385,79 @@ h3 {
 }
 
 .tier1-hero-heading {
-  margin-top: 1.5rem;
-  max-width: 18ch;
-  font-size: clamp(2rem, 4.5vw, 3.25rem);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--void);
+  margin-top: var(--space-6);
+  max-width: 14ch;
 }
 
 .tier1-hero-line {
   display: block;
-  margin-top: 1.25rem;
-  font-size: clamp(1.375rem, 3vw, 2rem);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-  color: var(--signal);
-  text-decoration: none;
-  transition: color 180ms ease;
-}
-
-.tier1-hero-line:hover {
-  color: var(--signal-dim);
+  margin-top: var(--space-5);
 }
 
 .tier1-hero-statement {
-  margin-top: 1.75rem;
-  max-width: 28rem;
-  font-size: clamp(1.125rem, 2vw, 1.375rem);
+  margin-top: var(--space-8);
+  max-width: 32ch;
+  font-size: clamp(1.125rem, 2vw, 1.3125rem);
   font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: -0.025em;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-snug);
   color: var(--void);
 }
 
 .tier1-hero-lead {
-  margin-top: 0.875rem;
-  max-width: 40rem;
-  font-size: 1.0625rem;
-  line-height: 1.65;
+  margin-top: var(--space-4);
+  max-width: 40ch;
+  font-size: var(--text-lead);
+  line-height: var(--leading-relaxed);
   color: var(--ash);
 }
 
 .tier1-hero-foot {
-  margin-top: 1.5rem;
-  font-size: 0.8125rem;
-  letter-spacing: 0.02em;
+  margin-top: var(--space-6);
+  font-size: var(--text-small);
   color: var(--ash-soft);
-}
-
-.tier1-hero-call,
-.marketing-hero-call {
-  position: relative;
-  z-index: 1;
-  margin-top: 2rem;
-  max-width: 28rem;
-}
-
-.tier1-page-title {
-  margin-top: 0.875rem;
-  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
-  line-height: 1.12;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--void);
-  max-width: 24ch;
-}
-
-.tier1-section-title {
-  margin-top: 0.75rem;
-  font-size: clamp(1.5rem, 2.8vw, 2.25rem);
-  line-height: 1.15;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--void);
-  max-width: 28ch;
-}
-
-.tier1-section-title-light {
-  color: var(--mist);
-  max-width: 24ch;
-}
-
-.tier1-section-lead {
-  margin-top: 0.875rem;
-  max-width: 42rem;
-  font-size: 1.0625rem;
-  line-height: 1.65;
-  color: var(--ash);
-}
-
-.tier1-section-lead-light {
-  color: color-mix(in srgb, var(--mist) 72%, var(--ash));
 }
 
 .tier1-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem 1rem;
-  margin-top: 2.25rem;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.marketing-hero-call {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--space-8);
+  max-width: 28rem;
+}
+
+.tier1-page-title {
+  margin-top: var(--space-4);
+  max-width: 22ch;
+}
+
+.tier1-section-title {
+  margin-top: var(--space-3);
+  max-width: 32ch;
+}
+
+.tier1-section-title-light {
+  color: var(--mist);
+  max-width: 28ch;
+}
+
+.tier1-section-lead {
+  margin-top: var(--space-4);
+  max-width: 42rem;
+  font-size: var(--text-lead);
+  line-height: var(--leading-relaxed);
+  color: var(--ash);
+}
+
+.tier1-section-lead-light {
+  color: color-mix(in srgb, var(--mist) 72%, var(--ash));
 }
 
 .inst-btn {
@@ -8661,11 +8668,10 @@ h3 {
 }
 
 .tier1-quote-text {
-  font-size: clamp(1.25rem, 2.4vw, 1.875rem);
-  line-height: 1.45;
-  letter-spacing: 0.04em;
+  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-snug);
   font-weight: 500;
-  text-transform: none;
   color: var(--void);
 }
 
@@ -8700,17 +8706,7 @@ h3 {
 
 .tier1-close-line {
   display: block;
-  margin-top: 0.65rem;
-  font-size: clamp(1.375rem, 3vw, 1.875rem);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  font-variant-numeric: tabular-nums;
-  color: var(--signal-dim);
-  text-decoration: none;
-}
-
-.tier1-close-line:hover {
-  color: var(--signal-dim);
+  margin-top: var(--space-3);
 }
 
 .tier1-close-actions {
@@ -9169,12 +9165,8 @@ h3 {
 }
 
 .tier1-login-title {
-  margin-top: 1.25rem;
-  font-size: clamp(1.375rem, 2.5vw, 2rem);
-  line-height: 1.15;
-  letter-spacing: 0.1em;
-  font-weight: 600;
-  text-transform: uppercase;
+  margin-top: var(--space-5);
+  max-width: 22ch;
 }
 
 .tier1-login-lead {
@@ -11634,13 +11626,7 @@ h3 {
 
 .inst-trust-strip-label {
   display: block;
-  margin-bottom: 0.2rem;
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ash);
+  margin-bottom: var(--space-1);
 }
 
 .inst-product .tier1-product-head {
@@ -11678,17 +11664,14 @@ h3 {
 
 .inst-platform-num {
   display: block;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
   color: color-mix(in srgb, var(--mist) 45%, var(--ash));
 }
 
 .inst-platform-title {
-  margin-top: 0.75rem;
-  font-size: 0.9375rem;
+  margin-top: var(--space-3);
+  font-size: var(--text-small);
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-wide);
   color: var(--mist);
 }
 

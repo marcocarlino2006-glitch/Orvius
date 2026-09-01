@@ -37,8 +37,8 @@ export default function PricingPage() {
 
       <section className="tier1-close">
         <div className="editorial-wrap tier1-close-inner">
-          <p className="tier1-eyebrow">Economics</p>
-          <h2 className="tier1-section-title font-brand">
+          <p className="tier1-eyebrow type-eyebrow">Economics</p>
+          <h2 className="tier1-section-title type-headline">
             One booked job covers the month.
           </h2>
           <p className="tier1-section-lead font-sans">

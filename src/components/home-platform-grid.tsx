@@ -27,8 +27,8 @@ export function HomePlatformGrid() {
       <ul className="inst-platform-grid">
         {CAPABILITIES.map((item) => (
           <li key={item.num} className="inst-platform-item">
-            <span className="inst-platform-num font-brand">{item.num}</span>
-            <h3 className="inst-platform-title font-brand">{item.title}</h3>
+            <span className="inst-platform-num type-eyebrow">{item.num}</span>
+            <h3 className="inst-platform-title">{item.title}</h3>
             <p className="inst-platform-body font-sans">{item.body}</p>
           </li>
         ))}

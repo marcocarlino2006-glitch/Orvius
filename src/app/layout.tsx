@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { DM_Sans, Plus_Jakarta_Sans } from "next/font/google";
+import { DM_Sans, Inter } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
-const sans = Plus_Jakarta_Sans({
+/** UI + body — clean, neutral, institutional */
+const sans = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-/** Brand wordmark + marketing headlines — clean, tracked, professional. */
+/** Logo wordmark + eyebrows only */
 const brand = DM_Sans({
   variable: "--font-brand",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["500", "600"],
   display: "swap",
 });
 

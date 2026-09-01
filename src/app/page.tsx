@@ -29,8 +29,8 @@ export default function HomePage() {
       <section className="tier1-product inst-product" aria-label="Orvius platform">
         <div className="editorial-wrap tier1-product-inner">
           <div className="tier1-product-head">
-            <p className="tier1-eyebrow tier1-eyebrow-light">Platform</p>
-            <h2 className="tier1-section-title tier1-section-title-light font-brand">
+            <p className="tier1-eyebrow tier1-eyebrow-light type-eyebrow">Platform</p>
+            <h2 className="tier1-section-title tier1-section-title-light type-headline">
               One system of record for the shop.
             </h2>
             <p className="tier1-section-lead tier1-section-lead-light font-sans">
@@ -48,8 +48,8 @@ export default function HomePage() {
 
       <section className="tier1-close inst-close">
         <div className="editorial-wrap tier1-close-inner">
-          <p className="tier1-eyebrow tier1-eyebrow-light">Ready when you are</p>
-          <a href={demoLineHref()} className="tier1-close-line font-brand">
+          <p className="tier1-eyebrow tier1-eyebrow-light type-eyebrow">Ready when you are</p>
+          <a href={demoLineHref()} className="tier1-close-line type-phone">
             {DEMO_LINE_DISPLAY}
           </a>
           <div className="tier1-actions tier1-close-actions">
