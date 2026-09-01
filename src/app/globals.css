@@ -1,33 +1,35 @@
 @import "tailwindcss";
 
 /*
-  Orvius — white canvas, black ink.
-  Coral reserved for live line / phone only.
+  Orvius — Cursor-tier editorial system.
+  Warm cream canvas · warm ink · orange accent sparingly.
 */
 
 :root {
   /* Canvas */
-  --chalk: #ffffff;
-  --fog: #fafafa;
-  --warm-close: #ffffff;
+  --canvas: #f7f7f4;
+  --chalk: #f7f7f4;
+  --fog: #f2f1ed;
+  --warm-close: #f7f7f4;
   --white: #ffffff;
 
   /* Ink */
-  --void: #0a0a0a;
-  --void-deep: #1a1a1a;
-  --panel: #262626;
-  --mist: #f5f5f5;
+  --void: #26251e;
+  --void-deep: #1e1d18;
+  --panel: #26251e;
+  --mist: #ebeae5;
 
   /* Neutrals */
-  --ash: #737373;
-  --ash-soft: #a3a3a3;
-  --rule: #e5e5e5;
-  --rule-dark: rgba(0, 0, 0, 0.12);
+  --ash: #6b6a64;
+  --ash-soft: #8a8983;
+  --rule: #e6e5e0;
+  --hairline: #e6e5e0;
+  --rule-dark: rgba(38, 37, 30, 0.12);
 
-  /* Coral accent — primary brand action */
-  --signal: #f0704a;
-  --signal-hot: #f58868;
-  --signal-dim: #e05a32;
+  /* Accent — Cursor orange, live line only */
+  --signal: #f54e00;
+  --signal-hot: #ff5c0d;
+  --signal-dim: #e04600;
 
   /* Success / recovered revenue */
   --live: #1f9d68;
@@ -38,28 +40,27 @@
   --flare-hot: #f87171;
   --flare-dim: #dc2626;
 
-  --background: var(--chalk);
+  --background: var(--canvas);
   --foreground: var(--void);
   --surface: var(--fog);
   --muted: var(--ash);
   --accent: var(--signal);
   --accent-strong: var(--signal-dim);
   --ink: var(--void);
-  --line: var(--rule);
-  --paper: var(--chalk);
+  --line: var(--hairline);
+  --paper: var(--canvas);
   --card: var(--white);
-  --border: var(--rule);
+  --border: var(--hairline);
   --success: var(--live);
 
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
-  --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.06), 0 16px 40px rgba(0, 0, 0, 0.07);
-  --shadow-product: 0 0 0 1px color-mix(in srgb, var(--signal) 16%, transparent),
-    0 20px 56px rgba(26, 25, 23, 0.12);
+  --shadow-soft: 0 1px 2px rgba(38, 37, 30, 0.04), 0 8px 24px rgba(38, 37, 30, 0.05);
+  --shadow-lift: 0 2px 4px rgba(38, 37, 30, 0.06), 0 16px 40px rgba(38, 37, 30, 0.07);
 
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.625rem;
   --radius-xl: 0.75rem;
+  --radius-pill: 9999px;
 
   /* Typography scale */
   --text-caption: 0.6875rem;
@@ -71,8 +72,8 @@
   --tracking-snug: -0.02em;
   --tracking-normal: 0;
   --tracking-wide: 0.06em;
-  --tracking-brand: 0.18em;
-  --leading-tight: 1.12;
+  --tracking-brand: -0.025em;
+  --leading-tight: 1.1;
   --leading-snug: 1.35;
   --leading-normal: 1.55;
   --leading-relaxed: 1.65;
@@ -91,7 +92,7 @@
   --space-20: 5rem;
   --section-y: clamp(4.5rem, 9vh, 6.5rem);
   --content-gap: var(--space-6);
-  --kicker-tracking: 0.14em;
+  --kicker-tracking: -0.01em;
 }
 
 @theme inline {
@@ -132,12 +133,12 @@
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--signal) 28%, transparent);
+  background: color-mix(in srgb, var(--signal) 18%, transparent);
   color: var(--void);
 }
 
 body {
-  background: var(--white);
+  background: var(--canvas);
   color: var(--void);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   font-feature-settings: "cv01", "cv02", "ss01";
@@ -160,38 +161,38 @@ button,
 /* ── Type system ── */
 
 .type-wordmark {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: var(--tracking-brand);
-  text-transform: uppercase;
+  text-transform: none;
   line-height: 1;
   color: var(--void);
 }
 
 .type-eyebrow {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--text-caption);
   font-weight: 500;
   letter-spacing: var(--kicker-tracking);
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--ash);
 }
 
 .type-display {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.5rem, 5.2vw, 3.75rem);
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.75rem, 5.5vw, 4.25rem);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.045em;
   color: var(--void);
 }
 
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.75rem, 3.2vw, 2.5rem);
-  font-weight: 600;
+  font-weight: 400;
   line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-snug);
+  letter-spacing: -0.035em;
   color: var(--void);
 }
 
@@ -206,17 +207,19 @@ button,
 
 .type-phone {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.375rem, 2.8vw, 1.875rem);
+  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
   font-weight: 500;
   line-height: var(--leading-tight);
-  letter-spacing: 0.04em;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  color: var(--signal);
+  color: var(--void);
   text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--void) 20%, transparent);
 }
 
 .type-phone:hover {
-  color: var(--signal-dim);
+  color: var(--signal);
+  border-bottom-color: color-mix(in srgb, var(--signal) 40%, transparent);
 }
 
 .type-lead {
@@ -1134,26 +1137,30 @@ h3 {
   letter-spacing: var(--logo-wordmark-tracking, var(--tracking-brand));
 }
 
-.orvius-logo-sm .orvius-logo-wordmark { --logo-wordmark-size: 0.6875rem; --logo-wordmark-tracking: 0.2em; }
-.orvius-logo-md .orvius-logo-wordmark { --logo-wordmark-size: 0.8125rem; --logo-wordmark-tracking: 0.22em; }
-.orvius-logo-lg .orvius-logo-wordmark { --logo-wordmark-size: 0.9375rem; --logo-wordmark-tracking: 0.24em; }
-.orvius-logo-xl .orvius-logo-wordmark { --logo-wordmark-size: 1.0625rem; --logo-wordmark-tracking: 0.26em; }
+.orvius-logo-sm .orvius-logo-wordmark { --logo-wordmark-size: 0.875rem; --logo-wordmark-tracking: -0.02em; }
+.orvius-logo-md .orvius-logo-wordmark { --logo-wordmark-size: 0.9375rem; --logo-wordmark-tracking: -0.025em; }
+.orvius-logo-lg .orvius-logo-wordmark { --logo-wordmark-size: 1.0625rem; --logo-wordmark-tracking: -0.03em; }
+.orvius-logo-xl .orvius-logo-wordmark { --logo-wordmark-size: 1.1875rem; --logo-wordmark-tracking: -0.03em; }
 
-.orvius-logo-void .orvius-logo-wordmark { color: var(--white); }
+.orvius-logo-void .orvius-logo-wordmark { color: var(--chalk); }
 .orvius-logo-chalk .orvius-logo-wordmark { color: var(--void); }
 
 .orvius-logo-mark {
   flex-shrink: 0;
-  color: var(--void);
+  color: currentColor;
 }
 
-.orvius-mark-ring {
+.orvius-mark-frame {
   stroke: currentColor;
   fill: none;
 }
 
+.orvius-mark-line {
+  stroke: currentColor;
+}
+
 .orvius-logo-void {
-  color: var(--white);
+  color: var(--chalk);
 }
 
 .orvius-logo-chalk {
@@ -1204,8 +1211,8 @@ h3 {
 }
 
 .shell-header-chalk.shell-header-elevated {
-  background: color-mix(in srgb, var(--chalk) 92%, transparent);
-  border-bottom: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--canvas) 88%, transparent);
+  border-bottom: 1px solid var(--hairline);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -1244,10 +1251,10 @@ h3 {
 
 .shell-nav-link-chalk {
   color: var(--ash);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  text-transform: none;
 }
 
 .shell-nav-link-chalk:hover {
@@ -5740,8 +5747,10 @@ h3 {
   bottom: 0;
   z-index: 45;
   padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
-  background: var(--white);
-  border-top: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--canvas) 92%, transparent);
+  border-top: 1px solid var(--hairline);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   animation: cookie-slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -5758,10 +5767,10 @@ h3 {
   gap: var(--space-3);
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
   background: var(--void);
-  color: var(--white);
+  color: var(--chalk);
   text-decoration: none;
   transition: background 160ms ease;
 }
@@ -5772,15 +5781,15 @@ h3 {
 
 .home-sticky-call-label {
   font-size: var(--text-caption);
-  font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--white) 65%, var(--ash));
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--chalk) 70%, var(--ash));
 }
 
 .home-sticky-call-number {
-  font-size: 1rem;
-  color: var(--white);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--chalk);
 }
 
 .demo-live-banner { margin-bottom: 2rem; max-width: 28rem; }
@@ -8400,8 +8409,8 @@ h3 {
   position: relative;
   padding-top: clamp(7.5rem, 15vh, 10rem);
   padding-bottom: var(--section-y);
-  border-bottom: 1px solid var(--rule);
-  background: var(--white);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--canvas);
   overflow: hidden;
 }
 
@@ -8515,10 +8524,10 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.875rem 1.625rem;
-  border-radius: 0.4375rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1;
   border: 1px solid transparent;
@@ -8527,12 +8536,11 @@ h3 {
   transition:
     background 180ms ease,
     color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease;
+    border-color 180ms ease;
 }
 
 .inst-btn-sm {
-  padding: 0.625rem 1.125rem;
+  padding: 0.5rem 1rem;
   font-size: 0.8125rem;
 }
 
@@ -8540,24 +8548,22 @@ h3 {
   background: var(--void);
   color: var(--chalk);
   border-color: var(--void);
-  box-shadow: none;
 }
 
 .inst-btn-primary:hover {
   background: var(--void-deep);
   border-color: var(--void-deep);
-  box-shadow: none;
 }
 
 .inst-btn-ghost {
-  background: transparent;
+  background: var(--fog);
   color: var(--void);
-  border-color: color-mix(in srgb, var(--void) 14%, var(--rule));
+  border-color: var(--hairline);
 }
 
 .inst-btn-ghost:hover {
-  border-color: color-mix(in srgb, var(--void) 28%, var(--rule));
-  background: color-mix(in srgb, var(--fog) 40%, var(--white));
+  border-color: color-mix(in srgb, var(--void) 12%, var(--hairline));
+  background: var(--mist);
 }
 
 .inst-btn-outline-light {
@@ -8595,10 +8601,10 @@ h3 {
 .tier1-product {
   position: relative;
   padding-block: clamp(5rem, 10vh, 7.5rem);
-  background: var(--white);
+  background: var(--canvas);
   color: var(--void);
   overflow: hidden;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--hairline);
 }
 
 .tier1-product-glow {
@@ -8714,10 +8720,10 @@ h3 {
 .tier1-quote {
   position: relative;
   padding-block: clamp(5rem, 11vh, 8rem);
-  background: var(--white);
+  background: var(--fog);
   color: var(--void);
   overflow: hidden;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--hairline);
 }
 
 .tier1-quote-glow {
@@ -8759,8 +8765,8 @@ h3 {
 
 .tier1-close {
   padding-block: clamp(5rem, 10vh, 7rem);
-  background: var(--white);
-  border-top: 1px solid var(--rule);
+  background: var(--fog);
+  border-top: 1px solid var(--hairline);
   border-bottom: none;
 }
 
@@ -8784,8 +8790,8 @@ h3 {
 }
 
 .tier1-footer {
-  border-top: 1px solid var(--rule);
-  background: var(--white);
+  border-top: 1px solid var(--hairline);
+  background: var(--canvas);
   color: var(--void);
 }
 
@@ -11645,7 +11651,7 @@ h3 {
    ═══════════════════════════════════════════════════════ */
 
 .inst-hero {
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .inst-hero-grid {
@@ -11676,8 +11682,8 @@ h3 {
 }
 
 .inst-trust-strip-wrap {
-  border-bottom: 1px solid var(--rule);
-  background: var(--white);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--canvas);
 }
 
 .inst-trust-strip {
@@ -11715,8 +11721,8 @@ h3 {
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--rule);
-  border: 1px solid var(--rule);
+  background: var(--hairline);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
@@ -11735,7 +11741,7 @@ h3 {
 
 .inst-platform-item {
   padding: 1.75rem 1.5rem;
-  background: var(--white);
+  background: var(--fog);
 }
 
 .inst-platform-num {
@@ -11762,8 +11768,8 @@ h3 {
   margin-top: var(--space-4);
   padding: var(--space-3);
   border-radius: var(--radius-sm);
-  background: var(--fog);
-  border: 1px solid var(--rule);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
 }
 
 .inst-platform-preview-line {
@@ -11883,7 +11889,7 @@ h3 {
 }
 
 .inst-close {
-  background: var(--white);
+  background: var(--fog);
   color: var(--void);
   border-bottom: none;
 }
@@ -11918,7 +11924,7 @@ h3 {
 }
 
 .tier1-page .shell-header-elevated {
-  background: color-mix(in srgb, var(--white) 92%, transparent);
-  border-bottom: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--canvas) 88%, transparent);
+  border-bottom: 1px solid var(--hairline);
   backdrop-filter: blur(16px);
 }

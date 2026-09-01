@@ -1,20 +1,20 @@
-/** Brand typography — single source for logo and type scale references. */
+/** Brand typography — Cursor-tier: one voice, calm display. */
 
-export const brandWordmark = "ORVIUS";
+export const brandWordmark = "Orvius";
 
 export const typeScale = {
-  caption: "0.6875rem",
-  small: "0.8125rem",
-  body: "1rem",
+  caption: "0.8125rem",
+  small: "0.875rem",
+  body: "0.9375rem",
   lead: "1.0625rem",
   title: "1.125rem",
   headline: "clamp(1.75rem, 3.2vw, 2.5rem)",
-  display: "clamp(2.25rem, 4.5vw, 3.375rem)",
+  display: "clamp(2.75rem, 5.5vw, 4.25rem)",
 } as const;
 
 export const logoSizes = {
-  sm: { mark: 20, wordmark: "0.6875rem", tracking: "0.16em" },
-  md: { mark: 24, wordmark: "0.8125rem", tracking: "0.18em" },
-  lg: { mark: 28, wordmark: "0.9375rem", tracking: "0.2em" },
-  xl: { mark: 32, wordmark: "1.0625rem", tracking: "0.22em" },
+  sm: { mark: 18, wordmark: "0.875rem", tracking: "-0.02em" },
+  md: { mark: 20, wordmark: "0.9375rem", tracking: "-0.025em" },
+  lg: { mark: 22, wordmark: "1.0625rem", tracking: "-0.03em" },
+  xl: { mark: 24, wordmark: "1.1875rem", tracking: "-0.03em" },
 } as const;

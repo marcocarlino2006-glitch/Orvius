@@ -16,47 +16,34 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: orviusColors.white,
+          background: orviusColors.canvas,
           padding: "72px 80px",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-          }}
-        >
-          <OrviusMarkGraphic size={64} gradientId="orvius-og-mark" />
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <OrviusMarkGraphic size={56} gradientId="orvius-og-mark" />
           <div
             style={{
               display: "flex",
-              fontSize: 22,
+              fontSize: 28,
               fontWeight: 600,
               color: orviusColors.void,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
+              letterSpacing: "-0.03em",
             }}
           >
-            ORVIUS
+            Orvius
           </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 28,
-          }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div
             style={{
               display: "flex",
               fontSize: 64,
-              fontWeight: 600,
+              fontWeight: 400,
               color: orviusColors.void,
-              letterSpacing: "-0.035em",
-              lineHeight: 1.08,
+              letterSpacing: "-0.045em",
+              lineHeight: 1.06,
               maxWidth: 900,
             }}
           >
@@ -65,17 +52,17 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              width: 64,
-              height: 2,
-              background: orviusColors.void,
+              width: 48,
+              height: 1,
+              background: orviusColors.hairline,
             }}
           />
           <div
             style={{
               display: "flex",
               maxWidth: 720,
-              fontSize: 30,
-              lineHeight: 1.35,
+              fontSize: 28,
+              lineHeight: 1.4,
               color: orviusColors.ash,
               letterSpacing: "-0.02em",
             }}
@@ -90,7 +77,7 @@ export default function OpenGraphImage() {
             justifyContent: "space-between",
             alignItems: "center",
             color: orviusColors.ashSoft,
-            fontSize: 22,
+            fontSize: 20,
           }}
         >
           <span>HVAC · Plumbing · Electrical</span>

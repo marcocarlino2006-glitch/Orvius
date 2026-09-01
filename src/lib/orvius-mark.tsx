@@ -1,5 +1,5 @@
 /**
- * Orvius mark — bold open ring. Monochrome. No frame.
+ * Orvius mark — line inside frame. Warm ink. Flat.
  */
 
 export type OrviusMarkSvgProps = {
@@ -22,15 +22,20 @@ export function OrviusMarkSvg({
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      <circle
-        className="orvius-mark-ring"
-        cx="16"
-        cy="16"
-        r="10.5"
-        strokeWidth="2.5"
-        strokeDasharray="58 8"
+      <rect
+        className="orvius-mark-frame"
+        x="5"
+        y="5"
+        width="22"
+        height="22"
+        rx="6"
+        strokeWidth="1.75"
+      />
+      <path
+        className="orvius-mark-line"
+        d="M16 11v10"
+        strokeWidth="2"
         strokeLinecap="round"
-        transform="rotate(90 16 16)"
       />
     </svg>
   );
