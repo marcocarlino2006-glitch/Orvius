@@ -31,6 +31,7 @@ Run `npm run standard:check` before every deploy and public post.
 - `npm run build`
 - `npm run test:trust`
 - `npm run standard:check`
+- `npm run wedge:ready` (when validating a design partner shop)
 - `npm run pre-post:check` (before public marketing)
 
 ## Wedge definition of done

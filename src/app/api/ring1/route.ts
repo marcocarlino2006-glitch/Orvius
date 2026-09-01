@@ -3,6 +3,7 @@ import { getDispatchBoard } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { requireBusinessSession } from "@/lib/tenant";
+import { getWedgeReadiness } from "@/lib/wedge-readiness";
 
 function startOfToday() {
   const d = new Date();
@@ -61,6 +62,8 @@ export async function GET() {
     getShopHealth(business.id),
   ]);
 
+  const wedge = await getWedgeReadiness(business.id, health);
+
   const line =
     business.vapiPhoneNumber ??
     business.twilioPhone ??
@@ -118,5 +121,6 @@ export async function GET() {
       ),
     },
     health,
+    wedge,
   });
 }

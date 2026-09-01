@@ -1,9 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthConfigStatus } from "@/lib/auth-env";
-import { getConfigStatus } from "@/lib/env";
+import { getConfigStatus, verifyAdminRequest } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { isProduction } from "@/lib/runtime";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (isProduction() && !verifyAdminRequest(request)) {
+    return NextResponse.json({
+      ok: true,
+      service: "orvius",
+    });
+  }
+
   const config = getConfigStatus();
   const auth = getAuthConfigStatus();
   const [businessCount, leadCount, callCount, jobCount, primaryBusiness] = await Promise.all([

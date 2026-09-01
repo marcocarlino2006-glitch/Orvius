@@ -92,7 +92,7 @@ export default function LeadDetailPage() {
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
-      subtitle={`Ring 1 lead · ${lead.business?.name ?? "Orvius"}`}
+      subtitle={`${lead.business?.name ?? "Your shop"} · ${lead.source === "sms" ? "Text lead" : "Call lead"}`}
       businessName={lead.business?.name ?? "Summit HVAC"}
       actions={
         <div className="flex flex-wrap items-center gap-2">
@@ -161,7 +161,7 @@ export default function LeadDetailPage() {
           ) : (
             <ShellPanel title="Book this lead">
               <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
-                Turn this Ring 1 lead into a scheduled job.
+                Schedule this lead on your calendar and assign crew on dispatch.
               </p>
               <BookJobForm leadId={lead.id} urgency={lead.urgency} />
             </ShellPanel>

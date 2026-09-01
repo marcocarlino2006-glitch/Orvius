@@ -9,15 +9,12 @@ type ProfileMenuProps = {
 };
 
 const links = [
-  { href: "/dashboard", label: "Overview", hint: "OS hub · stats" },
-  { href: "/dashboard/inbox", label: "Inbox", hint: "Leads · Ring 1" },
-  { href: "/dashboard/ask", label: "Ask", hint: "Shop brain · memory" },
-  { href: "/dashboard/dispatch", label: "Dispatch", hint: "Field · Ring 4" },
-  { href: "/dashboard/customers", label: "Customers", hint: "Records · Ring 2" },
-  { href: "/admin", label: "Business setup", hint: "Receptionist & config" },
-  { href: "/demo", label: "Demo call", hint: "Sales walkthrough" },
-  { href: "/pilot", label: "Pilot applications", hint: "Design partner form" },
-  { href: "/domains", label: "Domain", hint: "orvius.im DNS" },
+  { href: "/dashboard", label: "Today", hint: "Line · inbox · schedule" },
+  { href: "/dashboard/inbox", label: "Inbox", hint: "Leads to follow up" },
+  { href: "/dashboard/ask", label: "Ask", hint: "Search your shop record" },
+  { href: "/dashboard/dispatch", label: "Dispatch", hint: "Today's board" },
+  { href: "/dashboard/customers", label: "Customers", hint: "Caller history" },
+  { href: "/dashboard/settings", label: "Settings", hint: "Line · alerts" },
 ];
 
 export function ProfileMenu({

@@ -8,14 +8,17 @@ import {
   ProSectionHead,
   ProStatRow,
 } from "@/components/pro-page-chrome";
+import { ProAlertSpeedBadge } from "@/components/pro-alert-speed-badge";
 import { ProAlertBanner } from "@/components/pro-alert-banner";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProPriorityBanner } from "@/components/pro-priority-banner";
 import { ProShopHealth } from "@/components/pro-shop-health";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProSignalBar } from "@/components/pro-signal-bar";
+import { ProWedgeReadiness } from "@/components/pro-wedge-readiness";
 import { Ring1RecentCallRow } from "@/components/ring1-recent-call-row";
 import type { ShopHealth } from "@/lib/shop-health";
+import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
 type Ring1Data = {
   business: { name: string; line: string | null; ownerPhone: string | null } | null;
@@ -67,6 +70,7 @@ type Ring1Data = {
     }>;
   };
   health?: ShopHealth;
+  wedge?: WedgeReadiness;
 };
 
 const REFRESH_MS = 30_000;
@@ -139,7 +143,11 @@ export function Ring1CommandCenter() {
 
       <ProAlertBanner health={data?.health ?? null} />
 
+      <ProWedgeReadiness readiness={data?.wedge ?? null} />
+
       <ProSignalBar />
+
+      <ProAlertSpeedBadge health={data?.health ?? null} />
 
       <ProShopHealth health={data?.health} compact />
 

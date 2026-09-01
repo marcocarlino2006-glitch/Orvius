@@ -87,6 +87,9 @@ const clarityFiles = [
   "src/lib/os-nav.ts",
   "src/components/onboarding-wizard.tsx",
   "src/app/dashboard/calls/[id]/page.tsx",
+  "src/app/dashboard/inbox/[id]/page.tsx",
+  "src/components/profile-menu.tsx",
+  "src/components/pro-wedge-readiness.tsx",
 ];
 
 for (const rel of clarityFiles) {
