@@ -30,6 +30,7 @@
     "backfill:customers": "node scripts/backfill-customers.mjs",
     "deploy:check": "node scripts/deploy-check.mjs",
     "export:vercel-env": "node scripts/export-vercel-env.mjs",
+    "ops:check": "node scripts/ops-check.mjs",
     "billing:check": "node scripts/billing-check.mjs",
     "stripe:setup": "node scripts/stripe-setup.mjs"
   },

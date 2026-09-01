@@ -33,9 +33,9 @@ export default function HomePage() {
               Inbox, jobs, dispatch, ask — one system of record.
             </h2>
             <p className="tier1-section-lead tier1-section-lead-light font-sans">
-              Every ring writes to the same customer and job history. Sign in to
-              set up your shop — dedicated line, AI receptionist, and command
-              center included.
+              Every call builds the same customer and job history. Sign in to
+              set up your shop — dedicated line, AI receptionist, and your
+              workspace included.
             </p>
           </div>
           <HomeProductStage />

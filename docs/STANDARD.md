@@ -21,6 +21,7 @@ We are building toward institutional quality — not claiming we are there yet. 
 | **Turso schema** | `npm run db:push` on prod DB | New columns/tables missing |
 
 See `docs/BILLING-SETUP.md` for Stripe product, price id, and webhook setup.
+See `docs/INSTITUTIONAL-PLAYBOOK.md` for practices adapted from operators at scale.
 
 ## Scorecard
 
@@ -41,6 +42,7 @@ Run `npm run standard:check` before every deploy and public post.
 
 - `npm run build`
 - `npm run test:trust`
+- `npm run ops:check` (institutional ops — trust, billing, standard, playbook)
 - `npm run billing:check` (before enabling Subscribe)
 - `npm run standard:check`
 - `npm run ci` (build + trust tests + live standard check — run before deploy)

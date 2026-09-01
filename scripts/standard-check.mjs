@@ -169,6 +169,21 @@ try {
   warn("Reliability live", "App not running — skip live health checks");
 }
 
+// ── Institutional playbook ──
+try {
+  readFileSync(join(root, "docs/INSTITUTIONAL-PLAYBOOK.md"), "utf8");
+  pass("Institutional playbook", "docs/INSTITUTIONAL-PLAYBOOK.md present");
+} catch {
+  fail("Institutional playbook", "docs/INSTITUTIONAL-PLAYBOOK.md missing");
+}
+
+try {
+  readFileSync(join(root, "src/lib/institutional-standards.ts"), "utf8");
+  pass("Owner SLAs in code", "institutional-standards.ts present");
+} catch {
+  fail("Owner SLAs in code", "src/lib/institutional-standards.ts missing");
+}
+
 // ── Docs exist ──
 try {
   readFileSync(join(root, "docs/STANDARD.md"), "utf8");

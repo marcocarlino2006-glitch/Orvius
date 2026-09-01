@@ -15,6 +15,7 @@ import { ProPriorityBanner } from "@/components/pro-priority-banner";
 import { ProShopHealth } from "@/components/pro-shop-health";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProSignalBar } from "@/components/pro-signal-bar";
+import { ProOwnerStandards } from "@/components/pro-owner-standards";
 import { ProWedgeReadiness } from "@/components/pro-wedge-readiness";
 import { Ring1RecentCallRow } from "@/components/ring1-recent-call-row";
 import type { ShopHealth } from "@/lib/shop-health";
@@ -144,6 +145,8 @@ export function Ring1CommandCenter() {
       <ProAlertBanner health={data?.health ?? null} />
 
       <ProWedgeReadiness readiness={data?.wedge ?? null} />
+
+      <ProOwnerStandards health={data?.health ?? null} compact />
 
       <ProSignalBar />
 

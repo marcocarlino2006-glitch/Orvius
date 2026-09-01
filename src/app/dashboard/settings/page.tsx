@@ -5,6 +5,8 @@ import { ProAlertBanner } from "@/components/pro-alert-banner";
 import { ProAlertSpeedBadge } from "@/components/pro-alert-speed-badge";
 import { ProShopHealth } from "@/components/pro-shop-health";
 import { ProSignalBar } from "@/components/pro-signal-bar";
+import { ProOwnerStandards } from "@/components/pro-owner-standards";
+import { ProSuccessJourney } from "@/components/pro-success-journey";
 import { ProWedgeReadiness } from "@/components/pro-wedge-readiness";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import type { ShopHealth } from "@/lib/shop-health";
@@ -145,6 +147,8 @@ export default function DashboardSettingsPage() {
         <>
           <ProAlertBanner health={account.health} />
           <ProWedgeReadiness readiness={account.wedge} showWhenReady />
+          <ProSuccessJourney wedge={account.wedge} />
+          <ProOwnerStandards health={account.health} />
           <ProAlertSpeedBadge health={account.health} />
           <ProShopHealth health={account.health} />
         </>
