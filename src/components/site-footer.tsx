@@ -26,7 +26,7 @@ export function SiteFooter() {
     <footer className="tier1-footer">
       <div className="editorial-wrap tier1-footer-main font-sans">
         <div className="tier1-footer-brand">
-          <OrviusLogo size="lg" variant="void" showOs={false} />
+          <OrviusLogo size="lg" variant="void" />
           <p className="tier1-footer-tagline">{company.tagline}</p>
           <p className="tier1-footer-entity">{company.legalName}</p>
         </div>
