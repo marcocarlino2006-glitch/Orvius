@@ -994,16 +994,16 @@ h3 {
 }
 
 .shell-header-bar {
-  min-height: 3.75rem;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+  min-height: 4.25rem;
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
 }
 
 @media (min-width: 768px) {
   .shell-header-bar {
-    min-height: 4.5rem;
-    padding-top: 0.9rem;
-    padding-bottom: 0.9rem;
+    min-height: 4.75rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 }
 
@@ -1196,6 +1196,10 @@ h3 {
 
 .shell-nav-link-chalk {
   color: var(--ash);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .shell-nav-link-chalk:hover {
@@ -6732,14 +6736,15 @@ h3 {
 }
 
 .os-shell-pro .btn-void {
-  background: linear-gradient(135deg, var(--signal) 0%, var(--signal-dim) 100%);
+  background: var(--void);
   color: var(--chalk);
-  border: 1px solid color-mix(in srgb, var(--signal-hot) 25%, transparent);
-  box-shadow: 0 6px 20px color-mix(in srgb, var(--signal) 22%, transparent);
+  border: 1px solid var(--void);
+  box-shadow: none;
 }
 
 .os-shell-pro .btn-void:hover {
-  background: linear-gradient(135deg, var(--signal-hot) 0%, var(--signal) 100%);
+  background: var(--void-deep);
+  border-color: var(--void-deep);
 }
 
 .os-shell-pro .btn-secondary {
@@ -8403,12 +8408,13 @@ h3 {
 
 .tier1-page-title {
   margin-top: 0.875rem;
-  font-size: clamp(2rem, 4.5vw, 3.5rem);
-  line-height: 1.05;
-  letter-spacing: -0.035em;
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   font-weight: 600;
   color: var(--void);
-  max-width: 20ch;
+  max-width: 24ch;
 }
 
 .tier1-section-title {
@@ -8478,15 +8484,16 @@ h3 {
 }
 
 .inst-btn-primary {
-  background: linear-gradient(135deg, var(--signal) 0%, var(--signal-dim) 100%);
-  color: var(--white);
-  border-color: transparent;
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--signal) 28%, transparent);
+  background: var(--void);
+  color: var(--chalk);
+  border-color: var(--void);
+  box-shadow: none;
 }
 
 .inst-btn-primary:hover {
-  background: linear-gradient(135deg, var(--signal-hot) 0%, var(--signal) 100%);
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--signal) 35%, transparent);
+  background: var(--void-deep);
+  border-color: var(--void-deep);
+  box-shadow: none;
 }
 
 .inst-btn-ghost {
@@ -8514,18 +8521,14 @@ h3 {
 .tier1-product {
   position: relative;
   padding-block: clamp(5rem, 10vh, 7.5rem);
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 0%, color-mix(in srgb, var(--signal) 10%, transparent), transparent 60%),
-    linear-gradient(180deg, var(--void-deep) 0%, var(--void) 48%, var(--panel) 100%);
+  background: var(--void);
   color: var(--mist);
   overflow: hidden;
+  border-top: 1px solid color-mix(in srgb, var(--mist) 8%, transparent);
 }
 
 .tier1-product-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 50% 40% at 50% 20%, color-mix(in srgb, var(--signal) 8%, transparent), transparent 70%);
-  pointer-events: none;
+  display: none;
 }
 
 .tier1-product-inner {
@@ -8641,18 +8644,14 @@ h3 {
 .tier1-quote {
   position: relative;
   padding-block: clamp(5rem, 11vh, 8rem);
-  background:
-    radial-gradient(ellipse 55% 45% at 10% 50%, color-mix(in srgb, var(--signal) 8%, transparent), transparent 65%),
-    linear-gradient(165deg, var(--void) 0%, var(--void-deep) 100%);
-  color: var(--mist);
+  background: var(--fog);
+  color: var(--void);
   overflow: hidden;
+  border-top: 1px solid var(--rule);
 }
 
 .tier1-quote-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 40% 50% at 85% 50%, color-mix(in srgb, var(--signal) 6%, transparent), transparent 70%);
-  pointer-events: none;
+  display: none;
 }
 
 .tier1-quote-inner {
@@ -8662,11 +8661,12 @@ h3 {
 }
 
 .tier1-quote-text {
-  font-size: clamp(1.5rem, 2.8vw, 2.25rem);
-  line-height: 1.32;
-  letter-spacing: -0.028em;
+  font-size: clamp(1.25rem, 2.4vw, 1.875rem);
+  line-height: 1.45;
+  letter-spacing: 0.04em;
   font-weight: 500;
-  color: color-mix(in srgb, var(--mist) 96%, var(--ash));
+  text-transform: none;
+  color: var(--void);
 }
 
 .tier1-quote-meta {
@@ -8675,13 +8675,13 @@ h3 {
   gap: 0.25rem;
   margin-top: 1.75rem;
   font-size: 0.8125rem;
-  color: color-mix(in srgb, var(--mist) 55%, var(--ash));
+  color: var(--ash);
 }
 
 .tier1-quote-meta cite {
   font-style: normal;
   font-weight: 600;
-  color: var(--mist);
+  color: var(--void);
 }
 
 .tier1-quote-cta {
@@ -11596,4 +11596,144 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Institutional marketing — multi-billion bar, not generic SaaS
+   ═══════════════════════════════════════════════════════ */
+
+.inst-hero {
+  border-bottom: 1px solid var(--rule);
+}
+
+.inst-hero-actions {
+  gap: 0.75rem;
+}
+
+.inst-trust-strip {
+  display: grid;
+  gap: 1rem 2rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--rule);
+  background: var(--white);
+}
+
+@media (min-width: 768px) {
+  .inst-trust-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 1.5rem 0;
+  }
+}
+
+.inst-trust-strip-item {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--void);
+}
+
+.inst-trust-strip-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.inst-product .tier1-product-head {
+  margin-bottom: 3rem;
+}
+
+.inst-platform-grid {
+  display: grid;
+  gap: 1px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: color-mix(in srgb, var(--mist) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mist) 12%, transparent);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .inst-platform-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .inst-platform-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.inst-platform-item {
+  padding: 1.75rem 1.5rem;
+  background: var(--void);
+}
+
+.inst-platform-num {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--mist) 45%, var(--ash));
+}
+
+.inst-platform-title {
+  margin-top: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--mist);
+}
+
+.inst-platform-body {
+  margin-top: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--mist) 62%, var(--ash));
+}
+
+.inst-close {
+  background: var(--void);
+  color: var(--mist);
+  border-bottom: none;
+}
+
+.inst-close .tier1-eyebrow-light {
+  color: color-mix(in srgb, var(--mist) 55%, var(--ash));
+}
+
+.tier1-close-line {
+  color: var(--signal-hot);
+}
+
+.tier1-close-foot-light {
+  color: color-mix(in srgb, var(--mist) 50%, var(--ash));
+}
+
+.inst-btn-light {
+  background: var(--mist);
+  color: var(--void);
+  border-color: var(--mist);
+}
+
+.inst-btn-light:hover {
+  background: var(--white);
+  border-color: var(--white);
+}
+
+.tier1-story {
+  border-top: 1px solid var(--rule);
+}
+
+.tier1-page .shell-header-elevated {
+  background: color-mix(in srgb, var(--chalk) 92%, transparent);
+  border-bottom: 1px solid var(--rule);
+  backdrop-filter: blur(16px);
 }

@@ -8,11 +8,10 @@ import { company, getLowestPaidPrice } from "@/lib/company";
 
 export function HomeLineHero() {
   return (
-    <section className="tier1-hero" aria-labelledby="tier1-hero-heading">
-      <div className="tier1-hero-glow" aria-hidden />
+    <section className="tier1-hero inst-hero" aria-labelledby="tier1-hero-heading">
       <div className="editorial-wrap tier1-hero-inner">
-        <p className="tier1-eyebrow font-sans">
-          Production line · {DEMO_LINE_BUSINESS}
+        <p className="tier1-eyebrow font-brand">
+          Live production line · {DEMO_LINE_BUSINESS}
         </p>
 
         <h1 id="tier1-hero-heading" className="tier1-hero-heading font-brand">
@@ -26,25 +25,21 @@ export function HomeLineHero() {
           {company.tagline}
         </p>
         <p className="tier1-hero-lead font-sans">
-          Call now. Orvius answers, qualifies, and notifies the owner — while
-          your crew is on the tools. Built for {company.trades.join(", ")}.
+          Orvius answers, qualifies, and alerts the owner — while your crew is
+          on the tools. Built for {company.trades.join(", ")}.
         </p>
 
-        <div className="tier1-actions font-sans">
+        <div className="tier1-actions inst-hero-actions font-sans">
           <a href={demoLineHref()} className="inst-btn inst-btn-primary">
             Call live line
           </a>
           <Link href="/login" className="inst-btn inst-btn-ghost">
             Get started
           </Link>
-          <Link href="/demo" className="inst-btn inst-btn-ghost">
-            Browser simulation
-          </Link>
         </div>
 
         <p className="tier1-hero-foot font-sans">
-          From ${getLowestPaidPrice()}/mo · Line, Pro, or Fleet · cancel anytime · built for
-          every shop that runs on the phone
+          From ${getLowestPaidPrice()}/mo · billed by {company.legalName}
         </p>
       </div>
     </section>
