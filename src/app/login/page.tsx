@@ -1,7 +1,9 @@
+import { DevSignInButton } from "@/components/dev-sign-in-button";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { getAuthConfigStatus } from "@/lib/auth-env";
 import { company } from "@/lib/company";
+import { getDevAuthEmail, isDevAuthBypassEnabled } from "@/lib/dev-auth";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -20,6 +22,8 @@ export default async function LoginPage({
   const error = params.error;
   const auth = getAuthConfigStatus();
   const missing = auth.items.filter((item) => !item.optional && !item.configured);
+  const devBypass = isDevAuthBypassEnabled();
+  const devEmail = devBypass ? getDevAuthEmail() : null;
 
   return (
     <main className="tier1-login">
@@ -109,6 +113,18 @@ export default async function LoginPage({
 
           <div className="tier1-login-actions">
             <GoogleSignInButton callbackUrl={callbackUrl} />
+            {devBypass ? (
+              <>
+                <p className="tier1-login-dev-note font-sans">
+                  Dev bypass on — skips Google while building. Never runs in
+                  production.
+                </p>
+                <DevSignInButton
+                  callbackUrl={callbackUrl}
+                  email={devEmail ?? undefined}
+                />
+              </>
+            ) : null}
           </div>
 
           <div className="tier1-login-links font-sans">

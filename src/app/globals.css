@@ -10058,7 +10058,23 @@ h3 {
 }
 
 .tier1-login-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-top: 1.75rem;
+}
+
+.tier1-login-dev-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ash);
+}
+
+.tier1-login-dev-btn {
+  border: 1px dashed var(--rule) !important;
+  background: transparent !important;
+  color: var(--void) !important;
 }
 
 .tier1-login-links {
