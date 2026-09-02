@@ -18,18 +18,22 @@ const transcript = [
     who: "Orvius",
     line: "Treating this as an emergency. I'm notifying the owner now.",
   },
+  {
+    who: "Orvius",
+    line: "Booked for today. On the dispatch board — waiting for assign.",
+  },
 ] as const;
 
 export function HomeCallStory() {
   return (
-    <section className="tier1-story" aria-labelledby="tier1-story-heading">
+    <section className="tier1-story home-story" aria-labelledby="tier1-story-heading">
       <div className="editorial-wrap">
         <p className="tier1-eyebrow type-eyebrow">How it works</p>
         <h2 id="tier1-story-heading" className="tier1-section-title type-headline">
           After hours. Owner on a job. Line still answered.
         </h2>
         <p className="tier1-section-lead font-sans">
-          Representative call · emergency AC · owner alerted in seconds.
+          Representative call · emergency AC · alerted, booked, on the board.
         </p>
 
         <div className="tier1-transcript font-sans" role="log" aria-label="Call transcript">
@@ -40,9 +44,10 @@ export function HomeCallStory() {
           {transcript.map((row, index) => (
             <p
               key={index}
-              className={`tier1-transcript-line ${
+              className={`tier1-transcript-line home-story-line ${
                 "muted" in row && row.muted ? "tier1-transcript-line-muted" : ""
               }`}
+              style={{ animationDelay: `${0.08 * index}s` }}
             >
               <span>{row.who}</span>
               {row.line}
@@ -50,7 +55,7 @@ export function HomeCallStory() {
           ))}
           <p className="tier1-transcript-foot">
             <span className="live-dot live-dot-green" aria-hidden />
-            Qualified · owner notified · lead in inbox
+            Qualified · owner notified · booked · on the board
           </p>
         </div>
       </div>

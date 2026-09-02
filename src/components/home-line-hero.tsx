@@ -1,52 +1,78 @@
 import Link from "next/link";
-import { OwnerAlertCard } from "@/components/owner-alert-card";
 import {
   DEMO_LINE_DISPLAY,
   demoLineHref,
 } from "@/lib/demo-line";
-import { company, getLowestPaidPrice } from "@/lib/company";
+import { company } from "@/lib/company";
+
+/** Full-bleed command atmosphere — product plane, not a floating card. */
+function HomeHeroStage() {
+  return (
+    <div className="home-bleed-stage" aria-hidden>
+      <div className="home-bleed-stage-wash" />
+      <div className="home-bleed-stage-board">
+        <div className="home-bleed-stage-rail">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="home-bleed-stage-rows">
+          <div className="home-bleed-stage-row home-bleed-stage-row-hot">
+            <i />
+            <em>Emergency · AC down</em>
+            <b>Assign</b>
+          </div>
+          <div className="home-bleed-stage-row">
+            <i />
+            <em>After-hours lead</em>
+            <b>Inbox</b>
+          </div>
+          <div className="home-bleed-stage-row">
+            <i />
+            <em>Job · Oak St</em>
+            <b>En route</b>
+          </div>
+          <div className="home-bleed-stage-row">
+            <i />
+            <em>Estimate draft</em>
+            <b>Money</b>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function HomeLineHero() {
   return (
-    <section className="tier1-hero inst-hero" aria-labelledby="tier1-hero-heading">
-      <div className="editorial-wrap tier1-hero-inner inst-hero-grid">
-        <div className="inst-hero-copy">
-          <p className="tier1-eyebrow type-eyebrow">
-            Live demo · {company.trades.join(" · ")}
-          </p>
+    <section
+      className="home-hero-bleed"
+      aria-labelledby="home-hero-heading"
+    >
+      <HomeHeroStage />
 
-          <h1 id="tier1-hero-heading" className="tier1-hero-heading type-display">
-            {company.productName}
-          </h1>
+      <div className="editorial-wrap home-hero-content">
+        <p className="home-hero-eyebrow type-eyebrow font-sans">
+          Live demo · {company.trades.join(" · ")}
+        </p>
 
-          <p className="tier1-hero-statement font-sans">
-            {company.tagline}
-          </p>
-          <p className="tier1-hero-lead type-lead">
-            Call the live line. Hear the AI answer. Watch the owner alert land.
-          </p>
+        <h1 id="home-hero-heading" className="home-hero-brand type-display">
+          {company.productName}
+        </h1>
 
-          <a href={demoLineHref()} className="tier1-hero-line type-phone">
-            {DEMO_LINE_DISPLAY}
+        <p className="home-hero-tagline font-sans">{company.tagline}</p>
+
+        <a href={demoLineHref()} className="home-hero-phone type-phone">
+          {DEMO_LINE_DISPLAY}
+        </a>
+
+        <div className="home-hero-actions font-sans">
+          <a href={demoLineHref()} className="inst-btn inst-btn-primary">
+            Call live demo
           </a>
-
-          <div className="tier1-actions inst-hero-actions font-sans">
-            <a href={demoLineHref()} className="inst-btn inst-btn-primary">
-              Call live demo
-            </a>
-            <Link href="/login" className="inst-btn inst-btn-ghost">
-              Start free
-            </Link>
-          </div>
-
-          <p className="tier1-hero-foot font-sans">
-            From ${getLowestPaidPrice("year")}/mo annual · {company.trades.join(" · ")}
-          </p>
-        </div>
-
-        <div className="inst-hero-proof">
-          <p className="inst-hero-proof-label type-eyebrow">Owner alert</p>
-          <OwnerAlertCard variant="chalk" className="inst-hero-alert" />
+          <Link href="/login" className="inst-btn inst-btn-ghost">
+            Start free
+          </Link>
         </div>
       </div>
     </section>
