@@ -153,6 +153,58 @@ async function rollbackProvision(params: {
   }
 }
 
+export function shopNeedsAutoLine(business: {
+  slug: string;
+  name?: string;
+  twilioPhone?: string | null;
+  vapiPhoneNumber?: string | null;
+  vapiAssistantId?: string | null;
+  ownerPhone?: string | null;
+}): boolean {
+  if (!shopMustNotUseDemoLine(business)) return false;
+  if (!business.vapiAssistantId?.trim() || !business.ownerPhone?.trim()) {
+    return false;
+  }
+  const line = getShopLineForBusiness(business);
+  return !line || shopHasWrongDemoLine(business);
+}
+
+/**
+ * Silently provision a dedicated line when a customer shop needs one.
+ * No manual re-sync — runs automatically on dashboard load.
+ */
+export async function autoEnsureCustomerShopLine(
+  business: Business,
+): Promise<{ business: Business; provisioned: boolean }> {
+  if (!shopNeedsAutoLine(business)) {
+    return { business, provisioned: false };
+  }
+
+  try {
+    const result = await ensureDedicatedShopLine(business);
+    return { business: result.business, provisioned: true };
+  } catch (error) {
+    logError("autoEnsureCustomerShopLine.failed", {
+      businessId: business.id,
+      name: business.name,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return { business, provisioned: false };
+  }
+}
+
+export async function getBusinessForOwnerWithAutoLine(email: string) {
+  const business = await prisma.business.findFirst({
+    where: { ownerEmail: email.toLowerCase(), isActive: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (!business) return null;
+
+  const { business: ready } = await autoEnsureCustomerShopLine(business);
+  return ready;
+}
+
 /**
  * Every signed-up shop gets a dedicated line wired to THEIR assistant.
  * The marketing demo line (+1 844…) stays Summit-only — never shared.
@@ -178,7 +230,7 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
       shopName: business.name,
     });
     await syncBusinessAssistant(business);
-    return { business, repaired: false, dedicatedLine: !isDemoPlatformLine(currentLine) };
+    return { business, repaired: false, dedicatedLine: true };
   }
 
   if (!canProvisionDedicatedLine()) {

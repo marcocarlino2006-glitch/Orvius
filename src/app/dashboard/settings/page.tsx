@@ -18,7 +18,6 @@ type AccountResponse = {
     vapiPhoneNumber: string | null;
   } | null;
   line?: string | null;
-  needsDedicatedLine?: boolean;
   health: ShopHealth | null;
   wedge: WedgeReadiness | null;
   alerts: {
@@ -37,24 +36,27 @@ export default function DashboardSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncWarning, setSyncWarning] = useState<string | null>(null);
 
+  async function loadAccount() {
+    const res = await fetch("/api/account");
+    if (!res.ok) return;
+    const data = (await res.json()) as AccountResponse;
+    setAccount(data);
+    setOwnerPhone(data.business?.ownerPhone ?? "");
+    setOwnerEmail(data.business?.ownerEmail ?? "");
+    setGreeting(data.business?.greeting ?? "");
+  }
+
   useEffect(() => {
-    fetch("/api/account")
-      .then((res) => res.json())
-      .then((data: AccountResponse) => {
-        setAccount(data);
-        setOwnerPhone(data.business?.ownerPhone ?? "");
-        setOwnerEmail(data.business?.ownerEmail ?? "");
-        setGreeting(data.business?.greeting ?? "");
-      })
-      .catch(() => null);
+    loadAccount().catch(() => null);
   }, []);
 
-  const line = account?.line ?? account?.business?.vapiPhoneNumber ?? account?.business?.twilioPhone ?? null;
-  const needsDedicatedLine = account?.needsDedicatedLine ?? false;
+  const line =
+    account?.line ??
+    account?.business?.vapiPhoneNumber ??
+    account?.business?.twilioPhone ??
+    null;
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -62,7 +64,6 @@ export default function DashboardSettingsPage() {
     setError(null);
     setSaved(false);
     setSyncWarning(null);
-    setSyncMessage(null);
 
     try {
       const res = await fetch("/api/account", {
@@ -76,25 +77,12 @@ export default function DashboardSettingsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Save failed");
-      setAccount((prev) =>
-        prev
-          ? {
-              ...prev,
-              business: prev.business
-                ? {
-                    ...prev.business,
-                    ownerPhone: data.business.ownerPhone,
-                    ownerEmail: data.business.ownerEmail,
-                    greeting: data.business.greeting,
-                  }
-                : null,
-            }
-          : prev,
-      );
+
+      await loadAccount();
+
       if (data.assistantSynced === false) {
         setSyncWarning(
-          data.syncError ??
-            "Saved locally, but your AI receptionist did not sync. Try Re-sync below.",
+          data.syncError ?? "Saved, but your AI receptionist did not update.",
         );
       } else if (data.syncWarning) {
         setSyncWarning(data.syncWarning);
@@ -142,76 +130,26 @@ export default function DashboardSettingsPage() {
     }
   }
 
-  async function resyncReceptionist() {
-    setSyncing(true);
-    setError(null);
-    setSyncWarning(null);
-    setSyncMessage(null);
-
-    try {
-      const res = await fetch("/api/account/sync-assistant", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Re-sync failed");
-
-      setAccount((prev) =>
-        prev
-          ? {
-              ...prev,
-              business: prev.business
-                ? {
-                    ...prev.business,
-                    greeting: data.business.greeting,
-                    twilioPhone: data.business.twilioPhone,
-                    vapiPhoneNumber: data.business.vapiPhoneNumber,
-                  }
-                : null,
-            }
-          : prev,
-      );
-
-      const line = data.line as string | null;
-      const parts = [
-        `Receptionist synced for ${data.business.name}.`,
-        line ? `Your line: ${line}` : null,
-        data.repaired ? "Dedicated line assigned." : null,
-        data.sync?.warning ?? null,
-      ].filter(Boolean);
-
-      setSyncMessage(parts.join(" "));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Re-sync failed");
-    } finally {
-      setSyncing(false);
-    }
-  }
-
   return (
     <OsShell title="Settings" subtitle="Your line, greeting, and owner alerts.">
       <ProPageStrip />
 
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
 
-      {needsDedicatedLine ? (
-        <ShellAlert tone="error">
-          Your shop is still on the marketing demo line. Click{" "}
-          <strong>Re-sync receptionist &amp; line</strong> below to get your
-          dedicated number.
-        </ShellAlert>
-      ) : null}
-
       <form className="account-stack pro-settings-form" onSubmit={save}>
-        <ShellPanel title="Shop line">
-          <p className="account-settings-value font-sans">{line ?? "Not configured"}</p>
+        <ShellPanel title="Your dedicated line">
+          <p className="account-settings-value font-sans">
+            {line ?? "Assigning your number…"}
+          </p>
           <p className="account-settings-hint font-sans">
-            This is the number customers call. Orvius answers and routes leads to your inbox.
+            Auto-generated for {account?.business?.name ?? "your shop"}. Customers
+            call this number — Orvius answers as your business.
           </p>
         </ShellPanel>
 
         <ShellPanel title="AI receptionist">
           <p className="account-settings-hint font-sans">
-            Calls to your shop line are answered as{" "}
-            <strong>{account?.business?.name ?? "your shop"}</strong> — not the
-            marketing demo.
+            Opening line callers hear when they dial your shop.
           </p>
           <label className="onboarding-field font-sans mt-4">
             <span className="onboarding-label">Opening line</span>
@@ -223,19 +161,6 @@ export default function DashboardSettingsPage() {
               placeholder={`Thank you for calling ${account?.business?.name ?? "your shop"}. How can I help you today?`}
             />
           </label>
-          <div className="pro-settings-test-row mt-4">
-            <button
-              type="button"
-              className="btn btn-secondary text-sm"
-              disabled={syncing}
-              onClick={resyncReceptionist}
-            >
-              {syncing ? "Syncing…" : "Re-sync receptionist & line"}
-            </button>
-            <span className="pro-settings-test-meta font-sans">
-              Updates voice AI with your shop name and wires your dedicated line
-            </span>
-          </div>
         </ShellPanel>
 
         <ShellPanel title="Owner alerts">
@@ -287,8 +212,7 @@ export default function DashboardSettingsPage() {
 
         {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
         {syncWarning ? <ShellAlert tone="error">{syncWarning}</ShellAlert> : null}
-        {syncMessage ? <ShellAlert tone="success">{syncMessage}</ShellAlert> : null}
-        {saved && !syncMessage ? (
+        {saved ? (
           <ShellAlert tone="success">Saved. Your receptionist is updated.</ShellAlert>
         ) : null}
         {testResult ? <ShellAlert tone="success">{testResult}</ShellAlert> : null}

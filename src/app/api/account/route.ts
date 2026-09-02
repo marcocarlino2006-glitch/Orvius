@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
-import { getShopLineForBusiness, shopHasWrongDemoLine } from "@/lib/demo-business";
+import { getShopLineForBusiness } from "@/lib/demo-business";
+import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
 import { isEmailConfigured } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import {
   getShopLines,
   validateOwnerPhoneForAlerts,
 } from "@/lib/owner-alerts";
+import { autoEnsureCustomerShopLine } from "@/lib/provision-business";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import { getBillingReadiness, isStripeCheckoutConfigured, isStripeConfigured } from "@/lib/stripe";
 import { getShopHealth } from "@/lib/shop-health";
@@ -28,26 +30,26 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const business = await prisma.business.findFirst({
-    where: { ownerEmail: email, isActive: true },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      ownerPhone: true,
-      ownerEmail: true,
-      twilioPhone: true,
-      vapiPhoneNumber: true,
-      billingStatus: true,
-      billingPlan: true,
-      stripeCustomerId: true,
-      stripeSubscriptionId: true,
-      createdAt: true,
-      greeting: true,
-      lineVerifiedAt: true,
-    },
-  });
+  const businessRecord = await getBusinessForOwnerWithAutoLine(email);
+
+  const business = businessRecord
+    ? {
+        id: businessRecord.id,
+        name: businessRecord.name,
+        slug: businessRecord.slug,
+        ownerPhone: businessRecord.ownerPhone,
+        ownerEmail: businessRecord.ownerEmail,
+        twilioPhone: businessRecord.twilioPhone,
+        vapiPhoneNumber: businessRecord.vapiPhoneNumber,
+        billingStatus: businessRecord.billingStatus,
+        billingPlan: businessRecord.billingPlan,
+        stripeCustomerId: businessRecord.stripeCustomerId,
+        stripeSubscriptionId: businessRecord.stripeSubscriptionId,
+        createdAt: businessRecord.createdAt,
+        greeting: businessRecord.greeting,
+        lineVerifiedAt: businessRecord.lineVerifiedAt,
+      }
+    : null;
 
   const health = business ? await getShopHealth(business.id) : null;
   const wedge = business && health ? await getWedgeReadiness(business.id, health) : null;
@@ -66,7 +68,6 @@ export async function GET() {
     },
     business,
     line: business ? getShopLineForBusiness(business) : null,
-    needsDedicatedLine: business ? shopHasWrongDemoLine(business) : false,
     health,
     wedge,
     alerts: {
@@ -131,34 +132,41 @@ export async function PATCH(request: Request) {
       },
     });
 
+    await autoEnsureCustomerShopLine(business);
+
     let assistantSynced = true;
     let syncError: string | null = null;
     let syncWarning: string | null = null;
 
-    if (body.greeting !== undefined) {
-      try {
-        const sync = await syncBusinessAssistant(business);
-        syncWarning = sync.warning;
-        if (!sync.assistantUpdated) {
-          assistantSynced = false;
-          syncError = sync.warning ?? "Assistant sync failed";
-        }
-      } catch (error) {
+    try {
+      const refreshed = await prisma.business.findUniqueOrThrow({
+        where: { id: business.id },
+      });
+      const sync = await syncBusinessAssistant(refreshed);
+      syncWarning = sync.warning;
+      if (!sync.assistantUpdated) {
         assistantSynced = false;
-        syncError =
-          error instanceof Error ? error.message : "Assistant sync failed";
+        syncError = sync.warning ?? "Assistant sync failed";
       }
+    } catch (error) {
+      assistantSynced = false;
+      syncError =
+        error instanceof Error ? error.message : "Assistant sync failed";
     }
+
+    const saved = await prisma.business.findUniqueOrThrow({
+      where: { id: business.id },
+    });
 
     return NextResponse.json({
       business: {
-        id: business.id,
-        name: business.name,
-        ownerPhone: business.ownerPhone,
-        ownerEmail: business.ownerEmail,
-        greeting: business.greeting,
-        twilioPhone: business.twilioPhone,
-        vapiPhoneNumber: business.vapiPhoneNumber,
+        id: saved.id,
+        name: saved.name,
+        ownerPhone: saved.ownerPhone,
+        ownerEmail: saved.ownerEmail,
+        greeting: saved.greeting,
+        twilioPhone: saved.twilioPhone,
+        vapiPhoneNumber: saved.vapiPhoneNumber,
       },
       assistantSynced,
       syncError,

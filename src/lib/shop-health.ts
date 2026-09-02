@@ -117,12 +117,10 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       label: "Dedicated shop line",
       ok: lineOk && !onDemoLine,
       detail: onDemoLine
-        ? `On marketing demo line — Re-sync in Settings for ${business.name}`
+        ? "Assigning your dedicated line…"
         : lineOk
           ? line!
-          : platformLine
-            ? "No dedicated line — Re-sync in Settings"
-            : "No inbound number assigned",
+          : "Assigning your dedicated line…",
     },
     {
       id: "assistant",

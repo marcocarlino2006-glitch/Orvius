@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
 import { verifyAdminRequest } from "@/lib/env";
 import { NextResponse } from "next/server";
 import type { Business } from "@prisma/client";
@@ -31,10 +31,7 @@ export async function requireBusinessSession() {
     return { error: unauthorizedResponse() };
   }
 
-  const business = await prisma.business.findFirst({
-    where: { ownerEmail: email, isActive: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const business = await getBusinessForOwnerWithAutoLine(email);
 
   if (!business) {
     return { error: noBusinessResponse() };

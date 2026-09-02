@@ -287,9 +287,8 @@ export function OnboardingWizard() {
                 />
               </label>
               <p className="onboarding-footnote font-sans">
-                Orvius provisions a dedicated local line for your shop at signup
-                and attaches your AI receptionist. Place a test call — leads
-                appear in your inbox immediately.
+                We auto-assign a dedicated local number for {name.trim() || "your shop"} —
+                your name, your AI receptionist. No manual setup.
               </p>
               {error ? (
                 <p className="onboarding-error font-sans" role="alert">
@@ -311,7 +310,7 @@ export function OnboardingWizard() {
                   disabled={submitting}
                   onClick={finish}
                 >
-                  {submitting ? "Creating shop…" : "Open your dashboard"}
+                  {submitting ? "Creating your line…" : "Create my shop line"}
                 </button>
               </div>
             </>
