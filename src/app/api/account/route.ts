@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
+import { getShopLineForBusiness, shopHasWrongDemoLine } from "@/lib/demo-business";
 import { isEmailConfigured } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import {
@@ -64,6 +65,8 @@ export async function GET() {
       image: session.user.image ?? null,
     },
     business,
+    line: business ? getShopLineForBusiness(business) : null,
+    needsDedicatedLine: business ? shopHasWrongDemoLine(business) : false,
     health,
     wedge,
     alerts: {

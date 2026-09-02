@@ -69,8 +69,6 @@ export default function AdminPage() {
     ownerPhone: "",
     ownerEmail: "",
     greeting: "",
-    twilioPhone: "",
-    vapiPhoneNumber: "",
     hoursJson: defaultHours,
     servicesJson: defaultServices,
   });
@@ -117,15 +115,13 @@ export default function AdminPage() {
       if (!res.ok) throw new Error(data.error ?? "Failed to create business");
 
       setSuccess(
-        `Created ${data.name}. Vapi assistant ID: ${data.vapiAssistantId}`,
+        `Created ${data.name}. Dedicated line: ${data.vapiPhoneNumber ?? data.twilioPhone ?? "pending"}`,
       );
       setForm({
         name: "",
         ownerPhone: "",
         ownerEmail: "",
         greeting: "",
-        twilioPhone: "",
-        vapiPhoneNumber: "",
         hoursJson: defaultHours,
         servicesJson: defaultServices,
       });
@@ -252,10 +248,16 @@ export default function AdminPage() {
             />
           </FormField>
 
+          <p className="font-sans text-sm text-ash">
+            Each shop gets its own dedicated Twilio number and AI receptionist —
+            never the marketing demo line.
+          </p>
+
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Owner phone (SMS alerts)">
+            <FormField label="Owner mobile (required)">
               <input
                 className="input"
+                required
                 value={form.ownerPhone}
                 onChange={(e) =>
                   setForm({ ...form, ownerPhone: e.target.value })
@@ -281,32 +283,9 @@ export default function AdminPage() {
               className="input"
               value={form.greeting}
               onChange={(e) => setForm({ ...form, greeting: e.target.value })}
-              placeholder="Thanks for calling Summit HVAC..."
+              placeholder="Thank you for calling your shop name..."
             />
           </FormField>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Twilio number (E.164)">
-              <input
-                className="input"
-                value={form.twilioPhone}
-                onChange={(e) =>
-                  setForm({ ...form, twilioPhone: e.target.value })
-                }
-                placeholder="+15559876543"
-              />
-            </FormField>
-            <FormField label="Vapi phone number (optional)">
-              <input
-                className="input"
-                value={form.vapiPhoneNumber}
-                onChange={(e) =>
-                  setForm({ ...form, vapiPhoneNumber: e.target.value })
-                }
-                placeholder="+15559876543"
-              />
-            </FormField>
-          </div>
 
           <FormField label="Hours JSON">
             <textarea

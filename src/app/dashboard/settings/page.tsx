@@ -17,6 +17,8 @@ type AccountResponse = {
     twilioPhone: string | null;
     vapiPhoneNumber: string | null;
   } | null;
+  line?: string | null;
+  needsDedicatedLine?: boolean;
   health: ShopHealth | null;
   wedge: WedgeReadiness | null;
   alerts: {
@@ -51,8 +53,8 @@ export default function DashboardSettingsPage() {
       .catch(() => null);
   }, []);
 
-  const line =
-    account?.business?.vapiPhoneNumber ?? account?.business?.twilioPhone ?? null;
+  const line = account?.line ?? account?.business?.vapiPhoneNumber ?? account?.business?.twilioPhone ?? null;
+  const needsDedicatedLine = account?.needsDedicatedLine ?? false;
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -188,6 +190,14 @@ export default function DashboardSettingsPage() {
       <ProPageStrip />
 
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
+
+      {needsDedicatedLine ? (
+        <ShellAlert tone="error">
+          Your shop is still on the marketing demo line. Click{" "}
+          <strong>Re-sync receptionist &amp; line</strong> below to get your
+          dedicated number.
+        </ShellAlert>
+      ) : null}
 
       <form className="account-stack pro-settings-form" onSubmit={save}>
         <ShellPanel title="Shop line">

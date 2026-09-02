@@ -42,3 +42,26 @@ export function shopHasWrongDemoLine(business: {
   const line = business.vapiPhoneNumber ?? business.twilioPhone;
   return isDemoPlatformLine(line);
 }
+
+/** Customer shops must never be assigned the marketing demo number. */
+export function assertCustomerShopLine(params: {
+  phone: string | null | undefined;
+  business: { slug: string; name?: string };
+}): void {
+  if (!params.phone?.trim()) return;
+  if (
+    shopMustNotUseDemoLine(params.business) &&
+    isDemoPlatformLine(params.phone)
+  ) {
+    throw new Error(
+      "Customer shops cannot use the marketing demo line. Each shop gets its own dedicated number.",
+    );
+  }
+}
+
+export function getShopLineForBusiness(business: {
+  twilioPhone?: string | null;
+  vapiPhoneNumber?: string | null;
+}): string | null {
+  return business.vapiPhoneNumber ?? business.twilioPhone ?? null;
+}

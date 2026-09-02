@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAutoBookUrgency } from "@/lib/auto-job";
+import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getDispatchBoard } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
@@ -102,11 +103,7 @@ export async function GET() {
         : null,
     }));
 
-  const line =
-    business.vapiPhoneNumber ??
-    business.twilioPhone ??
-    process.env.TWILIO_PHONE_NUMBER?.trim() ??
-    null;
+  const line = getShopLineForBusiness(business);
 
   return NextResponse.json({
     business: {

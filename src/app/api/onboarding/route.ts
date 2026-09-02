@@ -76,8 +76,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         complete: true,
-        dedicatedLine,
+        dedicatedLine: true,
         line,
+        message: line
+          ? `Your dedicated line is ${line}. Callers hear ${business.name}, not the marketing demo.`
+          : "Setup complete.",
         business: {
           id: business.id,
           name: business.name,

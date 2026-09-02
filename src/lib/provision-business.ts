@@ -1,4 +1,6 @@
 import {
+  assertCustomerShopLine,
+  getShopLineForBusiness,
   isDemoPlatformLine,
   shopHasWrongDemoLine,
   shopMustNotUseDemoLine,
@@ -208,9 +210,55 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
 
   return {
     business: updated,
-    repaired: shopHasWrongDemoLine(business),
+    repaired: shopHasWrongDemoLine(business) || !currentLine,
     dedicatedLine: true,
   };
+}
+
+/** Repair every customer shop — each must have its own dedicated line. */
+export async function repairAllCustomerShopLines(): Promise<
+  Array<{ businessId: string; name: string; line: string | null; error?: string }>
+> {
+  const businesses = await prisma.business.findMany({
+    where: { isActive: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const results: Array<{
+    businessId: string;
+    name: string;
+    line: string | null;
+    error?: string;
+  }> = [];
+
+  for (const business of businesses) {
+    if (!shopMustNotUseDemoLine(business)) {
+      results.push({
+        businessId: business.id,
+        name: business.name,
+        line: getShopLineForBusiness(business),
+      });
+      continue;
+    }
+
+    try {
+      const { business: updated } = await ensureDedicatedShopLine(business);
+      results.push({
+        businessId: updated.id,
+        name: updated.name,
+        line: getShopLineForBusiness(updated),
+      });
+    } catch (error) {
+      results.push({
+        businessId: business.id,
+        name: business.name,
+        line: getShopLineForBusiness(business),
+        error: error instanceof Error ? error.message : "Repair failed",
+      });
+    }
+  }
+
+  return results;
 }
 
 export async function provisionBusiness(input: ProvisionInput): Promise<ProvisionResult> {

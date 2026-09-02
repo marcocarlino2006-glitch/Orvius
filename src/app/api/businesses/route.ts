@@ -1,4 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { buildAssistantSystemPrompt, slugify } from "@/lib/business";
+import { assertCustomerShopLine } from "@/lib/demo-business";
+import { getWebhookUrl, verifyAdminRequest } from "@/lib/env";
+import {
+  ensureDedicatedShopLine,
+  DEFAULT_HOURS_JSON,
+} from "@/lib/provision-business";
 import { prisma } from "@/lib/prisma";
 import {
   buildVapiAssistantConfig,
@@ -6,22 +13,18 @@ import {
   deleteAssistant,
   updateAssistant,
 } from "@/lib/vapi";
-import { buildAssistantSystemPrompt, slugify } from "@/lib/business";
-import { getWebhookUrl, verifyAdminRequest } from "@/lib/env";
 import { z } from "zod";
 
 const createBusinessSchema = z.object({
   name: z.string().min(2),
   slug: z.string().optional(),
   phone: z.string().optional(),
-  ownerPhone: z.string().optional(),
+  ownerPhone: z.string().min(10, "Owner mobile is required for a dedicated line"),
   ownerEmail: z.string().email().optional().or(z.literal("")),
   timezone: z.string().optional(),
   greeting: z.string().optional(),
   hoursJson: z.string().optional(),
   servicesJson: z.string().optional(),
-  twilioPhone: z.string().optional(),
-  vapiPhoneNumber: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -60,12 +63,14 @@ export async function POST(request: NextRequest) {
 
     const greeting =
       body.greeting ?? `Thank you for calling ${body.name}. How can I help you today?`;
+    const hoursJson = body.hoursJson ?? DEFAULT_HOURS_JSON;
+    const servicesJson = body.servicesJson ?? "[]";
 
     const systemPrompt = buildAssistantSystemPrompt({
       name: body.name,
       greeting,
-      hoursJson: body.hoursJson ?? "{}",
-      servicesJson: body.servicesJson ?? "[]",
+      hoursJson,
+      servicesJson,
     });
 
     const assistant = await createAssistant(
@@ -83,19 +88,23 @@ export async function POST(request: NextRequest) {
         name: body.name,
         slug,
         phone: body.phone || null,
-        ownerPhone: body.ownerPhone || null,
+        ownerPhone: body.ownerPhone.trim(),
         ownerEmail: body.ownerEmail || null,
         timezone: body.timezone ?? "America/New_York",
         greeting,
-        hoursJson: body.hoursJson ?? "{}",
-        servicesJson: body.servicesJson ?? "[]",
-        twilioPhone: body.twilioPhone || null,
-        vapiPhoneNumber: body.vapiPhoneNumber || null,
+        hoursJson,
+        servicesJson,
+        twilioPhone: null,
+        vapiPhoneNumber: null,
         vapiAssistantId: assistant.id,
       },
     });
 
-    return NextResponse.json(business, { status: 201 });
+    assertCustomerShopLine({ phone: null, business });
+
+    const { business: provisioned } = await ensureDedicatedShopLine(business);
+
+    return NextResponse.json(provisioned, { status: 201 });
   } catch (error) {
     console.error("Create business failed:", error);
     const message =
@@ -142,6 +151,7 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = createBusinessSchema
+      .partial()
       .extend({ id: z.string() })
       .parse(await request.json());
 
@@ -156,22 +166,23 @@ export async function PATCH(request: NextRequest) {
     const greeting = body.greeting ?? existing.greeting;
     const hoursJson = body.hoursJson ?? existing.hoursJson;
     const servicesJson = body.servicesJson ?? existing.servicesJson;
+    const nextName = body.name ?? existing.name;
 
     const systemPrompt = buildAssistantSystemPrompt({
-      name: body.name ?? existing.name,
+      name: nextName,
       greeting:
         greeting ??
-        `Thank you for calling ${body.name ?? existing.name}. How can I help you today?`,
+        `Thank you for calling ${nextName}. How can I help you today?`,
       hoursJson,
       servicesJson,
     });
 
     if (existing.vapiAssistantId) {
       await updateAssistant(existing.vapiAssistantId, {
-        name: `${body.name ?? existing.name} Receptionist`,
+        name: `${nextName} Receptionist`,
         firstMessage:
           greeting ??
-          `Thank you for calling ${body.name ?? existing.name}. How can I help you today?`,
+          `Thank you for calling ${nextName}. How can I help you today?`,
         model: {
           provider: "openai",
           model: "gpt-4o",
@@ -185,7 +196,7 @@ export async function PATCH(request: NextRequest) {
     const business = await prisma.business.update({
       where: { id: body.id },
       data: {
-        name: body.name ?? existing.name,
+        name: nextName,
         phone: body.phone ?? existing.phone,
         ownerPhone: body.ownerPhone ?? existing.ownerPhone,
         ownerEmail: body.ownerEmail ?? existing.ownerEmail,
@@ -193,8 +204,6 @@ export async function PATCH(request: NextRequest) {
         greeting: greeting ?? existing.greeting,
         hoursJson,
         servicesJson,
-        twilioPhone: body.twilioPhone ?? existing.twilioPhone,
-        vapiPhoneNumber: body.vapiPhoneNumber ?? existing.vapiPhoneNumber,
       },
     });
 

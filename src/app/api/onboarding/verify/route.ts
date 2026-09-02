@@ -1,3 +1,4 @@
+import { getShopLineForBusiness } from "@/lib/demo-business";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireBusinessSession } from "@/lib/tenant";
@@ -7,11 +8,7 @@ export async function GET() {
   if ("error" in authResult) return authResult.error;
 
   const business = authResult.business;
-  const line =
-    business.vapiPhoneNumber ??
-    business.twilioPhone ??
-    process.env.TWILIO_PHONE_NUMBER?.trim() ??
-    null;
+  const line = getShopLineForBusiness(business);
 
   const [completedCall, recentLead] = await Promise.all([
     prisma.call.findFirst({

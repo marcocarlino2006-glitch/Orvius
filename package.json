@@ -32,7 +32,8 @@
     "export:vercel-env": "node scripts/export-vercel-env.mjs",
     "ops:check": "node scripts/ops-check.mjs",
     "billing:check": "node scripts/billing-check.mjs",
-    "stripe:setup": "node scripts/stripe-setup.mjs"
+    "stripe:setup": "node scripts/stripe-setup.mjs",
+    "repair:lines": "node scripts/repair-customer-lines.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
