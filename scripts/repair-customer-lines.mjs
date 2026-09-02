@@ -26,12 +26,17 @@ function loadEnv() {
 async function main() {
   const env = loadEnv();
   const appUrl = (
+    process.env.APP_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
     env.NEXT_PUBLIC_APP_URL ??
     "http://127.0.0.1:3000"
   ).replace(/\/$/, "");
   const adminSecret =
-    process.env.ADMIN_SECRET ?? env.ADMIN_SECRET ?? env.ORVIUS_ADMIN_SECRET;
+    process.env.ORVIUS_ADMIN_KEY ??
+    process.env.ADMIN_SECRET ??
+    env.ORVIUS_ADMIN_KEY ??
+    env.ADMIN_SECRET ??
+    env.ORVIUS_ADMIN_SECRET;
 
   if (!adminSecret) {
     console.error("Missing ADMIN_SECRET in environment");
@@ -43,7 +48,7 @@ async function main() {
   const res = await fetch(`${appUrl}/api/admin/repair-lines`, {
     method: "POST",
     headers: {
-      "x-orvius-admin-secret": adminSecret,
+      "x-orvius-admin-key": adminSecret,
     },
   });
 
