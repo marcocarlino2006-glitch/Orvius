@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Billing readiness check — all three paid plans + webhook.
+ * Billing readiness check — monthly + annual prices for all three plans.
  */
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -10,9 +10,31 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const envPath = resolve(root, ".env");
 
 const PLANS = [
-  { id: "line", name: "Orvius Line", price: 149, envKey: "STRIPE_PRICE_ID_LINE" },
-  { id: "pro", name: "Orvius Pro", price: 299, envKey: "STRIPE_PRICE_ID_PRO", legacyKey: "STRIPE_PRICE_ID" },
-  { id: "fleet", name: "Orvius Fleet", price: 499, envKey: "STRIPE_PRICE_ID_FLEET" },
+  {
+    id: "line",
+    name: "Orvius Line",
+    price: 149,
+    annual: 1488,
+    envKey: "STRIPE_PRICE_ID_LINE",
+    envKeyAnnual: "STRIPE_PRICE_ID_LINE_ANNUAL",
+  },
+  {
+    id: "pro",
+    name: "Orvius Pro",
+    price: 299,
+    annual: 2988,
+    envKey: "STRIPE_PRICE_ID_PRO",
+    envKeyAnnual: "STRIPE_PRICE_ID_PRO_ANNUAL",
+    legacyKey: "STRIPE_PRICE_ID",
+  },
+  {
+    id: "fleet",
+    name: "Orvius Fleet",
+    price: 499,
+    annual: 5148,
+    envKey: "STRIPE_PRICE_ID_FLEET",
+    envKeyAnnual: "STRIPE_PRICE_ID_FLEET_ANNUAL",
+  },
 ];
 
 function loadEnv() {
@@ -57,11 +79,12 @@ else fail("STRIPE_SECRET_KEY", "Missing — Stripe Dashboard → Developers → 
 
 for (const plan of PLANS) {
   const priceId = env[plan.envKey]?.trim() || (plan.legacyKey ? env[plan.legacyKey]?.trim() : null);
-  if (priceId) {
-    pass(plan.envKey, priceId);
-  } else {
-    fail(plan.envKey, `Missing — run npm run stripe:setup ($${plan.price}/mo ${plan.name})`);
-  }
+  if (priceId) pass(plan.envKey, priceId);
+  else fail(plan.envKey, `Missing — run npm run stripe:setup ($${plan.price}/mo ${plan.name})`);
+
+  const annualId = env[plan.envKeyAnnual]?.trim();
+  if (annualId) pass(plan.envKeyAnnual, annualId);
+  else warn(plan.envKeyAnnual, `Missing — run npm run stripe:setup for annual ($${plan.annual}/yr)`);
 }
 
 if (webhookSecret) pass("STRIPE_WEBHOOK_SECRET", `${webhookSecret.slice(0, 10)}…`);
@@ -77,19 +100,35 @@ if (secretKey) {
   for (const plan of PLANS) {
     const priceId =
       env[plan.envKey]?.trim() || (plan.legacyKey ? env[plan.legacyKey]?.trim() : null);
-    if (!priceId) continue;
-
-    try {
-      const price = await stripe.prices.retrieve(priceId);
-      const amount = price.unit_amount ?? 0;
-      const interval = price.recurring?.interval;
-      if (amount === plan.price * 100 && interval === "month") {
-        pass(`${plan.name} price`, `$${plan.price}/mo verified in Stripe`);
-      } else {
-        fail(`${plan.name} price`, `Expected $${plan.price}/mo, got $${amount / 100}/${interval ?? "?"}`);
+    if (priceId) {
+      try {
+        const price = await stripe.prices.retrieve(priceId);
+        const amount = price.unit_amount ?? 0;
+        const interval = price.recurring?.interval;
+        if (amount === plan.price * 100 && interval === "month") {
+          pass(`${plan.name} monthly`, `$${plan.price}/mo verified`);
+        } else {
+          fail(`${plan.name} monthly`, `Expected $${plan.price}/mo, got $${amount / 100}/${interval ?? "?"}`);
+        }
+      } catch (error) {
+        fail(`${plan.name} monthly`, error instanceof Error ? error.message : "Stripe lookup failed");
       }
-    } catch (error) {
-      fail(`${plan.name} price`, error instanceof Error ? error.message : "Stripe lookup failed");
+    }
+
+    const annualId = env[plan.envKeyAnnual]?.trim();
+    if (annualId) {
+      try {
+        const price = await stripe.prices.retrieve(annualId);
+        const amount = price.unit_amount ?? 0;
+        const interval = price.recurring?.interval;
+        if (amount === plan.annual * 100 && interval === "year") {
+          pass(`${plan.name} annual`, `$${plan.annual}/yr verified`);
+        } else {
+          fail(`${plan.name} annual`, `Expected $${plan.annual}/yr, got $${amount / 100}/${interval ?? "?"}`);
+        }
+      } catch (error) {
+        fail(`${plan.name} annual`, error instanceof Error ? error.message : "Stripe lookup failed");
+      }
     }
   }
 }
@@ -97,7 +136,7 @@ if (secretKey) {
 console.log("\n─────────────────────────────────────");
 const blockers = checks.filter((c) => c.ok === false);
 if (blockers.length === 0) {
-  console.log("✅ BILLING: All plans ready for checkout\n");
+  console.log("✅ BILLING: Monthly plans ready for checkout\n");
   process.exit(0);
 }
 

@@ -2,7 +2,7 @@
 
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
-import { jobStatusLabel } from "@/lib/job-status";
+import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -37,15 +37,6 @@ type JobDetail = {
     name: string | null;
     phone: string | null;
   } | null;
-};
-
-const NEXT_STATUS: Record<string, { label: string; status: string } | null> = {
-  scheduled: { label: "Confirm job", status: "confirmed" },
-  confirmed: { label: "Dispatch — en route", status: "en_route" },
-  en_route: { label: "Mark on site", status: "on_site" },
-  on_site: { label: "Mark complete", status: "completed" },
-  completed: null,
-  cancelled: null,
 };
 
 export default function JobDetailPage() {
@@ -117,7 +108,7 @@ export default function JobDetailPage() {
     );
   }
 
-  const next = NEXT_STATUS[job.status] ?? null;
+  const next = nextJobStatus(job.status);
   const phone = job.customer?.phone ?? job.lead?.phone;
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { AssignTechButton } from "@/components/assign-tech-button";
+import { JobStatusAdvance } from "@/components/job-status-advance";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
@@ -40,11 +41,11 @@ function todayInputValue() {
 function JobChip({
   job,
   technicians,
-  onAssigned,
+  onUpdated,
 }: {
   job: BoardJob;
   technicians: Tech[];
-  onAssigned: () => void;
+  onUpdated: () => void;
 }) {
   const who = job.customer?.name ?? job.lead?.name ?? job.customer?.phone ?? "Customer";
   const time = job.scheduledAt
@@ -84,12 +85,106 @@ function JobChip({
         <AssignTechButton
           jobId={job.id}
           technicians={technicians}
-          onAssigned={onAssigned}
+          onAssigned={onUpdated}
           compact
           className="dispatch-job-assign"
         />
-      ) : null}
+      ) : (
+        <JobStatusAdvance
+          jobId={job.id}
+          status={job.status}
+          onAdvanced={onUpdated}
+          compact
+          className="dispatch-job-status"
+        />
+      )}
     </div>
+  );
+}
+
+function CrewPhoneEdit({
+  tech,
+  onSaved,
+}: {
+  tech: Tech;
+  onSaved: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [phone, setPhone] = useState(tech.phone ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!editing && tech.phone) {
+    return (
+      <button
+        type="button"
+        className="dispatch-crew-phone font-sans"
+        onClick={() => setEditing(true)}
+      >
+        {tech.phone}
+      </button>
+    );
+  }
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        className="dispatch-crew-phone dispatch-crew-phone-missing font-sans"
+        onClick={() => setEditing(true)}
+      >
+        Add mobile for SMS
+      </button>
+    );
+  }
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/technicians/${tech.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not update");
+      setEditing(false);
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form className="dispatch-crew-edit font-sans" onSubmit={save}>
+      <input
+        className="input dispatch-crew-edit-input"
+        type="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="512-555-0100"
+        autoComplete="tel"
+        required
+      />
+      <button type="submit" className="btn btn-void text-xs" disabled={saving}>
+        {saving ? "…" : "Save"}
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary text-xs"
+        onClick={() => {
+          setEditing(false);
+          setPhone(tech.phone ?? "");
+        }}
+      >
+        Cancel
+      </button>
+      {error ? <span className="dispatch-crew-edit-error">{error}</span> : null}
+    </form>
   );
 }
 
@@ -146,12 +241,19 @@ export default function DispatchPage() {
   const columns = useMemo(() => {
     if (!board) return [];
     return [
-      { key: "unassigned", title: "Unassigned", jobs: board.unassigned, accent: true },
+      {
+        key: "unassigned",
+        title: "Unassigned",
+        jobs: board.unassigned,
+        accent: true,
+        technician: null as Tech | null,
+      },
       ...board.columns.map((col) => ({
         key: col.technician.id,
         title: col.technician.name,
         jobs: col.jobs,
         accent: false,
+        technician: col.technician,
       })),
     ];
   }, [board]);
@@ -265,6 +367,9 @@ export default function DispatchPage() {
                   <p className="dispatch-col-count font-sans">
                     {col.jobs.length} job{col.jobs.length === 1 ? "" : "s"}
                   </p>
+                  {col.technician ? (
+                    <CrewPhoneEdit tech={col.technician} onSaved={load} />
+                  ) : null}
                 </div>
                 {col.accent && col.jobs.length > 0 ? (
                   <ShellBadge tone="flare">Needs assign</ShellBadge>
@@ -274,7 +379,7 @@ export default function DispatchPage() {
                 <ul className="dispatch-col-list">
                   {col.jobs.map((job) => (
                     <li key={job.id}>
-                      <JobChip job={job} technicians={technicians} onAssigned={load} />
+                      <JobChip job={job} technicians={technicians} onUpdated={load} />
                     </li>
                   ))}
                 </ul>

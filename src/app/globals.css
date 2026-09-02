@@ -7512,8 +7512,81 @@ h3 {
   gap: 0.35rem;
 }
 
-.dispatch-job-assign {
+.dispatch-job-assign,
+.dispatch-job-status {
   margin-top: 0.15rem;
+}
+
+.job-status-advance-btn {
+  width: 100%;
+  padding: 0.4rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--signal) 35%, var(--rule));
+  border-radius: 0.375rem;
+  background: color-mix(in srgb, var(--signal) 8%, var(--white));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--void);
+  cursor: pointer;
+}
+
+.job-status-advance-btn:hover {
+  background: color-mix(in srgb, var(--signal) 14%, var(--white));
+}
+
+.job-status-advance-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.job-status-advance-btn-compact {
+  padding: 0.3rem 0.5rem;
+}
+
+.job-status-advance-error {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--flare-dim);
+}
+
+.dispatch-crew-phone {
+  display: block;
+  margin-top: 0.25rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.6875rem;
+  color: var(--ash);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dispatch-crew-phone-missing {
+  color: var(--signal);
+  font-weight: 600;
+}
+
+.dispatch-crew-edit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.dispatch-crew-edit-input {
+  min-width: 7.5rem;
+  max-width: 9rem;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.75rem;
+}
+
+.dispatch-crew-edit-error {
+  width: 100%;
+  font-size: 0.6875rem;
+  color: var(--flare-dim);
 }
 
 .ask-hero {

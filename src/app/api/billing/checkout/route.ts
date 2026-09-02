@@ -124,9 +124,11 @@ export async function GET() {
     id: plan.id,
     name: plan.name,
     price: plan.price,
+    annualPrice: plan.annualPrice ?? null,
     tagline: plan.tagline,
     featured: plan.featured ?? false,
-    checkoutReady: isPlanCheckoutReady(plan.id as PaidPlanId),
+    checkoutReady: isPlanCheckoutReady(plan.id as PaidPlanId, "month"),
+    checkoutReadyAnnual: isPlanCheckoutReady(plan.id as PaidPlanId, "year"),
     configured: isStripePlanConfigured(plan.id as PaidPlanId),
   }));
 

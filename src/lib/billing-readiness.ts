@@ -54,6 +54,15 @@ export function getBillingReadiness(): BillingReadiness {
     }
   }
 
+  const missingAnnual = paidPlans.filter(
+    (plan) => !isPlanCheckoutReady(plan.id, "year"),
+  );
+  if (missingAnnual.length > 0 && config.secretKey) {
+    nextSteps.push(
+      "Run npm run stripe:setup to create annual prices (STRIPE_PRICE_ID_*_ANNUAL)",
+    );
+  }
+
   if (missing.some((key) => key.startsWith("STRIPE_PRICE_ID"))) {
     nextSteps.push("Run npm run stripe:setup to create Line, Pro, and Fleet prices");
   }

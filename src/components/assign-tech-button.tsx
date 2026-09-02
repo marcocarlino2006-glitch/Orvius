@@ -59,7 +59,7 @@ export function AssignTechButton({
         throw new Error(data?.error ?? "Assign failed");
       }
       if (data?.techSms && !data.techSms.sent && data.techSms.reason === "no_phone") {
-        setError("Assigned — add a mobile on this tech to SMS them");
+        setError("Assigned — add mobile on Dispatch so they get SMS");
       }
       onAssigned?.();
       router.refresh();

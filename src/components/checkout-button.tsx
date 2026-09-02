@@ -16,6 +16,7 @@ type CheckoutButtonProps = {
 type PlanBillingStatus = {
   configured: boolean;
   checkoutReady: boolean;
+  checkoutReadyAnnual?: boolean;
 };
 
 type BillingStatus = {
@@ -55,12 +56,17 @@ export function CheckoutButton({
         const plans = (data.plans ?? []) as Array<{
           id: PaidPlanId;
           checkoutReady: boolean;
+          checkoutReadyAnnual?: boolean;
           configured: boolean;
         }>;
         const planMap = Object.fromEntries(
           plans.map((plan) => [
             plan.id,
-            { configured: plan.configured, checkoutReady: plan.checkoutReady },
+            {
+              configured: plan.configured,
+              checkoutReady: plan.checkoutReady,
+              checkoutReadyAnnual: plan.checkoutReadyAnnual,
+            },
           ]),
         ) as Record<PaidPlanId, PlanBillingStatus>;
 
@@ -80,7 +86,11 @@ export function CheckoutButton({
       .finally(() => setBillingLoading(false));
   }, []);
 
-  const planReady = billing?.plans[planId]?.checkoutReady ?? false;
+  const planStatus = billing?.plans[planId];
+  const planReady =
+    interval === "year"
+      ? Boolean(planStatus?.checkoutReadyAnnual)
+      : Boolean(planStatus?.checkoutReady);
 
   async function startCheckout(submittedEmail?: string) {
     const checkoutEmail = (submittedEmail ?? email).trim();
@@ -135,14 +145,16 @@ export function CheckoutButton({
   }
 
   if (!planReady) {
+    const annualMissing = interval === "year" && planStatus?.checkoutReady;
     return (
       <div className={className}>
         <Link href="/pilot" className="inst-btn inst-btn-primary w-full justify-center">
           Apply for design partner
         </Link>
         <p className="mt-3 font-sans text-sm text-ash">
-          Self-serve checkout for this plan is not live yet. Start with the free 30-day
-          program — we will send a checkout link when billing is ready.
+          {annualMissing
+            ? "Annual billing isn’t configured yet for this plan. Switch to monthly or start the free program."
+            : "Self-serve checkout for this plan is not live yet. Start with the free 30-day program — we will send a checkout link when billing is ready."}
         </p>
       </div>
     );

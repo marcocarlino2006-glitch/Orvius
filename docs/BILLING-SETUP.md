@@ -2,11 +2,11 @@
 
 Orvius has **three paid plans** plus a free design partner program:
 
-| Plan | Price | Best for |
-|------|-------|----------|
-| **Line** | $149/mo | Front door — AI receptionist, inbox, owner SMS |
-| **Pro** | $299/mo | Full workspace — customers, jobs, dispatch, Ask |
-| **Fleet** | $499/mo | 6+ trucks — priority support, multi-tech dispatch |
+| Plan | Monthly | Annual | Best for |
+|------|---------|--------|----------|
+| **Line** | $149/mo | $124/mo billed yearly | Front door — AI receptionist, inbox, owner SMS |
+| **Pro** | $299/mo | $249/mo billed yearly | Full workspace — customers, jobs, dispatch, Ask |
+| **Fleet** | $499/mo | $429/mo billed yearly | 6+ trucks — priority support, multi-tech dispatch |
 
 Plan copy and **need-based matching** live in `src/lib/pricing-plans.ts` and `src/lib/plan-needs.ts`.
 
@@ -30,7 +30,7 @@ npm run billing:check
 STRIPE_SECRET_KEY=sk_test_...
 ```
 
-## Step 2 — Create all three prices
+## Step 2 — Create monthly + annual prices
 
 ```bash
 npm run stripe:setup
@@ -42,7 +42,10 @@ Writes to `.env`:
 STRIPE_PRICE_ID_LINE=price_...
 STRIPE_PRICE_ID_PRO=price_...
 STRIPE_PRICE_ID_FLEET=price_...
-STRIPE_PRICE_ID=price_...        # legacy alias for Pro
+STRIPE_PRICE_ID_LINE_ANNUAL=price_...
+STRIPE_PRICE_ID_PRO_ANNUAL=price_...
+STRIPE_PRICE_ID_FLEET_ANNUAL=price_...
+STRIPE_PRICE_ID=price_...        # legacy alias for Pro monthly
 ```
 
 Add the same vars to Vercel.

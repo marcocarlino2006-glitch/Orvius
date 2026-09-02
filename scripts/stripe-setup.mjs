@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Stripe setup — creates Line ($149), Pro ($299), and Fleet ($499) prices.
+ * Stripe setup — creates monthly + annual prices for Line, Pro, Fleet.
+ * Annual = monthly equivalent × 12 (e.g. Pro $249/mo → $2988/yr).
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -13,24 +14,30 @@ const PLANS = [
   {
     id: "line",
     name: "Orvius Line",
-    amount: 14900,
+    monthlyAmount: 14900,
+    annualAmount: 148800, // $124/mo × 12
     envKey: "STRIPE_PRICE_ID_LINE",
+    envKeyAnnual: "STRIPE_PRICE_ID_LINE_ANNUAL",
     metadata: { orvius: "line" },
     description: "AI receptionist, lead inbox, and owner SMS alerts.",
   },
   {
     id: "pro",
     name: "Orvius Pro",
-    amount: 29900,
+    monthlyAmount: 29900,
+    annualAmount: 298800, // $249/mo × 12
     envKey: "STRIPE_PRICE_ID_PRO",
+    envKeyAnnual: "STRIPE_PRICE_ID_PRO_ANNUAL",
     metadata: { orvius: "pro" },
     description: "Full shop workspace — customers, jobs, dispatch, and Ask.",
   },
   {
     id: "fleet",
     name: "Orvius Fleet",
-    amount: 49900,
+    monthlyAmount: 49900,
+    annualAmount: 514800, // $429/mo × 12
     envKey: "STRIPE_PRICE_ID_FLEET",
+    envKeyAnnual: "STRIPE_PRICE_ID_FLEET_ANNUAL",
     metadata: { orvius: "fleet" },
     description: "For shops running 6+ trucks with priority support.",
   },
@@ -67,7 +74,7 @@ function upsertEnv(key, value) {
 const { env } = loadEnvFile();
 const secretKey = env.STRIPE_SECRET_KEY?.trim();
 
-console.log("\n💳 Orvius Stripe setup — Line, Pro, Fleet\n");
+console.log("\n💳 Orvius Stripe setup — Line, Pro, Fleet (monthly + annual)\n");
 
 if (!secretKey) {
   console.log("❌ STRIPE_SECRET_KEY missing in .env\n");
@@ -98,34 +105,52 @@ for (const plan of PLANS) {
   const prices = await stripe.prices.list({
     product: product.id,
     active: true,
-    limit: 20,
+    limit: 40,
   });
-  let price = prices.data.find(
-    (p) => p.unit_amount === plan.amount && p.recurring?.interval === "month",
-  );
 
-  if (!price) {
-    price = await stripe.prices.create({
+  let monthly = prices.data.find(
+    (p) => p.unit_amount === plan.monthlyAmount && p.recurring?.interval === "month",
+  );
+  if (!monthly) {
+    monthly = await stripe.prices.create({
       product: product.id,
-      unit_amount: plan.amount,
+      unit_amount: plan.monthlyAmount,
       currency: "usd",
       recurring: { interval: "month" },
-      metadata: plan.metadata,
+      metadata: { ...plan.metadata, interval: "month" },
     });
-    console.log(`✅ Created price: $${plan.amount / 100}/mo (${price.id})`);
+    console.log(`✅ Created monthly: $${plan.monthlyAmount / 100}/mo (${monthly.id})`);
   } else {
-    console.log(`✅ Using price: $${plan.amount / 100}/mo (${price.id})`);
+    console.log(`✅ Using monthly: $${plan.monthlyAmount / 100}/mo (${monthly.id})`);
   }
+  upsertEnv(plan.envKey, monthly.id);
+  console.log(`   → ${plan.envKey}=${monthly.id}`);
 
-  upsertEnv(plan.envKey, price.id);
-  console.log(`   → ${plan.envKey}=${price.id}`);
+  let annual = prices.data.find(
+    (p) => p.unit_amount === plan.annualAmount && p.recurring?.interval === "year",
+  );
+  if (!annual) {
+    annual = await stripe.prices.create({
+      product: product.id,
+      unit_amount: plan.annualAmount,
+      currency: "usd",
+      recurring: { interval: "year" },
+      metadata: { ...plan.metadata, interval: "year" },
+    });
+    console.log(
+      `✅ Created annual: $${plan.annualAmount / 100}/yr (~$${Math.round(plan.annualAmount / 12) / 100}/mo) (${annual.id})`,
+    );
+  } else {
+    console.log(`✅ Using annual: $${plan.annualAmount / 100}/yr (${annual.id})`);
+  }
+  upsertEnv(plan.envKeyAnnual, annual.id);
+  console.log(`   → ${plan.envKeyAnnual}=${annual.id}`);
 }
 
-// Legacy alias for Pro
 const { env: refreshed } = loadEnvFile();
 if (refreshed.STRIPE_PRICE_ID_PRO) {
   upsertEnv("STRIPE_PRICE_ID", refreshed.STRIPE_PRICE_ID_PRO);
-  console.log(`\n✅ Wrote STRIPE_PRICE_ID (Pro alias)`);
+  console.log(`\n✅ Wrote STRIPE_PRICE_ID (Pro monthly alias)`);
 }
 
 console.log("\nStill needed manually:");
