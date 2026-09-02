@@ -30,12 +30,12 @@ type OrviusLogoProps = {
 export function OrviusLogo({
   size = "md",
   variant = "chalk",
-  wordmarkOnly = false,
+  wordmarkOnly = true,
   markOnly = false,
   className = "",
 }: OrviusLogoProps) {
   const tokens = logoSizes[size];
-  const showMark = !wordmarkOnly;
+  const showMark = markOnly || !wordmarkOnly;
   const showWordmark = !markOnly;
 
   return (
