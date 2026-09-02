@@ -1,80 +1,52 @@
 import Link from "next/link";
+import { HomeProductPreview } from "@/components/home-product-preview";
 import {
   DEMO_LINE_DISPLAY,
   demoLineHref,
 } from "@/lib/demo-line";
 import { company } from "@/lib/company";
 
-/** Full-bleed command atmosphere — product plane, not a floating card. */
-function HomeHeroStage() {
-  return (
-    <div className="home-bleed-stage" aria-hidden>
-      <div className="home-bleed-stage-wash" />
-      <div className="home-bleed-stage-board">
-        <div className="home-bleed-stage-rail">
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="home-bleed-stage-rows">
-          <div className="home-bleed-stage-row home-bleed-stage-row-hot">
-            <i />
-            <em>Emergency · AC down</em>
-            <b>Booked</b>
-          </div>
-          <div className="home-bleed-stage-row">
-            <i />
-            <em>After-hours lead</em>
-            <b>Qualified</b>
-          </div>
-          <div className="home-bleed-stage-row">
-            <i />
-            <em>Owner alert sent</em>
-            <b>SMS</b>
-          </div>
-          <div className="home-bleed-stage-row">
-            <i />
-            <em>On the board</em>
-            <b>Dispatch</b>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function HomeLineHero() {
   return (
-    <section
-      className="home-hero-bleed"
-      aria-labelledby="home-hero-heading"
-    >
-      <HomeHeroStage />
+    <section className="mkt-hero" aria-labelledby="home-hero-heading">
+      <div className="mkt-hero-grid" aria-hidden />
 
-      <div className="editorial-wrap home-hero-content">
-        <p className="home-hero-brand-line type-wordmark">{company.productName}</p>
+      <div className="editorial-wrap mkt-hero-inner">
+        <div className="mkt-hero-copy">
+          <p className="mkt-kicker">
+            Live demo · {company.trades.join(" · ")}
+          </p>
 
-        <h1 id="home-hero-heading" className="home-hero-outcome type-headline">
-          Turn missed calls into booked jobs.
-        </h1>
+          <h1 id="home-hero-heading" className="mkt-hero-title">
+            Turn missed calls into booked jobs.
+          </h1>
 
-        <p className="home-hero-support font-sans">
-          Orvius answers after-hours and overflow calls, qualifies the customer,
-          books the appointment, and alerts the owner while the crew is working.
-        </p>
+          <p className="mkt-hero-lead font-sans">
+            Orvius answers after-hours and overflow calls, qualifies the customer,
+            books the appointment, and alerts the owner while the crew is working.
+          </p>
 
-        <a href={demoLineHref()} className="home-hero-phone type-phone">
-          {DEMO_LINE_DISPLAY}
-        </a>
+          <div className="mkt-hero-phone-block">
+            <span className="mkt-live-pill font-sans">
+              <span className="mkt-live-dot" aria-hidden />
+              Live line
+            </span>
+            <a href={demoLineHref()} className="mkt-phone">
+              {DEMO_LINE_DISPLAY}
+            </a>
+          </div>
 
-        <div className="home-hero-actions font-sans">
-          <Link href="/pilot" className="inst-btn inst-btn-primary">
-            Book a live call audit
-          </Link>
-          <a href={demoLineHref()} className="inst-btn inst-btn-ghost">
-            Try the live line
-          </a>
+          <div className="mkt-hero-actions font-sans">
+            <Link href="/pilot" className="mkt-btn mkt-btn-primary">
+              Book a live call audit
+            </Link>
+            <a href={demoLineHref()} className="mkt-btn mkt-btn-secondary">
+              Try the live line
+            </a>
+          </div>
         </div>
+
+        <HomeProductPreview />
       </div>
     </section>
   );

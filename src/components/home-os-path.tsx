@@ -1,47 +1,101 @@
-const path = [
-  { step: "Answer", status: "live" as const, body: "Every inbound call and text." },
-  { step: "Qualify", status: "live" as const, body: "Service, urgency, address, callback." },
-  { step: "Book", status: "live" as const, body: "Lead becomes a scheduled job." },
-  { step: "Dispatch", status: "live" as const, body: "Assign tech. Advance status." },
-  { step: "Invoice", status: "live" as const, body: "Estimate → invoice on the job." },
-  {
-    step: "Get paid",
-    status: "next" as const,
-    body: "Manual payment recorded now. Card rails next.",
-  },
-] as const;
+import Link from "next/link";
+import { MktSection, MktSectionHeader } from "@/components/mkt-section";
 
-/** Full future of Orvius — live vs next, no vapor. */
+const live = [
+  "Answer missed calls with a live AI line",
+  "Turn calls into jobs with transcripts and summaries",
+  "Dispatch from one command center",
+  "Ask Orvius what needs attention today",
+];
+
+const next = [
+  "Copilot that proposes actions you approve",
+  "Estimate → invoice → payment on the job",
+  "Skills for travel, maps, and shop workflows",
+  "Stripe Connect for card payments",
+];
+
 export function HomeOsPath() {
   return (
-    <section className="home-os-path" aria-labelledby="home-os-path-heading">
-      <div className="editorial-wrap">
-        <p className="tier1-eyebrow type-eyebrow">The path</p>
-        <h2 id="home-os-path-heading" className="tier1-section-title type-headline">
-          Answer, qualify, book, dispatch, invoice, get paid.
-        </h2>
-        <p className="tier1-section-lead font-sans">
-          Front door is live today. Money tracking is live for drafts and manual
-          payment. Card checkout rails are next — we say so out loud.
-        </p>
+    <MktSection id="path" tone="light">
+      <MktSectionHeader
+        kicker="Roadmap"
+        title="Live today vs what we’re building next"
+        lead="No fake roadmap dates. This is what works now and what’s next on the product."
+      />
 
-        <ol className="home-future-path font-sans">
-          {path.map((item) => (
-            <li
-              key={item.step}
-              className={`home-future-step home-future-step-${item.status}`}
-            >
-              <div className="home-future-step-head">
-                <span className="home-future-step-name">{item.step}</span>
-                <span className="home-future-step-status">
-                  {item.status === "live" ? "Live" : "Next"}
-                </span>
-              </div>
-              <p className="home-future-step-body">{item.body}</p>
-            </li>
-          ))}
-        </ol>
+      <div className="mkt-path-grid">
+        <article className="mkt-path-card mkt-path-card--live">
+          <p className="mkt-path-label">Live today</p>
+          <ul className="mkt-path-list">
+            {live.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+        <article className="mkt-path-card">
+          <p className="mkt-path-label">Building next</p>
+          <ul className="mkt-path-list">
+            {next.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
       </div>
-    </section>
+    </MktSection>
+  );
+}
+
+export function HomePlanTruth() {
+  return (
+    <MktSection id="plans" tone="inset">
+      <MktSectionHeader
+        kicker="Pricing"
+        title="Start with the line. Grow into the full OS."
+        lead="Every plan includes the live AI line. Pro adds the command center, copilot, and money workflow."
+      />
+
+      <div className="mkt-plans-grid">
+        <article className="mkt-plan-card">
+          <p className="mkt-plan-name">Line</p>
+          <p className="mkt-plan-price">
+            $99<span>/mo</span>
+          </p>
+          <p className="mkt-plan-desc">Live AI phone line for your shop</p>
+          <ul className="mkt-plan-list">
+            <li>Answers when you’re on a job or after hours</li>
+            <li>Call transcripts and summaries</li>
+            <li>Email alerts for new calls</li>
+          </ul>
+          <Link href="/signup?plan=line" className="mkt-btn mkt-btn-secondary mkt-btn-block">
+            Start with Line
+          </Link>
+        </article>
+
+        <article className="mkt-plan-card mkt-plan-card--featured">
+          <p className="mkt-plan-badge">Most shops start here</p>
+          <p className="mkt-plan-name">Pro</p>
+          <p className="mkt-plan-price">
+            $249<span>/mo</span>
+          </p>
+          <p className="mkt-plan-desc">Full command center for your shop</p>
+          <ul className="mkt-plan-list">
+            <li>Everything in Line</li>
+            <li>Jobs, dispatch, and attention queue</li>
+            <li>Copilot with approve-before-send</li>
+            <li>Estimates, invoices, and manual payments</li>
+          </ul>
+          <Link href="/signup?plan=pro" className="mkt-btn mkt-btn-primary mkt-btn-block">
+            Start with Pro
+          </Link>
+        </article>
+      </div>
+
+      <p className="mkt-plans-foot">
+        <Link href="/pricing">Compare plans</Link>
+        {" · "}
+        <Link href="/pilot">Book a live call audit</Link>
+      </p>
+    </MktSection>
   );
 }

@@ -1,45 +1,51 @@
+import { MktSection, MktSectionHeader } from "@/components/mkt-section";
+
 const spine =
   "Every call becomes a qualified customer, every customer becomes a scheduled job, and every job stays organized until it gets paid.";
 
 const stages = [
   {
+    step: "01",
     name: "Call",
-    body: "Orvius answers the phone — nights, weekends, and when every tech is on a roof. Urgency, address, and callback land in your inbox.",
+    body: "Answer nights, weekends, and overflow. Capture urgency, address, and callback.",
   },
   {
+    step: "02",
     name: "Jobs",
-    body: "Qualified leads become booked appointments on the calendar. No sticky notes. No “I’ll call them back later.”",
+    body: "Qualified leads become booked appointments — not sticky notes.",
   },
   {
+    step: "03",
     name: "Dispatch",
-    body: "Assign the right tech, advance status from en route to done, and keep the day running from one board.",
+    body: "Assign techs, advance status, run the day from one board.",
   },
   {
+    step: "04",
     name: "Ask",
-    body: "Your shop memory — ask who called, what’s unassigned, or how the week booked. Answers link back to the record.",
+    body: "Shop memory — who called, what's unassigned, how the week booked.",
   },
 ] as const;
 
-/** Plain-language workflow before product jargon. */
 export function HomeWorkflow() {
   return (
-    <section className="home-workflow" aria-labelledby="home-workflow-heading">
-      <div className="editorial-wrap">
-        <p className="tier1-eyebrow type-eyebrow">The job</p>
-        <h2 id="home-workflow-heading" className="tier1-section-title type-headline">
-          From the ring to paid work — one path.
-        </h2>
-        <p className="home-workflow-spine font-sans">{spine}</p>
+    <MktSection id="workflow" tone="dark" aria-labelledby="home-workflow-heading">
+      <MktSectionHeader
+        light
+        kicker="The job"
+        title="From the ring to paid work — one path."
+        lead={spine}
+        titleId="home-workflow-heading"
+      />
 
-        <ol className="home-workflow-stages font-sans">
-          {stages.map((stage) => (
-            <li key={stage.name} className="home-workflow-stage">
-              <h3 className="home-workflow-stage-name">{stage.name}</h3>
-              <p className="home-workflow-stage-body">{stage.body}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
+      <ol className="mkt-steps font-sans">
+        {stages.map((stage) => (
+          <li key={stage.name} className="mkt-step">
+            <span className="mkt-step-num">{stage.step}</span>
+            <h3 className="mkt-step-name">{stage.name}</h3>
+            <p className="mkt-step-body">{stage.body}</p>
+          </li>
+        ))}
+      </ol>
+    </MktSection>
   );
 }
