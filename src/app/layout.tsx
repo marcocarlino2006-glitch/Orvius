@@ -24,21 +24,21 @@ export const metadata: Metadata = {
     template: "%s · Orvius",
   },
   description:
-    "Orvius is the operating system for service businesses — dedicated line, AI receptionist, inbox, jobs, dispatch, and Ask. Built for HVAC, plumbing, and electrical.",
+    "Orvius answers every call, qualifies the lead, and alerts the owner. Pro adds jobs, dispatch, and Ask. Built for HVAC, plumbing, and electrical.",
   metadataBase: new URL("https://orvius.im"),
   openGraph: {
-    title: "Orvius — The operating system for service businesses",
+    title: "Orvius — Every call answered. Every lead owned.",
     description:
-      "Call +1 844 643 9170 for the live demo. Dedicated shop line, qualified leads, owner alerts — one OS for the trades.",
+      "Call +1 844 643 9170 for the live demo. Dedicated shop line, qualified leads, owner alerts.",
     type: "website",
     url: "https://orvius.im",
     siteName: "Orvius",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Orvius — The operating system for service businesses",
+    title: "Orvius — Every call answered. Every lead owned.",
     description:
-      "The system of record for HVAC, plumbing, and electrical.",
+      "AI receptionist and shop OS for HVAC, plumbing, and electrical.",
   },
 };
 

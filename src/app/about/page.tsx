@@ -16,8 +16,8 @@ export default function AboutPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Company"
-            title="The operating system for service businesses."
-            subline="We start at the front door. One layer at a time."
+            title={company.tagline}
+            subline="We start at the front door. Ship what shops use."
             description={company.mission}
           />
         </div>
@@ -26,29 +26,27 @@ export default function AboutPage() {
       <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
           <p className="tier1-section-lead font-sans">
-            {company.productName} is developed and operated by{" "}
-            {company.legalName}. We focus on {company.trades.join(", ")} — where
-            missed calls become lost revenue.
+            {company.productName} is built by {company.legalName} for{" "}
+            {company.trades.join(", ")} shops — where a missed call is lost
+            revenue.
           </p>
           <p className="tier1-section-lead font-sans">
-            We started at the front door — answering and qualifying every call.
-            Customer records followed. Jobs are live: a lead becomes a booked
-            appointment, not a sticky note. Dispatch, billing, and everything
-            else builds on that foundation. One layer at a time.
+            Live today: answer and qualify every call, owner alerts, customers,
+            jobs, and dispatch. Money and marketplace come after those loops are
+            airtight.
           </p>
         </div>
       </section>
 
       <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap">
-          <p className="tier1-eyebrow type-eyebrow">Platform</p>
+          <p className="tier1-eyebrow type-eyebrow">What&apos;s live</p>
           <h2 className="tier1-section-title type-headline">The system.</h2>
           <p className="tier1-section-lead font-sans max-w-2xl">
-            Orvius expands in layers — each one a complete module, not a
-            half-built feature. What&apos;s live today is what shops actually use.
+            Only layers shops can use now. No roadmap theater.
           </p>
           <div className="tier1-rings">
-            <OsRings />
+            <OsRings liveOnly />
           </div>
         </div>
       </section>
@@ -58,9 +56,8 @@ export default function AboutPage() {
           <div>
             <h2 className="tier1-section-title type-headline">{company.legalName}</h2>
             <p className="tier1-section-lead font-sans">
-              Contracts, invoices, and subscriptions are with {company.legalName}.
-              {company.productName} is our product brand for service-business
-              operators.
+              Contracts and subscriptions are with {company.legalName}.{" "}
+              {company.productName} is the product brand.
             </p>
           </div>
           <div className="tier1-actions">

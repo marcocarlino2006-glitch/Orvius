@@ -60,8 +60,8 @@ export default function DashboardProfilePage() {
         <ShellPanel
           title="Business"
           action={
-            <Link href="/admin" className="pro-section-link font-sans">
-              Setup →
+            <Link href="/dashboard/settings" className="pro-section-link font-sans">
+              Settings →
             </Link>
           }
         >

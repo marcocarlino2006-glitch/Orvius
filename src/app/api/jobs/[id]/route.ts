@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { JOB_INCLUDE, isJobStatus, serializeJob, updateJobStatus } from "@/lib/job";
+import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireBusinessSession } from "@/lib/tenant";
 
@@ -9,6 +10,9 @@ export async function GET(_request: Request, { params }: Params) {
   const authResult = await requireBusinessSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
+
+  const planGate = requirePlanModule(business, "jobs");
+  if ("error" in planGate) return planGate.error;
 
   const { id } = await params;
 
@@ -28,6 +32,9 @@ export async function PATCH(request: Request, { params }: Params) {
   const authResult = await requireBusinessSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
+
+  const planGate = requirePlanModule(business, "jobs");
+  if ("error" in planGate) return planGate.error;
 
   const { id } = await params;
   const body = (await request.json()) as {

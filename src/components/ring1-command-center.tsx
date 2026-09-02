@@ -16,6 +16,7 @@ import {
   TodayPriorityLeads,
   type PriorityLead,
 } from "@/components/today-priority-leads";
+import { usePlanAccess } from "@/lib/use-plan-access";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
@@ -92,6 +93,8 @@ function formatRelative(iso: string | null) {
 export function Ring1CommandCenter() {
   const [data, setData] = useState<Ring1Data | null>(null);
   const [loading, setLoading] = useState(true);
+  const { access } = usePlanAccess();
+  const canDispatch = access?.canAccess("dispatch") ?? false;
 
   const load = useCallback(async () => {
     try {
@@ -154,7 +157,7 @@ export function Ring1CommandCenter() {
 
       <ProStatRow stats={stats} className="ring1-command-stats" />
 
-      {data?.dispatchToday ? (
+      {canDispatch && data?.dispatchToday ? (
         <ProDispatchToday
           jobs={data.dispatchToday.jobs}
           unassigned={data.dispatchToday.unassigned}

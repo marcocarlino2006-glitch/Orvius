@@ -83,7 +83,7 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
     category: "Front door",
     values: {
       pilot: true,
-      line: true,
+      line: false,
       pro: true,
       fleet: true,
       multi: true,

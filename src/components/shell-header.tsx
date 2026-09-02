@@ -51,7 +51,7 @@ export function ShellHeader({
   plane = "void",
   position = "sticky",
   surface = "solid",
-  cta = { href: "/pilot", label: "Get started" },
+  cta = { href: "/login", label: "Start free" },
   nav = defaultNav,
 }: ShellHeaderProps) {
   const { data: session } = useSession();

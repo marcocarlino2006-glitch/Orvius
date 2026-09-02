@@ -30,7 +30,8 @@ const PRO_MODULES: PlanModule[] = [
 export const planFeatures: Record<PaidPlanId, PlanFeatureSet> = {
   line: {
     modules: LINE_MODULES,
-    maxTechnicians: 3,
+    /** Line has no dispatch — crew lives on Pro+. */
+    maxTechnicians: 0,
     prioritySupport: false,
   },
   pro: {

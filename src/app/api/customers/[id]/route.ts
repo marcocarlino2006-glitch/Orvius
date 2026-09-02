@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCustomerTimeline, customerDisplayName } from "@/lib/customer";
+import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireBusinessSession } from "@/lib/tenant";
 
@@ -9,6 +10,9 @@ export async function GET(_request: Request, { params }: Params) {
   const authResult = await requireBusinessSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
+
+  const planGate = requirePlanModule(business, "customers");
+  if ("error" in planGate) return planGate.error;
 
   const { id } = await params;
 

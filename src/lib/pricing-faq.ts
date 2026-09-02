@@ -27,7 +27,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "cancel",
     question: "Can I cancel anytime?",
     answer:
-      "Yes. All paid plans are month-to-month or annual with no long-term contract. Cancel from Settings → Billing. See our Refunds & Cancellation policy for details.",
+      "Yes. All paid plans are month-to-month or annual with no long-term contract. Cancel from Dashboard → Billing. See our Refunds & Cancellation policy for details.",
   },
   {
     id: "one-job",

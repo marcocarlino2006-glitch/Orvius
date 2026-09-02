@@ -3,10 +3,13 @@ import { osRings } from "@/lib/company";
 type OsRingsProps = {
   variant?: "light" | "dark";
   limit?: number;
+  /** Hide planned/next rings — signal only. */
+  liveOnly?: boolean;
 };
 
-export function OsRings({ variant = "light", limit }: OsRingsProps) {
-  const rings = limit ? osRings.slice(0, limit) : osRings;
+export function OsRings({ variant = "light", limit, liveOnly = false }: OsRingsProps) {
+  let rings = liveOnly ? osRings.filter((r) => r.status === "live") : [...osRings];
+  if (limit) rings = rings.slice(0, limit);
   const isDark = variant === "dark";
 
   return (

@@ -43,7 +43,7 @@ export function OsShell({
   const { access } = usePlanAccess();
   const businessName = businessNameProp ?? business?.name ?? "Your business";
   const newLeads = business?.metrics.newLeads ?? 0;
-  const showAskDock = access?.canAccess("ask") ?? true;
+  const showAskDock = access?.canAccess("ask") ?? false;
   const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {

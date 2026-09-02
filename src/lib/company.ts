@@ -8,9 +8,9 @@ export const company = {
   legalEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
-  tagline: "The operating system for service businesses.",
+  tagline: "Every call answered. Every lead owned.",
   mission:
-    "One intelligence layer for the full shop — every call, every customer, every job. We start at the front door.",
+    "Orvius answers the shop phone, qualifies the lead, and alerts the owner. Pro adds jobs, dispatch, and Ask. Built for HVAC, plumbing, and electrical.",
   jurisdictionNote:
     "the state in which Solution Development LLC is organized",
   smsProgramName: "Orvius Owner Alerts",

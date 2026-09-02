@@ -8,6 +8,7 @@ import {
   type TechOption,
 } from "@/components/assign-tech-button";
 import { telHref } from "@/lib/demo-line";
+import { usePlanAccess } from "@/lib/use-plan-access";
 
 export type PriorityLead = {
   id: string;
@@ -104,6 +105,10 @@ export function TodayPriorityLeads({
   technicians = [],
   onUpdate,
 }: TodayPriorityLeadsProps) {
+  const { access } = usePlanAccess();
+  const canJobs = access?.canAccess("jobs") ?? false;
+  const canDispatch = access?.canAccess("dispatch") ?? false;
+
   if (!leads.length) return null;
 
   return (
@@ -135,7 +140,7 @@ export function TodayPriorityLeads({
                   .filter(Boolean)
                   .join(" · ")}
               </p>
-              {lead.job ? (
+              {canJobs && lead.job ? (
                 <p className="today-priority-booked">
                   Job booked
                   {lead.job.scheduledAt
@@ -151,9 +156,9 @@ export function TodayPriorityLeads({
             </div>
 
             <div className="today-priority-actions font-sans">
-              {lead.job ? (
+              {canJobs && lead.job ? (
                 <>
-                  {needsAssign && technicians.length ? (
+                  {needsAssign && canDispatch ? (
                     <AssignTechButton
                       jobId={lead.job.id}
                       technicians={technicians}
@@ -166,15 +171,28 @@ export function TodayPriorityLeads({
                   >
                     Open job
                   </Link>
-                  <Link href="/dashboard/dispatch" className="today-priority-btn">
-                    Dispatch
-                  </Link>
+                  {canDispatch ? (
+                    <Link href="/dashboard/dispatch" className="today-priority-btn">
+                      Dispatch
+                    </Link>
+                  ) : null}
                 </>
-              ) : (
+              ) : canJobs ? (
                 <>
                   <BookJobQuickButton leadId={lead.id} onBooked={() => onUpdate?.()} />
                   {lead.phone ? (
                     <a href={telHref(lead.phone)} className="today-priority-btn">
+                      Call back
+                    </a>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  {lead.phone ? (
+                    <a
+                      href={telHref(lead.phone)}
+                      className="today-priority-btn today-priority-btn-primary"
+                    >
                       Call back
                     </a>
                   ) : null}
