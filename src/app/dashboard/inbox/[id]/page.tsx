@@ -3,6 +3,7 @@
 import { BookJobForm } from "@/components/book-job-form";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
+import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { ProSignalBar } from "@/components/pro-signal-bar";
 import { OsShell } from "@/components/os-shell";
@@ -119,7 +120,7 @@ export default function LeadDetailPage() {
         />
       </div>
 
-      <div className="ring1-lead-grid">
+      <div className="ring1-lead-grid ring1-lead-grid-with-bar">
         <div className="ring1-lead-primary">
           <OwnerAlertCard
             variant="void"
@@ -211,6 +212,33 @@ export default function LeadDetailPage() {
           ) : null}
         </div>
       </div>
+
+      {!lead.job ? (
+        <div className="lead-detail-sticky font-sans">
+          <div className="lead-detail-sticky-inner">
+            {lead.phone ? (
+              <>
+                <a href={`tel:${lead.phone}`} className="lead-detail-sticky-btn">
+                  Call back
+                </a>
+                <a href={`sms:${lead.phone}`} className="lead-detail-sticky-btn lead-detail-sticky-btn-muted">
+                  Text
+                </a>
+              </>
+            ) : null}
+            <BookJobQuickButton
+              leadId={lead.id}
+              className="lead-detail-sticky-btn lead-detail-sticky-btn-primary"
+              onBooked={() => {
+                window.location.reload();
+              }}
+            />
+            <Link href="/dashboard/dispatch" className="lead-detail-sticky-btn lead-detail-sticky-btn-muted">
+              Dispatch
+            </Link>
+          </div>
+        </div>
+      ) : null}
     </OsShell>
   );
 }

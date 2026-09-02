@@ -2,19 +2,24 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { BookJobQuickButton } from "@/components/today-priority-leads";
 
 type LeadQuickActionsProps = {
   leadId: string;
   phone: string | null;
   status: string;
+  booked?: boolean;
   onStatusChange?: (status: string) => void;
+  onBooked?: () => void;
 };
 
 export function LeadQuickActions({
   leadId,
   phone,
   status,
+  booked = false,
   onStatusChange,
+  onBooked,
 }: LeadQuickActionsProps) {
   const [loading, setLoading] = useState(false);
 
@@ -51,6 +56,13 @@ export function LeadQuickActions({
             Text
           </a>
         </>
+      ) : null}
+      {!booked ? (
+        <BookJobQuickButton
+          leadId={leadId}
+          onBooked={onBooked}
+          className="lead-quick-btn lead-quick-btn-signal"
+        />
       ) : null}
       {status === "new" ? (
         <button

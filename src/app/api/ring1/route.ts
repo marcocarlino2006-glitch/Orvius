@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAutoBookUrgency } from "@/lib/auto-job";
 import { getDispatchBoard } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
@@ -27,6 +28,7 @@ export async function GET() {
     totalLeads,
     lastCall,
     recentLeads,
+    priorityLeadsRaw,
     recentCalls,
     dispatchBoard,
     health,
@@ -48,6 +50,15 @@ export async function GET() {
       include: {
         business: { select: { name: true } },
         customer: { select: { id: true, interactionCount: true } },
+        job: { select: { id: true, title: true, status: true, scheduledAt: true } },
+      },
+    }),
+    prisma.lead.findMany({
+      where: { ...businessFilter, status: "new" },
+      take: 6,
+      orderBy: { createdAt: "desc" },
+      include: {
+        job: { select: { id: true, title: true, status: true, scheduledAt: true } },
       },
     }),
     prisma.call.findMany({
@@ -63,6 +74,33 @@ export async function GET() {
   ]);
 
   const wedge = await getWedgeReadiness(business.id, health);
+
+  const priorityLeads = priorityLeadsRaw
+    .sort((a, b) => {
+      const aUrgent = isAutoBookUrgency(a.urgency) ? 0 : 1;
+      const bUrgent = isAutoBookUrgency(b.urgency) ? 0 : 1;
+      if (aUrgent !== bUrgent) return aUrgent - bUrgent;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    })
+    .slice(0, 3)
+    .map((lead) => ({
+      id: lead.id,
+      name: lead.name,
+      phone: lead.phone,
+      serviceType: lead.serviceType,
+      urgency: lead.urgency,
+      address: lead.address,
+      status: lead.status,
+      createdAt: lead.createdAt.toISOString(),
+      job: lead.job
+        ? {
+            id: lead.job.id,
+            title: lead.job.title,
+            status: lead.job.status,
+            scheduledAt: lead.job.scheduledAt?.toISOString() ?? null,
+          }
+        : null,
+    }));
 
   const line =
     business.vapiPhoneNumber ??
@@ -98,7 +136,10 @@ export async function GET() {
       createdAt: lead.createdAt.toISOString(),
       business: lead.business,
       returning: (lead.customer?.interactionCount ?? 0) > 1,
+      booked: Boolean(lead.job),
+      jobId: lead.job?.id ?? null,
     })),
+    priorityLeads,
     recentCalls: recentCalls.map((call) => ({
       id: call.id,
       callerPhone: call.callerPhone,

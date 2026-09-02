@@ -10538,6 +10538,20 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
+.pro-dispatch-today-unassigned {
+  border-color: color-mix(in srgb, var(--signal) 28%, var(--rule));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--signal) 4%, var(--white)) 0%,
+    var(--white) 100%
+  );
+}
+
+.pro-dispatch-today-unassigned-badge {
+  color: var(--signal);
+  font-weight: 700;
+}
+
 .pro-dispatch-today-empty {
   display: flex;
   flex-wrap: wrap;
@@ -10654,18 +10668,18 @@ h3 {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-xl);
-  border: 1px solid color-mix(in srgb, var(--signal) 16%, transparent);
+  border: 1px solid var(--rule);
   background:
-    radial-gradient(ellipse 70% 80% at 0% 0%, color-mix(in srgb, var(--signal) 12%, transparent), transparent 55%),
-    linear-gradient(165deg, var(--void-deep) 0%, var(--panel) 100%);
-  box-shadow: var(--shadow-product);
+    radial-gradient(ellipse 80% 60% at 0% 0%, color-mix(in srgb, var(--signal) 8%, transparent), transparent 55%),
+    linear-gradient(180deg, var(--white) 0%, var(--fog) 100%);
+  box-shadow: var(--shadow-soft);
 }
 
 .pro-today-pulse-glow {
   position: absolute;
   inset: -30% -10% auto -10%;
   height: 60%;
-  background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--signal) 14%, transparent), transparent 70%);
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--signal) 10%, transparent), transparent 70%);
   pointer-events: none;
 }
 
@@ -10704,12 +10718,12 @@ h3 {
   font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-  color: var(--mist);
+  color: var(--void);
   text-decoration: none;
 }
 
 .pro-today-pulse-line:hover {
-  color: var(--signal-hot);
+  color: var(--signal);
 }
 
 .pro-today-pulse-setup {
@@ -10724,7 +10738,7 @@ h3 {
 .pro-today-pulse-meta {
   margin: 0.35rem 0 0;
   font-size: 0.8125rem;
-  color: color-mix(in srgb, var(--mist) 65%, var(--ash));
+  color: var(--ash);
 }
 
 .pro-today-pulse-metrics {
@@ -10736,8 +10750,8 @@ h3 {
 .pro-today-metric {
   padding: 0.625rem 0.75rem;
   border-radius: var(--radius-md);
-  border: 1px solid color-mix(in srgb, var(--mist) 10%, transparent);
-  background: color-mix(in srgb, var(--mist) 4%, transparent);
+  border: 1px solid var(--rule);
+  background: var(--white);
 }
 
 .pro-today-metric-label {
@@ -10746,7 +10760,7 @@ h3 {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--mist) 55%, var(--ash));
+  color: var(--ash-soft);
 }
 
 .pro-today-metric-value {
@@ -10754,7 +10768,7 @@ h3 {
   margin-top: 0.25rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--mist);
+  color: var(--void);
 }
 
 .pro-today-metric-good {
@@ -11927,4 +11941,175 @@ h3 {
   background: color-mix(in srgb, var(--canvas) 88%, transparent);
   border-bottom: 1px solid var(--hairline);
   backdrop-filter: blur(16px);
+}
+
+/* Today command center — priority leads + sticky lead actions */
+.today-priority {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.today-priority-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 1.25rem;
+  padding: 1rem 1.125rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--rule);
+  background: var(--white);
+  box-shadow: var(--shadow-soft);
+}
+
+.today-priority-card-emergency {
+  border-color: color-mix(in srgb, var(--flare) 35%, var(--rule));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--flare) 6%, var(--white)) 0%,
+    var(--white) 55%
+  );
+  box-shadow:
+    var(--shadow-soft),
+    inset 3px 0 0 var(--flare);
+}
+
+.today-priority-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: var(--kicker-tracking);
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.today-priority-card-emergency .today-priority-kicker {
+  color: var(--flare-dim);
+}
+
+.today-priority-title {
+  margin: 0.35rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--void);
+}
+
+.today-priority-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
+
+.today-priority-booked {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--live);
+}
+
+.today-priority-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.today-priority-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--void);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.today-priority-btn:hover {
+  border-color: color-mix(in srgb, var(--void) 18%, var(--rule));
+  background: var(--fog);
+}
+
+.today-priority-btn-primary {
+  border-color: color-mix(in srgb, var(--signal) 35%, var(--rule));
+  background: var(--signal);
+  color: var(--white);
+}
+
+.today-priority-btn-primary:hover {
+  background: var(--signal-hot);
+  border-color: var(--signal-hot);
+}
+
+.today-priority-btn-primary:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.ring1-lead-grid-with-bar {
+  padding-bottom: 5.5rem;
+}
+
+.lead-detail-sticky {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--canvas) 92%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.lead-detail-sticky-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.lead-detail-sticky-btn {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--void);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lead-detail-sticky-btn-primary {
+  border-color: var(--signal);
+  background: var(--signal);
+  color: var(--white);
+}
+
+.lead-detail-sticky-btn-muted {
+  background: var(--fog);
+}
+
+@media (min-width: 768px) {
+  .lead-detail-sticky {
+    left: var(--os-sidebar-width, 15rem);
+  }
 }

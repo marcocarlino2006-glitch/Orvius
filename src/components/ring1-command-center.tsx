@@ -12,6 +12,10 @@ import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProTodayAlerts, ProTodayPulse } from "@/components/pro-today-status";
 import { Ring1RecentCallRow } from "@/components/ring1-recent-call-row";
+import {
+  TodayPriorityLeads,
+  type PriorityLead,
+} from "@/components/today-priority-leads";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
@@ -39,7 +43,10 @@ type Ring1Data = {
     createdAt: string;
     business: { name: string } | null;
     returning: boolean;
+    booked?: boolean;
+    jobId?: string | null;
   }>;
+  priorityLeads: PriorityLead[];
   recentCalls: Array<{
     id: string;
     callerPhone: string | null;
@@ -129,6 +136,8 @@ export function Ring1CommandCenter() {
 
   return (
     <section className="ring1-command" aria-label="Today">
+      <TodayPriorityLeads leads={data?.priorityLeads ?? []} onUpdate={load} />
+
       <ProTodayPulse health={data?.health ?? null} newLeads={newLeads} />
 
       <ProTodayAlerts
@@ -181,6 +190,7 @@ export function Ring1CommandCenter() {
                     status={lead.status}
                     createdAt={lead.createdAt}
                     returning={lead.returning}
+                    booked={lead.booked}
                     onStatusChange={(next) => {
                       setData((prev) =>
                         prev

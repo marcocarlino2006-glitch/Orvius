@@ -1,4 +1,4 @@
-import { getLeadInboxUrl } from "@/lib/domains";
+import { getOwnerAlertOpenUrl } from "@/lib/owner-alert-message";
 import { getWebhookUrl } from "@/lib/env";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { logError, logInfo } from "@/lib/logger";
@@ -44,13 +44,13 @@ function retryAt(attempts: number) {
 function buildBodies(params: {
   businessName: string;
   message: string;
-  leadId?: string | null;
+  openUrl?: string | null;
 }) {
   const smsBody = [
     `[Orvius] ${params.businessName}`,
     "",
     params.message,
-    params.leadId ? `\nOpen: ${getLeadInboxUrl(params.leadId)}` : null,
+    params.openUrl ? `\nOpen → ${params.openUrl}` : null,
   ]
     .filter((line) => line !== null)
     .join("\n");
@@ -59,12 +59,22 @@ function buildBodies(params: {
     `${params.businessName} — new activity`,
     "",
     params.message,
-    params.leadId ? `\nOpen in Orvius: ${getLeadInboxUrl(params.leadId)}` : null,
+    params.openUrl ? `\nOpen in Orvius: ${params.openUrl}` : null,
   ]
     .filter(Boolean)
     .join("\n");
 
   return { smsBody, emailBody };
+}
+
+async function resolveOpenUrl(leadId: string | null): Promise<string | null> {
+  if (!leadId) return null;
+  const lead = await prisma.lead.findUnique({
+    where: { id: leadId },
+    include: { job: { select: { id: true } } },
+  });
+  if (!lead) return null;
+  return getOwnerAlertOpenUrl({ leadId, jobId: lead.job?.id });
 }
 
 async function createQueueRow(params: {
@@ -143,10 +153,11 @@ async function deliverQueuedRow(row: {
 }): Promise<ChannelResult> {
   const businessName = row.businessName ?? "Your shop";
   const message = row.message ?? "New activity in Orvius.";
+  const openUrl = await resolveOpenUrl(row.leadId);
   const { smsBody, emailBody } = buildBodies({
     businessName,
     message,
-    leadId: row.leadId,
+    openUrl,
   });
 
   if (row.channel === "sms") {
@@ -364,7 +375,9 @@ export async function notifyOwnerSync(params: {
   const { smsBody, emailBody } = buildBodies({
     businessName: params.businessName,
     message: params.message,
-    leadId: params.leadId,
+    openUrl: params.leadId
+      ? getOwnerAlertOpenUrl({ leadId: params.leadId })
+      : null,
   });
 
   const result: NotifyOwnerResult = {};

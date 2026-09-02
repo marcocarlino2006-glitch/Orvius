@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { maybeAutoBookLead } from "@/lib/auto-job";
 import { linkTouchToCustomer } from "@/lib/customer";
 import { verifyAdminRequest } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
@@ -6,6 +7,7 @@ import {
   buildLeadAlertDedupeKey,
   notifyOwner,
 } from "@/lib/notifications";
+import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { isProduction } from "@/lib/runtime";
 import { z } from "zod";
 
@@ -112,22 +114,31 @@ export async function POST(request: NextRequest) {
       notes: body.notes ?? summary,
     });
 
+    const autoBook = await maybeAutoBookLead(lead.id);
+    const bookedJob = autoBook.jobId
+      ? await prisma.job.findUnique({
+          where: { id: autoBook.jobId },
+          select: { id: true, scheduledAt: true },
+        })
+      : null;
+
     if (business.ownerPhone) {
       await notifyOwner({
         businessId: business.id,
         ownerPhone: business.ownerPhone,
         ownerEmail: business.ownerEmail,
         businessName: business.name,
-        message: [
-          `New lead from ${body.callerName}`,
-          `Phone: ${body.callerPhone}`,
-          `Service: ${body.serviceType}`,
-          `Urgency: ${body.urgency}`,
-          body.address ? `Address: ${body.address}` : null,
-          `Summary: ${summary}`,
-        ]
-          .filter(Boolean)
-          .join("\n"),
+        message: buildOwnerLeadAlertMessage({
+          lead: {
+            name: lead.name,
+            phone: lead.phone,
+            serviceType: lead.serviceType,
+            urgency: lead.urgency,
+            address: lead.address,
+          },
+          job: bookedJob,
+          autoBooked: autoBook.created,
+        }),
         leadId: lead.id,
         dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),
       });
@@ -139,6 +150,8 @@ export async function POST(request: NextRequest) {
       business: { id: business.id, name: business.name },
       callId: call.id,
       leadId: lead.id,
+      jobId: autoBook.jobId,
+      autoBooked: autoBook.created,
       summary,
     });
   } catch (error) {

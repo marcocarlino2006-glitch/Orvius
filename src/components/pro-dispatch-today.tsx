@@ -45,13 +45,17 @@ export function ProDispatchToday({ jobs, unassigned, jobCount }: ProDispatchToda
   }
 
   return (
-    <section className="pro-dispatch-today">
+    <section className={`pro-dispatch-today ${unassigned > 0 ? "pro-dispatch-today-unassigned" : ""}`}>
       <div className="pro-dispatch-today-head font-sans">
         <div>
           <p className="pro-dispatch-today-kicker">Today&apos;s schedule</p>
           <p className="pro-dispatch-today-title">
             {jobCount} job{jobCount === 1 ? "" : "s"}
-            {unassigned > 0 ? ` · ${unassigned} unassigned` : ""}
+            {unassigned > 0 ? (
+              <span className="pro-dispatch-today-unassigned-badge">
+                · {unassigned} need{unassigned === 1 ? "s" : ""} a tech
+              </span>
+            ) : null}
           </p>
         </div>
         <Link href="/dashboard/dispatch" className="pro-section-link">

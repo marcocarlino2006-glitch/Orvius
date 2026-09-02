@@ -5,7 +5,9 @@ import {
   extractLeadFromStructuredData,
   type VapiWebhookMessage,
 } from "@/lib/vapi";
+import { maybeAutoBookLead } from "@/lib/auto-job";
 import { linkTouchToCustomer } from "@/lib/customer";
+import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import {
   buildLeadAlertDedupeKey,
   enqueueOwnerAlert,
@@ -232,6 +234,14 @@ export async function POST(request: NextRequest) {
       notes: txResult.lead.notes,
     });
 
+    const autoBook = await maybeAutoBookLead(txResult.lead.id);
+    const bookedJob = autoBook.jobId
+      ? await prisma.job.findUnique({
+          where: { id: autoBook.jobId },
+          select: { id: true, scheduledAt: true },
+        })
+      : null;
+
     if (txResult.duplicate) {
       await recordWebhookEvent({
         source: "vapi",
@@ -249,15 +259,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const ownerMessage = [
-      `New lead${txResult.lead.name ? `: ${txResult.lead.name}` : ""}`,
-      txResult.lead.phone ? `Phone: ${txResult.lead.phone}` : null,
-      txResult.lead.serviceType ? `Service: ${txResult.lead.serviceType}` : null,
-      txResult.lead.urgency ? `Urgency: ${txResult.lead.urgency}` : null,
-      txResult.lead.address ? `Address: ${txResult.lead.address}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const ownerMessage = buildOwnerLeadAlertMessage({
+      lead: {
+        name: txResult.lead.name,
+        phone: txResult.lead.phone,
+        serviceType: txResult.lead.serviceType,
+        urgency: txResult.lead.urgency,
+        address: txResult.lead.address,
+      },
+      job: bookedJob,
+      autoBooked: autoBook.created,
+    });
 
     const dedupeKey = buildLeadAlertDedupeKey({ vapiCallId });
 
@@ -296,6 +308,8 @@ export async function POST(request: NextRequest) {
       ok: true,
       callId: txResult.call.id,
       leadId: txResult.lead.id,
+      jobId: autoBook.jobId,
+      autoBooked: autoBook.created,
       queued: true,
     });
   }
