@@ -21,12 +21,13 @@ export default function OpenGraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <OrviusMarkGraphic size={56} gradientId="orvius-og-mark" />
+          <OrviusMarkGraphic size={56} variant="light" />
           <div
             style={{
               display: "flex",
-              fontSize: 28,
+              fontSize: 30,
               fontWeight: 600,
+              fontFamily: "Georgia, serif",
               color: orviusColors.void,
               letterSpacing: "-0.03em",
             }}

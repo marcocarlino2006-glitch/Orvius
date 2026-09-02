@@ -1,9 +1,9 @@
 /**
- * Orvius mark — line inside frame. Warm ink. Flat.
+ * Orvius mark — signal ring on ink tile.
+ * Reads as live line + O-monogram at favicon size. Not a placeholder pause icon.
  */
 
 export type OrviusMarkSvgProps = {
-  gradientId?: string;
   className?: string;
   size?: number;
 };
@@ -23,20 +23,21 @@ export function OrviusMarkSvg({
       aria-hidden
     >
       <rect
-        className="orvius-mark-frame"
-        x="5"
-        y="5"
-        width="22"
-        height="22"
-        rx="6"
-        strokeWidth="1.75"
+        className="orvius-mark-tile"
+        x="3"
+        y="3"
+        width="26"
+        height="26"
+        rx="8"
       />
-      <path
-        className="orvius-mark-line"
-        d="M16 11v10"
-        strokeWidth="2"
-        strokeLinecap="round"
+      <circle
+        className="orvius-mark-ring"
+        cx="16"
+        cy="16"
+        r="8.25"
+        strokeWidth="2.25"
       />
+      <circle className="orvius-mark-signal" cx="22.75" cy="9.75" r="2.1" />
     </svg>
   );
 }

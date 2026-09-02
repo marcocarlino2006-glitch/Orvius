@@ -161,7 +161,7 @@ button,
 /* ── Type system ── */
 
 .type-wordmark {
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
   font-weight: 600;
   letter-spacing: var(--tracking-brand);
   text-transform: none;
@@ -1147,23 +1147,44 @@ h3 {
 
 .orvius-logo-mark {
   flex-shrink: 0;
-  color: currentColor;
+  color: var(--void);
 }
 
-.orvius-mark-frame {
-  stroke: currentColor;
+.orvius-mark-tile {
+  fill: var(--void);
+}
+
+.orvius-mark-ring {
+  stroke: var(--chalk);
   fill: none;
+  strokeLinecap: round;
 }
 
-.orvius-mark-line {
-  stroke: currentColor;
+.orvius-mark-signal {
+  fill: var(--signal);
 }
 
 .orvius-logo-void {
   color: var(--chalk);
 }
 
+.orvius-logo-void .orvius-logo-mark {
+  color: var(--chalk);
+}
+
+.orvius-logo-void .orvius-mark-tile {
+  fill: var(--chalk);
+}
+
+.orvius-logo-void .orvius-mark-ring {
+  stroke: var(--void);
+}
+
 .orvius-logo-chalk {
+  color: var(--void);
+}
+
+.orvius-logo-chalk .orvius-logo-mark {
   color: var(--void);
 }
 

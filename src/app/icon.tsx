@@ -18,7 +18,7 @@ export default function Icon() {
           background: orviusColors.void,
         }}
       >
-        <OrviusMarkGraphic size={30} gradientId="orvius-icon" />
+        <OrviusMarkGraphic size={28} variant="dark" />
       </div>
     ),
     { ...size },
