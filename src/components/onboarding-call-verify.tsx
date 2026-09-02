@@ -73,6 +73,8 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         </div>
       </div>
 
+      <p className="onboarding-verify-shop font-sans">{shopName}</p>
+
       <a href={telHref(line)} className="onboarding-hero-line font-sans">
         {line}
       </a>

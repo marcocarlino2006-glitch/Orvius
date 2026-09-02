@@ -63,9 +63,11 @@ You are wedge-certified when:
 - [ ] 5 founder call scenarios pass on real phone
 - [ ] Owner SMS arrives &lt;30s every time
 - [ ] Dashboard matches what happened on the call
+- [ ] Every inbound lead auto-books to dispatch (call + SMS)
+- [ ] Unassigned jobs get a tech from Today in one tap
 - [ ] You'd put your own shop on Orvius tomorrow
 - [ ] Failure log has zero blockers
 
 ---
 
-*Last updated: 2026-08-28*
+*Last updated: 2026-09-02*

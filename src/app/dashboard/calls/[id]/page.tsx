@@ -79,7 +79,7 @@ export default function CallDetailPage() {
     <OsShell
       title="Inbound call"
       subtitle={`${call.business?.name ?? "Your shop"} · ${new Date(call.createdAt).toLocaleString()}`}
-      businessName={call.business?.name ?? "Summit HVAC"}
+      businessName={call.business?.name ?? "Your shop"}
       actions={
         call.callerPhone ? (
           <a href={`tel:${call.callerPhone}`} className="btn btn-void text-sm">

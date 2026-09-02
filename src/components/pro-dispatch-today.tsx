@@ -1,6 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import {
+  AssignTechButton,
+  type TechOption,
+} from "@/components/assign-tech-button";
 import { jobStatusLabel } from "@/lib/job-status";
 
 type DispatchJob = {
@@ -10,6 +14,7 @@ type DispatchJob = {
   scheduledAt: string | null;
   address: string | null;
   urgency: string | null;
+  technicianId?: string | null;
   technician?: { name: string } | null;
   customer?: { name: string | null; phone: string } | null;
   lead?: { name: string | null; phone: string | null } | null;
@@ -19,6 +24,8 @@ type ProDispatchTodayProps = {
   jobs: DispatchJob[];
   unassigned: number;
   jobCount: number;
+  technicians?: TechOption[];
+  onUpdate?: () => void;
 };
 
 function formatTime(iso: string | null) {
@@ -29,7 +36,13 @@ function formatTime(iso: string | null) {
   });
 }
 
-export function ProDispatchToday({ jobs, unassigned, jobCount }: ProDispatchTodayProps) {
+export function ProDispatchToday({
+  jobs,
+  unassigned,
+  jobCount,
+  technicians = [],
+  onUpdate,
+}: ProDispatchTodayProps) {
   if (jobCount === 0) {
     return (
       <section className="pro-dispatch-today pro-dispatch-today-empty">
@@ -67,9 +80,10 @@ export function ProDispatchToday({ jobs, unassigned, jobCount }: ProDispatchToda
         {jobs.slice(0, 5).map((job) => {
           const who = job.customer?.name ?? job.lead?.name ?? "Customer";
           const emergency = job.urgency?.toLowerCase() === "emergency";
+          const needsAssign = !job.technicianId && !job.technician?.name;
 
           return (
-            <li key={job.id}>
+            <li key={job.id} className="pro-dispatch-today-item">
               <Link href={`/dashboard/jobs/${job.id}`} className="pro-dispatch-today-row">
                 <span className="pro-dispatch-today-time">{formatTime(job.scheduledAt)}</span>
                 <span className="pro-dispatch-today-main">
@@ -87,6 +101,15 @@ export function ProDispatchToday({ jobs, unassigned, jobCount }: ProDispatchToda
                   {jobStatusLabel(job.status)}
                 </span>
               </Link>
+              {needsAssign && technicians.length ? (
+                <AssignTechButton
+                  jobId={job.id}
+                  technicians={technicians}
+                  onAssigned={onUpdate}
+                  compact
+                  className="pro-dispatch-today-assign"
+                />
+              ) : null}
             </li>
           );
         })}

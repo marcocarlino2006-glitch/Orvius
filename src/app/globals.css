@@ -9796,6 +9796,15 @@ h3 {
   text-decoration: underline;
 }
 
+.onboarding-verify-shop {
+  margin: 0 0 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
 /* ── Dashboard signal chrome ── */
 .pro-signal-bar {
   display: flex;
@@ -10651,6 +10660,54 @@ h3 {
 
 .pro-dispatch-today-status-emergency {
   color: var(--flare);
+}
+
+.pro-dispatch-today-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pro-dispatch-today-assign {
+  margin-left: 3.25rem;
+}
+
+.assign-tech-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.assign-tech-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.assign-tech-select {
+  min-width: 7rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: var(--white);
+  font-size: 0.8125rem;
+  color: var(--ink);
+}
+
+.assign-tech-btn {
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--signal) 35%, var(--rule));
+  background: var(--signal);
+  color: var(--white);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.assign-tech-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
 @media (max-width: 640px) {

@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  AssignTechButton,
+  type TechOption,
+} from "@/components/assign-tech-button";
 import { telHref } from "@/lib/demo-line";
 
 export type PriorityLead = {
@@ -19,6 +23,7 @@ export type PriorityLead = {
     title: string;
     scheduledAt: string | null;
     status: string;
+    technicianId?: string | null;
   } | null;
 };
 
@@ -90,10 +95,15 @@ function BookJobQuickButton({
 
 type TodayPriorityLeadsProps = {
   leads: PriorityLead[];
+  technicians?: TechOption[];
   onUpdate?: () => void;
 };
 
-export function TodayPriorityLeads({ leads, onUpdate }: TodayPriorityLeadsProps) {
+export function TodayPriorityLeads({
+  leads,
+  technicians = [],
+  onUpdate,
+}: TodayPriorityLeadsProps) {
   if (!leads.length) return null;
 
   return (
@@ -101,6 +111,7 @@ export function TodayPriorityLeads({ leads, onUpdate }: TodayPriorityLeadsProps)
       {leads.map((lead) => {
         const emergency = isEmergency(lead.urgency);
         const who = lead.name ?? lead.phone ?? "Unknown caller";
+        const needsAssign = Boolean(lead.job && !lead.job.technicianId);
 
         return (
           <article
@@ -134,6 +145,7 @@ export function TodayPriorityLeads({ leads, onUpdate }: TodayPriorityLeadsProps)
                         minute: "2-digit",
                       })}`
                     : ""}
+                  {needsAssign ? " · needs a tech" : ""}
                 </p>
               ) : null}
             </div>
@@ -141,6 +153,13 @@ export function TodayPriorityLeads({ leads, onUpdate }: TodayPriorityLeadsProps)
             <div className="today-priority-actions font-sans">
               {lead.job ? (
                 <>
+                  {needsAssign && technicians.length ? (
+                    <AssignTechButton
+                      jobId={lead.job.id}
+                      technicians={technicians}
+                      onAssigned={() => onUpdate?.()}
+                    />
+                  ) : null}
                   <Link
                     href={`/dashboard/jobs/${lead.job.id}`}
                     className="today-priority-btn today-priority-btn-primary"

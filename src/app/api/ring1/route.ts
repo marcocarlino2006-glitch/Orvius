@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { isAutoBookUrgency } from "@/lib/auto-job";
+import { isPriorityUrgency, maybeAutoBookLead } from "@/lib/auto-job";
 import { getShopLineForBusiness } from "@/lib/demo-business";
-import { getDispatchBoard } from "@/lib/field";
+import { getDispatchBoard, listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { requireBusinessSession } from "@/lib/tenant";
@@ -33,6 +33,7 @@ export async function GET() {
     recentCalls,
     dispatchBoard,
     health,
+    crew,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -51,7 +52,7 @@ export async function GET() {
       include: {
         business: { select: { name: true } },
         customer: { select: { id: true, interactionCount: true } },
-        job: { select: { id: true, title: true, status: true, scheduledAt: true } },
+        job: { select: { id: true, title: true, status: true, scheduledAt: true, technicianId: true } },
       },
     }),
     prisma.lead.findMany({
@@ -59,7 +60,7 @@ export async function GET() {
       take: 6,
       orderBy: { createdAt: "desc" },
       include: {
-        job: { select: { id: true, title: true, status: true, scheduledAt: true } },
+        job: { select: { id: true, title: true, status: true, scheduledAt: true, technicianId: true } },
       },
     }),
     prisma.call.findMany({
@@ -72,14 +73,15 @@ export async function GET() {
     }),
     getDispatchBoard(business.id),
     getShopHealth(business.id),
+    listCrew(business.id),
   ]);
 
   const wedge = await getWedgeReadiness(business.id, health);
 
   const priorityLeads = priorityLeadsRaw
     .sort((a, b) => {
-      const aUrgent = isAutoBookUrgency(a.urgency) ? 0 : 1;
-      const bUrgent = isAutoBookUrgency(b.urgency) ? 0 : 1;
+      const aUrgent = isPriorityUrgency(a.urgency) ? 0 : 1;
+      const bUrgent = isPriorityUrgency(b.urgency) ? 0 : 1;
       if (aUrgent !== bUrgent) return aUrgent - bUrgent;
       return b.createdAt.getTime() - a.createdAt.getTime();
     })
@@ -99,6 +101,7 @@ export async function GET() {
             title: lead.job.title,
             status: lead.job.status,
             scheduledAt: lead.job.scheduledAt?.toISOString() ?? null,
+            technicianId: lead.job.technicianId,
           }
         : null,
     }));
@@ -158,6 +161,7 @@ export async function GET() {
         },
       ),
     },
+    technicians: crew.map((tech) => ({ id: tech.id, name: tech.name })),
     health,
     wedge,
   });

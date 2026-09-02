@@ -62,15 +62,21 @@ export function formatServicesForPrompt(servicesJson: string): string {
     .join("\n");
 }
 
+import { inferTradeFromBusiness, tradePromptPack, type Trade } from "@/lib/trades";
+
 export function buildAssistantSystemPrompt(business: {
   name: string;
   greeting: string | null;
   hoursJson: string;
   servicesJson: string;
+  trade?: Trade | null;
 }): string {
   const greeting =
     business.greeting ??
     `Thank you for calling ${business.name}. How can I help you today?`;
+
+  const trade = business.trade ?? inferTradeFromBusiness(business);
+  const tradeBlock = trade ? `\n\n${tradePromptPack(trade)}` : "";
 
   return `You are the AI receptionist for ${business.name} ONLY. You represent this shop and no other company.
 
@@ -111,7 +117,7 @@ ${formatHoursForPrompt(business.hoursJson)}
 After hours: still take the message and mark urgency. Emergency calls get priority callback.
 
 SERVICES
-${formatServicesForPrompt(business.servicesJson)}
+${formatServicesForPrompt(business.servicesJson)}${tradeBlock}
 
 BEFORE ENDING EVERY CALL
 Confirm: name, callback number (read it back), service needed, urgency, address.

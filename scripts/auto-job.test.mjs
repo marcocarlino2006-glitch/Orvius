@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 
-function isAutoBookUrgency(urgency) {
+function isPriorityUrgency(urgency) {
   const key = urgency?.toLowerCase().replace(/\s+/g, "-") ?? "";
   return (
     key.includes("emergency") ||
@@ -11,11 +11,11 @@ function isAutoBookUrgency(urgency) {
   );
 }
 
-assert.equal(isAutoBookUrgency("emergency"), true);
-assert.equal(isAutoBookUrgency("same-day"), true);
-assert.equal(isAutoBookUrgency("today"), true);
-assert.equal(isAutoBookUrgency("this-week"), false);
-assert.equal(isAutoBookUrgency("flexible"), false);
-assert.equal(isAutoBookUrgency(null), false);
+assert.equal(isPriorityUrgency("emergency"), true);
+assert.equal(isPriorityUrgency("same-day"), true);
+assert.equal(isPriorityUrgency("today"), true);
+assert.equal(isPriorityUrgency("this-week"), false);
+assert.equal(isPriorityUrgency("flexible"), false);
+assert.equal(isPriorityUrgency(null), false);
 
 console.log("auto-job.test.mjs: ok");

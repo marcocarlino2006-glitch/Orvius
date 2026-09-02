@@ -66,11 +66,13 @@ type Ring1Data = {
       scheduledAt: string | null;
       address: string | null;
       urgency: string | null;
+      technicianId?: string | null;
       technician?: { name: string } | null;
       customer?: { name: string | null; phone: string } | null;
       lead?: { name: string | null; phone: string | null } | null;
     }>;
   };
+  technicians?: Array<{ id: string; name: string }>;
   health?: ShopHealth;
   wedge?: WedgeReadiness;
 };
@@ -136,7 +138,11 @@ export function Ring1CommandCenter() {
 
   return (
     <section className="ring1-command" aria-label="Today">
-      <TodayPriorityLeads leads={data?.priorityLeads ?? []} onUpdate={load} />
+      <TodayPriorityLeads
+        leads={data?.priorityLeads ?? []}
+        technicians={data?.technicians ?? []}
+        onUpdate={load}
+      />
 
       <ProTodayPulse health={data?.health ?? null} newLeads={newLeads} />
 
@@ -153,6 +159,8 @@ export function Ring1CommandCenter() {
           jobs={data.dispatchToday.jobs}
           unassigned={data.dispatchToday.unassigned}
           jobCount={data.dispatchToday.jobCount}
+          technicians={data.technicians ?? []}
+          onUpdate={load}
         />
       ) : null}
 

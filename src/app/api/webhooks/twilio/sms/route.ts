@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { linkTouchToCustomer } from "@/lib/customer";
+import { maybeAutoBookLead } from "@/lib/auto-job";
+import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import {
@@ -90,12 +92,32 @@ export async function POST(request: NextRequest) {
     notes: body,
   });
 
+  const autoBook = await maybeAutoBookLead(lead.id);
+  const bookedJob = autoBook.jobId
+    ? await prisma.job.findUnique({
+        where: { id: autoBook.jobId },
+        select: { id: true, scheduledAt: true },
+      })
+    : null;
+
+  const ownerMessage = buildOwnerLeadAlertMessage({
+    lead: {
+      name: null,
+      phone: from,
+      serviceType: "SMS inquiry",
+      urgency: null,
+      address: null,
+    },
+    job: bookedJob,
+    autoBooked: autoBook.created,
+  });
+
   await enqueueOwnerAlert({
     businessId: business.id,
     ownerPhone: business.ownerPhone,
     ownerEmail: business.ownerEmail,
     businessName: business.name,
-    message: [`New SMS lead`, `From: ${from}`, `Message: ${body}`].join("\n"),
+    message: [`${ownerMessage}`, `Message: ${body}`].join("\n"),
     leadId: lead.id,
     dedupeKey: buildLeadAlertDedupeKey({
       messageSid: messageSid || lead.id,
