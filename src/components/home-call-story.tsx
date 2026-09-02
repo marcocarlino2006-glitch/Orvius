@@ -28,12 +28,13 @@ export function HomeCallStory() {
   return (
     <section className="tier1-story home-story" aria-labelledby="tier1-story-heading">
       <div className="editorial-wrap">
-        <p className="tier1-eyebrow type-eyebrow">How it works</p>
+        <p className="tier1-eyebrow type-eyebrow">Hear it</p>
         <h2 id="tier1-story-heading" className="tier1-section-title type-headline">
           After hours. Owner on a job. Line still answered.
         </h2>
         <p className="tier1-section-lead font-sans">
-          Representative call · emergency AC · alerted, booked, on the board.
+          Representative after-hours emergency — qualify, alert, book, board.
+          Call the live line to hear the same loop.
         </p>
 
         <div className="tier1-transcript font-sans" role="log" aria-label="Call transcript">

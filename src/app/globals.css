@@ -13121,12 +13121,6 @@ h3 {
   margin: 0;
 }
 
-.home-hero-brand {
-  margin: 0.85rem 0 0;
-  max-width: 10ch;
-  letter-spacing: -0.045em;
-}
-
 .home-hero-tagline {
   margin: 1.15rem 0 0;
   max-width: 22ch;
@@ -13135,6 +13129,12 @@ h3 {
   line-height: 1.25;
   letter-spacing: -0.025em;
   color: var(--void);
+}
+
+.home-hero-brand {
+  margin: 0.85rem 0 0;
+  max-width: 10ch;
+  letter-spacing: -0.045em;
 }
 
 .home-hero-phone {

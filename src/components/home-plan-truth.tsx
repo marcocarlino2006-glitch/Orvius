@@ -10,22 +10,23 @@ export function HomePlanTruth() {
           Line answers the phone. Pro runs the shop.
         </h2>
         <p className="tier1-section-lead font-sans">
-          No vapor tiers. Pick the loop you need now.
+          Start with call → lead → alert. Add jobs, dispatch, estimates, and Ask
+          when you are ready — not before.
         </p>
 
         <div className="home-plan-truth-grid font-sans">
           <div className="home-plan-truth-col">
             <h3 className="home-plan-truth-name">Line</h3>
             <p className="home-plan-truth-body">
-              Call → qualified lead → owner alert. Dedicated shop number, inbox,
-              transcripts.
+              Dedicated shop number, qualified leads, owner SMS, call log. The
+              front door.
             </p>
           </div>
           <div className="home-plan-truth-col">
             <h3 className="home-plan-truth-name">Pro</h3>
             <p className="home-plan-truth-body">
-              Everything in Line, plus customers, jobs, dispatch, estimates, and Ask
-              — the contractor command center.
+              Customers, jobs, dispatch, estimates, and Ask — the contractor
+              command center on top of Line.
             </p>
           </div>
         </div>

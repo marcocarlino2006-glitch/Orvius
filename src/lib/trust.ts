@@ -34,7 +34,7 @@ export const summitCaseStudy = {
   ],
   quote:
     "I get the lead on my phone before I finish the job I'm on. After-hours AC calls don't wait in voicemail anymore.",
-  attribution: "Summit HVAC · reference implementation",
+  attribution: "Summit HVAC · labeled reference implementation — not a third-party case study",
 } as const;
 
 export const trustBadges = [

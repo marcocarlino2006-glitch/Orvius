@@ -2,54 +2,64 @@ import { HomeCallStory } from "@/components/home-call-story";
 import { HomeLineHero } from "@/components/home-line-hero";
 import { HomeOsPath } from "@/components/home-os-path";
 import { HomePlanTruth } from "@/components/home-plan-truth";
+import { HomeProof } from "@/components/home-proof";
+import { HomeTrust } from "@/components/home-trust";
+import { HomeWorkflow } from "@/components/home-workflow";
 import { PublicLayout } from "@/components/marketing-shell";
-import { company, getLowestPaidPrice } from "@/lib/company";
+import { company } from "@/lib/company";
+import { demoLineHref } from "@/lib/demo-line";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Orvius — Every call answered. Every lead owned.",
+  title: "Orvius — Turn missed calls into booked jobs",
   description:
-    "Call +1 844 643 9170 for the live demo. Orvius is the operating system for HVAC, plumbing, and electrical — answer, book, dispatch, and grow into money and intelligence.",
+    "Orvius answers after-hours and overflow calls for HVAC, plumbing, and electrical — qualifies, books, alerts the owner, and runs the shop from one system. Call the live line or book a call audit.",
   openGraph: {
-    title: "Orvius — Call the live demo",
+    title: "Orvius — Turn missed calls into booked jobs",
     description:
-      "Live demo line. Front door today. Operating system as you grow.",
+      "Try the live line. Book a call audit. Front door today — operating system as you grow.",
   },
 };
 
 export default function HomePage() {
   return (
-    <PublicLayout showStickyCall>
+    <PublicLayout
+      showStickyCall
+      cta={{ href: "/pilot", label: "Book a call audit" }}
+    >
       <HomeLineHero />
+
+      <HomeWorkflow />
 
       <HomeCallStory />
 
       <HomeOsPath />
 
+      <HomeProof />
+
+      <HomeTrust />
+
       <HomePlanTruth />
 
       <section className="tier1-close home-close">
         <div className="editorial-wrap tier1-close-inner">
-          <p className="tier1-eyebrow type-eyebrow">Get started</p>
+          <p className="tier1-eyebrow type-eyebrow">Next step</p>
           <h2 className="tier1-section-title type-headline">
-            Capture demand today. Build the OS as you grow.
+            Hear the line. Then audit yours.
           </h2>
           <p className="tier1-section-lead font-sans">
-            Sign in, name the shop, get a dedicated number. {company.productName}{" "}
-            starts at the front door — 30 days free, no card.
+            One primary action: book a live call audit. Or try the live{" "}
+            {company.productName} line first — no form required.
           </p>
           <div className="tier1-actions tier1-close-actions">
-            <Link href="/login" className="inst-btn inst-btn-primary">
-              Start free
+            <Link href="/pilot" className="inst-btn inst-btn-primary">
+              Book a live call audit
             </Link>
-            <Link href="/pricing" className="inst-btn inst-btn-ghost">
-              View pricing
-            </Link>
+            <a href={demoLineHref()} className="inst-btn inst-btn-ghost">
+              Try the live line
+            </a>
           </div>
-          <p className="tier1-close-foot font-sans">
-            From ${getLowestPaidPrice("year")}/mo · cancel anytime
-          </p>
         </div>
       </section>
     </PublicLayout>
