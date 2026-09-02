@@ -2,16 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { LeadInboxCard } from "@/components/lead-inbox-card";
-import {
-  ProEmptyState,
-  ProSectionHead,
-  ProStatRow,
-} from "@/components/pro-page-chrome";
+import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
-import { ProTodayAlerts, ProTodayPulse } from "@/components/pro-today-status";
-import { Ring1RecentCallRow } from "@/components/ring1-recent-call-row";
+import { ProTodayAlerts } from "@/components/pro-today-status";
 import {
   TodayPriorityLeads,
   type PriorityLead,
@@ -21,42 +15,10 @@ import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
 type Ring1Data = {
-  business: { name: string; line: string | null; ownerPhone: string | null } | null;
   metrics: {
-    callsToday: number;
-    leadsToday: number;
     newLeads: number;
-    totalCalls: number;
-    totalLeads: number;
-    answerRate: number | null;
-    lastCallAt: string | null;
-    lastCaller: string | null;
   };
-  recentLeads: Array<{
-    id: string;
-    name: string | null;
-    phone: string | null;
-    serviceType: string | null;
-    urgency: string | null;
-    address: string | null;
-    status: string;
-    source: string;
-    createdAt: string;
-    business: { name: string } | null;
-    returning: boolean;
-    booked?: boolean;
-    jobId?: string | null;
-  }>;
   priorityLeads: PriorityLead[];
-  recentCalls: Array<{
-    id: string;
-    callerPhone: string | null;
-    status: string;
-    durationSec: number | null;
-    createdAt: string;
-    leadName: string | null;
-    serviceType: string | null;
-  }>;
   dispatchToday: {
     jobCount: number;
     unassigned: number;
@@ -79,16 +41,6 @@ type Ring1Data = {
 };
 
 const REFRESH_MS = 30_000;
-
-function formatRelative(iso: string | null) {
-  if (!iso) return "—";
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  const h = Math.floor(mins / 60);
-  if (h < 48) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
 
 export function Ring1CommandCenter() {
   const [data, setData] = useState<Ring1Data | null>(null);
@@ -115,29 +67,22 @@ export function Ring1CommandCenter() {
     return () => clearInterval(interval);
   }, [load]);
 
-  const m = data?.metrics;
-  const newLeads = m?.newLeads ?? 0;
+  const newLeads = data?.metrics.newLeads ?? 0;
+  const hasPriority = (data?.priorityLeads?.length ?? 0) > 0;
+  const hasDispatchWork =
+    canDispatch &&
+    Boolean(data?.dispatchToday) &&
+    ((data?.dispatchToday.unassigned ?? 0) > 0 ||
+      (data?.dispatchToday.jobCount ?? 0) > 0);
 
-  const stats = loading && !data
-    ? [
-        { label: "Calls today", value: "—" },
-        { label: "Leads today", value: "—" },
-        { label: "Needs follow-up", value: "—", highlight: true },
-        { label: "Last call", value: "—" },
-      ]
-    : [
-        { label: "Calls today", value: m?.callsToday ?? 0 },
-        { label: "Leads today", value: m?.leadsToday ?? 0 },
-        {
-          label: "Needs follow-up",
-          value: newLeads,
-          highlight: newLeads > 0,
-        },
-        {
-          label: "Last call",
-          value: formatRelative(m?.lastCallAt ?? null),
-        },
-      ];
+  const empty =
+    !loading &&
+    !hasPriority &&
+    !hasDispatchWork &&
+    newLeads === 0 &&
+    !(data?.health?.failedAlerts24h) &&
+    !(data?.health?.stuckPendingAlerts) &&
+    !(data?.wedge && !data.wedge.ready);
 
   return (
     <section className="ring1-command" aria-label="Today">
@@ -147,15 +92,11 @@ export function Ring1CommandCenter() {
         onUpdate={load}
       />
 
-      <ProTodayPulse health={data?.health ?? null} newLeads={newLeads} />
-
       <ProTodayAlerts
         health={data?.health ?? null}
         wedge={data?.wedge ?? null}
         newLeads={newLeads}
       />
-
-      <ProStatRow stats={stats} className="ring1-command-stats" />
 
       {canDispatch && data?.dispatchToday ? (
         <ProDispatchToday
@@ -167,104 +108,23 @@ export function Ring1CommandCenter() {
         />
       ) : null}
 
-      <div className="ring1-activity">
+      {empty ? (
         <div className="ring1-recent">
-          <ProSectionHead
-            kicker="Inbox"
-            title="Latest leads"
+          <ProSectionHead kicker="Today" title="Nothing waiting" />
+          <ProEmptyState
+            title="You're clear"
+            body="When a lead comes in or a job needs a tech, it lands here."
             action={
-              <Link href="/dashboard/inbox" className="pro-section-link font-sans">
-                View all →
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+                  Inbox
+                </Link>
+                <ProShopLineCta label="Test your line" showNumber={false} variant="secondary" />
+              </div>
             }
           />
-
-          {!data?.recentLeads?.length ? (
-            <ProEmptyState
-              title="No leads yet"
-              body="Call your shop line. Orvius qualifies every caller and drops the lead here — service, urgency, address, and callback."
-              action={<ProShopLineCta showNumber={false} />}
-            />
-          ) : (
-            <ul className="ring1-lead-grid">
-              {data.recentLeads.map((lead) => (
-                <li key={lead.id}>
-                  <LeadInboxCard
-                    id={lead.id}
-                    name={lead.name ?? "Unknown caller"}
-                    phone={lead.phone}
-                    service={lead.serviceType}
-                    urgency={lead.urgency}
-                    address={lead.address}
-                    business={lead.business?.name ?? null}
-                    channel={lead.source === "sms" ? "Text" : "Call"}
-                    status={lead.status}
-                    createdAt={lead.createdAt}
-                    returning={lead.returning}
-                    booked={lead.booked}
-                    onStatusChange={(next) => {
-                      setData((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              metrics: {
-                                ...prev.metrics,
-                                newLeads: Math.max(
-                                  0,
-                                  prev.metrics.newLeads - (next === "contacted" ? 1 : 0),
-                                ),
-                              },
-                              recentLeads: prev.recentLeads.map((item) =>
-                                item.id === lead.id ? { ...item, status: next } : item,
-                              ),
-                            }
-                          : prev,
-                      );
-                    }}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
-
-        <div className="ring1-recent ring1-recent-calls">
-          <ProSectionHead
-            kicker="Calls"
-            title="Recent conversations"
-            action={
-              <Link href="/dashboard/calls" className="pro-section-link font-sans">
-                Full log →
-              </Link>
-            }
-          />
-
-          {!data?.recentCalls?.length ? (
-            <ProEmptyState
-              compact
-              title="No calls yet"
-              body="Every inbound call lands here with transcript and lead link."
-              action={<ProShopLineCta label="Test your line" showNumber={false} variant="secondary" />}
-            />
-          ) : (
-            <ul className="ring1-recent-call-list">
-              {data.recentCalls.map((call) => (
-                <li key={call.id}>
-                  <Ring1RecentCallRow
-                    id={call.id}
-                    callerPhone={call.callerPhone}
-                    leadName={call.leadName}
-                    serviceType={call.serviceType}
-                    status={call.status}
-                    durationSec={call.durationSec}
-                    createdAt={call.createdAt}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      ) : null}
     </section>
   );
 }

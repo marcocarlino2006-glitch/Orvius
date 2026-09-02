@@ -80,7 +80,7 @@ function JobChip({
         <p className="dispatch-job-chip-sub font-sans">{who}</p>
         {job.address ? <p className="dispatch-job-chip-sub font-sans">{job.address}</p> : null}
       </Link>
-      {needsAssign && technicians.length ? (
+      {needsAssign ? (
         <AssignTechButton
           jobId={job.id}
           technicians={technicians}
@@ -99,6 +99,7 @@ export default function DispatchPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [techName, setTechName] = useState("");
+  const [techPhone, setTechPhone] = useState("");
   const [adding, setAdding] = useState(false);
 
   const load = useCallback(() => {
@@ -119,17 +120,21 @@ export default function DispatchPage() {
 
   async function addTech(e: React.FormEvent) {
     e.preventDefault();
-    if (!techName.trim()) return;
+    if (!techName.trim() || !techPhone.trim()) return;
     setAdding(true);
     try {
       const res = await fetch("/api/technicians", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: techName.trim() }),
+        body: JSON.stringify({
+          name: techName.trim(),
+          phone: techPhone.trim(),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not add technician");
       setTechName("");
+      setTechPhone("");
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not add technician");
@@ -200,7 +205,20 @@ export default function DispatchPage() {
               className="input pro-toolbar-input"
               value={techName}
               onChange={(e) => setTechName(e.target.value)}
-              placeholder="Crew member name"
+              placeholder="Name"
+              required
+            />
+          </label>
+          <label className="pro-toolbar-field font-sans">
+            <span className="pro-toolbar-label">Mobile</span>
+            <input
+              className="input pro-toolbar-input"
+              type="tel"
+              value={techPhone}
+              onChange={(e) => setTechPhone(e.target.value)}
+              placeholder="512-555-0100"
+              required
+              autoComplete="tel"
             />
           </label>
           <button type="submit" className="btn btn-void text-sm" disabled={adding}>

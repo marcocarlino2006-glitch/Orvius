@@ -51,9 +51,15 @@ export function AssignTechButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ technicianId: techId }),
       });
+      const data = (await res.json().catch(() => null)) as {
+        error?: string;
+        techSms?: { sent: boolean; reason?: string };
+      } | null;
       if (!res.ok) {
-        const data = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(data?.error ?? "Assign failed");
+      }
+      if (data?.techSms && !data.techSms.sent && data.techSms.reason === "no_phone") {
+        setError("Assigned — add a mobile on this tech to SMS them");
       }
       onAssigned?.();
       router.refresh();

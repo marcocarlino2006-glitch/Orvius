@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizePhone } from "@/lib/customer";
 import { listCrew } from "@/lib/field";
 import { getPlanTechLimit, requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -30,6 +31,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "name required" }, { status: 400 });
   }
 
+  const phone = normalizePhone(body.phone ?? null);
+  if (!phone) {
+    return NextResponse.json(
+      { error: "Mobile phone required — techs get job SMS when assigned." },
+      { status: 400 },
+    );
+  }
+
   const limit = getPlanTechLimit(business);
   if (limit != null) {
     const count = await prisma.technician.count({
@@ -50,7 +59,7 @@ export async function POST(request: Request) {
     data: {
       businessId: business.id,
       name,
-      phone: body.phone?.trim() || null,
+      phone,
       role: "tech",
     },
   });

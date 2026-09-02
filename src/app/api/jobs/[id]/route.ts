@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { JOB_INCLUDE, isJobStatus, serializeJob, updateJobStatus } from "@/lib/job";
+import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireBusinessSession } from "@/lib/tenant";
@@ -58,6 +59,24 @@ export async function PATCH(request: Request, { params }: Params) {
     await updateJobStatus(id, body.status);
   }
 
+  const previousTechnicianId = existing.technicianId;
+  const assigningTech =
+    body.technicianId !== undefined &&
+    body.technicianId !== previousTechnicianId;
+
+  if (
+    body.technicianId !== undefined &&
+    body.technicianId
+  ) {
+    const tech = await prisma.technician.findFirst({
+      where: { id: body.technicianId, businessId: business.id },
+      select: { id: true },
+    });
+    if (!tech) {
+      return NextResponse.json({ error: "Technician not found" }, { status: 400 });
+    }
+  }
+
   const extras =
     body.scheduledAt !== undefined ||
     body.notes !== undefined ||
@@ -86,5 +105,17 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ job: serializeJob(job) });
+  let techSms: { sent: boolean; reason?: string } | undefined;
+  if (assigningTech) {
+    techSms = await notifyTechOnAssign({
+      jobId: id,
+      previousTechnicianId,
+      nextTechnicianId: body.technicianId ?? null,
+    });
+  }
+
+  return NextResponse.json({
+    job: serializeJob(job),
+    ...(techSms ? { techSms } : {}),
+  });
 }
