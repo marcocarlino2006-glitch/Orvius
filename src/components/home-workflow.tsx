@@ -1,28 +1,25 @@
 import { MktSection, MktSectionHeader } from "@/components/mkt-section";
 
-const spine =
-  "Every call becomes a qualified customer, every customer becomes a scheduled job, and every job stays organized until it gets paid.";
-
 const stages = [
   {
     step: "01",
     name: "Call",
-    body: "Answer nights, weekends, and overflow. Capture urgency, address, and callback.",
+    body: "Nights, weekends, overflow — urgency, address, callback captured.",
   },
   {
     step: "02",
     name: "Jobs",
-    body: "Qualified leads become booked appointments — not sticky notes.",
+    body: "Qualified leads become booked appointments.",
   },
   {
     step: "03",
     name: "Dispatch",
-    body: "Assign techs, advance status, run the day from one board.",
+    body: "Assign techs. Run the day from one board.",
   },
   {
     step: "04",
     name: "Ask",
-    body: "Shop memory — who called, what's unassigned, how the week booked.",
+    body: "Who called, what's unassigned, how the week booked.",
   },
 ] as const;
 
@@ -31,9 +28,8 @@ export function HomeWorkflow() {
     <MktSection id="workflow" tone="dark" aria-labelledby="home-workflow-heading">
       <MktSectionHeader
         light
-        kicker="The job"
-        title="From the ring to paid work — one path."
-        lead={spine}
+        kicker="How it works"
+        title="Ring → job → paid."
         titleId="home-workflow-heading"
       />
 

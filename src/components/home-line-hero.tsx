@@ -1,20 +1,17 @@
 import Link from "next/link";
 import { HomeProductPreview } from "@/components/home-product-preview";
-import {
-  DEMO_LINE_DISPLAY,
-  demoLineHref,
-} from "@/lib/demo-line";
-import { company } from "@/lib/company";
+import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 export function HomeLineHero() {
   return (
     <section className="mkt-hero" aria-labelledby="home-hero-heading">
-      <div className="mkt-hero-grid" aria-hidden />
+      <div className="mkt-hero-signal" aria-hidden />
 
       <div className="editorial-wrap mkt-hero-inner">
         <div className="mkt-hero-copy">
-          <p className="mkt-kicker">
-            Live demo · {company.trades.join(" · ")}
+          <p className="mkt-kicker mkt-kicker-signal">
+            <span className="mkt-live-dot" aria-hidden />
+            Live line · call now
           </p>
 
           <h1 id="home-hero-heading" className="mkt-hero-title">
@@ -22,27 +19,17 @@ export function HomeLineHero() {
           </h1>
 
           <p className="mkt-hero-lead font-sans">
-            Orvius answers after-hours and overflow calls, qualifies the customer,
-            books the appointment, and alerts the owner while the crew is working.
+            After-hours and overflow — qualified, booked, owner alerted while your crew works.
           </p>
 
-          <div className="mkt-hero-phone-block">
-            <span className="mkt-live-pill font-sans">
-              <span className="mkt-live-dot" aria-hidden />
-              Live line
-            </span>
-            <a href={demoLineHref()} className="mkt-phone">
-              {DEMO_LINE_DISPLAY}
-            </a>
-          </div>
+          <a href={demoLineHref()} className="mkt-phone mkt-phone-signal">
+            {DEMO_LINE_DISPLAY}
+          </a>
 
           <div className="mkt-hero-actions font-sans">
-            <Link href="/pilot" className="mkt-btn mkt-btn-primary">
+            <Link href="/pilot" className="mkt-btn mkt-btn-signal">
               Book a live call audit
             </Link>
-            <a href={demoLineHref()} className="mkt-btn mkt-btn-secondary">
-              Try the live line
-            </a>
           </div>
         </div>
 

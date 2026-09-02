@@ -2,39 +2,40 @@ import Link from "next/link";
 import { MktSection, MktSectionHeader } from "@/components/mkt-section";
 
 const live = [
-  "Answer missed calls with a live AI line",
-  "Turn calls into jobs with transcripts and summaries",
-  "Dispatch from one command center",
-  "Ask Orvius what needs attention today",
+  "Live AI line — answer, qualify, alert",
+  "Calls → jobs with transcripts",
+  "Dispatch command center",
+  "Ask what needs attention",
 ];
 
 const next = [
-  "Copilot that proposes actions you approve",
-  "Estimate → invoice → payment on the job",
-  "Skills for travel, maps, and shop workflows",
-  "Stripe Connect for card payments",
+  "Copilot — propose, you approve",
+  "Estimate → invoice → payment",
+  "Travel, maps, shop skills",
+  "Stripe Connect card payments",
 ];
 
 export function HomeOsPath() {
   return (
-    <MktSection id="path" tone="light">
+    <MktSection id="path" tone="dark" aria-labelledby="home-path-heading">
       <MktSectionHeader
-        kicker="Roadmap"
-        title="Live today vs what we’re building next"
-        lead="No fake roadmap dates. This is what works now and what’s next on the product."
+        light
+        kicker="Product"
+        title="Live now. Building next."
+        titleId="home-path-heading"
       />
 
       <div className="mkt-path-grid">
-        <article className="mkt-path-card mkt-path-card--live">
-          <p className="mkt-path-label">Live today</p>
+        <article className="mkt-path-card mkt-path-card--live mkt-path-card-dark">
+          <p className="mkt-path-label">Live</p>
           <ul className="mkt-path-list">
             {live.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </article>
-        <article className="mkt-path-card">
-          <p className="mkt-path-label">Building next</p>
+        <article className="mkt-path-card mkt-path-card-dark">
+          <p className="mkt-path-label">Next</p>
           <ul className="mkt-path-list">
             {next.map((item) => (
               <li key={item}>{item}</li>
@@ -48,12 +49,8 @@ export function HomeOsPath() {
 
 export function HomePlanTruth() {
   return (
-    <MktSection id="plans" tone="inset">
-      <MktSectionHeader
-        kicker="Pricing"
-        title="Start with the line. Grow into the full OS."
-        lead="Every plan includes the live AI line. Pro adds the command center, copilot, and money workflow."
-      />
+    <MktSection id="plans" tone="light">
+      <MktSectionHeader kicker="Pricing" title="Line or Pro." />
 
       <div className="mkt-plans-grid">
         <article className="mkt-plan-card">
@@ -61,40 +58,33 @@ export function HomePlanTruth() {
           <p className="mkt-plan-price">
             $99<span>/mo</span>
           </p>
-          <p className="mkt-plan-desc">Live AI phone line for your shop</p>
           <ul className="mkt-plan-list">
-            <li>Answers when you’re on a job or after hours</li>
-            <li>Call transcripts and summaries</li>
-            <li>Email alerts for new calls</li>
+            <li>Live AI phone line</li>
+            <li>Transcripts + owner alerts</li>
           </ul>
           <Link href="/signup?plan=line" className="mkt-btn mkt-btn-secondary mkt-btn-block">
-            Start with Line
+            Start Line
           </Link>
         </article>
 
         <article className="mkt-plan-card mkt-plan-card--featured">
-          <p className="mkt-plan-badge">Most shops start here</p>
+          <p className="mkt-plan-badge">Most shops</p>
           <p className="mkt-plan-name">Pro</p>
           <p className="mkt-plan-price">
             $249<span>/mo</span>
           </p>
-          <p className="mkt-plan-desc">Full command center for your shop</p>
           <ul className="mkt-plan-list">
             <li>Everything in Line</li>
-            <li>Jobs, dispatch, and attention queue</li>
-            <li>Copilot with approve-before-send</li>
-            <li>Estimates, invoices, and manual payments</li>
+            <li>Jobs, dispatch, copilot, money</li>
           </ul>
-          <Link href="/signup?plan=pro" className="mkt-btn mkt-btn-primary mkt-btn-block">
-            Start with Pro
+          <Link href="/signup?plan=pro" className="mkt-btn mkt-btn-signal mkt-btn-block">
+            Start Pro
           </Link>
         </article>
       </div>
 
       <p className="mkt-plans-foot">
-        <Link href="/pricing">Compare plans</Link>
-        {" · "}
-        <Link href="/pilot">Book a live call audit</Link>
+        <Link href="/pricing">Full comparison</Link>
       </p>
     </MktSection>
   );
