@@ -44,15 +44,9 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="mkt-nav-brand">
             <OrviusLogo variant="void" size="md" />
           </Link>
-          <nav className="mkt-nav-links" aria-label="Main">
-            <Link href="/#workflow">How it works</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/pilot">Call audit</Link>
-            <Link href="/login">Log in</Link>
-          </nav>
           <div className="mkt-nav-actions">
-            <Link href="/signup" className="mkt-btn mkt-btn-ghost mkt-btn-sm">
-              Sign up
+            <Link href="/login" className="mkt-nav-login">
+              Log in
             </Link>
             <Link href="/pilot" className="mkt-btn mkt-btn-primary mkt-btn-sm">
               Book audit
