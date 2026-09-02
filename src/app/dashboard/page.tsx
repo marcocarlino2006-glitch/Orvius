@@ -7,11 +7,11 @@ import Link from "next/link";
 export default function DashboardPage() {
   return (
     <OsShell
-      title="Today"
-      subtitle="What needs you — leads, jobs, and the line."
+      title="Command center"
+      subtitle="What needs you — ranked by urgency and field impact."
       actions={
-        <Link href="/dashboard/inbox" className="btn btn-void text-sm">
-          Inbox
+        <Link href="/dashboard/ask" className="btn btn-void text-sm">
+          Ops copilot
         </Link>
       }
     >

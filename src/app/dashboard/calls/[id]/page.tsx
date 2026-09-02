@@ -18,9 +18,16 @@ type CallDetail = {
   durationSec: number | null;
   recordingUrl: string | null;
   booked: boolean;
+  ownerNotifiedAt: string | null;
   createdAt: string;
   business: { id: string; name: string } | null;
-  customer: { id: string; name: string | null; phone: string; interactionCount: number } | null;
+  customer: {
+    id: string;
+    name: string | null;
+    phone: string;
+    address: string | null;
+    interactionCount: number;
+  } | null;
   lead: {
     id: string;
     name: string | null;
@@ -28,7 +35,26 @@ type CallDetail = {
     serviceType: string | null;
     urgency: string | null;
     address: string | null;
+    status: string;
+    job: {
+      id: string;
+      title: string;
+      status: string;
+      scheduledAt: string | null;
+    } | null;
   } | null;
+};
+
+type Situation = {
+  actionsTaken: string[];
+  needsReview: boolean;
+  reviewReasons: string[];
+  priorJobs: Array<{
+    id: string;
+    title: string;
+    status: string;
+    scheduledAt: string | null;
+  }>;
 };
 
 function formatUrgency(value: string | null) {
@@ -40,6 +66,7 @@ export default function CallDetailPage() {
   const params = useParams<{ id: string }>();
   const callId = params.id;
   const [call, setCall] = useState<CallDetail | null>(null);
+  const [situation, setSituation] = useState<Situation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +78,10 @@ export default function CallDetailPage() {
         if (!res.ok) throw new Error("Call not found");
         return res.json();
       })
-      .then((data) => setCall(data.call))
+      .then((data) => {
+        setCall(data.call);
+        setSituation(data.situation ?? null);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [callId]);
@@ -75,20 +105,42 @@ export default function CallDetailPage() {
     );
   }
 
+  const who =
+    call.lead?.name ??
+    call.customer?.name ??
+    call.callerPhone ??
+    "Unknown caller";
+
   return (
     <OsShell
-      title="Inbound call"
-      subtitle={`${call.business?.name ?? "Your shop"} · ${new Date(call.createdAt).toLocaleString()}`}
+      title={who}
+      subtitle={`Call situation · ${new Date(call.createdAt).toLocaleString()}`}
       businessName={call.business?.name ?? "Your shop"}
       actions={
-        call.callerPhone ? (
-          <a href={`tel:${call.callerPhone}`} className="btn btn-void text-sm">
-            Call back
-          </a>
-        ) : null
+        <div className="flex flex-wrap gap-2">
+          {call.callerPhone ? (
+            <a href={`tel:${call.callerPhone}`} className="btn btn-void text-sm">
+              Call back
+            </a>
+          ) : null}
+          {call.lead ? (
+            <Link href={`/dashboard/inbox/${call.lead.id}`} className="btn btn-secondary text-sm">
+              Open lead
+            </Link>
+          ) : null}
+        </div>
       }
     >
       <ProSignalBar showInboxLink={false} compact />
+
+      {situation?.needsReview ? (
+        <div className="mb-6">
+          <ShellAlert tone="error">
+            Needs human review — {situation.reviewReasons.join(" · ")}. Take over from the
+            lead or call the customer directly.
+          </ShellAlert>
+        </div>
+      ) : null}
 
       <div className="ring1-lead-grid">
         <div className="ring1-lead-primary">
@@ -100,7 +152,7 @@ export default function CallDetailPage() {
                 phone: call.lead.phone ?? call.callerPhone ?? undefined,
                 service: call.lead.serviceType ?? undefined,
                 urgency: formatUrgency(call.lead.urgency),
-                address: call.lead.address ?? undefined,
+                address: call.lead.address ?? call.customer?.address ?? undefined,
                 channel: `Inbound call · ${call.business?.name ?? "Orvius"}`,
               }}
             />
@@ -123,6 +175,14 @@ export default function CallDetailPage() {
             </ShellPanel>
           )}
 
+          {call.summary && call.lead ? (
+            <div className="mt-6">
+              <ShellPanel title="AI summary">
+                <p className="font-sans text-sm leading-relaxed text-void">{call.summary}</p>
+              </ShellPanel>
+            </div>
+          ) : null}
+
           {call.transcript ? (
             <TranscriptCinema transcript={call.transcript} variant="chalk" className="mt-6" />
           ) : null}
@@ -140,16 +200,34 @@ export default function CallDetailPage() {
         </div>
 
         <div className="ring1-lead-side space-y-6">
-          {call.lead ? (
-            <ShellPanel title="Lead">
-              <Link
-                href={`/dashboard/inbox/${call.lead.id}`}
-                className="customer-timeline-link font-sans"
-              >
-                {call.lead.name ?? call.lead.serviceType ?? "View lead"} →
-              </Link>
-            </ShellPanel>
-          ) : null}
+          <ShellPanel title="What Orvius did">
+            {situation?.actionsTaken?.length ? (
+              <ul className="call-situation-list font-sans">
+                {situation.actionsTaken.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="font-sans text-sm text-ash">No actions recorded yet.</p>
+            )}
+            {situation?.needsReview ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {call.lead ? (
+                  <Link
+                    href={`/dashboard/inbox/${call.lead.id}`}
+                    className="btn btn-void text-sm"
+                  >
+                    Take over lead
+                  </Link>
+                ) : null}
+                {call.callerPhone ? (
+                  <a href={`tel:${call.callerPhone}`} className="btn btn-secondary text-sm">
+                    Human callback
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+          </ShellPanel>
 
           {call.customer ? (
             <ShellPanel title="Customer">
@@ -159,6 +237,46 @@ export default function CallDetailPage() {
               >
                 {call.customer.name ?? call.customer.phone} →
               </Link>
+              <p className="mt-2 font-sans text-sm text-ash">
+                {call.customer.interactionCount} touch
+                {call.customer.interactionCount === 1 ? "" : "es"}
+                {call.customer.address ? ` · ${call.customer.address}` : ""}
+              </p>
+            </ShellPanel>
+          ) : null}
+
+          {call.lead?.job ? (
+            <ShellPanel title="Job from this call">
+              <Link
+                href={`/dashboard/jobs/${call.lead.job.id}`}
+                className="customer-timeline-link font-sans"
+              >
+                {call.lead.job.title} →
+              </Link>
+              <p className="mt-2 font-sans text-sm text-ash">
+                {call.lead.job.status.replace(/_/g, " ")}
+                {call.lead.job.scheduledAt
+                  ? ` · ${new Date(call.lead.job.scheduledAt).toLocaleString()}`
+                  : ""}
+              </p>
+            </ShellPanel>
+          ) : null}
+
+          {situation?.priorJobs?.length ? (
+            <ShellPanel title="Previous jobs">
+              <ul className="call-situation-list font-sans">
+                {situation.priorJobs.map((job) => (
+                  <li key={job.id}>
+                    <Link href={`/dashboard/jobs/${job.id}`} className="customer-timeline-link">
+                      {job.title}
+                    </Link>
+                    <span className="text-ash">
+                      {" "}
+                      · {job.status.replace(/_/g, " ")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </ShellPanel>
           ) : null}
         </div>

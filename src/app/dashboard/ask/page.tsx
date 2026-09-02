@@ -9,9 +9,9 @@ import { useState } from "react";
 
 const SUGGESTIONS = [
   "How many jobs did we book this week?",
-  "Who is scheduled today?",
-  "Any emergencies in the inbox?",
+  "Which calls from yesterday were not booked?",
   "What's unassigned on dispatch?",
+  "Any emergencies in the inbox?",
 ];
 
 type Hit = {
@@ -69,8 +69,8 @@ export default function AskPage() {
 
   return (
     <OsShell
-      title="Ask"
-      subtitle="Plain-language answers from your calls, customers, and jobs — not the internet."
+      title="Ops copilot"
+      subtitle="Ask about the shop — then act. Grounded in your calls, jobs, and dispatch."
     >
       <PlanUpgradeGate module="ask">
       <ProRingBanner

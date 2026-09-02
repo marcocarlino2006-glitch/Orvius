@@ -8,13 +8,13 @@ export type OsNavItem = {
 };
 
 export const osProductNav: OsNavItem[] = [
-  { href: "/dashboard", label: "Today", ring: 1 },
+  { href: "/dashboard", label: "Command", ring: 1 },
   { href: "/dashboard/inbox", label: "Inbox", ring: 1 },
   { href: "/dashboard/calls", label: "Calls", ring: 1 },
   { href: "/dashboard/customers", label: "Customers", ring: 2 },
   { href: "/dashboard/jobs", label: "Jobs", ring: 3 },
   { href: "/dashboard/dispatch", label: "Dispatch", ring: 4 },
-  { href: "/dashboard/ask", label: "Ask" },
+  { href: "/dashboard/ask", label: "Copilot" },
 ];
 
 export const osWorkspaceNav: OsNavItem[] = [

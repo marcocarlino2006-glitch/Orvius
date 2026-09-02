@@ -2,10 +2,7 @@
 
 import { JobCard } from "@/components/job-card";
 import { ProPageStrip } from "@/components/pro-page-strip";
-import {
-  ProStatRow,
-  ProEmptyState,
-} from "@/components/pro-page-chrome";
+import { ProEmptyState } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
@@ -25,52 +22,88 @@ type JobRow = {
   technician?: { name: string } | null;
 };
 
+type PipelineStage = {
+  id: string;
+  label: string;
+  hint?: string;
+  coming?: boolean;
+  match: (job: JobRow) => boolean;
+};
+
+const STAGES: PipelineStage[] = [
+  {
+    id: "booked",
+    label: "Booked",
+    match: (j) => j.status === "scheduled" || j.status === "confirmed",
+  },
+  {
+    id: "in_progress",
+    label: "In progress",
+    match: (j) => j.status === "en_route" || j.status === "on_site",
+  },
+  {
+    id: "completed",
+    label: "Completed",
+    match: (j) => j.status === "completed",
+  },
+  {
+    id: "estimate",
+    label: "Estimates",
+    hint: "Next — Money ring",
+    coming: true,
+    match: () => false,
+  },
+  {
+    id: "invoice",
+    label: "Invoices",
+    hint: "Next — Money ring",
+    coming: true,
+    match: () => false,
+  },
+];
+
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobRow[]>([]);
+  const [newLeadCount, setNewLeadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stageId, setStageId] = useState("booked");
 
   useEffect(() => {
-    fetch("/api/jobs")
-      .then(async (res) => {
+    Promise.all([
+      fetch("/api/jobs").then(async (res) => {
         if (!res.ok) throw new Error("Failed to load jobs");
         return res.json();
+      }),
+      fetch("/api/leads").then(async (res) => (res.ok ? res.json() : { leads: [] })),
+    ])
+      .then(([jobData, leadData]) => {
+        setJobs(jobData.jobs ?? []);
+        const leads = (leadData.leads ?? []) as Array<{ status: string }>;
+        setNewLeadCount(leads.filter((l) => l.status === "new").length);
       })
-      .then((data) => setJobs(data.jobs ?? []))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
-  const stats = useMemo(() => {
-    const active = jobs.filter(
-      (j) => !["completed", "cancelled"].includes(j.status),
-    ).length;
-    const today = jobs.filter((j) => {
-      if (!j.scheduledAt) return false;
-      const d = new Date(j.scheduledAt);
-      const now = new Date();
-      return (
-        d.getFullYear() === now.getFullYear() &&
-        d.getMonth() === now.getMonth() &&
-        d.getDate() === now.getDate()
-      );
-    }).length;
-    const emergency = jobs.filter((j) =>
-      j.urgency?.toLowerCase().includes("emergency"),
-    ).length;
+  const filtered = useMemo(() => {
+    const stage = STAGES.find((s) => s.id === stageId);
+    if (!stage || stage.coming) return [];
+    return jobs.filter(stage.match);
+  }, [jobs, stageId]);
 
-    return [
-      { label: "Total jobs", value: jobs.length },
-      { label: "Active", value: active, highlight: active > 0 },
-      { label: "Today", value: today, highlight: today > 0 },
-      { label: "Emergency", value: emergency, highlight: emergency > 0 },
-    ];
+  const stageCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const stage of STAGES) {
+      counts[stage.id] = stage.coming ? 0 : jobs.filter(stage.match).length;
+    }
+    return counts;
   }, [jobs]);
 
   return (
     <OsShell
       title="Jobs"
-      subtitle="Book from the inbox. Track every appointment in one place."
+      subtitle="Revenue pipeline — first contact through completed work."
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch
@@ -84,15 +117,44 @@ export default function JobsPage() {
         <DashboardSkeleton />
       ) : (
         <>
-          <ProStatRow stats={stats} className="pro-page-stats" />
-
           {error ? (
             <div className="mb-6">
               <ShellAlert tone="error">{error}</ShellAlert>
             </div>
           ) : null}
 
-          {!jobs.length ? (
+          <div className="jobs-pipeline font-sans" role="tablist" aria-label="Job pipeline">
+            <Link
+              href="/dashboard/inbox"
+              className="jobs-pipeline-stage"
+              role="tab"
+            >
+              <span className="jobs-pipeline-label">New leads</span>
+              <span className="jobs-pipeline-count">{newLeadCount}</span>
+            </Link>
+            {STAGES.map((stage) => (
+              <button
+                key={stage.id}
+                type="button"
+                role="tab"
+                aria-selected={stageId === stage.id}
+                className={`jobs-pipeline-stage ${stageId === stage.id ? "jobs-pipeline-stage-active" : ""} ${stage.coming ? "jobs-pipeline-stage-coming" : ""}`}
+                onClick={() => !stage.coming && setStageId(stage.id)}
+                disabled={stage.coming}
+                title={stage.hint}
+              >
+                <span className="jobs-pipeline-label">
+                  {stage.label}
+                  {stage.coming ? " · soon" : ""}
+                </span>
+                <span className="jobs-pipeline-count">
+                  {stage.coming ? "—" : stageCounts[stage.id]}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {!jobs.length && !newLeadCount ? (
             <ProEmptyState
               title="No jobs booked yet"
               body="Open a lead in the inbox, capture the details, and book the appointment."
@@ -102,9 +164,19 @@ export default function JobsPage() {
                 </Link>
               }
             />
+          ) : !filtered.length ? (
+            <ProEmptyState
+              title={`No ${STAGES.find((s) => s.id === stageId)?.label.toLowerCase() ?? "jobs"} right now`}
+              body="Switch stages or book from the inbox."
+              action={
+                <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+                  Inbox
+                </Link>
+              }
+            />
           ) : (
             <ul className="ring1-lead-grid">
-              {jobs.map((job) => (
+              {filtered.map((job) => (
                 <li key={job.id}>
                   <JobCard
                     id={job.id}

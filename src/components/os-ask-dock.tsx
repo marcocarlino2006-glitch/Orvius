@@ -124,10 +124,10 @@ export function OsAskDock() {
   return (
     <div className={`os-ask-dock font-sans ${open ? "os-ask-dock-open" : ""}`}>
       {open ? (
-        <div className="os-ask-dock-panel" role="dialog" aria-label="Ask Orvius">
+        <div className="os-ask-dock-panel" role="dialog" aria-label="Ops copilot">
           <div className="os-ask-dock-head">
             <div>
-              <p className="os-ask-dock-kicker">Ask</p>
+              <p className="os-ask-dock-kicker">Ops copilot</p>
               <p className="os-ask-dock-title">Your shop memory</p>
             </div>
             <div className="os-ask-dock-head-actions">
@@ -163,7 +163,7 @@ export function OsAskDock() {
             </div>
           ) : (
             <p className="os-ask-dock-hint">
-              Ask about customers, jobs, calls, or today&apos;s board.
+              Ask about the board, then open the job or lead to act.
             </p>
           )}
 
@@ -220,7 +220,7 @@ export function OsAskDock() {
         <span className="os-ask-dock-trigger-mark" aria-hidden>
           <AskIcon />
         </span>
-        <span className="os-ask-dock-trigger-label">Ask Orvius</span>
+        <span className="os-ask-dock-trigger-label">Copilot</span>
       </button>
     </div>
   );

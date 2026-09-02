@@ -2,16 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { AttentionQueue } from "@/components/attention-queue";
 import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
-import {
-  TodayPriorityLeads,
-  type PriorityLead,
-} from "@/components/today-priority-leads";
 import { usePlanAccess } from "@/lib/use-plan-access";
+import type { AttentionItem } from "@/lib/attention-queue";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -21,7 +19,7 @@ type Ring1Data = {
     newLeads: number;
   };
   outcomes?: ShopOutcomes;
-  priorityLeads: PriorityLead[];
+  attention?: AttentionItem[];
   dispatchToday: {
     jobCount: number;
     unassigned: number;
@@ -71,7 +69,7 @@ export function Ring1CommandCenter() {
   }, [load]);
 
   const newLeads = data?.metrics.newLeads ?? 0;
-  const hasPriority = (data?.priorityLeads?.length ?? 0) > 0;
+  const attention = data?.attention ?? [];
   const hasDispatchWork =
     canDispatch &&
     Boolean(data?.dispatchToday) &&
@@ -80,22 +78,17 @@ export function Ring1CommandCenter() {
 
   const empty =
     !loading &&
-    !hasPriority &&
+    attention.length === 0 &&
     !hasDispatchWork &&
-    newLeads === 0 &&
     !(data?.health?.failedAlerts24h) &&
     !(data?.health?.stuckPendingAlerts) &&
     !(data?.wedge && !data.wedge.ready);
 
   return (
-    <section className="ring1-command" aria-label="Today">
-      <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
+    <section className="ring1-command" aria-label="Command center">
+      <AttentionQueue items={attention} loading={loading} />
 
-      <TodayPriorityLeads
-        leads={data?.priorityLeads ?? []}
-        technicians={data?.technicians ?? []}
-        onUpdate={load}
-      />
+      <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
 
       <ProTodayAlerts
         health={data?.health ?? null}
@@ -115,10 +108,10 @@ export function Ring1CommandCenter() {
 
       {empty ? (
         <div className="ring1-recent">
-          <ProSectionHead kicker="Today" title="Nothing waiting" />
+          <ProSectionHead kicker="Field" title="Nothing waiting on the board" />
           <ProEmptyState
-            title="You're clear"
-            body="When a lead comes in or a job needs a tech, it lands here. Outcomes above track the last 7 days."
+            title="Run a test call"
+            body="Orvius ranks urgent leads, unassigned jobs, and overdue follow-ups here when they land."
             action={
               <div className="flex flex-wrap gap-2">
                 <Link href="/dashboard/inbox" className="btn btn-void text-sm">

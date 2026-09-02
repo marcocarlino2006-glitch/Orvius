@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAttentionQueue } from "@/lib/attention-queue";
 import { isPriorityUrgency } from "@/lib/auto-job";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getDispatchBoard, listCrew } from "@/lib/field";
@@ -36,6 +37,7 @@ export async function GET() {
     health,
     crew,
     outcomes,
+    attention,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -77,6 +79,7 @@ export async function GET() {
     getShopHealth(business.id),
     listCrew(business.id),
     getShopOutcomes(business.id, 7),
+    getAttentionQueue(business.id, 12),
   ]);
 
   const wedge = await getWedgeReadiness(business.id, health);
@@ -128,6 +131,7 @@ export async function GET() {
       lastCaller: lastCall?.callerPhone ?? null,
     },
     outcomes,
+    attention,
     recentLeads: recentLeads.map((lead) => ({
       id: lead.id,
       name: lead.name,
