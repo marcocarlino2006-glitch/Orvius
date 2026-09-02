@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { PaidPlanId } from "@/lib/pricing-plans";
+import type { BillingInterval, PaidPlanId } from "@/lib/pricing-plans";
 
 type CheckoutButtonProps = {
   planId: PaidPlanId;
+  interval?: BillingInterval;
   label?: string;
   className?: string;
   variant?: "primary" | "secondary";
@@ -25,6 +26,7 @@ type BillingStatus = {
 
 export function CheckoutButton({
   planId,
+  interval = "month",
   label,
   className = "",
   variant = "secondary",
@@ -95,7 +97,7 @@ export function CheckoutButton({
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: checkoutEmail, planId }),
+        body: JSON.stringify({ email: checkoutEmail, planId, interval }),
       });
       const data = await res.json();
 

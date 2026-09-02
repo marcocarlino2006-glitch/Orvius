@@ -24,13 +24,14 @@ const checkoutSchema = z.object({
   email: z.string().email(),
   businessId: z.string().optional(),
   planId: z.enum(["line", "pro", "fleet"]).default("pro"),
+  interval: z.enum(["month", "year"]).default("month"),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = checkoutSchema.parse(await request.json());
 
-    if (!isPlanCheckoutReady(body.planId)) {
+    if (!isPlanCheckoutReady(body.planId, body.interval)) {
       const readiness = getBillingReadiness();
       return NextResponse.json(
         {
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
         : { customer_email: body.email }),
       line_items: [
         {
-          price: requireStripePriceIdForPlan(body.planId),
+          price: requireStripePriceIdForPlan(body.planId, body.interval),
           quantity: 1,
         },
       ],
@@ -85,12 +86,14 @@ export async function POST(request: NextRequest) {
         metadata: {
           product: plan.stripeProductKey ?? `orvius-${body.planId}`,
           planId: body.planId,
+          interval: body.interval,
           businessId: business?.id ?? "",
         },
       },
       metadata: {
         product: plan.stripeProductKey ?? `orvius-${body.planId}`,
         planId: body.planId,
+        interval: body.interval,
         businessId: business?.id ?? "",
         legalEntity: company.legalName,
       },
@@ -101,7 +104,8 @@ export async function POST(request: NextRequest) {
       url: checkoutSession.url,
       plan: plan.name,
       planId: body.planId,
-      amount: plan.price,
+      interval: body.interval,
+      amount: getPlanById(body.planId).price,
     });
   } catch (error) {
     const message =

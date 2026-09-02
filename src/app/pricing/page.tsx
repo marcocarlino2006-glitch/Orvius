@@ -11,7 +11,7 @@ const featured = getFeaturedPlan();
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Orvius plans from $149/mo — pick Line, Pro, or Fleet based on what your shop needs.",
+    "Orvius plans from $124/mo (annual) — Line, Pro, Fleet, and Multi-shop. Monthly or annual billing.",
 };
 
 export default function PricingPage() {
@@ -21,9 +21,9 @@ export default function PricingPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Pricing"
-            title={`From $${getLowestPaidPrice()} per month. Flat.`}
-            subline="Pick the plan that matches your shop — not the other way around."
-            description="Line for missed calls. Pro for lead-to-job. Fleet for multi-truck dispatch."
+            title={`From $${getLowestPaidPrice("year")} per month. Flat.`}
+            subline="Monthly or annual — pick the plan that matches your shop."
+            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks. Multi-shop for 2+ locations."
           />
           <div className="tier1-hero-call">
             <HomeCallDemo variant="light" size="section" />
