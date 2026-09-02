@@ -1,8 +1,10 @@
 import { OrviusMarkGraphic } from "@/lib/orvius-mark-graphic";
 import { orviusColors } from "@/lib/orvius-colors";
+import { company } from "@/lib/company";
+import { DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { ImageResponse } from "next/og";
 
-export const alt = "Orvius — The operating system for service businesses";
+export const alt = "Orvius — Turn missed calls into booked jobs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -25,14 +27,14 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              fontSize: 30,
-              fontWeight: 600,
-              fontFamily: "Georgia, serif",
+              fontSize: 28,
+              fontWeight: 700,
               color: orviusColors.void,
-              letterSpacing: "-0.03em",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
             }}
           >
-            Orvius
+            {company.productName}
           </div>
         </div>
 
@@ -40,15 +42,15 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              fontSize: 64,
-              fontWeight: 400,
+              fontSize: 56,
+              fontWeight: 600,
               color: orviusColors.void,
-              letterSpacing: "-0.045em",
-              lineHeight: 1.06,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.08,
               maxWidth: 900,
             }}
           >
-            Call the live line.
+            Turn missed calls into booked jobs.
           </div>
           <div
             style={{
@@ -62,13 +64,12 @@ export default function OpenGraphImage() {
             style={{
               display: "flex",
               maxWidth: 720,
-              fontSize: 28,
+              fontSize: 26,
               lineHeight: 1.4,
               color: orviusColors.ash,
-              letterSpacing: "-0.02em",
             }}
           >
-            +1 844 643 9170 · The operating system for service businesses
+            {DEMO_LINE_DISPLAY} · After-hours · qualify · book · alert
           </div>
         </div>
 
@@ -81,8 +82,8 @@ export default function OpenGraphImage() {
             fontSize: 20,
           }}
         >
-          <span>HVAC · Plumbing · Electrical</span>
-          <span>orvius.im</span>
+          <span>{company.trades.join(" · ")}</span>
+          <span>{company.domain}</span>
         </div>
       </div>
     ),

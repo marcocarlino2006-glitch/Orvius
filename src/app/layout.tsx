@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Orbitron, Space_Grotesk } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
+import { company } from "@/lib/company";
 import "./globals.css";
 
 const sans = Space_Grotesk({
@@ -24,21 +25,21 @@ export const metadata: Metadata = {
     template: "%s · Orvius",
   },
   description:
-    "Orvius answers every call, qualifies the lead, and alerts the owner. Pro adds jobs, dispatch, and Ask. Built for HVAC, plumbing, and electrical.",
-  metadataBase: new URL("https://orvius.im"),
+    "Orvius answers after-hours and overflow calls, qualifies, books, and alerts the owner. Built for HVAC, plumbing, and electrical.",
+  metadataBase: new URL(`https://${company.domain}`),
   openGraph: {
-    title: "Orvius — Every call answered. Every lead owned.",
+    title: `Orvius — ${company.tagline}`,
     description:
-      "Call +1 844 643 9170 for the live demo. Dedicated shop line, qualified leads, owner alerts.",
+      "Try the live line or book a call audit. Front door today — operating system as you grow.",
     type: "website",
-    url: "https://orvius.im",
-    siteName: "Orvius",
+    url: `https://${company.domain}`,
+    siteName: company.productName,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Orvius — Every call answered. Every lead owned.",
+    title: `Orvius — ${company.tagline}`,
     description:
-      "AI receptionist and shop OS for HVAC, plumbing, and electrical.",
+      "Turn missed calls into booked jobs. AI receptionist and shop OS for the trades.",
   },
 };
 

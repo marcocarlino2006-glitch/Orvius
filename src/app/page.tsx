@@ -11,6 +11,9 @@ import { demoLineHref } from "@/lib/demo-line";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+/** Bust stale static HTML after deploys — homepage must reflect latest copy. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Orvius — Turn missed calls into booked jobs",
   description:
