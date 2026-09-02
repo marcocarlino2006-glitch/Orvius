@@ -1,5 +1,6 @@
 "use client";
 
+import { CopilotActions } from "@/components/copilot-actions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -160,10 +161,11 @@ export function OsAskDock() {
                   ))}
                 </ul>
               ) : null}
+              <CopilotActions hits={turn.hits} compact />
             </div>
           ) : (
             <p className="os-ask-dock-hint">
-              Ask about the board, then open the job or lead to act.
+              Ask about the board, then approve an action before it runs.
             </p>
           )}
 

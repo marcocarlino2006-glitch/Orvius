@@ -1,4 +1,5 @@
 import { isAfterHours } from "@/lib/business";
+import { estimatedRevenueCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
 export type ShopOutcomes = {
@@ -13,11 +14,14 @@ export type ShopOutcomes = {
   unassignedJobs: number;
   activeTechnicians: number;
   jobsPerTech: number | null;
+  avgTicketCents: number | null;
+  estimatedPipelineCents: number | null;
+  estimatedLeadValueCents: number | null;
 };
 
 /**
- * Outcome pulse from existing shop data — no invented dollar revenue.
- * Proves the wedge: calls → leads → booked jobs, especially after hours.
+ * Outcome pulse from existing shop data.
+ * Dollar estimates only when avgTicketCents is set — never invented.
  */
 export async function getShopOutcomes(
   businessId: string,
@@ -29,7 +33,7 @@ export async function getShopOutcomes(
 
   const business = await prisma.business.findUnique({
     where: { id: businessId },
-    select: { hoursJson: true, timezone: true },
+    select: { hoursJson: true, timezone: true, avgTicketCents: true },
   });
 
   const [calls, leads, jobsBooked, unassignedJobs, activeTechnicians, emergencyLeads] =
@@ -86,6 +90,8 @@ export async function getShopOutcomes(
       ? Math.round((jobsBooked / activeTechnicians) * 10) / 10
       : null;
 
+  const avgTicketCents = business?.avgTicketCents ?? null;
+
   return {
     windowDays,
     since: since.toISOString(),
@@ -98,5 +104,8 @@ export async function getShopOutcomes(
     unassignedJobs,
     activeTechnicians,
     jobsPerTech,
+    avgTicketCents,
+    estimatedPipelineCents: estimatedRevenueCents(avgTicketCents, jobsBooked),
+    estimatedLeadValueCents: estimatedRevenueCents(avgTicketCents, leadCount),
   };
 }

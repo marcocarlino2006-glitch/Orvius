@@ -7073,6 +7073,15 @@ h3 {
   color: var(--ash);
 }
 
+.attention-item-value {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--void);
+  font-variant-numeric: tabular-nums;
+}
+
 .attention-item-actions {
   display: flex;
   flex-wrap: wrap;
@@ -7107,6 +7116,125 @@ h3 {
   gap: 0.5rem;
   font-size: 0.875rem;
   color: var(--void);
+}
+
+.call-ai-confidence {
+  margin: 0 0 0.85rem;
+  font-size: 0.8125rem;
+  color: var(--void);
+}
+
+.call-ai-confidence strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.call-ai-confidence-muted {
+  color: var(--ash);
+  font-weight: 400;
+}
+
+.job-money-lead {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
+
+.job-money-error {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--flare, #b42318);
+}
+
+.job-money-meta {
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+}
+
+.job-money-meta dt {
+  color: var(--ash);
+  font-size: 0.75rem;
+}
+
+.job-money-meta dd {
+  margin: 0.15rem 0 0;
+  color: var(--void);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.copilot-actions {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--rule);
+}
+
+.copilot-actions-compact {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+}
+
+.copilot-actions-kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.copilot-actions-error {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  color: var(--flare, #b42318);
+}
+
+.copilot-actions-done {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--void);
+}
+
+.copilot-proposal-preview {
+  margin: 0 0 0.65rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--void);
+}
+
+.copilot-proposal-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.copilot-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.copilot-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.copilot-action-label {
+  flex: 1 1 8rem;
+  font-size: 0.8125rem;
+  color: var(--void);
+}
+
+.copilot-tech-select {
+  width: auto;
+  min-width: 7rem;
+  max-width: 10rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8125rem;
 }
 
 .jobs-pipeline {

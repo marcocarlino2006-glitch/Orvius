@@ -6,6 +6,7 @@ import {
   type AttentionItem,
 } from "@/lib/attention-queue";
 import { telHref } from "@/lib/demo-line";
+import { formatCents } from "@/lib/money";
 
 type AttentionQueueProps = {
   items: AttentionItem[];
@@ -59,6 +60,11 @@ export function AttentionQueue({ items, loading }: AttentionQueueProps) {
                 </p>
                 <h3 className="attention-item-title">{item.title}</h3>
                 <p className="attention-item-detail">{item.detail}</p>
+                {formatCents(item.estimatedRevenueCents) ? (
+                  <p className="attention-item-value">
+                    Est. {formatCents(item.estimatedRevenueCents)}
+                  </p>
+                ) : null}
               </div>
               <div className="attention-item-actions">
                 {item.meta?.phone &&

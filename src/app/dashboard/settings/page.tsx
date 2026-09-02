@@ -16,6 +16,7 @@ type AccountResponse = {
     greeting: string | null;
     twilioPhone: string | null;
     vapiPhoneNumber: string | null;
+    avgTicketCents: number | null;
   } | null;
   line?: string | null;
   health: ShopHealth | null;
@@ -31,6 +32,7 @@ export default function DashboardSettingsPage() {
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const [greeting, setGreeting] = useState("");
+  const [avgTicket, setAvgTicket] = useState("");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -46,6 +48,11 @@ export default function DashboardSettingsPage() {
     setOwnerPhone(data.business?.ownerPhone ?? "");
     setOwnerEmail(data.business?.ownerEmail ?? "");
     setGreeting(data.business?.greeting ?? "");
+    setAvgTicket(
+      data.business?.avgTicketCents
+        ? String(Math.round(data.business.avgTicketCents / 100))
+        : "",
+    );
   }
 
   useEffect(() => {
@@ -73,6 +80,9 @@ export default function DashboardSettingsPage() {
           ownerPhone: ownerPhone.trim(),
           ownerEmail: ownerEmail.trim() || undefined,
           greeting: greeting.trim(),
+          avgTicketCents: avgTicket.trim()
+            ? Math.round(Number(avgTicket.replace(/[^0-9.]/g, "")) * 100)
+            : null,
         }),
       });
       const data = await res.json();
@@ -131,7 +141,7 @@ export default function DashboardSettingsPage() {
   }
 
   return (
-    <OsShell title="Settings" subtitle="Your line, greeting, and owner alerts.">
+    <OsShell title="Settings" subtitle="Line, greeting, alerts, and avg ticket.">
       <ProPageStrip />
 
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
@@ -145,6 +155,25 @@ export default function DashboardSettingsPage() {
             Auto-generated for {account?.business?.name ?? "your shop"}. Customers
             call this number — Orvius answers as your business.
           </p>
+        </ShellPanel>
+
+        <ShellPanel title="Economics">
+          <label className="onboarding-field font-sans">
+            <span className="onboarding-label">Average ticket ($)</span>
+            <input
+              type="number"
+              min={50}
+              max={50000}
+              step={1}
+              value={avgTicket}
+              onChange={(e) => setAvgTicket(e.target.value)}
+              className="onboarding-input"
+              placeholder="285"
+            />
+            <span className="onboarding-hint">
+              Used to estimate pipeline value on Command — not collected revenue.
+            </span>
+          </label>
         </ShellPanel>
 
         <ShellPanel title="AI receptionist">

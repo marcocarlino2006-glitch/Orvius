@@ -27,6 +27,8 @@ model Business {
   billingStatus        String   @default("pilot")
   billingPlan          String?
   lineVerifiedAt       DateTime?
+  /** Shop avg ticket in cents — used for estimated pipeline value. */
+  avgTicketCents       Int?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -35,6 +37,10 @@ model Business {
   customers        Customer[]
   jobs             Job[]
   technicians      Technician[]
+  estimates        Estimate[]
+  invoices         Invoice[]
+  payments         Payment[]
+  copilotActions   CopilotAction[]
   ownerNotifications OwnerNotification[]
   webhookEvents      WebhookEvent[]
 }
@@ -79,6 +85,8 @@ model Call {
   recordingUrl String?
   booked           Boolean   @default(false)
   ownerNotifiedAt  DateTime?
+  /** VAPI analysis.successEvaluation — NumericScale 1–10 when configured. */
+  successEvaluation String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -136,6 +144,8 @@ model Job {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  estimate Estimate?
+
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
   @@index([technicianId, scheduledAt])
@@ -155,6 +165,74 @@ model Technician {
   jobs Job[]
 
   @@index([businessId, isActive])
+}
+
+/** Money ring v1 — draft estimate linked to a job. */
+model Estimate {
+  id            String    @id @default(cuid())
+  businessId    String
+  business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId         String?   @unique
+  job           Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  leadId        String?
+  amountCents   Int
+  status        String    @default("draft")
+  lineItemsJson String    @default("[]")
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  invoice       Invoice?
+
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+}
+
+/** Thin Money stub — status tracking only, no payment rails yet. */
+model Invoice {
+  id          String    @id @default(cuid())
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  estimateId  String?   @unique
+  estimate    Estimate? @relation(fields: [estimateId], references: [id], onDelete: SetNull)
+  jobId       String?
+  amountCents Int
+  status      String    @default("draft")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  payments    Payment[]
+
+  @@index([businessId, status])
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amountCents Int
+  status      String   @default("recorded")
+  method      String?
+  createdAt   DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+/** Approve-then-execute Copilot actions. */
+model CopilotAction {
+  id         String    @id @default(cuid())
+  businessId String
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  action     String
+  paramsJson String
+  preview    String
+  status     String    @default("proposed")
+  resultJson String?
+  createdAt  DateTime  @default(now())
+  executedAt DateTime?
+
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
 }
 
 model WaitlistEntry {

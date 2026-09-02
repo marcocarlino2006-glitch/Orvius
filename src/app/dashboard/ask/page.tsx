@@ -1,5 +1,6 @@
 "use client";
 
+import { CopilotActions } from "@/components/copilot-actions";
 import { ProRingBanner } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
@@ -70,12 +71,12 @@ export default function AskPage() {
   return (
     <OsShell
       title="Ops copilot"
-      subtitle="Ask about the shop — then act. Grounded in your calls, jobs, and dispatch."
+      subtitle="Ask about the shop — then approve actions. Grounded in your calls, jobs, and dispatch."
     >
       <PlanUpgradeGate module="ask">
       <ProRingBanner
         name="Shop memory"
-        description="Search your record by name, phone, schedule, or urgency. Every answer links back to the source."
+        description="Search your record, then approve assign / SMS / follow-up before Orvius executes."
       />
 
       <div className="ask-hero pro-panel">
@@ -128,7 +129,7 @@ export default function AskPage() {
           </p>
           <p className="ask-empty font-sans">
             Ask pulls from calls, leads, customers, and jobs already in Orvius.
-            Start with a suggestion above.
+            When answers include jobs or leads, propose an action and approve before it runs.
           </p>
         </div>
       ) : null}
@@ -159,6 +160,7 @@ export default function AskPage() {
                   ))}
                 </ul>
               ) : null}
+              <CopilotActions hits={turn.hits} />
             </div>
           </li>
         ))}

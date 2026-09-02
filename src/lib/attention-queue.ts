@@ -24,6 +24,7 @@ export type AttentionItem = {
   entityType: "lead" | "job" | "technician";
   entityId: string;
   createdAt: string;
+  estimatedRevenueCents?: number | null;
   meta?: {
     urgency?: string | null;
     address?: string | null;
@@ -67,7 +68,7 @@ export async function getAttentionQueue(
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
-  const [newLeads, activeJobs, crew] = await Promise.all([
+  const [newLeads, activeJobs, crew, business] = await Promise.all([
     prisma.lead.findMany({
       where: { businessId, status: "new" },
       take: 40,
@@ -90,7 +91,13 @@ export async function getAttentionQueue(
       },
     }),
     listCrew(businessId),
+    prisma.business.findUnique({
+      where: { id: businessId },
+      select: { avgTicketCents: true },
+    }),
   ]);
+
+  const ticket = business?.avgTicketCents ?? null;
 
   const items: AttentionItem[] = [];
 
@@ -130,6 +137,7 @@ export async function getAttentionQueue(
       entityType: "lead",
       entityId: lead.id,
       createdAt: lead.createdAt.toISOString(),
+      estimatedRevenueCents: ticket,
       meta: {
         urgency: lead.urgency,
         address: lead.address,
@@ -180,6 +188,7 @@ export async function getAttentionQueue(
         entityType: "job",
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
+        estimatedRevenueCents: ticket,
         meta: {
           urgency,
           address: job.address,
@@ -206,6 +215,7 @@ export async function getAttentionQueue(
         entityType: "job",
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
+        estimatedRevenueCents: ticket,
         meta: {
           urgency,
           address: job.address,

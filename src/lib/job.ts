@@ -7,12 +7,27 @@ export { JOB_STATUSES, isJobStatus, jobStatusLabel } from "@/lib/job-status";
 export type { JobStatus } from "@/lib/job-status";
 
 export const JOB_INCLUDE = {
-  business: { select: { id: true, name: true } },
+  business: { select: { id: true, name: true, avgTicketCents: true } },
   customer: {
     select: { id: true, name: true, phone: true, address: true, interactionCount: true },
   },
   lead: { select: { id: true, name: true, phone: true } },
   technician: { select: { id: true, name: true, phone: true } },
+  estimate: {
+    select: {
+      id: true,
+      amountCents: true,
+      status: true,
+      invoice: {
+        select: {
+          id: true,
+          amountCents: true,
+          status: true,
+          payments: { select: { id: true, amountCents: true, status: true } },
+        },
+      },
+    },
+  },
 } as const;
 
 export function serializeJob<

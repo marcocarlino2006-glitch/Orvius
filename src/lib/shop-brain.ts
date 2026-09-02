@@ -1,4 +1,4 @@
-import { vapiRequest } from "@/lib/vapi";
+import { formatCents } from "@/lib/money";
 import {
   composeMemoryAnswer,
   retrieveShopMemory,
@@ -6,6 +6,7 @@ import {
   type ShopMemory,
 } from "@/lib/shop-memory";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
+import { vapiRequest } from "@/lib/vapi";
 
 type VapiChatResponse = {
   output?: Array<{ content?: string } | string>;
@@ -37,7 +38,10 @@ function isOutcomesQuestion(question: string): boolean {
     q.includes("after hours") ||
     q.includes("this week") ||
     q.includes("outcomes") ||
-    q.includes("utilization")
+    q.includes("utilization") ||
+    q.includes("pipeline") ||
+    q.includes("revenue") ||
+    q.includes("ticket")
   );
 }
 
@@ -63,6 +67,16 @@ function formatOutcomesAnswer(
   }
   if (outcomes.jobsPerTech != null) {
     lines.push(`${outcomes.jobsPerTech} jobs per active tech.`);
+  }
+  const pipeline = formatCents(outcomes.estimatedPipelineCents);
+  const leadValue = formatCents(outcomes.estimatedLeadValueCents);
+  if (pipeline) {
+    lines.push(`Est. pipeline from booked jobs: ${pipeline} (avg ticket).`);
+  } else if (outcomes.jobsBooked > 0) {
+    lines.push("Set average ticket in Settings to estimate pipeline dollars.");
+  }
+  if (leadValue) {
+    lines.push(`Est. value of leads this window: ${leadValue}.`);
   }
   return lines.join(" ");
 }

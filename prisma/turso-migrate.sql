@@ -52,3 +52,71 @@ CREATE INDEX IF NOT EXISTS "WebhookEvent_source_createdAt_idx" ON "WebhookEvent"
 
 CREATE UNIQUE INDEX IF NOT EXISTS "Lead_businessId_externalId_key" ON "Lead"("businessId", "externalId");
 CREATE INDEX IF NOT EXISTS "Lead_businessId_createdAt_idx" ON "Lead"("businessId", "createdAt");
+
+ALTER TABLE "Business" ADD COLUMN "avgTicketCents" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "successEvaluation" TEXT;
+
+CREATE TABLE IF NOT EXISTS "Estimate" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "jobId" TEXT,
+    "leadId" TEXT,
+    "amountCents" INTEGER NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'draft',
+    "lineItemsJson" TEXT NOT NULL DEFAULT '[]',
+    "notes" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Estimate_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Estimate_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Estimate_jobId_key" ON "Estimate"("jobId");
+CREATE INDEX IF NOT EXISTS "Estimate_businessId_status_idx" ON "Estimate"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "Estimate_businessId_createdAt_idx" ON "Estimate"("businessId", "createdAt");
+
+CREATE TABLE IF NOT EXISTS "Invoice" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "estimateId" TEXT,
+    "jobId" TEXT,
+    "amountCents" INTEGER NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'draft',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Invoice_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Invoice_estimateId_fkey" FOREIGN KEY ("estimateId") REFERENCES "Estimate" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_estimateId_key" ON "Invoice"("estimateId");
+CREATE INDEX IF NOT EXISTS "Invoice_businessId_status_idx" ON "Invoice"("businessId", "status");
+
+CREATE TABLE IF NOT EXISTS "Payment" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "invoiceId" TEXT NOT NULL,
+    "amountCents" INTEGER NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'recorded',
+    "method" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Payment_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Payment_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "Invoice" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "Payment_businessId_createdAt_idx" ON "Payment"("businessId", "createdAt");
+
+CREATE TABLE IF NOT EXISTS "CopilotAction" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "paramsJson" TEXT NOT NULL,
+    "preview" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'proposed',
+    "resultJson" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "executedAt" DATETIME,
+    CONSTRAINT "CopilotAction_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "CopilotAction_businessId_status_idx" ON "CopilotAction"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "CopilotAction_businessId_createdAt_idx" ON "CopilotAction"("businessId", "createdAt");

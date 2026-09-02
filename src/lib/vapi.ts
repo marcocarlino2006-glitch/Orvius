@@ -21,6 +21,10 @@ type VapiAssistantPayload = {
   endCallFunctionEnabled?: boolean;
   analysisPlan?: {
     summaryPlan?: { enabled: boolean };
+    successEvaluationPlan?: {
+      enabled: boolean;
+      rubric?: "NumericScale" | "PassFail" | "PercentageScale";
+    };
     structuredDataPlan?: {
       enabled: boolean;
       schema: Record<string, unknown>;
@@ -159,6 +163,10 @@ export function buildVapiAssistantConfig(params: {
     endCallFunctionEnabled: true,
     analysisPlan: {
       summaryPlan: { enabled: true },
+      successEvaluationPlan: {
+        enabled: true,
+        rubric: "NumericScale",
+      },
       structuredDataPlan: {
         enabled: true,
         schema: {
@@ -215,6 +223,7 @@ export type VapiWebhookMessage = {
     durationSeconds?: number;
     analysis?: {
       summary?: string;
+      successEvaluation?: string | number | boolean | null;
       structuredData?: Record<string, unknown>;
     };
     endedReason?: string;

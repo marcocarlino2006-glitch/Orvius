@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { formatCents } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 
 type ProShopOutcomesProps = {
@@ -21,6 +23,7 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
 
   const booking =
     outcomes.bookingRate != null ? `${outcomes.bookingRate}% booked` : "— booked";
+  const pipeline = formatCents(outcomes.estimatedPipelineCents);
 
   return (
     <section className="shop-outcomes font-sans" aria-label="Shop outcomes">
@@ -32,6 +35,12 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
           <strong>{outcomes.calls}</strong> calls ·{" "}
           <strong>{outcomes.leads}</strong> leads ·{" "}
           <strong>{outcomes.jobsBooked}</strong> jobs · {booking}
+          {pipeline ? (
+            <>
+              {" "}
+              · <strong>{pipeline}</strong> est. pipeline
+            </>
+          ) : null}
         </p>
       </div>
       <ul className="shop-outcomes-meta">
@@ -53,6 +62,14 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
         {outcomes.jobsPerTech != null && outcomes.activeTechnicians > 0 ? (
           <li>
             <strong>{outcomes.jobsPerTech}</strong> jobs / tech
+          </li>
+        ) : null}
+        {!outcomes.avgTicketCents ? (
+          <li>
+            <Link href="/dashboard/settings" className="pro-section-link">
+              Set avg ticket →
+            </Link>{" "}
+            to estimate recovered revenue
           </li>
         ) : null}
       </ul>

@@ -1,5 +1,6 @@
 "use client";
 
+import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
 import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
@@ -24,7 +25,18 @@ type JobDetail = {
   completedAt: string | null;
   technicianId: string | null;
   technician: Tech | null;
-  business: { id: string; name: string } | null;
+  business: { id: string; name: string; avgTicketCents: number | null } | null;
+  estimate: {
+    id: string;
+    amountCents: number;
+    status: string;
+    invoice: {
+      id: string;
+      amountCents: number;
+      status: string;
+      payments: Array<{ id: string; amountCents: number; status: string }>;
+    } | null;
+  } | null;
   customer: {
     id: string;
     name: string | null;
@@ -256,6 +268,15 @@ export default function JobDetailPage() {
               </Link>
             </ShellPanel>
           ) : null}
+
+          <ShellPanel title="Money">
+            <JobMoneyPanel
+              jobId={job.id}
+              avgTicketCents={job.business?.avgTicketCents ?? null}
+              estimate={job.estimate}
+              onRefresh={load}
+            />
+          </ShellPanel>
 
           {job.notes ? (
             <ShellPanel title="Notes">

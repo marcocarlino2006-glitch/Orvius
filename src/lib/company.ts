@@ -63,8 +63,8 @@ export const osRings = [
     ring: 5,
     name: "Money",
     module: "Estimate · invoice · pay",
-    status: "next" as const,
-    body: "Revenue flows through the system — not scattered tools.",
+    status: "live" as const,
+    body: "Draft estimates and invoices on jobs; record payments manually. Card rails next.",
   },
   {
     ring: 6,
@@ -77,7 +77,7 @@ export const osRings = [
     ring: 7,
     name: "Platform",
     module: "API · integrations · ecosystem",
-    status: "planned" as const,
+    status: "next" as const,
     body: "Other tools plug into Orvius — not the other way around.",
   },
   {
@@ -89,7 +89,7 @@ export const osRings = [
   },
 ] as const;
 
-export const osCurrentRing = 4;
+export const osCurrentRing = 5;
 
 export const legalPages = [
   {

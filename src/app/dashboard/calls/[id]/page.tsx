@@ -19,6 +19,7 @@ type CallDetail = {
   recordingUrl: string | null;
   booked: boolean;
   ownerNotifiedAt: string | null;
+  successEvaluation: string | null;
   createdAt: string;
   business: { id: string; name: string } | null;
   customer: {
@@ -201,6 +202,17 @@ export default function CallDetailPage() {
 
         <div className="ring1-lead-side space-y-6">
           <ShellPanel title="What Orvius did">
+            {call.successEvaluation ? (
+              <p className="call-ai-confidence font-sans">
+                AI confidence{" "}
+                <strong>{call.successEvaluation}</strong>
+                <span className="text-ash"> / 10 (VAPI)</span>
+              </p>
+            ) : (
+              <p className="call-ai-confidence call-ai-confidence-muted font-sans">
+                AI confidence not captured on this call yet.
+              </p>
+            )}
             {situation?.actionsTaken?.length ? (
               <ul className="call-situation-list font-sans">
                 {situation.actionsTaken.map((item) => (

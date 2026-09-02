@@ -151,6 +151,10 @@ export async function POST(request: NextRequest) {
     const transcript = message.transcript ?? null;
     const durationSec = message.durationSeconds ?? null;
     const recordingUrl = message.recordingUrl ?? null;
+    const successEvaluation =
+      message.analysis?.successEvaluation == null
+        ? null
+        : String(message.analysis.successEvaluation);
     const structured = extractLeadFromStructuredData(
       message.analysis?.structuredData,
     );
@@ -167,6 +171,7 @@ export async function POST(request: NextRequest) {
           transcript,
           durationSec,
           recordingUrl,
+          successEvaluation,
         },
         update: {
           status: "completed",
@@ -174,6 +179,7 @@ export async function POST(request: NextRequest) {
           transcript,
           durationSec,
           recordingUrl,
+          successEvaluation: successEvaluation ?? undefined,
           callerPhone: structured.phone ?? message.call?.customer?.number ?? undefined,
         },
       });

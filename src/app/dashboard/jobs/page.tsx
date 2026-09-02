@@ -20,6 +20,11 @@ type JobRow = {
   customer: { name: string | null; phone: string } | null;
   lead: { name: string | null; phone: string | null } | null;
   technician?: { name: string } | null;
+  estimate?: {
+    id: string;
+    status: string;
+    invoice: { id: string; status: string } | null;
+  } | null;
 };
 
 type PipelineStage = {
@@ -34,7 +39,8 @@ const STAGES: PipelineStage[] = [
   {
     id: "booked",
     label: "Booked",
-    match: (j) => j.status === "scheduled" || j.status === "confirmed",
+    match: (j) =>
+      !j.estimate && (j.status === "scheduled" || j.status === "confirmed"),
   },
   {
     id: "in_progress",
@@ -44,21 +50,19 @@ const STAGES: PipelineStage[] = [
   {
     id: "completed",
     label: "Completed",
-    match: (j) => j.status === "completed",
+    match: (j) => j.status === "completed" && !j.estimate,
   },
   {
     id: "estimate",
     label: "Estimates",
-    hint: "Next — Money ring",
-    coming: true,
-    match: () => false,
+    hint: "Drafts waiting for invoice",
+    match: (j) => Boolean(j.estimate && !j.estimate.invoice),
   },
   {
     id: "invoice",
     label: "Invoices",
-    hint: "Next — Money ring",
-    coming: true,
-    match: () => false,
+    hint: "Invoices from estimates",
+    match: (j) => Boolean(j.estimate?.invoice),
   },
 ];
 
@@ -88,14 +92,14 @@ export default function JobsPage() {
 
   const filtered = useMemo(() => {
     const stage = STAGES.find((s) => s.id === stageId);
-    if (!stage || stage.coming) return [];
+    if (!stage) return [];
     return jobs.filter(stage.match);
   }, [jobs, stageId]);
 
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const stage of STAGES) {
-      counts[stage.id] = stage.coming ? 0 : jobs.filter(stage.match).length;
+      counts[stage.id] = jobs.filter(stage.match).length;
     }
     return counts;
   }, [jobs]);
@@ -138,18 +142,12 @@ export default function JobsPage() {
                 type="button"
                 role="tab"
                 aria-selected={stageId === stage.id}
-                className={`jobs-pipeline-stage ${stageId === stage.id ? "jobs-pipeline-stage-active" : ""} ${stage.coming ? "jobs-pipeline-stage-coming" : ""}`}
-                onClick={() => !stage.coming && setStageId(stage.id)}
-                disabled={stage.coming}
+                className={`jobs-pipeline-stage ${stageId === stage.id ? "jobs-pipeline-stage-active" : ""}`}
+                onClick={() => setStageId(stage.id)}
                 title={stage.hint}
               >
-                <span className="jobs-pipeline-label">
-                  {stage.label}
-                  {stage.coming ? " · soon" : ""}
-                </span>
-                <span className="jobs-pipeline-count">
-                  {stage.coming ? "—" : stageCounts[stage.id]}
-                </span>
+                <span className="jobs-pipeline-label">{stage.label}</span>
+                <span className="jobs-pipeline-count">{stageCounts[stage.id]}</span>
               </button>
             ))}
           </div>

@@ -20,6 +20,7 @@ const patchSchema = z.object({
   ownerPhone: z.string().min(10).optional(),
   ownerEmail: z.string().email().optional(),
   greeting: z.string().max(280).optional(),
+  avgTicketCents: z.number().int().min(5000).max(5_000_000).nullable().optional(),
 });
 
 export async function GET() {
@@ -48,6 +49,7 @@ export async function GET() {
         createdAt: businessRecord.createdAt,
         greeting: businessRecord.greeting,
         lineVerifiedAt: businessRecord.lineVerifiedAt,
+        avgTicketCents: businessRecord.avgTicketCents,
       }
     : null;
 
@@ -129,6 +131,9 @@ export async function PATCH(request: Request) {
           ? { ownerEmail: body.ownerEmail.trim().toLowerCase() }
           : {}),
         ...(body.greeting !== undefined ? { greeting: body.greeting.trim() } : {}),
+        ...(body.avgTicketCents !== undefined
+          ? { avgTicketCents: body.avgTicketCents }
+          : {}),
       },
     });
 
@@ -165,6 +170,7 @@ export async function PATCH(request: Request) {
         ownerPhone: saved.ownerPhone,
         ownerEmail: saved.ownerEmail,
         greeting: saved.greeting,
+        avgTicketCents: saved.avgTicketCents,
         twilioPhone: saved.twilioPhone,
         vapiPhoneNumber: saved.vapiPhoneNumber,
       },
