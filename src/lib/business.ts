@@ -48,6 +48,82 @@ export function formatHoursForPrompt(hoursJson: string): string {
     .join("\n");
 }
 
+/** True when the timestamp falls outside configured shop hours (or hours empty). */
+export function isAfterHours(
+  at: Date,
+  hoursJson: string,
+  timezone = "America/New_York",
+): boolean {
+  const hours = parseJson<BusinessHours>(hoursJson, {});
+  if (!hours || Object.keys(hours).length === 0) {
+    // No hours configured — treat nights/weekends as after-hours signal.
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        weekday: "short",
+        hour: "numeric",
+        hour12: false,
+      }).formatToParts(at);
+      const weekday = parts.find((p) => p.type === "weekday")?.value ?? "";
+      const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "12");
+      if (weekday === "Sat" || weekday === "Sun") return true;
+      return hour < 8 || hour >= 17;
+    } catch {
+      const hour = at.getHours();
+      const day = at.getDay();
+      if (day === 0 || day === 6) return true;
+      return hour < 8 || hour >= 17;
+    }
+  }
+
+  let weekdayLong: string;
+  let hour = 0;
+  let minute = 0;
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      weekday: "long",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: false,
+    }).formatToParts(at);
+    weekdayLong = (parts.find((p) => p.type === "weekday")?.value ?? "monday").toLowerCase();
+    hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+    minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+    if (hour === 24) hour = 0;
+  } catch {
+    const days = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+    weekdayLong = days[at.getDay()] ?? "monday";
+    hour = at.getHours();
+    minute = at.getMinutes();
+  }
+
+  const entry = hours[weekdayLong];
+  if (!entry || entry.closed) return true;
+
+  const parseHm = (value: string) => {
+    const [h, m] = value.split(":").map((n) => Number(n));
+    return (h || 0) * 60 + (m || 0);
+  };
+
+  const nowMin = hour * 60 + minute;
+  const openMin = parseHm(entry.open);
+  const closeMin = parseHm(entry.close);
+  if (closeMin <= openMin) {
+    // Overnight window
+    return !(nowMin >= openMin || nowMin < closeMin);
+  }
+  return nowMin < openMin || nowMin >= closeMin;
+}
+
 export function formatServicesForPrompt(servicesJson: string): string {
   const services = parseJson<ServiceOffering[]>(servicesJson, []);
   if (services.length === 0) {

@@ -8,9 +8,21 @@ export const company = {
   legalEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
+  /** Wedge signal — what the shop feels on day one. */
   tagline: "Every call answered. Every lead owned.",
+  /**
+   * Best possible outcome: trusted OS + autonomous revenue engine for the trades.
+   * We start at the front door and expand one airtight loop at a time.
+   */
+  vision:
+    "Become the trusted operating system and autonomous revenue engine for HVAC, plumbing, and electrical businesses — the invisible 24/7 intelligence layer that captures demand, coordinates the field, moves money, and improves each shop’s economics.",
   mission:
-    "Orvius answers the shop phone, qualifies the lead, and alerts the owner. Pro adds jobs, dispatch, and Ask. Built for HVAC, plumbing, and electrical.",
+    "Answer every call — especially after-hours and overflow — qualify the customer, book the appointment, escalate emergencies, and notify the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence. Humans stay in control of high-risk decisions.",
+  strategy: [
+    "Dominate one trade and geography first — prove recovered calls, booking rate, and technician utilization.",
+    "Ship trade-specific intelligence and reliable workflow execution before platform vapor.",
+    "Earn trust through security, support, and measurable ROI — then expand trades, regions, and shop sizes.",
+  ] as const,
   jurisdictionNote:
     "the state in which Solution Development LLC is organized",
   smsProgramName: "Orvius Owner Alerts",
@@ -59,7 +71,7 @@ export const osRings = [
     name: "Intelligence",
     module: "AI on every layer",
     status: "live" as const,
-    body: "Smarter with every call, job, and payment. Ask lives on the records already in the OS.",
+    body: "Smarter with every call, job, and outcome. Ask and outcomes live on shop records.",
   },
   {
     ring: 7,
@@ -114,16 +126,16 @@ export const legalPages = [
 
 export const platformPillars = [
   {
-    title: "Always on",
+    title: "Capture demand",
     body: "Every inbound call and text answered — nights, weekends, peak season.",
   },
   {
-    title: "Qualified data",
-    body: "Service, urgency, address, and callback captured clean on every lead.",
+    title: "Execute the work",
+    body: "Qualify, book, assign, and advance the job — humans approve high-risk moves.",
   },
   {
-    title: "Owner control",
-    body: "Your hours, services, and line — with alerts when it matters.",
+    title: "Prove the economics",
+    body: "Booking rate, after-hours captures, and field utilization — not vanity dashboards.",
   },
 ] as const;
 

@@ -5,6 +5,7 @@ import {
   type MemoryHit,
   type ShopMemory,
 } from "@/lib/shop-memory";
+import { getShopOutcomes } from "@/lib/shop-outcomes";
 
 type VapiChatResponse = {
   output?: Array<{ content?: string } | string>;
@@ -24,6 +25,46 @@ function extractVapiText(payload: VapiChatResponse): string | null {
     return payload.assistant.content.trim();
   }
   return null;
+}
+
+function isOutcomesQuestion(question: string): boolean {
+  const q = question.toLowerCase();
+  return (
+    q.includes("book") ||
+    q.includes("booking") ||
+    q.includes("how many job") ||
+    q.includes("after-hours") ||
+    q.includes("after hours") ||
+    q.includes("this week") ||
+    q.includes("outcomes") ||
+    q.includes("utilization")
+  );
+}
+
+function formatOutcomesAnswer(
+  outcomes: Awaited<ReturnType<typeof getShopOutcomes>>,
+): string {
+  const booking =
+    outcomes.bookingRate != null
+      ? `${outcomes.bookingRate}% of leads became jobs`
+      : "no leads yet to compute a booking rate";
+  const lines = [
+    `Last ${outcomes.windowDays} days:`,
+    `${outcomes.calls} calls · ${outcomes.leads} leads · ${outcomes.jobsBooked} jobs booked (${booking}).`,
+  ];
+  if (outcomes.afterHoursLeads > 0) {
+    lines.push(`${outcomes.afterHoursLeads} after-hours leads captured.`);
+  }
+  if (outcomes.emergenciesBooked > 0) {
+    lines.push(`${outcomes.emergenciesBooked} emergencies booked.`);
+  }
+  if (outcomes.unassignedJobs > 0) {
+    lines.push(`${outcomes.unassignedJobs} jobs still need a technician.`);
+  }
+  if (outcomes.jobsPerTech != null) {
+    lines.push(`${outcomes.jobsPerTech} jobs per active tech.`);
+  }
+  return lines.join(" ");
 }
 
 async function polishWithVapi(question: string, memory: ShopMemory): Promise<string | null> {
@@ -71,12 +112,27 @@ async function polishWithVapi(question: string, memory: ShopMemory): Promise<str
 
 export type AskResult = {
   answer: string;
-  source: "memory" | "memory+model";
+  source: "memory" | "memory+model" | "outcomes";
   hits: MemoryHit[];
   stats: ShopMemory["stats"];
 };
 
 export async function askShop(question: string, businessId: string): Promise<AskResult> {
+  if (isOutcomesQuestion(question)) {
+    const outcomes = await getShopOutcomes(businessId, 7);
+    return {
+      answer: formatOutcomesAnswer(outcomes),
+      source: "outcomes",
+      hits: [],
+      stats: {
+        customers: 0,
+        jobs: outcomes.jobsBooked,
+        leads: outcomes.leads,
+        calls: outcomes.calls,
+      },
+    };
+  }
+
   const memory = await retrieveShopMemory(question, businessId);
   const grounded = composeMemoryAnswer(memory);
   const polished = await polishWithVapi(question, memory);

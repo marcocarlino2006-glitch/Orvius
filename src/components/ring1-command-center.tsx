@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
+import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
 import {
   TodayPriorityLeads,
@@ -12,12 +13,14 @@ import {
 } from "@/components/today-priority-leads";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import type { ShopHealth } from "@/lib/shop-health";
+import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
 type Ring1Data = {
   metrics: {
     newLeads: number;
   };
+  outcomes?: ShopOutcomes;
   priorityLeads: PriorityLead[];
   dispatchToday: {
     jobCount: number;
@@ -86,6 +89,8 @@ export function Ring1CommandCenter() {
 
   return (
     <section className="ring1-command" aria-label="Today">
+      <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
+
       <TodayPriorityLeads
         leads={data?.priorityLeads ?? []}
         technicians={data?.technicians ?? []}
@@ -113,7 +118,7 @@ export function Ring1CommandCenter() {
           <ProSectionHead kicker="Today" title="Nothing waiting" />
           <ProEmptyState
             title="You're clear"
-            body="When a lead comes in or a job needs a tech, it lands here."
+            body="When a lead comes in or a job needs a tech, it lands here. Outcomes above track the last 7 days."
             action={
               <div className="flex flex-wrap gap-2">
                 <Link href="/dashboard/inbox" className="btn btn-void text-sm">

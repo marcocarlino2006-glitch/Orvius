@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `${company.productName} — ${company.tagline} A product of ${company.legalName}.`,
+  description: `${company.productName} — ${company.vision}`,
 };
 
 export default function AboutPage() {
@@ -17,7 +17,7 @@ export default function AboutPage() {
           <ShellPageIntro
             label="Company"
             title={company.tagline}
-            subline="We start at the front door. Ship what shops use."
+            subline="The operating system for service businesses — starting at the front door."
             description={company.mission}
           />
         </div>
@@ -25,25 +25,24 @@ export default function AboutPage() {
 
       <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
-          <p className="tier1-section-lead font-sans">
-            {company.productName} is built by {company.legalName} for{" "}
-            {company.trades.join(", ")} shops — where a missed call is lost
-            revenue.
-          </p>
-          <p className="tier1-section-lead font-sans">
-            Live today: answer and qualify every call, owner alerts, customers,
-            jobs, and dispatch. Money and marketplace come after those loops are
-            airtight.
-          </p>
+          <p className="tier1-eyebrow type-eyebrow">Best possible outcome</p>
+          <h2 className="tier1-section-title type-headline">Where we&apos;re going.</h2>
+          <p className="tier1-section-lead font-sans">{company.vision}</p>
+          <ul className="tier1-strategy-list font-sans">
+            {company.strategy.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
       </section>
 
       <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap">
           <p className="tier1-eyebrow type-eyebrow">What&apos;s live</p>
-          <h2 className="tier1-section-title type-headline">The system.</h2>
+          <h2 className="tier1-section-title type-headline">One ring at a time.</h2>
           <p className="tier1-section-lead font-sans max-w-2xl">
-            Only layers shops can use now. No roadmap theater.
+            Built by {company.legalName} for {company.trades.join(", ")}. We
+            ship what shops can use today — then expand when the loop is airtight.
           </p>
           <div className="tier1-rings">
             <OsRings liveOnly />

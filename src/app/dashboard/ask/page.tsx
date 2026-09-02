@@ -8,8 +8,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 const SUGGESTIONS = [
+  "How many jobs did we book this week?",
   "Who is scheduled today?",
-  "Who called about AC?",
   "Any emergencies in the inbox?",
   "What's unassigned on dispatch?",
 ];

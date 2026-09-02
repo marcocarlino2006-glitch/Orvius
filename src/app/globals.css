@@ -6990,6 +6990,72 @@ h3 {
 /* Ring 1 — Front door mastery */
 .ring1-command { display: flex; flex-direction: column; gap: 1.75rem; }
 
+.shop-outcomes {
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.4375rem;
+  background: var(--white);
+}
+
+.shop-outcomes-kicker {
+  margin: 0;
+}
+
+.shop-outcomes-line {
+  margin: 0.35rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--void);
+}
+
+.shop-outcomes-line strong {
+  font-weight: 700;
+}
+
+.shop-outcomes-meta {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
+.shop-outcomes-meta strong {
+  color: var(--void);
+  font-weight: 600;
+}
+
+.tier1-strategy-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tier1-strategy-list li {
+  position: relative;
+  padding-left: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ash);
+}
+
+.tier1-strategy-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--signal);
+}
+
 .ring1-trust-strip {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
   gap: 0.75rem 1.5rem; padding: 0.75rem 1.125rem; border-radius: 0.5rem;
