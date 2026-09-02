@@ -68,5 +68,8 @@ Each plan's Subscribe button only appears when that plan's price ID is configure
 ## Not done yet
 
 - Feature gating by plan tier (all plans get full product today — tier differentiation is pricing/copy until we gate)
-- Stripe Customer Portal
-- Plan upgrades/downgrades in-app
+- Plan upgrades/downgrades in-app (use Stripe Customer Portal for now)
+
+## Customer portal
+
+Active subscribers can open **Manage subscription** on Dashboard → Billing. Requires Customer Portal enabled in Stripe Dashboard → Settings → Billing → Customer portal.

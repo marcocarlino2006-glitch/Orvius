@@ -1,5 +1,6 @@
 "use client";
 
+import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
 import { OsShell } from "@/components/os-shell";
 import { ShellPanel } from "@/components/shell-primitives";
@@ -8,11 +9,25 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
+type BillingReadiness = {
+  checkoutReady: boolean;
+  fullyReady: boolean;
+  missing: string[];
+  nextSteps: string[];
+};
+
 type BillingAccount = {
   user: { email: string | null };
-  business: { name: string; billingStatus: string; billingPlan: string | null } | null;
+  business: {
+    name: string;
+    billingStatus: string;
+    billingPlan: string | null;
+    stripeCustomerId: string | null;
+  } | null;
   billing: {
     configured: boolean;
+    fullyReady: boolean;
+    readiness: BillingReadiness;
     status: string;
     planId: string | null;
     plan: { name: string; price: number; period: string };
@@ -51,6 +66,8 @@ export default function DashboardBillingPage() {
   const status = account?.billing.status ?? "none";
   const email = session?.user?.email ?? account?.user.email ?? "";
   const paidPlans = getPaidPlans();
+  const checkoutReady = account?.billing.configured ?? false;
+  const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
 
   return (
     <OsShell
@@ -88,6 +105,11 @@ export default function DashboardBillingPage() {
                   {email ? ` · ${email}` : ""}
                 </p>
               ) : null}
+              {(status === "active" || status === "past_due") && hasStripeCustomer ? (
+                <div className="mt-5">
+                  <BillingPortalButton />
+                </div>
+              ) : null}
             </>
           )}
         </ShellPanel>
@@ -98,8 +120,13 @@ export default function DashboardBillingPage() {
           ) : status === "active" ? (
             <p className="font-sans text-sm text-live">
               Subscription active. Receipts are sent to your email from Stripe.
+              {hasStripeCustomer ? (
+                <span className="mt-4 block">
+                  <BillingPortalButton label="Update payment method" />
+                </span>
+              ) : null}
             </p>
-          ) : account?.billing.configured ? (
+          ) : checkoutReady ? (
             <>
               <p className="font-sans text-sm leading-relaxed text-ash">
                 Choose a plan — flat monthly, billed by {company.legalName} via Stripe.
@@ -125,13 +152,32 @@ export default function DashboardBillingPage() {
               </ul>
             </>
           ) : (
-            <p className="font-sans text-sm leading-relaxed text-ash">
-              Online checkout is not configured yet.{" "}
-              <Link href="/pilot" className="pro-section-link">
-                Apply for the design partner program
-              </Link>{" "}
-              and we will send a checkout link after your trial.
-            </p>
+            <>
+              <p className="font-sans text-sm leading-relaxed text-ash">
+                Self-serve checkout is not configured yet.{" "}
+                <Link href="/pilot" className="pro-section-link">
+                  Apply for the design partner program
+                </Link>{" "}
+                and we will send a checkout link after your trial.
+              </p>
+              {process.env.NODE_ENV === "development" &&
+              account?.billing.readiness?.missing?.length ? (
+                <details className="mt-4 font-sans text-xs text-ash">
+                  <summary className="cursor-pointer">Stripe setup (developers)</summary>
+                  <ul className="mt-2 list-disc space-y-1 pl-4">
+                    {account.billing.readiness.missing.map((item) => (
+                      <li key={item}>
+                        <code>{item}</code>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-2">
+                    Run <code>npm run stripe:setup</code> after adding{" "}
+                    <code>STRIPE_SECRET_KEY</code>. See docs/BILLING-SETUP.md.
+                  </p>
+                </details>
+              ) : null}
+            </>
           )}
         </ShellPanel>
       </div>

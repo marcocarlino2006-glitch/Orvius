@@ -8,7 +8,7 @@ import {
   validateOwnerPhoneForAlerts,
 } from "@/lib/owner-alerts";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
-import { isStripeConfigured } from "@/lib/stripe";
+import { getBillingReadiness, isStripeCheckoutConfigured, isStripeConfigured } from "@/lib/stripe";
 import { getShopHealth } from "@/lib/shop-health";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { z } from "zod";
@@ -71,7 +71,9 @@ export async function GET() {
       emailConfigured: isEmailConfigured(),
     },
     billing: {
-      configured: isStripeConfigured(),
+      configured: isStripeCheckoutConfigured(),
+      fullyReady: isStripeConfigured(),
+      readiness: getBillingReadiness(),
       status: business?.billingStatus ?? "none",
       planId: currentPlanId,
       plan: currentPlan ?? pricing.pro,

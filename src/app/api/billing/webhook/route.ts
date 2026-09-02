@@ -112,7 +112,10 @@ export async function POST(request: Request) {
           });
         }
 
-        await syncSubscription(subscription, session.customer_email);
+        await syncSubscription(
+          subscription,
+          session.customer_email ?? session.customer_details?.email,
+        );
         break;
       }
       case "customer.subscription.updated":

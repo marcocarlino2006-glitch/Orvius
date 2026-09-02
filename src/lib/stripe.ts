@@ -21,13 +21,14 @@ export function isStripeCheckoutConfigured() {
   return isAnyPlanCheckoutReady();
 }
 
-/** All paid plans + webhook configured — safe to show Subscribe everywhere. */
+/** Secret key + webhook + all plan price ids — production-ready billing. */
 export function isStripeConfigured() {
   return getBillingReadiness().fullyReady;
 }
 
+/** Per-plan checkout — secret key + price id for this plan. */
 export function isStripePlanConfigured(planId: PaidPlanId) {
-  return isPlanCheckoutReady(planId) && Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
+  return isPlanCheckoutReady(planId);
 }
 
 export function getStripe() {
