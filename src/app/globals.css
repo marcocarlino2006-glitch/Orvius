@@ -126,6 +126,7 @@
   --color-success: var(--success);
   --font-sans: var(--font-sans);
   --font-brand: var(--font-brand);
+  --font-display: var(--font-brand);
 }
 
 * {
@@ -161,10 +162,10 @@ button,
 /* ── Type system ── */
 
 .type-wordmark {
-  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: var(--tracking-brand);
-  text-transform: none;
+  text-transform: uppercase;
   line-height: 1;
   color: var(--void);
 }
@@ -179,20 +180,22 @@ button,
 }
 
 .type-display {
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: clamp(2.75rem, 5.5vw, 4.25rem);
-  font-weight: 400;
-  line-height: 1.06;
-  letter-spacing: -0.045em;
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--void);
 }
 
 .type-headline {
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.75rem, 3.2vw, 2.5rem);
-  font-weight: 400;
+  font-weight: 600;
   line-height: var(--leading-tight);
-  letter-spacing: -0.035em;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--void);
 }
 
@@ -206,11 +209,11 @@ button,
 }
 
 .type-phone {
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.25rem, 2.4vw, 1.625rem);
   font-weight: 500;
   line-height: var(--leading-tight);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
   color: var(--void);
   text-decoration: none;
@@ -1133,14 +1136,18 @@ h3 {
 }
 
 .orvius-logo-wordmark {
-  font-size: var(--logo-wordmark-size, 0.8125rem);
-  letter-spacing: var(--logo-wordmark-tracking, var(--tracking-brand));
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: var(--logo-wordmark-size, 0.875rem);
+  font-weight: 600;
+  letter-spacing: var(--logo-wordmark-tracking, 0.14em);
+  text-transform: uppercase;
+  line-height: 1;
 }
 
-.orvius-logo-sm .orvius-logo-wordmark { --logo-wordmark-size: 0.875rem; --logo-wordmark-tracking: -0.02em; }
-.orvius-logo-md .orvius-logo-wordmark { --logo-wordmark-size: 0.9375rem; --logo-wordmark-tracking: -0.025em; }
-.orvius-logo-lg .orvius-logo-wordmark { --logo-wordmark-size: 1.0625rem; --logo-wordmark-tracking: -0.03em; }
-.orvius-logo-xl .orvius-logo-wordmark { --logo-wordmark-size: 1.1875rem; --logo-wordmark-tracking: -0.03em; }
+.orvius-logo-sm .orvius-logo-wordmark { --logo-wordmark-size: 0.8125rem; --logo-wordmark-tracking: 0.12em; }
+.orvius-logo-md .orvius-logo-wordmark { --logo-wordmark-size: 0.875rem; --logo-wordmark-tracking: 0.14em; }
+.orvius-logo-lg .orvius-logo-wordmark { --logo-wordmark-size: 1rem; --logo-wordmark-tracking: 0.16em; }
+.orvius-logo-xl .orvius-logo-wordmark { --logo-wordmark-size: 1.125rem; --logo-wordmark-tracking: 0.18em; }
 
 .orvius-logo-void .orvius-logo-wordmark { color: var(--chalk); }
 .orvius-logo-chalk .orvius-logo-wordmark { color: var(--void); }
@@ -1154,10 +1161,11 @@ h3 {
   fill: var(--void);
 }
 
-.orvius-mark-ring {
+.orvius-mark-ring,
+.orvius-mark-core,
+.orvius-mark-ticks {
   stroke: var(--chalk);
   fill: none;
-  strokeLinecap: round;
 }
 
 .orvius-mark-signal {
@@ -1176,7 +1184,9 @@ h3 {
   fill: var(--chalk);
 }
 
-.orvius-logo-void .orvius-mark-ring {
+.orvius-logo-void .orvius-mark-ring,
+.orvius-logo-void .orvius-mark-core,
+.orvius-logo-void .orvius-mark-ticks {
   stroke: var(--void);
 }
 

@@ -1,6 +1,6 @@
 /**
- * Orvius mark — signal ring on ink tile.
- * Reads as live line + O-monogram at favicon size. Not a placeholder pause icon.
+ * Orvius mark — angular HUD reticle.
+ * Reads as command lock + live signal. Sharp at favicon size.
  */
 
 export type OrviusMarkSvgProps = {
@@ -22,22 +22,35 @@ export function OrviusMarkSvg({
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      <rect
+      {/* Chamfered tile */}
+      <path
         className="orvius-mark-tile"
-        x="3"
-        y="3"
-        width="26"
-        height="26"
-        rx="8"
+        d="M8 2.5H24L29.5 8V24L24 29.5H8L2.5 24V8L8 2.5Z"
       />
-      <circle
+      {/* Outer reticle octagon */}
+      <path
         className="orvius-mark-ring"
-        cx="16"
-        cy="16"
-        r="8.25"
-        strokeWidth="2.25"
+        d="M11 6.5H21L25.5 11V21L21 25.5H11L6.5 21V11L11 6.5Z"
+        strokeWidth="1.75"
       />
-      <circle className="orvius-mark-signal" cx="22.75" cy="9.75" r="2.1" />
+      {/* Inner lock diamond */}
+      <path
+        className="orvius-mark-core"
+        d="M16 11.25L20.75 16L16 20.75L11.25 16L16 11.25Z"
+        strokeWidth="1.5"
+      />
+      {/* Crosshair ticks */}
+      <path
+        className="orvius-mark-ticks"
+        d="M16 7.25V9.5M16 22.5V24.75M7.25 16H9.5M22.5 16H24.75"
+        strokeWidth="1.5"
+        strokeLinecap="square"
+      />
+      {/* Live signal node */}
+      <path
+        className="orvius-mark-signal"
+        d="M24.25 6.25L27.1 7.9L24.25 9.55L21.4 7.9L24.25 6.25Z"
+      />
     </svg>
   );
 }

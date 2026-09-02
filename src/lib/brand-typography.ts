@@ -1,4 +1,4 @@
-/** Brand typography — Cursor-tier: one voice, calm display. */
+/** Brand typography — sci-fi command voice. Orbitron mark + Space Grotesk UI. */
 
 export const brandWordmark = "Orvius";
 
@@ -13,8 +13,8 @@ export const typeScale = {
 } as const;
 
 export const logoSizes = {
-  sm: { mark: 20, wordmark: "0.9375rem", tracking: "-0.02em" },
-  md: { mark: 22, wordmark: "1rem", tracking: "-0.025em" },
-  lg: { mark: 26, wordmark: "1.125rem", tracking: "-0.03em" },
-  xl: { mark: 30, wordmark: "1.25rem", tracking: "-0.03em" },
+  sm: { mark: 20, wordmark: "0.875rem", tracking: "0.12em" },
+  md: { mark: 22, wordmark: "0.9375rem", tracking: "0.14em" },
+  lg: { mark: 28, wordmark: "1.0625rem", tracking: "0.16em" },
+  xl: { mark: 32, wordmark: "1.1875rem", tracking: "0.18em" },
 } as const;
