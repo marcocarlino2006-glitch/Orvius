@@ -48,7 +48,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
             <Link href="/login" className="mkt-nav-login">
               Log in
             </Link>
-            <Link href="/pilot" className="mkt-btn mkt-btn-signal mkt-btn-sm">
+            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-sm">
               Book audit
             </Link>
           </div>

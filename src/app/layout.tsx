@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Exo_2, Orbitron, Space_Grotesk } from "next/font/google";
+import { Instrument_Serif, Orbitron, Space_Grotesk } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
@@ -19,10 +19,11 @@ const brand = Orbitron({
   display: "swap",
 });
 
-const display = Exo_2({
-  variable: "--font-display",
+const editorial = Instrument_Serif({
+  variable: "--font-editorial",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -57,7 +58,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${brand.variable} ${display.variable} antialiased`}>
+      <body className={`${sans.variable} ${brand.variable} ${editorial.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { HomeProductPreview } from "@/components/home-product-preview";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
+import { company } from "@/lib/company";
 
 export function HomeLineHero() {
   return (
-    <section className="mkt-hero" aria-labelledby="home-hero-heading">
-      <div className="mkt-hero-signal" aria-hidden />
+    <section className="mkt-hero mkt-hero-editorial" aria-labelledby="home-hero-heading">
+      <div className="mkt-hero-wash" aria-hidden />
 
-      <div className="editorial-wrap mkt-hero-inner">
-        <div className="mkt-hero-copy">
-          <p className="mkt-kicker mkt-kicker-signal">
+      <div className="editorial-wrap">
+        <div className="mkt-hero-stack">
+          <p className="mkt-eyebrow font-sans">
             <span className="mkt-live-dot" aria-hidden />
-            Live line · call now
+            Live demo line
           </p>
 
           <h1 id="home-hero-heading" className="mkt-hero-title">
@@ -19,17 +20,18 @@ export function HomeLineHero() {
           </h1>
 
           <p className="mkt-hero-lead font-sans">
-            After-hours and overflow — qualified, booked, owner alerted while your crew works.
+            Orvius is the AI operating system for {company.trades.join(", ").toLowerCase()} shops.
+            After-hours and overflow calls get answered, qualified, booked, and pushed to the owner —
+            while your crew stays on the tools.
           </p>
 
-          <a href={demoLineHref()} className="mkt-phone mkt-phone-signal">
-            {DEMO_LINE_DISPLAY}
-          </a>
-
           <div className="mkt-hero-actions font-sans">
-            <Link href="/pilot" className="mkt-btn mkt-btn-signal">
+            <Link href="/pilot" className="mkt-btn mkt-btn-ink">
               Book a live call audit
             </Link>
+            <a href={demoLineHref()} className="mkt-btn mkt-btn-ghost">
+              Call {DEMO_LINE_DISPLAY}
+            </a>
           </div>
         </div>
 

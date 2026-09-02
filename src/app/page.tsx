@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-shell";
 import { HomeLineHero } from "@/components/home-line-hero";
+import { HomeStatement } from "@/components/home-statement";
 import { HomeWorkflow } from "@/components/home-workflow";
 import { HomeCallStory } from "@/components/home-call-story";
 import { HomeTrust } from "@/components/home-trust";
@@ -13,6 +14,7 @@ export default function HomePage() {
   return (
     <MarketingShell premium>
       <HomeLineHero />
+      <HomeStatement />
       <HomeWorkflow />
       <HomeCallStory />
       <HomeTrust />
@@ -21,11 +23,12 @@ export default function HomePage() {
 
       <MktSection tone="dark" className="mkt-close">
         <div className="mkt-close-inner">
-          <h2 className="mkt-close-title">Your calls. Not a slide deck.</h2>
-          <p className="mkt-close-desc">
-            Book a live audit on your after-hours traffic. Go or no-go — same day.
+          <h2 className="mkt-close-title">See it on your shop&apos;s calls — not a slide deck.</h2>
+          <p className="mkt-close-desc font-sans">
+            Book a live call audit. We&apos;ll walk through real transcripts, jobs, and dispatch — then you
+            decide if Orvius fits.
           </p>
-          <Link href="/pilot" className="mkt-btn mkt-btn-signal mkt-btn-lg">
+          <Link href="/pilot" className="mkt-btn mkt-btn-ink-light mkt-btn-lg">
             Book a live call audit
           </Link>
         </div>
