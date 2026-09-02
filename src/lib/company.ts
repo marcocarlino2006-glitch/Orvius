@@ -8,8 +8,8 @@ export const company = {
   legalEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
-  /** Wedge signal — what the shop feels on day one. */
-  tagline: "Every call answered. Every lead owned.",
+  /** Wedge signal — what the shop gains on day one. */
+  tagline: "Turn missed calls into booked jobs.",
   /**
    * Best possible outcome: trusted OS + autonomous revenue engine for the trades.
    * We start at the front door and expand one airtight loop at a time.
