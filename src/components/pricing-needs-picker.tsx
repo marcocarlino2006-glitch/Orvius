@@ -47,7 +47,7 @@ export function PricingNeedsPicker({
       };
     }
     return recommendPlan({ need, size });
-  }, [need, size, multiLocation, interval]);
+  }, [need, size, multiLocation]);
 
   const currentStep = STEPS[step]?.id ?? "size";
   const stepCount = STEPS.length;
