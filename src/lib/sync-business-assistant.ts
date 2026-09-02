@@ -58,7 +58,7 @@ export async function syncBusinessAssistant(
     warning = "No shop line assigned — call hello@orvius.im to finish setup";
   } else if (shopMustNotUseDemoLine(business) && isDemoPlatformLine(line)) {
     warning =
-      "Your shop is on the marketing demo line — use Re-sync in Settings to get your dedicated number";
+      "Your dedicated line is being assigned — refresh in a moment.";
   } else {
     await attachAssistantToShopLine({
       phone: line,
