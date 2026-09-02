@@ -35,6 +35,8 @@ export default function DashboardSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncWarning, setSyncWarning] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export default function DashboardSettingsPage() {
     setError(null);
     setSaved(false);
     setSyncWarning(null);
+    setSyncMessage(null);
 
     try {
       const res = await fetch("/api/account", {
@@ -89,8 +92,11 @@ export default function DashboardSettingsPage() {
       if (data.assistantSynced === false) {
         setSyncWarning(
           data.syncError ??
-            "Saved locally, but your AI receptionist did not sync. Try again in a moment.",
+            "Saved locally, but your AI receptionist did not sync. Try Re-sync below.",
         );
+      } else if (data.syncWarning) {
+        setSyncWarning(data.syncWarning);
+        setSaved(true);
       } else {
         setSaved(true);
       }
@@ -134,6 +140,49 @@ export default function DashboardSettingsPage() {
     }
   }
 
+  async function resyncReceptionist() {
+    setSyncing(true);
+    setError(null);
+    setSyncWarning(null);
+    setSyncMessage(null);
+
+    try {
+      const res = await fetch("/api/account/sync-assistant", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Re-sync failed");
+
+      setAccount((prev) =>
+        prev
+          ? {
+              ...prev,
+              business: prev.business
+                ? {
+                    ...prev.business,
+                    greeting: data.business.greeting,
+                    twilioPhone: data.business.twilioPhone,
+                    vapiPhoneNumber: data.business.vapiPhoneNumber,
+                  }
+                : null,
+            }
+          : prev,
+      );
+
+      const line = data.line as string | null;
+      const parts = [
+        `Receptionist synced for ${data.business.name}.`,
+        line ? `Your line: ${line}` : null,
+        data.repaired ? "Dedicated line assigned." : null,
+        data.sync?.warning ?? null,
+      ].filter(Boolean);
+
+      setSyncMessage(parts.join(" "));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Re-sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   return (
     <OsShell title="Settings" subtitle="Your line, greeting, and owner alerts.">
       <ProPageStrip />
@@ -148,8 +197,13 @@ export default function DashboardSettingsPage() {
           </p>
         </ShellPanel>
 
-        <ShellPanel title="AI greeting">
-          <label className="onboarding-field font-sans">
+        <ShellPanel title="AI receptionist">
+          <p className="account-settings-hint font-sans">
+            Calls to your shop line are answered as{" "}
+            <strong>{account?.business?.name ?? "your shop"}</strong> — not the
+            marketing demo.
+          </p>
+          <label className="onboarding-field font-sans mt-4">
             <span className="onboarding-label">Opening line</span>
             <textarea
               value={greeting}
@@ -159,6 +213,19 @@ export default function DashboardSettingsPage() {
               placeholder={`Thank you for calling ${account?.business?.name ?? "your shop"}. How can I help you today?`}
             />
           </label>
+          <div className="pro-settings-test-row mt-4">
+            <button
+              type="button"
+              className="btn btn-secondary text-sm"
+              disabled={syncing}
+              onClick={resyncReceptionist}
+            >
+              {syncing ? "Syncing…" : "Re-sync receptionist & line"}
+            </button>
+            <span className="pro-settings-test-meta font-sans">
+              Updates voice AI with your shop name and wires your dedicated line
+            </span>
+          </div>
         </ShellPanel>
 
         <ShellPanel title="Owner alerts">
@@ -210,7 +277,8 @@ export default function DashboardSettingsPage() {
 
         {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
         {syncWarning ? <ShellAlert tone="error">{syncWarning}</ShellAlert> : null}
-        {saved ? (
+        {syncMessage ? <ShellAlert tone="success">{syncMessage}</ShellAlert> : null}
+        {saved && !syncMessage ? (
           <ShellAlert tone="success">Saved. Your receptionist is updated.</ShellAlert>
         ) : null}
         {testResult ? <ShellAlert tone="success">{testResult}</ShellAlert> : null}

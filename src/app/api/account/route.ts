@@ -130,10 +130,16 @@ export async function PATCH(request: Request) {
 
     let assistantSynced = true;
     let syncError: string | null = null;
+    let syncWarning: string | null = null;
 
     if (body.greeting !== undefined) {
       try {
-        await syncBusinessAssistant(business);
+        const sync = await syncBusinessAssistant(business);
+        syncWarning = sync.warning;
+        if (!sync.assistantUpdated) {
+          assistantSynced = false;
+          syncError = sync.warning ?? "Assistant sync failed";
+        }
       } catch (error) {
         assistantSynced = false;
         syncError =
@@ -153,6 +159,7 @@ export async function PATCH(request: Request) {
       },
       assistantSynced,
       syncError,
+      syncWarning,
     });
   } catch (error) {
     const message =

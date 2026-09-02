@@ -1,3 +1,4 @@
+import { shopHasWrongDemoLine } from "@/lib/demo-business";
 import { prisma } from "@/lib/prisma";
 import { isEmailConfigured } from "@/lib/email";
 import { getAlertMetrics } from "@/lib/alert-metrics";
@@ -43,6 +44,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     where: { id: businessId },
     select: {
       name: true,
+      slug: true,
       ownerPhone: true,
       ownerEmail: true,
       vapiAssistantId: true,
@@ -58,8 +60,9 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
   }
 
   const shopLines = getShopLines(business);
-  const dedicatedLine = shopLines.length > 0;
   const line = shopLines[0] ?? null;
+  const onDemoLine = shopHasWrongDemoLine(business);
+  const dedicatedLine = shopLines.length > 0 && !onDemoLine;
   const platformLine = process.env.TWILIO_PHONE_NUMBER?.trim() ?? null;
 
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -112,12 +115,14 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     {
       id: "line",
       label: "Dedicated shop line",
-      ok: lineOk,
-      detail: lineOk
-        ? line!
-        : platformLine
-          ? `Using shared platform line (${platformLine}) — dedicated line recommended`
-          : "No inbound number assigned",
+      ok: lineOk && !onDemoLine,
+      detail: onDemoLine
+        ? `On marketing demo line — Re-sync in Settings for ${business.name}`
+        : lineOk
+          ? line!
+          : platformLine
+            ? "No dedicated line — Re-sync in Settings"
+            : "No inbound number assigned",
     },
     {
       id: "assistant",

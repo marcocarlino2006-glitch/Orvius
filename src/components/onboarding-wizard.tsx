@@ -252,8 +252,9 @@ export function OnboardingWizard() {
             <>
               <h1 className="onboarding-title font-sans">Go live.</h1>
               <p className="onboarding-lead font-sans">
-                Review your setup. Orvius will provision your AI receptionist and
-                open your dashboard.
+                Review your setup. Orvius provisions a dedicated line and AI
+                receptionist for <strong>{name.trim()}</strong> — callers hear
+                your shop name, not the marketing demo.
               </p>
               <dl className="onboarding-review font-sans">
                 <div>

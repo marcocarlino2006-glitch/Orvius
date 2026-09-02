@@ -1,4 +1,9 @@
 import {
+  isDemoPlatformLine,
+  shopHasWrongDemoLine,
+  shopMustNotUseDemoLine,
+} from "@/lib/demo-business";
+import {
   buildAssistantSystemPrompt,
   slugify,
   type ServiceOffering,
@@ -10,6 +15,7 @@ import {
   validateOwnerPhoneForAlerts,
 } from "@/lib/owner-alerts";
 import { prisma } from "@/lib/prisma";
+import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import {
   canProvisionDedicatedLine,
   configureSmsWebhook,
@@ -17,12 +23,13 @@ import {
   releasePhoneNumber,
 } from "@/lib/twilio-phone";
 import { type Trade } from "@/lib/trades";
+import { attachAssistantToShopLine } from "@/lib/vapi-line";
 import {
   buildVapiAssistantConfig,
   createAssistant,
   deleteAssistant,
-  importTwilioPhoneToVapi,
 } from "@/lib/vapi";
+import type { Business } from "@prisma/client";
 
 export type { Trade } from "@/lib/trades";
 export { TRADES } from "@/lib/trades";
@@ -84,7 +91,7 @@ export type ProvisionInput = {
 };
 
 export type ProvisionResult = {
-  business: Awaited<ReturnType<typeof prisma.business.create>>;
+  business: Business;
   dedicatedLine: boolean;
 };
 
@@ -108,10 +115,10 @@ async function provisionDedicatedLine(params: {
 }) {
   const phone = await purchaseLocalNumber(params.ownerPhone);
   await configureSmsWebhook(phone);
-  await importTwilioPhoneToVapi({
-    number: phone,
+  await attachAssistantToShopLine({
+    phone,
     assistantId: params.assistantId,
-    name: `${params.shopName} line`,
+    shopName: params.shopName,
   });
   return phone;
 }
@@ -119,8 +126,9 @@ async function provisionDedicatedLine(params: {
 async function rollbackProvision(params: {
   vapiAssistantId: string | null;
   shopLine: string | null;
+  releaseLine: boolean;
 }) {
-  if (params.shopLine) {
+  if (params.shopLine && params.releaseLine) {
     try {
       await releasePhoneNumber(params.shopLine);
     } catch (error) {
@@ -143,6 +151,68 @@ async function rollbackProvision(params: {
   }
 }
 
+/**
+ * Every signed-up shop gets a dedicated line wired to THEIR assistant.
+ * The marketing demo line (+1 844…) stays Summit-only — never shared.
+ */
+export async function ensureDedicatedShopLine(business: Business): Promise<{
+  business: Business;
+  repaired: boolean;
+  dedicatedLine: boolean;
+}> {
+  if (!business.vapiAssistantId) {
+    throw new Error("AI receptionist is not provisioned for this shop");
+  }
+
+  const currentLine = business.vapiPhoneNumber ?? business.twilioPhone;
+  const needsLine =
+    !currentLine ||
+    (shopMustNotUseDemoLine(business) && isDemoPlatformLine(currentLine));
+
+  if (!needsLine && currentLine) {
+    await attachAssistantToShopLine({
+      phone: currentLine,
+      assistantId: business.vapiAssistantId,
+      shopName: business.name,
+    });
+    await syncBusinessAssistant(business);
+    return { business, repaired: false, dedicatedLine: !isDemoPlatformLine(currentLine) };
+  }
+
+  if (!canProvisionDedicatedLine()) {
+    throw new Error(
+      "Dedicated line provisioning is not available. Contact hello@orvius.im",
+    );
+  }
+
+  const ownerPhone = business.ownerPhone;
+  if (!ownerPhone?.trim()) {
+    throw new Error("Add your owner mobile in Settings before provisioning a shop line");
+  }
+
+  const shopLine = await provisionDedicatedLine({
+    shopName: business.name,
+    ownerPhone,
+    assistantId: business.vapiAssistantId,
+  });
+
+  const updated = await prisma.business.update({
+    where: { id: business.id },
+    data: {
+      twilioPhone: shopLine,
+      vapiPhoneNumber: shopLine,
+    },
+  });
+
+  await syncBusinessAssistant(updated);
+
+  return {
+    business: updated,
+    repaired: shopHasWrongDemoLine(business),
+    dedicatedLine: true,
+  };
+}
+
 export async function provisionBusiness(input: ProvisionInput): Promise<ProvisionResult> {
   const email = input.ownerEmail.toLowerCase().trim();
   const existing = await findBusinessForOwner(email);
@@ -152,14 +222,23 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
 
   const name = input.name.trim();
   const slug = await uniqueSlug(name);
-  const platformLine = process.env.TWILIO_PHONE_NUMBER?.trim() || null;
 
   const phoneCheck = validateOwnerPhoneForAlerts({
     ownerPhone: input.ownerPhone,
-    shopLines: [platformLine],
+    shopLines: [],
   });
   if (!phoneCheck.ok) {
     throw new Error(phoneCheck.reason);
+  }
+
+  if (!isConfigured("VAPI_API_KEY")) {
+    throw new Error("Voice AI is not configured. Contact hello@orvius.im");
+  }
+
+  if (!canProvisionDedicatedLine()) {
+    throw new Error(
+      "We could not provision a dedicated shop line right now. Contact hello@orvius.im",
+    );
   }
 
   const greeting =
@@ -176,36 +255,34 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   });
 
   let vapiAssistantId: string | null = null;
-  let shopLine: string | null = platformLine;
-  let dedicatedLine = false;
+  let shopLine: string | null = null;
 
   try {
-    if (isConfigured("VAPI_API_KEY")) {
-      const assistant = await createAssistant(
-        buildVapiAssistantConfig({
-          businessName: name,
-          systemPrompt,
-          greeting,
-          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
-        }),
-      );
-      vapiAssistantId = assistant.id;
-    }
+    const assistant = await createAssistant(
+      buildVapiAssistantConfig({
+        businessName: name,
+        systemPrompt,
+        greeting,
+        webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+        webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+      }),
+    );
+    vapiAssistantId = assistant.id;
 
-    if (vapiAssistantId && canProvisionDedicatedLine()) {
-      try {
-        shopLine = await provisionDedicatedLine({
-          shopName: name,
-          ownerPhone: input.ownerPhone,
-          assistantId: vapiAssistantId,
-        });
-        dedicatedLine = true;
-      } catch (error) {
-        logError("provision.dedicated_line_failed", {
-          error: error instanceof Error ? error.message : "unknown",
-        });
-      }
+    try {
+      shopLine = await provisionDedicatedLine({
+        shopName: name,
+        ownerPhone: input.ownerPhone,
+        assistantId: vapiAssistantId,
+      });
+    } catch (error) {
+      logError("provision.dedicated_line_failed", {
+        shopName: name,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      throw new Error(
+        "Could not assign your dedicated shop line. Try again in a moment or contact hello@orvius.im",
+      );
     }
 
     const postProvisionCheck = validateOwnerPhoneForAlerts({
@@ -236,9 +313,15 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
       },
     });
 
-    return { business, dedicatedLine };
+    await syncBusinessAssistant(business);
+
+    return { business, dedicatedLine: true };
   } catch (error) {
-    await rollbackProvision({ vapiAssistantId, shopLine: dedicatedLine ? shopLine : null });
+    await rollbackProvision({
+      vapiAssistantId,
+      shopLine,
+      releaseLine: Boolean(shopLine),
+    });
     throw error;
   }
 }

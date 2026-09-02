@@ -94,7 +94,7 @@ export default function LeadDetailPage() {
     <OsShell
       title={lead.name ?? "Unknown caller"}
       subtitle={`${lead.business?.name ?? "Your shop"} · ${lead.source === "sms" ? "Text lead" : "Call lead"}`}
-      businessName={lead.business?.name ?? "Summit HVAC"}
+      businessName={lead.business?.name ?? undefined}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {lead.phone ? (
