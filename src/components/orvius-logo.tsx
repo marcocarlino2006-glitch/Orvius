@@ -21,7 +21,7 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
 type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
-  /** Wordmark only — tight spaces (mobile drawer) */
+  /** Wordmark only (default). Pass false to include the mark. */
   wordmarkOnly?: boolean;
   markOnly?: boolean;
   className?: string;
