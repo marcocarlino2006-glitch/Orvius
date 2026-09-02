@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { askShop } from "@/lib/shop-brain";
 import { requireBusinessSession } from "@/lib/tenant";
 
+export async function GET() {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult.error;
+  return NextResponse.json({ ok: true, endpoint: "ask" });
+}
+
 export async function POST(request: Request) {
   const authResult = await requireBusinessSession();
   if ("error" in authResult) return authResult.error;

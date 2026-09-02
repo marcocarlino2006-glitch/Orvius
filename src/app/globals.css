@@ -7485,6 +7485,16 @@ h3 {
   color: var(--ash);
 }
 
+.dispatch-job-chip-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dispatch-job-assign {
+  margin-top: 0.15rem;
+}
+
 .ask-hero {
   margin-bottom: 1.75rem;
   border-color: color-mix(in srgb, var(--signal) 18%, var(--rule));

@@ -1,6 +1,7 @@
 "use client";
 
 import { BookJobForm } from "@/components/book-job-form";
+import { AssignTechButton } from "@/components/assign-tech-button";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
@@ -38,8 +39,11 @@ type LeadDetail = {
     status: string;
     scheduledAt: string | null;
     title: string;
+    technicianId: string | null;
   } | null;
 };
+
+type Tech = { id: string; name: string };
 
 function formatUrgency(value: string | null) {
   if (!value) return "Flexible";
@@ -50,18 +54,24 @@ export default function LeadDetailPage() {
   const params = useParams<{ id: string }>();
   const leadId = params.id;
   const [lead, setLead] = useState<LeadDetail | null>(null);
+  const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!leadId) return;
 
-    fetch(`/api/leads/${leadId}`)
-      .then(async (res) => {
+    Promise.all([
+      fetch(`/api/leads/${leadId}`).then(async (res) => {
         if (!res.ok) throw new Error("Lead not found");
         return res.json();
+      }),
+      fetch("/api/technicians").then((res) => res.json()),
+    ])
+      .then(([data, techData]) => {
+        setLead(data.lead);
+        setCrew((techData.technicians ?? []).map((t: Tech) => ({ id: t.id, name: t.name })));
       })
-      .then((data) => setLead(data.lead))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [leadId]);
@@ -145,13 +155,23 @@ export default function LeadDetailPage() {
 
         <div className="ring1-lead-side space-y-6">
           {lead.job ? (
-            <ShellPanel title="Job booked">
+            <ShellPanel title="Job on dispatch">
               <p className="font-sans text-sm text-ash">
                 {lead.job.title} · {lead.job.status}
                 {lead.job.scheduledAt
                   ? ` · ${new Date(lead.job.scheduledAt).toLocaleString()}`
                   : ""}
+                {!lead.job.technicianId ? " · needs a tech" : ""}
               </p>
+              {!lead.job.technicianId && crew.length ? (
+                <div className="mt-4">
+                  <AssignTechButton
+                    jobId={lead.job.id}
+                    technicians={crew}
+                    onAssigned={() => window.location.reload()}
+                  />
+                </div>
+              ) : null}
               <Link
                 href={`/dashboard/jobs/${lead.job.id}`}
                 className="customer-timeline-link mt-3 inline-block font-sans"

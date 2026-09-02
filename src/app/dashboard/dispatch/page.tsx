@@ -1,5 +1,6 @@
 "use client";
 
+import { AssignTechButton } from "@/components/assign-tech-button";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
@@ -27,6 +28,7 @@ type Board = {
   jobCount: number;
   unassigned: BoardJob[];
   columns: Array<{ technician: Tech; jobs: BoardJob[] }>;
+  crew?: Tech[];
 };
 
 function todayInputValue() {
@@ -35,7 +37,15 @@ function todayInputValue() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function JobChip({ job }: { job: BoardJob }) {
+function JobChip({
+  job,
+  technicians,
+  onAssigned,
+}: {
+  job: BoardJob;
+  technicians: Tech[];
+  onAssigned: () => void;
+}) {
   const who = job.customer?.name ?? job.lead?.name ?? job.customer?.phone ?? "Customer";
   const time = job.scheduledAt
     ? new Date(job.scheduledAt).toLocaleTimeString(undefined, {
@@ -44,30 +54,42 @@ function JobChip({ job }: { job: BoardJob }) {
       })
     : "TBD";
   const emergency = job.urgency?.toLowerCase() === "emergency";
+  const needsAssign = !job.technicianId;
 
   return (
-    <Link href={`/dashboard/jobs/${job.id}`} className="dispatch-job-chip pro-card">
-      <div className="dispatch-job-chip-head">
-        <p className="dispatch-job-chip-time font-sans">{time}</p>
-        <div className="flex flex-wrap gap-1.5">
-          {emergency ? <ShellBadge tone="flare">Emergency</ShellBadge> : null}
-          <ShellBadge
-            tone={
-              job.status === "on_site" || job.status === "en_route"
-                ? "live"
-                : job.status === "completed"
-                  ? "neutral"
-                  : "flare"
-            }
-          >
-            {jobStatusLabel(job.status)}
-          </ShellBadge>
+    <div className="dispatch-job-chip-wrap">
+      <Link href={`/dashboard/jobs/${job.id}`} className="dispatch-job-chip pro-card">
+        <div className="dispatch-job-chip-head">
+          <p className="dispatch-job-chip-time font-sans">{time}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {emergency ? <ShellBadge tone="flare">Emergency</ShellBadge> : null}
+            <ShellBadge
+              tone={
+                job.status === "on_site" || job.status === "en_route"
+                  ? "live"
+                  : job.status === "completed"
+                    ? "neutral"
+                    : "flare"
+              }
+            >
+              {jobStatusLabel(job.status)}
+            </ShellBadge>
+          </div>
         </div>
-      </div>
-      <p className="dispatch-job-chip-title font-sans">{job.title}</p>
-      <p className="dispatch-job-chip-sub font-sans">{who}</p>
-      {job.address ? <p className="dispatch-job-chip-sub font-sans">{job.address}</p> : null}
-    </Link>
+        <p className="dispatch-job-chip-title font-sans">{job.title}</p>
+        <p className="dispatch-job-chip-sub font-sans">{who}</p>
+        {job.address ? <p className="dispatch-job-chip-sub font-sans">{job.address}</p> : null}
+      </Link>
+      {needsAssign && technicians.length ? (
+        <AssignTechButton
+          jobId={job.id}
+          technicians={technicians}
+          onAssigned={onAssigned}
+          compact
+          className="dispatch-job-assign"
+        />
+      ) : null}
+    </div>
   );
 }
 
@@ -127,6 +149,12 @@ export default function DispatchPage() {
         accent: false,
       })),
     ];
+  }, [board]);
+
+  const technicians = useMemo(() => {
+    if (!board) return [];
+    if (board.crew?.length) return board.crew;
+    return board.columns.map((col) => col.technician);
   }, [board]);
 
   const dayLabel = new Date(`${day}T12:00:00`).toLocaleDateString(undefined, {
@@ -228,7 +256,7 @@ export default function DispatchPage() {
                 <ul className="dispatch-col-list">
                   {col.jobs.map((job) => (
                     <li key={job.id}>
-                      <JobChip job={job} />
+                      <JobChip job={job} technicians={technicians} onAssigned={load} />
                     </li>
                   ))}
                 </ul>

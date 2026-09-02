@@ -146,7 +146,12 @@ async function main() {
   for (const scenario of SCENARIOS) {
     try {
       const leadId = await runScenario(appUrl, env, business, scenario);
-      console.log(`✅ ${scenario.name} → lead ${leadId}`);
+      const lead = await prisma.lead.findUnique({
+        where: { id: leadId },
+        include: { job: { select: { id: true } } },
+      });
+      if (!lead?.job) throw new Error("no auto-booked job");
+      console.log(`✅ ${scenario.name} → lead ${leadId}, job ${lead.job.id}`);
       passed++;
       await new Promise((r) => setTimeout(r, 300));
     } catch (err) {
@@ -171,7 +176,13 @@ async function main() {
     });
     const text = await res.text();
     if (!res.ok || !text.includes("<Response>")) throw new Error("SMS failed");
-    console.log("✅ Inbound SMS → lead + TwiML reply");
+    const smsLead = await prisma.lead.findFirst({
+      where: { businessId: business.id, source: "sms" },
+      orderBy: { createdAt: "desc" },
+      include: { job: { select: { id: true } } },
+    });
+    if (!smsLead?.job) throw new Error("SMS lead missing auto-booked job");
+    console.log(`✅ Inbound SMS → lead ${smsLead.id}, job ${smsLead.job.id}`);
     passed++;
   } catch (err) {
     console.log(

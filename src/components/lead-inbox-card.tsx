@@ -138,6 +138,7 @@ export function LeadInboxCard({
             leadId={id}
             phone={phone}
             status={status}
+            booked={booked}
             onStatusChange={onStatusChange}
           />
         ) : null}

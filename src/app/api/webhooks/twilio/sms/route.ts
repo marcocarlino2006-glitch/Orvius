@@ -100,24 +100,24 @@ export async function POST(request: NextRequest) {
       })
     : null;
 
-  const ownerMessage = buildOwnerLeadAlertMessage({
-    lead: {
-      name: null,
-      phone: from,
-      serviceType: "SMS inquiry",
-      urgency: null,
-      address: null,
-    },
-    job: bookedJob,
-    autoBooked: autoBook.created,
-  });
+    const ownerMessage = buildOwnerLeadAlertMessage({
+      lead: {
+        name: null,
+        phone: from,
+        serviceType: "SMS inquiry",
+        urgency: null,
+        address: null,
+      },
+      job: bookedJob,
+      autoBooked: autoBook.created,
+    });
 
   await enqueueOwnerAlert({
     businessId: business.id,
     ownerPhone: business.ownerPhone,
     ownerEmail: business.ownerEmail,
     businessName: business.name,
-    message: [`${ownerMessage}`, `Message: ${body}`].join("\n"),
+    message: [ownerMessage, `Message: ${body}`].filter(Boolean).join("\n"),
     leadId: lead.id,
     dedupeKey: buildLeadAlertDedupeKey({
       messageSid: messageSid || lead.id,

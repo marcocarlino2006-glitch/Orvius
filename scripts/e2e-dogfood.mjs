@@ -98,8 +98,8 @@ async function main() {
       const data = await res.json();
       if (!res.ok) return { ok: false, message: data.error ?? res.status };
       return {
-        ok: true,
-        message: `lead ${data.leadId} for ${data.business.name}`,
+        ok: Boolean(data.leadId && data.jobId),
+        message: `lead ${data.leadId}, job ${data.jobId ?? "missing"}`,
       };
     }),
   );
@@ -195,8 +195,8 @@ async function main() {
       const data = await res.json();
       if (!res.ok) return { ok: false, message: JSON.stringify(data) };
       return {
-        ok: true,
-        message: `lead ${data.leadId ?? "created"}`,
+        ok: Boolean(data.leadId && data.autoBooked && data.jobId),
+        message: `lead ${data.leadId ?? "created"}, job ${data.jobId ?? "missing"}`,
       };
     }),
   );

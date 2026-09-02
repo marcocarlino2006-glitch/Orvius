@@ -22,7 +22,7 @@ export async function getWedgeReadiness(
   businessId: string,
   healthOverride?: ShopHealth,
 ): Promise<WedgeReadiness> {
-  const [business, health, leadCount, testAlert] = await Promise.all([
+  const [business, health, leadCount, jobCount, testAlert] = await Promise.all([
     prisma.business.findUnique({
       where: { id: businessId },
       select: {
@@ -34,6 +34,7 @@ export async function getWedgeReadiness(
     }),
     healthOverride ? Promise.resolve(healthOverride) : getShopHealth(businessId),
     prisma.lead.count({ where: { businessId } }),
+    prisma.job.count({ where: { businessId, status: { not: "cancelled" } } }),
     prisma.ownerNotification.findFirst({
       where: {
         businessId,
@@ -104,6 +105,16 @@ export async function getWedgeReadiness(
         leadCount > 0
           ? `${leadCount} lead${leadCount === 1 ? "" : "s"} on record`
           : "Call your line to create your first lead",
+    },
+    {
+      id: "first-job",
+      label: "Lead auto-books to dispatch",
+      ok: jobCount > 0,
+      detail:
+        jobCount > 0
+          ? `${jobCount} job${jobCount === 1 ? "" : "s"} on board`
+          : "Book or receive a lead — jobs appear automatically",
+      actionHref: "/dashboard",
     },
     {
       id: "health",
