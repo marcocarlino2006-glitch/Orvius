@@ -6,12 +6,12 @@
 import { readFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { PrismaClient } from "@prisma/client";
+import { createScriptPrisma } from "./lib/db.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
 const envPath = resolve(root, ".env");
-const prisma = new PrismaClient();
+const prisma = createScriptPrisma();
 
 const TEST_INBOUND = "+15559876543";
 const TEST_OWNER = "+15551112222";

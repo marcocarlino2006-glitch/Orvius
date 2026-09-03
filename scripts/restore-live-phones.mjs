@@ -1,40 +1,30 @@
 #!/usr/bin/env node
 /**
- * Restore Summit HVAC phone fields from .env after e2e dogfood mutations.
+ * Restore primary shop phones from .env after e2e mutations.
+ * One number → one shop: clears the live line from every other active shop.
  */
-import { readFileSync, existsSync } from "fs";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
-import { PrismaClient } from "@prisma/client";
+import { createScriptPrisma, loadEnvFile } from "./lib/db.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, "../.env");
-const prisma = new PrismaClient();
+loadEnvFile();
+const prisma = createScriptPrisma();
 
-function loadEnv() {
-  if (!existsSync(envPath)) return {};
-  const env = {};
-  for (const line of readFileSync(envPath, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eq = trimmed.indexOf("=");
-    if (eq === -1) continue;
-    env[trimmed.slice(0, eq)] = trimmed
-      .slice(eq + 1)
-      .replace(/^["']|["']$/g, "");
-  }
-  return env;
+function normalizePhone(phone) {
+  if (!phone?.trim()) return null;
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return digits.length >= 7 ? digits : null;
 }
 
 async function main() {
-  const env = loadEnv();
-  const twilioPhone = env.TWILIO_PHONE_NUMBER;
+  const twilioPhone = process.env.TWILIO_PHONE_NUMBER?.trim();
   if (!twilioPhone) {
     console.error("Missing TWILIO_PHONE_NUMBER in .env");
     process.exit(1);
   }
 
   const business = await prisma.business.findFirst({
+    where: { isActive: true },
     orderBy: { createdAt: "asc" },
   });
 
@@ -43,7 +33,8 @@ async function main() {
     process.exit(1);
   }
 
-  const ownerPhone = env.ORVIUS_OWNER_PHONE ?? business.ownerPhone;
+  const ownerPhone =
+    process.env.ORVIUS_OWNER_PHONE?.trim() ?? business.ownerPhone;
 
   if (!ownerPhone) {
     console.error(
@@ -52,7 +43,7 @@ async function main() {
     process.exit(1);
   }
 
-  if (ownerPhone === twilioPhone) {
+  if (normalizePhone(ownerPhone) === normalizePhone(twilioPhone)) {
     console.warn(
       "\n⚠️  Owner phone equals Twilio line — SMS alerts won't reach your cell.",
     );
@@ -68,16 +59,31 @@ async function main() {
     },
   });
 
+  const line = normalizePhone(twilioPhone) ?? twilioPhone;
+  const cleared = await prisma.business.updateMany({
+    where: {
+      isActive: true,
+      id: { not: business.id },
+      OR: [{ twilioPhone: line }, { vapiPhoneNumber: line }, { twilioPhone }, { vapiPhoneNumber: twilioPhone }],
+    },
+    data: {
+      twilioPhone: null,
+      vapiPhoneNumber: null,
+    },
+  });
+
   console.log("\n✅ Live phones restored");
   console.log(`   Business: ${business.name}`);
   console.log(`   Twilio/Vapi line: ${twilioPhone}`);
-  console.log(`   Owner SMS: ${ownerPhone}\n`);
-
-  await prisma.$disconnect();
+  console.log(`   Owner SMS: ${ownerPhone}`);
+  console.log(`   Cleared shared line from ${cleared.count} other shop(s)\n`);
 }
 
-main().catch(async (err) => {
-  console.error(err);
-  await prisma.$disconnect();
-  process.exit(1);
-});
+main()
+  .catch(async (err) => {
+    console.error(err);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

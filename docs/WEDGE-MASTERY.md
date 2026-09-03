@@ -67,7 +67,15 @@ You are wedge-certified when:
 - [ ] Unassigned jobs get a tech from Today in one tap
 - [ ] You'd put your own shop on Orvius tomorrow
 - [ ] Failure log has zero blockers
+- [ ] `npm run wedge:ready` is 8/8 (includes exclusive line + auto-book)
+- [ ] No shared phone numbers across shops (`npm run repair:shared-lines`)
+
+### Battle 1 ops (2026-09-03)
+
+- Wedge scripts use Turso-aware Prisma (`scripts/lib/db.mjs`)
+- Inbound call/SMS resolve shops via `resolveBusinessByInboundPhone` (one number → one shop)
+- Shared-line collisions: `npm run repair:shared-lines` then `npm run restore:phones`
 
 ---
 
-*Last updated: 2026-09-02*
+*Last updated: 2026-09-03*

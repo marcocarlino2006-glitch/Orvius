@@ -22,6 +22,7 @@ import {
   validateTwilioRequest,
 } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
+import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -51,12 +52,7 @@ export async function POST(request: NextRequest) {
     return twimlResponse("");
   }
 
-  const business = await prisma.business.findFirst({
-    where: {
-      isActive: true,
-      OR: [{ twilioPhone: to }, { vapiPhoneNumber: to }],
-    },
-  });
+  const business = await resolveBusinessByInboundPhone(to);
 
   if (!business) {
     logWarn("twilio.sms.business_not_found", { from, to, messageSid });

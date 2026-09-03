@@ -3,9 +3,9 @@
  * Backfill Customer records from existing leads and calls.
  * Run: node scripts/backfill-customers.mjs
  */
-import { PrismaClient } from "@prisma/client";
+import { createScriptPrisma } from "./lib/db.mjs";
 
-const prisma = new PrismaClient();
+const prisma = createScriptPrisma();
 
 function normalizePhone(phone) {
   if (!phone?.trim()) return null;

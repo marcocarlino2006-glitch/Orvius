@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
  * Wedge definition-of-done — verifies a shop is production-grade.
+ * Uses Turso-aware Prisma (same as app runtime).
  */
-import { PrismaClient } from "@prisma/client";
+import { createScriptPrisma } from "./lib/db.mjs";
 
-const prisma = new PrismaClient();
+const prisma = createScriptPrisma();
 
 function normalizePhone(phone) {
   if (!phone?.trim()) return null;
@@ -21,18 +22,49 @@ function phonesEqual(a, b) {
 }
 
 async function main() {
-  const business = await prisma.business.findFirst({
-    where: { isActive: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const nameFilter = process.argv[2]?.trim();
+  const business = nameFilter
+    ? await prisma.business.findFirst({
+        where: { isActive: true, name: { contains: nameFilter } },
+        orderBy: { createdAt: "asc" },
+      })
+    : await prisma.business.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: "asc" },
+      });
 
   if (!business) {
     console.error("❌ No active business — run onboarding first");
     process.exit(1);
   }
 
-  const shopLines = [business.vapiPhoneNumber, business.twilioPhone].filter(Boolean);
-  const leadCount = await prisma.lead.count({ where: { businessId: business.id } });
+  const shopLines = [business.vapiPhoneNumber, business.twilioPhone].filter(
+    Boolean,
+  );
+  const uniqueLines = [...new Set(shopLines.map((l) => normalizePhone(l) ?? l))];
+
+  const collisions = [];
+  for (const line of uniqueLines) {
+    if (!line) continue;
+    const others = await prisma.business.findMany({
+      where: {
+        isActive: true,
+        id: { not: business.id },
+        OR: [{ twilioPhone: line }, { vapiPhoneNumber: line }],
+      },
+      select: { id: true, name: true },
+    });
+    if (others.length > 0) {
+      collisions.push({ line, others });
+    }
+  }
+
+  const leadCount = await prisma.lead.count({
+    where: { businessId: business.id },
+  });
+  const jobCount = await prisma.job.count({
+    where: { businessId: business.id, status: { not: "cancelled" } },
+  });
   const testAlert = await prisma.ownerNotification.findFirst({
     where: { businessId: business.id, status: "sent" },
     orderBy: { createdAt: "desc" },
@@ -48,6 +80,19 @@ async function main() {
       detail: shopLines[0] ?? "missing",
     },
     {
+      label: "Line exclusive (no shared number)",
+      ok: collisions.length === 0,
+      detail:
+        collisions.length === 0
+          ? "unique"
+          : collisions
+              .map(
+                (c) =>
+                  `${c.line} also on ${c.others.map((o) => o.name).join(", ")}`,
+              )
+              .join("; "),
+    },
+    {
       label: "Line tested end-to-end",
       ok: Boolean(business.lineVerifiedAt),
       detail: business.lineVerifiedAt ? "verified" : "not verified",
@@ -58,6 +103,13 @@ async function main() {
       detail: business.ownerPhone ?? "missing",
     },
     {
+      label: "Owner SMS not opted out",
+      ok: !business.ownerSmsOptOutAt,
+      detail: business.ownerSmsOptOutAt
+        ? `opted out ${business.ownerSmsOptOutAt.toISOString()}`
+        : "active",
+    },
+    {
       label: "Owner alert delivered",
       ok: Boolean(testAlert),
       detail: testAlert ? `${testAlert.channel} sent` : "none sent",
@@ -66,6 +118,11 @@ async function main() {
       label: "First lead in inbox",
       ok: leadCount > 0,
       detail: `${leadCount} leads`,
+    },
+    {
+      label: "Lead auto-books to dispatch",
+      ok: jobCount > 0,
+      detail: `${jobCount} jobs`,
     },
   ];
 
@@ -82,6 +139,11 @@ async function main() {
     process.exit(0);
   }
 
+  if (collisions.length > 0) {
+    console.log(
+      "\nFix shared lines: npm run repair:lines — or node scripts/repair-shared-lines.mjs\n",
+    );
+  }
   console.log("❌ WEDGE NOT READY — complete checklist above\n");
   process.exit(1);
 }

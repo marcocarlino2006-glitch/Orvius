@@ -20,6 +20,7 @@ import {
   recordWebhookEvent,
 } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
+import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 
 async function findBusinessForCall(
   vapiCallId: string,
@@ -43,12 +44,7 @@ async function findBusinessForCall(
   }
 
   if (phoneNumber) {
-    const byPhone = await prisma.business.findFirst({
-      where: {
-        isActive: true,
-        OR: [{ vapiPhoneNumber: phoneNumber }, { twilioPhone: phoneNumber }],
-      },
-    });
+    const byPhone = await resolveBusinessByInboundPhone(phoneNumber);
     if (byPhone) return byPhone;
   }
 

@@ -2,9 +2,9 @@
 /**
  * Backfill jobs for leads that never got auto-booked (pre-mastery data).
  */
-import { PrismaClient } from "@prisma/client";
+import { createScriptPrisma } from "./lib/db.mjs";
 
-const prisma = new PrismaClient();
+const prisma = createScriptPrisma();
 
 async function main() {
   const leads = await prisma.lead.findMany({
