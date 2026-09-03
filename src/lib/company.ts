@@ -6,27 +6,32 @@ export const company = {
   contactEmail: "hello@orvius.im",
   supportEmail: "hello@orvius.im",
   legalEmail: "hello@orvius.im",
+  dmcaEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
-  /** Wedge signal — what the shop gains on day one. */
   tagline: "Turn missed calls into booked jobs.",
-  /**
-   * Best possible outcome: trusted OS + autonomous revenue engine for the trades.
-   * We start at the front door and expand one airtight loop at a time.
-   */
   vision:
     "Become the trusted operating system and autonomous revenue engine for HVAC, plumbing, and electrical businesses — the invisible 24/7 intelligence layer that captures demand, coordinates the field, moves money, and improves each shop’s economics.",
+  /** Product goal — not a warranty of 100% answer rate. */
   mission:
-    "Answer every call — especially after-hours and overflow — qualify the customer, book the appointment, escalate emergencies, and notify the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence. Humans stay in control of high-risk decisions.",
+    "Capture after-hours and overflow demand: qualify the customer, book the appointment, escalate emergencies, and notify the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence. Humans stay in control of high-risk decisions.",
   strategy: [
     "Dominate one trade and geography first — prove recovered calls, booking rate, and technician utilization.",
     "Ship trade-specific intelligence and reliable workflow execution before platform vapor.",
     "Earn trust through security, support, and measurable ROI — then expand trades, regions, and shop sizes.",
   ] as const,
+  /**
+   * Confirm with counsel against formation docs and update before relying on
+   * arbitration/venue language in production disputes.
+   */
+  governingLawState: "the State in which Solution Development LLC is organized",
   jurisdictionNote:
-    "the state in which Solution Development LLC is organized",
+    "the State in which Solution Development LLC is organized",
+  trademarkNotice:
+    "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",
+  copyrightNotice: "All rights reserved.",
   smsProgramName: "Orvius Owner Alerts",
-  legalUpdated: "August 29, 2026",
+  legalUpdated: "September 3, 2026",
 } as const;
 
 /** Orvius OS — expansion rings. One ring at a time; never skip. */
@@ -36,14 +41,14 @@ export const osRings = [
     name: "Front door",
     module: "Answer · qualify · alert",
     status: "live" as const,
-    body: "Every call and text handled. Owner notified with a clean summary.",
+    body: "Inbound calls and texts handled. Owner notified with a clean summary.",
   },
   {
     ring: 2,
     name: "Customers",
     module: "Record · history · recognition",
     status: "live" as const,
-    body: "Every caller becomes a customer. Full history from first touch.",
+    body: "Callers become customers. Full history from first touch.",
   },
   {
     ring: 3,
@@ -85,7 +90,7 @@ export const osRings = [
     name: "Marketplace",
     module: "Homeowners · match · trust",
     status: "planned" as const,
-    body: "Consumers find Orvius-certified pros. Two-sided network.",
+    body: "Consumers find Orvius shops. Two-sided network.",
   },
 ] as const;
 
@@ -95,7 +100,7 @@ export const legalPages = [
   {
     href: "/terms",
     title: "Terms of Service",
-    summary: "Agreement for using Orvius, billing, and acceptable use.",
+    summary: "Agreement for using Orvius, billing, IP, and dispute resolution.",
   },
   {
     href: "/privacy",
@@ -110,7 +115,7 @@ export const legalPages = [
   {
     href: "/sms-terms",
     title: "SMS Terms",
-    summary: "Text message program terms, consent, and opt-out (TCPA).",
+    summary: "Text message programs, consent, and opt-out.",
   },
   {
     href: "/refunds",
@@ -119,15 +124,20 @@ export const legalPages = [
   },
   {
     href: "/security",
-    title: "Security & Compliance",
-    summary: "How we protect data and support regulatory responsibilities.",
+    title: "Security",
+    summary: "Security practices and customer responsibilities (no audit claimed).",
+  },
+  {
+    href: "/dmca",
+    title: "DMCA / Copyright",
+    summary: "Copyright notices, designated agent, and trademark statement.",
   },
 ] as const;
 
 export const platformPillars = [
   {
     title: "Capture demand",
-    body: "Every inbound call and text answered — nights, weekends, peak season.",
+    body: "Inbound calls and texts answered — nights, weekends, peak season.",
   },
   {
     title: "Execute the work",

@@ -88,7 +88,7 @@ export function HomeTrust() {
         <p className="mkt-trust-links font-sans">
           <Link href="/security">Trust center · Security</Link>
           <Link href="/privacy">Privacy</Link>
-          <Link href="/sms-terms">SMS / TCPA</Link>
+          <Link href="/sms-terms">SMS terms</Link>
         </p>
       </div>
     </MktSection>

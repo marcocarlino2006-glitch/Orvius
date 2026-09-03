@@ -1,73 +1,97 @@
 import { LegalDocument, LegalSection } from "@/components/legal-document";
 import { company } from "@/lib/company";
+import { subprocessors } from "@/lib/subprocessors";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Security & Compliance",
-  description: `Security practices and compliance guidance for ${company.productName}.`,
+  title: "Security",
+  description: `Security practices for ${company.productName}. No third-party audit certification claimed.`,
 };
 
 export default function SecurityPage() {
   return (
     <LegalDocument
-      label="Legal"
-      title="Security & Compliance"
-      description={`How ${company.legalName} protects ${company.productName} data and supports customer compliance obligations.`}
+      label="Trust"
+      title="Security"
+      description={`How ${company.legalName} protects ${company.productName} systems and data. This page describes practices — not a compliance certification.`}
       updated={company.legalUpdated}
     >
-      <LegalSection title="1. Security practices">
+      <LegalSection title="1. Our posture">
+        <p>
+          We design {company.productName} for small and mid-size trade businesses that handle
+          sensitive caller and job data. We take security seriously and continuously improve
+          controls. <strong>We do not currently claim SOC 2, ISO 27001, HIPAA, PCI DSS Level 1,
+          FedRAMP, or similar third-party certifications.</strong>{" "}
+          Do not interpret marketing language as an audit attestation.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="2. Practices">
         <ul>
           <li>Encrypted connections (HTTPS/TLS) for web and API traffic</li>
           <li>Access controls on production systems and credentials</li>
-          <li>Environment secrets stored outside application code</li>
-          <li>Vendor due diligence for telephony, voice AI, and payment partners</li>
+          <li>Secrets stored outside application source code</li>
+          <li>Webhook signature validation for telephony and billing providers where supported</li>
+          <li>Vendor due diligence for hosting, telephony, voice AI, and payments</li>
         </ul>
-        <p>
-          No system is perfectly secure. We work to reduce risk and respond to
-          incidents affecting customer data.
-        </p>
+        <p>No system is perfectly secure. We work to reduce risk and respond to incidents.</p>
       </LegalSection>
 
-      <LegalSection title="2. Data handling">
-        <p>
-          Call metadata, transcripts, lead records, and account data are stored
-          to operate the Service. See our{" "}
-          <Link href="/privacy">Privacy Policy</Link> for retention and deletion
-          requests.
-        </p>
-      </LegalSection>
-
-      <LegalSection title="3. Customer compliance">
-        <p>
-          Business customers are responsible for compliance with laws applicable
-          to their operations, including but not limited to:
-        </p>
+      <LegalSection title="3. Product controls you operate">
         <ul>
-          <li>Telemarketing and SMS consent (TCPA and similar laws)</li>
-          <li>Call recording and notification requirements</li>
-          <li>Truth-in-advertising and trade licensing disclosures</li>
+          <li>Business hours, services, and escalation contacts you configure</li>
+          <li>Human review paths when confidence is low or data is incomplete</li>
+          <li>Approve-before-send patterns for higher-risk outbound actions where enabled</li>
+          <li>Audit trail of calls, transcripts, and key workspace actions</li>
         </ul>
         <p>
-          {company.productName} provides tools; customers control how those
-          tools are deployed on their lines. See{" "}
-          <Link href="/sms-terms">SMS Terms</Link> for text-message program
-          details.
+          You remain responsible for how the Service is deployed on your lines, including recording
+          notices, AI disclosure, and SMS consent. See <Link href="/terms">Terms</Link> and{" "}
+          <Link href="/sms-terms">SMS Terms</Link>.
         </p>
       </LegalSection>
 
-      <LegalSection title="4. Incident reporting">
+      <LegalSection title="4. Data handling">
         <p>
-          Report security concerns to {company.legalEmail}. We investigate
-          good-faith reports and will contact affected customers when required.
+          Call metadata, transcripts, lead records, and account data are stored to operate the
+          Service. See our <Link href="/privacy">Privacy Policy</Link> for roles, retention, and
+          deletion requests.
         </p>
       </LegalSection>
 
       <LegalSection title="5. Subprocessors">
+        <ul>
+          {subprocessors.map((s) => (
+            <li key={s.name}>
+              <strong>{s.name}</strong> — {s.purpose}
+            </li>
+          ))}
+        </ul>
+      </LegalSection>
+
+      <LegalSection title="6. Customer compliance">
         <p>
-          The Service uses infrastructure and communications providers (cloud
-          hosting, carriers, voice AI, payments). These vendors process data on
-          our instructions under contractual safeguards.
+          Business customers are responsible for laws applicable to their operations, including
+          TCPA and similar messaging rules, call recording/AI notice requirements, advertising
+          rules, and trade licensing. {company.productName} provides tools; customers control
+          deployment.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="7. Incident reporting">
+        <p>
+          Report security concerns to {company.legalEmail}. We investigate good-faith reports and
+          will notify affected customers when legally required or when we determine notification is
+          appropriate.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="8. Contact">
+        <p>
+          {company.legalName}
+          <br />
+          {company.legalEmail}
         </p>
       </LegalSection>
     </LegalDocument>

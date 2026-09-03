@@ -16,42 +16,43 @@ export default function CookiesPage() {
       description={`This policy explains how ${company.legalName} uses cookies and similar technologies on ${company.domain}.`}
       updated={company.legalUpdated}
     >
-      <LegalSection title="1. What we use">
+      <LegalSection title="1. Default: essential cookies">
         <p>
-          <strong>Essential cookies.</strong> Required for authentication,
-          security, form submissions, and basic site functionality.
-        </p>
-        <p>
-          <strong>Preference cookies.</strong> Remember choices such as cookie
-          consent (stored locally in your browser when you accept our banner).
-        </p>
-        <p>
-          <strong>Analytics (optional).</strong> If enabled, help us understand
-          aggregate traffic and improve the site. We do not sell cookie data.
+          Orvius&apos;s default configuration uses <strong>essential cookies and similar storage
+          only</strong> — required for authentication, security (including CSRF protection), form
+          submissions, and remembering that you acknowledged this notice. We do not use advertising
+          cookies and we do not sell cookie data.
         </p>
       </LegalSection>
 
-      <LegalSection title="2. Your choices">
+      <LegalSection title="2. Preference storage">
         <p>
-          You can block or delete cookies in your browser settings. Essential
-          cookies may be required for parts of the Service to function. When you
-          click &quot;Accept&quot; on our cookie banner, we record consent in
-          local storage on your device.
+          When you click &quot;OK&quot; on our cookie notice, we record that acknowledgment in
+          local storage on your device so we do not show the notice again on every visit.
         </p>
       </LegalSection>
 
-      <LegalSection title="3. Third parties">
+      <LegalSection title="3. Analytics (not enabled by default)">
         <p>
-          Payment processing (Stripe), hosting (Vercel), and communications
-          providers may set their own cookies when you interact with their
-          flows. See their policies for details.
+          If we enable non-essential product or traffic analytics in the future, we will update this
+          policy and the in-product notice before collecting those cookies. Until then, do not
+          assume analytics cookies are active.
         </p>
       </LegalSection>
 
-      <LegalSection title="4. Contact">
+      <LegalSection title="4. Third parties">
         <p>
-          Questions: {company.contactEmail}. See also our{" "}
-          <Link href="/privacy">Privacy Policy</Link>.
+          Payment processing (Stripe), hosting (Vercel), and communications providers may set their
+          own cookies when you interact with their flows. See their policies for details.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="5. Your choices">
+        <p>
+          You can clear cookies and site data in your browser settings. Blocking essential cookies
+          may prevent login or secure form submission. See our{" "}
+          <Link href="/privacy">Privacy Policy</Link> for broader data practices. Questions:{" "}
+          {company.contactEmail}.
         </p>
       </LegalSection>
     </LegalDocument>

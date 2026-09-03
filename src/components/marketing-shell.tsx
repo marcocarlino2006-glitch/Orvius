@@ -68,11 +68,18 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           <OrviusLogo variant="void" size="sm" />
           <nav className="mkt-footer-links" aria-label="Footer">
             <Link href="/pricing">Pricing</Link>
-            <Link href="/pilot">Call audit</Link>
             <Link href="/security">Security</Link>
+            <Link href="/legal">Legal</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
             <Link href="/login">Log in</Link>
           </nav>
-          <p className="mkt-footer-copy">© {new Date().getFullYear()} Orvius</p>
+          <div className="mkt-footer-meta">
+            <p className="mkt-footer-copy">
+              © {new Date().getFullYear()} Solution Development LLC. All rights reserved.
+            </p>
+            <p className="mkt-footer-mark">Orvius™ is a trademark of Solution Development LLC.</p>
+          </div>
         </div>
       </footer>
     </div>

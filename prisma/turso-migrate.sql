@@ -120,3 +120,19 @@ CREATE TABLE IF NOT EXISTS "CopilotAction" (
 
 CREATE INDEX IF NOT EXISTS "CopilotAction_businessId_status_idx" ON "CopilotAction"("businessId", "status");
 CREATE INDEX IF NOT EXISTS "CopilotAction_businessId_createdAt_idx" ON "CopilotAction"("businessId", "createdAt");
+
+ALTER TABLE "Business" ADD COLUMN "ownerSmsOptOutAt" DATETIME;
+
+CREATE TABLE IF NOT EXISTS "SmsOptOut" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "phoneNormalized" TEXT NOT NULL,
+    "source" TEXT NOT NULL DEFAULT 'inbound-sms',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "clearedAt" DATETIME,
+    CONSTRAINT "SmsOptOut_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "SmsOptOut_businessId_phoneNormalized_key" ON "SmsOptOut"("businessId", "phoneNormalized");
+CREATE INDEX IF NOT EXISTS "SmsOptOut_businessId_clearedAt_idx" ON "SmsOptOut"("businessId", "clearedAt");

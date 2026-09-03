@@ -127,6 +127,12 @@ export default async function LoginPage({
             ) : null}
           </div>
 
+          <p className="tier1-login-legal font-sans">
+            By signing in you agree to the{" "}
+            <Link href="/terms">Terms of Service</Link> and{" "}
+            <Link href="/privacy">Privacy Policy</Link>.
+          </p>
+
           <div className="tier1-login-links font-sans">
             <Link href="/">← orvius.im</Link>
             <Link href="/pilot">Design partner program</Link>

@@ -49,7 +49,7 @@ export const pricingPlans: readonly PricingPlan[] = [
   {
     id: "line",
     name: "Line",
-    tagline: "Answer every call. Never miss a lead.",
+    tagline: "Answer after-hours and overflow calls. Capture every lead that reaches the line.",
     price: 149,
     annualPrice: 124,
     period: "per month",

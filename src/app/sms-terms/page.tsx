@@ -40,12 +40,19 @@ export default function SmsTermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="3. Opt-out">
+      <LegalSection title="3. Opt-out and help">
         <p>
-          Reply <strong>STOP</strong> to any {company.productName} message to
-          opt out of SMS alerts. Reply <strong>HELP</strong> for assistance.
-          After opting out, you may miss time-sensitive lead notifications.
-          Email {company.supportEmail} for account support.
+          Reply <strong>STOP</strong>, <strong>STOPALL</strong>,{" "}
+          <strong>UNSUBSCRIBE</strong>, <strong>CANCEL</strong>, <strong>END</strong>, or{" "}
+          <strong>QUIT</strong> to any {company.productName} message to opt out. We process these
+          keywords on inbound SMS to your shop line: STOP does not create a lead, confirms
+          unsubscribe, and suppresses further owner-alert SMS when the sender is the registered
+          owner number. Reply <strong>START</strong> (or YES / UNSTOP) to re-subscribe. Reply{" "}
+          <strong>HELP</strong> or <strong>INFO</strong> for assistance.
+        </p>
+        <p>
+          After opting out, you may miss time-sensitive lead notifications. Email{" "}
+          {company.supportEmail} for account support.
         </p>
       </LegalSection>
 

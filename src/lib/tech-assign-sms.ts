@@ -1,4 +1,5 @@
 import { getAppBaseUrl } from "@/lib/domains";
+import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 
 function formatSchedule(iso: string | Date | null | undefined): string | null {
   if (!iso) return null;
@@ -51,5 +52,5 @@ export function buildTechJobAssignMessage(job: TechAssignJob): string {
     `Open: ${getAppBaseUrl()}/dashboard/jobs/${job.id}`,
   ].filter(Boolean);
 
-  return lines.join("\n");
+  return withSmsOptOutFooter(lines.join("\n"));
 }

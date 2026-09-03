@@ -4,6 +4,7 @@ import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { company, pricing } from "@/lib/company";
 import { TRADES, type Trade } from "@/lib/trades";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -26,6 +27,8 @@ export function OnboardingWizard() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [provisionedLine, setProvisionedLine] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedSms, setAcceptedSms] = useState(false);
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
   const defaultGreeting = name.trim()
@@ -123,7 +126,7 @@ export function OnboardingWizard() {
                 <li>
                   <span className="onboarding-ring-num">01</span>
                   <span>
-                    <strong>Answer every call</strong> · AI receptionist on your line
+                    <strong>Capture after-hours and overflow calls</strong> · AI receptionist on your line
                   </span>
                 </li>
                 <li>
@@ -224,7 +227,9 @@ export function OnboardingWizard() {
                     autoFocus
                   />
                   <span className="onboarding-hint">
-                    Standard message rates may apply. Reply STOP to opt out.
+                    By continuing you consent to transactional SMS from {company.smsProgramName}.
+                    Msg &amp; data rates may apply. Reply STOP to opt out · HELP for help. See{" "}
+                    <Link href="/sms-terms">SMS Terms</Link>.
                   </span>
                 </label>
               </div>
@@ -288,8 +293,38 @@ export function OnboardingWizard() {
               </label>
               <p className="onboarding-footnote font-sans">
                 We auto-assign a dedicated local number for {name.trim() || "your shop"} —
-                your name, your AI receptionist. No manual setup.
+                your name, your AI receptionist. No manual setup. Callers may hear a short
+                recording/AI disclosure required by law in some jurisdictions — you remain
+                responsible for notices required for your trade and location.
               </p>
+              <div className="onboarding-consent font-sans">
+                <label className="onboarding-check">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  />
+                  <span>
+                    I agree to the{" "}
+                    <Link href="/terms">Terms of Service</Link>,{" "}
+                    <Link href="/privacy">Privacy Policy</Link>, and{" "}
+                    <Link href="/refunds">Refunds &amp; Cancellation</Link> policy.
+                  </span>
+                </label>
+                <label className="onboarding-check">
+                  <input
+                    type="checkbox"
+                    checked={acceptedSms}
+                    onChange={(e) => setAcceptedSms(e.target.checked)}
+                  />
+                  <span>
+                    I consent to receive transactional SMS owner alerts at the number above
+                    from {company.smsProgramName}. Consent is not a condition of purchase
+                    except for receiving those alerts. Reply STOP to cancel.{" "}
+                    <Link href="/sms-terms">SMS Terms</Link>.
+                  </span>
+                </label>
+              </div>
               {error ? (
                 <p className="onboarding-error font-sans" role="alert">
                   {error}
@@ -307,7 +342,7 @@ export function OnboardingWizard() {
                 <button
                   type="button"
                   className="btn btn-void font-sans"
-                  disabled={submitting}
+                  disabled={submitting || !acceptedTerms || !acceptedSms}
                   onClick={finish}
                 >
                   {submitting ? "Creating your line…" : "Create my shop line"}

@@ -3,6 +3,7 @@ import { getWebhookUrl } from "@/lib/env";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { logError, logInfo } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getTwilioClient } from "@/lib/twilio-client";
 
 export const NOTIFICATION_RETRY_MINUTES = [1, 5, 15, 60, 240];
@@ -46,14 +47,16 @@ function buildBodies(params: {
   message: string;
   openUrl?: string | null;
 }) {
-  const smsBody = [
-    `[Orvius] ${params.businessName}`,
-    "",
-    params.message,
-    params.openUrl ? `\nOpen → ${params.openUrl}` : null,
-  ]
-    .filter((line) => line !== null)
-    .join("\n");
+  const smsBody = withSmsOptOutFooter(
+    [
+      `[Orvius] ${params.businessName}`,
+      "",
+      params.message,
+      params.openUrl ? `\nOpen → ${params.openUrl}` : null,
+    ]
+      .filter((line) => line !== null)
+      .join("\n"),
+  );
 
   const emailBody = [
     `${params.businessName} — new activity`,
@@ -121,11 +124,22 @@ export async function enqueueOwnerAlert(params: {
   const queued: Array<"sms" | "email"> = [];
 
   if (params.ownerPhone) {
-    const created = await createQueueRow({
-      ...params,
-      channel: "sms",
+    const shop = await prisma.business.findUnique({
+      where: { id: params.businessId },
+      select: { ownerSmsOptOutAt: true },
     });
-    if (created) queued.push("sms");
+    if (shop?.ownerSmsOptOutAt) {
+      logInfo("notification.sms_suppressed_opt_out", {
+        businessId: params.businessId,
+        dedupeKey: params.dedupeKey,
+      });
+    } else {
+      const created = await createQueueRow({
+        ...params,
+        channel: "sms",
+      });
+      if (created) queued.push("sms");
+    }
   }
 
   if (params.ownerEmail) {
@@ -178,6 +192,22 @@ async function deliverQueuedRow(row: {
         status: "skipped",
         error: "SMS not enabled or owner phone missing",
       };
+    }
+
+    const shop = await prisma.business.findUnique({
+      where: { id: row.businessId },
+      select: { ownerSmsOptOutAt: true },
+    });
+    if (shop?.ownerSmsOptOutAt) {
+      await prisma.ownerNotification.update({
+        where: { id: row.id },
+        data: {
+          status: "skipped",
+          error: "Owner SMS opted out",
+          processedAt: new Date(),
+        },
+      });
+      return { status: "skipped", error: "Owner SMS opted out" };
     }
 
     const client = getTwilioClient();

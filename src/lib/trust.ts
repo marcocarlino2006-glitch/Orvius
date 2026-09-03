@@ -38,7 +38,7 @@ export const summitCaseStudy = {
 } as const;
 
 export const trustBadges = [
-  { label: "TCPA-compliant SMS", detail: "Owner alerts with opt-out" },
+  { label: "SMS with STOP / HELP", detail: "Owner alerts · opt-out honored" },
   { label: "Encrypted in transit", detail: "TLS on every endpoint" },
   { label: "Dedicated shop line", detail: "Your number, your assistant" },
   { label: "Cancel anytime", detail: "No annual lock-in" },

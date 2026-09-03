@@ -27,6 +27,8 @@ model Business {
   billingStatus        String   @default("pilot")
   billingPlan          String?
   lineVerifiedAt       DateTime?
+  /** When set, owner SMS alerts are suppressed until START / cleared. */
+  ownerSmsOptOutAt     DateTime?
   /** Shop avg ticket in cents — used for estimated pipeline value. */
   avgTicketCents       Int?
   createdAt            DateTime @default(now())
@@ -43,6 +45,22 @@ model Business {
   copilotActions   CopilotAction[]
   ownerNotifications OwnerNotification[]
   webhookEvents      WebhookEvent[]
+  smsOptOuts         SmsOptOut[]
+}
+
+/** Phone numbers that opted out of SMS on a shop line (STOP). */
+model SmsOptOut {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  phone        String
+  phoneNormalized String
+  source       String   @default("inbound-sms")
+  createdAt    DateTime @default(now())
+  clearedAt    DateTime?
+
+  @@unique([businessId, phoneNormalized])
+  @@index([businessId, clearedAt])
 }
 
 model Customer {

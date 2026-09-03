@@ -15272,3 +15272,61 @@ h3 {
   }
 }
 
+/* Legal fortress UI */
+
+.onboarding-consent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 1.25rem 0 0.5rem;
+}
+.onboarding-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink-muted, #4a4a4a);
+}
+.onboarding-check input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+.onboarding-check a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+
+.mkt-footer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-end;
+  text-align: right;
+}
+.mkt-footer-mark {
+  margin: 0;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  max-width: 28rem;
+}
+@media (max-width: 720px) {
+  .mkt-footer-meta {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+
+.tier1-login-legal {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ash-soft, #6b6b6b);
+}
+.tier1-login-legal a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MktSection, MktSectionHeader } from "@/components/mkt-section";
+import { getPlanById } from "@/lib/pricing-plans";
 
 const live = [
   "Live AI line — answer, qualify, alert",
@@ -54,6 +55,9 @@ export function HomeOsPath() {
 }
 
 export function HomePlanTruth() {
+  const line = getPlanById("line");
+  const pro = getPlanById("pro");
+
   return (
     <MktSection id="plans" tone="light">
       <MktSectionHeader
@@ -64,9 +68,10 @@ export function HomePlanTruth() {
 
       <div className="mkt-plans-grid">
         <article className="mkt-plan-card">
-          <p className="mkt-plan-name">Line</p>
+          <p className="mkt-plan-name">{line.name}</p>
           <p className="mkt-plan-price">
-            $99<span>/mo</span>
+            ${line.price}
+            <span>/mo</span>
           </p>
           <p className="mkt-plan-desc font-sans">Front door only — the AI phone line</p>
           <ul className="mkt-plan-list font-sans">
@@ -75,16 +80,17 @@ export function HomePlanTruth() {
             <li>Email / SMS owner alerts</li>
           </ul>
           <p className="mkt-plan-gap font-sans">No jobs board · no dispatch · no Ask</p>
-          <Link href="/signup?plan=line" className="mkt-btn mkt-btn-secondary mkt-btn-block mkt-btn-pill">
+          <Link href="/pricing" className="mkt-btn mkt-btn-secondary mkt-btn-block mkt-btn-pill">
             Start with Line
           </Link>
         </article>
 
         <article className="mkt-plan-card mkt-plan-card--featured">
           <p className="mkt-plan-badge">Recommended for most shops</p>
-          <p className="mkt-plan-name">Pro</p>
+          <p className="mkt-plan-name">{pro.name}</p>
           <p className="mkt-plan-price">
-            $249<span>/mo</span>
+            ${pro.price}
+            <span>/mo</span>
           </p>
           <p className="mkt-plan-desc font-sans">Full command center — line + day operations</p>
           <ul className="mkt-plan-list font-sans">
@@ -94,7 +100,7 @@ export function HomePlanTruth() {
             <li>Estimates, invoices, and manual payments</li>
           </ul>
           <p className="mkt-plan-gap mkt-plan-gap-pro font-sans">The OS shops operate from</p>
-          <Link href="/signup?plan=pro" className="mkt-btn mkt-btn-ink mkt-btn-block mkt-btn-pill">
+          <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-block mkt-btn-pill">
             Start with Pro
           </Link>
         </article>
@@ -104,6 +110,8 @@ export function HomePlanTruth() {
         <Link href="/pricing">Compare plans</Link>
         {" · "}
         <Link href="/pilot">Book a live call audit</Link>
+        {" · "}
+        Prices subject to change; see Terms.
       </p>
     </MktSection>
   );

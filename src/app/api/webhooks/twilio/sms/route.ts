@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
-import { linkTouchToCustomer } from "@/lib/customer";
+import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { maybeAutoBookLead } from "@/lib/auto-job";
+import { company } from "@/lib/company";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -10,6 +11,12 @@ import {
   enqueueOwnerAlert,
   processNotificationQueue,
 } from "@/lib/notifications";
+import {
+  parseSmsKeyword,
+  smsHelpReply,
+  smsStartConfirmation,
+  smsStopConfirmation,
+} from "@/lib/sms-keywords";
 import {
   getTwilioSmsWebhookUrl,
   validateTwilioRequest,
@@ -58,6 +65,30 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const keyword = parseSmsKeyword(body);
+  if (keyword) {
+    const reply = await handleSmsKeyword({
+      keyword,
+      businessId: business.id,
+      from,
+      ownerPhone: business.ownerPhone,
+    });
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `${business.id}:${from}:${keyword}`,
+      eventType: `keyword-${keyword}`,
+      businessId: business.id,
+      status: "processed",
+      payload: { from, to, keyword },
+    });
+    logInfo("twilio.sms.keyword", {
+      keyword,
+      businessId: business.id,
+      messageSid,
+    });
+    return twimlResponse(reply);
+  }
+
   if (messageSid) {
     const existing = await prisma.lead.findFirst({
       where: { businessId: business.id, externalId: messageSid },
@@ -100,17 +131,17 @@ export async function POST(request: NextRequest) {
       })
     : null;
 
-    const ownerMessage = buildOwnerLeadAlertMessage({
-      lead: {
-        name: null,
-        phone: from,
-        serviceType: "SMS inquiry",
-        urgency: null,
-        address: null,
-      },
-      job: bookedJob,
-      autoBooked: autoBook.created,
-    });
+  const ownerMessage = buildOwnerLeadAlertMessage({
+    lead: {
+      name: null,
+      phone: from,
+      serviceType: "SMS inquiry",
+      urgency: null,
+      address: null,
+    },
+    job: bookedJob,
+    autoBooked: autoBook.created,
+  });
 
   await enqueueOwnerAlert({
     businessId: business.id,
@@ -146,6 +177,75 @@ export async function POST(request: NextRequest) {
   });
 
   return twimlResponse(SMS_REPLY);
+}
+
+async function handleSmsKeyword(params: {
+  keyword: "stop" | "help" | "start";
+  businessId: string;
+  from: string;
+  ownerPhone: string | null;
+}) {
+  const program = company.smsProgramName;
+  const fromNorm = normalizePhone(params.from);
+  const ownerNorm = normalizePhone(params.ownerPhone);
+
+  if (params.keyword === "help") {
+    return smsHelpReply({
+      programName: program,
+      supportEmail: company.supportEmail,
+    });
+  }
+
+  if (params.keyword === "stop") {
+    if (fromNorm && ownerNorm && fromNorm === ownerNorm) {
+      await prisma.business.update({
+        where: { id: params.businessId },
+        data: { ownerSmsOptOutAt: new Date() },
+      });
+    }
+    if (fromNorm) {
+      await prisma.smsOptOut.upsert({
+        where: {
+          businessId_phoneNormalized: {
+            businessId: params.businessId,
+            phoneNormalized: fromNorm,
+          },
+        },
+        create: {
+          businessId: params.businessId,
+          phone: params.from,
+          phoneNormalized: fromNorm,
+          source: "inbound-sms",
+          clearedAt: null,
+        },
+        update: {
+          phone: params.from,
+          source: "inbound-sms",
+          clearedAt: null,
+        },
+      });
+    }
+    return smsStopConfirmation(program);
+  }
+
+  // start / re-subscribe
+  if (fromNorm && ownerNorm && fromNorm === ownerNorm) {
+    await prisma.business.update({
+      where: { id: params.businessId },
+      data: { ownerSmsOptOutAt: null },
+    });
+  }
+  if (fromNorm) {
+    await prisma.smsOptOut.updateMany({
+      where: {
+        businessId: params.businessId,
+        phoneNormalized: fromNorm,
+        clearedAt: null,
+      },
+      data: { clearedAt: new Date() },
+    });
+  }
+  return smsStartConfirmation(program);
 }
 
 function twimlResponse(message: string) {

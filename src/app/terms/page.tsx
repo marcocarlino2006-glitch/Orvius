@@ -1,5 +1,5 @@
 import { LegalDocument, LegalSection } from "@/components/legal-document";
-import { company, pricing } from "@/lib/company";
+import { company, getPlanById } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,170 +8,269 @@ export const metadata: Metadata = {
   description: `Terms of Service for ${company.productName}, a product of ${company.legalName}.`,
 };
 
+const pro = getPlanById("pro");
+
 export default function TermsPage() {
   return (
     <LegalDocument
       label="Legal"
       title="Terms of Service"
-      description={`These terms govern your use of ${company.productName}, an AI receptionist service operated by ${company.legalName}.`}
+      description={`These Terms govern access to and use of ${company.productName}, operated by ${company.legalName}. Read carefully. They include a binding arbitration clause and class-action waiver.`}
       updated={company.legalUpdated}
     >
       <LegalSection title="1. Agreement">
         <p>
-          By accessing {company.domain}, applying for a pilot, or using{" "}
-          {company.productName} (the &quot;Service&quot;), you agree to these
-          Terms of Service (&quot;Terms&quot;) with {company.legalName} (
-          &quot;Company,&quot; &quot;we,&quot; &quot;us&quot;). If you are
-          accepting on behalf of a business, you represent that you have
-          authority to bind that business.
+          By accessing {company.domain}, applying for a pilot, creating an account, or using{" "}
+          {company.productName} (the &quot;Service&quot;), you agree to these Terms of Service
+          (&quot;Terms&quot;) with {company.legalName} (&quot;Company,&quot; &quot;we,&quot;
+          &quot;us&quot;). If you accept on behalf of a business, you represent that you have
+          authority to bind that business. If you do not agree, do not use the Service.
+        </p>
+        <p>
+          These Terms incorporate our{" "}
+          <Link href="/privacy">Privacy Policy</Link>,{" "}
+          <Link href="/sms-terms">SMS Terms</Link>, and{" "}
+          <Link href="/refunds">Refunds &amp; Cancellation</Link> policy.
         </p>
       </LegalSection>
 
       <LegalSection title="2. The Service">
         <p>
-          {company.productName} provides AI-powered call and text handling for
-          home-service businesses, including lead qualification, summaries, owner
-          notifications, and a web dashboard. The Service is designed for{" "}
-          {company.trades.join(", ")}, and related trades we approve during
-          onboarding.
+          {company.productName} provides AI-assisted call and text handling and related workspace
+          tools for home-service businesses, including qualification, summaries, owner
+          notifications, jobs, dispatch, and related features we make available. The Service is
+          designed for {company.trades.join(", ")}, and related trades we approve.
         </p>
         <p>
-          We improve the Service continuously. Features, voice providers, and
-          integrations may change. We will use reasonable efforts to avoid
-          disrupting live operations.
+          We improve the Service continuously. Features, providers, and integrations may change.
+          Marketing descriptions and product demos are illustrative and do not guarantee any
+          particular answer rate, booking rate, revenue outcome, or uptime.
+        </p>
+        <p>
+          {company.productName} is a software vendor. We are not your attorney, insurer, licensed
+          trade professional, emergency service, or agent for professional licensing.
         </p>
       </LegalSection>
 
-      <LegalSection title="3. Pilot program">
+      <LegalSection title="3. Accounts and eligibility">
         <p>
-          Eligible businesses may join a limited design-partner pilot at no
-          charge for thirty (30) days, subject to availability. Pilot
-          participants receive onboarding support and access to core Service
-          features described on our{" "}
-          <Link href="/pricing">pricing page</Link>.
-        </p>
-        <p>
-          At the end of the pilot, continued use requires enrollment in a paid
-          plan (currently {company.productName} Pro at ${pricing.pro.price}/
-          month, unless otherwise agreed in writing). We will notify you before
-          any charge begins.
+          You must provide accurate account and business information and keep it updated. You are
+          responsible for activity under your account and for safeguarding access credentials. The
+          Service is intended for business use by persons 18 years of age or older.
         </p>
       </LegalSection>
 
-      <LegalSection title="4. Your responsibilities">
-        <ul>
-          <li>
-            Provide accurate business information, hours, services, and owner
-            contact details.
-          </li>
-          <li>
-            Ensure you have the right to forward or provision phone numbers used
-            with the Service.
-          </li>
-          <li>
-            Comply with applicable laws regarding call recording, telemarketing,
-            SMS consent, and customer notification in your jurisdiction.
-          </li>
-          <li>
-            Review AI-generated summaries and lead data before relying on them
-            for dispatch, pricing, or safety-critical decisions.
-          </li>
-        </ul>
+      <LegalSection title="4. Pilot program">
+        <p>
+          Eligible businesses may join a limited design-partner pilot at no charge for thirty (30)
+          days, subject to availability. Pilot features are described on our{" "}
+          <Link href="/pricing">pricing page</Link> and may differ from paid plans.
+        </p>
+        <p>
+          Continued use after the pilot requires a paid plan (for example, {company.productName}{" "}
+          Pro at ${pro?.price ?? 299}/month, unless otherwise agreed in writing). We will notify you
+          before any charge begins. Pilot access may be revoked for abuse or material breach.
+        </p>
       </LegalSection>
 
       <LegalSection title="5. Fees and payment">
         <p>
-          Paid plans are billed monthly in advance by {company.legalName}.
-          Fees are non-refundable except where required by law or explicitly
-          stated in a signed agreement. You authorize us to charge your payment
-          method on file for recurring subscription fees.
+          Paid plans are billed in advance by {company.legalName} (or our payment processor) on the
+          interval you select. Fees are non-refundable except where required by law or stated in our{" "}
+          <Link href="/refunds">Refunds &amp; Cancellation</Link> policy. You authorize recurring
+          charges to your payment method on file.
         </p>
         <p>
-          Failure to pay may result in suspension of the Service. You remain
-          responsible for charges incurred before suspension.
+          Failure to pay may result in suspension. You remain responsible for charges incurred
+          before suspension. Taxes may apply.
         </p>
       </LegalSection>
 
-      <LegalSection title="6. Acceptable use">
-        <p>You may not use the Service to:</p>
+      <LegalSection title="6. Intellectual property and license">
+        <p>
+          The Service, including software, models, prompts, interfaces, documentation, branding,
+          and related materials, is owned by {company.legalName} and its licensors.{" "}
+          {company.trademarkNotice} Except for the limited license below, no rights are granted by
+          implication.
+        </p>
+        <p>
+          Subject to these Terms and timely payment (if applicable), we grant you a limited,
+          non-exclusive, non-transferable, non-sublicensable, revocable license to access and use
+          the Service for your internal business operations during your subscription or pilot term.
+        </p>
+        <p>
+          You retain ownership of your business content and caller-related data you provide or
+          collect through your lines (&quot;Customer Content&quot;). You grant {company.legalName} a
+          worldwide license to host, process, transmit, and display Customer Content solely to
+          provide and secure the Service, comply with law, and improve reliability of the Service
+          for your account. Feedback you provide may be used to improve the Service without
+          obligation or attribution.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="7. Your responsibilities">
         <ul>
-          <li>Violate law or third-party rights</li>
-          <li>Transmit unlawful, harassing, or fraudulent content</li>
-          <li>Attempt to reverse-engineer, scrape, or overload our systems</li>
-          <li>Misrepresent your identity or business to callers</li>
+          <li>Provide accurate business information, hours, services, and owner contacts.</li>
+          <li>Ensure you have the right to forward or provision phone numbers used with the Service.</li>
+          <li>
+            Comply with all laws applicable to your operations, including call recording and AI
+            disclosure, telemarketing, TCPA and similar SMS consent rules, do-not-call requirements,
+            truth-in-advertising, and trade licensing.
+          </li>
+          <li>
+            Configure required notices to callers (recording, monitoring, AI/virtual receptionist)
+            for every jurisdiction you serve.
+          </li>
+          <li>
+            Review AI-generated summaries, urgency labels, bookings, and Ask answers before relying
+            on them for dispatch, pricing, hiring, or safety-critical decisions.
+          </li>
+          <li>Obtain required consent before sending SMS to callers, technicians, or other parties.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="7. Third-party providers">
+      <LegalSection title="8. Acceptable use">
+        <p>You may not use the Service to:</p>
+        <ul>
+          <li>Violate law or third-party rights</li>
+          <li>Send SMS or place calls without required consent or required disclosures</li>
+          <li>Transmit unlawful, harassing, deceptive, or fraudulent content</li>
+          <li>Impersonate a human where disclosure is legally required</li>
+          <li>Reverse-engineer, scrape, overload, or attack our systems or providers</li>
+          <li>Resell, white-label, or provide the Service to third parties without our written consent</li>
+          <li>
+            Rely on the Service as the sole life-safety, medical emergency, or critical
+            infrastructure dispatch system
+          </li>
+        </ul>
+        <p>We may suspend or terminate access for violations.</p>
+      </LegalSection>
+
+      <LegalSection title="9. AI, automation, and recording">
         <p>
-          The Service relies on third-party telecommunications and AI providers
-          (including carriers, voice platforms, and cloud infrastructure). Their
-          outages or policy changes may affect availability. We are not liable
-          for failures caused solely by third parties outside our reasonable
-          control.
+          The Service uses automated systems. Outputs may be incomplete, delayed, or incorrect. The
+          Service is not a substitute for licensed trade judgment, emergency services (call 911), or
+          legal, medical, or financial advice.
+        </p>
+        <p>
+          You are solely responsible for call-recording and AI-disclosure notices required where you
+          operate. Availability of tools or default prompts does not guarantee legal compliance in
+          your jurisdictions.
         </p>
       </LegalSection>
 
-      <LegalSection title="8. Disclaimer">
+      <LegalSection title="10. Third-party providers">
         <p>
-          THE SERVICE IS PROVIDED &quot;AS IS.&quot; WE DISCLAIM ALL WARRANTIES,
-          EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A
-          PARTICULAR PURPOSE, AND NON-INFRINGEMENT. AI responses may be
-          incomplete or inaccurate. You use the Service at your own risk.
+          The Service relies on third parties (carriers, voice AI, hosting, payments, identity).
+          Their outages, latency, or policy changes may affect the Service. We are not liable for
+          failures caused solely by third parties outside our reasonable control. See our{" "}
+          <Link href="/privacy">Privacy Policy</Link> for subprocessors.
         </p>
       </LegalSection>
 
-      <LegalSection title="9. Limitation of liability">
+      <LegalSection title="11. Disclaimer of warranties">
         <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, {company.legalName.toUpperCase()}{" "}
-          AND ITS FOUNDERS, OFFICERS, AND CONTRACTORS WILL NOT BE LIABLE FOR ANY
-          INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR
-          ANY LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING FROM YOUR USE
-          OF THE SERVICE.
-        </p>
-        <p>
-          OUR TOTAL LIABILITY FOR ANY CLAIM RELATING TO THE SERVICE IS LIMITED
-          TO THE AMOUNT YOU PAID US IN THE TWELVE (12) MONTHS BEFORE THE
-          CLAIM, OR ONE HUNDRED DOLLARS ($100), WHICHEVER IS GREATER.
+          THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE.&quot; TO THE MAXIMUM
+          EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+          MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. WE DO NOT
+          WARRANT UNINTERRUPTED OR ERROR-FREE OPERATION, OR THAT EVERY CALL WILL BE ANSWERED,
+          QUALIFIED, OR BOOKED.
         </p>
       </LegalSection>
 
-      <LegalSection title="10. Termination">
+      <LegalSection title="12. Limitation of liability">
         <p>
-          You may cancel at any time by contacting {company.contactEmail}.
-          We may suspend or terminate access for material breach, non-payment,
-          or abuse. Upon termination, your right to use the Service ends;
-          provisions that by nature should survive (payment obligations,
-          disclaimers, liability limits) will survive.
+          TO THE MAXIMUM EXTENT PERMITTED BY LAW, {company.legalName.toUpperCase()} AND ITS
+          MEMBERS, OFFICERS, EMPLOYEES, AND CONTRACTORS WILL NOT BE LIABLE FOR ANY INDIRECT,
+          INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF
+          PROFITS, REVENUE, DATA, GOODWILL, OR BUSINESS OPPORTUNITY (INCLUDING MISSED CALLS OR LOST
+          JOBS), ARISING FROM THE SERVICE OR THESE TERMS, WHETHER BASED IN CONTRACT, TORT, OR
+          OTHERWISE, EVEN IF ADVISED OF THE POSSIBILITY.
+        </p>
+        <p>
+          OUR TOTAL LIABILITY FOR ALL CLAIMS RELATING TO THE SERVICE IS LIMITED TO THE AMOUNTS YOU
+          PAID US FOR THE SERVICE IN THE TWELVE (12) MONTHS BEFORE THE CLAIM, OR ONE HUNDRED DOLLARS
+          ($100) IF YOU HAVE NOT PAID (INCLUDING PILOT USERS), WHICHEVER IS GREATER.
         </p>
       </LegalSection>
 
-      <LegalSection title="11. Governing law">
+      <LegalSection title="13. Indemnification">
         <p>
-          These Terms are governed by the laws of {company.jurisdictionNote},
-          without regard to conflict-of-law rules. Disputes will be resolved in
-          the courts of that jurisdiction, unless otherwise required by
-          applicable consumer protection law.
+          You will defend, indemnify, and hold harmless {company.legalName} and its members,
+          officers, employees, and agents from and against claims, damages, losses, and expenses
+          (including reasonable attorneys&apos; fees) arising out of or related to: (a) your use of
+          the Service; (b) Customer Content; (c) your violation of law (including TCPA, recording,
+          telemarketing, and licensing laws); (d) disputes with callers, customers, technicians, or
+          other third parties; or (e) your breach of these Terms.
         </p>
       </LegalSection>
 
-      <LegalSection title="12. Related policies">
+      <LegalSection title="14. Termination">
         <p>
-          See also our{" "}
-          <Link href="/privacy">Privacy Policy</Link>,{" "}
-          <Link href="/sms-terms">SMS Terms</Link>,{" "}
-          <Link href="/refunds">Refunds & Cancellation</Link>, and{" "}
-          <Link href="/legal">Legal center</Link>.
+          You may cancel under our <Link href="/refunds">Refunds &amp; Cancellation</Link> policy.
+          We may suspend or terminate access for material breach, non-payment, legal risk, or abuse.
+          Upon termination, your license ends. Sections that by nature should survive (including IP,
+          fees owed, disclaimers, liability limits, indemnity, and dispute resolution) survive.
         </p>
       </LegalSection>
 
-      <LegalSection title="13. Contact">
+      <LegalSection title="15. Dispute resolution; arbitration; class waiver">
+        <p>
+          These Terms are governed by the laws of {company.governingLawState}, without regard to
+          conflict-of-law rules, except that the Federal Arbitration Act governs interpretation and
+          enforcement of this arbitration agreement.
+        </p>
+        <p>
+          <strong>Binding arbitration.</strong> Except for small-claims court actions and claims for
+          injunctive or other equitable relief to protect intellectual property or unauthorized use
+          of the Service, any dispute arising out of or relating to these Terms or the Service will
+          be resolved by binding individual arbitration administered by the American Arbitration
+          Association under its Commercial Arbitration Rules. Judgment on the award may be entered
+          in any court of competent jurisdiction.
+        </p>
+        <p>
+          <strong>Class-action waiver.</strong> YOU AND COMPANY AGREE THAT EACH MAY BRING CLAIMS
+          AGAINST THE OTHER ONLY IN AN INDIVIDUAL CAPACITY AND NOT AS A PLAINTIFF OR CLASS MEMBER IN
+          ANY PURPORTED CLASS, CONSOLIDATED, OR REPRESENTATIVE PROCEEDING.
+        </p>
+        <p>
+          If the class waiver is found unenforceable as to a particular claim, that claim (and only
+          that claim) may proceed in court; remaining claims stay in arbitration. Either party may
+          seek temporary injunctive relief in court to protect IP or stop unauthorized access
+          pending arbitration.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="16. Changes">
+        <p>
+          We may update these Terms by posting a revised version with an updated date. Material
+          changes will be posted on this page. Continued use after the effective date constitutes
+          acceptance. If you disagree, stop using the Service and cancel.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="17. Miscellaneous">
+        <p>
+          These Terms are the entire agreement regarding the Service and supersede prior
+          conflicting terms for the same subject. If a provision is unenforceable, the remainder
+          stays in effect. Failure to enforce is not a waiver. You may not assign these Terms
+          without our consent; we may assign to an affiliate or successor. Notices may be sent to
+          your account email and to {company.legalEmail}.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="18. Contact">
         <p>
           {company.legalName}
           <br />
-          {company.contactEmail}
+          {company.legalEmail}
           <br />
           {company.domain}
+        </p>
+        <p className="text-sm text-ash">
+          These Terms are a protective template for {company.legalName}. Have qualified counsel
+          review and localize them (including governing law and arbitration) for your formation
+          state and risk profile before relying on them in a dispute.
         </p>
       </LegalSection>
     </LegalDocument>

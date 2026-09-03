@@ -29,7 +29,7 @@ export function HomeWorkflow() {
       <MktSectionHeader
         kicker="How it works"
         title="From the ring to paid work — one path."
-        lead="Every call becomes a qualified customer. Every customer becomes a scheduled job. Every job stays organized until it gets paid."
+        lead="Qualified calls become customers and booked jobs in one workspace. Dispatch and Ask keep the day organized until work is invoiced."
         titleId="home-workflow-heading"
       />
 

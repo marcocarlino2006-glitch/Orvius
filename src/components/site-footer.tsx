@@ -19,6 +19,8 @@ const legalLinks = [
   { href: "/legal", label: "Legal center" },
   { href: "/terms", label: "Terms" },
   { href: "/privacy", label: "Privacy" },
+  { href: "/sms-terms", label: "SMS terms" },
+  { href: "/dmca", label: "DMCA" },
 ];
 
 export function SiteFooter() {
@@ -69,8 +71,12 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="editorial-wrap tier1-footer-bar font-sans">
-        <p>© {new Date().getFullYear()} {company.legalName}</p>
-        <p>{company.domain}</p>
+        <p>
+          © {new Date().getFullYear()} {company.legalName}. {company.copyrightNotice}
+        </p>
+        <p>
+          {company.trademarkNotice} · {company.domain}
+        </p>
       </div>
     </footer>
   );
