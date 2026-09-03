@@ -28,7 +28,7 @@ export default function HomePage() {
             Book a live call audit. We&apos;ll walk through real transcripts, jobs, and dispatch — then you
             decide if Orvius fits.
           </p>
-          <Link href="/pilot" className="mkt-btn mkt-btn-ink-light mkt-btn-lg">
+          <Link href="/pilot" className="mkt-btn mkt-btn-ink-light mkt-btn-lg mkt-btn-pill">
             Book a live call audit
           </Link>
         </div>

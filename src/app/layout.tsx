@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Orbitron, Space_Grotesk } from "next/font/google";
+import { Orbitron, Sora } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
 import "./globals.css";
 
-const sans = Space_Grotesk({
+const sans = Sora({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -16,14 +16,6 @@ const brand = Orbitron({
   variable: "--font-brand",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
-  display: "swap",
-});
-
-const editorial = Instrument_Serif({
-  variable: "--font-editorial",
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -58,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${brand.variable} ${editorial.variable} antialiased`}>
+      <body className={`${sans.variable} ${brand.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

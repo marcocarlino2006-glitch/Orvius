@@ -32,7 +32,7 @@ export function PublicLayout({
 }
 
 type MarketingShellProps = PublicLayoutProps & {
-  /** Stripe/Linear-style shell for the homepage. */
+  /** Claude/Anthropic-style shell for the homepage. */
   premium?: boolean;
 };
 
@@ -44,12 +44,20 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="mkt-nav-brand">
             <OrviusLogo variant="void" size="md" />
           </Link>
+
+          <nav className="mkt-nav-links" aria-label="Main">
+            <Link href="/#workflow">Product</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/pilot">Call audit</Link>
+            <Link href="/security">Security</Link>
+          </nav>
+
           <div className="mkt-nav-actions">
             <Link href="/login" className="mkt-nav-login">
               Log in
             </Link>
-            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-sm">
-              Book audit
+            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-sm mkt-btn-pill">
+              Try Orvius
             </Link>
           </div>
         </div>
@@ -60,7 +68,8 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           <OrviusLogo variant="chalk" size="sm" />
           <nav className="mkt-footer-links" aria-label="Footer">
             <Link href="/pricing">Pricing</Link>
-            <Link href="/pilot">Audit</Link>
+            <Link href="/pilot">Call audit</Link>
+            <Link href="/security">Security</Link>
             <Link href="/login">Log in</Link>
           </nav>
           <p className="mkt-footer-copy">© {new Date().getFullYear()} Orvius</p>

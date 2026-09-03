@@ -12,7 +12,7 @@ export function HomeLineHero() {
         <div className="mkt-hero-stack">
           <p className="mkt-eyebrow font-sans">
             <span className="mkt-live-dot" aria-hidden />
-            Live demo line
+            Live for {company.trades.join(" · ")}
           </p>
 
           <h1 id="home-hero-heading" className="mkt-hero-title">
@@ -20,16 +20,15 @@ export function HomeLineHero() {
           </h1>
 
           <p className="mkt-hero-lead font-sans">
-            Orvius is the AI operating system for {company.trades.join(", ").toLowerCase()} shops.
-            After-hours and overflow calls get answered, qualified, booked, and pushed to the owner —
-            while your crew stays on the tools.
+            Orvius answers after-hours and overflow calls, qualifies the customer, books the job,
+            and alerts the owner — while your crew stays on the tools.
           </p>
 
           <div className="mkt-hero-actions font-sans">
-            <Link href="/pilot" className="mkt-btn mkt-btn-ink">
+            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-pill">
               Book a live call audit
             </Link>
-            <a href={demoLineHref()} className="mkt-btn mkt-btn-ghost">
+            <a href={demoLineHref()} className="mkt-btn mkt-btn-ghost mkt-btn-pill">
               Call {DEMO_LINE_DISPLAY}
             </a>
           </div>

@@ -126,7 +126,7 @@
   --color-success: var(--success);
   --font-sans: var(--font-sans);
   --font-brand: var(--font-brand);
-  --font-display: var(--font-brand);
+  --font-display: var(--font-sans);
 }
 
 * {
@@ -180,21 +180,21 @@ button,
 }
 
 .type-display {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(2.75rem, 5.5vw, 4.25rem);
   font-weight: 600;
   line-height: 1.02;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  text-transform: none;
   color: var(--void);
 }
 
 .type-headline {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.75rem, 3.2vw, 2.5rem);
   font-weight: 600;
   line-height: var(--leading-tight);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.03em;
   text-transform: none;
   color: var(--void);
 }
@@ -13383,61 +13383,99 @@ h3 {
   min-height: 100vh;
 }
 
-/* ── Nav ── */
+/* ── Nav (Claude / Anthropic pattern) ── */
 
 .mkt-nav {
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid var(--hairline);
-  background: color-mix(in srgb, var(--canvas) 82%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  background: color-mix(in srgb, var(--canvas) 88%, transparent);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
 }
 
 .mkt-nav-inner {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
   gap: 1.5rem;
   max-width: 72rem;
   margin-inline: auto;
-  padding: 0.85rem clamp(1.5rem, 5vw, 3rem);
+  padding: 0.95rem clamp(1.25rem, 4vw, 2.5rem);
 }
 
 .mkt-nav-brand {
   flex-shrink: 0;
   text-decoration: none;
+  justify-self: start;
 }
 
 .mkt-nav-links {
   display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.mkt-nav-links a {
+  color: color-mix(in srgb, var(--void) 72%, transparent);
+  text-decoration: none;
+  padding: 0.45rem 0.85rem;
+  border-radius: 9999px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.mkt-nav-links a:hover {
+  color: var(--void);
+  background: color-mix(in srgb, var(--void) 5%, transparent);
 }
 
 .mkt-nav-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-left: auto;
+  gap: 0.65rem;
+  justify-self: end;
 }
 
 .mkt-nav-login {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--ash);
+  color: color-mix(in srgb, var(--void) 72%, transparent);
   text-decoration: none;
-  transition: color 0.15s ease;
+  padding: 0.45rem 0.75rem;
+  border-radius: 9999px;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .mkt-nav-login:hover {
   color: var(--void);
+  background: color-mix(in srgb, var(--void) 5%, transparent);
 }
 
-@media (min-width: 768px) {
-  .mkt-nav-actions {
-    gap: 1.25rem;
+@media (min-width: 860px) {
+  .mkt-nav-links {
+    display: flex;
   }
+}
+
+@media (max-width: 859px) {
+  .mkt-nav-inner {
+    grid-template-columns: auto auto;
+  }
+
+  .mkt-nav-links {
+    display: none;
+  }
+}
+
+.mkt-btn-pill {
+  border-radius: 9999px;
+  padding-inline: 1.2rem;
 }
 
 /* ── Buttons ── */
@@ -13661,15 +13699,15 @@ h3 {
 }
 
 .mkt-hero-title {
-  font-family: var(--font-editorial), Georgia, "Times New Roman", serif;
-  font-size: clamp(2.75rem, 6vw, 4.5rem);
-  font-weight: 400;
-  line-height: 1.04;
-  letter-spacing: -0.025em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.65rem, 5.8vw, 4.25rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
   text-transform: none;
   color: var(--void);
   margin: 0;
-  max-width: 14ch;
+  max-width: 15ch;
 }
 
 .mkt-hero-lead {
@@ -13920,11 +13958,11 @@ h3 {
 }
 
 .mkt-section-title {
-  font-family: var(--font-editorial), Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 3.8vw, 3rem);
-  font-weight: 400;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
   text-transform: none;
   color: var(--void);
   margin: 0;
@@ -13961,11 +13999,12 @@ h3 {
 
 .mkt-statement-quote p {
   margin: 0;
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.5rem, 2.8vw, 2.125rem);
-  font-style: italic;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.35rem, 2.4vw, 1.875rem);
+  font-style: normal;
+  font-weight: 500;
   line-height: 1.45;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
   color: var(--void);
 }
 
@@ -14545,11 +14584,11 @@ h3 {
 }
 
 .mkt-close-title {
-  font-family: var(--font-editorial), Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 3.8vw, 2.75rem);
-  font-weight: 400;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.85rem, 3.5vw, 2.65rem);
+  font-weight: 600;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
   text-transform: none;
   color: #fff;
   margin: 0;
