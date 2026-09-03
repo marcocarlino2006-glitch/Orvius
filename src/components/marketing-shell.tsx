@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandIntro } from "@/components/brand-intro";
 import { HomeStickyCall } from "@/components/home-sticky-call";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { PremiumNav } from "@/components/premium-nav";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -23,7 +24,18 @@ export function PublicLayout({
 }: PublicLayoutProps) {
   return (
     <>
-      <ShellHeader plane="chalk" surface="glass" position="fixed" cta={cta} />
+      <ShellHeader
+        plane="chalk"
+        surface="glass"
+        position="fixed"
+        cta={cta}
+        nav={[
+          { href: "/#workflow", label: "Product" },
+          { href: "/pricing", label: "Pricing" },
+          { href: "/pilot", label: "Call audit" },
+          { href: "/security", label: "Security" },
+        ]}
+      />
       {showStickyCall ? <HomeStickyCall /> : null}
       <main className="cursor-page cursor-page-light marketing-page tier1-page">{children}</main>
       {showFooter ? <SiteFooter /> : null}
@@ -39,29 +51,7 @@ type MarketingShellProps = PublicLayoutProps & {
 function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="mkt-page">
-      <header className="mkt-nav">
-        <div className="mkt-nav-inner">
-          <Link href="/" className="mkt-nav-brand">
-            <OrviusLogo variant="chalk" size="xl" />
-          </Link>
-
-          <nav className="mkt-nav-links" aria-label="Main">
-            <Link href="/#workflow">Product</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/pilot">Call audit</Link>
-            <Link href="/security">Security</Link>
-          </nav>
-
-          <div className="mkt-nav-actions">
-            <Link href="/login" className="mkt-nav-login">
-              Log in
-            </Link>
-            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-pill mkt-nav-cta">
-              Try Orvius
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PremiumNav />
       <main>{children}</main>
       <footer className="mkt-footer">
         <div className="mkt-footer-inner">

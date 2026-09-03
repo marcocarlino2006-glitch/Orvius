@@ -42,9 +42,10 @@ function HeaderCtaLink({
 }
 
 const defaultNav: NavLink[] = [
-  { href: "/demo", label: "Demo" },
+  { href: "/#workflow", label: "Product" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/about", label: "Company" },
+  { href: "/pilot", label: "Call audit" },
+  { href: "/security", label: "Security" },
 ];
 
 export function ShellHeader({
@@ -56,7 +57,7 @@ export function ShellHeader({
 }: ShellHeaderProps) {
   const { data: session } = useSession();
   const isVoid = plane === "void";
-  const isGlass = surface === "glass" && isVoid;
+  const isGlass = surface === "glass";
   const menuId = useId();
 
   const [scrolled, setScrolled] = useState(false);
@@ -64,7 +65,7 @@ export function ShellHeader({
 
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 12);
+      setScrolled(window.scrollY > 8);
     }
 
     onScroll();
@@ -88,11 +89,12 @@ export function ShellHeader({
   }, [menuOpen]);
 
   const elevated = isGlass ? scrolled : true;
-  const positionClass = isGlass || position === "fixed"
-    ? "fixed inset-x-0 top-0"
-    : position === "absolute"
-      ? "absolute inset-x-0 top-0"
-      : "sticky top-0";
+  const positionClass =
+    isGlass || position === "fixed"
+      ? "fixed inset-x-0 top-0"
+      : position === "absolute"
+        ? "absolute inset-x-0 top-0"
+        : "sticky top-0";
 
   const shellClass = [
     "shell-header",
