@@ -5,11 +5,11 @@ import { company } from "@/lib/company";
 
 export function HomeLineHero() {
   return (
-    <section className="mkt-hero mkt-hero-editorial" aria-labelledby="home-hero-heading">
+    <section className="mkt-hero mkt-hero-split" aria-labelledby="home-hero-heading">
       <div className="mkt-hero-wash" aria-hidden />
 
-      <div className="editorial-wrap">
-        <div className="mkt-hero-stack">
+      <div className="editorial-wrap mkt-hero-grid">
+        <div className="mkt-hero-copy">
           <p className="mkt-eyebrow font-sans">
             <span className="mkt-live-dot" aria-hidden />
             Live for {company.trades.join(" · ")}

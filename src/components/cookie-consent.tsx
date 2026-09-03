@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "orvius-cookie-consent";
-const DEFER_MS = 10000;
+const DEFER_MS = 12000;
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
@@ -27,26 +27,14 @@ export function CookieConsent() {
   if (!visible) return null;
 
   return (
-    <div
-      className="cookie-consent cookie-consent-minimal fixed bottom-4 right-4 z-50 max-w-sm rounded-xl border border-rule bg-chalk/95 p-4 shadow-lift backdrop-blur-md"
-      role="dialog"
-      aria-label="Cookie notice"
-    >
-      <p className="font-sans text-xs leading-relaxed text-ash">
+    <div className="cookie-bar" role="dialog" aria-label="Cookie notice">
+      <p className="cookie-bar-text font-sans">
         Essential cookies only.{" "}
-        <Link href="/cookies" className="editorial-link">
-          Policy
-        </Link>
+        <Link href="/cookies">Policy</Link>
         {" · "}
-        <Link href="/privacy" className="editorial-link">
-          Privacy
-        </Link>
+        <Link href="/privacy">Privacy</Link>
       </p>
-      <button
-        type="button"
-        onClick={accept}
-        className="cookie-consent-accept mt-3 font-sans text-xs font-medium"
-      >
+      <button type="button" onClick={accept} className="cookie-bar-accept font-sans">
         Accept
       </button>
     </div>

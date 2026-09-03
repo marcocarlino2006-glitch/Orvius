@@ -4,16 +4,22 @@ import { MktSection } from "@/components/mkt-section";
 
 const controls = [
   {
+    marker: "01",
     title: "Unsure → human",
     body: "Missing address, unclear urgency, or low confidence — flagged for review, not guessed.",
+    proof: "Handoff control",
   },
   {
+    marker: "02",
     title: "Audit trail",
     body: "Calls, transcripts, summaries, and actions on the shop record.",
+    proof: "Full event log",
   },
   {
+    marker: "03",
     title: "Owner in control",
     body: "You set hours and services. High-risk moves stay approve-first.",
+    proof: "Approve before send",
   },
 ] as const;
 
@@ -30,9 +36,11 @@ export function HomeTrust() {
 
         <ul className="mkt-trust-grid font-sans">
           {controls.map((item) => (
-            <li key={item.title} className="mkt-trust-item mkt-trust-item-light">
+            <li key={item.title} className="mkt-trust-card">
+              <span className="mkt-trust-marker">{item.marker}</span>
               <h3 className="mkt-trust-title">{item.title}</h3>
               <p className="mkt-trust-body">{item.body}</p>
+              <p className="mkt-trust-proof">{item.proof}</p>
             </li>
           ))}
         </ul>
