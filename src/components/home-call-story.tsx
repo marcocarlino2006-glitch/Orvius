@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { MktSection, MktSectionHeader } from "@/components/mkt-section";
-import { demoLineHref } from "@/lib/demo-line";
+import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
+import { summitCaseStudy } from "@/lib/trust";
 
 const transcript = [
   { who: "Orvius", line: "Thanks for calling Summit HVAC. How can I help?" },
@@ -24,21 +26,28 @@ export function HomeCallStory() {
     <MktSection tone="inset" aria-labelledby="tier1-story-heading" className="mkt-proof-section">
       <div className="mkt-proof-layout">
         <div className="mkt-proof-copy">
+          <p className="mkt-proof-badge font-sans">Representative example · not a third-party case study</p>
           <MktSectionHeader
             kicker="Proof"
-            title="After hours. Owner on a job. Line still answered."
-            lead="Representative emergency call — qualify, alert, book, board. Call the live line to hear the same loop."
+            title="Hear the product. Then measure your own line."
+            lead={`${summitCaseStudy.name} is our labeled reference shop. The loop below is representative — call the live line for the real thing, or book an audit on your after-hours traffic.`}
             titleId="tier1-story-heading"
           />
-          <a href={demoLineHref()} className="mkt-btn mkt-btn-ink mkt-btn-pill mkt-proof-cta">
-            Try the live line
-          </a>
+          <div className="mkt-proof-actions font-sans">
+            <a href={demoLineHref()} className="mkt-btn mkt-btn-ink mkt-btn-pill">
+              Call {DEMO_LINE_DISPLAY}
+            </a>
+            <Link href="/pilot" className="mkt-btn mkt-btn-ghost mkt-btn-pill">
+              Book a live call audit
+            </Link>
+          </div>
+          <p className="mkt-proof-note font-sans">{summitCaseStudy.attribution}</p>
         </div>
 
-        <div className="mkt-call-panel font-sans" role="log" aria-label="Call replay">
+        <div className="mkt-call-panel font-sans" role="log" aria-label="Representative call replay">
           <div className="mkt-call-panel-head">
             <div>
-              <p className="mkt-call-panel-kicker">Inbound · after hours</p>
+              <p className="mkt-call-panel-kicker">Representative call · after hours</p>
               <p className="mkt-call-panel-title">Emergency AC · Summit HVAC</p>
             </div>
             <span className="mkt-call-panel-duration">2m 14s</span>

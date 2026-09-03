@@ -42,7 +42,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
       <header className="mkt-nav">
         <div className="mkt-nav-inner">
           <Link href="/" className="mkt-nav-brand">
-            <OrviusLogo variant="chalk" size="lg" wordmarkOnly={false} />
+            <OrviusLogo variant="chalk" size="xl" wordmarkOnly={false} />
           </Link>
 
           <nav className="mkt-nav-links" aria-label="Main">
@@ -56,7 +56,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
             <Link href="/login" className="mkt-nav-login">
               Log in
             </Link>
-            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-sm mkt-btn-pill">
+            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-pill mkt-nav-cta">
               Try Orvius
             </Link>
           </div>

@@ -4,24 +4,52 @@ import { MktSection } from "@/components/mkt-section";
 
 const controls = [
   {
-    marker: "01",
     title: "Unsure → human",
     body: "Missing address, unclear urgency, or low confidence — flagged for review, not guessed.",
-    proof: "Handoff control",
+    ui: (
+      <div className="mkt-trust-ui">
+        <div className="mkt-trust-meter">
+          <span>Confidence</span>
+          <strong>42%</strong>
+        </div>
+        <div className="mkt-trust-meter-track" aria-hidden>
+          <span style={{ width: "42%" }} />
+        </div>
+        <p className="mkt-trust-ui-state">Handoff queued · owner notified</p>
+      </div>
+    ),
   },
   {
-    marker: "02",
     title: "Audit trail",
     body: "Calls, transcripts, summaries, and actions on the shop record.",
-    proof: "Full event log",
+    ui: (
+      <ul className="mkt-trust-log">
+        <li>
+          <span>2:01</span> Job booked
+        </li>
+        <li>
+          <span>1:18</span> Owner SMS sent
+        </li>
+        <li>
+          <span>0:42</span> Urgency: emergency
+        </li>
+      </ul>
+    ),
   },
   {
-    marker: "03",
     title: "Owner in control",
     body: "You set hours and services. High-risk moves stay approve-first.",
-    proof: "Approve before send",
+    ui: (
+      <div className="mkt-trust-approve">
+        <p>Send SMS to caller?</p>
+        <div>
+          <span className="mkt-trust-approve-yes">Approve</span>
+          <span className="mkt-trust-approve-no">Hold</span>
+        </div>
+      </div>
+    ),
   },
-] as const;
+];
 
 export function HomeTrust() {
   return (
@@ -32,15 +60,18 @@ export function HomeTrust() {
           <h2 id="home-trust-heading" className="mkt-section-title">
             Emergencies and customer data stay under your control.
           </h2>
+          <p className="mkt-section-lead font-sans">
+            Mechanisms you can see in the product — not slogans. Scope and details live in the trust
+            center.
+          </p>
         </div>
 
         <ul className="mkt-trust-grid font-sans">
           {controls.map((item) => (
             <li key={item.title} className="mkt-trust-card">
-              <span className="mkt-trust-marker">{item.marker}</span>
               <h3 className="mkt-trust-title">{item.title}</h3>
               <p className="mkt-trust-body">{item.body}</p>
-              <p className="mkt-trust-proof">{item.proof}</p>
+              {item.ui}
             </li>
           ))}
         </ul>
@@ -55,9 +86,9 @@ export function HomeTrust() {
         </ul>
 
         <p className="mkt-trust-links font-sans">
-          <Link href="/security">Security</Link>
+          <Link href="/security">Trust center · Security</Link>
           <Link href="/privacy">Privacy</Link>
-          <Link href="/sms-terms">SMS terms</Link>
+          <Link href="/sms-terms">SMS / TCPA</Link>
         </p>
       </div>
     </MktSection>

@@ -1,7 +1,37 @@
-/** Dense command-center preview — operations tool, not a decorative card. */
+"use client";
+
+import { useEffect, useState } from "react";
+
+type Stage = "attention" | "assigning" | "assigned";
+
+const techs = ["Jake M.", "Diana R.", "Chris P."] as const;
+
+/** Interactive command-center preview — living OS, not a static card. */
 export function HomeProductPreview() {
+  const [stage, setStage] = useState<Stage>("attention");
+  const [tech, setTech] = useState<(typeof techs)[number]>(techs[0]);
+
+  useEffect(() => {
+    if (stage !== "assigning") return;
+    const timer = window.setTimeout(() => setStage("assigned"), 700);
+    return () => window.clearTimeout(timer);
+  }, [stage]);
+
+  function assign() {
+    if (stage !== "attention") return;
+    setTech(techs[Math.floor(Math.random() * techs.length)]);
+    setStage("assigning");
+  }
+
+  function reset() {
+    setStage("attention");
+  }
+
+  const unassigned = stage === "assigned" ? 1 : 2;
+  const attention = stage === "assigned" ? 2 : 3;
+
   return (
-    <div className="mkt-product mkt-product-rich" aria-hidden>
+    <div className="mkt-product mkt-product-rich mkt-product-live-os">
       <div className="mkt-product-chrome">
         <div className="mkt-product-dots" aria-hidden>
           <span />
@@ -11,12 +41,12 @@ export function HomeProductPreview() {
         <span className="mkt-product-url">orvius.im/command</span>
         <span className="mkt-product-live">
           <span className="mkt-live-dot" />
-          Live
+          Sample day
         </span>
       </div>
 
       <div className="mkt-product-shell">
-        <aside className="mkt-product-rail">
+        <aside className="mkt-product-rail" aria-hidden>
           <p className="mkt-product-rail-brand">Orvius</p>
           <nav className="mkt-product-rail-nav">
             <span className="mkt-product-rail-active">Command</span>
@@ -27,17 +57,17 @@ export function HomeProductPreview() {
           </nav>
           <div className="mkt-product-rail-foot">
             <span className="mkt-product-rail-meta">Summit HVAC</span>
-            <span className="mkt-product-rail-meta">Pro</span>
+            <span className="mkt-product-rail-meta">Pro · reference shop</span>
           </div>
         </aside>
 
         <div className="mkt-product-main">
           <header className="mkt-product-top">
             <div>
-              <p className="mkt-product-kicker">Today · attention</p>
-              <p className="mkt-product-title">3 need you</p>
+              <p className="mkt-product-kicker">Today · attention queue</p>
+              <p className="mkt-product-title">{attention} need you</p>
             </div>
-            <div className="mkt-product-metrics">
+            <div className="mkt-product-metrics" aria-label="Representative sample metrics">
               <div>
                 <span>Calls</span>
                 <strong>14</strong>
@@ -48,19 +78,35 @@ export function HomeProductPreview() {
               </div>
               <div>
                 <span>Unassigned</span>
-                <strong>2</strong>
+                <strong>{unassigned}</strong>
               </div>
             </div>
           </header>
 
+          <p className="mkt-product-sample font-sans">
+            Representative shop day — not a live customer metric.
+          </p>
+
           <ul className="mkt-product-queue">
-            <li className="mkt-product-row mkt-product-row-hot mkt-product-row-selected">
-              <span className="mkt-product-row-tag">Emergency</span>
+            <li
+              className={`mkt-product-row mkt-product-row-hot ${
+                stage === "attention" ? "mkt-product-row-selected" : ""
+              } ${stage === "assigned" ? "mkt-product-row-done" : ""}`}
+            >
+              <span className="mkt-product-row-tag">
+                {stage === "assigned" ? "Assigned" : "Emergency"}
+              </span>
               <span className="mkt-product-row-main">
                 AC down · 1842 Oak St
-                <em>Maria Lopez · booked today · SMS sent</em>
+                <em>
+                  {stage === "assigned"
+                    ? `${tech} · en route · SMS confirmed`
+                    : "Maria Lopez · booked today · SMS sent"}
+                </em>
               </span>
-              <span className="mkt-product-row-action">Assign</span>
+              <span className="mkt-product-row-action">
+                {stage === "assigned" ? "Board" : "Assign"}
+              </span>
             </li>
             <li className="mkt-product-row">
               <span className="mkt-product-row-tag">After hours</span>
@@ -82,15 +128,44 @@ export function HomeProductPreview() {
 
           <div className="mkt-product-detail">
             <div className="mkt-product-detail-col">
-              <p className="mkt-product-alert-kicker">Selected job</p>
+              <p className="mkt-product-alert-kicker">
+                {stage === "assigned" ? "Dispatch updated" : "Selected job"}
+              </p>
               <p className="mkt-product-alert-title">Emergency AC · Oak St</p>
-              <p className="mkt-product-alert-meta">Tech: unassigned · ETA: today</p>
+              <p className="mkt-product-alert-meta">
+                {stage === "assigning"
+                  ? "Assigning technician…"
+                  : stage === "assigned"
+                    ? `Tech: ${tech} · ETA: 45 min`
+                    : "Tech: unassigned · ETA: today"}
+              </p>
             </div>
             <div className="mkt-product-detail-actions">
-              <span className="mkt-product-chip">Assign tech</span>
-              <span className="mkt-product-chip mkt-product-chip-muted">Open inbox</span>
+              {stage === "assigned" ? (
+                <button type="button" className="mkt-product-chip mkt-product-chip-muted" onClick={reset}>
+                  Replay
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={`mkt-product-chip ${stage === "assigning" ? "mkt-product-chip-busy" : ""}`}
+                    onClick={assign}
+                    disabled={stage === "assigning"}
+                  >
+                    {stage === "assigning" ? "Assigning…" : "Assign tech"}
+                  </button>
+                  <span className="mkt-product-chip mkt-product-chip-muted">Open inbox</span>
+                </>
+              )}
             </div>
           </div>
+
+          {stage === "assigned" ? (
+            <p className="mkt-product-toast font-sans" role="status">
+              Owner alert resent · job moved to dispatch board
+            </p>
+          ) : null}
         </div>
       </div>
     </div>
