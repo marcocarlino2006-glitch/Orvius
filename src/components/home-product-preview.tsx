@@ -47,7 +47,10 @@ export function HomeProductPreview() {
 
       <div className="mkt-product-shell">
         <aside className="mkt-product-rail" aria-hidden>
-          <p className="mkt-product-rail-brand">Orvius</p>
+          <p className="mkt-product-rail-brand">
+            <span className="mkt-product-rail-o" aria-hidden />
+            Orvius
+          </p>
           <nav className="mkt-product-rail-nav">
             <span className="mkt-product-rail-active">Command</span>
             <span>Inbox</span>

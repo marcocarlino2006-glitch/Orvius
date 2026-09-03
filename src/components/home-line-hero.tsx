@@ -1,15 +1,27 @@
 import Link from "next/link";
 import { HomeProductPreview } from "@/components/home-product-preview";
+import { OrviusLogo } from "@/components/orvius-logo";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { company } from "@/lib/company";
 
 export function HomeLineHero() {
   return (
-    <section className="mkt-hero mkt-hero-split" aria-labelledby="home-hero-heading">
+    <section className="mkt-hero mkt-hero-split mkt-hero--depth" aria-labelledby="home-hero-heading">
       <div className="mkt-hero-wash" aria-hidden />
+      <div className="mkt-hero-gridline" aria-hidden />
+      <div className="mkt-hero-orb mkt-hero-orb--a" aria-hidden />
+      <div className="mkt-hero-orb mkt-hero-orb--b" aria-hidden />
 
       <div className="editorial-wrap mkt-hero-grid">
         <div className="mkt-hero-copy">
+          <div className="mkt-hero-brand">
+            <OrviusLogo variant="chalk" size="lg" markOnly className="mkt-hero-brand-mark" />
+            <div className="mkt-hero-brand-text">
+              <p className="mkt-hero-brand-name type-wordmark">{company.productName}</p>
+              <p className="mkt-hero-brand-sub font-sans">AI OS for the trades</p>
+            </div>
+          </div>
+
           <p className="mkt-eyebrow font-sans">
             <span className="mkt-live-dot" aria-hidden />
             Live for {company.trades.join(" · ")}
@@ -25,16 +37,19 @@ export function HomeLineHero() {
           </p>
 
           <div className="mkt-hero-actions font-sans">
-            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-pill">
+            <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-hero">
               Book a live call audit
             </Link>
-            <a href={demoLineHref()} className="mkt-btn mkt-btn-ghost mkt-btn-pill">
+            <a href={demoLineHref()} className="mkt-btn mkt-btn-ghost mkt-btn-hero">
               Call {DEMO_LINE_DISPLAY}
             </a>
           </div>
         </div>
 
-        <HomeProductPreview />
+        <div className="mkt-hero-stage">
+          <div className="mkt-hero-stage-glow" aria-hidden />
+          <HomeProductPreview />
+        </div>
       </div>
     </section>
   );
