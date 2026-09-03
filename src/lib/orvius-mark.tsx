@@ -1,6 +1,7 @@
 /**
- * Orvius mark — X.com energy, single glyph: a bold O.
- * Stark, black, readable at favicon size. No chrome clutter.
+ * Orvius mark — the circle.
+ * Oracle/Grok energy: one perfect bold O that never leaves the logo.
+ * Geometry tuned for favicon → nav → hero. No chrome, no cutouts.
  */
 
 export type OrviusMarkSvgProps = {
@@ -8,6 +9,7 @@ export type OrviusMarkSvgProps = {
   size?: number;
 };
 
+/** Perfect ring: outer R=14, stroke≈6.5 → Oracle-weight O in a 32 box. */
 export function OrviusMarkSvg({
   className = "",
   size,
@@ -22,12 +24,15 @@ export function OrviusMarkSvg({
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      {/* Bold O ring — evenodd punch for X-level presence */}
+      {/*
+        Dual-path evenodd ring reads sharper at tiny sizes than stroke-only.
+        Outer diameter fills the box; inner hole keeps the O open and bold.
+      */}
       <path
         className="orvius-mark-o"
         fillRule="evenodd"
         clipRule="evenodd"
-        d="M16 2.5C8.544 2.5 2.5 8.544 2.5 16S8.544 29.5 16 29.5 29.5 23.456 29.5 16 23.456 2.5 16 2.5Zm0 6.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5Z"
+        d="M16 1.25C7.853 1.25 1.25 7.853 1.25 16S7.853 30.75 16 30.75 30.75 24.147 30.75 16 24.147 1.25 16 1.25Zm0 8.1a6.65 6.65 0 1 0 0 13.3 6.65 6.65 0 0 0 0-13.3Z"
       />
     </svg>
   );

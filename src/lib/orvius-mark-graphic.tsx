@@ -1,6 +1,6 @@
 import { orviusColors } from "@/lib/orvius-colors";
 
-/** Static mark for OG images and favicons — bold O, inline colors. */
+/** Static mark for OG images and favicons — the mastered circle, inline colors. */
 export function OrviusMarkGraphic({
   size = 32,
   variant = "dark",
@@ -23,7 +23,7 @@ export function OrviusMarkGraphic({
         fillRule="evenodd"
         clipRule="evenodd"
         fill={ink}
-        d="M16 2.5C8.544 2.5 2.5 8.544 2.5 16S8.544 29.5 16 29.5 29.5 23.456 29.5 16 23.456 2.5 16 2.5Zm0 6.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5Z"
+        d="M16 1.25C7.853 1.25 1.25 7.853 1.25 16S7.853 30.75 16 30.75 30.75 24.147 30.75 16 24.147 1.25 16 1.25Zm0 8.1a6.65 6.65 0 1 0 0 13.3 6.65 6.65 0 0 0 0-13.3Z"
       />
     </svg>
   );

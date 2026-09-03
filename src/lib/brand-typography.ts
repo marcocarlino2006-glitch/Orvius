@@ -1,4 +1,4 @@
-/** Brand typography — Oracle-weight sci-fi wordmark + X-style O mark. */
+/** Brand typography — Oracle-weight Orbitron wordmark + locked circle mark. */
 
 export const brandWordmark = "Orvius";
 
@@ -12,10 +12,13 @@ export const typeScale = {
   display: "clamp(2.75rem, 5.5vw, 4.25rem)",
 } as const;
 
-/** Bigger, bolder — brand must read at a glance like X / Oracle. */
+/**
+ * Circle stays in the lockup. Mark size is tuned to read equal to the wordmark
+ * (Oracle / Grok presence — not a tiny decorative pip).
+ */
 export const logoSizes = {
-  sm: { mark: 22, wordmark: "1rem", tracking: "0.18em" },
-  md: { mark: 26, wordmark: "1.125rem", tracking: "0.2em" },
-  lg: { mark: 32, wordmark: "1.35rem", tracking: "0.22em" },
-  xl: { mark: 38, wordmark: "1.5rem", tracking: "0.24em" },
+  sm: { mark: 26, wordmark: "1rem", tracking: "0.18em" },
+  md: { mark: 30, wordmark: "1.125rem", tracking: "0.2em" },
+  lg: { mark: 36, wordmark: "1.35rem", tracking: "0.22em" },
+  xl: { mark: 44, wordmark: "1.55rem", tracking: "0.24em" },
 } as const;
