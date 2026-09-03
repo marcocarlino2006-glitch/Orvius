@@ -29,9 +29,10 @@ export function HomeProductPreview() {
 
   const unassigned = stage === "assigned" ? 1 : 2;
   const attention = stage === "assigned" ? 2 : 3;
+  const pipeline = stage === "assigned" ? "$4.2k" : "$3.8k";
 
   return (
-    <div className="mkt-product mkt-product-rich mkt-product-live-os">
+    <div className="mkt-product mkt-product-rich mkt-product-live-os mkt-product--mastery">
       <div className="mkt-product-chrome">
         <div className="mkt-product-dots" aria-hidden>
           <span />
@@ -57,6 +58,7 @@ export function HomeProductPreview() {
             <span>Jobs</span>
             <span>Dispatch</span>
             <span>Ask</span>
+            <span>Money</span>
           </nav>
           <div className="mkt-product-rail-foot">
             <span className="mkt-product-rail-meta">Summit HVAC</span>
@@ -82,6 +84,10 @@ export function HomeProductPreview() {
               <div>
                 <span>Unassigned</span>
                 <strong>{unassigned}</strong>
+              </div>
+              <div>
+                <span>Pipeline</span>
+                <strong>{pipeline}</strong>
               </div>
             </div>
           </header>
@@ -120,12 +126,12 @@ export function HomeProductPreview() {
               <span className="mkt-product-row-action">Review</span>
             </li>
             <li className="mkt-product-row">
-              <span className="mkt-product-row-tag">Unassigned</span>
+              <span className="mkt-product-row-tag">Money</span>
               <span className="mkt-product-row-main">
-                Annual maintenance · 8:00 AM
-                <em>Ready for dispatch board</em>
+                Estimate ready · $480
+                <em>Draft on job · await owner send</em>
               </span>
-              <span className="mkt-product-row-action">Dispatch</span>
+              <span className="mkt-product-row-action">Invoice</span>
             </li>
           </ul>
 
@@ -139,8 +145,8 @@ export function HomeProductPreview() {
                 {stage === "assigning"
                   ? "Assigning technician…"
                   : stage === "assigned"
-                    ? `Tech: ${tech} · ETA: 45 min`
-                    : "Tech: unassigned · ETA: today"}
+                    ? `Tech: ${tech} · ETA: 45 min · owner alert resent`
+                    : "Tech: unassigned · ETA: today · est. $480"}
               </p>
             </div>
             <div className="mkt-product-detail-actions">
@@ -167,7 +173,7 @@ export function HomeProductPreview() {
 
           {stage === "assigned" ? (
             <p className="mkt-product-toast font-sans" role="status">
-              Owner alert resent · job moved to dispatch board
+              Owner alert resent · job moved to dispatch · estimate still on record
             </p>
           ) : null}
         </div>

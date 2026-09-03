@@ -3,22 +3,22 @@ import { MktSection, MktSectionHeader } from "@/components/mkt-section";
 import { getPlanById } from "@/lib/pricing-plans";
 
 const live = [
-  "Live AI line — answer, qualify, alert",
-  "Calls become jobs with transcripts and summaries",
-  "Dispatch from one command center",
-  "Ask Orvius what needs attention today",
-  "Estimates, invoices, and manual payments",
-];
+  { title: "Live AI line", detail: "Answer, qualify, alert" },
+  { title: "Jobs from calls", detail: "Transcripts + summaries" },
+  { title: "Dispatch board", detail: "One command center" },
+  { title: "Ask Orvius", detail: "What needs attention today" },
+  { title: "Money basics", detail: "Estimates, invoices, manual pay" },
+] as const;
 
 const next = [
-  "Copilot that proposes actions you approve",
-  "Skills for travel, maps, and shop workflows",
-  "Stripe Connect for card payments",
-];
+  { title: "Approve-first copilot", detail: "Proposes; you decide" },
+  { title: "Field skills", detail: "Travel, maps, shop workflows" },
+  { title: "Card payments", detail: "Stripe Connect next" },
+] as const;
 
 export function HomeOsPath() {
   return (
-    <MktSection id="path" tone="inset" aria-labelledby="home-path-heading">
+    <MktSection id="path" tone="inset" aria-labelledby="home-path-heading" className="mkt-mastery-section">
       <MktSectionHeader
         kicker="Product truth"
         title="What is live. What is next."
@@ -26,26 +26,32 @@ export function HomeOsPath() {
         titleId="home-path-heading"
       />
 
-      <div className="mkt-path-grid">
-        <article className="mkt-path-card mkt-path-card--live">
+      <div className="mkt-path-grid mkt-path-grid--mastery">
+        <article className="mkt-path-card mkt-path-card--live mkt-path-card--mastery">
           <div className="mkt-path-head">
             <p className="mkt-path-label">Live today</p>
             <span className="mkt-path-pill mkt-path-pill-live">Available now</span>
           </div>
-          <ul className="mkt-path-list font-sans">
+          <ul className="mkt-path-list mkt-path-list--mastery font-sans">
             {live.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item.title}>
+                <strong>{item.title}</strong>
+                <span>{item.detail}</span>
+              </li>
             ))}
           </ul>
         </article>
-        <article className="mkt-path-card mkt-path-card--next">
+        <article className="mkt-path-card mkt-path-card--next mkt-path-card--mastery">
           <div className="mkt-path-head">
             <p className="mkt-path-label">Building next</p>
             <span className="mkt-path-pill">Not required to start</span>
           </div>
-          <ul className="mkt-path-list font-sans">
+          <ul className="mkt-path-list mkt-path-list--mastery font-sans">
             {next.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item.title}>
+                <strong>{item.title}</strong>
+                <span>{item.detail}</span>
+              </li>
             ))}
           </ul>
         </article>
@@ -59,15 +65,15 @@ export function HomePlanTruth() {
   const pro = getPlanById("pro");
 
   return (
-    <MktSection id="plans" tone="light">
+    <MktSection id="plans" tone="light" className="mkt-mastery-section">
       <MktSectionHeader
         kicker="Pricing"
         title="Start with the line. Grow into the full OS."
         lead="Every plan includes the live AI line. Pro adds the command center shops run the day from — the gap is obvious."
       />
 
-      <div className="mkt-plans-grid">
-        <article className="mkt-plan-card">
+      <div className="mkt-plans-grid mkt-plans-grid--mastery">
+        <article className="mkt-plan-card mkt-plan-card--mastery">
           <p className="mkt-plan-name">{line.name}</p>
           <p className="mkt-plan-price">
             ${line.price}
@@ -80,12 +86,12 @@ export function HomePlanTruth() {
             <li>Email / SMS owner alerts</li>
           </ul>
           <p className="mkt-plan-gap font-sans">No jobs board · no dispatch · no Ask</p>
-          <Link href="/pricing" className="mkt-btn mkt-btn-secondary mkt-btn-block mkt-btn-pill">
+          <Link href="/pricing" className="mkt-btn mkt-btn-secondary mkt-btn-block mkt-btn-hero">
             Start with Line
           </Link>
         </article>
 
-        <article className="mkt-plan-card mkt-plan-card--featured">
+        <article className="mkt-plan-card mkt-plan-card--featured mkt-plan-card--mastery">
           <p className="mkt-plan-badge">Recommended for most shops</p>
           <p className="mkt-plan-name">{pro.name}</p>
           <p className="mkt-plan-price">
@@ -100,7 +106,7 @@ export function HomePlanTruth() {
             <li>Estimates, invoices, and manual payments</li>
           </ul>
           <p className="mkt-plan-gap mkt-plan-gap-pro font-sans">The OS shops operate from</p>
-          <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-block mkt-btn-pill">
+          <Link href="/pilot" className="mkt-btn mkt-btn-ink mkt-btn-block mkt-btn-hero">
             Start with Pro
           </Link>
         </article>

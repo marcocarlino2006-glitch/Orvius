@@ -53,8 +53,8 @@ const controls = [
 
 export function HomeTrust() {
   return (
-    <MktSection tone="light" aria-labelledby="home-trust-heading">
-      <div className="mkt-trust-editorial">
+    <MktSection tone="light" aria-labelledby="home-trust-heading" className="mkt-mastery-section">
+      <div className="mkt-trust-editorial mkt-trust-editorial--mastery">
         <div className="mkt-trust-intro">
           <p className="mkt-eyebrow font-sans">Trust</p>
           <h2 id="home-trust-heading" className="mkt-section-title">
@@ -66,17 +66,19 @@ export function HomeTrust() {
           </p>
         </div>
 
-        <ul className="mkt-trust-grid font-sans">
+        <ul className="mkt-trust-grid mkt-trust-grid--mastery font-sans">
           {controls.map((item) => (
-            <li key={item.title} className="mkt-trust-card">
-              <h3 className="mkt-trust-title">{item.title}</h3>
-              <p className="mkt-trust-body">{item.body}</p>
-              {item.ui}
+            <li key={item.title} className="mkt-trust-card mkt-trust-card--mastery">
+              <div className="mkt-trust-card-copy">
+                <h3 className="mkt-trust-title">{item.title}</h3>
+                <p className="mkt-trust-body">{item.body}</p>
+              </div>
+              <div className="mkt-trust-card-ui">{item.ui}</div>
             </li>
           ))}
         </ul>
 
-        <ul className="mkt-signal-strip font-sans">
+        <ul className="mkt-signal-strip mkt-signal-strip--mastery font-sans">
           {trustBadges.map((badge) => (
             <li key={badge.label}>
               <strong>{badge.label}</strong>

@@ -13,20 +13,26 @@ const transcript = [
 ] as const;
 
 const timeline = [
-  { t: "0:08", label: "Answered" },
-  { t: "0:42", label: "Qualified" },
-  { t: "1:18", label: "Owner alert" },
-  { t: "2:01", label: "Booked" },
+  { t: "0:08", label: "Answered", detail: "Line picked up" },
+  { t: "0:42", label: "Qualified", detail: "Emergency · address" },
+  { t: "1:18", label: "Owner alert", detail: "SMS delivered" },
+  { t: "2:01", label: "Booked", detail: "On the board" },
 ] as const;
 
 const waveBars = [18, 28, 42, 34, 56, 48, 62, 40, 72, 58, 46, 68, 52, 38, 64, 44, 30, 54, 70, 36, 48, 60, 32, 50, 66, 42, 28, 55];
 
 export function HomeCallStory() {
   return (
-    <MktSection tone="inset" aria-labelledby="tier1-story-heading" className="mkt-proof-section">
-      <div className="mkt-proof-layout">
+    <MktSection
+      tone="inset"
+      aria-labelledby="tier1-story-heading"
+      className="mkt-proof-section mkt-mastery-section"
+    >
+      <div className="mkt-proof-layout mkt-proof-layout--mastery">
         <div className="mkt-proof-copy">
-          <p className="mkt-proof-badge font-sans">Representative example · not a third-party case study</p>
+          <p className="mkt-proof-badge font-sans">
+            Representative example · not a third-party case study
+          </p>
           <MktSectionHeader
             kicker="Proof"
             title="Hear the product. Then measure your own line."
@@ -34,40 +40,45 @@ export function HomeCallStory() {
             titleId="tier1-story-heading"
           />
           <div className="mkt-proof-actions font-sans">
-            <a href={demoLineHref()} className="mkt-btn mkt-btn-ink mkt-btn-pill">
+            <a href={demoLineHref()} className="mkt-btn mkt-btn-ink mkt-btn-hero">
               Call {DEMO_LINE_DISPLAY}
             </a>
-            <Link href="/pilot" className="mkt-btn mkt-btn-ghost mkt-btn-pill">
+            <Link href="/pilot" className="mkt-btn mkt-btn-ghost mkt-btn-hero">
               Book a live call audit
             </Link>
           </div>
           <p className="mkt-proof-note font-sans">{summitCaseStudy.attribution}</p>
         </div>
 
-        <div className="mkt-call-panel font-sans" role="log" aria-label="Representative call replay">
+        <div className="mkt-call-panel mkt-call-panel--mastery font-sans" role="log" aria-label="Representative call replay">
           <div className="mkt-call-panel-head">
             <div>
               <p className="mkt-call-panel-kicker">Representative call · after hours</p>
               <p className="mkt-call-panel-title">Emergency AC · Summit HVAC</p>
             </div>
-            <span className="mkt-call-panel-duration">2m 14s</span>
+            <div className="mkt-call-panel-status">
+              <span className="mkt-live-dot" aria-hidden />
+              <span>Recording</span>
+              <span className="mkt-call-panel-duration">2m 14s</span>
+            </div>
           </div>
 
-          <div className="mkt-waveform" aria-hidden>
+          <div className="mkt-waveform mkt-waveform--live" aria-hidden>
             {waveBars.map((h, i) => (
               <span
                 key={i}
                 className={`mkt-waveform-bar ${i > 18 ? "mkt-waveform-bar-played" : ""}`}
-                style={{ height: `${h}%` }}
+                style={{ height: `${h}%`, animationDelay: `${i * 40}ms` }}
               />
             ))}
           </div>
 
-          <ol className="mkt-call-timeline">
+          <ol className="mkt-call-timeline mkt-call-timeline--mastery">
             {timeline.map((step) => (
               <li key={step.label}>
-                <span>{step.t}</span>
+                <span className="mkt-call-timeline-t">{step.t}</span>
                 <strong>{step.label}</strong>
+                <em>{step.detail}</em>
               </li>
             ))}
           </ol>
@@ -86,10 +97,16 @@ export function HomeCallStory() {
             ))}
           </div>
 
-          <p className="mkt-transcript-foot">
+          <div className="mkt-transcript-foot mkt-transcript-foot--mastery">
             <span className="mkt-live-dot" aria-hidden />
-            Qualified · owner notified · booked · on the board
-          </p>
+            <span>Qualified</span>
+            <span aria-hidden>·</span>
+            <span>Owner notified</span>
+            <span aria-hidden>·</span>
+            <span>Booked</span>
+            <span aria-hidden>·</span>
+            <span>On the board</span>
+          </div>
         </div>
       </div>
     </MktSection>
