@@ -15,7 +15,7 @@ const sans = Sora({
 const brand = Orbitron({
   variable: "--font-brand",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["600", "700", "800", "900"],
   display: "swap",
 });
 

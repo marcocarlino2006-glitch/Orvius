@@ -1,6 +1,6 @@
 /**
- * Orvius mark — angular HUD reticle.
- * Reads as command lock + live signal. Sharp at favicon size.
+ * Orvius mark — X.com energy, single glyph: a bold O.
+ * Stark, black, readable at favicon size. No chrome clutter.
  */
 
 export type OrviusMarkSvgProps = {
@@ -22,34 +22,12 @@ export function OrviusMarkSvg({
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      {/* Chamfered tile */}
+      {/* Bold O ring — evenodd punch for X-level presence */}
       <path
-        className="orvius-mark-tile"
-        d="M8 2.5H24L29.5 8V24L24 29.5H8L2.5 24V8L8 2.5Z"
-      />
-      {/* Outer reticle octagon */}
-      <path
-        className="orvius-mark-ring"
-        d="M11 6.5H21L25.5 11V21L21 25.5H11L6.5 21V11L11 6.5Z"
-        strokeWidth="1.75"
-      />
-      {/* Inner lock diamond */}
-      <path
-        className="orvius-mark-core"
-        d="M16 11.25L20.75 16L16 20.75L11.25 16L16 11.25Z"
-        strokeWidth="1.5"
-      />
-      {/* Crosshair ticks */}
-      <path
-        className="orvius-mark-ticks"
-        d="M16 7.25V9.5M16 22.5V24.75M7.25 16H9.5M22.5 16H24.75"
-        strokeWidth="1.5"
-        strokeLinecap="square"
-      />
-      {/* Live signal node */}
-      <path
-        className="orvius-mark-signal"
-        d="M24.25 6.25L27.1 7.9L24.25 9.55L21.4 7.9L24.25 6.25Z"
+        className="orvius-mark-o"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M16 2.5C8.544 2.5 2.5 8.544 2.5 16S8.544 29.5 16 29.5 29.5 23.456 29.5 16 23.456 2.5 16 2.5Zm0 6.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5Z"
       />
     </svg>
   );
