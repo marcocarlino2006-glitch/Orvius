@@ -152,6 +152,7 @@ export function HomeProductPreview() {
                     className={`mkt-product-chip ${stage === "assigning" ? "mkt-product-chip-busy" : ""}`}
                     onClick={assign}
                     disabled={stage === "assigning"}
+                    aria-label="Assign technician to emergency AC job"
                   >
                     {stage === "assigning" ? "Assigning…" : "Assign tech"}
                   </button>

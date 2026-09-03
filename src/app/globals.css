@@ -134,7 +134,7 @@
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--signal) 18%, transparent);
+  background: color-mix(in srgb, var(--void) 12%, transparent);
   color: var(--void);
 }
 
@@ -13389,10 +13389,10 @@ h3 {
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid transparent;
-  background: color-mix(in srgb, var(--canvas) 88%, transparent);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom: 1px solid color-mix(in srgb, var(--void) 8%, transparent);
+  background: var(--canvas);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .mkt-nav-inner {
@@ -13419,11 +13419,26 @@ h3 {
   padding: 0.6rem 1.15rem;
   font-size: 0.875rem;
   box-shadow: 0 1px 2px rgba(38, 37, 30, 0.16);
+  color: #fff !important;
 }
 
 .mkt-nav {
-  border-bottom: 1px solid color-mix(in srgb, var(--void) 8%, transparent);
   padding-block: 0.15rem;
+}
+
+@media (max-width: 480px) {
+  .mkt-nav-login {
+    display: none;
+  }
+
+  .mkt-nav-cta {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.8125rem;
+  }
+
+  .mkt-nav-brand .orvius-logo-wordmark {
+    font-size: 1rem !important;
+  }
 }
 
 .mkt-nav-links {
@@ -13550,13 +13565,23 @@ h3 {
 
 .mkt-btn-ink {
   background: var(--void);
-  color: var(--white);
+  color: #fff !important;
   box-shadow: 0 1px 2px rgba(38, 37, 30, 0.14);
 }
 
 .mkt-btn-ink:hover {
   background: var(--void-deep);
+  color: #fff !important;
   box-shadow: var(--shadow-lift);
+}
+
+.mkt-btn:focus-visible,
+.mkt-nav-login:focus-visible,
+.mkt-nav-links a:focus-visible,
+.mkt-product-chip:focus-visible,
+.cookie-bar-accept:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
 }
 
 .mkt-btn-ink-light {
@@ -13804,6 +13829,7 @@ h3 {
   border: none;
   cursor: pointer;
   font-family: inherit;
+  color: #fff;
 }
 
 .mkt-product-chip:disabled,
@@ -14814,7 +14840,7 @@ h3 {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ash);
+  color: color-mix(in srgb, var(--void) 72%, transparent);
   vertical-align: top;
 }
 
@@ -14948,12 +14974,12 @@ h3 {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  max-width: min(22rem, calc(100vw - 2rem));
-  padding: 0.45rem 0.5rem 0.45rem 0.8rem;
+  max-width: min(20rem, calc(100vw - 2rem));
+  padding: 0.4rem 0.45rem 0.4rem 0.75rem;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--void) 94%, transparent);
-  color: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #141310;
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 10px 30px rgba(20, 19, 16, 0.28);
   animation: cookie-slide-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
