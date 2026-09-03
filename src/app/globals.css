@@ -15240,6 +15240,17 @@ h3 {
   color: rgba(255, 255, 255, 0.38);
 }
 
+@keyframes mkt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mkt-product-toast,
   .mkt-product-rich,
