@@ -19,7 +19,7 @@ export function HomeLineHero() {
       <div className="mkt-hero-scan" aria-hidden />
 
       <div className="editorial-wrap mkt-hero-content">
-        <OrviusLogo variant="chalk" size="xl" className="mkt-hero-brand-lockup" />
+        <OrviusLogo variant="void" size="xl" className="mkt-hero-brand-lockup" />
         <span className="mkt-hero-brand-rule" aria-hidden />
 
         <h1 id="home-hero-heading" className="mkt-hero-title">

@@ -14589,16 +14589,22 @@ h3 {
 }
 
 .mkt-hero-brand-lockup {
-  --logo-wordmark-size: clamp(3.15rem, 8.5vw, 4.85rem) !important;
+  --logo-wordmark-size: clamp(3.4rem, 9vw, 5.25rem) !important;
   --logo-wordmark-tracking: 0.14em !important;
   color: #f7f8fa !important;
   margin-bottom: 0;
   filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.35));
 }
 
+.mkt-hero-brand-lockup .orvius-logo-wordmark,
+.mkt-hero-brand-lockup .orvius-logo-mark,
+.mkt-hero-brand-lockup .orvius-logo-mark-wrap {
+  color: #f7f8fa !important;
+}
+
 .mkt-hero-brand-lockup.orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(var(--logo-wordmark-size, 3.15rem) * 1.02);
-  height: calc(var(--logo-wordmark-size, 3.15rem) * 1.02);
+  width: calc(var(--logo-wordmark-size, 3.4rem) * 1.02);
+  height: calc(var(--logo-wordmark-size, 3.4rem) * 1.02);
 }
 
 .mkt-hero-brand-rule {
