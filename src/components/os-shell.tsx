@@ -111,6 +111,17 @@ export function OsShell({
                       <span className="os-nav-badge">{badge}</span>
                     ) : null}
                   </Link>
+                ) : planAllowed === false &&
+                  (access?.effectivePlan === "expired" ||
+                    access?.entitled === false) ? (
+                  <Link
+                    href="/dashboard/billing"
+                    className="os-nav-link os-nav-link-locked font-sans"
+                    title="Subscribe to continue"
+                  >
+                    <span>{item.label}</span>
+                    <span className="os-nav-lock">Pay</span>
+                  </Link>
                 ) : planAllowed === false && upgradePlan ? (
                   <Link
                     href="/dashboard/pricing"

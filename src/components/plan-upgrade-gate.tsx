@@ -31,6 +31,29 @@ export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
     return children;
   }
 
+  if (effectivePlan === "expired" || access?.entitled === false) {
+    return (
+      <div className="plan-upgrade-gate">
+        <div className="plan-upgrade-gate-inner font-sans">
+          <p className="plan-upgrade-gate-kicker">{moduleLabel(module)}</p>
+          <h2 className="plan-upgrade-gate-title">Subscribe to continue</h2>
+          <p className="plan-upgrade-gate-detail">
+            Your pilot ended or subscription is inactive. Choose a plan to reopen{" "}
+            {moduleLabel(module).toLowerCase()} and the rest of your shop.
+          </p>
+          <div className="plan-upgrade-gate-actions">
+            <Link href="/dashboard/billing" className="btn btn-void text-sm">
+              Open billing
+            </Link>
+            <Link href="/dashboard/pricing" className="btn btn-secondary text-sm">
+              Compare plans
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const requiredPlanId = minimumPlanForModule(module);
   const requiredPlan = getPlanById(requiredPlanId);
 

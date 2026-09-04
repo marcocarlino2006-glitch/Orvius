@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 
 export async function GET(request: NextRequest) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

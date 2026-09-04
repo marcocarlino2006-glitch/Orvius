@@ -3,12 +3,12 @@ import { JOB_INCLUDE, isJobStatus, serializeJob, updateJobStatus } from "@/lib/j
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { forbiddenResponse, requireBusinessSession } from "@/lib/tenant";
+import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 
@@ -30,7 +30,7 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

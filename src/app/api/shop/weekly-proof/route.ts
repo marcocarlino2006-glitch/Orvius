@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import {
   formatWeeklyProof,
   getShopOutcomes,
@@ -21,6 +22,11 @@ export async function GET(request: Request) {
 
   const outcomes = await getShopOutcomes(session.business.id, windowDays);
   const text = formatWeeklyProof(outcomes, session.business.name);
+
+  await prisma.business.update({
+    where: { id: session.business.id },
+    data: { lastWeeklyProofAt: new Date() },
+  });
 
   return NextResponse.json({
     shop: {

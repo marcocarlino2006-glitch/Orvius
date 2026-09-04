@@ -1,6 +1,13 @@
 /** When to show the subscribe pay-prompt loop inside the product. */
 
-export type PayPromptTone = "trial" | "required" | "past_due";
+import {
+  isBillingEntitled,
+  isPilotExpired,
+  resolvePilotEndsAt,
+  type BusinessBillingFields,
+} from "@/lib/billing-entitlement";
+
+export type PayPromptTone = "trial" | "required" | "past_due" | "locked";
 
 export type PayPromptDecision = {
   show: boolean;
@@ -8,23 +15,35 @@ export type PayPromptDecision = {
   headline: string;
   body: string;
   primaryCta: string;
-  /** Snooze length after dismiss (ms). Past-due snoozes shorter = tighter loop. */
+  /** Snooze length after dismiss (ms). Locked/past_due = no soft dismiss. */
   snoozeMs: number;
+  /** When true, UI must not allow backdrop dismiss — pay or short snooze only. */
+  hard: boolean;
 };
 
-const HOUR = 60 * 60 * 1000;
-const DAY = 24 * HOUR;
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
 
 /**
- * Active paid shops never see the prompt.
- * Everyone else gets a recurring pay loop (pilot soft, unpaid/canceled hard, past_due urgent).
+ * Active paid: no prompt.
+ * Mid-trial: soft loop (short snooze).
+ * Expired / canceled: hard lock tone (BillingLockScreen handles full block).
+ * Past due: urgent hard prompt.
  */
-export function getPayPromptDecision(params: {
-  billingStatus?: string | null;
-  billingPlan?: string | null;
-  shopCreatedAt?: string | Date | null;
-}): PayPromptDecision | null {
+export function getPayPromptDecision(
+  params: BusinessBillingFields & {
+    billingStatus?: string | null;
+    billingPlan?: string | null;
+    shopCreatedAt?: string | Date | null;
+  },
+): PayPromptDecision | null {
   const status = (params.billingStatus ?? "none").toLowerCase();
+  const fields: BusinessBillingFields = {
+    billingStatus: params.billingStatus,
+    billingPlan: params.billingPlan,
+    pilotEndsAt: params.pilotEndsAt,
+    createdAt: params.shopCreatedAt ?? params.createdAt,
+  };
 
   if (status === "active") {
     return null;
@@ -35,48 +54,53 @@ export function getPayPromptDecision(params: {
       show: true,
       tone: "past_due",
       headline: "Payment failed — keep your line live",
-      body: "Update billing now so missed calls keep converting into booked jobs. Your shop stays on Orvius once payment succeeds.",
+      body: "Update billing now so missed calls keep converting into booked jobs. Access stays locked until payment succeeds.",
       primaryCta: "Fix payment",
-      snoozeMs: 1 * HOUR,
+      snoozeMs: 0,
+      hard: true,
     };
   }
 
-  if (status === "canceled") {
+  if (!isBillingEntitled(fields)) {
     return {
       show: true,
-      tone: "required",
-      headline: "Subscribe to keep using Orvius",
-      body: "Your subscription ended. Choose a plan to keep answering calls, booking jobs, and alerting your phone.",
-      primaryCta: "Subscribe to continue",
-      snoozeMs: 4 * HOUR,
+      tone: "locked",
+      headline:
+        status === "canceled"
+          ? "Subscribe to reopen your shop"
+          : "Pilot ended — subscribe to continue",
+      body: "Orvius is locked until you choose a plan. Your line and workspace reopen after checkout.",
+      primaryCta: "Subscribe to unlock",
+      snoozeMs: 15 * MINUTE,
+      hard: true,
     };
   }
 
-  // pilot / none / unknown — still get the pay loop (design partners included)
-  const created = params.shopCreatedAt ? new Date(params.shopCreatedAt) : null;
-  const ageDays =
-    created && !Number.isNaN(created.getTime())
-      ? Math.max(0, Math.floor((Date.now() - created.getTime()) / DAY))
+  // Mid-trial soft loop
+  const ends = resolvePilotEndsAt(fields);
+  const daysLeft =
+    ends != null
+      ? Math.max(0, Math.ceil((ends.getTime() - Date.now()) / (24 * HOUR)))
       : null;
-
-  const trialEnding = ageDays != null && ageDays >= 21;
+  const endingSoon = daysLeft != null && daysLeft <= 7;
 
   return {
     show: true,
-    tone: trialEnding || status === "none" ? "required" : "trial",
-    headline: trialEnding
-      ? "Your pilot is ending — subscribe to keep the line"
+    tone: endingSoon || status === "none" ? "required" : "trial",
+    headline: endingSoon
+      ? `Pilot ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — subscribe`
       : status === "none"
         ? "Subscribe to run Orvius for your shop"
         : "Keep Orvius after the pilot",
-    body: trialEnding
-      ? `You're on day ${ageDays} of the design partner program. Subscribe so after-hours calls keep becoming booked jobs without interruption.`
-      : status === "none"
-        ? "Orvius answers, qualifies, books, and texts you the lead. Pick Line, Pro, or Fleet to unlock your dedicated shop line for good."
-        : "Design partner access is temporary. Subscribe when you're ready — Line starts at $149/mo. Dismiss for now; we'll ask again.",
+    body: endingSoon
+      ? "Subscribe now so after-hours calls keep becoming booked jobs without interruption."
+      : "Design partner access is temporary. Line starts at $149/mo. We'll ask again soon.",
     primaryCta: "Choose a plan",
-    snoozeMs: trialEnding || status === "none" ? 6 * HOUR : 12 * HOUR,
+    snoozeMs: endingSoon || status === "none" ? 2 * HOUR : 4 * HOUR,
+    hard: false,
   };
 }
 
 export const PAY_PROMPT_SNOOZE_KEY = "orvius-pay-prompt-snooze-until";
+
+export { isBillingEntitled, isPilotExpired, resolvePilotEndsAt };

@@ -6,7 +6,7 @@ import { getDispatchBoard, listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 
 function startOfToday() {
@@ -16,7 +16,7 @@ function startOfToday() {
 }
 
 export async function GET() {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 
@@ -132,6 +132,7 @@ export async function GET() {
     },
     outcomes,
     attention,
+    lastWeeklyProofAt: business.lastWeeklyProofAt?.toISOString() ?? null,
     recentLeads: recentLeads.map((lead) => ({
       id: lead.id,
       name: lead.name,

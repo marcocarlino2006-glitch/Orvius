@@ -26,6 +26,10 @@ model Business {
   stripeSubscriptionId String?
   billingStatus        String   @default("pilot")
   billingPlan          String?
+  /** When the free design-partner window ends. After this, subscribe or lock. */
+  pilotEndsAt          DateTime?
+  /** Last time owner copied/exported weekly economics proof. */
+  lastWeeklyProofAt    DateTime?
   lineVerifiedAt       DateTime?
   /** When set, owner SMS alerts are suppressed until START / cleared. */
   ownerSmsOptOutAt     DateTime?
@@ -268,6 +272,8 @@ model WaitlistEntry {
   /** Pipeline: new | contacted | demoed | onboarded | live | closed */
   status       String   @default("new")
   notes        String?
+  lastContactedAt DateTime?
+  nextActionAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

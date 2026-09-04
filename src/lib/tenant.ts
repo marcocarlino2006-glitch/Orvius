@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { requireActiveBilling } from "@/lib/plan-gate";
 import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
 import { verifyAdminRequest } from "@/lib/env";
 import { NextResponse } from "next/server";
@@ -9,7 +10,10 @@ export function unauthorizedResponse() {
 }
 
 export function noBusinessResponse() {
-  return NextResponse.json({ error: "No shop linked to this account" }, { status: 404 });
+  return NextResponse.json(
+    { error: "No shop linked to this account" },
+    { status: 404 },
+  );
 }
 
 export function forbiddenResponse() {
@@ -38,6 +42,15 @@ export async function requireBusinessSession() {
   }
 
   return { session, email, business };
+}
+
+/** Auth + active billing — blocks expired pilot / canceled shops. */
+export async function requireEntitledSession() {
+  const authResult = await requireBusinessSession();
+  if ("error" in authResult) return authResult;
+  const billing = requireActiveBilling(authResult.business);
+  if ("error" in billing) return { error: billing.error };
+  return authResult;
 }
 
 export function belongsToBusiness(

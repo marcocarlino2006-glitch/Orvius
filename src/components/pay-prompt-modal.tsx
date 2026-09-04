@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
+import { BillingLockScreen } from "@/components/billing-lock-screen";
 import { CheckoutButton } from "@/components/checkout-button";
 import { pricing } from "@/lib/pricing-plans";
 import {
@@ -15,18 +16,23 @@ type AccountBillingPayload = {
     createdAt?: string;
     billingStatus?: string;
     billingPlan?: string | null;
+    pilotEndsAt?: string | null;
+    stripeCustomerId?: string | null;
   } | null;
   billing?: {
     status?: string;
     planId?: string | null;
     configured?: boolean;
+    entitled?: boolean;
+    pilotEndsAt?: string | null;
+    hasSubscription?: boolean;
   };
   user?: { email?: string | null };
 };
 
 /**
- * Recurring subscribe popup — the pay loop.
- * Active paid shops never see it. Everyone else gets asked again after snooze.
+ * Pay loop: soft modal mid-trial; hard lock screen when trial ended / canceled.
+ * Active subscribers never see it.
  */
 export function PayPromptModal() {
   const titleId = useId();
@@ -34,6 +40,7 @@ export function PayPromptModal() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [checkoutReady, setCheckoutReady] = useState(false);
+  const [hasStripeCustomer, setHasStripeCustomer] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,15 +57,24 @@ export function PayPromptModal() {
         const next = getPayPromptDecision({
           billingStatus: status,
           billingPlan: data.business?.billingPlan ?? data.billing?.planId,
+          pilotEndsAt: data.business?.pilotEndsAt ?? data.billing?.pilotEndsAt,
           shopCreatedAt: data.business?.createdAt,
+          createdAt: data.business?.createdAt,
         });
 
         setEmail(data.user?.email ?? "");
         setCheckoutReady(Boolean(data.billing?.configured));
+        setHasStripeCustomer(Boolean(data.business?.stripeCustomerId));
         setDecision(next);
 
         if (!next?.show) {
           setOpen(false);
+          return;
+        }
+
+        // Hard lock always shows — no snooze escape for expired / past_due.
+        if (next.hard && (next.tone === "locked" || next.tone === "past_due")) {
+          setOpen(true);
           return;
         }
 
@@ -69,12 +85,12 @@ export function PayPromptModal() {
             return;
           }
         } catch {
-          /* ignore storage */
+          /* ignore */
         }
 
         setOpen(true);
       } catch {
-        /* stay quiet if account unavailable */
+        /* quiet */
       }
     }
 
@@ -97,7 +113,7 @@ export function PayPromptModal() {
   }, [open]);
 
   function snooze() {
-    if (!decision) return;
+    if (!decision || decision.hard) return;
     try {
       localStorage.setItem(
         PAY_PROMPT_SNOOZE_KEY,
@@ -110,6 +126,19 @@ export function PayPromptModal() {
   }
 
   if (!open || !decision) return null;
+
+  if (decision.tone === "locked" || decision.tone === "past_due") {
+    return (
+      <BillingLockScreen
+        tone={decision.tone}
+        headline={decision.headline}
+        body={decision.body}
+        email={email}
+        checkoutReady={checkoutReady}
+        hasStripeCustomer={hasStripeCustomer}
+      />
+    );
+  }
 
   const featured = pricing.pro;
   const line = pricing.line;
@@ -124,11 +153,9 @@ export function PayPromptModal() {
       <button
         type="button"
         className="pay-prompt-backdrop"
-        aria-label={
-          decision.tone === "past_due" ? "Close overlay" : "Dismiss for now"
-        }
+        aria-label={decision.hard ? "Close overlay" : "Dismiss for now"}
         onClick={() => {
-          if (decision.tone === "past_due") return;
+          if (decision.hard) return;
           snooze();
         }}
       />
@@ -183,12 +210,22 @@ export function PayPromptModal() {
             </Link>
           )}
           <div className="pay-prompt-secondary">
-            <Link href="/dashboard/pricing" className="btn btn-secondary text-sm" onClick={snooze}>
+            <Link
+              href="/dashboard/pricing"
+              className="btn btn-secondary text-sm"
+              onClick={snooze}
+            >
               Compare plans
             </Link>
-            <button type="button" className="pay-prompt-later font-sans" onClick={snooze}>
-              {decision.tone === "past_due" ? "Remind me in 1 hour" : "Not now — remind me later"}
-            </button>
+            {decision.hard ? (
+              <button type="button" className="pay-prompt-later font-sans" onClick={snooze}>
+                Remind me in 30 minutes
+              </button>
+            ) : (
+              <button type="button" className="pay-prompt-later font-sans" onClick={snooze}>
+                Not now — remind me later
+              </button>
+            )}
           </div>
         </div>
       </div>

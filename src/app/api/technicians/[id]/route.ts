@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { normalizePhone } from "@/lib/customer";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

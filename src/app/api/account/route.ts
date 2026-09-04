@@ -12,6 +12,10 @@ import {
 import { autoEnsureCustomerShopLine } from "@/lib/provision-business";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import { getBillingReadiness, isStripeCheckoutConfigured, isStripeConfigured } from "@/lib/stripe";
+import {
+  isBillingEntitled,
+  resolvePilotEndsAt,
+} from "@/lib/billing-entitlement";
 import { getShopHealth } from "@/lib/shop-health";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { z } from "zod";
@@ -54,6 +58,8 @@ export async function GET() {
         avgTicketCents: businessRecord.avgTicketCents,
         baselineMissedCallsPerWeek: businessRecord.baselineMissedCallsPerWeek,
         baselineJobsPerWeek: businessRecord.baselineJobsPerWeek,
+        pilotEndsAt: businessRecord.pilotEndsAt,
+        lastWeeklyProofAt: businessRecord.lastWeeklyProofAt,
       }
     : null;
 
@@ -65,6 +71,17 @@ export async function GET() {
     currentPlanId && ["line", "pro", "fleet"].includes(currentPlanId)
       ? getPlanById(currentPlanId as "line" | "pro" | "fleet")
       : null;
+
+  const billingFields = business
+    ? {
+        billingStatus: business.billingStatus,
+        billingPlan: business.billingPlan,
+        pilotEndsAt: business.pilotEndsAt,
+        createdAt: business.createdAt,
+      }
+    : null;
+  const entitled = billingFields ? isBillingEntitled(billingFields) : false;
+  const pilotEnds = billingFields ? resolvePilotEndsAt(billingFields) : null;
 
   return NextResponse.json({
     user: {
@@ -91,6 +108,8 @@ export async function GET() {
       pilot: pricing.pilot,
       legalEntity: company.legalName,
       hasSubscription: Boolean(business?.stripeSubscriptionId),
+      entitled,
+      pilotEndsAt: pilotEnds?.toISOString() ?? null,
     },
   });
 }

@@ -3,10 +3,10 @@ import { normalizePhone } from "@/lib/customer";
 import { listCrew } from "@/lib/field";
 import { getPlanTechLimit, requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 
 export async function GET() {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 
@@ -18,7 +18,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

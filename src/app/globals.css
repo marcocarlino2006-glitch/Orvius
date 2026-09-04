@@ -6118,6 +6118,94 @@ h3 {
   }
 }
 
+.billing-lock {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: color-mix(in srgb, var(--void) 55%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.billing-lock-card {
+  width: min(26rem, 100%);
+  padding: 1.5rem 1.4rem 1.35rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--rule);
+  background: var(--chalk, #fff);
+  box-shadow: var(--shadow-lift);
+}
+
+.billing-lock-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.billing-lock-title {
+  margin: 0.5rem 0 0;
+  font-size: 1.45rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--void);
+}
+
+.billing-lock-body {
+  margin: 0.65rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--void) 70%, transparent);
+}
+
+.billing-lock-price {
+  margin: 1.1rem 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.billing-lock-price-amt {
+  font-size: 1.75rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  color: var(--void);
+}
+
+.billing-lock-price-per {
+  font-size: 0.85rem;
+  color: var(--ash);
+}
+
+.billing-lock-checkout .inst-btn,
+.billing-lock-cta {
+  width: 100%;
+  justify-content: center;
+}
+
+.billing-lock-links {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.billing-lock-links a {
+  color: var(--ash);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.billing-lock-links a:hover {
+  color: var(--void);
+}
+
 .os-sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
@@ -7569,6 +7657,22 @@ h3 {
 
 .pro-economics-status--err {
   color: var(--flare-dim, #b45309);
+}
+
+.pro-economics-stale {
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--flare, #c45c26) 35%, transparent);
+  background: color-mix(in srgb, var(--flare, #c45c26) 8%, transparent);
+  color: var(--void);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.pro-economics-proof-meta {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ash);
 }
 
 @media (max-width: 640px) {

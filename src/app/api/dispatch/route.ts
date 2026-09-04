@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { getDispatchBoard } from "@/lib/field";
 import { requirePlanModule } from "@/lib/plan-gate";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 
 export async function GET(request: Request) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

@@ -1,10 +1,10 @@
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 
 export async function GET() {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
 
   const business = authResult.business;

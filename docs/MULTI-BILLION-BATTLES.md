@@ -1,5 +1,5 @@
 /**
- * Multi-billion path — seven battles.
+ * Multi-billion path — battles.
  *
  * Best realistic outcome: become the vertical OS for HVAC / plumbing / electrical
  * (tens of billions ceiling). Not fantasy. This doc tracks what code can close vs
@@ -12,13 +12,30 @@
 
 | # | Battle | Agent ships | Founder must do |
 |---|--------|-------------|-----------------|
+| 0 | **Hard monetization** | 30-day `pilotEndsAt`, `isBillingEntitled`, API 402, `BillingLockScreen`, pay-prompt loop | Paste Stripe keys; complete first live Checkout |
 | 1 | Wedge certification | Checklists, `wedge:ready`, failure log hygiene | 5 real-phone scenarios; owner cell ≠ shop line |
-| 2 | Design partners + measured money | Baseline fields, outcomes vs baseline, pipeline CRM | Sign 10 pilots; log weekly recovered jobs |
+| 2 | Design partners + measured money | Baseline fields, weekly proof stamp, stale banner, pipeline CRM | Sign 10 pilots; log weekly recovered jobs |
 | 3 | Production trust | Deploy/billing/ops gates, exclusive-line repair | DNS → Vercel; Stripe live; webhooks on api.orvius.im |
-| 4 | Switching cost | Customer history + **data export** (trust lock-in) | Run shops daily until leaving hurts |
-| 5 | Distribution | Admin prospect pipeline over waitlist | Daily outreach per OUTREACH-PLAYBOOK |
+| 4 | Switching cost | Customer timeline (calls/jobs/money) + **data export** | Run shops daily until leaving hurts |
+| 5 | Distribution | Admin prospect pipeline + daily cadence (20 touches) | Daily outreach per OUTREACH-PLAYBOOK |
 | 6 | Legal formation | Counsel TODO + localization notices | Set LLC formation state with counsel |
 | 7 | Wedge-first story | Hero/about honesty (no premature AI OS) | Sell the front door until wedge is undefeated |
+
+## Hard monetization gate (Battle 0)
+
+Free forever is dead:
+
+- New shops get `pilotEndsAt = now + 30 days`
+- After pilot (or canceled): product APIs return **402** `billing_required`
+- UI shows non-dismissible `BillingLockScreen` (also for `past_due`)
+- Mid-trial: soft pay-prompt, short snooze (2–4h)
+
+```bash
+node --test scripts/pay-prompt.test.mjs
+npm run billing:check
+```
+
+Founder: set `STRIPE_*` on Vercel → `npm run stripe:setup` → first paid shop.
 
 ## Founder certification gate (Battle 1)
 
@@ -31,6 +48,7 @@ npm run master:wedge         # setup + drills
 ```
 
 Log every miss in `docs/FAILURE-LOG.md`. Zero open blockers.
+Settings → Founder phone certification checklist.
 
 ## Measured money gate (Battle 2)
 
@@ -39,7 +57,7 @@ For each design partner shop in Settings:
 1. Set **avg ticket**
 2. Set **baseline missed calls / week** and **baseline jobs / week** (before Orvius)
 3. Today → **Shop economics** shows est. recovered $, collected $, open money
-4. **Copy weekly proof** → paste into notes / Slack (Battle 2 artifact)
+4. **Copy weekly proof** → stamps `lastWeeklyProofAt`; banner if stale (>7d)
 5. Weekly: owner confirms booked jobs that would have been missed
 
 ```bash
@@ -64,6 +82,7 @@ DNS cutover: `docs/DNS-ORVIUS-IM.md`. Do not post until green.
 
 - Prospects land in waitlist → Admin **Prospect pipeline**
 - Stages: `new → contacted → demoed → onboarded → live → closed`
+- Cadence: `nextActionAt` / `lastContactedAt`, due today + overdue, daily target **20**
 - Demo: orvius.im/demo · Pilot: /pilot · Call audit CTA on homepage
 
 ## Legal gate (Battle 6)

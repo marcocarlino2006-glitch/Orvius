@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { askShop } from "@/lib/shop-brain";
 import { requirePlanModule } from "@/lib/plan-gate";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 
 export async function GET() {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const planGate = requirePlanModule(authResult.business, "ask");
   if ("error" in planGate) return planGate.error;
@@ -12,7 +12,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

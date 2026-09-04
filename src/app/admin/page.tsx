@@ -51,6 +51,8 @@ type Prospect = {
   plan: string;
   status: string;
   notes: string | null;
+  nextActionAt: string | null;
+  lastContactedAt: string | null;
   createdAt: string;
 };
 
@@ -88,6 +90,9 @@ export default function AdminPage() {
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
+  const [dueTodayCount, setDueTodayCount] = useState(0);
+  const [overdueCount, setOverdueCount] = useState(0);
+  const [dailyTarget, setDailyTarget] = useState(20);
   const [prospectError, setProspectError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -105,6 +110,9 @@ export default function AdminPage() {
       const data = await res.json();
       setProspects(data.entries ?? []);
       setProspectCounts(data.byStatus ?? {});
+      setDueTodayCount(data.dueTodayCount ?? 0);
+      setOverdueCount(data.overdueCount ?? 0);
+      setDailyTarget(data.dailyTarget ?? 20);
     } catch {
       setProspectError("Could not load prospect pipeline");
     }
@@ -263,11 +271,13 @@ export default function AdminPage() {
               Prospect pipeline
             </h2>
             <p className="mt-2 font-sans text-sm text-ash">
-              Waitlist → contacted → demoed → onboarded → live. Move shops through stages.
+              Waitlist → contacted → demoed → onboarded → live. Daily target:{" "}
+              {dailyTarget} touches. Due today: {dueTodayCount}
+              {overdueCount > 0 ? ` · Overdue: ${overdueCount}` : ""}.
             </p>
           </div>
-          <ShellBadge tone={prospects.length > 0 ? "live" : "flare"}>
-            {prospects.length} prospects
+          <ShellBadge tone={dueTodayCount + overdueCount > 0 ? "flare" : "live"}>
+            {dueTodayCount + overdueCount} due
           </ShellBadge>
         </div>
         <div className="mt-4 flex flex-wrap gap-2 font-sans text-xs text-ash">
@@ -282,7 +292,8 @@ export default function AdminPage() {
         ) : null}
         {prospects.length === 0 ? (
           <p className="mt-5 font-sans text-sm text-ash">
-            No signups yet. Pilot form and waitlist feed this board.
+            No signups yet. Pilot form and waitlist feed this board. Billion-dollar
+            cadence: 20+ owner conversations per day until the close is boring.
           </p>
         ) : (
           <ul className="mt-5 space-y-3">
@@ -302,6 +313,15 @@ export default function AdminPage() {
                       {p.trade ? ` · ${p.trade}` : ""}
                       {p.city ? ` · ${p.city}` : ""}
                     </p>
+                    <p className="mt-1 text-xs text-ash">
+                      Next:{" "}
+                      {p.nextActionAt
+                        ? new Date(p.nextActionAt).toLocaleString()
+                        : "not set"}
+                      {p.lastContactedAt
+                        ? ` · Last touch ${new Date(p.lastContactedAt).toLocaleDateString()}`
+                        : ""}
+                    </p>
                   </div>
                   <select
                     className="input text-sm max-w-[10rem]"
@@ -317,6 +337,37 @@ export default function AdminPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-secondary text-xs"
+                    onClick={() => {
+                      const next = new Date();
+                      next.setDate(next.getDate() + 1);
+                      next.setHours(9, 0, 0, 0);
+                      updateProspect(p.id, {
+                        lastContactedAt: new Date().toISOString(),
+                        nextActionAt: next.toISOString(),
+                        status: p.status === "new" ? "contacted" : p.status,
+                      });
+                    }}
+                  >
+                    Logged touch · +1 day
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary text-xs"
+                    onClick={() => {
+                      const next = new Date();
+                      next.setHours(next.getHours() + 2);
+                      updateProspect(p.id, {
+                        nextActionAt: next.toISOString(),
+                      });
+                    }}
+                  >
+                    Follow up in 2h
+                  </button>
                 </div>
                 <input
                   className="input mt-2 text-sm"

@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { JOB_INCLUDE, createJobFromLead, serializeJob } from "@/lib/job";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { forbiddenResponse, requireBusinessSession } from "@/lib/tenant";
+import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 
 export async function GET() {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 
@@ -25,7 +25,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

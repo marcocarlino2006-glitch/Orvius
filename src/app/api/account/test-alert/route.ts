@@ -4,10 +4,10 @@ import {
   getShopLines,
   validateOwnerPhoneForAlerts,
 } from "@/lib/owner-alerts";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 
 export async function POST() {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
 
   const business = authResult.business;

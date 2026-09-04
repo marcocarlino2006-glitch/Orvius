@@ -140,3 +140,7 @@ CREATE INDEX IF NOT EXISTS "SmsOptOut_businessId_clearedAt_idx" ON "SmsOptOut"("
 ALTER TABLE "Business" ADD COLUMN "baselineMissedCallsPerWeek" INTEGER;
 ALTER TABLE "Business" ADD COLUMN "baselineJobsPerWeek" INTEGER;
 ALTER TABLE "WaitlistEntry" ADD COLUMN "notes" TEXT;
+ALTER TABLE "Business" ADD COLUMN "pilotEndsAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "lastWeeklyProofAt" DATETIME;
+ALTER TABLE "WaitlistEntry" ADD COLUMN "lastContactedAt" DATETIME;
+ALTER TABLE "WaitlistEntry" ADD COLUMN "nextActionAt" DATETIME;

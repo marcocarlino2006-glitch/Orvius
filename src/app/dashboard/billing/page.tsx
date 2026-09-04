@@ -23,6 +23,8 @@ type BillingAccount = {
     billingStatus: string;
     billingPlan: string | null;
     stripeCustomerId: string | null;
+    pilotEndsAt?: string | null;
+    createdAt?: string;
   } | null;
   billing: {
     configured: boolean;
@@ -33,19 +35,31 @@ type BillingAccount = {
     plan: { name: string; price: number; period: string };
     legalEntity: string;
     hasSubscription: boolean;
+    entitled?: boolean;
+    pilotEndsAt?: string | null;
   };
 };
 
-function statusCopy(status: string) {
+function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | null) {
+  if (!entitled && (status === "pilot" || status === "none")) {
+    return "Pilot ended — subscribe to reopen your shop.";
+  }
   switch (status) {
     case "active":
       return "Your subscription is active.";
-    case "pilot":
-      return "You are on the design partner program.";
+    case "pilot": {
+      if (pilotEndsAt) {
+        const ends = new Date(pilotEndsAt);
+        if (!Number.isNaN(ends.getTime())) {
+          return `Design partner access through ${ends.toLocaleDateString()}. Then subscribe to keep the line.`;
+        }
+      }
+      return "You are on the design partner program (30-day pilot).";
+    }
     case "past_due":
       return "Payment failed — update billing to keep your line live.";
     case "canceled":
-      return "Subscription canceled.";
+      return "Subscription canceled. Subscribe again to reopen.";
     default:
       return "No active subscription yet.";
   }
@@ -64,10 +78,15 @@ export default function DashboardBillingPage() {
   }, []);
 
   const status = account?.billing.status ?? "none";
+  const entitled = account?.billing.entitled ?? status === "active";
+  const pilotEndsAt =
+    account?.billing.pilotEndsAt ?? account?.business?.pilotEndsAt ?? null;
   const email = session?.user?.email ?? account?.user.email ?? "";
   const paidPlans = getPaidPlans();
   const checkoutReady = account?.billing.configured ?? false;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
+  const locked = !entitled && status !== "past_due";
+  const needsPay = locked || status === "past_due" || status === "pilot" || status === "none";
 
   return (
     <OsShell
@@ -82,23 +101,32 @@ export default function DashboardBillingPage() {
             <>
               <div className="account-plan-badge font-sans">
                 <p className="account-plan-name">
-                  {status === "pilot"
-                    ? pricing.pilot.name
-                    : status === "active" || status === "past_due"
-                      ? account?.billing.plan.name ?? "Orvius"
-                      : "No plan"}
+                  {locked
+                    ? "Locked"
+                    : status === "pilot"
+                      ? pricing.pilot.name
+                      : status === "active" || status === "past_due"
+                        ? account?.billing.plan.name ?? "Orvius"
+                        : "No plan"}
                 </p>
                 <p className="account-plan-price">
                   {status === "active" || status === "past_due"
                     ? `$${account?.billing.plan.price}/${account?.billing.plan.period}`
-                    : status === "pilot"
+                    : status === "pilot" && entitled
                       ? pricing.pilot.period
-                      : "—"}
+                      : locked
+                        ? "Subscribe required"
+                        : "—"}
                 </p>
               </div>
               <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
-                {statusCopy(status)}
+                {statusCopy(status, entitled, pilotEndsAt)}
               </p>
+              {pilotEndsAt && status === "pilot" && entitled ? (
+                <p className="mt-2 font-sans text-xs text-ash">
+                  Pilot ends {new Date(pilotEndsAt).toLocaleString()}
+                </p>
+              ) : null}
               {account?.business ? (
                 <p className="mt-2 font-sans text-xs text-ash">
                   Billed to {account.business.name}
@@ -114,7 +142,7 @@ export default function DashboardBillingPage() {
           )}
         </ShellPanel>
 
-        <ShellPanel title="Subscribe">
+        <ShellPanel title={needsPay && !loading ? "Subscribe" : "Subscribe"}>
           {loading ? (
             <p className="font-sans text-sm text-ash">Loading…</p>
           ) : status === "active" ? (
@@ -126,10 +154,22 @@ export default function DashboardBillingPage() {
                 </span>
               ) : null}
             </p>
+          ) : status === "past_due" && hasStripeCustomer ? (
+            <>
+              <p className="font-sans text-sm leading-relaxed text-ash">
+                Fix your payment method to keep Orvius running.
+              </p>
+              <div className="mt-5">
+                <BillingPortalButton label="Update payment method" />
+              </div>
+            </>
           ) : checkoutReady ? (
             <>
               <p className="font-sans text-sm leading-relaxed text-ash">
-                Choose a plan — flat monthly, billed by {company.legalName} via Stripe.
+                {locked
+                  ? "Choose a plan to unlock your shop — flat monthly, billed by "
+                  : "Choose a plan — flat monthly, billed by "}
+                {company.legalName} via Stripe.
               </p>
               <ul className="account-billing-plans mt-5 space-y-4">
                 {paidPlans.map((plan) => (
@@ -160,10 +200,9 @@ export default function DashboardBillingPage() {
                 </Link>{" "}
                 and we will send a checkout link after your trial.
               </p>
-              {process.env.NODE_ENV === "development" &&
-              account?.billing.readiness?.missing?.length ? (
+              {account?.billing.readiness?.missing?.length ? (
                 <details className="mt-4 font-sans text-xs text-ash">
-                  <summary className="cursor-pointer">Stripe setup (developers)</summary>
+                  <summary className="cursor-pointer">Stripe setup (founders)</summary>
                   <ul className="mt-2 list-disc space-y-1 pl-4">
                     {account.billing.readiness.missing.map((item) => (
                       <li key={item}>
@@ -172,8 +211,9 @@ export default function DashboardBillingPage() {
                     ))}
                   </ul>
                   <p className="mt-2">
-                    Run <code>npm run stripe:setup</code> after adding{" "}
-                    <code>STRIPE_SECRET_KEY</code>. See docs/BILLING-SETUP.md.
+                    Add <code>STRIPE_SECRET_KEY</code> on Vercel, run{" "}
+                    <code>npm run stripe:setup</code>, then set price IDs + webhook.
+                    See docs/BILLING-SETUP.md.
                   </p>
                 </details>
               ) : null}

@@ -72,15 +72,26 @@ Each plan's Subscribe button only appears when that plan's price ID is configure
 
 - Plan upgrades/downgrades in-app (use Stripe Customer Portal for now)
 
+## Hard monetization (trial end)
+
+- Every new shop gets `Business.pilotEndsAt` = create + **30 days**
+- While entitled (`active`, `past_due` grace, or open pilot window): full product
+- After pilot / canceled: APIs return **402** `billing_required`; UI shows `BillingLockScreen`
+- Existing shops without `pilotEndsAt` fall back to `createdAt + 30 days`
+
 ## Pay prompt loop
 
-Dashboard shell shows a recurring subscribe popup for any shop that is not `billingStatus: active`:
+Dashboard shell:
 
-- **Pilot** — soft ask; snooze ~12h (tightens after day 21)
-- **None / canceled** — stronger ask; snooze ~4–6h
-- **Past due** — urgent; backdrop dismiss disabled; snooze 1h
+| Status | UI | Dismiss |
+|--------|-----|---------|
+| **active** | No prompt | — |
+| **pilot** (mid-trial) | Soft modal | Snooze 2–4h |
+| **pilot** ending ≤7d / **none** | Stronger soft modal | Snooze 2h |
+| **past_due** | Full `BillingLockScreen` + portal CTA | Not dismissible |
+| **expired pilot / canceled** | Full `BillingLockScreen` + Checkout | Not dismissible |
 
-When Stripe checkout is configured, the popup starts Checkout for Pro. Otherwise it routes to Billing / design partner.
+When Stripe checkout is configured, lock/modal starts Checkout for Pro (or Customer Portal for past_due). Otherwise routes to Billing / design partner.
 
 ## Customer portal
 

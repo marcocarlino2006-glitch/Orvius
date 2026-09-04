@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { maybeAutoBookLead } from "@/lib/auto-job";
 import { prisma } from "@/lib/prisma";
-import { forbiddenResponse, requireBusinessSession } from "@/lib/tenant";
+import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -63,7 +63,7 @@ function serializeLead(lead: {
 }
 
 export async function GET(_request: Request, { params }: Params) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 
@@ -94,7 +94,7 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

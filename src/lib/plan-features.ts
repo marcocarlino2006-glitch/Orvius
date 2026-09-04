@@ -1,4 +1,8 @@
 import type { PaidPlanId, PlanId } from "@/lib/pricing-plans";
+import {
+  isBillingEntitled,
+  type BusinessBillingFields,
+} from "@/lib/billing-entitlement";
 
 /** Dashboard modules that can be gated by plan. */
 export type PlanModule =
@@ -30,7 +34,6 @@ const PRO_MODULES: PlanModule[] = [
 export const planFeatures: Record<PaidPlanId, PlanFeatureSet> = {
   line: {
     modules: LINE_MODULES,
-    /** Line has no dispatch — crew lives on Pro+. */
     maxTechnicians: 0,
     prioritySupport: false,
   },
@@ -46,11 +49,24 @@ export const planFeatures: Record<PaidPlanId, PlanFeatureSet> = {
   },
 };
 
-/** Pilot and unpaid shops get Pro modules during trial — but PayPromptModal asks them to subscribe on a loop. */
-export function getEffectivePlanId(params: {
-  billingStatus?: string | null;
-  billingPlan?: string | null;
-}): PaidPlanId | "pilot" {
+const EXPIRED_FEATURES: PlanFeatureSet = {
+  modules: [],
+  maxTechnicians: 0,
+  prioritySupport: false,
+};
+
+/**
+ * Effective plan for feature gates.
+ * Expired / canceled unpaid → "expired" (no modules).
+ * Pilot within window → Pro modules (temporary).
+ */
+export function getEffectivePlanId(
+  params: BusinessBillingFields,
+): PaidPlanId | "pilot" | "expired" {
+  if (!isBillingEntitled(params)) {
+    return "expired";
+  }
+
   const { billingStatus, billingPlan } = params;
 
   if (billingStatus === "pilot" || billingStatus === "none" || !billingStatus) {
@@ -72,15 +88,16 @@ export function getEffectivePlanId(params: {
   return "pilot";
 }
 
-export function getFeatureSetForPlan(plan: PaidPlanId | "pilot"): PlanFeatureSet {
-  if (plan === "pilot") {
-    return planFeatures.pro;
-  }
+export function getFeatureSetForPlan(
+  plan: PaidPlanId | "pilot" | "expired",
+): PlanFeatureSet {
+  if (plan === "expired") return EXPIRED_FEATURES;
+  if (plan === "pilot") return planFeatures.pro;
   return planFeatures[plan];
 }
 
 export function canAccessModule(
-  plan: PaidPlanId | "pilot",
+  plan: PaidPlanId | "pilot" | "expired",
   module: PlanModule,
 ): boolean {
   return getFeatureSetForPlan(plan).modules.includes(module);
@@ -94,7 +111,7 @@ export function minimumPlanForModule(module: PlanModule): PaidPlanId {
 export function moduleLabel(module: PlanModule): string {
   switch (module) {
     case "today":
-      return "Command";
+      return "Today";
     case "inbox":
       return "Inbox";
     case "calls":
@@ -120,3 +137,5 @@ export function navHrefToModule(href: string): PlanModule | null {
   if (href.startsWith("/dashboard/ask")) return "ask";
   return null;
 }
+
+export type { PlanId };

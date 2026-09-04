@@ -140,14 +140,23 @@ export async function linkTouchToCustomer(params: {
 
 export type TimelineEvent = {
   id: string;
-  type: "call" | "lead" | "job";
+  type: "call" | "lead" | "job" | "estimate" | "invoice" | "payment";
   at: string;
   title: string;
   summary: string | null;
   source: string | null;
   urgency: string | null;
   status: string | null;
+  amountCents?: number | null;
 };
+
+function formatMoney(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+}
 
 export async function getCustomerTimeline(customerId: string): Promise<TimelineEvent[]> {
   const [calls, leads, jobs] = await Promise.all([
@@ -162,8 +171,29 @@ export async function getCustomerTimeline(customerId: string): Promise<TimelineE
     prisma.job.findMany({
       where: { customerId },
       orderBy: { createdAt: "desc" },
+      include: {
+        estimate: {
+          include: {
+            invoice: {
+              include: { payments: true },
+            },
+          },
+        },
+      },
     }),
   ]);
+
+  const jobIds = jobs.map((j) => j.id);
+  const orphanInvoices =
+    jobIds.length > 0
+      ? await prisma.invoice.findMany({
+          where: {
+            jobId: { in: jobIds },
+            estimateId: null,
+          },
+          include: { payments: true },
+        })
+      : [];
 
   const events: TimelineEvent[] = [
     ...calls.map((call) => ({
@@ -197,6 +227,78 @@ export async function getCustomerTimeline(customerId: string): Promise<TimelineE
       status: job.status,
     })),
   ];
+
+  for (const job of jobs) {
+    const estimate = job.estimate;
+    if (estimate) {
+      events.push({
+        id: estimate.id,
+        type: "estimate",
+        at: estimate.createdAt.toISOString(),
+        title: `Estimate · ${formatMoney(estimate.amountCents)}`,
+        summary: estimate.notes ?? `For job: ${job.title}`,
+        source: "estimate",
+        urgency: null,
+        status: estimate.status,
+        amountCents: estimate.amountCents,
+      });
+
+      const invoice = estimate.invoice;
+      if (invoice) {
+        events.push({
+          id: invoice.id,
+          type: "invoice",
+          at: invoice.createdAt.toISOString(),
+          title: `Invoice · ${formatMoney(invoice.amountCents)}`,
+          summary: `Linked to ${job.title}`,
+          source: "invoice",
+          urgency: null,
+          status: invoice.status,
+          amountCents: invoice.amountCents,
+        });
+        for (const payment of invoice.payments) {
+          events.push({
+            id: payment.id,
+            type: "payment",
+            at: payment.createdAt.toISOString(),
+            title: `Payment · ${formatMoney(payment.amountCents)}`,
+            summary: payment.method ? `Method: ${payment.method}` : "Recorded payment",
+            source: "payment",
+            urgency: null,
+            status: payment.status,
+            amountCents: payment.amountCents,
+          });
+        }
+      }
+    }
+  }
+
+  for (const invoice of orphanInvoices) {
+    events.push({
+      id: invoice.id,
+      type: "invoice",
+      at: invoice.createdAt.toISOString(),
+      title: `Invoice · ${formatMoney(invoice.amountCents)}`,
+      summary: null,
+      source: "invoice",
+      urgency: null,
+      status: invoice.status,
+      amountCents: invoice.amountCents,
+    });
+    for (const payment of invoice.payments) {
+      events.push({
+        id: payment.id,
+        type: "payment",
+        at: payment.createdAt.toISOString(),
+        title: `Payment · ${formatMoney(payment.amountCents)}`,
+        summary: payment.method ? `Method: ${payment.method}` : "Recorded payment",
+        source: "payment",
+        urgency: null,
+        status: payment.status,
+        amountCents: payment.amountCents,
+      });
+    }
+  }
 
   return events.sort(
     (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),

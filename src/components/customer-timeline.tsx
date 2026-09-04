@@ -2,11 +2,25 @@ import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
 import type { TimelineEvent } from "@/lib/customer";
 
+function badgeTone(type: TimelineEvent["type"]) {
+  switch (type) {
+    case "job":
+    case "call":
+    case "payment":
+      return "live" as const;
+    case "estimate":
+    case "invoice":
+      return "neutral" as const;
+    default:
+      return "flare" as const;
+  }
+}
+
 export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
   if (!events.length) {
     return (
       <p className="font-sans text-sm text-ash">
-        No interactions yet. Calls and leads will appear here.
+        No interactions yet. Calls, jobs, estimates, and payments will appear here.
       </p>
     );
   }
@@ -31,12 +45,11 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
                     minute: "2-digit",
                   })}
                   {event.source ? ` · ${event.source}` : ""}
+                  {event.status ? ` · ${event.status}` : ""}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <ShellBadge tone={event.type === "job" ? "live" : event.type === "call" ? "live" : "flare"}>
-                  {event.type}
-                </ShellBadge>
+                <ShellBadge tone={badgeTone(event.type)}>{event.type}</ShellBadge>
                 {event.urgency ? (
                   <ShellBadge
                     tone={

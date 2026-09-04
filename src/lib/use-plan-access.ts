@@ -2,17 +2,27 @@
 
 import { useEffect, useState } from "react";
 import {
-  getEffectivePlanId,
+  isBillingEntitled,
+  resolvePilotEndsAt,
+} from "@/lib/billing-entitlement";
+import {
   canAccessModule,
+  getEffectivePlanId,
   navHrefToModule,
 } from "@/lib/plan-features";
 import type { PaidPlanId } from "@/lib/pricing-plans";
 
 export type PlanAccess = {
-  effectivePlan: PaidPlanId | "pilot";
+  effectivePlan: PaidPlanId | "pilot" | "expired";
   billingStatus: string;
   billingPlan: string | null;
-  canAccess: (module: ReturnType<typeof navHrefToModule> extends infer M ? NonNullable<M> : never) => boolean;
+  entitled: boolean;
+  pilotEndsAt: string | null;
+  canAccess: (
+    module: ReturnType<typeof navHrefToModule> extends infer M
+      ? NonNullable<M>
+      : never,
+  ) => boolean;
 };
 
 export function usePlanAccess(): {
@@ -26,14 +36,22 @@ export function usePlanAccess(): {
     fetch("/api/account")
       .then((res) => res.json())
       .then((data) => {
-        const billingStatus = data.business?.billingStatus ?? data.billing?.status ?? "none";
-        const billingPlan = data.business?.billingPlan ?? data.billing?.planId ?? null;
-        const effectivePlan = getEffectivePlanId({ billingStatus, billingPlan });
+        const billingStatus =
+          data.business?.billingStatus ?? data.billing?.status ?? "none";
+        const billingPlan =
+          data.business?.billingPlan ?? data.billing?.planId ?? null;
+        const pilotEndsAt = data.business?.pilotEndsAt ?? null;
+        const createdAt = data.business?.createdAt ?? null;
+        const fields = { billingStatus, billingPlan, pilotEndsAt, createdAt };
+        const effectivePlan = getEffectivePlanId(fields);
+        const ends = resolvePilotEndsAt(fields);
 
         setAccess({
           effectivePlan,
           billingStatus,
           billingPlan,
+          entitled: isBillingEntitled(fields),
+          pilotEndsAt: ends?.toISOString() ?? null,
           canAccess: (module) => canAccessModule(effectivePlan, module),
         });
       })

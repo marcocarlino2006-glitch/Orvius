@@ -27,6 +27,8 @@ const patchSchema = z.object({
   id: z.string().min(1),
   status: z.enum(PIPELINE_STATUSES).optional(),
   notes: z.string().max(2000).nullable().optional(),
+  nextActionAt: z.string().datetime().nullable().optional(),
+  lastContactedAt: z.string().datetime().nullable().optional(),
 });
 
 function allowedEmails(): Set<string> {
@@ -57,6 +59,22 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  const dueToday = entries.filter((e) => {
+    if (!e.nextActionAt) return false;
+    const t = new Date(e.nextActionAt).getTime();
+    return t >= start.getTime() && t < end.getTime();
+  });
+
+  const overdue = entries.filter((e) => {
+    if (!e.nextActionAt) return false;
+    return new Date(e.nextActionAt).getTime() < start.getTime();
+  });
+
   const byStatus = PIPELINE_STATUSES.reduce(
     (acc, status) => {
       acc[status] = entries.filter((e) => e.status === status).length;
@@ -68,6 +86,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     count: entries.length,
     byStatus,
+    dueTodayCount: dueToday.length,
+    overdueCount: overdue.length,
+    dailyTarget: 20,
     statuses: PIPELINE_STATUSES,
     entries,
   });
@@ -85,6 +106,20 @@ export async function PATCH(request: NextRequest) {
       data: {
         ...(body.status !== undefined ? { status: body.status } : {}),
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
+        ...(body.nextActionAt !== undefined
+          ? {
+              nextActionAt: body.nextActionAt
+                ? new Date(body.nextActionAt)
+                : null,
+            }
+          : {}),
+        ...(body.lastContactedAt !== undefined
+          ? {
+              lastContactedAt: body.lastContactedAt
+                ? new Date(body.lastContactedAt)
+                : null,
+            }
+          : {}),
       },
     });
     return NextResponse.json({ ok: true, entry });

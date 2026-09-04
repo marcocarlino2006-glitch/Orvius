@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
 import { sendSms } from "@/lib/twilio-sms";
 import { z } from "zod";
 
@@ -23,7 +23,7 @@ const cancelSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

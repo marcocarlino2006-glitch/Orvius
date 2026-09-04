@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { forbiddenResponse, requireBusinessSession } from "@/lib/tenant";
+import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 import { z } from "zod";
 
 /** Record a manual payment against an invoice (no Stripe Connect yet). */
@@ -12,7 +12,7 @@ const createSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const authResult = await requireBusinessSession();
+  const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

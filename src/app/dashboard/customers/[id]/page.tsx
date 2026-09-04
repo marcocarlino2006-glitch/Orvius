@@ -28,13 +28,14 @@ type CustomerDetail = {
 
 type TimelineEvent = {
   id: string;
-  type: "call" | "lead" | "job";
+  type: "call" | "lead" | "job" | "estimate" | "invoice" | "payment";
   at: string;
   title: string;
   summary: string | null;
   source: string | null;
   urgency: string | null;
   status: string | null;
+  amountCents?: number | null;
 };
 
 export default function CustomerDetailPage() {

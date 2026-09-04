@@ -29,7 +29,12 @@ export async function maybeAutoBookLead(leadId: string): Promise<{
     include: {
       job: { select: { id: true } },
       business: {
-        select: { billingStatus: true, billingPlan: true },
+        select: {
+          billingStatus: true,
+          billingPlan: true,
+          pilotEndsAt: true,
+          createdAt: true,
+        },
       },
     },
   });

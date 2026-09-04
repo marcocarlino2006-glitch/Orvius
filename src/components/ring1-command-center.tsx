@@ -40,6 +40,7 @@ type Ring1Data = {
   technicians?: Array<{ id: string; name: string }>;
   health?: ShopHealth;
   wedge?: WedgeReadiness;
+  lastWeeklyProofAt?: string | null;
 };
 
 const REFRESH_MS = 30_000;
@@ -92,7 +93,10 @@ export function Ring1CommandCenter() {
       <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
 
       {!loading && data?.outcomes ? (
-        <ProEconomicsPanel outcomes={data.outcomes} />
+        <ProEconomicsPanel
+          outcomes={data.outcomes}
+          lastWeeklyProofAt={data.lastWeeklyProofAt}
+        />
       ) : null}
 
       <ProTodayAlerts
