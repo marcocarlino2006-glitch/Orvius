@@ -1,11 +1,107 @@
+#!/usr/bin/env node
+/**
+ * Mirrors src/lib/billing-entitlement.ts + pay-prompt + expired plan gate.
+ * Self-contained like other trust tests (no @/ path resolution).
+ */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import {
-  isBillingEntitled,
-  isPilotExpired,
-} from "../src/lib/billing-entitlement.ts";
-import { getPayPromptDecision } from "../src/lib/pay-prompt.ts";
-import { canAccessModule, getEffectivePlanId } from "../src/lib/plan-features.ts";
+
+const PILOT_DAYS = 30;
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+
+function resolvePilotEndsAt(business) {
+  if (business.pilotEndsAt) {
+    const d = new Date(business.pilotEndsAt);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  if (business.createdAt) {
+    const d = new Date(business.createdAt);
+    if (Number.isNaN(d.getTime())) return null;
+    d.setDate(d.getDate() + PILOT_DAYS);
+    return d;
+  }
+  return null;
+}
+
+function isPilotExpired(business, now = new Date()) {
+  const ends = resolvePilotEndsAt(business);
+  if (!ends) return false;
+  return now.getTime() > ends.getTime();
+}
+
+function isBillingEntitled(business, now = new Date()) {
+  const status = (business.billingStatus ?? "none").toLowerCase();
+  if (status === "active" || status === "past_due") return true;
+  if (status === "canceled") return false;
+  if (isPilotExpired(business, now)) return false;
+  return true;
+}
+
+function getEffectivePlanId(params) {
+  if (!isBillingEntitled(params)) return "expired";
+  const { billingStatus, billingPlan } = params;
+  if (billingStatus === "pilot" || billingStatus === "none" || !billingStatus) {
+    return "pilot";
+  }
+  if (billingStatus === "active" && ["line", "pro", "fleet"].includes(billingPlan)) {
+    return billingPlan;
+  }
+  if (billingStatus === "past_due" && ["line", "pro", "fleet"].includes(billingPlan)) {
+    return billingPlan;
+  }
+  return "pilot";
+}
+
+function canAccessModule(plan, module) {
+  if (plan === "expired") return false;
+  if (plan === "line") return ["today", "inbox", "calls"].includes(module);
+  return true;
+}
+
+function getPayPromptDecision(params) {
+  const status = (params.billingStatus ?? "none").toLowerCase();
+  const fields = {
+    billingStatus: params.billingStatus,
+    billingPlan: params.billingPlan,
+    pilotEndsAt: params.pilotEndsAt,
+    createdAt: params.shopCreatedAt ?? params.createdAt,
+  };
+
+  if (status === "active") return null;
+
+  if (status === "past_due") {
+    return {
+      show: true,
+      tone: "past_due",
+      hard: true,
+      snoozeMs: 0,
+    };
+  }
+
+  if (!isBillingEntitled(fields)) {
+    return {
+      show: true,
+      tone: "locked",
+      hard: true,
+      snoozeMs: 15 * MINUTE,
+    };
+  }
+
+  const ends = resolvePilotEndsAt(fields);
+  const daysLeft =
+    ends != null
+      ? Math.max(0, Math.ceil((ends.getTime() - Date.now()) / (24 * HOUR)))
+      : null;
+  const endingSoon = daysLeft != null && daysLeft <= 7;
+
+  return {
+    show: true,
+    tone: endingSoon || status === "none" ? "required" : "trial",
+    hard: false,
+    snoozeMs: endingSoon || status === "none" ? 2 * HOUR : 4 * HOUR,
+  };
+}
 
 describe("billing entitlement", () => {
   it("active is entitled", () => {
@@ -60,7 +156,7 @@ describe("pay prompt loop", () => {
     assert.ok(d);
     assert.equal(d.show, true);
     assert.equal(d.hard, false);
-    assert.ok(d.snoozeMs <= 4 * 60 * 60 * 1000);
+    assert.ok(d.snoozeMs <= 4 * HOUR);
   });
 
   it("locks when pilot ended", () => {

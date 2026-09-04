@@ -153,19 +153,14 @@ export function PayPromptModal() {
       <button
         type="button"
         className="pay-prompt-backdrop"
-        aria-label={decision.hard ? "Close overlay" : "Dismiss for now"}
-        onClick={() => {
-          if (decision.hard) return;
-          snooze();
-        }}
+        aria-label="Dismiss for now"
+        onClick={snooze}
       />
       <div className={`pay-prompt-card pay-prompt-card--${decision.tone}`}>
         <p className="pay-prompt-kicker font-sans">
-          {decision.tone === "past_due"
-            ? "Billing"
-            : decision.tone === "required"
-              ? "Subscribe to continue"
-              : "Design partner"}
+          {decision.tone === "required"
+            ? "Subscribe to continue"
+            : "Design partner"}
         </p>
         <h2 id={titleId} className="pay-prompt-title font-sans">
           {decision.headline}
@@ -217,15 +212,9 @@ export function PayPromptModal() {
             >
               Compare plans
             </Link>
-            {decision.hard ? (
-              <button type="button" className="pay-prompt-later font-sans" onClick={snooze}>
-                Remind me in 30 minutes
-              </button>
-            ) : (
-              <button type="button" className="pay-prompt-later font-sans" onClick={snooze}>
-                Not now — remind me later
-              </button>
-            )}
+            <button type="button" className="pay-prompt-later font-sans" onClick={snooze}>
+              Not now — remind me later
+            </button>
           </div>
         </div>
       </div>

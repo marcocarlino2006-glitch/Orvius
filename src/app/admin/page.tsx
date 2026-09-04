@@ -147,7 +147,12 @@ export default function AdminPage() {
 
   async function updateProspect(
     id: string,
-    patch: { status?: string; notes?: string | null },
+    patch: {
+      status?: string;
+      notes?: string | null;
+      lastContactedAt?: string | null;
+      nextActionAt?: string | null;
+    },
   ) {
     setProspectError(null);
     const res = await fetch("/api/waitlist", {
