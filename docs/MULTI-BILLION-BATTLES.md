@@ -38,10 +38,15 @@ For each design partner shop in Settings:
 
 1. Set **avg ticket**
 2. Set **baseline missed calls / week** and **baseline jobs / week** (before Orvius)
-3. Command outcomes show after-hours captures + booking rate vs baseline
-4. Weekly: owner confirms booked jobs that would have been missed
+3. Today → **Shop economics** shows est. recovered $, collected $, open money
+4. **Copy weekly proof** → paste into notes / Slack (Battle 2 artifact)
+5. Weekly: owner confirms booked jobs that would have been missed
 
-Proof artifact = screenshot + number, not a homepage claim.
+```bash
+npm run economics:check
+```
+
+Proof artifact = weekly proof text + number, not a homepage claim.
 
 ## Production trust gate (Battle 3)
 

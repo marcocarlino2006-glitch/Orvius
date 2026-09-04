@@ -20,6 +20,10 @@ See also `docs/MULTI-BILLION-BATTLES.md` and `docs/WEDGE-MASTERY.md`.
 | 2026-09-04 | Distribution | Waitlist had no pipeline stages | High | **Fixed** — Admin prospect pipeline |
 | 2026-09-04 | Legal | `governingLawState` placeholder | Medium | **Open — founder + counsel** formation state |
 | 2026-09-04 | Claims | Hero sold “AI OS” before wedge mastery | Medium | **Fixed** — wedge-first hero copy |
+| 2026-09-04 | Quality gate | `standard:check` crashed on deleted `pro-wedge-readiness.tsx` | High | **Fixed** — checks `pro-setup-hub` + safe reads |
+| 2026-09-04 | Economics | No recovered $ / weekly proof | High | **Fixed** — Today economics panel + `/api/shop/weekly-proof` |
+| 2026-09-04 | Deploy check | Google flagged missing when empty local placeholders (Vercel live) | Medium | **Fixed** — warn, not fail, when local empty |
+| 2026-09-04 | Stripe SaaS | No STRIPE_* in agent `.env` | High | **Open — founder** paste keys → `npm run stripe:setup` |
 
 ## Severity
 

@@ -34,6 +34,7 @@
     "export:vercel-env": "node scripts/export-vercel-env.mjs",
     "ops:check": "node scripts/ops-check.mjs",
     "billing:check": "node scripts/billing-check.mjs",
+    "economics:check": "node scripts/economics-check.mjs",
     "stripe:setup": "node scripts/stripe-setup.mjs",
     "repair:lines": "node scripts/repair-customer-lines.mjs",
     "repair:shared-lines": "node scripts/repair-shared-lines.mjs"

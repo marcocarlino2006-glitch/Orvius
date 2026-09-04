@@ -113,16 +113,28 @@ if (stripeReady) {
   );
 }
 
-const authReady =
-  env.AUTH_SECRET?.trim() &&
-  env.GOOGLE_CLIENT_ID?.trim() &&
-  env.GOOGLE_CLIENT_SECRET?.trim();
+const googleId =
+  env.AUTH_GOOGLE_ID?.trim() || env.GOOGLE_CLIENT_ID?.trim() || "";
+const googleSecret =
+  env.AUTH_GOOGLE_SECRET?.trim() || env.GOOGLE_CLIENT_SECRET?.trim() || "";
+const authSecret = env.AUTH_SECRET?.trim() || "";
+const googleKeysPresentButEmpty =
+  Object.prototype.hasOwnProperty.call(env, "GOOGLE_CLIENT_ID") &&
+  !googleId;
 
-if (authReady) {
-  results.push(pass("Google sign-in configured"));
+if (authSecret && googleId && googleSecret) {
+  results.push(pass("Google sign-in configured (local .env)"));
+} else if (googleKeysPresentButEmpty || (!googleId && authSecret)) {
+  results.push(
+    warn(
+      "Google OAuth empty in local .env — OK if set on Vercel (AUTH_GOOGLE_* or GOOGLE_CLIENT_*). Login on orvius.im is source of truth.",
+    ),
+  );
 } else {
   results.push(
-    fail("Google sign-in missing — add GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (docs/AUTH-GOOGLE.md)"),
+    fail(
+      "Google sign-in missing — add GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET (or AUTH_GOOGLE_*) — docs/AUTH-GOOGLE.md",
+    ),
   );
 }
 

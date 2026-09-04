@@ -25,8 +25,27 @@ export function estimatedRevenueCents(
   return avgTicketCents * count;
 }
 
+/**
+ * Recovered demand estimate — only when we have a ticket and a measured lift signal.
+ * Prefer jobs/week vs baseline; else after-hours leads that booked a job.
+ */
+export function recoveredRevenueCents(input: {
+  avgTicketCents: number | null | undefined;
+  recoveredJobs: number | null | undefined;
+}): number | null {
+  return estimatedRevenueCents(input.avgTicketCents, input.recoveredJobs ?? 0);
+}
+
 export function parseAvgTicketDollars(raw: string | number): number | null {
   const n = typeof raw === "number" ? raw : Number(String(raw).replace(/[^0-9.]/g, ""));
   if (!Number.isFinite(n) || n < 50 || n > 50_000) return null;
   return dollarsToCents(n);
+}
+
+/** Signed dollar delta for UI (+$1,200 / −$400). */
+export function formatCentsDelta(cents: number | null | undefined): string | null {
+  if (cents == null || !Number.isFinite(cents) || cents === 0) return formatCents(cents);
+  const abs = formatCents(Math.abs(cents));
+  if (!abs) return null;
+  return cents > 0 ? `+${abs}` : `−${abs}`;
 }

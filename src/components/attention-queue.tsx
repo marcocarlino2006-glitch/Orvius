@@ -17,7 +17,7 @@ export function AttentionQueue({ items, loading }: AttentionQueueProps) {
   if (loading && !items.length) {
     return (
       <section className="attention-queue" aria-label="Needs attention">
-        <p className="attention-queue-kicker type-eyebrow font-sans">Command center</p>
+        <p className="attention-queue-kicker type-eyebrow font-sans">Needs you</p>
         <p className="attention-queue-empty font-sans">Loading what needs you…</p>
       </section>
     );
@@ -26,7 +26,7 @@ export function AttentionQueue({ items, loading }: AttentionQueueProps) {
   if (!items.length) {
     return (
       <section className="attention-queue attention-queue-clear" aria-label="Needs attention">
-        <p className="attention-queue-kicker type-eyebrow font-sans">Command center</p>
+        <p className="attention-queue-kicker type-eyebrow font-sans">Needs you</p>
         <h2 className="attention-queue-title font-sans">You&apos;re clear</h2>
         <p className="attention-queue-empty font-sans">
           No urgent leads, unassigned jobs, or overdue follow-ups. Outcomes below track the week.
@@ -38,7 +38,7 @@ export function AttentionQueue({ items, loading }: AttentionQueueProps) {
   return (
     <section className="attention-queue" aria-label="Needs attention">
       <div className="attention-queue-head font-sans">
-        <p className="attention-queue-kicker type-eyebrow">Command center</p>
+        <p className="attention-queue-kicker type-eyebrow">Needs you</p>
         <h2 className="attention-queue-title">
           {items.length} item{items.length === 1 ? "" : "s"} need attention
         </h2>

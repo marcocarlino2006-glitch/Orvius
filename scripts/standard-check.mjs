@@ -5,16 +5,56 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const APP_URL = process.env.APP_URL ?? "http://127.0.0.1:3000";
+const APP_URL =
+  process.env.APP_URL?.trim() ||
+  process.env.ORVIUS_STANDARD_APP_URL?.trim() ||
+  "http://127.0.0.1:3000";
 const root = new URL("..", import.meta.url).pathname;
 
 const FETCH_TIMEOUT_MS = 3_000;
+const TENANT_APIS = [
+  "/api/leads",
+  "/api/calls",
+  "/api/customers",
+  "/api/jobs",
+  "/api/dispatch",
+  "/api/technicians",
+  "/api/ring1",
+  "/api/account",
+  "/api/shop/health",
+  "/api/shop/weekly-proof",
+  "/api/ask",
+];
+
+async function resolveAppUrl() {
+  const candidates = [
+    APP_URL,
+    "http://127.0.0.1:3079",
+    "http://127.0.0.1:3078",
+    "http://127.0.0.1:3000",
+  ].filter((v, i, a) => a.indexOf(v) === i);
+
+  for (const base of candidates) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 1_200);
+      const res = await fetch(`${base}/api/health`, { signal: controller.signal });
+      clearTimeout(timer);
+      if (res.ok || res.status === 401) return base;
+    } catch {
+      /* try next */
+    }
+  }
+  return APP_URL;
+}
+
+let activeAppUrl = APP_URL;
 
 async function fetchWithTimeout(path, init) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    return await fetch(`${APP_URL}${path}`, { ...init, signal: controller.signal });
+    return await fetch(`${activeAppUrl}${path}`, { ...init, signal: controller.signal });
   } finally {
     clearTimeout(timer);
   }
@@ -37,19 +77,6 @@ function warn(name, detail) {
   console.log(`⚠️  ${name}: ${detail}`);
 }
 
-const TENANT_APIS = [
-  "/api/leads",
-  "/api/calls",
-  "/api/customers",
-  "/api/jobs",
-  "/api/dispatch",
-  "/api/technicians",
-  "/api/ring1",
-  "/api/account",
-  "/api/shop/health",
-  "/api/ask",
-];
-
 const OWNER_JARGON = [
   /\bRing [0-9]\b/,
   /\bcommand center\b/i,
@@ -66,7 +93,8 @@ const HONESTY_RISKS = [
 ];
 
 console.log("\n🏛  Orvius institutional standard check\n");
-console.log(`   App URL: ${APP_URL}\n`);
+activeAppUrl = await resolveAppUrl();
+console.log(`   App URL: ${activeAppUrl}\n`);
 
 // ── Isolation ──
 for (const path of TENANT_APIS) {
@@ -89,7 +117,8 @@ const clarityFiles = [
   "src/app/dashboard/calls/[id]/page.tsx",
   "src/app/dashboard/inbox/[id]/page.tsx",
   "src/components/profile-menu.tsx",
-  "src/components/pro-wedge-readiness.tsx",
+  "src/components/pro-setup-hub.tsx",
+  "src/components/pro-shop-outcomes.tsx",
   "src/components/pro-signal-bar.tsx",
   "src/app/dashboard/settings/page.tsx",
 ];
@@ -102,7 +131,13 @@ const HONESTY_UI_PATTERNS = [
 ];
 
 for (const rel of clarityFiles) {
-  const content = readFileSync(join(root, rel), "utf8");
+  let content;
+  try {
+    content = readFileSync(join(root, rel), "utf8");
+  } catch {
+    fail(`Clarity ${rel}`, "File missing — update clarityFiles list");
+    continue;
+  }
   for (const pattern of OWNER_JARGON) {
     if (pattern.test(content)) {
       fail(`Clarity ${rel}`, `Contains owner-facing jargon: ${pattern}`);
@@ -116,7 +151,12 @@ if (!checks.some((c) => c.name.startsWith("Clarity") && c.ok === false)) {
 
 // ── Honesty (dashboard UI — measured claims only) ──
 for (const rel of clarityFiles) {
-  const content = readFileSync(join(root, rel), "utf8");
+  let content;
+  try {
+    content = readFileSync(join(root, rel), "utf8");
+  } catch {
+    continue;
+  }
   for (const risk of HONESTY_UI_PATTERNS) {
     if (risk.pattern.test(content)) {
       fail(`Honesty UI ${rel}`, `Unverified claim: ${risk.label}`);
@@ -138,7 +178,13 @@ try {
 // ── Honesty (marketing scan) ──
 const marketingFiles = ["src/lib/trust.ts", "src/app/page.tsx"];
 for (const rel of marketingFiles) {
-  const content = readFileSync(join(root, rel), "utf8");
+  let content;
+  try {
+    content = readFileSync(join(root, rel), "utf8");
+  } catch {
+    warn(`Honesty ${rel}`, "File missing");
+    continue;
+  }
   for (const risk of HONESTY_RISKS) {
     if (risk.pattern.test(content)) {
       warn(`Honesty ${rel}`, `Review claim: "${risk.label}"`);
@@ -149,10 +195,18 @@ pass("Honesty scan", "Marketing files checked for overclaims");
 
 // ── Reliability (live health if server up) ──
 try {
-  const health = await fetchWithTimeout("/api/health");
+  const adminKey = process.env.ORVIUS_ADMIN_KEY?.trim();
+  const health = await fetchWithTimeout("/api/health", {
+    headers: adminKey ? { "x-orvius-admin-key": adminKey } : undefined,
+  });
   if (health.ok) {
     const json = await health.json();
-    if (json.configured) {
+    if (json.configured === undefined && json.ok) {
+      warn(
+        "Reliability live",
+        "Health is production-locked — pass ORVIUS_ADMIN_KEY for detailed SMS/config checks",
+      );
+    } else if (json.configured) {
       pass("Reliability config", "Twilio + Vapi credentials present");
     } else {
       fail("Reliability config", "Missing Twilio or Vapi credentials");
@@ -161,7 +215,7 @@ try {
       fail("Reliability SMS", "Owner phone equals Twilio line — alerts will not reach cell");
     } else if (json.ownerSmsReachable) {
       pass("Reliability SMS", "Owner SMS path reachable");
-    } else {
+    } else if (json.configured !== undefined) {
       warn("Reliability SMS", "Owner SMS not fully configured");
     }
   }

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AttentionQueue } from "@/components/attention-queue";
 import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
+import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
@@ -89,6 +90,10 @@ export function Ring1CommandCenter() {
       <AttentionQueue items={attention} loading={loading} />
 
       <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
+
+      {!loading && data?.outcomes ? (
+        <ProEconomicsPanel outcomes={data.outcomes} />
+      ) : null}
 
       <ProTodayAlerts
         health={data?.health ?? null}
