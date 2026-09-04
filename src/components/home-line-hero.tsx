@@ -15,11 +15,8 @@ export function HomeLineHero() {
       <div className="editorial-wrap mkt-hero-grid">
         <div className="mkt-hero-copy">
           <div className="mkt-hero-brand">
-            <OrviusLogo variant="chalk" size="lg" markOnly className="mkt-hero-brand-mark" />
-            <div className="mkt-hero-brand-text">
-              <p className="mkt-hero-brand-name type-wordmark">{company.productName}</p>
-              <p className="mkt-hero-brand-sub font-sans">AI OS for the trades</p>
-            </div>
+            <OrviusLogo variant="chalk" size="xl" className="mkt-hero-brand-lockup" />
+            <p className="mkt-hero-brand-sub font-sans">AI OS for the trades</p>
           </div>
 
           <p className="mkt-eyebrow font-sans">

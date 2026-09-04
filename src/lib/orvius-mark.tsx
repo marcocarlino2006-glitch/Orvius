@@ -1,7 +1,6 @@
 /**
- * Orvius mark — the circle.
- * Oracle/Grok energy: one perfect bold O that never leaves the logo.
- * Geometry tuned for favicon → nav → hero. No chrome, no cutouts.
+ * Orvius mark — twin-orbit O (X.com construction: mark alone + O-substitute).
+ * Two intentional rails with counter-cut signal gaps. Reads as O at favicon size.
  */
 
 export type OrviusMarkSvgProps = {
@@ -9,7 +8,11 @@ export type OrviusMarkSvgProps = {
   size?: number;
 };
 
-/** Perfect ring: outer R=14, stroke≈6.5 → Oracle-weight O in a 32 box. */
+/**
+ * Twin-rail O in a 32 box.
+ * Outer orbit + inner orbit = signature “two lines.”
+ * Gaps sit opposite each other (signal out / signal in) — call-loop metaphor.
+ */
 export function OrviusMarkSvg({
   className = "",
   size,
@@ -24,15 +27,31 @@ export function OrviusMarkSvg({
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      {/*
-        Dual-path evenodd ring reads sharper at tiny sizes than stroke-only.
-        Outer diameter fills the box; inner hole keeps the O open and bold.
-      */}
-      <path
-        className="orvius-mark-o"
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M16 1.25C7.853 1.25 1.25 7.853 1.25 16S7.853 30.75 16 30.75 30.75 24.147 30.75 16 24.147 1.25 16 1.25Zm0 8.1a6.65 6.65 0 1 0 0 13.3 6.65 6.65 0 0 0 0-13.3Z"
+      {/* Rail 1 — outer orbit (gap NE) */}
+      <circle
+        className="orvius-mark-rail orvius-mark-rail-outer"
+        cx="16"
+        cy="16"
+        r="13.15"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.85"
+        strokeLinecap="round"
+        strokeDasharray="68.5 14.1"
+        strokeDashoffset="10"
+      />
+      {/* Rail 2 — inner orbit (gap SW, counter to outer) */}
+      <circle
+        className="orvius-mark-rail orvius-mark-rail-inner"
+        cx="16"
+        cy="16"
+        r="7.05"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.45"
+        strokeLinecap="round"
+        strokeDasharray="35.2 9.1"
+        strokeDashoffset="28"
       />
     </svg>
   );

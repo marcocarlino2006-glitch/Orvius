@@ -9,7 +9,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Standalone circle mark — favicons, avatars, compact chrome. */
+/** Standalone dual-rail O — favicons, avatars, compact chrome (line 1). */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -23,33 +23,49 @@ type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
   /**
-   * Circle + wordmark is the locked brand lockup (default).
-   * Pass true only for rare text-only contexts.
+   * Wordmark only without the substituted O mark.
+   * Prefer default integrated lockup.
    */
   wordmarkOnly?: boolean;
-  /** Circle alone — no wordmark. */
+  /** Dual-rail O alone — no RVIUS letters. */
   markOnly?: boolean;
+  /**
+   * When true (default), mark replaces the letter O → [O]RVIUS.
+   * When false with show mark, mark sits beside full ORVIUS (legacy).
+   */
+  integrateO?: boolean;
   className?: string;
 };
 
 /**
- * Official lockup: Oracle/Grok-style circle always beside ORVIUS.
- * The circle stays. Do not strip it in product or marketing chrome.
+ * Official lockups (X.com pattern — two lines):
+ * 1) Mark alone — dual-rail O
+ * 2) Integrated wordmark — mark substitutes the O in ORVIUS
  */
 export function OrviusLogo({
   size = "md",
   variant = "chalk",
   wordmarkOnly = false,
   markOnly = false,
+  integrateO = true,
   className = "",
 }: OrviusLogoProps) {
   const tokens = logoSizes[size];
   const showMark = markOnly || !wordmarkOnly;
   const showWordmark = !markOnly;
+  const integrated = showMark && showWordmark && integrateO && !wordmarkOnly;
 
   return (
     <span
-      className={`orvius-logo orvius-logo-${size} orvius-logo-${variant} ${className}`}
+      className={[
+        "orvius-logo",
+        `orvius-logo-${size}`,
+        `orvius-logo-${variant}`,
+        integrated ? "orvius-logo--integrated" : "",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       aria-label={brandWordmark}
       style={
         {
@@ -69,7 +85,13 @@ export function OrviusLogo({
         </span>
       ) : null}
       {showWordmark ? (
-        <span className="orvius-logo-wordmark type-wordmark">{brandWordmark}</span>
+        <span className="orvius-logo-wordmark type-wordmark">
+          {integrated ? (
+            <span className="orvius-logo-rest">RVIUS</span>
+          ) : (
+            brandWordmark
+          )}
+        </span>
       ) : null}
     </span>
   );
