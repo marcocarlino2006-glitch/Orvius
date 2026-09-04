@@ -1,39 +1,39 @@
 @import "tailwindcss";
 
 /*
-  Orvius — Cursor-tier editorial system.
-  Warm cream canvas · warm ink · orange accent sparingly.
+  Orvius — shop command system.
+  Cool paper · graphite ink · copper signal. Not Cursor cream/orange.
 */
 
 :root {
-  /* Canvas */
-  --canvas: #f7f7f4;
-  --chalk: #f7f7f4;
-  --fog: #f2f1ed;
-  --warm-close: #f7f7f4;
+  /* Canvas — cool industrial paper */
+  --canvas: #f1f3f6;
+  --chalk: #f1f3f6;
+  --fog: #e8ecf1;
+  --warm-close: #f1f3f6;
   --white: #ffffff;
 
-  /* Ink */
-  --void: #26251e;
-  --void-deep: #1e1d18;
-  --panel: #26251e;
-  --mist: #ebeae5;
+  /* Ink — graphite */
+  --void: #0c1016;
+  --void-deep: #070a0e;
+  --panel: #12171f;
+  --mist: #dde3ea;
 
   /* Neutrals */
-  --ash: #6b6a64;
-  --ash-soft: #8a8983;
-  --rule: #e6e5e0;
-  --hairline: #e6e5e0;
-  --rule-dark: rgba(38, 37, 30, 0.12);
+  --ash: #5c6570;
+  --ash-soft: #7a8490;
+  --rule: #d5dbe3;
+  --hairline: #d5dbe3;
+  --rule-dark: rgba(12, 16, 22, 0.12);
 
-  /* Accent — Cursor orange, live line only */
-  --signal: #f54e00;
-  --signal-hot: #ff5c0d;
-  --signal-dim: #e04600;
+  /* Accent — copper (trades metal), used sparingly */
+  --signal: #c4783a;
+  --signal-hot: #d4894a;
+  --signal-dim: #a8642e;
 
   /* Success / recovered revenue */
-  --live: #1f9d68;
-  --live-soft: #2eb578;
+  --live: #1a9b6e;
+  --live-soft: #22b07e;
 
   /* Emergency */
   --flare: #ef4444;
@@ -53,13 +53,13 @@
   --border: var(--hairline);
   --success: var(--live);
 
-  --shadow-soft: 0 1px 2px rgba(38, 37, 30, 0.04), 0 8px 24px rgba(38, 37, 30, 0.05);
-  --shadow-lift: 0 2px 4px rgba(38, 37, 30, 0.06), 0 16px 40px rgba(38, 37, 30, 0.07);
+  --shadow-soft: 0 1px 2px rgba(12, 16, 22, 0.04), 0 8px 24px rgba(12, 16, 22, 0.05);
+  --shadow-lift: 0 2px 4px rgba(12, 16, 22, 0.06), 0 16px 40px rgba(12, 16, 22, 0.07);
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.625rem;
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.625rem;
   --radius-pill: 9999px;
 
   /* Typography scale */
@@ -68,13 +68,13 @@
   --text-body: 1rem;
   --text-lead: 1.0625rem;
   --text-title: 1.125rem;
-  --tracking-tight: -0.035em;
-  --tracking-snug: -0.02em;
+  --tracking-tight: -0.03em;
+  --tracking-snug: -0.018em;
   --tracking-normal: 0;
   --tracking-wide: 0.06em;
-  --tracking-brand: 0.14em;
-  --leading-tight: 1.1;
-  --leading-snug: 1.35;
+  --tracking-brand: 0.1em;
+  --leading-tight: 1.08;
+  --leading-snug: 1.32;
   --leading-normal: 1.55;
   --leading-relaxed: 1.65;
 
@@ -92,7 +92,7 @@
   --space-20: 5rem;
   --section-y: clamp(4.5rem, 9vh, 6.5rem);
   --content-gap: var(--space-6);
-  --kicker-tracking: -0.01em;
+  --kicker-tracking: 0.04em;
 }
 
 @theme inline {
@@ -126,7 +126,7 @@
   --color-success: var(--success);
   --font-sans: var(--font-sans);
   --font-brand: var(--font-brand);
-  --font-display: var(--font-sans);
+  --font-display: var(--font-brand);
 }
 
 * {
@@ -5917,9 +5917,9 @@ h3 {
 }
 
 .os-sidebar-pro .os-nav-link-active {
-  background: linear-gradient(135deg, var(--signal) 0%, var(--signal-dim) 100%);
-  color: var(--white);
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--signal) 22%, transparent);
+  background: color-mix(in srgb, var(--signal) 16%, transparent);
+  color: #f4f6f8;
+  box-shadow: inset 3px 0 0 var(--signal);
 }
 
 .os-sidebar-pro .os-nav-badge {
@@ -13824,15 +13824,12 @@ h3 {
   --mkt-ink: var(--void);
   --mkt-muted: var(--ash);
   --mkt-surface: var(--white);
-  --mkt-inset: #f2f1ed;
-  --mkt-dark: #141310;
-  --mkt-dark-elevated: #1c1b17;
+  --mkt-inset: var(--fog);
+  --mkt-dark: var(--void-deep);
+  --mkt-dark-elevated: var(--panel);
   --mkt-dark-border: rgba(255, 255, 255, 0.08);
   --mkt-dark-muted: rgba(255, 255, 255, 0.62);
-  background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, color-mix(in srgb, var(--signal) 7%, transparent), transparent 58%),
-    radial-gradient(ellipse 50% 40% at 100% 12%, color-mix(in srgb, var(--void) 4%, transparent), transparent 55%),
-    var(--canvas);
+  background: var(--canvas);
   color: var(--mkt-ink);
   min-height: 100vh;
 }
@@ -13845,9 +13842,9 @@ h3 {
   z-index: 50;
   isolation: isolate;
   border-bottom: 1px solid transparent;
-  background: color-mix(in srgb, var(--canvas) 72%, transparent);
-  backdrop-filter: blur(0px) saturate(100%);
-  -webkit-backdrop-filter: blur(0px) saturate(100%);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition:
     background 280ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -13862,23 +13859,23 @@ h3 {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    color-mix(in srgb, var(--void) 14%, transparent) 18%,
-    color-mix(in srgb, var(--void) 22%, transparent) 50%,
-    color-mix(in srgb, var(--void) 14%, transparent) 82%,
+    color-mix(in srgb, #fff 14%, transparent) 18%,
+    color-mix(in srgb, #fff 22%, transparent) 50%,
+    color-mix(in srgb, #fff 14%, transparent) 82%,
     transparent 100%
   );
-  opacity: 0.55;
+  opacity: 0.35;
   pointer-events: none;
 }
 
 .mkt-nav--elevated {
-  background: color-mix(in srgb, var(--canvas) 86%, transparent);
+  background: color-mix(in srgb, var(--canvas) 92%, transparent);
   border-bottom-color: color-mix(in srgb, var(--void) 10%, transparent);
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--void) 4%, transparent),
-    0 12px 40px -28px color-mix(in srgb, var(--void) 35%, transparent);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+    0 12px 40px -28px color-mix(in srgb, var(--void) 28%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .mkt-nav--elevated .mkt-nav-rail {
@@ -13893,14 +13890,14 @@ h3 {
   gap: 1.75rem;
   max-width: 74rem;
   margin-inline: auto;
-  min-height: 4.75rem;
-  padding: 1rem clamp(1.25rem, 4vw, 2.75rem);
+  min-height: 4.25rem;
+  padding: 0.85rem clamp(1.25rem, 4vw, 2.75rem);
 }
 
 @media (min-width: 960px) {
   .mkt-nav-inner {
-    min-height: 5.25rem;
-    padding-block: 1.15rem;
+    min-height: 4.5rem;
+    padding-block: 0.95rem;
   }
 }
 
@@ -13916,9 +13913,16 @@ h3 {
 }
 
 .mkt-nav-brand .orvius-logo-wordmark {
-  font-size: 1.55rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.2em !important;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo-wordmark {
+  color: #f4f6f8 !important;
+}
+
+.mkt-nav--elevated .mkt-nav-brand .orvius-logo-wordmark {
   color: var(--void) !important;
 }
 
@@ -13927,17 +13931,17 @@ h3 {
 }
 
 .mkt-nav-brand .orvius-logo--integrated {
-  gap: 0.1em;
+  gap: 0.08em;
 }
 
 .mkt-nav-brand .orvius-logo-mark-wrap {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
 }
 
 .mkt-nav-brand .orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(1.55rem * 1.08);
-  height: calc(1.55rem * 1.08);
+  width: calc(1.35rem * 1.02);
+  height: calc(1.35rem * 1.02);
 }
 
 @media (max-width: 480px) {
@@ -13969,8 +13973,47 @@ h3 {
   color: color-mix(in srgb, var(--void) 62%, transparent);
   text-decoration: none;
   padding: 0.55rem 0.95rem;
-  border-radius: 0.5rem;
+  border-radius: 0.35rem;
   transition: color 160ms ease, background 160ms ease;
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-links a {
+  color: color-mix(in srgb, #f4f6f8 72%, transparent);
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-links a:hover {
+  color: #f4f6f8;
+  background: color-mix(in srgb, #fff 8%, transparent);
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-login {
+  color: color-mix(in srgb, #f4f6f8 72%, transparent);
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-login:hover {
+  color: #f4f6f8;
+  background: color-mix(in srgb, #fff 8%, transparent);
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-secondary {
+  color: #f4f6f8;
+  border-color: color-mix(in srgb, #f4f6f8 28%, transparent);
+  background: transparent;
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta {
+  background: var(--signal) !important;
+  color: var(--void-deep) !important;
+  box-shadow: none;
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-toggle {
+  border-color: color-mix(in srgb, #f4f6f8 28%, transparent);
+  color: #f4f6f8;
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-icon span {
+  background: #f4f6f8;
 }
 
 .mkt-nav-links a::after {
@@ -14051,25 +14094,18 @@ h3 {
 }
 
 .mkt-nav-cta {
-  padding: 0.72rem 1.2rem !important;
+  padding: 0.65rem 1.1rem !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
   letter-spacing: -0.01em;
-  border-radius: 0.65rem !important;
-  box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 12%, transparent) inset,
-    0 8px 20px -12px color-mix(in srgb, var(--void) 55%, transparent);
+  border-radius: 0.35rem !important;
+  box-shadow: none;
   color: #fff !important;
-  transition:
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 180ms ease;
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .mkt-nav-cta:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 14%, transparent) inset,
-    0 14px 28px -14px color-mix(in srgb, var(--void) 60%, transparent);
+  transform: none;
 }
 
 .mkt-nav-menu-toggle {
@@ -14408,252 +14444,200 @@ h3 {
   border-bottom-color: color-mix(in srgb, var(--signal) 45%, transparent);
 }
 
-/* ── Hero (boundary depth) ── */
+/* ── Hero — full-bleed command plane ── */
 
-.mkt-hero-split {
+.mkt-hero--command {
   position: relative;
-  overflow: hidden;
-  padding-block: clamp(3.75rem, 9vh, 6.25rem) clamp(4rem, 9vh, 6.5rem);
-}
-
-.mkt-hero--depth {
   isolation: isolate;
+  min-height: min(92vh, 54rem);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  padding: 0;
+  background: var(--void-deep);
 }
 
-.mkt-hero-wash {
+.mkt-hero-plane {
   position: absolute;
   inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.mkt-hero-plane .mkt-product {
+  height: 100%;
+  min-height: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  animation: none;
+  transform: none;
+}
+
+.mkt-hero-plane .mkt-product-chrome {
+  display: none;
+}
+
+.mkt-hero-plane .mkt-product-shell {
+  min-height: 100%;
+  height: 100%;
+}
+
+.mkt-hero-plane .mkt-product-live-os {
+  transform: scale(1.02);
+  transform-origin: center center;
+}
+
+.mkt-hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
   background:
-    radial-gradient(ellipse 60% 55% at 8% 0%, rgba(255, 255, 255, 0.95), transparent 62%),
-    radial-gradient(ellipse 45% 50% at 92% 18%, color-mix(in srgb, var(--signal) 9%, transparent), transparent 68%),
-    radial-gradient(ellipse 35% 40% at 55% 100%, color-mix(in srgb, var(--void) 4%, transparent), transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+    linear-gradient(
+      105deg,
+      color-mix(in srgb, var(--void-deep) 92%, transparent) 0%,
+      color-mix(in srgb, var(--void-deep) 72%, transparent) 38%,
+      color-mix(in srgb, var(--void-deep) 28%, transparent) 68%,
+      color-mix(in srgb, var(--void-deep) 45%, transparent) 100%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--void-deep) 35%, transparent) 0%,
+      transparent 28%,
+      color-mix(in srgb, var(--void-deep) 55%, transparent) 100%
+    );
 }
 
-.mkt-hero-gridline {
+.mkt-hero-scan {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--void) 4.5%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--void) 4.5%, transparent) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(ellipse 75% 70% at 50% 30%, #000 20%, transparent 75%);
-  opacity: 0.55;
+  z-index: 1;
   pointer-events: none;
-  z-index: 0;
-}
-
-.mkt-hero-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(48px);
-  pointer-events: none;
-  z-index: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--signal) 6%, transparent) 48%,
+    transparent 52%
+  );
+  background-size: 100% 220%;
+  animation: mkt-scan 7.5s ease-in-out infinite;
   opacity: 0.55;
+  mix-blend-mode: soft-light;
 }
 
-.mkt-hero-orb--a {
-  width: min(38vw, 28rem);
-  height: min(38vw, 28rem);
-  top: -8%;
-  right: 8%;
-  background: color-mix(in srgb, var(--signal) 28%, transparent);
-  animation: mkt-orb-drift 14s ease-in-out infinite;
-}
-
-.mkt-hero-orb--b {
-  width: min(28vw, 18rem);
-  height: min(28vw, 18rem);
-  bottom: 4%;
-  left: 4%;
-  background: color-mix(in srgb, var(--void) 10%, transparent);
-  animation: mkt-orb-drift 18s ease-in-out infinite reverse;
-}
-
-@keyframes mkt-orb-drift {
+@keyframes mkt-scan {
   0%,
   100% {
-    transform: translate3d(0, 0, 0) scale(1);
+    background-position: 0 0%;
   }
   50% {
-    transform: translate3d(2%, 3%, 0) scale(1.06);
+    background-position: 0 100%;
   }
 }
 
-.mkt-hero-grid {
+.mkt-hero-content {
   position: relative;
-  z-index: 1;
-  display: grid;
-  gap: clamp(2.25rem, 4.5vw, 3.5rem);
-  align-items: center;
-}
-
-@media (min-width: 980px) {
-  .mkt-hero-grid {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    gap: 3.25rem;
-  }
-}
-
-.mkt-hero-copy {
-  animation: mkt-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
-  max-width: 36rem;
-}
-
-.mkt-hero-brand {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.55rem;
-  margin-bottom: 1.35rem;
-  animation: mkt-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  z-index: 2;
+  width: 100%;
+  max-width: 42rem;
+  padding-block: clamp(5.5rem, 14vh, 8.5rem) clamp(3.5rem, 8vh, 5.5rem);
+  animation: mkt-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .mkt-hero-brand-lockup {
-  --logo-wordmark-size: clamp(1.65rem, 3vw, 2.15rem) !important;
-  --logo-wordmark-tracking: 0.2em !important;
+  --logo-wordmark-size: clamp(2.4rem, 5.5vw, 3.35rem) !important;
+  --logo-wordmark-tracking: 0.11em !important;
+  color: #f4f6f8 !important;
+  margin-bottom: 1.75rem;
 }
 
 .mkt-hero-brand-lockup.orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(var(--logo-wordmark-size, 2rem) * 1.08);
-  height: calc(var(--logo-wordmark-size, 2rem) * 1.08);
-}
-
-.mkt-hero-brand-sub {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--void) 55%, transparent);
-}
-
-.mkt-hero-editorial {
-  padding-block: clamp(5rem, 12vh, 8.5rem) clamp(4rem, 8vh, 6rem);
-}
-
-.mkt-hero-stack {
-  max-width: 42rem;
-  margin-bottom: clamp(3rem, 6vw, 4.5rem);
-  animation: mkt-rise 0.7s ease both;
-}
-
-.mkt-hero-inner {
-  display: block;
+  width: calc(var(--logo-wordmark-size, 2.4rem) * 1.02);
+  height: calc(var(--logo-wordmark-size, 2.4rem) * 1.02);
 }
 
 .mkt-hero-title {
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.55rem, 5.2vw, 4.05rem);
-  font-weight: 650;
-  line-height: 1.02;
-  letter-spacing: -0.048em;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
   text-transform: none;
-  color: var(--void);
+  color: #e8ecf1;
   margin: 0;
-  max-width: 11ch;
+  max-width: 16ch;
 }
 
 .mkt-hero-lead {
-  margin: 1.35rem 0 0;
-  max-width: 44ch;
-  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
-  line-height: 1.65;
-  color: var(--ash);
+  margin: 1.1rem 0 0;
+  max-width: 38ch;
+  font-size: clamp(0.98rem, 1.2vw, 1.08rem);
+  line-height: 1.55;
+  color: color-mix(in srgb, #e8ecf1 72%, transparent);
 }
 
 .mkt-hero-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.8rem 0.95rem;
-  margin-top: 2rem;
+  gap: 0.75rem 0.85rem;
+  margin-top: 1.85rem;
 }
 
 .mkt-btn-hero {
-  border-radius: 0.75rem !important;
-  padding: 0.9rem 1.35rem !important;
-  font-size: 0.9375rem !important;
+  border-radius: 0.35rem !important;
+  padding: 0.85rem 1.25rem !important;
+  font-size: 0.9rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   transition:
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 200ms ease,
-    background 160ms ease;
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
-.mkt-btn-ink.mkt-btn-hero {
-  box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 12%, transparent) inset,
-    0 14px 32px -16px color-mix(in srgb, var(--void) 55%, transparent);
+.mkt-btn-copper {
+  background: var(--signal);
+  color: var(--void-deep);
+  border: 1px solid color-mix(in srgb, var(--signal-hot) 40%, transparent);
 }
 
-.mkt-btn-ink.mkt-btn-hero:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 14%, transparent) inset,
-    0 22px 40px -18px color-mix(in srgb, var(--void) 58%, transparent);
+.mkt-btn-copper:hover {
+  background: var(--signal-hot);
+  color: var(--void-deep);
 }
 
-.mkt-btn-ghost.mkt-btn-hero {
-  border: 1px solid color-mix(in srgb, var(--void) 16%, transparent);
-  background: color-mix(in srgb, var(--canvas) 70%, transparent);
-  backdrop-filter: blur(8px);
+.mkt-btn-ghost-light {
+  background: transparent;
+  color: #e8ecf1;
+  border: 1px solid color-mix(in srgb, #e8ecf1 28%, transparent);
 }
 
-.mkt-btn-ghost.mkt-btn-hero:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--void) 28%, transparent);
-  background: #fff;
+.mkt-btn-ghost-light:hover {
+  border-color: color-mix(in srgb, #e8ecf1 55%, transparent);
+  background: color-mix(in srgb, #fff 6%, transparent);
 }
 
-.mkt-hero-stage {
-  position: relative;
-  animation: mkt-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
-}
-
+/* Legacy split hero (unused) kept inert */
+.mkt-hero-split,
+.mkt-hero--depth,
+.mkt-hero-wash,
+.mkt-hero-gridline,
+.mkt-hero-orb,
 .mkt-hero-stage-glow {
-  position: absolute;
-  inset: 12% -6% -10% -6%;
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--signal) 22%, transparent),
-    transparent 68%
-  );
-  filter: blur(28px);
-  pointer-events: none;
-  z-index: 0;
-  animation: mkt-stage-breathe 5.5s ease-in-out infinite;
+  /* superseded by mkt-hero--command */
 }
 
-@keyframes mkt-stage-breathe {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.85;
-    transform: scale(1.04);
-  }
-}
-
-.mkt-hero-stage .mkt-product {
+.mkt-hero-split:not(.mkt-hero--command) {
   position: relative;
-  z-index: 1;
-}
-
-.mkt-hero-signal,
-.mkt-phone-signal {
-  display: none;
+  overflow: hidden;
+  padding-block: clamp(3.75rem, 9vh, 6.25rem) clamp(4rem, 9vh, 6.5rem);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mkt-hero-orb,
-  .mkt-hero-stage-glow,
-  .mkt-hero-copy,
-  .mkt-hero-brand,
-  .mkt-hero-stage {
+  .mkt-hero-scan,
+  .mkt-hero-content {
     animation: none !important;
   }
 }
@@ -14662,17 +14646,13 @@ h3 {
 
 .mkt-product-rich {
   overflow: hidden;
-  border-radius: 1rem;
-  background: linear-gradient(165deg, #23221d 0%, #0f0e0c 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.45),
-    0 40px 90px rgba(20, 19, 16, 0.38),
-    0 16px 36px rgba(20, 19, 16, 0.22),
-    0 0 0 1px color-mix(in srgb, var(--signal) 8%, transparent);
-  animation: mkt-product-float 7s ease-in-out infinite;
+  border-radius: 0;
+  background: linear-gradient(165deg, #161b24 0%, #0a0d12 100%);
+  border: none;
+  box-shadow: none;
+  animation: none;
   min-height: 28rem;
-  transform-origin: center bottom;
+  transform: none;
 }
 
 @keyframes mkt-product-float {

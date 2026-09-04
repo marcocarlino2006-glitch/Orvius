@@ -54,7 +54,7 @@ export function PremiumNav() {
             className="mkt-nav-brand"
             onClick={() => setMenuOpen(false)}
           >
-            <OrviusLogo variant="chalk" size="xl" />
+            <OrviusLogo variant={scrolled ? "void" : "chalk"} size="lg" />
           </Link>
 
           <nav className="mkt-nav-links" aria-label="Main">
@@ -74,7 +74,7 @@ export function PremiumNav() {
             </Link>
             <Link
               href="/pilot"
-              className="mkt-btn mkt-btn-ink mkt-nav-cta"
+              className="mkt-btn mkt-btn-copper mkt-nav-cta"
             >
               Try Orvius
             </Link>

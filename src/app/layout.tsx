@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { Orbitron, Sora } from "next/font/google";
+import { Barlow_Condensed, IBM_Plex_Sans } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
 import "./globals.css";
 
-const sans = Sora({
+const sans = IBM_Plex_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const brand = Orbitron({
+const brand = Barlow_Condensed({
   variable: "--font-brand",
   subsets: ["latin"],
-  weight: ["600", "700", "800", "900"],
+  weight: ["600", "700"],
   display: "swap",
 });
 

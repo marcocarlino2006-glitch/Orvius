@@ -1,4 +1,4 @@
-/** Brand typography — Orbitron wordmark + twin-orbit O (substitutes the letter). */
+/** Brand typography — condensed industrial wordmark + twin-orbit O. */
 
 export const brandWordmark = "Orvius";
 
@@ -9,18 +9,17 @@ export const typeScale = {
   lead: "1.0625rem",
   title: "1.125rem",
   headline: "clamp(1.75rem, 3.2vw, 2.5rem)",
-  display: "clamp(2.75rem, 5.5vw, 4.25rem)",
+  display: "clamp(2.35rem, 4.2vw, 3.25rem)",
 } as const;
 
 /**
- * Two logo lines (X.com pattern):
+ * Two logo lines:
  * 1) Mark alone — dual-rail O
  * 2) Integrated — mark replaces O → [O]RVIUS
- * Mark size tracks capital height of the wordmark.
  */
 export const logoSizes = {
-  sm: { mark: 22, wordmark: "1rem", tracking: "0.16em" },
-  md: { mark: 26, wordmark: "1.125rem", tracking: "0.18em" },
-  lg: { mark: 32, wordmark: "1.35rem", tracking: "0.2em" },
-  xl: { mark: 40, wordmark: "1.55rem", tracking: "0.22em" },
+  sm: { mark: 22, wordmark: "1.05rem", tracking: "0.08em" },
+  md: { mark: 28, wordmark: "1.25rem", tracking: "0.09em" },
+  lg: { mark: 36, wordmark: "1.55rem", tracking: "0.1em" },
+  xl: { mark: 52, wordmark: "2.35rem", tracking: "0.11em" },
 } as const;

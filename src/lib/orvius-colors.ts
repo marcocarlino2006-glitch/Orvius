@@ -1,29 +1,29 @@
 /**
- * Orvius Chromatics — Cursor-tier warm editorial system.
- * Cream canvas · warm ink · orange accent used sparingly.
+ * Orvius Chromatics — shop command system.
+ * Cool paper · graphite ink · copper signal (trades metal, not Cursor orange).
  */
 export const orviusColors = {
-  canvas: "#F7F7F4",
-  surface: "#F2F1ED",
-  surfaceAlt: "#EBEAE5",
-  void: "#26251E",
-  voidDeep: "#1E1D18",
-  panel: "#26251E",
-  mist: "#EBEAE5",
-  chalk: "#F7F7F4",
-  fog: "#EBEAE5",
-  ash: "#6B6A64",
-  ashSoft: "#8A8983",
-  rule: "#E6E5E0",
-  hairline: "#E6E5E0",
-  signal: "#F54E00",
-  signalHot: "#FF5C0D",
-  signalDim: "#E04600",
+  canvas: "#F1F3F6",
+  surface: "#E8ECF1",
+  surfaceAlt: "#DDE3EA",
+  void: "#0C1016",
+  voidDeep: "#070A0E",
+  panel: "#12171F",
+  mist: "#DDE3EA",
+  chalk: "#F1F3F6",
+  fog: "#E8ECF1",
+  ash: "#5C6570",
+  ashSoft: "#7A8490",
+  rule: "#D5DBE3",
+  hairline: "#D5DBE3",
+  signal: "#C4783A",
+  signalHot: "#D4894A",
+  signalDim: "#A8642E",
   flare: "#CF2D56",
   flareHot: "#E03D66",
   flareDim: "#B82548",
-  live: "#1F9D68",
-  liveSoft: "#2EB578",
+  live: "#1A9B6E",
+  liveSoft: "#22B07E",
   white: "#FFFFFF",
 } as const;
 
