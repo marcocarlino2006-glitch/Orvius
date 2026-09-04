@@ -4,6 +4,11 @@ import { OsShell } from "@/components/os-shell";
 import { LiveStatusBar } from "@/components/live-status-bar";
 import { FormField, ShellBadge } from "@/components/shell-primitives";
 import { AdminSkeleton, SkeletonBar } from "@/components/shell-skeleton";
+import {
+  fillOutreachTemplate,
+  outreachTemplates,
+} from "@/lib/outreach-templates";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Business = {
@@ -92,8 +97,10 @@ export default function AdminPage() {
   const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
   const [dueTodayCount, setDueTodayCount] = useState(0);
   const [overdueCount, setOverdueCount] = useState(0);
+  const [touchesTodayCount, setTouchesTodayCount] = useState(0);
   const [dailyTarget, setDailyTarget] = useState(20);
   const [prospectError, setProspectError] = useState<string | null>(null);
+  const [copyNote, setCopyNote] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     ownerPhone: "",
@@ -112,6 +119,7 @@ export default function AdminPage() {
       setProspectCounts(data.byStatus ?? {});
       setDueTodayCount(data.dueTodayCount ?? 0);
       setOverdueCount(data.overdueCount ?? 0);
+      setTouchesTodayCount(data.touchesTodayCount ?? 0);
       setDailyTarget(data.dailyTarget ?? 20);
     } catch {
       setProspectError("Could not load prospect pipeline");
@@ -276,13 +284,18 @@ export default function AdminPage() {
               Prospect pipeline
             </h2>
             <p className="mt-2 font-sans text-sm text-ash">
-              Waitlist → contacted → demoed → onboarded → live. Daily target:{" "}
-              {dailyTarget} touches. Due today: {dueTodayCount}
-              {overdueCount > 0 ? ` · Overdue: ${overdueCount}` : ""}.
+              Due-first board. Daily target {dailyTarget} touches · done today{" "}
+              {touchesTodayCount}
+              {overdueCount > 0 ? ` · Overdue ${overdueCount}` : ""}
+              {dueTodayCount > 0 ? ` · Due today ${dueTodayCount}` : ""}.
             </p>
           </div>
-          <ShellBadge tone={dueTodayCount + overdueCount > 0 ? "flare" : "live"}>
-            {dueTodayCount + overdueCount} due
+          <ShellBadge
+            tone={
+              overdueCount > 0 || touchesTodayCount < dailyTarget ? "flare" : "live"
+            }
+          >
+            {touchesTodayCount}/{dailyTarget} touches
           </ShellBadge>
         </div>
         <div className="mt-4 flex flex-wrap gap-2 font-sans text-xs text-ash">
@@ -292,17 +305,67 @@ export default function AdminPage() {
             </span>
           ))}
         </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {outreachTemplates.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className="btn btn-secondary text-xs"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(t.body);
+                  setCopyNote(`Copied ${t.label}`);
+                } catch {
+                  setCopyNote("Could not copy");
+                }
+              }}
+            >
+              Copy {t.label}
+            </button>
+          ))}
+          <Link href="/pilot" className="btn btn-secondary text-xs">
+            Pilot page
+          </Link>
+          <Link href="/demo" className="btn btn-secondary text-xs">
+            Demo
+          </Link>
+        </div>
+        {copyNote ? (
+          <p className="mt-2 font-sans text-xs text-live">{copyNote}</p>
+        ) : null}
         {prospectError ? (
           <p className="mt-3 font-sans text-sm text-flare-dim">{prospectError}</p>
         ) : null}
         {prospects.length === 0 ? (
-          <p className="mt-5 font-sans text-sm text-ash">
-            No signups yet. Pilot form and waitlist feed this board. Billion-dollar
-            cadence: 20+ owner conversations per day until the close is boring.
-          </p>
+          <div className="mt-5 font-sans text-sm text-ash space-y-3">
+            <p>
+              Pipeline empty — multi-b distribution is zero until you load owners.
+              Target: 20 touches/day from Google Maps, trade groups, warm intros.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/pilot" className="btn btn-void text-sm">
+                Open pilot form
+              </Link>
+              <Link href="/demo" className="btn btn-secondary text-sm">
+                Share demo
+              </Link>
+              <button
+                type="button"
+                className="btn btn-secondary text-sm"
+                onClick={async () => {
+                  const cold = outreachTemplates.find((t) => t.id === "cold_dm");
+                  if (!cold) return;
+                  await navigator.clipboard.writeText(cold.body);
+                  setCopyNote("Copied cold DM — paste into first outreach");
+                }}
+              >
+                Copy first outreach
+              </button>
+            </div>
+          </div>
         ) : (
           <ul className="mt-5 space-y-3">
-            {prospects.slice(0, 25).map((p) => (
+            {prospects.slice(0, 40).map((p) => (
               <li
                 key={p.id}
                 className="rounded-md border border-rule bg-fog/40 p-3 font-sans text-sm"
@@ -372,6 +435,27 @@ export default function AdminPage() {
                     }}
                   >
                     Follow up in 2h
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary text-xs"
+                    onClick={async () => {
+                      const body = fillOutreachTemplate(
+                        outreachTemplates.find((t) => t.id === "cold_dm")!.body,
+                        {
+                          name: p.businessName?.split(" ")[0],
+                          business: p.businessName ?? undefined,
+                        },
+                      );
+                      try {
+                        await navigator.clipboard.writeText(body);
+                        setCopyNote(`DM ready for ${p.businessName ?? p.email}`);
+                      } catch {
+                        setCopyNote("Could not copy");
+                      }
+                    }}
+                  >
+                    Copy DM
                   </button>
                 </div>
                 <input

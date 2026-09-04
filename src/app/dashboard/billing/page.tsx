@@ -194,29 +194,43 @@ export default function DashboardBillingPage() {
           ) : (
             <>
               <p className="font-sans text-sm leading-relaxed text-ash">
-                Self-serve checkout is not configured yet.{" "}
-                <Link href="/pilot" className="pro-section-link">
-                  Apply for the design partner program
-                </Link>{" "}
-                and we will send a checkout link after your trial.
+                Self-serve checkout is blocked until Stripe is configured. This is the
+                multi-b cash gate — close it before claiming category leadership.
               </p>
-              {account?.billing.readiness?.missing?.length ? (
-                <details className="mt-4 font-sans text-xs text-ash">
-                  <summary className="cursor-pointer">Stripe setup (founders)</summary>
-                  <ul className="mt-2 list-disc space-y-1 pl-4">
-                    {account.billing.readiness.missing.map((item) => (
-                      <li key={item}>
-                        <code>{item}</code>
-                      </li>
+              <div className="billing-unblock mt-5 font-sans">
+                <p className="billing-unblock-title">Founder unblock — ordered</p>
+                <ol className="billing-unblock-steps">
+                  {(account?.billing.readiness?.nextSteps?.length
+                    ? account.billing.readiness.nextSteps
+                    : [
+                        "Add STRIPE_SECRET_KEY on Vercel from Stripe Dashboard → API keys",
+                        "Run npm run stripe:setup locally, paste price IDs to Vercel",
+                        "Add webhook api.orvius.im/api/billing/webhook + STRIPE_WEBHOOK_SECRET",
+                        "Redeploy, then Subscribe on this page",
+                      ]
+                  ).map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+                {account?.billing.readiness?.missing?.length ? (
+                  <p className="mt-3 text-xs text-ash">
+                    Missing:{" "}
+                    {account.billing.readiness.missing.map((m) => (
+                      <code key={m} className="mr-1">
+                        {m}
+                      </code>
                     ))}
-                  </ul>
-                  <p className="mt-2">
-                    Add <code>STRIPE_SECRET_KEY</code> on Vercel, run{" "}
-                    <code>npm run stripe:setup</code>, then set price IDs + webhook.
-                    See docs/BILLING-SETUP.md.
                   </p>
-                </details>
-              ) : null}
+                ) : null}
+                <p className="mt-3 text-xs text-ash">
+                  Full runbook: <code>docs/BILLING-SETUP.md</code> in the repo.
+                  Design partners can still{" "}
+                  <Link href="/pilot" className="pro-section-link">
+                    apply for pilot
+                  </Link>
+                  .
+                </p>
+              </div>
             </>
           )}
         </ShellPanel>

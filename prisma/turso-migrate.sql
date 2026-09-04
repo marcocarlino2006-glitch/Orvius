@@ -142,5 +142,6 @@ ALTER TABLE "Business" ADD COLUMN "baselineJobsPerWeek" INTEGER;
 ALTER TABLE "WaitlistEntry" ADD COLUMN "notes" TEXT;
 ALTER TABLE "Business" ADD COLUMN "pilotEndsAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "lastWeeklyProofAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "founderCertJson" TEXT;
 ALTER TABLE "WaitlistEntry" ADD COLUMN "lastContactedAt" DATETIME;
 ALTER TABLE "WaitlistEntry" ADD COLUMN "nextActionAt" DATETIME;

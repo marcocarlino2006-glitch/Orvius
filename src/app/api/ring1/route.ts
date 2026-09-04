@@ -8,6 +8,7 @@ import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
 import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
+import { isStripeCheckoutConfigured } from "@/lib/stripe";
 
 function startOfToday() {
   const d = new Date();
@@ -114,11 +115,40 @@ export async function GET() {
 
   const line = getShopLineForBusiness(business);
 
+  let certDone = 0;
+  try {
+    const parsed = business.founderCertJson
+      ? (JSON.parse(business.founderCertJson) as boolean[])
+      : [];
+    if (Array.isArray(parsed)) certDone = parsed.filter(Boolean).length;
+  } catch {
+    certDone = 0;
+  }
+
+  const ends = business.pilotEndsAt
+    ? new Date(business.pilotEndsAt)
+    : new Date(new Date(business.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000);
+  const pilotDaysLeft = Math.ceil((ends.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  const proofAt = business.lastWeeklyProofAt;
+  const proofStale =
+    !proofAt || Date.now() - proofAt.getTime() > 7 * 24 * 60 * 60 * 1000;
+
   return NextResponse.json({
     business: {
       name: business.name,
       line,
       ownerPhone: business.ownerPhone,
+      billingStatus: business.billingStatus,
+      pilotEndsAt: business.pilotEndsAt?.toISOString() ?? null,
+    },
+    gates: {
+      certDone,
+      certTotal: 5,
+      certIncomplete: certDone < 5,
+      economicsReady: outcomes.economicsReady,
+      proofStale,
+      pilotDaysLeft,
+      checkoutReady: isStripeCheckoutConfigured(),
     },
     metrics: {
       callsToday,

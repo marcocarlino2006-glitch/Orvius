@@ -8,7 +8,11 @@ export type AttentionKind =
   | "overdue_followup"
   | "unassigned_job"
   | "appointment_at_risk"
-  | "available_tech";
+  | "available_tech"
+  | "missing_baseline"
+  | "stale_weekly_proof"
+  | "billing_action"
+  | "founder_cert";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -21,7 +25,7 @@ export type AttentionItem = {
   detail: string;
   recommendedAction: string;
   href: string;
-  entityType: "lead" | "job" | "technician";
+  entityType: "lead" | "job" | "technician" | "shop";
   entityId: string;
   createdAt: string;
   estimatedRevenueCents?: number | null;
@@ -34,12 +38,21 @@ export type AttentionItem = {
 };
 
 const FOLLOWUP_HOURS = 4;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function kindRank(kind: AttentionKind, urgency?: string | null): number {
   const emergency = isPriorityUrgency(urgency);
   switch (kind) {
+    case "billing_action":
+      return 5;
+    case "founder_cert":
+      return 8;
     case "urgent_lead":
       return emergency ? 10 : 20;
+    case "missing_baseline":
+      return 15;
+    case "stale_weekly_proof":
+      return 18;
     case "appointment_at_risk":
       return 30;
     case "unassigned_job":
@@ -93,13 +106,138 @@ export async function getAttentionQueue(
     listCrew(businessId),
     prisma.business.findUnique({
       where: { id: businessId },
-      select: { avgTicketCents: true },
+      select: {
+        avgTicketCents: true,
+        baselineMissedCallsPerWeek: true,
+        baselineJobsPerWeek: true,
+        lastWeeklyProofAt: true,
+        founderCertJson: true,
+        billingStatus: true,
+        pilotEndsAt: true,
+        createdAt: true,
+      },
     }),
   ]);
 
   const ticket = business?.avgTicketCents ?? null;
 
   const items: AttentionItem[] = [];
+
+  const status = (business?.billingStatus ?? "none").toLowerCase();
+  if (status === "past_due" || status === "canceled") {
+    items.push({
+      id: `billing_action:${businessId}`,
+      kind: "billing_action",
+      rank: kindRank("billing_action"),
+      impact: "critical",
+      title: status === "past_due" ? "Payment failed" : "Subscription canceled",
+      detail: "Shop access depends on an active plan.",
+      recommendedAction: "Open billing",
+      href: "/dashboard/billing",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  } else if (status === "pilot" || status === "none") {
+    const ends = business?.pilotEndsAt
+      ? new Date(business.pilotEndsAt)
+      : business?.createdAt
+        ? new Date(new Date(business.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000)
+        : null;
+    const daysLeft =
+      ends != null
+        ? Math.ceil((ends.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
+        : null;
+    if (daysLeft != null && daysLeft <= 7) {
+      items.push({
+        id: `billing_action:${businessId}`,
+        kind: "billing_action",
+        rank: kindRank("billing_action"),
+        impact: "critical",
+        title:
+          daysLeft <= 0
+            ? "Pilot ended — subscribe"
+            : `Pilot ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
+        detail: "Subscribe so missed calls keep becoming booked jobs.",
+        recommendedAction: "Choose a plan",
+        href: "/dashboard/billing",
+        entityType: "shop",
+        entityId: businessId,
+        createdAt: now.toISOString(),
+      });
+    }
+  }
+
+  let certDone = 0;
+  try {
+    const parsed = business?.founderCertJson
+      ? (JSON.parse(business.founderCertJson) as boolean[])
+      : [];
+    if (Array.isArray(parsed)) certDone = parsed.filter(Boolean).length;
+  } catch {
+    certDone = 0;
+  }
+  if (certDone < 5) {
+    items.push({
+      id: `founder_cert:${businessId}`,
+      kind: "founder_cert",
+      rank: kindRank("founder_cert"),
+      impact: "critical",
+      title: `Phone cert ${certDone}/5`,
+      detail: "Finish real-cell scenarios before high-volume outreach.",
+      recommendedAction: "Open certification",
+      href: "/dashboard/settings#founder-cert",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  }
+
+  const baselineReady =
+    ticket != null &&
+    ticket > 0 &&
+    business?.baselineMissedCallsPerWeek != null &&
+    business?.baselineJobsPerWeek != null;
+  if (!baselineReady) {
+    items.push({
+      id: `missing_baseline:${businessId}`,
+      kind: "missing_baseline",
+      rank: kindRank("missing_baseline"),
+      impact: "high",
+      title: "Baseline economics missing",
+      detail: "Set avg ticket + before-Orvius weekly numbers for honest recovered $.",
+      recommendedAction: "Set baseline",
+      href: "/dashboard/settings#economics-baseline",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  }
+
+  const proofAt = business?.lastWeeklyProofAt
+    ? new Date(business.lastWeeklyProofAt)
+    : null;
+  const proofStale =
+    !proofAt ||
+    Number.isNaN(proofAt.getTime()) ||
+    now.getTime() - proofAt.getTime() > WEEK_MS;
+  if (proofStale) {
+    items.push({
+      id: `stale_weekly_proof:${businessId}`,
+      kind: "stale_weekly_proof",
+      rank: kindRank("stale_weekly_proof"),
+      impact: "high",
+      title: "Weekly proof due",
+      detail: proofAt
+        ? "Last proof is older than 7 days — copy a fresh artifact."
+        : "No weekly proof copied yet — multi-b requires measured money.",
+      recommendedAction: "Copy weekly proof",
+      href: "/dashboard",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  }
 
   for (const lead of newLeads) {
     const urgent = isPriorityUrgency(lead.urgency);
@@ -269,5 +407,13 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "At risk";
     case "available_tech":
       return "Crew free";
+    case "missing_baseline":
+      return "Baseline";
+    case "stale_weekly_proof":
+      return "Proof";
+    case "billing_action":
+      return "Billing";
+    case "founder_cert":
+      return "Cert";
   }
 }

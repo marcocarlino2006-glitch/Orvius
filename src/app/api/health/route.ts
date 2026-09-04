@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     service: "orvius",
-    version: "0.1.0",
+    version: "1.0.0",
     configured: config.ready,
     appUrl: config.appUrl,
     webhookUrl: config.webhookUrl,

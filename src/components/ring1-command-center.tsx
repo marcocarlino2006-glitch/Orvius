@@ -41,6 +41,15 @@ type Ring1Data = {
   health?: ShopHealth;
   wedge?: WedgeReadiness;
   lastWeeklyProofAt?: string | null;
+  gates?: {
+    certDone: number;
+    certTotal: number;
+    certIncomplete: boolean;
+    economicsReady: boolean;
+    proofStale: boolean;
+    pilotDaysLeft: number;
+    checkoutReady: boolean;
+  };
 };
 
 const REFRESH_MS = 30_000;
@@ -103,6 +112,11 @@ export function Ring1CommandCenter() {
         health={data?.health ?? null}
         wedge={data?.wedge ?? null}
         newLeads={newLeads}
+        economicsReady={data?.gates?.economicsReady ?? true}
+        proofStale={data?.gates?.proofStale ?? false}
+        certIncomplete={data?.gates?.certIncomplete ?? false}
+        pilotDaysLeft={data?.gates?.pilotDaysLeft ?? null}
+        checkoutReady={data?.gates?.checkoutReady ?? true}
       />
 
       {canDispatch && data?.dispatchToday ? (

@@ -27,6 +27,7 @@ See also `docs/MULTI-BILLION-BATTLES.md` and `docs/WEDGE-MASTERY.md`.
 | 2026-09-04 | Free forever | Pilot never ended; soft dismiss only | Blocker | **Fixed in product** — 30d `pilotEndsAt`, 402 APIs, `BillingLockScreen` |
 | 2026-09-04 | Proof ritual | Weekly proof not stamped / no stale UI | High | **Fixed** — `lastWeeklyProofAt` + Today stale banner |
 | 2026-09-04 | Sales cadence | Pipeline had no next-action dates | High | **Fixed** — Admin due today / overdue / 20-touch target |
+| 2026-09-04 | Multi-b status | No single failing scorecard / soft founder gates | Blocker | **Fixed in product** — `multi-b:check`, launch gates, cert persist, Stripe unblock |
 
 ## Severity
 

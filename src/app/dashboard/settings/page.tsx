@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  LaunchGatesStrip,
+  buildShopLaunchGates,
+} from "@/components/launch-gates-strip";
 import { OsShell } from "@/components/os-shell";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { ProSetupHub } from "@/components/pro-setup-hub";
@@ -19,10 +23,19 @@ type AccountResponse = {
     avgTicketCents: number | null;
     baselineMissedCallsPerWeek: number | null;
     baselineJobsPerWeek: number | null;
+    lastWeeklyProofAt?: string | null;
+    founderCertJson?: string | null;
+    billingStatus?: string;
+    pilotEndsAt?: string | null;
   } | null;
   line?: string | null;
   health: ShopHealth | null;
   wedge: WedgeReadiness | null;
+  billing?: {
+    configured?: boolean;
+    entitled?: boolean;
+    status?: string;
+  };
   alerts: {
     smsEnabled: boolean;
     emailConfigured: boolean;
@@ -36,6 +49,22 @@ const FOUNDER_CERT = [
   "Hang-up mid-call — partial lead, no crash",
   "Inbound SMS — lead + auto-reply",
 ] as const;
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+function parseCert(raw: string | null | undefined): boolean[] {
+  const empty = FOUNDER_CERT.map(() => false);
+  if (!raw) return empty;
+  try {
+    const parsed = JSON.parse(raw) as boolean[];
+    if (Array.isArray(parsed) && parsed.length === FOUNDER_CERT.length) {
+      return parsed.map(Boolean);
+    }
+  } catch {
+    /* ignore */
+  }
+  return empty;
+}
 
 export default function DashboardSettingsPage() {
   const [account, setAccount] = useState<AccountResponse | null>(null);
@@ -55,6 +84,7 @@ export default function DashboardSettingsPage() {
   const [certChecks, setCertChecks] = useState<boolean[]>(() =>
     FOUNDER_CERT.map(() => false),
   );
+  const [certSaving, setCertSaving] = useState(false);
 
   async function loadAccount() {
     const res = await fetch("/api/account");
@@ -79,33 +109,37 @@ export default function DashboardSettingsPage() {
         ? String(data.business.baselineJobsPerWeek)
         : "",
     );
+    setCertChecks(parseCert(data.business?.founderCertJson));
   }
 
   useEffect(() => {
     loadAccount().catch(() => null);
-    try {
-      const raw = localStorage.getItem("orvius-founder-cert");
-      if (raw) {
-        const parsed = JSON.parse(raw) as boolean[];
-        if (Array.isArray(parsed) && parsed.length === FOUNDER_CERT.length) {
-          setCertChecks(parsed);
-        }
-      }
-    } catch {
-      /* ignore */
-    }
   }, []);
 
-  function toggleCert(index: number) {
-    setCertChecks((prev) => {
-      const next = prev.map((v, i) => (i === index ? !v : v));
+  async function persistCert(next: boolean[]) {
+    setCertChecks(next);
+    setCertSaving(true);
+    try {
+      await fetch("/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ founderCertJson: JSON.stringify(next) }),
+      });
       try {
         localStorage.setItem("orvius-founder-cert", JSON.stringify(next));
       } catch {
         /* ignore */
       }
-      return next;
-    });
+    } catch {
+      /* keep UI state */
+    } finally {
+      setCertSaving(false);
+    }
+  }
+
+  function toggleCert(index: number) {
+    const next = certChecks.map((v, i) => (i === index ? !v : v));
+    void persistCert(next);
   }
 
   const line =
@@ -138,23 +172,14 @@ export default function DashboardSettingsPage() {
           baselineJobsPerWeek: baselineJobs.trim()
             ? Math.round(Number(baselineJobs.replace(/[^0-9.]/g, "")))
             : null,
+          founderCertJson: JSON.stringify(certChecks),
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Save failed");
-
+      setSaved(true);
+      setSyncWarning(data.syncWarning ?? null);
       await loadAccount();
-
-      if (data.assistantSynced === false) {
-        setSyncWarning(
-          data.syncError ?? "Saved, but your AI receptionist did not update.",
-        );
-      } else if (data.syncWarning) {
-        setSyncWarning(data.syncWarning);
-        setSaved(true);
-      } else {
-        setSaved(true);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -166,30 +191,13 @@ export default function DashboardSettingsPage() {
     setTesting(true);
     setTestResult(null);
     setError(null);
-
     try {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Test alert failed");
-
-      const parts = [
-        data.sms?.status === "sent" ? "SMS sent" : null,
-        data.email?.status === "sent" ? "Email sent" : null,
-        data.sms?.status === "skipped" ? "SMS skipped" : null,
-        data.email?.status === "skipped" ? "Email skipped" : null,
-        data.sms?.status === "failed" ? `SMS failed: ${data.sms.error}` : null,
-        data.email?.status === "failed"
-          ? `Email failed: ${data.email.error}`
-          : null,
-      ].filter(Boolean);
-
-      setTestResult(
-        data.ok
-          ? `Test alert delivered. ${parts.join(" · ")}`
-          : `Alert did not deliver. ${parts.join(" · ")}`,
-      );
+      if (!res.ok) throw new Error(data.error ?? "Test failed");
+      setTestResult(data.message ?? "Test alert sent");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Test alert failed");
+      setError(err instanceof Error ? err.message : "Test failed");
     } finally {
       setTesting(false);
     }
@@ -200,13 +208,10 @@ export default function DashboardSettingsPage() {
     setError(null);
     try {
       const res = await fetch("/api/account/export");
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Export failed");
-      }
+      if (!res.ok) throw new Error("Export failed");
       const blob = await res.blob();
       const disposition = res.headers.get("Content-Disposition") ?? "";
-      const match = disposition.match(/filename="([^"]+)"/);
+      const match = /filename="([^"]+)"/.exec(disposition);
       const filename = match?.[1] ?? "orvius-export.json";
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -223,18 +228,53 @@ export default function DashboardSettingsPage() {
 
   const certDone = certChecks.filter(Boolean).length;
   const wedgeReady = account?.wedge?.ready === true;
+  const baselineReady = Boolean(
+    account?.business?.avgTicketCents &&
+      account.business.baselineMissedCallsPerWeek != null &&
+      account.business.baselineJobsPerWeek != null,
+  );
+  const proofAt = account?.business?.lastWeeklyProofAt ?? null;
+  const proofFresh =
+    Boolean(proofAt) &&
+    !Number.isNaN(new Date(proofAt!).getTime()) &&
+    Date.now() - new Date(proofAt!).getTime() <= WEEK_MS;
+  const lastProofLabel = proofAt
+    ? proofFresh
+      ? `Last proof ${new Date(proofAt).toLocaleDateString()}`
+      : "Weekly proof stale (>7 days)"
+    : "No weekly proof copied yet";
+
+  const launchGates = buildShopLaunchGates({
+    certDone,
+    certTotal: FOUNDER_CERT.length,
+    baselineReady,
+    proofFresh,
+    lastProofLabel,
+    checkoutReady: Boolean(account?.billing?.configured),
+    entitled: Boolean(account?.billing?.entitled),
+    billingStatus:
+      account?.billing?.status ?? account?.business?.billingStatus ?? "none",
+    wedgeReady,
+    wedgeScore: account?.wedge
+      ? `${account.wedge.score}/${account.wedge.total}`
+      : undefined,
+  });
 
   return (
-    <OsShell title="Settings" subtitle="Line, alerts, baseline economics, export.">
+    <OsShell title="Settings" subtitle="Launch gates, line, baseline, export.">
       <ProPageStrip />
+
+      <LaunchGatesStrip gates={launchGates} title="Multi-b launch gates" />
 
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
 
       <ShellPanel title="Founder phone certification">
+        <div id="founder-cert" />
         <p className="account-settings-hint font-sans">
           Call your shop line from your cell. Check each scenario when it passes.
-          Wedge gate: {wedgeReady ? "ready" : "not ready"} · Cert {certDone}/
-          {FOUNDER_CERT.length}.
+          Saved to your shop (not just this browser). Wedge:{" "}
+          {wedgeReady ? "ready" : "not ready"} · Cert {certDone}/{FOUNDER_CERT.length}
+          {certSaving ? " · saving…" : ""}.
         </p>
         <ul className="mt-4 space-y-2 font-sans text-sm">
           {FOUNDER_CERT.map((label, index) => (
@@ -266,6 +306,7 @@ export default function DashboardSettingsPage() {
         </ShellPanel>
 
         <ShellPanel title="Economics + baseline">
+          <div id="economics-baseline" />
           <label className="onboarding-field font-sans">
             <span className="onboarding-label">Average ticket ($)</span>
             <input

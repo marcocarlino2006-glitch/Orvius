@@ -7675,6 +7675,102 @@ h3 {
   color: var(--ash);
 }
 
+.launch-gates {
+  margin: 0 0 1.5rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--rule, #d6d0c8);
+  background: color-mix(in srgb, var(--fog, #f3efe8) 70%, transparent);
+}
+
+.launch-gates-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.launch-gates-kicker {
+  margin: 0;
+}
+
+.launch-gates-score {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ash);
+}
+
+.launch-gates-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.launch-gates-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--rule, #d6d0c8);
+  background: var(--paper, #fff);
+}
+
+.launch-gates-item--open {
+  border-color: color-mix(in srgb, var(--flare, #c45c26) 40%, transparent);
+}
+
+.launch-gates-item--ok {
+  opacity: 0.85;
+}
+
+.launch-gates-label {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.launch-gates-detail {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ash);
+}
+
+.launch-gates-done {
+  font-size: 0.75rem;
+  color: var(--live);
+}
+
+.billing-unblock {
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--flare, #c45c26) 35%, transparent);
+  background: color-mix(in srgb, var(--flare, #c45c26) 7%, transparent);
+}
+
+.billing-unblock-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.billing-unblock-steps {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
+
+.billing-unblock-steps li + li {
+  margin-top: 0.35rem;
+}
+
 @media (max-width: 640px) {
   .pro-economics-grid {
     grid-template-columns: 1fr;

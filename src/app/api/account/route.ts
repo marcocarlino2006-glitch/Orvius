@@ -27,6 +27,7 @@ const patchSchema = z.object({
   avgTicketCents: z.number().int().min(5000).max(5_000_000).nullable().optional(),
   baselineMissedCallsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   baselineJobsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
+  founderCertJson: z.string().max(500).nullable().optional(),
 });
 
 export async function GET() {
@@ -60,6 +61,7 @@ export async function GET() {
         baselineJobsPerWeek: businessRecord.baselineJobsPerWeek,
         pilotEndsAt: businessRecord.pilotEndsAt,
         lastWeeklyProofAt: businessRecord.lastWeeklyProofAt,
+        founderCertJson: businessRecord.founderCertJson,
       }
     : null;
 
@@ -163,6 +165,9 @@ export async function PATCH(request: Request) {
         ...(body.baselineJobsPerWeek !== undefined
           ? { baselineJobsPerWeek: body.baselineJobsPerWeek }
           : {}),
+        ...(body.founderCertJson !== undefined
+          ? { founderCertJson: body.founderCertJson }
+          : {}),
       },
     });
 
@@ -202,6 +207,7 @@ export async function PATCH(request: Request) {
         avgTicketCents: saved.avgTicketCents,
         baselineMissedCallsPerWeek: saved.baselineMissedCallsPerWeek,
         baselineJobsPerWeek: saved.baselineJobsPerWeek,
+        founderCertJson: saved.founderCertJson,
         twilioPhone: saved.twilioPhone,
         vapiPhoneNumber: saved.vapiPhoneNumber,
       },

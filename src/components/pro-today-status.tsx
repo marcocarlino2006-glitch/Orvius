@@ -107,18 +107,110 @@ type ProTodayAlertsProps = {
   health?: ShopHealth | null;
   wedge?: WedgeReadiness | null;
   newLeads: number;
+  economicsReady?: boolean;
+  proofStale?: boolean;
+  certIncomplete?: boolean;
+  pilotDaysLeft?: number | null;
+  checkoutReady?: boolean;
 };
 
-export function ProTodayAlerts({ health, wedge, newLeads }: ProTodayAlertsProps) {
+export function ProTodayAlerts({
+  health,
+  wedge,
+  newLeads,
+  economicsReady = true,
+  proofStale = false,
+  certIncomplete = false,
+  pilotDaysLeft = null,
+  checkoutReady = true,
+}: ProTodayAlertsProps) {
   const hasFailures = (health?.failedAlerts24h ?? 0) > 0;
   const hasStuck = (health?.stuckPendingAlerts ?? 0) > 0;
   const wedgeIncomplete = wedge && !wedge.ready;
   const showLeads = newLeads > 0;
+  const pilotUrgent = pilotDaysLeft != null && pilotDaysLeft <= 7;
 
-  if (!showLeads && !hasFailures && !hasStuck && !wedgeIncomplete) return null;
+  if (
+    !showLeads &&
+    !hasFailures &&
+    !hasStuck &&
+    !wedgeIncomplete &&
+    economicsReady &&
+    !proofStale &&
+    !certIncomplete &&
+    !pilotUrgent &&
+    checkoutReady
+  ) {
+    return null;
+  }
 
   return (
     <div className="pro-today-alerts" role="region" aria-label="Action items">
+      {certIncomplete ? (
+        <div className="pro-today-alert pro-today-alert-critical">
+          <div className="pro-today-alert-copy font-sans">
+            <p className="pro-today-alert-title">Phone certification incomplete</p>
+            <p className="pro-today-alert-detail">
+              Multi-b rule: finish 5 real-cell scenarios before high-volume outreach.
+            </p>
+          </div>
+          <Link href="/dashboard/settings#founder-cert" className="btn btn-void text-sm">
+            Certify now
+          </Link>
+        </div>
+      ) : null}
+
+      {pilotUrgent || !checkoutReady ? (
+        <div className="pro-today-alert pro-today-alert-critical">
+          <div className="pro-today-alert-copy font-sans">
+            <p className="pro-today-alert-title">
+              {!checkoutReady
+                ? "Stripe not live — cannot collect money"
+                : pilotDaysLeft != null && pilotDaysLeft <= 0
+                  ? "Pilot ended — subscribe to keep the line"
+                  : `Pilot ends in ${pilotDaysLeft} day${pilotDaysLeft === 1 ? "" : "s"}`}
+            </p>
+            <p className="pro-today-alert-detail">
+              Category leaders collect cash. Open billing and close the founder unblock.
+            </p>
+          </div>
+          <Link href="/dashboard/billing" className="btn btn-void text-sm">
+            Open billing
+          </Link>
+        </div>
+      ) : null}
+
+      {!economicsReady ? (
+        <div className="pro-today-alert pro-today-alert-priority">
+          <div className="pro-today-alert-copy font-sans">
+            <p className="pro-today-alert-title">Baseline economics missing</p>
+            <p className="pro-today-alert-detail">
+              Set avg ticket + before-Orvius baselines to measure recovered jobs.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/settings#economics-baseline"
+            className="btn btn-secondary text-sm"
+          >
+            Set baseline
+          </Link>
+        </div>
+      ) : null}
+
+      {proofStale ? (
+        <div className="pro-today-alert pro-today-alert-priority">
+          <div className="pro-today-alert-copy font-sans">
+            <p className="pro-today-alert-title">Weekly proof due</p>
+            <p className="pro-today-alert-detail">
+              Copy this week&apos;s proof artifact — measured money, not homepage claims.
+            </p>
+          </div>
+          <Link href="/dashboard" className="btn btn-secondary text-sm">
+            Scroll to economics
+          </Link>
+        </div>
+      ) : null}
+
       {showLeads ? (
         <div className="pro-today-alert pro-today-alert-priority">
           <div className="pro-today-alert-copy font-sans">

@@ -30,6 +30,8 @@ model Business {
   pilotEndsAt          DateTime?
   /** Last time owner copied/exported weekly economics proof. */
   lastWeeklyProofAt    DateTime?
+  /** Founder phone cert checklist JSON — boolean[] matching Settings scenarios. */
+  founderCertJson      String?
   lineVerifiedAt       DateTime?
   /** When set, owner SMS alerts are suppressed until START / cleared. */
   ownerSmsOptOutAt     DateTime?

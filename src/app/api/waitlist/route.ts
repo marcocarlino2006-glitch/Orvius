@@ -75,6 +75,29 @@ export async function GET(request: NextRequest) {
     return new Date(e.nextActionAt).getTime() < start.getTime();
   });
 
+  const touchedToday = entries.filter((e) => {
+    if (!e.lastContactedAt) return false;
+    const t = new Date(e.lastContactedAt).getTime();
+    return t >= start.getTime() && t < end.getTime();
+  });
+
+  /** Due-first: overdue → due today → no date → future */
+  const sorted = [...entries].sort((a, b) => {
+    const rank = (e: (typeof entries)[number]) => {
+      if (!e.nextActionAt) return 2;
+      const t = new Date(e.nextActionAt).getTime();
+      if (t < start.getTime()) return 0;
+      if (t < end.getTime()) return 1;
+      return 3;
+    };
+    const ra = rank(a);
+    const rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    const ta = a.nextActionAt ? new Date(a.nextActionAt).getTime() : 0;
+    const tb = b.nextActionAt ? new Date(b.nextActionAt).getTime() : 0;
+    return ta - tb;
+  });
+
   const byStatus = PIPELINE_STATUSES.reduce(
     (acc, status) => {
       acc[status] = entries.filter((e) => e.status === status).length;
@@ -88,9 +111,10 @@ export async function GET(request: NextRequest) {
     byStatus,
     dueTodayCount: dueToday.length,
     overdueCount: overdue.length,
+    touchesTodayCount: touchedToday.length,
     dailyTarget: 20,
     statuses: PIPELINE_STATUSES,
-    entries,
+    entries: sorted,
   });
 }
 

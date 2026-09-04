@@ -37,7 +37,7 @@
 >
 > *(Let them talk.)*
 >
-> We built an AI receptionist for HVAC/plumbing shops that answers every call, qualifies it, and texts you the summary so you don't lose jobs. I'm looking for 10 shops for a free 30-day pilot — I do the setup myself. Open to a 10-minute walkthrough this week?
+> We built an AI receptionist for HVAC/plumbing shops that answers missed and after-hours calls, qualifies the job, books it, and texts you the summary so you don't lose jobs. I'm looking for 10 shops for a free 30-day pilot — I do the setup myself. Open to a 10-minute walkthrough this week?
 
 ---
 
