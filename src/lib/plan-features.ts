@@ -46,7 +46,7 @@ export const planFeatures: Record<PaidPlanId, PlanFeatureSet> = {
   },
 };
 
-/** Pilot and unpaid shops get Pro access during onboarding / trial. */
+/** Pilot and unpaid shops get Pro modules during trial — but PayPromptModal asks them to subscribe on a loop. */
 export function getEffectivePlanId(params: {
   billingStatus?: string | null;
   billingPlan?: string | null;

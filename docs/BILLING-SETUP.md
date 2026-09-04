@@ -70,8 +70,17 @@ Each plan's Subscribe button only appears when that plan's price ID is configure
 
 ## Not done yet
 
-- Feature gating by plan tier (all plans get full product today — tier differentiation is pricing/copy until we gate)
 - Plan upgrades/downgrades in-app (use Stripe Customer Portal for now)
+
+## Pay prompt loop
+
+Dashboard shell shows a recurring subscribe popup for any shop that is not `billingStatus: active`:
+
+- **Pilot** — soft ask; snooze ~12h (tightens after day 21)
+- **None / canceled** — stronger ask; snooze ~4–6h
+- **Past due** — urgent; backdrop dismiss disabled; snooze 1h
+
+When Stripe checkout is configured, the popup starts Checkout for Pro. Otherwise it routes to Billing / design partner.
 
 ## Customer portal
 

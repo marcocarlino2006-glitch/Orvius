@@ -5969,6 +5969,155 @@ h3 {
   }
 }
 
+.pay-prompt {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.pay-prompt-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--void) 48%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.pay-prompt-card {
+  position: relative;
+  z-index: 1;
+  width: min(28rem, 100%);
+  padding: 1.35rem 1.35rem 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--rule);
+  background: var(--chalk, #fff);
+  box-shadow: var(--shadow-lift);
+}
+
+.pay-prompt-card--past_due {
+  border-color: color-mix(in srgb, var(--flare, #e05a32) 45%, var(--rule));
+}
+
+.pay-prompt-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.pay-prompt-title {
+  margin: 0.45rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--void);
+}
+
+.pay-prompt-body {
+  margin: 0.65rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--void) 72%, transparent);
+}
+
+.pay-prompt-plans {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin-top: 1.1rem;
+}
+
+.pay-prompt-plan {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--fog) 70%, transparent);
+}
+
+.pay-prompt-plan--featured {
+  border-color: color-mix(in srgb, var(--void) 35%, var(--rule));
+  background: color-mix(in srgb, var(--void) 4%, var(--chalk, #fff));
+}
+
+.pay-prompt-plan-name {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--void);
+}
+
+.pay-prompt-plan-price {
+  margin: 0.2rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  color: var(--void);
+}
+
+.pay-prompt-plan-price span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ash);
+}
+
+.pay-prompt-plan-tag {
+  margin: 0.35rem 0 0;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--ash);
+}
+
+.pay-prompt-actions {
+  margin-top: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.pay-prompt-checkout .inst-btn,
+.pay-prompt-primary {
+  width: 100%;
+  justify-content: center;
+}
+
+.pay-prompt-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+}
+
+.pay-prompt-later {
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0;
+  font-size: 0.8125rem;
+  color: var(--ash);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.pay-prompt-later:hover {
+  color: var(--void);
+}
+
+@media (max-width: 480px) {
+  .pay-prompt-plans {
+    grid-template-columns: 1fr;
+  }
+}
+
 .os-sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
