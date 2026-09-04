@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyOwner } from "@/lib/notifications";
 import { verifyAdminRequest } from "@/lib/env";
@@ -28,8 +29,27 @@ const patchSchema = z.object({
   notes: z.string().max(2000).nullable().optional(),
 });
 
+function allowedEmails(): Set<string> {
+  return new Set(
+    (process.env.ORVIUS_AUTH_ALLOWED_EMAILS?.split(",") ?? [])
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+/** Admin key OR signed-in founder (allowed-email list). */
+async function canManageProspects(request: Request) {
+  if (verifyAdminRequest(request)) return true;
+  const session = await auth();
+  const email = session?.user?.email?.toLowerCase();
+  if (!email) return false;
+  const allowed = allowedEmails();
+  if (allowed.size === 0) return true;
+  return allowed.has(email);
+}
+
 export async function GET(request: NextRequest) {
-  if (!verifyAdminRequest(request)) {
+  if (!(await canManageProspects(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -54,7 +74,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  if (!verifyAdminRequest(request)) {
+  if (!(await canManageProspects(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
