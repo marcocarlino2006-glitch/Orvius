@@ -92,6 +92,17 @@ const HONESTY_RISKS = [
   { pattern: /always answers/i, label: "always answers" },
 ];
 
+try {
+  const envPath = join(root, ".env");
+  const envRaw = readFileSync(envPath, "utf8");
+  const match = envRaw.match(/^ORVIUS_ADMIN_KEY=["']?([^"'\n]+)["']?/m);
+  if (match?.[1] && !process.env.ORVIUS_ADMIN_KEY) {
+    process.env.ORVIUS_ADMIN_KEY = match[1].trim();
+  }
+} catch {
+  /* no local .env */
+}
+
 console.log("\n🏛  Orvius institutional standard check\n");
 activeAppUrl = await resolveAppUrl();
 console.log(`   App URL: ${activeAppUrl}\n`);
