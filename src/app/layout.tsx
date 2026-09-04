@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Orvius — ${company.tagline}`,
     description:
-      "Try the live line or book a call audit. Front door today — operating system as you grow.",
+      "Try the live line or book a call audit. Capture missed calls today — grow into the shop OS when you are ready.",
     type: "website",
     url: `https://${company.domain}`,
     siteName: company.productName,

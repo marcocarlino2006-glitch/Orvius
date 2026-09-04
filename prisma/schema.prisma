@@ -31,6 +31,10 @@ model Business {
   ownerSmsOptOutAt     DateTime?
   /** Shop avg ticket in cents — used for estimated pipeline value. */
   avgTicketCents       Int?
+  /** Baseline: missed/overflow calls per week before Orvius (owner-reported). */
+  baselineMissedCallsPerWeek Int?
+  /** Baseline: jobs booked per week before Orvius (owner-reported). */
+  baselineJobsPerWeek  Int?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -261,7 +265,9 @@ model WaitlistEntry {
   trade        String?
   city         String?
   plan         String   @default("pilot")
+  /** Pipeline: new | contacted | demoed | onboarded | live | closed */
   status       String   @default("new")
+  notes        String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

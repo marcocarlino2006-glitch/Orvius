@@ -6,6 +6,8 @@
 
 **Operating rule:** Master the software before you scale the story. Pilots amplify whatever quality you already have — good or bad.
 
+**Battles:** See `docs/MULTI-BILLION-BATTLES.md` for the seven blockers and founder gates.
+
 **Domain:** orvius.im
 
 ---

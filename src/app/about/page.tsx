@@ -17,7 +17,7 @@ export default function AboutPage() {
           <ShellPageIntro
             label="Company"
             title={company.tagline}
-            subline="The operating system for service businesses — starting at the front door."
+            subline="Start at the front door — expand into the shop OS when the wedge is proven."
             description={company.mission}
           />
         </div>

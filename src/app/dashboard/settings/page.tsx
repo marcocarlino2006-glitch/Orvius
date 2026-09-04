@@ -17,6 +17,8 @@ type AccountResponse = {
     twilioPhone: string | null;
     vapiPhoneNumber: string | null;
     avgTicketCents: number | null;
+    baselineMissedCallsPerWeek: number | null;
+    baselineJobsPerWeek: number | null;
   } | null;
   line?: string | null;
   health: ShopHealth | null;
@@ -27,18 +29,32 @@ type AccountResponse = {
   };
 };
 
+const FOUNDER_CERT = [
+  "AC emergency after hours — name, phone, service, urgency, address",
+  "Caller asks for a human — 15-min callback offered",
+  "Non-urgent estimate — urgency this-week or flexible",
+  "Hang-up mid-call — partial lead, no crash",
+  "Inbound SMS — lead + auto-reply",
+] as const;
+
 export default function DashboardSettingsPage() {
   const [account, setAccount] = useState<AccountResponse | null>(null);
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const [greeting, setGreeting] = useState("");
   const [avgTicket, setAvgTicket] = useState("");
+  const [baselineMissed, setBaselineMissed] = useState("");
+  const [baselineJobs, setBaselineJobs] = useState("");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [syncWarning, setSyncWarning] = useState<string | null>(null);
+  const [certChecks, setCertChecks] = useState<boolean[]>(() =>
+    FOUNDER_CERT.map(() => false),
+  );
 
   async function loadAccount() {
     const res = await fetch("/api/account");
@@ -53,11 +69,44 @@ export default function DashboardSettingsPage() {
         ? String(Math.round(data.business.avgTicketCents / 100))
         : "",
     );
+    setBaselineMissed(
+      data.business?.baselineMissedCallsPerWeek != null
+        ? String(data.business.baselineMissedCallsPerWeek)
+        : "",
+    );
+    setBaselineJobs(
+      data.business?.baselineJobsPerWeek != null
+        ? String(data.business.baselineJobsPerWeek)
+        : "",
+    );
   }
 
   useEffect(() => {
     loadAccount().catch(() => null);
+    try {
+      const raw = localStorage.getItem("orvius-founder-cert");
+      if (raw) {
+        const parsed = JSON.parse(raw) as boolean[];
+        if (Array.isArray(parsed) && parsed.length === FOUNDER_CERT.length) {
+          setCertChecks(parsed);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
   }, []);
+
+  function toggleCert(index: number) {
+    setCertChecks((prev) => {
+      const next = prev.map((v, i) => (i === index ? !v : v));
+      try {
+        localStorage.setItem("orvius-founder-cert", JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
 
   const line =
     account?.line ??
@@ -82,6 +131,12 @@ export default function DashboardSettingsPage() {
           greeting: greeting.trim(),
           avgTicketCents: avgTicket.trim()
             ? Math.round(Number(avgTicket.replace(/[^0-9.]/g, "")) * 100)
+            : null,
+          baselineMissedCallsPerWeek: baselineMissed.trim()
+            ? Math.round(Number(baselineMissed.replace(/[^0-9.]/g, "")))
+            : null,
+          baselineJobsPerWeek: baselineJobs.trim()
+            ? Math.round(Number(baselineJobs.replace(/[^0-9.]/g, "")))
             : null,
         }),
       });
@@ -140,11 +195,64 @@ export default function DashboardSettingsPage() {
     }
   }
 
+  async function exportShopData() {
+    setExporting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/account/export");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Export failed");
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const match = disposition.match(/filename="([^"]+)"/);
+      const filename = match?.[1] ?? "orvius-export.json";
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  const certDone = certChecks.filter(Boolean).length;
+  const wedgeReady = account?.wedge?.ready === true;
+
   return (
-    <OsShell title="Settings" subtitle="Line, greeting, alerts, and avg ticket.">
+    <OsShell title="Settings" subtitle="Line, alerts, baseline economics, export.">
       <ProPageStrip />
 
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
+
+      <ShellPanel title="Founder phone certification">
+        <p className="account-settings-hint font-sans">
+          Call your shop line from your cell. Check each scenario when it passes.
+          Wedge gate: {wedgeReady ? "ready" : "not ready"} · Cert {certDone}/
+          {FOUNDER_CERT.length}.
+        </p>
+        <ul className="mt-4 space-y-2 font-sans text-sm">
+          {FOUNDER_CERT.map((label, index) => (
+            <li key={label} className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={certChecks[index]}
+                onChange={() => toggleCert(index)}
+                className="mt-1"
+                aria-label={label}
+              />
+              <span className={certChecks[index] ? "text-ash line-through" : "text-void"}>
+                {label}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </ShellPanel>
 
       <form className="account-stack pro-settings-form" onSubmit={save}>
         <ShellPanel title="Your dedicated line">
@@ -157,7 +265,7 @@ export default function DashboardSettingsPage() {
           </p>
         </ShellPanel>
 
-        <ShellPanel title="Economics">
+        <ShellPanel title="Economics + baseline">
           <label className="onboarding-field font-sans">
             <span className="onboarding-label">Average ticket ($)</span>
             <input
@@ -174,6 +282,38 @@ export default function DashboardSettingsPage() {
               Used to estimate pipeline value on Command — not collected revenue.
             </span>
           </label>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <label className="onboarding-field font-sans">
+              <span className="onboarding-label">Missed calls / week before Orvius</span>
+              <input
+                type="number"
+                min={0}
+                max={500}
+                step={1}
+                value={baselineMissed}
+                onChange={(e) => setBaselineMissed(e.target.value)}
+                className="onboarding-input"
+                placeholder="12"
+              />
+            </label>
+            <label className="onboarding-field font-sans">
+              <span className="onboarding-label">Jobs booked / week before Orvius</span>
+              <input
+                type="number"
+                min={0}
+                max={500}
+                step={1}
+                value={baselineJobs}
+                onChange={(e) => setBaselineJobs(e.target.value)}
+                className="onboarding-input"
+                placeholder="8"
+              />
+            </label>
+          </div>
+          <p className="onboarding-hint font-sans mt-2">
+            Owner-reported baseline. Command shows lift vs these numbers — proof for design
+            partners, not vanity homepage stats.
+          </p>
         </ShellPanel>
 
         <ShellPanel title="AI receptionist">
@@ -237,6 +377,21 @@ export default function DashboardSettingsPage() {
               {account?.alerts.emailConfigured ? "ready" : "not configured"}
             </span>
           </div>
+        </ShellPanel>
+
+        <ShellPanel title="Your data">
+          <p className="account-settings-hint font-sans">
+            Download customers, leads, jobs, and money records as JSON. You own this data —
+            export builds trust and still keeps daily history in Orvius.
+          </p>
+          <button
+            type="button"
+            className="btn btn-secondary text-sm mt-4"
+            disabled={exporting}
+            onClick={exportShopData}
+          >
+            {exporting ? "Preparing export…" : "Export shop data"}
+          </button>
         </ShellPanel>
 
         {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}

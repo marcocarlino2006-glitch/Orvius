@@ -16,7 +16,9 @@ export function HomeLineHero() {
         <div className="mkt-hero-copy">
           <div className="mkt-hero-brand">
             <OrviusLogo variant="chalk" size="xl" className="mkt-hero-brand-lockup" />
-            <p className="mkt-hero-brand-sub font-sans">AI OS for the trades</p>
+            <p className="mkt-hero-brand-sub font-sans">
+              Answers missed calls. Books the job.
+            </p>
           </div>
 
           <p className="mkt-eyebrow font-sans">

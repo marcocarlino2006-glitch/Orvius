@@ -60,7 +60,7 @@ npm run pre-post:check   # full gate
 
 You are wedge-certified when:
 
-- [ ] 5 founder call scenarios pass on real phone
+- [ ] 5 founder call scenarios pass on real phone (track in Settings → Founder phone certification)
 - [ ] Owner SMS arrives &lt;30s every time
 - [ ] Dashboard matches what happened on the call
 - [ ] Every inbound lead auto-books to dispatch (call + SMS)
@@ -69,6 +69,8 @@ You are wedge-certified when:
 - [ ] Failure log has zero blockers
 - [ ] `npm run wedge:ready` is 8/8 (includes exclusive line + auto-book)
 - [ ] No shared phone numbers across shops (`npm run repair:shared-lines`)
+
+Full multi-billion battle list: `docs/MULTI-BILLION-BATTLES.md`.
 
 ### Battle 1 ops (2026-09-03)
 

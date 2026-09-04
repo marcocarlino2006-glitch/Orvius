@@ -72,6 +72,30 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
             to estimate recovered revenue
           </li>
         ) : null}
+        {outcomes.baselineMissedCallsPerWeek == null ||
+        outcomes.baselineJobsPerWeek == null ? (
+          <li>
+            <Link href="/dashboard/settings" className="pro-section-link">
+              Set before-Orvius baseline →
+            </Link>{" "}
+            to measure lift vs prior week
+          </li>
+        ) : null}
+        {outcomes.jobsPerWeekVsBaseline != null ? (
+          <li>
+            Jobs/week vs baseline:{" "}
+            <strong>
+              {outcomes.jobsPerWeekVsBaseline > 0 ? "+" : ""}
+              {outcomes.jobsPerWeekVsBaseline}
+            </strong>
+          </li>
+        ) : null}
+        {outcomes.afterHoursLeads > 0 && outcomes.baselineMissedCallsPerWeek != null ? (
+          <li>
+            <strong>{outcomes.afterHoursLeads}</strong> after-hours in window · baseline missed{" "}
+            <strong>{outcomes.baselineMissedCallsPerWeek}</strong>/wk
+          </li>
+        ) : null}
       </ul>
     </section>
   );

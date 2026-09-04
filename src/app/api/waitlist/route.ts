@@ -4,6 +4,15 @@ import { notifyOwner } from "@/lib/notifications";
 import { verifyAdminRequest } from "@/lib/env";
 import { z } from "zod";
 
+const PIPELINE_STATUSES = [
+  "new",
+  "contacted",
+  "demoed",
+  "onboarded",
+  "live",
+  "closed",
+] as const;
+
 const waitlistSchema = z.object({
   email: z.string().email(),
   businessName: z.string().optional(),
@@ -11,6 +20,12 @@ const waitlistSchema = z.object({
   trade: z.string().optional(),
   city: z.string().optional(),
   plan: z.enum(["pilot", "pro"]).optional(),
+});
+
+const patchSchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(PIPELINE_STATUSES).optional(),
+  notes: z.string().max(2000).nullable().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -22,10 +37,46 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
+  const byStatus = PIPELINE_STATUSES.reduce(
+    (acc, status) => {
+      acc[status] = entries.filter((e) => e.status === status).length;
+      return acc;
+    },
+    {} as Record<(typeof PIPELINE_STATUSES)[number], number>,
+  );
+
   return NextResponse.json({
     count: entries.length,
+    byStatus,
+    statuses: PIPELINE_STATUSES,
     entries,
   });
+}
+
+export async function PATCH(request: NextRequest) {
+  if (!verifyAdminRequest(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = patchSchema.parse(await request.json());
+    const entry = await prisma.waitlistEntry.update({
+      where: { id: body.id },
+      data: {
+        ...(body.status !== undefined ? { status: body.status } : {}),
+        ...(body.notes !== undefined ? { notes: body.notes } : {}),
+      },
+    });
+    return NextResponse.json({ ok: true, entry });
+  } catch (error) {
+    const message =
+      error instanceof z.ZodError
+        ? error.errors.map((e) => e.message).join(", ")
+        : error instanceof Error
+          ? error.message
+          : "Update failed";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 }
 
 export async function POST(request: NextRequest) {

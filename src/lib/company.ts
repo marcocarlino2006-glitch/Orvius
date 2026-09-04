@@ -23,10 +23,14 @@ export const company = {
   /**
    * Confirm with counsel against formation docs and update before relying on
    * arbitration/venue language in production disputes.
+   * FOUNDATION GATE: set the real state name (e.g. "Delaware") — never invent it.
+   * See docs/MULTI-BILLION-BATTLES.md Battle 6.
    */
   governingLawState: "the State in which Solution Development LLC is organized",
   jurisdictionNote:
     "the State in which Solution Development LLC is organized",
+  /** null until counsel confirms — do not invent a formation state in code. */
+  formationStateConfirmed: null as string | null,
   trademarkNotice:
     "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",
   copyrightNotice: "All rights reserved.",

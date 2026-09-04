@@ -2,9 +2,11 @@
 
 **Goal:** 10 home-service businesses on a free 30-day pilot.
 
-**Wedge:** Never miss a call. Orvius answers, qualifies, books, and texts you a summary.
+**Wedge:** Turn missed calls into booked jobs. Orvius answers, qualifies, books, and texts you a summary.
 
 **Domain:** orvius.im · Pilot page: `/pilot` · Demo: `/demo`
+
+**Gate:** Do not run high-volume outreach until Battle 1 (founder phone cert) is checked in Settings. See `docs/MULTI-BILLION-BATTLES.md`.
 
 ---
 

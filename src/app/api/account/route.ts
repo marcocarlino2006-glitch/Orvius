@@ -21,6 +21,8 @@ const patchSchema = z.object({
   ownerEmail: z.string().email().optional(),
   greeting: z.string().max(280).optional(),
   avgTicketCents: z.number().int().min(5000).max(5_000_000).nullable().optional(),
+  baselineMissedCallsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
+  baselineJobsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
 });
 
 export async function GET() {
@@ -50,6 +52,8 @@ export async function GET() {
         greeting: businessRecord.greeting,
         lineVerifiedAt: businessRecord.lineVerifiedAt,
         avgTicketCents: businessRecord.avgTicketCents,
+        baselineMissedCallsPerWeek: businessRecord.baselineMissedCallsPerWeek,
+        baselineJobsPerWeek: businessRecord.baselineJobsPerWeek,
       }
     : null;
 
@@ -134,6 +138,12 @@ export async function PATCH(request: Request) {
         ...(body.avgTicketCents !== undefined
           ? { avgTicketCents: body.avgTicketCents }
           : {}),
+        ...(body.baselineMissedCallsPerWeek !== undefined
+          ? { baselineMissedCallsPerWeek: body.baselineMissedCallsPerWeek }
+          : {}),
+        ...(body.baselineJobsPerWeek !== undefined
+          ? { baselineJobsPerWeek: body.baselineJobsPerWeek }
+          : {}),
       },
     });
 
@@ -171,6 +181,8 @@ export async function PATCH(request: Request) {
         ownerEmail: saved.ownerEmail,
         greeting: saved.greeting,
         avgTicketCents: saved.avgTicketCents,
+        baselineMissedCallsPerWeek: saved.baselineMissedCallsPerWeek,
+        baselineJobsPerWeek: saved.baselineJobsPerWeek,
         twilioPhone: saved.twilioPhone,
         vapiPhoneNumber: saved.vapiPhoneNumber,
       },

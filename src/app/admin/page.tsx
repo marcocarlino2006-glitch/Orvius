@@ -32,6 +32,28 @@ type HealthStatus = {
   config: Array<{ name: string; configured: boolean; optional: boolean }>;
 };
 
+const PIPELINE_STATUSES = [
+  "new",
+  "contacted",
+  "demoed",
+  "onboarded",
+  "live",
+  "closed",
+] as const;
+
+type Prospect = {
+  id: string;
+  email: string;
+  businessName: string | null;
+  phone: string | null;
+  trade: string | null;
+  city: string | null;
+  plan: string;
+  status: string;
+  notes: string | null;
+  createdAt: string;
+};
+
 const defaultServices = JSON.stringify(
   [
     { name: "Emergency repair", description: "Same-day urgent service" },
@@ -64,6 +86,9 @@ export default function AdminPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
+  const [prospects, setProspects] = useState<Prospect[]>([]);
+  const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
+  const [prospectError, setProspectError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     ownerPhone: "",
@@ -72,6 +97,18 @@ export default function AdminPage() {
     hoursJson: defaultHours,
     servicesJson: defaultServices,
   });
+
+  async function loadProspects() {
+    try {
+      const res = await fetch("/api/waitlist");
+      if (!res.ok) return;
+      const data = await res.json();
+      setProspects(data.entries ?? []);
+      setProspectCounts(data.byStatus ?? {});
+    } catch {
+      setProspectError("Could not load prospect pipeline");
+    }
+  }
 
   async function loadBusinesses() {
     setLoading(true);
@@ -93,11 +130,29 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadBusinesses();
+    loadProspects();
     fetch("/api/health")
       .then((res) => res.json())
       .then(setHealth)
       .catch(() => null);
   }, []);
+
+  async function updateProspect(
+    id: string,
+    patch: { status?: string; notes?: string | null },
+  ) {
+    setProspectError(null);
+    const res = await fetch("/api/waitlist", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...patch }),
+    });
+    if (!res.ok) {
+      setProspectError("Failed to update prospect");
+      return;
+    }
+    await loadProspects();
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -199,6 +254,86 @@ export default function AdminPage() {
       statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
     >
       <LiveStatusBar />
+
+      <section className="card mb-8 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="home-os-kicker">Distribution</p>
+            <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+              Prospect pipeline
+            </h2>
+            <p className="mt-2 font-sans text-sm text-ash">
+              Waitlist → contacted → demoed → onboarded → live. Move shops through stages.
+            </p>
+          </div>
+          <ShellBadge tone={prospects.length > 0 ? "live" : "flare"}>
+            {prospects.length} prospects
+          </ShellBadge>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2 font-sans text-xs text-ash">
+          {PIPELINE_STATUSES.map((status) => (
+            <span key={status} className="rounded-md border border-rule px-2 py-1">
+              {status}: {prospectCounts[status] ?? 0}
+            </span>
+          ))}
+        </div>
+        {prospectError ? (
+          <p className="mt-3 font-sans text-sm text-flare-dim">{prospectError}</p>
+        ) : null}
+        {prospects.length === 0 ? (
+          <p className="mt-5 font-sans text-sm text-ash">
+            No signups yet. Pilot form and waitlist feed this board.
+          </p>
+        ) : (
+          <ul className="mt-5 space-y-3">
+            {prospects.slice(0, 25).map((p) => (
+              <li
+                key={p.id}
+                className="rounded-md border border-rule bg-fog/40 p-3 font-sans text-sm"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-void">
+                      {p.businessName ?? p.email}
+                    </p>
+                    <p className="text-xs text-ash">
+                      {p.email}
+                      {p.phone ? ` · ${p.phone}` : ""}
+                      {p.trade ? ` · ${p.trade}` : ""}
+                      {p.city ? ` · ${p.city}` : ""}
+                    </p>
+                  </div>
+                  <select
+                    className="input text-sm max-w-[10rem]"
+                    value={p.status}
+                    onChange={(e) =>
+                      updateProspect(p.id, { status: e.target.value })
+                    }
+                    aria-label={`Status for ${p.email}`}
+                  >
+                    {PIPELINE_STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <input
+                  className="input mt-2 text-sm"
+                  defaultValue={p.notes ?? ""}
+                  placeholder="Notes (blur to save)"
+                  onBlur={(e) => {
+                    const next = e.target.value.trim();
+                    if (next !== (p.notes ?? "")) {
+                      updateProspect(p.id, { notes: next || null });
+                    }
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="card mb-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">

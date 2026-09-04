@@ -136,3 +136,7 @@ CREATE TABLE IF NOT EXISTS "SmsOptOut" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "SmsOptOut_businessId_phoneNormalized_key" ON "SmsOptOut"("businessId", "phoneNormalized");
 CREATE INDEX IF NOT EXISTS "SmsOptOut_businessId_clearedAt_idx" ON "SmsOptOut"("businessId", "clearedAt");
+
+ALTER TABLE "Business" ADD COLUMN "baselineMissedCallsPerWeek" INTEGER;
+ALTER TABLE "Business" ADD COLUMN "baselineJobsPerWeek" INTEGER;
+ALTER TABLE "WaitlistEntry" ADD COLUMN "notes" TEXT;
