@@ -31,7 +31,7 @@ export const company = {
     "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",
   copyrightNotice: "All rights reserved.",
   smsProgramName: "Orvius Owner Alerts",
-  legalUpdated: "September 3, 2026",
+  legalUpdated: "September 4, 2026",
 } as const;
 
 /** Orvius OS — expansion rings. One ring at a time; never skip. */
@@ -105,7 +105,8 @@ export const legalPages = [
   {
     href: "/privacy",
     title: "Privacy Policy",
-    summary: "How we collect, use, and protect business and caller data.",
+    summary:
+      "Controller/processor roles, categories, CCPA/state rights, retention, AI data, and requests.",
   },
   {
     href: "/cookies",

@@ -44,11 +44,16 @@ export default function TermsPage() {
         <p>
           We improve the Service continuously. Features, providers, and integrations may change.
           Marketing descriptions and product demos are illustrative and do not guarantee any
-          particular answer rate, booking rate, revenue outcome, or uptime.
+          particular answer rate, booking rate, revenue outcome, or uptime. Unless we execute a
+          separate written service-level agreement, the Service is provided without a formal SLA.
         </p>
         <p>
           {company.productName} is a software vendor. We are not your attorney, insurer, licensed
-          trade professional, emergency service, or agent for professional licensing.
+          trade professional, emergency service, or agent for professional licensing.{" "}
+          <strong>The Service is not a HIPAA-covered product</strong> and is not intended for use
+          as a system of record for protected health information (PHI) unless we expressly agree in
+          a signed business associate agreement. Do not configure the Service as your sole
+          life-safety or 911 dispatch path.
         </p>
       </LegalSection>
 
@@ -103,8 +108,10 @@ export default function TermsPage() {
           collect through your lines (&quot;Customer Content&quot;). You grant {company.legalName} a
           worldwide license to host, process, transmit, and display Customer Content solely to
           provide and secure the Service, comply with law, and improve reliability of the Service
-          for your account. Feedback you provide may be used to improve the Service without
-          obligation or attribution.
+          for your account. When we process end-customer personal information in Customer Content,
+          we do so as your processor / service provider as described in our{" "}
+          <Link href="/privacy">Privacy Policy</Link> (including processor terms). Feedback you
+          provide may be used to improve the Service without obligation or attribution.
         </p>
       </LegalSection>
 
@@ -209,8 +216,12 @@ export default function TermsPage() {
         <p>
           You may cancel under our <Link href="/refunds">Refunds &amp; Cancellation</Link> policy.
           We may suspend or terminate access for material breach, non-payment, legal risk, or abuse.
-          Upon termination, your license ends. Sections that by nature should survive (including IP,
-          fees owed, disclaimers, liability limits, indemnity, and dispute resolution) survive.
+          Upon termination, your license ends. Reasonable export of Customer Content (where
+          available in-product or via support) should be requested before or promptly after
+          cancellation; afterward we delete or de-identify per our{" "}
+          <Link href="/privacy">Privacy Policy</Link>, subject to legal and backup retention.
+          Sections that by nature should survive (including IP, fees owed, disclaimers, liability
+          limits, indemnity, and dispute resolution) survive.
         </p>
       </LegalSection>
 
@@ -241,7 +252,17 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="16. Changes">
+      <LegalSection title="16. Force majeure">
+        <p>
+          Neither party is liable for delay or failure to perform due to events beyond reasonable
+          control, including natural disasters, war, terrorism, labor disputes, government action,
+          internet or carrier outages, power failures, or failures of third-party providers
+          (telephony, voice AI, hosting, payments) outside that party&apos;s reasonable control.
+          Payment obligations for fees already incurred are not excused.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="17. Changes">
         <p>
           We may update these Terms by posting a revised version with an updated date. Material
           changes will be posted on this page. Continued use after the effective date constitutes
@@ -249,17 +270,17 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="17. Miscellaneous">
+      <LegalSection title="18. Miscellaneous">
         <p>
           These Terms are the entire agreement regarding the Service and supersede prior
           conflicting terms for the same subject. If a provision is unenforceable, the remainder
           stays in effect. Failure to enforce is not a waiver. You may not assign these Terms
           without our consent; we may assign to an affiliate or successor. Notices may be sent to
-          your account email and to {company.legalEmail}.
+          your account email and to {company.legalEmail}. Headings are for convenience only.
         </p>
       </LegalSection>
 
-      <LegalSection title="18. Contact">
+      <LegalSection title="19. Contact">
         <p>
           {company.legalName}
           <br />

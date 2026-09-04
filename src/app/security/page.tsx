@@ -55,8 +55,10 @@ export default function SecurityPage() {
       <LegalSection title="4. Data handling">
         <p>
           Call metadata, transcripts, lead records, and account data are stored to operate the
-          Service. See our <Link href="/privacy">Privacy Policy</Link> for roles, retention, and
-          deletion requests.
+          Service (including via our database provider). See our{" "}
+          <Link href="/privacy">Privacy Policy</Link> for controller/processor roles, categories,
+          retention, state privacy rights, and deletion requests. We do not claim HIPAA readiness
+          or offer a standard BAA unless expressly agreed in writing.
         </p>
       </LegalSection>
 
@@ -81,9 +83,10 @@ export default function SecurityPage() {
 
       <LegalSection title="7. Incident reporting">
         <p>
-          Report security concerns to {company.legalEmail}. We investigate good-faith reports and
-          will notify affected customers when legally required or when we determine notification is
-          appropriate.
+          Report security concerns to {company.legalEmail}. We investigate good-faith reports. For
+          confirmed personal-data breaches affecting Customer Content, we notify affected business
+          customers without undue delay where legally required or when we determine notification is
+          appropriate, and we cooperate with customer notification duties as processor.
         </p>
       </LegalSection>
 

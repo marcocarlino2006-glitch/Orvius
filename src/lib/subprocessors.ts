@@ -6,13 +6,18 @@ export const subprocessors = [
     data: "Account, application, and log data",
   },
   {
+    name: "Turso",
+    purpose: "Managed database (application and shop records)",
+    data: "Account, call/lead/job records, and related operational data as stored by the Service",
+  },
+  {
     name: "Twilio",
     purpose: "Telephony, SMS, and related communications",
     data: "Phone numbers, call/SMS metadata and content",
   },
   {
     name: "Vapi",
-    purpose: "Voice AI orchestration",
+    purpose: "Voice AI orchestration (may engage nested speech/model providers)",
     data: "Call audio/transcripts and related metadata as configured",
   },
   {

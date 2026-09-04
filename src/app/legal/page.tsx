@@ -58,6 +58,14 @@ export default function LegalHubPage() {
             <p className="mt-2 font-sans text-xs text-ash">
               {company.legalName} · {company.domain}
             </p>
+            <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
+              These documents are protective templates. Confirm formation-state governing law with
+              counsel before relying on arbitration/venue language in a dispute. Privacy requests:{" "}
+              <a href={`mailto:${company.legalEmail}`} className="home-platform-link">
+                {company.legalEmail}
+              </a>
+              .
+            </p>
           </div>
         </div>
       </section>

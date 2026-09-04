@@ -50,9 +50,9 @@ export default function CookiesPage() {
       <LegalSection title="5. Your choices">
         <p>
           You can clear cookies and site data in your browser settings. Blocking essential cookies
-          may prevent login or secure form submission. See our{" "}
-          <Link href="/privacy">Privacy Policy</Link> for broader data practices. Questions:{" "}
-          {company.contactEmail}.
+          may prevent login or secure form submission. California and other state privacy rights
+          (access, deletion, do-not-sell confirmation) are described in our{" "}
+          <Link href="/privacy">Privacy Policy</Link>. Questions: {company.contactEmail}.
         </p>
       </LegalSection>
     </LegalDocument>
