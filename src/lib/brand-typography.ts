@@ -1,4 +1,4 @@
-/** Brand typography — Orbitron wordmark + dual-rail O (substitutes the letter). */
+/** Brand typography — Orbitron wordmark + twin-orbit O (substitutes the letter). */
 
 export const brandWordmark = "Orvius";
 
