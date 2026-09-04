@@ -12,7 +12,9 @@ export type AttentionKind =
   | "missing_baseline"
   | "stale_weekly_proof"
   | "billing_action"
-  | "founder_cert";
+  | "founder_cert"
+  | "open_invoice"
+  | "open_estimate";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -47,6 +49,10 @@ function kindRank(kind: AttentionKind, urgency?: string | null): number {
       return 5;
     case "founder_cert":
       return 8;
+    case "open_invoice":
+      return 12;
+    case "open_estimate":
+      return 14;
     case "urgent_lead":
       return emergency ? 10 : 20;
     case "missing_baseline":
@@ -232,10 +238,75 @@ export async function getAttentionQueue(
         ? "Last proof is older than 7 days — copy a fresh artifact."
         : "No weekly proof copied yet — multi-b requires measured money.",
       recommendedAction: "Copy weekly proof",
-      href: "/dashboard",
+      href: "/dashboard#shop-economics",
       entityType: "shop",
       entityId: businessId,
       createdAt: now.toISOString(),
+    });
+  }
+
+  const openMoney = await Promise.all([
+    prisma.invoice.findMany({
+      where: {
+        businessId,
+        status: { in: ["sent", "open", "overdue", "draft"] },
+      },
+      take: 8,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, amountCents: true, status: true, jobId: true, createdAt: true },
+    }),
+    prisma.estimate.findMany({
+      where: {
+        businessId,
+        status: { in: ["draft", "sent", "accepted"] },
+        invoice: null,
+      },
+      take: 8,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        amountCents: true,
+        status: true,
+        jobId: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  for (const invoice of openMoney[0]) {
+    if (invoice.status === "paid" || invoice.status === "void") continue;
+    items.push({
+      id: `open_invoice:${invoice.id}`,
+      kind: "open_invoice",
+      rank: kindRank("open_invoice"),
+      impact: "high",
+      title: `Open invoice · $${Math.round(invoice.amountCents / 100)}`,
+      detail: `Status ${invoice.status} — close money in the CRM.`,
+      recommendedAction: "Review job",
+      href: invoice.jobId ? `/dashboard/jobs/${invoice.jobId}` : "/dashboard#shop-economics",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: invoice.createdAt.toISOString(),
+      estimatedRevenueCents: invoice.amountCents,
+    });
+  }
+
+  for (const estimate of openMoney[1]) {
+    items.push({
+      id: `open_estimate:${estimate.id}`,
+      kind: "open_estimate",
+      rank: kindRank("open_estimate"),
+      impact: "med",
+      title: `Open estimate · $${Math.round(estimate.amountCents / 100)}`,
+      detail: `Status ${estimate.status} — convert or close.`,
+      recommendedAction: "Review job",
+      href: estimate.jobId
+        ? `/dashboard/jobs/${estimate.jobId}`
+        : "/dashboard#shop-economics",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: estimate.createdAt.toISOString(),
+      estimatedRevenueCents: estimate.amountCents,
     });
   }
 
@@ -415,5 +486,9 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Billing";
     case "founder_cert":
       return "Cert";
+    case "open_invoice":
+      return "Invoice";
+    case "open_estimate":
+      return "Estimate";
   }
 }

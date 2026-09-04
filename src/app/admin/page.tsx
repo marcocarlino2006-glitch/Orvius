@@ -101,6 +101,8 @@ export default function AdminPage() {
   const [dailyTarget, setDailyTarget] = useState(20);
   const [prospectError, setProspectError] = useState<string | null>(null);
   const [copyNote, setCopyNote] = useState<string | null>(null);
+  const [importNote, setImportNote] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
   const [form, setForm] = useState({
     name: "",
     ownerPhone: "",
@@ -173,6 +175,33 @@ export default function AdminPage() {
       return;
     }
     await loadProspects();
+  }
+
+  async function importProspectCsv(file: File) {
+    setImporting(true);
+    setImportNote(null);
+    setProspectError(null);
+    try {
+      const csv = await file.text();
+      const res = await fetch("/api/waitlist/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csv }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Import failed");
+      }
+      setImportNote(
+        `Imported ${data.created} new · updated ${data.updated}` +
+          (data.skipped ? ` · skipped ${data.skipped}` : ""),
+      );
+      await loadProspects();
+    } catch (err) {
+      setProspectError(err instanceof Error ? err.message : "Import failed");
+    } finally {
+      setImporting(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -273,6 +302,11 @@ export default function AdminPage() {
       title="Business setup"
       subtitle="Provision a shop, connect the live line, and verify owner alerts."
       statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
+      actions={
+        <Link href="/admin/daily" className="btn btn-void text-sm">
+          Daily run
+        </Link>
+      }
     >
       <LiveStatusBar />
 
@@ -323,6 +357,23 @@ export default function AdminPage() {
               Copy {t.label}
             </button>
           ))}
+          <label className="btn btn-void text-xs cursor-pointer">
+            {importing ? "Importing…" : "Import CSV"}
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="sr-only"
+              disabled={importing}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void importProspectCsv(file);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          <Link href="/admin/daily" className="btn btn-secondary text-xs">
+            Daily run
+          </Link>
           <Link href="/pilot" className="btn btn-secondary text-xs">
             Pilot page
           </Link>
@@ -330,6 +381,12 @@ export default function AdminPage() {
             Demo
           </Link>
         </div>
+        {importNote ? (
+          <p className="mt-2 font-sans text-xs text-live">{importNote}</p>
+        ) : null}
+        <p className="mt-2 font-sans text-xs text-ash">
+          CSV headers: email, businessName, phone, trade, city — imports as due today.
+        </p>
         {copyNote ? (
           <p className="mt-2 font-sans text-xs text-live">{copyNote}</p>
         ) : null}
@@ -343,7 +400,21 @@ export default function AdminPage() {
               Target: 20 touches/day from Google Maps, trade groups, warm intros.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href="/pilot" className="btn btn-void text-sm">
+              <label className="btn btn-void text-sm cursor-pointer">
+                {importing ? "Importing…" : "Import CSV (20/day)"}
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  className="sr-only"
+                  disabled={importing}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void importProspectCsv(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <Link href="/pilot" className="btn btn-secondary text-sm">
                 Open pilot form
               </Link>
               <Link href="/demo" className="btn btn-secondary text-sm">

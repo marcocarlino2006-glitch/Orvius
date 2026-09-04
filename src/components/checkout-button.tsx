@@ -148,13 +148,16 @@ export function CheckoutButton({
     const annualMissing = interval === "year" && planStatus?.checkoutReady;
     return (
       <div className={className}>
-        <Link href="/pilot" className="inst-btn inst-btn-primary w-full justify-center">
-          Apply for design partner
+        <Link href="/dashboard/billing" className="inst-btn inst-btn-primary w-full justify-center">
+          Open billing unblock
         </Link>
         <p className="mt-3 font-sans text-sm text-ash">
           {annualMissing
-            ? "Annual billing isn’t configured yet for this plan. Switch to monthly or start the free program."
-            : "Self-serve checkout for this plan is not live yet. Start with the free 30-day program — we will send a checkout link when billing is ready."}
+            ? "Annual billing isn’t configured yet for this plan. Switch to monthly or finish Stripe setup."
+            : "Self-serve checkout is not live yet. Founders: finish Stripe on Billing. Shops: apply for the pilot."}{" "}
+          <Link href="/pilot" className="underline underline-offset-2">
+            Pilot apply
+          </Link>
         </p>
       </div>
     );

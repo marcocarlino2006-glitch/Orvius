@@ -1,67 +1,29 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
 import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
-import { isPaidPlanId } from "@/lib/pricing-plans";
-
 export const runtime = "nodejs";
 
-function resolveBillingPlan(subscription: Stripe.Subscription): string | null {
-  const planId = subscription.metadata.planId?.trim();
-  if (planId && isPaidPlanId(planId)) return planId;
+function resolveInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const legacy = (invoice as { subscription?: string | { id: string } | null })
+    .subscription;
+  if (typeof legacy === "string" && legacy) return legacy;
+  if (legacy && typeof legacy === "object" && "id" in legacy) return legacy.id;
 
-  const product = subscription.metadata.product?.trim();
-  if (product === "orvius-line") return "line";
-  if (product === "orvius-pro") return "pro";
-  if (product === "orvius-fleet") return "fleet";
-
+  const parent = (
+    invoice as {
+      parent?: {
+        subscription_details?: {
+          subscription?: string | Stripe.Subscription | null;
+        } | null;
+      } | null;
+    }
+  ).parent;
+  const sub = parent?.subscription_details?.subscription;
+  if (typeof sub === "string" && sub) return sub;
+  if (sub && typeof sub === "object" && "id" in sub) return sub.id;
   return null;
-}
-
-async function syncSubscription(
-  subscription: Stripe.Subscription,
-  customerEmail?: string | null,
-) {
-  const businessId = subscription.metadata.businessId?.trim();
-  let business = businessId
-    ? await prisma.business.findUnique({ where: { id: businessId } })
-    : null;
-
-  if (!business && customerEmail) {
-    business = await prisma.business.findFirst({
-      where: { ownerEmail: customerEmail },
-      orderBy: { createdAt: "asc" },
-    });
-  }
-
-  if (!business) return;
-
-  const customerId =
-    typeof subscription.customer === "string"
-      ? subscription.customer
-      : subscription.customer.id;
-
-  const billingStatus =
-    subscription.status === "active" || subscription.status === "trialing"
-      ? "active"
-      : subscription.status === "past_due"
-        ? "past_due"
-        : subscription.status === "canceled" ||
-            subscription.status === "unpaid"
-          ? "canceled"
-          : "pilot";
-
-  await prisma.business.update({
-    where: { id: business.id },
-    data: {
-      stripeCustomerId: customerId,
-      stripeSubscriptionId: subscription.id,
-      billingStatus,
-      billingPlan: resolveBillingPlan(subscription),
-      ownerEmail: business.ownerEmail ?? customerEmail ?? undefined,
-    },
-  });
 }
 
 export async function POST(request: Request) {
@@ -105,17 +67,32 @@ export async function POST(request: Request) {
           await stripe.subscriptions.update(subscription.id, {
             metadata: {
               ...subscription.metadata,
-              businessId: session.metadata.businessId ?? subscription.metadata.businessId ?? "",
-              planId: session.metadata.planId ?? subscription.metadata.planId ?? "pro",
-              product: session.metadata.product ?? subscription.metadata.product ?? "orvius-pro",
+              businessId:
+                session.metadata.businessId ??
+                subscription.metadata.businessId ??
+                "",
+              planId:
+                session.metadata.planId ?? subscription.metadata.planId ?? "pro",
+              product:
+                session.metadata.product ??
+                subscription.metadata.product ??
+                "orvius-pro",
             },
           });
         }
 
-        await syncSubscription(
-          subscription,
+        const refreshed = await stripe.subscriptions.retrieve(subscription.id);
+        const result = await syncSubscriptionToBusiness(
+          refreshed,
           session.customer_email ?? session.customer_details?.email,
         );
+        if ("unmatched" in result) {
+          console.error(
+            "[billing.webhook] checkout.session.completed unmatched",
+            session.id,
+            session.customer_email,
+          );
+        }
         break;
       }
       case "customer.subscription.updated":
@@ -128,7 +105,26 @@ export async function POST(request: Request) {
 
         const email =
           customer && !("deleted" in customer) ? customer.email : null;
-        await syncSubscription(subscription, email);
+        const result = await syncSubscriptionToBusiness(subscription, email);
+        if ("unmatched" in result) {
+          console.error(
+            "[billing.webhook] subscription event unmatched",
+            event.type,
+            subscription.id,
+          );
+        }
+        break;
+      }
+      case "invoice.payment_failed":
+      case "invoice.paid": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = resolveInvoiceSubscriptionId(invoice);
+        if (!subId) break;
+        const subscription = await stripe.subscriptions.retrieve(subId);
+        await syncSubscriptionToBusiness(
+          subscription,
+          invoice.customer_email,
+        );
         break;
       }
       default:
@@ -137,7 +133,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Webhook handler failed";
+    const message =
+      error instanceof Error ? error.message : "Webhook handler failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -54,7 +54,7 @@ Add the same vars to Vercel.
 
 URL: `https://api.orvius.im/api/billing/webhook`
 
-Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`
 
 ```
 STRIPE_WEBHOOK_SECRET=whsec_...

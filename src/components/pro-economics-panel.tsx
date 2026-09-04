@@ -58,7 +58,11 @@ export function ProEconomicsPanel({
   const pipeline = formatCents(outcomes.estimatedPipelineCents);
 
   return (
-    <section className="pro-economics font-sans" aria-label="Shop economics">
+    <section
+      id="shop-economics"
+      className="pro-economics font-sans"
+      aria-label="Shop economics"
+    >
       <div className="pro-economics-head">
         <p className="shop-outcomes-kicker type-eyebrow">Shop economics</p>
         <p className="pro-economics-title">

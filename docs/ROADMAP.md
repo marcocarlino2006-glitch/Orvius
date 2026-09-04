@@ -28,20 +28,22 @@
 ## Ordered domination path
 
 1. **Cert** — Settings → 5 cell scenarios (blocks honest outreach claims)
-2. **Stripe** — Billing unblock panel → first Checkout → non-zero ARR
+2. **Stripe** — Billing unblock → `npm run stripe:setup` → first Checkout  
+   (success page confirms via `/api/billing/confirm` even if webhook lags)
 3. **Baseline + weekly proof** — Summit measured money
-4. **20 touches/day** — Admin due-first board + copy templates
+4. **Import CSV + Daily run** — `/admin` import → `/admin/daily` → 20 touches
 5. **10 paying or proving partners** — then expand OS rings
 6. **Formation state** — counsel → `company.ts`
 
 ## Commands
 
 ```bash
-npm run multi-b:check          # full scorecard (fails on Stripe/formation until real)
-MULTI_B_CI=1 npm run multi-b:check   # product-only (CI)
-npm run wedge:ready
+npm run multi-b:check
 npm run billing:check
+npm run wedge:ready
 ```
+
+Open every morning: **/admin/daily**
 
 ---
 

@@ -7,8 +7,8 @@ See also `docs/MULTI-BILLION-BATTLES.md` and `docs/WEDGE-MASTERY.md`.
 |------|------|---------|----------|--------|
 | 2026-08-27 | Live call | Twilio/Vapi secrets empty in `.env` — cannot auth or provision | Blocker | **Fixed** |
 | 2026-08-27 | Vapi attach | Phone not linked to assistant | Blocker | **Fixed** — imported +18446439170 |
-| 2026-08-27 | Webhooks | api.orvius.im unreachable pre-DNS | High | **Mitigated** — tunnel + Vapi webhook; production DNS still founder gate |
-| 2026-08-27 | Deploy | `orvius.im` DNS still on Manus (503) | Blocker | **Open — founder** Namecheap → Vercel (`docs/DNS-ORVIUS-IM.md`) |
+| 2026-08-27 | Webhooks | api.orvius.im unreachable pre-DNS | High | **Fixed** — api.orvius.im/api/health 200 (2026-09-04) |
+| 2026-08-27 | Deploy | `orvius.im` DNS still on Manus (503) | Blocker | **Fixed** — live on Vercel (200, 2026-09-04) |
 | 2026-08-27 | Deploy | No GitHub remote — cannot Vercel deploy | Blocker | **Fixed** — repo live; deploy still needs DNS |
 | 2026-08-28 | Owner SMS | `ENABLE_OWNER_SMS` not true / no owner phone on business | Medium | **Open — founder** set owner cell in Settings |
 | 2026-08-28 | Owner SMS | Owner phone = Twilio line (+18446439170) — SMS won't reach cell | High | **Open — founder** set `ORVIUS_OWNER_PHONE` / Settings mobile to personal cell |
