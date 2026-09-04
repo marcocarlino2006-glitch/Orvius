@@ -5,8 +5,8 @@ import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
  * First viewport = one composition.
- * Brand is the hero signal. Command board is the full-bleed plane.
- * No cream orbs, no floating product card, no promo chips.
+ * Brand is the hero signal. Command board is atmosphere on the right —
+ * never a leaking rail or competing chrome.
  */
 export function HomeLineHero() {
   return (
@@ -15,10 +15,12 @@ export function HomeLineHero() {
         <HomeProductPreview />
       </div>
       <div className="mkt-hero-veil" aria-hidden />
+      <div className="mkt-hero-grain" aria-hidden />
       <div className="mkt-hero-scan" aria-hidden />
 
       <div className="editorial-wrap mkt-hero-content">
         <OrviusLogo variant="chalk" size="xl" className="mkt-hero-brand-lockup" />
+        <span className="mkt-hero-brand-rule" aria-hidden />
 
         <h1 id="home-hero-heading" className="mkt-hero-title">
           Turn missed calls into booked jobs.
