@@ -5,14 +5,13 @@ import { useEffect, useId, useState } from "react";
 import { OrviusLogo } from "@/components/orvius-logo";
 
 const NAV = [
-  { href: "/#workflow", label: "Product" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/pilot", label: "Call audit" },
+  { href: "/pilot", label: "Audit" },
   { href: "/security", label: "Security" },
 ] as const;
 
 /**
- * Cursor/SpaceX chrome: sparse links, one CTA, no funnel noise.
+ * Company chrome — sparse links, one CTA, no funnel noise.
  */
 export function PremiumNav() {
   const menuId = useId();
@@ -21,7 +20,6 @@ export function PremiumNav() {
 
   useEffect(() => {
     function onScroll() {
-      // Stay transparent through the hero void — elevate only after leaving it
       const hero = document.querySelector(".mkt-hero--command");
       const threshold = hero
         ? Math.max(48, hero.getBoundingClientRect().height * 0.72)
@@ -78,7 +76,7 @@ export function PremiumNav() {
                 scrolled ? "mkt-btn-ink" : "mkt-btn-ghost-light"
               }`}
             >
-              Book audit
+              Audit
             </Link>
             <button
               type="button"
@@ -119,7 +117,7 @@ export function PremiumNav() {
                 className="mkt-btn mkt-btn-ink mkt-nav-drawer-cta"
                 onClick={() => setMenuOpen(false)}
               >
-                Book audit
+                Audit
               </Link>
             </nav>
           </div>

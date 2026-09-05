@@ -42,9 +42,8 @@ function HeaderCtaLink({
 }
 
 const defaultNav: NavLink[] = [
-  { href: "/#workflow", label: "Product" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/pilot", label: "Call audit" },
+  { href: "/pilot", label: "Audit" },
   { href: "/security", label: "Security" },
 ];
 
@@ -52,7 +51,7 @@ export function ShellHeader({
   plane = "void",
   position = "sticky",
   surface = "solid",
-  cta = { href: "/login", label: "Start free" },
+  cta = { href: "/pilot", label: "Audit" },
   nav = defaultNav,
 }: ShellHeaderProps) {
   const { data: session } = useSession();

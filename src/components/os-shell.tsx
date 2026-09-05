@@ -64,8 +64,8 @@ export function OsShell({
             <OrviusLogo size="md" variant="void" />
       </Link>
 
-      <div className="os-ring-status os-ring-status-pro">
-        <p className="os-sidebar-label font-sans">Your shop</p>
+      <div className="os-ring-status">
+        <p className="os-sidebar-label font-sans">Shop</p>
         <p className="os-ring-status-title font-sans">{businessName}</p>
         <p className="os-ring-status-module font-sans">
           {business?.line ?? (

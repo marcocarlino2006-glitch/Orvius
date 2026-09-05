@@ -14513,9 +14513,16 @@ h3 {
 }
 
 .mkt-hero-brand-lockup .orvius-logo-wm {
-  height: clamp(2.9rem, 7.5vw, 4.6rem);
+  /* Brand must outrank the headline — company, not SaaS */
+  height: clamp(3.4rem, 9.5vw, 6.5rem);
   width: auto;
   color: #f7f8fa;
+}
+
+.mkt-hero-title--absolute {
+  font-size: clamp(2.4rem, 6.5vw, 4.5rem) !important;
+  font-weight: 400 !important;
+  max-width: 11ch;
 }
 
 .mkt-hero-category {
@@ -17231,4 +17238,226 @@ button.btn {
   letter-spacing: normal !important;
   font-weight: inherit !important;
   border-radius: 0 !important;
+}
+
+/* ── Company presence — sparse product atmosphere ── */
+.mkt-product--company {
+  width: min(100%, 34rem);
+  margin-left: auto;
+  color: #e8ecf1;
+  background: color-mix(in srgb, #0a0c10 88%, transparent);
+  border: 1px solid color-mix(in srgb, #f0f0fa 12%, transparent);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.35rem 1.35rem;
+  backdrop-filter: blur(8px);
+}
+
+.mkt-product--company .mkt-product-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #f0f0fa 55%, transparent);
+}
+
+.mkt-product--company .mkt-product-title {
+  margin: 0.35rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.mkt-product--company .mkt-product-queue {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.mkt-product--company .mkt-product-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid color-mix(in srgb, #f0f0fa 8%, transparent);
+  border-radius: 0.4rem;
+}
+
+.mkt-product--company .mkt-product-row-hot {
+  border-color: color-mix(in srgb, #c4783a 45%, transparent);
+  background: color-mix(in srgb, #c4783a 8%, transparent);
+}
+
+.mkt-product--company .mkt-product-row-tag {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #f0f0fa 62%, transparent);
+  padding-top: 0.15rem;
+}
+
+.mkt-product--company .mkt-product-row-main {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.mkt-product--company .mkt-product-row-main em {
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: color-mix(in srgb, #f0f0fa 55%, transparent);
+}
+
+.mkt-product--company .mkt-product-detail {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, #f0f0fa 10%, transparent);
+}
+
+.mkt-product--company .mkt-product-alert-kicker {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #f0f0fa 50%, transparent);
+}
+
+.mkt-product--company .mkt-product-alert-title {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.mkt-product--company .mkt-product-alert-meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: color-mix(in srgb, #f0f0fa 58%, transparent);
+}
+
+.mkt-product--company .mkt-product-chip {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, #f0f0fa 35%, transparent);
+  background: rgba(240, 240, 250, 0.1);
+  color: #f0f0fa;
+  border-radius: 2rem;
+  padding: 0.65rem 1.1rem;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.mkt-product--company .mkt-product-chip:disabled,
+.mkt-product--company .mkt-product-chip-busy {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.mkt-proof-layout--company {
+  display: grid;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .mkt-proof-layout--company {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 3.5rem;
+    align-items: center;
+  }
+}
+
+.mkt-proof-section--company .mkt-proof-kicker {
+  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.mkt-proof-section--company .mkt-proof-title {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.mkt-proof-section--company .mkt-proof-lead {
+  margin: 1rem 0 0;
+  max-width: 34ch;
+  color: var(--ash);
+  line-height: 1.55;
+}
+
+.mkt-proof-section--company .mkt-proof-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.35rem;
+}
+
+.mkt-proof-section--company .mkt-proof-note {
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
+.mkt-call-panel--company {
+  border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
+  background: var(--white);
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.35rem 1.4rem;
+}
+
+.mkt-call-panel--company .mkt-call-panel-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.mkt-call-panel--company .mkt-call-panel-title {
+  margin: 0.35rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.mkt-call-panel--company .mkt-transcript {
+  margin-top: 1.15rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+/* Flatten OS status card — less dashboard SaaS */
+.os-ring-status-pro {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding-inline: 0 !important;
+}
+
+.os-live-dot,
+.pro-live-dot {
+  box-shadow: none !important;
+  animation: none !important;
 }
