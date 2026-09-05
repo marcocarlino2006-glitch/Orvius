@@ -3,14 +3,13 @@
 import type { CSSProperties } from "react";
 import { brandWordmark, logoSizes } from "@/lib/brand-typography";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
-import { OrviusWordmarkSvg } from "@/lib/orvius-wordmark";
 
 type OrviusMarkProps = {
   size?: number;
   className?: string;
 };
 
-/** Cut O alone — favicons, avatars, compact chrome. */
+/** Solid O — favicons, avatars, compact chrome. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -23,65 +22,44 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
 type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
-  /** Cut wordmark only (no separate mark). */
+  /** Wordmark text only. */
   wordmarkOnly?: boolean;
-  /** Cut O alone. */
+  /** Solid O alone. */
   markOnly?: boolean;
   /**
-   * Kept for API compat. Full lockup is always the cut ORVIUS wordmark
-   * (mark is no longer glued as a fake O — the cut O lives inside the SVG).
+   * When true (default), mark replaces the letter O → [O]RVIUS.
+   * Reads as a real company name, not a badge + label.
    */
   integrateO?: boolean;
   className?: string;
 };
 
-const WORDMARK_HEIGHT = {
-  sm: 16,
-  md: 20,
-  lg: 24,
-  xl: 44,
-} as const;
-
 /**
- * Official lockups:
- * 1) Cut O mark
- * 2) Cut ORVIUS wordmark (letters sliced — Oracle / Tesla energy)
+ * Company lockups:
+ * 1) Solid O mark
+ * 2) Integrated wordmark — mark as the O in ORVIUS
  */
 export function OrviusLogo({
   size = "md",
   variant = "chalk",
   wordmarkOnly = false,
   markOnly = false,
+  integrateO = true,
   className = "",
 }: OrviusLogoProps) {
   const tokens = logoSizes[size];
-
-  if (markOnly) {
-    return (
-      <span
-        className={[
-          "orvius-logo",
-          "orvius-logo--mark",
-          `orvius-logo-${size}`,
-          `orvius-logo-${variant}`,
-          className,
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        aria-label={brandWordmark}
-      >
-        <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
-      </span>
-    );
-  }
+  const showMark = markOnly || !wordmarkOnly;
+  const showWordmark = !markOnly;
+  const integrated = showMark && showWordmark && integrateO && !wordmarkOnly;
 
   return (
     <span
       className={[
         "orvius-logo",
-        "orvius-logo--cut",
         `orvius-logo-${size}`,
         `orvius-logo-${variant}`,
+        integrated ? "orvius-logo--integrated" : "",
+        markOnly ? "orvius-logo--mark" : "",
         wordmarkOnly ? "orvius-logo--wordmark" : "",
         className,
       ]
@@ -91,15 +69,29 @@ export function OrviusLogo({
       style={
         {
           "--logo-mark-size": `${tokens.mark}px`,
-          "--logo-wordmark-size": tokens.wordmark,
-          "--logo-wordmark-tracking": tokens.tracking,
+          ...(showWordmark
+            ? {
+                "--logo-wordmark-size": tokens.wordmark,
+                "--logo-wordmark-tracking": tokens.tracking,
+              }
+            : {}),
         } as CSSProperties
       }
     >
-      <OrviusWordmarkSvg
-        height={WORDMARK_HEIGHT[size]}
-        className="orvius-logo-cut-wm"
-      />
+      {showMark ? (
+        <span className="orvius-logo-mark-wrap" aria-hidden>
+          <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
+        </span>
+      ) : null}
+      {showWordmark ? (
+        <span className="orvius-logo-wordmark">
+          {integrated ? (
+            <span className="orvius-logo-rest">RVIUS</span>
+          ) : (
+            brandWordmark.toUpperCase()
+          )}
+        </span>
+      ) : null}
     </span>
   );
 }

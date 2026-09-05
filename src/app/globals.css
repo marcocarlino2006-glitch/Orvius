@@ -1131,24 +1131,71 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — cut O mark + cut ORVIUS wordmark (Oracle / Tesla cut) */
+/* Orvius logo — solid O + company wordmark (real name, not a stunt) */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
-  line-height: 0;
+  gap: 0.55rem;
   color: var(--void);
+  line-height: 1;
 }
 
-.orvius-logo-cut-wm,
-.orvius-mark-svg,
-.orvius-wordmark-svg {
-  display: block;
-  overflow: visible;
+.orvius-logo--integrated {
+  gap: 0.07em;
 }
 
-.orvius-logo-mark {
-  display: block;
+.orvius-logo-wordmark {
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: var(--logo-wordmark-size, 1.2rem);
+  font-weight: 700;
+  letter-spacing: var(--logo-wordmark-tracking, 0.15em);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.orvius-logo--integrated .orvius-logo-rest {
+  display: inline-block;
+}
+
+.orvius-logo-sm .orvius-logo-wordmark {
+  --logo-wordmark-size: 1.05rem;
+  --logo-wordmark-tracking: 0.14em;
+}
+.orvius-logo-md .orvius-logo-wordmark {
+  --logo-wordmark-size: 1.2rem;
+  --logo-wordmark-tracking: 0.15em;
+}
+.orvius-logo-lg .orvius-logo-wordmark {
+  --logo-wordmark-size: 1.4rem;
+  --logo-wordmark-tracking: 0.16em;
+}
+.orvius-logo-xl .orvius-logo-wordmark {
+  --logo-wordmark-size: 2.85rem;
+  --logo-wordmark-tracking: 0.12em;
+}
+
+.orvius-logo-mark-wrap {
   flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--logo-mark-size, 22px);
+  height: var(--logo-mark-size, 22px);
+  line-height: 0;
+}
+
+.orvius-logo--integrated .orvius-logo-mark-wrap {
+  width: calc(var(--logo-wordmark-size, 1.2rem) * 1.05);
+  height: calc(var(--logo-wordmark-size, 1.2rem) * 1.05);
+}
+
+.orvius-logo--integrated .orvius-logo-mark {
+  width: 100%;
+  height: 100%;
+}
+
+.orvius-logo-mark,
+.orvius-mark-svg {
+  display: block;
   color: inherit;
 }
 
@@ -1159,11 +1206,6 @@ h3 {
 .orvius-logo-chalk {
   color: var(--void);
 }
-
-.orvius-logo-sm .orvius-logo-cut-wm { height: 16px; width: auto; }
-.orvius-logo-md .orvius-logo-cut-wm { height: 20px; width: auto; }
-.orvius-logo-lg .orvius-logo-cut-wm { height: 24px; width: auto; }
-.orvius-logo-xl .orvius-logo-cut-wm { height: 44px; width: auto; }
 
 .orvius-mark-graphic-og {
   color: var(--void);
@@ -13870,14 +13912,24 @@ h3 {
   color: var(--void);
 }
 
-.mkt-nav-brand .orvius-logo-cut-wm {
-  height: 22px;
-  width: auto;
+.mkt-nav-brand .orvius-logo-wordmark {
+  font-size: 1.35rem !important;
+  letter-spacing: 0.14em !important;
+}
+
+.mkt-nav-brand .orvius-logo--integrated .orvius-logo-mark-wrap {
+  width: calc(1.35rem * 1.05);
+  height: calc(1.35rem * 1.05);
 }
 
 @media (max-width: 480px) {
-  .mkt-nav-brand .orvius-logo-cut-wm {
-    height: 18px;
+  .mkt-nav-brand .orvius-logo-wordmark {
+    font-size: 1.15rem !important;
+  }
+
+  .mkt-nav-brand .orvius-logo--integrated .orvius-logo-mark-wrap {
+    width: calc(1.15rem * 1.05);
+    height: calc(1.15rem * 1.05);
   }
 }
 
@@ -14517,10 +14569,21 @@ h3 {
   margin-bottom: 0;
 }
 
-.mkt-hero-brand-lockup .orvius-logo-cut-wm {
-  height: clamp(2.75rem, 7vw, 4.25rem);
-  width: auto;
-  color: #f7f8fa;
+.mkt-hero-brand-lockup .orvius-logo-wordmark {
+  --logo-wordmark-size: clamp(2.75rem, 7vw, 4.25rem) !important;
+  --logo-wordmark-tracking: 0.12em !important;
+  font-size: clamp(2.75rem, 7vw, 4.25rem) !important;
+  letter-spacing: 0.12em !important;
+  color: #f7f8fa !important;
+}
+
+.mkt-hero-brand-lockup.orvius-logo--integrated .orvius-logo-mark-wrap {
+  width: calc(var(--logo-wordmark-size, 2.75rem) * 1.05) !important;
+  height: calc(var(--logo-wordmark-size, 2.75rem) * 1.05) !important;
+}
+
+.mkt-hero-brand-lockup .orvius-logo-mark {
+  color: #f7f8fa !important;
 }
 
 .mkt-hero-brand-rule {

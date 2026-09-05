@@ -1,9 +1,9 @@
-/** Brand typography — cut geometric wordmark (Oracle / Tesla lineage). */
+/** Brand typography — clean company wordmark. */
 
 export const brandWordmark = "Orvius";
 
 /**
- * Craft scale — brand face = cut lockups only; UI sans does headlines/body.
+ * Craft scale — brand face = lockups only; UI sans does headlines/body.
  */
 export const typeScale = {
   caption: "0.75rem",
@@ -17,12 +17,12 @@ export const typeScale = {
 
 /**
  * Two logo lines:
- * 1) Cut O mark
- * 2) Cut ORVIUS wordmark (letters sliced)
+ * 1) Solid O mark
+ * 2) Integrated wordmark — mark as O → [O]RVIUS
  */
 export const logoSizes = {
-  sm: { mark: 18, wordmark: "0.95rem", tracking: "0.22em" },
-  md: { mark: 22, wordmark: "1.15rem", tracking: "0.24em" },
-  lg: { mark: 28, wordmark: "1.4rem", tracking: "0.26em" },
-  xl: { mark: 48, wordmark: "2.6rem", tracking: "0.2em" },
+  sm: { mark: 18, wordmark: "1.05rem", tracking: "0.14em" },
+  md: { mark: 22, wordmark: "1.2rem", tracking: "0.15em" },
+  lg: { mark: 26, wordmark: "1.4rem", tracking: "0.16em" },
+  xl: { mark: 48, wordmark: "2.85rem", tracking: "0.12em" },
 } as const;
