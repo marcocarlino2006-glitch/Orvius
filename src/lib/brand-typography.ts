@@ -1,10 +1,7 @@
-/** Brand typography — north-star company lockup. */
+/** Brand typography — wordmark-first company name. */
 
 export const brandWordmark = "Orvius";
 
-/**
- * Craft scale — brand face = lockups only; UI sans does headlines/body.
- */
 export const typeScale = {
   caption: "0.75rem",
   small: "0.875rem",
@@ -16,15 +13,12 @@ export const typeScale = {
 } as const;
 
 /**
- * Two logo lines:
- * 1) Signal-ring mark alone
- * 2) Integrated — ring as O → [◎]RVIUS
- *
- * Tracking tuned for Tesla/Oracle clarity (wide, not sliced).
+ * 1) Signal O alone (favicon)
+ * 2) Full custom ORVIUS wordmark (the name is the logo)
  */
 export const logoSizes = {
-  sm: { mark: 20, wordmark: "1.08rem", tracking: "0.15em" },
-  md: { mark: 24, wordmark: "1.25rem", tracking: "0.16em" },
-  lg: { mark: 28, wordmark: "1.45rem", tracking: "0.17em" },
-  xl: { mark: 54, wordmark: "3.05rem", tracking: "0.125em" },
+  sm: { mark: 22, wordmark: "1.1rem", tracking: "0.12em" },
+  md: { mark: 26, wordmark: "1.3rem", tracking: "0.12em" },
+  lg: { mark: 30, wordmark: "1.5rem", tracking: "0.12em" },
+  xl: { mark: 56, wordmark: "3.2rem", tracking: "0.1em" },
 } as const;
