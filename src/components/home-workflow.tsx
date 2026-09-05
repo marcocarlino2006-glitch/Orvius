@@ -2,40 +2,48 @@ import { MktSection, MktSectionHeader } from "@/components/mkt-section";
 
 const stages = [
   {
-    name: "Call",
+    name: "Capture",
     artifact: "Live line",
-    body: "Nights, weekends, overflow — urgency, address, callback captured.",
+    body: "Nights, weekends, overflow — urgency, address, callback locked in.",
   },
   {
-    name: "Jobs",
+    name: "Convert",
     artifact: "Booked job",
-    body: "Qualified leads become appointments on the shop record.",
+    body: "Qualified demand becomes an appointment on the shop record.",
   },
   {
-    name: "Dispatch",
-    artifact: "Board",
-    body: "Assign techs and run the day from one board.",
+    name: "Command",
+    artifact: "Dispatch board",
+    body: "Assign techs and run the day from one attention plane.",
   },
   {
-    name: "Ask",
-    artifact: "Shop memory",
-    body: "Plain questions against your calls, jobs, and alerts.",
+    name: "Compound",
+    artifact: "Shop intelligence",
+    body: "Ask the OS. Every call and job makes the next one sharper.",
   },
 ] as const;
 
 export function HomeWorkflow() {
   return (
-    <MktSection id="workflow" tone="light" aria-labelledby="home-workflow-heading" className="mkt-mastery-section">
+    <MktSection
+      id="workflow"
+      tone="light"
+      aria-labelledby="home-workflow-heading"
+      className="mkt-mastery-section"
+    >
       <MktSectionHeader
-        kicker="Product"
-        title="Ring to paid work — one path."
-        lead="Every stage leaves an artifact in the OS. One record the shop can run."
+        kicker="The machine"
+        title="From ring to paid work — then the OS compounds."
+        lead="Four laws of the autonomous shop. Each stage leaves an artifact. One record. One command plane."
         titleId="home-workflow-heading"
       />
 
       <ol className="mkt-flow mkt-flow--mastery mkt-flow--sparse font-sans">
         {stages.map((stage, index) => (
-          <li key={stage.name} className="mkt-flow-step mkt-flow-step--mastery mkt-flow-step--sparse">
+          <li
+            key={stage.name}
+            className="mkt-flow-step mkt-flow-step--mastery mkt-flow-step--sparse"
+          >
             {index > 0 ? <span className="mkt-flow-connector" aria-hidden /> : null}
             <span className="mkt-flow-index">{String(index + 1).padStart(2, "0")}</span>
             <h3 className="mkt-flow-name">{stage.name}</h3>

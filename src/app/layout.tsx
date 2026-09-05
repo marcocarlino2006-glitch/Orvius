@@ -24,13 +24,11 @@ export const metadata: Metadata = {
     default: "Orvius",
     template: "%s · Orvius",
   },
-  description:
-    "Orvius answers after-hours and overflow calls, qualifies, books, and alerts the owner. Built for HVAC, plumbing, and electrical.",
+  description: `${company.categoryClaim} ${company.proofLine} Built for HVAC, plumbing, and electrical.`,
   metadataBase: new URL(`https://${company.domain}`),
   openGraph: {
     title: `Orvius — ${company.tagline}`,
-    description:
-      "Try the live line or book a call audit. Capture missed calls today — grow into the shop OS when you are ready.",
+    description: `${company.categoryClaim} ${company.proofLine} Call the live line or book an audit.`,
     type: "website",
     url: `https://${company.domain}`,
     siteName: company.productName,
@@ -38,8 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: `Orvius — ${company.tagline}`,
-    description:
-      "Turn missed calls into booked jobs. AI receptionist and shop OS for the trades.",
+    description: `${company.categoryClaim} ${company.proofLine}`,
   },
 };
 

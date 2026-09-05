@@ -16355,6 +16355,11 @@ h3 {
   box-shadow: none;
 }
 
+.mkt-flow-step--sparse {
+  padding-inline: 0;
+  padding-block: 1.35rem 1.5rem;
+}
+
 .mkt-flow-step--sparse .mkt-flow-artifact {
   display: block;
   margin: 0.25rem 0 0.55rem;

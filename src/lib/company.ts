@@ -9,16 +9,22 @@ export const company = {
   dmcaEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
-  tagline: "Turn missed calls into booked jobs.",
+  /** Absolute brand line — SpaceX-scale, not SaaS fluff. */
+  tagline: "The shop that never sleeps.",
+  /** Category we are creating. */
+  categoryClaim:
+    "The autonomous operating system for HVAC, plumbing, and electrical.",
+  /** Wedge proof — measurable today. */
+  proofLine: "Missed calls become booked jobs.",
   vision:
-    "Become the trusted operating system and autonomous revenue engine for HVAC, plumbing, and electrical businesses — the invisible 24/7 intelligence layer that captures demand, coordinates the field, moves money, and improves each shop’s economics.",
+    "Build the autonomous operating system for the trades — every shop captures demand 24/7, runs the day from one command plane, and compounds intelligence with every call, job, and dollar. Humans stay in command of high-risk decisions.",
   /** Product goal — not a warranty of 100% answer rate. */
   mission:
-    "Capture after-hours and overflow demand: qualify the customer, book the appointment, escalate emergencies, and notify the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence. Humans stay in control of high-risk decisions.",
+    "First law: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
   strategy: [
-    "Dominate one trade and geography first — prove recovered calls, booking rate, and technician utilization.",
-    "Ship trade-specific intelligence and reliable workflow execution before platform vapor.",
-    "Earn trust through security, support, and measurable ROI — then expand trades, regions, and shop sizes.",
+    "Prove the first law on the line — recovered calls, booking rate, owner trust — before platform vapor.",
+    "Dominate one trade and geography with trade-specific intelligence and reliable workflow execution.",
+    "Earn the right to run the full shop: security, support, measurable ROI — then expand trades, regions, and shop sizes.",
   ] as const,
   /**
    * Confirm with counsel against formation docs and update before relying on

@@ -20,9 +20,9 @@ export function HomeOsPath() {
   return (
     <MktSection id="path" tone="inset" aria-labelledby="home-path-heading" className="mkt-mastery-section">
       <MktSectionHeader
-        kicker="Roadmap"
+        kicker="Build truth"
         title="What is live. What is next."
-        lead="Buy what works today. Next stays separate — never dressed as shipping."
+        lead="The autonomous shop is built in public — buy what works today. Next never pretends to be shipping."
         titleId="home-path-heading"
       />
 
@@ -68,8 +68,8 @@ export function HomePlanTruth() {
     <MktSection id="plans" tone="light" className="mkt-mastery-section">
       <MktSectionHeader
         kicker="Pricing"
-        title="Start with the line. Grow into the full OS."
-        lead="Every plan includes the live AI line. Pro adds the command center shops run the day from — the gap is obvious."
+        title="Enter through the line. Own the full OS."
+        lead="Every plan includes the live AI line — the first law. Pro is the command plane shops run the day from."
       />
 
       <div className="mkt-plans-grid mkt-plans-grid--mastery">

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { HomeProductPreview } from "@/components/home-product-preview";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { company } from "@/lib/company";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
- * SpaceX restraint × Cursor product trust.
- * One composition: brand, one line, one CTA, product as atmosphere.
+ * Revolutionary thesis, SpaceX restraint.
+ * Brand first. Category claim. Wedge as proof. One CTA.
  */
 export function HomeLineHero() {
   return (
@@ -19,14 +20,17 @@ export function HomeLineHero() {
       <div className="editorial-wrap mkt-hero-content">
         <OrviusLogo variant="void" size="xl" className="mkt-hero-brand-lockup" />
 
+        <p className="mkt-hero-category font-sans">{company.categoryClaim}</p>
+
         <h1 id="home-hero-heading" className="mkt-hero-title">
-          Missed calls.
+          The shop that
           <br />
-          Booked jobs.
+          never sleeps.
         </h1>
 
         <p className="mkt-hero-lead font-sans">
-          After-hours and overflow — answered, qualified, booked, owner alerted.
+          {company.proofLine} After-hours demand answered, booked, and run —
+          you stay in command.
         </p>
 
         <div className="mkt-hero-actions font-sans">
