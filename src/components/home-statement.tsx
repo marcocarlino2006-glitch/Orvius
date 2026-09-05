@@ -4,21 +4,21 @@ const laws = [
   {
     id: "I",
     title: "No demand dies after hours.",
-    body: "The line answers. Every time.",
+    body: "The line answers, qualifies, and alerts. Capture closes.",
   },
   {
     id: "II",
-    title: "Qualified calls become jobs.",
-    body: "Booked on the record — not voicemail.",
+    title: "Every touch compounds the record.",
+    body: "Calls, texts, and jobs land on one customer brain — then book.",
   },
   {
     id: "III",
-    title: "One command plane. Human overrides.",
-    body: "High-risk moves stay approve-first.",
+    title: "One command plane. Proof that prints.",
+    body: "Act from Attention. Approve high-risk moves. Copy weekly recovered $.",
   },
 ] as const;
 
-/** First principles — short enough to feel absolute. */
+/** First principles — absolute enough to feel like law. */
 export function HomeStatement() {
   return (
     <MktSection

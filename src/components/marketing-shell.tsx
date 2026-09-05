@@ -30,9 +30,8 @@ export function PublicLayout({
         position="fixed"
         cta={cta}
         nav={[
-          { href: "/#workflow", label: "Product" },
           { href: "/pricing", label: "Pricing" },
-          { href: "/pilot", label: "Call audit" },
+          { href: "/pilot", label: "Audit" },
           { href: "/security", label: "Security" },
         ]}
       />
@@ -58,6 +57,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           <OrviusLogo variant="void" size="sm" />
           <nav className="mkt-footer-links" aria-label="Footer">
             <Link href="/pricing">Pricing</Link>
+            <Link href="/pilot">Audit</Link>
             <Link href="/security">Security</Link>
             <Link href="/legal">Legal</Link>
             <Link href="/privacy">Privacy</Link>

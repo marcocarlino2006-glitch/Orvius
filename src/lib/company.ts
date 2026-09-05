@@ -22,7 +22,7 @@ export const company = {
   mission:
     "First law: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
   strategy: [
-    "Prove zero missed jobs on the line — recovered calls, booking rate, owner trust — before platform vapor.",
+    "Close Capture→Record→Command→Proof on the line before platform vapor — then expand rings.",
     "Dominate one trade and geography with trade-specific intelligence and reliable workflow execution.",
     "Earn the right to run the full shop: security, support, measurable ROI — then expand trades, regions, and shop sizes.",
   ] as const,
@@ -43,6 +43,39 @@ export const company = {
   smsProgramName: "Orvius Owner Alerts",
   legalUpdated: "September 4, 2026",
 } as const;
+
+/**
+ * Exponential loops — product must make each irrational not to use.
+ * Mastered in order; presence claims only what the loop actually closes.
+ */
+export const exponentialLoops = [
+  {
+    id: 1,
+    name: "Capture",
+    claim: "Missed and after-hours demand becomes a qualified, alerted lead — priority books.",
+  },
+  {
+    id: 2,
+    name: "Record",
+    claim: "Every touch compounds one customer brain the shop cannot afford to lose.",
+  },
+  {
+    id: 3,
+    name: "Command",
+    claim: "Attention is the cockpit — book and assign without hunting dashboards.",
+  },
+  {
+    id: 4,
+    name: "Proof",
+    claim: "Weekly recovered $ and jobs copy as an honest, stamped artifact.",
+  },
+  {
+    id: 5,
+    name: "Presence",
+    claim: "Company page reads as the OS default — not a SaaS feature stack.",
+  },
+] as const;
+
 
 /** Orvius OS — expansion rings. One ring at a time; never skip. */
 export const osRings = [

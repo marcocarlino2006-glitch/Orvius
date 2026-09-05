@@ -21,10 +21,10 @@ export default function HomePage() {
 
       <MktSection tone="dark" className="mkt-close mkt-close--cinema">
         <div className="mkt-close-inner">
-          <h2 className="mkt-close-title">Run the shop on one OS.</h2>
+          <h2 className="mkt-close-title">Make Orvius the default.</h2>
           <p className="mkt-close-desc font-sans">
-            Live audit on your transcripts and jobs. Then decide if Orvius
-            becomes the system the shop runs on.
+            Capture, record, command, proof — already closed on the product.
+            Audit your line. Decide if this becomes the shop OS.
           </p>
           <div className="mkt-close-actions">
             <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-lg">
