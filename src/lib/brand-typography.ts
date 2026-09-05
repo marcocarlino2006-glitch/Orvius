@@ -1,10 +1,9 @@
-/** Brand typography — condensed industrial wordmark + twin-orbit O. */
+/** Brand typography — cut geometric wordmark (Oracle / Tesla lineage). */
 
 export const brandWordmark = "Orvius";
 
 /**
- * Craft scale — Cursor/Linear discipline:
- * brand face = lockups only; UI sans does headlines and body.
+ * Craft scale — brand face = cut lockups only; UI sans does headlines/body.
  */
 export const typeScale = {
   caption: "0.75rem",
@@ -18,12 +17,12 @@ export const typeScale = {
 
 /**
  * Two logo lines:
- * 1) Mark alone — dual-rail O
- * 2) Integrated — mark replaces O → [O]RVIUS
+ * 1) Cut O mark
+ * 2) Cut ORVIUS wordmark (letters sliced)
  */
 export const logoSizes = {
-  sm: { mark: 20, wordmark: "0.95rem", tracking: "0.12em" },
-  md: { mark: 26, wordmark: "1.2rem", tracking: "0.13em" },
-  lg: { mark: 32, wordmark: "1.45rem", tracking: "0.14em" },
-  xl: { mark: 56, wordmark: "2.75rem", tracking: "0.12em" },
+  sm: { mark: 18, wordmark: "0.95rem", tracking: "0.22em" },
+  md: { mark: 22, wordmark: "1.15rem", tracking: "0.24em" },
+  lg: { mark: 28, wordmark: "1.4rem", tracking: "0.26em" },
+  xl: { mark: 48, wordmark: "2.6rem", tracking: "0.2em" },
 } as const;
