@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatCents } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
+import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
 
 type ProEconomicsPanelProps = {
   outcomes: ShopOutcomes | null | undefined;
@@ -40,11 +41,8 @@ export function ProEconomicsPanel({
     setBusy(true);
     setCopyState("idle");
     try {
-      const res = await fetch("/api/shop/weekly-proof");
-      if (!res.ok) throw new Error("proof failed");
-      const data = (await res.json()) as { text: string };
-      await navigator.clipboard.writeText(data.text);
-      setProofAt(new Date().toISOString());
+      const data = await copyWeeklyProofRitual();
+      setProofAt(data.lastWeeklyProofAt ?? new Date().toISOString());
       setCopyState("ok");
     } catch {
       setCopyState("err");
@@ -93,10 +91,13 @@ export function ProEconomicsPanel({
           <dt>Est. recovered</dt>
           <dd>{recovered ?? "—"}</dd>
           <p className="pro-economics-hint">
+            {outcomes.recoveredJobsEstimate != null
+              ? `${outcomes.recoveredJobsEstimate} job${outcomes.recoveredJobsEstimate === 1 ? "" : "s"} · `
+              : ""}
             {outcomes.recoveredMethod === "baseline_jobs"
-              ? "Jobs/week above your before-Orvius baseline × avg ticket"
+              ? "above your before-Orvius baseline × avg ticket"
               : outcomes.recoveredMethod === "after_hours_booked"
-                ? "After-hours leads that booked × avg ticket"
+                ? "after-hours leads that booked × avg ticket"
                 : "Set avg ticket + baseline in Settings"}
           </p>
         </div>

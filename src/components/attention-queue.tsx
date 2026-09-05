@@ -9,6 +9,8 @@ import { AssignTechButton, type TechOption } from "@/components/assign-tech-butt
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
+import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
+import { useState } from "react";
 
 type AttentionQueueProps = {
   items: AttentionItem[];
@@ -39,6 +41,45 @@ function canBook(item: AttentionItem) {
 
 function canAssign(item: AttentionItem) {
   return item.kind === "unassigned_job" && item.entityType === "job";
+}
+
+function canCopyProof(item: AttentionItem) {
+  return item.kind === "stale_weekly_proof";
+}
+
+function CopyProofButton({ onDone }: { onDone?: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(false);
+
+  async function run() {
+    if (busy) return;
+    setBusy(true);
+    setErr(false);
+    try {
+      await copyWeeklyProofRitual();
+      onDone?.();
+    } catch {
+      setErr(true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="attention-item-btn attention-item-btn-primary"
+        disabled={busy}
+        onClick={run}
+      >
+        {busy ? "Copying…" : "Copy proof"}
+      </button>
+      {err ? (
+        <span className="attention-item-detail">Could not copy — try again</span>
+      ) : null}
+    </>
+  );
 }
 
 export function AttentionQueue({
@@ -85,7 +126,8 @@ export function AttentionQueue({
           const showCall = canCall(item);
           const showBook = canBook(item);
           const showAssign = canAssign(item);
-          const hasPrimary = showCall || showBook || showAssign;
+          const showProof = canCopyProof(item);
+          const hasPrimary = showCall || showBook || showAssign || showProof;
 
           return (
             <li key={item.id}>
@@ -134,6 +176,7 @@ export function AttentionQueue({
                       className="attention-item-assign"
                     />
                   ) : null}
+                  {showProof ? <CopyProofButton onDone={() => onAction?.()} /> : null}
                   <Link
                     href={item.href}
                     className={`attention-item-btn ${
