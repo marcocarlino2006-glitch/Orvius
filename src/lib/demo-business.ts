@@ -16,9 +16,17 @@ export function isDemoPlatformLine(phone: string | null | undefined): boolean {
 }
 
 export function isDemoBusiness(business: { slug: string; name?: string }): boolean {
-  if (business.slug === "summit-hvac-demo") return true;
+  // Summit owns the public marketing/demo line — never re-provision it away.
+  if (
+    business.slug === "summit-hvac" ||
+    business.slug === "summit-hvac-demo"
+  ) {
+    return true;
+  }
+  const name = business.name?.trim().toLowerCase() ?? "";
+  if (name === "summit hvac" || name.startsWith("summit hvac")) return true;
   const demoName = process.env.ORVIUS_DEMO_BUSINESS_NAME?.trim();
-  if (demoName && business.name?.trim().toLowerCase() === demoName.toLowerCase()) {
+  if (demoName && name === demoName.toLowerCase()) {
     return true;
   }
   return false;

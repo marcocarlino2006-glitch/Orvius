@@ -40,10 +40,19 @@ export function getDomainConfig(): DomainConfig {
 
 export function getPublicAppUrl() {
   const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (configured) return configured.replace(/\/$/, "");
+  if (configured) {
+    // Vapi/Twilio require https for public hosts — never emit http://api.*
+    if (/^http:\/\/(?!localhost|127\.0\.0\.1)/i.test(configured)) {
+      return configured.replace(/^http:/i, "https:").replace(/\/$/, "");
+    }
+    return configured.replace(/\/$/, "");
+  }
 
   const domains = getDomainConfig();
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  const local =
+    process.env.NODE_ENV !== "production" &&
+    (domains.app.includes("localhost") || domains.app.startsWith("127."));
+  const protocol = local ? "http" : "https";
   return `${protocol}://${domains.app}`;
 }
 
@@ -52,10 +61,23 @@ export function getAppBaseUrl() {
   return getPublicAppUrl();
 }
 
-/** Vapi + Twilio webhooks */
+/** Vapi + Twilio webhooks — always https for real domains */
 export function getApiBaseUrl() {
+  const configured =
+    process.env.ORVIUS_API_URL?.trim() ||
+    process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (configured) {
+    const cleaned = configured.replace(/\/$/, "");
+    if (/^http:\/\/(?!localhost|127\.0\.0\.1)/i.test(cleaned)) {
+      return cleaned.replace(/^http:/i, "https:");
+    }
+    return cleaned;
+  }
+
   const domains = getDomainConfig();
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  const local =
+    domains.api.includes("localhost") || domains.api.startsWith("127.");
+  const protocol = local ? "http" : "https";
   return `${protocol}://${domains.api}`;
 }
 

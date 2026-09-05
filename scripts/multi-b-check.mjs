@@ -126,6 +126,27 @@ gate(
   "Settings cockpit",
 );
 
+gate(
+  "sms_email_failover",
+  "SMS→email failover",
+  (() => {
+    try {
+      const src = readFileSync(join(root, "src/lib/notification-queue.ts"), "utf8");
+      return src.includes("escalateSmsFailureToEmail") && src.includes("sms-failover");
+    } catch {
+      return false;
+    }
+  })(),
+  "exhausted SMS enqueues email backup",
+);
+
+gate(
+  "war_repair_script",
+  "War-ready repair script",
+  fileOk("scripts/war-ready-repair.mjs"),
+  "npm run war:repair",
+);
+
 const stripeKey = Boolean(env.STRIPE_SECRET_KEY?.trim());
 const stripePro =
   Boolean(env.STRIPE_PRICE_ID_PRO?.trim()) || Boolean(env.STRIPE_PRICE_ID?.trim());

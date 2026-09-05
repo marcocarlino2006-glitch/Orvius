@@ -292,8 +292,44 @@ async function deliverQueuedRow(row: {
   return { status: "skipped", error: `Unknown channel: ${row.channel}` };
 }
 
+async function escalateSmsFailureToEmail(row: {
+  businessId: string;
+  leadId: string | null;
+  dedupeKey: string;
+  businessName: string | null;
+  message: string | null;
+  ownerEmail: string | null;
+}) {
+  if (!row.ownerEmail || !isEmailConfigured()) return;
+  await createQueueRow({
+    businessId: row.businessId,
+    leadId: row.leadId ?? undefined,
+    channel: "email",
+    dedupeKey: `${row.dedupeKey}:sms-failover`,
+    businessName: row.businessName ?? "Your shop",
+    message:
+      row.message ??
+      "New activity in Orvius (SMS delivery failed — email backup).",
+    ownerEmail: row.ownerEmail,
+  });
+  logInfo("notification.sms_failover_email_enqueued", {
+    businessId: row.businessId,
+    dedupeKey: row.dedupeKey,
+  });
+}
+
 async function markDeliveryFailure(
-  row: { id: string; attempts: number },
+  row: {
+    id: string;
+    attempts: number;
+    channel: string;
+    businessId: string;
+    leadId: string | null;
+    dedupeKey: string;
+    businessName: string | null;
+    message: string | null;
+    ownerEmail: string | null;
+  },
   error: string,
 ) {
   const attempts = row.attempts + 1;
@@ -309,6 +345,20 @@ async function markDeliveryFailure(
       processedAt: exhausted ? new Date() : null,
     },
   });
+
+  if (exhausted && row.channel === "sms") {
+    try {
+      await escalateSmsFailureToEmail(row);
+    } catch (escalateError) {
+      logError("notification.sms_failover_email_failed", {
+        businessId: row.businessId,
+        error:
+          escalateError instanceof Error
+            ? escalateError.message
+            : "escalate failed",
+      });
+    }
+  }
 }
 
 export async function processNotificationQueue(limit = 20) {
