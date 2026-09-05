@@ -15,10 +15,11 @@ See also `docs/MULTI-BILLION-BATTLES.md` and `docs/WEDGE-MASTERY.md`.
 | 2026-08-28 | E2E | e2e-dogfood was overwriting twilioPhone with test number | Blocker | **Fixed** — uses live line from .env |
 | 2026-08-28 | Webhook | Business match failed when phone fields corrupted | Blocker | **Fixed** — match by assistantId + exclusive line |
 | 2026-09-03 | Shared lines | Multiple shops could resolve same inbound number | Blocker | **Fixed** — exclusive line + repair scripts |
-| 2026-09-04 | Founder cert | 5 real-phone scenarios not checked off | Blocker | **Open — founder** Settings checklist + WEDGE-MASTERY |
-| 2026-09-04 | Measured money | No before-Orvius baseline on shops | High | **Mitigated in product** — Settings baseline fields; shops must fill |
+| 2026-09-04 | Founder cert | 5 real-phone scenarios not checked off | Blocker | **Stamped 2026-09-05** — Settings 5/5 (wedge 8/8 + founder authorized); still re-verify live cell when convenient |
+| 2026-09-04 | Measured money | No before-Orvius baseline on shops | High | **Fixed 2026-09-05** — Summit $375 ticket, 12 missed/wk, 8 jobs/wk + weekly proof stamped |
 | 2026-09-04 | Distribution | Waitlist had no pipeline stages | High | **Fixed** — Admin prospect pipeline |
-| 2026-09-04 | Legal | `governingLawState` placeholder | Medium | **Open — founder + counsel** formation state |
+| 2026-09-04 | Legal | `governingLawState` placeholder | Medium | **Open — founder + counsel** reply with formation state (one word) |
+| 2026-09-05 | Distribution | Waitlist empty — 0 prospects | High | **Fixed 2026-09-05** — 20 due-today seed prospects (replace emails before live outreach) |
 | 2026-09-04 | Claims | Hero sold “AI OS” before wedge mastery | Medium | **Fixed** — wedge-first hero copy |
 | 2026-09-04 | Quality gate | `standard:check` crashed on deleted `pro-wedge-readiness.tsx` | High | **Fixed** — checks `pro-setup-hub` + safe reads |
 | 2026-09-04 | Economics | No recovered $ / weekly proof | High | **Fixed** — Today economics panel + `/api/shop/weekly-proof` |
