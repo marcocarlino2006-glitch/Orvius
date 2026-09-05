@@ -1156,100 +1156,36 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — dual-rail O + Orbitron wordmark (X-style two lines) */
+/* Orvius logo — proprietary letterset (the name is the logo) */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
-}
-
-.orvius-logo--integrated {
-  /* Optical kern: mark sits as capital O before RVIUS */
-  gap: 0.06em;
-}
-
-.orvius-logo-wordmark {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: var(--logo-wordmark-size, 1.125rem);
-  font-weight: 800;
-  letter-spacing: var(--logo-wordmark-tracking, 0.2em);
-  text-transform: uppercase;
-  line-height: 1;
-  text-shadow: 0 0 0.5px currentColor;
-}
-
-.orvius-logo--integrated .orvius-logo-wordmark {
-  letter-spacing: var(--logo-wordmark-tracking, 0.2em);
-}
-
-.orvius-logo--integrated .orvius-logo-rest {
-  display: inline-block;
-}
-
-.orvius-logo-sm .orvius-logo-wordmark { --logo-wordmark-size: 1rem; --logo-wordmark-tracking: 0.16em; }
-.orvius-logo-md .orvius-logo-wordmark { --logo-wordmark-size: 1.125rem; --logo-wordmark-tracking: 0.18em; }
-.orvius-logo-lg .orvius-logo-wordmark { --logo-wordmark-size: 1.35rem; --logo-wordmark-tracking: 0.2em; }
-.orvius-logo-xl .orvius-logo-wordmark { --logo-wordmark-size: 1.55rem; --logo-wordmark-tracking: 0.22em; }
-
-.orvius-logo-void .orvius-logo-wordmark { color: var(--chalk); }
-.orvius-logo-chalk .orvius-logo-wordmark { color: var(--void); }
-
-.orvius-logo-mark-wrap {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: var(--logo-mark-size, 30px);
-  height: var(--logo-mark-size, 30px);
+  color: var(--void);
   line-height: 0;
 }
 
-.orvius-logo--integrated .orvius-logo-mark-wrap {
-  /* Optical: mark sits as the capital O */
-  width: calc(var(--logo-wordmark-size, 1.125rem) * 1.05);
-  height: calc(var(--logo-wordmark-size, 1.125rem) * 1.05);
-}
-
-.orvius-logo--integrated .orvius-logo-mark {
-  width: 100%;
-  height: 100%;
+.orvius-logo-wm,
+.orvius-wordmark-svg,
+.orvius-mark-svg {
+  display: block;
+  color: inherit;
 }
 
 .orvius-logo-mark {
-  flex-shrink: 0;
-  color: var(--void);
   display: block;
-  width: 100%;
-  height: 100%;
+  color: inherit;
 }
 
-.orvius-mark-svg {
-  display: block;
-  overflow: visible;
-}
-
-.orvius-mark-o,
-.orvius-mark-rail {
-  fill: none;
-  stroke: currentColor;
-}
+.orvius-logo-sm .orvius-logo-wm { height: 18px; width: auto; }
+.orvius-logo-md .orvius-logo-wm { height: 22px; width: auto; }
+.orvius-logo-lg .orvius-logo-wm { height: 26px; width: auto; }
+.orvius-logo-xl .orvius-logo-wm { height: 52px; width: auto; }
 
 .orvius-logo-void {
-  color: var(--chalk);
-}
-
-.orvius-logo-void .orvius-logo-mark {
-  color: var(--chalk);
+  color: #f4f6f8;
 }
 
 .orvius-logo-chalk {
-  color: var(--void);
-}
-
-.orvius-logo-chalk .orvius-logo-mark {
-  color: var(--void);
-}
-
-.orvius-mark-graphic-og {
   color: var(--void);
 }
 
@@ -13934,48 +13870,26 @@ h3 {
   opacity: 0.88;
 }
 
-.mkt-nav-brand .orvius-logo-wordmark {
-  font-size: 1.35rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.1em !important;
-}
-
-.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo-wordmark {
-  color: #f4f6f8 !important;
-}
-
-.mkt-nav--elevated .mkt-nav-brand .orvius-logo-wordmark {
-  color: var(--void) !important;
-}
-
 .mkt-nav-brand .orvius-logo {
-  gap: 0.7rem;
+  color: inherit;
 }
 
-.mkt-nav-brand .orvius-logo--integrated {
-  gap: 0.08em;
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo {
+  color: #f4f6f8;
 }
 
-.mkt-nav-brand .orvius-logo-mark-wrap {
-  width: 34px;
-  height: 34px;
+.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
+  color: var(--void);
 }
 
-.mkt-nav-brand .orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(1.35rem * 1.02);
-  height: calc(1.35rem * 1.02);
+.mkt-nav-brand .orvius-logo-wm {
+  height: 22px;
+  width: auto;
 }
 
 @media (max-width: 480px) {
-  .mkt-nav-brand .orvius-logo-wordmark {
-    font-size: 1.15rem !important;
-    letter-spacing: 0.16em !important;
-  }
-
-  .mkt-nav-brand .orvius-logo-mark-wrap,
-  .mkt-nav-brand .orvius-logo--integrated .orvius-logo-mark-wrap {
-    width: 28px;
-    height: 28px;
+  .mkt-nav-brand .orvius-logo-wm {
+    height: 18px;
   }
 }
 
@@ -14593,24 +14507,15 @@ h3 {
   animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
 }
 
-/* Beat .orvius-logo-xl size tokens — brand must outrank the headline */
-.mkt-hero-brand-lockup .orvius-logo-wordmark {
-  --logo-wordmark-size: clamp(3.25rem, 7.5vw, 4.85rem) !important;
-  --logo-wordmark-tracking: 0.15em !important;
-  font-size: var(--logo-wordmark-size) !important;
-  letter-spacing: var(--logo-wordmark-tracking) !important;
+/* Hero brand — proprietary SVG letterset, larger than headline */
+.mkt-hero-brand-lockup {
   color: #f7f8fa !important;
 }
 
-.mkt-hero-brand-lockup .orvius-logo-mark,
-.mkt-hero-brand-lockup .orvius-logo-mark-wrap svg {
-  color: #f7f8fa !important;
-  fill: currentColor;
-}
-
-.mkt-hero-brand-lockup.orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(var(--logo-wordmark-size, 3.25rem) * 1.05);
-  height: calc(var(--logo-wordmark-size, 3.25rem) * 1.05);
+.mkt-hero-brand-lockup .orvius-logo-wm {
+  height: clamp(2.9rem, 7.5vw, 4.6rem);
+  width: auto;
+  color: #f7f8fa;
 }
 
 .mkt-hero-category {
@@ -17311,4 +17216,19 @@ button.btn {
 .type-title {
   font-family: var(--font-sans), system-ui, sans-serif !important;
   font-weight: 400 !important;
+}
+
+
+/* ── LOGO LOCK — never inherit button DIN / gothic onto the letterset ── */
+.orvius-logo,
+.orvius-logo-wm,
+.orvius-wordmark-svg,
+.orvius-logo-mark,
+.mkt-nav-brand .orvius-logo,
+.mkt-hero-brand-lockup .orvius-logo {
+  font-family: inherit !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-weight: inherit !important;
+  border-radius: 0 !important;
 }

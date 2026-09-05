@@ -3,13 +3,14 @@
 import type { CSSProperties } from "react";
 import { brandWordmark, logoSizes } from "@/lib/brand-typography";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
+import { OrviusWordmarkSvg } from "@/lib/orvius-wordmark";
 
 type OrviusMarkProps = {
   size?: number;
   className?: string;
 };
 
-/** Standalone dual-rail O — favicons, avatars, compact chrome (line 1). */
+/** Signal O alone — favicon / avatar. Same letter DNA as the wordmark. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -22,46 +23,63 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
 type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
-  /**
-   * Wordmark only without the substituted O mark.
-   * Prefer default integrated lockup.
-   */
+  /** Full proprietary ORVIUS wordmark (default). */
   wordmarkOnly?: boolean;
-  /** Dual-rail O alone — no RVIUS letters. */
+  /** Signal O alone. */
   markOnly?: boolean;
-  /**
-   * When true (default), mark replaces the letter O → [O]RVIUS.
-   * When false with show mark, mark sits beside full ORVIUS (legacy).
-   */
+  /** Kept for API compat — wordmark already includes the O. */
   integrateO?: boolean;
   className?: string;
 };
 
+const WORDMARK_HEIGHT = {
+  sm: 18,
+  md: 22,
+  lg: 26,
+  xl: 52,
+} as const;
+
 /**
- * Official lockups (X.com pattern — two lines):
- * 1) Mark alone — dual-rail O
- * 2) Integrated wordmark — mark substitutes the O in ORVIUS
+ * Proprietary letterset lockups:
+ * 1) Full custom ORVIUS wordmark (the name is the logo)
+ * 2) Signal O alone (favicon / compact chrome)
  */
 export function OrviusLogo({
   size = "md",
   variant = "chalk",
   wordmarkOnly = false,
   markOnly = false,
-  integrateO = true,
   className = "",
 }: OrviusLogoProps) {
   const tokens = logoSizes[size];
-  const showMark = markOnly || !wordmarkOnly;
-  const showWordmark = !markOnly;
-  const integrated = showMark && showWordmark && integrateO && !wordmarkOnly;
+
+  if (markOnly) {
+    return (
+      <span
+        className={[
+          "orvius-logo",
+          "orvius-logo--mark",
+          `orvius-logo-${size}`,
+          `orvius-logo-${variant}`,
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-label={brandWordmark}
+      >
+        <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
+      </span>
+    );
+  }
 
   return (
     <span
       className={[
         "orvius-logo",
+        "orvius-logo--wordmark",
         `orvius-logo-${size}`,
         `orvius-logo-${variant}`,
-        integrated ? "orvius-logo--integrated" : "",
+        wordmarkOnly ? "orvius-logo--text" : "",
         className,
       ]
         .filter(Boolean)
@@ -70,29 +88,15 @@ export function OrviusLogo({
       style={
         {
           "--logo-mark-size": `${tokens.mark}px`,
-          ...(showWordmark
-            ? {
-                "--logo-wordmark-size": tokens.wordmark,
-                "--logo-wordmark-tracking": tokens.tracking,
-              }
-            : {}),
+          "--logo-wordmark-size": tokens.wordmark,
+          "--logo-wordmark-tracking": tokens.tracking,
         } as CSSProperties
       }
     >
-      {showMark ? (
-        <span className="orvius-logo-mark-wrap" aria-hidden>
-          <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
-        </span>
-      ) : null}
-      {showWordmark ? (
-        <span className="orvius-logo-wordmark type-wordmark">
-          {integrated ? (
-            <span className="orvius-logo-rest">RVIUS</span>
-          ) : (
-            brandWordmark
-          )}
-        </span>
-      ) : null}
+      <OrviusWordmarkSvg
+        height={WORDMARK_HEIGHT[size]}
+        className="orvius-logo-wm"
+      />
     </span>
   );
 }
