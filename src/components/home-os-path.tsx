@@ -7,13 +7,15 @@ const live = [
   { title: "Jobs from calls", detail: "Transcripts + summaries" },
   { title: "Dispatch board", detail: "One command center" },
   { title: "Ask Orvius", detail: "What needs attention today" },
-  { title: "Money basics", detail: "Estimates, invoices, manual pay" },
+  { title: "Sendable estimates", detail: "Accept, card, or manual pay" },
+  { title: "Approve-first queue", detail: "Propose → you OK → execute" },
+  { title: "Tech field link", detail: "SMS → confirm → en route → done" },
 ] as const;
 
 const next = [
-  { title: "Approve-first copilot", detail: "Proposes; you decide" },
-  { title: "Field skills", detail: "Travel, maps, shop workflows" },
-  { title: "Card payments", detail: "Stripe Connect next" },
+  { title: "Stripe Connect", detail: "Card pay straight to the shop" },
+  { title: "Pricebook + capacity", detail: "Quote from real inventory" },
+  { title: "Weekly proof autopilot", detail: "Economics to the owner" },
 ] as const;
 
 export function HomeOsPath() {

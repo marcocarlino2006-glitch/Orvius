@@ -22,6 +22,31 @@ const cancelSchema = z.object({
   proposalId: z.string().min(1),
 });
 
+/** List open approve-first proposals for Command. */
+export async function GET() {
+  const authResult = await requireEntitledSession();
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
+
+  const planGate = requirePlanModule(business, "ask");
+  if ("error" in planGate) return planGate.error;
+
+  const proposals = await prisma.copilotAction.findMany({
+    where: { businessId: business.id, status: "proposed" },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  return NextResponse.json({
+    proposals: proposals.map((p) => ({
+      id: p.id,
+      action: p.action,
+      preview: p.preview,
+      createdAt: p.createdAt.toISOString(),
+    })),
+  });
+}
+
 export async function POST(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;

@@ -16804,3 +16804,328 @@ h3 {
     transition: none !important;
   }
 }
+
+/* ── Public magic-link shells (estimate + tech field) ── */
+
+.public-shell {
+  min-height: 100vh;
+  background: #0b0d10;
+  color: #f4f6f8;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.public-shell-inner {
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.public-money-shop,
+.tech-field-shop {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #c4783a 90%, #fff);
+}
+
+.public-money-title,
+.tech-field-title {
+  margin: 0;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.public-money-amount {
+  margin: 1.25rem 0 0;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.public-money-meta,
+.public-money-notes,
+.public-money-status,
+.public-money-muted,
+.tech-field-muted,
+.tech-field-status {
+  margin: 0.5rem 0 0;
+  color: color-mix(in srgb, #e8ecf1 70%, transparent);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.public-money-actions,
+.tech-field-advance {
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.public-money-error,
+.tech-field-error,
+.approve-queue-error,
+.job-money-error {
+  color: #f97066;
+}
+
+.public-money-ok,
+.tech-field-ok {
+  color: #6ee7b7;
+  font-weight: 600;
+}
+
+.public-money-fine {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, #e8ecf1 45%, transparent);
+}
+
+.tech-field-meta {
+  margin: 1.25rem 0 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.tech-field-meta dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #e8ecf1 50%, transparent);
+}
+
+.tech-field-meta dd {
+  margin: 0.2rem 0 0;
+  font-size: 0.9875rem;
+}
+
+.tech-field-meta a {
+  color: #f4f6f8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tech-field-eta {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.tech-field-eta input {
+  border: 1px solid color-mix(in srgb, #fff 16%, transparent);
+  background: color-mix(in srgb, #fff 6%, transparent);
+  color: #f4f6f8;
+  border-radius: 0.35rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.job-money-actions {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.job-money-share {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--fog) 60%, #fff);
+}
+
+.job-money-share-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.job-money-share-url {
+  font-size: 0.75rem;
+  word-break: break-all;
+  color: var(--void);
+}
+
+/* Approve-first queue on Command */
+
+.approve-queue {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.25rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.approve-queue-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--signal, #c4783a);
+}
+
+.approve-queue-title {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.approve-queue-lead {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: var(--ash);
+}
+
+.approve-queue-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.approve-queue-item {
+  padding: 0.85rem 0.9rem;
+  border-top: 1px solid color-mix(in srgb, var(--void) 8%, transparent);
+}
+
+.approve-queue-action {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.approve-queue-preview {
+  margin: 0.35rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--void);
+  line-height: 1.4;
+}
+
+.approve-queue-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.public-money,
+.tech-field {
+  color: #f4f6f8;
+}
+
+.public-money-shop,
+.tech-field-shop {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #c4783a 90%, #fff);
+}
+
+.public-money-title,
+.tech-field-title {
+  margin: 0;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.public-money-amount {
+  margin: 1.25rem 0 0;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.public-money-meta,
+.public-money-notes,
+.public-money-status,
+.public-money-muted,
+.tech-field-muted,
+.tech-field-status {
+  margin: 0.5rem 0 0;
+  color: color-mix(in srgb, #e8ecf1 70%, transparent);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.public-money-actions {
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.public-money-error,
+.tech-field-error {
+  color: #f97066;
+}
+
+.public-money-ok,
+.tech-field-ok {
+  color: #6ee7b7;
+  font-weight: 600;
+}
+
+.public-money-fine {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, #e8ecf1 45%, transparent);
+}
+
+.tech-field-meta {
+  margin: 1.25rem 0 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.tech-field-meta dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #e8ecf1 50%, transparent);
+}
+
+.tech-field-meta dd {
+  margin: 0.2rem 0 0;
+  font-size: 0.9875rem;
+}
+
+.tech-field-meta a {
+  color: #f4f6f8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tech-field-eta {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.tech-field-eta input {
+  border: 1px solid color-mix(in srgb, #fff 16%, transparent);
+  background: color-mix(in srgb, #fff 6%, transparent);
+  color: #f4f6f8;
+  border-radius: 0.35rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.tech-field-advance {
+  margin-top: 1.5rem;
+  width: 100%;
+}

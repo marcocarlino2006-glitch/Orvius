@@ -18,6 +18,9 @@ export const JOB_INCLUDE = {
       id: true,
       amountCents: true,
       status: true,
+      publicToken: true,
+      sentAt: true,
+      acceptedAt: true,
       invoice: {
         select: {
           id: true,

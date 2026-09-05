@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
 import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
@@ -97,6 +98,8 @@ export function Ring1CommandCenter() {
 
   return (
     <section className="ring1-command" aria-label="Command center">
+      <ApproveQueue onChange={load} />
+
       <AttentionQueue items={attention} loading={loading} />
 
       <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />

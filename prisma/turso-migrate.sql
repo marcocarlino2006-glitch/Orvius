@@ -145,3 +145,13 @@ ALTER TABLE "Business" ADD COLUMN "lastWeeklyProofAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "founderCertJson" TEXT;
 ALTER TABLE "WaitlistEntry" ADD COLUMN "lastContactedAt" DATETIME;
 ALTER TABLE "WaitlistEntry" ADD COLUMN "nextActionAt" DATETIME;
+
+-- Closed-loop: sendable estimates + tech field magic links
+ALTER TABLE "Estimate" ADD COLUMN "publicToken" TEXT;
+ALTER TABLE "Estimate" ADD COLUMN "sentAt" DATETIME;
+ALTER TABLE "Estimate" ADD COLUMN "acceptedAt" DATETIME;
+CREATE UNIQUE INDEX IF NOT EXISTS "Estimate_publicToken_key" ON "Estimate"("publicToken");
+ALTER TABLE "Job" ADD COLUMN "techToken" TEXT;
+ALTER TABLE "Job" ADD COLUMN "etaText" TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS "Job_techToken_key" ON "Job"("techToken");
+

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
+import { fulfillEstimateCheckoutSession } from "@/lib/estimate-pay";
 import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
@@ -55,6 +56,12 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        if (session.mode === "payment" && session.metadata?.kind === "estimate_pay") {
+          await fulfillEstimateCheckoutSession(session);
+          break;
+        }
+
         if (session.mode !== "subscription" || !session.subscription) break;
 
         const subscription = await stripe.subscriptions.retrieve(

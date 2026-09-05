@@ -7,6 +7,7 @@ type EstimateState = {
   id: string;
   amountCents: number;
   status: string;
+  publicToken?: string | null;
   invoice: {
     id: string;
     amountCents: number;
@@ -30,6 +31,8 @@ export function JobMoneyPanel({
 }: JobMoneyPanelProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [amountDollars, setAmountDollars] = useState(
     avgTicketCents ? String(Math.round(avgTicketCents / 100)) : "",
   );
@@ -56,6 +59,38 @@ export function JobMoneyPanel({
       setError(err instanceof Error ? err.message : "Could not create estimate");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function sendEstimate() {
+    if (!estimate) return;
+    setBusy(true);
+    setError(null);
+    setCopied(false);
+    try {
+      const res = await fetch(`/api/estimates/${estimate.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not send estimate");
+      setShareUrl(data.shareUrl ?? null);
+      onRefresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send estimate");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyLink() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+    } catch {
+      setError("Could not copy — select the link manually");
     }
   }
 
@@ -106,8 +141,7 @@ export function JobMoneyPanel({
       {!estimate ? (
         <>
           <p className="job-money-lead">
-            Draft an estimate from your average ticket, then convert to an invoice when the
-            customer accepts.
+            Draft an estimate, send a customer link to accept, then collect payment.
           </p>
           <label className="mt-4 block">
             <span className="label">Amount ($)</span>
@@ -153,27 +187,71 @@ export function JobMoneyPanel({
             ) : null}
           </dl>
 
-          {!estimate.invoice ? (
-            <button
-              type="button"
-              className="btn btn-void mt-4 text-sm"
-              disabled={busy}
-              onClick={() => void createInvoice()}
-            >
-              {busy ? "Working…" : "Create invoice from estimate"}
-            </button>
-          ) : estimate.invoice.status !== "paid" ? (
-            <button
-              type="button"
-              className="btn btn-void mt-4 text-sm"
-              disabled={busy}
-              onClick={() => void recordPayment()}
-            >
-              {busy ? "Recording…" : "Record payment (manual)"}
-            </button>
-          ) : (
-            <p className="mt-4 text-sm text-ash">Paid in full.</p>
-          )}
+          <div className="job-money-actions">
+            {estimate.status !== "accepted" || !estimate.publicToken ? (
+              <button
+                type="button"
+                className="btn btn-void text-sm"
+                disabled={busy}
+                onClick={() => void sendEstimate()}
+              >
+                {busy ? "Working…" : estimate.publicToken ? "Refresh send link" : "Send to customer"}
+              </button>
+            ) : null}
+
+            {shareUrl || estimate.publicToken ? (
+              <div className="job-money-share">
+                <p className="job-money-share-label">Customer link</p>
+                <code className="job-money-share-url">
+                  {shareUrl ??
+                    (typeof window !== "undefined"
+                      ? `${window.location.origin}/e/${estimate.publicToken}`
+                      : `/e/${estimate.publicToken}`)}
+                </code>
+                <button
+                  type="button"
+                  className="btn btn-secondary text-sm"
+                  disabled={busy}
+                  onClick={() => {
+                    if (shareUrl) {
+                      void copyLink();
+                    } else if (estimate.publicToken) {
+                      const url = `${window.location.origin}/e/${estimate.publicToken}`;
+                      setShareUrl(url);
+                      void navigator.clipboard.writeText(url).then(
+                        () => setCopied(true),
+                        () => setError("Could not copy — select the link manually"),
+                      );
+                    }
+                  }}
+                >
+                  {copied ? "Copied" : "Copy link"}
+                </button>
+              </div>
+            ) : null}
+
+            {!estimate.invoice ? (
+              <button
+                type="button"
+                className="btn btn-secondary text-sm"
+                disabled={busy}
+                onClick={() => void createInvoice()}
+              >
+                {busy ? "Working…" : "Create invoice (internal)"}
+              </button>
+            ) : estimate.invoice.status !== "paid" ? (
+              <button
+                type="button"
+                className="btn btn-secondary text-sm"
+                disabled={busy}
+                onClick={() => void recordPayment()}
+              >
+                {busy ? "Recording…" : "Record payment (manual)"}
+              </button>
+            ) : (
+              <p className="text-sm text-ash">Paid in full.</p>
+            )}
+          </div>
         </>
       )}
     </div>

@@ -169,6 +169,10 @@ model Job {
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?
+  /** Magic-link token for tech field page (/t/[token]). */
+  techToken     String?     @unique
+  /** Free-text ETA from tech (e.g. "25 min"). */
+  etaText       String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -207,6 +211,10 @@ model Estimate {
   status        String    @default("draft")
   lineItemsJson String    @default("[]")
   notes         String?
+  /** Public magic-link token for customer view/accept/pay (/e/[token]). */
+  publicToken   String?   @unique
+  sentAt        DateTime?
+  acceptedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   invoice       Invoice?

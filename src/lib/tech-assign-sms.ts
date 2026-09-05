@@ -24,6 +24,8 @@ export type TechAssignJob = {
   customer?: { name?: string | null; phone?: string | null } | null;
   lead?: { name?: string | null; phone?: string | null } | null;
   business?: { name?: string | null } | null;
+  /** Prefer magic field link when present. */
+  techToken?: string | null;
 };
 
 /** Short SMS for a tech when a job is assigned to them. */
@@ -41,6 +43,9 @@ export function buildTechJobAssignMessage(job: TechAssignJob): string {
   const urgency = job.urgency?.toLowerCase().includes("emergency")
     ? "Emergency"
     : null;
+  const openUrl = job.techToken
+    ? `${getAppBaseUrl()}/t/${job.techToken}`
+    : `${getAppBaseUrl()}/dashboard/jobs/${job.id}`;
 
   const lines = [
     `${shop}: new job assigned`,
@@ -49,7 +54,7 @@ export function buildTechJobAssignMessage(job: TechAssignJob): string {
     address,
     phone ? `Callback ${phone}` : null,
     when ? `When: ${when}` : null,
-    `Open: ${getAppBaseUrl()}/dashboard/jobs/${job.id}`,
+    `Open: ${openUrl}`,
   ].filter(Boolean);
 
   return withSmsOptOutFooter(lines.join("\n"));
