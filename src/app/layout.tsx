@@ -6,10 +6,11 @@ import { company } from "@/lib/company";
 import "./globals.css";
 
 /**
- * Craft stack (studied from Cursor × SpaceX, adapted for Orvius):
- * - Space Grotesk ≈ CursorGothic: geometric grotesque, display at weight 400–500
- * - Barlow Condensed ≈ D-DIN: industrial stencil for brand / mission labels
+ * Button + type craft (copied from Cursor × SpaceX):
+ * - Space Grotesk ≈ CursorGothic — product buttons + display at weight 400
+ * - Barlow Condensed ≈ SpaceX D-DIN — ALL marketing buttons/nav (tracked caps)
  */
+
 const sans = Space_Grotesk({
   variable: "--font-sans",
   subsets: ["latin"],
