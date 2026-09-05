@@ -5,15 +5,48 @@ import {
   attentionKindLabel,
   type AttentionItem,
 } from "@/lib/attention-queue";
+import { AssignTechButton, type TechOption } from "@/components/assign-tech-button";
+import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
 
 type AttentionQueueProps = {
   items: AttentionItem[];
   loading?: boolean;
+  technicians?: TechOption[];
+  onAction?: () => void;
 };
 
-export function AttentionQueue({ items, loading }: AttentionQueueProps) {
+function canCall(item: AttentionItem) {
+  return Boolean(
+    item.meta?.phone &&
+      (item.kind === "urgent_lead" ||
+        item.kind === "new_lead" ||
+        item.kind === "needs_qualify" ||
+        item.kind === "needs_booking" ||
+        item.kind === "overdue_followup"),
+  );
+}
+
+function canBook(item: AttentionItem) {
+  return (
+    (item.kind === "needs_booking" ||
+      item.kind === "urgent_lead" ||
+      item.kind === "overdue_followup") &&
+    item.entityType === "lead"
+  );
+}
+
+function canAssign(item: AttentionItem) {
+  return item.kind === "unassigned_job" && item.entityType === "job";
+}
+
+export function AttentionQueue({
+  items,
+  loading,
+  technicians = [],
+  onAction,
+}: AttentionQueueProps) {
   if (loading && !items.length) {
     return (
       <section className="attention-queue" aria-label="Needs attention">
@@ -48,57 +81,72 @@ export function AttentionQueue({ items, loading }: AttentionQueueProps) {
       </div>
 
       <ul className="attention-queue-list">
-        {items.map((item) => (
-          <li key={item.id}>
-            <article
-              className={`attention-item attention-item-${item.impact} font-sans`}
-            >
-              <div className="attention-item-copy">
-                <p className="attention-item-kind">
-                  {attentionKindLabel(item.kind)}
-                  {item.impact === "critical" ? " · critical" : null}
-                </p>
-                <h3 className="attention-item-title">{item.title}</h3>
-                <p className="attention-item-detail">{item.detail}</p>
-                {formatCents(item.estimatedRevenueCents) ? (
-                  <p className="attention-item-value">
-                    Est. {formatCents(item.estimatedRevenueCents)}
+        {items.map((item) => {
+          const showCall = canCall(item);
+          const showBook = canBook(item);
+          const showAssign = canAssign(item);
+          const hasPrimary = showCall || showBook || showAssign;
+
+          return (
+            <li key={item.id}>
+              <article
+                className={`attention-item attention-item-${item.impact} font-sans`}
+              >
+                <div className="attention-item-copy">
+                  <p className="attention-item-kind">
+                    {attentionKindLabel(item.kind)}
+                    {item.impact === "critical" ? " · critical" : null}
                   </p>
-                ) : null}
-              </div>
-              <div className="attention-item-actions">
-                {item.meta?.phone &&
-                (item.kind === "urgent_lead" ||
-                  item.kind === "new_lead" ||
-                  item.kind === "needs_qualify" ||
-                  item.kind === "needs_booking" ||
-                  item.kind === "overdue_followup") ? (
-                  <a
-                    href={telHref(item.meta.phone)}
-                    className="attention-item-btn attention-item-btn-primary"
+                  <h3 className="attention-item-title">{item.title}</h3>
+                  <p className="attention-item-detail">{item.detail}</p>
+                  {formatCents(item.estimatedRevenueCents) ? (
+                    <p className="attention-item-value">
+                      Est. {formatCents(item.estimatedRevenueCents)}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="attention-item-actions">
+                  {showCall ? (
+                    <a
+                      href={telHref(item.meta!.phone!)}
+                      className="attention-item-btn attention-item-btn-primary"
+                    >
+                      Call
+                    </a>
+                  ) : null}
+                  {showBook ? (
+                    <BookJobQuickButton
+                      leadId={item.entityId}
+                      onBooked={() => onAction?.()}
+                      className={
+                        showCall
+                          ? "attention-item-btn"
+                          : "attention-item-btn attention-item-btn-primary"
+                      }
+                    />
+                  ) : null}
+                  {showAssign ? (
+                    <AssignTechButton
+                      jobId={item.entityId}
+                      technicians={technicians}
+                      onAssigned={() => onAction?.()}
+                      compact
+                      className="attention-item-assign"
+                    />
+                  ) : null}
+                  <Link
+                    href={item.href}
+                    className={`attention-item-btn ${
+                      hasPrimary ? "" : "attention-item-btn-primary"
+                    }`}
                   >
-                    Call
-                  </a>
-                ) : null}
-                <Link
-                  href={item.href}
-                  className={`attention-item-btn ${
-                    item.meta?.phone &&
-                    (item.kind === "urgent_lead" ||
-                      item.kind === "new_lead" ||
-                      item.kind === "needs_qualify" ||
-                      item.kind === "needs_booking" ||
-                      item.kind === "overdue_followup")
-                      ? ""
-                      : "attention-item-btn-primary"
-                  }`}
-                >
-                  {item.recommendedAction}
-                </Link>
-              </div>
-            </article>
-          </li>
-        ))}
+                    {hasPrimary ? "Open" : item.recommendedAction}
+                  </Link>
+                </div>
+              </article>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

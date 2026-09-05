@@ -88,6 +88,12 @@ export function Ring1CommandCenter() {
     ((data?.dispatchToday.unassigned ?? 0) > 0 ||
       (data?.dispatchToday.jobCount ?? 0) > 0);
 
+  const attentionCoversGates = attention.some((item) =>
+    ["billing_action", "founder_cert", "missing_baseline", "stale_weekly_proof", "alert_failed"].includes(
+      item.kind,
+    ),
+  );
+
   const empty =
     !loading &&
     attention.length === 0 &&
@@ -100,7 +106,12 @@ export function Ring1CommandCenter() {
     <section className="ring1-command" aria-label="Command center">
       <ApproveQueue onChange={load} />
 
-      <AttentionQueue items={attention} loading={loading} />
+      <AttentionQueue
+        items={attention}
+        loading={loading}
+        technicians={data?.technicians ?? []}
+        onAction={load}
+      />
 
       <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
 
@@ -111,16 +122,18 @@ export function Ring1CommandCenter() {
         />
       ) : null}
 
-      <ProTodayAlerts
-        health={data?.health ?? null}
-        wedge={data?.wedge ?? null}
-        newLeads={newLeads}
-        economicsReady={data?.gates?.economicsReady ?? true}
-        proofStale={data?.gates?.proofStale ?? false}
-        certIncomplete={data?.gates?.certIncomplete ?? false}
-        pilotDaysLeft={data?.gates?.pilotDaysLeft ?? null}
-        checkoutReady={data?.gates?.checkoutReady ?? true}
-      />
+      {!attentionCoversGates ? (
+        <ProTodayAlerts
+          health={data?.health ?? null}
+          wedge={data?.wedge ?? null}
+          newLeads={newLeads}
+          economicsReady={data?.gates?.economicsReady ?? true}
+          proofStale={data?.gates?.proofStale ?? false}
+          certIncomplete={data?.gates?.certIncomplete ?? false}
+          pilotDaysLeft={data?.gates?.pilotDaysLeft ?? null}
+          checkoutReady={data?.gates?.checkoutReady ?? true}
+        />
+      ) : null}
 
       {canDispatch && data?.dispatchToday ? (
         <ProDispatchToday

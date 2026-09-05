@@ -7324,6 +7324,23 @@ h3 {
   gap: 0.375rem;
 }
 
+
+.attention-item-assign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.attention-item-assign .assign-tech-select {
+  max-width: 9rem;
+  font-size: 0.8rem;
+}
+
+.attention-item-assign .assign-tech-btn {
+  font-size: 0.8rem;
+}
+
 .attention-item-btn {
   display: inline-flex;
   align-items: center;

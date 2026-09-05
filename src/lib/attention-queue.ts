@@ -98,7 +98,7 @@ export async function getAttentionQueue(
 
   const [newLeads, activeJobs, crew, business, failedAlerts] = await Promise.all([
     prisma.lead.findMany({
-      where: { businessId, status: "new" },
+      where: { businessId, status: { in: ["new", "contacted"] } },
       take: 40,
       orderBy: { createdAt: "desc" },
       include: {
@@ -544,7 +544,13 @@ export async function getAttentionQueue(
     });
   }
 
-  return items.sort((a, b) => a.rank - b.rank).slice(0, limit);
+  // Suppress "crew free" noise when unassigned jobs already need those techs
+  const hasUnassigned = items.some((i) => i.kind === "unassigned_job");
+  const filtered = hasUnassigned
+    ? items.filter((i) => i.kind !== "available_tech")
+    : items;
+
+  return filtered.sort((a, b) => a.rank - b.rank).slice(0, limit);
 }
 
 export function attentionKindLabel(kind: AttentionKind): string {
