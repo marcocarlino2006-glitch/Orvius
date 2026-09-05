@@ -80,6 +80,20 @@ async function resolveOpenUrl(leadId: string | null): Promise<string | null> {
   return getOwnerAlertOpenUrl({ leadId, jobId: lead.job?.id });
 }
 
+/** Stamp Call.ownerNotifiedAt only after real delivery — never on enqueue. */
+async function markCallOwnerNotifiedFromLead(leadId: string | null) {
+  if (!leadId) return;
+  const lead = await prisma.lead.findUnique({
+    where: { id: leadId },
+    select: { callId: true },
+  });
+  if (!lead?.callId) return;
+  await prisma.call.updateMany({
+    where: { id: lead.callId, ownerNotifiedAt: null },
+    data: { ownerNotifiedAt: new Date() },
+  });
+}
+
 async function createQueueRow(params: {
   businessId: string;
   leadId?: string;
@@ -231,6 +245,8 @@ async function deliverQueuedRow(row: {
       },
     });
 
+    await markCallOwnerNotifiedFromLead(row.leadId);
+
     logInfo("notification.sms_sent", {
       businessId: row.businessId,
       leadId: row.leadId,
@@ -270,6 +286,8 @@ async function deliverQueuedRow(row: {
         error: null,
       },
     });
+
+    await markCallOwnerNotifiedFromLead(row.leadId);
 
     logInfo("notification.email_sent", {
       businessId: row.businessId,

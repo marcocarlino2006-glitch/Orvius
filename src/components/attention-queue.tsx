@@ -70,6 +70,8 @@ export function AttentionQueue({ items, loading }: AttentionQueueProps) {
                 {item.meta?.phone &&
                 (item.kind === "urgent_lead" ||
                   item.kind === "new_lead" ||
+                  item.kind === "needs_qualify" ||
+                  item.kind === "needs_booking" ||
                   item.kind === "overdue_followup") ? (
                   <a
                     href={telHref(item.meta.phone)}
@@ -84,6 +86,8 @@ export function AttentionQueue({ items, loading }: AttentionQueueProps) {
                     item.meta?.phone &&
                     (item.kind === "urgent_lead" ||
                       item.kind === "new_lead" ||
+                      item.kind === "needs_qualify" ||
+                      item.kind === "needs_booking" ||
                       item.kind === "overdue_followup")
                       ? ""
                       : "attention-item-btn-primary"

@@ -1,10 +1,13 @@
-import { isPriorityUrgency } from "@/lib/auto-job";
+import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 
 export type AttentionKind =
   | "urgent_lead"
   | "new_lead"
+  | "needs_qualify"
+  | "needs_booking"
+  | "alert_failed"
   | "overdue_followup"
   | "unassigned_job"
   | "appointment_at_risk"
@@ -47,14 +50,20 @@ function kindRank(kind: AttentionKind, urgency?: string | null): number {
   switch (kind) {
     case "billing_action":
       return 5;
+    case "alert_failed":
+      return 6;
     case "founder_cert":
       return 8;
+    case "needs_qualify":
+      return emergency ? 9 : 22;
     case "open_invoice":
       return 12;
     case "open_estimate":
       return 14;
     case "urgent_lead":
       return emergency ? 10 : 20;
+    case "needs_booking":
+      return emergency ? 11 : 25;
     case "missing_baseline":
       return 15;
     case "stale_weekly_proof":
@@ -87,7 +96,7 @@ export async function getAttentionQueue(
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
-  const [newLeads, activeJobs, crew, business] = await Promise.all([
+  const [newLeads, activeJobs, crew, business, failedAlerts] = await Promise.all([
     prisma.lead.findMany({
       where: { businessId, status: "new" },
       take: 40,
@@ -121,6 +130,19 @@ export async function getAttentionQueue(
         billingStatus: true,
         pilotEndsAt: true,
         createdAt: true,
+      },
+    }),
+    prisma.ownerNotification.findMany({
+      where: { businessId, status: "failed" },
+      take: 12,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        leadId: true,
+        channel: true,
+        error: true,
+        createdAt: true,
+        message: true,
       },
     }),
   ]);
@@ -310,38 +332,99 @@ export async function getAttentionQueue(
     });
   }
 
+  for (const alert of failedAlerts) {
+    items.push({
+      id: `alert_failed:${alert.id}`,
+      kind: "alert_failed",
+      rank: kindRank("alert_failed"),
+      impact: "critical",
+      title: "Owner alert failed",
+      detail: [
+        alert.channel.toUpperCase(),
+        alert.error ?? "Delivery exhausted retries",
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      recommendedAction: alert.leadId ? "Open lead" : "Check settings",
+      href: alert.leadId
+        ? `/dashboard/inbox/${alert.leadId}`
+        : "/dashboard/settings",
+      entityType: alert.leadId ? "lead" : "shop",
+      entityId: alert.leadId ?? businessId,
+      createdAt: alert.createdAt.toISOString(),
+    });
+  }
+
   for (const lead of newLeads) {
     const urgent = isPriorityUrgency(lead.urgency);
     const overdue = lead.createdAt < followupCutoff;
-    const kind: AttentionKind = urgent
-      ? "urgent_lead"
-      : overdue
-        ? "overdue_followup"
-        : "new_lead";
+    const qualified = isLeadQualifiedForBooking(lead);
     const who = lead.name ?? lead.phone ?? "Unknown caller";
     const ageHrs = Math.max(
       1,
       Math.round((now.getTime() - lead.createdAt.getTime()) / 3_600_000),
     );
 
-    items.push({
-      id: `${kind}:${lead.id}`,
-      kind,
-      rank: kindRank(kind, lead.urgency) + Math.min(ageHrs, 20),
-      impact: urgent ? "critical" : overdue ? "high" : "med",
-      title: who,
-      detail: [
-        urgent ? "Emergency / same-day" : overdue ? `Unworked ${ageHrs}h` : "New lead",
+    let kind: AttentionKind;
+    let detail: string;
+    let recommendedAction: string;
+    let impact: AttentionImpact;
+
+    if (!qualified) {
+      kind = "needs_qualify";
+      impact = urgent ? "critical" : "high";
+      detail = [
+        "Needs phone + service/address before booking",
         lead.serviceType,
         lead.address,
       ]
         .filter(Boolean)
-        .join(" · "),
-      recommendedAction: lead.job
-        ? "Open lead"
-        : urgent
-          ? "Call back & book"
-          : "Follow up",
+        .join(" · ");
+      recommendedAction = "Qualify lead";
+    } else if (!lead.job) {
+      if (urgent) {
+        kind = "urgent_lead";
+        impact = "critical";
+        detail = ["Emergency / same-day — not booked yet", lead.serviceType, lead.address]
+          .filter(Boolean)
+          .join(" · ");
+        recommendedAction = "Call back & book";
+      } else if (overdue) {
+        kind = "overdue_followup";
+        impact = "high";
+        detail = [`Qualified · unworked ${ageHrs}h`, lead.serviceType, lead.address]
+          .filter(Boolean)
+          .join(" · ");
+        recommendedAction = "Book job";
+      } else {
+        kind = "needs_booking";
+        impact = "high";
+        detail = ["Qualified — waiting to book", lead.serviceType, lead.address]
+          .filter(Boolean)
+          .join(" · ");
+        recommendedAction = "Book job";
+      }
+    } else {
+      kind = overdue ? "overdue_followup" : "new_lead";
+      impact = overdue ? "high" : "med";
+      detail = [
+        overdue ? `Unworked ${ageHrs}h` : "New lead",
+        lead.serviceType,
+        lead.address,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Open lead";
+    }
+
+    items.push({
+      id: `${kind}:${lead.id}`,
+      kind,
+      rank: kindRank(kind, lead.urgency) + Math.min(ageHrs, 20),
+      impact,
+      title: who,
+      detail,
+      recommendedAction,
       href: `/dashboard/inbox/${lead.id}`,
       entityType: "lead",
       entityId: lead.id,
@@ -470,6 +553,12 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Urgent";
     case "new_lead":
       return "New lead";
+    case "needs_qualify":
+      return "Qualify";
+    case "needs_booking":
+      return "Book";
+    case "alert_failed":
+      return "Alert failed";
     case "overdue_followup":
       return "Follow up";
     case "unassigned_job":

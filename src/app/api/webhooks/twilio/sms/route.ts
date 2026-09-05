@@ -127,6 +127,15 @@ export async function POST(request: NextRequest) {
       })
     : null;
 
+  logInfo("twilio.sms.auto_book", {
+    messageSid,
+    leadId: lead.id,
+    jobId: autoBook.jobId,
+    created: autoBook.created,
+    qualified: autoBook.qualified,
+    skipReason: autoBook.skipReason ?? null,
+  });
+
   const ownerMessage = buildOwnerLeadAlertMessage({
     lead: {
       name: null,
