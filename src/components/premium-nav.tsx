@@ -21,7 +21,12 @@ export function PremiumNav() {
 
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 8);
+      // Stay transparent through the hero void — elevate only after leaving it
+      const hero = document.querySelector(".mkt-hero--command");
+      const threshold = hero
+        ? Math.max(48, hero.getBoundingClientRect().height * 0.72)
+        : 8;
+      setScrolled(window.scrollY > threshold);
     }
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -67,7 +72,12 @@ export function PremiumNav() {
             <Link href="/login" className="mkt-nav-login">
               Log in
             </Link>
-            <Link href="/pilot" className="mkt-btn mkt-btn-copper mkt-nav-cta">
+            <Link
+              href="/pilot"
+              className={`mkt-btn mkt-nav-cta ${
+                scrolled ? "mkt-btn-ink" : "mkt-btn-ghost-light"
+              }`}
+            >
               Book audit
             </Link>
             <button

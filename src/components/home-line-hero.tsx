@@ -4,8 +4,8 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
- * SpaceX / Cursor craft: one composition, brand first, no SaaS theater.
- * Full-bleed command plane. Massive quiet type. One primary action.
+ * SpaceX restraint × Cursor product trust.
+ * One composition: brand, one line, one CTA, product as atmosphere.
  */
 export function HomeLineHero() {
   return (
@@ -14,6 +14,7 @@ export function HomeLineHero() {
         <HomeProductPreview />
       </div>
       <div className="mkt-hero-veil" aria-hidden />
+      <div className="mkt-hero-grain" aria-hidden />
 
       <div className="editorial-wrap mkt-hero-content">
         <OrviusLogo variant="chalk" size="xl" className="mkt-hero-brand-lockup" />

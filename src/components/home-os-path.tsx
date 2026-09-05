@@ -20,9 +20,9 @@ export function HomeOsPath() {
   return (
     <MktSection id="path" tone="inset" aria-labelledby="home-path-heading" className="mkt-mastery-section">
       <MktSectionHeader
-        kicker="Product truth"
+        kicker="Roadmap"
         title="What is live. What is next."
-        lead="Buy what works today. The roadmap is honest — and visually separate so it never pretends to be shipping."
+        lead="Buy what works today. Next stays separate — never dressed as shipping."
         titleId="home-path-heading"
       />
 

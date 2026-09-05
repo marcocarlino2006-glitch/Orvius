@@ -13834,11 +13834,13 @@ h3 {
   min-height: 100vh;
 }
 
-/* ── Nav — multi-billion depth (Stripe / Anthropic weight) ── */
+/* ── Nav — SpaceX / Cursor: fixed over hero void, elevate after ── */
 
 .mkt-nav {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
   isolation: isolate;
   border-bottom: 1px solid transparent;
@@ -13857,13 +13859,11 @@ h3 {
 }
 
 .mkt-nav--elevated {
-  background: color-mix(in srgb, var(--canvas) 92%, transparent);
-  border-bottom-color: color-mix(in srgb, var(--void) 10%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--void) 4%, transparent),
-    0 12px 40px -28px color-mix(in srgb, var(--void) 28%, transparent);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  background: color-mix(in srgb, #f7f8fa 94%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--void) 8%, transparent);
+  box-shadow: none;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
 
 .mkt-nav--elevated .mkt-nav-rail {
@@ -13990,9 +13990,26 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta {
-  background: var(--signal) !important;
-  color: var(--void-deep) !important;
+  background: transparent !important;
+  color: #f4f6f8 !important;
+  border-color: color-mix(in srgb, #f4f6f8 36%, transparent) !important;
   box-shadow: none;
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta:hover {
+  background: color-mix(in srgb, #fff 10%, transparent) !important;
+  border-color: color-mix(in srgb, #f4f6f8 62%, transparent) !important;
+  color: #fff !important;
+}
+
+.mkt-nav--elevated .mkt-nav-cta {
+  background: var(--void) !important;
+  color: #f4f6f8 !important;
+  border-color: var(--void) !important;
+}
+
+.mkt-nav--elevated .mkt-nav-cta:hover {
+  background: var(--void-deep) !important;
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-toggle {
@@ -14082,14 +14099,13 @@ h3 {
 }
 
 .mkt-nav-cta {
-  padding: 0.65rem 1.1rem !important;
-  font-size: 0.875rem !important;
+  padding: 0.55rem 1rem !important;
+  font-size: 0.8125rem !important;
   font-weight: 600 !important;
   letter-spacing: -0.01em;
-  border-radius: 0.35rem !important;
+  border-radius: 0.15rem !important;
   box-shadow: none;
-  color: #fff !important;
-  transition: background 160ms ease, color 160ms ease;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
 .mkt-nav-cta:hover {
@@ -14432,12 +14448,12 @@ h3 {
   border-bottom-color: color-mix(in srgb, var(--signal) 45%, transparent);
 }
 
-/* ── Hero — full-bleed command plane ── */
+/* ── Hero — full-bleed command plane (SpaceX void × Cursor product) ── */
 
 .mkt-hero--command {
   position: relative;
   isolation: isolate;
-  min-height: min(92vh, 54rem);
+  min-height: 100svh;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -14450,6 +14466,8 @@ h3 {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  opacity: 0.55;
+  animation: mkt-plane-settle 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .mkt-hero-plane .mkt-product {
@@ -14472,8 +14490,8 @@ h3 {
 }
 
 .mkt-hero-plane .mkt-product-live-os {
-  transform: scale(1.02);
-  transform-origin: center center;
+  transform: scale(1.04);
+  transform-origin: center 18%;
 }
 
 .mkt-hero-veil {
@@ -14484,17 +14502,27 @@ h3 {
   background:
     linear-gradient(
       105deg,
-      color-mix(in srgb, var(--void-deep) 92%, transparent) 0%,
-      color-mix(in srgb, var(--void-deep) 72%, transparent) 38%,
-      color-mix(in srgb, var(--void-deep) 28%, transparent) 68%,
-      color-mix(in srgb, var(--void-deep) 45%, transparent) 100%
+      color-mix(in srgb, var(--void-deep) 94%, transparent) 0%,
+      color-mix(in srgb, var(--void-deep) 78%, transparent) 36%,
+      color-mix(in srgb, var(--void-deep) 32%, transparent) 66%,
+      color-mix(in srgb, var(--void-deep) 58%, transparent) 100%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--void-deep) 35%, transparent) 0%,
-      transparent 28%,
-      color-mix(in srgb, var(--void-deep) 55%, transparent) 100%
+      color-mix(in srgb, var(--void-deep) 48%, transparent) 0%,
+      transparent 26%,
+      color-mix(in srgb, var(--void-deep) 72%, transparent) 100%
     );
+}
+
+.mkt-hero-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* Scanline theater removed — SpaceX restraint */
@@ -14503,33 +14531,35 @@ h3 {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 44rem;
-  padding-block: clamp(5.5rem, 14vh, 8.5rem) clamp(3.5rem, 8vh, 5.5rem);
-  animation: mkt-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  max-width: 46rem;
+  padding-block: clamp(6rem, 16vh, 9rem) clamp(3.75rem, 9vh, 5.75rem);
+  animation: mkt-rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .mkt-hero-brand-lockup {
-  --logo-wordmark-size: clamp(2.6rem, 6vw, 3.6rem) !important;
-  --logo-wordmark-tracking: 0.12em !important;
+  --logo-wordmark-size: clamp(2.85rem, 6.5vw, 3.85rem) !important;
+  --logo-wordmark-tracking: 0.14em !important;
   color: #f7f8fa !important;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
+  animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
 }
 
 .mkt-hero-brand-lockup.orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(var(--logo-wordmark-size, 2.6rem) * 1.02);
-  height: calc(var(--logo-wordmark-size, 2.6rem) * 1.02);
+  width: calc(var(--logo-wordmark-size, 2.85rem) * 1.02);
+  height: calc(var(--logo-wordmark-size, 2.85rem) * 1.02);
 }
 
 .mkt-hero-title {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.75rem, 7.5vw, 5.25rem);
+  font-size: clamp(2.85rem, 8vw, 5.5rem);
   font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.02em;
+  line-height: 0.96;
+  letter-spacing: -0.025em;
   text-transform: none;
   color: #f4f6f8;
   margin: 0;
-  max-width: 12ch;
+  max-width: 11ch;
+  animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
 .mkt-hero-lead {
@@ -14539,6 +14569,7 @@ h3 {
   line-height: 1.5;
   font-weight: 400;
   color: color-mix(in srgb, #e8ecf1 68%, transparent);
+  animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
 }
 
 .mkt-hero-actions {
@@ -14547,10 +14578,11 @@ h3 {
   align-items: center;
   gap: 1rem 1.5rem;
   margin-top: 2.15rem;
+  animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
 }
 
 .mkt-btn-hero {
-  border-radius: 0.2rem !important;
+  border-radius: 0.12rem !important;
   padding: 0.95rem 1.45rem !important;
   font-size: 0.9375rem !important;
   font-weight: 600 !important;
@@ -14570,6 +14602,7 @@ h3 {
 .mkt-btn-chalk:hover {
   background: #fff;
   color: var(--void-deep);
+  transform: none;
 }
 
 .mkt-btn-copper {
@@ -14628,7 +14661,12 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .mkt-hero-scan,
-  .mkt-hero-content {
+  .mkt-hero-content,
+  .mkt-hero-plane,
+  .mkt-hero-brand-lockup,
+  .mkt-hero-title,
+  .mkt-hero-lead,
+  .mkt-hero-actions {
     animation: none !important;
   }
 }
@@ -16086,10 +16124,10 @@ h3 {
 
 .mkt-close-title {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
   font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: -0.025em;
   text-transform: none;
   color: #f4f6f8;
   margin: 0;
@@ -16279,24 +16317,40 @@ h3 {
   flex-direction: column;
   gap: 0.65rem;
   padding: 1.25rem 1.15rem 1.35rem;
-  border-radius: 1rem;
-  background: color-mix(in srgb, #fff 78%, transparent);
-  border: 1px solid color-mix(in srgb, var(--void) 8%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 70%, transparent) inset,
-    0 18px 40px -28px color-mix(in srgb, var(--void) 28%, transparent);
-  transition:
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 220ms ease,
-    box-shadow 220ms ease;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--void) 12%, transparent);
+  box-shadow: none;
+  transition: border-color 220ms ease;
 }
 
 .mkt-flow-step--mastery:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--void) 14%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 80%, transparent) inset,
-    0 28px 50px -26px color-mix(in srgb, var(--void) 34%, transparent);
+  transform: none;
+  border-color: color-mix(in srgb, var(--void) 22%, transparent);
+  box-shadow: none;
+}
+
+.mkt-flow-step--sparse {
+  padding-inline: 0;
+  padding-block: 1.35rem 1.5rem;
+}
+
+@media (min-width: 960px) {
+  .mkt-flow--sparse {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0 2rem;
+  }
+
+  .mkt-flow-step--sparse {
+    border-top: 1px solid color-mix(in srgb, var(--void) 12%, transparent);
+    border-left: none;
+  }
+
+  .mkt-flow-step--sparse .mkt-flow-connector {
+    display: none;
+  }
 }
 
 .mkt-flow-step-top {
@@ -16355,13 +16409,10 @@ h3 {
 }
 
 .mkt-call-panel--mastery {
-  border-radius: 1.1rem;
+  border-radius: 0.2rem;
   border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
-  background:
-    linear-gradient(180deg, #fff 0%, color-mix(in srgb, var(--canvas) 65%, #fff) 100%);
-  box-shadow:
-    0 1px 0 #fff inset,
-    0 30px 70px -36px color-mix(in srgb, var(--void) 40%, transparent);
+  background: #fff;
+  box-shadow: none;
   padding: 1.25rem 1.25rem 1.15rem;
 }
 
@@ -16449,17 +16500,18 @@ h3 {
 .mkt-trust-card--mastery {
   display: grid;
   gap: 1rem;
-  padding: 1.25rem;
-  border-radius: 1rem;
-  background: #fff;
-  border: 1px solid color-mix(in srgb, var(--void) 8%, transparent);
-  box-shadow: 0 18px 40px -30px color-mix(in srgb, var(--void) 30%, transparent);
-  transition: transform 200ms ease, border-color 200ms ease;
+  padding: 1.25rem 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--void) 12%, transparent);
+  box-shadow: none;
+  transition: border-color 200ms ease;
 }
 
 .mkt-trust-card--mastery:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--void) 14%, transparent);
+  transform: none;
+  border-color: color-mix(in srgb, var(--void) 22%, transparent);
 }
 
 .mkt-trust-card-ui {
@@ -16484,10 +16536,11 @@ h3 {
 .mkt-signal-strip--mastery li {
   display: grid;
   gap: 0.2rem;
-  padding: 0.9rem 1rem;
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--void) 3%, transparent);
-  border: 1px solid color-mix(in srgb, var(--void) 7%, transparent);
+  padding: 0.85rem 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
 }
 
 .mkt-signal-strip--mastery strong {
@@ -16507,11 +16560,11 @@ h3 {
 
 .mkt-path-card--mastery,
 .mkt-plan-card--mastery {
-  border-radius: 1.05rem;
+  border-radius: 0.15rem;
   padding: 1.4rem 1.35rem 1.45rem;
-  box-shadow:
-    0 1px 0 #fff inset,
-    0 24px 50px -32px color-mix(in srgb, var(--void) 35%, transparent);
+  box-shadow: none;
+  border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
+  background: #fff;
 }
 
 .mkt-path-list--mastery {

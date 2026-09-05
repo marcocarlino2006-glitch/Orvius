@@ -58,11 +58,10 @@ export function HomeTrust() {
         <div className="mkt-trust-intro">
           <p className="mkt-eyebrow font-sans">Trust</p>
           <h2 id="home-trust-heading" className="mkt-section-title">
-            Emergencies and customer data stay under your control.
+            Emergencies and data stay under your control.
           </h2>
           <p className="mkt-section-lead font-sans">
-            Mechanisms you can see in the product — not slogans. Scope and details live in the trust
-            center.
+            Mechanisms in the product — not slogans. Details in the trust center.
           </p>
         </div>
 

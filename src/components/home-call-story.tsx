@@ -30,20 +30,17 @@ export function HomeCallStory() {
     >
       <div className="mkt-proof-layout mkt-proof-layout--mastery">
         <div className="mkt-proof-copy">
-          <p className="mkt-proof-badge font-sans">
-            Representative example · not a third-party case study
-          </p>
           <MktSectionHeader
             kicker="Proof"
-            title="Hear the product. Then measure your own line."
-            lead={`${summitCaseStudy.name} is our labeled reference shop. The loop below is representative — call the live line for the real thing, or book an audit on your after-hours traffic.`}
+            title="Hear it. Then measure your line."
+            lead={`${summitCaseStudy.name} — labeled reference shop. Call the live line, or book an audit on your after-hours traffic.`}
             titleId="tier1-story-heading"
           />
           <div className="mkt-proof-actions font-sans">
             <a href={demoLineHref()} className="mkt-btn mkt-btn-ink mkt-btn-hero">
               Call {DEMO_LINE_DISPLAY}
             </a>
-            <Link href="/pilot" className="mkt-btn mkt-btn-ghost mkt-btn-hero">
+            <Link href="/pilot" className="mkt-text-link">
               Book a live call audit
             </Link>
           </div>
