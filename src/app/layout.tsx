@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, IBM_Plex_Sans } from "next/font/google";
+import { Barlow_Condensed, Space_Grotesk } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
 import "./globals.css";
 
-const sans = IBM_Plex_Sans({
+/**
+ * Craft stack (studied from Cursor × SpaceX, adapted for Orvius):
+ * - Space Grotesk ≈ CursorGothic: geometric grotesque, display at weight 400–500
+ * - Barlow Condensed ≈ D-DIN: industrial stencil for brand / mission labels
+ */
+const sans = Space_Grotesk({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -15,7 +20,7 @@ const sans = IBM_Plex_Sans({
 const brand = Barlow_Condensed({
   variable: "--font-brand",
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 

@@ -2,20 +2,27 @@
 
 /*
   Orvius — shop command system.
-  Cool paper · graphite ink · copper signal. Not Cursor cream/orange.
+  Craft studied from Cursor × SpaceX, kept Orvius copper (not Cursor orange / cream).
+
+  Cursor mechanics: display weight 400–500, aggressive negative tracking,
+  8px CTA radius, hairline depth (no soft elevation theater), calm UI type.
+  SpaceX mechanics: black void hero, spectral chalk #f0f0fa, uppercase tracked
+  mission labels, ghost outline pills over imagery, zero chrome noise.
 */
 
 :root {
-  /* Canvas — cool industrial paper */
+  /* Canvas — cool industrial paper (Cursor restraint, cooler than cream) */
   --canvas: #f1f3f6;
   --chalk: #f1f3f6;
   --fog: #e8ecf1;
   --warm-close: #f1f3f6;
   --white: #ffffff;
+  /* SpaceX spectral chalk — type on void */
+  --spectral: #f0f0fa;
 
-  /* Ink — graphite */
+  /* Ink — graphite (near Cursor warm-black, cooler for trades) */
   --void: #0c1016;
-  --void-deep: #070a0e;
+  --void-deep: #000000;
   --panel: #12171f;
   --mist: #dde3ea;
 
@@ -26,7 +33,7 @@
   --hairline: #d5dbe3;
   --rule-dark: rgba(12, 16, 22, 0.12);
 
-  /* Accent — copper (trades metal), used sparingly */
+  /* Accent — copper (trades metal), used sparingly — never Cursor orange */
   --signal: #c4783a;
   --signal-hot: #d4894a;
   --signal-dim: #a8642e;
@@ -53,16 +60,21 @@
   --border: var(--hairline);
   --success: var(--live);
 
-  --shadow-soft: 0 1px 2px rgba(12, 16, 22, 0.04), 0 8px 24px rgba(12, 16, 22, 0.05);
-  --shadow-lift: 0 2px 4px rgba(12, 16, 22, 0.06), 0 16px 40px rgba(12, 16, 22, 0.07);
+  /* Cursor: hairline depth only — no multi-layer soft elevation */
+  --shadow-soft: none;
+  --shadow-lift: none;
+  --shadow-hairline: 0 0 0 1px color-mix(in srgb, var(--void) 8%, transparent);
 
+  /* Cursor CTA radius 8px; SpaceX ghost uses pill */
   --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
+  --radius-md: 0.5rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.625rem;
   --radius-pill: 9999px;
+  --radius-cta: 0.5rem;
+  --radius-ghost: 2rem;
 
-  /* Typography scale */
+  /* Typography scale — Cursor display tracking */
   --text-caption: 0.6875rem;
   --text-small: 0.8125rem;
   --text-body: 1rem;
@@ -70,9 +82,12 @@
   --text-title: 1.125rem;
   --tracking-tight: -0.03em;
   --tracking-snug: -0.018em;
+  --tracking-display: -0.04em;
+  --tracking-display-xl: -0.055em;
   --tracking-normal: 0;
   --tracking-wide: 0.06em;
-  --tracking-brand: 0.1em;
+  --tracking-mission: 0.1em;
+  --tracking-brand: 0.12em;
   --leading-tight: 1.08;
   --leading-snug: 1.32;
   --leading-normal: 1.55;
@@ -171,20 +186,22 @@ button,
 }
 
 .type-eyebrow {
+  /* SpaceX mission label */
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: var(--text-caption);
-  font-weight: 500;
-  letter-spacing: var(--kicker-tracking);
-  text-transform: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-mission);
+  text-transform: uppercase;
   color: var(--ash);
 }
 
 .type-display {
+  /* Cursor display: light weight + aggressive negative tracking */
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(2.75rem, 5.5vw, 4.25rem);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.02;
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-display);
   text-transform: none;
   color: var(--void);
 }
@@ -192,9 +209,9 @@ button,
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.75rem, 3.2vw, 2.5rem);
-  font-weight: 600;
+  font-weight: 500;
   line-height: var(--leading-tight);
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-tight);
   text-transform: none;
   color: var(--void);
 }
@@ -202,7 +219,7 @@ button,
 .type-title {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.25rem, 2.2vw, 1.5rem);
-  font-weight: 600;
+  font-weight: 500;
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-snug);
   color: var(--void);
@@ -314,82 +331,93 @@ h3 {
 }
 
 .btn {
+  /* Cursor CTA primitive: 8px, weight 500, no lift bounce */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.5rem;
-  padding: 0.95rem 1.45rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  border-radius: var(--radius-cta);
+  padding: 0.85rem 1.25rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.01em;
+  border: 1px solid transparent;
+  box-shadow: none;
   transition:
-    background 160ms ease,
-    color 160ms ease,
-    transform 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
 }
 
 .btn:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .btn:active {
-  transform: translateY(0);
+  transform: none;
   transition-duration: 80ms;
 }
 
 .btn-primary {
-  background: var(--signal);
-  color: var(--void);
+  background: var(--void);
+  color: var(--spectral);
 }
 
 .btn-primary:hover {
-  background: var(--signal-dim);
+  background: color-mix(in srgb, var(--void) 88%, #fff);
 }
 
 .btn-secondary {
-  background: var(--white);
-  border: 1px solid var(--rule);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--void) 18%, transparent);
   color: var(--void);
 }
 
 .btn-secondary:hover {
-  border-color: color-mix(in srgb, var(--void) 22%, var(--rule));
-  background: var(--fog);
+  border-color: color-mix(in srgb, var(--void) 36%, transparent);
+  background: color-mix(in srgb, var(--void) 3%, transparent);
 }
 
 .btn-void {
-  background: var(--signal);
-  color: var(--void);
+  background: var(--void);
+  color: var(--spectral);
 }
 
 .btn-void:hover,
 .btn-primary:hover {
-  background: var(--signal-dim);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--signal) 28%, transparent);
+  background: color-mix(in srgb, var(--void) 88%, #fff);
+  box-shadow: none;
 }
 
 .btn-on-void {
-  background: var(--chalk);
-  color: var(--void);
+  /* Filled chalk on black — Cursor primary on dark */
+  background: var(--spectral);
+  color: var(--void-deep);
+  border-color: var(--spectral);
 }
 
 .btn-on-void:hover {
-  background: color-mix(in srgb, var(--chalk) 88%, var(--fog));
+  background: #fff;
 }
 
 .btn-on-void-secondary {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid color-mix(in srgb, var(--chalk) 22%, transparent);
-  color: var(--chalk);
+  /* SpaceX ghost pill */
+  background: rgba(240, 240, 250, 0.1);
+  border: 1px solid rgba(240, 240, 250, 0.35);
+  color: var(--spectral);
+  border-radius: var(--radius-ghost);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.85rem 1.55rem;
 }
 
 .btn-on-void-secondary:hover {
-  border-color: color-mix(in srgb, var(--chalk) 45%, transparent);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(240, 240, 250, 0.55);
+  background: rgba(240, 240, 250, 0.16);
 }
 
 .label {
@@ -13949,20 +13977,22 @@ h3 {
   display: none;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.15rem;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  letter-spacing: -0.011em;
+  /* SpaceX nav: micro caps, tracked */
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .mkt-nav-links a {
   position: relative;
   color: color-mix(in srgb, var(--void) 62%, transparent);
   text-decoration: none;
-  padding: 0.55rem 0.95rem;
-  border-radius: 0.35rem;
-  transition: color 160ms ease, background 160ms ease;
+  padding: 0.55rem 0.85rem;
+  border-radius: 0.25rem;
+  transition: color 140ms ease, background 140ms ease;
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-links a {
@@ -14053,14 +14083,15 @@ h3 {
 
 .mkt-nav-login {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  letter-spacing: -0.011em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: color-mix(in srgb, var(--void) 62%, transparent);
   text-decoration: none;
-  padding: 0.55rem 0.9rem;
-  border-radius: 0.5rem;
-  transition: color 160ms ease, background 160ms ease;
+  padding: 0.55rem 0.85rem;
+  border-radius: 0.25rem;
+  transition: color 140ms ease, background 140ms ease;
 }
 
 .mkt-nav-login:hover {
@@ -14099,13 +14130,14 @@ h3 {
 }
 
 .mkt-nav-cta {
-  padding: 0.55rem 1rem !important;
-  font-size: 0.8125rem !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.01em;
-  border-radius: 0.15rem !important;
-  box-shadow: none;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+  padding: 0.55rem 1.1rem !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  border-radius: var(--radius-ghost) !important;
+  box-shadow: none !important;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
 .mkt-nav-cta:hover {
@@ -14249,71 +14281,69 @@ h3 {
   padding-inline: 1.2rem;
 }
 
-/* ── Buttons ── */
+/* ── Buttons — Cursor filled + SpaceX ghost ── */
 
 .mkt-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  padding: 0.65rem 1.15rem;
-  border-radius: var(--radius-md);
+  padding: 0.75rem 1.15rem;
+  border-radius: var(--radius-cta);
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
   text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer;
+  box-shadow: none;
+  transform: none;
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
   white-space: nowrap;
 }
 
-.mkt-btn:hover {
-  transform: translateY(-1px);
-}
-
+.mkt-btn:hover,
 .mkt-btn:active {
-  transform: translateY(0);
+  transform: none;
 }
 
 .mkt-btn-primary {
   background: var(--void);
-  color: var(--white);
-  box-shadow: 0 1px 2px rgba(38, 37, 30, 0.12);
+  color: var(--spectral);
+  box-shadow: none;
 }
 
 .mkt-btn-primary:hover {
-  background: var(--void-deep);
-  box-shadow: var(--shadow-lift);
+  background: color-mix(in srgb, var(--void) 88%, #fff);
+  box-shadow: none;
 }
 
 .mkt-btn-signal {
   background: var(--signal);
-  color: var(--white);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--signal) 35%, transparent);
+  color: #fff;
+  box-shadow: none;
 }
 
 .mkt-btn-signal:hover {
   background: var(--signal-hot);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--signal) 28%, transparent);
+  box-shadow: none;
 }
 
 .mkt-btn-ink {
   background: var(--void);
-  color: #fff !important;
-  box-shadow: 0 1px 2px rgba(38, 37, 30, 0.14);
+  color: var(--spectral) !important;
+  box-shadow: none;
 }
 
 .mkt-btn-ink:hover {
-  background: var(--void-deep);
-  color: #fff !important;
-  box-shadow: var(--shadow-lift);
+  background: color-mix(in srgb, var(--void) 88%, #fff);
+  color: var(--spectral) !important;
+  box-shadow: none;
 }
 
 .mkt-btn:focus-visible,
@@ -14326,26 +14356,27 @@ h3 {
 }
 
 .mkt-btn-ink-light {
-  background: var(--white);
-  color: var(--void);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--spectral);
+  color: var(--void-deep);
+  border: 1px solid var(--spectral);
 }
 
 .mkt-btn-ink-light:hover {
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow-lift);
+  background: #fff;
+  box-shadow: none;
 }
 
 .mkt-btn-secondary {
-  background: var(--white);
+  background: transparent;
   color: var(--void);
-  border-color: var(--hairline);
-  box-shadow: 0 1px 2px rgba(38, 37, 30, 0.04);
+  border-color: color-mix(in srgb, var(--void) 16%, transparent);
+  box-shadow: none;
 }
 
 .mkt-btn-secondary:hover {
-  border-color: color-mix(in srgb, var(--void) 18%, var(--hairline));
-  box-shadow: var(--shadow-soft);
+  border-color: color-mix(in srgb, var(--void) 32%, transparent);
+  background: color-mix(in srgb, var(--void) 3%, transparent);
+  box-shadow: none;
 }
 
 .mkt-btn-ghost {
@@ -14359,24 +14390,31 @@ h3 {
 }
 
 .mkt-btn-ghost-light {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.88);
-  border-color: var(--mkt-dark-border);
+  /* SpaceX ghost over void */
+  background: rgba(240, 240, 250, 0.1);
+  color: var(--spectral);
+  border-color: rgba(240, 240, 250, 0.35);
+  border-radius: var(--radius-ghost);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.7rem 1.35rem;
 }
 
 .mkt-btn-ghost-light:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(240, 240, 250, 0.16);
+  border-color: rgba(240, 240, 250, 0.55);
   color: #fff;
 }
 
 .mkt-btn-sm {
-  padding: 0.45rem 0.85rem;
+  padding: 0.5rem 0.85rem;
   font-size: 0.8125rem;
 }
 
 .mkt-btn-lg {
-  padding: 0.85rem 1.45rem;
+  padding: 0.9rem 1.4rem;
   font-size: 0.9375rem;
 }
 
@@ -14574,13 +14612,14 @@ h3 {
 }
 
 .mkt-hero-title {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  /* Cursor display voice on SpaceX void */
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(2.55rem, 6.8vw, 4.65rem);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 0.96;
-  letter-spacing: -0.025em;
+  letter-spacing: var(--tracking-display);
   text-transform: none;
-  color: #f4f6f8;
+  color: var(--spectral);
   margin: 0;
   max-width: 12ch;
   animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
@@ -14588,8 +14627,9 @@ h3 {
 
 .mkt-hero-title--absolute {
   font-size: clamp(3.25rem, 9.5vw, 6.75rem);
+  font-weight: 500;
   line-height: 0.9;
-  letter-spacing: -0.035em;
+  letter-spacing: var(--tracking-display-xl);
   max-width: 10ch;
   margin-top: 0.35rem;
 }
@@ -14600,7 +14640,7 @@ h3 {
   font-size: clamp(1rem, 1.35vw, 1.125rem);
   line-height: 1.5;
   font-weight: 400;
-  color: color-mix(in srgb, #e8ecf1 68%, transparent);
+  color: color-mix(in srgb, var(--spectral) 68%, transparent);
   animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
 }
 
@@ -14614,26 +14654,31 @@ h3 {
 }
 
 .mkt-btn-hero {
-  border-radius: 0.12rem !important;
-  padding: 0.95rem 1.45rem !important;
-  font-size: 0.9375rem !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.01em;
+  /* SpaceX ghost CTA — the single chrome on void */
+  border-radius: var(--radius-ghost) !important;
+  padding: 0.95rem 1.65rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  box-shadow: none !important;
   transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease;
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
 }
 
 .mkt-btn-chalk {
-  background: #f4f6f8;
-  color: var(--void-deep);
-  border: 1px solid #f4f6f8;
+  /* On void: SpaceX ghost, not filled SaaS chalk */
+  background: rgba(240, 240, 250, 0.1);
+  color: var(--spectral);
+  border: 1px solid rgba(240, 240, 250, 0.35);
 }
 
 .mkt-btn-chalk:hover {
-  background: #fff;
-  color: var(--void-deep);
+  background: rgba(240, 240, 250, 0.16);
+  border-color: rgba(240, 240, 250, 0.55);
+  color: #fff;
   transform: none;
 }
 
@@ -17128,4 +17173,73 @@ h3 {
 .tech-field-advance {
   margin-top: 1.5rem;
   width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CRAFT LOCK — Cursor × SpaceX mechanics (final cascade)
+   Keep Orvius copper. Kill SaaS soft shadows / bounce / heavy display weight.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mkt-page,
+.mkt-page * {
+  --shadow-soft: none;
+  --shadow-lift: none;
+}
+
+.mkt-page .panel-chalk,
+.mkt-page .mkt-card,
+.mkt-page .mkt-path-card,
+.mkt-page .mkt-trust-card,
+.mkt-page .mkt-proof-card,
+.mkt-page .mkt-pricing-card {
+  box-shadow: none !important;
+  border-color: color-mix(in srgb, var(--void) 10%, transparent);
+}
+
+.mkt-kicker,
+.mkt-eyebrow,
+.mkt-path-label,
+.mkt-section-kicker {
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: var(--tracking-mission) !important;
+  text-transform: uppercase !important;
+}
+
+.mkt-section-title,
+.mkt-path-title,
+.mkt-statement-title {
+  font-weight: 500 !important;
+  letter-spacing: var(--tracking-display) !important;
+}
+
+.mkt-nav-links a::after {
+  display: none; /* SpaceX: no underline theater */
+}
+
+.mkt-hero-phone {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--spectral) 72%, transparent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--spectral) 28%, transparent);
+}
+
+.mkt-hero-phone:hover {
+  color: var(--spectral);
+  border-bottom-color: color-mix(in srgb, var(--spectral) 55%, transparent);
+}
+
+.btn,
+.mkt-btn,
+button.btn {
+  box-shadow: none !important;
+}
+
+.btn:hover,
+.mkt-btn:hover {
+  transform: none !important;
 }
