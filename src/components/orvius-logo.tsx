@@ -9,7 +9,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Solid signal-ring O — favicons, avatars, compact chrome. */
+/** Signal-ring O — favicons, avatars, compact chrome. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -24,20 +24,19 @@ type OrviusLogoProps = {
   variant?: "void" | "chalk";
   /** Wordmark text only. */
   wordmarkOnly?: boolean;
-  /** Solid O alone. */
+  /** Signal ring alone. */
   markOnly?: boolean;
   /**
-   * When true (default), mark replaces the letter O → [O]RVIUS.
-   * Reads as a real company name, not a badge + label.
+   * When true (default), ring replaces the letter O → [◎]RVIUS.
    */
   integrateO?: boolean;
   className?: string;
 };
 
 /**
- * Company lockups:
- * 1) Signal-ring O (Oura × Palantir)
- * 2) Integrated wordmark — ring as the O in ORVIUS
+ * North-star lockups:
+ * 1) Signal-ring mark
+ * 2) Integrated company name — ring as the O in ORVIUS
  */
 export function OrviusLogo({
   size = "md",

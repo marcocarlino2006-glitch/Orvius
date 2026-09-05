@@ -19,24 +19,19 @@ export function OrviusMarkGraphic({
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <circle
-        cx="16"
-        cy="16"
-        r="12.4"
+      <path
+        d="M26.24 8.83 A12.5 12.5 0 1 1 20.28 4.25"
         stroke={ink}
-        strokeWidth="2.65"
+        strokeWidth="2.8"
         strokeLinecap="round"
-        strokeDasharray="68.2 9.8"
-        strokeDashoffset="8"
       />
       <circle
         cx="16"
         cy="16"
-        r="6.85"
+        r="6.55"
         stroke={ink}
-        strokeWidth="1.85"
+        strokeWidth="1.75"
       />
-      <circle cx="25.35" cy="8.05" r="1.35" fill={ink} />
     </svg>
   );
 }

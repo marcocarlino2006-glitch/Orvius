@@ -1141,7 +1141,8 @@ h3 {
 }
 
 .orvius-logo--integrated {
-  gap: 0.07em;
+  /* Optical: ring sits as capital O before R */
+  gap: 0.04em;
 }
 
 .orvius-logo-wordmark {
@@ -14570,16 +14571,17 @@ h3 {
 }
 
 .mkt-hero-brand-lockup .orvius-logo-wordmark {
-  --logo-wordmark-size: clamp(2.75rem, 7vw, 4.25rem) !important;
-  --logo-wordmark-tracking: 0.12em !important;
-  font-size: clamp(2.75rem, 7vw, 4.25rem) !important;
-  letter-spacing: 0.12em !important;
+  --logo-wordmark-size: clamp(2.85rem, 7.2vw, 4.4rem) !important;
+  --logo-wordmark-tracking: 0.125em !important;
+  font-size: clamp(2.85rem, 7.2vw, 4.4rem) !important;
+  letter-spacing: 0.125em !important;
+  font-weight: 700 !important;
   color: #f7f8fa !important;
 }
 
 .mkt-hero-brand-lockup.orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(var(--logo-wordmark-size, 2.75rem) * 1.05) !important;
-  height: calc(var(--logo-wordmark-size, 2.75rem) * 1.05) !important;
+  width: calc(var(--logo-wordmark-size, 2.85rem) * 1.08) !important;
+  height: calc(var(--logo-wordmark-size, 2.85rem) * 1.08) !important;
 }
 
 .mkt-hero-brand-lockup .orvius-logo-mark {
