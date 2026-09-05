@@ -17,12 +17,12 @@ export const typeScale = {
 
 /**
  * Two logo lines:
- * 1) Solid O mark
- * 2) Integrated wordmark — mark as O → [O]RVIUS
+ * 1) Signal-ring O — nested orbitals + aperture node
+ * 2) Integrated wordmark — ring as O → [O]RVIUS
  */
 export const logoSizes = {
-  sm: { mark: 18, wordmark: "1.05rem", tracking: "0.14em" },
-  md: { mark: 22, wordmark: "1.2rem", tracking: "0.15em" },
-  lg: { mark: 26, wordmark: "1.4rem", tracking: "0.16em" },
-  xl: { mark: 48, wordmark: "2.85rem", tracking: "0.12em" },
+  sm: { mark: 20, wordmark: "1.05rem", tracking: "0.16em" },
+  md: { mark: 24, wordmark: "1.22rem", tracking: "0.17em" },
+  lg: { mark: 28, wordmark: "1.42rem", tracking: "0.18em" },
+  xl: { mark: 52, wordmark: "2.9rem", tracking: "0.13em" },
 } as const;

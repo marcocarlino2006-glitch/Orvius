@@ -1,6 +1,6 @@
 import { orviusColors } from "@/lib/orvius-colors";
 
-/** Solid O for OG images and favicons. */
+/** Signal-ring mark for OG images and favicons. */
 export function OrviusMarkGraphic({
   size = 32,
   variant = "dark",
@@ -22,10 +22,21 @@ export function OrviusMarkGraphic({
       <circle
         cx="16"
         cy="16"
-        r="12.25"
+        r="12.4"
         stroke={ink}
-        strokeWidth="3.5"
+        strokeWidth="2.65"
+        strokeLinecap="round"
+        strokeDasharray="68.2 9.8"
+        strokeDashoffset="8"
       />
+      <circle
+        cx="16"
+        cy="16"
+        r="6.85"
+        stroke={ink}
+        strokeWidth="1.85"
+      />
+      <circle cx="25.35" cy="8.05" r="1.35" fill={ink} />
     </svg>
   );
 }

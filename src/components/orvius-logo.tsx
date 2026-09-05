@@ -9,7 +9,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Solid O — favicons, avatars, compact chrome. */
+/** Solid signal-ring O — favicons, avatars, compact chrome. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -36,8 +36,8 @@ type OrviusLogoProps = {
 
 /**
  * Company lockups:
- * 1) Solid O mark
- * 2) Integrated wordmark — mark as the O in ORVIUS
+ * 1) Signal-ring O (Oura × Palantir)
+ * 2) Integrated wordmark — ring as the O in ORVIUS
  */
 export function OrviusLogo({
   size = "md",
