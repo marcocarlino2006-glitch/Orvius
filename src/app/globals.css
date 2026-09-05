@@ -14537,28 +14537,41 @@ h3 {
 }
 
 .mkt-hero-brand-lockup {
-  --logo-wordmark-size: clamp(2.85rem, 6.5vw, 3.85rem) !important;
-  --logo-wordmark-tracking: 0.14em !important;
   color: #f7f8fa !important;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
   animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
 }
 
+/* Beat .orvius-logo-xl size tokens — brand must outrank the headline */
+.mkt-hero-brand-lockup .orvius-logo-wordmark {
+  --logo-wordmark-size: clamp(3.25rem, 7.5vw, 4.85rem) !important;
+  --logo-wordmark-tracking: 0.15em !important;
+  font-size: var(--logo-wordmark-size) !important;
+  letter-spacing: var(--logo-wordmark-tracking) !important;
+  color: #f7f8fa !important;
+}
+
+.mkt-hero-brand-lockup .orvius-logo-mark,
+.mkt-hero-brand-lockup .orvius-logo-mark-wrap svg {
+  color: #f7f8fa !important;
+  fill: currentColor;
+}
+
 .mkt-hero-brand-lockup.orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(var(--logo-wordmark-size, 2.85rem) * 1.02);
-  height: calc(var(--logo-wordmark-size, 2.85rem) * 1.02);
+  width: calc(var(--logo-wordmark-size, 3.25rem) * 1.05);
+  height: calc(var(--logo-wordmark-size, 3.25rem) * 1.05);
 }
 
 .mkt-hero-title {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.85rem, 8vw, 5.5rem);
+  font-size: clamp(2.55rem, 6.8vw, 4.65rem);
   font-weight: 700;
   line-height: 0.96;
   letter-spacing: -0.025em;
   text-transform: none;
   color: #f4f6f8;
   margin: 0;
-  max-width: 11ch;
+  max-width: 12ch;
   animation: mkt-rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
@@ -15954,24 +15967,24 @@ h3 {
 .mkt-path-pill {
   font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  background: var(--fog);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--ash);
-  border: 1px solid var(--hairline);
+  border: none;
 }
 
 .mkt-path-pill-live {
-  background: color-mix(in srgb, var(--live) 12%, var(--white));
-  color: color-mix(in srgb, var(--live) 80%, var(--void));
-  border-color: color-mix(in srgb, var(--live) 28%, transparent);
+  background: transparent;
+  color: color-mix(in srgb, var(--live) 70%, var(--void));
+  border: none;
 }
 
 .mkt-path-card--next {
-  opacity: 0.78;
-  background: color-mix(in srgb, var(--fog) 70%, var(--white));
+  opacity: 0.72;
+  background: transparent;
 }
 
 .mkt-plan-gap {
@@ -16032,20 +16045,20 @@ h3 {
 
 .mkt-plan-card--featured {
   border-color: var(--void);
-  box-shadow: var(--shadow-lift);
+  box-shadow: none;
   position: relative;
 }
 
 .mkt-plan-badge {
   margin: 0 0 0.75rem;
   display: inline-block;
-  padding: 0.25rem 0.55rem;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--signal) 12%, var(--white));
-  border: 1px solid color-mix(in srgb, var(--signal) 25%, transparent);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--signal-dim);
 }
@@ -16223,6 +16236,17 @@ h3 {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes mkt-plane-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.035);
+  }
+  to {
+    opacity: 0.55;
+    transform: scale(1);
   }
 }
 

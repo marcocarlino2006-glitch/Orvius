@@ -37,11 +37,9 @@ export function HomeWorkflow() {
         {stages.map((stage, index) => (
           <li key={stage.name} className="mkt-flow-step mkt-flow-step--mastery mkt-flow-step--sparse">
             {index > 0 ? <span className="mkt-flow-connector" aria-hidden /> : null}
-            <div className="mkt-flow-step-top">
-              <span className="mkt-flow-index">{String(index + 1).padStart(2, "0")}</span>
-              <p className="mkt-flow-artifact">{stage.artifact}</p>
-            </div>
+            <span className="mkt-flow-index">{String(index + 1).padStart(2, "0")}</span>
             <h3 className="mkt-flow-name">{stage.name}</h3>
+            <p className="mkt-flow-artifact">{stage.artifact}</p>
             <p className="mkt-flow-body">{stage.body}</p>
           </li>
         ))}
