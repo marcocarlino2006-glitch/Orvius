@@ -12,6 +12,7 @@ const sans = IBM_Plex_Sans({
   display: "swap",
 });
 
+/** Brand face — lockups only. Never body/UI. */
 const brand = Barlow_Condensed({
   variable: "--font-brand",
   subsets: ["latin"],

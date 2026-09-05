@@ -62,21 +62,23 @@
   --radius-xl: 0.625rem;
   --radius-pill: 9999px;
 
-  /* Typography scale */
-  --text-caption: 0.6875rem;
-  --text-small: 0.8125rem;
+  /* Typography scale — Cursor/Linear discipline */
+  --text-caption: 0.75rem;
+  --text-small: 0.875rem;
   --text-body: 1rem;
-  --text-lead: 1.0625rem;
-  --text-title: 1.125rem;
-  --tracking-tight: -0.03em;
-  --tracking-snug: -0.018em;
+  --text-lead: 1.125rem;
+  --text-title: 1.25rem;
+  --text-headline: clamp(1.875rem, 3.4vw, 2.75rem);
+  --text-display: clamp(2.75rem, 5.2vw, 4rem);
+  --tracking-tight: -0.035em;
+  --tracking-snug: -0.02em;
   --tracking-normal: 0;
-  --tracking-wide: 0.06em;
-  --tracking-brand: 0.1em;
-  --leading-tight: 1.08;
-  --leading-snug: 1.32;
-  --leading-normal: 1.55;
-  --leading-relaxed: 1.65;
+  --tracking-wide: 0.04em;
+  --tracking-brand: 0.12em;
+  --leading-tight: 1.05;
+  --leading-snug: 1.28;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
 
   /* Spacing scale (4px base) */
   --space-1: 0.25rem;
@@ -163,7 +165,7 @@ button,
 
 .type-wordmark {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: var(--tracking-brand);
   text-transform: uppercase;
   line-height: 1;
@@ -174,34 +176,35 @@ button,
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--text-caption);
   font-weight: 500;
-  letter-spacing: var(--kicker-tracking);
+  letter-spacing: 0.02em;
   text-transform: none;
   color: var(--ash);
 }
 
+/* Display/headline: UI sans only — brand face stays on lockups */
 .type-display {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.75rem, 5.5vw, 4.25rem);
-  font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.04em;
+  font-size: var(--text-display);
+  font-weight: 560;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
   text-transform: none;
   color: var(--void);
 }
 
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
-  font-weight: 600;
+  font-size: var(--text-headline);
+  font-weight: 560;
   line-height: var(--leading-tight);
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-tight);
   text-transform: none;
   color: var(--void);
 }
 
 .type-title {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  font-size: var(--text-title);
   font-weight: 600;
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-snug);
@@ -13915,9 +13918,9 @@ h3 {
 }
 
 .mkt-nav-brand .orvius-logo-wordmark {
-  font-size: 1.35rem !important;
+  font-size: 1.45rem !important;
   font-weight: 700 !important;
-  letter-spacing: 0.1em !important;
+  letter-spacing: 0.13em !important;
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo-wordmark {
@@ -13942,8 +13945,8 @@ h3 {
 }
 
 .mkt-nav-brand .orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(1.35rem * 1.02);
-  height: calc(1.35rem * 1.02);
+  width: calc(1.45rem * 1.02);
+  height: calc(1.45rem * 1.02);
 }
 
 @media (max-width: 480px) {
@@ -14643,23 +14646,23 @@ h3 {
 }
 
 .mkt-hero-title {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
-  font-weight: 500;
-  line-height: 1.18;
-  letter-spacing: -0.01em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.75rem, 3.2vw, 2.55rem);
+  font-weight: 560;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
   text-transform: none;
-  color: color-mix(in srgb, #e8ecf1 88%, transparent);
+  color: #f4f6f8;
   margin: 0;
-  max-width: 18ch;
+  max-width: 14ch;
 }
 
 .mkt-hero-lead {
-  margin: 1rem 0 0;
-  max-width: 36ch;
-  font-size: clamp(0.95rem, 1.15vw, 1.05rem);
+  margin: 1.15rem 0 0;
+  max-width: 34ch;
+  font-size: 1.0625rem;
   line-height: 1.55;
-  color: color-mix(in srgb, #e8ecf1 62%, transparent);
+  color: color-mix(in srgb, #e8ecf1 68%, transparent);
 }
 
 .mkt-hero-actions {
@@ -16711,4 +16714,226 @@ h3 {
     animation: none !important;
     transition: none !important;
   }
+}
+
+
+/* === AUTH SHELL (Cursor/Linear craft) === */
+
+.auth-shell {
+  display: grid;
+  min-height: 100svh;
+  background: var(--canvas);
+}
+
+@media (min-width: 900px) {
+  .auth-shell {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  }
+}
+
+.auth-stage {
+  display: none;
+  position: relative;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(2.5rem, 6vw, 5rem);
+  background:
+    radial-gradient(ellipse 80% 55% at 12% 18%, color-mix(in srgb, var(--signal) 14%, transparent), transparent 58%),
+    linear-gradient(165deg, #0c1016 0%, #070a0e 100%);
+  color: #f4f6f8;
+  overflow: hidden;
+}
+
+@media (min-width: 900px) {
+  .auth-stage {
+    display: flex;
+  }
+
+  .auth-panel-brand {
+    display: none !important;
+  }
+}
+
+.auth-stage-brand {
+  display: inline-flex;
+  width: fit-content;
+  text-decoration: none;
+  color: inherit;
+}
+
+.auth-stage-title {
+  margin: 2.25rem 0 0;
+  max-width: 12ch;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.35rem, 4.2vw, 3.35rem);
+  font-weight: 560;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  color: #f7f8fa;
+}
+
+.auth-stage-copy {
+  margin: 1.1rem 0 0;
+  max-width: 28ch;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, #e8ecf1 64%, transparent);
+}
+
+.auth-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2rem, 5vw, 4rem);
+  background: #f7f8fa;
+}
+
+.auth-panel-inner {
+  width: 100%;
+  max-width: 22.5rem;
+}
+
+.auth-panel-brand {
+  display: inline-flex;
+  margin-bottom: 2rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.auth-panel-title {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: var(--void);
+}
+
+.auth-panel-sub {
+  margin: 0.5rem 0 0;
+  font-size: 0.9875rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
+
+.auth-error {
+  margin: 1.15rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--flare) 28%, transparent);
+  background: color-mix(in srgb, var(--flare) 7%, #fff);
+  font-size: 0.875rem;
+  color: var(--flare-dim);
+}
+
+.auth-actions {
+  margin-top: 1.75rem;
+}
+
+.auth-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 2.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--void) 14%, transparent);
+  background: #fff;
+  color: var(--void);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.auth-google:hover {
+  border-color: color-mix(in srgb, var(--void) 28%, transparent);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(12, 16, 22, 0.04), 0 8px 20px rgba(12, 16, 22, 0.06);
+}
+
+.auth-setup {
+  margin-top: 1.25rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--fog) 70%, #fff);
+  font-size: 0.8125rem;
+  color: var(--ash);
+}
+
+.auth-setup summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.auth-setup ol {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+  line-height: 1.55;
+}
+
+.auth-setup ul {
+  margin: 0.35rem 0;
+  padding-left: 1rem;
+}
+
+.auth-setup code {
+  font-size: 0.75rem;
+  word-break: break-all;
+}
+
+.auth-setup a {
+  color: var(--void);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.auth-dev {
+  margin-top: 0.85rem;
+}
+
+.auth-dev-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.4rem;
+  border: 1px dashed color-mix(in srgb, var(--void) 22%, transparent);
+  background: transparent;
+  color: var(--ash);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-dev-btn:hover {
+  color: var(--void);
+  border-color: color-mix(in srgb, var(--void) 40%, transparent);
+}
+
+.auth-legal {
+  margin: 1.75rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ash-soft);
+}
+
+.auth-legal a {
+  color: var(--ash);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, var(--void) 22%, transparent);
+}
+
+.auth-legal a:hover {
+  color: var(--void);
 }

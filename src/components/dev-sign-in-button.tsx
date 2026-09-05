@@ -14,7 +14,7 @@ export function DevSignInButton({
   return (
     <button
       type="button"
-      className="inst-btn inst-btn-full tier1-login-dev-btn"
+      className="auth-dev-btn"
       onClick={() => signIn("dev", { callbackUrl })}
     >
       Continue as builder{email ? ` (${email})` : ""}

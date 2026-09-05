@@ -9,9 +9,13 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: `Sign in to ${company.productName} with Google.`,
+  description: `Sign in to ${company.productName}.`,
 };
 
+/**
+ * Cursor / Linear energy: one brand, one line, one button.
+ * No marketing essay. No double wordmark. No setup chrome in production.
+ */
 export default async function LoginPage({
   searchParams,
 }: {
@@ -22,73 +26,66 @@ export default async function LoginPage({
   const error = params.error;
   const auth = getAuthConfigStatus();
   const missing = auth.items.filter((item) => !item.optional && !item.configured);
+  const showSetup =
+    process.env.NODE_ENV === "development" && !auth.ready && missing.length > 0;
   const devBypass = isDevAuthBypassEnabled();
   const devEmail = devBypass ? getDevAuthEmail() : null;
 
   return (
-    <main className="tier1-login">
-      <section className="tier1-login-brand">
-        <div className="tier1-login-brand-glow" aria-hidden />
-        <div className="tier1-login-brand-inner">
+    <main className="auth-shell">
+      <section className="auth-stage">
+        <Link href="/" className="auth-stage-brand">
           <OrviusLogo size="lg" variant="void" />
-          <p className="tier1-eyebrow tier1-eyebrow-light type-eyebrow">
-            {company.productName}
-          </p>
-          <h1 className="tier1-login-title type-headline">
-            Sign in to your workspace.
-          </h1>
-          <p className="tier1-login-lead font-sans">
-            Inbox, customers, jobs, dispatch — one system of record for every
-            call, customer, and job.
-          </p>
-          <ul className="tier1-login-rings font-sans">
-            <li>01 · Answer · qualify · alert</li>
-            <li>02 · Customer records</li>
-            <li>03 · Jobs & scheduling</li>
-            <li>04 · Field dispatch</li>
-          </ul>
-        </div>
+        </Link>
+        <h1 className="auth-stage-title">The shop OS for trades.</h1>
+        <p className="auth-stage-copy">
+          Calls, jobs, and dispatch — one system of record.
+        </p>
       </section>
 
-      <section className="tier1-login-form">
-        <div className="tier1-login-form-inner">
-          <h2 className="tier1-form-title font-sans">Workspace access</h2>
-          <p className="tier1-form-sub font-sans">
-            Use the Google account connected to your Orvius shop.
-          </p>
+      <section className="auth-panel">
+        <div className="auth-panel-inner">
+          <Link href="/" className="auth-panel-brand">
+            <OrviusLogo size="md" variant="chalk" />
+          </Link>
+
+          <h2 className="auth-panel-title">Sign in</h2>
+          <p className="auth-panel-sub">Continue with your Google account.</p>
 
           {error ? (
-            <p className="tier1-login-error font-sans">
+            <p className="auth-error" role="alert">
               {error === "Configuration"
-                ? "Google sign-in is not configured yet. Add OAuth credentials in Vercel (see steps below)."
-                : "Sign in failed. Verify your account is authorized, then try again."}
+                ? "Google sign-in isn’t configured yet."
+                : "Sign in failed. Try again."}
             </p>
           ) : null}
 
-          {process.env.NODE_ENV === "development" && !auth.ready ? (
-            <details className="tier1-login-setup font-sans">
-              <summary className="tier1-login-setup-title">
-                Google OAuth setup (for developers)
-              </summary>
-              <p className="tier1-login-setup-lead">
-                The sign-in button will not work until you connect Google OAuth in
-                Vercel. This takes about 5 minutes.
-              </p>
-              <ol className="tier1-login-setup-steps">
+          <div className="auth-actions">
+            <GoogleSignInButton
+              callbackUrl={callbackUrl}
+              className="auth-google"
+              label="Continue with Google"
+            />
+          </div>
+
+          {showSetup ? (
+            <details className="auth-setup">
+              <summary>Dev: Google OAuth</summary>
+              <ol>
                 <li>
-                  Open{" "}
+                  Create an OAuth client in{" "}
                   <a
                     href="https://console.cloud.google.com/apis/credentials"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                        Google Cloud Console → Credentials
+                    Google Cloud Console
                   </a>
-                  , create an OAuth client (Web application).
+                  .
                 </li>
                 <li>
-                  Add these redirect URIs:
-                  <ul className="tier1-login-setup-uris">
+                  Redirect URIs:
+                  <ul>
                     {auth.redirectUris.map((uri) => (
                       <li key={uri}>
                         <code>{uri}</code>
@@ -97,46 +94,27 @@ export default async function LoginPage({
                   </ul>
                 </li>
                 <li>
-                  In Vercel → Project → Settings → Environment Variables, add:
-                  <ul className="tier1-login-setup-uris">
-                    {missing.map((item) => (
-                      <li key={item.name}>
-                        <code>{item.name}</code>
-                      </li>
-                    ))}
-                  </ul>
+                  Set in Vercel:{" "}
+                  {missing.map((item) => item.name).join(", ")}
                 </li>
-                <li>Redeploy, then return here and sign in.</li>
               </ol>
             </details>
           ) : null}
 
-          <div className="tier1-login-actions">
-            <GoogleSignInButton callbackUrl={callbackUrl} />
-            {devBypass ? (
-              <>
-                <p className="tier1-login-dev-note font-sans">
-                  Dev bypass on — skips Google while building. Never runs in
-                  production.
-                </p>
-                <DevSignInButton
-                  callbackUrl={callbackUrl}
-                  email={devEmail ?? undefined}
-                />
-              </>
-            ) : null}
-          </div>
+          {devBypass ? (
+            <div className="auth-dev">
+              <DevSignInButton
+                callbackUrl={callbackUrl}
+                email={devEmail ?? undefined}
+              />
+            </div>
+          ) : null}
 
-          <p className="tier1-login-legal font-sans">
-            By signing in you agree to the{" "}
-            <Link href="/terms">Terms of Service</Link> and{" "}
+          <p className="auth-legal">
+            By continuing, you agree to the{" "}
+            <Link href="/terms">Terms</Link> and{" "}
             <Link href="/privacy">Privacy Policy</Link>.
           </p>
-
-          <div className="tier1-login-links font-sans">
-            <Link href="/">← orvius.im</Link>
-            <Link href="/pilot">Design partner program</Link>
-          </div>
         </div>
       </section>
     </main>

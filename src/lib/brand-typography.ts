@@ -2,14 +2,18 @@
 
 export const brandWordmark = "Orvius";
 
+/**
+ * Craft scale — Cursor/Linear discipline:
+ * brand face = lockups only; UI sans does headlines and body.
+ */
 export const typeScale = {
-  caption: "0.8125rem",
+  caption: "0.75rem",
   small: "0.875rem",
-  body: "0.9375rem",
-  lead: "1.0625rem",
-  title: "1.125rem",
-  headline: "clamp(1.75rem, 3.2vw, 2.5rem)",
-  display: "clamp(2.35rem, 4.2vw, 3.25rem)",
+  body: "1rem",
+  lead: "1.125rem",
+  title: "1.25rem",
+  headline: "clamp(1.875rem, 3.4vw, 2.75rem)",
+  display: "clamp(2.75rem, 5.2vw, 4rem)",
 } as const;
 
 /**
@@ -18,8 +22,8 @@ export const typeScale = {
  * 2) Integrated — mark replaces O → [O]RVIUS
  */
 export const logoSizes = {
-  sm: { mark: 22, wordmark: "1.05rem", tracking: "0.08em" },
-  md: { mark: 28, wordmark: "1.25rem", tracking: "0.09em" },
-  lg: { mark: 36, wordmark: "1.55rem", tracking: "0.1em" },
-  xl: { mark: 52, wordmark: "2.35rem", tracking: "0.11em" },
+  sm: { mark: 20, wordmark: "0.95rem", tracking: "0.12em" },
+  md: { mark: 26, wordmark: "1.2rem", tracking: "0.13em" },
+  lg: { mark: 32, wordmark: "1.45rem", tracking: "0.14em" },
+  xl: { mark: 56, wordmark: "2.75rem", tracking: "0.12em" },
 } as const;

@@ -69,9 +69,6 @@ export function PremiumNav() {
             <Link href="/login" className="mkt-nav-login">
               Log in
             </Link>
-            <Link href="/demo" className="mkt-nav-secondary">
-              Live demo
-            </Link>
             <Link
               href="/pilot"
               className="mkt-btn mkt-btn-copper mkt-nav-cta"
