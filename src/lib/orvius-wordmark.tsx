@@ -1,8 +1,8 @@
 /**
- * Orvius proprietary letterset — the company name IS the logo.
+ * Orvius proprietary letterset v2 — MACHINE FACE.
  *
- * One modular stem. Signal-ring O is the first letter (same DNA as favicon).
- * Condensed industrial caps. No cuts in the letters. No badge+label gap.
+ * Not the nested-ring lockup. Squared industrial nameplate:
+ * keyway O, square-bowl R, channel U, stepped S.
  */
 
 export type OrviusWordmarkSvgProps = {
@@ -10,12 +10,7 @@ export type OrviusWordmarkSvgProps = {
   height?: number;
 };
 
-/**
- * Cap box y=10–70 (H=60). Stem ≈ 11.
- * O optical mass matched to stem via dual-rail stroke.
- * Letter rhythm condensed; gaps optically even (~6–8).
- */
-const VB_W = 336;
+const VB_W = 372;
 const VB_H = 80;
 
 export function OrviusWordmarkSvg({
@@ -33,40 +28,45 @@ export function OrviusWordmarkSvg({
       className={`orvius-wordmark-svg ${className}`.trim()}
       aria-hidden
     >
-      {/* O — signal letter (matches favicon geometry, scaled to caps) */}
-      <g fill="none" stroke="currentColor" strokeLinecap="round">
-        <path
-          d="M56.8 21.6 A27.2 27.2 0 1 1 47 13.2"
-          strokeWidth="10.6"
-        />
-        <circle cx="34.6" cy="40" r="11.6" strokeWidth="5.6" />
+      {/*
+        O — rounded-square frame with built-in NE keyway + solid core.
+        Notch is carved into the outline (not an exterior tab).
+      */}
+      <g fill="currentColor" fillRule="evenodd">
+        <path d="M22 6c-8.84 0-16 7.16-16 16v36c0 8.84 7.16 16 16 16h24c8.84 0 16-7.16 16-16V36l-8-8V22c0-4.4-1.8-8.4-4.7-11.3L56 6H22zM20 26c0-5.52 4.48-10 10-10h16c5.52 0 10 4.48 10 10v28c0 5.52-4.48 10-10 10H30c-5.52 0-10-4.48-10-10V26z" />
+        <circle cx="34" cy="40" r="8" />
       </g>
 
-      {/* R */}
+      {/* R — square bowl + hard diagonal leg */}
       <path
         fill="currentColor"
-        d="M72 10h26.5c12 0 20.4 7.8 20.4 19 0 8-4.4 14.3-11.7 16.9L124.6 70H111.2L97.2 46.5H83V70H72V10Zm11 10.8V36.2h15.3c5.3 0 8.7-3.2 8.7-8s-3.4-7.4-8.7-7.4H83Z"
+        fillRule="evenodd"
+        d="M78 8h30c14 0 23 9 23 22.5 0 10-5 17.5-13.2 20.5L132 72h-16.5L102.2 53H90v19H78V8zm12 12h18c6.5 0 10.5 4 10.5 10.5 0 6.5-4 10.5-10.5 10.5H90V20z"
       />
 
-      {/* V */}
+      {/* V — wide, flat tip */}
       <path
         fill="currentColor"
-        d="M134.5 10h12.4L158.8 49 171 10H183.6L165.8 70h-14.2L134.5 10Z"
+        d="M148 8h15l14.5 46L192 8h15l-22 64h-17L148 8z"
       />
 
       {/* I */}
-      <path fill="currentColor" d="M194 10h11v60H194V10Z" />
+      <path fill="currentColor" d="M218 8h12v64h-12V8z" />
 
-      {/* U — industrial bowl */}
+      {/* U — hard channel */}
       <path
         fill="currentColor"
-        d="M216.5 10h11v33c0 10.5 6.4 17 16.8 17s16.8-6.5 16.8-17V10h11v33c0 16.8-11.6 27.8-27.8 27.8S216.5 59.8 216.5 43V10Z"
+        d="M244 8h12v36c0 10 6 16 17 16s17-6 17-16V8h12v36c0 17.5-12 28-29 28s-29-10.5-29-28V8z"
       />
 
-      {/* S — geometric spine, horizontal terminals */}
+      {/* S — circuit spine (square joins, machine face) */}
       <path
-        fill="currentColor"
-        d="M321.8 21.4c-4-6.3-11.6-10.4-21.4-10.4-15.4 0-26.2 9-26.2 22.2 0 9.1 5.4 15 17.4 18.1l10.2 2.6c5.4 1.3 7.9 3.2 7.9 6.4 0 4.2-4 6.9-10.7 6.9-6.2 0-10.7-2.5-12.9-6.8l-10.3 5.5c4 7.7 13.4 12.3 25.4 12.3 17.3 0 28.9-9.5 28.9-24 0-10-5.8-15.8-18.2-19l-10.2-2.7c-5.8-1.5-8.5-3.3-8.5-6.5 0-3.8 3.7-6.4 9.4-6.4 5.3 0 9.3 2.1 11.6 5.6l10.4-5.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="12"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+        d="M318 14h34c8 0 14 6 14 14s-6 14-14 14H330c-8 0-14 6-14 14s6 14 14 14h34"
       />
     </svg>
   );

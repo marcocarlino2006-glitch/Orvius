@@ -1,7 +1,6 @@
 /**
- * Orvius mark — acquisition-grade signal ring.
- * Oura jewelry precision × Palantir restraint.
- * One aperture. No nodes. No drama. Reads as O at 16px.
+ * Orvius mark v2 — MACHINE FACE keyway.
+ * Rounded-square frame + core + NE notch cut into the outline.
  */
 
 export type OrviusMarkSvgProps = {
@@ -9,12 +8,6 @@ export type OrviusMarkSvgProps = {
   size?: number;
 };
 
-/**
- * Nested orbital O.
- * Outer rail nearly closed (small NE aperture).
- * Inner rail continuous.
- * Geometry tuned for favicon + hero.
- */
 export function OrviusMarkSvg({
   className = "",
   size,
@@ -24,26 +17,14 @@ export function OrviusMarkSvg({
       width={size}
       height={size}
       viewBox="0 0 32 32"
-      fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      {/* Outer — aperture ~28° at NE (money, not gamer) */}
-      <path
-        d="M25.55 9.55 A12.15 12.15 0 1 1 21.15 5.35"
-        stroke="currentColor"
-        strokeWidth="2.9"
-        strokeLinecap="round"
-      />
-      {/* Inner core */}
-      <circle
-        cx="16"
-        cy="16"
-        r="6.35"
-        stroke="currentColor"
-        strokeWidth="1.85"
-      />
+      <g fill="currentColor" fillRule="evenodd">
+        <path d="M9 2C5.13 2 2 5.13 2 9v14c0 3.87 3.13 7 7 7h14c3.87 0 7-3.13 7-7v-6l-4-4V9c0-1.9-.8-3.6-2-4.8L26 2H9zM8 11c0-2.76 2.24-5 5-5h6c2.76 0 5 2.24 5 5v10c0 2.76-2.24 5-5 5h-6c-2.76 0-5-2.24-5-5V11z" />
+        <circle cx="16" cy="16" r="3.6" />
+      </g>
     </svg>
   );
 }
