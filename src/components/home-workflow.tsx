@@ -4,22 +4,22 @@ const stages = [
   {
     name: "Capture",
     artifact: "Live line",
-    body: "Nights, weekends, overflow — urgency, address, callback locked in.",
+    body: "Nights. Weekends. Overflow. Urgency, address, callback — locked.",
   },
   {
     name: "Convert",
     artifact: "Booked job",
-    body: "Qualified demand becomes an appointment on the shop record.",
+    body: "Qualified demand becomes an appointment on the record. Instantly.",
   },
   {
     name: "Command",
-    artifact: "Dispatch board",
-    body: "Assign techs and run the day from one attention plane.",
+    artifact: "Board",
+    body: "Assign. Advance. Run the day from one attention plane.",
   },
   {
     name: "Compound",
-    artifact: "Shop intelligence",
-    body: "Ask the OS. Every call and job makes the next one sharper.",
+    artifact: "Intelligence",
+    body: "Ask the OS. Every call and job sharpens the next.",
   },
 ] as const;
 
@@ -32,13 +32,13 @@ export function HomeWorkflow() {
       className="mkt-mastery-section"
     >
       <MktSectionHeader
-        kicker="The machine"
-        title="From ring to paid work — then the OS compounds."
-        lead="Four laws of the autonomous shop. Each stage leaves an artifact. One record. One command plane."
+        kicker="Architecture"
+        title="The closed loop."
+        lead="Four stages. One record. Revenue compounds; chaos does not."
         titleId="home-workflow-heading"
       />
 
-      <ol className="mkt-flow mkt-flow--mastery mkt-flow--sparse font-sans">
+      <ol className="mkt-flow mkt-flow--mastery mkt-flow--sparse mkt-flow--loop font-sans">
         {stages.map((stage, index) => (
           <li
             key={stage.name}

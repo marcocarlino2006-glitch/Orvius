@@ -56,12 +56,12 @@ export function HomeTrust() {
     <MktSection tone="light" aria-labelledby="home-trust-heading" className="mkt-mastery-section">
       <div className="mkt-trust-editorial mkt-trust-editorial--mastery">
         <div className="mkt-trust-intro">
-          <p className="mkt-eyebrow font-sans">Trust</p>
+          <p className="mkt-eyebrow font-sans">Control plane</p>
           <h2 id="home-trust-heading" className="mkt-section-title">
-            Emergencies and data stay under your control.
+            Autonomy with hard overrides.
           </h2>
           <p className="mkt-section-lead font-sans">
-            Mechanisms in the product — not slogans. Details in the trust center.
+            Mechanisms in the product — not trust theater. Full detail in the trust center.
           </p>
         </div>
 

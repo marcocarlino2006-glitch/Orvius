@@ -10,19 +10,19 @@ export const company = {
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
   /** Absolute brand line — SpaceX-scale, not SaaS fluff. */
-  tagline: "The shop that never sleeps.",
+  tagline: "Zero missed jobs.",
   /** Category we are creating. */
   categoryClaim:
     "The autonomous operating system for HVAC, plumbing, and electrical.",
   /** Wedge proof — measurable today. */
   proofLine: "Missed calls become booked jobs.",
   vision:
-    "Build the autonomous operating system for the trades — every shop captures demand 24/7, runs the day from one command plane, and compounds intelligence with every call, job, and dollar. Humans stay in command of high-risk decisions.",
+    "Make missed jobs obsolete. Build the autonomous OS for the trades — every shop captures demand 24/7, runs the day from one command plane, and compounds intelligence with every call, job, and dollar. Humans keep high-risk overrides.",
   /** Product goal — not a warranty of 100% answer rate. */
   mission:
     "First law: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
   strategy: [
-    "Prove the first law on the line — recovered calls, booking rate, owner trust — before platform vapor.",
+    "Prove zero missed jobs on the line — recovered calls, booking rate, owner trust — before platform vapor.",
     "Dominate one trade and geography with trade-specific intelligence and reliable workflow execution.",
     "Earn the right to run the full shop: security, support, measurable ROI — then expand trades, regions, and shop sizes.",
   ] as const,

@@ -24,14 +24,14 @@ export default function HomePage() {
 
       <MktSection tone="dark" className="mkt-close mkt-close--cinema">
         <div className="mkt-close-inner">
-          <h2 className="mkt-close-title">Prove the first law on your line.</h2>
+          <h2 className="mkt-close-title">Install the first law.</h2>
           <p className="mkt-close-desc font-sans">
-            A live audit on real transcripts and jobs — then decide if Orvius
-            becomes the OS your shop runs on.
+            Live audit on your transcripts and jobs. Then decide if Orvius
+            becomes the OS the shop runs on.
           </p>
           <div className="mkt-close-actions">
             <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-lg">
-              Book a live call audit
+              Prove it on your line
             </Link>
             <a href="tel:+18446439170" className="mkt-close-call font-sans">
               Or call the live line
