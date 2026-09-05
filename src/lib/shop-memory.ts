@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { customerDisplayName, displayPhone, normalizePhone } from "@/lib/customer";
+import {
+  customerDisplayName,
+  displayPhone,
+  getCustomerTimeline,
+  normalizePhone,
+} from "@/lib/customer";
 
 const STOP = new Set([
   "the",
@@ -336,6 +341,15 @@ export async function retrieveShopMemory(
         .join(" · "),
       score: score || 1,
     });
+  }
+
+
+  // Expand top customer hits with recent timeline so Ask answers from one record
+  for (const hit of hits.filter((h) => h.type === "customer").slice(0, 3)) {
+    const timeline = await getCustomerTimeline(hit.id);
+    if (!timeline.length) continue;
+    const recent = timeline.slice(0, 4).map((e) => e.title).join(" → ");
+    hit.summary = `${hit.summary} · Recent: ${recent}`;
   }
 
   hits.sort((a, b) => b.score - a.score);

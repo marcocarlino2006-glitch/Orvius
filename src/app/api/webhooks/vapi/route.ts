@@ -104,19 +104,29 @@ export async function POST(request: NextRequest) {
   }
 
   if (type === "call-started" || type === "status-update") {
-    await prisma.call.upsert({
+    const callerPhone = message.call?.customer?.number ?? null;
+    const call = await prisma.call.upsert({
       where: { vapiCallId },
       create: {
         businessId: business.id,
         vapiCallId,
-        callerPhone: message.call?.customer?.number ?? null,
+        callerPhone,
         status: "in-progress",
       },
       update: {
-        callerPhone: message.call?.customer?.number ?? undefined,
+        callerPhone: callerPhone ?? undefined,
         status: "in-progress",
       },
     });
+
+    // Ring 2 starts at ring — recognize returning customers immediately
+    if (callerPhone) {
+      await linkTouchToCustomer({
+        businessId: business.id,
+        callId: call.id,
+        phone: callerPhone,
+      });
+    }
 
     await recordWebhookEvent({
       source: "vapi",
@@ -225,7 +235,8 @@ export async function POST(request: NextRequest) {
         businessId: business.id,
         callId: txResult.call.id,
         leadId: txResult.lead.id,
-        phone: txResult.lead.phone ?? txResult.call.callerPhone,
+        phone: txResult.call.callerPhone,
+        alternatePhone: txResult.lead.phone,
         name: txResult.lead.name,
         email: txResult.lead.email,
         address: txResult.lead.address,

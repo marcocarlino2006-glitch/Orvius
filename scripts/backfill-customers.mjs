@@ -77,11 +77,44 @@ async function main() {
     }
   }
 
+  // Link jobs that inherited a lead but never got a customerId
+  const orphanJobs = await prisma.job.findMany({
+    where: { customerId: null },
+    include: { lead: true },
+  });
+  let linkedJobs = 0;
+  for (const job of orphanJobs) {
+    let customerId = job.lead?.customerId ?? null;
+    if (!customerId && job.lead?.phone && job.businessId) {
+      const phoneNormalized = normalizePhone(job.lead.phone);
+      if (phoneNormalized) {
+        const customer = await prisma.customer.findUnique({
+          where: {
+            businessId_phoneNormalized: {
+              businessId: job.businessId,
+              phoneNormalized,
+            },
+          },
+        });
+        customerId = customer?.id ?? null;
+      }
+    }
+    if (customerId) {
+      await prisma.job.update({
+        where: { id: job.id },
+        data: { customerId },
+      });
+      linkedJobs++;
+    }
+  }
+
   const customers = await prisma.customer.findMany();
+
   for (const customer of customers) {
     const count = await prisma.lead.count({ where: { customerId: customer.id } });
     const callCount = await prisma.call.count({ where: { customerId: customer.id } });
-    const total = count + callCount;
+    const jobCount = await prisma.job.count({ where: { customerId: customer.id } });
+    const total = count + callCount + jobCount;
     if (total > customer.interactionCount) {
       await prisma.customer.update({
         where: { id: customer.id },
@@ -90,7 +123,7 @@ async function main() {
     }
   }
 
-  console.log(`Backfill complete. Customers: ${customers.length}, linked leads: ${linked}, new: ~${created}`);
+  console.log(`Backfill complete. Customers: ${customers.length}, linked leads: ${linked}, linked jobs: ${linkedJobs}, new: ~${created}`);
 }
 
 main()

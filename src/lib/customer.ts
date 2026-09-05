@@ -37,8 +37,37 @@ export function customerDisplayName(
   return displayPhone(phone);
 }
 
+function appendCompoundingNote(
+  existing: string | null | undefined,
+  incoming: string | null | undefined,
+): string | null {
+  const next = incoming?.trim();
+  if (!next) return existing ?? null;
+  const prev = existing?.trim() ?? "";
+  if (!prev) return next;
+
+  const prevLines = prev.split("\n").map((l) => l.trim()).filter(Boolean);
+  const last = prevLines[prevLines.length - 1] ?? "";
+  const lastBody = last.replace(/^\[\d{4}-\d{2}-\d{2}\]\s*/, "");
+  if (last === next || lastBody === next) return prev;
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  return `${prev}\n[${stamp}] ${next}`;
+}
+
+function mergeAddress(
+  existing: string | null | undefined,
+  incoming: string | null | undefined,
+): string | null {
+  const next = incoming?.trim();
+  if (!next) return existing ?? null;
+  const prev = existing?.trim() ?? "";
+  if (!prev) return next;
+  return next.length > prev.length ? next : prev;
+}
+
 /**
- * Ring 2 — find or create a customer record for every inbound touch.
+ * Ring 2 — find or create a customer for every inbound touch.
  * Merges by normalized phone per business.
  */
 export async function findOrCreateCustomer(touch: CustomerTouch) {
@@ -57,22 +86,13 @@ export async function findOrCreateCustomer(touch: CustomerTouch) {
   });
 
   if (existing) {
-    const mergedName = touch.name?.trim() || existing.name;
-    const mergedEmail = touch.email?.trim() || existing.email;
-    const mergedAddress = touch.address?.trim() || existing.address;
-    const mergedNotes = touch.notes?.trim()
-      ? existing.notes
-        ? `${existing.notes}\n${touch.notes.trim()}`
-        : touch.notes.trim()
-      : existing.notes;
-
     return prisma.customer.update({
       where: { id: existing.id },
       data: {
-        name: mergedName,
-        email: mergedEmail,
-        address: mergedAddress,
-        notes: mergedNotes,
+        name: touch.name?.trim() || existing.name,
+        email: touch.email?.trim() || existing.email,
+        address: mergeAddress(existing.address, touch.address),
+        notes: appendCompoundingNote(existing.notes, touch.notes),
         phone: touch.phone?.trim() || existing.phone,
         interactionCount: { increment: 1 },
         lastSeenAt: new Date(),
@@ -107,19 +127,37 @@ export async function attachCustomerToLead(leadId: string, customerId: string) {
   });
 }
 
+export async function attachCustomerToJob(jobId: string, customerId: string) {
+  return prisma.job.update({
+    where: { id: jobId },
+    data: { customerId },
+  });
+}
+
+/**
+ * Attach every touch (call / lead / job) to one customer brain.
+ * Prefer stable caller phone over AI-extracted alternate when both present.
+ */
 export async function linkTouchToCustomer(params: {
   businessId: string;
   callId?: string;
   leadId?: string;
+  jobId?: string;
   phone?: string | null;
+  alternatePhone?: string | null;
   name?: string | null;
   email?: string | null;
   address?: string | null;
   notes?: string | null;
 }) {
+  const primaryOk = Boolean(normalizePhone(params.phone));
+  const resolvedPhone = primaryOk
+    ? params.phone
+    : (params.alternatePhone ?? params.phone);
+
   const customer = await findOrCreateCustomer({
     businessId: params.businessId,
-    phone: params.phone,
+    phone: resolvedPhone,
     name: params.name,
     email: params.email,
     address: params.address,
@@ -133,6 +171,13 @@ export async function linkTouchToCustomer(params: {
   }
   if (params.leadId) {
     await attachCustomerToLead(params.leadId, customer.id);
+    await prisma.job.updateMany({
+      where: { leadId: params.leadId, customerId: null },
+      data: { customerId: customer.id },
+    });
+  }
+  if (params.jobId) {
+    await attachCustomerToJob(params.jobId, customer.id);
   }
 
   return customer;
@@ -158,7 +203,9 @@ function formatMoney(cents: number): string {
   }).format(cents / 100);
 }
 
-export async function getCustomerTimeline(customerId: string): Promise<TimelineEvent[]> {
+export async function getCustomerTimeline(
+  customerId: string,
+): Promise<TimelineEvent[]> {
   const [calls, leads, jobs] = await Promise.all([
     prisma.call.findMany({
       where: { customerId },
@@ -262,7 +309,9 @@ export async function getCustomerTimeline(customerId: string): Promise<TimelineE
             type: "payment",
             at: payment.createdAt.toISOString(),
             title: `Payment · ${formatMoney(payment.amountCents)}`,
-            summary: payment.method ? `Method: ${payment.method}` : "Recorded payment",
+            summary: payment.method
+              ? `Method: ${payment.method}`
+              : "Recorded payment",
             source: "payment",
             urgency: null,
             status: payment.status,
@@ -291,7 +340,9 @@ export async function getCustomerTimeline(customerId: string): Promise<TimelineE
         type: "payment",
         at: payment.createdAt.toISOString(),
         title: `Payment · ${formatMoney(payment.amountCents)}`,
-        summary: payment.method ? `Method: ${payment.method}` : "Recorded payment",
+        summary: payment.method
+          ? `Method: ${payment.method}`
+          : "Recorded payment",
         source: "payment",
         urgency: null,
         status: payment.status,

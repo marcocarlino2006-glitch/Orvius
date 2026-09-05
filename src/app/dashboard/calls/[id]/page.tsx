@@ -56,6 +56,14 @@ type Situation = {
     status: string;
     scheduledAt: string | null;
   }>;
+  timeline: Array<{
+    id: string;
+    type: string;
+    at: string;
+    title: string;
+    summary: string | null;
+    status: string | null;
+  }>;
 };
 
 function formatUrgency(value: string | null) {
@@ -286,6 +294,23 @@ export default function CallDetailPage() {
                       {" "}
                       · {job.status.replace(/_/g, " ")}
                     </span>
+                  </li>
+                ))}
+              </ul>
+            </ShellPanel>
+          ) : null}
+
+          {situation?.timeline?.length ? (
+            <ShellPanel title="Customer timeline">
+              <ul className="call-situation-list font-sans">
+                {situation.timeline.map((event) => (
+                  <li key={`${event.type}-${event.id}`}>
+                    <span className="text-ash">{event.type}</span>
+                    {" · "}
+                    {event.title}
+                    {event.summary ? (
+                      <span className="text-ash"> — {event.summary}</span>
+                    ) : null}
                   </li>
                 ))}
               </ul>

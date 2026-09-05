@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { maybeAutoBookLead } from "@/lib/auto-job";
+import { linkTouchToCustomer } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 
@@ -76,6 +77,19 @@ export async function GET(_request: Request, { params }: Params) {
 
   if (!lead) {
     return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+  }
+
+  if (!lead.customerId && lead.phone) {
+    await linkTouchToCustomer({
+      businessId: business.id,
+      leadId: lead.id,
+      callId: lead.callId ?? undefined,
+      phone: lead.phone,
+      name: lead.name,
+      email: lead.email,
+      address: lead.address,
+      notes: lead.notes,
+    });
   }
 
   if (!lead.job) {

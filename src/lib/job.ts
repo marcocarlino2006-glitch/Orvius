@@ -1,3 +1,4 @@
+import { linkTouchToCustomer } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { jobTitle, suggestedSchedule } from "@/lib/job-schedule";
 import type { JobStatus } from "@/lib/job-status";
@@ -78,7 +79,43 @@ export async function createJobFromLead(params: {
   }
 
   if (lead.job) {
+    // Heal orphan jobs that somehow missed customer linking
+    if (!lead.job.customerId && (lead.customerId || lead.phone)) {
+      if (lead.customerId) {
+        await prisma.job.update({
+          where: { id: lead.job.id },
+          data: { customerId: lead.customerId },
+        });
+      } else {
+        await linkTouchToCustomer({
+          businessId: lead.businessId,
+          leadId: lead.id,
+          jobId: lead.job.id,
+          phone: lead.phone,
+          name: lead.name,
+          email: lead.email,
+          address: lead.address,
+        });
+      }
+      return prisma.job.findUniqueOrThrow({ where: { id: lead.job.id } });
+    }
     return lead.job;
+  }
+
+  // Ensure the shop brain has this customer before the job lands
+  let customerId = lead.customerId;
+  if (!customerId && lead.phone) {
+    const customer = await linkTouchToCustomer({
+      businessId: lead.businessId,
+      leadId: lead.id,
+      callId: lead.callId ?? undefined,
+      phone: lead.phone,
+      name: lead.name,
+      email: lead.email,
+      address: lead.address,
+      notes: lead.notes,
+    });
+    customerId = customer?.id ?? null;
   }
 
   const scheduledAt = params.scheduledAt
@@ -92,7 +129,7 @@ export async function createJobFromLead(params: {
     const created = await tx.job.create({
       data: {
         businessId: lead.businessId!,
-        customerId: lead.customerId,
+        customerId: customerId,
         leadId: lead.id,
         title: jobTitle({ serviceType: lead.serviceType, name: lead.name }),
         serviceType: lead.serviceType,
