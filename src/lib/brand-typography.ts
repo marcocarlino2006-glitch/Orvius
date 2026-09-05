@@ -1,4 +1,4 @@
-/** Brand typography — wordmark-first company name. */
+/** Brand typography — acquisition-grade company lockup. */
 
 export const brandWordmark = "Orvius";
 
@@ -13,12 +13,13 @@ export const typeScale = {
 } as const;
 
 /**
- * 1) Signal O alone (favicon)
- * 2) Full custom ORVIUS wordmark (the name is the logo)
+ * 1) Signal ring alone
+ * 2) [◎]RVIUS — proprietary O + institutional type
+ * Tracking: confident, not sparse (buyer-deck energy).
  */
 export const logoSizes = {
-  sm: { mark: 22, wordmark: "1.1rem", tracking: "0.12em" },
-  md: { mark: 26, wordmark: "1.3rem", tracking: "0.12em" },
-  lg: { mark: 30, wordmark: "1.5rem", tracking: "0.12em" },
-  xl: { mark: 56, wordmark: "3.2rem", tracking: "0.1em" },
+  sm: { mark: 20, wordmark: "1.1rem", tracking: "0.11em" },
+  md: { mark: 24, wordmark: "1.28rem", tracking: "0.12em" },
+  lg: { mark: 28, wordmark: "1.48rem", tracking: "0.125em" },
+  xl: { mark: 56, wordmark: "3.15rem", tracking: "0.1em" },
 } as const;

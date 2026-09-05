@@ -1,6 +1,6 @@
 import { orviusColors } from "@/lib/orvius-colors";
 
-/** Favicon / OG — signal O from the wordmark. */
+/** Favicon / OG — same signal ring as the wordmark O. */
 export function OrviusMarkGraphic({
   size = 32,
   variant = "dark",
@@ -14,18 +14,18 @@ export function OrviusMarkGraphic({
     <svg
       width={size}
       height={size}
-      viewBox="0 0 72 72"
+      viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
       <path
-        d="M57.4 19.4 A29 29 0 1 1 46.2 10.8"
+        d="M25.55 9.55 A12.15 12.15 0 1 1 21.15 5.35"
         stroke={ink}
-        strokeWidth="9"
+        strokeWidth="2.9"
         strokeLinecap="round"
       />
-      <circle cx="36" cy="36" r="12.25" stroke={ink} strokeWidth="5" />
+      <circle cx="16" cy="16" r="6.35" stroke={ink} strokeWidth="1.85" />
     </svg>
   );
 }

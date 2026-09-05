@@ -1,5 +1,7 @@
 /**
- * Orvius mark — signal O alone (same letter as in the wordmark).
+ * Orvius mark — acquisition-grade signal ring.
+ * Oura jewelry precision × Palantir restraint.
+ * One aperture. No nodes. No drama. Reads as O at 16px.
  */
 
 export type OrviusMarkSvgProps = {
@@ -7,6 +9,12 @@ export type OrviusMarkSvgProps = {
   size?: number;
 };
 
+/**
+ * Nested orbital O.
+ * Outer rail nearly closed (small NE aperture).
+ * Inner rail continuous.
+ * Geometry tuned for favicon + hero.
+ */
 export function OrviusMarkSvg({
   className = "",
   size,
@@ -15,24 +23,26 @@ export function OrviusMarkSvg({
     <svg
       width={size}
       height={size}
-      viewBox="0 0 72 72"
+      viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
+      {/* Outer — aperture ~28° at NE (money, not gamer) */}
       <path
-        d="M57.4 19.4 A29 29 0 1 1 46.2 10.8"
+        d="M25.55 9.55 A12.15 12.15 0 1 1 21.15 5.35"
         stroke="currentColor"
-        strokeWidth="9"
+        strokeWidth="2.9"
         strokeLinecap="round"
       />
+      {/* Inner core */}
       <circle
-        cx="36"
-        cy="36"
-        r="12.25"
+        cx="16"
+        cy="16"
+        r="6.35"
         stroke="currentColor"
-        strokeWidth="5"
+        strokeWidth="1.85"
       />
     </svg>
   );
