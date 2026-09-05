@@ -12,8 +12,7 @@ const NAV = [
 ] as const;
 
 /**
- * Homepage / premium marketing header.
- * Depth on scroll, circle lockup locked, mobile drawer — multi-billion chrome.
+ * Cursor/SpaceX chrome: sparse links, one CTA, no funnel noise.
  */
 export function PremiumNav() {
   const menuId = useId();
@@ -47,7 +46,6 @@ export function PremiumNav() {
       <header
         className={`mkt-nav ${scrolled ? "mkt-nav--elevated" : ""} ${menuOpen ? "mkt-nav--open" : ""}`}
       >
-        <div className="mkt-nav-rail" aria-hidden />
         <div className="mkt-nav-inner">
           <Link
             href="/"
@@ -69,14 +67,8 @@ export function PremiumNav() {
             <Link href="/login" className="mkt-nav-login">
               Log in
             </Link>
-            <Link href="/demo" className="mkt-nav-secondary">
-              Live demo
-            </Link>
-            <Link
-              href="/pilot"
-              className="mkt-btn mkt-btn-copper mkt-nav-cta"
-            >
-              Try Orvius
+            <Link href="/pilot" className="mkt-btn mkt-btn-copper mkt-nav-cta">
+              Book audit
             </Link>
             <button
               type="button"
@@ -117,7 +109,7 @@ export function PremiumNav() {
                 className="mkt-btn mkt-btn-ink mkt-nav-drawer-cta"
                 onClick={() => setMenuOpen(false)}
               >
-                Try Orvius
+                Book audit
               </Link>
             </nav>
           </div>

@@ -20,20 +20,17 @@ export default function HomePage() {
       <HomePlanTruth />
 
       <MktSection tone="dark" className="mkt-close mkt-close--cinema">
-        <div className="mkt-close-wash" aria-hidden />
         <div className="mkt-close-inner">
-          <p className="mkt-close-kicker font-sans">Next step</p>
-          <h2 className="mkt-close-title">See it on your shop&apos;s calls — not a slide deck.</h2>
+          <h2 className="mkt-close-title">See it on your calls.</h2>
           <p className="mkt-close-desc font-sans">
-            Book a live call audit. We&apos;ll walk through real transcripts, jobs, and dispatch — then you
-            decide if Orvius fits.
+            A live audit on real transcripts and jobs — then you decide.
           </p>
           <div className="mkt-close-actions">
-            <Link href="/pilot" className="mkt-btn mkt-btn-ink-light mkt-btn-lg mkt-btn-hero">
+            <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-lg">
               Book a live call audit
             </Link>
             <a href="tel:+18446439170" className="mkt-close-call font-sans">
-              Or call the live line →
+              Or call the live line
             </a>
           </div>
         </div>

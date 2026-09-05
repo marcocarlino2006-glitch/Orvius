@@ -92,7 +92,7 @@ export function HomePlanTruth() {
         </article>
 
         <article className="mkt-plan-card mkt-plan-card--featured mkt-plan-card--mastery">
-          <p className="mkt-plan-badge">Recommended for most shops</p>
+          <p className="mkt-plan-badge">Most shops</p>
           <p className="mkt-plan-name">{pro.name}</p>
           <p className="mkt-plan-price">
             ${pro.price}

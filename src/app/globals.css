@@ -13816,8 +13816,8 @@ h3 {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Marketing — Stripe / Linear / Vercel tier
-   Space Grotesk headlines · warm canvas · dark rhythm · product-first hero
+   Marketing — SpaceX restraint × Cursor product trust
+   Sparse chrome · graphite void · chalk type · copper as signal only
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .mkt-page {
@@ -13853,19 +13853,7 @@ h3 {
 }
 
 .mkt-nav-rail {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, #fff 14%, transparent) 18%,
-    color-mix(in srgb, #fff 22%, transparent) 50%,
-    color-mix(in srgb, #fff 14%, transparent) 82%,
-    transparent 100%
-  );
-  opacity: 0.35;
-  pointer-events: none;
+  display: none;
 }
 
 .mkt-nav--elevated {
@@ -14509,92 +14497,79 @@ h3 {
     );
 }
 
-.mkt-hero-scan {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    color-mix(in srgb, var(--signal) 6%, transparent) 48%,
-    transparent 52%
-  );
-  background-size: 100% 220%;
-  animation: mkt-scan 7.5s ease-in-out infinite;
-  opacity: 0.55;
-  mix-blend-mode: soft-light;
-}
-
-@keyframes mkt-scan {
-  0%,
-  100% {
-    background-position: 0 0%;
-  }
-  50% {
-    background-position: 0 100%;
-  }
-}
+/* Scanline theater removed — SpaceX restraint */
 
 .mkt-hero-content {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 42rem;
+  max-width: 44rem;
   padding-block: clamp(5.5rem, 14vh, 8.5rem) clamp(3.5rem, 8vh, 5.5rem);
-  animation: mkt-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: mkt-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .mkt-hero-brand-lockup {
-  --logo-wordmark-size: clamp(2.4rem, 5.5vw, 3.35rem) !important;
-  --logo-wordmark-tracking: 0.11em !important;
-  color: #f4f6f8 !important;
-  margin-bottom: 1.75rem;
+  --logo-wordmark-size: clamp(2.6rem, 6vw, 3.6rem) !important;
+  --logo-wordmark-tracking: 0.12em !important;
+  color: #f7f8fa !important;
+  margin-bottom: 2rem;
 }
 
 .mkt-hero-brand-lockup.orvius-logo--integrated .orvius-logo-mark-wrap {
-  width: calc(var(--logo-wordmark-size, 2.4rem) * 1.02);
-  height: calc(var(--logo-wordmark-size, 2.4rem) * 1.02);
+  width: calc(var(--logo-wordmark-size, 2.6rem) * 1.02);
+  height: calc(var(--logo-wordmark-size, 2.6rem) * 1.02);
 }
 
 .mkt-hero-title {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.65rem, 3.2vw, 2.35rem);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+  font-size: clamp(2.75rem, 7.5vw, 5.25rem);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
   text-transform: none;
-  color: #e8ecf1;
+  color: #f4f6f8;
   margin: 0;
-  max-width: 16ch;
+  max-width: 12ch;
 }
 
 .mkt-hero-lead {
-  margin: 1.1rem 0 0;
-  max-width: 38ch;
-  font-size: clamp(0.98rem, 1.2vw, 1.08rem);
-  line-height: 1.55;
-  color: color-mix(in srgb, #e8ecf1 72%, transparent);
+  margin: 1.35rem 0 0;
+  max-width: 34ch;
+  font-size: clamp(1rem, 1.35vw, 1.125rem);
+  line-height: 1.5;
+  font-weight: 400;
+  color: color-mix(in srgb, #e8ecf1 68%, transparent);
 }
 
 .mkt-hero-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem 0.85rem;
-  margin-top: 1.85rem;
+  gap: 1rem 1.5rem;
+  margin-top: 2.15rem;
 }
 
 .mkt-btn-hero {
-  border-radius: 0.35rem !important;
-  padding: 0.85rem 1.25rem !important;
-  font-size: 0.9rem !important;
+  border-radius: 0.2rem !important;
+  padding: 0.95rem 1.45rem !important;
+  font-size: 0.9375rem !important;
   font-weight: 600 !important;
   letter-spacing: -0.01em;
   transition:
     background 160ms ease,
     border-color 160ms ease,
     color 160ms ease;
+}
+
+.mkt-btn-chalk {
+  background: #f4f6f8;
+  color: var(--void-deep);
+  border: 1px solid #f4f6f8;
+}
+
+.mkt-btn-chalk:hover {
+  background: #fff;
+  color: var(--void-deep);
 }
 
 .mkt-btn-copper {
@@ -14617,6 +14592,22 @@ h3 {
 .mkt-btn-ghost-light:hover {
   border-color: color-mix(in srgb, #e8ecf1 55%, transparent);
   background: color-mix(in srgb, #fff 6%, transparent);
+}
+
+.mkt-hero-phone {
+  color: color-mix(in srgb, #e8ecf1 78%, transparent);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid color-mix(in srgb, #e8ecf1 28%, transparent);
+  padding-bottom: 0.12rem;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.mkt-hero-phone:hover {
+  color: #f4f6f8;
+  border-bottom-color: color-mix(in srgb, #f4f6f8 55%, transparent);
 }
 
 /* Legacy split hero (unused) kept inert */
@@ -16074,43 +16065,33 @@ h3 {
 
 .mkt-close--cinema {
   isolation: isolate;
+  background: var(--void-deep);
 }
 
 .mkt-close-wash {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 55% 60% at 50% 0%, color-mix(in srgb, var(--signal) 18%, transparent), transparent 65%),
-    radial-gradient(ellipse 40% 50% at 10% 80%, rgba(255, 255, 255, 0.05), transparent 60%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .mkt-close-inner {
   position: relative;
   z-index: 1;
-  max-width: 42rem;
+  max-width: 36rem;
   margin-inline: auto;
   text-align: center;
 }
 
 .mkt-close-kicker {
-  margin: 0 0 0.85rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, #fff 55%, transparent);
+  display: none;
 }
 
 .mkt-close-title {
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
   text-transform: none;
-  color: #fff;
+  color: #f4f6f8;
   margin: 0;
 }
 

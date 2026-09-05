@@ -4,9 +4,8 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
- * First viewport = one composition.
- * Brand is the hero signal. Command board is the full-bleed plane.
- * No cream orbs, no floating product card, no promo chips.
+ * SpaceX / Cursor craft: one composition, brand first, no SaaS theater.
+ * Full-bleed command plane. Massive quiet type. One primary action.
  */
 export function HomeLineHero() {
   return (
@@ -15,25 +14,25 @@ export function HomeLineHero() {
         <HomeProductPreview />
       </div>
       <div className="mkt-hero-veil" aria-hidden />
-      <div className="mkt-hero-scan" aria-hidden />
 
       <div className="editorial-wrap mkt-hero-content">
         <OrviusLogo variant="chalk" size="xl" className="mkt-hero-brand-lockup" />
 
         <h1 id="home-hero-heading" className="mkt-hero-title">
-          Turn missed calls into booked jobs.
+          Missed calls.
+          <br />
+          Booked jobs.
         </h1>
 
         <p className="mkt-hero-lead font-sans">
-          Orvius answers after-hours and overflow calls, qualifies, books, and alerts
-          the owner — while your crew stays on the tools.
+          After-hours and overflow — answered, qualified, booked, owner alerted.
         </p>
 
         <div className="mkt-hero-actions font-sans">
-          <Link href="/pilot" className="mkt-btn mkt-btn-copper mkt-btn-hero">
+          <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-hero">
             Book a live call audit
           </Link>
-          <a href={demoLineHref()} className="mkt-btn mkt-btn-ghost-light mkt-btn-hero">
+          <a href={demoLineHref()} className="mkt-hero-phone">
             Call {DEMO_LINE_DISPLAY}
           </a>
         </div>

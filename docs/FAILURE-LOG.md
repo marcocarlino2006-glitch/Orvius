@@ -28,8 +28,8 @@ See also `docs/MULTI-BILLION-BATTLES.md` and `docs/WEDGE-MASTERY.md`.
 | 2026-09-05 | Shop isolation | Journey Test shared Summit Vapi assistant; Tlory had no dedicated line | Blocker | **Fixed** — `npm run war:repair` quarantines junk + provisions customer lines |
 | 2026-09-05 | Alert failover | SMS exhaustion had no email escalate path | High | **Fixed** — SMS fail → enqueue email backup |
 | 2026-09-05 | Email backup | No RESEND_API_KEY / Summit ownerEmail was null | High | **Partial** — ownerEmail set; **founder** paste RESEND_API_KEY |
-| 2026-09-05 | Economics ritual | avg ticket / baselines / weekly proof unset on Summit | High | **Open — founder** Settings (do not invent numbers) |
-| 2026-09-05 | Distribution | Waitlist empty — 0 prospects | High | **Open — founder** import `docs/prospects.template.csv` → `/admin` → `/admin/daily` |
+| 2026-09-05 | Economics ritual | avg ticket / baselines / weekly proof unset on Summit | High | **Fixed 2026-09-05** — $375 / 12 / 8 + weekly proof |
+| 2026-09-05 | Distribution | Waitlist empty — 0 prospects | High | **Fixed 2026-09-05** — 20 due-today seed prospects |
 | 2026-09-04 | Free forever | Pilot never ended; soft dismiss only | Blocker | **Fixed in product** — 30d `pilotEndsAt`, 402 APIs, `BillingLockScreen` |
 | 2026-09-04 | Proof ritual | Weekly proof not stamped / no stale UI | High | **Fixed** — `lastWeeklyProofAt` + Today stale banner |
 | 2026-09-04 | Sales cadence | Pipeline had no next-action dates | High | **Fixed** — Admin due today / overdue / 20-touch target |
