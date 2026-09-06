@@ -227,12 +227,14 @@ export function AttentionQueue({
   return (
     <section className="attention-queue" aria-label="Needs attention">
       <div className="attention-queue-head font-sans">
-        <p className="attention-queue-kicker type-eyebrow">On the board</p>
+        <p className="attention-queue-kicker type-eyebrow">
+          Critical board · {items.filter((i) => i.impact === "critical").length}
+        </p>
         <h2 className="attention-queue-title">
-          {items.length} item{items.length === 1 ? "" : "s"} on the board
+          {items.length} waiting
         </h2>
         <p className="attention-queue-lead">
-          Ranked by urgency and field impact. Act here — don&apos;t hunt the shop.
+          Ranked by urgency. Act here.
         </p>
       </div>
 

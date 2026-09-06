@@ -21316,3 +21316,432 @@ body:has(.confirm-shell) {
 .os-shell-pro .pro-page-strip {
   background: #fff !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OS NIGHT INDUSTRIAL — visible break from soft light SaaS
+   Dark canvas + dense rows + hairline tools. Same language as marketing void.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.os-shell-night {
+  --os-paper: #07090d;
+  --os-panel: #0e1319;
+  --os-ink: #f2f5f8;
+  --os-mute: color-mix(in srgb, #c9d2df 62%, transparent);
+  --os-line: color-mix(in srgb, #fff 10%, transparent);
+  --os-flare: #e5484d;
+  --os-live: #3dd68c;
+  --void: #f2f5f8;
+  --ash: color-mix(in srgb, #c9d2df 62%, transparent);
+  --ash-soft: color-mix(in srgb, #c9d2df 45%, transparent);
+  --white: #0e1319;
+  --fog: #0a0e14;
+  --chalk: #07090d;
+  --canvas: #07090d;
+  --rule: color-mix(in srgb, #fff 10%, transparent);
+  --signal: #d8a15a;
+  background: #07090d !important;
+  color: #e8edf4 !important;
+}
+
+.os-shell-night .os-main-pro,
+.os-shell-night .os-content-pro,
+.os-shell-night .os-content,
+.os-shell-night .os-main {
+  background: #07090d !important;
+  color: #e8edf4 !important;
+}
+
+/* Compact instrument topbar — not a marketing hero */
+.os-shell-night .os-topbar-pro,
+.os-shell-night .os-topbar-night,
+.os-shell-night .os-topbar {
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid var(--os-line) !important;
+  background: #0a0e14 !important;
+}
+
+@media (min-width: 1024px) {
+  .os-shell-night .os-topbar-pro,
+  .os-shell-night .os-topbar-night {
+    padding: 0.8rem 1.35rem !important;
+  }
+}
+
+.os-shell-night .os-topbar-title {
+  font-size: 1.15rem !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.02em !important;
+  color: #f5f7fa !important;
+  margin: 0.15rem 0 0 !important;
+}
+
+.os-shell-night .os-topbar-sub {
+  display: none !important; /* kill airy marketing subcopy in the tool */
+}
+
+.os-shell-night .os-topbar-live {
+  font-size: 0.625rem !important;
+  letter-spacing: 0.12em !important;
+  color: var(--os-live) !important;
+  margin: 0 !important;
+}
+
+.os-shell-night .os-content-pro,
+.os-shell-night .os-content {
+  padding: 0.85rem 1rem 5rem !important;
+}
+
+@media (min-width: 1024px) {
+  .os-shell-night .os-content-pro {
+    padding: 1rem 1.35rem 5rem !important;
+  }
+}
+
+/* All panels: dark hairline tools */
+.os-shell-night .pro-card,
+.os-shell-night .pro-stat,
+.os-shell-night .pro-panel,
+.os-shell-night .attention-queue,
+.os-shell-night .shop-outcomes,
+.os-shell-night .dispatch-col,
+.os-shell-night .lead-inbox-card,
+.os-shell-night .job-card,
+.os-shell-night .customer-record-card,
+.os-shell-night .call-record-card,
+.os-shell-night .pro-signal-bar,
+.os-shell-night .owner-setup-banner,
+.os-shell-night .post-lock-strip,
+.os-shell-night .post-lock-banner,
+.os-shell-night .billing-unblock,
+.os-shell-night .live-status-bar,
+.os-shell-night .pro-today-pulse,
+.os-shell-night .approve-queue,
+.os-shell-night .approve-queue-item,
+.os-shell-night .pro-dispatch-today,
+.os-shell-night .pro-setup-alert,
+.os-shell-night .pro-setup-card,
+.os-shell-night .account-billing-plan,
+.os-shell-night .ring1-metric,
+.os-shell-night .ring1-recent-call,
+.os-shell-night .ring1-more-card,
+.os-shell-night .pro-economics-panel,
+.os-shell-night .pro-shop-outcomes,
+.os-shell-night .owner-alert-card,
+.os-shell-night .pro-page-strip,
+.os-shell-night .os-ask-dock-panel,
+.os-shell-night .pro-empty-state,
+.os-shell-night .capture-setup-panel,
+.os-shell-night .go-live-checklist {
+  background: #0e1319 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.25rem !important;
+  box-shadow: none !important;
+  color: #e8edf4 !important;
+}
+
+.os-shell-night .attention-item,
+.os-shell-night .approve-queue-item,
+.os-shell-night .dispatch-job-chip {
+  background: #0a0e14 !important;
+  border: 1px solid color-mix(in srgb, #fff 8%, transparent) !important;
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+  padding: 0.55rem 0.7rem !important;
+}
+
+/* Dense attention board — Cursor row density */
+.os-shell-night .attention-queue {
+  padding: 0.75rem !important;
+}
+
+.os-shell-night .attention-queue-kicker {
+  font-size: 0.5625rem !important;
+  letter-spacing: 0.14em !important;
+  color: color-mix(in srgb, #c9d2df 48%, transparent) !important;
+}
+
+.os-shell-night .attention-queue-title {
+  font-size: 1.05rem !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.02em !important;
+  color: #f5f7fa !important;
+  margin: 0.2rem 0 0 !important;
+}
+
+.os-shell-night .attention-queue-lead {
+  font-size: 0.75rem !important;
+  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+  margin: 0.2rem 0 0.65rem !important;
+  max-width: none !important;
+}
+
+.os-shell-night .attention-queue-list {
+  gap: 0.35rem !important;
+}
+
+.os-shell-night .attention-item {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 0.5rem 0.85rem !important;
+  align-items: center !important;
+}
+
+.os-shell-night .attention-item-kind {
+  font-size: 0.5625rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: color-mix(in srgb, #c9d2df 50%, transparent) !important;
+  margin: 0 !important;
+}
+
+.os-shell-night .attention-item-critical .attention-item-kind {
+  color: #ff8d85 !important;
+}
+
+.os-shell-night .attention-item-title {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #f5f7fa !important;
+  margin: 0.1rem 0 0 !important;
+  letter-spacing: -0.01em;
+}
+
+.os-shell-night .attention-item-detail,
+.os-shell-night .attention-item-value {
+  font-size: 0.75rem !important;
+  color: color-mix(in srgb, #c9d2df 58%, transparent) !important;
+  margin: 0.1rem 0 0 !important;
+}
+
+.os-shell-night .attention-item-critical {
+  border-left: 2px solid var(--os-flare) !important;
+}
+
+.os-shell-night .attention-item-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.3rem !important;
+  justify-content: flex-end !important;
+}
+
+.os-shell-night .attention-item-btn,
+.os-shell-night .attention-item-btn-primary,
+.os-shell-night .btn,
+.os-shell-night .btn-void,
+.os-shell-night .btn-secondary,
+.os-shell-night .btn-primary,
+.os-shell-night button.btn {
+  border-radius: 0.2rem !important;
+  min-height: 1.85rem !important;
+  padding: 0.25rem 0.55rem !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .attention-item-btn-primary,
+.os-shell-night .btn-void,
+.os-shell-night .btn-primary {
+  background: #f4f6f9 !important;
+  color: #07090c !important;
+  border: 1px solid #f4f6f9 !important;
+}
+
+.os-shell-night .attention-item-btn,
+.os-shell-night .btn-secondary {
+  background: transparent !important;
+  color: #e8edf4 !important;
+  border: 1px solid color-mix(in srgb, #fff 18%, transparent) !important;
+}
+
+/* Inbox / job cards — dense night tiles */
+.os-shell-night .lead-inbox-card,
+.os-shell-night .job-card,
+.os-shell-night .call-record-card,
+.os-shell-night .customer-record-card {
+  background: #0e1319 !important;
+}
+
+.os-shell-night .lead-inbox-card-header,
+.os-shell-night .job-card-header {
+  padding: 0.55rem 0.7rem !important;
+  border-bottom: 1px solid color-mix(in srgb, #fff 7%, transparent) !important;
+}
+
+.os-shell-night .lead-inbox-card-body,
+.os-shell-night .job-card-body {
+  padding: 0.65rem 0.7rem 0.7rem !important;
+}
+
+.os-shell-night .lead-inbox-card-name,
+.os-shell-night .job-card-title,
+.os-shell-night .pro-stat-value,
+.os-shell-night .pro-panel-title,
+.os-shell-night h1,
+.os-shell-night h2,
+.os-shell-night h3 {
+  color: #f5f7fa !important;
+}
+
+.os-shell-night .lead-inbox-card-sub,
+.os-shell-night .job-card-sub,
+.os-shell-night .pro-stat-label,
+.os-shell-night .pro-kicker,
+.os-shell-night .lead-inbox-card-time,
+.os-shell-night .text-ash,
+.os-shell-night .os-topbar-sub,
+.os-shell-night p,
+.os-shell-night .pro-section-lead {
+  color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
+}
+
+.os-shell-night .lead-inbox-card-emergency,
+.os-shell-night .job-card-emergency {
+  border-left: 2px solid var(--os-flare) !important;
+}
+
+.os-shell-night .pro-kicker-flare {
+  color: #ff8d85 !important;
+}
+
+.os-shell-night .pro-stat {
+  padding: 0.65rem 0.75rem !important;
+}
+
+.os-shell-night .pro-stat-value {
+  font-size: 1.25rem !important;
+}
+
+.os-shell-night .pro-stat-label {
+  font-size: 0.5625rem !important;
+}
+
+.os-shell-night .pro-page-strip {
+  background: #0a0e14 !important;
+  padding: 0.5rem 0.7rem !important;
+}
+
+.os-shell-night .pro-page-strip-line,
+.os-shell-night .pro-page-strip-meta {
+  color: #e8edf4 !important;
+}
+
+.os-shell-night .pro-page-strip-badge,
+.os-shell-night .pro-page-strip-pill {
+  color: #f5f7fa !important;
+  border-color: color-mix(in srgb, #fff 22%, transparent) !important;
+}
+
+.os-shell-night .status-pill,
+.os-shell-night .os-nav-badge {
+  border-radius: 0.2rem !important;
+  background: color-mix(in srgb, #fff 8%, transparent) !important;
+  color: #e8edf4 !important;
+  border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
+}
+
+.os-shell-night .status-pill-live {
+  background: #f4f6f9 !important;
+  color: #07090c !important;
+  border-color: #f4f6f9 !important;
+}
+
+.os-shell-night .status-pill-flare {
+  background: transparent !important;
+  color: #ff8d85 !important;
+  border-color: color-mix(in srgb, #e5484d 45%, transparent) !important;
+}
+
+.os-shell-night .inbox-filters .btn,
+.os-shell-night .inbox-filters a,
+.os-shell-night .pro-filter-bar .btn {
+  background: transparent !important;
+  color: color-mix(in srgb, #c9d2df 70%, transparent) !important;
+  border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
+  border-radius: 0.2rem !important;
+}
+
+.os-shell-night .inbox-filters .btn-void,
+.os-shell-night .inbox-filters a.is-active,
+.os-shell-night .inbox-filters .btn.active {
+  background: #f4f6f9 !important;
+  color: #07090c !important;
+  border-color: #f4f6f9 !important;
+}
+
+.os-shell-night input,
+.os-shell-night select,
+.os-shell-night textarea {
+  background: #0a0e14 !important;
+  color: #f2f5f8 !important;
+  border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
+  border-radius: 0.2rem !important;
+}
+
+.os-shell-night .owner-setup-banner,
+.os-shell-night .pro-setup-alert,
+.os-shell-night .post-lock-banner {
+  background: #0e1319 !important;
+  border-left: 2px solid var(--signal) !important;
+}
+
+.os-shell-night .dispatch-col {
+  background: #0e1319 !important;
+  min-height: 10rem;
+  padding: 0.55rem !important;
+}
+
+.os-shell-night .dispatch-col-unassigned {
+  border-left: 2px solid var(--os-flare) !important;
+}
+
+.os-shell-night .dispatch-job-chip {
+  background: #0a0e14 !important;
+  color: #e8edf4 !important;
+}
+
+.os-shell-night .os-ask-dock-trigger {
+  background: #f4f6f9 !important;
+  color: #07090c !important;
+  border-radius: 0.2rem !important;
+}
+
+.os-shell-night .os-mobile-nav {
+  background: #0a0e14 !important;
+  border-top-color: color-mix(in srgb, #fff 10%, transparent) !important;
+}
+
+.os-shell-night a {
+  color: inherit;
+}
+
+.os-shell-night .home-platform-link,
+.os-shell-night .lead-inbox-name-link,
+.os-shell-night .customer-timeline-link {
+  color: #f5f7fa !important;
+}
+
+/* Kill soft hover lift forever on night OS */
+.os-shell-night *:hover {
+  box-shadow: none !important;
+}
+
+.os-shell-night .lead-inbox-card-link:hover,
+.os-shell-night .job-card:hover,
+.os-shell-night .pro-card:hover {
+  transform: none !important;
+  border-color: color-mix(in srgb, #fff 20%, transparent) !important;
+}
+
+/* Pro section heads denser */
+.os-shell-night .pro-section-head {
+  margin-bottom: 0.65rem !important;
+}
+
+.os-shell-night .ring1-command {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

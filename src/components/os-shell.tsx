@@ -166,7 +166,7 @@ export function OsShell({
   );
 
   return (
-    <div className="os-shell os-shell-pro min-h-screen">
+    <div className="os-shell os-shell-pro os-shell-night min-h-screen">
       <OsMobileNavBackdrop open={navOpen} onClose={() => setNavOpen(false)} />
 
       <aside
@@ -177,7 +177,7 @@ export function OsShell({
       </aside>
 
       <div className="os-main os-main-pro">
-        <header className="os-topbar os-topbar-pro">
+        <header className="os-topbar os-topbar-pro os-topbar-night">
           <div className="os-topbar-row">
             <OsMobileNavButton open={navOpen} onToggle={() => setNavOpen((v) => !v)} />
             <div className="os-topbar-copy">
