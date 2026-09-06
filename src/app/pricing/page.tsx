@@ -43,7 +43,8 @@ export default function PricingPage() {
           </h2>
           <p className="tier1-section-lead font-sans">
             A single after-hours repair often clears ${featured.price}. Orvius
-            exists so that call is never voicemail.
+            exists so that call hits a live line — not voicemail — when it
+            reaches your Orvius number or forward.
           </p>
           <div className="tier1-actions tier1-close-actions">
             <a href={demoLineHref()} className="inst-btn inst-btn-primary">

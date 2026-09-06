@@ -27,8 +27,9 @@ export function HomeLineHero() {
         </h1>
 
         <p className="mkt-hero-lead font-sans">
-          After-hours and overflow on the line get answered, booked, and run.
-          You keep the overrides.
+          After-hours and overflow on the Orvius line get answered, booked, and
+          run. Forward your public number — or publish this one. You keep the
+          overrides.
         </p>
 
         <div className="mkt-hero-actions font-sans">
