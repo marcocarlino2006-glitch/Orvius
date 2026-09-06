@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, Space_Grotesk } from "next/font/google";
+import { Barlow_Condensed, Space_Grotesk, Syne } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
 import "./globals.css";
 
 /**
- * Button + type craft (copied from Cursor × SpaceX):
- * - Space Grotesk ≈ CursorGothic — product buttons + display at weight 400
- * - Barlow Condensed ≈ SpaceX D-DIN — ALL marketing buttons/nav (tracked caps)
+ * Type system — software-company caliber:
+ * - Syne — display / hero claims (proprietary feel, not Inter)
+ * - Space Grotesk — product UI + body
+ * - Barlow Condensed — tracked mission labels / CTAs
  */
 
 const sans = Space_Grotesk({
@@ -22,6 +23,13 @@ const brand = Barlow_Condensed({
   variable: "--font-brand",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+const display = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -53,7 +61,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${brand.variable} antialiased`}>
+      <body
+        className={`${sans.variable} ${brand.variable} ${display.variable} antialiased`}
+      >
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

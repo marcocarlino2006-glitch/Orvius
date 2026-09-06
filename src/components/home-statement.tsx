@@ -18,20 +18,26 @@ const nightRules = [
   },
 ] as const;
 
-/** Shop-floor doctrine — not founder “first principles” theater. */
+/** Doctrine with institutional mass — dense, editorial, not three lonely bullets. */
 export function HomeStatement() {
   return (
     <MktSection
       tone="dark"
-      className="mkt-manifesto mkt-manifesto--laws"
+      className="mkt-manifesto mkt-manifesto--meta"
       aria-labelledby="home-manifesto-heading"
     >
-      <div className="mkt-manifesto-inner mkt-manifesto-inner--laws">
-        <p className="mkt-manifesto-kicker font-sans">Night rules</p>
-        <h2 id="home-manifesto-heading" className="mkt-manifesto-title">
-          How the shop runs when you&apos;re not on the floor.
-        </h2>
-        <ol className="mkt-laws font-sans">
+      <div className="mkt-manifesto-meta">
+        <div className="mkt-manifesto-meta-lead">
+          <p className="mkt-manifesto-kicker font-sans">Night rules</p>
+          <h2 id="home-manifesto-heading" className="mkt-manifesto-title">
+            How the shop runs when you&apos;re not on the floor.
+          </h2>
+          <p className="mkt-manifesto-aside font-sans">
+            Orvius is the night-shift OS — not an AI receptionist bolted onto a
+            CRM. The board holds every call, job, and dollar in one record.
+          </p>
+        </div>
+        <ol className="mkt-laws mkt-laws--meta font-sans">
           {nightRules.map((rule) => (
             <li key={rule.id} className="mkt-law">
               <span className="mkt-law-id" aria-hidden>
