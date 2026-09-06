@@ -30,7 +30,6 @@ type CallRow = {
 
 export default function CallsPage() {
   const [calls, setCalls] = useState<CallRow[]>([]);
-  const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +41,6 @@ export default function CallsPage() {
       })
       .then((data) => {
         setCalls(data.calls ?? []);
-        setTotal(data.total ?? 0);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -51,7 +49,6 @@ export default function CallsPage() {
   return (
     <OsShell
       title="Calls"
-      subtitle={`${total} conversation${total === 1 ? "" : "s"} on record`}
       actions={
         <Link href="/dashboard/inbox" className="btn btn-void text-sm">
           Inbox
@@ -77,7 +74,7 @@ export default function CallsPage() {
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
-            <ul className="pro-record-grid">
+            <ul className="os-lead-rail">
               {calls.map((call) => (
                 <li key={call.id}>
                   <CallRecordCard

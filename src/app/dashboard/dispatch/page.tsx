@@ -59,27 +59,22 @@ function JobChip({
 
   return (
     <div className="dispatch-job-chip-wrap">
-      <Link href={`/dashboard/jobs/${job.id}`} className="dispatch-job-chip pro-card">
-        <div className="dispatch-job-chip-head">
-          <p className="dispatch-job-chip-time font-sans">{time}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {emergency ? <ShellBadge tone="flare">Emergency</ShellBadge> : null}
-            {!emergency ? (
-              <ShellBadge
-                tone={
-                  job.status === "on_site" || job.status === "en_route"
-                    ? "live"
-                    : "neutral"
-                }
-              >
-                {jobStatusLabel(job.status)}
-              </ShellBadge>
-            ) : null}
+      <Link href={`/dashboard/jobs/${job.id}`} className="dispatch-job-chip lead-rail-row">
+        <div className="lead-rail-main">
+          <div className="lead-rail-meta">
+            <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
+              {emergency ? "Emergency" : "Dispatch"} · {jobStatusLabel(job.status)}
+            </p>
+            <span className="lead-rail-time">{time}</span>
           </div>
+          <div className="lead-rail-title-row">
+            <span className="lead-rail-name">{job.title}</span>
+          </div>
+          <p className="lead-rail-sub">
+            {who}
+            {job.address ? ` · ${job.address}` : ""}
+          </p>
         </div>
-        <p className="dispatch-job-chip-title font-sans">{job.title}</p>
-        <p className="dispatch-job-chip-sub font-sans">{who}</p>
-        {job.address ? <p className="dispatch-job-chip-sub font-sans">{job.address}</p> : null}
       </Link>
       {needsAssign ? (
         <AssignTechButton

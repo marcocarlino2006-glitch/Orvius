@@ -22206,3 +22206,151 @@ body:has(.confirm-shell) {
   background: #000000 !important;
   border-top-color: #2f3336 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KEEP WORKING — finish soft leftovers (calls/customers/dispatch/ask/stats)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.os-shell-night .pro-ring-banner {
+  display: none !important;
+}
+
+.os-shell-night .pro-stat {
+  border-top: none !important;
+  border-radius: 0.15rem !important;
+  background: #16181c !important;
+}
+
+.os-shell-night .pro-stat::before,
+.os-shell-night .pro-stat-live::before {
+  display: none !important;
+}
+
+.os-shell-night .pro-stat-live,
+.os-shell-night .pro-stat.is-active,
+.os-shell-night .pro-stat[data-highlight="true"] {
+  border-color: #2f3336 !important;
+  border-left: 2px solid #e7e9ea !important;
+  background: #1e2126 !important;
+  box-shadow: none !important;
+}
+
+/* Kill copper top accents on stats forever */
+.os-shell-night .pro-stat,
+.os-shell-night .pro-page-stats .pro-stat {
+  border-top-color: #2f3336 !important;
+  background-image: none !important;
+}
+
+.os-shell-night .owner-setup-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem !important;
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-left: 2px solid #e7e9ea !important;
+  border-radius: 0.2rem !important;
+  margin-bottom: 0.65rem !important;
+}
+
+.os-shell-night .owner-setup-banner-copy {
+  margin: 0 !important;
+  font-size: 0.8125rem !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .dispatch-col {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.25rem !important;
+  padding: 0.5rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.os-shell-night .dispatch-job-chip-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.os-shell-night .dispatch-job-chip.lead-rail-row {
+  display: block;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  background: #0a0a0a !important;
+}
+
+.os-shell-night .dispatch-col-unassigned {
+  border-left: 2px solid #f4212e !important;
+}
+
+.os-shell-night .os-ask-dock-chip {
+  background: #16181c !important;
+  color: #e7e9ea !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+}
+
+.os-shell-night .os-ask-dock-panel {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .os-ask-dock-trigger {
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .pro-panel,
+.os-shell-night .ShellPanel,
+.os-shell-night section.pro-panel {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.25rem !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .pro-panel-title {
+  color: #71767b !important;
+  font-size: 0.625rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.os-shell-night .pro-panel-body,
+.os-shell-night .pro-panel-body p,
+.os-shell-night .pro-panel-body dd,
+.os-shell-night .pro-panel-body dt {
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .pro-search-bar input,
+.os-shell-night input[type="search"],
+.os-shell-night .pro-search-bar {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .account-grid,
+.os-shell-night .account-billing-plan {
+  gap: 0.65rem !important;
+}
+
+/* Marketing: kill leftover white mastery cards if any */
+.mkt-page .mkt-path-card--mastery,
+.mkt-page .mkt-plan-card--mastery,
+.mkt-page .tier1-plan {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  color: #e7e9ea !important;
+  box-shadow: none !important;
+}

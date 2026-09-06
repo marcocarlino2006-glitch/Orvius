@@ -27,9 +27,10 @@ function statusTone(status: string): "live" | "flare" | "neutral" | "muted" {
 }
 
 function formatStatus(status: string) {
-  return status.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return status.replace(/-/g, " ");
 }
 
+/** Cursor-grade call row. */
 export function CallRecordCard({
   id,
   callerPhone,
@@ -45,51 +46,45 @@ export function CallRecordCard({
   returning,
 }: CallRecordCardProps) {
   const emergency = urgency?.toLowerCase() === "emergency";
+  const when = new Date(createdAt).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
   return (
-    <Link href={`/dashboard/calls/${id}`} className="call-record-card pro-card">
-      <div className="call-record-card-header">
-        <span className="call-record-card-icon" aria-hidden>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path
-              d="M2.5 1.75h2.25L6.25 4.5a7.5 7.5 0 0 0 3.25 3.25l2.75 1.5v2.25a1 1 0 0 1-1.1 1 10.5 10.5 0 0 1-4.65-1.65 10.5 10.5 0 0 1-3.3-3.3A10.5 10.5 0 0 1 1.5 2.85a1 1 0 0 1 1-1.1Z"
-              stroke="currentColor"
-              strokeWidth="1.1"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-        <div className="call-record-card-head-copy">
-          <div className="call-record-card-title-row">
-            <h3 className="call-record-card-title font-sans">
-              {leadName ?? callerPhone ?? "Unknown caller"}
-            </h3>
-            <div className="call-record-card-badges">
-              <ShellBadge tone={statusTone(status)}>{formatStatus(status)}</ShellBadge>
-              {emergency ? <ShellBadge tone="flare">Emergency</ShellBadge> : null}
-              {booked ? <ShellBadge tone="live">Booked</ShellBadge> : null}
-              {returning ? <ShellBadge tone="neutral">Returning</ShellBadge> : null}
-            </div>
-          </div>
-          <p className="call-record-card-meta font-sans">
-            {businessName ?? "Orvius"} ·{" "}
-            {new Date(createdAt).toLocaleString(undefined, {
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-            {durationSec ? ` · ${durationSec}s` : ""}
+    <Link
+      href={`/dashboard/calls/${id}`}
+      className={`lead-rail-row${emergency ? " lead-rail-row-emergency" : ""}`}
+    >
+      <div className="lead-rail-main">
+        <div className="lead-rail-meta">
+          <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
+            Call · {formatStatus(status)}
+            {booked ? " · booked" : ""}
+            {returning ? " · returning" : ""}
           </p>
+          <time dateTime={createdAt} className="lead-rail-time">
+            {when}
+            {durationSec ? ` · ${durationSec}s` : ""}
+          </time>
         </div>
+        <div className="lead-rail-title-row">
+          <span className="lead-rail-name">
+            {leadName ?? callerPhone ?? "Unknown caller"}
+          </span>
+          <div className="lead-rail-badges">
+            <ShellBadge tone={statusTone(status)}>{formatStatus(status)}</ShellBadge>
+            {emergency ? <ShellBadge tone="flare">Emergency</ShellBadge> : null}
+          </div>
+        </div>
+        <p className="lead-rail-sub">
+          {[serviceType, summary, callerPhone, businessName]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
       </div>
-      {(serviceType || summary) ? (
-        <div className="call-record-card-body font-sans">
-          {serviceType ? <p className="call-record-service">{serviceType}</p> : null}
-          {summary ? <p className="call-record-summary">{summary}</p> : null}
-        </div>
-      ) : null}
     </Link>
   );
 }

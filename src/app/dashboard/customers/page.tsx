@@ -2,7 +2,6 @@
 
 import { CustomerRecordCard } from "@/components/customer-record-card";
 import {
-  ProRingBanner,
   ProSearchBar,
   ProStatRow,
   ProEmptyState,
@@ -66,44 +65,29 @@ export default function CustomersPage() {
   }, [customers]);
 
   return (
-    <OsShell
-      title="Customers"
-      subtitle="Every caller becomes a record. History follows the number."
-    >
+    <OsShell title="Customers">
       <PlanUpgradeGate module="customers">
-      <ProRingBanner
-        name="Customer records"
-        description="Built automatically from calls and texts. Returning callers recognized on the next ring."
-        live
-      />
-
       {loading && !customers.length ? (
         <DashboardSkeleton />
       ) : (
         <>
-          {!loading ? <ProStatRow stats={stats} className="mb-6" /> : null}
+          {!loading ? <ProStatRow stats={stats} className="pro-page-stats" /> : null}
 
           <ProSearchBar
             value={query}
             onChange={setQuery}
             placeholder="Search name, phone, address…"
-            className="mb-6 max-w-lg"
+            className="mb-4 max-w-lg"
           />
 
           {error ? (
-            <div className="mb-6">
+            <div className="mb-4">
               <ShellAlert tone="error">{error}</ShellAlert>
             </div>
           ) : null}
 
           {loading ? (
-            <div className="grid gap-4 lg:grid-cols-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} aria-hidden>
-                  <div className="pro-stat ring1-metric-loading min-h-[11rem] rounded-md" />
-                </div>
-              ))}
-            </div>
+            <DashboardSkeleton />
           ) : !customers.length ? (
             <ProEmptyState
               title="No customers yet"
@@ -118,7 +102,7 @@ export default function CustomersPage() {
               }
             />
           ) : (
-            <ul className="grid gap-4 lg:grid-cols-2">
+            <ul className="os-lead-rail">
               {customers.map((customer) => (
                 <li key={customer.id}>
                   <CustomerRecordCard

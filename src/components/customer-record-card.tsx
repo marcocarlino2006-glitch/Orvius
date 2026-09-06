@@ -13,6 +13,7 @@ type CustomerRecordCardProps = {
   returning?: boolean;
 };
 
+/** Cursor-grade customer row — no avatar soft card. */
 export function CustomerRecordCard({
   id,
   name,
@@ -24,53 +25,34 @@ export function CustomerRecordCard({
   returning = interactionCount > 1,
 }: CustomerRecordCardProps) {
   const label = customerDisplayName(name, phone);
+  const when = new Date(lastSeenAt).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 
   return (
-    <Link href={`/dashboard/customers/${id}`} className="customer-record-card pro-card">
-      <div className="customer-record-head">
-        <div className="customer-record-avatar font-sans" aria-hidden>
-          {label.charAt(0).toUpperCase()}
+    <Link href={`/dashboard/customers/${id}`} className="lead-rail-row">
+      <div className="lead-rail-main">
+        <div className="lead-rail-meta">
+          <p className="lead-rail-kind">
+            Customer
+            {returning ? " · returning" : ""}
+            {` · ${interactionCount} touch${interactionCount === 1 ? "" : "es"}`}
+          </p>
+          <time dateTime={lastSeenAt} className="lead-rail-time">
+            {when}
+          </time>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate font-sans text-xl font-semibold tracking-[-0.03em] text-void">
-              {label}
-            </h3>
+        <div className="lead-rail-title-row">
+          <span className="lead-rail-name">{label}</span>
+          <div className="lead-rail-badges">
             {returning ? <ShellBadge tone="live">Returning</ShellBadge> : null}
           </div>
-          <p className="mt-1 font-sans text-sm text-ash tabular-nums">
-            {displayPhone(phone)}
-          </p>
         </div>
+        <p className="lead-rail-sub">
+          {[displayPhone(phone), address, email].filter(Boolean).join(" · ")}
+        </p>
       </div>
-
-      <dl className="customer-record-meta font-sans">
-        <div>
-          <dt>Interactions</dt>
-          <dd>{interactionCount}</dd>
-        </div>
-        <div>
-          <dt>Last seen</dt>
-          <dd>
-            {new Date(lastSeenAt).toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })}
-          </dd>
-        </div>
-        {address ? (
-          <div className="customer-record-wide">
-            <dt>Address</dt>
-            <dd>{address}</dd>
-          </div>
-        ) : null}
-        {email ? (
-          <div className="customer-record-wide">
-            <dt>Email</dt>
-            <dd>{email}</dd>
-          </div>
-        ) : null}
-      </dl>
     </Link>
   );
 }
