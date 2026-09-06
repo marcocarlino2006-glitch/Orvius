@@ -19580,3 +19580,20 @@ select {
   background: #fff !important;
   border-left: 3px solid var(--signal) !important;
 }
+
+.os-shell-pro .pro-line-cta-skel {
+  display: inline-block;
+  min-width: 7.5rem;
+  min-height: 2.25rem;
+  border-radius: var(--os-radius, 0.3125rem);
+  border: 1px solid var(--os-line, color-mix(in srgb, #0c1016 12%, transparent));
+  background: color-mix(in srgb, #0c1016 6%, transparent);
+}
+
+.os-shell-pro .dispatch-col-loading,
+.os-shell-pro .dispatch-col.dispatch-col-loading {
+  border-radius: var(--os-radius, 0.3125rem) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--os-line, color-mix(in srgb, #0c1016 12%, transparent)) !important;
+  background: var(--os-panel, #f7f8fa) !important;
+}
