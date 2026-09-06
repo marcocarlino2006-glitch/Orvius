@@ -62,14 +62,27 @@ export default async function LoginPage({
             </p>
           ) : null}
 
+          <div className="tier1-login-actions">
+            <GoogleSignInButton callbackUrl={callbackUrl} />
+            {devBypass ? (
+              <details className="tier1-login-dev font-sans">
+                <summary className="tier1-login-dev-summary">Local build access</summary>
+                <p className="tier1-login-dev-note">
+                  Skips Google while building. Never available in production.
+                </p>
+                <DevSignInButton
+                  callbackUrl={callbackUrl}
+                  email={devEmail ?? undefined}
+                />
+              </details>
+            ) : null}
+          </div>
+
           {process.env.NODE_ENV === "development" && !auth.ready ? (
             <details className="tier1-login-setup font-sans">
-              <summary className="tier1-login-setup-title">
-                Google OAuth setup (for developers)
-              </summary>
+              <summary className="tier1-login-setup-title">Having trouble signing in?</summary>
               <p className="tier1-login-setup-lead">
-                The sign-in button will not work until you connect Google OAuth in
-                Vercel. This takes about 5 minutes.
+                Connect Google OAuth in Vercel before the sign-in button works.
               </p>
               <ol className="tier1-login-setup-steps">
                 <li>
@@ -79,7 +92,7 @@ export default async function LoginPage({
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                        Google Cloud Console → Credentials
+                    Google Cloud Console → Credentials
                   </a>
                   , create an OAuth client (Web application).
                 </li>
@@ -107,22 +120,6 @@ export default async function LoginPage({
               </ol>
             </details>
           ) : null}
-
-          <div className="tier1-login-actions">
-            <GoogleSignInButton callbackUrl={callbackUrl} />
-            {devBypass ? (
-              <>
-                <p className="tier1-login-dev-note font-sans">
-                  Dev bypass on — skips Google while building. Never runs in
-                  production.
-                </p>
-                <DevSignInButton
-                  callbackUrl={callbackUrl}
-                  email={devEmail ?? undefined}
-                />
-              </>
-            ) : null}
-          </div>
 
           <p className="tier1-login-legal font-sans">
             By signing in you agree to the{" "}

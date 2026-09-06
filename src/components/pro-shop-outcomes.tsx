@@ -12,9 +12,16 @@ type ProShopOutcomesProps = {
 export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
   if (loading && !outcomes) {
     return (
-      <section className="shop-outcomes font-sans" aria-label="Shop outcomes">
+      <section
+        className="shop-outcomes shop-outcomes-loading font-sans"
+        aria-label="Shop outcomes"
+        aria-busy="true"
+      >
         <p className="shop-outcomes-kicker type-eyebrow">Last 7 days</p>
-        <p className="shop-outcomes-line">Loading outcomes…</p>
+        <div className="shop-outcomes-skel" aria-hidden>
+          <span className="skeleton attention-skel-line attention-skel-line-lg" />
+          <span className="skeleton attention-skel-line attention-skel-line-md" />
+        </div>
       </section>
     );
   }

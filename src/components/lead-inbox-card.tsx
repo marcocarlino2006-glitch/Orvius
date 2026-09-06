@@ -90,11 +90,11 @@ export function LeadInboxCard({
           </div>
           <div className="lead-inbox-card-badges">
             {status !== "new" ? <LeadStatusBadge status={status} /> : null}
-            {booked ? <ShellBadge tone="live">Booked</ShellBadge> : null}
-            {urgency ? (
-              <ShellBadge tone={emergency ? "flare" : "neutral"}>
-                {formatUrgency(urgency)}
-              </ShellBadge>
+            {booked && status !== "booked" ? (
+              <ShellBadge tone="live">Booked</ShellBadge>
+            ) : null}
+            {urgency && !emergency ? (
+              <ShellBadge tone="neutral">{formatUrgency(urgency)}</ShellBadge>
             ) : null}
             {returning ? <ShellBadge tone="live">Returning</ShellBadge> : null}
           </div>

@@ -194,11 +194,11 @@ export default function DashboardBillingPage() {
           ) : (
             <>
               <p className="font-sans text-sm leading-relaxed text-ash">
-                Self-serve checkout is blocked until Stripe is configured. This is the
-                multi-b cash gate — close it before claiming category leadership.
+                Self-serve checkout stays dark until Stripe is configured. Do not claim
+                paid checkout until these gates are green.
               </p>
               <div className="billing-unblock mt-5 font-sans">
-                <p className="billing-unblock-title">Founder unblock — ordered</p>
+                <p className="billing-unblock-title">Founder unblock</p>
                 <ol className="billing-unblock-steps">
                   {(account?.billing.readiness?.nextSteps?.length
                     ? account.billing.readiness.nextSteps

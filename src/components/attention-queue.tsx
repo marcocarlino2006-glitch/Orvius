@@ -190,9 +190,24 @@ export function AttentionQueue({
 }: AttentionQueueProps) {
   if (loading && !items.length) {
     return (
-      <section className="attention-queue" aria-label="Needs attention">
+      <section
+        className="attention-queue attention-queue-loading"
+        aria-label="Needs attention"
+        aria-busy="true"
+      >
         <p className="attention-queue-kicker type-eyebrow font-sans">On the board</p>
-        <p className="attention-queue-empty font-sans">Loading the board…</p>
+        <div className="attention-queue-skel" aria-hidden>
+          <div className="attention-skel-card">
+            <span className="skeleton attention-skel-line attention-skel-line-sm" />
+            <span className="skeleton attention-skel-line attention-skel-line-lg" />
+            <span className="skeleton attention-skel-line attention-skel-line-md" />
+          </div>
+          <div className="attention-skel-card">
+            <span className="skeleton attention-skel-line attention-skel-line-sm" />
+            <span className="skeleton attention-skel-line attention-skel-line-lg" />
+            <span className="skeleton attention-skel-line attention-skel-line-md" />
+          </div>
+        </div>
       </section>
     );
   }
