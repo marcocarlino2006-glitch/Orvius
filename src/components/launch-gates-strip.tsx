@@ -72,8 +72,19 @@ export function buildShopLaunchGates(input: {
   billingStatus: string;
   wedgeReady: boolean;
   wedgeScore?: string;
+  overflowForwardConfirmed?: boolean;
 }): LaunchGate[] {
   return [
+    {
+      id: "overflow",
+      label: "Missed-call overflow forward",
+      ok: Boolean(input.overflowForwardConfirmed),
+      detail: input.overflowForwardConfirmed
+        ? "Owner confirmed after-hours / busy / no-answer forward to Orvius"
+        : "Without forward, only the Orvius number is captured — say that on the sale",
+      href: "/dashboard/settings#overflow-forward",
+      cta: "Confirm forward",
+    },
     {
       id: "cert",
       label: "Founder phone certification",

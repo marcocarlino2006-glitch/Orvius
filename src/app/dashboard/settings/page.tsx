@@ -1,5 +1,6 @@
 "use client";
 
+import { GoLiveChecklist } from "@/components/go-live-checklist";
 import {
   LaunchGatesStrip,
   buildShopLaunchGates,
@@ -25,6 +26,7 @@ type AccountResponse = {
     baselineJobsPerWeek: number | null;
     lastWeeklyProofAt?: string | null;
     founderCertJson?: string | null;
+    overflowForwardConfirmedAt?: string | null;
     billingStatus?: string;
     pilotEndsAt?: string | null;
   } | null;
@@ -85,6 +87,8 @@ export default function DashboardSettingsPage() {
     FOUNDER_CERT.map(() => false),
   );
   const [certSaving, setCertSaving] = useState(false);
+  const [overflowForward, setOverflowForward] = useState(false);
+  const [overflowSaving, setOverflowSaving] = useState(false);
 
   async function loadAccount() {
     const res = await fetch("/api/account");
@@ -110,6 +114,7 @@ export default function DashboardSettingsPage() {
         : "",
     );
     setCertChecks(parseCert(data.business?.founderCertJson));
+    setOverflowForward(Boolean(data.business?.overflowForwardConfirmedAt));
   }
 
   useEffect(() => {
@@ -147,6 +152,39 @@ export default function DashboardSettingsPage() {
     account?.business?.vapiPhoneNumber ??
     account?.business?.twilioPhone ??
     null;
+
+  
+  async function saveOverflow(next: boolean) {
+    setOverflowSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ overflowForwardConfirmedAt: next }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not save");
+      setOverflowForward(next);
+      setAccount((prev) =>
+        prev && prev.business
+          ? {
+              ...prev,
+              business: {
+                ...prev.business,
+                overflowForwardConfirmedAt: next
+                  ? new Date().toISOString()
+                  : null,
+              },
+            }
+          : prev,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save");
+    } finally {
+      setOverflowSaving(false);
+    }
+  }
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -255,6 +293,7 @@ export default function DashboardSettingsPage() {
     billingStatus:
       account?.billing?.status ?? account?.business?.billingStatus ?? "none",
     wedgeReady,
+    overflowForwardConfirmed: overflowForward,
     wedgeScore: account?.wedge
       ? `${account.wedge.score}/${account.wedge.total}`
       : undefined,
@@ -265,6 +304,8 @@ export default function DashboardSettingsPage() {
       <ProPageStrip />
 
       <LaunchGatesStrip gates={launchGates} title="Multi-b launch gates" />
+
+      <GoLiveChecklist />
 
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
 
@@ -304,6 +345,34 @@ export default function DashboardSettingsPage() {
             call this number — Orvius answers as your business.
           </p>
         </ShellPanel>
+
+      <div id="overflow-forward">
+      <ShellPanel title="Missed-call overflow">
+        <p className="account-settings-hint font-sans">
+          Orvius answers the dedicated line below. To catch missed / busy /
+          after-hours on your existing public number, forward those calls to this
+          line (carrier CFNA / after-hours routing). Without that, only callers who
+          dial the Orvius number are captured — say that honestly on every sale.
+        </p>
+        <p className="account-settings-value font-sans mt-3">
+          Forward to: {line ?? "Assigning your number…"}
+        </p>
+        <label className="mt-4 flex items-start gap-3 font-sans text-sm text-void">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={overflowForward}
+            disabled={overflowSaving || !line}
+            onChange={(e) => void saveOverflow(e.target.checked)}
+          />
+          <span>
+            I confirmed missed / busy / after-hours forwarding to this Orvius line
+            (or we are selling the Orvius number as the shop&apos;s published line).
+          </span>
+        </label>
+      </ShellPanel>
+      </div>
+
 
         <ShellPanel title="Economics + baseline">
           <div id="economics-baseline" />
@@ -399,8 +468,8 @@ export default function DashboardSettingsPage() {
             />
             <span className="onboarding-hint">
               {account?.alerts.emailConfigured
-                ? "Email backup when SMS fails or is unavailable."
-                : "Email backup requires RESEND_API_KEY on the platform."}
+                ? "Email failover is live — used when SMS fails or is unavailable."
+                : "Email failover needs RESEND_API_KEY on the platform (founder env). Without it, SMS-only alerts."}
             </span>
           </label>
 

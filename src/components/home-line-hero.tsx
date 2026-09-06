@@ -21,13 +21,13 @@ export function HomeLineHero() {
         <OrviusLogo variant="void" size="xl" className="mkt-hero-brand-lockup" />
 
         <h1 id="home-hero-heading" className="mkt-hero-title mkt-hero-title--absolute">
-          Zero missed
+          Missed calls
           <br />
-          jobs.
+          become jobs.
         </h1>
 
         <p className="mkt-hero-lead font-sans">
-          After-hours demand is answered, booked, and run.
+          After-hours and overflow on the line get answered, booked, and run.
           You keep the overrides.
         </p>
 

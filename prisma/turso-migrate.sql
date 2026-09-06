@@ -155,3 +155,8 @@ ALTER TABLE "Job" ADD COLUMN "techToken" TEXT;
 ALTER TABLE "Job" ADD COLUMN "etaText" TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS "Job_techToken_key" ON "Job"("techToken");
 
+-- Sales bulletproof: confirm loop + overflow ack
+ALTER TABLE "Job" ADD COLUMN "customerConfirmToken" TEXT;
+ALTER TABLE "Job" ADD COLUMN "customerConfirmedAt" DATETIME;
+CREATE UNIQUE INDEX IF NOT EXISTS "Job_customerConfirmToken_key" ON "Job"("customerConfirmToken");
+ALTER TABLE "Business" ADD COLUMN "overflowForwardConfirmedAt" DATETIME;

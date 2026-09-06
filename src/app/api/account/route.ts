@@ -28,6 +28,7 @@ const patchSchema = z.object({
   baselineMissedCallsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   baselineJobsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   founderCertJson: z.string().max(500).nullable().optional(),
+  overflowForwardConfirmedAt: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -62,6 +63,7 @@ export async function GET() {
         pilotEndsAt: businessRecord.pilotEndsAt,
         lastWeeklyProofAt: businessRecord.lastWeeklyProofAt,
         founderCertJson: businessRecord.founderCertJson,
+        overflowForwardConfirmedAt: businessRecord.overflowForwardConfirmedAt,
       }
     : null;
 
@@ -168,6 +170,11 @@ export async function PATCH(request: Request) {
         ...(body.founderCertJson !== undefined
           ? { founderCertJson: body.founderCertJson }
           : {}),
+        ...(body.overflowForwardConfirmedAt === true
+          ? { overflowForwardConfirmedAt: new Date() }
+          : body.overflowForwardConfirmedAt === false
+            ? { overflowForwardConfirmedAt: null }
+            : {}),
       },
     });
 
@@ -208,6 +215,7 @@ export async function PATCH(request: Request) {
         baselineMissedCallsPerWeek: saved.baselineMissedCallsPerWeek,
         baselineJobsPerWeek: saved.baselineJobsPerWeek,
         founderCertJson: saved.founderCertJson,
+        overflowForwardConfirmedAt: saved.overflowForwardConfirmedAt,
         twilioPhone: saved.twilioPhone,
         vapiPhoneNumber: saved.vapiPhoneNumber,
       },

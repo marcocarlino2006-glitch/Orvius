@@ -237,6 +237,17 @@ export default function DashboardBillingPage() {
       </div>
 
       <div className="mt-6">
+        <ShellPanel title="Estimate card pay">
+          <p className="font-sans text-sm leading-relaxed text-ash">
+            Public estimate card checkout runs on the Orvius Stripe account today.
+            Money does not land in the shop&apos;s bank until Stripe Connect ships —
+            say that on every money demo. Subscriptions above fund Orvius, not job
+            payouts.
+          </p>
+        </ShellPanel>
+      </div>
+
+      <div className="mt-6">
         <ShellPanel title="Legal">
           <ul className="account-legal-links font-sans">
             <li>

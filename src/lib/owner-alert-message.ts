@@ -47,7 +47,10 @@ export function getOwnerAlertOpenUrl(params: {
 /** Lock-screen friendly owner alert — matches homepage OwnerAlertCard story. */
 export function buildOwnerLeadAlertMessage(params: {
   lead: OwnerAlertLead;
-  job?: { scheduledAt?: Date | string | null } | null;
+  job?: {
+    scheduledAt?: Date | string | null;
+    customerConfirmedAt?: Date | string | null;
+  } | null;
   autoBooked?: boolean;
 }): string {
   const { lead, job, autoBooked } = params;
@@ -57,16 +60,28 @@ export function buildOwnerLeadAlertMessage(params: {
   const address = lead.address?.trim();
   const phone = lead.phone?.trim();
   const schedule = formatSchedule(job?.scheduledAt ?? null);
+  const customerConfirmed = Boolean(job?.customerConfirmedAt);
 
   const headline = [urgency, service].filter(Boolean).join(" · ") || "New lead";
   const who = name ?? phone ?? "Unknown caller";
+
+  let bookingLine: string | null = null;
+  if (autoBooked) {
+    if (customerConfirmed && schedule) {
+      bookingLine = `Confirmed appointment · ${schedule}`;
+    } else if (schedule) {
+      bookingLine = `Proposed window · ${schedule} (awaiting customer confirm)`;
+    } else {
+      bookingLine = "Job on board · awaiting customer confirm";
+    }
+  }
 
   const lines = [
     headline,
     who,
     address ?? null,
     phone && name ? phone : null,
-    autoBooked && schedule ? `Job booked · ${schedule}` : autoBooked ? "Job booked on dispatch" : null,
+    bookingLine,
   ].filter(Boolean);
 
   return lines.join("\n");

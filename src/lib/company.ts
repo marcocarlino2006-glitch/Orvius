@@ -10,7 +10,7 @@ export const company = {
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
   /** Absolute brand line — SpaceX-scale, not SaaS fluff. */
-  tagline: "Zero missed jobs.",
+  tagline: "Missed calls become booked jobs.",
   /** Category we are creating. */
   categoryClaim:
     "The autonomous operating system for HVAC, plumbing, and electrical.",

@@ -247,7 +247,7 @@ export async function POST(request: NextRequest) {
       const bookedJob = autoBook.jobId
         ? await prisma.job.findUnique({
             where: { id: autoBook.jobId },
-            select: { id: true, scheduledAt: true },
+            select: { id: true, scheduledAt: true, customerConfirmedAt: true },
           })
         : null;
 

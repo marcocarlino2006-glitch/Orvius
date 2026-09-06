@@ -7,6 +7,7 @@ export type AttentionKind =
   | "new_lead"
   | "needs_qualify"
   | "needs_booking"
+  | "needs_customer_confirm"
   | "alert_failed"
   | "overdue_followup"
   | "unassigned_job"
@@ -64,6 +65,8 @@ function kindRank(kind: AttentionKind, urgency?: string | null): number {
       return emergency ? 10 : 20;
     case "needs_booking":
       return emergency ? 11 : 25;
+    case "needs_customer_confirm":
+      return emergency ? 16 : 28;
     case "missing_baseline":
       return 15;
     case "stale_weekly_proof":
@@ -455,6 +458,45 @@ export async function getAttentionQueue(
       scheduled != null && scheduled >= dayStart && scheduled < dayEnd;
     const unassigned = !job.technicianId;
 
+    if (
+      !job.customerConfirmedAt &&
+      (job.status === "scheduled" || job.status === "confirmed") &&
+      job.scheduledAt
+    ) {
+      items.push({
+        id: `needs_customer_confirm:${job.id}`,
+        kind: "needs_customer_confirm",
+        rank: kindRank("needs_customer_confirm", urgency) + (dueToday ? 0 : 4),
+        impact: isPriorityUrgency(urgency) || dueToday ? "critical" : "high",
+        title: who,
+        detail: [
+          "Awaiting customer confirm",
+          job.title,
+          scheduled
+            ? scheduled.toLocaleString(undefined, {
+                weekday: "short",
+                hour: "numeric",
+                minute: "2-digit",
+              })
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        recommendedAction: "Open job",
+        href: `/dashboard/jobs/${job.id}`,
+        entityType: "job",
+        entityId: job.id,
+        createdAt: job.createdAt.toISOString(),
+        estimatedRevenueCents: ticket,
+        meta: {
+          urgency,
+          address: job.address,
+          phone: job.customer?.phone ?? job.lead?.phone,
+          scheduledAt: scheduled?.toISOString() ?? null,
+        },
+      });
+    }
+
     if (unassigned) {
       items.push({
         id: `unassigned_job:${job.id}`,
@@ -563,6 +605,8 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Qualify";
     case "needs_booking":
       return "Book";
+    case "needs_customer_confirm":
+      return "Confirm";
     case "alert_failed":
       return "Alert failed";
     case "overdue_followup":

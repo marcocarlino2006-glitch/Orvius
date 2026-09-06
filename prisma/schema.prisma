@@ -32,6 +32,8 @@ model Business {
   lastWeeklyProofAt    DateTime?
   /** Founder phone cert checklist JSON — boolean[] matching Settings scenarios. */
   founderCertJson      String?
+  /** Owner confirmed missed/busy/after-hours forward to Orvius line. */
+  overflowForwardConfirmedAt DateTime?
   lineVerifiedAt       DateTime?
   /** When set, owner SMS alerts are suppressed until START / cleared. */
   ownerSmsOptOutAt     DateTime?
@@ -166,6 +168,10 @@ model Job {
   status        String      @default("scheduled")
   scheduledAt   DateTime?
   confirmedAt   DateTime?
+  /** Public token for customer confirm link (/c/[token]). */
+  customerConfirmToken String? @unique
+  /** When the customer confirmed the proposed window. */
+  customerConfirmedAt DateTime?
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?

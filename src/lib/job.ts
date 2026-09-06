@@ -1,4 +1,6 @@
 import { linkTouchToCustomer } from "@/lib/customer";
+import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
+import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jobTitle, suggestedSchedule } from "@/lib/job-schedule";
 import type { JobStatus } from "@/lib/job-status";
@@ -155,6 +157,16 @@ export async function createJobFromLead(params: {
 
     return created;
   });
+
+  // Proposed window until the customer confirms — keep appointments honest.
+  try {
+    await sendCustomerConfirmSms(job.id);
+  } catch (error) {
+    logWarn("job.customer_confirm_sms_error", {
+      jobId: job.id,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+  }
 
   return job;
 }
