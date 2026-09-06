@@ -29,7 +29,7 @@ export default async function LoginPage({
   const devEmail = showDevChrome ? getDevAuthEmail() : null;
 
   return (
-    <main className="tier1-login">
+    <main className="tier1-login tier1-login--craft">
       <section className="tier1-login-brand">
         <div className="tier1-login-brand-glow" aria-hidden />
         <div className="tier1-login-brand-inner">

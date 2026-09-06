@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function LegalHubPage() {
   return (
     <MarketingShell cta={false}>
-      <section className="marketing-hero">
+      <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Legal"

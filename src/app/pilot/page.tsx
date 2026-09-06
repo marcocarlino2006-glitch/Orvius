@@ -24,7 +24,7 @@ export default function PilotPage() {
             description={`No slide deck. A real look at what Orvius would capture for your ${company.trades.join(" / ")} shop. 30 days free when you start.`}
           />
           <div className="tier1-hero-call">
-            <HomeCallDemo variant="light" size="section" />
+            <HomeCallDemo variant="void" size="section" />
           </div>
           <div className="tier1-actions" style={{ marginTop: "1.5rem" }}>
             <a href="#waitlist" className="inst-btn inst-btn-primary">

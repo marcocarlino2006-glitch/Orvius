@@ -20388,3 +20388,550 @@ select {
     border-bottom: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WHOLE PRODUCT CRAFT — one Cursor-grade industrial standard
+   Marketing: night void everywhere (kills cream tier1 / marketing-hero).
+   Login / onboarding / locks: tool density, hard radii, no soft SaaS.
+   OS spine: denser industrial paper (extends .os-shell-pro).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* —— Marketing page always night —— */
+.mkt-page {
+  --mkt-ink: #f2f4f7;
+  --mkt-muted: color-mix(in srgb, #c9d2df 62%, transparent);
+  --mkt-surface: #0c1118;
+  --mkt-inset: #0a0e14;
+  --canvas-night: #05070b;
+  background: #05070b !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-page .editorial-wrap {
+  color: inherit;
+}
+
+.mkt-page .tier1-hero,
+.mkt-page .tier1-story,
+.mkt-page .tier1-story-muted,
+.mkt-page .tier1-close,
+.mkt-page .marketing-hero,
+.mkt-page .marketing-section {
+  background: #05070b !important;
+  border-color: color-mix(in srgb, #fff 8%, transparent) !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-page .tier1-hero,
+.mkt-page .marketing-hero {
+  padding-top: clamp(6.5rem, 14vh, 8.5rem);
+  background:
+    radial-gradient(ellipse 70% 45% at 80% 0%, color-mix(in srgb, #3a4a62 16%, transparent), transparent 58%),
+    #05070b !important;
+}
+
+.mkt-page .tier1-story,
+.mkt-page .marketing-section {
+  background:
+    linear-gradient(180deg, #070a10 0%, #05070b 100%) !important;
+}
+
+.mkt-page .tier1-close {
+  background: #030508 !important;
+  border-top: 1px solid color-mix(in srgb, #fff 8%, transparent);
+}
+
+.mkt-page .tier1-eyebrow,
+.mkt-page .type-eyebrow,
+.mkt-page .brand-intro .tier1-eyebrow {
+  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+}
+
+.mkt-page .tier1-page-title,
+.mkt-page .tier1-section-title,
+.mkt-page .type-headline,
+.mkt-page .brand-intro .tier1-page-title,
+.mkt-page .marketing-hero-title,
+.mkt-page .marketing-hero-title-sm {
+  color: #f5f7fa !important;
+}
+
+.mkt-page .tier1-section-lead,
+.mkt-page .tier1-hero-lead,
+.mkt-page .tier1-hero-statement,
+.mkt-page .brand-intro-subline,
+.mkt-page .brand-intro-description,
+.mkt-page .text-ash,
+.mkt-page .text-void {
+  color: color-mix(in srgb, #e8ecf2 68%, transparent) !important;
+}
+
+.mkt-page a.underline,
+.mkt-page .home-platform-link,
+.mkt-page .customer-timeline-link {
+  color: #f0f0fa !important;
+  text-decoration-color: color-mix(in srgb, #f0f0fa 35%, transparent);
+}
+
+.mkt-page a.underline:hover,
+.mkt-page .home-platform-link:hover {
+  color: #fff !important;
+}
+
+/* Buttons on night marketing */
+.mkt-page .inst-btn,
+.mkt-page .tier-btn,
+.mkt-page .mkt-btn {
+  border-radius: 0.3rem !important;
+}
+
+.mkt-page .inst-btn-primary,
+.mkt-page .tier-btn-primary {
+  background: #f4f6f9 !important;
+  color: #07090c !important;
+  border: 1px solid #f4f6f9 !important;
+}
+
+.mkt-page .inst-btn-ghost,
+.mkt-page .tier-btn-ghost {
+  background: transparent !important;
+  color: #f0f0fa !important;
+  border: 1px solid color-mix(in srgb, #f0f0fa 35%, transparent) !important;
+}
+
+.mkt-page .inst-btn-ghost:hover {
+  border-color: color-mix(in srgb, #fff 55%, transparent) !important;
+  color: #fff !important;
+}
+
+/* Pricing / plan cards — dense tool tiles on void */
+.mkt-page .tier1-plan,
+.mkt-page .tier1-story-card,
+.mkt-page .pro-panel {
+  background: #0c1118 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-page .tier1-plan-featured,
+.mkt-page .tier1-plan-recommended {
+  border-color: color-mix(in srgb, #f0f0fa 28%, transparent) !important;
+  background: #10161f !important;
+}
+
+.mkt-page .tier1-plan-badge {
+  color: color-mix(in srgb, var(--live, #3dd68c) 90%, #fff) !important;
+}
+
+.mkt-page .tier1-plan-price,
+.mkt-page .tier1-plan .text-void,
+.mkt-page .tier1-plan .font-semibold {
+  color: #f5f7fa !important;
+}
+
+.mkt-page .tier1-plan-period,
+.mkt-page .tier1-plan-annual-note,
+.mkt-page .tier1-plan-ideal,
+.mkt-page .tier1-plan-list,
+.mkt-page .tier1-plan-list li {
+  color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
+}
+
+.mkt-page .tier1-pricing-plans {
+  gap: 1rem;
+}
+
+.mkt-page .pricing-page-controls-note,
+.mkt-page .pricing-faq,
+.mkt-page .pricing-feature-matrix,
+.mkt-page .pricing-needs-picker {
+  color: color-mix(in srgb, #e8ecf2 70%, transparent);
+}
+
+.mkt-page .pricing-billing-toggle,
+.mkt-page .billing-toggle,
+.mkt-page [class*="pricing-"] button,
+.mkt-page [class*="pricing-"] .btn {
+  border-radius: 0.3rem !important;
+}
+
+/* Forms on night pages */
+.mkt-page input,
+.mkt-page select,
+.mkt-page textarea,
+.mkt-page .tier1-form-slot input,
+.mkt-page .tier1-form-slot select,
+.mkt-page .tier1-form-slot textarea {
+  background: #0a0e14 !important;
+  color: #f2f4f7 !important;
+  border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
+  border-radius: 0.3rem !important;
+  box-shadow: none !important;
+}
+
+.mkt-page label,
+.mkt-page .label {
+  color: color-mix(in srgb, #c9d2df 70%, transparent) !important;
+}
+
+/* Legal prose on void */
+.mkt-page .legal-prose {
+  color: color-mix(in srgb, #e8ecf2 78%, transparent);
+}
+
+.mkt-page .legal-prose h2 {
+  color: #f5f7fa;
+  border-color: color-mix(in srgb, #fff 10%, transparent);
+}
+
+.mkt-page .legal-prose a {
+  color: #f0f0fa;
+}
+
+.mkt-page .border-rule {
+  border-color: color-mix(in srgb, #fff 10%, transparent) !important;
+}
+
+/* Call demo — force void reading on marketing */
+.mkt-page .call-demo-light {
+  background: #0c1118 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-page .call-demo-light .call-demo-number,
+.mkt-page .call-demo-light .call-demo-label {
+  color: #f5f7fa !important;
+}
+
+/* —— Login: full industrial void —— */
+.tier1-login {
+  background: #05070b;
+}
+
+.tier1-login-brand {
+  background:
+    radial-gradient(ellipse 70% 55% at 18% 12%, color-mix(in srgb, #3a4a62 22%, transparent), transparent 58%),
+    radial-gradient(ellipse 45% 40% at 88% 78%, color-mix(in srgb, var(--signal, #c4783a) 8%, transparent), transparent 55%),
+    linear-gradient(165deg, #030508 0%, #070b12 100%) !important;
+}
+
+.tier1-login-form {
+  background: #0a0e14 !important;
+  border-left: 1px solid color-mix(in srgb, #fff 8%, transparent);
+}
+
+.tier1-form-title,
+.tier1-login-form .tier1-form-title {
+  color: #f5f7fa !important;
+}
+
+.tier1-form-sub,
+.tier1-login-form .tier1-form-sub,
+.tier1-login-dev-note,
+.tier1-login-setup-lead,
+.tier1-login-links a {
+  color: color-mix(in srgb, #c9d2df 65%, transparent) !important;
+}
+
+.tier1-login-error {
+  background: color-mix(in srgb, #b42318 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, #b42318 35%, transparent) !important;
+  color: #ffb4a9 !important;
+  border-radius: 0.3rem !important;
+}
+
+.tier1-login-dev,
+.tier1-login-setup {
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  background: #0c1118 !important;
+  border-radius: 0.3rem !important;
+}
+
+.tier1-login-dev-summary,
+.tier1-login-setup-title {
+  color: #eef1f5 !important;
+}
+
+.tier1-login-actions .inst-btn,
+.tier1-login-actions .google-sign-in-btn,
+.tier1-login-actions button {
+  border-radius: 0.3rem !important;
+}
+
+@media (max-width: 959px) {
+  .tier1-login-form {
+    border-left: none;
+    border-top: 1px solid color-mix(in srgb, #fff 8%, transparent);
+  }
+}
+
+/* —— Onboarding: industrial tool paper (matches OS spine) —— */
+.onboarding-shell {
+  --os-paper: #eceff3;
+  --os-panel: #f7f8fa;
+  --os-ink: #0c1016;
+  --os-mute: #5c6570;
+  --os-line: color-mix(in srgb, #0c1016 12%, transparent);
+  background:
+    linear-gradient(180deg, #e8ebf0 0%, #eceff3 100%) !important;
+}
+
+.onboarding-glow {
+  opacity: 0.35;
+}
+
+.onboarding-step,
+.onboarding-panel,
+.onboarding-shell .pro-panel,
+.onboarding-shell .panel-chalk {
+  border-radius: 0.3125rem !important;
+  border: 1px solid var(--os-line) !important;
+  box-shadow: none !important;
+  background: var(--os-panel) !important;
+}
+
+.onboarding-step-active {
+  border-color: color-mix(in srgb, #0c1016 28%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.onboarding-shell .btn,
+.onboarding-shell button,
+.onboarding-shell input,
+.onboarding-shell select,
+.onboarding-shell textarea {
+  border-radius: 0.3125rem !important;
+}
+
+/* —— PublicLayout / 404 / light cursor pages → night —— */
+.cursor-page-light,
+.marketing-page.tier1-page,
+.cursor-page.cursor-page-light {
+  background: #05070b !important;
+  color: #eef1f5 !important;
+}
+
+.cursor-page-light .marketing-hero,
+.cursor-page-light .tier1-hero,
+.tier1-page .marketing-hero {
+  background: #05070b !important;
+  color: #eef1f5 !important;
+}
+
+.cursor-page-light .tier1-page-title,
+.cursor-page-light .type-headline {
+  color: #f5f7fa !important;
+}
+
+.cursor-page-light .tier1-section-lead,
+.cursor-page-light .text-ash {
+  color: color-mix(in srgb, #e8ecf2 68%, transparent) !important;
+}
+
+/* Site footer on PublicLayout */
+.tier1-footer {
+  background: #050607 !important;
+  border-top: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  color: color-mix(in srgb, #f0f0fa 55%, transparent) !important;
+}
+
+.tier1-footer a {
+  color: color-mix(in srgb, #f0f0fa 62%, transparent) !important;
+}
+
+/* Shell header chalk → void when on night public pages */
+.cursor-page-light ~ header,
+.shell-header--chalk {
+  /* keep specificity via body children handled below */
+}
+
+body:has(.cursor-page-light) .shell-header,
+body:has(.mkt-page) .shell-header {
+  background: color-mix(in srgb, #070809 92%, transparent) !important;
+  border-bottom-color: color-mix(in srgb, #fff 10%, transparent) !important;
+  color: #f0f0fa !important;
+}
+
+/* —— Paywall / billing lock — industrial, not soft card —— */
+.pay-prompt-card,
+.billing-lock-card {
+  background: #0c1118 !important;
+  border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+  color: #eef1f5 !important;
+}
+
+.pay-prompt-backdrop,
+.billing-lock {
+  background: color-mix(in srgb, #05070b 72%, transparent) !important;
+}
+
+.pay-prompt-kicker,
+.billing-lock-kicker {
+  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+}
+
+.pay-prompt-title,
+.billing-lock-title {
+  color: #f5f7fa !important;
+}
+
+.pay-prompt-body,
+.billing-lock-body,
+.pay-prompt-plan-tag,
+.billing-lock-price-per {
+  color: color-mix(in srgb, #c9d2df 65%, transparent) !important;
+}
+
+.pay-prompt-plan {
+  background: #0a0e14 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.3rem !important;
+}
+
+.pay-prompt-plan--featured {
+  border-color: color-mix(in srgb, #f0f0fa 28%, transparent) !important;
+}
+
+.pay-prompt-plan-name,
+.pay-prompt-plan-price,
+.billing-lock-price-amt {
+  color: #f5f7fa !important;
+}
+
+.pay-prompt-later {
+  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+}
+
+/* Cookie consent */
+.cookie-consent,
+.cookie-banner {
+  background: #0c1118 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.375rem !important;
+  color: #eef1f5 !important;
+  box-shadow: none !important;
+}
+
+/* —— OS spine density pass 2 —— */
+.os-shell-pro .os-sidebar {
+  background: #f3f5f8 !important;
+  border-right: 1px solid var(--os-line) !important;
+}
+
+.os-shell-pro .os-nav-link {
+  border-radius: 0.25rem !important;
+  font-size: 0.8125rem;
+}
+
+.os-shell-pro .os-topbar-title {
+  font-size: clamp(1.45rem, 2.4vw, 1.85rem) !important;
+}
+
+.os-shell-pro .os-topbar-sub {
+  font-size: 0.875rem !important;
+  max-width: 48ch;
+}
+
+.os-shell-pro .pro-page-strip,
+.os-shell-pro .pro-signal-bar,
+.os-shell-pro .live-status-bar {
+  border-radius: var(--os-radius) !important;
+  box-shadow: none !important;
+}
+
+.os-shell-pro .attention-item,
+.os-shell-pro .approve-item,
+.os-shell-pro .dispatch-job-chip {
+  border-radius: var(--os-radius) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--os-line) !important;
+}
+
+.os-shell-pro .pro-panel-title,
+.os-shell-pro .pro-stat-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.os-shell-pro .pro-stat-value {
+  font-size: 1.35rem !important;
+  letter-spacing: -0.03em;
+}
+
+.os-shell-pro .os-mobile-nav,
+.os-shell-pro .os-ask-dock {
+  border-color: var(--os-line) !important;
+  box-shadow: none !important;
+}
+
+.os-shell-pro .btn-void,
+.os-shell-pro .btn-primary {
+  background: var(--os-ink) !important;
+  color: #fff !important;
+  border-radius: var(--os-radius) !important;
+}
+
+/* Public estimate / tech field keep void; tighten radii */
+.public-shell {
+  background: #05070b !important;
+}
+
+.public-shell .btn,
+.public-shell button,
+.public-shell input {
+  border-radius: 0.3rem !important;
+}
+
+/* Confirm / bare token routes */
+.confirm-page,
+body:has(.confirm-shell) {
+  background: #05070b;
+  color: #eef1f5;
+}
+
+/* Night panels used by billing success / docs */
+.mkt-page .mkt-doc-panel,
+.mkt-page .panel-chalk {
+  background: #0c1118 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+  color: #eef1f5 !important;
+}
+
+/* OwnerAlertCard / soft marketing embeds on night pages */
+.mkt-page .owner-alert-card,
+.mkt-page .shell-panel,
+.mkt-page .panel {
+  background: #0c1118 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+}
+
+/* FAQ / matrix / needs picker density */
+.mkt-page .pricing-faq details,
+.mkt-page .pricing-faq-item,
+.mkt-page .feature-matrix,
+.mkt-page .pricing-feature-matrix,
+.mkt-page .needs-picker,
+.mkt-page .pricing-needs-picker {
+  background: #0c1118 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.375rem !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-page .pricing-faq summary,
+.mkt-page .pricing-feature-matrix th,
+.mkt-page .pricing-feature-matrix td {
+  color: color-mix(in srgb, #e8ecf2 78%, transparent) !important;
+  border-color: color-mix(in srgb, #fff 8%, transparent) !important;
+}

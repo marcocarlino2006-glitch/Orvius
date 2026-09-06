@@ -81,15 +81,15 @@ function BillingSuccessInner() {
 
   return (
     <MarketingShell cta={false}>
-      <section className="marketing-hero">
+      <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap max-w-3xl">
           <ShellPageIntro label="Billing" title={title} description={description} />
         </div>
       </section>
 
-      <section className="marketing-section">
+      <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
-          <div className="panel-chalk p-6 md:p-8">
+          <div className="mkt-doc-panel p-6 md:p-8">
             <ol className="list-decimal space-y-3 pl-5 font-sans text-sm leading-relaxed text-ash">
               <li>
                 Check your email for the Stripe receipt from {company.legalName}.
@@ -113,12 +113,12 @@ function BillingSuccessInner() {
               </li>
             </ol>
 
-            <div className="mt-8 marketing-actions">
-              <Link href="/dashboard" className="tier-btn tier-btn-primary">
+            <div className="mt-8 tier1-actions">
+              <Link href="/dashboard" className="inst-btn inst-btn-primary">
                 Open dashboard
               </Link>
-              <Link href="/dashboard/billing" className="home-platform-link">
-                Billing details →
+              <Link href="/dashboard/billing" className="inst-btn inst-btn-ghost">
+                Billing details
               </Link>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function BillingSuccessPage() {
     <Suspense
       fallback={
         <MarketingShell cta={false}>
-          <section className="marketing-hero">
+          <section className="tier1-hero tier1-hero-compact">
             <div className="editorial-wrap max-w-3xl">
               <ShellPageIntro
                 label="Billing"

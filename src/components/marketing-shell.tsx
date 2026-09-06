@@ -36,7 +36,7 @@ export function PublicLayout({
         ]}
       />
       {showStickyCall ? <HomeStickyCall /> : null}
-      <main className="cursor-page cursor-page-light marketing-page tier1-page">{children}</main>
+      <main className="cursor-page marketing-page mkt-page mkt-page--craft">{children}</main>
       {showFooter ? <SiteFooter /> : null}
     </>
   );
@@ -50,7 +50,7 @@ type MarketingShellProps = PublicLayoutProps & {
 function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
   const year = new Date().getFullYear();
   return (
-    <div className="mkt-page">
+    <div className="mkt-page mkt-page--craft">
       <PremiumNav />
       <main>{children}</main>
       <footer className="mkt-footer mkt-footer--institution mkt-footer--cursor">
