@@ -15,15 +15,18 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; error?: string; dev?: string }>;
 }) {
   const params = await searchParams;
   const callbackUrl = params.callbackUrl ?? "/dashboard";
   const error = params.error;
   const auth = getAuthConfigStatus();
   const missing = auth.items.filter((item) => !item.optional && !item.configured);
-  const devBypass = isDevAuthBypassEnabled();
-  const devEmail = devBypass ? getDevAuthEmail() : null;
+  // Builder chrome stays off the finished login surface unless ?dev=1
+  const showDevChrome =
+    isDevAuthBypassEnabled() &&
+    (params.dev === "1" || params.dev === "true");
+  const devEmail = showDevChrome ? getDevAuthEmail() : null;
 
   return (
     <main className="tier1-login">
@@ -64,8 +67,8 @@ export default async function LoginPage({
 
           <div className="tier1-login-actions">
             <GoogleSignInButton callbackUrl={callbackUrl} />
-            {devBypass ? (
-              <details className="tier1-login-dev font-sans">
+            {showDevChrome ? (
+              <details className="tier1-login-dev font-sans" open>
                 <summary className="tier1-login-dev-summary">Local build access</summary>
                 <p className="tier1-login-dev-note">
                   Skips Google while building. Never available in production.
