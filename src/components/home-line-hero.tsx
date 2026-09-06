@@ -4,79 +4,75 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
- * Meta-grade presence: one composition.
- * Brand + claim left. Lit product stage right — the software is the hero image.
- * Live line is a precision instrument under the claim, not the whole ad.
+ * First viewport — one composition, not a SaaS split card.
+ * Full-bleed night field. Brand as hero signal. Product as edge-to-edge
+ * atmosphere plane (never a floating inset mock).
  */
 export function HomeLineHero() {
   const digits = DEMO_LINE_DISPLAY.replace(/\s+/g, " ").split("");
 
   return (
     <section
-      className="mkt-hero mkt-hero--meta"
+      className="mkt-hero mkt-hero--bleed"
       aria-labelledby="home-hero-heading"
     >
-      <div className="mkt-hero-field" aria-hidden />
-      <div className="mkt-hero-mesh" aria-hidden />
+      <div className="mkt-hero-void" aria-hidden />
+      <div className="mkt-hero-grid" aria-hidden />
       <div className="mkt-hero-grain" aria-hidden />
 
-      <div className="mkt-hero-stage-wrap">
-        <div className="mkt-hero-copy">
-          <OrviusLogo
-            variant="void"
-            size="xl"
-            className="mkt-hero-brand-lockup"
-          />
+      <div className="mkt-hero-product-plane" aria-hidden>
+        <div className="mkt-hero-product-veil" />
+        <HomeProductPreview stage />
+      </div>
 
-          <h1 id="home-hero-heading" className="mkt-hero-title mkt-hero-title--meta">
-            The night shift
-            <br />
-            for the trades.
-          </h1>
+      <div className="mkt-hero-foreground">
+        <OrviusLogo
+          variant="void"
+          size="xl"
+          className="mkt-hero-brand-lockup"
+        />
 
-          <p className="mkt-hero-lead font-sans">
-            After-hours and overflow answer, book, and alert — on your board by
-            morning. You keep the overrides.
-          </p>
+        <h1 id="home-hero-heading" className="mkt-hero-title mkt-hero-title--bleed">
+          The night shift
+          <br />
+          for the trades.
+        </h1>
 
-          <a
-            href={demoLineHref()}
-            className="mkt-hero-live-line mkt-hero-live-line--meta"
-            aria-label={`Call the live Orvius line ${DEMO_LINE_DISPLAY}`}
-          >
-            <span className="mkt-hero-live-label font-sans">
-              <span className="mkt-hero-live-pulse" aria-hidden />
-              Live line
-            </span>
-            <span className="mkt-hero-live-number" aria-hidden>
-              {digits.map((ch, i) => (
-                <span
-                  key={`${ch}-${i}`}
-                  className="mkt-hero-live-digit"
-                  style={{ animationDelay: `${0.12 + i * 0.022}s` }}
-                >
-                  {ch === " " ? "\u00A0" : ch}
-                </span>
-              ))}
-            </span>
-            <span className="sr-only">{DEMO_LINE_DISPLAY}</span>
+        <p className="mkt-hero-lead font-sans">
+          After-hours and overflow answer, book, and alert — on your board by
+          morning. You keep the overrides.
+        </p>
+
+        <a
+          href={demoLineHref()}
+          className="mkt-hero-live-line mkt-hero-live-line--bleed"
+          aria-label={`Call the live Orvius line ${DEMO_LINE_DISPLAY}`}
+        >
+          <span className="mkt-hero-live-label font-sans">
+            <span className="mkt-hero-live-pulse" aria-hidden />
+            Live line
+          </span>
+          <span className="mkt-hero-live-number" aria-hidden>
+            {digits.map((ch, i) => (
+              <span
+                key={`${ch}-${i}`}
+                className="mkt-hero-live-digit"
+                style={{ animationDelay: `${0.1 + i * 0.02}s` }}
+              >
+                {ch === " " ? "\u00A0" : ch}
+              </span>
+            ))}
+          </span>
+          <span className="sr-only">{DEMO_LINE_DISPLAY}</span>
+        </a>
+
+        <div className="mkt-hero-actions font-sans">
+          <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-hero">
+            Prove it on your line
+          </Link>
+          <a href={demoLineHref()} className="mkt-hero-phone">
+            Call it now
           </a>
-
-          <div className="mkt-hero-actions font-sans">
-            <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-hero">
-              Prove it on your line
-            </Link>
-            <a href={demoLineHref()} className="mkt-hero-phone">
-              Call it now
-            </a>
-          </div>
-        </div>
-
-        <div className="mkt-hero-stage" aria-hidden>
-          <div className="mkt-hero-stage-glow" />
-          <div className="mkt-hero-stage-frame">
-            <HomeProductPreview stage />
-          </div>
         </div>
       </div>
     </section>

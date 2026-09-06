@@ -16666,10 +16666,10 @@ h3 {
 @keyframes mkt-plane-settle {
   from {
     opacity: 0;
-    transform: scale(1.035);
+    transform: scale(1.02);
   }
   to {
-    opacity: 0.55;
+    opacity: 1;
     transform: scale(1);
   }
 }
@@ -19022,4 +19022,322 @@ select {
 .paywall-modal button,
 .pay-prompt-modal button {
   border-radius: var(--radius-cta, var(--radius-md)) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Full-bleed night hero — kills cream SaaS split + floating product card
+   Brand + claim + live line + CTA. Product is edge-to-edge atmosphere.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mkt-page:has(.mkt-hero--bleed) {
+  background: #05070b;
+}
+
+.mkt-hero--bleed {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+  padding: 0;
+  background: #05070b;
+  color: #f4f6f9;
+}
+
+.mkt-hero-void {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 78% 58%, color-mix(in srgb, #3d4f6a 28%, transparent), transparent 62%),
+    radial-gradient(ellipse 45% 40% at 18% 22%, color-mix(in srgb, var(--signal, #c4783a) 9%, transparent), transparent 58%),
+    linear-gradient(165deg, #030508 0%, #070b12 42%, #04060a 100%);
+}
+
+.mkt-hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(color-mix(in srgb, #fff 5.5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, #fff 5.5%, transparent) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 85% 75% at 70% 55%, #000 10%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 70% 55%, #000 10%, transparent 78%);
+}
+
+.mkt-hero--bleed .mkt-hero-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Product as full-bleed plane — NEVER a floating inset card */
+.mkt-hero-product-plane {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 42%;
+  width: auto;
+  pointer-events: none;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
+  animation: mkt-plane-settle 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.mkt-hero-product-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #05070b 0%, #05070b 6%, color-mix(in srgb, #05070b 55%, transparent) 22%, transparent 42%),
+    linear-gradient(0deg, #05070b 0%, transparent 18%),
+    linear-gradient(180deg, #05070b 0%, transparent 12%);
+}
+
+.mkt-hero-product-plane .mkt-product,
+.mkt-hero-product-plane .mkt-product--stage,
+.mkt-hero-product-plane .mkt-product--company,
+.mkt-hero-product-plane .mkt-product--atmosphere {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #0c1118 !important;
+  background-image: none !important;
+  padding:
+    clamp(5.5rem, 12vh, 7rem)
+    clamp(1.5rem, 3vw, 2.5rem)
+    clamp(1.75rem, 4vw, 2.75rem)
+    clamp(1.5rem, 3vw, 2.5rem) !important;
+  opacity: 1 !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-hero-product-plane .mkt-product-title,
+.mkt-hero-product-plane .mkt-product-row-main,
+.mkt-hero-product-plane .mkt-product-alert-title {
+  color: #f4f6f9 !important;
+}
+
+.mkt-hero-product-plane .mkt-product-kicker,
+.mkt-hero-product-plane .mkt-product-row-tag,
+.mkt-hero-product-plane .mkt-product-alert-meta,
+.mkt-hero-product-plane .mkt-product-row-main em {
+  color: color-mix(in srgb, #c9d2df 70%, transparent) !important;
+}
+
+.mkt-hero-foreground {
+  position: relative;
+  z-index: 3;
+  width: min(100%, 78rem);
+  margin-inline: auto;
+  padding:
+    clamp(6.5rem, 14vh, 8.5rem)
+    clamp(1.25rem, 4vw, 2.75rem)
+    clamp(3.25rem, 9vh, 5.5rem);
+  max-width: 38rem;
+  justify-self: start;
+  animation: mkt-rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mkt-hero--bleed .mkt-hero-brand-lockup {
+  color: #f7f8fa !important;
+  margin-bottom: 1.65rem;
+}
+
+.mkt-hero--bleed .mkt-hero-brand-lockup .orvius-logo-word,
+.mkt-hero--bleed .mkt-hero-brand-lockup.orvius-logo {
+  height: auto;
+}
+
+.mkt-hero--bleed .mkt-hero-brand-lockup .orvius-logo-word {
+  height: clamp(2.6rem, 5.2vw, 3.4rem);
+  width: auto;
+}
+
+.mkt-hero--bleed .mkt-hero-brand-lockup .orvius-logo-mark,
+.mkt-hero--bleed .mkt-hero-brand-lockup .orvius-mark {
+  width: clamp(2rem, 3.6vw, 2.55rem) !important;
+  height: clamp(2rem, 3.6vw, 2.55rem) !important;
+}
+
+.mkt-hero-title--bleed {
+  margin: 0;
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.9rem, 6.6vw, 5.25rem);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.038em;
+  color: #f5f7fa;
+  max-width: 12ch;
+}
+
+.mkt-hero--bleed .mkt-hero-lead {
+  margin: 1.4rem 0 0;
+  max-width: 34ch;
+  font-size: clamp(1.05rem, 1.45vw, 1.2rem);
+  line-height: 1.55;
+  color: color-mix(in srgb, #e8ecf2 70%, transparent);
+}
+
+.mkt-hero-live-line--bleed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin-top: 1.75rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid color-mix(in srgb, #f0f0fa 12%, transparent);
+  width: min(100%, 24rem);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 180ms ease;
+}
+
+.mkt-hero-live-line--bleed:hover {
+  border-top-color: color-mix(in srgb, var(--live, #3dd68c) 45%, transparent);
+}
+
+.mkt-hero--bleed .mkt-hero-live-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #d7dde8 62%, transparent);
+}
+
+.mkt-hero--bleed .mkt-hero-live-pulse {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--live, #3dd68c);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--live, #3dd68c) 55%, transparent);
+  animation: mkt-live-pulse 1.8s ease-out infinite;
+}
+
+.mkt-hero--bleed .mkt-hero-live-number {
+  display: inline-flex;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.65rem, 3.4vw, 2.35rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #f7f8fa;
+  line-height: 1;
+  text-shadow: 0 0 28px color-mix(in srgb, var(--live, #3dd68c) 16%, transparent);
+}
+
+.mkt-hero--bleed .mkt-hero-live-digit {
+  display: inline-block;
+  animation: mkt-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mkt-hero--bleed .mkt-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.4rem;
+  margin-top: 1.9rem;
+}
+
+.mkt-hero--bleed .mkt-btn-hero,
+.mkt-hero--bleed .mkt-btn-chalk {
+  border-radius: 0.3rem !important;
+  min-height: 3rem !important;
+  padding: 0.85rem 1.55rem !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase;
+  background: #f4f6f9 !important;
+  color: #07090c !important;
+  border: 1px solid #f4f6f9 !important;
+  box-shadow: 0 18px 40px color-mix(in srgb, #000 35%, transparent);
+}
+
+.mkt-hero--bleed .mkt-btn-hero:hover,
+.mkt-hero--bleed .mkt-btn-chalk:hover {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+.mkt-hero--bleed .mkt-hero-phone {
+  color: color-mix(in srgb, #f0f0fa 78%, transparent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, #f0f0fa 28%, transparent);
+  padding-bottom: 0.1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.mkt-hero--bleed .mkt-hero-phone:hover {
+  color: #fff;
+  border-bottom-color: color-mix(in srgb, #fff 55%, transparent);
+}
+
+@keyframes mkt-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--live, #3dd68c) 50%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 0.55rem transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (max-width: 900px) {
+  .mkt-hero-product-plane {
+    left: 0;
+    top: auto;
+    height: min(52svh, 30rem);
+  }
+
+  .mkt-hero-product-veil {
+    background:
+      linear-gradient(0deg, #05070b 0%, color-mix(in srgb, #05070b 55%, transparent) 35%, transparent 72%),
+      linear-gradient(180deg, #05070b 0%, transparent 26%);
+  }
+
+  .mkt-hero-foreground {
+    max-width: 100%;
+    padding-bottom: clamp(2.5rem, 8vh, 4rem);
+  }
+
+  .mkt-hero-title--bleed {
+    font-size: clamp(2.7rem, 12vw, 3.85rem);
+    max-width: 12ch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-hero-foreground,
+  .mkt-hero-product-plane,
+  .mkt-hero--bleed .mkt-hero-live-digit,
+  .mkt-hero--bleed .mkt-hero-live-pulse {
+    animation: none !important;
+  }
 }
