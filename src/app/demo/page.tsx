@@ -53,6 +53,10 @@ export default function DemoPage() {
     summary: string;
     leadId: string;
     business: { name: string };
+    autoBooked?: boolean;
+    bookingStatus?: string;
+    honesty?: string | null;
+    scheduledAt?: string | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,6 +80,10 @@ export default function DemoPage() {
         summary: data.summary,
         leadId: data.leadId,
         business: data.business,
+        autoBooked: Boolean(data.autoBooked),
+        bookingStatus: data.bookingStatus,
+        honesty: data.honesty ?? null,
+        scheduledAt: data.scheduledAt ?? null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Demo failed");
@@ -217,6 +225,14 @@ export default function DemoPage() {
                     <p className="mt-3 font-sans text-sm leading-relaxed text-void">
                       {result.summary}
                     </p>
+                    {result.honesty ? (
+                      <p className="mt-3 font-sans text-sm leading-relaxed text-ash">
+                        {result.honesty}
+                        {result.scheduledAt
+                          ? ` · ${new Date(result.scheduledAt).toLocaleString()}`
+                          : null}
+                      </p>
+                    ) : null}
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <Link
                         href="/dashboard/inbox"
@@ -245,8 +261,8 @@ export default function DemoPage() {
                 key={`${form.callerName}-${form.urgency}-${form.serviceType}`}
               />
               <p className="demo-pro-preview-note font-sans">
-                Updates live as you edit the form. This is the alert that lands on
-                the owner&apos;s phone and dashboard.
+                Updates live as you edit. Auto-books show a proposed window —
+                awaiting customer confirm — not a locked appointment.
               </p>
             </aside>
           </div>

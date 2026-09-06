@@ -2,7 +2,7 @@
 
 **Goal:** 10 home-service businesses on a free 30-day pilot.
 
-**Wedge:** Turn missed calls into booked jobs. Orvius answers, qualifies, books, and texts you a summary.
+**Wedge:** Turn missed calls into booked jobs. Orvius answers the dedicated line (or anything forwarded to it), qualifies, proposes a window, and texts you a summary.
 
 **Domain:** orvius.im · Pilot page: `/pilot` · Demo: `/demo`
 
@@ -37,7 +37,7 @@
 >
 > *(Let them talk.)*
 >
-> We built an AI receptionist for HVAC/plumbing shops that answers missed and after-hours calls, qualifies the job, books it, and texts you the summary so you don't lose jobs. I'm looking for 10 shops for a free 30-day pilot — I do the setup myself. Open to a 10-minute walkthrough this week?
+> We built an AI receptionist for HVAC/plumbing shops that answers missed and after-hours calls on a dedicated line (or what you forward to it), qualifies the job, proposes a window, and texts you the summary so you don't lose jobs. I'm looking for 10 shops for a free 30-day pilot — I do the setup myself. Open to a 10-minute walkthrough this week?
 
 ---
 
@@ -83,3 +83,15 @@
 **% of inbound leads captured vs. before Orvius**
 
 If you can't measure that, you're not proving the product.
+
+
+---
+
+## Sales honesty (say every time)
+
+- Forward required for the public number — or publish the Orvius line.
+- Proposed window ≠ confirmed appointment until the customer taps confirm.
+- Estimate card pay is Orvius checkout until Stripe Connect.
+- No Jobber/ServiceTitan sync. No “zero missed” / 100% guarantees.
+
+**Owner handoff:** `/pilot/forward` · `docs/SHOP-FORWARD-ONEPAGER.md` · `npm run pilot:onboard`

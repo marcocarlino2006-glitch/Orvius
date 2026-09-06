@@ -20,7 +20,7 @@ export const outreachTemplates: readonly OutreachTemplate[] = [
 
 (Let them talk.)
 
-We built a receptionist for HVAC and plumbing shops that answers missed and after-hours calls, qualifies the job, books it, and texts you the summary. Looking for 10 shops on a free 30-day pilot — I do the setup. Open to a 10-minute walkthrough this week?`,
+We built a receptionist for HVAC and plumbing shops that answers missed and after-hours calls on a dedicated line (or anything you forward to it), qualifies the job, proposes a window, and texts you the summary. Looking for 10 shops on a free 30-day pilot — I do the setup. Open to a 10-minute walkthrough this week?`,
   },
   {
     id: "cold_dm",
@@ -28,7 +28,7 @@ We built a receptionist for HVAC and plumbing shops that answers missed and afte
     channel: "SMS / DM",
     body: `Hey [Name] — saw [Business] on Google. Curious: how many calls do you miss after hours or while you're on a job?
 
-We're piloting Orvius — answers missed calls, books the job, texts you the lead. Free for 30 days; I set it up for the first 10 shops.
+We're piloting Orvius — answers on a dedicated line (or forwarded missed/after-hours), proposes the job window, texts you the lead. Free for 30 days; I set it up for the first 10 shops.
 
 2-min demo → orvius.im/demo`,
   },

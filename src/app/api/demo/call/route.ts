@@ -144,6 +144,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const bookingStatus = !autoBook.created
+      ? "lead_only"
+      : bookedJob?.customerConfirmedAt
+        ? "confirmed"
+        : "proposed_awaiting_confirm";
+
     return NextResponse.json({
       ok: true,
       demo: true,
@@ -152,7 +158,16 @@ export async function POST(request: NextRequest) {
       leadId: lead.id,
       jobId: autoBook.jobId,
       autoBooked: autoBook.created,
+      bookingStatus,
+      scheduledAt: bookedJob?.scheduledAt?.toISOString() ?? null,
+      customerConfirmedAt: bookedJob?.customerConfirmedAt?.toISOString() ?? null,
       summary,
+      honesty:
+        bookingStatus === "proposed_awaiting_confirm"
+          ? "Proposed window — awaiting customer confirm. Not a locked appointment yet."
+          : bookingStatus === "confirmed"
+            ? "Customer confirmed the window."
+            : "Lead captured — no auto-book for this urgency.",
     });
   } catch (error) {
     const message =

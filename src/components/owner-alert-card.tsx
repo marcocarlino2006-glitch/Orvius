@@ -11,6 +11,8 @@ type OwnerAlertCardProps = {
     urgency?: string;
     address?: string;
     channel?: string;
+    /** Honest booking line — e.g. proposed window awaiting confirm. */
+    bookingLine?: string;
   };
 };
 
@@ -35,13 +37,21 @@ export function leadFromDemoForm(form: {
   urgency: string;
   address: string;
 }) {
+  const urgency = formatUrgencyLabel(form.urgency);
+  const books =
+    form.urgency === "emergency" ||
+    form.urgency === "same-day" ||
+    form.urgency === "this-week";
   return {
     name: form.callerName,
     phone: form.callerPhone,
     service: form.serviceType,
-    urgency: formatUrgencyLabel(form.urgency),
+    urgency,
     address: form.address,
     channel: "Simulated call · demo",
+    bookingLine: books
+      ? "Proposed window · awaiting customer confirm"
+      : undefined,
   };
 }
 
@@ -59,6 +69,7 @@ export function OwnerAlertCard({
   const urgency = lead?.urgency ?? "Emergency";
   const address = lead?.address ?? "1842 Oak Street";
   const channel = lead?.channel ?? "Inbound call · after hours";
+  const bookingLine = lead?.bookingLine;
   const isEmergency = urgency.toLowerCase().includes("emergency");
 
   const fields: AlertField[] = [
@@ -66,6 +77,9 @@ export function OwnerAlertCard({
     { label: "Service", value: service },
     { label: "Urgency", value: urgency, accent: isEmergency },
     { label: "Address", value: address },
+    ...(bookingLine
+      ? [{ label: "Booking", value: bookingLine, accent: true as const }]
+      : []),
   ];
 
   return (
