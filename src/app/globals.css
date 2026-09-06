@@ -19107,6 +19107,14 @@ select {
     linear-gradient(180deg, #05070b 0%, transparent 12%);
 }
 
+/* Cursor hero: lighter veil so the dense board stays readable */
+.mkt-hero--cursor .mkt-hero-product-veil {
+  background:
+    linear-gradient(90deg, #05070b 0%, color-mix(in srgb, #05070b 72%, transparent) 8%, color-mix(in srgb, #05070b 28%, transparent) 18%, transparent 32%),
+    linear-gradient(0deg, #05070b 0%, transparent 10%),
+    linear-gradient(180deg, #05070b 0%, transparent 8%);
+}
+
 .mkt-hero-product-plane .mkt-product,
 .mkt-hero-product-plane .mkt-product--stage,
 .mkt-hero-product-plane .mkt-product--company,
@@ -20294,17 +20302,46 @@ select {
 
 @media (max-width: 640px) {
   .mkt-product-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
   }
 
   .mkt-product--dense .mkt-product-rail {
-    border-right: none;
-    border-bottom: 1px solid color-mix(in srgb, #fff 8%, transparent);
-    max-height: 11.5rem;
+    border-right: 1px solid color-mix(in srgb, #fff 8%, transparent);
+    border-bottom: none;
+    max-height: none;
+  }
+
+  .mkt-product-rail-list li {
+    padding: 0.35rem 0.3rem;
+  }
+
+  .mkt-product-rail-list strong {
+    font-size: 0.6875rem;
+  }
+
+  .mkt-product-rail-list em {
+    font-size: 0.625rem;
+  }
+
+  .mkt-product-stream {
+    padding: 0.75rem 0.7rem 0.85rem;
+  }
+
+  .mkt-product-stream-title {
+    font-size: 0.9rem;
+  }
+
+  .mkt-product-steps li,
+  .mkt-product-reply p {
+    font-size: 0.6875rem;
   }
 
   .mkt-hero--cursor .mkt-hero-product-band .mkt-product {
-    max-height: none;
+    max-height: min(48svh, 22rem);
+  }
+
+  .mkt-hero--cursor .mkt-hero-product-band .mkt-product-cli {
+    display: none;
   }
 }
 
