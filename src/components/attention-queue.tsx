@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   attentionKindLabel,
   type AttentionItem,
-} from "@/lib/attention-queue";
+} from "@/lib/attention-types";
 import { AssignTechButton, type TechOption } from "@/components/assign-tech-button";
 import { JobStatusAdvance } from "@/components/job-status-advance";
 import { BookJobQuickButton } from "@/components/today-priority-leads";

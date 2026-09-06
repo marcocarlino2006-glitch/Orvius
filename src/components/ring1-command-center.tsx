@@ -11,7 +11,7 @@ import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
 import { usePlanAccess } from "@/lib/use-plan-access";
-import type { AttentionItem } from "@/lib/attention-queue";
+import type { AttentionItem } from "@/lib/attention-types";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
