@@ -9,18 +9,18 @@ export const company = {
   dmcaEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
-  /** Absolute brand line — SpaceX-scale, not SaaS fluff. */
-  tagline: "Missed calls become booked jobs.",
-  /** Category we are creating. */
+  /** Absolute brand line — night shift for the trades, not SaaS fluff. */
+  tagline: "The night shift for the trades.",
+  /** Category we are creating — not “AI receptionist.” */
   categoryClaim:
-    "The autonomous operating system for HVAC, plumbing, and electrical.",
+    "The night-shift OS for HVAC, plumbing, and electrical.",
   /** Wedge proof — measurable today. */
   proofLine: "Missed calls become booked jobs.",
   vision:
-    "Make missed jobs obsolete. Build the autonomous OS for the trades — every shop captures demand 24/7, runs the day from one command plane, and compounds intelligence with every call, job, and dollar. Humans keep high-risk overrides.",
+    "Make missed night jobs obsolete. Orvius is the shop OS that runs after hours — captures demand, books the work, alerts the owner, and compounds one record across every call, job, and dollar. Humans keep high-risk overrides.",
   /** Product goal — not a warranty of 100% answer rate. */
   mission:
-    "First law: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
+    "Night rule: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
   strategy: [
     "Close Capture→Record→Command→Proof on the line before platform vapor — then expand rings.",
     "Dominate one trade and geography with trade-specific intelligence and reliable workflow execution.",

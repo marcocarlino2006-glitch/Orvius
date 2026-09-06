@@ -191,8 +191,8 @@ export function AttentionQueue({
   if (loading && !items.length) {
     return (
       <section className="attention-queue" aria-label="Needs attention">
-        <p className="attention-queue-kicker type-eyebrow font-sans">Needs you</p>
-        <p className="attention-queue-empty font-sans">Loading what needs you…</p>
+        <p className="attention-queue-kicker type-eyebrow font-sans">On the board</p>
+        <p className="attention-queue-empty font-sans">Loading the board…</p>
       </section>
     );
   }
@@ -200,10 +200,10 @@ export function AttentionQueue({
   if (!items.length) {
     return (
       <section className="attention-queue attention-queue-clear" aria-label="Needs attention">
-        <p className="attention-queue-kicker type-eyebrow font-sans">Needs you</p>
-        <h2 className="attention-queue-title font-sans">You&apos;re clear</h2>
+        <p className="attention-queue-kicker type-eyebrow font-sans">On the board</p>
+        <h2 className="attention-queue-title font-sans">Board is clear</h2>
         <p className="attention-queue-empty font-sans">
-          No urgent leads, unassigned jobs, or overdue follow-ups. Outcomes below track the week.
+          No urgent leads, open jobs, or overdue follow-ups. Outcomes below track the week.
         </p>
       </section>
     );
@@ -212,12 +212,12 @@ export function AttentionQueue({
   return (
     <section className="attention-queue" aria-label="Needs attention">
       <div className="attention-queue-head font-sans">
-        <p className="attention-queue-kicker type-eyebrow">Needs you</p>
+        <p className="attention-queue-kicker type-eyebrow">On the board</p>
         <h2 className="attention-queue-title">
-          {items.length} item{items.length === 1 ? "" : "s"} need attention
+          {items.length} item{items.length === 1 ? "" : "s"} on the board
         </h2>
         <p className="attention-queue-lead">
-          Ranked by urgency and field impact. Act here — don&apos;t hunt the dashboard.
+          Ranked by urgency and field impact. Act here — don&apos;t hunt the shop.
         </p>
       </div>
 

@@ -1,24 +1,24 @@
 import { MktSection } from "@/components/mkt-section";
 
-const laws = [
+const nightRules = [
   {
-    id: "I",
-    title: "No demand dies after hours.",
-    body: "The line answers, qualifies, and alerts. Capture closes.",
+    id: "01",
+    title: "The bay never goes dark.",
+    body: "After-hours and overflow get answered, qualified, and alerted — demand does not die on voicemail.",
   },
   {
-    id: "II",
-    title: "Every touch compounds the record.",
-    body: "Calls, texts, and jobs land on one customer brain — then book.",
+    id: "02",
+    title: "One board. Not twelve tabs.",
+    body: "Every call, text, and job compounds one customer record. Book and assign from Attention — no CRM scavenger hunt.",
   },
   {
-    id: "III",
-    title: "One command plane. Proof that prints.",
-    body: "Act from Attention. Approve high-risk moves. Copy weekly recovered $.",
+    id: "03",
+    title: "Proof you can hand a partner.",
+    body: "Weekly recovered jobs and dollars copy as a stamped artifact. No vanity dashboards. No invented ARR.",
   },
 ] as const;
 
-/** First principles — absolute enough to feel like law. */
+/** Shop-floor doctrine — not founder “first principles” theater. */
 export function HomeStatement() {
   return (
     <MktSection
@@ -27,19 +27,19 @@ export function HomeStatement() {
       aria-labelledby="home-manifesto-heading"
     >
       <div className="mkt-manifesto-inner mkt-manifesto-inner--laws">
-        <p className="mkt-manifesto-kicker font-sans">Laws</p>
+        <p className="mkt-manifesto-kicker font-sans">Night rules</p>
         <h2 id="home-manifesto-heading" className="mkt-manifesto-title">
-          Built from first principles.
+          How the shop runs when you&apos;re not on the floor.
         </h2>
         <ol className="mkt-laws font-sans">
-          {laws.map((law) => (
-            <li key={law.id} className="mkt-law">
+          {nightRules.map((rule) => (
+            <li key={rule.id} className="mkt-law">
               <span className="mkt-law-id" aria-hidden>
-                {law.id}
+                {rule.id}
               </span>
               <div className="mkt-law-copy">
-                <h3 className="mkt-law-title">{law.title}</h3>
-                <p className="mkt-law-body">{law.body}</p>
+                <h3 className="mkt-law-title">{rule.title}</h3>
+                <p className="mkt-law-body">{rule.body}</p>
               </div>
             </li>
           ))}

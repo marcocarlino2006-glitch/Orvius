@@ -35,13 +35,13 @@ export function HomeCallStory() {
     >
       <div className="mkt-proof-layout mkt-proof-layout--company">
         <div className="mkt-proof-copy">
-          <p className="mkt-proof-kicker font-sans">Evidence</p>
+          <p className="mkt-proof-kicker font-sans">On the wire</p>
           <h2 id="home-proof-heading" className="mkt-proof-title">
-            Hear it on the line.
+            Call it. Hear the night shift.
           </h2>
           <p className="mkt-proof-lead font-sans">
-            {summitCaseStudy.name} — labeled reference shop. Call the live demo
-            line, or audit your after-hours traffic.
+            {summitCaseStudy.name} — labeled reference shop. The product is the
+            live line. Dial it, or audit your after-hours traffic.
           </p>
           <div className="mkt-proof-actions font-sans">
             <a href={demoLineHref()} className="mkt-btn mkt-btn-ink">

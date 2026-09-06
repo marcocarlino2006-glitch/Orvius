@@ -141,6 +141,46 @@ try {
   fail("SMS DONE honesty", "twilio sms webhook missing");
 }
 
+// Presence — fail the brand-swap test
+try {
+  const hero = read("src/components/home-line-hero.tsx");
+  const statement = read("src/components/home-statement.tsx");
+  const company = read("src/lib/company.ts");
+  if (
+    /mkt-hero-live-line/.test(hero) &&
+    /night shift/i.test(hero) &&
+    /DEMO_LINE_DISPLAY/.test(hero)
+  ) {
+    pass("Presence hero", "Live line artifact + night-shift claim on homepage");
+  } else {
+    fail(
+      "Presence hero",
+      "Hero must lead with live line + night-shift category claim",
+    );
+  }
+  if (
+    /Night rules/.test(statement) &&
+    /How the shop runs when you/.test(statement)
+  ) {
+    pass("Presence doctrine", "Shop-floor night rules — not first-principles cosplay");
+  } else {
+    fail(
+      "Presence doctrine",
+      "Statement must use night rules, not first-principles theater",
+    );
+  }
+  if (
+    /night.?shift OS for HVAC/i.test(company) ||
+    /night-shift OS for HVAC/i.test(company)
+  ) {
+    pass("Presence category", "Company copy owns night-shift OS category");
+  } else {
+    fail("Presence category", "company.ts must claim night-shift OS, not AI receptionist");
+  }
+} catch (e) {
+  fail("Presence craft", e instanceof Error ? e.message : String(e));
+}
+
 const failed = checks.filter((c) => !c.ok).length;
 console.log("\n─────────────────────────────────────");
 console.log(

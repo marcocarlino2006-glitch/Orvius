@@ -1,7 +1,21 @@
 # Master class — beyond green checkmarks
 
 Passing `bulletproof` / `standard:check` is the floor.
-This bar is the craft: honest capture, one owner ritual, Today that acts.
+This bar is the craft: honest capture, one owner ritual, Today that acts —
+and a presence that could never be mistaken for another AI receptionist.
+
+## Presence (list of greats)
+
+Great companies fail the brand-swap test. Strip the nav: if the first viewport
+could belong to a generic AI answering service, we failed.
+
+| Rule | Orvius move |
+|------|-------------|
+| Category | Night-shift OS for the trades — not “AI phone agent” |
+| Product artifact | The live line is the demo. Call it. |
+| Language | Shop floor / bay / board — not CRM / inbox / workflows |
+| Doctrine | Night rules — not “first principles” cosplay |
+| Proof | Stamped weekly recovered $ — not vanity ARR |
 
 ## Ritual (prove → confirm)
 
@@ -15,6 +29,7 @@ This bar is the craft: honest capture, one owner ritual, Today that acts.
 
 | Surface | Master-class rule |
 |---------|-------------------|
+| Homepage | Brand + live line + one night-shift claim |
 | Onboarding | Capture teaches steps; prove call; confirm only after verify |
 | Settings | One setup hub — not Multi-b cockpit duplication |
 | Today Attention | Capture is critical; weekly proof one-tap; failed alerts send test |
