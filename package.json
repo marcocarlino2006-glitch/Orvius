@@ -42,7 +42,8 @@
     "stripe:setup": "node scripts/stripe-setup.mjs",
     "repair:lines": "node scripts/repair-customer-lines.mjs",
     "repair:shared-lines": "node scripts/repair-shared-lines.mjs",
-    "bulletproof:product": "BULLETPROOF_SKIP_CASH=1 npm run bulletproof"
+    "bulletproof:product": "BULLETPROOF_SKIP_CASH=1 npm run bulletproof",
+    "master:class": "node scripts/master-class-check.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

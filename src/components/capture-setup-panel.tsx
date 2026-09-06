@@ -35,6 +35,8 @@ export function CaptureSetupPanel({
     [carrier],
   );
 
+  const canConfirm = Boolean(line) && lineVerified;
+
   async function copyLine() {
     if (!line) return;
     try {
@@ -62,7 +64,8 @@ export function CaptureSetupPanel({
       const data = (await res.json()) as { error?: string; message?: string };
       if (!res.ok) throw new Error(data.error ?? "Could not text steps");
       setNote(
-        data.message ?? "Texted to your mobile. Reply DONE when finished.",
+        data.message ??
+          "Texted to your mobile. Call your Orvius line once, then reply DONE.",
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not text steps");
@@ -154,14 +157,24 @@ export function CaptureSetupPanel({
           {texting ? "Texting…" : "Text me the steps"}
         </button>
         {line ? (
-          <a href={telHref(line)} className="btn btn-void text-sm">
-            Call to prove it
+          <a
+            href={telHref(line)}
+            className={`btn text-sm ${lineVerified ? "btn-ghost" : "btn-void"}`}
+          >
+            {lineVerified ? "Call again" : "Call to prove it"}
           </a>
         ) : null}
         <a href="/pilot/forward" className="btn btn-ghost text-sm">
           One-pager
         </a>
       </div>
+
+      {!lineVerified && line ? (
+        <p className="mt-3 text-sm text-ash" role="status">
+          Ritual order: call your Orvius line once so we know it answers — then
+          finish carrier steps and confirm below.
+        </p>
+      ) : null}
 
       {note ? (
         <p className="mt-3 text-sm text-ash" role="status">
@@ -179,14 +192,17 @@ export function CaptureSetupPanel({
           type="checkbox"
           className="mt-1"
           checked={overflowConfirmed}
-          disabled={saving || !line}
+          disabled={saving || !canConfirm}
           onChange={(e) => void onConfirmOverflow(e.target.checked)}
         />
         <span>
           {mode === "publish"
-            ? "Orvius is (or will be) my published shop number."
-            : "I set missed / busy / after-hours forward to Orvius — or I will before go-live."}
+            ? "Orvius is my published shop number on Google / trucks / ads."
+            : "I set missed / busy / after-hours forward to Orvius."}
           {lineVerified ? " · Line verified with a real call." : ""}
+          {!lineVerified
+            ? " · Locked until you prove the line with one call."
+            : ""}
         </span>
       </label>
     </div>

@@ -39,11 +39,12 @@ export function getOwnerSetupStatus(business: {
   const lineVerified = Boolean(business.lineVerifiedAt);
   const ready = hasLine && hasOwnerPhone && captureConfirmed && lineVerified;
 
+  // Prove before capture confirm — no theater stamps.
   let nextStep: OwnerSetupStatus["nextStep"] = "done";
   if (!hasLine) nextStep = "line";
   else if (!hasOwnerPhone) nextStep = "owner_phone";
-  else if (!captureConfirmed) nextStep = "capture";
   else if (!lineVerified) nextStep = "verify";
+  else if (!captureConfirmed) nextStep = "capture";
 
   return {
     hasLine,

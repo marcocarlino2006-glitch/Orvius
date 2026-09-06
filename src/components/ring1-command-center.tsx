@@ -89,7 +89,7 @@ export function Ring1CommandCenter() {
       (data?.dispatchToday.jobCount ?? 0) > 0);
 
   const attentionCoversGates = attention.some((item) =>
-    ["billing_action", "founder_cert", "missing_baseline", "stale_weekly_proof", "alert_failed"].includes(
+    ["billing_action", "founder_cert", "missing_baseline", "stale_weekly_proof", "alert_failed", "needs_capture"].includes(
       item.kind,
     ),
   );

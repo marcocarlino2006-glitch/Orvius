@@ -148,6 +148,17 @@ export async function PATCH(request: Request) {
       }
     }
 
+    // Capture confirm is earned — never theater. Prove the line answers first.
+    if (body.overflowForwardConfirmedAt === true && !existing.lineVerifiedAt) {
+      return NextResponse.json(
+        {
+          error:
+            "Prove your Orvius line with one test call before confirming capture.",
+        },
+        { status: 400 },
+      );
+    }
+
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {

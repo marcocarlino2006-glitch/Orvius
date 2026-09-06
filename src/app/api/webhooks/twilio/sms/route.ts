@@ -63,11 +63,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Owner replies DONE after forward/publish — stamp capture without creating a lead.
+  // Owner replies DONE after forward/publish — stamp only after a real prove call.
   if (
     isOwnerCaptureDoneKeyword(body) &&
     phonesEqual(from, business.ownerPhone)
   ) {
+    if (!business.lineVerifiedAt) {
+      return twimlResponse(
+        "Almost — call your Orvius line once so we know it answers, then reply DONE.",
+      );
+    }
     await prisma.business.update({
       where: { id: business.id },
       data: {
@@ -87,7 +92,7 @@ export async function POST(request: NextRequest) {
       messageSid,
     });
     return twimlResponse(
-      "Got it — call capture marked done. Place one test call to your Orvius line to prove it, then open Today.",
+      "Got it — call capture marked done. Open Today and work the next lead.",
     );
   }
 

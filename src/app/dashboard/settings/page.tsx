@@ -1,13 +1,7 @@
 "use client";
 
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
-import { GoLiveChecklist } from "@/components/go-live-checklist";
-import {
-  LaunchGatesStrip,
-  buildShopLaunchGates,
-} from "@/components/launch-gates-strip";
 import { OsShell } from "@/components/os-shell";
-import { ProOwnerStandards } from "@/components/pro-owner-standards";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { ProSetupHub } from "@/components/pro-setup-hub";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
@@ -269,49 +263,12 @@ export default function DashboardSettingsPage() {
 
   const certDone = certChecks.filter(Boolean).length;
   const wedgeReady = account?.wedge?.ready === true;
-  const baselineReady = Boolean(
-    account?.business?.avgTicketCents &&
-      account.business.baselineMissedCallsPerWeek != null &&
-      account.business.baselineJobsPerWeek != null,
-  );
-  const proofAt = account?.business?.lastWeeklyProofAt ?? null;
-  const proofFresh =
-    Boolean(proofAt) &&
-    !Number.isNaN(new Date(proofAt!).getTime()) &&
-    Date.now() - new Date(proofAt!).getTime() <= WEEK_MS;
-  const lastProofLabel = proofAt
-    ? proofFresh
-      ? `Last proof ${new Date(proofAt).toLocaleDateString()}`
-      : "Weekly proof stale (>7 days)"
-    : "No weekly proof copied yet";
-
-  const launchGates = buildShopLaunchGates({
-    certDone,
-    certTotal: FOUNDER_CERT.length,
-    baselineReady,
-    proofFresh,
-    lastProofLabel,
-    checkoutReady: Boolean(account?.billing?.configured),
-    entitled: Boolean(account?.billing?.entitled),
-    billingStatus:
-      account?.billing?.status ?? account?.business?.billingStatus ?? "none",
-    wedgeReady,
-    overflowForwardConfirmed: overflowForward,
-    wedgeScore: account?.wedge
-      ? `${account.wedge.score}/${account.wedge.total}`
-      : undefined,
-  });
 
   return (
-    <OsShell title="Settings" subtitle="Launch gates, line, baseline, export.">
+    <OsShell title="Settings" subtitle="Line, alerts, capture, baseline.">
       <ProPageStrip />
 
-      <LaunchGatesStrip gates={launchGates} title="Multi-b launch gates" />
-
-      <GoLiveChecklist />
-
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
-      <ProOwnerStandards health={account?.health} />
 
       <ShellPanel title="Founder phone certification">
         <div id="founder-cert" />

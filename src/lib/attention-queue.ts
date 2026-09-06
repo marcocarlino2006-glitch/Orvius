@@ -182,7 +182,22 @@ export async function getAttentionQueue(
   const hasLine = Boolean(
     business?.vapiPhoneNumber?.trim() || business?.twilioPhone?.trim(),
   );
-  if (
+  // Prove before capture — never ask owners to confirm theater first.
+  if (hasLine && !business?.lineVerifiedAt) {
+    items.push({
+      id: `needs_capture:${businessId}`,
+      kind: "needs_capture",
+      rank: kindRank("needs_capture"),
+      impact: "critical",
+      title: "Prove your line",
+      detail: "Place one test call so we know Orvius answers end-to-end.",
+      recommendedAction: "Call your Orvius line",
+      href: "/dashboard/settings#overflow-forward",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  } else if (
     hasLine &&
     business?.ownerPhone?.trim() &&
     !business.overflowForwardConfirmedAt
@@ -191,24 +206,10 @@ export async function getAttentionQueue(
       id: `needs_capture:${businessId}`,
       kind: "needs_capture",
       rank: kindRank("needs_capture"),
-      impact: "high",
-      title: "Set call capture",
+      impact: "critical",
+      title: "Confirm call capture",
       detail: "Forward missed calls to Orvius — or publish the Orvius number.",
       recommendedAction: "Finish capture setup",
-      href: "/dashboard/settings#overflow-forward",
-      entityType: "shop",
-      entityId: businessId,
-      createdAt: now.toISOString(),
-    });
-  } else if (hasLine && !business?.lineVerifiedAt) {
-    items.push({
-      id: `needs_capture:${businessId}`,
-      kind: "needs_capture",
-      rank: kindRank("needs_capture"),
-      impact: "high",
-      title: "Prove your line",
-      detail: "Place one test call so we know Orvius answers end-to-end.",
-      recommendedAction: "Call your Orvius line",
       href: "/dashboard/settings#overflow-forward",
       entityType: "shop",
       entityId: businessId,
@@ -232,8 +233,8 @@ export async function getAttentionQueue(
       rank: kindRank("founder_cert"),
       impact: "med",
       title: `Phone cert ${certDone}/5`,
-      detail: "Optional founder drills — not required for daily shop ops.",
-      recommendedAction: "Open certification",
+      detail: "Five real-phone drills before you trust after-hours alone.",
+      recommendedAction: "Run phone cert",
       href: "/dashboard/settings#founder-cert",
       entityType: "shop",
       entityId: businessId,
@@ -278,7 +279,7 @@ export async function getAttentionQueue(
       title: "Weekly proof due",
       detail: proofAt
         ? "Last proof is older than 7 days — copy a fresh artifact."
-        : "No weekly proof copied yet — multi-b requires measured money.",
+        : "No weekly proof copied yet — measured outcomes, not vanity stats.",
       recommendedAction: "Copy weekly proof",
       href: "/dashboard#shop-economics",
       entityType: "shop",
@@ -365,10 +366,10 @@ export async function getAttentionQueue(
       ]
         .filter(Boolean)
         .join(" · "),
-      recommendedAction: alert.leadId ? "Open lead" : "Check settings",
+      recommendedAction: "Send test alert",
       href: alert.leadId
         ? `/dashboard/inbox/${alert.leadId}`
-        : "/dashboard/settings",
+        : "/dashboard/settings#owner-alerts",
       entityType: alert.leadId ? "lead" : "shop",
       entityId: alert.leadId ?? businessId,
       createdAt: alert.createdAt.toISOString(),

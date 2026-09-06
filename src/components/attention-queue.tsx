@@ -62,6 +62,47 @@ function canCopyProof(item: AttentionItem) {
   return item.kind === "stale_weekly_proof";
 }
 
+function canTestAlert(item: AttentionItem) {
+  return item.kind === "alert_failed";
+}
+
+function TestAlertButton({ onDone }: { onDone?: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function run() {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch("/api/account/test-alert", { method: "POST" });
+      const data = (await res.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!res.ok) throw new Error(data?.error ?? "Could not send test alert");
+      onDone?.();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not send");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="attention-item-btn attention-item-btn-primary"
+        disabled={busy}
+        onClick={() => void run()}
+      >
+        {busy ? "Sending…" : "Send test alert"}
+      </button>
+      {err ? <span className="attention-item-detail">{err}</span> : null}
+    </>
+  );
+}
+
 function CopyProofButton({ onDone }: { onDone?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(false);
@@ -188,13 +229,15 @@ export function AttentionQueue({
           const showProof = canCopyProof(item);
           const showTextConfirm = canTextConfirm(item);
           const showAdvance = canAdvanceStatus(item);
+          const showTestAlert = canTestAlert(item);
           const hasPrimary =
             showCall ||
             showBook ||
             showAssign ||
             showProof ||
             showTextConfirm ||
-            showAdvance;
+            showAdvance ||
+            showTestAlert;
 
           return (
             <li key={item.id}>
@@ -244,6 +287,9 @@ export function AttentionQueue({
                     />
                   ) : null}
                   {showProof ? <CopyProofButton onDone={() => onAction?.()} /> : null}
+                  {showTestAlert ? (
+                    <TestAlertButton onDone={() => onAction?.()} />
+                  ) : null}
                   {showTextConfirm ? (
                     <TextConfirmButton
                       jobId={item.entityId}

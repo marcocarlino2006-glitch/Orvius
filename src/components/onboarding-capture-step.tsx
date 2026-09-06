@@ -13,6 +13,10 @@ type OnboardingCaptureStepProps = {
   onContinue: () => void;
 };
 
+/**
+ * Capture ritual step 1: pick forward vs publish + carrier steps.
+ * Does not stamp overflow — prove the line first, then confirm.
+ */
 export function OnboardingCaptureStep({
   line,
   shopName,
@@ -20,11 +24,9 @@ export function OnboardingCaptureStep({
 }: OnboardingCaptureStepProps) {
   const [mode, setMode] = useState<CaptureMode | null>(null);
   const [carrier, setCarrier] = useState<CarrierId>("verizon");
-  const [saving, setSaving] = useState(false);
   const [texting, setTexting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [smsNote, setSmsNote] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
 
   const guide = CARRIERS.find((c) => c.id === carrier) ?? CARRIERS[0]!;
 
@@ -61,32 +63,12 @@ export function OnboardingCaptureStep({
     }
   }
 
-  async function confirmAndContinue() {
-    if (!mode || !confirmed) return;
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/account", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ overflowForwardConfirmedAt: true }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Could not save");
-      onContinue();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save");
-    } finally {
-      setSaving(false);
-    }
-  }
-
   return (
     <div className="onboarding-capture">
       <h1 className="onboarding-title font-sans">Catch every missed call.</h1>
       <p className="onboarding-lead font-sans">
-        {shopName}&apos;s Orvius line is ready. Pick how callers reach it — one
-        choice, then we prove it works.
+        {shopName}&apos;s Orvius line is ready. Pick how callers reach it — then
+        prove the line answers before we mark capture done.
       </p>
 
       <p className="onboarding-verify-shop font-sans">Your Orvius number</p>
@@ -177,35 +159,25 @@ export function OnboardingCaptureStep({
         </p>
       ) : null}
 
-      {mode ? (
-        <label className="onboarding-check font-sans mt-4">
-          <input
-            type="checkbox"
-            checked={confirmed}
-            onChange={(e) => setConfirmed(e.target.checked)}
-          />
-          <span>
-            {mode === "publish"
-              ? "Orvius is (or will be) my published shop number."
-              : "I set missed / busy / after-hours forward to Orvius — or I will before go-live."}
-          </span>
-        </label>
-      ) : null}
-
       {error ? (
         <p className="onboarding-error font-sans" role="alert">
           {error}
         </p>
       ) : null}
 
+      <p className="onboarding-hint font-sans mt-4">
+        Next: one test call so we know Orvius answers. You confirm capture after
+        that — no future-tense checkboxes.
+      </p>
+
       <div className="onboarding-actions">
         <button
           type="button"
           className="btn btn-void font-sans"
-          disabled={!mode || !confirmed || saving}
-          onClick={() => void confirmAndContinue()}
+          disabled={!mode}
+          onClick={onContinue}
         >
-          {saving ? "Saving…" : "Prove it works"}
+          Prove it works
         </button>
       </div>
     </div>

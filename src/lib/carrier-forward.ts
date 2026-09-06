@@ -93,7 +93,7 @@ export function buildForwardGuideSms(params: {
       `Orvius for ${params.shopName}:`,
       `Your shop line is ${line}.`,
       "Put this number on Google, trucks, and ads.",
-      "Then reply DONE.",
+      "Call the Orvius line once to prove it answers, then reply DONE.",
     ].join("\n");
   }
 
@@ -108,7 +108,7 @@ export function buildForwardGuideSms(params: {
     `Forward missed / busy / after-hours to ${line}.`,
     `${carrier.label}: ${carrier.steps[1] ?? carrier.steps[0]}`,
     dial.trim(),
-    "When it's on, reply DONE.",
+    "Call your Orvius line once to prove it, finish forward, then reply DONE.",
   ]
     .filter(Boolean)
     .join("\n");

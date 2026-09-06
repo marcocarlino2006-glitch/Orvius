@@ -42,14 +42,14 @@ export function OwnerSetupBanner() {
           setLabel("Add your mobile so alerts reach you");
           return;
         }
-        if (!business.overflowForwardConfirmedAt) {
-          setHref("/dashboard/settings#overflow-forward");
-          setLabel("Set call capture — forward or publish your Orvius number");
-          return;
-        }
         if (!business.lineVerifiedAt) {
           setHref("/dashboard/settings#overflow-forward");
           setLabel("Prove your line — place one test call");
+          return;
+        }
+        if (!business.overflowForwardConfirmedAt) {
+          setHref("/dashboard/settings#overflow-forward");
+          setLabel("Confirm call capture — forward or publish is live");
           return;
         }
         setHref(null);
