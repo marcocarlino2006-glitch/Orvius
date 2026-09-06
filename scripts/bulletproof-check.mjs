@@ -96,10 +96,12 @@ if (confirmLib && confirmApi && confirmPage) {
   );
 }
 
-const overflowUi = fileHas(
-  "src/app/dashboard/settings/page.tsx",
-  "Copy forward-to number",
-);
+// Settings mounts CaptureSetupPanel — truth lives on the panel, not page chrome.
+const overflowUi =
+  fileHas("src/app/dashboard/settings/page.tsx", "CaptureSetupPanel") &&
+  fileHas("src/app/dashboard/settings/page.tsx", "overflow-forward") &&
+  fileHas("src/components/capture-setup-panel.tsx", "Copy forward-to number") &&
+  fileHas("src/components/capture-setup-panel.tsx", "/pilot/forward");
 const overflowPage = existsSync(join(root, "src/app/pilot/forward/page.tsx"));
 const overflowSheet = existsSync(join(root, "docs/SHOP-FORWARD-ONEPAGER.md"));
 if (overflowUi && overflowPage && overflowSheet) {
