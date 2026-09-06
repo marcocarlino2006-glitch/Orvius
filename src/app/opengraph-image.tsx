@@ -1,10 +1,9 @@
 import { OrviusMarkGraphic } from "@/lib/orvius-mark-graphic";
-import { orviusColors } from "@/lib/orvius-colors";
 import { company } from "@/lib/company";
 import { DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { ImageResponse } from "next/og";
 
-export const alt = "Orvius — Turn missed calls into booked jobs";
+export const alt = "Orvius — The night shift for the trades";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -18,18 +17,18 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: orviusColors.canvas,
+          background: "#05070b",
           padding: "72px 80px",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <OrviusMarkGraphic size={56} variant="light" />
+          <OrviusMarkGraphic size={56} variant="dark" />
           <div
             style={{
               display: "flex",
               fontSize: 28,
               fontWeight: 700,
-              color: orviusColors.void,
+              color: "#f4f6f9",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
             }}
@@ -44,20 +43,20 @@ export default function OpenGraphImage() {
               display: "flex",
               fontSize: 56,
               fontWeight: 600,
-              color: orviusColors.void,
+              color: "#f4f6f9",
               letterSpacing: "-0.02em",
               lineHeight: 1.08,
               maxWidth: 900,
             }}
           >
-            Turn missed calls into booked jobs.
+            The night shift for the trades.
           </div>
           <div
             style={{
               display: "flex",
               width: 48,
               height: 1,
-              background: orviusColors.hairline,
+              background: "rgba(244,246,249,0.22)",
             }}
           />
           <div
@@ -66,10 +65,10 @@ export default function OpenGraphImage() {
               maxWidth: 720,
               fontSize: 26,
               lineHeight: 1.4,
-              color: orviusColors.ash,
+              color: "rgba(244,246,249,0.62)",
             }}
           >
-            {DEMO_LINE_DISPLAY} · After-hours · qualify · book · alert
+            After-hours answer, book, and alert — on your board by morning.
           </div>
         </div>
 
@@ -78,11 +77,11 @@ export default function OpenGraphImage() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            color: orviusColors.ashSoft,
+            color: "rgba(244,246,249,0.5)",
             fontSize: 20,
           }}
         >
-          <span>{company.trades.join(" · ")}</span>
+          <span>{DEMO_LINE_DISPLAY}</span>
           <span>{company.domain}</span>
         </div>
       </div>
