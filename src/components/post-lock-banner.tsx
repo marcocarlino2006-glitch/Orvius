@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type Gate = { id: string; label: string; ok: boolean; detail: string };
@@ -14,13 +15,19 @@ type Status = {
 };
 
 /**
- * Fail-closed founder banner — Manus bar.
- * Stays up until Stripe + formation are green so we never soft-launch cash claims.
+ * Founder post-lock — Manus bar.
+ * Compact on Settings. Full only on Billing. Never crowds Command/Today.
  */
 export function PostLockBanner() {
+  const pathname = usePathname();
   const [status, setStatus] = useState<Status | null>(null);
 
+  const onBilling = pathname?.startsWith("/dashboard/billing");
+  const onSettings = pathname?.startsWith("/dashboard/settings");
+  const show = onBilling || onSettings;
+
   useEffect(() => {
+    if (!show) return;
     let cancelled = false;
     fetch("/api/bulletproof")
       .then(async (res) => {
@@ -34,9 +41,27 @@ export function PostLockBanner() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [show]);
 
-  if (!status || status.fullyReady) return null;
+  if (!show || !status || status.fullyReady) return null;
+
+  const openCount = status.openGates.length;
+
+  // Settings: one quiet line — don't compete with the owner ritual
+  if (onSettings && !onBilling) {
+    return (
+      <p className="post-lock-strip font-sans" role="status">
+        <span className="post-lock-strip-label">Post lock</span>
+        <span className="post-lock-strip-copy">
+          {openCount} founder gate{openCount === 1 ? "" : "s"} still open — billing
+          claims stay dark.
+        </span>
+        <Link href="/dashboard/billing" className="post-lock-strip-link">
+          Review
+        </Link>
+      </p>
+    );
+  }
 
   const cashOpen = status.openGates.filter(
     (g) => g.id.startsWith("stripe") || g.id === "billing_full",

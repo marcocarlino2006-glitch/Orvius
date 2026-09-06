@@ -6,36 +6,75 @@ type Stage = "attention" | "assigning" | "assigned";
 
 const techs = ["Jake M.", "Diana R.", "Chris P."] as const;
 
+type HomeProductPreviewProps = {
+  /** Ghost depth behind the hero — no controls, settled shop, never unfinished assign chrome */
+  atmosphere?: boolean;
+};
+
 /**
  * Product as atmosphere — one attention surface.
- * No browser chrome, KPI strip, or chip theater.
+ * Marketing mode never shows unfinished line states or interactive chrome.
  */
-export function HomeProductPreview() {
-  const [stage, setStage] = useState<Stage>("attention");
+export function HomeProductPreview({ atmosphere = false }: HomeProductPreviewProps) {
+  const [stage, setStage] = useState<Stage>(atmosphere ? "assigned" : "attention");
   const [tech, setTech] = useState<(typeof techs)[number]>(techs[0]);
 
   useEffect(() => {
+    if (atmosphere) {
+      // Settled shop loop — never linger on empty / unfinished assign chrome
+      let cancelled = false;
+      const run = () => {
+        if (cancelled) return;
+        setStage("attention");
+        window.setTimeout(() => {
+          if (cancelled) return;
+          setTech(techs[Math.floor(Math.random() * techs.length)]!);
+          setStage("assigned");
+        }, 2600);
+      };
+      run();
+      const loop = window.setInterval(run, 7200);
+      return () => {
+        cancelled = true;
+        window.clearInterval(loop);
+      };
+    }
+
     if (stage !== "assigning") return;
     const timer = window.setTimeout(() => setStage("assigned"), 700);
     return () => window.clearTimeout(timer);
-  }, [stage]);
+  }, [atmosphere, stage]);
 
   function assign() {
-    if (stage !== "attention") return;
-    setTech(techs[Math.floor(Math.random() * techs.length)]);
+    if (atmosphere || stage !== "attention") return;
+    setTech(techs[Math.floor(Math.random() * techs.length)]!);
     setStage("assigning");
   }
 
   function reset() {
+    if (atmosphere) return;
     setStage("attention");
   }
 
+  const statusLine =
+    stage === "assigning"
+      ? "Routing…"
+      : stage === "assigned"
+        ? `${tech} · ETA 45 min`
+        : atmosphere
+          ? "Awaiting dispatch"
+          : "Unassigned · today";
+
   return (
-    <div className="mkt-product mkt-product--company">
+    <div
+      className={`mkt-product mkt-product--company ${
+        atmosphere ? "mkt-product--atmosphere" : ""
+      }`}
+    >
       <header className="mkt-product-top">
-        <p className="mkt-product-kicker">Command</p>
+        <p className="mkt-product-kicker">Board</p>
         <p className="mkt-product-title">
-          {stage === "assigned" ? "1 needs you" : "3 need you"}
+          {stage === "assigned" ? "1 on the board" : "3 on the board"}
         </p>
       </header>
 
@@ -46,13 +85,13 @@ export function HomeProductPreview() {
           }`}
         >
           <span className="mkt-product-row-tag">
-            {stage === "assigned" ? "Assigned" : "Emergency"}
+            {stage === "assigned" ? "En route" : "Emergency"}
           </span>
           <span className="mkt-product-row-main">
             AC down · 1842 Oak St
             <em>
               {stage === "assigned"
-                ? `${tech} · en route`
+                ? `${tech} · rolling`
                 : "Maria Lopez · booked today"}
             </em>
           </span>
@@ -76,23 +115,13 @@ export function HomeProductPreview() {
       <div className="mkt-product-detail">
         <div>
           <p className="mkt-product-alert-kicker">
-            {stage === "assigned" ? "Dispatch updated" : "Selected"}
+            {stage === "assigned" ? "Dispatch" : "Selected"}
           </p>
           <p className="mkt-product-alert-title">Emergency AC · Oak St</p>
-          <p className="mkt-product-alert-meta">
-            {stage === "assigning"
-              ? "Assigning…"
-              : stage === "assigned"
-                ? `${tech} · ETA 45 min`
-                : "Unassigned · today"}
-          </p>
+          <p className="mkt-product-alert-meta">{statusLine}</p>
         </div>
-        {stage === "assigned" ? (
-          <button
-            type="button"
-            className="mkt-product-chip"
-            onClick={reset}
-          >
+        {atmosphere ? null : stage === "assigned" ? (
+          <button type="button" className="mkt-product-chip" onClick={reset}>
             Replay
           </button>
         ) : (
@@ -105,7 +134,7 @@ export function HomeProductPreview() {
             disabled={stage === "assigning"}
             aria-label="Assign technician"
           >
-            {stage === "assigning" ? "Assigning…" : "Assign tech"}
+            {stage === "assigning" ? "Routing…" : "Assign tech"}
           </button>
         )}
       </div>

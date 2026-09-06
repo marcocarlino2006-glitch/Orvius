@@ -262,135 +262,30 @@ export default function DashboardSettingsPage() {
   }
 
   const certDone = certChecks.filter(Boolean).length;
-  const wedgeReady = account?.wedge?.ready === true;
 
   return (
-    <OsShell title="Settings" subtitle="Line, alerts, capture, baseline.">
+    <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
       <ProPageStrip />
 
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
 
-      <ShellPanel title="Founder phone certification">
-        <div id="founder-cert" />
-        <p className="account-settings-hint font-sans">
-          Call your shop line from your cell. Check each scenario when it passes.
-          Saved to your shop (not just this browser). Wedge:{" "}
-          {wedgeReady ? "ready" : "not ready"} · Cert {certDone}/{FOUNDER_CERT.length}
-          {certSaving ? " · saving…" : ""}.
-        </p>
-        <ul className="mt-4 space-y-2 font-sans text-sm">
-          {FOUNDER_CERT.map((label, index) => (
-            <li key={label} className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={certChecks[index]}
-                onChange={() => toggleCert(index)}
-                className="mt-1"
-                aria-label={label}
-              />
-              <span className={certChecks[index] ? "text-ash line-through" : "text-void"}>
-                {label}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </ShellPanel>
-
       <form className="account-stack pro-settings-form" onSubmit={save}>
-        <ShellPanel title="Your dedicated line">
-          <p className="account-settings-value font-sans">
-            {line ?? "Assigning your number…"}
-          </p>
-          <p className="account-settings-hint font-sans">
-            Auto-generated for {account?.business?.name ?? "your shop"}. Customers
-            call this number — Orvius answers as your business.
-          </p>
-        </ShellPanel>
-
-      <div id="overflow-forward">
-        <ShellPanel title="Call capture">
-          <p className="account-settings-hint font-sans mb-3">
-            Copy forward-to number below, then forward missed / busy / after-hours
-            from your public line — or publish the Orvius number as your main line.
-          </p>
-          <CaptureSetupPanel
-            line={line}
-            overflowConfirmed={overflowForward}
-            lineVerified={Boolean(account?.business?.lineVerifiedAt)}
-            saving={overflowSaving}
-            onConfirmOverflow={(next) => saveOverflow(next)}
-          />
-        </ShellPanel>
-      </div>
-
-
-        <ShellPanel title="Economics + baseline">
-          <div id="economics-baseline" />
-          <label className="onboarding-field font-sans">
-            <span className="onboarding-label">Average ticket ($)</span>
-            <input
-              type="number"
-              min={50}
-              max={50000}
-              step={1}
-              value={avgTicket}
-              onChange={(e) => setAvgTicket(e.target.value)}
-              className="onboarding-input"
-              placeholder="285"
+        <div id="overflow-forward">
+          <ShellPanel title="Call capture">
+            <p className="account-settings-hint font-sans mb-3">
+              Your dedicated line answers as {account?.business?.name ?? "your shop"}.
+              Forward missed / busy / after-hours from your public line — or publish
+              this number as the main line.
+            </p>
+            <CaptureSetupPanel
+              line={line}
+              overflowConfirmed={overflowForward}
+              lineVerified={Boolean(account?.business?.lineVerifiedAt)}
+              saving={overflowSaving}
+              onConfirmOverflow={(next) => saveOverflow(next)}
             />
-            <span className="onboarding-hint">
-              Used to estimate pipeline value on Command — not collected revenue.
-            </span>
-          </label>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <label className="onboarding-field font-sans">
-              <span className="onboarding-label">Missed calls / week before Orvius</span>
-              <input
-                type="number"
-                min={0}
-                max={500}
-                step={1}
-                value={baselineMissed}
-                onChange={(e) => setBaselineMissed(e.target.value)}
-                className="onboarding-input"
-                placeholder="12"
-              />
-            </label>
-            <label className="onboarding-field font-sans">
-              <span className="onboarding-label">Jobs booked / week before Orvius</span>
-              <input
-                type="number"
-                min={0}
-                max={500}
-                step={1}
-                value={baselineJobs}
-                onChange={(e) => setBaselineJobs(e.target.value)}
-                className="onboarding-input"
-                placeholder="8"
-              />
-            </label>
-          </div>
-          <p className="onboarding-hint font-sans mt-2">
-            Owner-reported baseline. Command shows lift vs these numbers — proof for design
-            partners, not vanity homepage stats.
-          </p>
-        </ShellPanel>
-
-        <ShellPanel title="AI receptionist">
-          <p className="account-settings-hint font-sans">
-            Opening line callers hear when they dial your shop.
-          </p>
-          <label className="onboarding-field font-sans mt-4">
-            <span className="onboarding-label">Opening line</span>
-            <textarea
-              value={greeting}
-              onChange={(e) => setGreeting(e.target.value)}
-              className="onboarding-textarea"
-              rows={3}
-              placeholder={`Thank you for calling ${account?.business?.name ?? "your shop"}. How can I help you today?`}
-            />
-          </label>
-        </ShellPanel>
+          </ShellPanel>
+        </div>
 
         <ShellPanel title="Owner alerts">
           <label className="onboarding-field font-sans">
@@ -439,20 +334,108 @@ export default function DashboardSettingsPage() {
           </div>
         </ShellPanel>
 
-        <ShellPanel title="Your data">
-          <p className="account-settings-hint font-sans">
-            Download customers, leads, jobs, and money records as JSON. You own this data —
-            export builds trust and still keeps daily history in Orvius.
-          </p>
-          <button
-            type="button"
-            className="btn btn-secondary text-sm mt-4"
-            disabled={exporting}
-            onClick={exportShopData}
-          >
-            {exporting ? "Preparing export…" : "Export shop data"}
-          </button>
-        </ShellPanel>
+        <details className="pro-settings-secondary font-sans">
+          <summary>Opening line + baseline</summary>
+          <div id="economics-baseline" className="pro-settings-secondary-body">
+            <label className="onboarding-field font-sans">
+              <span className="onboarding-label">Opening line</span>
+              <textarea
+                value={greeting}
+                onChange={(e) => setGreeting(e.target.value)}
+                className="onboarding-textarea"
+                rows={3}
+                placeholder={`Thank you for calling ${account?.business?.name ?? "your shop"}. How can I help you today?`}
+              />
+            </label>
+            <label className="onboarding-field font-sans mt-4">
+              <span className="onboarding-label">Average ticket ($)</span>
+              <input
+                type="number"
+                min={50}
+                max={50000}
+                step={1}
+                value={avgTicket}
+                onChange={(e) => setAvgTicket(e.target.value)}
+                className="onboarding-input"
+                placeholder="285"
+              />
+              <span className="onboarding-hint">
+                Estimates pipeline value on Command — not collected revenue.
+              </span>
+            </label>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <label className="onboarding-field font-sans">
+                <span className="onboarding-label">Missed calls / week before Orvius</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={500}
+                  step={1}
+                  value={baselineMissed}
+                  onChange={(e) => setBaselineMissed(e.target.value)}
+                  className="onboarding-input"
+                  placeholder="12"
+                />
+              </label>
+              <label className="onboarding-field font-sans">
+                <span className="onboarding-label">Jobs booked / week before Orvius</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={500}
+                  step={1}
+                  value={baselineJobs}
+                  onChange={(e) => setBaselineJobs(e.target.value)}
+                  className="onboarding-input"
+                  placeholder="8"
+                />
+              </label>
+            </div>
+          </div>
+        </details>
+
+        <details className="pro-settings-secondary font-sans">
+          <summary>
+            Founder phone certification ({certDone}/{FOUNDER_CERT.length})
+            {certSaving ? " · saving…" : ""}
+          </summary>
+          <div className="pro-settings-secondary-body">
+            <p className="account-settings-hint font-sans mb-3">
+              Internal dogfood checklist — not part of the owner go-live ritual.
+            </p>
+            <ul className="pro-founder-cert-list">
+              {FOUNDER_CERT.map((label, index) => (
+                <li key={label}>
+                  <label className="pro-founder-cert-item font-sans">
+                    <input
+                      type="checkbox"
+                      checked={certChecks[index] ?? false}
+                      onChange={() => toggleCert(index)}
+                    />
+                    <span>{label}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </details>
+
+        <details className="pro-settings-secondary font-sans">
+          <summary>Your data</summary>
+          <div className="pro-settings-secondary-body">
+            <p className="account-settings-hint font-sans">
+              Download customers, leads, jobs, and money records as JSON.
+            </p>
+            <button
+              type="button"
+              className="btn btn-secondary text-sm mt-4"
+              disabled={exporting}
+              onClick={exportShopData}
+            >
+              {exporting ? "Preparing export…" : "Export shop data"}
+            </button>
+          </div>
+        </details>
 
         {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
         {syncWarning ? <ShellAlert tone="error">{syncWarning}</ShellAlert> : null}

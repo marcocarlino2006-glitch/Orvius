@@ -146,17 +146,30 @@ try {
   const hero = read("src/components/home-line-hero.tsx");
   const statement = read("src/components/home-statement.tsx");
   const company = read("src/lib/company.ts");
+  const preview = read("src/components/home-product-preview.tsx");
   if (
     /mkt-hero-live-line/.test(hero) &&
     /night shift/i.test(hero) &&
-    /DEMO_LINE_DISPLAY/.test(hero)
+    /DEMO_LINE_DISPLAY/.test(hero) &&
+    /mkt-hero-live-digit/.test(hero) &&
+    /atmosphere/.test(hero)
   ) {
-    pass("Presence hero", "Live line artifact + night-shift claim on homepage");
+    pass(
+      "Presence hero",
+      "Live line motion + atmosphere plane + night-shift claim",
+    );
   } else {
     fail(
       "Presence hero",
-      "Hero must lead with live line + night-shift category claim",
+      "Hero must lead with live-digit motion, atmosphere plane, night-shift claim",
     );
+  }
+  if (!/Assigning…/.test(preview) && /atmosphere\??/.test(preview)) {
+    pass("Presence marketing", "Hero product preview never shows Assigning…");
+  } else if (/Assigning…/.test(preview)) {
+    fail("Presence marketing", "home-product-preview still contains Assigning…");
+  } else {
+    fail("Presence marketing", "atmosphere mode missing from product preview");
   }
   if (
     /Night rules/.test(statement) &&

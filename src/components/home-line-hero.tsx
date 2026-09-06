@@ -5,14 +5,16 @@ import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
  * Presence bar: the live line IS the product.
- * Brand lockup → phone as artifact → one claim → one prove CTA.
- * No category eyebrow. No SaaS feature stack. No SpaceX cosplay.
+ * Brand → phone artifact (with motion) → one claim → one prove CTA.
+ * Command plane is ghost depth — never a dashboard card overlay.
  */
 export function HomeLineHero() {
+  const digits = DEMO_LINE_DISPLAY.replace(/\s+/g, " ").split("");
+
   return (
     <section className="mkt-hero mkt-hero--command" aria-labelledby="home-hero-heading">
       <div className="mkt-hero-plane" aria-hidden>
-        <HomeProductPreview />
+        <HomeProductPreview atmosphere />
       </div>
       <div className="mkt-hero-veil" aria-hidden />
       <div className="mkt-hero-grain" aria-hidden />
@@ -29,7 +31,18 @@ export function HomeLineHero() {
             <span className="mkt-hero-live-pulse" aria-hidden />
             Live line
           </span>
-          <span className="mkt-hero-live-number">{DEMO_LINE_DISPLAY}</span>
+          <span className="mkt-hero-live-number" aria-hidden>
+            {digits.map((ch, i) => (
+              <span
+                key={`${ch}-${i}`}
+                className="mkt-hero-live-digit"
+                style={{ animationDelay: `${0.14 + i * 0.028}s` }}
+              >
+                {ch === " " ? "\u00A0" : ch}
+              </span>
+            ))}
+          </span>
+          <span className="sr-only">{DEMO_LINE_DISPLAY}</span>
         </a>
 
         <h1 id="home-hero-heading" className="mkt-hero-title mkt-hero-title--absolute">

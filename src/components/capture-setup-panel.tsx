@@ -82,7 +82,10 @@ export function CaptureSetupPanel({
       </p>
 
       <p className="account-settings-value mt-3">
-        Your Orvius line: {line ?? "Assigning…"}
+        Your Orvius line:{" "}
+        {line ?? (
+          <span className="text-ash">Provisioning your dedicated number</span>
+        )}
       </p>
 
       <div className="capture-setup-modes mt-4">

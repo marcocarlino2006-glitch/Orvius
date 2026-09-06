@@ -117,10 +117,10 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       label: "Dedicated shop line",
       ok: lineOk && !onDemoLine,
       detail: onDemoLine
-        ? "Assigning your dedicated line…"
+        ? "Provisioning your dedicated line…"
         : lineOk
           ? line!
-          : "Assigning your dedicated line…",
+          : "Provisioning your dedicated line…",
     },
     {
       id: "assistant",
