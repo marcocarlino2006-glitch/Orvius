@@ -5848,17 +5848,13 @@ h3 {
    ═══════════════════════════════════════════════════════ */
 
 .os-shell-pro {
-  background:
-    radial-gradient(ellipse 80% 50% at 100% 0%, color-mix(in srgb, var(--signal) 5%, transparent), transparent 55%),
-    linear-gradient(180deg, var(--chalk) 0%, color-mix(in srgb, var(--fog) 35%, var(--chalk)) 100%);
+  background: #eceff3 !important;
   color: var(--void);
 }
 
 .os-sidebar-pro {
-  background:
-    radial-gradient(ellipse 120% 80% at 0% 0%, color-mix(in srgb, var(--signal) 5%, transparent), transparent 50%),
-    linear-gradient(180deg, var(--panel) 0%, var(--void-deep) 100%);
-  border-color: color-mix(in srgb, var(--mist) 10%, transparent);
+  background: #0c1016 !important;
+  border-color: color-mix(in srgb, #fff 8%, transparent);
 }
 
 .os-sidebar-pro .os-sidebar-label {
@@ -20819,8 +20815,8 @@ body:has(.mkt-page) .shell-header {
 
 /* —— OS spine density pass 2 —— */
 .os-shell-pro .os-sidebar {
-  background: #f3f5f8 !important;
-  border-right: 1px solid var(--os-line) !important;
+  background: #0c1016 !important;
+  border-right: 1px solid color-mix(in srgb, #fff 8%, transparent) !important;
 }
 
 .os-shell-pro .os-nav-link {
@@ -21035,4 +21031,288 @@ body:has(.confirm-shell) {
 .mkt-page .tier1-form-slot,
 .mkt-page form {
   color: inherit;
+}
+
+/* Final dashboard craft lock — filters, badges, nav rail */
+.os-shell-pro .inbox-filters .btn,
+.os-shell-pro .inbox-filters a,
+.os-shell-pro .pro-filter-bar .btn,
+.os-shell-pro .pro-filter-bar a,
+.os-shell-pro .pro-page-filters .btn,
+.os-shell-pro .pro-page-filters a {
+  border-radius: 0.25rem !important;
+  box-shadow: none !important;
+}
+
+.os-shell-pro .status-pill,
+.os-shell-pro .pro-badge,
+.os-shell-pro .lead-tag,
+.os-shell-pro .job-card-badges .status-pill {
+  border-radius: 0.25rem !important;
+}
+
+.os-shell-pro .os-sidebar .os-nav-link-active,
+.os-shell-pro .os-sidebar-pro .os-nav-link-active {
+  background: color-mix(in srgb, #fff 9%, transparent) !important;
+  color: #fff !important;
+  box-shadow: inset 3px 0 0 #f5f7fa !important;
+}
+
+.os-shell-pro .pro-stat-live,
+.os-shell-pro .pro-stat.is-active {
+  border-color: color-mix(in srgb, var(--os-ink) 28%, transparent) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.os-shell-pro .pro-kicker-flare,
+.os-shell-pro .live-dot-flare {
+  /* keep flare color for emergency signal; no wash behind it */
+}
+
+.os-shell-pro .lead-inbox-card,
+.os-shell-pro .job-card,
+.os-shell-pro .call-record-card {
+  background: #fff !important;
+}
+
+.os-shell-pro .pro-page-strip {
+  background: #fff !important;
+  padding: 0.65rem 0.85rem !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DASHBOARD CRAFT PASS 3 — hold industrial standard across the OS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.os-shell-pro .os-topbar-pro,
+.os-shell-pro .os-topbar {
+  padding: 1rem 1.15rem 0.9rem !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--os-line) !important;
+  box-shadow: none !important;
+}
+
+@media (min-width: 1024px) {
+  .os-shell-pro .os-topbar-pro,
+  .os-shell-pro .os-topbar {
+    padding: 1.15rem 1.75rem 1rem !important;
+  }
+}
+
+.os-shell-pro .os-content-pro,
+.os-shell-pro .os-content {
+  padding: 1.1rem 1.15rem 5.5rem !important;
+}
+
+@media (min-width: 1024px) {
+  .os-shell-pro .os-content-pro,
+  .os-shell-pro .os-content {
+    padding: 1.25rem 1.75rem 5.5rem !important;
+  }
+}
+
+.os-shell-pro .call-record-card,
+.os-shell-pro .approve-queue,
+.os-shell-pro .approve-queue-item,
+.os-shell-pro .approve-item,
+.os-shell-pro .pro-dispatch-today,
+.os-shell-pro .pro-setup-hub,
+.os-shell-pro .pro-setup-alert,
+.os-shell-pro .pro-setup-card,
+.os-shell-pro .account-billing-plan,
+.os-shell-pro .ring1-metric,
+.os-shell-pro .ring1-recent-call,
+.os-shell-pro .ring1-more-card,
+.os-shell-pro .pro-economics-panel,
+.os-shell-pro .pro-shop-outcomes,
+.os-shell-pro .owner-alert-card,
+.os-shell-pro .transcript-cinema,
+.os-shell-pro .capture-setup-panel,
+.os-shell-pro .go-live-checklist,
+.os-shell-pro .launch-gates-strip,
+.os-shell-pro .pro-page-strip,
+.os-shell-pro .os-ask-dock-panel {
+  border-radius: var(--os-radius) !important;
+  border: 1px solid var(--os-line) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  background: var(--os-panel) !important;
+}
+
+.os-shell-pro .call-record-card:hover,
+.os-shell-pro .approve-queue-item:hover,
+.os-shell-pro .ring1-more-card:hover,
+.os-shell-pro .ring1-recent-call:hover,
+.os-shell-pro .dispatch-job-chip:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
+}
+
+.pro-page-strip-badge,
+.os-shell-pro .pro-page-strip-pill,
+.os-shell-pro .pro-page-strip-badge {
+  display: inline-flex !important;
+  align-items: center;
+  padding: 0.3rem 0.55rem !important;
+  border-radius: 0.25rem !important;
+  font-size: 0.625rem !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--os-ink) !important;
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
+}
+
+.os-shell-pro .pro-setup-alert {
+  background: var(--os-panel) !important;
+  border-left: 3px solid var(--os-flare) !important;
+  box-shadow: none !important;
+}
+
+.os-shell-pro .dispatch-col-unassigned,
+.os-shell-pro .pro-today-pulse {
+  background: var(--os-panel) !important;
+  background-image: none !important;
+}
+
+.os-shell-pro .inbox-filters .btn-void,
+.os-shell-pro .pro-filter-bar .btn-void {
+  box-shadow: none !important;
+}
+
+.os-shell-pro .os-ask-dock-trigger,
+.os-shell-pro .os-ask-dock-chip,
+.os-shell-pro .os-ask-dock-send,
+.os-shell-pro .os-ask-dock-form input,
+.os-shell-pro .os-ask-dock-form button {
+  border-radius: var(--os-radius) !important;
+}
+
+.os-shell-pro .os-ask-dock-trigger {
+  min-height: 2.5rem !important;
+  padding: 0.45rem 0.85rem !important;
+  box-shadow: none !important;
+  border: 1px solid var(--os-line) !important;
+  background: var(--os-ink) !important;
+  color: #fff !important;
+  backdrop-filter: none !important;
+}
+
+.os-shell-pro .os-ask-dock-trigger-mark {
+  border-radius: 0.25rem !important;
+}
+
+.os-shell-pro .os-ask-dock-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 1px solid var(--os-line) !important;
+}
+
+.os-shell-pro .os-ask-dock-chip {
+  background: #fff !important;
+  border: 1px solid var(--os-line) !important;
+  box-shadow: none !important;
+  padding: 0.35rem 0.55rem !important;
+  font-size: 0.75rem !important;
+}
+
+.os-shell-pro .approve-queue-item,
+.os-shell-pro .approve-item {
+  padding: 0.7rem 0.85rem !important;
+  background: #fff !important;
+}
+
+.os-shell-pro .job-card-emergency {
+  border-left: 3px solid var(--os-flare) !important;
+}
+
+.os-shell-pro .job-card-emergency::before,
+.os-shell-pro .lead-inbox-card-emergency::before {
+  display: none !important;
+}
+
+.os-shell-pro .lead-inbox-card-emergency {
+  border-left: 3px solid var(--os-flare) !important;
+}
+
+.os-shell-pro .account-billing-plan,
+.os-shell-pro .tier1-plan {
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
+  border-radius: var(--os-radius) !important;
+  box-shadow: none !important;
+}
+
+.os-shell-pro .os-mobile-nav,
+.os-shell-pro .os-mobile-nav a,
+.os-shell-pro .os-mobile-nav button {
+  border-radius: var(--os-radius) !important;
+  box-shadow: none !important;
+}
+
+.os-shell-pro .os-mobile-nav {
+  background: var(--os-panel) !important;
+  border-top: 1px solid var(--os-line) !important;
+}
+
+.os-shell-pro .ring1-metric {
+  padding: 0.85rem 0.95rem !important;
+}
+
+.os-shell-pro .ring1-recent-call,
+.os-shell-pro .ring1-more-card {
+  padding: 0.7rem 0.85rem !important;
+}
+
+.os-shell-pro a.lead-inbox-card-link,
+.os-shell-pro .lead-inbox-card-link,
+.os-shell-pro .lead-inbox-card-link:hover {
+  transform: none !important;
+}
+
+.os-shell-pro .os-sidebar-pro .os-nav-link,
+.os-shell-pro .os-sidebar .os-nav-link {
+  border-radius: 0.25rem !important;
+  color: color-mix(in srgb, #e8edf4 72%, transparent) !important;
+}
+
+.os-shell-pro .os-sidebar-pro .os-nav-link:hover,
+.os-shell-pro .os-sidebar .os-nav-link:hover {
+  background: color-mix(in srgb, #fff 6%, transparent) !important;
+  color: #f5f7fa !important;
+}
+
+.os-shell-pro .os-ring-status-pro,
+.os-shell-pro .os-ring-status {
+  border-radius: var(--os-radius) !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  background: color-mix(in srgb, #fff 4%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.os-shell-pro .os-ring-status-title {
+  color: #f5f7fa !important;
+}
+
+.os-shell-pro .os-ring-status-module,
+.os-shell-pro .os-sidebar-label {
+  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+}
+
+.os-shell-pro .os-sidebar-brand .orvius-logo {
+  color: #f5f7fa !important;
+}
+
+.os-shell-pro .lead-inbox-card,
+.os-shell-pro .job-card,
+.os-shell-pro .call-record-card,
+.os-shell-pro .pro-page-strip {
+  background: #fff !important;
 }

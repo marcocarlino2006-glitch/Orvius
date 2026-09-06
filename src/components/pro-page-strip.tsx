@@ -36,7 +36,7 @@ export function ProPageStrip({ followUpCount = 0 }: ProPageStripProps) {
 
       <div className="pro-page-strip-actions font-sans">
         {followUpCount > 0 ? (
-          <Link href="/dashboard/inbox" className="pro-page-strip-pill">
+          <Link href="/dashboard/inbox" className="pro-page-strip-badge">
             {followUpCount} need follow-up
           </Link>
         ) : null}

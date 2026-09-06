@@ -38,7 +38,10 @@ export function JobCard({
   const emergency = urgency?.toLowerCase().includes("emergency");
 
   return (
-    <Link href={`/dashboard/jobs/${id}`} className="job-card pro-card">
+    <Link
+      href={`/dashboard/jobs/${id}`}
+      className={`job-card pro-card${emergency ? " job-card-emergency" : ""}`}
+    >
       <div className="job-card-header">
         <div className="job-card-kicker-row">
           {emergency ? (
