@@ -20935,3 +20935,104 @@ body:has(.confirm-shell) {
   color: color-mix(in srgb, #e8ecf2 78%, transparent) !important;
   border-color: color-mix(in srgb, #fff 8%, transparent) !important;
 }
+
+/* —— Pricing internals: kill remaining cream cards —— */
+.mkt-page .pricing-wizard,
+.mkt-page .pricing-needs,
+.mkt-page .pricing-faq-item,
+.mkt-page .pricing-matrix-scroll,
+.mkt-page .pricing-page-controls {
+  background: #0c1118 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-page .pricing-wizard-title,
+.mkt-page .pricing-matrix-title,
+.mkt-page .pricing-faq-title,
+.mkt-page .pricing-needs-title,
+.mkt-page .pricing-wizard-legend,
+.mkt-page .pricing-needs-legend,
+.mkt-page .pricing-wizard-step-active,
+.mkt-page .pricing-needs-option-label,
+.mkt-page .pricing-faq-question,
+.mkt-page .pricing-matrix-feature-label {
+  color: #f5f7fa !important;
+}
+
+.mkt-page .pricing-wizard-kicker,
+.mkt-page .pricing-wizard-step,
+.mkt-page .pricing-wizard-step-done,
+.mkt-page .pricing-wizard-back,
+.mkt-page .pricing-needs-option-detail,
+.mkt-page .pricing-needs-lead,
+.mkt-page .pricing-matrix-lead,
+.mkt-page .pricing-faq-answer,
+.mkt-page .pricing-page-controls-note {
+  color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
+}
+
+.mkt-page .pricing-needs-option,
+.mkt-page .pricing-wizard .pricing-needs-option {
+  background: #0a0e14 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.3rem !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-page .pricing-needs-option:hover {
+  border-color: color-mix(in srgb, #fff 22%, transparent) !important;
+}
+
+.mkt-page .pricing-needs-option-active {
+  background: color-mix(in srgb, #fff 5%, #0a0e14) !important;
+  border-color: color-mix(in srgb, #f0f0fa 32%, transparent) !important;
+}
+
+.mkt-page .pricing-needs-result {
+  background: color-mix(in srgb, #fff 4%, #0a0e14) !important;
+  border-color: color-mix(in srgb, #fff 14%, transparent) !important;
+}
+
+.mkt-page .pricing-needs-result-plan {
+  color: #f5f7fa !important;
+}
+
+.mkt-page .pricing-needs-result-reason,
+.mkt-page .pricing-needs-result-kicker {
+  color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
+}
+
+.mkt-page .pricing-matrix-table th,
+.mkt-page .pricing-matrix-table td {
+  border-color: color-mix(in srgb, #fff 8%, transparent) !important;
+  color: color-mix(in srgb, #e8ecf2 75%, transparent) !important;
+  background: transparent !important;
+}
+
+.mkt-page .pricing-matrix-category-row th {
+  background: color-mix(in srgb, #fff 3%, transparent) !important;
+  color: #f5f7fa !important;
+}
+
+.mkt-page .pricing-faq-question {
+  background: transparent !important;
+  border-color: color-mix(in srgb, #fff 8%, transparent) !important;
+}
+
+.mkt-page .billing-toggle,
+.mkt-page .pricing-billing-toggle,
+.mkt-page [class*="billing-toggle"] {
+  background: #0a0e14 !important;
+  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  border-radius: 0.3rem !important;
+  color: #eef1f5 !important;
+}
+
+.mkt-page .early-access-form,
+.mkt-page .tier1-form-slot,
+.mkt-page form {
+  color: inherit;
+}
