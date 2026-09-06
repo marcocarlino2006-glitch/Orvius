@@ -18624,7 +18624,7 @@ select {
 .mkt-nav-cta,
 .mkt-btn-copper,
 .mkt-btn-void {
-  border-radius: var(--radius-cta) !important;
+  border-radius: var(--radius-cta, var(--radius-md)) !important;
 }
 
 .mkt-product--stage,
@@ -18636,12 +18636,12 @@ select {
 .os-panel,
 .pro-panel,
 .home-os-panel {
-  border-radius: var(--radius-box) !important;
+  border-radius: var(--radius-box, var(--radius-lg)) !important;
 }
 
 .mkt-product--stage .mkt-product-row,
 .mkt-product--company .mkt-product-row {
-  border-radius: var(--radius-control) !important;
+  border-radius: var(--radius-control, var(--radius-md)) !important;
 }
 
 .mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-word {
@@ -18680,7 +18680,7 @@ select {
 .orvius-box {
   border: 1px solid var(--surface-border-dark, color-mix(in srgb, #fff 10%, transparent));
   background: var(--surface-bg-dark, #12161e);
-  border-radius: var(--radius-box);
+  border-radius: var(--radius-box, var(--radius-lg));
   padding: 1rem 1.1rem;
 }
 
@@ -18731,7 +18731,7 @@ select {
 .tier1-login-actions .google-sign-in-btn,
 .tier1-login-dev-btn,
 .tier1-login-setup {
-  border-radius: var(--radius-box) !important;
+  border-radius: var(--radius-box, var(--radius-lg)) !important;
   border: 1px solid color-mix(in srgb, var(--void) 12%, transparent) !important;
   background: #fff !important;
   box-shadow: none !important;
@@ -18763,4 +18763,107 @@ select {
 .mkt-btn,
 .mkt-nav-cta {
   border-radius: 0.625rem !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Dashboard craft — same Sora + box language as marketing
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.os-shell,
+.os-shell-pro,
+.os-shell *,
+.os-shell-pro * {
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+}
+
+.os-sidebar-brand .orvius-logo {
+  gap: 0.5rem;
+}
+
+.os-sidebar-brand .orvius-logo-word {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.os-sidebar-brand .orvius-logo-mark {
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+}
+
+.os-sidebar-label,
+.os-sidebar-pro .os-sidebar-label {
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  font-size: 0.625rem !important;
+}
+
+.os-sidebar-pro .os-nav-link,
+.os-nav-link {
+  border-radius: var(--radius-control, var(--radius-md)) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.os-sidebar-pro .os-nav-link-active {
+  border-radius: var(--radius-control, var(--radius-md)) !important;
+  box-shadow: inset 2px 0 0 var(--signal) !important;
+}
+
+.os-ring-status-pro,
+.os-panel,
+.os-panel-pro,
+.pro-panel,
+.shell-panel,
+.account-panel,
+.pro-setup-hub,
+.pro-settings-card,
+.capture-setup,
+.os-main-card {
+  border-radius: var(--radius-box, var(--radius-lg)) !important;
+}
+
+.os-shell-pro .btn,
+.os-shell-pro .inst-btn,
+.os-shell-pro button.btn,
+.os-shell .btn,
+.os-shell .inst-btn {
+  border-radius: var(--radius-cta, var(--radius-md)) !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+}
+
+.os-shell-pro input,
+.os-shell-pro textarea,
+.os-shell-pro select,
+.os-shell input,
+.os-shell textarea,
+.os-shell select {
+  border-radius: var(--radius-control, var(--radius-md)) !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+}
+
+.os-shell-pro h1,
+.os-shell-pro h2,
+.os-shell-pro .os-page-title,
+.os-page-title {
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.paywall-modal,
+.pay-prompt-modal,
+.post-lock-banner,
+.post-lock-strip {
+  border-radius: var(--radius-box, var(--radius-lg)) !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+}
+
+.paywall-modal button,
+.pay-prompt-modal button {
+  border-radius: var(--radius-cta, var(--radius-md)) !important;
 }
