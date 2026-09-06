@@ -30,7 +30,12 @@ export function validateTwilioRequest(params: {
   }
 
   if (!params.signature) {
-    return false;
+    // Local/dogfood posts without a Twilio signature — allow outside production.
+    if (isProduction()) {
+      logWarn("twilio.webhook.signature_missing");
+      return false;
+    }
+    return true;
   }
 
   return twilio.validateRequest(

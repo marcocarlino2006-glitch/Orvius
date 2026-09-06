@@ -298,7 +298,7 @@ export function OnboardingWizard() {
                 />
               </label>
               <p className="onboarding-footnote font-sans">
-                We auto-assign a dedicated local number — no Twilio console, no
+                We auto-assign a dedicated local number — no phone-console setup, no
                 shared demo line. Callers may hear a short recording/AI disclosure
                 required by law in some jurisdictions.
               </p>

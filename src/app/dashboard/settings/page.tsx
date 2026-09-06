@@ -7,6 +7,7 @@ import {
   buildShopLaunchGates,
 } from "@/components/launch-gates-strip";
 import { OsShell } from "@/components/os-shell";
+import { ProOwnerStandards } from "@/components/pro-owner-standards";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { ProSetupHub } from "@/components/pro-setup-hub";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
@@ -310,6 +311,7 @@ export default function DashboardSettingsPage() {
       <GoLiveChecklist />
 
       <ProSetupHub health={account?.health} wedge={account?.wedge} />
+      <ProOwnerStandards health={account?.health} />
 
       <ShellPanel title="Founder phone certification">
         <div id="founder-cert" />
@@ -350,6 +352,10 @@ export default function DashboardSettingsPage() {
 
       <div id="overflow-forward">
         <ShellPanel title="Call capture">
+          <p className="account-settings-hint font-sans mb-3">
+            Copy forward-to number below, then forward missed / busy / after-hours
+            from your public line — or publish the Orvius number as your main line.
+          </p>
           <CaptureSetupPanel
             line={line}
             overflowConfirmed={overflowForward}

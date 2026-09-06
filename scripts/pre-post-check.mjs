@@ -41,13 +41,13 @@ try {
     fail("Credentials", "Missing Twilio or Vapi secrets");
   }
 
-  if (health.stats.businessCount > 0) {
+  if (health.stats?.businessCount > 0) {
     pass("Business", `${health.stats.businessCount} business provisioned`);
   } else {
     fail("Business", "No business — run onboarding or npm run onboard");
   }
 
-  if (health.stats.leadCount > 0) {
+  if ((health.stats?.leadCount ?? 0) > 0) {
     pass("Leads", `${health.stats.leadCount} leads in database`);
   } else {
     warn("Leads", "No leads yet — run demo or place a test call");
@@ -91,7 +91,13 @@ try {
 console.log("\n🧪 Running internal E2E...\n");
 const e2e = spawnSync("npm", ["run", "e2e:dogfood"], {
   cwd: new URL("..", import.meta.url).pathname,
-  env: { ...process.env, APP_URL },
+  env: {
+    ...process.env,
+    APP_URL,
+    E2E_BASE_URL: APP_URL,
+    E2E_PREFER_LOCAL: "1",
+    PRE_POST: "1",
+  },
   stdio: "inherit",
 });
 

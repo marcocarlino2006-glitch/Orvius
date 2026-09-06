@@ -5,34 +5,59 @@ import { prisma } from "@/lib/prisma";
 import { isProduction } from "@/lib/runtime";
 
 export async function GET(request: NextRequest) {
+  const config = getConfigStatus();
+  const auth = getAuthConfigStatus();
+
+  // Always expose counts + readiness for gates / ops. Public counts are not secrets.
+  let businessCount = 0;
+  let leadCount = 0;
+  let callCount = 0;
+  let jobCount = 0;
+  let ownerPhone: string | null = null;
+
+  try {
+    const [businesses, leads, calls, jobs, primaryBusiness] = await Promise.all([
+      prisma.business.count(),
+      prisma.lead.count(),
+      prisma.call.count(),
+      prisma.job.count(),
+      prisma.business.findFirst({
+        orderBy: { createdAt: "asc" },
+        select: { ownerPhone: true },
+      }),
+    ]);
+    businessCount = businesses;
+    leadCount = leads;
+    callCount = calls;
+    jobCount = jobs;
+    ownerPhone = primaryBusiness?.ownerPhone ?? null;
+  } catch {
+    // DB down — still return config so pre-post can report credentials honestly.
+  }
+
+  const twilioPhone = config.twilioPhone;
+  const ownerPhoneIsTwilioLine = Boolean(
+    ownerPhone && twilioPhone && ownerPhone === twilioPhone,
+  );
+  const ownerSmsEnabled = config.ownerSmsEnabled;
+  const ownerSmsReachable =
+    ownerSmsEnabled && Boolean(ownerPhone) && !ownerPhoneIsTwilioLine;
+
+  const stats = { businessCount, leadCount, callCount, jobCount };
+
+  // Production without admin still gets readiness + stats (needed by dogfood / pre-post).
+  // Detailed config/auth item lists stay admin-only.
   if (isProduction() && !verifyAdminRequest(request)) {
     return NextResponse.json({
       ok: true,
       service: "orvius",
+      configured: config.ready,
+      ownerSmsEnabled,
+      twilioPhone,
+      appUrl: config.appUrl,
+      stats,
     });
   }
-
-  const config = getConfigStatus();
-  const auth = getAuthConfigStatus();
-  const [businessCount, leadCount, callCount, jobCount, primaryBusiness] = await Promise.all([
-    prisma.business.count(),
-    prisma.lead.count(),
-    prisma.call.count(),
-    prisma.job.count(),
-    prisma.business.findFirst({
-      orderBy: { createdAt: "asc" },
-      select: { ownerPhone: true },
-    }),
-  ]);
-
-  const twilioPhone = config.twilioPhone;
-  const ownerPhone = primaryBusiness?.ownerPhone ?? null;
-  const ownerPhoneIsTwilioLine =
-    Boolean(ownerPhone && twilioPhone && ownerPhone === twilioPhone);
-  const ownerSmsReachable =
-    config.ownerSmsEnabled &&
-    Boolean(ownerPhone) &&
-    !ownerPhoneIsTwilioLine;
 
   return NextResponse.json({
     ok: true,
@@ -42,12 +67,12 @@ export async function GET(request: NextRequest) {
     appUrl: config.appUrl,
     webhookUrl: config.webhookUrl,
     smsWebhookUrl: config.smsWebhookUrl,
-    twilioPhone: config.twilioPhone,
-    ownerSmsEnabled: config.ownerSmsEnabled,
+    twilioPhone,
+    ownerSmsEnabled,
     ownerPhoneConfigured: Boolean(ownerPhone),
     ownerPhoneIsTwilioLine,
     ownerSmsReachable,
-    stats: { businessCount, leadCount, callCount, jobCount },
+    stats,
     config: config.items,
     auth: {
       ready: auth.ready,

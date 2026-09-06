@@ -143,7 +143,7 @@ export function CaptureSetupPanel({
           disabled={!line}
           onClick={() => void copyLine()}
         >
-          Copy number
+          Copy forward-to number
         </button>
         <button
           type="button"
