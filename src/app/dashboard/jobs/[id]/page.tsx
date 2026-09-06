@@ -20,6 +20,7 @@ type JobDetail = {
   notes: string | null;
   scheduledAt: string | null;
   confirmedAt: string | null;
+  customerConfirmedAt: string | null;
   dispatchedAt: string | null;
   onSiteAt: string | null;
   completedAt: string | null;
@@ -59,6 +60,9 @@ export default function JobDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [scheduleDraft, setScheduleDraft] = useState("");
+  const [confirmBusy, setConfirmBusy] = useState(false);
+  const [confirmMsg, setConfirmMsg] = useState<string | null>(null);
 
   const load = useCallback(() => {
     if (!jobId) return;
@@ -72,6 +76,16 @@ export default function JobDetailPage() {
       .then(([jobData, techData]) => {
         setJob(jobData.job);
         setCrew(techData.technicians ?? []);
+        if (jobData.job?.scheduledAt) {
+          const d = new Date(jobData.job.scheduledAt);
+          const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 16);
+          setScheduleDraft(local);
+        } else {
+          setScheduleDraft("");
+        }
+        setConfirmMsg(null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -180,6 +194,80 @@ export default function JobDetailPage() {
                     })
                   : "Not scheduled"}
               </dd>
+              <p className="mt-1 font-sans text-xs text-ash">
+                {job.customerConfirmedAt
+                  ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString()}`
+                  : job.scheduledAt
+                    ? "Proposed window — awaiting customer confirm"
+                    : "No window proposed yet"}
+              </p>
+              <div className="mt-3 flex flex-wrap items-end gap-2">
+                <label className="font-sans text-sm">
+                  <span className="label">Reschedule</span>
+                  <input
+                    type="datetime-local"
+                    className="input mt-1.5"
+                    disabled={saving}
+                    value={scheduleDraft}
+                    onChange={(e) => setScheduleDraft(e.target.value)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="btn btn-secondary text-sm"
+                  disabled={saving || !scheduleDraft}
+                  onClick={() =>
+                    void patch({
+                      scheduledAt: scheduleDraft
+                        ? new Date(scheduleDraft).toISOString()
+                        : null,
+                    }).then(() => {
+                      setConfirmMsg(
+                        "Window updated — send confirm so the customer locks it in.",
+                      );
+                    })
+                  }
+                >
+                  Save window
+                </button>
+                {job.scheduledAt && !job.customerConfirmedAt ? (
+                  <button
+                    type="button"
+                    className="btn btn-void text-sm"
+                    disabled={confirmBusy || saving}
+                    onClick={() => {
+                      void (async () => {
+                        setConfirmBusy(true);
+                        setConfirmMsg(null);
+                        try {
+                          const res = await fetch(
+                            `/api/jobs/${job.id}/confirm-sms`,
+                            { method: "POST" },
+                          );
+                          const data = await res.json();
+                          if (!res.ok) {
+                            throw new Error(data.error ?? "Could not send");
+                          }
+                          setConfirmMsg("Confirm SMS sent to customer.");
+                        } catch (err) {
+                          setConfirmMsg(
+                            err instanceof Error
+                              ? err.message
+                              : "Could not send confirm SMS",
+                          );
+                        } finally {
+                          setConfirmBusy(false);
+                        }
+                      })();
+                    }}
+                  >
+                    {confirmBusy ? "Sending…" : "Text confirm"}
+                  </button>
+                ) : null}
+              </div>
+              {confirmMsg ? (
+                <p className="mt-2 font-sans text-xs text-ash">{confirmMsg}</p>
+              ) : null}
             </div>
             {job.address ? (
               <div>

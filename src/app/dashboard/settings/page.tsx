@@ -357,6 +357,28 @@ export default function DashboardSettingsPage() {
         <p className="account-settings-value font-sans mt-3">
           Forward to: {line ?? "Assigning your number…"}
         </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn btn-secondary text-sm"
+            disabled={!line}
+            onClick={() => {
+              if (!line) return;
+              void navigator.clipboard.writeText(line).catch(() => null);
+            }}
+          >
+            Copy forward-to number
+          </button>
+          <a href="/pilot/forward" className="btn btn-ghost text-sm">
+            Owner forward one-pager
+          </a>
+        </div>
+        <ol className="mt-4 list-decimal space-y-1 pl-5 font-sans text-sm text-ash">
+          <li>Keep your public Google / truck number.</li>
+          <li>Set missed / busy / no-answer / after-hours forward to the Orvius line.</li>
+          <li>Place a live test call from your cell → confirm owner SMS.</li>
+          <li>Check the box below only after forward is real (or Orvius is published).</li>
+        </ol>
         <label className="mt-4 flex items-start gap-3 font-sans text-sm text-void">
           <input
             type="checkbox"

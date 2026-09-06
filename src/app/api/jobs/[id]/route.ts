@@ -87,7 +87,16 @@ export async function PATCH(request: Request, { params }: Params) {
         where: { id },
         data: {
           ...(body.scheduledAt !== undefined
-            ? { scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null }
+            ? (() => {
+                const next = body.scheduledAt ? new Date(body.scheduledAt) : null;
+                const prev = existing.scheduledAt;
+                const changed =
+                  (next?.getTime() ?? null) !== (prev?.getTime() ?? null);
+                return {
+                  scheduledAt: next,
+                  ...(changed ? { customerConfirmedAt: null } : {}),
+                };
+              })()
             : {}),
           ...(body.notes !== undefined ? { notes: body.notes } : {}),
           ...(body.technicianId !== undefined

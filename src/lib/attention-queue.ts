@@ -40,6 +40,7 @@ export type AttentionItem = {
     address?: string | null;
     scheduledAt?: string | null;
     phone?: string | null;
+    status?: string | null;
   };
 };
 
@@ -482,7 +483,7 @@ export async function getAttentionQueue(
         ]
           .filter(Boolean)
           .join(" · "),
-        recommendedAction: "Open job",
+        recommendedAction: "Text confirm",
         href: `/dashboard/jobs/${job.id}`,
         entityType: "job",
         entityId: job.id,
@@ -493,6 +494,7 @@ export async function getAttentionQueue(
           address: job.address,
           phone: job.customer?.phone ?? job.lead?.phone,
           scheduledAt: scheduled?.toISOString() ?? null,
+          status: job.status,
         },
       });
     }
@@ -553,7 +555,9 @@ export async function getAttentionQueue(
         meta: {
           urgency,
           address: job.address,
+          phone: job.customer?.phone ?? job.lead?.phone,
           scheduledAt: scheduled?.toISOString() ?? null,
+          status: job.status,
         },
       });
     }

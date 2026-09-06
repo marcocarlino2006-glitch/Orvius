@@ -42,6 +42,7 @@ export function serializeJob<
     createdAt: Date;
     updatedAt: Date;
     confirmedAt?: Date | null;
+    customerConfirmedAt?: Date | null;
     dispatchedAt?: Date | null;
     onSiteAt?: Date | null;
     completedAt?: Date | null;
@@ -51,6 +52,7 @@ export function serializeJob<
     ...job,
     scheduledAt: job.scheduledAt?.toISOString() ?? null,
     confirmedAt: job.confirmedAt?.toISOString() ?? null,
+    customerConfirmedAt: job.customerConfirmedAt?.toISOString() ?? null,
     dispatchedAt: job.dispatchedAt?.toISOString() ?? null,
     onSiteAt: job.onSiteAt?.toISOString() ?? null,
     completedAt: job.completedAt?.toISOString() ?? null,

@@ -6,6 +6,7 @@ import {
   type AttentionItem,
 } from "@/lib/attention-queue";
 import { AssignTechButton, type TechOption } from "@/components/assign-tech-button";
+import { JobStatusAdvance } from "@/components/job-status-advance";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
@@ -26,7 +27,9 @@ function canCall(item: AttentionItem) {
         item.kind === "new_lead" ||
         item.kind === "needs_qualify" ||
         item.kind === "needs_booking" ||
-        item.kind === "overdue_followup"),
+        item.kind === "overdue_followup" ||
+        item.kind === "needs_customer_confirm" ||
+        item.kind === "appointment_at_risk"),
   );
 }
 
@@ -41,6 +44,18 @@ function canBook(item: AttentionItem) {
 
 function canAssign(item: AttentionItem) {
   return item.kind === "unassigned_job" && item.entityType === "job";
+}
+
+function canTextConfirm(item: AttentionItem) {
+  return item.kind === "needs_customer_confirm" && item.entityType === "job";
+}
+
+function canAdvanceStatus(item: AttentionItem) {
+  return (
+    item.kind === "appointment_at_risk" &&
+    item.entityType === "job" &&
+    Boolean(item.meta?.status)
+  );
 }
 
 function canCopyProof(item: AttentionItem) {
@@ -78,6 +93,50 @@ function CopyProofButton({ onDone }: { onDone?: () => void }) {
       {err ? (
         <span className="attention-item-detail">Could not copy — try again</span>
       ) : null}
+    </>
+  );
+}
+
+
+function TextConfirmButton({
+  jobId,
+  onDone,
+}: {
+  jobId: string;
+  onDone?: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function run() {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/jobs/${jobId}/confirm-sms`, { method: "POST" });
+      const data = (await res.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!res.ok) throw new Error(data?.error ?? "Could not send");
+      onDone?.();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not send");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="attention-item-btn attention-item-btn-primary"
+        disabled={busy}
+        onClick={() => void run()}
+      >
+        {busy ? "Sending…" : "Text confirm"}
+      </button>
+      {err ? <span className="attention-item-detail">{err}</span> : null}
     </>
   );
 }
@@ -127,7 +186,15 @@ export function AttentionQueue({
           const showBook = canBook(item);
           const showAssign = canAssign(item);
           const showProof = canCopyProof(item);
-          const hasPrimary = showCall || showBook || showAssign || showProof;
+          const showTextConfirm = canTextConfirm(item);
+          const showAdvance = canAdvanceStatus(item);
+          const hasPrimary =
+            showCall ||
+            showBook ||
+            showAssign ||
+            showProof ||
+            showTextConfirm ||
+            showAdvance;
 
           return (
             <li key={item.id}>
@@ -177,6 +244,20 @@ export function AttentionQueue({
                     />
                   ) : null}
                   {showProof ? <CopyProofButton onDone={() => onAction?.()} /> : null}
+                  {showTextConfirm ? (
+                    <TextConfirmButton
+                      jobId={item.entityId}
+                      onDone={() => onAction?.()}
+                    />
+                  ) : null}
+                  {showAdvance ? (
+                    <JobStatusAdvance
+                      jobId={item.entityId}
+                      status={item.meta!.status!}
+                      onAdvanced={() => onAction?.()}
+                      compact
+                    />
+                  ) : null}
                   <Link
                     href={item.href}
                     className={`attention-item-btn ${
