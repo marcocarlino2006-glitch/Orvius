@@ -17478,3 +17478,44 @@ button.btn {
   box-shadow: none !important;
   animation: none !important;
 }
+
+
+/* Manus bar — fail-closed founder post lock */
+.post-lock-banner {
+  margin: 0 0 1rem;
+  border: 1px solid color-mix(in srgb, var(--flare, #c45c26) 45%, transparent);
+  background: color-mix(in srgb, var(--flare, #c45c26) 10%, var(--chalk, #f7f4ef));
+  border-radius: 0.75rem;
+  padding: 0.9rem 1.1rem;
+}
+.post-lock-kicker {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--flare, #c45c26);
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+.post-lock-message {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--void, #0a0b0a);
+  font-weight: 600;
+}
+.post-lock-gates {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: var(--ash, #5c5a55);
+}
+.post-lock-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+.post-lock-hint {
+  font-size: 0.78rem;
+  color: var(--ash, #5c5a55);
+}

@@ -17,6 +17,7 @@ import { OsAskDock } from "@/components/os-ask-dock";
 import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
+import { PostLockBanner } from "@/components/post-lock-banner";
 
 type OsShellProps = {
   children: React.ReactNode;
@@ -197,6 +198,7 @@ export function OsShell({
           {actions ? <div className="os-topbar-actions">{actions}</div> : null}
         </header>
 
+        <PostLockBanner />
         <main className="os-content os-content-pro">{children}</main>
         {showAskDock ? <OsAskDock /> : null}
         <PayPromptModal />

@@ -24,7 +24,7 @@
     "test:trust": "node --experimental-strip-types --test scripts/trust-stack.test.mjs scripts/plan-needs.test.mjs scripts/auto-job.test.mjs scripts/trades.test.mjs scripts/pay-prompt.test.mjs scripts/prospect-csv.test.mjs",
     "standard:check": "node scripts/standard-check.mjs",
     "ci": "node scripts/ci-gate.mjs",
-    "ci:quick": "npm run build && npm run test:trust && npm run standard:check",
+    "ci:quick": "npm run build && npm run test:trust && npm run standard:check && BULLETPROOF_SKIP_CASH=1 npm run bulletproof",
     "wedge:ready": "node scripts/wedge-ready.mjs",
     "master:wedge": "node scripts/master-wedge.mjs",
     "wedge:drill": "node scripts/wedge-drill.mjs",
@@ -41,7 +41,8 @@
     "war:repair": "node scripts/war-ready-repair.mjs",
     "stripe:setup": "node scripts/stripe-setup.mjs",
     "repair:lines": "node scripts/repair-customer-lines.mjs",
-    "repair:shared-lines": "node scripts/repair-shared-lines.mjs"
+    "repair:shared-lines": "node scripts/repair-shared-lines.mjs",
+    "bulletproof:product": "BULLETPROOF_SKIP_CASH=1 npm run bulletproof"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
