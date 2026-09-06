@@ -31,6 +31,9 @@ function isEmergency(urgency: string | null) {
   return urgency?.toLowerCase() === "emergency";
 }
 
+/**
+ * Cursor-grade lead row — density first, not a soft marketing card.
+ */
 export function LeadInboxCard({
   id,
   name,
@@ -48,92 +51,68 @@ export function LeadInboxCard({
   onStatusChange,
 }: LeadInboxCardProps) {
   const emergency = isEmergency(urgency);
+  const when = new Date(createdAt).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
   return (
     <article
-      className={`lead-inbox-card pro-card ${emergency ? "lead-inbox-card-emergency" : ""}`}
+      className={`lead-rail-row ${emergency ? "lead-rail-row-emergency" : ""}`}
     >
-      <div className="lead-inbox-card-header">
-        <div className="lead-inbox-card-kicker-row">
-          {emergency ? (
-            <span className="live-dot live-dot-flare" aria-hidden />
-          ) : status === "new" ? (
-            <span className="live-dot live-dot-green" aria-hidden />
-          ) : null}
-          <p className={`pro-kicker ${emergency ? "pro-kicker-flare" : ""}`}>
-            {emergency ? "Emergency" : status === "new" ? "Needs follow-up" : "Lead"}
+      <div className="lead-rail-main">
+        <div className="lead-rail-meta">
+          <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
+            {emergency
+              ? "Emergency"
+              : status === "new"
+                ? "Needs you"
+                : status.replace(/_/g, " ")}
+            {returning ? " · returning" : ""}
+            {booked ? " · booked" : ""}
           </p>
+          <time dateTime={createdAt} className="lead-rail-time">
+            {when}
+          </time>
         </div>
-        <time dateTime={createdAt} className="lead-inbox-card-time font-sans">
-          {new Date(createdAt).toLocaleString(undefined, {
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-          })}
-        </time>
-      </div>
 
-      <div className="lead-inbox-card-body">
-        <div className="lead-inbox-card-title-row">
-          <div>
-            {id ? (
-              <Link href={`/dashboard/inbox/${id}`} className="lead-inbox-name-link">
-                <h3 className="lead-inbox-card-name font-sans">{name}</h3>
-              </Link>
-            ) : (
-              <h3 className="lead-inbox-card-name font-sans">{name}</h3>
-            )}
-            <p className="lead-inbox-card-sub font-sans">
-              {channel} · {service ?? "General inquiry"}
-            </p>
-          </div>
-          <div className="lead-inbox-card-badges">
+        <div className="lead-rail-title-row">
+          {id ? (
+            <Link href={`/dashboard/inbox/${id}`} className="lead-rail-name">
+              {name}
+            </Link>
+          ) : (
+            <span className="lead-rail-name">{name}</span>
+          )}
+          <div className="lead-rail-badges">
             {status !== "new" ? <LeadStatusBadge status={status} /> : null}
-            {booked && status !== "booked" ? (
-              <ShellBadge tone="live">Booked</ShellBadge>
-            ) : null}
             {urgency && !emergency ? (
               <ShellBadge tone="neutral">{formatUrgency(urgency)}</ShellBadge>
             ) : null}
-            {returning ? <ShellBadge tone="live">Returning</ShellBadge> : null}
           </div>
         </div>
 
-        <dl className="lead-inbox-details mt-5 space-y-0 font-sans text-[13px]">
-          {(
-            [
-              { label: "Phone", value: phone ?? "Unknown", href: phone ? `tel:${phone}` : null },
-              ...(address ? [{ label: "Address", value: address, href: null }] : []),
-            ] as { label: string; value: string; href: string | null }[]
-          ).map(({ label, value, href }, i, arr) => (
-            <div
-              key={label}
-              className={`lead-inbox-detail flex justify-between gap-4 py-2.5 ${
-                i < arr.length - 1 ? "border-b border-rule/80" : ""
-              }`}
-            >
-              <dt className="text-ash">{label}</dt>
-              <dd className="text-right font-medium text-void">
-                {href ? (
-                  <a href={href} className="lead-inbox-link tabular-nums text-void hover:text-signal">
-                    {value}
-                  </a>
-                ) : (
-                  <span className="lead-inbox-value">{value}</span>
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <p className="lead-rail-sub">
+          {channel} · {service ?? "General inquiry"}
+          {phone ? ` · ${phone}` : ""}
+          {address ? ` · ${address}` : ""}
+          {business ? ` · ${business}` : ""}
+        </p>
 
         {customerId ? (
-          <Link href={`/dashboard/customers/${customerId}`} className="customer-timeline-link mt-4 inline-block font-sans text-xs">
-            Customer record →
+          <Link
+            href={`/dashboard/customers/${customerId}`}
+            className="lead-rail-record"
+          >
+            Customer record
           </Link>
         ) : null}
+      </div>
 
-        {id ? (
+      {id ? (
+        <div className="lead-rail-actions">
           <LeadQuickActions
             leadId={id}
             phone={phone}
@@ -141,8 +120,8 @@ export function LeadInboxCard({
             booked={booked}
             onStatusChange={onStatusChange}
           />
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </article>
   );
 }

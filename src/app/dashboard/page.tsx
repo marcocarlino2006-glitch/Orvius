@@ -8,8 +8,7 @@ import Link from "next/link";
 export default function DashboardPage() {
   return (
     <OsShell
-      title="Command center"
-      subtitle="What needs you — ranked by urgency and field impact."
+      title="Command"
       actions={
         <Link href="/dashboard/ask" className="btn btn-void text-sm">
           Ops copilot

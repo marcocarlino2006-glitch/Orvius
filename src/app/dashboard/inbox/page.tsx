@@ -135,7 +135,7 @@ export default function InboxPage() {
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
-            <ul className="ring1-lead-grid">
+            <ul className="os-lead-rail">
               {leads.map((lead) => (
                 <li key={lead.id}>
                   <LeadInboxCard

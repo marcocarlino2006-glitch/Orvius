@@ -20,10 +20,10 @@ function statusTone(status: string) {
   }
   if (status === "completed") return "neutral" as const;
   if (status === "cancelled") return "muted" as const;
-  // Scheduled / open — ink mark, never pink flare wash
   return "neutral" as const;
 }
 
+/** Cursor-grade job row — dense rail, not a soft card. */
 export function JobCard({
   id,
   title,
@@ -36,61 +36,40 @@ export function JobCard({
   technicianName,
 }: JobCardProps) {
   const emergency = urgency?.toLowerCase().includes("emergency");
+  const when = scheduledAt
+    ? new Date(scheduledAt).toLocaleString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "Unscheduled";
 
   return (
     <Link
       href={`/dashboard/jobs/${id}`}
-      className={`job-card pro-card${emergency ? " job-card-emergency" : ""}`}
+      className={`lead-rail-row job-rail-row${emergency ? " lead-rail-row-emergency" : ""}`}
     >
-      <div className="job-card-header">
-        <div className="job-card-kicker-row">
-          {emergency ? (
-            <span className="live-dot live-dot-flare" aria-hidden />
-          ) : (
-            <span className="live-dot live-dot-green" aria-hidden />
-          )}
-          <p className={`pro-kicker ${emergency ? "pro-kicker-flare" : ""}`}>
-            {emergency ? "Emergency" : "Scheduled job"}
+      <div className="lead-rail-main">
+        <div className="lead-rail-meta">
+          <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
+            {emergency ? "Emergency" : "Job"} · {jobStatusLabel(status)}
           </p>
+          <time className="lead-rail-time">{when}</time>
         </div>
-        <div className="job-card-badges">
-          <ShellBadge tone={statusTone(status)}>{jobStatusLabel(status)}</ShellBadge>
-          {urgency && !emergency ? (
-            <ShellBadge tone="neutral">{urgency.replace(/-/g, " ")}</ShellBadge>
-          ) : null}
+        <div className="lead-rail-title-row">
+          <span className="lead-rail-name">{title}</span>
+          <div className="lead-rail-badges">
+            <ShellBadge tone={statusTone(status)}>{jobStatusLabel(status)}</ShellBadge>
+          </div>
         </div>
-      </div>
-
-      <div className="job-card-body">
-        <h3 className="job-card-title font-sans">{title}</h3>
-        <p className="job-card-sub font-sans">
+        <p className="lead-rail-sub">
           {customerName ?? "Customer"}
           {phone ? ` · ${phone}` : ""}
           {technicianName ? ` · ${technicianName}` : ""}
+          {address ? ` · ${address}` : ""}
         </p>
-
-        <dl className="job-card-meta font-sans">
-          <div>
-            <dt>Scheduled</dt>
-            <dd>
-              {scheduledAt
-                ? new Date(scheduledAt).toLocaleString(undefined, {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })
-                : "Unscheduled"}
-            </dd>
-          </div>
-          {address ? (
-            <div className="job-card-meta-wide">
-              <dt>Address</dt>
-              <dd>{address}</dd>
-            </div>
-          ) : null}
-        </dl>
       </div>
     </Link>
   );

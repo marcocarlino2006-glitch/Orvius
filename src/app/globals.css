@@ -21788,3 +21788,421 @@ body:has(.confirm-shell) {
   flex-direction: column;
   gap: 0.75rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MASTERY — Cursor density × Grok true-black restraint
+   Study notes applied:
+   - Grok: OLED #000, monochrome #E7E9EA / #71767B, white = accent, no decor
+   - Cursor: ALL-CAPS rail labels, timestamps right, dense rows, hairlines
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.os-shell-night {
+  --os-paper: #000000;
+  --os-panel: #16181c;
+  --os-ink: #e7e9ea;
+  --os-mute: #71767b;
+  --os-line: #2f3336;
+  --os-flare: #f4212e;
+  --os-live: #00ba7c;
+  --void: #e7e9ea;
+  --ash: #71767b;
+  --ash-soft: #4d5156;
+  --white: #16181c;
+  --fog: #0a0a0a;
+  --chalk: #000000;
+  --canvas: #000000;
+  --rule: #2f3336;
+  --signal: #e7e9ea; /* anti-accent: white, not copper */
+  background: #000000 !important;
+  color: #e7e9ea !important;
+  font-feature-settings: "zero" 1;
+}
+
+.os-shell-night .os-main-pro,
+.os-shell-night .os-content-pro,
+.os-shell-night .os-content,
+.os-shell-night .os-main {
+  background: #000000 !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .os-sidebar-pro,
+.os-shell-night .os-sidebar {
+  background: #000000 !important;
+  border-right: 1px solid #2f3336 !important;
+}
+
+.os-shell-night .os-topbar-pro,
+.os-shell-night .os-topbar-night {
+  background: #000000 !important;
+  border-bottom: 1px solid #2f3336 !important;
+  padding: 0.65rem 1rem !important;
+}
+
+.os-shell-night .os-topbar-title {
+  font-size: 1.25rem !important; /* Grok: tool titles stay modest */
+  font-weight: 700 !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .os-topbar-live {
+  color: #00ba7c !important;
+}
+
+.os-shell-night .os-content-pro {
+  padding: 0.75rem 1rem 4.5rem !important;
+}
+
+/* Cursor rail list */
+.os-lead-rail {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #2f3336;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  background: #16181c;
+}
+
+.lead-rail-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid #2f3336;
+  text-decoration: none;
+  color: inherit;
+  background: #16181c;
+  transition: background 120ms ease;
+}
+
+.os-lead-rail > li:last-child .lead-rail-row {
+  border-bottom: none;
+}
+
+.lead-rail-row:hover {
+  background: #1e2126 !important;
+}
+
+.lead-rail-row-emergency {
+  box-shadow: inset 2px 0 0 #f4212e;
+}
+
+.lead-rail-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.lead-rail-kind {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #71767b;
+}
+
+.lead-rail-kind.is-flare {
+  color: #f4212e;
+}
+
+.lead-rail-time {
+  font-size: 0.6875rem;
+  color: #71767b;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lead-rail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+}
+
+.lead-rail-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #e7e9ea;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.lead-rail-name:hover {
+  color: #fff;
+}
+
+.lead-rail-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: #71767b;
+}
+
+.lead-rail-record {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.6875rem;
+  color: #71767b;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.lead-rail-record:hover {
+  color: #e7e9ea;
+}
+
+.lead-rail-badges {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.lead-rail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  justify-content: flex-end;
+  max-width: 18rem;
+}
+
+.os-shell-night .lead-rail-actions .btn,
+.os-shell-night .lead-quick-actions .btn,
+.os-shell-night .lead-quick-actions a {
+  border-radius: 0.2rem !important;
+  min-height: 1.7rem !important;
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.625rem !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  background: transparent !important;
+  color: #e7e9ea !important;
+  border: 1px solid #2f3336 !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .lead-rail-actions .btn-void,
+.os-shell-night .lead-quick-actions .btn-void {
+  background: #e7e9ea !important;
+  color: #000 !important;
+  border-color: #e7e9ea !important;
+}
+
+/* Attention board = Cursor IN PROGRESS rail */
+.os-shell-night .attention-queue {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.25rem !important;
+  padding: 0.75rem !important;
+}
+
+.os-shell-night .attention-queue-list {
+  gap: 0 !important;
+  margin-top: 0.65rem !important;
+  border: 1px solid #2f3336;
+  border-radius: 0.2rem;
+  overflow: hidden;
+}
+
+.os-shell-night .attention-item {
+  border: none !important;
+  border-bottom: 1px solid #2f3336 !important;
+  border-radius: 0 !important;
+  background: #16181c !important;
+  padding: 0.65rem 0.75rem !important;
+  margin: 0 !important;
+}
+
+.os-shell-night .attention-queue-list > li:last-child .attention-item {
+  border-bottom: none !important;
+}
+
+.os-shell-night .attention-item-critical {
+  box-shadow: inset 2px 0 0 #f4212e !important;
+  border-left: none !important;
+}
+
+.os-shell-night .attention-item-kind {
+  color: #71767b !important;
+}
+
+.os-shell-night .attention-item-critical .attention-item-kind {
+  color: #f4212e !important;
+}
+
+.os-shell-night .attention-item-title {
+  font-size: 0.9rem !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .attention-item-detail,
+.os-shell-night .attention-item-value {
+  color: #71767b !important;
+}
+
+.os-shell-night .attention-item-btn,
+.os-shell-night .attention-item-btn-primary {
+  border-radius: 0.2rem !important;
+  background: transparent !important;
+  color: #e7e9ea !important;
+  border: 1px solid #2f3336 !important;
+}
+
+.os-shell-night .attention-item-btn-primary {
+  background: #e7e9ea !important;
+  color: #000 !important;
+  border-color: #e7e9ea !important;
+}
+
+/* Panels / stats — Grok surfaces */
+.os-shell-night .pro-card,
+.os-shell-night .pro-stat,
+.os-shell-night .pro-panel,
+.os-shell-night .pro-page-strip,
+.os-shell-night .owner-setup-banner,
+.os-shell-night .dispatch-col,
+.os-shell-night .approve-queue,
+.os-shell-night .pro-dispatch-today,
+.os-shell-night .pro-economics-panel,
+.os-shell-night .pro-shop-outcomes,
+.os-shell-night .pro-setup-alert,
+.os-shell-night .account-billing-plan {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.25rem !important;
+  box-shadow: none !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .pro-stat-live {
+  border-top: 2px solid #e7e9ea !important;
+  background: #1e2126 !important;
+}
+
+.os-shell-night .pro-stat-label,
+.os-shell-night .pro-kicker,
+.os-shell-night .attention-queue-kicker,
+.os-shell-night .os-sidebar-label {
+  color: #71767b !important;
+}
+
+.os-shell-night .pro-stat-value,
+.os-shell-night h1,
+.os-shell-night h2,
+.os-shell-night h3,
+.os-shell-night .attention-queue-title {
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .btn-void,
+.os-shell-night .btn-primary {
+  background: #e7e9ea !important;
+  color: #000 !important;
+  border: 1px solid #e7e9ea !important;
+  border-radius: 0.2rem !important;
+}
+
+.os-shell-night .btn-secondary,
+.os-shell-night .btn {
+  background: transparent !important;
+  color: #e7e9ea !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+}
+
+.os-shell-night .inbox-filters .btn,
+.os-shell-night .pro-filter-bar .btn,
+.os-shell-night .pro-page-filters .btn {
+  background: transparent !important;
+  color: #71767b !important;
+  border: 1px solid transparent !important;
+  border-radius: 0.2rem !important;
+}
+
+.os-shell-night .inbox-filters .btn-void,
+.os-shell-night .pro-filter-bar .btn-void,
+.os-shell-night .pro-page-filters .btn-void,
+.os-shell-night .pro-page-filters button[aria-pressed="true"] {
+  background: #e7e9ea !important;
+  color: #000 !important;
+  border-color: #e7e9ea !important;
+}
+
+.os-shell-night .status-pill,
+.os-shell-night .status-pill-live,
+.os-shell-night .status-pill-neutral,
+.os-shell-night .status-pill-muted,
+.os-shell-night .status-pill-flare {
+  background: transparent !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.15rem !important;
+  color: #71767b !important;
+  font-size: 0.5625rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 0.1rem 0.3rem !important;
+}
+
+.os-shell-night .status-pill-flare {
+  color: #f4212e !important;
+  border-color: color-mix(in srgb, #f4212e 45%, #2f3336) !important;
+}
+
+.os-shell-night .os-nav-link-active {
+  background: #16181c !important;
+  color: #fff !important;
+  box-shadow: inset 2px 0 0 #e7e9ea !important;
+}
+
+.os-shell-night .os-ask-dock-trigger {
+  background: #e7e9ea !important;
+  color: #000 !important;
+  border-radius: 0.2rem !important;
+}
+
+.os-shell-night .ring1-command {
+  gap: 0.65rem !important;
+}
+
+.os-shell-night .pro-page-stats {
+  gap: 0.35rem !important;
+  margin-bottom: 0.65rem !important;
+}
+
+.os-shell-night .pro-page-filters {
+  margin-bottom: 0.65rem !important;
+}
+
+.os-shell-night .pro-page-strip {
+  margin-bottom: 0.65rem !important;
+  padding: 0.45rem 0.65rem !important;
+}
+
+/* Marketing void → Grok true black */
+.mkt-page {
+  background: #000000 !important;
+}
+
+.mkt-hero--bleed,
+.mkt-hero--cursor {
+  background: #000000 !important;
+}
+
+.mkt-hero-void {
+  background:
+    radial-gradient(ellipse 55% 40% at 78% 55%, color-mix(in srgb, #272a2e 55%, transparent), transparent 62%),
+    #000000 !important;
+}
+
+.mkt-footer--institution,
+.mkt-footer--cursor {
+  background: #000000 !important;
+  border-top-color: #2f3336 !important;
+}

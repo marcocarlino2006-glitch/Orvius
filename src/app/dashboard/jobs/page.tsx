@@ -173,7 +173,7 @@ export default function JobsPage() {
               }
             />
           ) : (
-            <ul className="ring1-lead-grid">
+            <ul className="os-lead-rail">
               {filtered.map((job) => (
                 <li key={job.id}>
                   <JobCard
