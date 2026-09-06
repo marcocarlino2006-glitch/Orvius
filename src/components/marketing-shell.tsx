@@ -53,8 +53,8 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
     <div className="mkt-page">
       <PremiumNav />
       <main>{children}</main>
-      <footer className="mkt-footer mkt-footer--institution">
-        <div className="mkt-footer-grid">
+      <footer className="mkt-footer mkt-footer--institution mkt-footer--cursor">
+        <div className="mkt-footer-grid mkt-footer-grid--cursor">
           <div className="mkt-footer-brand">
             <OrviusLogo variant="void" size="sm" />
             <p className="mkt-footer-entity font-sans">Solution Development LLC</p>
@@ -64,25 +64,34 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           </div>
           <nav className="mkt-footer-col" aria-label="Product">
             <p className="mkt-footer-heading font-sans">Product</p>
+            <Link href="/">Command</Link>
             <Link href="/pricing">Pricing</Link>
             <Link href="/pilot">Audit</Link>
-            <Link href="/security">Security</Link>
             <Link href="/login">Log in</Link>
+          </nav>
+          <nav className="mkt-footer-col" aria-label="Company">
+            <p className="mkt-footer-heading font-sans">Company</p>
+            <Link href="/about">About</Link>
+            <Link href="/security">Security</Link>
+            <Link href="/pilot">Design partner</Link>
+            <a href="mailto:hello@orvius.im">Contact</a>
           </nav>
           <nav className="mkt-footer-col" aria-label="Legal">
             <p className="mkt-footer-heading font-sans">Legal</p>
             <Link href="/legal">Legal hub</Link>
-            <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
+            <Link href="/privacy">Privacy</Link>
             <Link href="/sms-terms">SMS terms</Link>
+            <Link href="/refunds">Refunds</Link>
           </nav>
-          <div className="mkt-footer-col mkt-footer-col--contact">
-            <p className="mkt-footer-heading font-sans">Contact</p>
-            <a href="mailto:hello@orvius.im">hello@orvius.im</a>
+          <nav className="mkt-footer-col" aria-label="Connect">
+            <p className="mkt-footer-heading font-sans">Connect</p>
             <a href="tel:+18446439170">+1 844 643 9170</a>
-          </div>
+            <a href="mailto:hello@orvius.im">hello@orvius.im</a>
+            <Link href="/domains">Domains</Link>
+          </nav>
         </div>
-        <div className="mkt-footer-bottom">
+        <div className="mkt-footer-bottom mkt-footer-bottom--cursor">
           <p className="mkt-footer-copy">
             © {year} Solution Development LLC. All rights reserved.
           </p>
