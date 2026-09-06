@@ -25,7 +25,7 @@ export function PublicLayout({
   return (
     <>
       <ShellHeader
-        plane="chalk"
+        plane="void"
         surface="glass"
         position="fixed"
         cta={cta}
