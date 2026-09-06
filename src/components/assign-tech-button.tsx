@@ -70,6 +70,22 @@ export function AssignTechButton({
     }
   }
 
+  if (technicians.length === 1) {
+    return (
+      <div className={className} onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className={`${className.includes("today-priority") ? "" : "today-priority-btn today-priority-btn-primary "}assign-tech-one-tap font-sans`}
+          disabled={loading}
+          onClick={assign}
+        >
+          {loading ? "Assigning…" : `Assign ${technicians[0]!.name}`}
+        </button>
+        {error ? <p className="assign-tech-error font-sans">{error}</p> : null}
+      </div>
+    );
+  }
+
   if (compact) {
     return (
       <div className={`assign-tech-inline ${className}`} onClick={(e) => e.stopPropagation()}>

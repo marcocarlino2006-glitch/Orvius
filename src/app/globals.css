@@ -17519,3 +17519,106 @@ button.btn {
   font-size: 0.78rem;
   color: var(--ash, #5c5a55);
 }
+
+/* —— Frictionless owner setup —— */
+.owner-setup-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--signal) 28%, var(--rule));
+  background: color-mix(in srgb, var(--signal) 7%, var(--white));
+}
+
+.owner-setup-banner-copy {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--void);
+  font-weight: 600;
+}
+
+.capture-setup-modes,
+.onboarding-capture-modes {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .capture-setup-modes,
+  .onboarding-capture-modes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.capture-setup-mode,
+.onboarding-capture-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  color: var(--void);
+  cursor: pointer;
+}
+
+.capture-setup-mode strong,
+.onboarding-capture-mode strong {
+  font-size: 0.9375rem;
+}
+
+.capture-setup-mode span,
+.onboarding-capture-mode span {
+  font-size: 0.8125rem;
+  color: var(--ash);
+  line-height: 1.35;
+}
+
+.capture-setup-mode-active,
+.onboarding-capture-mode-active {
+  border-color: var(--signal);
+  background: color-mix(in srgb, var(--signal) 6%, var(--white));
+}
+
+.capture-setup-carriers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.capture-setup-carrier {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  color: var(--void);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.capture-setup-carrier-active {
+  border-color: var(--void);
+  background: var(--void);
+  color: var(--white);
+}
+
+.capture-setup-steps,
+.onboarding-capture-steps {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--ash);
+  line-height: 1.45;
+}
+
+.capture-setup-steps li + li,
+.onboarding-capture-steps li + li {
+  margin-top: 0.35rem;
+}
+
+.assign-tech-one-tap {
+  width: 100%;
+}

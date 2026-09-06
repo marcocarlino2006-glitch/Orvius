@@ -17,6 +17,7 @@ export type AttentionKind =
   | "stale_weekly_proof"
   | "billing_action"
   | "founder_cert"
+  | "needs_capture"
   | "open_invoice"
   | "open_estimate";
 
@@ -54,8 +55,10 @@ function kindRank(kind: AttentionKind, urgency?: string | null): number {
       return 5;
     case "alert_failed":
       return 6;
+    case "needs_capture":
+      return 11;
     case "founder_cert":
-      return 8;
+      return 88;
     case "needs_qualify":
       return emergency ? 9 : 22;
     case "open_invoice":
@@ -69,7 +72,7 @@ function kindRank(kind: AttentionKind, urgency?: string | null): number {
     case "needs_customer_confirm":
       return emergency ? 16 : 28;
     case "missing_baseline":
-      return 15;
+      return 82;
     case "stale_weekly_proof":
       return 18;
     case "appointment_at_risk":
@@ -134,6 +137,11 @@ export async function getAttentionQueue(
         billingStatus: true,
         pilotEndsAt: true,
         createdAt: true,
+        overflowForwardConfirmedAt: true,
+        lineVerifiedAt: true,
+        vapiPhoneNumber: true,
+        twilioPhone: true,
+        ownerPhone: true,
       },
     }),
     prisma.ownerNotification.findMany({
@@ -200,6 +208,43 @@ export async function getAttentionQueue(
     }
   }
 
+  const hasLine = Boolean(
+    business?.vapiPhoneNumber?.trim() || business?.twilioPhone?.trim(),
+  );
+  if (
+    hasLine &&
+    business?.ownerPhone?.trim() &&
+    !business.overflowForwardConfirmedAt
+  ) {
+    items.push({
+      id: `needs_capture:${businessId}`,
+      kind: "needs_capture",
+      rank: kindRank("needs_capture"),
+      impact: "high",
+      title: "Set call capture",
+      detail: "Forward missed calls to Orvius — or publish the Orvius number.",
+      recommendedAction: "Finish capture setup",
+      href: "/dashboard/settings#overflow-forward",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  } else if (hasLine && !business?.lineVerifiedAt) {
+    items.push({
+      id: `needs_capture:${businessId}`,
+      kind: "needs_capture",
+      rank: kindRank("needs_capture"),
+      impact: "high",
+      title: "Prove your line",
+      detail: "Place one test call so we know Orvius answers end-to-end.",
+      recommendedAction: "Call your Orvius line",
+      href: "/dashboard/settings#overflow-forward",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  }
+
   let certDone = 0;
   try {
     const parsed = business?.founderCertJson
@@ -214,9 +259,9 @@ export async function getAttentionQueue(
       id: `founder_cert:${businessId}`,
       kind: "founder_cert",
       rank: kindRank("founder_cert"),
-      impact: "critical",
+      impact: "med",
       title: `Phone cert ${certDone}/5`,
-      detail: "Finish real-cell scenarios before high-volume outreach.",
+      detail: "Optional founder drills — not required for daily shop ops.",
       recommendedAction: "Open certification",
       href: "/dashboard/settings#founder-cert",
       entityType: "shop",
@@ -235,9 +280,9 @@ export async function getAttentionQueue(
       id: `missing_baseline:${businessId}`,
       kind: "missing_baseline",
       rank: kindRank("missing_baseline"),
-      impact: "high",
+      impact: "med",
       title: "Baseline economics missing",
-      detail: "Set avg ticket + before-Orvius weekly numbers for honest recovered $.",
+      detail: "Set avg ticket + before-Orvius weekly numbers when you have a minute.",
       recommendedAction: "Set baseline",
       href: "/dashboard/settings#economics-baseline",
       entityType: "shop",
@@ -629,6 +674,8 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Billing";
     case "founder_cert":
       return "Cert";
+    case "needs_capture":
+      return "Capture";
     case "open_invoice":
       return "Invoice";
     case "open_estimate":

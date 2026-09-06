@@ -1,6 +1,7 @@
 "use client";
 
 import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
+import { OnboardingCaptureStep } from "@/components/onboarding-capture-step";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { company, pricing } from "@/lib/company";
 import { TRADES, type Trade } from "@/lib/trades";
@@ -12,10 +13,11 @@ const STEPS = [
   { id: "welcome", label: "Welcome" },
   { id: "shop", label: "Shop" },
   { id: "alerts", label: "Alerts" },
-  { id: "live", label: "Go live" },
+  { id: "live", label: "Line" },
 ] as const;
 
 type StepId = (typeof STEPS)[number]["id"];
+type PostProvision = "capture" | "prove" | null;
 
 export function OnboardingWizard() {
   const router = useRouter();
@@ -27,6 +29,7 @@ export function OnboardingWizard() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [provisionedLine, setProvisionedLine] = useState<string | null>(null);
+  const [postProvision, setPostProvision] = useState<PostProvision>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedSms, setAcceptedSms] = useState(false);
 
@@ -73,6 +76,7 @@ export function OnboardingWizard() {
 
       if (json.line) {
         setProvisionedLine(json.line);
+        setPostProvision("capture");
         return;
       }
 
@@ -85,6 +89,8 @@ export function OnboardingWizard() {
     }
   }
 
+  const inPostFlow = Boolean(provisionedLine && postProvision);
+
   return (
     <main className="onboarding-shell">
       <div className="onboarding-glow" aria-hidden />
@@ -95,50 +101,51 @@ export function OnboardingWizard() {
           <p className="onboarding-eyebrow font-sans">{company.productName} setup</p>
         </header>
 
-        <nav className="onboarding-steps font-sans" aria-label="Setup progress">
-          {STEPS.map((item, index) => {
-            const active = item.id === step;
-            const done = index < stepIndex;
-            return (
-              <div
-                key={item.id}
-                className={`onboarding-step ${active ? "onboarding-step-active" : ""} ${done ? "onboarding-step-done" : ""}`}
-              >
-                <span className="onboarding-step-num">{index + 1}</span>
-                <span className="onboarding-step-label">{item.label}</span>
-              </div>
-            );
-          })}
-        </nav>
+        {!inPostFlow ? (
+          <nav className="onboarding-steps font-sans" aria-label="Setup progress">
+            {STEPS.map((item, index) => {
+              const active = item.id === step;
+              const done = index < stepIndex;
+              return (
+                <div
+                  key={item.id}
+                  className={`onboarding-step ${active ? "onboarding-step-active" : ""} ${done ? "onboarding-step-done" : ""}`}
+                >
+                  <span className="onboarding-step-num">{index + 1}</span>
+                  <span className="onboarding-step-label">{item.label}</span>
+                </div>
+              );
+            })}
+          </nav>
+        ) : null}
 
         <div className="onboarding-panel">
-          {step === "welcome" ? (
+          {step === "welcome" && !inPostFlow ? (
             <>
               <h1 className="onboarding-title font-sans">
-                Welcome to your Orvius workspace.
+                Your shop line in minutes.
               </h1>
               <p className="onboarding-lead font-sans">
-                In a few steps you&apos;ll connect your shop, set owner alerts, and
-                open your dashboard — inbox, customers, jobs, and dispatch in one
-                place.
+                We create a dedicated number, text you when a job calls, and put
+                every lead in one inbox. No second CRM.
               </p>
               <ul className="onboarding-rings font-sans">
                 <li>
                   <span className="onboarding-ring-num">01</span>
                   <span>
-                    <strong>Capture after-hours and overflow calls</strong> · AI receptionist on your line
+                    <strong>Get your Orvius number</strong> · Auto-assigned for your shop
                   </span>
                 </li>
                 <li>
                   <span className="onboarding-ring-num">02</span>
                   <span>
-                    <strong>Alert you instantly</strong> · SMS and email when a lead lands
+                    <strong>Forward or publish</strong> · Catch missed and after-hours
                   </span>
                 </li>
                 <li>
                   <span className="onboarding-ring-num">03</span>
                   <span>
-                    <strong>Work from one inbox</strong> · Callback, text, and book from one screen
+                    <strong>Prove it once</strong> · Call the line, get the SMS, work from Today
                   </span>
                 </li>
               </ul>
@@ -154,7 +161,7 @@ export function OnboardingWizard() {
             </>
           ) : null}
 
-          {step === "shop" ? (
+          {step === "shop" && !inPostFlow ? (
             <>
               <h1 className="onboarding-title font-sans">Tell us about your shop.</h1>
               <p className="onboarding-lead font-sans">
@@ -208,12 +215,12 @@ export function OnboardingWizard() {
             </>
           ) : null}
 
-          {step === "alerts" ? (
+          {step === "alerts" && !inPostFlow ? (
             <>
-              <h1 className="onboarding-title font-sans">Owner alerts.</h1>
+              <h1 className="onboarding-title font-sans">Where should we text you?</h1>
               <p className="onboarding-lead font-sans">
-                When a qualified lead comes in, Orvius texts you a clean summary.
-                Use the mobile number you check during the day.
+                When a qualified lead comes in, Orvius texts a clean summary to
+                the phone you check on the job.
               </p>
               <div className="onboarding-form">
                 <label className="onboarding-field font-sans">
@@ -253,13 +260,12 @@ export function OnboardingWizard() {
             </>
           ) : null}
 
-          {step === "live" ? (
+          {step === "live" && !inPostFlow ? (
             <>
-              <h1 className="onboarding-title font-sans">Go live.</h1>
+              <h1 className="onboarding-title font-sans">Create your line.</h1>
               <p className="onboarding-lead font-sans">
-                Review your setup. Orvius provisions a dedicated line and AI
-                receptionist for <strong>{name.trim()}</strong> — callers hear
-                your shop name, not the marketing demo.
+                Orvius provisions a dedicated number and receptionist for{" "}
+                <strong>{name.trim()}</strong> — callers hear your shop name.
               </p>
               <dl className="onboarding-review font-sans">
                 <div>
@@ -292,10 +298,9 @@ export function OnboardingWizard() {
                 />
               </label>
               <p className="onboarding-footnote font-sans">
-                We auto-assign a dedicated local number for {name.trim() || "your shop"} —
-                your name, your AI receptionist. No manual setup. Callers may hear a short
-                recording/AI disclosure required by law in some jurisdictions — you remain
-                responsible for notices required for your trade and location.
+                We auto-assign a dedicated local number — no Twilio console, no
+                shared demo line. Callers may hear a short recording/AI disclosure
+                required by law in some jurisdictions.
               </p>
               <div className="onboarding-consent font-sans">
                 <label className="onboarding-check">
@@ -351,7 +356,15 @@ export function OnboardingWizard() {
             </>
           ) : null}
 
-          {provisionedLine ? (
+          {provisionedLine && postProvision === "capture" ? (
+            <OnboardingCaptureStep
+              line={provisionedLine}
+              shopName={name.trim()}
+              onContinue={() => setPostProvision("prove")}
+            />
+          ) : null}
+
+          {provisionedLine && postProvision === "prove" ? (
             <OnboardingCallVerify line={provisionedLine} shopName={name.trim()} />
           ) : null}
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { GoLiveChecklist } from "@/components/go-live-checklist";
 import {
   LaunchGatesStrip,
@@ -27,6 +28,7 @@ type AccountResponse = {
     lastWeeklyProofAt?: string | null;
     founderCertJson?: string | null;
     overflowForwardConfirmedAt?: string | null;
+    lineVerifiedAt?: string | null;
     billingStatus?: string;
     pilotEndsAt?: string | null;
   } | null;
@@ -347,52 +349,15 @@ export default function DashboardSettingsPage() {
         </ShellPanel>
 
       <div id="overflow-forward">
-      <ShellPanel title="Missed-call overflow">
-        <p className="account-settings-hint font-sans">
-          Orvius answers the dedicated line below. To catch missed / busy /
-          after-hours on your existing public number, forward those calls to this
-          line (carrier CFNA / after-hours routing). Without that, only callers who
-          dial the Orvius number are captured — say that honestly on every sale.
-        </p>
-        <p className="account-settings-value font-sans mt-3">
-          Forward to: {line ?? "Assigning your number…"}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="btn btn-secondary text-sm"
-            disabled={!line}
-            onClick={() => {
-              if (!line) return;
-              void navigator.clipboard.writeText(line).catch(() => null);
-            }}
-          >
-            Copy forward-to number
-          </button>
-          <a href="/pilot/forward" className="btn btn-ghost text-sm">
-            Owner forward one-pager
-          </a>
-        </div>
-        <ol className="mt-4 list-decimal space-y-1 pl-5 font-sans text-sm text-ash">
-          <li>Keep your public Google / truck number.</li>
-          <li>Set missed / busy / no-answer / after-hours forward to the Orvius line.</li>
-          <li>Place a live test call from your cell → confirm owner SMS.</li>
-          <li>Check the box below only after forward is real (or Orvius is published).</li>
-        </ol>
-        <label className="mt-4 flex items-start gap-3 font-sans text-sm text-void">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={overflowForward}
-            disabled={overflowSaving || !line}
-            onChange={(e) => void saveOverflow(e.target.checked)}
+        <ShellPanel title="Call capture">
+          <CaptureSetupPanel
+            line={line}
+            overflowConfirmed={overflowForward}
+            lineVerified={Boolean(account?.business?.lineVerifiedAt)}
+            saving={overflowSaving}
+            onConfirmOverflow={(next) => saveOverflow(next)}
           />
-          <span>
-            I confirmed missed / busy / after-hours forwarding to this Orvius line
-            (or we are selling the Orvius number as the shop&apos;s published line).
-          </span>
-        </label>
-      </ShellPanel>
+        </ShellPanel>
       </div>
 
 

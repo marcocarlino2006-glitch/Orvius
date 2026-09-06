@@ -11,6 +11,8 @@ import {
   enqueueOwnerAlert,
   processNotificationQueue,
 } from "@/lib/notifications";
+import { isOwnerCaptureDoneKeyword } from "@/lib/carrier-forward";
+import { phonesEqual } from "@/lib/owner-alerts";
 import {
   parseSmsKeyword,
   smsHelpReply,
@@ -58,6 +60,34 @@ export async function POST(request: NextRequest) {
     logWarn("twilio.sms.business_not_found", { from, to, messageSid });
     return twimlResponse(
       "Thanks for your message. We'll follow up as soon as possible.",
+    );
+  }
+
+  // Owner replies DONE after forward/publish — stamp capture without creating a lead.
+  if (
+    isOwnerCaptureDoneKeyword(body) &&
+    phonesEqual(from, business.ownerPhone)
+  ) {
+    await prisma.business.update({
+      where: { id: business.id },
+      data: {
+        overflowForwardConfirmedAt: new Date(),
+      },
+    });
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `${business.id}:${from}:done`,
+      eventType: "keyword-done",
+      businessId: business.id,
+      status: "processed",
+      payload: { from, to, keyword: "done" },
+    });
+    logInfo("twilio.sms.owner_capture_done", {
+      businessId: business.id,
+      messageSid,
+    });
+    return twimlResponse(
+      "Got it — call capture marked done. Place one test call to your Orvius line to prove it, then open Today.",
     );
   }
 

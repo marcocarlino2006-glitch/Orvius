@@ -1,9 +1,9 @@
 "use client";
 
+import { telHref } from "@/lib/demo-line";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { telHref } from "@/lib/demo-line";
 
 type VerifyState = {
   verified: boolean;
@@ -22,6 +22,9 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
   const router = useRouter();
   const [state, setState] = useState<VerifyState | null>(null);
   const [polling, setPolling] = useState(true);
+  const [testing, setTesting] = useState(false);
+  const [testNote, setTestNote] = useState<string | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
 
   const check = useCallback(async () => {
     try {
@@ -44,6 +47,26 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
     return () => clearInterval(interval);
   }, [check, polling]);
 
+  async function sendTestAlert() {
+    setTesting(true);
+    setTestError(null);
+    setTestNote(null);
+    try {
+      const res = await fetch("/api/account/test-alert", { method: "POST" });
+      const data = (await res.json()) as { error?: string; ok?: boolean };
+      if (!res.ok) throw new Error(data.error ?? "Test failed");
+      setTestNote(
+        data.ok
+          ? "Test alert sent — check your phone."
+          : "Alert queued. Check SMS or email failover.",
+      );
+    } catch (err) {
+      setTestError(err instanceof Error ? err.message : "Test failed");
+    } finally {
+      setTesting(false);
+    }
+  }
+
   const verified = state?.verified ?? false;
   const leadName = state?.firstLead?.name;
 
@@ -61,14 +84,14 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         )}
         <div>
           <h1 className="onboarding-title font-sans">
-            {verified ? "Line verified — you're live." : "Call your line to verify."}
+            {verified ? "You're live." : "One call. Prove it works."}
           </h1>
           <p className="onboarding-lead font-sans">
             {verified
               ? leadName
-                ? `${shopName} received a lead from ${leadName}. Your inbox is working end-to-end.`
-                : `${shopName} is receiving calls. Leads will appear in your inbox automatically.`
-              : `Dial ${line} from your phone. Orvius answers, qualifies the caller, and drops the lead in your inbox.`}
+                ? `${shopName} received a lead from ${leadName}. Open Today and work the job.`
+                : `${shopName} is receiving calls. Leads land in your inbox automatically.`
+              : `Tap Call — Orvius answers as ${shopName}, qualifies, and texts you. We watch for the lead.`}
           </p>
         </div>
       </div>
@@ -85,21 +108,62 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         </p>
       ) : null}
 
-      <div className="onboarding-actions">
+      <div className="onboarding-actions onboarding-actions-split">
         <a href={telHref(line)} className="btn btn-void font-sans">
           {verified ? "Call again" : "Call your line"}
         </a>
         <button
           type="button"
           className="btn btn-ghost font-sans"
+          disabled={testing}
+          onClick={() => void sendTestAlert()}
+        >
+          {testing ? "Sending…" : "Send test alert"}
+        </button>
+      </div>
+
+      {testNote ? (
+        <p className="onboarding-hint font-sans" role="status">
+          {testNote}
+        </p>
+      ) : null}
+      {testError ? (
+        <p className="onboarding-error font-sans" role="alert">
+          {testError}
+        </p>
+      ) : null}
+
+      <div className="onboarding-actions">
+        <button
+          type="button"
+          className="btn btn-void font-sans"
           onClick={() => {
             router.replace("/dashboard");
             router.refresh();
           }}
+          disabled={!verified}
         >
-          {verified ? "Open your dashboard" : "Skip for now"}
+          Open your dashboard
         </button>
       </div>
+
+      {!verified ? (
+        <p className="onboarding-footnote font-sans">
+          Can&apos;t call right now?{" "}
+          <button
+            type="button"
+            className="onboarding-verify-link"
+            onClick={() => {
+              router.replace("/dashboard");
+              router.refresh();
+            }}
+          >
+            Open dashboard anyway
+          </button>
+          {" — "}
+          we&apos;ll remind you to finish prove-it on Today.
+        </p>
+      ) : null}
 
       {verified && state?.firstLead ? (
         <p className="onboarding-footnote font-sans">
