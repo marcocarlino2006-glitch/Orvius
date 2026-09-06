@@ -92,12 +92,12 @@ export function OnboardingWizard() {
   const inPostFlow = Boolean(provisionedLine && postProvision);
 
   return (
-    <main className="onboarding-shell onboarding-shell--craft">
+    <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
       <div className="onboarding-glow" aria-hidden />
 
       <div className="onboarding-frame">
         <header className="onboarding-header">
-          <OrviusLogo size="md" variant="chalk" />
+          <OrviusLogo size="md" variant="void" />
           <p className="onboarding-eyebrow font-sans">{company.productName} setup</p>
         </header>
 

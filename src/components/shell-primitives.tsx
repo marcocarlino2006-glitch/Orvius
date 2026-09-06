@@ -24,13 +24,15 @@ export function ShellPanel({
   title,
   children,
   action,
+  dense = false,
 }: {
   title: string;
   children: ReactNode;
   action?: ReactNode;
+  dense?: boolean;
 }) {
   return (
-    <section className="pro-panel">
+    <section className={`pro-panel${dense ? " pro-panel--dense" : ""}`}>
       <div className="pro-panel-head">
         <h2 className="pro-panel-title font-sans">{title}</h2>
         {action}

@@ -103,7 +103,6 @@ export default function LeadDetailPage() {
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
-      subtitle={`${lead.business?.name ?? "Your shop"} · ${lead.source === "sms" ? "Text lead" : "Call lead"}`}
       businessName={lead.business?.name ?? undefined}
       actions={
         <div className="flex flex-wrap items-center gap-2">
@@ -122,7 +121,7 @@ export default function LeadDetailPage() {
     >
       <ProSignalBar showInboxLink={false} compact />
 
-      <div className="ring1-lead-status mb-6">
+      <div className="ring1-lead-status mb-3">
         <LeadStatusActions
           leadId={lead.id}
           status={lead.status}
@@ -130,8 +129,8 @@ export default function LeadDetailPage() {
         />
       </div>
 
-      <div className="ring1-lead-grid ring1-lead-grid-with-bar">
-        <div className="ring1-lead-primary">
+      <div className="os-detail-grid">
+        <div className="os-detail-primary">
           <OwnerAlertCard
             variant="void"
             lead={{
@@ -147,15 +146,15 @@ export default function LeadDetailPage() {
           {lead.call?.transcript ? (
             <TranscriptCinema
               transcript={lead.call.transcript}
-              variant="chalk"
-              className="mt-6"
+              variant="void"
+              className="mt-3"
             />
           ) : null}
         </div>
 
-        <div className="ring1-lead-side space-y-6">
+        <div className="os-detail-side">
           {lead.job ? (
-            <ShellPanel title="Job on dispatch">
+            <ShellPanel title="Job on dispatch" dense>
               <p className="font-sans text-sm text-ash">
                 {lead.job.title} · {lead.job.status}
                 {lead.job.scheduledAt
@@ -180,7 +179,7 @@ export default function LeadDetailPage() {
               </Link>
             </ShellPanel>
           ) : (
-            <ShellPanel title="Book this lead">
+            <ShellPanel title="Book this lead" dense>
               <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
                 Schedule this lead on your calendar and assign crew on dispatch.
               </p>
@@ -189,7 +188,7 @@ export default function LeadDetailPage() {
           )}
 
           {lead.customer ? (
-            <ShellPanel title="Customer">
+            <ShellPanel title="Customer" dense>
               <p className="font-sans text-sm text-ash">
                 {lead.customer.interactionCount} interaction
                 {lead.customer.interactionCount === 1 ? "" : "s"} on record.
@@ -204,7 +203,7 @@ export default function LeadDetailPage() {
           ) : null}
 
           {lead.call ? (
-            <ShellPanel title="Call record">
+            <ShellPanel title="Call record" dense>
               <p className="font-sans text-sm text-ash">
                 {lead.call.status}
                 {lead.call.durationSec ? ` · ${lead.call.durationSec}s` : ""}
@@ -224,7 +223,7 @@ export default function LeadDetailPage() {
           ) : null}
 
           {lead.notes ? (
-            <ShellPanel title="Notes">
+            <ShellPanel title="Notes" dense>
               <p className="font-sans text-sm leading-relaxed text-void whitespace-pre-wrap">
                 {lead.notes}
               </p>

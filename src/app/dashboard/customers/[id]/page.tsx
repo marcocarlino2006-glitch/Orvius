@@ -84,7 +84,6 @@ export default function CustomerDetailPage() {
   return (
     <OsShell
       title={customer.displayName}
-      subtitle={`Customer record · ${customer.business?.name ?? "Orvius"}`}
       actions={
         customer.phone ? (
           <a href={`tel:${customer.phone}`} className="btn btn-void text-sm">
@@ -93,8 +92,8 @@ export default function CustomerDetailPage() {
         ) : null
       }
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-        <ShellPanel title="Profile">
+      <div className="os-detail-grid">
+        <ShellPanel title="Profile" dense>
           <div className="flex flex-wrap gap-2">
             {customer.returning ? (
               <ShellBadge tone="live">Returning customer</ShellBadge>
@@ -104,66 +103,59 @@ export default function CustomerDetailPage() {
             <ShellBadge tone="flare">{customer.interactionCount} interactions</ShellBadge>
           </div>
 
-          <dl className="mt-6 space-y-4 font-sans text-sm">
+          <dl className="os-kv font-sans">
             <div>
-              <dt className="text-ash">Phone</dt>
-              <dd className="mt-1 font-medium tabular-nums text-void">
-                {displayPhone(customer.phone)}
-              </dd>
+              <dt>Phone</dt>
+              <dd className="tabular-nums">{displayPhone(customer.phone)}</dd>
             </div>
             {customer.email ? (
               <div>
-                <dt className="text-ash">Email</dt>
-                <dd className="mt-1 font-medium text-void">{customer.email}</dd>
+                <dt>Email</dt>
+                <dd>{customer.email}</dd>
               </div>
             ) : null}
             {customer.address ? (
               <div>
-                <dt className="text-ash">Address</dt>
-                <dd className="mt-1 font-medium text-void">{customer.address}</dd>
+                <dt>Address</dt>
+                <dd>{customer.address}</dd>
               </div>
             ) : null}
             <div>
-              <dt className="text-ash">First seen</dt>
-              <dd className="mt-1 text-void">
-                {new Date(customer.firstSeenAt).toLocaleString()}
-              </dd>
+              <dt>First seen</dt>
+              <dd>{new Date(customer.firstSeenAt).toLocaleString()}</dd>
             </div>
             <div>
-              <dt className="text-ash">Last seen</dt>
-              <dd className="mt-1 text-void">
-                {new Date(customer.lastSeenAt).toLocaleString()}
-              </dd>
-            </div>
-            <div className="grid grid-cols-3 gap-4 border-t border-rule pt-4">
-              <div>
-                <dt className="text-ash">Calls</dt>
-                <dd className="mt-1 text-2xl font-semibold text-void">{customer.callCount}</dd>
-              </div>
-              <div>
-                <dt className="text-ash">Leads</dt>
-                <dd className="mt-1 text-2xl font-semibold text-void">{customer.leadCount}</dd>
-              </div>
-              <div>
-                <dt className="text-ash">Jobs</dt>
-                <dd className="mt-1 text-2xl font-semibold text-void">{customer.jobCount ?? 0}</dd>
-              </div>
+              <dt>Last seen</dt>
+              <dd>{new Date(customer.lastSeenAt).toLocaleString()}</dd>
             </div>
           </dl>
 
+          <div className="os-kv-stats font-sans">
+            <div>
+              <span className="os-kv-stats-label">Calls</span>
+              <span className="os-kv-stats-value">{customer.callCount}</span>
+            </div>
+            <div>
+              <span className="os-kv-stats-label">Leads</span>
+              <span className="os-kv-stats-value">{customer.leadCount}</span>
+            </div>
+            <div>
+              <span className="os-kv-stats-label">Jobs</span>
+              <span className="os-kv-stats-value">{customer.jobCount ?? 0}</span>
+            </div>
+          </div>
+
           {customer.notes ? (
-            <div className="mt-6 border-t border-rule pt-4">
-              <p className="font-sans text-xs font-bold tracking-[0.14em] text-ash uppercase">
-                Notes
-              </p>
-              <p className="mt-2 font-sans text-sm leading-relaxed text-void whitespace-pre-wrap">
+            <div className="os-kv-notes">
+              <p className="os-kv-notes-label font-sans">Notes</p>
+              <p className="font-sans text-sm leading-relaxed text-void whitespace-pre-wrap">
                 {customer.notes}
               </p>
             </div>
           ) : null}
         </ShellPanel>
 
-        <ShellPanel title="History">
+        <ShellPanel title="History" dense>
           <CustomerTimeline events={timeline} />
         </ShellPanel>
       </div>

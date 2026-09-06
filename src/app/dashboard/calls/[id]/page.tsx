@@ -123,7 +123,7 @@ export default function CallDetailPage() {
   return (
     <OsShell
       title={who}
-      subtitle={`Call situation · ${new Date(call.createdAt).toLocaleString()}`}
+      
       businessName={call.business?.name ?? "Your shop"}
       actions={
         <div className="flex flex-wrap gap-2">
@@ -151,8 +151,8 @@ export default function CallDetailPage() {
         </div>
       ) : null}
 
-      <div className="ring1-lead-grid">
-        <div className="ring1-lead-primary">
+      <div className="os-detail-grid">
+        <div className="os-detail-primary">
           {call.lead ? (
             <OwnerAlertCard
               variant="void"
@@ -166,7 +166,7 @@ export default function CallDetailPage() {
               }}
             />
           ) : (
-            <ShellPanel title="Call summary">
+            <ShellPanel title="Call summary" dense>
               <div className="flex flex-wrap gap-2">
                 <ShellBadge tone="live">{call.status}</ShellBadge>
                 {call.durationSec ? (
@@ -185,15 +185,13 @@ export default function CallDetailPage() {
           )}
 
           {call.summary && call.lead ? (
-            <div className="mt-6">
-              <ShellPanel title="AI summary">
-                <p className="font-sans text-sm leading-relaxed text-void">{call.summary}</p>
-              </ShellPanel>
-            </div>
+            <ShellPanel title="AI summary" dense>
+              <p className="font-sans text-sm leading-relaxed text-void">{call.summary}</p>
+            </ShellPanel>
           ) : null}
 
           {call.transcript ? (
-            <TranscriptCinema transcript={call.transcript} variant="chalk" className="mt-6" />
+            <TranscriptCinema transcript={call.transcript} variant="void" />
           ) : null}
 
           {call.recordingUrl ? (
@@ -201,15 +199,15 @@ export default function CallDetailPage() {
               href={call.recordingUrl}
               target="_blank"
               rel="noreferrer"
-              className="btn btn-secondary mt-6 text-sm"
+              className="btn btn-secondary text-sm"
             >
               Play recording
             </a>
           ) : null}
         </div>
 
-        <div className="ring1-lead-side space-y-6">
-          <ShellPanel title="What Orvius did">
+        <div className="os-detail-side">
+          <ShellPanel title="What Orvius did" dense>
             {call.successEvaluation ? (
               <p className="call-ai-confidence font-sans">
                 AI confidence{" "}
@@ -250,7 +248,7 @@ export default function CallDetailPage() {
           </ShellPanel>
 
           {call.customer ? (
-            <ShellPanel title="Customer">
+            <ShellPanel title="Customer" dense>
               <Link
                 href={`/dashboard/customers/${call.customer.id}`}
                 className="customer-timeline-link font-sans"
@@ -266,7 +264,7 @@ export default function CallDetailPage() {
           ) : null}
 
           {call.lead?.job ? (
-            <ShellPanel title="Job from this call">
+            <ShellPanel title="Job from this call" dense>
               <Link
                 href={`/dashboard/jobs/${call.lead.job.id}`}
                 className="customer-timeline-link font-sans"
@@ -283,7 +281,7 @@ export default function CallDetailPage() {
           ) : null}
 
           {situation?.priorJobs?.length ? (
-            <ShellPanel title="Previous jobs">
+            <ShellPanel title="Previous jobs" dense>
               <ul className="call-situation-list font-sans">
                 {situation.priorJobs.map((job) => (
                   <li key={job.id}>
@@ -301,7 +299,7 @@ export default function CallDetailPage() {
           ) : null}
 
           {situation?.timeline?.length ? (
-            <ShellPanel title="Customer timeline">
+            <ShellPanel title="Customer timeline" dense>
               <ul className="call-situation-list font-sans">
                 {situation.timeline.map((event) => (
                   <li key={`${event.type}-${event.id}`}>

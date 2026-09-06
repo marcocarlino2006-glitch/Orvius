@@ -36,11 +36,11 @@ export default function DashboardProfilePage() {
       subtitle="Your Google account and shop identity in Orvius."
     >
       <div className="account-grid">
-        <ShellPanel title="Account">
+        <ShellPanel title="Account" dense>
           {loading ? (
             <p className="font-sans text-sm text-ash">Loading…</p>
           ) : (
-            <dl className="account-dl font-sans">
+            <dl className="os-kv font-sans">
               <div>
                 <dt>Name</dt>
                 <dd>{account?.user.name ?? "—"}</dd>
@@ -59,6 +59,7 @@ export default function DashboardProfilePage() {
 
         <ShellPanel
           title="Business"
+          dense
           action={
             <Link href="/dashboard/settings" className="pro-section-link font-sans">
               Settings →
@@ -68,7 +69,7 @@ export default function DashboardProfilePage() {
           {loading ? (
             <p className="font-sans text-sm text-ash">Loading…</p>
           ) : account?.business ? (
-            <dl className="account-dl font-sans">
+            <dl className="os-kv font-sans">
               <div>
                 <dt>Shop</dt>
                 <dd>{account.business.name}</dd>

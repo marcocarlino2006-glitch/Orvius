@@ -271,7 +271,7 @@ export default function DashboardSettingsPage() {
 
       <form className="account-stack pro-settings-form" onSubmit={save}>
         <div id="overflow-forward">
-          <ShellPanel title="Call capture">
+          <ShellPanel title="Call capture" dense>
             <p className="account-settings-hint font-sans mb-3">
               Your dedicated line answers as {account?.business?.name ?? "your shop"}.
               Forward missed / busy / after-hours from your public line — or publish
@@ -287,7 +287,7 @@ export default function DashboardSettingsPage() {
           </ShellPanel>
         </div>
 
-        <ShellPanel title="Owner alerts">
+        <ShellPanel title="Owner alerts" dense>
           <label className="onboarding-field font-sans">
             <span className="onboarding-label">Your mobile</span>
             <input

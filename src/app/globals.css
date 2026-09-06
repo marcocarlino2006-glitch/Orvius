@@ -22469,3 +22469,417 @@ body:has(.confirm-shell) {
 .os-shell-night .ring1-lead-grid .pro-panel {
   margin: 0 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CRAFT PASS — detail instruments, billing gates, night onboarding
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.os-detail-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+@media (min-width: 1024px) {
+  .os-detail-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
+    align-items: start;
+  }
+}
+
+.os-detail-primary,
+.os-detail-side,
+.os-shell-night .ring1-lead-primary,
+.os-shell-night .ring1-lead-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.os-shell-night .pro-panel--dense .pro-panel-head {
+  padding: 0.45rem 0.65rem !important;
+}
+
+.os-shell-night .pro-panel--dense .pro-panel-body {
+  padding: 0.55rem 0.65rem 0.65rem !important;
+}
+
+.os-shell-night .pro-panel--dense .pro-panel-body .mt-6,
+.os-shell-night .pro-panel--dense .pro-panel-body .mt-5,
+.os-shell-night .pro-panel--dense .pro-panel-body .mt-4 {
+  margin-top: 0.65rem !important;
+}
+
+.os-kv {
+  margin: 0.65rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.os-kv > div {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #2f3336;
+}
+
+.os-kv > div:last-child {
+  border-bottom: none;
+}
+
+.os-kv dt {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #71767b;
+  padding-top: 0.15rem;
+}
+
+.os-kv dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #e7e9ea;
+  line-height: 1.4;
+}
+
+.os-shell-night .os-kv dt {
+  color: #71767b !important;
+}
+
+.os-shell-night .os-kv dd,
+.os-shell-night .os-kv .text-void {
+  color: #e7e9ea !important;
+}
+
+/* Billing instrument unblock */
+.billing-unblock--instrument,
+.os-shell-night .billing-unblock {
+  background: #0a0a0a !important;
+  border: 1px solid #2f3336 !important;
+  border-left: 2px solid #e7e9ea !important;
+  border-radius: 0.2rem !important;
+  padding: 0.7rem 0.75rem !important;
+  box-shadow: none !important;
+}
+
+.billing-unblock-kicker {
+  margin: 0;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #71767b;
+}
+
+.os-shell-night .billing-unblock-title,
+.billing-unblock--instrument .billing-unblock-title {
+  margin: 0.25rem 0 0.55rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .billing-unblock-steps,
+.billing-unblock--instrument .billing-unblock-steps {
+  margin: 0;
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #71767b;
+}
+
+.billing-unblock-missing,
+.billing-unblock-foot {
+  margin: 0.55rem 0 0;
+  font-size: 0.6875rem;
+  color: #71767b;
+}
+
+.billing-unblock-missing code,
+.billing-unblock-foot code {
+  font-size: 0.625rem;
+  padding: 0.05rem 0.25rem;
+  border: 1px solid #2f3336;
+  border-radius: 0.15rem;
+  margin-right: 0.25rem;
+  color: #e7e9ea;
+}
+
+.os-shell-night .account-billing-plan {
+  padding: 0.65rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.os-shell-night .account-plan-name,
+.os-shell-night .account-billing-plan-name {
+  color: #e7e9ea !important;
+  font-size: 1rem !important;
+}
+
+.os-shell-night .account-plan-price,
+.os-shell-night .account-billing-plan-price {
+  color: #e7e9ea !important;
+}
+
+/* Night onboarding — Grok void */
+.onboarding-shell--night {
+  background: #000000 !important;
+  color: #e7e9ea !important;
+  min-height: 100svh;
+}
+
+.onboarding-shell--night .onboarding-glow {
+  opacity: 0.2;
+  background:
+    radial-gradient(ellipse 50% 35% at 50% 0%, color-mix(in srgb, #272a2e 40%, transparent), transparent 70%) !important;
+}
+
+.onboarding-shell--night .onboarding-eyebrow {
+  color: #71767b !important;
+}
+
+.onboarding-shell--night .onboarding-step {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  color: #71767b !important;
+  box-shadow: none !important;
+}
+
+.onboarding-shell--night .onboarding-step-active {
+  background: #1e2126 !important;
+  border-color: #e7e9ea !important;
+  color: #e7e9ea !important;
+  box-shadow: none !important;
+}
+
+.onboarding-shell--night .onboarding-step-done {
+  color: #e7e9ea !important;
+}
+
+.onboarding-shell--night .onboarding-panel {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.25rem !important;
+  box-shadow: none !important;
+  color: #e7e9ea !important;
+}
+
+.onboarding-shell--night .onboarding-title {
+  color: #e7e9ea !important;
+}
+
+.onboarding-shell--night .onboarding-lead,
+.onboarding-shell--night .onboarding-hint,
+.onboarding-shell--night .onboarding-label {
+  color: #71767b !important;
+}
+
+.onboarding-shell--night .onboarding-input,
+.onboarding-shell--night input,
+.onboarding-shell--night select,
+.onboarding-shell--night textarea {
+  background: #0a0a0a !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  color: #e7e9ea !important;
+}
+
+.onboarding-shell--night .onboarding-trade {
+  background: #0a0a0a !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  color: #e7e9ea !important;
+}
+
+.onboarding-shell--night .onboarding-trade-active {
+  border-color: #e7e9ea !important;
+  background: #1e2126 !important;
+}
+
+.onboarding-shell--night .btn-void,
+.onboarding-shell--night .onboarding-btn-primary {
+  background: #e7e9ea !important;
+  color: #000 !important;
+  border-radius: 0.2rem !important;
+}
+
+.onboarding-shell--night .btn-ghost {
+  background: transparent !important;
+  color: #e7e9ea !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+}
+
+.onboarding-shell--night .onboarding-ring-num {
+  color: #71767b !important;
+}
+
+.onboarding-shell--night .orvius-logo {
+  color: #e7e9ea !important;
+}
+
+/* Owner alert / transcript on night details */
+.os-shell-night .panel-void,
+.os-shell-night .owner-alert-card,
+.os-shell-night .transcript-cinema {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.25rem !important;
+  box-shadow: none !important;
+  color: #e7e9ea !important;
+}
+
+.os-kv-block {
+  align-items: start;
+}
+
+.os-kv-block dd {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.os-kv-note {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: #71767b;
+  line-height: 1.35;
+}
+
+.os-kv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.45rem;
+  margin-top: 0.25rem;
+}
+
+.os-kv-stats {
+  margin-top: 0.65rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  border-top: 1px solid #2f3336;
+  padding-top: 0.55rem;
+}
+
+.os-kv-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid #2f3336;
+  border-radius: 0.2rem;
+  background: #0a0a0a;
+}
+
+.os-kv-stats-label {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #71767b;
+}
+
+.os-kv-stats-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #e7e9ea;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-kv-notes {
+  margin-top: 0.65rem;
+  border-top: 1px solid #2f3336;
+  padding-top: 0.55rem;
+}
+
+.os-kv-notes-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #71767b;
+}
+
+.os-shell-night .account-grid {
+  gap: 0.5rem !important;
+}
+
+.os-shell-night .account-stack {
+  gap: 0.5rem !important;
+}
+
+.os-shell-night .pro-settings-secondary {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  padding: 0 !important;
+}
+
+.os-shell-night .pro-settings-secondary summary {
+  padding: 0.55rem 0.65rem !important;
+  color: #e7e9ea !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.os-shell-night .pro-settings-secondary-body {
+  padding: 0 0.65rem 0.65rem !important;
+}
+
+.os-shell-night .post-lock-strip,
+.os-shell-night .post-lock-banner {
+  background: #0a0a0a !important;
+  border: 1px solid #2f3336 !important;
+  border-left: 2px solid #71767b !important;
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+  padding: 0.45rem 0.65rem !important;
+}
+
+.os-shell-night .post-lock-strip-label,
+.os-shell-night .post-lock-kicker {
+  font-size: 0.5625rem !important;
+  letter-spacing: 0.14em !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .post-lock-strip-copy,
+.os-shell-night .post-lock-message {
+  color: #e7e9ea !important;
+  font-size: 0.75rem !important;
+}
+
+.os-shell-night .pro-signal-bar {
+  background: #0a0a0a !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+  padding: 0.4rem 0.55rem !important;
+}
+
+.os-shell-night .pro-signal-bar-kicker {
+  font-size: 0.5625rem !important;
+  letter-spacing: 0.14em !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .pro-signal-bar-line,
+.os-shell-night .pro-signal-bar-meta {
+  color: #e7e9ea !important;
+  font-size: 0.75rem !important;
+}

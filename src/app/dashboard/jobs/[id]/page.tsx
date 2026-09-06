@@ -140,7 +140,6 @@ export default function JobDetailPage() {
   return (
     <OsShell
       title={job.title}
-      subtitle={`Job · ${job.business?.name ?? "Orvius"}`}
       actions={
         <div className="flex flex-wrap gap-2">
           <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
@@ -160,8 +159,8 @@ export default function JobDetailPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-        <ShellPanel title="Field">
+      <div className="os-detail-grid">
+        <ShellPanel title="Field" dense>
           <div className="flex flex-wrap gap-2">
             <ShellBadge
               tone={
@@ -180,105 +179,107 @@ export default function JobDetailPage() {
             )}
           </div>
 
-          <dl className="mt-6 space-y-4 font-sans text-sm">
-            <div>
-              <dt className="text-ash">When</dt>
-              <dd className="mt-1 font-medium text-void">
-                {job.scheduledAt
-                  ? new Date(job.scheduledAt).toLocaleString(undefined, {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })
-                  : "Not scheduled"}
-              </dd>
-              <p className="mt-1 font-sans text-xs text-ash">
-                {job.customerConfirmedAt
-                  ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString()}`
-                  : job.scheduledAt
-                    ? "Proposed window — awaiting customer confirm"
-                    : "No window proposed yet"}
-              </p>
-              <div className="mt-3 flex flex-wrap items-end gap-2">
-                <label className="font-sans text-sm">
-                  <span className="label">Reschedule</span>
-                  <input
-                    type="datetime-local"
-                    className="input mt-1.5"
-                    disabled={saving}
-                    value={scheduleDraft}
-                    onChange={(e) => setScheduleDraft(e.target.value)}
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="btn btn-secondary text-sm"
-                  disabled={saving || !scheduleDraft}
-                  onClick={() =>
-                    void patch({
-                      scheduledAt: scheduleDraft
-                        ? new Date(scheduleDraft).toISOString()
-                        : null,
-                    }).then(() => {
-                      setConfirmMsg(
-                        "Window updated — send confirm so the customer locks it in.",
-                      );
-                    })
-                  }
-                >
-                  Save window
-                </button>
-                {job.scheduledAt && !job.customerConfirmedAt ? (
+          <dl className="os-kv font-sans">
+            <div className="os-kv-block">
+              <dt>When</dt>
+              <dd>
+                <p>
+                  {job.scheduledAt
+                    ? new Date(job.scheduledAt).toLocaleString(undefined, {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })
+                    : "Not scheduled"}
+                </p>
+                <p className="os-kv-note">
+                  {job.customerConfirmedAt
+                    ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString()}`
+                    : job.scheduledAt
+                      ? "Proposed window — awaiting customer confirm"
+                      : "No window proposed yet"}
+                </p>
+                <div className="os-kv-actions">
+                  <label className="font-sans text-sm">
+                    <span className="label">Reschedule</span>
+                    <input
+                      type="datetime-local"
+                      className="input mt-1.5"
+                      disabled={saving}
+                      value={scheduleDraft}
+                      onChange={(e) => setScheduleDraft(e.target.value)}
+                    />
+                  </label>
                   <button
                     type="button"
-                    className="btn btn-void text-sm"
-                    disabled={confirmBusy || saving}
-                    onClick={() => {
-                      void (async () => {
-                        setConfirmBusy(true);
-                        setConfirmMsg(null);
-                        try {
-                          const res = await fetch(
-                            `/api/jobs/${job.id}/confirm-sms`,
-                            { method: "POST" },
-                          );
-                          const data = await res.json();
-                          if (!res.ok) {
-                            throw new Error(data.error ?? "Could not send");
-                          }
-                          setConfirmMsg("Confirm SMS sent to customer.");
-                        } catch (err) {
-                          setConfirmMsg(
-                            err instanceof Error
-                              ? err.message
-                              : "Could not send confirm SMS",
-                          );
-                        } finally {
-                          setConfirmBusy(false);
-                        }
-                      })();
-                    }}
+                    className="btn btn-secondary text-sm"
+                    disabled={saving || !scheduleDraft}
+                    onClick={() =>
+                      void patch({
+                        scheduledAt: scheduleDraft
+                          ? new Date(scheduleDraft).toISOString()
+                          : null,
+                      }).then(() => {
+                        setConfirmMsg(
+                          "Window updated — send confirm so the customer locks it in.",
+                        );
+                      })
+                    }
                   >
-                    {confirmBusy ? "Sending…" : "Text confirm"}
+                    Save window
                   </button>
+                  {job.scheduledAt && !job.customerConfirmedAt ? (
+                    <button
+                      type="button"
+                      className="btn btn-void text-sm"
+                      disabled={confirmBusy || saving}
+                      onClick={() => {
+                        void (async () => {
+                          setConfirmBusy(true);
+                          setConfirmMsg(null);
+                          try {
+                            const res = await fetch(
+                              `/api/jobs/${job.id}/confirm-sms`,
+                              { method: "POST" },
+                            );
+                            const data = await res.json();
+                            if (!res.ok) {
+                              throw new Error(data.error ?? "Could not send");
+                            }
+                            setConfirmMsg("Confirm SMS sent to customer.");
+                          } catch (err) {
+                            setConfirmMsg(
+                              err instanceof Error
+                                ? err.message
+                                : "Could not send confirm SMS",
+                            );
+                          } finally {
+                            setConfirmBusy(false);
+                          }
+                        })();
+                      }}
+                    >
+                      {confirmBusy ? "Sending…" : "Text confirm"}
+                    </button>
+                  ) : null}
+                </div>
+                {confirmMsg ? (
+                  <p className="os-kv-note">{confirmMsg}</p>
                 ) : null}
-              </div>
-              {confirmMsg ? (
-                <p className="mt-2 font-sans text-xs text-ash">{confirmMsg}</p>
-              ) : null}
+              </dd>
             </div>
             {job.address ? (
               <div>
-                <dt className="text-ash">Address</dt>
-                <dd className="mt-1 font-medium text-void">{job.address}</dd>
+                <dt>Address</dt>
+                <dd>{job.address}</dd>
               </div>
             ) : null}
             {job.serviceType ? (
               <div>
-                <dt className="text-ash">Service</dt>
-                <dd className="mt-1 text-void">{job.serviceType}</dd>
+                <dt>Service</dt>
+                <dd>{job.serviceType}</dd>
               </div>
             ) : null}
           </dl>
@@ -324,10 +325,10 @@ export default function JobDetailPage() {
           </div>
         </ShellPanel>
 
-        <div className="space-y-6">
+        <div className="os-detail-side">
           {job.customer ? (
-            <ShellPanel title="Customer">
-              <p className="font-serif text-lg tracking-[-0.03em] text-void">
+            <ShellPanel title="Customer" dense>
+              <p className="font-sans text-sm font-semibold tracking-[-0.02em] text-void">
                 {job.customer.name ?? job.customer.phone}
               </p>
               <p className="mt-1 font-sans text-sm text-ash">
@@ -344,7 +345,7 @@ export default function JobDetailPage() {
           ) : null}
 
           {job.lead ? (
-            <ShellPanel title="From lead">
+            <ShellPanel title="From lead" dense>
               <p className="font-sans text-sm text-ash">
                 Booked from {job.lead.name ?? job.lead.phone ?? "inbox lead"}.
               </p>
@@ -357,7 +358,7 @@ export default function JobDetailPage() {
             </ShellPanel>
           ) : null}
 
-          <ShellPanel title="Money">
+          <ShellPanel title="Money" dense>
             <JobMoneyPanel
               jobId={job.id}
               avgTicketCents={job.business?.avgTicketCents ?? null}
@@ -367,7 +368,7 @@ export default function JobDetailPage() {
           </ShellPanel>
 
           {job.notes ? (
-            <ShellPanel title="Notes">
+            <ShellPanel title="Notes" dense>
               <p className="font-sans text-sm leading-relaxed text-void whitespace-pre-wrap">
                 {job.notes}
               </p>

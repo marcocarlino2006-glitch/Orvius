@@ -89,12 +89,9 @@ export default function DashboardBillingPage() {
   const needsPay = locked || status === "past_due" || status === "pilot" || status === "none";
 
   return (
-    <OsShell
-      title="Billing"
-      subtitle="Plan, subscription, and payment for your shop."
-    >
+    <OsShell title="Billing">
       <div className="account-grid">
-        <ShellPanel title="Current plan">
+        <ShellPanel title="Current plan" dense>
           {loading ? (
             <p className="font-sans text-sm text-ash">Loading…</p>
           ) : (
@@ -142,7 +139,7 @@ export default function DashboardBillingPage() {
           )}
         </ShellPanel>
 
-        <ShellPanel title={needsPay && !loading ? "Subscribe" : "Subscribe"}>
+        <ShellPanel title={needsPay && !loading ? "Subscribe" : "Subscribe"} dense>
           {loading ? (
             <p className="font-sans text-sm text-ash">Loading…</p>
           ) : status === "active" ? (
@@ -197,38 +194,36 @@ export default function DashboardBillingPage() {
                 Self-serve checkout stays dark until Stripe is configured. Do not claim
                 paid checkout until these gates are green.
               </p>
-              <div className="billing-unblock mt-5 font-sans">
-                <p className="billing-unblock-title">Founder unblock</p>
+              <div className="billing-unblock billing-unblock--instrument mt-4 font-sans">
+                <p className="billing-unblock-kicker">Stripe gates</p>
+                <p className="billing-unblock-title">Checkout stays dark until these are green</p>
                 <ol className="billing-unblock-steps">
                   {(account?.billing.readiness?.nextSteps?.length
                     ? account.billing.readiness.nextSteps
                     : [
-                        "Add STRIPE_SECRET_KEY on Vercel from Stripe Dashboard → API keys",
-                        "Run npm run stripe:setup locally, paste price IDs to Vercel",
-                        "Add webhook api.orvius.im/api/billing/webhook + STRIPE_WEBHOOK_SECRET",
-                        "Redeploy, then Subscribe on this page",
+                        "Add STRIPE_SECRET_KEY on Vercel",
+                        "Run stripe:setup · paste price IDs",
+                        "Webhook + STRIPE_WEBHOOK_SECRET",
+                        "Redeploy · then Subscribe",
                       ]
                   ).map((step) => (
                     <li key={step}>{step}</li>
                   ))}
                 </ol>
                 {account?.billing.readiness?.missing?.length ? (
-                  <p className="mt-3 text-xs text-ash">
-                    Missing:{" "}
+                  <p className="billing-unblock-missing">
+                    Missing ·{" "}
                     {account.billing.readiness.missing.map((m) => (
-                      <code key={m} className="mr-1">
-                        {m}
-                      </code>
+                      <code key={m}>{m}</code>
                     ))}
                   </p>
                 ) : null}
-                <p className="mt-3 text-xs text-ash">
-                  Full runbook: <code>docs/BILLING-SETUP.md</code> in the repo.
-                  Design partners can still{" "}
+                <p className="billing-unblock-foot">
+                  Runbook · <code>docs/BILLING-SETUP.md</code>
+                  {" · "}
                   <Link href="/pilot" className="pro-section-link">
-                    apply for pilot
+                    Design partner
                   </Link>
-                  .
                 </p>
               </div>
             </>
@@ -236,8 +231,8 @@ export default function DashboardBillingPage() {
         </ShellPanel>
       </div>
 
-      <div className="mt-6">
-        <ShellPanel title="Estimate card pay">
+      <div className="mt-3">
+        <ShellPanel title="Estimate card pay" dense>
           <p className="font-sans text-sm leading-relaxed text-ash">
             Public estimate card checkout runs on the Orvius Stripe account today.
             Money does not land in the shop&apos;s bank until Stripe Connect ships —
@@ -247,8 +242,8 @@ export default function DashboardBillingPage() {
         </ShellPanel>
       </div>
 
-      <div className="mt-6">
-        <ShellPanel title="Legal">
+      <div className="mt-3">
+        <ShellPanel title="Legal" dense>
           <ul className="account-legal-links font-sans">
             <li>
               <Link href="/terms">Terms of Service</Link>
