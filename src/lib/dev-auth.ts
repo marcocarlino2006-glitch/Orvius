@@ -35,9 +35,11 @@ export function getDevAuthEmail() {
 
 export function getDevAuthUser() {
   const email = getDevAuthEmail();
+  const local = email.split("@")[0]?.trim();
   return {
     id: `dev:${email}`,
     email,
-    name: "Dev builder",
+    // Quiet identity — never paint "Dev builder" into the finished shell
+    name: local ? local.replace(/[._-]+/g, " ") : "Owner",
   };
 }
