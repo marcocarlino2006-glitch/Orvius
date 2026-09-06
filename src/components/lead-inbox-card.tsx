@@ -116,7 +116,7 @@ export function LeadInboxCard({
               <dt className="text-ash">{label}</dt>
               <dd className="text-right font-medium text-void">
                 {href ? (
-                  <a href={href} className="lead-inbox-link tabular-nums text-flare-dim hover:text-flare">
+                  <a href={href} className="lead-inbox-link tabular-nums text-void hover:text-signal">
                     {value}
                   </a>
                 ) : (

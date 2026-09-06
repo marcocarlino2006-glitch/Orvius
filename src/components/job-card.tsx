@@ -20,7 +20,8 @@ function statusTone(status: string) {
   }
   if (status === "completed") return "neutral" as const;
   if (status === "cancelled") return "muted" as const;
-  return "flare" as const;
+  // Scheduled / open — ink mark, never pink flare wash
+  return "neutral" as const;
 }
 
 export function JobCard({
