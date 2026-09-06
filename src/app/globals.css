@@ -17847,3 +17847,239 @@ button.btn {
 .pro-founder-cert-item input {
   margin-top: 0.2rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Institutional presence — big-company craft, not thin startup theater
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mkt-nav--institution {
+  border-bottom: 1px solid color-mix(in srgb, #f0f0fa 8%, transparent);
+  background: color-mix(in srgb, var(--void-deep, #050607) 72%, transparent);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+}
+
+.mkt-nav--institution.mkt-nav--elevated {
+  background: color-mix(in srgb, #070809 94%, transparent);
+  border-bottom-color: color-mix(in srgb, #f0f0fa 10%, transparent);
+  box-shadow: none;
+}
+
+.mkt-nav--institution .mkt-nav-brand .orvius-logo,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
+  color: #f4f6f8;
+}
+
+.mkt-nav--institution .mkt-nav-links a,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
+.mkt-nav--institution .mkt-nav-login,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-login {
+  color: color-mix(in srgb, #f0f0fa 72%, transparent);
+}
+
+.mkt-nav--institution .mkt-nav-links a:hover,
+.mkt-nav--institution .mkt-nav-login:hover {
+  color: #fff;
+}
+
+.mkt-nav--institution .mkt-nav-cta,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
+  border-radius: 0.2rem !important;
+  min-height: 2.35rem;
+  padding: 0.55rem 1.1rem !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.1em !important;
+  background: transparent !important;
+  color: #f0f0fa !important;
+  border: 1px solid color-mix(in srgb, #f0f0fa 38%, transparent) !important;
+}
+
+.mkt-nav--institution .mkt-nav-cta:hover {
+  background: color-mix(in srgb, #f0f0fa 10%, transparent) !important;
+  border-color: color-mix(in srgb, #f0f0fa 62%, transparent) !important;
+}
+
+.mkt-hero-entity {
+  margin: 0 0 0.85rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #e8ecf1 42%, transparent);
+}
+
+.mkt-hero--command .mkt-hero-plane {
+  opacity: 0.52;
+  filter: blur(0.2px) saturate(0.92) contrast(1.05);
+}
+
+.mkt-hero--command .mkt-hero-live-number {
+  font-size: clamp(1.55rem, 3.8vw, 2.35rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-shadow: none;
+  color: color-mix(in srgb, var(--spectral, #e8ecf1) 88%, transparent);
+}
+
+.mkt-hero--command .mkt-hero-live-line {
+  margin-top: 1.75rem;
+  margin-bottom: 0;
+  padding-top: 1.15rem;
+  border-top: 1px solid color-mix(in srgb, #f0f0fa 12%, transparent);
+  width: min(100%, 28rem);
+}
+
+.mkt-hero--command .mkt-hero-actions {
+  margin-top: 1.75rem;
+}
+
+.mkt-hero--command .mkt-btn-hero,
+.mkt-close--institution .mkt-btn,
+.mkt-page .mkt-btn-chalk,
+.mkt-page .mkt-btn-lg {
+  border-radius: 0.2rem !important;
+}
+
+.mkt-product--atmosphere .mkt-product-row {
+  border-color: color-mix(in srgb, #f0f0fa 14%, transparent);
+  background: color-mix(in srgb, #0a0c10 58%, transparent);
+}
+
+.mkt-product--atmosphere .mkt-product-title,
+.mkt-product--atmosphere .mkt-product-row-main,
+.mkt-product--atmosphere .mkt-product-alert-title {
+  color: color-mix(in srgb, #f0f0fa 82%, transparent);
+}
+
+.mkt-close--institution {
+  padding-block: clamp(4.5rem, 10vh, 6.5rem);
+  border-top: 1px solid color-mix(in srgb, #fff 8%, transparent);
+}
+
+.mkt-close-inner--institution {
+  max-width: 46rem;
+  margin-inline: 0;
+  text-align: left;
+}
+
+.mkt-close-entity {
+  margin: 0 0 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #e8ecf1 42%, transparent);
+}
+
+.mkt-close-actions--institution {
+  align-items: flex-start;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 1rem 1.5rem;
+}
+
+.mkt-close--institution .mkt-btn,
+.mkt-close--institution .mkt-btn-lg,
+.mkt-hero--command .mkt-btn-hero,
+.mkt-hero--command .mkt-btn-chalk,
+.mkt-nav--institution .mkt-btn {
+  border-radius: 0.2rem !important;
+}
+
+.mkt-footer--institution {
+  padding: clamp(3.5rem, 8vh, 5rem) clamp(1.5rem, 5vw, 3rem) 2.25rem;
+  background: #050607;
+  border-top: 1px solid color-mix(in srgb, #fff 10%, transparent);
+}
+
+.mkt-footer-grid {
+  max-width: 74rem;
+  margin-inline: auto;
+  display: grid;
+  gap: 2.5rem 3rem;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+}
+
+.mkt-footer-brand {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.mkt-footer-entity {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #f0f0fa 72%, transparent);
+}
+
+.mkt-footer-tagline {
+  margin: 0;
+  max-width: 28ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, #f0f0fa 48%, transparent);
+}
+
+.mkt-footer-col {
+  display: grid;
+  gap: 0.65rem;
+  align-content: start;
+}
+
+.mkt-footer-heading {
+  margin: 0 0 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #f0f0fa;
+}
+
+.mkt-footer-col a {
+  color: color-mix(in srgb, #f0f0fa 55%, transparent);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 140ms ease;
+}
+
+.mkt-footer-col a:hover {
+  color: #fff;
+}
+
+.mkt-footer-bottom {
+  max-width: 74rem;
+  margin: 2.75rem auto 0;
+  padding-top: 1.35rem;
+  border-top: 1px solid color-mix(in srgb, #fff 8%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: space-between;
+}
+
+.mkt-footer--institution .mkt-footer-copy,
+.mkt-footer--institution .mkt-footer-mark {
+  margin: 0;
+  font-size: 0.75rem;
+  color: color-mix(in srgb, #f0f0fa 38%, transparent);
+}
+
+@media (max-width: 900px) {
+  .mkt-footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mkt-footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .mkt-footer-grid {
+    grid-template-columns: 1fr;
+  }
+}

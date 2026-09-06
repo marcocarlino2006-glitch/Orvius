@@ -48,28 +48,47 @@ type MarketingShellProps = PublicLayoutProps & {
 };
 
 function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
+  const year = new Date().getFullYear();
   return (
     <div className="mkt-page">
       <PremiumNav />
       <main>{children}</main>
-      <footer className="mkt-footer">
-        <div className="mkt-footer-inner">
-          <OrviusLogo variant="void" size="sm" />
-          <nav className="mkt-footer-links" aria-label="Footer">
+      <footer className="mkt-footer mkt-footer--institution">
+        <div className="mkt-footer-grid">
+          <div className="mkt-footer-brand">
+            <OrviusLogo variant="void" size="sm" />
+            <p className="mkt-footer-entity font-sans">Solution Development LLC</p>
+            <p className="mkt-footer-tagline font-sans">
+              The night-shift OS for HVAC, plumbing, and electrical.
+            </p>
+          </div>
+          <nav className="mkt-footer-col" aria-label="Product">
+            <p className="mkt-footer-heading font-sans">Product</p>
             <Link href="/pricing">Pricing</Link>
             <Link href="/pilot">Audit</Link>
             <Link href="/security">Security</Link>
-            <Link href="/legal">Legal</Link>
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
             <Link href="/login">Log in</Link>
           </nav>
-          <div className="mkt-footer-meta">
-            <p className="mkt-footer-copy">
-              © {new Date().getFullYear()} Solution Development LLC. All rights reserved.
-            </p>
-            <p className="mkt-footer-mark">Orvius™ is a trademark of Solution Development LLC.</p>
+          <nav className="mkt-footer-col" aria-label="Legal">
+            <p className="mkt-footer-heading font-sans">Legal</p>
+            <Link href="/legal">Legal hub</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+            <Link href="/sms-terms">SMS terms</Link>
+          </nav>
+          <div className="mkt-footer-col mkt-footer-col--contact">
+            <p className="mkt-footer-heading font-sans">Contact</p>
+            <a href="mailto:hello@orvius.im">hello@orvius.im</a>
+            <a href="tel:+18446439170">+1 844 643 9170</a>
           </div>
+        </div>
+        <div className="mkt-footer-bottom">
+          <p className="mkt-footer-copy">
+            © {year} Solution Development LLC. All rights reserved.
+          </p>
+          <p className="mkt-footer-mark">
+            Orvius™ is a trademark of Solution Development LLC.
+          </p>
         </div>
       </footer>
     </div>

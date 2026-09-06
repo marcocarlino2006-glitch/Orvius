@@ -8,10 +8,11 @@ const NAV = [
   { href: "/pricing", label: "Pricing" },
   { href: "/pilot", label: "Audit" },
   { href: "/security", label: "Security" },
+  { href: "/legal", label: "Legal" },
 ] as const;
 
 /**
- * Company chrome — sparse links, one CTA, no funnel noise.
+ * Company chrome — institutional weight, hairline discipline, no funnel noise.
  */
 export function PremiumNav() {
   const menuId = useId();
@@ -20,11 +21,7 @@ export function PremiumNav() {
 
   useEffect(() => {
     function onScroll() {
-      const hero = document.querySelector(".mkt-hero--command");
-      const threshold = hero
-        ? Math.max(48, hero.getBoundingClientRect().height * 0.72)
-        : 8;
-      setScrolled(window.scrollY > threshold);
+      setScrolled(window.scrollY > 12);
     }
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -47,7 +44,7 @@ export function PremiumNav() {
   return (
     <>
       <header
-        className={`mkt-nav ${scrolled ? "mkt-nav--elevated" : ""} ${menuOpen ? "mkt-nav--open" : ""}`}
+        className={`mkt-nav mkt-nav--institution ${scrolled ? "mkt-nav--elevated" : ""} ${menuOpen ? "mkt-nav--open" : ""}`}
       >
         <div className="mkt-nav-inner">
           <Link
@@ -55,7 +52,7 @@ export function PremiumNav() {
             className="mkt-nav-brand"
             onClick={() => setMenuOpen(false)}
           >
-            <OrviusLogo variant={scrolled ? "chalk" : "void"} size="lg" />
+            <OrviusLogo variant="void" size="lg" />
           </Link>
 
           <nav className="mkt-nav-links" aria-label="Main">
@@ -70,13 +67,8 @@ export function PremiumNav() {
             <Link href="/login" className="mkt-nav-login">
               Log in
             </Link>
-            <Link
-              href="/pilot"
-              className={`mkt-btn mkt-nav-cta ${
-                scrolled ? "mkt-btn-ink" : "mkt-btn-ghost-light"
-              }`}
-            >
-              Audit
+            <Link href="/pilot" className="mkt-btn mkt-nav-cta mkt-btn-ghost-light">
+              Prove it
             </Link>
             <button
               type="button"
@@ -114,16 +106,15 @@ export function PremiumNav() {
               </Link>
               <Link
                 href="/pilot"
-                className="mkt-btn mkt-btn-ink mkt-nav-drawer-cta"
+                className="mkt-nav-drawer-cta"
                 onClick={() => setMenuOpen(false)}
               >
-                Audit
+                Prove it on your line
               </Link>
             </nav>
           </div>
         ) : null}
       </header>
-
       {menuOpen ? (
         <button
           type="button"

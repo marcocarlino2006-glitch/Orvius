@@ -19,14 +19,17 @@ export default function HomePage() {
       <HomeStatement />
       <HomeCallStory />
 
-      <MktSection tone="dark" className="mkt-close mkt-close--cinema">
-        <div className="mkt-close-inner">
-          <h2 className="mkt-close-title">Be the shop that never misses the night.</h2>
+      <MktSection tone="dark" className="mkt-close mkt-close--cinema mkt-close--institution">
+        <div className="mkt-close-inner mkt-close-inner--institution">
+          <p className="mkt-close-entity font-sans">{company.legalName}</p>
+          <h2 className="mkt-close-title">
+            Be the shop that never misses the night.
+          </h2>
           <p className="mkt-close-desc font-sans">
             Not another AI receptionist bolted onto a CRM. The night shift for
             HVAC, plumbing, and electrical — prove it on your line, or call ours.
           </p>
-          <div className="mkt-close-actions">
+          <div className="mkt-close-actions mkt-close-actions--institution">
             <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-lg">
               Prove it on your line
             </Link>

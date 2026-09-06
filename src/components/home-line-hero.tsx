@@ -1,18 +1,22 @@
 import Link from "next/link";
 import { HomeProductPreview } from "@/components/home-product-preview";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { company } from "@/lib/company";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
- * Presence bar: the live line IS the product.
- * Brand → phone artifact (with motion) → one claim → one prove CTA.
- * Command plane is ghost depth — never a dashboard card overlay.
+ * Institutional presence — brand and category claim lead.
+ * Live line is the product artifact under the claim, not a call-center landing page.
+ * Command plane is readable depth — never a floating SaaS card.
  */
 export function HomeLineHero() {
   const digits = DEMO_LINE_DISPLAY.replace(/\s+/g, " ").split("");
 
   return (
-    <section className="mkt-hero mkt-hero--command" aria-labelledby="home-hero-heading">
+    <section
+      className="mkt-hero mkt-hero--command"
+      aria-labelledby="home-hero-heading"
+    >
       <div className="mkt-hero-plane" aria-hidden>
         <HomeProductPreview atmosphere />
       </div>
@@ -20,7 +24,27 @@ export function HomeLineHero() {
       <div className="mkt-hero-grain" aria-hidden />
 
       <div className="editorial-wrap mkt-hero-content">
-        <OrviusLogo variant="void" size="xl" className="mkt-hero-brand-lockup" />
+        <p className="mkt-hero-entity font-sans">{company.legalName}</p>
+
+        <OrviusLogo
+          variant="void"
+          size="xl"
+          className="mkt-hero-brand-lockup"
+        />
+
+        <h1
+          id="home-hero-heading"
+          className="mkt-hero-title mkt-hero-title--absolute"
+        >
+          The night shift
+          <br />
+          for the trades.
+        </h1>
+
+        <p className="mkt-hero-lead font-sans">
+          After-hours and overflow answer, book, and alert — on your board by
+          morning. You keep the overrides.
+        </p>
 
         <a
           href={demoLineHref()}
@@ -44,17 +68,6 @@ export function HomeLineHero() {
           </span>
           <span className="sr-only">{DEMO_LINE_DISPLAY}</span>
         </a>
-
-        <h1 id="home-hero-heading" className="mkt-hero-title mkt-hero-title--absolute">
-          The night shift
-          <br />
-          for the trades.
-        </h1>
-
-        <p className="mkt-hero-lead font-sans">
-          After-hours and overflow answer, book, and alert — on your board by
-          morning. You keep the overrides.
-        </p>
 
         <div className="mkt-hero-actions font-sans">
           <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-hero">
