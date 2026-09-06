@@ -21635,23 +21635,66 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .status-pill,
-.os-shell-night .os-nav-badge {
-  border-radius: 0.2rem !important;
-  background: color-mix(in srgb, #fff 8%, transparent) !important;
-  color: #e8edf4 !important;
-  border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
+.os-shell-night .os-nav-badge,
+.os-shell-night .status-pill-live,
+.os-shell-night .status-pill-neutral,
+.os-shell-night .status-pill-muted,
+.os-shell-night .status-pill-flare {
+  border-radius: 0.15rem !important;
+  background: transparent !important;
+  color: color-mix(in srgb, #e8edf4 78%, transparent) !important;
+  border: 1px solid color-mix(in srgb, #fff 16%, transparent) !important;
+  padding: 0.12rem 0.35rem !important;
+  font-size: 0.5625rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
 }
 
 .os-shell-night .status-pill-live {
-  background: #f4f6f9 !important;
-  color: #07090c !important;
-  border-color: #f4f6f9 !important;
+  border-color: color-mix(in srgb, #f4f6f9 40%, transparent) !important;
+  color: #f5f7fa !important;
 }
 
 .os-shell-night .status-pill-flare {
-  background: transparent !important;
   color: #ff8d85 !important;
   border-color: color-mix(in srgb, #e5484d 45%, transparent) !important;
+}
+
+/* Compact lead/job action rows */
+.os-shell-night .lead-quick-actions,
+.os-shell-night .lead-inbox-card-actions,
+.os-shell-night .job-card-actions {
+  gap: 0.3rem !important;
+  margin-top: 0.55rem !important;
+}
+
+.os-shell-night .lead-quick-actions .btn,
+.os-shell-night .lead-inbox-card-actions .btn,
+.os-shell-night .lead-quick-actions a {
+  border-radius: 0.15rem !important;
+  min-height: 1.7rem !important;
+  font-size: 0.625rem !important;
+  padding: 0.2rem 0.45rem !important;
+}
+
+/* Stats as instrument strips, not soft metric cards */
+.os-shell-night .pro-page-stats,
+.os-shell-night .pro-stats,
+.os-shell-night [class*="stat-grid"] {
+  gap: 0.4rem !important;
+}
+
+.os-shell-night .pro-stat {
+  border-radius: 0.15rem !important;
+  background: #0a0e14 !important;
+}
+
+.os-shell-night .pro-stat-live,
+.os-shell-night .pro-stat.is-active {
+  border-top: 2px solid #d8a15a !important;
+  border-color: color-mix(in srgb, #fff 14%, transparent) !important;
+  background: #0e1319 !important;
 }
 
 .os-shell-night .inbox-filters .btn,
