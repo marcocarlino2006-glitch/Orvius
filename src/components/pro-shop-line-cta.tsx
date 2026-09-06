@@ -24,9 +24,11 @@ export function ProShopLineCta({
 
   if (loading && !line) {
     return (
-      <span className={`${btnClass} opacity-60 ${className}`} aria-hidden>
-        Loading…
-      </span>
+      <span
+        className={`pro-line-cta-skel ${className}`}
+        aria-hidden
+        aria-busy="true"
+      />
     );
   }
 
