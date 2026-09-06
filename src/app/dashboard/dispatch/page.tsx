@@ -64,17 +64,17 @@ function JobChip({
           <p className="dispatch-job-chip-time font-sans">{time}</p>
           <div className="flex flex-wrap gap-1.5">
             {emergency ? <ShellBadge tone="flare">Emergency</ShellBadge> : null}
-            <ShellBadge
-              tone={
-                job.status === "on_site" || job.status === "en_route"
-                  ? "live"
-                  : job.status === "completed"
-                    ? "neutral"
-                    : "flare"
-              }
-            >
-              {jobStatusLabel(job.status)}
-            </ShellBadge>
+            {!emergency ? (
+              <ShellBadge
+                tone={
+                  job.status === "on_site" || job.status === "en_route"
+                    ? "live"
+                    : "neutral"
+                }
+              >
+                {jobStatusLabel(job.status)}
+              </ShellBadge>
+            ) : null}
           </div>
         </div>
         <p className="dispatch-job-chip-title font-sans">{job.title}</p>
@@ -372,7 +372,7 @@ export default function DispatchPage() {
                   ) : null}
                 </div>
                 {col.accent && col.jobs.length > 0 ? (
-                  <ShellBadge tone="flare">Needs assign</ShellBadge>
+                  <ShellBadge tone="neutral">Needs assign</ShellBadge>
                 ) : null}
               </header>
               {col.jobs.length ? (
