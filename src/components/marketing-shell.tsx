@@ -95,7 +95,11 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function MarketingShell({ premium, children, ...rest }: MarketingShellProps) {
+export function MarketingShell({
+  premium = true,
+  children,
+  ...rest
+}: MarketingShellProps) {
   if (premium) {
     return <PremiumMarketingShell>{children}</PremiumMarketingShell>;
   }

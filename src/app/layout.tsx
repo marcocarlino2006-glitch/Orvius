@@ -1,35 +1,19 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, Space_Grotesk, Syne } from "next/font/google";
+import { Sora } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
 import "./globals.css";
 
 /**
- * Type system — software-company caliber:
- * - Syne — display / hero claims (proprietary feel, not Inter)
- * - Space Grotesk — product UI + body
- * - Barlow Condensed — tracked mission labels / CTAs
+ * One letterset — Grok-grade consistency.
+ * Sora carries logo wordmark, UI, body, and display.
+ * No Syne / Space Grotesk / Barlow / SVG caps fighting each other.
  */
-
-const sans = Space_Grotesk({
+const sans = Sora({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const brand = Barlow_Condensed({
-  variable: "--font-brand",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  display: "swap",
-});
-
-const display = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -61,9 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${sans.variable} ${brand.variable} ${display.variable} antialiased`}
-      >
+      <body className={`${sans.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

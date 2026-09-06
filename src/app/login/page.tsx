@@ -31,10 +31,7 @@ export default async function LoginPage({
         <div className="tier1-login-brand-glow" aria-hidden />
         <div className="tier1-login-brand-inner">
           <OrviusLogo size="lg" variant="void" />
-          <p className="tier1-eyebrow tier1-eyebrow-light type-eyebrow">
-            {company.productName}
-          </p>
-          <h1 className="tier1-login-title type-headline">
+          <h1 className="tier1-login-title font-sans">
             Sign in to your workspace.
           </h1>
           <p className="tier1-login-lead font-sans">
@@ -44,7 +41,7 @@ export default async function LoginPage({
           <ul className="tier1-login-rings font-sans">
             <li>01 · Answer · qualify · alert</li>
             <li>02 · Customer records</li>
-            <li>03 · Jobs & scheduling</li>
+            <li>03 · Jobs &amp; scheduling</li>
             <li>04 · Field dispatch</li>
           </ul>
         </div>

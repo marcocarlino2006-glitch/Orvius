@@ -1,24 +1,25 @@
-/** Brand typography — proprietary letterset is the company name. */
+/** Brand typography — one letterset everywhere (logo + product + marketing). */
 
-export const brandWordmark = "Orvius";
+export const brandWordmark = "ORVIUS";
 
 export const typeScale = {
-  caption: "0.8125rem",
-  small: "0.875rem",
+  caption: "0.75rem",
+  small: "0.8125rem",
   body: "0.9375rem",
   lead: "1.0625rem",
   title: "1.125rem",
   headline: "clamp(1.75rem, 3.2vw, 2.5rem)",
-  display: "clamp(2.35rem, 4.2vw, 3.25rem)",
+  display: "clamp(2.5rem, 5vw, 4.5rem)",
 } as const;
 
 /**
- * 1) Signal O alone (favicon)
- * 2) Full proprietary ORVIUS letterset (the name is the logo)
+ * Logo lockups:
+ * 1) Signal O alone (favicon / chrome)
+ * 2) Mark + ORVIUS text in the product font (never a second letterset)
  */
 export const logoSizes = {
-  sm: { mark: 22, wordmark: "1.1rem", tracking: "0.12em" },
-  md: { mark: 26, wordmark: "1.3rem", tracking: "0.12em" },
-  lg: { mark: 30, wordmark: "1.5rem", tracking: "0.12em" },
-  xl: { mark: 56, wordmark: "3.2rem", tracking: "0.1em" },
+  sm: { mark: 18, word: "0.9375rem", tracking: "0.08em" },
+  md: { mark: 22, word: "1.0625rem", tracking: "0.08em" },
+  lg: { mark: 26, word: "1.2rem", tracking: "0.085em" },
+  xl: { mark: 40, word: "2.35rem", tracking: "0.06em" },
 } as const;

@@ -3,14 +3,13 @@
 import type { CSSProperties } from "react";
 import { brandWordmark, logoSizes } from "@/lib/brand-typography";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
-import { OrviusWordmarkSvg } from "@/lib/orvius-wordmark";
 
 type OrviusMarkProps = {
   size?: number;
   className?: string;
 };
 
-/** Signal O alone — favicon / avatar. Same letter DNA as the wordmark. */
+/** Signal O alone — favicon / avatar. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -23,26 +22,18 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
 type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
-  /** Full proprietary ORVIUS wordmark (default). */
+  /** Text wordmark only (no mark). */
   wordmarkOnly?: boolean;
   /** Signal O alone. */
   markOnly?: boolean;
-  /** Kept for API compat — wordmark already includes the O. */
+  /** Kept for API compat. */
   integrateO?: boolean;
   className?: string;
 };
 
-const WORDMARK_HEIGHT = {
-  sm: 18,
-  md: 22,
-  lg: 26,
-  xl: 52,
-} as const;
-
 /**
- * Proprietary letterset lockups:
- * 1) Full custom ORVIUS wordmark (the name is the logo)
- * 2) Signal O alone (favicon / compact chrome)
+ * One type system: signal mark + ORVIUS in the product font.
+ * No second SVG letterset fighting Space Grotesk / Syne / Barlow.
  */
 export function OrviusLogo({
   size = "md",
@@ -88,15 +79,15 @@ export function OrviusLogo({
       style={
         {
           "--logo-mark-size": `${tokens.mark}px`,
-          "--logo-wordmark-size": tokens.wordmark,
-          "--logo-wordmark-tracking": tokens.tracking,
+          "--logo-word-size": tokens.word,
+          "--logo-word-tracking": tokens.tracking,
         } as CSSProperties
       }
     >
-      <OrviusWordmarkSvg
-        height={WORDMARK_HEIGHT[size]}
-        className="orvius-logo-wm"
-      />
+      {wordmarkOnly ? null : (
+        <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
+      )}
+      <span className="orvius-logo-word">{brandWordmark}</span>
     </span>
   );
 }

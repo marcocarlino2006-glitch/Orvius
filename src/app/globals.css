@@ -65,14 +65,22 @@
   --shadow-lift: none;
   --shadow-hairline: 0 0 0 1px color-mix(in srgb, var(--void) 8%, transparent);
 
-  /* Cursor CTA radius 8px; SpaceX ghost uses pill */
-  --radius-sm: 0.25rem;
+  /* Grok-clean surface system — one box language everywhere */
+  --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
   --radius-pill: 9999px;
-  --radius-cta: 0.5rem;
-  --radius-ghost: 2rem;
+  --radius-cta: 0.625rem;
+  --radius-ghost: 0.625rem;
+  --radius-box: 0.75rem;
+  --radius-control: 0.5rem;
+
+  --surface-border: color-mix(in srgb, var(--void) 10%, transparent);
+  --surface-border-strong: color-mix(in srgb, var(--void) 16%, transparent);
+  --surface-bg: color-mix(in srgb, var(--white, #fff) 92%, var(--fog));
+  --surface-bg-dark: color-mix(in srgb, #12161e 92%, #fff);
+  --surface-border-dark: color-mix(in srgb, #fff 10%, transparent);
 
   /* Typography scale — Cursor display tracking */
   --text-caption: 0.6875rem;
@@ -140,9 +148,9 @@
   --color-border: var(--border);
   --color-success: var(--success);
   --font-sans: var(--font-sans);
-  --font-brand: var(--font-brand);
-  /* Syne for display claims — software-company grade, not Inter */
-  --font-display: var(--font-syne), var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  /* One letterset — logo, UI, display all ride Sora */
+  --font-brand: var(--font-sans);
+  --font-display: var(--font-sans);
 }
 
 * {
@@ -1157,30 +1165,37 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — proprietary letterset (the name is the logo) */
+/* Orvius logo — signal mark + Sora wordmark (one letterset) */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
+  gap: 0.55em;
   color: var(--void);
-  line-height: 0;
+  line-height: 1;
 }
 
-.orvius-logo-wm,
-.orvius-wordmark-svg,
+.orvius-logo-mark,
 .orvius-mark-svg {
   display: block;
+  flex-shrink: 0;
   color: inherit;
 }
 
-.orvius-logo-mark {
+.orvius-logo-word {
   display: block;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: var(--logo-word-size, 1.0625rem);
+  font-weight: 700;
+  letter-spacing: var(--logo-word-tracking, 0.08em);
+  text-transform: uppercase;
+  line-height: 1;
   color: inherit;
 }
 
-.orvius-logo-sm .orvius-logo-wm { height: 18px; width: auto; }
-.orvius-logo-md .orvius-logo-wm { height: 22px; width: auto; }
-.orvius-logo-lg .orvius-logo-wm { height: 26px; width: auto; }
-.orvius-logo-xl .orvius-logo-wm { height: 52px; width: auto; }
+.orvius-logo-sm .orvius-logo-word { font-size: 0.9375rem; }
+.orvius-logo-md .orvius-logo-word { font-size: 1.0625rem; }
+.orvius-logo-lg .orvius-logo-word { font-size: 1.2rem; }
+.orvius-logo-xl .orvius-logo-word { font-size: 2.35rem; letter-spacing: 0.06em; }
 
 .orvius-logo-void {
   color: #f4f6f8;
@@ -1188,6 +1203,18 @@ h3 {
 
 .orvius-logo-chalk {
   color: var(--void);
+}
+
+.orvius-logo--text {
+  gap: 0;
+}
+
+.orvius-logo--text .orvius-logo-mark {
+  display: none;
+}
+
+.orvius-wordmark-svg {
+  display: none;
 }
 
 .shell-brand-text {
@@ -13900,15 +13927,10 @@ h3 {
   color: var(--void);
 }
 
-.mkt-nav-brand .orvius-logo-wm {
-  height: 22px;
-  width: auto;
-}
+.mkt-nav-brand .orvius-logo-word { line-height: 1; }
 
 @media (max-width: 480px) {
-  .mkt-nav-brand .orvius-logo-wm {
-    height: 18px;
-  }
+  .mkt-nav-brand .orvius-logo-word { line-height: 1; }
 }
 
 .mkt-nav-links {
@@ -14653,7 +14675,7 @@ h3 {
   color: #f7f8fa !important;
 }
 
-.mkt-hero-brand-lockup .orvius-logo-wm {
+.mkt-hero-brand-lockup .orvius-logo-word {
   /* Brand must outrank the headline — company, not SaaS */
   height: clamp(3.4rem, 9.5vw, 6.5rem);
   width: auto;
@@ -17369,7 +17391,6 @@ button.btn {
 
 /* ── LOGO LOCK — never inherit button DIN / gothic onto the letterset ── */
 .orvius-logo,
-.orvius-logo-wm,
 .orvius-wordmark-svg,
 .orvius-logo-mark,
 .mkt-nav-brand .orvius-logo,
@@ -18169,7 +18190,7 @@ button.btn {
   margin-bottom: 1.35rem;
 }
 
-.mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-wm {
+.mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-word {
   height: clamp(2.6rem, 5.5vw, 3.6rem);
   width: auto;
 }
@@ -18368,7 +18389,7 @@ button.btn {
   transform: perspective(1600px) rotateY(-10deg) rotateX(4deg) translateZ(0);
 }
 
-.mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-wm {
+.mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-word {
   height: clamp(2.85rem, 6vw, 4rem) !important;
 }
 
@@ -18508,7 +18529,7 @@ button.btn {
 .mkt-hero-stage-frame {
   transform: perspective(1600px) rotateY(-10deg) rotateX(4deg) translateZ(0);
 }
-.mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-wm {
+.mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-word {
   height: clamp(2.85rem, 6vw, 4rem) !important;
 }
 
@@ -18541,4 +18562,205 @@ button.btn {
   .mkt-hero--meta .mkt-hero-title--meta {
     font-size: clamp(3.1rem, 6.8vw, 5.6rem);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Craft mastery — one font, one box language (Grok-clean consistency)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif !important;
+}
+
+.mkt-page,
+.mkt-page * {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.mkt-hero-title,
+.mkt-hero-title--meta,
+.mkt-hero-title--absolute,
+.mkt-manifesto-title,
+.mkt-law-title,
+.mkt-close-title,
+.mkt-proof-title,
+.type-display,
+.type-headline {
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.035em !important;
+  text-transform: none !important;
+}
+
+.mkt-btn,
+.mkt-btn-hero,
+.mkt-btn-chalk,
+.mkt-btn-ghost-light,
+.mkt-btn-lg,
+.mkt-nav-cta,
+.mkt-nav-links a,
+.mkt-nav-login,
+.mkt-hero-live-label,
+.mkt-manifesto-kicker,
+.mkt-law-id,
+.mkt-footer-heading,
+.mkt-product-kicker,
+.mkt-product-row-tag,
+.mkt-product-live,
+.mkt-product-alert-kicker {
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+}
+
+.mkt-btn,
+.mkt-btn-hero,
+.mkt-btn-chalk,
+.mkt-btn-ghost-light,
+.mkt-btn-lg,
+.mkt-nav-cta,
+.mkt-btn-copper,
+.mkt-btn-void {
+  border-radius: var(--radius-cta) !important;
+}
+
+.mkt-product--stage,
+.mkt-product--company,
+.mkt-hero-stage-frame,
+.mkt-proof-card,
+.panel-chalk,
+.shell-panel,
+.os-panel,
+.pro-panel,
+.home-os-panel {
+  border-radius: var(--radius-box) !important;
+}
+
+.mkt-product--stage .mkt-product-row,
+.mkt-product--company .mkt-product-row {
+  border-radius: var(--radius-control) !important;
+}
+
+.mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-word {
+  font-size: clamp(1.85rem, 4.2vw, 2.75rem) !important;
+  letter-spacing: 0.06em !important;
+  font-weight: 800 !important;
+}
+
+.mkt-hero--meta .mkt-hero-brand-lockup {
+  gap: 0.65rem;
+}
+
+.mkt-hero--meta .mkt-hero-brand-lockup .orvius-logo-mark {
+  width: clamp(2rem, 4vw, 2.75rem) !important;
+  height: clamp(2rem, 4vw, 2.75rem) !important;
+}
+
+.mkt-nav-brand .orvius-logo-word {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.mkt-nav-links a,
+.mkt-nav-login,
+.mkt-footer-heading,
+.mkt-hero-live-label,
+.mkt-manifesto-kicker,
+.mkt-product-kicker,
+.mkt-product-live {
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+}
+
+/* Template / surface boxes — identical material language */
+.orvius-box {
+  border: 1px solid var(--surface-border-dark, color-mix(in srgb, #fff 10%, transparent));
+  background: var(--surface-bg-dark, #12161e);
+  border-radius: var(--radius-box);
+  padding: 1rem 1.1rem;
+}
+
+.orvius-box--chalk {
+  border-color: var(--surface-border);
+  background: var(--surface-bg);
+}
+
+
+/* Login craft — same Sora + same box language as marketing */
+.tier1-login,
+.tier1-login button,
+.tier1-login input {
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+}
+
+.tier1-login-title,
+.tier1-login-brand .tier1-login-title,
+.tier1-login-brand-inner .tier1-login-title {
+  color: #f4f6f8 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+  font-size: clamp(2rem, 4vw, 2.75rem) !important;
+  line-height: 1.1 !important;
+  margin-top: 1.75rem !important;
+}
+
+.tier1-login-lead {
+  color: color-mix(in srgb, #e8ecf1 72%, transparent) !important;
+  font-size: 1.02rem !important;
+  line-height: 1.55 !important;
+}
+
+.tier1-login-rings {
+  color: color-mix(in srgb, #e8ecf1 58%, transparent) !important;
+  font-size: 0.875rem !important;
+  letter-spacing: 0.02em;
+}
+
+.tier1-form-title {
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.tier1-login-actions .inst-btn,
+.tier1-login-actions .inst-btn-oauth,
+.tier1-login-actions .google-sign-in-btn,
+.tier1-login-dev-btn,
+.tier1-login-setup {
+  border-radius: var(--radius-box) !important;
+  border: 1px solid color-mix(in srgb, var(--void) 12%, transparent) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  min-height: 3rem;
+}
+
+.tier1-login-dev-btn,
+.tier1-login-actions .tier1-login-dev-btn {
+  border-style: solid !important;
+  background: color-mix(in srgb, var(--void) 3%, #fff) !important;
+}
+
+.tier1-login-setup {
+  background: color-mix(in srgb, var(--void) 3%, #fff) !important;
+  padding: 0.85rem 1rem !important;
+}
+
+
+/* Kill leftover pills on auth + pricing surfaces */
+.tier1-login-actions .inst-btn,
+.tier1-login-actions .google-sign-in-btn,
+.tier1-login-dev-btn,
+.tier1-login-setup,
+.inst-btn,
+.inst-btn-oauth,
+.inst-btn-full,
+.mkt-btn,
+.mkt-nav-cta {
+  border-radius: 0.625rem !important;
 }
