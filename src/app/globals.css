@@ -23838,3 +23838,33 @@ body:has(.confirm-shell) {
 .os-shell-night .os-sidebar-inner {
   background: #000000 !important;
 }
+
+.os-shell-night .dispatch-job-assign .assign-tech-btn,
+.os-shell-night .dispatch-job-chip-wrap .assign-tech-btn,
+.os-shell-night .dispatch-job-chip-wrap button.assign-tech-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: fit-content !important;
+  max-width: 100% !important;
+  flex: 0 0 auto !important;
+  min-height: 1.7rem !important;
+  padding: 0.18rem 0.45rem !important;
+  font-size: 0.6rem !important;
+  line-height: 1.1 !important;
+}
+
+.os-shell-night .dispatch-job-assign.assign-tech-inline,
+.os-shell-night .dispatch-job-chip-wrap .assign-tech-inline {
+  display: inline-flex !important;
+  width: fit-content !important;
+  max-width: 100%;
+}
+
+/* Shop card hard radius */
+.os-shell-night .os-sidebar [class*="shop"],
+.os-shell-night .os-sidebar-brand,
+.os-shell-night .os-shop,
+.os-shell-night aside a[href="/dashboard/settings"] {
+  border-radius: 0.2rem !important;
+}
