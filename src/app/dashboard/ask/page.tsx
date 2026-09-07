@@ -97,16 +97,19 @@ export default function AskPage() {
             </button>
           </form>
 
-          <div className="ask-suggestions">
+          <div className="ask-suggestions" role="list">
             {SUGGESTIONS.map((item) => (
               <button
                 key={item}
                 type="button"
-                className="ask-chip font-sans"
+                role="listitem"
+                className="ask-rail-row font-sans"
                 onClick={() => void ask(item)}
                 disabled={loading}
               >
-                {item}
+                <span className="ask-rail-kind">Ask</span>
+                <span className="ask-rail-q">{item}</span>
+                <span className="ask-rail-go">Run</span>
               </button>
             ))}
           </div>

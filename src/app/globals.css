@@ -23539,3 +23539,118 @@ body:has(.confirm-shell) {
 .mkt-page .status-pill {
   border-radius: 0.15rem !important;
 }
+
+/* Ask suggestion rails — Cursor density, not chip cloud */
+.os-shell-night .ask-suggestions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  margin-top: 0.65rem !important;
+  border: 1px solid #2f3336;
+  border-radius: 0.2rem;
+  background: #0a0a0a;
+  overflow: hidden;
+}
+
+.os-shell-night .ask-rail-row {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-bottom: 1px solid #2f3336;
+  background: transparent;
+  color: #e7e9ea;
+  cursor: pointer;
+}
+
+.os-shell-night .ask-rail-row:last-child {
+  border-bottom: 0;
+}
+
+.os-shell-night .ask-rail-row:hover:not(:disabled) {
+  background: #16181c;
+}
+
+.os-shell-night .ask-rail-row:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.os-shell-night .ask-rail-kind {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #71767b;
+}
+
+.os-shell-night .ask-rail-q {
+  font-size: 0.8125rem;
+  color: #e7e9ea;
+  line-height: 1.35;
+}
+
+.os-shell-night .ask-rail-go {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #71767b;
+  border: 1px solid #2f3336;
+  border-radius: 0.15rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.os-shell-night .ask-empty-state {
+  margin-top: 0.5rem !important;
+}
+
+/* Login night instrument */
+.tier1-login--craft {
+  background: #000 !important;
+}
+
+.tier1-login--craft .tier1-login-form,
+.tier1-login--craft .tier1-login-form-inner {
+  background: #000 !important;
+  color: #e7e9ea !important;
+}
+
+.tier1-login--craft .tier1-form-title,
+.tier1-login--craft .tier1-login-title {
+  color: #e7e9ea !important;
+}
+
+.tier1-login--craft .tier1-form-sub,
+.tier1-login--craft .tier1-login-lead {
+  color: #71767b !important;
+}
+
+.tier1-login--craft .inst-btn,
+.tier1-login--craft .btn,
+.tier1-login--craft button {
+  border-radius: 0.2rem !important;
+}
+
+.tier1-login--craft .tier1-login-dev {
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  background: #16181c !important;
+  padding: 0.55rem 0.65rem !important;
+}
+
+/* Dispatch board denser columns */
+.os-shell-night .dispatch-board {
+  gap: 0.45rem !important;
+}
+
+.os-shell-night .dispatch-col-title {
+  font-size: 0.625rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: #71767b !important;
+}
