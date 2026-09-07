@@ -23744,3 +23744,97 @@ body:has(.confirm-shell) {
   margin-top: 0.65rem !important;
   gap: 0.4rem !important;
 }
+
+/* Dispatch mastery — kill soft card air + fat assign CTAs */
+.os-shell-night .dispatch-job-chip-wrap {
+  gap: 0.3rem !important;
+}
+
+.os-shell-night .dispatch-job-chip.lead-rail-row,
+.os-shell-night .dispatch-job-chip {
+  padding: 0.45rem 0.55rem !important;
+  border-radius: 0.2rem !important;
+  background: #0a0a0a !important;
+  border: 1px solid #2f3336 !important;
+}
+
+.os-shell-night .dispatch-col {
+  padding: 0.4rem !important;
+  border-radius: 0.2rem !important;
+  gap: 0.3rem !important;
+}
+
+.os-shell-night .dispatch-job-assign,
+.os-shell-night .assign-tech-inline.dispatch-job-assign,
+.os-shell-night .dispatch-job-assign .assign-tech-btn,
+.os-shell-night .dispatch-job-assign .assign-tech-btn.font-sans {
+  width: auto !important;
+  max-width: 100%;
+  min-height: 1.75rem !important;
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.625rem !important;
+  border-radius: 0.15rem !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .dispatch-job-assign {
+  display: inline-flex !important;
+  width: auto !important;
+}
+
+.os-shell-night .dispatch-job-status .btn,
+.os-shell-night .dispatch-job-status button {
+  min-height: 1.75rem !important;
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.625rem !important;
+  border-radius: 0.15rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+/* Transcript cinema denser instrument */
+.os-shell-night .transcript-cinema {
+  border-radius: 0.25rem !important;
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .transcript-cinema-head {
+  padding: 0.4rem 0.65rem !important;
+  border-bottom: 1px solid #2f3336 !important;
+  background: #0a0a0a !important;
+}
+
+.os-shell-night .transcript-cinema-body {
+  padding: 0.55rem 0.65rem !important;
+  max-height: 16rem !important;
+}
+
+.os-shell-night .transcript-cinema-line {
+  margin-top: 0.45rem !important;
+  font-size: 0.75rem !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .transcript-cinema-line-ai,
+.os-shell-night .transcript-cinema-speaker {
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .transcript-cinema-foot {
+  padding: 0.4rem 0.65rem !important;
+  border-top: 1px solid #2f3336 !important;
+  font-size: 0.6875rem !important;
+  color: #71767b !important;
+}
+
+/* Force canvas true black everywhere in shell */
+.os-shell-night,
+.os-shell-night .os-main,
+.os-shell-night .os-content,
+.os-shell-night .os-sidebar,
+.os-shell-night .os-sidebar-inner {
+  background: #000000 !important;
+}
