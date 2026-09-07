@@ -18,7 +18,7 @@ export function AssignTechButton({
   jobId,
   technicians,
   onAssigned,
-  className = "today-priority-btn",
+  className = "",
   compact = false,
 }: AssignTechButtonProps) {
   const router = useRouter();
@@ -30,7 +30,7 @@ export function AssignTechButton({
     return (
       <Link
         href="/dashboard/dispatch"
-        className={`${className} today-priority-btn-primary`}
+        className={`assign-tech-empty font-sans ${className}`.trim()}
         onClick={(e) => e.stopPropagation()}
       >
         Add a tech
@@ -70,39 +70,37 @@ export function AssignTechButton({
     }
   }
 
-  if (technicians.length === 1) {
+  if (compact || technicians.length === 1) {
     return (
-      <div className={className} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`assign-tech-inline ${className}`.trim()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {technicians.length > 1 ? (
+          <select
+            className="assign-tech-select font-sans"
+            value={techId}
+            onChange={(e) => setTechId(e.target.value)}
+            aria-label="Assign technician"
+          >
+            {technicians.map((tech) => (
+              <option key={tech.id} value={tech.id}>
+                {tech.name}
+              </option>
+            ))}
+          </select>
+        ) : null}
         <button
           type="button"
-          className={`${className.includes("today-priority") ? "" : "today-priority-btn today-priority-btn-primary "}assign-tech-one-tap font-sans`}
+          className="assign-tech-btn font-sans"
           disabled={loading}
           onClick={assign}
         >
-          {loading ? "Assigning…" : `Assign ${technicians[0]!.name}`}
-        </button>
-        {error ? <p className="assign-tech-error font-sans">{error}</p> : null}
-      </div>
-    );
-  }
-
-  if (compact) {
-    return (
-      <div className={`assign-tech-inline ${className}`} onClick={(e) => e.stopPropagation()}>
-        <select
-          className="assign-tech-select font-sans"
-          value={techId}
-          onChange={(e) => setTechId(e.target.value)}
-          aria-label="Assign technician"
-        >
-          {technicians.map((tech) => (
-            <option key={tech.id} value={tech.id}>
-              {tech.name}
-            </option>
-          ))}
-        </select>
-        <button type="button" className="assign-tech-btn font-sans" disabled={loading} onClick={assign}>
-          {loading ? "…" : "Assign"}
+          {loading
+            ? "…"
+            : technicians.length === 1
+              ? `Assign ${technicians[0]!.name}`
+              : "Assign"}
         </button>
         {error ? <span className="assign-tech-error font-sans">{error}</span> : null}
       </div>
@@ -125,7 +123,7 @@ export function AssignTechButton({
       </select>
       <button
         type="button"
-        className={`today-priority-btn today-priority-btn-primary ${className}`}
+        className="assign-tech-btn assign-tech-btn--block font-sans"
         disabled={loading}
         onClick={assign}
       >

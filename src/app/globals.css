@@ -23654,3 +23654,93 @@ body:has(.confirm-shell) {
   text-transform: uppercase !important;
   color: #71767b !important;
 }
+
+/* Assign tech — instrument, not fat CTA */
+.os-shell-night .assign-tech-inline,
+.os-shell-night .dispatch-job-assign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.os-shell-night .assign-tech-select,
+.os-shell-night .assign-tech-btn,
+.os-shell-night .assign-tech-empty {
+  border-radius: 0.2rem !important;
+  border: 1px solid #2f3336 !important;
+  background: #0a0a0a !important;
+  color: #e7e9ea !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  min-height: 1.85rem;
+  padding: 0.25rem 0.5rem !important;
+}
+
+.os-shell-night .assign-tech-btn,
+.os-shell-night .assign-tech-btn--block {
+  background: #e7e9ea !important;
+  color: #000 !important;
+  border-color: #e7e9ea !important;
+  cursor: pointer;
+}
+
+.os-shell-night .assign-tech-btn--block {
+  width: 100%;
+}
+
+.os-shell-night .assign-tech-error {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: #f4212e;
+}
+
+.os-shell-night .today-priority-btn,
+.os-shell-night .assign-tech-one-tap {
+  border-radius: 0.2rem !important;
+  min-height: 1.85rem !important;
+  padding: 0.3rem 0.55rem !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  width: auto !important;
+  box-shadow: none !important;
+}
+
+/* Plan upgrade gate night */
+.os-shell-night .plan-upgrade-gate {
+  padding: 0.5rem 0 !important;
+}
+
+.os-shell-night .plan-upgrade-gate-inner {
+  max-width: none !important;
+  padding: 0.75rem !important;
+  border-radius: 0.25rem !important;
+  border: 1px solid #2f3336 !important;
+  background: #16181c !important;
+}
+
+.os-shell-night .plan-upgrade-gate-kicker {
+  color: #71767b !important;
+  font-size: 0.5625rem !important;
+}
+
+.os-shell-night .plan-upgrade-gate-title {
+  color: #e7e9ea !important;
+  font-size: 1rem !important;
+}
+
+.os-shell-night .plan-upgrade-gate-detail {
+  color: #71767b !important;
+  font-size: 0.8125rem !important;
+  margin-top: 0.4rem !important;
+}
+
+.os-shell-night .plan-upgrade-gate-actions {
+  margin-top: 0.65rem !important;
+  gap: 0.4rem !important;
+}
