@@ -5,10 +5,10 @@ import { useEffect, useId, useState } from "react";
 import { OrviusLogo } from "@/components/orvius-logo";
 
 const NAV = [
+  { href: "/product", label: "Product" },
+  { href: "/enterprise", label: "Enterprise" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/pilot", label: "Audit" },
-  { href: "/security", label: "Security" },
-  { href: "/legal", label: "Legal" },
+  { href: "/resources", label: "Resources" },
 ] as const;
 
 /**

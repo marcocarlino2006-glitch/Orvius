@@ -24797,3 +24797,71 @@ body:has(.mkt-page) .shell-header {
 .mkt-nav-brand .orvius-logo-mark {
   color: #26251e !important;
 }
+
+/* Resources hub grid */
+.mkt-page .mkt-resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 2.5rem 3rem;
+}
+
+.mkt-page .mkt-resources-col .tier1-eyebrow {
+  color: #f54e00 !important;
+  margin-bottom: 1rem;
+}
+
+.mkt-page .mkt-resources-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.mkt-page .mkt-resources-link {
+  color: #26251e !important;
+  text-decoration: none;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  transition: color 120ms ease;
+}
+
+.mkt-page .mkt-resources-link:hover {
+  color: #f54e00 !important;
+}
+
+/* Footer → Cursor light (was true-black) */
+.mkt-footer,
+.mkt-footer--institution {
+  background: #efeee9 !important;
+  border-top: 1px solid #e6e5e0 !important;
+}
+
+.mkt-footer-entity,
+.mkt-footer-heading {
+  color: #26251e !important;
+}
+
+.mkt-footer-tagline,
+.mkt-footer-col a,
+.mkt-footer-links a,
+.mkt-footer--institution .mkt-footer-copy,
+.mkt-footer--institution .mkt-footer-mark {
+  color: #6b6a63 !important;
+}
+
+.mkt-footer-col a:hover,
+.mkt-footer-links a:hover {
+  color: #f54e00 !important;
+}
+
+.mkt-footer-bottom {
+  border-top-color: #e6e5e0 !important;
+}
+
+.mkt-footer .orvius-logo,
+.mkt-footer .orvius-logo-word,
+.mkt-footer .orvius-logo-mark {
+  color: #26251e !important;
+}
