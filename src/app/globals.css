@@ -23868,3 +23868,53 @@ body:has(.confirm-shell) {
 .os-shell-night aside a[href="/dashboard/settings"] {
   border-radius: 0.2rem !important;
 }
+
+.os-shell-night .os-ring-status,
+.os-shell-night .os-ring-status-pro {
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  background: #0a0a0a !important;
+  padding: 0.45rem 0.55rem !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .os-ring-status-title {
+  color: #e7e9ea !important;
+  font-size: 0.8125rem !important;
+  font-weight: 650 !important;
+}
+
+.os-shell-night .os-ring-status-module {
+  color: #71767b !important;
+  font-size: 0.6875rem !important;
+}
+
+.os-shell-night .os-nav-link {
+  border-radius: 0.15rem !important;
+  min-height: 1.7rem !important;
+  padding: 0.25rem 0.45rem !important;
+  font-size: 0.8125rem !important;
+}
+
+.os-shell-night .os-nav-badge {
+  border-radius: 0.15rem !important;
+  min-width: 1.1rem !important;
+  height: 1.1rem !important;
+  font-size: 0.5625rem !important;
+}
+
+/* Pricing / demo / legal under marketing night densify */
+.mkt-page .mkt-pricing-card,
+.mkt-page .mkt-card,
+.mkt-page .mkt-path-card,
+.mkt-page .mkt-proof-card {
+  border-radius: 0.25rem !important;
+  box-shadow: none !important;
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+}
+
+.mkt-page .rounded-full,
+.mkt-page [class*="pill"] {
+  border-radius: 0.2rem !important;
+}
