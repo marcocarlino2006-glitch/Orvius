@@ -24733,6 +24733,18 @@ body:has(.mkt-page) .shell-header {
   font-weight: 400 !important;
   font-size: 0.9375rem !important;
   color: #26251e !important;
+  font-family: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
+    "Liberation Sans", sans-serif !important;
+}
+
+/* Force the whole nav (brand, links, secondary, cta) off the Sora brand font */
+.mkt-nav-links,
+.mkt-nav--institution .mkt-nav-links,
+.mkt-nav-secondary,
+.mkt-nav-brand .orvius-logo-word,
+.mkt-nav-brand .type-wordmark {
+  font-family: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
+    "Liberation Sans", sans-serif !important;
 }
 
 /* Sign in — plain text link like cursor.com */
