@@ -24652,8 +24652,8 @@ body:has(.mkt-page) .shell-header {
 .mkt-page *,
 .mkt-nav,
 .mkt-nav * {
-  font-family: "CursorGothic", system-ui, "Helvetica Neue", Helvetica, Arial,
-    sans-serif !important;
+  font-family: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
+    "Liberation Sans", sans-serif !important;
 }
 
 /* Display headings render at regular weight, like cursor.com */
