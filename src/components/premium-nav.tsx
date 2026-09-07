@@ -66,9 +66,12 @@ export function PremiumNav() {
 
           <div className="mkt-nav-actions">
             <Link href="/login" className="mkt-nav-login">
-              Log in
+              Sign in
             </Link>
-            <Link href="/pilot" className="mkt-btn mkt-nav-cta mkt-btn-ghost-light">
+            <Link href="/demo" className="mkt-btn mkt-nav-secondary">
+              Book a demo
+            </Link>
+            <Link href="/pilot" className="mkt-btn mkt-nav-cta">
               Prove it
             </Link>
             <button
@@ -125,7 +128,7 @@ export function PremiumNav() {
               </Link>
             ))}
             <Link href="/login" onClick={() => setMenuOpen(false)}>
-              Log in
+              Sign in
             </Link>
           </nav>
 

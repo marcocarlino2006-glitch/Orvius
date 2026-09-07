@@ -24734,3 +24734,66 @@ body:has(.mkt-page) .shell-header {
   font-size: 0.9375rem !important;
   color: #26251e !important;
 }
+
+/* Sign in — plain text link like cursor.com */
+.mkt-nav-login,
+.mkt-nav--institution .mkt-nav-login,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-login {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0.35rem !important;
+  min-height: auto !important;
+}
+
+.mkt-nav-login:hover {
+  color: #000000 !important;
+}
+
+/* Secondary nav pill — cursor.com "Contact sales" (light gray, hairline) */
+.mkt-nav-secondary,
+.mkt-nav--institution .mkt-nav-secondary,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-secondary {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: #f7f7f4 !important;
+  color: #26251e !important;
+  border: 1px solid #dcdbd4 !important;
+  border-radius: 9999px !important;
+  padding: 0.4rem 0.85rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.006em !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+}
+
+.mkt-nav-secondary:hover {
+  background: #efeee9 !important;
+  border-color: #cbc9c2 !important;
+  color: #26251e !important;
+}
+
+.mkt-nav--institution .mkt-nav-cta {
+  padding: 0.4rem 0.95rem !important;
+  text-transform: none !important;
+  letter-spacing: -0.006em !important;
+}
+
+/* Trademark lockup — mark + ORVIUS wordmark, ink, tight like CURSOR */
+.mkt-nav-brand .orvius-logo,
+.mkt-nav--institution .mkt-nav-brand .orvius-logo,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
+  color: #26251e !important;
+  gap: 0.5rem !important;
+}
+
+.mkt-nav-brand .orvius-logo-word {
+  color: #26251e !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  font-size: 1.0625rem !important;
+}
+
+.mkt-nav-brand .orvius-logo-mark {
+  color: #26251e !important;
+}
