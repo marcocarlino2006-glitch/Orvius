@@ -22883,3 +22883,85 @@ body:has(.confirm-shell) {
   color: #e7e9ea !important;
   font-size: 0.75rem !important;
 }
+
+/* Sticky lead bar + ask dock — kill soft pills / cream leftovers */
+.os-shell-night .lead-detail-sticky {
+  background: #000000 !important;
+  border-top: 1px solid #2f3336 !important;
+  backdrop-filter: none !important;
+  padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.os-shell-night .lead-detail-sticky-inner {
+  max-width: none;
+  gap: 0.4rem !important;
+}
+
+.os-shell-night .lead-detail-sticky-btn,
+.os-shell-night .lead-detail-sticky-btn-muted,
+.os-shell-night .lead-detail-sticky-btn-primary {
+  border-radius: 0.2rem !important;
+  min-height: 2.25rem !important;
+  padding: 0.4rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: none !important;
+}
+
+.os-shell-night .lead-detail-sticky-btn,
+.os-shell-night .lead-detail-sticky-btn-muted {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .lead-detail-sticky-btn-primary {
+  background: #e7e9ea !important;
+  border: 1px solid #e7e9ea !important;
+  color: #000000 !important;
+}
+
+.os-shell-night .os-ask-dock-trigger {
+  background: #16181c !important;
+  color: #e7e9ea !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+  min-height: 2.25rem !important;
+  padding: 0.35rem 0.55rem !important;
+}
+
+.os-shell-night .os-ask-dock-trigger-mark {
+  background: #0a0a0a !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.15rem !important;
+  color: #e7e9ea !important;
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+}
+
+.os-shell-night .os-ask-dock-trigger-mark svg {
+  color: #e7e9ea !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+.os-shell-night .os-ask-dock-trigger-label {
+  color: #e7e9ea !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.os-shell-night .os-ask-dock-open .os-ask-dock-trigger {
+  background: #e7e9ea !important;
+  color: #000 !important;
+  border-color: #e7e9ea !important;
+}
+
+.os-shell-night .os-ask-dock-open .os-ask-dock-trigger-label {
+  color: #000 !important;
+}

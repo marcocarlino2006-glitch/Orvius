@@ -17,9 +17,9 @@ export async function GET() {
     gates: status.gates,
     postLock: !status.fullyReady,
     message: status.fullyReady
-      ? "Manus bar clear — safe to post with cash + legal claims."
+      ? "Founder gates clear — safe to post with cash + legal claims."
       : status.checkoutPublicReady
         ? "Checkout ready — still need formation state before legal claims."
-        : "POST LOCK — do not claim self-serve paid checkout until Stripe gates are green.",
+        : "Do not claim self-serve paid checkout until Stripe gates are green.",
   });
 }

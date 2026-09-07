@@ -15,7 +15,7 @@ type Status = {
 };
 
 /**
- * Founder post-lock — Manus bar.
+ * Founder post-lock instrument.
  * Compact on Settings. Full only on Billing. Never crowds Command/Today.
  */
 export function PostLockBanner() {
@@ -70,7 +70,7 @@ export function PostLockBanner() {
 
   return (
     <section className="post-lock-banner font-sans" role="status" aria-live="polite">
-      <p className="post-lock-kicker">POST LOCK · Manus bar</p>
+      <p className="post-lock-kicker">Founder gates</p>
       <p className="post-lock-message">{status.message}</p>
       <ul className="post-lock-gates">
         {status.openGates.map((gate) => (
