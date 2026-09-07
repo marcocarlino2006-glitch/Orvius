@@ -23918,3 +23918,55 @@ body:has(.confirm-shell) {
 .mkt-page [class*="pill"] {
   border-radius: 0.2rem !important;
 }
+
+/* Customer timeline → rail instruments */
+.os-shell-night .customer-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #2f3336;
+  border-radius: 0.2rem;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.os-shell-night .customer-timeline-item {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid #2f3336;
+}
+
+.os-shell-night .customer-timeline-item:last-child {
+  border-bottom: 0;
+}
+
+.os-shell-night .customer-timeline-marker,
+.os-shell-night .customer-timeline-line {
+  display: none !important;
+}
+
+.os-shell-night .customer-timeline-card {
+  margin: 0 !important;
+  padding: 0.55rem 0.65rem !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .customer-timeline-card .text-void {
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .customer-timeline-card .text-ash {
+  color: #71767b !important;
+}
+
+.os-shell-night .customer-timeline-link {
+  color: #e7e9ea !important;
+  font-size: 0.75rem !important;
+}
