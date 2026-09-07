@@ -24077,25 +24077,25 @@ body:has(.confirm-shell) {
 
 .mkt-page {
   /* Warm Cursor paper + near-black ink */
-  --void: #1a1817 !important;
+  --void: #26251e !important;
   --void-deep: #050505 !important;
-  --chalk: #f6f5f2 !important;
+  --chalk: #f7f7f4 !important;
   --white: #ffffff !important;
-  --fog: #f0eeea !important;
+  --fog: #efeee9 !important;
   --mist: #34322f !important;
-  --ash: #6f6d68 !important;
+  --ash: #6b6a63 !important;
   --ash-soft: #8a8781 !important;
-  --rule: #e4e1da !important;
-  --hairline: #e4e1da !important;
-  --canvas: #f6f5f2 !important;
-  --signal: #e5533a !important; /* Cursor orange accent */
-  --signal-dim: #c8452e !important;
-  --mkt-ink: #1a1817 !important;
-  --mkt-muted: #6f6d68 !important;
+  --rule: #e6e5e0 !important;
+  --hairline: #e6e5e0 !important;
+  --canvas: #f7f7f4 !important;
+  --signal: #f54e00 !important; /* Cursor orange accent */
+  --signal-dim: #d64500 !important;
+  --mkt-ink: #26251e !important;
+  --mkt-muted: #6b6a63 !important;
   --mkt-surface: #ffffff !important;
-  --mkt-inset: #f0eeea !important;
-  background: #f6f5f2 !important;
-  color: #1a1817 !important;
+  --mkt-inset: #efeee9 !important;
+  background: #f7f7f4 !important;
+  color: #26251e !important;
 }
 
 /* Page + hero + section surfaces → paper, kill dark gradients */
@@ -24108,27 +24108,27 @@ body:has(.confirm-shell) {
 .mkt-hero--bleed,
 .mkt-hero--cursor,
 .mkt-hero-void {
-  background: #f6f5f2 !important;
-  border-color: #e4e1da !important;
-  color: #1a1817 !important;
+  background: #f7f7f4 !important;
+  border-color: #e6e5e0 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .tier1-story,
 .mkt-page .tier1-story-muted,
 .mkt-page .marketing-section {
-  background: #f0eeea !important;
+  background: #efeee9 !important;
 }
 
 .mkt-page .tier1-close {
   background: #eeece7 !important;
-  border-top: 1px solid #e4e1da !important;
+  border-top: 1px solid #e6e5e0 !important;
 }
 
 /* Nav → paper, ink links */
 .mkt-nav--elevated .mkt-nav-rail,
 .mkt-page .mkt-nav-rail {
-  background: color-mix(in srgb, #f6f5f2 88%, transparent) !important;
-  border-color: #e4e1da !important;
+  background: color-mix(in srgb, #f7f7f4 88%, transparent) !important;
+  border-color: #e6e5e0 !important;
 }
 
 /* Type → ink + warm muted */
@@ -24141,7 +24141,7 @@ body:has(.confirm-shell) {
 .mkt-page .marketing-hero-title-sm,
 .mkt-page .mkt-hero-title,
 .mkt-page .text-void {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .tier1-eyebrow,
@@ -24154,7 +24154,7 @@ body:has(.confirm-shell) {
 .mkt-page .brand-intro-description,
 .mkt-page .text-ash,
 .mkt-page .text-mist {
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
 }
 
 /* Accent links / arrows → Cursor orange */
@@ -24163,13 +24163,13 @@ body:has(.confirm-shell) {
 .mkt-page .text-signal,
 .mkt-page .mkt-link-arrow,
 .mkt-page .link-arrow {
-  color: #e5533a !important;
-  text-decoration-color: color-mix(in srgb, #e5533a 40%, transparent) !important;
+  color: #f54e00 !important;
+  text-decoration-color: color-mix(in srgb, #f54e00 40%, transparent) !important;
 }
 
 .mkt-page a.underline:hover,
 .mkt-page .home-platform-link:hover {
-  color: #c8452e !important;
+  color: #d64500 !important;
 }
 
 /* Cards / panels → white with warm hairline */
@@ -24197,14 +24197,14 @@ body:has(.confirm-shell) {
 .mkt-page .tier1-plan-featured,
 .mkt-page .tier1-plan-recommended {
   background: #ffffff !important;
-  border: 1px solid #e4e1da !important;
-  color: #1a1817 !important;
+  border: 1px solid #e6e5e0 !important;
+  color: #26251e !important;
   box-shadow: none !important;
 }
 
 .mkt-page .pro-panel-head {
-  background: #f0eeea !important;
-  border-bottom: 1px solid #e4e1da !important;
+  background: #efeee9 !important;
+  border-bottom: 1px solid #e6e5e0 !important;
 }
 
 .mkt-page .pro-panel-title,
@@ -24212,7 +24212,7 @@ body:has(.confirm-shell) {
 .mkt-page .tier1-plan .text-void,
 .mkt-page .tier1-plan .font-semibold,
 .mkt-page .call-demo .call-demo-number {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .tier1-plan-period,
@@ -24223,7 +24223,7 @@ body:has(.confirm-shell) {
 .mkt-page .call-demo .call-demo-live,
 .mkt-page .call-demo .call-demo-hint,
 .mkt-page .call-demo .call-demo-copy {
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
 }
 
 /* Inputs → white with warm hairline, ink text */
@@ -24235,13 +24235,13 @@ body:has(.confirm-shell) {
 .mkt-page .tier1-form-slot select,
 .mkt-page .tier1-form-slot textarea {
   background: #ffffff !important;
-  color: #1a1817 !important;
-  border: 1px solid #e4e1da !important;
+  color: #26251e !important;
+  border: 1px solid #e6e5e0 !important;
 }
 
 .mkt-page label,
 .mkt-page .label {
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
 }
 
 /* CTAs → Cursor pills: charcoal primary, hairline ghost */
@@ -24254,9 +24254,9 @@ body:has(.confirm-shell) {
 .mkt-page .inst-btn-primary,
 .mkt-page .tier-btn-primary,
 .mkt-page .call-demo .inst-btn-primary {
-  background: #1a1817 !important;
-  color: #f6f5f2 !important;
-  border: 1px solid #1a1817 !important;
+  background: #26251e !important;
+  color: #f7f7f4 !important;
+  border: 1px solid #26251e !important;
   border-radius: 999px !important;
 }
 
@@ -24269,35 +24269,35 @@ body:has(.confirm-shell) {
 .mkt-page .inst-btn-ghost,
 .mkt-page .tier-btn-ghost {
   background: transparent !important;
-  color: #1a1817 !important;
-  border: 1px solid #e4e1da !important;
+  color: #26251e !important;
+  border: 1px solid #e6e5e0 !important;
 }
 
 .mkt-page .inst-btn-ghost:hover {
-  border-color: #b9b5ac !important;
+  border-color: #cbc9c2 !important;
   background: #efedE8 !important;
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 /* Legal prose on paper */
 .mkt-page .legal-prose {
-  color: #33312d !important;
+  color: #3a3930 !important;
 }
 
 .mkt-page .legal-prose h2 {
-  color: #1a1817 !important;
-  border-color: #e4e1da !important;
+  color: #26251e !important;
+  border-color: #e6e5e0 !important;
 }
 
 .mkt-page .legal-prose a {
-  color: #e5533a !important;
+  color: #f54e00 !important;
 }
 
 /* Global shell header on marketing → paper bar, ink text */
 body:has(.mkt-page) .shell-header {
-  background: color-mix(in srgb, #f6f5f2 92%, transparent) !important;
-  border-bottom-color: #e4e1da !important;
-  color: #1a1817 !important;
+  background: color-mix(in srgb, #f7f7f4 92%, transparent) !important;
+  border-bottom-color: #e6e5e0 !important;
+  color: #26251e !important;
 }
 
 /* Marketing nav → ink links, charcoal pill CTA (both scroll states) */
@@ -24310,20 +24310,20 @@ body:has(.mkt-page) .shell-header {
 .mkt-nav-brand .orvius-logo,
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo,
 .mkt-nav--elevated .mkt-nav-brand .orvius-logo {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-icon span,
 .mkt-nav .mkt-nav-menu-icon span {
-  background: #1a1817 !important;
+  background: #26251e !important;
 }
 
 .mkt-nav .mkt-nav-cta,
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta,
 .mkt-nav--elevated .mkt-nav-cta {
-  background: #1a1817 !important;
-  color: #f6f5f2 !important;
-  border: 1px solid #1a1817 !important;
+  background: #26251e !important;
+  color: #f7f7f4 !important;
+  border: 1px solid #26251e !important;
   border-radius: 999px !important;
 }
 
@@ -24343,27 +24343,27 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-hero--bleed .tier1-hero-title,
 .mkt-page .mkt-hero--bleed [class*="hero-title"],
 .mkt-page .mkt-hero--bleed .text-void {
-  color: #f6f5f2 !important;
+  color: #f7f7f4 !important;
 }
 
 .mkt-page .mkt-hero--bleed .tier1-hero-lead,
 .mkt-page .mkt-hero--bleed .tier1-hero-statement,
 .mkt-page .mkt-hero--bleed .text-ash,
 .mkt-page .mkt-hero--bleed .type-eyebrow {
-  color: color-mix(in srgb, #f6f5f2 62%, transparent) !important;
+  color: color-mix(in srgb, #f7f7f4 62%, transparent) !important;
 }
 
 .mkt-page .mkt-hero--bleed .inst-btn-primary {
-  background: #f6f5f2 !important;
-  color: #1a1817 !important;
-  border-color: #f6f5f2 !important;
+  background: #f7f7f4 !important;
+  color: #26251e !important;
+  border-color: #f7f7f4 !important;
 }
 
 /* Institution nav modifier → paper bar, ink links, charcoal pill CTA */
 .mkt-nav--institution,
 .mkt-nav--institution.mkt-nav--elevated {
-  background: color-mix(in srgb, #f6f5f2 90%, transparent) !important;
-  border-bottom-color: #e4e1da !important;
+  background: color-mix(in srgb, #f7f7f4 90%, transparent) !important;
+  border-bottom-color: #e6e5e0 !important;
 }
 
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
@@ -24372,7 +24372,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
 .mkt-nav--institution .mkt-nav-login,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-nav--institution .mkt-nav-links a:hover,
@@ -24382,9 +24382,9 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-nav--institution .mkt-nav-cta,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
-  background: #1a1817 !important;
-  color: #f6f5f2 !important;
-  border: 1px solid #1a1817 !important;
+  background: #26251e !important;
+  color: #f7f7f4 !important;
+  border: 1px solid #26251e !important;
   border-radius: 999px !important;
 }
 
@@ -24394,7 +24394,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-nav--institution .mkt-nav-menu-icon span {
-  background: #1a1817 !important;
+  background: #26251e !important;
 }
 
 /* Pricing plan-finder — light option tiles inside the white card */
@@ -24404,7 +24404,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-wizard-legend,
 .mkt-page .pricing-needs-title,
 .mkt-page .pricing-wizard-title {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .pricing-wizard-kicker,
@@ -24416,29 +24416,29 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-matrix-lead,
 .mkt-page .pricing-faq-answer,
 .mkt-page .pricing-page-controls-note {
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
 }
 
 .mkt-page .pricing-wizard-step-active {
-  color: #e5533a !important;
+  color: #f54e00 !important;
 }
 
 .mkt-page .pricing-needs-option,
 .mkt-page .pricing-wizard .pricing-needs-option,
 .mkt-page .pricing-needs-result {
   background: #ffffff !important;
-  border: 1px solid #e4e1da !important;
+  border: 1px solid #e6e5e0 !important;
   border-radius: 0.4rem !important;
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .pricing-needs-option:hover {
-  border-color: #b9b5ac !important;
+  border-color: #cbc9c2 !important;
 }
 
 .mkt-page .pricing-needs-option-active {
-  background: #fbeee9 !important;
-  border-color: #e5533a !important;
+  background: #fde8dc !important;
+  border-color: #f54e00 !important;
 }
 
 /* ============================================================
@@ -24454,7 +24454,7 @@ body:has(.mkt-page) .shell-header {
   justify-content: center;
   text-align: center;
   padding: clamp(7rem, 18vh, 11rem) 1.5rem clamp(4rem, 11vh, 7.5rem);
-  background: #f6f5f2 !important;
+  background: #f7f7f4 !important;
   border: 0 !important;
 }
 
@@ -24468,7 +24468,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-hero-clean-eyebrow {
   margin: 0 0 1.4rem;
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -24476,17 +24476,17 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-hero-clean-title {
   margin: 0;
-  color: #1a1817 !important;
-  font-weight: 600;
-  font-size: clamp(3rem, 8.5vw, 6.75rem);
-  line-height: 0.97;
-  letter-spacing: -0.038em;
+  color: #26251e !important;
+  font-weight: 400;
+  font-size: clamp(2.75rem, 6vw, 4.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .mkt-page .mkt-hero-clean-lead {
   margin: 1.65rem auto 0;
   max-width: 36ch;
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
   font-size: clamp(1.05rem, 1.5vw, 1.3rem);
   line-height: 1.5;
 }
@@ -24496,9 +24496,9 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-hero-clean-cta {
-  background: #1a1817 !important;
-  color: #f6f5f2 !important;
-  border: 1px solid #1a1817 !important;
+  background: #26251e !important;
+  color: #f7f7f4 !important;
+  border: 1px solid #26251e !important;
   border-radius: 999px !important;
   padding: 0.9rem 1.7rem !important;
   font-size: 0.95rem !important;
@@ -24515,14 +24515,14 @@ body:has(.mkt-page) .shell-header {
   align-items: center;
   gap: 0.55rem;
   margin-top: 1.6rem;
-  color: #e5533a !important;
+  color: #f54e00 !important;
   font-size: 0.9rem;
   text-decoration: none;
   letter-spacing: 0.01em;
 }
 
 .mkt-page .mkt-hero-clean-line:hover {
-  color: #c8452e !important;
+  color: #d64500 !important;
 }
 
 /* Airy light sections (night rules + close), ink type */
@@ -24530,9 +24530,9 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-manifesto--meta,
 .mkt-page .mkt-close,
 .mkt-page .mkt-close--institution {
-  background: #f6f5f2 !important;
+  background: #f7f7f4 !important;
   border: 0 !important;
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .mkt-section-inner {
@@ -24543,35 +24543,35 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-manifesto-title,
 .mkt-page .mkt-law-title,
 .mkt-page .mkt-close-title {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .mkt-manifesto-kicker,
 .mkt-page .mkt-close-entity {
-  color: #e5533a !important;
+  color: #f54e00 !important;
 }
 
 .mkt-page .mkt-manifesto-aside,
 .mkt-page .mkt-law-body,
 .mkt-page .mkt-close-desc,
 .mkt-page .mkt-close-claim {
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
 }
 
 .mkt-page .mkt-law-id {
-  color: #e5533a !important;
+  color: #f54e00 !important;
 }
 
 .mkt-page .mkt-law {
-  border-color: #e4e1da !important;
+  border-color: #e6e5e0 !important;
 }
 
 /* Close-section chalk CTA → charcoal pill; secondary → ink */
 .mkt-page .mkt-btn-chalk,
 .mkt-page .mkt-close .mkt-btn-lg {
-  background: #1a1817 !important;
-  color: #f6f5f2 !important;
-  border: 1px solid #1a1817 !important;
+  background: #26251e !important;
+  color: #f7f7f4 !important;
+  border: 1px solid #26251e !important;
   border-radius: 999px !important;
   box-shadow: none !important;
 }
@@ -24583,55 +24583,55 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-close-call,
 .mkt-page .mkt-text-link {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 /* Proof/story section (inset) → paper + ink; transcript panel white */
 .mkt-page .mkt-proof-section,
 .mkt-page .mkt-proof-section--company {
-  background: #f0eeea !important;
+  background: #efeee9 !important;
   border: 0 !important;
 }
 
 .mkt-page .mkt-proof-title {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .mkt-proof-kicker {
-  color: #e5533a !important;
+  color: #f54e00 !important;
 }
 
 .mkt-page .mkt-proof-lead,
 .mkt-page .mkt-proof-note {
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
 }
 
 .mkt-page .mkt-btn-ink {
-  background: #1a1817 !important;
-  color: #f6f5f2 !important;
-  border: 1px solid #1a1817 !important;
+  background: #26251e !important;
+  color: #f7f7f4 !important;
+  border: 1px solid #26251e !important;
   border-radius: 999px !important;
 }
 
 .mkt-page .mkt-call-panel,
 .mkt-page .mkt-call-panel--company {
   background: #ffffff !important;
-  border: 1px solid #e4e1da !important;
+  border: 1px solid #e6e5e0 !important;
   border-radius: 0.6rem !important;
   box-shadow: none !important;
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .mkt-call-panel-kicker {
-  color: #e5533a !important;
+  color: #f54e00 !important;
 }
 
 .mkt-page .mkt-call-panel-title {
-  color: #1a1817 !important;
+  color: #26251e !important;
 }
 
 .mkt-page .mkt-transcript-line {
-  color: #33312d !important;
+  color: #3a3930 !important;
 }
 
 .mkt-page .mkt-transcript-line span {
@@ -24639,5 +24639,98 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-transcript-line-muted {
-  color: #6f6d68 !important;
+  color: #6b6a63 !important;
+}
+
+/* ============================================================
+   Cursor exact: font stack + pill button spec (cursor.com).
+   Paper #f7f7f4 · ink #26251e · accent #f54e00 · secondary #e6e5e0.
+   Type: CursorGothic (proprietary) → Helvetica-grotesque fallback.
+   ============================================================ */
+
+.mkt-page,
+.mkt-page *,
+.mkt-nav,
+.mkt-nav * {
+  font-family: "CursorGothic", system-ui, "Helvetica Neue", Helvetica, Arial,
+    sans-serif !important;
+}
+
+/* Display headings render at regular weight, like cursor.com */
+.mkt-page .mkt-hero-clean-title,
+.mkt-page .mkt-manifesto-title,
+.mkt-page .mkt-close-title,
+.mkt-page .mkt-proof-title,
+.mkt-page .tier1-page-title,
+.mkt-page .tier1-section-title,
+.mkt-page .type-display,
+.mkt-page .type-headline,
+.mkt-page .mkt-hero-title {
+  font-weight: 400 !important;
+  letter-spacing: -0.03em !important;
+}
+
+/* Primary pill CTA — exact cursor.com button */
+.mkt-page .inst-btn-primary,
+.mkt-page .tier-btn-primary,
+.mkt-page .mkt-btn-chalk,
+.mkt-page .mkt-btn-ink,
+.mkt-page .mkt-hero-clean-cta {
+  background: #26251e !important;
+  color: #f7f7f4 !important;
+  border: 1px solid #26251e !important;
+  border-radius: 9999px !important;
+  padding: 0.78rem 1.35rem 0.8rem !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.01em !important;
+  box-shadow: none !important;
+}
+
+.mkt-page .inst-btn-primary:hover,
+.mkt-page .mkt-btn-chalk:hover,
+.mkt-page .mkt-hero-clean-cta:hover {
+  background: #000000 !important;
+  border-color: #000000 !important;
+}
+
+/* Secondary pill — cursor.com "Request a demo" style */
+.mkt-page .inst-btn-ghost,
+.mkt-page .tier-btn-ghost {
+  background: #e6e5e0 !important;
+  color: #26251e !important;
+  border: 1px solid transparent !important;
+  border-radius: 9999px !important;
+}
+
+.mkt-page .inst-btn-ghost:hover {
+  background: #dbdad3 !important;
+  color: #26251e !important;
+}
+
+/* Nav CTA pill (smaller, like cursor.com "Download") */
+.mkt-nav--institution .mkt-nav-cta,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta,
+.mkt-nav .mkt-nav-cta {
+  background: #26251e !important;
+  color: #f7f7f4 !important;
+  border: 1px solid #26251e !important;
+  border-radius: 9999px !important;
+  padding: 0.4rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Nav links normal-case (Models/Product…), regular weight, like cursor.com */
+.mkt-nav-links a,
+.mkt-nav--institution .mkt-nav-links a,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
+.mkt-nav-login,
+.mkt-nav--institution .mkt-nav-login {
+  text-transform: none !important;
+  letter-spacing: -0.006em !important;
+  font-weight: 400 !important;
+  font-size: 0.9375rem !important;
+  color: #26251e !important;
 }
