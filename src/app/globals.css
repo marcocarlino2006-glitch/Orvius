@@ -24440,3 +24440,204 @@ body:has(.mkt-page) .shell-header {
   background: #fbeee9 !important;
   border-color: #e5533a !important;
 }
+
+/* ============================================================
+   Cursor-craft home — calm, centered, light. Kill the dark
+   hero + bands so the site reads like cursor.com.
+   ============================================================ */
+
+/* Clean centered hero */
+.mkt-page .mkt-hero--clean {
+  min-height: 84vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(7rem, 18vh, 11rem) 1.5rem clamp(4rem, 11vh, 7.5rem);
+  background: #f6f5f2 !important;
+  border: 0 !important;
+}
+
+.mkt-page .mkt-hero-clean {
+  max-width: 62rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mkt-page .mkt-hero-clean-eyebrow {
+  margin: 0 0 1.4rem;
+  color: #6f6d68 !important;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.mkt-page .mkt-hero-clean-title {
+  margin: 0;
+  color: #1a1817 !important;
+  font-weight: 600;
+  font-size: clamp(3rem, 8.5vw, 6.75rem);
+  line-height: 0.97;
+  letter-spacing: -0.038em;
+}
+
+.mkt-page .mkt-hero-clean-lead {
+  margin: 1.65rem auto 0;
+  max-width: 36ch;
+  color: #6f6d68 !important;
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  line-height: 1.5;
+}
+
+.mkt-page .mkt-hero-clean-actions {
+  margin-top: 2.3rem;
+}
+
+.mkt-page .mkt-hero-clean-cta {
+  background: #1a1817 !important;
+  color: #f6f5f2 !important;
+  border: 1px solid #1a1817 !important;
+  border-radius: 999px !important;
+  padding: 0.9rem 1.7rem !important;
+  font-size: 0.95rem !important;
+  min-height: 3rem !important;
+}
+
+.mkt-page .mkt-hero-clean-cta:hover {
+  background: #050505 !important;
+  border-color: #050505 !important;
+}
+
+.mkt-page .mkt-hero-clean-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 1.6rem;
+  color: #e5533a !important;
+  font-size: 0.9rem;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.mkt-page .mkt-hero-clean-line:hover {
+  color: #c8452e !important;
+}
+
+/* Airy light sections (night rules + close), ink type */
+.mkt-page .mkt-manifesto,
+.mkt-page .mkt-manifesto--meta,
+.mkt-page .mkt-close,
+.mkt-page .mkt-close--institution {
+  background: #f6f5f2 !important;
+  border: 0 !important;
+  color: #1a1817 !important;
+}
+
+.mkt-page .mkt-section-inner {
+  padding-top: clamp(4rem, 10vh, 7rem) !important;
+  padding-bottom: clamp(4rem, 10vh, 7rem) !important;
+}
+
+.mkt-page .mkt-manifesto-title,
+.mkt-page .mkt-law-title,
+.mkt-page .mkt-close-title {
+  color: #1a1817 !important;
+}
+
+.mkt-page .mkt-manifesto-kicker,
+.mkt-page .mkt-close-entity {
+  color: #e5533a !important;
+}
+
+.mkt-page .mkt-manifesto-aside,
+.mkt-page .mkt-law-body,
+.mkt-page .mkt-close-desc,
+.mkt-page .mkt-close-claim {
+  color: #6f6d68 !important;
+}
+
+.mkt-page .mkt-law-id {
+  color: #e5533a !important;
+}
+
+.mkt-page .mkt-law {
+  border-color: #e4e1da !important;
+}
+
+/* Close-section chalk CTA → charcoal pill; secondary → ink */
+.mkt-page .mkt-btn-chalk,
+.mkt-page .mkt-close .mkt-btn-lg {
+  background: #1a1817 !important;
+  color: #f6f5f2 !important;
+  border: 1px solid #1a1817 !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+.mkt-page .mkt-btn-chalk:hover {
+  background: #050505 !important;
+  border-color: #050505 !important;
+}
+
+.mkt-page .mkt-close-call,
+.mkt-page .mkt-text-link {
+  color: #1a1817 !important;
+}
+
+/* Proof/story section (inset) → paper + ink; transcript panel white */
+.mkt-page .mkt-proof-section,
+.mkt-page .mkt-proof-section--company {
+  background: #f0eeea !important;
+  border: 0 !important;
+}
+
+.mkt-page .mkt-proof-title {
+  color: #1a1817 !important;
+}
+
+.mkt-page .mkt-proof-kicker {
+  color: #e5533a !important;
+}
+
+.mkt-page .mkt-proof-lead,
+.mkt-page .mkt-proof-note {
+  color: #6f6d68 !important;
+}
+
+.mkt-page .mkt-btn-ink {
+  background: #1a1817 !important;
+  color: #f6f5f2 !important;
+  border: 1px solid #1a1817 !important;
+  border-radius: 999px !important;
+}
+
+.mkt-page .mkt-call-panel,
+.mkt-page .mkt-call-panel--company {
+  background: #ffffff !important;
+  border: 1px solid #e4e1da !important;
+  border-radius: 0.6rem !important;
+  box-shadow: none !important;
+  color: #1a1817 !important;
+}
+
+.mkt-page .mkt-call-panel-kicker {
+  color: #e5533a !important;
+}
+
+.mkt-page .mkt-call-panel-title {
+  color: #1a1817 !important;
+}
+
+.mkt-page .mkt-transcript-line {
+  color: #33312d !important;
+}
+
+.mkt-page .mkt-transcript-line span {
+  color: #9a9791 !important;
+}
+
+.mkt-page .mkt-transcript-line-muted {
+  color: #6f6d68 !important;
+}

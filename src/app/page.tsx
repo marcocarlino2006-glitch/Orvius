@@ -19,7 +19,7 @@ export default function HomePage() {
       <HomeStatement />
       <HomeCallStory />
 
-      <MktSection tone="dark" className="mkt-close mkt-close--cinema mkt-close--institution">
+      <MktSection tone="inset" className="mkt-close mkt-close--cinema mkt-close--institution">
         <div className="mkt-close-inner mkt-close-inner--institution">
           <p className="mkt-close-entity font-sans">{company.legalName}</p>
           <h2 className="mkt-close-title">

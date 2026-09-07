@@ -22,7 +22,7 @@ const nightRules = [
 export function HomeStatement() {
   return (
     <MktSection
-      tone="dark"
+      tone="light"
       className="mkt-manifesto mkt-manifesto--meta"
       aria-labelledby="home-manifesto-heading"
     >
