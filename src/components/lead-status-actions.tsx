@@ -67,15 +67,15 @@ export function LeadStatusActions({
       : LEAD_STATUSES.filter((item) => item.value !== current);
 
   return (
-    <div className={compact ? "space-y-2" : "space-y-3"}>
-      <div className="flex flex-wrap items-center gap-2">
+    <div className={`lead-status-actions${compact ? " lead-status-actions--compact" : ""}`}>
+      <div className="lead-status-actions-head">
         <LeadStatusBadge status={current} />
         {!compact ? (
-          <span className="font-sans text-xs text-ash">Update status</span>
+          <span className="lead-status-actions-label font-sans">Update status</span>
         ) : null}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="lead-status-actions-row">
         {actions.map((item) => (
           <button
             key={item.value}
@@ -83,7 +83,7 @@ export function LeadStatusActions({
             disabled={loading !== null}
             className={`btn text-sm ${
               item.value === "spam" ? "btn-secondary" : "btn-void"
-            } ${compact ? "px-3 py-2" : ""}`}
+            }`}
             onClick={() => updateStatus(item.value)}
           >
             {loading === item.value ? "Saving…" : item.label}
@@ -92,7 +92,7 @@ export function LeadStatusActions({
       </div>
 
       {error ? (
-        <p className="font-sans text-xs text-flare-dim">{error}</p>
+        <p className="lead-status-actions-error font-sans">{error}</p>
       ) : null}
     </div>
   );

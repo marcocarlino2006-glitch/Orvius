@@ -83,74 +83,39 @@ export function OwnerAlertCard({
   ];
 
   return (
-    <div
-      className={`product-surface ${isVoid ? "product-surface-void" : "product-surface-chalk"} ${className}`}
+    <section
+      className={`owner-alert owner-alert--${isVoid ? "void" : "chalk"}${
+        isEmergency ? " owner-alert--critical" : ""
+      }${compact ? " owner-alert--compact" : ""} ${className}`.trim()}
     >
-      <div
-        className={`flex items-center justify-between gap-3 border-b px-5 py-3.5 md:px-6 ${
-          isVoid ? "border-white/8" : "border-rule"
-        }`}
-      >
-        <div className="flex items-center gap-2.5">
-          {isVoid && isEmergency ? (
-            <span className="live-dot live-dot-flare" aria-hidden />
-          ) : (
-            <span className="live-dot live-dot-flare" aria-hidden />
-          )}
-          <p
-            className={`home-os-kicker ${
-              isVoid ? "home-os-kicker-flare" : ""
-            }`}
-          >
-            Owner alert
-          </p>
-        </div>
-        <span className="font-sans text-[10px] tracking-wide text-ash-soft uppercase">
-          just now
-        </span>
-      </div>
-
-      <div className={`px-5 md:px-6 ${compact ? "py-4" : "py-5 md:py-6"}`}>
-        <p
-          className={`type-title ${
-            compact ? "text-xl" : "text-2xl md:text-[1.75rem]"
-          } ${isVoid ? "text-chalk" : "text-void"}`}
-        >
-          New lead from {name}
+      <header className="owner-alert-head">
+        <p className="owner-alert-kicker font-sans">
+          <span className="owner-alert-dot" aria-hidden />
+          Owner alert
         </p>
-        <p className="mt-1 font-sans text-[13px] text-ash-soft">{channel}</p>
+        <span className="owner-alert-time font-sans">just now</span>
+      </header>
 
-        <dl className="mt-5 space-y-0 font-sans text-[13px]">
-          {fields.map(({ label, value, accent }, i, arr) => (
-            <div
-              key={label}
-              className={`flex justify-between gap-4 py-2.5 ${
-                i < arr.length - 1
-                  ? isVoid
-                    ? "border-b border-white/6"
-                    : "border-b border-rule"
-                  : ""
-              }`}
-            >
-              <dt className="text-ash-soft">{label}</dt>
-              <dd
-                className={`text-right font-medium tabular-nums ${
-                  accent ? "text-flare" : isVoid ? "text-chalk" : "text-void"
-                }`}
-              >
-                {value}
-              </dd>
+      <div className="owner-alert-body">
+        <p className="owner-alert-title font-sans">New lead from {name}</p>
+        <p className="owner-alert-channel font-sans">{channel}</p>
+
+        <dl className="os-kv owner-alert-kv font-sans">
+          {fields.map(({ label, value, accent }) => (
+            <div key={label} className={accent ? "owner-alert-kv-accent" : undefined}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
             </div>
           ))}
         </dl>
 
-        {!compact && (
-          <p className="mt-5 font-sans text-[11px] leading-relaxed text-ash-soft">
+        {!compact ? (
+          <p className="owner-alert-foot font-sans">
             Orvius captured this while the owner was on a job.
           </p>
-        )}
+        ) : null}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -165,36 +130,23 @@ export function CallTranscriptProof({
 
   return (
     <div
-      className={`p-6 md:p-8 ${isVoid ? "panel-void" : "panel-chalk"} ${className}`}
+      className={`owner-alert owner-alert--${isVoid ? "void" : "chalk"} ${className}`.trim()}
     >
-      <p className="home-os-kicker">Front door</p>
-      <div className="mt-5 space-y-4 font-sans text-[13px] leading-relaxed text-ash">
+      <header className="owner-alert-head">
+        <p className="owner-alert-kicker font-sans">Front door</p>
+      </header>
+      <div className="owner-alert-body owner-alert-transcript font-sans">
         <p className="transcript-line">
-          <span className={isVoid ? "text-chalk" : "text-void"}>Orvius</span> ·
-          Thanks for calling Summit HVAC. How can I help?
-        </p>
-        <p className="transcript-line">
-          <span className={isVoid ? "text-chalk/80" : "text-void/70"}>
-            Caller
-          </span>{" "}
-          · My AC stopped cooling. Can someone come today?
+          <span>Orvius</span> · Thanks for calling Summit HVAC. How can I help?
         </p>
         <p className="transcript-line">
-          <span className={isVoid ? "text-chalk" : "text-void"}>Orvius</span> ·
-          I can help. What&apos;s the address and best callback number?
+          <span>Caller</span> · My AC stopped cooling. Can someone come today?
         </p>
-      </div>
-      <div
-        className={`transcript-foot mt-6 flex items-center gap-2 border-t pt-5 ${
-          isVoid ? "border-white/8" : "border-rule"
-        }`}
-      >
-        <span className="size-1.5 rounded-full bg-live" />
-        <p
-          className={`font-sans text-xs ${isVoid ? "text-chalk" : "text-void"}`}
-        >
-          Lead captured · owner notified
+        <p className="transcript-line">
+          <span>Orvius</span> · I can help. What&apos;s the address and best
+          callback number?
         </p>
+        <p className="owner-alert-foot">Lead captured · owner notified</p>
       </div>
     </div>
   );

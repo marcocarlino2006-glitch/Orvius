@@ -31,7 +31,7 @@ export function BillingLockScreen({
   const usePortal = tone === "past_due" && hasStripeCustomer;
 
   return (
-    <div className={`billing-lock billing-lock--${tone}`} role="alertdialog" aria-modal="true">
+    <div className={`billing-lock billing-lock--${tone} billing-lock--instrument`} role="alertdialog" aria-modal="true">
       <div className="billing-lock-card">
         <p className="billing-lock-kicker font-sans">
           {tone === "past_due" ? "Payment required" : "Subscribe to continue"}

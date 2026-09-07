@@ -156,7 +156,7 @@ export function PayPromptModal() {
         aria-label="Dismiss for now"
         onClick={snooze}
       />
-      <div className={`pay-prompt-card pay-prompt-card--${decision.tone}`}>
+      <div className={`pay-prompt-card pay-prompt-card--${decision.tone} pay-prompt-card--instrument`}>
         <p className="pay-prompt-kicker font-sans">
           {decision.tone === "required"
             ? "Subscribe to continue"

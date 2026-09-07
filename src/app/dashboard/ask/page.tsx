@@ -1,7 +1,6 @@
 "use client";
 
 import { CopilotActions } from "@/components/copilot-actions";
-import { ProRingBanner } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
@@ -74,13 +73,11 @@ export default function AskPage() {
       subtitle="Ask about the shop — then approve actions. Grounded in your calls, jobs, and dispatch."
     >
       <PlanUpgradeGate module="ask">
-      <ProRingBanner
-        name="Shop memory"
-        description="Search your record, then approve assign / SMS / follow-up before Orvius executes."
-      />
-
-      <div className="ask-hero pro-panel">
-        <div className="ask-hero-inner">
+      <div className="ask-hero pro-panel pro-panel--dense">
+        <div className="pro-panel-head">
+          <h2 className="pro-panel-title font-sans">Shop memory</h2>
+        </div>
+        <div className="pro-panel-body ask-hero-inner">
           <form
             className="ask-form"
             onSubmit={(e) => {
@@ -117,7 +114,7 @@ export default function AskPage() {
       </div>
 
       {error ? (
-        <div className="mt-4">
+        <div className="mt-3">
           <ShellAlert tone="error">{error}</ShellAlert>
         </div>
       ) : null}
@@ -136,31 +133,32 @@ export default function AskPage() {
 
       <ol className="ask-turns">
         {turns.map((turn, index) => (
-          <li key={`${turn.question}-${index}`} className="ask-turn pro-panel">
-            <div className="ask-turn-head">
-              <p className="pro-section-kicker font-sans">You asked</p>
-              <p className="ask-q font-sans">{turn.question}</p>
+          <li key={`${turn.question}-${index}`} className="ask-turn pro-panel pro-panel--dense">
+            <div className="pro-panel-head">
+              <p className="pro-panel-title font-sans">You asked</p>
             </div>
-            <div className="ask-a">
-              <p className="ask-source font-sans">
-                <span className="home-os-live-dot" aria-hidden />
-                {turn.source === "memory+model" ? "Shop record + model" : "From shop record"}
-              </p>
-              <p className="ask-answer font-sans whitespace-pre-wrap">{turn.answer}</p>
-              {turn.hits.length ? (
-                <ul className="ask-hits">
-                  {turn.hits.map((hit) => (
-                    <li key={`${hit.type}-${hit.id}`}>
-                      <Link href={hit.href} className="ask-hit font-sans">
-                        <span className="ask-hit-type">{hit.type}</span>
-                        <span className="ask-hit-title">{hit.title}</span>
-                        <span className="ask-hit-sum">{hit.summary}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              <CopilotActions hits={turn.hits} />
+            <div className="pro-panel-body">
+              <p className="ask-q font-sans">{turn.question}</p>
+              <div className="ask-a">
+                <p className="ask-source font-sans">
+                  {turn.source === "memory+model" ? "Shop record + model" : "From shop record"}
+                </p>
+                <p className="ask-answer font-sans whitespace-pre-wrap">{turn.answer}</p>
+                {turn.hits.length ? (
+                  <ul className="ask-hits">
+                    {turn.hits.map((hit) => (
+                      <li key={`${hit.type}-${hit.id}`}>
+                        <Link href={hit.href} className="ask-hit font-sans">
+                          <span className="ask-hit-type">{hit.type}</span>
+                          <span className="ask-hit-title">{hit.title}</span>
+                          <span className="ask-hit-sum">{hit.summary}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <CopilotActions hits={turn.hits} />
+              </div>
             </div>
           </li>
         ))}
