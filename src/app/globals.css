@@ -24068,3 +24068,375 @@ body:has(.confirm-shell) {
   color: #e7e9ea !important;
   min-height: 1.85rem !important;
 }
+
+/* ============================================================
+   Cursor palette — marketing goes warm-light (cursor.com), not
+   true-black. Off-white paper, near-black ink, single orange
+   accent, soft charcoal pill CTAs. Dashboard stays night OS.
+   ============================================================ */
+
+.mkt-page {
+  /* Warm Cursor paper + near-black ink */
+  --void: #1a1817 !important;
+  --void-deep: #050505 !important;
+  --chalk: #f6f5f2 !important;
+  --white: #ffffff !important;
+  --fog: #f0eeea !important;
+  --mist: #34322f !important;
+  --ash: #6f6d68 !important;
+  --ash-soft: #8a8781 !important;
+  --rule: #e4e1da !important;
+  --hairline: #e4e1da !important;
+  --canvas: #f6f5f2 !important;
+  --signal: #e5533a !important; /* Cursor orange accent */
+  --signal-dim: #c8452e !important;
+  --mkt-ink: #1a1817 !important;
+  --mkt-muted: #6f6d68 !important;
+  --mkt-surface: #ffffff !important;
+  --mkt-inset: #f0eeea !important;
+  background: #f6f5f2 !important;
+  color: #1a1817 !important;
+}
+
+/* Page + hero + section surfaces → paper, kill dark gradients */
+.mkt-page .tier1-hero,
+.mkt-page .tier1-story,
+.mkt-page .tier1-story-muted,
+.mkt-page .tier1-close,
+.mkt-page .marketing-hero,
+.mkt-page .marketing-section,
+.mkt-hero--bleed,
+.mkt-hero--cursor,
+.mkt-hero-void {
+  background: #f6f5f2 !important;
+  border-color: #e4e1da !important;
+  color: #1a1817 !important;
+}
+
+.mkt-page .tier1-story,
+.mkt-page .tier1-story-muted,
+.mkt-page .marketing-section {
+  background: #f0eeea !important;
+}
+
+.mkt-page .tier1-close {
+  background: #eeece7 !important;
+  border-top: 1px solid #e4e1da !important;
+}
+
+/* Nav → paper, ink links */
+.mkt-nav--elevated .mkt-nav-rail,
+.mkt-page .mkt-nav-rail {
+  background: color-mix(in srgb, #f6f5f2 88%, transparent) !important;
+  border-color: #e4e1da !important;
+}
+
+/* Type → ink + warm muted */
+.mkt-page .tier1-page-title,
+.mkt-page .tier1-section-title,
+.mkt-page .type-headline,
+.mkt-page .type-display,
+.mkt-page .brand-intro .tier1-page-title,
+.mkt-page .marketing-hero-title,
+.mkt-page .marketing-hero-title-sm,
+.mkt-page .mkt-hero-title,
+.mkt-page .text-void {
+  color: #1a1817 !important;
+}
+
+.mkt-page .tier1-eyebrow,
+.mkt-page .type-eyebrow,
+.mkt-page .brand-intro .tier1-eyebrow,
+.mkt-page .tier1-section-lead,
+.mkt-page .tier1-hero-lead,
+.mkt-page .tier1-hero-statement,
+.mkt-page .brand-intro-subline,
+.mkt-page .brand-intro-description,
+.mkt-page .text-ash,
+.mkt-page .text-mist {
+  color: #6f6d68 !important;
+}
+
+/* Accent links / arrows → Cursor orange */
+.mkt-page a.underline,
+.mkt-page .home-platform-link,
+.mkt-page .text-signal,
+.mkt-page .mkt-link-arrow,
+.mkt-page .link-arrow {
+  color: #e5533a !important;
+  text-decoration-color: color-mix(in srgb, #e5533a 40%, transparent) !important;
+}
+
+.mkt-page a.underline:hover,
+.mkt-page .home-platform-link:hover {
+  color: #c8452e !important;
+}
+
+/* Cards / panels → white with warm hairline */
+.mkt-page .tier1-plan,
+.mkt-page .tier1-story-card,
+.mkt-page .pro-panel,
+.mkt-page .mkt-card,
+.mkt-page .mkt-pricing-card,
+.mkt-page .mkt-path-card,
+.mkt-page .mkt-proof-card,
+.mkt-page .mkt-trust-card,
+.mkt-page .panel-chalk,
+.mkt-page .call-demo,
+.mkt-page .call-demo-void,
+.mkt-page .call-demo-section,
+.mkt-page .pricing-wizard,
+.mkt-page .pricing-needs,
+.mkt-page .pricing-needs-picker,
+.mkt-page .needs-picker,
+.mkt-page .pricing-faq details,
+.mkt-page .pricing-faq-item,
+.mkt-page .pricing-feature-matrix,
+.mkt-page .pricing-matrix-scroll,
+.mkt-page .pricing-page-controls,
+.mkt-page .tier1-plan-featured,
+.mkt-page .tier1-plan-recommended {
+  background: #ffffff !important;
+  border: 1px solid #e4e1da !important;
+  color: #1a1817 !important;
+  box-shadow: none !important;
+}
+
+.mkt-page .pro-panel-head {
+  background: #f0eeea !important;
+  border-bottom: 1px solid #e4e1da !important;
+}
+
+.mkt-page .pro-panel-title,
+.mkt-page .tier1-plan-price,
+.mkt-page .tier1-plan .text-void,
+.mkt-page .tier1-plan .font-semibold,
+.mkt-page .call-demo .call-demo-number {
+  color: #1a1817 !important;
+}
+
+.mkt-page .tier1-plan-period,
+.mkt-page .tier1-plan-annual-note,
+.mkt-page .tier1-plan-ideal,
+.mkt-page .tier1-plan-list,
+.mkt-page .tier1-plan-list li,
+.mkt-page .call-demo .call-demo-live,
+.mkt-page .call-demo .call-demo-hint,
+.mkt-page .call-demo .call-demo-copy {
+  color: #6f6d68 !important;
+}
+
+/* Inputs → white with warm hairline, ink text */
+.mkt-page input,
+.mkt-page select,
+.mkt-page textarea,
+.mkt-page .input,
+.mkt-page .tier1-form-slot input,
+.mkt-page .tier1-form-slot select,
+.mkt-page .tier1-form-slot textarea {
+  background: #ffffff !important;
+  color: #1a1817 !important;
+  border: 1px solid #e4e1da !important;
+}
+
+.mkt-page label,
+.mkt-page .label {
+  color: #6f6d68 !important;
+}
+
+/* CTAs → Cursor pills: charcoal primary, hairline ghost */
+.mkt-page .inst-btn,
+.mkt-page .tier-btn,
+.mkt-page .mkt-btn {
+  border-radius: 999px !important;
+}
+
+.mkt-page .inst-btn-primary,
+.mkt-page .tier-btn-primary,
+.mkt-page .call-demo .inst-btn-primary {
+  background: #1a1817 !important;
+  color: #f6f5f2 !important;
+  border: 1px solid #1a1817 !important;
+  border-radius: 999px !important;
+}
+
+.mkt-page .inst-btn-primary:hover,
+.mkt-page .tier-btn-primary:hover {
+  background: #050505 !important;
+  border-color: #050505 !important;
+}
+
+.mkt-page .inst-btn-ghost,
+.mkt-page .tier-btn-ghost {
+  background: transparent !important;
+  color: #1a1817 !important;
+  border: 1px solid #e4e1da !important;
+}
+
+.mkt-page .inst-btn-ghost:hover {
+  border-color: #b9b5ac !important;
+  background: #efedE8 !important;
+  color: #1a1817 !important;
+}
+
+/* Legal prose on paper */
+.mkt-page .legal-prose {
+  color: #33312d !important;
+}
+
+.mkt-page .legal-prose h2 {
+  color: #1a1817 !important;
+  border-color: #e4e1da !important;
+}
+
+.mkt-page .legal-prose a {
+  color: #e5533a !important;
+}
+
+/* Global shell header on marketing → paper bar, ink text */
+body:has(.mkt-page) .shell-header {
+  background: color-mix(in srgb, #f6f5f2 92%, transparent) !important;
+  border-bottom-color: #e4e1da !important;
+  color: #1a1817 !important;
+}
+
+/* Marketing nav → ink links, charcoal pill CTA (both scroll states) */
+.mkt-nav .mkt-nav-links a,
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-links a,
+.mkt-nav .mkt-nav-login,
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-login,
+.mkt-nav .mkt-nav-secondary,
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-secondary,
+.mkt-nav-brand .orvius-logo,
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo,
+.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
+  color: #1a1817 !important;
+}
+
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-icon span,
+.mkt-nav .mkt-nav-menu-icon span {
+  background: #1a1817 !important;
+}
+
+.mkt-nav .mkt-nav-cta,
+.mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta,
+.mkt-nav--elevated .mkt-nav-cta {
+  background: #1a1817 !important;
+  color: #f6f5f2 !important;
+  border: 1px solid #1a1817 !important;
+  border-radius: 999px !important;
+}
+
+.mkt-nav .mkt-nav-cta:hover {
+  background: #050505 !important;
+  border-color: #050505 !important;
+}
+
+/* Home bleed hero stays a dark product showcase (light text on it) */
+.mkt-page .mkt-hero--bleed,
+.mkt-page .mkt-hero-void {
+  background: #0a0a0a !important;
+  border-color: #23262b !important;
+}
+
+.mkt-page .mkt-hero--bleed .mkt-hero-title,
+.mkt-page .mkt-hero--bleed .tier1-hero-title,
+.mkt-page .mkt-hero--bleed [class*="hero-title"],
+.mkt-page .mkt-hero--bleed .text-void {
+  color: #f6f5f2 !important;
+}
+
+.mkt-page .mkt-hero--bleed .tier1-hero-lead,
+.mkt-page .mkt-hero--bleed .tier1-hero-statement,
+.mkt-page .mkt-hero--bleed .text-ash,
+.mkt-page .mkt-hero--bleed .type-eyebrow {
+  color: color-mix(in srgb, #f6f5f2 62%, transparent) !important;
+}
+
+.mkt-page .mkt-hero--bleed .inst-btn-primary {
+  background: #f6f5f2 !important;
+  color: #1a1817 !important;
+  border-color: #f6f5f2 !important;
+}
+
+/* Institution nav modifier → paper bar, ink links, charcoal pill CTA */
+.mkt-nav--institution,
+.mkt-nav--institution.mkt-nav--elevated {
+  background: color-mix(in srgb, #f6f5f2 90%, transparent) !important;
+  border-bottom-color: #e4e1da !important;
+}
+
+.mkt-nav--institution .mkt-nav-brand .orvius-logo,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo,
+.mkt-nav--institution .mkt-nav-links a,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
+.mkt-nav--institution .mkt-nav-login,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-login {
+  color: #1a1817 !important;
+}
+
+.mkt-nav--institution .mkt-nav-links a:hover,
+.mkt-nav--institution .mkt-nav-login:hover {
+  color: #000000 !important;
+}
+
+.mkt-nav--institution .mkt-nav-cta,
+.mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
+  background: #1a1817 !important;
+  color: #f6f5f2 !important;
+  border: 1px solid #1a1817 !important;
+  border-radius: 999px !important;
+}
+
+.mkt-nav--institution .mkt-nav-cta:hover {
+  background: #050505 !important;
+  border-color: #050505 !important;
+}
+
+.mkt-nav--institution .mkt-nav-menu-icon span {
+  background: #1a1817 !important;
+}
+
+/* Pricing plan-finder — light option tiles inside the white card */
+.mkt-page .pricing-needs-option-label,
+.mkt-page .pricing-faq-question,
+.mkt-page .pricing-matrix-feature-label,
+.mkt-page .pricing-wizard-legend,
+.mkt-page .pricing-needs-title,
+.mkt-page .pricing-wizard-title {
+  color: #1a1817 !important;
+}
+
+.mkt-page .pricing-wizard-kicker,
+.mkt-page .pricing-wizard-step,
+.mkt-page .pricing-wizard-step-done,
+.mkt-page .pricing-wizard-back,
+.mkt-page .pricing-needs-option-detail,
+.mkt-page .pricing-needs-lead,
+.mkt-page .pricing-matrix-lead,
+.mkt-page .pricing-faq-answer,
+.mkt-page .pricing-page-controls-note {
+  color: #6f6d68 !important;
+}
+
+.mkt-page .pricing-wizard-step-active {
+  color: #e5533a !important;
+}
+
+.mkt-page .pricing-needs-option,
+.mkt-page .pricing-wizard .pricing-needs-option,
+.mkt-page .pricing-needs-result {
+  background: #ffffff !important;
+  border: 1px solid #e4e1da !important;
+  border-radius: 0.4rem !important;
+  color: #1a1817 !important;
+}
+
+.mkt-page .pricing-needs-option:hover {
+  border-color: #b9b5ac !important;
+}
+
+.mkt-page .pricing-needs-option-active {
+  background: #fbeee9 !important;
+  border-color: #e5533a !important;
+}
