@@ -23970,3 +23970,101 @@ body:has(.confirm-shell) {
   color: #e7e9ea !important;
   font-size: 0.75rem !important;
 }
+
+/* ============================================================
+   Cursor × Grok craft — marketing call-demo + demo simulate panel,
+   pricing internals to hard X palette, night dispatch crew toolbar.
+   ============================================================ */
+
+/* Marketing call-demo → flat X instrument (pricing / demo / pilot) */
+.mkt-page .call-demo,
+.mkt-page .call-demo-void,
+.mkt-page .call-demo-section {
+  border-radius: 0.2rem !important;
+  border: 1px solid #2f3336 !important;
+  background: #16181c !important;
+  box-shadow: none !important;
+  padding: 0.85rem 0.95rem !important;
+  gap: 0.6rem !important;
+}
+
+.mkt-page .call-demo .call-demo-number {
+  color: #e7e9ea !important;
+}
+
+.mkt-page .call-demo .call-demo-live,
+.mkt-page .call-demo .call-demo-hint,
+.mkt-page .call-demo .call-demo-copy {
+  color: #71767b !important;
+}
+
+.mkt-page .call-demo .inst-btn,
+.mkt-page .call-demo .inst-btn-primary,
+.mkt-page .call-demo .call-demo-copy {
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+}
+
+/* Marketing pro-panel (demo simulate) → dark head, X palette, no cream */
+.mkt-page .pro-panel {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+}
+
+.mkt-page .pro-panel-head {
+  background: #0a0a0a !important;
+  border-bottom: 1px solid #2f3336 !important;
+  padding: 0.65rem 0.9rem !important;
+}
+
+.mkt-page .pro-panel-title {
+  color: #e7e9ea !important;
+  font-size: 0.75rem !important;
+}
+
+.mkt-page .pro-panel-body {
+  padding: 0.85rem 0.9rem 0.95rem !important;
+}
+
+/* Pricing internals → migrate blue-tint chrome to hard X palette */
+.mkt-page .pricing-faq details,
+.mkt-page .pricing-faq-item,
+.mkt-page .feature-matrix,
+.mkt-page .pricing-feature-matrix,
+.mkt-page .needs-picker,
+.mkt-page .pricing-needs-picker,
+.mkt-page .pricing-wizard,
+.mkt-page .pricing-needs,
+.mkt-page .pricing-matrix-scroll,
+.mkt-page .pricing-page-controls {
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+}
+
+/* Night OS dispatch "add to crew" toolbar → flat instrument */
+.os-shell-night .pro-toolbar {
+  background: #0a0a0a !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.2rem !important;
+  box-shadow: none !important;
+  padding: 0.6rem 0.7rem !important;
+  gap: 0.55rem 1rem !important;
+}
+
+.os-shell-night .pro-toolbar-label {
+  color: #71767b !important;
+  font-size: 0.5625rem !important;
+}
+
+.os-shell-night .pro-toolbar-input,
+.os-shell-night .pro-toolbar .input {
+  border-radius: 0.2rem !important;
+  background: #16181c !important;
+  border: 1px solid #2f3336 !important;
+  color: #e7e9ea !important;
+  min-height: 1.85rem !important;
+}
