@@ -2,8 +2,24 @@
 /**
  * Institutional standard scorecard — run before deploy.
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
+
+/** Every file under dir, skipping build output and dependencies. */
+function* walkFiles(dir) {
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) yield* walkFiles(full);
+    else yield full;
+  }
+}
 
 const APP_URL =
   process.env.APP_URL?.trim() ||
@@ -94,6 +110,7 @@ const HONESTY_RISKS = [
   // A learning loop is the easiest thing to claim and the hardest to have.
   // Nothing in the product trains on usage yet, so this stays a warning.
   { pattern: /(smarter|learns|improves) (with|from) every/i, label: "learns with every" },
+  { pattern: /(sharpens|trains|teaches|tunes) the next/i, label: "sharpens the next" },
 ];
 
 try {
@@ -190,6 +207,33 @@ try {
   pass("Trust UI", "No hardcoded trust strip; alert speed is measured");
 }
 
+// ── One receptionist prompt ──
+const PROMPT_MARKER = "You are the AI receptionist for";
+const promptOwner = "src/lib/business.ts";
+// This checker names the marker, so it is not a fork of the prompt.
+const promptCheckSelf = "scripts/standard-check.mjs";
+const promptForks = [];
+for (const dir of ["src", "scripts", "docs"]) {
+  for (const file of walkFiles(join(root, dir))) {
+    const rel = relative(root, file);
+    if (rel === promptOwner || rel === promptCheckSelf) continue;
+    if (!/\.(ts|tsx|mjs|js|md)$/.test(rel)) continue;
+    try {
+      if (readFileSync(file, "utf8").includes(PROMPT_MARKER)) promptForks.push(rel);
+    } catch {
+      /* unreadable */
+    }
+  }
+}
+if (promptForks.length) {
+  fail(
+    "One prompt",
+    `Receptionist prompt duplicated in ${promptForks.join(", ")} — it drifts and the drift ships to a live line. Build it from buildAssistantSystemPrompt.`,
+  );
+} else {
+  pass("One prompt", `Receptionist prompt lives only in ${promptOwner}`);
+}
+
 // ── Honesty (marketing scan) ──
 const marketingFiles = [
   "src/lib/trust.ts",
@@ -199,6 +243,7 @@ const marketingFiles = [
   "src/lib/i18n.ts",
   // Ring copy describes what is live, and renders on the site and in the app.
   "src/lib/company.ts",
+  "src/components/home-workflow.tsx",
 ];
 for (const rel of marketingFiles) {
   let content;

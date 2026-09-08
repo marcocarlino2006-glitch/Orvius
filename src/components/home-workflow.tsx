@@ -19,7 +19,7 @@ const stages = [
   {
     name: "Compound",
     artifact: "Intelligence",
-    body: "Ask the OS. Every call and job sharpens the next.",
+    body: "Ask the OS. Every call and job lands on the same record.",
   },
 ] as const;
 
