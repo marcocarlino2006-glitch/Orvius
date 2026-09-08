@@ -24803,12 +24803,26 @@ body:has(.mkt-page) .shell-header {
 .mkt-nav-brand .orvius-logo-word,
 .mkt-footer .orvius-logo-word {
   color: #26251e !important;
+  font-family: var(--font-scifi), "Helvetica Neue", Arial, sans-serif !important;
   font-weight: 800 !important;
-  letter-spacing: 0.02em !important;
+  letter-spacing: 0.16em !important;
 }
 
 .mkt-nav-brand .orvius-logo-word {
-  font-size: 1.0625rem !important;
+  font-size: 0.95rem !important;
+}
+
+/* Sci-fi display face for marquee headings */
+.mkt-page .mkt-hero-clean-title,
+.mkt-page .mkt-trynow-title,
+.mkt-page .mkt-showcase-title,
+.mkt-page .mkt-manifesto-title,
+.mkt-page .tier1-page-title,
+.mkt-page .mkt-proof-title,
+.mkt-page .mkt-close-title {
+  font-family: var(--font-scifi), "Helvetica Neue", Arial, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.005em !important;
 }
 
 .mkt-nav-brand .orvius-logo-mark {

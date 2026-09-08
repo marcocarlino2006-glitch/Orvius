@@ -1,6 +1,7 @@
 /**
- * Orvius mark — twin-orbit O (X.com construction: mark alone + O-substitute).
- * Two intentional rails with counter-cut signal gaps. Reads as O at favicon size.
+ * Orvius mark — sci-fi hex core. A hexagonal orbit ring + inner frame + signal
+ * core, with a cut in the top-right rail (HUD/reticle feel). Reads as a
+ * futuristic emblem at any size and holds the "O" enclosure.
  */
 
 export type OrviusMarkSvgProps = {
@@ -8,15 +9,7 @@ export type OrviusMarkSvgProps = {
   size?: number;
 };
 
-/**
- * Twin-rail O in a 32 box.
- * Outer orbit + inner orbit = signature “two lines.”
- * Gaps sit opposite each other (signal out / signal in) — call-loop metaphor.
- */
-export function OrviusMarkSvg({
-  className = "",
-  size,
-}: OrviusMarkSvgProps) {
+export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
   return (
     <svg
       width={size}
@@ -27,31 +20,33 @@ export function OrviusMarkSvg({
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      {/* Rail 1 — outer orbit (gap NE) */}
-      <circle
+      {/* Outer hex orbit — open at top-right for a HUD cut */}
+      <path
         className="orvius-mark-rail orvius-mark-rail-outer"
-        cx="16"
-        cy="16"
-        r="12.9"
+        d="M16 2.6 L4.3 9.3 L4.3 22.7 L16 29.4 L27.7 22.7 L27.7 12.4"
         fill="none"
         stroke="currentColor"
-        strokeWidth="4.1"
+        strokeWidth="2.7"
         strokeLinecap="round"
-        strokeDasharray="66.5 14.6"
-        strokeDashoffset="10"
+        strokeLinejoin="round"
       />
-      {/* Rail 2 — inner orbit (gap SW, counter to outer) */}
-      <circle
+      {/* Inner hex frame */}
+      <polygon
         className="orvius-mark-rail orvius-mark-rail-inner"
-        cx="16"
-        cy="16"
-        r="6.7"
+        points="16,9.4 22.1,12.9 22.1,19.9 16,23.4 9.9,19.9 9.9,12.9"
         fill="none"
         stroke="currentColor"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeDasharray="33.5 9.6"
-        strokeDashoffset="28"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+        opacity="0.5"
+      />
+      {/* Signal core */}
+      <circle
+        className="orvius-mark-core"
+        cx="16"
+        cy="16"
+        r="2.9"
+        fill="currentColor"
       />
     </svg>
   );

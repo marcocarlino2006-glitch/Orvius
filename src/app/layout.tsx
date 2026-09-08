@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Sora } from "next/font/google";
+import { Sora, Orbitron } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
@@ -14,6 +14,14 @@ const sans = Sora({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+/** Sci-fi display face for the wordmark + marquee headings. */
+const scifi = Orbitron({
+  variable: "--font-scifi",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -53,7 +61,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${sans.variable} antialiased`}>
+      <body className={`${sans.variable} ${scifi.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>
