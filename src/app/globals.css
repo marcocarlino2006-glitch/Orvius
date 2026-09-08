@@ -26330,6 +26330,8 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .pro-economics-hint {
   margin: 0.3rem 0 0 !important;
   font-size: 0.75rem !important;
+  line-height: 1.5 !important;
+  text-wrap: balance;
   color: #9aa0a6 !important;
 }
 

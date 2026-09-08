@@ -107,7 +107,7 @@ export function ProEconomicsPanel({
           <p className="pro-economics-hint">
             {capturedValue
               ? `${capturedValue} est. value at your avg ticket`
-              : "Measured call/SMS leads that became jobs"}
+              : "Measured bookings from calls and texts"}
           </p>
         </div>
         <div>
