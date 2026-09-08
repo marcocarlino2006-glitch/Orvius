@@ -53,7 +53,7 @@ npm run pre-post:check   # full gate
 |---------|---------|
 | `npm run master:wedge` | Full wedge setup + drills |
 | `npm run restore:phones` | Fix DB phones after e2e (uses .env) |
-| `npm run sync:prompt` | Push latest receptionist prompt to Vapi |
+| Save Settings (or `POST /api/account/sync-assistant`) | Push the latest receptionist prompt to Vapi — the app owns the prompt |
 | `npm run go-live` | Tunnel + webhook + phone (dev) |
 
 ## Mastery bar
