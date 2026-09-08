@@ -1,9 +1,13 @@
 import { linkTouchToCustomer } from "@/lib/customer";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import {
+  DEFAULT_JOB_DURATION_MIN,
+  findAvailableSchedule,
+} from "@/lib/availability";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
-import { jobTitle, suggestedSchedule } from "@/lib/job-schedule";
+import { jobTitle } from "@/lib/job-schedule";
 import type { JobStatus } from "@/lib/job-status";
 
 export { suggestedSchedule, jobTitle } from "@/lib/job-schedule";
@@ -71,7 +75,15 @@ export async function createJobFromLead(params: {
     where: { id: params.leadId },
     include: {
       job: true,
-      business: { select: { id: true, name: true, servicesJson: true } },
+      business: {
+        select: {
+          id: true,
+          name: true,
+          servicesJson: true,
+          hoursJson: true,
+          timezone: true,
+        },
+      },
     },
   });
 
@@ -123,9 +135,51 @@ export async function createJobFromLead(params: {
     customerId = customer?.id ?? null;
   }
 
-  const scheduledAt = params.scheduledAt
-    ? new Date(params.scheduledAt)
-    : suggestedSchedule(lead.urgency);
+  let scheduledAt: Date;
+  if (params.scheduledAt) {
+    scheduledAt = new Date(params.scheduledAt);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      throw new Error("Invalid appointment time");
+    }
+  } else {
+    const [existing, activeTechnicians] = await Promise.all([
+      prisma.job.findMany({
+        where: {
+          businessId: lead.businessId,
+          status: { notIn: ["completed", "cancelled"] },
+          scheduledAt: { not: null },
+        },
+        select: { scheduledAt: true },
+      }),
+      prisma.technician.count({
+        where: { businessId: lead.businessId, isActive: true },
+      }),
+    ]);
+
+    const available = findAvailableSchedule({
+      urgency: lead.urgency,
+      hoursJson: lead.business?.hoursJson ?? "{}",
+      timezone: lead.business?.timezone ?? "America/New_York",
+      capacity: Math.max(1, activeTechnicians),
+      existing: existing.flatMap((job) =>
+        job.scheduledAt
+          ? [
+              {
+                scheduledAt: job.scheduledAt,
+                durationMin: DEFAULT_JOB_DURATION_MIN,
+              },
+            ]
+          : [],
+      ),
+    });
+
+    if (!available) {
+      throw new Error(
+        "No appointment capacity in the next 14 days. Keep the lead open for manual scheduling.",
+      );
+    }
+    scheduledAt = available;
+  }
 
   const extraNotes = params.notes?.trim();
   const notes = [lead.notes, extraNotes].filter(Boolean).join("\n") || null;

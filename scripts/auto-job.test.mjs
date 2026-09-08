@@ -1,32 +1,10 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 
-function isPriorityUrgency(urgency) {
-  const key = urgency?.toLowerCase().replace(/\s+/g, "-") ?? "";
-  return (
-    key.includes("emergency") ||
-    key.includes("same-day") ||
-    key.includes("same_day") ||
-    key === "today"
-  );
-}
-
-function hasUsablePhone(phone) {
-  if (!phone) return false;
-  const digits = phone.replace(/\D/g, "");
-  return digits.length >= 10;
-}
-
-function isLeadQualifiedForBooking(lead) {
-  if (!hasUsablePhone(lead.phone)) return false;
-  const service = lead.serviceType?.trim() ?? "";
-  const address = lead.address?.trim() ?? "";
-  if (service.length < 2 && address.length < 4) return false;
-  if (!address && /^(sms inquiry|sms|text|unknown|n\/?a)$/i.test(service)) {
-    return false;
-  }
-  return true;
-}
+import {
+  isLeadQualifiedForBooking,
+  isPriorityUrgency,
+} from "../src/lib/auto-job.ts";
 
 /** Mirrors maybeAutoBookLead plan gate without Prisma. */
 function shouldAutoBook({ qualified, hasJobsModule, urgency }) {
@@ -90,6 +68,15 @@ assert.equal(
     phone: "+15551234567",
     serviceType: null,
     address: null,
+  }),
+  false,
+);
+assert.equal(
+  isLeadQualifiedForBooking({
+    phone: "+15551234567",
+    serviceType: "calling about advertising for your furnace business",
+    address: null,
+    categoryCode: "other.non_service",
   }),
   false,
 );

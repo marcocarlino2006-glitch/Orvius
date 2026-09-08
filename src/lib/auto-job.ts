@@ -20,6 +20,8 @@ export type AutoBookSkipReason =
   | "already_booked"
   | "missing_business"
   | "unqualified"
+  | "non_service"
+  | "capacity_unavailable"
   | "plan_blocked"
   | "not_found";
 
@@ -45,7 +47,9 @@ export function isLeadQualifiedForBooking(lead: {
   serviceType?: string | null;
   address?: string | null;
   name?: string | null;
+  categoryCode?: string | null;
 }): boolean {
+  if (lead.categoryCode === "other.non_service") return false;
   if (!hasUsablePhone(lead.phone)) return false;
   const service = lead.serviceType?.trim() ?? "";
   const address = lead.address?.trim() ?? "";
@@ -111,7 +115,10 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
       jobId: null,
       created: false,
       qualified: false,
-      skipReason: "unqualified",
+      skipReason:
+        lead.categoryCode === "other.non_service"
+          ? "non_service"
+          : "unqualified",
     };
   }
 
@@ -129,12 +136,28 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     };
   }
 
-  const job = await createJobFromLead({
-    leadId,
-    notes: hasJobs
-      ? "Auto-booked from inbound lead"
-      : "Auto-booked priority capture (Line)",
-  });
+  let job;
+  try {
+    job = await createJobFromLead({
+      leadId,
+      notes: hasJobs
+        ? "Auto-booked from inbound lead"
+        : "Auto-booked priority capture (Line)",
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith("No appointment capacity")
+    ) {
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "capacity_unavailable",
+      };
+    }
+    throw error;
+  }
 
   return { jobId: job.id, created: true, qualified: true };
 }
