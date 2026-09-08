@@ -17,9 +17,9 @@ export function HomeLineHero() {
         </p>
 
         <h1 id="home-hero-heading" className="mkt-hero-clean-title">
-          The night shift
+          Never miss
           <br />
-          for the trades.
+          another call.
         </h1>
 
         <p className="mkt-hero-clean-lead font-sans">

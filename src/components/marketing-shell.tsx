@@ -4,6 +4,7 @@ import { HomeStickyCall } from "@/components/home-sticky-call";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { PremiumNav } from "@/components/premium-nav";
 import { ShellHeader } from "@/components/shell-header";
+import { SiteControls } from "@/components/site-controls";
 import { SiteFooter } from "@/components/site-footer";
 
 const DEFAULT_CTA = { href: "tel:+18446439170", label: "Call demo" } as const;
@@ -100,6 +101,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           </p>
         </div>
       </footer>
+      <SiteControls />
     </div>
   );
 }

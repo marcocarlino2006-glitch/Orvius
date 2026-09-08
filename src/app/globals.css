@@ -25030,23 +25030,100 @@ body:has(.mkt-page) .shell-header {
   color: #f54e00 !important;
 }
 
-/* Night-mode toggle button */
-.mkt-nav-theme {
+/* Bottom-left site controls — theme + language (cursor.com style) */
+.site-controls {
+  position: fixed;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.site-controls-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.2rem;
+  background: #ffffff;
+  border: 1px solid #e6e5e0;
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px -6px rgba(38, 37, 30, 0.2);
+}
+
+.site-controls-theme button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 1.85rem;
+  height: 1.85rem;
   border: 0;
   border-radius: 9999px;
   background: transparent;
-  color: #26251e;
+  color: #6b6a63;
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
 }
 
-.mkt-nav-theme:hover {
-  background: #e6e5e0;
+.site-controls-theme button.is-active {
+  background: #26251e;
+  color: #f7f7f4;
+}
+
+.site-controls-lang {
+  position: relative;
+}
+
+.site-controls-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.15rem;
+  padding: 0 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e6e5e0;
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px -6px rgba(38, 37, 30, 0.2);
+  color: #26251e;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.site-controls-lang-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.5rem);
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  min-width: 9rem;
+  background: #ffffff;
+  border: 1px solid #e6e5e0;
+  border-radius: 0.6rem;
+  box-shadow: 0 12px 34px -12px rgba(38, 37, 30, 0.3);
+}
+
+.site-controls-lang-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #26251e;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.site-controls-lang-menu button:hover {
+  background: #f0eeea;
+}
+
+.site-controls-lang-menu button.is-active {
+  color: #f54e00;
+  font-weight: 600;
 }
 
 /* ============================================================
@@ -25059,8 +25136,8 @@ html[data-theme="night"] .mkt-page .tier1-hero,
 html[data-theme="night"] .mkt-page .tier1-close,
 html[data-theme="night"] .mkt-page .marketing-hero,
 html[data-theme="night"] .mkt-page .mkt-trynow {
-  background: #0a0a0a !important;
-  color: #e7e9ea !important;
+  background: #1a1610 !important;
+  color: #ededec !important;
 }
 
 html[data-theme="night"] .mkt-page .tier1-story,
@@ -25070,9 +25147,9 @@ html[data-theme="night"] .mkt-page .mkt-manifesto,
 html[data-theme="night"] .mkt-page .mkt-close,
 html[data-theme="night"] .mkt-page .mkt-proof-section,
 html[data-theme="night"] .mkt-page .mkt-showcase {
-  background: #101012 !important;
-  color: #e7e9ea !important;
-  border-color: #2f3336 !important;
+  background: #211c14 !important;
+  color: #ededec !important;
+  border-color: #3a3327 !important;
 }
 
 /* Ink → light */
@@ -25090,7 +25167,7 @@ html[data-theme="night"] .mkt-page .text-void,
 html[data-theme="night"] .mkt-page .pro-panel-title,
 html[data-theme="night"] .mkt-page .pricing-needs-option-label,
 html[data-theme="night"] .mkt-page .tier1-plan-price {
-  color: #e7e9ea !important;
+  color: #ededec !important;
 }
 
 /* Muted → warm gray light */
@@ -25107,7 +25184,7 @@ html[data-theme="night"] .mkt-page .mkt-law-body,
 html[data-theme="night"] .mkt-page .mkt-close-desc,
 html[data-theme="night"] .mkt-page .mkt-proof-lead,
 html[data-theme="night"] .mkt-page .mkt-hero-clean-eyebrow {
-  color: #8b8b86 !important;
+  color: #a9a498 !important;
 }
 
 /* Cards / panels → dark */
@@ -25123,18 +25200,18 @@ html[data-theme="night"] .mkt-page .pricing-needs-picker,
 html[data-theme="night"] .mkt-page .pricing-needs-option,
 html[data-theme="night"] .mkt-page .mkt-call-panel,
 html[data-theme="night"] .mkt-page .mkt-showcase-snippet {
-  background: #16181c !important;
-  border-color: #2f3336 !important;
-  color: #e7e9ea !important;
+  background: #2a241b !important;
+  border-color: #3a3327 !important;
+  color: #ededec !important;
 }
 
 html[data-theme="night"] .mkt-page .mkt-showcase-snippet code {
-  color: #e7e9ea !important;
+  color: #ededec !important;
 }
 
 html[data-theme="night"] .mkt-page .pro-panel-head {
-  background: #0a0a0a !important;
-  border-color: #2f3336 !important;
+  background: #1a1610 !important;
+  border-color: #3a3327 !important;
 }
 
 /* Inputs → dark */
@@ -25142,9 +25219,9 @@ html[data-theme="night"] .mkt-page input,
 html[data-theme="night"] .mkt-page select,
 html[data-theme="night"] .mkt-page textarea,
 html[data-theme="night"] .mkt-page .input {
-  background: #16181c !important;
-  color: #e7e9ea !important;
-  border-color: #2f3336 !important;
+  background: #2a241b !important;
+  color: #ededec !important;
+  border-color: #3a3327 !important;
 }
 
 /* Primary pills invert to light on dark */
@@ -25153,27 +25230,27 @@ html[data-theme="night"] .mkt-page .mkt-btn-chalk,
 html[data-theme="night"] .mkt-page .mkt-btn-ink,
 html[data-theme="night"] .mkt-page .mkt-hero-clean-cta,
 html[data-theme="night"] .mkt-page .mkt-trynow-cta {
-  background: #e7e9ea !important;
-  color: #0a0a0a !important;
-  border-color: #e7e9ea !important;
+  background: #ededec !important;
+  color: #1a1610 !important;
+  border-color: #ededec !important;
 }
 
 html[data-theme="night"] .mkt-page .inst-btn-ghost {
-  background: #1c1e22 !important;
-  color: #e7e9ea !important;
-  border-color: #2f3336 !important;
+  background: #2a241b !important;
+  color: #ededec !important;
+  border-color: #3a3327 !important;
 }
 
 html[data-theme="night"] .mkt-page .mkt-showcase-copybtn {
-  background: #e7e9ea !important;
-  color: #0a0a0a !important;
+  background: #ededec !important;
+  color: #1a1610 !important;
 }
 
 /* Nav → dark */
 html[data-theme="night"] .mkt-nav--institution,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
-  background: color-mix(in srgb, #0a0a0a 88%, transparent) !important;
-  border-bottom-color: #2f3336 !important;
+  background: color-mix(in srgb, #1a1610 88%, transparent) !important;
+  border-bottom-color: #3a3327 !important;
 }
 
 html[data-theme="night"] .mkt-nav-brand .orvius-logo,
@@ -25184,33 +25261,33 @@ html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-login,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login,
 html[data-theme="night"] .mkt-nav-theme {
-  color: #e7e9ea !important;
+  color: #ededec !important;
 }
 
 html[data-theme="night"] .mkt-nav-theme:hover {
-  background: #1c1e22 !important;
+  background: #2a241b !important;
 }
 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-cta,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
-  background: #e7e9ea !important;
-  color: #0a0a0a !important;
-  border-color: #e7e9ea !important;
+  background: #ededec !important;
+  color: #1a1610 !important;
+  border-color: #ededec !important;
 }
 
 html[data-theme="night"] .mkt-nav-secondary,
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-secondary,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-secondary {
-  background: #1c1e22 !important;
-  color: #e7e9ea !important;
-  border-color: #2f3336 !important;
+  background: #2a241b !important;
+  color: #ededec !important;
+  border-color: #3a3327 !important;
 }
 
 /* Footer → dark */
 html[data-theme="night"] .mkt-footer,
 html[data-theme="night"] .mkt-footer--institution {
-  background: #0a0a0a !important;
-  border-top-color: #2f3336 !important;
+  background: #1a1610 !important;
+  border-top-color: #3a3327 !important;
 }
 
 html[data-theme="night"] .mkt-footer-entity,
@@ -25218,21 +25295,47 @@ html[data-theme="night"] .mkt-footer-heading,
 html[data-theme="night"] .mkt-footer .orvius-logo,
 html[data-theme="night"] .mkt-footer .orvius-logo-word,
 html[data-theme="night"] .mkt-footer .orvius-logo-mark {
-  color: #e7e9ea !important;
+  color: #ededec !important;
 }
 
 html[data-theme="night"] .mkt-footer-tagline,
 html[data-theme="night"] .mkt-footer-col a,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-copy,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
-  color: #8b8b86 !important;
+  color: #a9a498 !important;
 }
 
 html[data-theme="night"] .mkt-footer-bottom {
-  border-top-color: #2f3336 !important;
+  border-top-color: #3a3327 !important;
 }
 
 /* Resources hub links */
 html[data-theme="night"] .mkt-page .mkt-resources-link {
-  color: #e7e9ea !important;
+  color: #ededec !important;
+}
+
+/* Bottom-left controls in night mode */
+html[data-theme="night"] .site-controls-theme,
+html[data-theme="night"] .site-controls-lang-btn,
+html[data-theme="night"] .site-controls-lang-menu {
+  background: #2a241b !important;
+  border-color: #3a3327 !important;
+}
+
+html[data-theme="night"] .site-controls-lang-btn,
+html[data-theme="night"] .site-controls-lang-menu button {
+  color: #ededec !important;
+}
+
+html[data-theme="night"] .site-controls-theme button {
+  color: #a9a498 !important;
+}
+
+html[data-theme="night"] .site-controls-theme button.is-active {
+  background: #ededec !important;
+  color: #1a1610 !important;
+}
+
+html[data-theme="night"] .site-controls-lang-menu button:hover {
+  background: #3a3327 !important;
 }
