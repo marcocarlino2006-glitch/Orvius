@@ -26462,6 +26462,48 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   }
 }
 
+/* No calls yet: one honest line instead of four flattering zeros. */
+.os-shell-night .pro-right-now-cold-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid #3d434a;
+  border-radius: 0.5rem;
+  background: #292d33;
+}
+
+.os-shell-night .pro-right-now-cold-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #f2f4f5 !important;
+}
+
+.os-shell-night .pro-right-now-cold-note {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #9aa0a6 !important;
+}
+
+.os-shell-night .pro-right-now-cold-cta {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f2f4f5;
+  text-decoration: none;
+  border-bottom: 1px solid #6b7280;
+  padding-bottom: 1px;
+}
+
+.os-shell-night .pro-right-now-cold-cta:hover {
+  border-bottom-color: #f2f4f5;
+}
+
 .os-shell-night .pro-right-now-tile {
   display: flex;
   flex-direction: column;

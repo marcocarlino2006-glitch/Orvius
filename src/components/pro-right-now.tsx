@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ownerSlAs } from "@/lib/institutional-standards";
 import type { ShopHealth } from "@/lib/shop-health";
+import type { ShopOutcomes } from "@/lib/shop-outcomes";
 
 type Tone = "live" | "watch" | "flare" | "quiet";
 
@@ -36,14 +37,49 @@ export function ProRightNow({
   waiting,
   unassigned,
   health,
+  outcomes,
   loading,
 }: {
   waiting: number;
   unassigned: number;
   health: ShopHealth | null | undefined;
+  outcomes?: ShopOutcomes | null;
   loading?: boolean;
 }) {
   if (loading && !health) return null;
+
+  // A shop that has never taken a call should not be told every lead is worked.
+  const noTrafficYet =
+    health != null &&
+    health.lastCallAt == null &&
+    health.lastLeadAt == null &&
+    waiting === 0 &&
+    unassigned === 0 &&
+    (outcomes == null || (outcomes.calls === 0 && outcomes.leads === 0));
+
+  if (noTrafficYet) {
+    return (
+      <section className="pro-right-now pro-right-now-cold" aria-label="Right now">
+        <p className="pro-right-now-kicker type-eyebrow font-sans">Right now</p>
+        <div className="pro-right-now-cold-body">
+          <p className="pro-right-now-cold-title font-sans">
+            No calls on your line yet.
+          </p>
+          <p className="pro-right-now-cold-note font-sans">
+            {health.lineVerified
+              ? "Your line is verified and answering. This strip fills in with waiting leads, unassigned jobs, and alert speed the moment a call lands."
+              : "Forward your line to Orvius and place a test call. Nothing here is real until a call lands — so nothing here is shown."}
+          </p>
+          <Link
+            className="pro-right-now-cold-cta font-sans"
+            href={health.lineVerified ? "/dashboard/calls" : "/dashboard/settings"}
+          >
+            {health.lineVerified ? "See the call log" : "Finish line setup"}
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   const lastCall = sinceLabel(health?.lastCallAt);
   const p95 = health?.alertLatencyP95Sec ?? null;
