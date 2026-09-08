@@ -234,6 +234,55 @@ if (promptForks.length) {
   pass("One prompt", `Receptionist prompt lives only in ${promptOwner}`);
 }
 
+// ── Demand capture is complete ──
+// A dataset where three of four write paths classify is a dataset nobody can
+// quote, and the calls that slipped through cannot be re-run later.
+const CAPTURE_HELPER = "deriveDemandSignal";
+const captureOwner = "src/lib/demand-capture.ts";
+const captureCheckSelf = "scripts/standard-check.mjs";
+const LEAD_WRITE = /\b(?:prisma|tx)\.lead\.(?:create|upsert)\s*\(/;
+const uncapturedWrites = [];
+for (const file of walkFiles(join(root, "src"))) {
+  const rel = relative(root, file);
+  if (rel === captureOwner || rel === captureCheckSelf) continue;
+  if (!/\.(ts|tsx)$/.test(rel)) continue;
+  let source;
+  try {
+    source = readFileSync(file, "utf8");
+  } catch {
+    continue;
+  }
+  if (LEAD_WRITE.test(source) && !source.includes(CAPTURE_HELPER)) {
+    uncapturedWrites.push(rel);
+  }
+}
+if (uncapturedWrites.length) {
+  fail(
+    "Demand capture",
+    `Leads written without a category in ${uncapturedWrites.join(", ")} — those calls are permanently uncountable. Derive it with ${CAPTURE_HELPER}.`,
+  );
+} else {
+  pass("Demand capture", `Every lead write path classifies via ${CAPTURE_HELPER}`);
+}
+
+// ── Taxonomy codes are append-only ──
+// Renaming a code splits its own history in half, and history is the asset.
+try {
+  const taxonomy = readFileSync(join(root, "src/lib/job-taxonomy.ts"), "utf8");
+  const codes = [...taxonomy.matchAll(/code:\s*"([^"]+)"/g)].map((m) => m[1]);
+  const duplicates = codes.filter((code, i) => codes.indexOf(code) !== i);
+  const malformed = codes.filter((code) => !/^[a-z]+\.[a-z0-9_]+$/.test(code));
+  if (duplicates.length) {
+    fail("Taxonomy", `Duplicate codes merge two categories: ${duplicates.join(", ")}`);
+  } else if (malformed.length) {
+    fail("Taxonomy", `Codes must stay trade.category lowercase: ${malformed.join(", ")}`);
+  } else {
+    pass("Taxonomy", `${codes.length} demand codes, unique and well-formed`);
+  }
+} catch {
+  fail("Taxonomy", "src/lib/job-taxonomy.ts missing — nothing can be counted without it");
+}
+
 // ── Honesty (marketing scan) ──
 const marketingFiles = [
   "src/lib/trust.ts",
