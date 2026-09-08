@@ -26719,6 +26719,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   inset: 0;
   z-index: 90;
   display: flex;
+  align-items: flex-start;
   justify-content: center;
   padding: 8vh 1rem 1rem;
   background: rgba(12, 13, 15, 0.66);
@@ -26902,4 +26903,47 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   border-color: #6b4a2a !important;
   background: #33291f !important;
   color: #ecc79a !important;
+}
+
+/* The shell forces a muted color on every <p> with !important, which swallowed
+   the palette's confirmation line. Say it louder, in the same night scope. */
+.os-shell-night .os-palette-note {
+  color: #6ee7b7 !important;
+}
+
+.os-shell-night .os-palette-empty {
+  color: #9aa0a6 !important;
+}
+
+/* The floating dock is fixed to the bottom-right, so the sticky save bar keeps
+   a lane clear for it instead of parking its button underneath. */
+.os-shell-night .pro-settings-savebar {
+  padding-right: 10rem;
+}
+
+@media (max-width: 520px) {
+  .os-shell-night .pro-settings-savebar {
+    padding-right: 0.9rem;
+    padding-bottom: 4.25rem;
+  }
+}
+
+/* The shell styles every input as a bordered field; the palette's box is the
+   dialog itself, so its input stays chromeless. */
+.os-shell-night .os-palette-input {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  color: #f2f4f5 !important;
+}
+
+/* The palette autofocuses its only input, so the shell's focus ring would just
+   draw a box around the whole dialog header. The caret carries focus here. */
+.os-shell-night .os-palette-input:focus,
+.os-shell-night .os-palette-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
