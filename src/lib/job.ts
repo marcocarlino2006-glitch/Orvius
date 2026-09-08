@@ -14,6 +14,15 @@ export { suggestedSchedule, jobTitle } from "@/lib/job-schedule";
 export { JOB_STATUSES, isJobStatus, jobStatusLabel } from "@/lib/job-status";
 export type { JobStatus } from "@/lib/job-status";
 
+function isUniqueConstraintError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
+  );
+}
+
 export const JOB_INCLUDE = {
   business: { select: { id: true, name: true, avgTicketCents: true } },
   customer: {
@@ -197,54 +206,72 @@ export async function createJobFromLead(params: {
           trade: tradeForCapture(lead.business ?? {}),
         });
 
-  const job = await prisma.$transaction(async (tx) => {
-    const created = await tx.job.create({
-      data: {
-        businessId: lead.businessId!,
-        customerId: customerId,
-        leadId: lead.id,
-        title: jobTitle({ serviceType: lead.serviceType, name: lead.name }),
-        serviceType: lead.serviceType,
-        urgency: lead.urgency,
-        address: lead.address,
-        notes,
-        status: "scheduled",
-        scheduledAt,
-        categoryCode: demand.categoryCode,
-        postalCode: demand.postalCode,
-      },
-    });
-
-    await tx.lead.update({
-      where: { id: lead.id },
-      data: {
-        status: "booked",
-        closedAt: new Date(),
-        firstContactedAt: lead.firstContactedAt ?? new Date(),
-        // Backfill the lead too, so the call and the job agree.
-        categoryCode: lead.categoryCode ?? demand.categoryCode,
-        postalCode: lead.postalCode ?? demand.postalCode,
-      },
-    });
-
-    if (lead.callId) {
-      await tx.call.update({
-        where: { id: lead.callId },
-        data: { booked: true },
+  let createdNow = true;
+  let job;
+  try {
+    job = await prisma.$transaction(async (tx) => {
+      const created = await tx.job.create({
+        data: {
+          businessId: lead.businessId!,
+          customerId: customerId,
+          leadId: lead.id,
+          title: jobTitle({ serviceType: lead.serviceType, name: lead.name }),
+          serviceType: lead.serviceType,
+          urgency: lead.urgency,
+          address: lead.address,
+          notes,
+          status: "scheduled",
+          scheduledAt,
+          categoryCode: demand.categoryCode,
+          postalCode: demand.postalCode,
+        },
       });
-    }
 
-    return created;
-  });
+      await tx.lead.update({
+        where: { id: lead.id },
+        data: {
+          status: "booked",
+          closedAt: new Date(),
+          firstContactedAt: lead.firstContactedAt ?? new Date(),
+          // Backfill the lead too, so the call and the job agree.
+          categoryCode: lead.categoryCode ?? demand.categoryCode,
+          postalCode: lead.postalCode ?? demand.postalCode,
+        },
+      });
+
+      if (lead.callId) {
+        await tx.call.update({
+          where: { id: lead.callId },
+          data: { booked: true },
+        });
+      }
+
+      return created;
+    });
+  } catch (error) {
+    // The database's unique Lead → Job edge is the final idempotency lock.
+    // Two webhook/view requests may both pass the earlier read; the loser of
+    // that race should receive the one real job, not turn a valid call into a
+    // 500 or send a second confirmation.
+    if (!isUniqueConstraintError(error)) throw error;
+    const existing = await prisma.job.findUnique({
+      where: { leadId: lead.id },
+    });
+    if (!existing) throw error;
+    job = existing;
+    createdNow = false;
+  }
 
   // Proposed window until the customer confirms — keep appointments honest.
-  try {
-    await sendCustomerConfirmSms(job.id);
-  } catch (error) {
-    logWarn("job.customer_confirm_sms_error", {
-      jobId: job.id,
-      error: error instanceof Error ? error.message : "unknown",
-    });
+  if (createdNow) {
+    try {
+      await sendCustomerConfirmSms(job.id);
+    } catch (error) {
+      logWarn("job.customer_confirm_sms_error", {
+        jobId: job.id,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
   }
 
   return job;
