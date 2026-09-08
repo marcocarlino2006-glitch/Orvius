@@ -1,7 +1,7 @@
 /**
- * Orvius mark — sci-fi hex core. A hexagonal orbit ring + inner frame + signal
- * core, with a cut in the top-right rail (HUD/reticle feel). Reads as a
- * futuristic emblem at any size and holds the "O" enclosure.
+ * Orvius mark — isometric cube (Cursor-style construction): three rhombus
+ * faces sharing a center, forming a hexagonal silhouette. Monochrome via
+ * currentColor with shaded faces, so it works on light and dark.
  */
 
 export type OrviusMarkSvgProps = {
@@ -20,33 +20,25 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      {/* Outer hex orbit — open at top-right for a HUD cut */}
+      {/* Top face */}
       <path
-        className="orvius-mark-rail orvius-mark-rail-outer"
-        d="M16 2.6 L4.3 9.3 L4.3 22.7 L16 29.4 L27.7 22.7 L27.7 12.4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* Inner hex frame */}
-      <polygon
-        className="orvius-mark-rail orvius-mark-rail-inner"
-        points="16,9.4 22.1,12.9 22.1,19.9 16,23.4 9.9,19.9 9.9,12.9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-        opacity="0.5"
-      />
-      {/* Signal core */}
-      <circle
-        className="orvius-mark-core"
-        cx="16"
-        cy="16"
-        r="2.9"
+        className="orvius-mark-face orvius-mark-face-top"
+        d="M4.6 9.3 L16 2.7 L27.4 9.3 L16 15.9 Z"
         fill="currentColor"
+      />
+      {/* Left face */}
+      <path
+        className="orvius-mark-face orvius-mark-face-left"
+        d="M4.6 9.3 L16 15.9 L16 29.3 L4.6 22.7 Z"
+        fill="currentColor"
+        opacity="0.72"
+      />
+      {/* Right face */}
+      <path
+        className="orvius-mark-face orvius-mark-face-right"
+        d="M27.4 9.3 L27.4 22.7 L16 29.3 L16 15.9 Z"
+        fill="currentColor"
+        opacity="0.42"
       />
     </svg>
   );

@@ -94,6 +94,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
         <div className="mkt-footer-bottom mkt-footer-bottom--cursor">
+          <SiteControls />
           <p className="mkt-footer-copy">
             © {year} Solution Development LLC. All rights reserved.
           </p>
@@ -102,7 +103,6 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           </p>
         </div>
       </footer>
-      <SiteControls />
       <I18nRuntime />
     </div>
   );

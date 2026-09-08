@@ -24803,26 +24803,12 @@ body:has(.mkt-page) .shell-header {
 .mkt-nav-brand .orvius-logo-word,
 .mkt-footer .orvius-logo-word {
   color: #26251e !important;
-  font-family: var(--font-scifi), "Helvetica Neue", Arial, sans-serif !important;
   font-weight: 800 !important;
-  letter-spacing: 0.16em !important;
+  letter-spacing: 0.02em !important;
 }
 
 .mkt-nav-brand .orvius-logo-word {
-  font-size: 0.95rem !important;
-}
-
-/* Sci-fi display face for marquee headings */
-.mkt-page .mkt-hero-clean-title,
-.mkt-page .mkt-trynow-title,
-.mkt-page .mkt-showcase-title,
-.mkt-page .mkt-manifesto-title,
-.mkt-page .tier1-page-title,
-.mkt-page .mkt-proof-title,
-.mkt-page .mkt-close-title {
-  font-family: var(--font-scifi), "Helvetica Neue", Arial, sans-serif !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.005em !important;
+  font-size: 1.0625rem !important;
 }
 
 .mkt-nav-brand .orvius-logo-mark {
@@ -25049,15 +25035,25 @@ body:has(.mkt-page) .shell-header {
   color: #f54e00 !important;
 }
 
-/* Bottom-left site controls — theme + language (cursor.com style) */
+/* Site controls — theme + language, parked in the footer bottom-left
+   (cursor.com style). Static, so they never follow the scroll. */
 .site-controls {
-  position: fixed;
-  left: 1.25rem;
-  bottom: 1.25rem;
-  z-index: 60;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.mkt-footer-bottom--cursor {
+  align-items: center;
+  justify-content: flex-start !important;
+}
+
+.mkt-footer-bottom--cursor .mkt-footer-copy {
+  margin-left: 0.5rem !important;
+}
+
+.mkt-footer-bottom--cursor .mkt-footer-mark {
+  margin-left: auto !important;
 }
 
 .site-controls-theme {
@@ -25068,7 +25064,6 @@ body:has(.mkt-page) .shell-header {
   background: #ffffff;
   border: 1px solid #e6e5e0;
   border-radius: 9999px;
-  box-shadow: 0 4px 14px -6px rgba(38, 37, 30, 0.2);
 }
 
 .site-controls-theme button {
@@ -25103,7 +25098,6 @@ body:has(.mkt-page) .shell-header {
   background: #ffffff;
   border: 1px solid #e6e5e0;
   border-radius: 9999px;
-  box-shadow: 0 4px 14px -6px rgba(38, 37, 30, 0.2);
   color: #26251e;
   font-size: 0.8125rem;
   cursor: pointer;
