@@ -265,6 +265,41 @@ if (uncapturedWrites.length) {
   pass("Demand capture", `Every lead write path classifies via ${CAPTURE_HELPER}`);
 }
 
+// ── Customer STOP is impossible to bypass accidentally ──
+// Owner and tech operational messages have different consent contexts. The
+// two customer-facing surfaces must use the shop-scoped STOP-aware wrapper.
+const customerSmsSurfaces = [
+  "src/lib/customer-confirm.ts",
+  "src/app/api/copilot/route.ts",
+];
+const unsafeCustomerSms = [];
+for (const rel of customerSmsSurfaces) {
+  try {
+    const source = readFileSync(join(root, rel), "utf8");
+    if (
+      !source.includes("sendCustomerSms") ||
+      /import\s+\{[^}]*\bsendSms\b[^}]*\}\s+from\s+["']@\/lib\/twilio-sms["']/.test(
+        source,
+      )
+    ) {
+      unsafeCustomerSms.push(rel);
+    }
+  } catch {
+    unsafeCustomerSms.push(rel);
+  }
+}
+if (unsafeCustomerSms.length) {
+  fail(
+    "Customer SMS consent",
+    `STOP-aware sendCustomerSms missing or bypassed in ${unsafeCustomerSms.join(", ")}`,
+  );
+} else {
+  pass(
+    "Customer SMS consent",
+    "Confirmation and follow-up both enforce shop-scoped STOP records",
+  );
+}
+
 // ── Taxonomy codes are append-only ──
 // Renaming a code splits its own history in half, and history is the asset.
 try {

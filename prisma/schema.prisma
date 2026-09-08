@@ -187,6 +187,10 @@ model Job {
   confirmedAt   DateTime?
   /** Public token for customer confirm link (/c/[token]). */
   customerConfirmToken String? @unique
+  /** Stamped only after Twilio accepts the initial confirmation SMS. */
+  customerConfirmSentAt DateTime?
+  /** One retry only; stamped only after Twilio accepts it. */
+  customerConfirmReminderSentAt DateTime?
   /** When the customer confirmed the proposed window. */
   customerConfirmedAt DateTime?
   dispatchedAt  DateTime?

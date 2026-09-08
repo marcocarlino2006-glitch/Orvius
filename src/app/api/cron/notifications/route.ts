@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { verifyAdminRequest } from "@/lib/env";
 import { processNotificationQueue } from "@/lib/notifications";
 import { isProduction } from "@/lib/runtime";
@@ -16,8 +17,15 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const result = await processNotificationQueue(50);
-  return NextResponse.json({ ok: true, ...result });
+  const [notifications, customerConfirmations] = await Promise.all([
+    processNotificationQueue(50),
+    sendDueCustomerConfirmationReminders(new Date(), 25),
+  ]);
+  return NextResponse.json({
+    ok: true,
+    ...notifications,
+    customerConfirmations,
+  });
 }
 
 export async function POST(request: NextRequest) {

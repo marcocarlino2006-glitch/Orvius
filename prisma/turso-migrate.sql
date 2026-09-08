@@ -171,3 +171,7 @@ CREATE INDEX IF NOT EXISTS "Lead_businessId_postalCode_idx" ON "Lead"("businessI
 ALTER TABLE "Job" ADD COLUMN "categoryCode" TEXT;
 ALTER TABLE "Job" ADD COLUMN "postalCode" TEXT;
 CREATE INDEX IF NOT EXISTS "Job_businessId_categoryCode_idx" ON "Job"("businessId", "categoryCode");
+
+-- Confirmation lifecycle: real delivery stamps + one unconfirmed reminder
+ALTER TABLE "Job" ADD COLUMN "customerConfirmSentAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "customerConfirmReminderSentAt" DATETIME;
