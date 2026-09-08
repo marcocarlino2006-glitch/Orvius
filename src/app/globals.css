@@ -27006,6 +27006,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
    the palette's confirmation line. Say it louder, in the same night scope. */
 .os-shell-night .os-palette-note {
   color: #6ee7b7 !important;
+  font-weight: 500;
 }
 
 /* The note stays mounted so screen readers can announce into it. */
