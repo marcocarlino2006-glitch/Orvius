@@ -94,13 +94,13 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
         <div className="mkt-footer-bottom mkt-footer-bottom--cursor">
-          <SiteControls />
           <p className="mkt-footer-copy">
             © {year} Solution Development LLC. All rights reserved.
           </p>
           <p className="mkt-footer-mark">
             Orvius™ is a trademark of Solution Development LLC.
           </p>
+          <SiteControls />
         </div>
       </footer>
       <I18nRuntime />

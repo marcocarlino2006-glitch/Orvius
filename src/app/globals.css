@@ -16189,11 +16189,11 @@ h3 {
 
 /* Cookie bar — compact, non-overlapping */
 
-/* Right side, so it never collides with the footer bottom-left controls. */
+/* Left side, so it never collides with the footer bottom-right controls. */
 .cookie-bar {
   position: fixed;
-  left: auto;
-  right: 1rem;
+  left: 1rem;
+  right: auto;
   bottom: 1rem;
   transform: none;
   z-index: 60;
@@ -25036,8 +25036,8 @@ body:has(.mkt-page) .shell-header {
   color: #f54e00 !important;
 }
 
-/* Site controls — theme + language, parked in the footer bottom-left
-   (cursor.com style). Static, so they never follow the scroll. */
+/* Site controls — theme + language, parked in the footer bottom-right.
+   Static, so they never follow the scroll. */
 .site-controls {
   display: flex;
   align-items: center;
@@ -25051,12 +25051,12 @@ body:has(.mkt-page) .shell-header {
   padding-bottom: 3.5rem;
 }
 
-.mkt-footer-bottom--cursor .mkt-footer-copy {
-  margin-left: 0.5rem !important;
-}
-
 .mkt-footer-bottom--cursor .mkt-footer-mark {
   margin-left: auto !important;
+}
+
+.mkt-footer-bottom--cursor .site-controls {
+  margin-left: 1.75rem;
 }
 
 .site-controls-theme {
@@ -25108,7 +25108,8 @@ body:has(.mkt-page) .shell-header {
 
 .site-controls-lang-menu {
   position: absolute;
-  left: 0;
+  right: 0;
+  left: auto;
   bottom: calc(100% + 0.5rem);
   margin: 0;
   padding: 0.3rem;
