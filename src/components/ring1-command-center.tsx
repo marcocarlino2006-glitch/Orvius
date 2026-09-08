@@ -109,14 +109,15 @@ export function Ring1CommandCenter() {
 
   return (
     <section className="ring1-command ring1-cockpit" aria-label="Command">
-      <div className="ring1-cockpit-main">
-        <ProRightNow
-          waiting={newLeads}
-          unassigned={data?.dispatchToday.unassigned ?? 0}
-          health={data?.health ?? null}
-          loading={loading}
-        />
+      <ProRightNow
+        waiting={newLeads}
+        unassigned={data?.dispatchToday.unassigned ?? 0}
+        health={data?.health ?? null}
+        outcomes={data?.outcomes ?? null}
+        loading={loading}
+      />
 
+      <div className="ring1-cockpit-main">
         <ApproveQueue onChange={load} />
 
         <AttentionQueue

@@ -26422,6 +26422,29 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   min-width: 0;
 }
 
+/* Right-now spans the cockpit and stays first, whatever the rail does. */
+.os-shell-night .ring1-cockpit > .pro-right-now {
+  grid-column: 1 / -1;
+  order: -2;
+}
+
+/* Between phone and a wide desk there is no room for a second column, and a
+   rail stacked under the board sits two screens down — where an owner never
+   sees it. Lift it above the board and lay the cards out in one row. */
+@media (min-width: 640px) and (max-width: 1279px) {
+  .os-shell-night .ring1-cockpit-rail {
+    order: -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    align-items: start;
+    gap: 0.7rem;
+  }
+
+  .os-shell-night .ring1-cockpit-rail .pro-rail-card {
+    padding: 0.8rem 0.9rem;
+  }
+}
+
 @media (min-width: 1280px) {
   .os-shell-night .ring1-cockpit {
     grid-template-columns: minmax(0, 1fr) 19.5rem;
