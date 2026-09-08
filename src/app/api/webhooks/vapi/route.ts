@@ -7,6 +7,7 @@ import {
 } from "@/lib/vapi";
 import { maybeAutoBookLead } from "@/lib/auto-job";
 import { linkTouchToCustomer } from "@/lib/customer";
+import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import {
   buildLeadAlertDedupeKey,
@@ -167,6 +168,14 @@ export async function POST(request: NextRequest) {
       const structured = extractLeadFromStructuredData(
         message.analysis?.structuredData,
       );
+      const demand = deriveDemandSignal({
+        serviceType: structured.serviceType,
+        notes: structured.notes,
+        summary,
+        address: structured.address,
+        categoryHint: structured.jobCategory,
+        trade: tradeForCapture(business),
+      });
 
       const txResult = await prisma.$transaction(async (tx) => {
         const call = await tx.call.upsert({
@@ -209,6 +218,8 @@ export async function POST(request: NextRequest) {
             address: structured.address ?? null,
             notes: structured.notes ?? summary,
             source: "call",
+            categoryCode: demand.categoryCode,
+            postalCode: demand.postalCode,
           },
           update: {
             name: structured.name ?? undefined,
@@ -218,6 +229,8 @@ export async function POST(request: NextRequest) {
             urgency: structured.urgency ?? undefined,
             address: structured.address ?? undefined,
             notes: structured.notes ?? summary,
+            categoryCode: demand.categoryCode ?? undefined,
+            postalCode: demand.postalCode ?? undefined,
           },
         });
 

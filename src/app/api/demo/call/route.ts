@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { maybeAutoBookLead } from "@/lib/auto-job";
 import { linkTouchToCustomer } from "@/lib/customer";
+import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { verifyAdminRequest } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import {
@@ -88,6 +89,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const demand = deriveDemandSignal({
+      serviceType: body.serviceType,
+      notes: body.notes,
+      summary,
+      address: body.address,
+      trade: tradeForCapture(business),
+    });
+
     const lead = await prisma.lead.create({
       data: {
         businessId: business.id,
@@ -101,6 +110,8 @@ export async function POST(request: NextRequest) {
         notes: body.notes ?? summary,
         source: "demo",
         status: "new",
+        categoryCode: demand.categoryCode,
+        postalCode: demand.postalCode,
       },
     });
 

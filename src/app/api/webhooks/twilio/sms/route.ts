@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { maybeAutoBookLead } from "@/lib/auto-job";
 import { company } from "@/lib/company";
+import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -135,6 +136,14 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // A text says "SMS inquiry" in serviceType and everything real in the body,
+  // so the widened pass is what classifies these.
+  const demand = deriveDemandSignal({
+    serviceType: "SMS inquiry",
+    notes: body,
+    trade: tradeForCapture(business),
+  });
+
   const lead = await prisma.lead.create({
     data: {
       businessId: business.id,
@@ -144,6 +153,8 @@ export async function POST(request: NextRequest) {
       serviceType: "SMS inquiry",
       source: "sms",
       status: "new",
+      categoryCode: demand.categoryCode,
+      postalCode: demand.postalCode,
     },
   });
 

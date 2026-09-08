@@ -1,5 +1,6 @@
 import { linkTouchToCustomer } from "@/lib/customer";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
+import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jobTitle, suggestedSchedule } from "@/lib/job-schedule";
@@ -70,7 +71,7 @@ export async function createJobFromLead(params: {
     where: { id: params.leadId },
     include: {
       job: true,
-      business: { select: { id: true, name: true } },
+      business: { select: { id: true, name: true, servicesJson: true } },
     },
   });
 
@@ -129,6 +130,19 @@ export async function createJobFromLead(params: {
   const extraNotes = params.notes?.trim();
   const notes = [lead.notes, extraNotes].filter(Boolean).join("\n") || null;
 
+  // Booked work is the half of the dataset that carries a price, so the job
+  // has to land on the same code as the call. Leads written before capture
+  // existed have none, so re-derive rather than book an uncountable job.
+  const demand =
+    lead.categoryCode || lead.postalCode
+      ? { categoryCode: lead.categoryCode, postalCode: lead.postalCode }
+      : deriveDemandSignal({
+          serviceType: lead.serviceType,
+          notes: lead.notes,
+          address: lead.address,
+          trade: tradeForCapture(lead.business ?? {}),
+        });
+
   const job = await prisma.$transaction(async (tx) => {
     const created = await tx.job.create({
       data: {
@@ -142,12 +156,21 @@ export async function createJobFromLead(params: {
         notes,
         status: "scheduled",
         scheduledAt,
+        categoryCode: demand.categoryCode,
+        postalCode: demand.postalCode,
       },
     });
 
     await tx.lead.update({
       where: { id: lead.id },
-      data: { status: "booked" },
+      data: {
+        status: "booked",
+        closedAt: new Date(),
+        firstContactedAt: lead.firstContactedAt ?? new Date(),
+        // Backfill the lead too, so the call and the job agree.
+        categoryCode: lead.categoryCode ?? demand.categoryCode,
+        postalCode: lead.postalCode ?? demand.postalCode,
+      },
     });
 
     if (lead.callId) {
