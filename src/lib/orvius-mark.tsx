@@ -32,12 +32,12 @@ export function OrviusMarkSvg({
         className="orvius-mark-rail orvius-mark-rail-outer"
         cx="16"
         cy="16"
-        r="13.15"
+        r="12.9"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.85"
+        strokeWidth="4.1"
         strokeLinecap="round"
-        strokeDasharray="68.5 14.1"
+        strokeDasharray="66.5 14.6"
         strokeDashoffset="10"
       />
       {/* Rail 2 — inner orbit (gap SW, counter to outer) */}
@@ -45,12 +45,12 @@ export function OrviusMarkSvg({
         className="orvius-mark-rail orvius-mark-rail-inner"
         cx="16"
         cy="16"
-        r="7.05"
+        r="6.7"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.45"
+        strokeWidth="3.5"
         strokeLinecap="round"
-        strokeDasharray="35.2 9.1"
+        strokeDasharray="33.5 9.6"
         strokeDashoffset="28"
       />
     </svg>

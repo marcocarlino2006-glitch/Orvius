@@ -24799,10 +24799,15 @@ body:has(.mkt-page) .shell-header {
   gap: 0.5rem !important;
 }
 
-.mkt-nav-brand .orvius-logo-word {
+.mkt-page .orvius-logo-word,
+.mkt-nav-brand .orvius-logo-word,
+.mkt-footer .orvius-logo-word {
   color: #26251e !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.01em !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.mkt-nav-brand .orvius-logo-word {
   font-size: 1.0625rem !important;
 }
 
