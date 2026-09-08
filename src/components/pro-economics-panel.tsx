@@ -10,6 +10,8 @@ type ProEconomicsPanelProps = {
   outcomes: ShopOutcomes | null | undefined;
   shopName?: string;
   lastWeeklyProofAt?: string | null;
+  /** The board above is already carrying the due-proof row and its one-click copy. */
+  proofOnBoard?: boolean;
 };
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -21,6 +23,7 @@ export function ProEconomicsPanel({
   outcomes,
   shopName,
   lastWeeklyProofAt,
+  proofOnBoard = false,
 }: ProEconomicsPanelProps) {
   const [copyState, setCopyState] = useState<"idle" | "ok" | "err">("idle");
   const [busy, setBusy] = useState(false);
@@ -69,7 +72,7 @@ export function ProEconomicsPanel({
         </p>
       </div>
 
-      {stale ? (
+      {stale && !proofOnBoard ? (
         <p className="pro-economics-stale font-sans" role="status">
           Weekly proof is stale or missing — copy a fresh proof for this week&apos;s
           design-partner ritual.
@@ -125,14 +128,20 @@ export function ProEconomicsPanel({
       </dl>
 
       <div className="pro-economics-actions">
-        <button
-          type="button"
-          className={`btn text-sm ${stale ? "btn-void" : "btn-secondary"}`}
-          disabled={busy}
-          onClick={copyWeeklyProof}
-        >
-          {busy ? "Preparing…" : stale ? "Copy weekly proof (due)" : "Copy weekly proof"}
-        </button>
+        {stale && proofOnBoard ? (
+          <a href="#attention-board" className="pro-economics-pointer font-sans">
+            Weekly proof is due — copy it from the board above
+          </a>
+        ) : (
+          <button
+            type="button"
+            className={`btn text-sm ${stale ? "btn-void" : "btn-secondary"}`}
+            disabled={busy}
+            onClick={copyWeeklyProof}
+          >
+            {busy ? "Preparing…" : stale ? "Copy weekly proof (due)" : "Copy weekly proof"}
+          </button>
+        )}
         <Link href="/dashboard/settings" className="pro-section-link text-sm">
           Edit ticket &amp; baseline →
         </Link>

@@ -133,6 +133,7 @@ export function Ring1CommandCenter() {
           <ProEconomicsPanel
             outcomes={data.outcomes}
             lastWeeklyProofAt={data.lastWeeklyProofAt}
+            proofOnBoard={attention.some((i) => i.kind === "stale_weekly_proof")}
           />
         ) : null}
 

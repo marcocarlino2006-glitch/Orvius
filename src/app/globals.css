@@ -26987,10 +26987,30 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #ecc79a !important;
 }
 
+/* Points at the board instead of repeating its button. */
+.os-shell-night .pro-economics-pointer {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #ecc79a;
+  text-decoration: none;
+  border-bottom: 1px solid #6b4a2a;
+  padding-bottom: 1px;
+}
+
+.os-shell-night .pro-economics-pointer:hover {
+  color: #f6dfbe;
+  border-bottom-color: #ecc79a;
+}
+
 /* The shell forces a muted color on every <p> with !important, which swallowed
    the palette's confirmation line. Say it louder, in the same night scope. */
 .os-shell-night .os-palette-note {
   color: #6ee7b7 !important;
+}
+
+/* The note stays mounted so screen readers can announce into it. */
+.os-palette-note:empty {
+  display: none !important;
 }
 
 .os-shell-night .os-palette-empty {
