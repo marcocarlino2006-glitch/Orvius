@@ -7,6 +7,10 @@ import { AttentionQueue } from "@/components/attention-queue";
 import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
+import { ProLineWatch } from "@/components/pro-line-watch";
+import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
+import { ProRightNow } from "@/components/pro-right-now";
+import { ProSetupScore } from "@/components/pro-setup-score";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
@@ -41,6 +45,7 @@ type Ring1Data = {
   technicians?: Array<{ id: string; name: string }>;
   health?: ShopHealth;
   wedge?: WedgeReadiness;
+  coverage?: CoverageState;
   lastWeeklyProofAt?: string | null;
   gates?: {
     certDone: number;
@@ -103,65 +108,80 @@ export function Ring1CommandCenter() {
     !(data?.wedge && !data.wedge.ready);
 
   return (
-    <section className="ring1-command" aria-label="Command center">
-      <ApproveQueue onChange={load} />
-
-      <AttentionQueue
-        items={attention}
-        loading={loading}
-        technicians={data?.technicians ?? []}
-        onAction={load}
-      />
-
-      <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
-
-      {!loading && data?.outcomes ? (
-        <ProEconomicsPanel
-          outcomes={data.outcomes}
-          lastWeeklyProofAt={data.lastWeeklyProofAt}
-        />
-      ) : null}
-
-      {!attentionCoversGates ? (
-        <ProTodayAlerts
+    <section className="ring1-command ring1-cockpit" aria-label="Command">
+      <div className="ring1-cockpit-main">
+        <ProRightNow
+          waiting={newLeads}
+          unassigned={data?.dispatchToday.unassigned ?? 0}
           health={data?.health ?? null}
-          wedge={data?.wedge ?? null}
-          newLeads={newLeads}
-          economicsReady={data?.gates?.economicsReady ?? true}
-          proofStale={data?.gates?.proofStale ?? false}
-          certIncomplete={data?.gates?.certIncomplete ?? false}
-          pilotDaysLeft={data?.gates?.pilotDaysLeft ?? null}
-          checkoutReady={data?.gates?.checkoutReady ?? true}
+          loading={loading}
         />
-      ) : null}
 
-      {canDispatch && data?.dispatchToday ? (
-        <ProDispatchToday
-          jobs={data.dispatchToday.jobs}
-          unassigned={data.dispatchToday.unassigned}
-          jobCount={data.dispatchToday.jobCount}
-          technicians={data.technicians ?? []}
-          onUpdate={load}
+        <ApproveQueue onChange={load} />
+
+        <AttentionQueue
+          items={attention}
+          loading={loading}
+          technicians={data?.technicians ?? []}
+          onAction={load}
         />
-      ) : null}
 
-      {empty ? (
-        <div className="ring1-recent">
-          <ProSectionHead kicker="Field" title="Nothing waiting on the board" />
-          <ProEmptyState
-            title="Run a test call"
-            body="Orvius ranks urgent leads, unassigned jobs, and overdue follow-ups here when they land."
-            action={
-              <div className="flex flex-wrap gap-2">
-                <Link href="/dashboard/inbox" className="btn btn-void text-sm">
-                  Inbox
-                </Link>
-                <ProShopLineCta label="Test your line" showNumber={false} variant="secondary" />
-              </div>
-            }
+        <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
+
+        {!loading && data?.outcomes ? (
+          <ProEconomicsPanel
+            outcomes={data.outcomes}
+            lastWeeklyProofAt={data.lastWeeklyProofAt}
           />
-        </div>
-      ) : null}
+        ) : null}
+
+        {canDispatch && data?.dispatchToday ? (
+          <ProDispatchToday
+            jobs={data.dispatchToday.jobs}
+            unassigned={data.dispatchToday.unassigned}
+            jobCount={data.dispatchToday.jobCount}
+            technicians={data.technicians ?? []}
+            onUpdate={load}
+          />
+        ) : null}
+
+        {empty ? (
+          <div className="ring1-recent">
+            <ProSectionHead kicker="Field" title="Nothing waiting on the board" />
+            <ProEmptyState
+              title="Run a test call"
+              body="Orvius ranks urgent leads, unassigned jobs, and overdue follow-ups here when they land."
+              action={
+                <div className="flex flex-wrap gap-2">
+                  <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+                    Inbox
+                  </Link>
+                  <ProShopLineCta label="Test your line" showNumber={false} variant="secondary" />
+                </div>
+              }
+            />
+          </div>
+        ) : null}
+      </div>
+
+      <aside className="ring1-cockpit-rail" aria-label="Shop status">
+        <ProNightWatch coverage={data?.coverage ?? null} outcomes={data?.outcomes ?? null} />
+        <ProLineWatch health={data?.health ?? null} />
+        <ProSetupScore wedge={data?.wedge ?? null} />
+
+        {!attentionCoversGates ? (
+          <ProTodayAlerts
+            health={data?.health ?? null}
+            wedge={data?.wedge ?? null}
+            newLeads={newLeads}
+            economicsReady={data?.gates?.economicsReady ?? true}
+            proofStale={data?.gates?.proofStale ?? false}
+            certIncomplete={data?.gates?.certIncomplete ?? false}
+            pilotDaysLeft={data?.gates?.pilotDaysLeft ?? null}
+            checkoutReady={data?.gates?.checkoutReady ?? true}
+          />
+        ) : null}
+      </aside>
     </section>
   );
 }

@@ -1,7 +1,11 @@
 /**
- * Orvius mark — isometric cube (Cursor-style construction): three rhombus
- * faces sharing a center, forming a hexagonal silhouette. Monochrome via
- * currentColor with shaded faces, so it works on light and dark.
+ * Orvius mark — the signal O.
+ *
+ * Outer ring: the shop's coverage, broken where the night gap is.
+ * Inner sweep: the line answering into that gap.
+ * Core: the one record every call, job, and dollar compounds into.
+ *
+ * Monochrome via currentColor, so it holds on charcoal and on warm light.
  */
 
 export type OrviusMarkSvgProps = {
@@ -20,26 +24,21 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      {/* Top face */}
       <path
-        className="orvius-mark-face orvius-mark-face-top"
-        d="M4.6 9.3 L16 2.7 L27.4 9.3 L16 15.9 Z"
-        fill="currentColor"
+        className="orvius-mark-coverage"
+        d="M27.93 13.46 A12.2 12.2 0 1 1 18.54 4.07"
+        stroke="currentColor"
+        strokeWidth="2.9"
+        strokeLinecap="round"
       />
-      {/* Left face */}
       <path
-        className="orvius-mark-face orvius-mark-face-left"
-        d="M4.6 9.3 L16 15.9 L16 29.3 L4.6 22.7 Z"
-        fill="currentColor"
-        opacity="0.72"
+        className="orvius-mark-sweep"
+        d="M20.99 21.99 A7.8 7.8 0 0 1 9.09 12.16"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
       />
-      {/* Right face */}
-      <path
-        className="orvius-mark-face orvius-mark-face-right"
-        d="M27.4 9.3 L27.4 22.7 L16 29.3 L16 15.9 Z"
-        fill="currentColor"
-        opacity="0.42"
-      />
+      <circle className="orvius-mark-core" cx="16" cy="16" r="3.4" fill="currentColor" />
     </svg>
   );
 }

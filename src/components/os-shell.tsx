@@ -15,6 +15,7 @@ import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { OsIcon } from "@/components/os-icons";
 import { OsAskDock } from "@/components/os-ask-dock";
+import { OsCommandPalette } from "@/components/os-command-palette";
 import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
@@ -47,11 +48,24 @@ export function OsShell({
   const businessName = businessNameProp ?? business?.name ?? "Your business";
   const newLeads = business?.metrics.newLeads ?? 0;
   const showAskDock = access?.canAccess("ask") ?? false;
+  const unassignedJobs = business?.signals.unassignedJobs ?? 0;
   const [navOpen, setNavOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = navOpen ? "hidden" : "";
@@ -101,7 +115,10 @@ export function OsShell({
             const badge =
               item.href === "/dashboard/inbox" && newLeads > 0
                 ? String(newLeads)
-                : item.badge;
+                : item.href === "/dashboard/dispatch" && unassignedJobs > 0
+                  ? String(unassignedJobs)
+                  : item.badge;
+            const badgeWarn = item.href === "/dashboard/dispatch" && unassignedJobs > 0;
             const upgradePlan = navModule
               ? getPlanById(minimumPlanForModule(navModule))
               : null;
@@ -117,7 +134,14 @@ export function OsShell({
                     <OsIcon name={item.icon} />
                     <span className="os-nav-label">{item.label}</span>
                     {badge ? (
-                      <span className="os-nav-badge">{badge}</span>
+                      <span
+                        className={`os-nav-badge ${badgeWarn ? "os-nav-badge-warn" : ""}`}
+                        title={
+                          badgeWarn ? "Jobs with no tech assigned" : "New leads waiting"
+                        }
+                      >
+                        {badge}
+                      </span>
                     ) : null}
                   </Link>
                 ) : planAllowed === false &&
@@ -209,12 +233,36 @@ export function OsShell({
               ) : null}
             </div>
           </div>
-          {actions ? <div className="os-topbar-actions">{actions}</div> : null}
+          <div className="os-topbar-actions">
+            <button
+              type="button"
+              className="os-topbar-search font-sans"
+              onClick={() => setPaletteOpen(true)}
+            >
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden>
+                <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.4" />
+                <path
+                  d="M11 11l3.5 3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="os-topbar-search-label">Search</span>
+              <kbd>⌘K</kbd>
+            </button>
+            {actions}
+          </div>
         </header>
 
         <PostLockBanner />
         <main className="os-content os-content-pro">{children}</main>
         {showAskDock ? <OsAskDock /> : null}
+        <OsCommandPalette
+          open={paletteOpen}
+          onClose={() => setPaletteOpen(false)}
+          shopLine={business?.line ?? null}
+        />
         <PayPromptModal />
       </div>
     </div>

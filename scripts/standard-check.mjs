@@ -24,6 +24,7 @@ const TENANT_APIS = [
   "/api/shop/health",
   "/api/shop/weekly-proof",
   "/api/ask",
+  "/api/search",
 ];
 
 async function resolveAppUrl() {
