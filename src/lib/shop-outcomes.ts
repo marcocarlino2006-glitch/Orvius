@@ -1,5 +1,5 @@
 import { isAfterHours } from "@/lib/business";
-import { estimatedRevenueCents, recoveredRevenueCents } from "@/lib/money";
+import { estimatedRevenueCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
 export type ShopOutcomes = {
@@ -24,13 +24,10 @@ export type ShopOutcomes = {
   /** Weekly-rate comparisons when baseline is set (null if not). */
   callsPerWeekVsBaseline: number | null;
   jobsPerWeekVsBaseline: number | null;
-  /**
-   * Jobs attributed to Orvius lift in this window.
-   * Method: baseline lift, else after-hours booked jobs.
-   */
-  recoveredJobsEstimate: number | null;
-  recoveredMethod: "baseline_jobs" | "after_hours_booked" | null;
-  recoveredRevenueCents: number | null;
+  /** Measured jobs whose originating lead was captured by Orvius call/SMS. */
+  capturedDemandJobs: number;
+  /** Estimated value only: measured captured jobs × owner-entered avg ticket. */
+  capturedDemandEstimatedValueCents: number | null;
   /** CRM money ring — recorded payments / open estimates / open invoices. */
   collectedCents: number;
   openEstimateCents: number;
@@ -66,6 +63,7 @@ export async function getShopOutcomes(
     calls,
     leads,
     jobsBooked,
+    capturedDemandJobs,
     unassignedJobs,
     activeTechnicians,
     emergencyLeads,
@@ -87,6 +85,17 @@ export async function getShopOutcomes(
     }),
     prisma.job.count({
       where: { businessId, createdAt: { gte: since } },
+    }),
+    prisma.job.count({
+      where: {
+        businessId,
+        createdAt: { gte: since },
+        lead: {
+          is: {
+            OR: [{ callId: { not: null } }, { source: "sms" }],
+          },
+        },
+      },
     }),
     prisma.job.count({
       where: {
@@ -163,17 +172,6 @@ export async function getShopOutcomes(
       ? Math.round((jobsPerWeek - baselineJobs) * 10) / 10
       : null;
 
-  let recoveredJobsEstimate: number | null = null;
-  let recoveredMethod: ShopOutcomes["recoveredMethod"] = null;
-
-  if (jobsPerWeekVsBaseline != null && jobsPerWeekVsBaseline > 0) {
-    recoveredJobsEstimate = Math.round(jobsPerWeekVsBaseline * weeks * 10) / 10;
-    recoveredMethod = "baseline_jobs";
-  } else if (afterHoursBooked > 0) {
-    recoveredJobsEstimate = afterHoursBooked;
-    recoveredMethod = "after_hours_booked";
-  }
-
   const collectedCents = payments.reduce((sum, p) => sum + p.amountCents, 0);
   const openEstimateCents = openEstimates.reduce((sum, e) => sum + e.amountCents, 0);
   const openInvoiceCents = openInvoices.reduce((sum, i) => sum + i.amountCents, 0);
@@ -208,12 +206,11 @@ export async function getShopOutcomes(
         ? Math.round((callsPerWeek - baselineMissed) * 10) / 10
         : null,
     jobsPerWeekVsBaseline,
-    recoveredJobsEstimate,
-    recoveredMethod,
-    recoveredRevenueCents: recoveredRevenueCents({
+    capturedDemandJobs,
+    capturedDemandEstimatedValueCents: estimatedRevenueCents(
       avgTicketCents,
-      recoveredJobs: recoveredJobsEstimate,
-    }),
+      capturedDemandJobs,
+    ),
     collectedCents,
     openEstimateCents,
     openInvoiceCents,
@@ -229,15 +226,16 @@ export function formatWeeklyProof(outcomes: ShopOutcomes, shopName: string): str
     `Calls: ${outcomes.calls} · Leads: ${outcomes.leads} · Jobs booked: ${outcomes.jobsBooked}`,
     outcomes.bookingRate != null ? `Booking rate: ${outcomes.bookingRate}%` : null,
     `After-hours leads: ${outcomes.afterHoursLeads} (booked ${outcomes.afterHoursBooked})`,
-    outcomes.recoveredJobsEstimate != null
-      ? `Recovered jobs (est.): ${outcomes.recoveredJobsEstimate} via ${outcomes.recoveredMethod}`
-      : "Recovered jobs: set baseline + avg ticket in Settings",
-    outcomes.recoveredRevenueCents != null
-      ? `Recovered revenue (est.): $${(outcomes.recoveredRevenueCents / 100).toFixed(0)}`
+    `Booked from captured demand: ${outcomes.capturedDemandJobs} (call/SMS leads → jobs)`,
+    outcomes.capturedDemandEstimatedValueCents != null
+      ? `Estimated value at owner avg ticket: $${(outcomes.capturedDemandEstimatedValueCents / 100).toFixed(0)}`
+      : null,
+    outcomes.jobsPerWeekVsBaseline != null
+      ? `Jobs/week vs owner-reported before-Orvius baseline: ${outcomes.jobsPerWeekVsBaseline >= 0 ? "+" : ""}${outcomes.jobsPerWeekVsBaseline} (context, not attribution)`
       : null,
     `Collected (recorded payments): $${(outcomes.collectedCents / 100).toFixed(0)}`,
     `Open estimates: $${(outcomes.openEstimateCents / 100).toFixed(0)} · Open invoices: $${(outcomes.openInvoiceCents / 100).toFixed(0)}`,
-    "Label: estimate from owner baseline/avg ticket + CRM records — not audited GAAP revenue.",
+    "Label: booking counts and recorded payments are measured CRM events; dollar value uses owner avg ticket and is not audited GAAP revenue.",
   ];
   return lines.filter(Boolean).join("\n");
 }

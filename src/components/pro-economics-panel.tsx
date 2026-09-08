@@ -17,7 +17,7 @@ type ProEconomicsPanelProps = {
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Owner-facing economics summary — recovered $, collected $, CRM open $, proof export.
+ * Owner economics — attributed bookings, estimated value, collected $, open $.
  */
 export function ProEconomicsPanel({
   outcomes,
@@ -56,7 +56,9 @@ export function ProEconomicsPanel({
     }
   }
 
-  const recovered = formatCents(outcomes.recoveredRevenueCents);
+  const capturedValue = formatCents(
+    outcomes.capturedDemandEstimatedValueCents,
+  );
   const collected = formatCents(outcomes.collectedCents);
   const pipeline = formatCents(outcomes.estimatedPipelineCents);
 
@@ -97,17 +99,15 @@ export function ProEconomicsPanel({
 
       <dl className="pro-economics-grid">
         <div>
-          <dt>Est. recovered</dt>
-          <dd>{recovered ?? "—"}</dd>
+          <dt>Booked from Orvius</dt>
+          <dd>
+            {outcomes.capturedDemandJobs}{" "}
+            {outcomes.capturedDemandJobs === 1 ? "job" : "jobs"}
+          </dd>
           <p className="pro-economics-hint">
-            {outcomes.recoveredJobsEstimate != null
-              ? `${outcomes.recoveredJobsEstimate} job${outcomes.recoveredJobsEstimate === 1 ? "" : "s"} · `
-              : ""}
-            {outcomes.recoveredMethod === "baseline_jobs"
-              ? "above your before-Orvius baseline × avg ticket"
-              : outcomes.recoveredMethod === "after_hours_booked"
-                ? "after-hours leads that booked × avg ticket"
-                : "Set avg ticket + baseline in Settings"}
+            {capturedValue
+              ? `${capturedValue} est. value at your avg ticket`
+              : "Measured call/SMS leads that became jobs"}
           </p>
         </div>
         <div>

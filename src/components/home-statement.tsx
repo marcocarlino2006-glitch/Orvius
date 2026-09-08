@@ -17,7 +17,7 @@ const nightRules = [
     id: "03",
     key: "rule3",
     title: "Proof you can hand a partner.",
-    body: "Weekly recovered jobs and dollars copy as a stamped artifact. No vanity dashboards. No invented ARR.",
+    body: "Weekly captured-demand bookings and estimated value copy as a stamped artifact. No vanity dashboards. No invented ARR.",
   },
 ] as const;
 

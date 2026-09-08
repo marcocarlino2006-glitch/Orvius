@@ -8,7 +8,7 @@ export type BusinessMetrics = {
   newLeads: number;
   totalCalls: number;
   totalLeads: number;
-  answerRate: number | null;
+  leadBookingRate: number | null;
   lastCallAt: string | null;
   lastCaller: string | null;
 };

@@ -90,7 +90,7 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
   "rule3.title": { en: "Proof you can hand a partner.", es: "Pruebas que puedes entregar a un socio.", fr: "Des preuves à remettre à un partenaire.", de: "Belege, die Sie einem Partner geben können." },
   "rule3.body": {
-    en: "Weekly recovered jobs and dollars copy as a stamped artifact. No vanity dashboards. No invented ARR.",
+    en: "Weekly captured-demand bookings and estimated value copy as a stamped artifact. No vanity dashboards. No invented ARR.",
     es: "Los trabajos y dólares recuperados cada semana se copian como un comprobante sellado. Sin paneles de vanidad. Sin ARR inventado.",
     fr: "Les interventions et revenus récupérés chaque semaine se copient comme un justificatif horodaté. Pas de tableaux de vanité. Pas d'ARR inventé.",
     de: "Wöchentlich zurückgewonnene Aufträge und Umsätze als abgestempelter Nachweis. Keine Schaufenster-Dashboards. Kein erfundener ARR.",

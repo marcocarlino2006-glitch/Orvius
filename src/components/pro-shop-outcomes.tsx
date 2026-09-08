@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { formatCents, formatCentsDelta } from "@/lib/money";
+import { formatCents } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 
 type ProShopOutcomesProps = {
@@ -28,7 +28,9 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
 
   if (!outcomes) return null;
 
-  const recovered = formatCents(outcomes.recoveredRevenueCents);
+  const capturedValue = formatCents(
+    outcomes.capturedDemandEstimatedValueCents,
+  );
   const pipeline = formatCents(outcomes.estimatedPipelineCents);
   const collected = formatCents(outcomes.collectedCents);
   const jobsDelta = outcomes.jobsPerWeekVsBaseline;
@@ -44,9 +46,7 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
     },
   ];
 
-  if (recovered) {
-    stats.push({ label: "Est. recovered", value: recovered });
-  } else if (pipeline) {
+  if (pipeline) {
     stats.push({ label: "Est. pipeline", value: pipeline });
   }
 
@@ -81,6 +81,14 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
             <strong>{outcomes.emergenciesBooked}</strong> emergencies booked
           </li>
         ) : null}
+        {outcomes.capturedDemandJobs > 0 ? (
+          <li>
+            <strong>{outcomes.capturedDemandJobs}</strong>{" "}
+            {outcomes.capturedDemandJobs === 1 ? "job" : "jobs"} booked from
+            captured calls/texts
+            {capturedValue ? ` · ${capturedValue} est. at avg ticket` : ""}
+          </li>
+        ) : null}
         {outcomes.unassignedJobs > 0 ? (
           <li>
             <strong>{outcomes.unassignedJobs}</strong> jobs still need a tech
@@ -93,9 +101,7 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
               {jobsDelta > 0 ? "+" : ""}
               {jobsDelta}
             </strong>
-            {outcomes.recoveredRevenueCents != null
-              ? ` · ${formatCentsDelta(outcomes.recoveredRevenueCents)} est.`
-              : ""}
+            {" · owner-reported context, not attribution"}
           </li>
         ) : null}
         {outcomes.openEstimateCents > 0 || outcomes.openInvoiceCents > 0 ? (
@@ -109,7 +115,7 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
             <Link href="/dashboard/settings" className="pro-section-link">
               Set avg ticket →
             </Link>{" "}
-            to estimate recovered revenue
+            to estimate captured-demand value
           </li>
         ) : null}
         {!outcomes.economicsReady ? (

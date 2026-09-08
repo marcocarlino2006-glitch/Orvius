@@ -67,7 +67,8 @@ export const exponentialLoops = [
   {
     id: 4,
     name: "Proof",
-    claim: "Weekly recovered $ and jobs copy as an honest, stamped artifact.",
+    claim:
+      "Weekly captured-demand bookings and estimated value copy as an honest, stamped artifact.",
   },
   {
     id: 5,

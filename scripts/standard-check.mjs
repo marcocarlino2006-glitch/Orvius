@@ -328,6 +328,9 @@ const marketingFiles = [
   // Ring copy describes what is live, and renders on the site and in the app.
   "src/lib/company.ts",
   "src/components/home-workflow.tsx",
+  "src/components/home-statement.tsx",
+  "src/app/product/page.tsx",
+  "src/app/enterprise/page.tsx",
 ];
 for (const rel of marketingFiles) {
   let content;

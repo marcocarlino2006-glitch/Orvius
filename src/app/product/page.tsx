@@ -22,7 +22,7 @@ const capabilities = [
   {
     id: "03",
     title: "Dispatch and money.",
-    body: "Auto-book to the dispatch board, assign techs by SMS, and prove recovered jobs and dollars as a stamped weekly artifact.",
+    body: "Propose capacity-aware windows, assign techs by SMS, and export captured-demand bookings with estimated value as a stamped weekly artifact.",
   },
 ] as const;
 
