@@ -21,14 +21,15 @@ export function HomeLineHero() {
           className="mkt-hero-clean-title"
           data-i18n="hero.title"
         >
-          Never miss
+          Missed calls become
           <br />
-          another call.
+          booked jobs.
         </h1>
 
         <p className="mkt-hero-clean-lead font-sans" data-i18n="hero.lead">
-          Orvius answers your after-hours calls, books the job, and alerts you
-          in seconds — so no lead ever dies on voicemail.
+          Orvius runs the night shift on your line — answers after-hours and
+          overflow calls, qualifies the job, books it, and alerts you in
+          seconds.
         </p>
 
         <div className="mkt-hero-clean-actions font-sans">

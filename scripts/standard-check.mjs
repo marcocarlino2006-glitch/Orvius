@@ -188,7 +188,13 @@ try {
 }
 
 // ── Honesty (marketing scan) ──
-const marketingFiles = ["src/lib/trust.ts", "src/app/page.tsx"];
+const marketingFiles = [
+  "src/lib/trust.ts",
+  "src/app/page.tsx",
+  // Hero copy and its translations ship the loudest claims on the site.
+  "src/components/home-line-hero.tsx",
+  "src/lib/i18n.ts",
+];
 for (const rel of marketingFiles) {
   let content;
   try {

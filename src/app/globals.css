@@ -21809,7 +21809,7 @@ body:has(.confirm-shell) {
   --os-live: #00ba7c;
   --void: #f2f4f5;
   --ash: #9aa0a6;
-  --ash-soft: #6d7379;
+  --ash-soft: #8b9096;
   --white: #292d33;
   --fog: #1e2125;
   --chalk: #22252a;
@@ -21917,7 +21917,7 @@ body:has(.confirm-shell) {
 
 .lead-rail-time {
   font-size: 0.6875rem;
-  color: #71767b;
+  color: #9aa0a6;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -22033,7 +22033,7 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .attention-item-kind {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .attention-item-critical .attention-item-kind {
@@ -22047,7 +22047,7 @@ body:has(.confirm-shell) {
 
 .os-shell-night .attention-item-detail,
 .os-shell-night .attention-item-value {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .attention-item-btn,
@@ -22093,7 +22093,7 @@ body:has(.confirm-shell) {
 .os-shell-night .pro-kicker,
 .os-shell-night .attention-queue-kicker,
 .os-shell-night .os-sidebar-label {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .pro-stat-value,
@@ -22124,7 +22124,7 @@ body:has(.confirm-shell) {
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn {
   background: transparent !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   border: 1px solid transparent !important;
   border-radius: 0.2rem !important;
 }
@@ -22146,7 +22146,7 @@ body:has(.confirm-shell) {
   background: transparent !important;
   border: 1px solid #444a51 !important;
   border-radius: 0.15rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.5625rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -22321,7 +22321,7 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .pro-panel-title {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.625rem !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
@@ -22550,7 +22550,7 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .os-kv dt {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .os-kv dd,
@@ -22595,7 +22595,7 @@ body:has(.confirm-shell) {
   gap: 0.35rem;
   font-size: 0.75rem;
   line-height: 1.4;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .billing-unblock-missing,
@@ -22858,7 +22858,7 @@ body:has(.confirm-shell) {
 .os-shell-night .post-lock-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .post-lock-strip-copy,
@@ -22878,7 +22878,7 @@ body:has(.confirm-shell) {
 .os-shell-night .pro-signal-bar-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .pro-signal-bar-line,
@@ -22996,7 +22996,7 @@ body:has(.confirm-shell) {
   border-right: 1px solid #444a51 !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.6875rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
@@ -23350,7 +23350,7 @@ body:has(.confirm-shell) {
 
 .os-shell-night .ask-empty {
   margin: 0.35rem 0 0 !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.8125rem !important;
   line-height: 1.45 !important;
   max-width: none !important;
@@ -23378,7 +23378,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .os-shell-night .ask-answer {
@@ -23413,7 +23413,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .os-shell-night .ask-hit-title {
@@ -23424,7 +23424,7 @@ body:has(.confirm-shell) {
 
 .os-shell-night .ask-hit-sum {
   grid-column: 2;
-  color: #71767b;
+  color: #9aa0a6;
   font-size: 0.75rem;
 }
 
@@ -23463,7 +23463,7 @@ body:has(.confirm-shell) {
 .os-shell-night .pro-stat-label {
   font-size: 0.5625rem !important;
   letter-spacing: 0.12em !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .pro-stat-value {
@@ -23516,7 +23516,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .lead-status-actions-row {
@@ -23588,7 +23588,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .os-shell-night .ask-rail-q {
@@ -23602,7 +23602,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
   border: 1px solid #444a51;
   border-radius: 0.15rem;
   padding: 0.2rem 0.4rem;
@@ -23655,7 +23655,7 @@ body:has(.confirm-shell) {
   font-size: 0.625rem !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 /* Assign tech — instrument, not fat CTA */
@@ -23728,7 +23728,7 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .plan-upgrade-gate-kicker {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.5625rem !important;
 }
 
@@ -23738,7 +23738,7 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .plan-upgrade-gate-detail {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.8125rem !important;
   margin-top: 0.4rem !important;
 }
@@ -23818,7 +23818,7 @@ body:has(.confirm-shell) {
 .os-shell-night .transcript-cinema-line {
   margin-top: 0.45rem !important;
   font-size: 0.75rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .transcript-cinema-line-ai,
@@ -23830,7 +23830,7 @@ body:has(.confirm-shell) {
   padding: 0.4rem 0.65rem !important;
   border-top: 1px solid #444a51 !important;
   font-size: 0.6875rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 /* Force canvas true black everywhere in shell */
@@ -23888,7 +23888,7 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .os-ring-status-module {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.6875rem !important;
 }
 
@@ -23966,7 +23966,7 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .customer-timeline-card .text-ash {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .customer-timeline-link {
@@ -24059,7 +24059,7 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .pro-toolbar-label {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.5625rem !important;
 }
 
@@ -25155,7 +25155,7 @@ html[data-theme="night"] .mkt-page .tier1-hero,
 html[data-theme="night"] .mkt-page .tier1-close,
 html[data-theme="night"] .mkt-page .marketing-hero,
 html[data-theme="night"] .mkt-page .mkt-trynow {
-  background: #171717 !important;
+  background: #22252a !important;
   color: #ededed !important;
 }
 
@@ -25166,9 +25166,9 @@ html[data-theme="night"] .mkt-page .mkt-manifesto,
 html[data-theme="night"] .mkt-page .mkt-close,
 html[data-theme="night"] .mkt-page .mkt-proof-section,
 html[data-theme="night"] .mkt-page .mkt-showcase {
-  background: #1f1f1f !important;
+  background: #292d33 !important;
   color: #ededed !important;
-  border-color: #333333 !important;
+  border-color: #3d434a !important;
 }
 
 /* Ink → light */
@@ -25219,8 +25219,8 @@ html[data-theme="night"] .mkt-page .pricing-needs-picker,
 html[data-theme="night"] .mkt-page .pricing-needs-option,
 html[data-theme="night"] .mkt-page .mkt-call-panel,
 html[data-theme="night"] .mkt-page .mkt-showcase-snippet {
-  background: #262626 !important;
-  border-color: #333333 !important;
+  background: #2e333a !important;
+  border-color: #3d434a !important;
   color: #ededed !important;
 }
 
@@ -25229,8 +25229,8 @@ html[data-theme="night"] .mkt-page .mkt-showcase-snippet code {
 }
 
 html[data-theme="night"] .mkt-page .pro-panel-head {
-  background: #171717 !important;
-  border-color: #333333 !important;
+  background: #22252a !important;
+  border-color: #3d434a !important;
 }
 
 /* Inputs → dark */
@@ -25238,9 +25238,9 @@ html[data-theme="night"] .mkt-page input,
 html[data-theme="night"] .mkt-page select,
 html[data-theme="night"] .mkt-page textarea,
 html[data-theme="night"] .mkt-page .input {
-  background: #262626 !important;
+  background: #2e333a !important;
   color: #ededed !important;
-  border-color: #333333 !important;
+  border-color: #3d434a !important;
 }
 
 /* Primary pills invert to light on dark */
@@ -25255,9 +25255,9 @@ html[data-theme="night"] .mkt-page .mkt-trynow-cta {
 }
 
 html[data-theme="night"] .mkt-page .inst-btn-ghost {
-  background: #262626 !important;
+  background: #2e333a !important;
   color: #ededed !important;
-  border-color: #333333 !important;
+  border-color: #3d434a !important;
 }
 
 html[data-theme="night"] .mkt-page .mkt-showcase-copybtn {
@@ -25268,8 +25268,8 @@ html[data-theme="night"] .mkt-page .mkt-showcase-copybtn {
 /* Nav → dark */
 html[data-theme="night"] .mkt-nav--institution,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
-  background: color-mix(in srgb, #171717 88%, transparent) !important;
-  border-bottom-color: #333333 !important;
+  background: color-mix(in srgb, #22252a 88%, transparent) !important;
+  border-bottom-color: #3d434a !important;
 }
 
 html[data-theme="night"] .mkt-nav-brand .orvius-logo,
@@ -25284,7 +25284,7 @@ html[data-theme="night"] .mkt-nav-theme {
 }
 
 html[data-theme="night"] .mkt-nav-theme:hover {
-  background: #262626 !important;
+  background: #2e333a !important;
 }
 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-cta,
@@ -25297,16 +25297,16 @@ html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
 html[data-theme="night"] .mkt-nav-secondary,
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-secondary,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-secondary {
-  background: #262626 !important;
+  background: #2e333a !important;
   color: #ededed !important;
-  border-color: #333333 !important;
+  border-color: #3d434a !important;
 }
 
 /* Footer → dark */
 html[data-theme="night"] .mkt-footer,
 html[data-theme="night"] .mkt-footer--institution {
-  background: #171717 !important;
-  border-top-color: #333333 !important;
+  background: #22252a !important;
+  border-top-color: #3d434a !important;
 }
 
 html[data-theme="night"] .mkt-footer-entity,
@@ -25325,7 +25325,7 @@ html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
 }
 
 html[data-theme="night"] .mkt-footer-bottom {
-  border-top-color: #333333 !important;
+  border-top-color: #3d434a !important;
 }
 
 /* Resources hub links */
@@ -25337,8 +25337,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 html[data-theme="night"] .site-controls-theme,
 html[data-theme="night"] .site-controls-lang-btn,
 html[data-theme="night"] .site-controls-lang-menu {
-  background: #262626 !important;
-  border-color: #333333 !important;
+  background: #2e333a !important;
+  border-color: #3d434a !important;
 }
 
 html[data-theme="night"] .site-controls-lang-btn,
@@ -25356,7 +25356,7 @@ html[data-theme="night"] .site-controls-theme button.is-active {
 }
 
 html[data-theme="night"] .site-controls-lang-menu button:hover {
-  background: #333333 !important;
+  background: #3d434a !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -25421,7 +25421,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #4d5156 !important;
+  color: #8b9096 !important;
 }
 
 .os-shell-night .os-ring-status-title {
@@ -25438,7 +25438,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   gap: 0.4rem !important;
   margin: 0.25rem 0 0 !important;
   font-size: 0.75rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -25522,13 +25522,13 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 }
 
 .os-shell-night .os-nav-link-disabled {
-  color: #43474c !important;
+  color: #7f858b !important;
   cursor: default;
 }
 
 .os-shell-night .os-nav-link-disabled:hover {
   background: transparent !important;
-  color: #43474c !important;
+  color: #7f858b !important;
 }
 
 .os-shell-night .os-nav-badge {
@@ -25550,7 +25550,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   border: 1px solid #444a51 !important;
   border-radius: 9999px !important;
   background: transparent !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.5625rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.1em !important;
@@ -25596,7 +25596,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-size: 0.6875rem !important;
   font-weight: 500 !important;
   letter-spacing: 0.01em !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -25610,7 +25610,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .os-topbar-sub {
   margin-top: 0.15rem !important;
   font-size: 0.8125rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .os-content-pro {
@@ -25632,7 +25632,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #4d5156 !important;
+  color: #8b9096 !important;
 }
 
 .os-shell-night .attention-queue-title {
@@ -25646,7 +25646,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .attention-queue-lead {
   margin: 0.15rem 0 0 !important;
   font-size: 0.8125rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .attention-queue-list {
@@ -25685,7 +25685,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #4d5156;
+  color: #8b9096;
 }
 
 .os-shell-night .attention-chip {
@@ -25698,9 +25698,9 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 }
 
 .os-shell-night .attention-chip-critical {
-  background: rgba(244, 33, 46, 0.14);
-  border: 1px solid rgba(244, 33, 46, 0.35);
-  color: #ff7a80;
+  background: #3d2429;
+  border: 1px solid #6b2f35;
+  color: #ffb3b8;
 }
 
 .os-shell-night .attention-item-title {
@@ -25714,7 +25714,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .attention-item-detail {
   margin: 0.1rem 0 0 !important;
   font-size: 0.8125rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .attention-item-value {
@@ -25820,7 +25820,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #4d5156 !important;
+  color: #8b9096 !important;
 }
 
 .os-shell-night .pro-stat-value {
@@ -25868,7 +25868,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .onboarding-input:focus,
 .os-shell-night .onboarding-textarea:focus {
   outline: none;
-  border-color: #6a7075 !important;
+  border-color: #9aa0a6 !important;
   box-shadow: 0 0 0 3px rgba(231, 233, 234, 0.09) !important;
 }
 
@@ -25877,13 +25877,13 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   margin-top: 0.35rem !important;
   font-size: 0.75rem !important;
   line-height: 1.45 !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .account-settings-hint {
   font-size: 0.8125rem !important;
   line-height: 1.5 !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .pro-settings-test-row {
@@ -25898,7 +25898,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 
 .os-shell-night .pro-settings-test-meta {
   font-size: 0.75rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 /* Secondary settings groups become real disclosure rows */
@@ -26003,7 +26003,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .pro-settings-savebar-hint {
   margin: 0;
   font-size: 0.75rem;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 /* ── Shared focus treatment ── */
@@ -26157,7 +26157,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .attention-item-kindlabel,
 .os-shell-night .lead-rail-kind,
 .os-shell-night .lead-inbox-card-kind {
-  color: #6a7075 !important;
+  color: #9aa0a6 !important;
 }
 
 /* Board column keeps a readable measure */
@@ -26225,7 +26225,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #4d5156 !important;
+  color: #8b9096 !important;
 }
 
 .os-shell-night .shop-outcomes-stats {
@@ -26243,7 +26243,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #4d5156;
+  color: #8b9096;
 }
 
 .os-shell-night .shop-outcome-stat dd {
@@ -26265,7 +26265,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   border-top: 1px solid #3d434a;
   list-style: none;
   font-size: 0.8125rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .shop-outcomes-meta strong {
@@ -26297,7 +26297,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #4d5156;
+  color: #8b9096;
 }
 
 .os-shell-night .pro-economics-grid dd {
@@ -26313,7 +26313,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .pro-economics-hint {
   margin: 0.3rem 0 0 !important;
   font-size: 0.75rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .os-shell-night .pro-economics-actions {
@@ -26894,4 +26894,12 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-size: 0.6875rem;
   line-height: 1.4;
   color: #e0b782;
+}
+
+/* Stale-proof notice: a solid amber on charcoal instead of translucent ink on
+   a red wash, which fell under 2:1 once the canvas lifted. */
+.os-shell-night .pro-economics-stale {
+  border-color: #6b4a2a !important;
+  background: #33291f !important;
+  color: #ecc79a !important;
 }
