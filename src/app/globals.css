@@ -25724,6 +25724,23 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-variant-numeric: tabular-nums;
 }
 
+/* Roll-up line: the rest of one customer's rows, folded. */
+.os-shell-night .attention-item-rollup {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #b9bec4;
+  text-decoration: none;
+  border-bottom: 1px solid #4b5157;
+  padding-bottom: 1px;
+}
+
+.os-shell-night .attention-item-rollup:hover {
+  color: #f2f4f5;
+  border-bottom-color: #8b9096;
+}
+
 .os-shell-night .attention-item-actions {
   display: flex !important;
   align-items: center !important;

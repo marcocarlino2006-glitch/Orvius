@@ -1,5 +1,6 @@
 import "server-only";
 
+import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
@@ -91,8 +92,8 @@ export async function getAttentionQueue(
       take: 60,
       orderBy: { scheduledAt: "asc" },
       include: {
-        customer: { select: { name: true, phone: true } },
-        lead: { select: { name: true, phone: true, urgency: true } },
+        customer: { select: { id: true, name: true, phone: true } },
+        lead: { select: { id: true, name: true, phone: true, urgency: true } },
         technician: { select: { id: true, name: true } },
       },
     }),
@@ -451,6 +452,13 @@ export async function getAttentionQueue(
       entityId: lead.id,
       createdAt: lead.createdAt.toISOString(),
       estimatedRevenueCents: ticket,
+      group: {
+        key: lead.customerId ?? `lead:${lead.id}`,
+        label: who,
+        href: lead.customerId
+          ? `/dashboard/customers/${lead.customerId}`
+          : `/dashboard/inbox/${lead.id}`,
+      },
       meta: {
         urgency: lead.urgency,
         address: lead.address,
@@ -475,6 +483,13 @@ export async function getAttentionQueue(
     const dueToday =
       scheduled != null && scheduled >= dayStart && scheduled < dayEnd;
     const unassigned = !job.technicianId;
+    const group = {
+      key: job.customer?.id ?? job.lead?.id ?? `job:${job.id}`,
+      label: who,
+      href: job.customer?.id
+        ? `/dashboard/customers/${job.customer.id}`
+        : `/dashboard/jobs/${job.id}`,
+    };
 
     if (
       !job.customerConfirmedAt &&
@@ -506,6 +521,7 @@ export async function getAttentionQueue(
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
         estimatedRevenueCents: ticket,
+        group,
         meta: {
           urgency,
           address: job.address,
@@ -542,6 +558,7 @@ export async function getAttentionQueue(
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
         estimatedRevenueCents: ticket,
+        group,
         meta: {
           urgency,
           address: job.address,
@@ -569,6 +586,7 @@ export async function getAttentionQueue(
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
         estimatedRevenueCents: ticket,
+        group,
         meta: {
           urgency,
           address: job.address,
@@ -613,5 +631,5 @@ export async function getAttentionQueue(
     ? items.filter((i) => i.kind !== "available_tech")
     : items;
 
-  return filtered.sort((a, b) => a.rank - b.rank).slice(0, limit);
+  return rollUpByPerson(filtered.sort((a, b) => a.rank - b.rank)).slice(0, limit);
 }

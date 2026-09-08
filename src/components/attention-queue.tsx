@@ -221,17 +221,23 @@ export function AttentionQueue({
     );
   }
 
+  const criticalCount = items.filter((i) => i.impact === "critical").length;
+
   return (
-    <section className="attention-queue" aria-label="Needs attention">
+    <section
+      id="attention-board"
+      className="attention-queue"
+      aria-label="Needs attention"
+    >
       <div className="attention-queue-head font-sans">
-        <p className="attention-queue-kicker type-eyebrow">
-          Critical board · {items.filter((i) => i.impact === "critical").length}
-        </p>
+        <p className="attention-queue-kicker type-eyebrow">On the board</p>
         <h2 className="attention-queue-title">
-          {items.length} waiting
+          {items.length} {items.length === 1 ? "row needs" : "rows need"} you
         </h2>
         <p className="attention-queue-lead">
-          Ranked by urgency. Act here.
+          {criticalCount > 0
+            ? `${criticalCount} critical, ranked first. Act top down.`
+            : "Nothing critical. Ranked by urgency — act top down."}
         </p>
       </div>
 
@@ -275,6 +281,14 @@ export function AttentionQueue({
                     <p className="attention-item-value">
                       Est. {formatCents(item.estimatedRevenueCents)}
                     </p>
+                  ) : null}
+                  {item.rolledUp && item.group ? (
+                    <Link
+                      href={item.group.href ?? item.href}
+                      className="attention-item-rollup"
+                    >
+                      +{item.rolledUp} more for {item.group.label}
+                    </Link>
                   ) : null}
                 </div>
                 <div className="attention-item-actions">
