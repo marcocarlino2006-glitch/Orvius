@@ -35,10 +35,12 @@ export function ProEconomicsPanel({
 
   if (!outcomes) return null;
 
-  const stale =
-    !proofAt ||
-    Number.isNaN(new Date(proofAt).getTime()) ||
-    Date.now() - new Date(proofAt).getTime() > WEEK_MS;
+  // Nothing landed this window, so there is nothing to prove — do not nag a
+  // shop into copying a page of zeros.
+  const nothingToProve = outcomes.calls === 0 && outcomes.leads === 0;
+  const parsed = proofAt ? new Date(proofAt) : null;
+  const copiedAt = parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
+  const stale = !nothingToProve && (!copiedAt || Date.now() - copiedAt.getTime() > WEEK_MS);
 
   async function copyWeeklyProof() {
     setBusy(true);
@@ -77,17 +79,21 @@ export function ProEconomicsPanel({
           Weekly proof is stale or missing — copy a fresh proof for this week&apos;s
           design-partner ritual.
         </p>
-      ) : (
+      ) : copiedAt ? (
         <p className="pro-economics-proof-meta font-sans">
           Last proof copied{" "}
-          {new Date(proofAt!).toLocaleString(undefined, {
+          {copiedAt.toLocaleString(undefined, {
             month: "short",
             day: "numeric",
             hour: "numeric",
             minute: "2-digit",
           })}
         </p>
-      )}
+      ) : nothingToProve ? (
+        <p className="pro-economics-proof-meta font-sans">
+          Nothing landed this window, so there is no proof to copy yet.
+        </p>
+      ) : null}
 
       <dl className="pro-economics-grid">
         <div>

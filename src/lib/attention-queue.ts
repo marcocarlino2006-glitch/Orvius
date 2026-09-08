@@ -75,7 +75,9 @@ export async function getAttentionQueue(
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
-  const [newLeads, activeJobs, crew, business, failedAlerts] = await Promise.all([
+  const weekAgo = new Date(now.getTime() - WEEK_MS);
+
+  const [newLeads, activeJobs, crew, business, failedAlerts, weekTraffic] = await Promise.all([
     prisma.lead.findMany({
       where: { businessId, status: { in: ["new", "contacted"] } },
       take: 40,
@@ -129,6 +131,11 @@ export async function getAttentionQueue(
         message: true,
       },
     }),
+    // Whether there is anything to prove this week at all.
+    Promise.all([
+      prisma.call.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
+      prisma.lead.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
+    ]).then(([calls, leads]) => calls + leads),
   ]);
 
   const ticket = business?.avgTicketCents ?? null;
@@ -271,7 +278,8 @@ export async function getAttentionQueue(
     !proofAt ||
     Number.isNaN(proofAt.getTime()) ||
     now.getTime() - proofAt.getTime() > WEEK_MS;
-  if (proofStale) {
+  // A shop with no calls and no leads this week has nothing to prove yet.
+  if (proofStale && weekTraffic > 0) {
     items.push({
       id: `stale_weekly_proof:${businessId}`,
       kind: "stale_weekly_proof",
