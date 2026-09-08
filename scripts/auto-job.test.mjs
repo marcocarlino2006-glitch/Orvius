@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 
 import {
+  inferExplicitUrgency,
   isLeadQualifiedForBooking,
   isPriorityUrgency,
 } from "../src/lib/auto-job.ts";
@@ -22,6 +23,11 @@ assert.equal(isPriorityUrgency("today"), true);
 assert.equal(isPriorityUrgency("this-week"), false);
 assert.equal(isPriorityUrgency("flexible"), false);
 assert.equal(isPriorityUrgency(null), false);
+assert.equal(inferExplicitUrgency("burst pipe, water everywhere"), "emergency");
+assert.equal(inferExplicitUrgency("need help today please"), "same-day");
+assert.equal(inferExplicitUrgency("sometime this week"), "this-week");
+assert.equal(inferExplicitUrgency("no rush, whenever works"), "flexible");
+assert.equal(inferExplicitUrgency("my water heater is making noise"), null);
 
 assert.equal(
   isLeadQualifiedForBooking({
@@ -46,6 +52,16 @@ assert.equal(
     address: "12 Main St",
   }),
   false,
+);
+assert.equal(
+  isLeadQualifiedForBooking({
+    phone: "+15551234567",
+    serviceType: "SMS inquiry",
+    address: null,
+    categoryCode: "plumb.water_heater",
+  }),
+  true,
+  "a classified SMS request is real demand even before an address is parsed",
 );
 assert.equal(
   isLeadQualifiedForBooking({

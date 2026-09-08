@@ -103,6 +103,23 @@ test("narrow categories win over the broad ones they sit inside", () => {
   );
 });
 
+test("life-safety conditions outrank nearby equipment words", () => {
+  assert.equal(
+    classifyDemand({
+      text: "Emergency — I smell gas by the water heater",
+      trade: "Plumbing",
+    }),
+    "plumb.gas",
+  );
+  assert.equal(
+    classifyDemand({
+      text: "The breaker panel is sparking and smells burned",
+      trade: "Electrical",
+    }),
+    "elec.hazard",
+  );
+});
+
 test("the shop's trade decides ambiguous words", () => {
   // "Leak" is a pipe to a plumber and a condensate pan to an HVAC shop.
   assert.equal(

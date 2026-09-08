@@ -379,6 +379,9 @@ const LABELS = new Map<string, string>(
   DEMAND_CATEGORIES.map((c) => [c.code, c.label]),
 );
 
+/** Life-safety conditions outrank the equipment mentioned beside them. */
+const SAFETY_CODES = new Set(["plumb.gas", "elec.hazard"]);
+
 export const DEMAND_CATEGORY_CODES = DEMAND_CATEGORIES.map((c) => c.code);
 
 /** Human label for a stored code, for owner-facing rollups later. */
@@ -414,6 +417,15 @@ export function classifyDemand(input: {
   const nonService = BY_TRADE.get("Other") ?? [];
   for (const category of nonService) {
     if (matches(padded, category)) return category.code as DemandCategoryCode;
+  }
+
+  // "Gas smell by the water heater" is a gas hazard, not a water-heater job.
+  // Safety is the only cross-taxonomy precedence rule and must run before the
+  // normal narrow-to-broad trade order.
+  for (const category of DEMAND_CATEGORIES) {
+    if (SAFETY_CODES.has(category.code) && matches(padded, category)) {
+      return category.code as DemandCategoryCode;
+    }
   }
 
   if (input.trade) {

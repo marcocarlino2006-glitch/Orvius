@@ -16,6 +16,30 @@ export function isPriorityUrgency(urgency?: string | null): boolean {
 /** @deprecated Use isPriorityUrgency — kept for imports during transition. */
 export const isAutoBookUrgency = isPriorityUrgency;
 
+/**
+ * SMS has no voice-agent extraction pass. Infer urgency only from explicit
+ * language; silence stays null instead of the system pretending to know.
+ */
+export function inferExplicitUrgency(
+  text: string | null | undefined,
+): "emergency" | "same-day" | "this-week" | "flexible" | null {
+  const value = (text ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+  if (!value) return null;
+  if (
+    /\b(emergency|gas leak|smell gas|sparking|electrical fire|burst pipe|flooding|water everywhere)\b/.test(
+      value,
+    )
+  ) {
+    return "emergency";
+  }
+  if (/\b(asap|urgent|today|same[ -]?day|no heat|no cooling)\b/.test(value)) {
+    return "same-day";
+  }
+  if (/\b(this week|next few days)\b/.test(value)) return "this-week";
+  if (/\b(no rush|whenever|flexible)\b/.test(value)) return "flexible";
+  return null;
+}
+
 export type AutoBookSkipReason =
   | "already_booked"
   | "missing_business"
@@ -53,6 +77,9 @@ export function isLeadQualifiedForBooking(lead: {
   if (!hasUsablePhone(lead.phone)) return false;
   const service = lead.serviceType?.trim() ?? "";
   const address = lead.address?.trim() ?? "";
+  if (lead.categoryCode && lead.categoryCode !== "other.non_service") {
+    return true;
+  }
   if (service.length < 2 && address.length < 4) return false;
   // Refuse generic SMS placeholders as "service"
   if (

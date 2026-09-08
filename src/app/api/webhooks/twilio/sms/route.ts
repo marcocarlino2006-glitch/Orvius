@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
-import { maybeAutoBookLead } from "@/lib/auto-job";
+import { inferExplicitUrgency, maybeAutoBookLead } from "@/lib/auto-job";
 import { company } from "@/lib/company";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import { demandCategoryLabel } from "@/lib/job-taxonomy";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -143,6 +144,9 @@ export async function POST(request: NextRequest) {
     notes: body,
     trade: tradeForCapture(business),
   });
+  const serviceType =
+    demandCategoryLabel(demand.categoryCode) ?? "SMS inquiry";
+  const urgency = inferExplicitUrgency(body);
 
   const lead = await prisma.lead.create({
     data: {
@@ -150,7 +154,8 @@ export async function POST(request: NextRequest) {
       externalId: messageSid || null,
       phone: from,
       notes: body,
-      serviceType: "SMS inquiry",
+      serviceType,
+      urgency,
       source: "sms",
       status: "new",
       categoryCode: demand.categoryCode,
@@ -186,8 +191,8 @@ export async function POST(request: NextRequest) {
     lead: {
       name: null,
       phone: from,
-      serviceType: "SMS inquiry",
-      urgency: null,
+      serviceType,
+      urgency,
       address: null,
     },
     job: bookedJob,
@@ -227,7 +232,12 @@ export async function POST(request: NextRequest) {
     }
   });
 
-  return twimlResponse(SMS_REPLY);
+  const safetyReply =
+    demand.categoryCode === "plumb.gas" ||
+    demand.categoryCode === "elec.hazard"
+      ? "If there is immediate danger, leave the area and call 911. We received your service request and will follow up shortly."
+      : SMS_REPLY;
+  return twimlResponse(safetyReply);
 }
 
 async function handleSmsKeyword(params: {
