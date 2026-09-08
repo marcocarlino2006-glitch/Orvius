@@ -91,6 +91,9 @@ const HONESTY_RISKS = [
   { pattern: /never miss/i, label: "never miss" },
   { pattern: /100%/i, label: "100%" },
   { pattern: /always answers/i, label: "always answers" },
+  // A learning loop is the easiest thing to claim and the hardest to have.
+  // Nothing in the product trains on usage yet, so this stays a warning.
+  { pattern: /(smarter|learns|improves) (with|from) every/i, label: "learns with every" },
 ];
 
 try {
@@ -194,6 +197,8 @@ const marketingFiles = [
   // Hero copy and its translations ship the loudest claims on the site.
   "src/components/home-line-hero.tsx",
   "src/lib/i18n.ts",
+  // Ring copy describes what is live, and renders on the site and in the app.
+  "src/lib/company.ts",
 ];
 for (const rel of marketingFiles) {
   let content;

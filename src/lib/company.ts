@@ -18,7 +18,7 @@ export const company = {
   proofLine: "Missed calls become booked jobs.",
   vision:
     "Make missed night jobs obsolete. Orvius is the shop OS that runs after hours — captures demand, books the work, alerts the owner, and compounds one record across every call, job, and dollar. Humans keep high-risk overrides.",
-  /** Product goal — not a warranty of 100% answer rate. */
+  /** Product goal — not a warranty of a perfect answer rate. */
   mission:
     "Night rule: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
   strategy: [
@@ -117,9 +117,9 @@ export const osRings = [
   {
     ring: 6,
     name: "Intelligence",
-    module: "AI on every layer",
+    module: "Answers from your own records",
     status: "live" as const,
-    body: "Smarter with every call, job, and outcome. Ask and outcomes live on shop records.",
+    body: "Ask reads your calls, jobs, and customers and answers from those rows — never an invented number. Learning from outcomes is next.",
   },
   {
     ring: 7,
