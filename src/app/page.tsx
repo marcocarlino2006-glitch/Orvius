@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-shell";
 import { HomeLineHero } from "@/components/home-line-hero";
+import { HomeToolShowcase } from "@/components/home-tool-showcase";
 import { HomeStatement } from "@/components/home-statement";
 import { HomeCallStory } from "@/components/home-call-story";
 import { MktSection } from "@/components/mkt-section";
@@ -16,6 +17,7 @@ export default function HomePage() {
   return (
     <MarketingShell premium>
       <HomeLineHero />
+      <HomeToolShowcase />
       <HomeStatement />
       <HomeCallStory />
 

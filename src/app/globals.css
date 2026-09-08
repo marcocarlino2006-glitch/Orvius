@@ -24843,6 +24843,117 @@ body:has(.mkt-page) .shell-header {
   color: #f54e00 !important;
 }
 
+/* Product showcase — cursor.com "In every tool, at every step" */
+.mkt-page .mkt-showcase {
+  background: #efeee9 !important;
+  padding: clamp(4rem, 11vh, 7.5rem) 0 !important;
+}
+
+.mkt-page .mkt-showcase-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .mkt-page .mkt-showcase-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+.mkt-page .mkt-showcase-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+.mkt-page .mkt-showcase-eyebrow {
+  margin: 0 0 1rem;
+  color: #f54e00 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.mkt-page .mkt-showcase-title {
+  margin: 0;
+  color: #26251e !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.03em !important;
+  font-size: clamp(1.9rem, 3.2vw, 2.85rem);
+  line-height: 1.05;
+}
+
+.mkt-page .mkt-showcase-lead {
+  margin: 1.1rem 0 1.6rem;
+  max-width: 34ch;
+  color: #6b6a63 !important;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.mkt-page .mkt-showcase-snippet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #e6e5e0;
+  border-radius: 0.55rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.85rem;
+  max-width: 100%;
+}
+
+.mkt-page .mkt-showcase-snippet code {
+  font-family: ui-monospace, "SF Mono", "Liberation Mono", Menlo, monospace;
+  font-size: 0.85rem;
+  color: #26251e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mkt-page .mkt-showcase-copybtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #26251e;
+  color: #f7f7f4;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.mkt-page .mkt-showcase-copybtn:hover {
+  background: #000000;
+}
+
+.mkt-page .mkt-showcase-copied {
+  font-family: ui-monospace, "SF Mono", "Liberation Mono", Menlo, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+.mkt-page .mkt-showcase-stage {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -28px rgba(38, 37, 30, 0.35);
+  background: #0a0a0a;
+}
+
+.mkt-page .mkt-showcase-stage .mkt-product {
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+}
+
 /* Footer → Cursor light (was true-black) */
 .mkt-footer,
 .mkt-footer--institution {
