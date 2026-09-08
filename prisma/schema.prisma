@@ -141,6 +141,18 @@ model Lead {
   notes       String?
   status      String    @default("new")
   source      String    @default("call")
+  /**
+   * Canonical demand taxonomy code (src/lib/job-taxonomy.ts). Derived, never
+   * typed by an owner. Free-text serviceType cannot be counted across shops;
+   * this can, and a call answered without it is a call whose category is gone.
+   */
+  categoryCode String?
+  /** ZIP parsed from address — the unit local price benchmarks group on. */
+  postalCode   String?
+  /** First time the shop worked this lead, for speed-to-lead vs. win rate. */
+  firstContactedAt DateTime?
+  /** When the lead reached a terminal status (booked, lost, spam). */
+  closedAt         DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -148,6 +160,8 @@ model Lead {
 
   @@unique([businessId, externalId])
   @@index([businessId, createdAt])
+  @@index([businessId, categoryCode])
+  @@index([businessId, postalCode])
 }
 
 model Job {
@@ -165,6 +179,9 @@ model Job {
   urgency       String?
   address       String?
   notes         String?
+  /** Carried from the lead so completed work joins the same taxonomy. */
+  categoryCode  String?
+  postalCode    String?
   status        String      @default("scheduled")
   scheduledAt   DateTime?
   confirmedAt   DateTime?
@@ -187,6 +204,7 @@ model Job {
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
   @@index([technicianId, scheduledAt])
+  @@index([businessId, categoryCode])
 }
 
 model Technician {

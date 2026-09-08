@@ -160,3 +160,14 @@ ALTER TABLE "Job" ADD COLUMN "customerConfirmToken" TEXT;
 ALTER TABLE "Job" ADD COLUMN "customerConfirmedAt" DATETIME;
 CREATE UNIQUE INDEX IF NOT EXISTS "Job_customerConfirmToken_key" ON "Job"("customerConfirmToken");
 ALTER TABLE "Business" ADD COLUMN "overflowForwardConfirmedAt" DATETIME;
+
+-- Demand capture: canonical job category, service-area ZIP, lead lifecycle
+ALTER TABLE "Lead" ADD COLUMN "categoryCode" TEXT;
+ALTER TABLE "Lead" ADD COLUMN "postalCode" TEXT;
+ALTER TABLE "Lead" ADD COLUMN "firstContactedAt" DATETIME;
+ALTER TABLE "Lead" ADD COLUMN "closedAt" DATETIME;
+CREATE INDEX IF NOT EXISTS "Lead_businessId_categoryCode_idx" ON "Lead"("businessId", "categoryCode");
+CREATE INDEX IF NOT EXISTS "Lead_businessId_postalCode_idx" ON "Lead"("businessId", "postalCode");
+ALTER TABLE "Job" ADD COLUMN "categoryCode" TEXT;
+ALTER TABLE "Job" ADD COLUMN "postalCode" TEXT;
+CREATE INDEX IF NOT EXISTS "Job_businessId_categoryCode_idx" ON "Job"("businessId", "categoryCode");
