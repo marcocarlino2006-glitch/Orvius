@@ -4,8 +4,6 @@ import { HomeLineHero } from "@/components/home-line-hero";
 import { HomeToolShowcase } from "@/components/home-tool-showcase";
 import { HomeStatement } from "@/components/home-statement";
 import { HomeCallStory } from "@/components/home-call-story";
-import { MktSection } from "@/components/mkt-section";
-import { company } from "@/lib/company";
 
 export const dynamic = "force-dynamic";
 
@@ -21,27 +19,24 @@ export default function HomePage() {
       <HomeStatement />
       <HomeCallStory />
 
-      <MktSection tone="inset" className="mkt-close mkt-close--cinema mkt-close--institution">
-        <div className="mkt-close-inner mkt-close-inner--institution">
-          <p className="mkt-close-entity font-sans">{company.legalName}</p>
-          <h2 className="mkt-close-title">
-            Be the shop that never misses the night.
+      <section className="mkt-trynow" aria-labelledby="home-trynow-heading">
+        <div className="mkt-trynow-inner">
+          <h2 id="home-trynow-heading" className="mkt-trynow-title">
+            Try Orvius now.
           </h2>
-          <p className="mkt-close-desc font-sans">
-            Not another AI receptionist bolted onto a CRM. The night shift for
-            HVAC, plumbing, and electrical — prove it on your line, or call ours.
-          </p>
-          <div className="mkt-close-actions mkt-close-actions--institution">
-            <Link href="/pilot" className="mkt-btn mkt-btn-chalk mkt-btn-lg">
-              Prove it on your line
+          <div className="mkt-trynow-actions font-sans">
+            <Link
+              href="/pilot"
+              className="inst-btn inst-btn-primary mkt-trynow-cta"
+            >
+              Get started →
             </Link>
-            <a href="tel:+18446439170" className="mkt-close-call font-sans">
-              Call the live line
-            </a>
           </div>
-          <p className="mkt-close-claim font-sans">{company.categoryClaim}</p>
+          <a href="tel:+18446439170" className="mkt-trynow-call font-sans">
+            or call the live line · +1 844 643 9170
+          </a>
         </div>
-      </MktSection>
+      </section>
     </MarketingShell>
   );
 }

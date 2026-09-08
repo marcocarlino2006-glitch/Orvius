@@ -13,7 +13,7 @@ export function HomeLineHero() {
     >
       <div className="mkt-hero-clean">
         <p className="mkt-hero-clean-eyebrow font-sans">
-          The night-shift OS for the trades
+          For HVAC, plumbing &amp; electrical shops
         </p>
 
         <h1 id="home-hero-heading" className="mkt-hero-clean-title">
@@ -23,8 +23,8 @@ export function HomeLineHero() {
         </h1>
 
         <p className="mkt-hero-clean-lead font-sans">
-          After-hours and overflow calls answered, booked, and on your board by
-          morning. You keep the overrides.
+          Orvius answers your after-hours calls, books the job, and alerts you
+          in seconds — so no lead ever dies on voicemail.
         </p>
 
         <div className="mkt-hero-clean-actions font-sans">

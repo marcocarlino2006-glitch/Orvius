@@ -24988,3 +24988,251 @@ body:has(.mkt-page) .shell-header {
 .mkt-footer .orvius-logo-mark {
   color: #26251e !important;
 }
+
+/* ============================================================
+   Try Orvius now — centered CTA (cursor.com "Try Cursor now.")
+   ============================================================ */
+.mkt-page .mkt-trynow {
+  background: #f7f7f4 !important;
+  padding: clamp(6rem, 16vh, 10rem) 1.5rem clamp(6rem, 16vh, 10rem) !important;
+  text-align: center;
+}
+
+.mkt-page .mkt-trynow-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mkt-page .mkt-trynow-title {
+  margin: 0;
+  color: #26251e !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.035em !important;
+  font-size: clamp(2.75rem, 6vw, 4.5rem);
+  line-height: 1.02;
+}
+
+.mkt-page .mkt-trynow-actions {
+  margin-top: 2rem;
+}
+
+.mkt-page .mkt-trynow-call {
+  margin-top: 1.4rem;
+  color: #6b6a63 !important;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.mkt-page .mkt-trynow-call:hover {
+  color: #f54e00 !important;
+}
+
+/* Night-mode toggle button */
+.mkt-nav-theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: #26251e;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.mkt-nav-theme:hover {
+  background: #e6e5e0;
+}
+
+/* ============================================================
+   NIGHT MODE — dark theme for marketing (data-theme="night").
+   Higher specificity than the light rules, so it wins.
+   ============================================================ */
+html[data-theme="night"] .mkt-page,
+html[data-theme="night"] .mkt-page .mkt-hero--clean,
+html[data-theme="night"] .mkt-page .tier1-hero,
+html[data-theme="night"] .mkt-page .tier1-close,
+html[data-theme="night"] .mkt-page .marketing-hero,
+html[data-theme="night"] .mkt-page .mkt-trynow {
+  background: #0a0a0a !important;
+  color: #e7e9ea !important;
+}
+
+html[data-theme="night"] .mkt-page .tier1-story,
+html[data-theme="night"] .mkt-page .tier1-story-muted,
+html[data-theme="night"] .mkt-page .marketing-section,
+html[data-theme="night"] .mkt-page .mkt-manifesto,
+html[data-theme="night"] .mkt-page .mkt-close,
+html[data-theme="night"] .mkt-page .mkt-proof-section,
+html[data-theme="night"] .mkt-page .mkt-showcase {
+  background: #101012 !important;
+  color: #e7e9ea !important;
+  border-color: #2f3336 !important;
+}
+
+/* Ink → light */
+html[data-theme="night"] .mkt-page .mkt-hero-clean-title,
+html[data-theme="night"] .mkt-page .mkt-trynow-title,
+html[data-theme="night"] .mkt-page .mkt-showcase-title,
+html[data-theme="night"] .mkt-page .mkt-manifesto-title,
+html[data-theme="night"] .mkt-page .mkt-law-title,
+html[data-theme="night"] .mkt-page .mkt-close-title,
+html[data-theme="night"] .mkt-page .mkt-proof-title,
+html[data-theme="night"] .mkt-page .tier1-page-title,
+html[data-theme="night"] .mkt-page .tier1-section-title,
+html[data-theme="night"] .mkt-page .type-headline,
+html[data-theme="night"] .mkt-page .text-void,
+html[data-theme="night"] .mkt-page .pro-panel-title,
+html[data-theme="night"] .mkt-page .pricing-needs-option-label,
+html[data-theme="night"] .mkt-page .tier1-plan-price {
+  color: #e7e9ea !important;
+}
+
+/* Muted → warm gray light */
+html[data-theme="night"] .mkt-page .mkt-hero-clean-lead,
+html[data-theme="night"] .mkt-page .mkt-showcase-lead,
+html[data-theme="night"] .mkt-page .mkt-trynow-call,
+html[data-theme="night"] .mkt-page .tier1-section-lead,
+html[data-theme="night"] .mkt-page .tier1-hero-lead,
+html[data-theme="night"] .mkt-page .brand-intro-subline,
+html[data-theme="night"] .mkt-page .brand-intro-description,
+html[data-theme="night"] .mkt-page .text-ash,
+html[data-theme="night"] .mkt-page .mkt-manifesto-aside,
+html[data-theme="night"] .mkt-page .mkt-law-body,
+html[data-theme="night"] .mkt-page .mkt-close-desc,
+html[data-theme="night"] .mkt-page .mkt-proof-lead,
+html[data-theme="night"] .mkt-page .mkt-hero-clean-eyebrow {
+  color: #8b8b86 !important;
+}
+
+/* Cards / panels → dark */
+html[data-theme="night"] .mkt-page .tier1-plan,
+html[data-theme="night"] .mkt-page .tier1-story-card,
+html[data-theme="night"] .mkt-page .pro-panel,
+html[data-theme="night"] .mkt-page .mkt-card,
+html[data-theme="night"] .mkt-page .mkt-pricing-card,
+html[data-theme="night"] .mkt-page .call-demo,
+html[data-theme="night"] .mkt-page .call-demo-void,
+html[data-theme="night"] .mkt-page .pricing-wizard,
+html[data-theme="night"] .mkt-page .pricing-needs-picker,
+html[data-theme="night"] .mkt-page .pricing-needs-option,
+html[data-theme="night"] .mkt-page .mkt-call-panel,
+html[data-theme="night"] .mkt-page .mkt-showcase-snippet {
+  background: #16181c !important;
+  border-color: #2f3336 !important;
+  color: #e7e9ea !important;
+}
+
+html[data-theme="night"] .mkt-page .mkt-showcase-snippet code {
+  color: #e7e9ea !important;
+}
+
+html[data-theme="night"] .mkt-page .pro-panel-head {
+  background: #0a0a0a !important;
+  border-color: #2f3336 !important;
+}
+
+/* Inputs → dark */
+html[data-theme="night"] .mkt-page input,
+html[data-theme="night"] .mkt-page select,
+html[data-theme="night"] .mkt-page textarea,
+html[data-theme="night"] .mkt-page .input {
+  background: #16181c !important;
+  color: #e7e9ea !important;
+  border-color: #2f3336 !important;
+}
+
+/* Primary pills invert to light on dark */
+html[data-theme="night"] .mkt-page .inst-btn-primary,
+html[data-theme="night"] .mkt-page .mkt-btn-chalk,
+html[data-theme="night"] .mkt-page .mkt-btn-ink,
+html[data-theme="night"] .mkt-page .mkt-hero-clean-cta,
+html[data-theme="night"] .mkt-page .mkt-trynow-cta {
+  background: #e7e9ea !important;
+  color: #0a0a0a !important;
+  border-color: #e7e9ea !important;
+}
+
+html[data-theme="night"] .mkt-page .inst-btn-ghost {
+  background: #1c1e22 !important;
+  color: #e7e9ea !important;
+  border-color: #2f3336 !important;
+}
+
+html[data-theme="night"] .mkt-page .mkt-showcase-copybtn {
+  background: #e7e9ea !important;
+  color: #0a0a0a !important;
+}
+
+/* Nav → dark */
+html[data-theme="night"] .mkt-nav--institution,
+html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
+  background: color-mix(in srgb, #0a0a0a 88%, transparent) !important;
+  border-bottom-color: #2f3336 !important;
+}
+
+html[data-theme="night"] .mkt-nav-brand .orvius-logo,
+html[data-theme="night"] .mkt-nav-brand .orvius-logo-word,
+html[data-theme="night"] .mkt-nav-brand .orvius-logo-mark,
+html[data-theme="night"] .mkt-nav--institution .mkt-nav-links a,
+html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
+html[data-theme="night"] .mkt-nav--institution .mkt-nav-login,
+html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login,
+html[data-theme="night"] .mkt-nav-theme {
+  color: #e7e9ea !important;
+}
+
+html[data-theme="night"] .mkt-nav-theme:hover {
+  background: #1c1e22 !important;
+}
+
+html[data-theme="night"] .mkt-nav--institution .mkt-nav-cta,
+html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
+  background: #e7e9ea !important;
+  color: #0a0a0a !important;
+  border-color: #e7e9ea !important;
+}
+
+html[data-theme="night"] .mkt-nav-secondary,
+html[data-theme="night"] .mkt-nav--institution .mkt-nav-secondary,
+html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-secondary {
+  background: #1c1e22 !important;
+  color: #e7e9ea !important;
+  border-color: #2f3336 !important;
+}
+
+/* Footer → dark */
+html[data-theme="night"] .mkt-footer,
+html[data-theme="night"] .mkt-footer--institution {
+  background: #0a0a0a !important;
+  border-top-color: #2f3336 !important;
+}
+
+html[data-theme="night"] .mkt-footer-entity,
+html[data-theme="night"] .mkt-footer-heading,
+html[data-theme="night"] .mkt-footer .orvius-logo,
+html[data-theme="night"] .mkt-footer .orvius-logo-word,
+html[data-theme="night"] .mkt-footer .orvius-logo-mark {
+  color: #e7e9ea !important;
+}
+
+html[data-theme="night"] .mkt-footer-tagline,
+html[data-theme="night"] .mkt-footer-col a,
+html[data-theme="night"] .mkt-footer--institution .mkt-footer-copy,
+html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
+  color: #8b8b86 !important;
+}
+
+html[data-theme="night"] .mkt-footer-bottom {
+  border-top-color: #2f3336 !important;
+}
+
+/* Resources hub links */
+html[data-theme="night"] .mkt-page .mkt-resources-link {
+  color: #e7e9ea !important;
+}
