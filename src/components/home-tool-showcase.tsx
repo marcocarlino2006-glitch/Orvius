@@ -25,11 +25,17 @@ export function HomeToolShowcase() {
     <section className="mkt-showcase" aria-labelledby="home-showcase-heading">
       <div className="editorial-wrap mkt-showcase-grid">
         <div className="mkt-showcase-copy">
-          <p className="mkt-showcase-eyebrow font-sans">On the line</p>
-          <h2 id="home-showcase-heading" className="mkt-showcase-title">
+          <p className="mkt-showcase-eyebrow font-sans" data-i18n="showcase.eyebrow">
+            On the line
+          </p>
+          <h2
+            id="home-showcase-heading"
+            className="mkt-showcase-title"
+            data-i18n="showcase.title"
+          >
             In every call, at every step.
           </h2>
-          <p className="mkt-showcase-lead font-sans">
+          <p className="mkt-showcase-lead font-sans" data-i18n="showcase.lead">
             Orvius answers the line, qualifies the job, alerts the owner, and
             works the dispatch board — one record, start to finish.
           </p>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandIntro } from "@/components/brand-intro";
 import { HomeStickyCall } from "@/components/home-sticky-call";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { I18nRuntime } from "@/components/i18n-runtime";
 import { PremiumNav } from "@/components/premium-nav";
 import { ShellHeader } from "@/components/shell-header";
 import { SiteControls } from "@/components/site-controls";
@@ -59,7 +60,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           <div className="mkt-footer-brand">
             <OrviusLogo variant="void" size="sm" />
             <p className="mkt-footer-entity font-sans">Solution Development LLC</p>
-            <p className="mkt-footer-tagline font-sans">
+            <p className="mkt-footer-tagline font-sans" data-i18n="footer.tagline">
               The night-shift OS for HVAC, plumbing, and electrical.
             </p>
           </div>
@@ -102,6 +103,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
       <SiteControls />
+      <I18nRuntime />
     </div>
   );
 }

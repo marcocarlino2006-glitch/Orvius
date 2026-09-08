@@ -5,10 +5,10 @@ import { useEffect, useId, useState } from "react";
 import { OrviusLogo } from "@/components/orvius-logo";
 
 const NAV = [
-  { href: "/product", label: "Product" },
-  { href: "/enterprise", label: "Enterprise" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/resources", label: "Resources" },
+  { href: "/product", label: "Product", i18n: "nav.product" },
+  { href: "/enterprise", label: "Enterprise", i18n: "nav.enterprise" },
+  { href: "/pricing", label: "Pricing", i18n: "nav.pricing" },
+  { href: "/resources", label: "Resources", i18n: "nav.resources" },
 ] as const;
 
 /**
@@ -58,20 +58,24 @@ export function PremiumNav() {
 
           <nav className="mkt-nav-links" aria-label="Main">
             {NAV.map((item) => (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} data-i18n={item.i18n}>
                 {item.label}
               </Link>
             ))}
           </nav>
 
           <div className="mkt-nav-actions">
-            <Link href="/login" className="mkt-nav-login">
+            <Link href="/login" className="mkt-nav-login" data-i18n="nav.signin">
               Sign in
             </Link>
-            <Link href="/demo" className="mkt-btn mkt-nav-secondary">
+            <Link
+              href="/demo"
+              className="mkt-btn mkt-nav-secondary"
+              data-i18n="nav.bookdemo"
+            >
               Book a demo
             </Link>
-            <Link href="/pilot" className="mkt-btn mkt-nav-cta">
+            <Link href="/pilot" className="mkt-btn mkt-nav-cta" data-i18n="nav.proveit">
               Prove it
             </Link>
             <button

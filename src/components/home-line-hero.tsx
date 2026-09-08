@@ -12,17 +12,21 @@ export function HomeLineHero() {
       aria-labelledby="home-hero-heading"
     >
       <div className="mkt-hero-clean">
-        <p className="mkt-hero-clean-eyebrow font-sans">
+        <p className="mkt-hero-clean-eyebrow font-sans" data-i18n="hero.eyebrow">
           For HVAC, plumbing &amp; electrical shops
         </p>
 
-        <h1 id="home-hero-heading" className="mkt-hero-clean-title">
+        <h1
+          id="home-hero-heading"
+          className="mkt-hero-clean-title"
+          data-i18n="hero.title"
+        >
           Never miss
           <br />
           another call.
         </h1>
 
-        <p className="mkt-hero-clean-lead font-sans">
+        <p className="mkt-hero-clean-lead font-sans" data-i18n="hero.lead">
           Orvius answers your after-hours calls, books the job, and alerts you
           in seconds — so no lead ever dies on voicemail.
         </p>
@@ -31,6 +35,7 @@ export function HomeLineHero() {
           <Link
             href="/pilot"
             className="inst-btn inst-btn-primary mkt-hero-clean-cta"
+            data-i18n="hero.cta"
           >
             Prove it on your line
           </Link>

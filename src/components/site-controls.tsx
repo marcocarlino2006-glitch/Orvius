@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-const LANGS = [
-  { code: "en", label: "English" },
-  { code: "es", label: "Español" },
-  { code: "fr", label: "Français" },
-  { code: "de", label: "Deutsch" },
-] as const;
+import { LANGS } from "@/lib/i18n";
 
 /**
  * Bottom-left site controls (cursor.com style): light/dark theme segmented
@@ -61,6 +55,7 @@ export function SiteControls() {
     } catch {
       /* ignore */
     }
+    window.dispatchEvent(new CustomEvent("orvius-lang", { detail: code }));
   }
 
   const current = LANGS.find((l) => l.code === lang) ?? LANGS[0];

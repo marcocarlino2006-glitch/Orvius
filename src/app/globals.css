@@ -25136,8 +25136,8 @@ html[data-theme="night"] .mkt-page .tier1-hero,
 html[data-theme="night"] .mkt-page .tier1-close,
 html[data-theme="night"] .mkt-page .marketing-hero,
 html[data-theme="night"] .mkt-page .mkt-trynow {
-  background: #1a1610 !important;
-  color: #ededec !important;
+  background: #171717 !important;
+  color: #ededed !important;
 }
 
 html[data-theme="night"] .mkt-page .tier1-story,
@@ -25147,9 +25147,9 @@ html[data-theme="night"] .mkt-page .mkt-manifesto,
 html[data-theme="night"] .mkt-page .mkt-close,
 html[data-theme="night"] .mkt-page .mkt-proof-section,
 html[data-theme="night"] .mkt-page .mkt-showcase {
-  background: #211c14 !important;
-  color: #ededec !important;
-  border-color: #3a3327 !important;
+  background: #1f1f1f !important;
+  color: #ededed !important;
+  border-color: #333333 !important;
 }
 
 /* Ink → light */
@@ -25167,7 +25167,7 @@ html[data-theme="night"] .mkt-page .text-void,
 html[data-theme="night"] .mkt-page .pro-panel-title,
 html[data-theme="night"] .mkt-page .pricing-needs-option-label,
 html[data-theme="night"] .mkt-page .tier1-plan-price {
-  color: #ededec !important;
+  color: #ededed !important;
 }
 
 /* Muted → warm gray light */
@@ -25184,7 +25184,7 @@ html[data-theme="night"] .mkt-page .mkt-law-body,
 html[data-theme="night"] .mkt-page .mkt-close-desc,
 html[data-theme="night"] .mkt-page .mkt-proof-lead,
 html[data-theme="night"] .mkt-page .mkt-hero-clean-eyebrow {
-  color: #a9a498 !important;
+  color: #a3a3a3 !important;
 }
 
 /* Cards / panels → dark */
@@ -25200,18 +25200,18 @@ html[data-theme="night"] .mkt-page .pricing-needs-picker,
 html[data-theme="night"] .mkt-page .pricing-needs-option,
 html[data-theme="night"] .mkt-page .mkt-call-panel,
 html[data-theme="night"] .mkt-page .mkt-showcase-snippet {
-  background: #2a241b !important;
-  border-color: #3a3327 !important;
-  color: #ededec !important;
+  background: #262626 !important;
+  border-color: #333333 !important;
+  color: #ededed !important;
 }
 
 html[data-theme="night"] .mkt-page .mkt-showcase-snippet code {
-  color: #ededec !important;
+  color: #ededed !important;
 }
 
 html[data-theme="night"] .mkt-page .pro-panel-head {
-  background: #1a1610 !important;
-  border-color: #3a3327 !important;
+  background: #171717 !important;
+  border-color: #333333 !important;
 }
 
 /* Inputs → dark */
@@ -25219,9 +25219,9 @@ html[data-theme="night"] .mkt-page input,
 html[data-theme="night"] .mkt-page select,
 html[data-theme="night"] .mkt-page textarea,
 html[data-theme="night"] .mkt-page .input {
-  background: #2a241b !important;
-  color: #ededec !important;
-  border-color: #3a3327 !important;
+  background: #262626 !important;
+  color: #ededed !important;
+  border-color: #333333 !important;
 }
 
 /* Primary pills invert to light on dark */
@@ -25230,27 +25230,27 @@ html[data-theme="night"] .mkt-page .mkt-btn-chalk,
 html[data-theme="night"] .mkt-page .mkt-btn-ink,
 html[data-theme="night"] .mkt-page .mkt-hero-clean-cta,
 html[data-theme="night"] .mkt-page .mkt-trynow-cta {
-  background: #ededec !important;
-  color: #1a1610 !important;
-  border-color: #ededec !important;
+  background: #ededed !important;
+  color: #171717 !important;
+  border-color: #ededed !important;
 }
 
 html[data-theme="night"] .mkt-page .inst-btn-ghost {
-  background: #2a241b !important;
-  color: #ededec !important;
-  border-color: #3a3327 !important;
+  background: #262626 !important;
+  color: #ededed !important;
+  border-color: #333333 !important;
 }
 
 html[data-theme="night"] .mkt-page .mkt-showcase-copybtn {
-  background: #ededec !important;
-  color: #1a1610 !important;
+  background: #ededed !important;
+  color: #171717 !important;
 }
 
 /* Nav → dark */
 html[data-theme="night"] .mkt-nav--institution,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
-  background: color-mix(in srgb, #1a1610 88%, transparent) !important;
-  border-bottom-color: #3a3327 !important;
+  background: color-mix(in srgb, #171717 88%, transparent) !important;
+  border-bottom-color: #333333 !important;
 }
 
 html[data-theme="night"] .mkt-nav-brand .orvius-logo,
@@ -25261,33 +25261,33 @@ html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-login,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login,
 html[data-theme="night"] .mkt-nav-theme {
-  color: #ededec !important;
+  color: #ededed !important;
 }
 
 html[data-theme="night"] .mkt-nav-theme:hover {
-  background: #2a241b !important;
+  background: #262626 !important;
 }
 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-cta,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
-  background: #ededec !important;
-  color: #1a1610 !important;
-  border-color: #ededec !important;
+  background: #ededed !important;
+  color: #171717 !important;
+  border-color: #ededed !important;
 }
 
 html[data-theme="night"] .mkt-nav-secondary,
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-secondary,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-secondary {
-  background: #2a241b !important;
-  color: #ededec !important;
-  border-color: #3a3327 !important;
+  background: #262626 !important;
+  color: #ededed !important;
+  border-color: #333333 !important;
 }
 
 /* Footer → dark */
 html[data-theme="night"] .mkt-footer,
 html[data-theme="night"] .mkt-footer--institution {
-  background: #1a1610 !important;
-  border-top-color: #3a3327 !important;
+  background: #171717 !important;
+  border-top-color: #333333 !important;
 }
 
 html[data-theme="night"] .mkt-footer-entity,
@@ -25295,47 +25295,47 @@ html[data-theme="night"] .mkt-footer-heading,
 html[data-theme="night"] .mkt-footer .orvius-logo,
 html[data-theme="night"] .mkt-footer .orvius-logo-word,
 html[data-theme="night"] .mkt-footer .orvius-logo-mark {
-  color: #ededec !important;
+  color: #ededed !important;
 }
 
 html[data-theme="night"] .mkt-footer-tagline,
 html[data-theme="night"] .mkt-footer-col a,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-copy,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
-  color: #a9a498 !important;
+  color: #a3a3a3 !important;
 }
 
 html[data-theme="night"] .mkt-footer-bottom {
-  border-top-color: #3a3327 !important;
+  border-top-color: #333333 !important;
 }
 
 /* Resources hub links */
 html[data-theme="night"] .mkt-page .mkt-resources-link {
-  color: #ededec !important;
+  color: #ededed !important;
 }
 
 /* Bottom-left controls in night mode */
 html[data-theme="night"] .site-controls-theme,
 html[data-theme="night"] .site-controls-lang-btn,
 html[data-theme="night"] .site-controls-lang-menu {
-  background: #2a241b !important;
-  border-color: #3a3327 !important;
+  background: #262626 !important;
+  border-color: #333333 !important;
 }
 
 html[data-theme="night"] .site-controls-lang-btn,
 html[data-theme="night"] .site-controls-lang-menu button {
-  color: #ededec !important;
+  color: #ededed !important;
 }
 
 html[data-theme="night"] .site-controls-theme button {
-  color: #a9a498 !important;
+  color: #a3a3a3 !important;
 }
 
 html[data-theme="night"] .site-controls-theme button.is-active {
-  background: #ededec !important;
-  color: #1a1610 !important;
+  background: #ededed !important;
+  color: #171717 !important;
 }
 
 html[data-theme="night"] .site-controls-lang-menu button:hover {
-  background: #3a3327 !important;
+  background: #333333 !important;
 }

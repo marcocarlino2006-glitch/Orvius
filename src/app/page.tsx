@@ -21,18 +21,27 @@ export default function HomePage() {
 
       <section className="mkt-trynow" aria-labelledby="home-trynow-heading">
         <div className="mkt-trynow-inner">
-          <h2 id="home-trynow-heading" className="mkt-trynow-title">
+          <h2
+            id="home-trynow-heading"
+            className="mkt-trynow-title"
+            data-i18n="trynow.title"
+          >
             Try Orvius now.
           </h2>
           <div className="mkt-trynow-actions font-sans">
             <Link
               href="/pilot"
               className="inst-btn inst-btn-primary mkt-trynow-cta"
+              data-i18n="trynow.cta"
             >
               Get started →
             </Link>
           </div>
-          <a href="tel:+18446439170" className="mkt-trynow-call font-sans">
+          <a
+            href="tel:+18446439170"
+            className="mkt-trynow-call font-sans"
+            data-i18n="trynow.call"
+          >
             or call the live line · +1 844 643 9170
           </a>
         </div>
