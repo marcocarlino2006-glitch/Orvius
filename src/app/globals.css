@@ -26019,12 +26019,19 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 /* ── Mastery round 2 ── */
 
 /* Copilot dock sits opposite the rail so it never covers the board or the
-   settings save bar. */
+   settings save bar. The wrapper shrinks to its trigger and stays transparent
+   to pointer events, so it can't swallow clicks on the page beneath it. */
 .os-shell-night .os-ask-dock {
   left: auto !important;
   right: 1.35rem !important;
   bottom: 1.35rem !important;
+  width: auto !important;
   align-items: flex-end !important;
+  pointer-events: none;
+}
+
+.os-shell-night .os-ask-dock > * {
+  pointer-events: auto;
 }
 
 /* App buttons speak in sentence case, like the site */
@@ -26201,12 +26208,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   backdrop-filter: none;
 }
 
-/* Keep the save action clear of the floating copilot dock */
-@media (min-width: 1024px) {
-  .os-shell-night .pro-settings-savebar {
-    padding-right: 11rem;
-  }
-}
 
 /* ── Mastery round 5 — numbers become numbers ── */
 .os-shell-night .shop-outcomes,
@@ -26369,4 +26370,10 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   border: 1px solid #2f3336;
   border-radius: 0.25rem;
   color: #8b9096;
+}
+
+/* Settings keeps a narrower column than the boards, so its sticky save bar
+   ends well before the floating dock. */
+.os-shell-night .os-content-pro > .pro-settings-page {
+  max-width: 62rem;
 }
