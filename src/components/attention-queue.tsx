@@ -142,9 +142,11 @@ function CopyProofButton({ onDone }: { onDone?: () => void }) {
 function TextConfirmButton({
   jobId,
   onDone,
+  className = "attention-item-btn attention-item-btn-primary",
 }: {
   jobId: string;
   onDone?: () => void;
+  className?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -169,12 +171,7 @@ function TextConfirmButton({
 
   return (
     <>
-      <button
-        type="button"
-        className="attention-item-btn attention-item-btn-primary"
-        disabled={busy}
-        onClick={() => void run()}
-      >
+      <button type="button" className={className} disabled={busy} onClick={() => void run()}>
         {busy ? "Sending…" : "Text confirm"}
       </button>
       {err ? <span className="attention-item-detail">{err}</span> : null}
@@ -263,8 +260,14 @@ export function AttentionQueue({
               >
                 <div className="attention-item-copy">
                   <p className="attention-item-kind">
-                    {attentionKindLabel(item.kind)}
-                    {item.impact === "critical" ? " · critical" : null}
+                    {item.impact === "critical" ? (
+                      <span className="attention-chip attention-chip-critical">
+                        Critical
+                      </span>
+                    ) : null}
+                    <span className="attention-item-kindlabel">
+                      {attentionKindLabel(item.kind)}
+                    </span>
                   </p>
                   <h3 className="attention-item-title">{item.title}</h3>
                   <p className="attention-item-detail">{item.detail}</p>
@@ -278,7 +281,9 @@ export function AttentionQueue({
                   {showCall ? (
                     <a
                       href={telHref(item.meta!.phone!)}
-                      className="attention-item-btn attention-item-btn-primary"
+                      className={`attention-item-btn ${
+                        showTextConfirm ? "" : "attention-item-btn-primary"
+                      }`}
                     >
                       Call
                     </a>
@@ -311,6 +316,7 @@ export function AttentionQueue({
                     <TextConfirmButton
                       jobId={item.entityId}
                       onDone={() => onAction?.()}
+                      className="attention-item-btn attention-item-btn-primary"
                     />
                   ) : null}
                   {showAdvance ? (
@@ -324,7 +330,7 @@ export function AttentionQueue({
                   <Link
                     href={item.href}
                     className={`attention-item-btn ${
-                      hasPrimary ? "" : "attention-item-btn-primary"
+                      hasPrimary ? "attention-item-btn-quiet" : "attention-item-btn-primary"
                     }`}
                   >
                     {hasPrimary ? "Open" : item.recommendedAction}

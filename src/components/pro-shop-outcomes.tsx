@@ -28,12 +28,31 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
 
   if (!outcomes) return null;
 
-  const booking =
-    outcomes.bookingRate != null ? `${outcomes.bookingRate}% booked` : "— booked";
   const recovered = formatCents(outcomes.recoveredRevenueCents);
   const pipeline = formatCents(outcomes.estimatedPipelineCents);
   const collected = formatCents(outcomes.collectedCents);
   const jobsDelta = outcomes.jobsPerWeekVsBaseline;
+
+  // Headline numbers read as a stat row; the notes below carry the nuance.
+  const stats: Array<{ label: string; value: string }> = [
+    { label: "Calls", value: String(outcomes.calls) },
+    { label: "Leads", value: String(outcomes.leads) },
+    { label: "Jobs booked", value: String(outcomes.jobsBooked) },
+    {
+      label: "Booking rate",
+      value: outcomes.bookingRate != null ? `${outcomes.bookingRate}%` : "—",
+    },
+  ];
+
+  if (recovered) {
+    stats.push({ label: "Est. recovered", value: recovered });
+  } else if (pipeline) {
+    stats.push({ label: "Est. pipeline", value: pipeline });
+  }
+
+  if (collected && outcomes.collectedCents > 0) {
+    stats.push({ label: "Collected", value: collected });
+  }
 
   return (
     <section className="shop-outcomes font-sans" aria-label="Shop outcomes">
@@ -41,29 +60,15 @@ export function ProShopOutcomes({ outcomes, loading }: ProShopOutcomesProps) {
         <p className="shop-outcomes-kicker type-eyebrow">
           Last {outcomes.windowDays} days · economics
         </p>
-        <p className="shop-outcomes-line">
-          <strong>{outcomes.calls}</strong> calls ·{" "}
-          <strong>{outcomes.leads}</strong> leads ·{" "}
-          <strong>{outcomes.jobsBooked}</strong> jobs · {booking}
-          {recovered ? (
-            <>
-              {" "}
-              · <strong>{recovered}</strong> est. recovered
-            </>
-          ) : pipeline ? (
-            <>
-              {" "}
-              · <strong>{pipeline}</strong> est. pipeline
-            </>
-          ) : null}
-          {collected && outcomes.collectedCents > 0 ? (
-            <>
-              {" "}
-              · <strong>{collected}</strong> collected
-            </>
-          ) : null}
-        </p>
       </div>
+      <dl className="shop-outcomes-stats">
+        {stats.map((stat) => (
+          <div className="shop-outcome-stat" key={stat.label}>
+            <dt>{stat.label}</dt>
+            <dd>{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
       <ul className="shop-outcomes-meta">
         {outcomes.afterHoursLeads > 0 ? (
           <li>

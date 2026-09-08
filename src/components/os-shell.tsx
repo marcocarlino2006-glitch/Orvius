@@ -13,6 +13,7 @@ import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
 import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { OsIcon } from "@/components/os-icons";
 import { OsAskDock } from "@/components/os-ask-dock";
 import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
@@ -69,7 +70,12 @@ export function OsShell({
         <p className="os-sidebar-label font-sans">Shop</p>
         <p className="os-ring-status-title font-sans">{businessName}</p>
         <p className="os-ring-status-module font-sans">
-          {business?.line ?? (
+          {business?.line ? (
+            <>
+              <span className="os-ring-status-dot" aria-hidden />
+              {business.line}
+            </>
+          ) : (
             <>
               Line not set ·{" "}
               <Link href="/dashboard/settings" className="os-sidebar-inline-link">
@@ -106,8 +112,10 @@ export function OsShell({
                   <Link
                     href={item.href}
                     className={`os-nav-link font-sans ${active ? "os-nav-link-active" : ""}`}
+                    aria-current={active ? "page" : undefined}
                   >
-                    <span>{item.label}</span>
+                    <OsIcon name={item.icon} />
+                    <span className="os-nav-label">{item.label}</span>
                     {badge ? (
                       <span className="os-nav-badge">{badge}</span>
                     ) : null}
@@ -120,7 +128,8 @@ export function OsShell({
                     className="os-nav-link os-nav-link-locked font-sans"
                     title="Subscribe to continue"
                   >
-                    <span>{item.label}</span>
+                    <OsIcon name={item.icon} />
+                    <span className="os-nav-label">{item.label}</span>
                     <span className="os-nav-lock">Pay</span>
                   </Link>
                 ) : planAllowed === false && upgradePlan ? (
@@ -129,12 +138,14 @@ export function OsShell({
                     className="os-nav-link os-nav-link-locked font-sans"
                     title={`Upgrade to ${upgradePlan.name}`}
                   >
-                    <span>{item.label}</span>
+                    <OsIcon name={item.icon} />
+                    <span className="os-nav-label">{item.label}</span>
                     <span className="os-nav-lock">Pro</span>
                   </Link>
                 ) : (
                   <span className="os-nav-link os-nav-link-disabled font-sans">
-                    {item.label}
+                    <OsIcon name={item.icon} />
+                    <span className="os-nav-label">{item.label}</span>
                   </span>
                 )}
               </li>
@@ -146,18 +157,21 @@ export function OsShell({
       <nav className="os-sidebar-nav" aria-label="Account">
         <p className="os-sidebar-label font-sans">Account</p>
         <ul>
-          {osWorkspaceNav.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={`os-nav-link font-sans ${
-                  navActive(pathname, item.href) ? "os-nav-link-active" : ""
-                }`}
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
+          {osWorkspaceNav.map((item) => {
+            const active = navActive(pathname, item.href);
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`os-nav-link font-sans ${active ? "os-nav-link-active" : ""}`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  <OsIcon name={item.icon} />
+                  <span className="os-nav-label">{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 

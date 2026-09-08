@@ -265,18 +265,14 @@ export default function DashboardSettingsPage() {
 
   return (
     <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
-      <ProPageStrip />
+      <div className="pro-settings-page">
+        <ProPageStrip />
 
-      <ProSetupHub health={account?.health} wedge={account?.wedge} />
+        <ProSetupHub health={account?.health} wedge={account?.wedge} />
 
-      <form className="account-stack pro-settings-form" onSubmit={save}>
+        <form className="account-stack pro-settings-form" onSubmit={save}>
         <div id="overflow-forward">
           <ShellPanel title="Call capture" dense>
-            <p className="account-settings-hint font-sans mb-3">
-              Your dedicated line answers as {account?.business?.name ?? "your shop"}.
-              Forward missed / busy / after-hours from your public line — or publish
-              this number as the main line.
-            </p>
             <CaptureSetupPanel
               line={line}
               overflowConfirmed={overflowForward}
@@ -444,10 +440,20 @@ export default function DashboardSettingsPage() {
         ) : null}
         {testResult ? <ShellAlert tone="success">{testResult}</ShellAlert> : null}
 
-        <button type="submit" className="btn btn-void" disabled={saving}>
-          {saving ? "Saving…" : "Save settings"}
-        </button>
-      </form>
+        <div className="pro-settings-savebar">
+          <p className="pro-settings-savebar-hint font-sans">
+            {saving
+              ? "Saving your changes…"
+              : saved
+                ? "All changes saved."
+                : "Changes apply to your live receptionist."}
+          </p>
+          <button type="submit" className="btn btn-void" disabled={saving}>
+            {saving ? "Saving…" : "Save settings"}
+          </button>
+        </div>
+        </form>
+      </div>
     </OsShell>
   );
 }

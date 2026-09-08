@@ -25356,3 +25356,1017 @@ html[data-theme="night"] .site-controls-theme button.is-active {
 html[data-theme="night"] .site-controls-lang-menu button:hover {
   background: #333333 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OS MASTERY — sidebar, command board, settings
+   One type system with the marketing site (neutral grotesque), icon-led rail,
+   real row hierarchy on the board, and a sectioned settings surface.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── One letterset across site and product ── */
+.os-shell-night,
+.os-shell-night .font-sans,
+.os-shell-night nav,
+.os-shell-night button,
+.os-shell-night input,
+.os-shell-night select,
+.os-shell-night textarea,
+.os-shell-night .btn,
+.os-shell-night .label,
+.os-shell-night .ui {
+  font-family: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
+    "Liberation Sans", sans-serif;
+}
+
+/* ── Rail ── */
+@media (min-width: 1024px) {
+  .os-shell-night .os-sidebar {
+    width: 15.75rem !important;
+  }
+}
+
+.os-shell-night .os-sidebar-inner {
+  padding: 0.9rem 0.7rem 0.7rem !important;
+  gap: 0 !important;
+}
+
+.os-shell-night .os-sidebar-brand {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 2.25rem !important;
+  padding: 0 0.4rem !important;
+  margin-bottom: 0.9rem !important;
+  border-radius: 0.35rem;
+}
+
+.os-shell-night .os-sidebar-brand:hover {
+  background: #0f1113 !important;
+}
+
+/* Shop identity — quiet block, not a card */
+.os-shell-night .os-ring-status {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 0.4rem 0.9rem !important;
+  margin: 0 0 0.5rem !important;
+  border-bottom: 1px solid #1f2226 !important;
+}
+
+.os-shell-night .os-sidebar-label {
+  margin: 0 0 0.3rem !important;
+  font-size: 0.5625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #4d5156 !important;
+}
+
+.os-shell-night .os-ring-status-title {
+  margin: 0 !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.006em !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .os-ring-status-module {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  margin: 0.25rem 0 0 !important;
+  font-size: 0.75rem !important;
+  color: #71767b !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell-night .os-ring-status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: #00ba7c;
+  box-shadow: 0 0 0 3px rgba(0, 186, 124, 0.15);
+  flex-shrink: 0;
+}
+
+.os-shell-night .os-sidebar-nav {
+  margin: 0.9rem 0 0 !important;
+}
+
+.os-shell-night .os-sidebar-nav > .os-sidebar-label {
+  padding: 0 0.4rem;
+}
+
+.os-shell-night .os-sidebar-nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none;
+}
+
+.os-shell-night .os-nav-link {
+  display: grid !important;
+  grid-template-columns: 1rem minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 0.6rem !important;
+  min-height: 2rem !important;
+  padding: 0 0.45rem !important;
+  border-radius: 0.35rem !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #8b9096 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 450 !important;
+  letter-spacing: -0.003em !important;
+  text-transform: none !important;
+  transition: background 110ms ease, color 110ms ease;
+}
+
+.os-shell-night .os-nav-icon {
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.72;
+  transition: opacity 110ms ease;
+}
+
+.os-shell-night .os-nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-shell-night .os-nav-link:hover {
+  background: #0f1113 !important;
+  color: #e7e9ea !important;
+}
+
+.os-shell-night .os-nav-link:hover .os-nav-icon {
+  opacity: 0.95;
+}
+
+.os-shell-night .os-sidebar-pro .os-nav-link-active,
+.os-shell-night .os-nav-link-active {
+  background: #1b1e22 !important;
+  color: #ffffff !important;
+  font-weight: 550 !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .os-nav-link-active .os-nav-icon {
+  opacity: 1;
+}
+
+.os-shell-night .os-nav-link-disabled {
+  color: #43474c !important;
+  cursor: default;
+}
+
+.os-shell-night .os-nav-link-disabled:hover {
+  background: transparent !important;
+  color: #43474c !important;
+}
+
+.os-shell-night .os-nav-badge {
+  min-width: 1.15rem;
+  padding: 0 0.3rem !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  background: #f4212e !important;
+  color: #ffffff !important;
+  font-size: 0.625rem !important;
+  font-weight: 650 !important;
+  line-height: 1.15rem !important;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell-night .os-nav-lock {
+  padding: 0.05rem 0.35rem !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 9999px !important;
+  background: transparent !important;
+  color: #71767b !important;
+  font-size: 0.5625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+
+/* Rail footer — account row */
+.os-shell-night .os-sidebar-footer {
+  margin-top: auto !important;
+  padding-top: 0.6rem !important;
+  border-top: 1px solid #1f2226 !important;
+}
+
+.os-shell-night .os-sidebar-user {
+  width: 100%;
+  border-radius: 0.35rem !important;
+  padding: 0.4rem 0.45rem !important;
+  background: transparent !important;
+  border: none !important;
+  transition: background 110ms ease;
+}
+
+.os-shell-night .os-sidebar-user:hover {
+  background: #0f1113 !important;
+}
+
+/* ── Topbar ── */
+.os-shell-night .os-topbar-pro,
+.os-shell-night .os-topbar-night {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 0.7rem 1.35rem !important;
+  border-bottom: 1px solid #1f2226 !important;
+  background: rgba(0, 0, 0, 0.86) !important;
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+.os-shell-night .os-topbar-live {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.15rem !important;
+  font-size: 0.6875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  color: #71767b !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell-night .os-topbar-title {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.014em !important;
+  color: #f7f9f9 !important;
+}
+
+.os-shell-night .os-topbar-sub {
+  margin-top: 0.15rem !important;
+  font-size: 0.8125rem !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .os-content-pro {
+  padding: 1.1rem 1.35rem 5rem !important;
+}
+
+.os-shell-night .os-content-pro > * {
+  max-width: 78rem;
+}
+
+/* ── Command board ── */
+.os-shell-night .attention-queue-head {
+  margin-bottom: 0.55rem;
+}
+
+.os-shell-night .attention-queue-kicker {
+  margin: 0 0 0.2rem !important;
+  font-size: 0.5625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #4d5156 !important;
+}
+
+.os-shell-night .attention-queue-title {
+  margin: 0 !important;
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.012em !important;
+  color: #f7f9f9 !important;
+}
+
+.os-shell-night .attention-queue-lead {
+  margin: 0.15rem 0 0 !important;
+  font-size: 0.8125rem !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .attention-queue-list {
+  border: 1px solid #1f2226 !important;
+  border-radius: 0.4rem !important;
+}
+
+.os-shell-night .attention-item {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  padding: 0.7rem 0.9rem !important;
+  border-bottom: 1px solid #1f2226 !important;
+  background: #0b0d0f !important;
+  transition: background 110ms ease;
+}
+
+.os-shell-night .attention-item:hover {
+  background: #111316 !important;
+}
+
+.os-shell-night .attention-item-critical {
+  box-shadow: inset 2px 0 0 #f4212e !important;
+}
+
+.os-shell-night .attention-item-kind {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  margin: 0 0 0.2rem !important;
+}
+
+.os-shell-night .attention-item-kindlabel {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #4d5156;
+}
+
+.os-shell-night .attention-chip {
+  padding: 0.05rem 0.4rem;
+  border-radius: 9999px;
+  font-size: 0.5625rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.os-shell-night .attention-chip-critical {
+  background: rgba(244, 33, 46, 0.14);
+  border: 1px solid rgba(244, 33, 46, 0.35);
+  color: #ff7a80;
+}
+
+.os-shell-night .attention-item-title {
+  margin: 0 !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.008em !important;
+  color: #f7f9f9 !important;
+}
+
+.os-shell-night .attention-item-detail {
+  margin: 0.1rem 0 0 !important;
+  font-size: 0.8125rem !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .attention-item-value {
+  margin: 0.2rem 0 0 !important;
+  font-size: 0.75rem !important;
+  color: #8b9096 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell-night .attention-item-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  flex-shrink: 0;
+}
+
+.os-shell-night .attention-item-btn,
+.os-shell-night .attention-item-btn-primary,
+.os-shell-night .attention-item-btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.85rem !important;
+  padding: 0 0.7rem !important;
+  border-radius: 0.3rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.002em !important;
+  text-transform: none !important;
+  transition: background 110ms ease, color 110ms ease, border-color 110ms ease;
+}
+
+.os-shell-night .attention-item-btn {
+  background: transparent !important;
+  border: 1px solid #2f3336 !important;
+  color: #c4c8cc !important;
+}
+
+.os-shell-night .attention-item-btn:hover {
+  background: #1b1e22 !important;
+  border-color: #3d4247 !important;
+  color: #ffffff !important;
+}
+
+.os-shell-night .attention-item-btn-primary {
+  background: #f7f9f9 !important;
+  border: 1px solid #f7f9f9 !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+.os-shell-night .attention-item-btn-primary:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.os-shell-night .attention-item-btn-quiet {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #8b9096 !important;
+}
+
+.os-shell-night .attention-item-btn-quiet:hover {
+  background: #1b1e22 !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+/* ── Panels + stats ── */
+.os-shell-night .pro-panel {
+  background: #0b0d0f !important;
+  border: 1px solid #1f2226 !important;
+  border-radius: 0.4rem !important;
+  overflow: hidden;
+}
+
+.os-shell-night .pro-panel-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+  padding: 0.7rem 0.9rem !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #1f2226 !important;
+  background: #0e1113 !important;
+}
+
+.os-shell-night .pro-panel-title {
+  margin: 0 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.004em !important;
+  text-transform: none !important;
+  color: #f7f9f9 !important;
+}
+
+.os-shell-night .pro-panel-body {
+  padding: 0.9rem !important;
+}
+
+.os-shell-night .pro-stat-label {
+  font-size: 0.5625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #4d5156 !important;
+}
+
+.os-shell-night .pro-stat-value {
+  font-size: 1.375rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  color: #f7f9f9 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Settings ── */
+.os-shell-night .pro-settings-form {
+  max-width: 58rem;
+  gap: 0.9rem !important;
+}
+
+.os-shell-night .onboarding-label {
+  display: block;
+  margin-bottom: 0.3rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.002em !important;
+  color: #e7e9ea !important;
+  text-transform: none !important;
+}
+
+.os-shell-night .onboarding-input,
+.os-shell-night .onboarding-textarea {
+  width: 100%;
+  max-width: 26rem;
+  padding: 0.5rem 0.65rem !important;
+  border: 1px solid #2f3336 !important;
+  border-radius: 0.35rem !important;
+  background: #000000 !important;
+  color: #f7f9f9 !important;
+  font-size: 0.875rem !important;
+  transition: border-color 110ms ease, box-shadow 110ms ease;
+}
+
+.os-shell-night .onboarding-textarea {
+  max-width: 34rem;
+  line-height: 1.5;
+}
+
+.os-shell-night .onboarding-input:focus,
+.os-shell-night .onboarding-textarea:focus {
+  outline: none;
+  border-color: #6a7075 !important;
+  box-shadow: 0 0 0 3px rgba(231, 233, 234, 0.09) !important;
+}
+
+.os-shell-night .onboarding-hint {
+  display: block;
+  margin-top: 0.35rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1.45 !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .account-settings-hint {
+  font-size: 0.8125rem !important;
+  line-height: 1.5 !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .pro-settings-test-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  flex-wrap: wrap;
+  margin-top: 1rem !important;
+  padding-top: 0.9rem !important;
+  border-top: 1px solid #1f2226 !important;
+}
+
+.os-shell-night .pro-settings-test-meta {
+  font-size: 0.75rem !important;
+  color: #71767b !important;
+}
+
+/* Secondary settings groups become real disclosure rows */
+.os-shell-night .pro-settings-secondary {
+  border: 1px solid #1f2226 !important;
+  border-radius: 0.4rem !important;
+  background: #0b0d0f !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.os-shell-night .pro-settings-secondary > summary {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.9rem !important;
+  margin: 0 !important;
+  background: #0e1113 !important;
+  color: #f7f9f9 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.004em !important;
+  text-transform: none !important;
+  cursor: pointer;
+  list-style: none;
+  transition: background 110ms ease;
+}
+
+.os-shell-night .pro-settings-secondary > summary::-webkit-details-marker {
+  display: none;
+}
+
+.os-shell-night .pro-settings-secondary > summary::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 1.5px solid #71767b;
+  border-bottom: 1.5px solid #71767b;
+  transform: rotate(45deg);
+  transition: transform 140ms ease;
+  flex-shrink: 0;
+}
+
+.os-shell-night .pro-settings-secondary[open] > summary::after {
+  transform: rotate(-135deg);
+}
+
+.os-shell-night .pro-settings-secondary > summary:hover {
+  background: #14181b !important;
+}
+
+.os-shell-night .pro-settings-secondary-body {
+  padding: 0.9rem !important;
+  border-top: 1px solid #1f2226 !important;
+}
+
+.os-shell-night .pro-founder-cert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.os-shell-night .pro-founder-cert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 0.3rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #c4c8cc;
+  cursor: pointer;
+  transition: background 110ms ease;
+}
+
+.os-shell-night .pro-founder-cert-item:hover {
+  background: #14181b;
+  color: #f7f9f9;
+}
+
+.os-shell-night .pro-settings-savebar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #1f2226;
+  border-radius: 0.4rem;
+  background: rgba(11, 13, 15, 0.92);
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+.os-shell-night .pro-settings-savebar-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #71767b;
+}
+
+/* ── Shared focus treatment ── */
+.os-shell-night a:focus-visible,
+.os-shell-night button:focus-visible,
+.os-shell-night summary:focus-visible,
+.os-shell-night input:focus-visible,
+.os-shell-night select:focus-visible,
+.os-shell-night textarea:focus-visible {
+  outline: 2px solid rgba(231, 233, 234, 0.6);
+  outline-offset: 2px;
+}
+
+/* ── Mastery round 2 ── */
+
+/* Copilot dock sits opposite the rail so it never covers the board or the
+   settings save bar. */
+.os-shell-night .os-ask-dock {
+  left: auto !important;
+  right: 1.35rem !important;
+  bottom: 1.35rem !important;
+  align-items: flex-end !important;
+}
+
+/* App buttons speak in sentence case, like the site */
+.os-shell-night .btn,
+.os-shell-night button.btn,
+.os-shell-night a.btn {
+  min-height: 2.1rem;
+  padding: 0 0.85rem;
+  border-radius: 0.35rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 550 !important;
+  letter-spacing: -0.003em !important;
+  text-transform: none !important;
+}
+
+.os-shell-night .btn-void {
+  background: #f7f9f9 !important;
+  border: 1px solid #f7f9f9 !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+.os-shell-night .btn-void:hover:not(:disabled) {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+.os-shell-night .btn-void:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.os-shell-night .btn-secondary {
+  background: transparent !important;
+  border: 1px solid #2f3336 !important;
+  color: #c4c8cc !important;
+}
+
+.os-shell-night .btn-secondary:hover:not(:disabled) {
+  background: #1b1e22 !important;
+  border-color: #3d4247 !important;
+  color: #ffffff !important;
+}
+
+/* One column width for the whole settings surface */
+.os-shell-night .pro-settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  max-width: 62rem;
+}
+
+.os-shell-night .pro-settings-form {
+  max-width: none;
+}
+
+.os-shell-night button.btn-void,
+.os-shell-night a.btn-void {
+  background: #f7f9f9 !important;
+  border: 1px solid #f7f9f9 !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+.os-shell-night button.btn-secondary,
+.os-shell-night a.btn-secondary {
+  background: transparent !important;
+  border: 1px solid #2f3336 !important;
+  color: #c4c8cc !important;
+}
+
+.os-shell-night button.btn-secondary:hover:not(:disabled),
+.os-shell-night a.btn-secondary:hover {
+  background: #1b1e22 !important;
+  border-color: #3d4247 !important;
+  color: #ffffff !important;
+}
+
+/* Panel titles read as headings, not micro-labels */
+.os-shell-night .pro-panel .pro-panel-title,
+.os-shell-night .pro-panel-head .pro-panel-title {
+  color: #f7f9f9 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.004em !important;
+  text-transform: none !important;
+}
+
+/* ── Mastery round 3 — one button voice across every product surface ── */
+.os-shell-night .lead-quick-actions .btn,
+.os-shell-night .lead-inbox-card-actions .btn,
+.os-shell-night .lead-rail-actions .btn,
+.os-shell-night .inbox-filters .btn,
+.os-shell-night .pro-filter-bar .btn,
+.os-shell-night .pro-page-filters .btn,
+.os-shell-night .pro-panel .btn,
+.os-shell-night .pro-settings-secondary .btn,
+.os-shell-night .capture-setup .btn,
+.os-shell-night .pro-filter-tab,
+.os-shell-night .dispatch-job-assign .assign-tech-btn {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.002em !important;
+  text-transform: none !important;
+  border-radius: 0.3rem !important;
+  min-height: 1.85rem !important;
+  padding: 0 0.7rem !important;
+}
+
+.os-shell-night .pro-filter-tab {
+  border-radius: 0 !important;
+  font-weight: 500 !important;
+}
+
+.os-shell-night .pro-filter-tab.is-active,
+.os-shell-night .inbox-filters .btn.active {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Row meta reads as a label, not a whisper */
+.os-shell-night .attention-item-kindlabel,
+.os-shell-night .lead-rail-kind,
+.os-shell-night .lead-inbox-card-kind {
+  color: #6a7075 !important;
+}
+
+/* Board column keeps a readable measure */
+.os-shell-night .os-content-pro > * {
+  max-width: 72rem;
+}
+
+/* Inbox row actions join the same button voice */
+.os-shell-night .lead-quick-btn,
+.os-shell-night .lead-quick-actions .lead-quick-btn,
+.os-shell-night .lead-rail-actions .lead-quick-btn {
+  min-height: 1.85rem !important;
+  padding: 0 0.7rem !important;
+  border-radius: 0.3rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.002em !important;
+  text-transform: none !important;
+  background: transparent !important;
+  border: 1px solid #2f3336 !important;
+  color: #c4c8cc !important;
+}
+
+.os-shell-night .lead-quick-btn:hover {
+  background: #1b1e22 !important;
+  border-color: #3d4247 !important;
+  color: #ffffff !important;
+}
+
+.os-shell-night .lead-quick-btn-primary {
+  background: #f7f9f9 !important;
+  border-color: #f7f9f9 !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+.os-shell-night .lead-quick-btn-primary:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* ── Mastery round 4 ── */
+
+/* Opaque topbar: content must not ghost through while scrolling */
+.os-shell-night .os-topbar-pro,
+.os-shell-night .os-topbar-night {
+  background: #000000 !important;
+  backdrop-filter: none;
+}
+
+/* Keep the save action clear of the floating copilot dock */
+@media (min-width: 1024px) {
+  .os-shell-night .pro-settings-savebar {
+    padding-right: 11rem;
+  }
+}
+
+/* ── Mastery round 5 — numbers become numbers ── */
+.os-shell-night .shop-outcomes,
+.os-shell-night .pro-economics {
+  background: #0b0d0f !important;
+  border: 1px solid #1f2226 !important;
+  border-radius: 0.4rem !important;
+  padding: 0.9rem !important;
+}
+
+.os-shell-night .shop-outcomes-kicker {
+  margin: 0 !important;
+  font-size: 0.5625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #4d5156 !important;
+}
+
+.os-shell-night .shop-outcomes-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.75rem 1.25rem;
+  margin: 0.7rem 0 0;
+  padding: 0.8rem 0 0;
+  border-top: 1px solid #1f2226;
+}
+
+.os-shell-night .shop-outcome-stat dt {
+  margin: 0 0 0.2rem;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #4d5156;
+}
+
+.os-shell-night .shop-outcome-stat dd {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #f7f9f9;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.os-shell-night .shop-outcomes-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.8rem 0 0 !important;
+  padding: 0.75rem 0 0 !important;
+  border-top: 1px solid #1f2226;
+  list-style: none;
+  font-size: 0.8125rem !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .shop-outcomes-meta strong {
+  color: #c4c8cc;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell-night .pro-economics-title {
+  margin: 0.1rem 0 0 !important;
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.012em !important;
+  color: #f7f9f9 !important;
+}
+
+.os-shell-night .pro-economics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 0.85rem 0 0 !important;
+  padding: 0.85rem 0 0 !important;
+  border-top: 1px solid #1f2226;
+}
+
+.os-shell-night .pro-economics-grid dt {
+  margin: 0 0 0.2rem;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #4d5156;
+}
+
+.os-shell-night .pro-economics-grid dd {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #f7f9f9;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.os-shell-night .pro-economics-hint {
+  margin: 0.3rem 0 0 !important;
+  font-size: 0.75rem !important;
+  color: #71767b !important;
+}
+
+.os-shell-night .pro-economics-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.9rem !important;
+  padding-top: 0.85rem !important;
+  border-top: 1px solid #1f2226;
+}
+
+/* Inline assign control on the board */
+.os-shell-night .attention-item-assign .assign-tech-select,
+.os-shell-night .attention-item-assign .assign-tech-btn {
+  min-height: 1.85rem !important;
+  padding: 0 0.6rem !important;
+  border-radius: 0.3rem !important;
+  border: 1px solid #2f3336 !important;
+  background: #000000 !important;
+  color: #c4c8cc !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.002em !important;
+  text-transform: none !important;
+}
+
+.os-shell-night .attention-item-assign .assign-tech-btn {
+  background: #f7f9f9 !important;
+  border-color: #f7f9f9 !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* ── Mastery round 6 — panel edges must not clip content ── */
+.os-shell-night .pro-panel {
+  overflow: visible;
+}
+
+.os-shell-night .pro-panel-head {
+  border-top-left-radius: 0.4rem;
+  border-top-right-radius: 0.4rem;
+}
+
+.os-shell-night .billing-unblock-missing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.os-shell-night .billing-unblock-missing code {
+  font-size: 0.6875rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid #2f3336;
+  border-radius: 0.25rem;
+  color: #8b9096;
+}
