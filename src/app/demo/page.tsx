@@ -113,7 +113,7 @@ export default function DemoPage() {
         <div className="editorial-wrap demo-pro">
           <div className="demo-pro-grid">
             <div className="demo-pro-main">
-              <ProSectionHead kicker="Simulate" title="Run a demo call" />
+              <ProSectionHead kicker="Simulate" title="Run a demo call" level={2} />
 
               <div className="demo-preset-scroll mb-6 flex gap-2 overflow-x-auto pb-1">
                 {presets.map((preset) => (
@@ -134,7 +134,7 @@ export default function DemoPage() {
 
               <form onSubmit={runDemo} className="pro-panel">
                 <div className="pro-panel-head">
-                  <h2 className="pro-panel-title font-sans">Simulate inbound call</h2>
+                  <h3 className="pro-panel-title font-sans">Simulate inbound call</h3>
                 </div>
                 <div className="pro-panel-body space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">

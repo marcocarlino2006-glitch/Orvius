@@ -14,7 +14,8 @@ const STATIC = [
   "/dashboard/dispatch",
   "/dashboard/inbox",
   "/dashboard/jobs",
-  "/dashboard/pricing",
+  /* /dashboard/pricing is a redirect to billing with no markup of its own, so
+     it is left out for the same reason /login is left out of the public list. */
   "/dashboard/profile",
   "/dashboard/settings",
 ];

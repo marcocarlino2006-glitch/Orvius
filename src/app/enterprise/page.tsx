@@ -49,7 +49,7 @@ export default function EnterprisePage() {
                   {c.id}
                 </span>
                 <div className="mkt-law-copy">
-                  <h3 className="mkt-law-title">{c.title}</h3>
+                  <h2 className="mkt-law-title">{c.title}</h2>
                   <p className="mkt-law-body">{c.body}</p>
                 </div>
               </li>

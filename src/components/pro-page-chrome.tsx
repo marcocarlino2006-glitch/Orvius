@@ -100,14 +100,25 @@ type ProSectionHeadProps = {
   title: string;
   action?: ReactNode;
   className?: string;
+  /* The right level depends on what encloses it, so the caller decides. h3
+     suits a section nested under a panel heading; a section sitting directly
+     under the page title needs h2, or the outline skips a level. */
+  level?: 2 | 3;
 };
 
-export function ProSectionHead({ kicker, title, action, className = "" }: ProSectionHeadProps) {
+export function ProSectionHead({
+  kicker,
+  title,
+  action,
+  className = "",
+  level = 3,
+}: ProSectionHeadProps) {
+  const Heading = level === 2 ? "h2" : "h3";
   return (
     <div className={`pro-section-head ${className}`}>
       <div>
         <p className="pro-section-kicker font-sans">{kicker}</p>
-        <h3 className="pro-section-title font-sans">{title}</h3>
+        <Heading className="pro-section-title font-sans">{title}</Heading>
       </div>
       {action}
     </div>

@@ -100,3 +100,20 @@ body {
 .mkt-page button.ui-pill {
   border-radius: 9999px !important;
 }
+
+/*
+  Keyboard focus, drawn as an outline rather than a ring.
+
+  The pills ask for `focus-visible:ring-2` alongside a lip shadow, and both
+  utilities write the same box-shadow property — the ring computes its value
+  and then never reaches the painted shadow. Paired with the
+  `focus-visible:outline-none` in the same class list, that left these controls
+  with no focus indicator at all: tabbing onto one changed nothing on screen.
+  An outline occupies its own property, so it cannot be crowded out.
+*/
+.ui-pill:focus-visible {
+  outline-style: solid !important;
+  outline-width: 2px !important;
+  outline-color: var(--ui-text) !important;
+  outline-offset: 2px !important;
+}

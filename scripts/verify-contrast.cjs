@@ -19,6 +19,7 @@ const BASE = process.argv[2] ?? "http://localhost:3000";
 const PAGES = require("./public-pages.cjs");
 const { dashboardPages } = require("./dashboard-pages.cjs");
 const { signInForAudit } = require("./audit-session.cjs");
+const { waitForSettled } = require("./audit-ready.cjs");
 const THEMES = [
   ["night", "dark"],
   ["day", "light"],
@@ -123,16 +124,12 @@ const COLLECT = () => {
     await page.goto(BASE + path, { waitUntil: "domcontentloaded", timeout: 90000 });
     await page.evaluate((t) => localStorage.setItem("orvius-theme", t), theme);
     await page.reload({ waitUntil: "domcontentloaded", timeout: 90000 });
-    /* Dashboard views fetch on mount and sit behind a skeleton until the data
-       lands. Measuring a skeleton is measuring nothing, so settle on a stable
-       element count before the sweep. */
-    let stable = 0;
-    let last = -1;
-    for (let tick = 0; tick < 40 && stable < 3; tick++) {
-      await new Promise((r) => setTimeout(r, 250));
-      const n = await page.evaluate(() => document.querySelectorAll("body *").length);
-      stable = n === last ? stable + 1 : 0;
-      last = n;
+    /* Dashboard views sit behind a skeleton until their data lands, and a
+       skeleton is stable forever — so wait on the loading markers, not on the
+       DOM going quiet. */
+    if (!(await waitForSettled(page))) {
+      failures.push(`[${label} ${path}] still loading after the wait — not measured`);
+      return;
     }
 
     await page.evaluate(async () => {
