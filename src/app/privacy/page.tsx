@@ -14,7 +14,7 @@ export default function PrivacyPage() {
     <LegalDocument
       label="Legal"
       title="Privacy Policy"
-      description={`${company.legalName} (&quot;we,&quot; &quot;us,&quot; or &quot;Company&quot;) operates ${company.productName}. This policy explains how we handle information when you use our website and Service. It is designed for U.S. trade businesses and includes California/state privacy disclosures.`}
+      description={`${company.legalName} ("we," "us," or "Company") operates ${company.productName}. This policy explains how we handle information when you use our website and Service. It is designed for U.S. trade businesses and includes California/state privacy disclosures.`}
       updated={company.legalUpdated}
     >
       <LegalSection title="1. Scope and roles">
