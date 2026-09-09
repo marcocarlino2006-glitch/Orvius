@@ -204,27 +204,40 @@ function flatten(fg, bg) {
         wrap.style.pointerEvents = "none";
         const points = [box.left + 12, (box.left + box.right) / 2, box.right - 12];
         for (const x of points) {
+          // Collect the whole painted stack, nearest first, up to the first
+          // opaque layer. A translucent plate is not a backdrop on its own:
+          // read alone, a 4%-white scrim resolves to #ffffff and invents a
+          // failure the page never renders.
+          const stack = [];
           let node = document.elementFromPoint(x, box.top + box.height / 2);
           while (node) {
             const bg = getComputedStyle(node).backgroundColor;
             if (bg && !/rgba\(0, 0, 0, 0\)|transparent/.test(bg)) {
-              seen.set(bg, (seen.get(bg) ?? 0) + 1);
-              break;
+              stack.push(bg);
+              const alpha = bg.match(/rgba?\([^)]*?,\s*([\d.]+)\s*\)/);
+              if (!alpha || Number(alpha[1]) >= 1) break;
             }
             node = node.parentElement;
           }
+          if (stack.length) seen.set(stack.join(" | "), stack);
         }
         wrap.style.pointerEvents = "";
       }
       window.scrollTo(0, 0);
-      return { glass, label, backdrops: [...seen.keys()] };
+      return { glass, label, backdrops: [...seen.values()] };
     });
     const glass = parse(samples.glass);
     const labelRgb = parse(samples.label).rgb;
-    const scored = samples.backdrops.map((bg) => {
-      const flat = flatten(glass, parse(bg).rgb);
+    const scored = samples.backdrops.map((stack) => {
+      // Composite far -> near so each translucent layer lands on what is
+      // actually behind it, then put the dock's glass on top of the result.
+      const resolved = stack
+        .slice()
+        .reverse()
+        .reduce((under, layer) => flatten(parse(layer), under), [255, 255, 255]);
+      const flat = flatten(glass, resolved);
       return {
-        backdrop: hex(parse(bg).rgb),
+        backdrop: hex(resolved),
         dockResolves: hex(flat),
         contrast: Number(contrast(labelRgb, flat)),
       };
