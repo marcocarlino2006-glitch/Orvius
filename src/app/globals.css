@@ -21642,6 +21642,21 @@ body:has(.confirm-shell) {
   font-size: 0.5625rem !important;
 }
 
+/*
+  Brand copper and flare are picked to sit on paper, and on the shell's panel
+  at rgb(41,45,51) they land at 4.44:1 and 3.68:1 — both under AA, on the two
+  bits of the board that exist to be noticed. Lifted just far enough to clear
+  it: 5.1:1 for the unassigned count, 5.0:1 for an emergency, the latter being
+  the same red the rest of the night shell already uses for this reason.
+*/
+.os-shell-night .pro-dispatch-today-unassigned-badge {
+  color: #e0855a !important;
+}
+
+.os-shell-night .pro-dispatch-today-status-emergency {
+  color: #f87171 !important;
+}
+
 .os-shell-night .pro-page-strip {
   background: #24272c !important;
   padding: 0.5rem 0.7rem !important;
