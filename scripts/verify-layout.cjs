@@ -1,10 +1,14 @@
 /**
  * Layout audit for the public surfaces.
  *
- * Three things that a screenshot will not reliably tell you:
+ * Four things that a screenshot will not reliably tell you:
  *  1. the fixed utility dock is not sitting on top of any text,
  *  2. nothing overflows the viewport horizontally at any breakpoint,
- *  3. no text box is clipping its own content.
+ *  3. no text box is clipping its own content,
+ *  4. no in-flow text collides with text from another section *while
+ *     scrolling* — a `position: sticky` block whose containing block outlives
+ *     the content beside it drifts down over its own siblings, and every
+ *     static screenshot of the page top looks perfectly fine.
  *
  *   node scripts/verify-layout.cjs [baseUrl]
  */
@@ -79,6 +83,86 @@ const AUDIT = (expectDock) => {
   return problems;
 };
 
+/*
+  Text collision sweep, evaluated at one scroll position.
+
+  Only in-flow text counts. The frosted nav is a deliberate scroll-under
+  header and the dock is a deliberate floating control, so both are expected
+  to pass over content; AUDIT above already holds the dock to its own rule at
+  the page's resting position.
+
+  Two collisions matter, for different reasons:
+   - across sections, which means something escaped its own band, and
+   - anywhere a `position: sticky` box is involved, including between siblings
+     of one section. Sticky is the interesting case: a pinned box travels down
+     its containing block, so if that block outlives the content beside it the
+     box ends up parked on top of its own siblings. Same-section pairs are
+     otherwise laid out together and move together, so they are not compared.
+*/
+const SCROLL_AUDIT = () => {
+  const inIntendedOverlay = (el) =>
+    Boolean(el.closest(".mkt-nav, .fixed.right-6.bottom-4, [role='dialog']"));
+
+  /* Sticky on an ancestor drags the text with it, so walk up to the section. */
+  const isStickyDriven = (el) => {
+    for (let node = el; node && node !== document.body; node = node.parentElement) {
+      if (getComputedStyle(node).position === "sticky") return true;
+      if (node.matches("section, footer")) break;
+    }
+    return false;
+  };
+
+  const textNodes = Array.from(document.querySelectorAll("body *"))
+    .filter((el) => {
+      const hasOwnText = Array.from(el.childNodes).some(
+        (n) => n.nodeType === 3 && n.textContent.trim().length > 1,
+      );
+      if (!hasOwnText) return false;
+      if (el.closest(".sr-only")) return false;
+      if (inIntendedOverlay(el)) return false;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || cs.display === "none") return false;
+      if (parseFloat(cs.opacity) < 0.05) return false;
+      return true;
+    })
+    .map((el) => ({
+      el,
+      rect: el.getBoundingClientRect(),
+      section: el.closest("section, footer")?.className ?? "none",
+      sticky: isStickyDriven(el),
+    }))
+    .filter(
+      (n) =>
+        n.rect.width > 4 &&
+        n.rect.height > 4 &&
+        n.rect.bottom > 0 &&
+        n.rect.top < window.innerHeight,
+    );
+
+  const problems = [];
+  for (let i = 0; i < textNodes.length; i++) {
+    for (let j = i + 1; j < textNodes.length; j++) {
+      const a = textNodes[i];
+      const b = textNodes[j];
+      if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+      if (a.section === b.section && !a.sticky && !b.sticky) continue;
+
+      const ox =
+        Math.min(a.rect.right, b.rect.right) - Math.max(a.rect.left, b.rect.left);
+      const oy =
+        Math.min(a.rect.bottom, b.rect.bottom) - Math.max(a.rect.top, b.rect.top);
+      if (ox > 8 && oy > 8) {
+        const how = a.sticky || b.sticky ? "sticky drift" : "text collision";
+        problems.push(
+          `${how}: "${a.el.textContent.trim().slice(0, 28)}" over ` +
+            `"${b.el.textContent.trim().slice(0, 28)}"`,
+        );
+      }
+    }
+  }
+  return [...new Set(problems)];
+};
+
 (async () => {
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   let failures = 0;
@@ -94,11 +178,25 @@ const AUDIT = (expectDock) => {
       await new Promise((r) => setTimeout(r, 600));
 
       const problems = await page.evaluate(AUDIT, DOCK_PATHS.has(path));
+
+      // Walk the whole page in viewport-sized steps so sticky drift is caught.
+      const docHeight = await page.evaluate(() => document.body.scrollHeight);
+      const step = Math.max(240, Math.round(vp.height / 2));
+      for (let y = 0; y < docHeight; y += step) {
+        await page.evaluate((top) => window.scrollTo(0, top), y);
+        await new Promise((r) => setTimeout(r, 180));
+        const hits = await page.evaluate(SCROLL_AUDIT);
+        problems.push(...hits.map((h) => `@scrollY=${y} ${h}`));
+      }
+
       const tag = `${path} @ ${vp.name} ${vp.width}x${vp.height}`;
       if (problems.length) {
         failures += problems.length;
         console.log(`FAIL ${tag}`);
-        problems.forEach((p) => console.log("   " + p));
+        problems.slice(0, 8).forEach((p) => console.log("   " + p));
+        if (problems.length > 8) {
+          console.log(`   … ${problems.length - 8} more`);
+        }
       } else {
         console.log(`ok   ${tag}`);
       }

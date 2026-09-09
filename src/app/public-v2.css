@@ -652,6 +652,17 @@ body {
   gap: clamp(40px, 5vw, 64px) !important;
 }
 
+/*
+  The lead used to be the pinned left column of a two-column section, so it
+  carried `position: sticky`. It now stacks above the card grid in a single
+  column, where pinning has nothing to scroll against and instead lets the
+  headline drift down over the cards. Unpin it.
+*/
+.ov-public .mkt-manifesto-meta-lead {
+  position: static !important;
+  top: auto !important;
+}
+
 .ov-public .mkt-manifesto-title {
   max-width: 620px !important;
   margin: 0 !important;
@@ -995,8 +1006,9 @@ body {
   text-transform: uppercase !important;
 }
 
+/* The bottom padding clears the fixed utility dock — see --ui-dock-reserve. */
 .ov-public .mkt-footer {
-  padding: 64px 5vw 24px !important;
+  padding: 64px 5vw var(--ui-dock-reserve) !important;
   border: 0 !important;
   border-top: 1px solid var(--ov-line) !important;
   background: var(--ov-paper) !important;
