@@ -14,7 +14,7 @@ export const typeScale = {
 
 /**
  * Logo lockups:
- * 1) Open-OV monogram alone (favicon / chrome)
+ * 1) Integrated-OV monogram alone (favicon / chrome)
  * 2) Mark + ORVIUS text in the product font (never a second letterset)
  */
 export const logoSizes = {

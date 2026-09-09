@@ -9,7 +9,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Open-OV monogram alone — favicon / avatar. */
+/** Integrated-OV monogram alone — favicon / avatar. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -24,7 +24,7 @@ type OrviusLogoProps = {
   variant?: "void" | "chalk";
   /** Text wordmark only (no mark). */
   wordmarkOnly?: boolean;
-  /** Open-OV monogram alone. */
+  /** Integrated-OV monogram alone. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -32,7 +32,7 @@ type OrviusLogoProps = {
 };
 
 /**
- * One type system: open-OV monogram + Orvius in the product font.
+ * One type system: integrated-OV monogram + Orvius in the product font.
  * No second SVG letterset fighting Space Grotesk / Syne / Barlow.
  */
 export function OrviusLogo({
