@@ -50,6 +50,7 @@ console.log("\n🏛  Orvius CI gate\n");
 
 await run("npm", ["run", "build"], serverEnv);
 await run("npm", ["run", "test:trust"], serverEnv);
+await run("npm", ["run", "ai:eval"], serverEnv);
 
 const server = spawn("npm", ["run", "start"], {
   env: serverEnv,

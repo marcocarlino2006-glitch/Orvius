@@ -300,6 +300,48 @@ if (unsafeCustomerSms.length) {
   );
 }
 
+// ── One versioned AI model policy ──
+const modelPolicyOwner = "src/lib/ai-policy.ts";
+const hardcodedModels = [];
+for (const file of walkFiles(join(root, "src"))) {
+  const rel = relative(root, file);
+  if (rel === modelPolicyOwner || !/\.(ts|tsx)$/.test(rel)) continue;
+  try {
+    const source = readFileSync(file, "utf8");
+    if (
+      /model:\s*["'](?:gpt-|claude-|gemini-|nova-|o[1-9](?:-|["']))/i.test(
+        source,
+      )
+    ) {
+      hardcodedModels.push(rel);
+    }
+  } catch {
+    /* unreadable */
+  }
+}
+if (hardcodedModels.length) {
+  fail(
+    "AI model policy",
+    `Hardcoded model outside ${modelPolicyOwner}: ${hardcodedModels.join(", ")}`,
+  );
+} else {
+  pass("AI model policy", `All model selection routes through ${modelPolicyOwner}`);
+}
+
+// ── AI behavior has a regression gate ──
+try {
+  const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+  const evalScript = pkg.scripts?.["ai:eval"] ?? "";
+  readFileSync(join(root, "src/lib/ai-eval.ts"), "utf8");
+  if (!evalScript.includes("scripts/ai-eval.mjs")) {
+    fail("AI eval", "package.json ai:eval does not run scripts/ai-eval.mjs");
+  } else {
+    pass("AI eval", "Versioned receptionist scenarios and prompt contract are runnable");
+  }
+} catch {
+  fail("AI eval", "AI evaluation harness is missing");
+}
+
 // ── Taxonomy codes are append-only ──
 // Renaming a code splits its own history in half, and history is the asset.
 try {

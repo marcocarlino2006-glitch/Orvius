@@ -80,14 +80,11 @@ export function isLeadQualifiedForBooking(lead: {
   if (lead.categoryCode && lead.categoryCode !== "other.non_service") {
     return true;
   }
+  // Unknown words without a service location are a callback request, not an
+  // appointment. A recognised category may be proposed before the address is
+  // known; otherwise require an address and keep the lead open to qualify.
+  if (!address) return false;
   if (service.length < 2 && address.length < 4) return false;
-  // Refuse generic SMS placeholders as "service"
-  if (
-    !address &&
-    /^(sms inquiry|sms|text|unknown|n\/?a)$/i.test(service)
-  ) {
-    return false;
-  }
   return true;
 }
 

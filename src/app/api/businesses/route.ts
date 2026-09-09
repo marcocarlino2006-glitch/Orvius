@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAiModelPolicy } from "@/lib/ai-policy";
 import { buildAssistantSystemPrompt, slugify } from "@/lib/business";
 import { assertCustomerShopLine } from "@/lib/demo-business";
 import { getWebhookUrl, verifyAdminRequest } from "@/lib/env";
@@ -178,14 +179,15 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (existing.vapiAssistantId) {
+      const receptionist = getAiModelPolicy("receptionist");
       await updateAssistant(existing.vapiAssistantId, {
         name: `${nextName} Receptionist`,
         firstMessage:
           greeting ??
           `Thank you for calling ${nextName}. How can I help you today?`,
         model: {
-          provider: "openai",
-          model: "gpt-4o",
+          provider: receptionist.provider,
+          model: receptionist.model,
           messages: [{ role: "system", content: systemPrompt }],
         },
         serverUrl: getWebhookUrl("/api/webhooks/vapi"),

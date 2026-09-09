@@ -1,4 +1,8 @@
 import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
+import {
+  getAiModelPolicy,
+  getTranscriptionModel,
+} from "@/lib/ai-policy";
 
 const VAPI_BASE = "https://api.vapi.ai";
 
@@ -144,12 +148,13 @@ export function buildVapiAssistantConfig(params: {
   webhookUrl: string;
   webhookSecret?: string;
 }): VapiAssistantPayload {
+  const receptionist = getAiModelPolicy("receptionist");
   return {
     name: `${params.businessName} Receptionist`,
     firstMessage: params.greeting,
     model: {
-      provider: "openai",
-      model: "gpt-4o",
+      provider: receptionist.provider,
+      model: receptionist.model,
       messages: [{ role: "system", content: params.systemPrompt }],
     },
     voice: {
@@ -158,7 +163,7 @@ export function buildVapiAssistantConfig(params: {
     },
     transcriber: {
       provider: "deepgram",
-      model: "nova-2",
+      model: getTranscriptionModel(),
     },
     serverUrl: params.webhookUrl,
     serverUrlSecret: params.webhookSecret,

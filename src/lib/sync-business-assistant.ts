@@ -1,4 +1,5 @@
 import { buildAssistantSystemPrompt } from "@/lib/business";
+import { getAiModelPolicy } from "@/lib/ai-policy";
 import {
   isDemoPlatformLine,
   shopMustNotUseDemoLine,
@@ -37,13 +38,14 @@ export async function syncBusinessAssistant(
     hoursJson: business.hoursJson,
     servicesJson: business.servicesJson,
   });
+  const receptionist = getAiModelPolicy("receptionist");
 
   await updateAssistant(business.vapiAssistantId, {
     name: `${business.name} Receptionist`,
     firstMessage: greeting,
     model: {
-      provider: "openai",
-      model: "gpt-4o",
+      provider: receptionist.provider,
+      model: receptionist.model,
       messages: [{ role: "system", content: systemPrompt }],
     },
     serverUrl: getWebhookUrl("/api/webhooks/vapi"),

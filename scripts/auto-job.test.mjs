@@ -34,6 +34,7 @@ assert.equal(
     phone: "+15551234567",
     serviceType: "AC repair",
     address: null,
+    categoryCode: "hvac.no_cool",
   }),
   true,
 );
@@ -44,6 +45,15 @@ assert.equal(
     address: "12 Main St",
   }),
   true,
+);
+assert.equal(
+  isLeadQualifiedForBooking({
+    phone: "+15551234567",
+    serviceType: "call me back",
+    address: null,
+    categoryCode: null,
+  }),
+  false,
 );
 assert.equal(
   isLeadQualifiedForBooking({
