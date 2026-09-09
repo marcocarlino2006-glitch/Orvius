@@ -402,7 +402,9 @@ const marketingFiles = [
   "src/components/home-call-demo.tsx",
   "src/components/checkout-button.tsx",
   "src/components/pricing-plan-card.tsx",
+  "src/lib/pricing-faq.ts",
   "src/app/layout.tsx",
+  "src/app/demo/page.tsx",
   "src/lib/i18n.ts",
   // Ring copy describes what is live, and renders on the site and in the app.
   "src/lib/company.ts",

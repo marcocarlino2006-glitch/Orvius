@@ -38,11 +38,12 @@ export default function AboutPage() {
 
       <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap">
-          <p className="tier1-eyebrow type-eyebrow">What&apos;s live</p>
+          <p className="tier1-eyebrow type-eyebrow">Available now</p>
           <h2 className="tier1-section-title type-headline">One ring at a time.</h2>
           <p className="tier1-section-lead font-sans max-w-2xl">
             Built by {company.legalName} for {company.trades.join(", ")}. We
-            ship what shops can use today — then expand when the loop is airtight.
+            label production paths Live and limited paths Beta — then expand
+            when the loop is airtight.
           </p>
           <div className="tier1-rings">
             <OsRings liveOnly />

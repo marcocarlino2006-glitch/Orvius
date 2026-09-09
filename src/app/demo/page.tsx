@@ -1,6 +1,7 @@
 "use client";
 
 import { HomeCallDemo } from "@/components/home-call-demo";
+import { demoLineHref } from "@/lib/demo-line";
 import {
   leadFromDemoForm,
   OwnerAlertCard,
@@ -235,17 +236,17 @@ export default function DemoPage() {
                     ) : null}
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <Link
-                        href="/dashboard/inbox"
+                        href="/pilot"
                         className="inst-btn inst-btn-primary inst-btn-sm w-full sm:w-auto"
                       >
-                        Open inbox
+                        Book a call audit
                       </Link>
-                      <Link
-                        href="/dashboard"
+                      <a
+                        href={demoLineHref()}
                         className="inst-btn inst-btn-ghost inst-btn-sm w-full sm:w-auto"
                       >
-                        Command center
-                      </Link>
+                        Call the live AI
+                      </a>
                     </div>
                   </ShellPanel>
                 </div>

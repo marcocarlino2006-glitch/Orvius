@@ -33,12 +33,21 @@ export const metadata: Metadata = {
     type: "website",
     url: `https://${company.domain}`,
     siteName: company.productName,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Orvius — The AI night shift for the trades",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Orvius — The AI night shift for the trades",
     description:
       "Call the live product. After-hours intake, capacity-aware scheduling, confirmation, and owner alerts.",
+    images: ["/opengraph-image"],
   },
 };
 

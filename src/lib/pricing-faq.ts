@@ -33,7 +33,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "one-job",
     question: "Does one booked job cover the month?",
     answer:
-      "For most shops, yes. A single after-hours repair or emergency call often clears a month of Pro. Orvius exists so that call is never voicemail.",
+      "It can when the gross profit on that additional job exceeds the plan price. Your ticket, close rate, and margin determine the actual payback; Orvius does not guarantee it.",
   },
   {
     id: "fleet",
@@ -45,7 +45,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "multi",
     question: "Do you support multiple locations?",
     answer:
-      "Yes — Multi-shop is for owners running 2+ locations or franchise groups. Each location gets its own line and AI receptionist with central billing. Email hello@orvius.im for volume pricing.",
+      "The multi-location control plane is not generally available yet. We are mapping roles, billing, and reporting requirements with qualified design partners; email hello@orvius.im to discuss your footprint.",
   },
   {
     id: "stripe",

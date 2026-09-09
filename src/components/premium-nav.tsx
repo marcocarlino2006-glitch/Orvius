@@ -138,6 +138,9 @@ export function PremiumNav() {
             <Link href="/login" onClick={() => setMenuOpen(false)}>
               Sign in
             </Link>
+            <Link href="/pilot" onClick={() => setMenuOpen(false)}>
+              Book a call audit
+            </Link>
           </nav>
 
           <div className="mkt-nav-sheet-foot">

@@ -66,16 +66,16 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
           </div>
           <nav className="mkt-footer-col" aria-label="Product">
             <p className="mkt-footer-heading font-sans">Product</p>
-            <Link href="/">Command</Link>
+            <Link href="/">Home</Link>
             <Link href="/pricing">Pricing</Link>
-            <Link href="/pilot">Audit</Link>
+            <Link href="/pilot">Call audit</Link>
             <Link href="/login">Log in</Link>
           </nav>
           <nav className="mkt-footer-col" aria-label="Company">
             <p className="mkt-footer-heading font-sans">Company</p>
             <Link href="/about">About</Link>
             <Link href="/security">Security</Link>
-            <Link href="/pilot">Design partner</Link>
+            <Link href="/pilot">Design partners</Link>
             <a href="mailto:hello@orvius.im">Contact</a>
           </nav>
           <nav className="mkt-footer-col" aria-label="Legal">

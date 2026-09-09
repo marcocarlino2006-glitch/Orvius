@@ -8,7 +8,9 @@ type OsRingsProps = {
 };
 
 export function OsRings({ variant = "light", limit, liveOnly = false }: OsRingsProps) {
-  let rings = liveOnly ? osRings.filter((r) => r.status === "live") : [...osRings];
+  let rings = liveOnly
+    ? osRings.filter((r) => r.status === "live" || r.status === "beta")
+    : [...osRings];
   if (limit) rings = rings.slice(0, limit);
   const isDark = variant === "dark";
 
@@ -16,6 +18,7 @@ export function OsRings({ variant = "light", limit, liveOnly = false }: OsRingsP
     <ol className="os-rings">
       {rings.map((item) => {
         const isLive = item.status === "live";
+        const isBeta = item.status === "beta";
         const isNext = item.status === "next";
 
         return (
@@ -28,6 +31,9 @@ export function OsRings({ variant = "light", limit, liveOnly = false }: OsRingsP
             <div className="os-ring-meta font-sans">
               <span className="os-ring-num">{String(item.ring).padStart(2, "0")}</span>
               {isLive ? <span className="os-ring-badge">Live</span> : null}
+              {isBeta ? (
+                <span className="os-ring-badge os-ring-badge-next">Beta</span>
+              ) : null}
               {isNext ? <span className="os-ring-badge os-ring-badge-next">Next</span> : null}
             </div>
             <div className="os-ring-content">

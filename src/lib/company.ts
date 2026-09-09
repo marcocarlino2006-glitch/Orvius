@@ -112,15 +112,15 @@ export const osRings = [
     ring: 5,
     name: "Money",
     module: "Estimate · invoice · pay",
-    status: "live" as const,
+    status: "beta" as const,
     body: "Draft estimates and invoices on jobs; record payments manually. Card rails next.",
   },
   {
     ring: 6,
     name: "Intelligence",
     module: "Answers from your own records",
-    status: "live" as const,
-    body: "Ask reads your calls, jobs, and customers and answers from those rows — never an invented number. Learning from outcomes is next.",
+    status: "beta" as const,
+    body: "Ask retrieves calls, jobs, customers, and technician-recorded outcomes with source context. It does not train itself or invent missing facts.",
   },
   {
     ring: 7,
