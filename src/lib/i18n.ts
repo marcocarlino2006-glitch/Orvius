@@ -46,6 +46,12 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Live-KI anrufen",
   },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
+  "hero.nightshift": {
+    en: "Orvius answers the night shift",
+    es: "Orvius contesta el turno de noche",
+    fr: "Orvius répond pendant la nuit",
+    de: "Orvius übernimmt die Nachtschicht",
+  },
 
   "showcase.eyebrow": { en: "On the line", es: "En la línea", fr: "En ligne", de: "Am Telefon" },
   "showcase.title": {

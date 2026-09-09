@@ -2391,6 +2391,101 @@ body {
   text-transform: uppercase;
 }
 
+/* ── The live line ──
+   The claim and the number the claim is about, as one target. It sits below the
+   CTAs because it is the thing to dial by hand, not a third button. */
+
+.ov-public .ov-hero-liveline {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 1.75rem;
+  padding: 0.15rem 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ov-public .ov-hero-liveline-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ov-muted);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-hero-liveline-number {
+  display: inline-flex;
+  color: var(--ov-headline);
+  font-family: var(--ov-mono);
+  font-size: clamp(1.5rem, 2.6vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  transition: color 140ms ease;
+}
+
+.ov-public .ov-hero-liveline-gap {
+  width: 0.34em;
+}
+
+.ov-public .ov-hero-liveline-digit {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.3em);
+  animation: ov-liveline-digit 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes ov-liveline-digit {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The underline is drawn rather than text-decoration so it can grow from the
+   left on hover without shifting the digits. */
+.ov-public .ov-hero-liveline-number::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -0.28rem 0;
+  height: 1px;
+  background: var(--ov-accent-text);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease;
+}
+
+.ov-public .ov-hero-liveline-number {
+  position: relative;
+}
+
+.ov-public .ov-hero-liveline:hover .ov-hero-liveline-number {
+  color: var(--ov-accent-text);
+}
+
+.ov-public .ov-hero-liveline:hover .ov-hero-liveline-number::after {
+  transform: scaleX(1);
+}
+
+.ov-public .ov-hero-liveline:focus-visible {
+  outline: 2px solid var(--ov-accent-text);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-hero-liveline-digit {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
 .ov-public .ov-hero-pulse {
   width: 8px;
   height: 8px;
