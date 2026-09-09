@@ -1323,3 +1323,464 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* ============================================================
+   HERO — the product carries it
+   One claim, one live console. The console is built from layered
+   charcoal with hairline borders and a single soft shadow, so it
+   reads as a real surface rather than a flat screenshot.
+   ============================================================ */
+
+.ov-public .ov-hero {
+  position: relative;
+  padding: 118px 5vw 96px;
+  background: var(--ov-paper);
+  overflow: clip;
+}
+
+/* A single warm bloom behind the console gives the section depth
+   without gradients that muddy the paper. */
+.ov-public .ov-hero::before {
+  content: "";
+  position: absolute;
+  top: -12%;
+  right: -6%;
+  width: 62%;
+  height: 118%;
+  background: radial-gradient(
+    circle at 62% 42%,
+    color-mix(in srgb, var(--ov-copper) 16%, transparent),
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.ov-public .ov-hero-inner {
+  position: relative;
+  width: min(100%, 1240px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  gap: clamp(40px, 5vw, 72px);
+  align-items: center;
+}
+
+.ov-public .ov-hero-eyebrow {
+  margin: 0 0 1.15rem;
+  color: var(--ov-copper-dark);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-hero-title {
+  margin: 0;
+  color: var(--ov-ink);
+  font-family: var(--ov-font);
+  font-size: clamp(2.6rem, 4.6vw, 4rem);
+  font-weight: 600;
+  line-height: 0.99;
+  letter-spacing: -0.046em;
+}
+
+.ov-public .ov-hero-lead {
+  max-width: 44ch;
+  margin: 1.5rem 0 0;
+  color: var(--ov-muted);
+  font-family: var(--ov-font);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  letter-spacing: -0.012em;
+}
+
+.ov-public .ov-hero-actions {
+  margin-top: 2.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ov-public .ov-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 1.15rem;
+  border-radius: 5px;
+  font-family: var(--ov-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.014em;
+  text-decoration: none;
+  transition:
+    transform 130ms ease,
+    background 130ms ease,
+    border-color 130ms ease,
+    box-shadow 130ms ease;
+}
+
+.ov-public .ov-btn--solid {
+  border: 1px solid var(--ov-charcoal);
+  background: var(--ov-charcoal);
+  color: var(--ov-night-text);
+  box-shadow: 0 1px 2px rgb(28 30 26 / 18%);
+}
+
+.ov-public .ov-btn--solid:hover {
+  border-color: #14171a;
+  background: #14171a;
+  box-shadow: 0 6px 18px rgb(28 30 26 / 20%);
+  transform: translateY(-1px);
+}
+
+.ov-public .ov-btn--quiet {
+  border: 1px solid var(--ov-line-strong);
+  background: transparent;
+  color: var(--ov-ink);
+}
+
+.ov-public .ov-btn--quiet:hover {
+  border-color: var(--ov-copper);
+  color: var(--ov-copper-dark);
+  transform: translateY(-1px);
+}
+
+.ov-public .ov-hero-meta {
+  margin: 1.15rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--ov-muted);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-hero-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ov-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-green) 20%, transparent);
+}
+
+/* ── Live call console ── */
+
+.ov-public .ov-console {
+  margin: 0;
+}
+
+/* A legacy `.mkt-page *` rule targets every element directly, so inherited type
+   loses to it. The console states its own letterset instead of relying on that. */
+.ov-public .ov-console-frame,
+.ov-public .ov-console-frame * {
+  font-family: var(--ov-mono);
+}
+
+.ov-public .ov-console-frame {
+  border: 1px solid #333a44;
+  border-radius: 10px;
+  background: linear-gradient(#25292f, #1e2227);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 7%),
+    0 26px 70px -22px rgb(20 14 10 / 45%);
+  overflow: hidden;
+}
+
+.ov-public .ov-console-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.72rem 1rem;
+  border-bottom: 1px solid #2f3640;
+  background: #202429;
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+}
+
+.ov-public .ov-console-shop {
+  color: #eceae4;
+  font-weight: 500;
+}
+
+.ov-public .ov-console-sep,
+.ov-public .ov-console-context {
+  color: #8a9199;
+}
+
+.ov-public .ov-console-live {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.16rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--ov-green) 42%, transparent);
+  border-radius: 3px;
+  color: #6fd7a8;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.ov-public .ov-console-live i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #43c98a;
+}
+
+.ov-public .ov-console-live i.is-pulsing {
+  animation: ov-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes ov-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in srgb, #43c98a 55%, transparent);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 4px color-mix(in srgb, #43c98a 0%, transparent);
+  }
+}
+
+.ov-public .ov-console-clock {
+  color: #8a9199;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-console-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+  min-height: 268px;
+}
+
+.ov-public .ov-console-wire {
+  padding: 1.05rem 1.1rem;
+  border-right: 1px solid #2f3640;
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+}
+
+.ov-public .ov-wire-line {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 0.6rem;
+  font-family: var(--ov-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.ov-public .ov-wire-who {
+  color: #7d848c;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding-top: 0.15rem;
+}
+
+.ov-public .ov-wire-line--orvius .ov-wire-text {
+  color: #edebe5;
+}
+
+.ov-public .ov-wire-line--caller .ov-wire-text {
+  color: #a7aeb6;
+}
+
+.ov-public .ov-wire-caret {
+  display: inline-block;
+  width: 6px;
+  height: 0.85em;
+  margin-left: 2px;
+  vertical-align: -0.08em;
+  background: var(--ov-copper-field);
+  animation: ov-caret 1s steps(2, end) infinite;
+}
+
+@keyframes ov-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.ov-public .ov-console-capture {
+  padding: 1.05rem 1.1rem;
+  background: #1b1f23;
+}
+
+.ov-public .ov-capture-label {
+  margin: 0 0 0.75rem;
+  color: #7d848c;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-capture-list {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ov-public .ov-capture-row {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid #282e35;
+  border-radius: 4px;
+  background: #1f2429;
+  transition:
+    border-color 220ms ease,
+    background 220ms ease;
+}
+
+.ov-public .ov-capture-row dt {
+  color: #767d85;
+  font-family: var(--ov-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-capture-row dd {
+  margin: 0;
+  color: #5f666e;
+  font-family: var(--ov-mono);
+  font-size: 0.75rem;
+}
+
+.ov-public .ov-capture-row.is-set {
+  border-color: color-mix(in srgb, var(--ov-copper-field) 34%, transparent);
+  background: color-mix(in srgb, var(--ov-copper) 9%, #1f2429);
+}
+
+.ov-public .ov-capture-row.is-set dd {
+  color: #f0ece7;
+}
+
+.ov-public .ov-capture-row.is-set {
+  animation: ov-capture 620ms ease-out;
+}
+
+@keyframes ov-capture {
+  0% {
+    border-color: var(--ov-copper-field);
+    background: color-mix(in srgb, var(--ov-copper) 26%, #1f2429);
+    transform: translateX(4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.ov-public .ov-console-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  padding: 0.72rem 1.1rem;
+  border-top: 1px solid #2f3640;
+  background: #202429;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-rail-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #6d747c;
+  transition: color 220ms ease;
+}
+
+.ov-public .ov-rail-step i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #3c434b;
+  transition:
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.ov-public .ov-rail-step.is-active {
+  color: #e6ddd6;
+}
+
+.ov-public .ov-rail-step.is-active i {
+  background: var(--ov-copper-field);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-copper) 24%, transparent);
+}
+
+.ov-public .ov-rail-step.is-done {
+  color: #b9bfc6;
+}
+
+.ov-public .ov-rail-step.is-done i {
+  background: #43c98a;
+}
+
+.ov-public .ov-console-caption {
+  margin: 0.85rem 0 0;
+  color: var(--ov-muted);
+  font-family: var(--ov-font);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-hero-inner {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .ov-public .ov-hero::before {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .ov-public .ov-hero {
+    padding: 96px 20px 68px;
+  }
+
+  .ov-public .ov-hero-title {
+    font-size: clamp(2.35rem, 11vw, 2.9rem);
+  }
+
+  .ov-public .ov-console-body {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .ov-public .ov-console-wire {
+    border-right: 0;
+    border-bottom: 1px solid #2f3640;
+  }
+
+  .ov-public .ov-console-rail {
+    gap: 0.6rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-console-live i.is-pulsing,
+  .ov-public .ov-wire-caret,
+  .ov-public .ov-capture-row.is-set {
+    animation: none !important;
+  }
+}

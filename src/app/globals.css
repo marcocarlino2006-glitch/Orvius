@@ -24724,20 +24724,14 @@ body:has(.mkt-page) .shell-header {
 }
 
 /* ============================================================
-   Cursor exact: font stack + pill button spec (cursor.com).
-   Paper #f7f7f4 · ink #26251e · accent #b8562c · secondary #e6e5e0.
-   Type: CursorGothic (proprietary) → Helvetica-grotesque fallback.
+   Marketing surface spec.
+   Paper #f5f3ee · ink #1c1e1a · accent #b8562c · secondary #dcdad2.
+   Type inherits the brand letterset from <body>; marketing pages
+   deliberately do not pin their own font stack, so Archivo and Plex
+   Mono reach every surface without a specificity fight.
    ============================================================ */
 
-.mkt-page,
-.mkt-page *,
-.mkt-nav,
-.mkt-nav * {
-  font-family: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
-    "Liberation Sans", sans-serif !important;
-}
-
-/* Display headings render at regular weight, like cursor.com */
+/* Display headings render at regular weight */
 .mkt-page .mkt-hero-clean-title,
 .mkt-page .mkt-manifesto-title,
 .mkt-page .mkt-close-title,
@@ -24814,8 +24808,7 @@ body:has(.mkt-page) .shell-header {
   font-weight: 400 !important;
   font-size: 0.9375rem !important;
   color: #26251e !important;
-  font-family: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
-    "Liberation Sans", sans-serif !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
 }
 
 /* Force the whole nav (brand, links, secondary, cta) off the Sora brand font */
@@ -24824,8 +24817,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-nav-secondary,
 .mkt-nav-brand .orvius-logo-word,
 .mkt-nav-brand .type-wordmark {
-  font-family: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
-    "Liberation Sans", sans-serif !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
 }
 
 /* Sign in — plain text link like cursor.com */
