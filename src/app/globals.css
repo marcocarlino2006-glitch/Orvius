@@ -1165,7 +1165,7 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — signal mark + Sora wordmark (one letterset) */
+/* Orvius logo — copper handoff frame + restrained product wordmark. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -1178,24 +1178,27 @@ h3 {
 .orvius-mark-svg {
   display: block;
   flex-shrink: 0;
-  color: inherit;
+}
+
+.orvius-logo-mark {
+  color: var(--signal);
 }
 
 .orvius-logo-word {
   display: block;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--logo-word-size, 1.0625rem);
-  font-weight: 700;
-  letter-spacing: var(--logo-word-tracking, 0.08em);
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: var(--logo-word-tracking, -0.018em);
+  text-transform: none;
   line-height: 1;
   color: inherit;
 }
 
 .orvius-logo-sm .orvius-logo-word { font-size: 0.9375rem; }
 .orvius-logo-md .orvius-logo-word { font-size: 1.0625rem; }
-.orvius-logo-lg .orvius-logo-word { font-size: 1.2rem; }
-.orvius-logo-xl .orvius-logo-word { font-size: 2.35rem; letter-spacing: 0.06em; }
+.orvius-logo-lg .orvius-logo-word { font-size: 1.125rem; }
+.orvius-logo-xl .orvius-logo-word { font-size: 2.15rem; letter-spacing: -0.025em; }
 
 .orvius-logo-void {
   color: #f4f6f8;
