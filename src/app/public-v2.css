@@ -213,6 +213,7 @@ body {
 
 .ov-public .mkt-hero-clean {
   width: min(100%, 1440px) !important;
+  max-width: 1440px !important;
   min-height: 530px !important;
   margin: 0 auto !important;
   padding: 142px 5vw 92px !important;
@@ -241,7 +242,7 @@ body {
   margin: 0 !important;
   color: var(--ov-ink) !important;
   font-family: var(--ov-font) !important;
-  font-size: clamp(2.35rem, 4.2vw, 3.8rem) !important;
+  font-size: clamp(2.25rem, 3.35vw, 3rem) !important;
   font-weight: 400 !important;
   line-height: 1.06 !important;
   letter-spacing: -0.044em !important;
