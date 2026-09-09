@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyOwner } from "@/lib/notifications";
 import { verifyAdminRequest } from "@/lib/env";
+import { logWarn } from "@/lib/logger";
 import { z } from "zod";
 
 const PIPELINE_STATUSES = [
@@ -15,12 +16,13 @@ const PIPELINE_STATUSES = [
 ] as const;
 
 const waitlistSchema = z.object({
-  email: z.string().email(),
-  businessName: z.string().optional(),
-  phone: z.string().optional(),
-  trade: z.string().optional(),
-  city: z.string().optional(),
+  email: z.string().trim().email().max(254),
+  businessName: z.string().trim().max(120).optional(),
+  phone: z.string().trim().max(40).optional(),
+  trade: z.string().trim().max(60).optional(),
+  city: z.string().trim().max(120).optional(),
   plan: z.enum(["pilot", "pro"]).optional(),
+  website: z.string().max(200).optional(),
 });
 
 const patchSchema = z.object({
@@ -161,6 +163,11 @@ export async function PATCH(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = waitlistSchema.parse(await request.json());
+    // Quiet honeypot: bots usually populate every field. Return a normal
+    // response without creating noise in the founder pipeline.
+    if (body.website?.trim()) {
+      return NextResponse.json({ ok: true, id: "accepted" }, { status: 201 });
+    }
 
     const entry = await prisma.waitlistEntry.upsert({
       where: { email: body.email.toLowerCase() },
@@ -178,27 +185,35 @@ export async function POST(request: NextRequest) {
         trade: body.trade ?? undefined,
         city: body.city ?? undefined,
         plan: body.plan ?? undefined,
-        status: "new",
       },
     });
 
     const notifyPhone = process.env.ORVIUS_FOUNDER_PHONE;
     if (notifyPhone) {
-      await notifyOwner({
-        ownerPhone: notifyPhone,
-        businessName: "Orvius",
-        message: [
-          "New waitlist signup",
-          body.businessName ? `Business: ${body.businessName}` : null,
-          `Email: ${body.email}`,
-          body.phone ? `Phone: ${body.phone}` : null,
-          body.trade ? `Trade: ${body.trade}` : null,
-          body.city ? `City: ${body.city}` : null,
-        ]
-          .filter(Boolean)
-          .join("\n"),
-        dedupeKey: `waitlist:${entry.id}`,
-      });
+      try {
+        await notifyOwner({
+          ownerPhone: notifyPhone,
+          businessName: "Orvius",
+          message: [
+            "New waitlist signup",
+            body.businessName ? `Business: ${body.businessName}` : null,
+            `Email: ${body.email}`,
+            body.phone ? `Phone: ${body.phone}` : null,
+            body.trade ? `Trade: ${body.trade}` : null,
+            body.city ? `City: ${body.city}` : null,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+          dedupeKey: `waitlist:${entry.id}`,
+        });
+      } catch (error) {
+        // The signup is the source of truth. A provider outage must not tell a
+        // prospect their request failed after it was already stored.
+        logWarn("waitlist.founder_notification_failed", {
+          entryId: entry.id,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      }
     }
 
     console.info("[waitlist] new signup:", entry.email);
