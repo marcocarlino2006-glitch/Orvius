@@ -52,7 +52,7 @@ export default function PilotPage() {
           </div>
           <p className="tier1-section-lead font-sans" style={{ marginTop: "1.5rem" }}>
             Prefer to start yourself?{" "}
-            <Link href="/login" className="customer-timeline-link">
+            <Link href="/signin" className="customer-timeline-link">
               Sign in and get a dedicated number →
             </Link>
           </p>

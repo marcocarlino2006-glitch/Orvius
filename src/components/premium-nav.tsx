@@ -91,7 +91,7 @@ export function PremiumNav() {
           </nav>
 
           <div className="mkt-nav-actions">
-            <Link href="/login" className="mkt-nav-login" data-i18n="nav.signin">
+            <Link href="/signin" className="mkt-nav-login" data-i18n="nav.signin">
               Sign in
             </Link>
             <Link
@@ -164,7 +164,7 @@ export function PremiumNav() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/login" onClick={() => setMenuOpen(false)}>
+            <Link href="/signin" onClick={() => setMenuOpen(false)}>
               Sign in
             </Link>
             <Link href="/pilot" onClick={() => setMenuOpen(false)}>

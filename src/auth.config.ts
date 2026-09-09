@@ -8,7 +8,7 @@ export function isProtectedPath(pathname: string) {
 
 export const authConfig = {
   pages: {
-    signIn: "/login",
+    signIn: "/signin",
   },
   providers: [],
   session: {

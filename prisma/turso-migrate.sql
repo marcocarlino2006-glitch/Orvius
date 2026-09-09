@@ -181,3 +181,16 @@ ALTER TABLE "Job" ADD COLUMN "resolutionCode" TEXT;
 ALTER TABLE "Job" ADD COLUMN "resolutionSummary" TEXT;
 ALTER TABLE "Job" ADD COLUMN "finalAmountCents" INTEGER;
 ALTER TABLE "Job" ADD COLUMN "outcomeCapturedAt" DATETIME;
+
+-- Passwordless sign-in: single-use, hashed magic-link tokens
+CREATE TABLE IF NOT EXISTS "LoginToken" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "email" TEXT NOT NULL,
+  "tokenHash" TEXT NOT NULL,
+  "expiresAt" DATETIME NOT NULL,
+  "usedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "LoginToken_tokenHash_key" ON "LoginToken"("tokenHash");
+CREATE INDEX IF NOT EXISTS "LoginToken_email_createdAt_idx" ON "LoginToken"("email", "createdAt");
+CREATE INDEX IF NOT EXISTS "LoginToken_expiresAt_idx" ON "LoginToken"("expiresAt");

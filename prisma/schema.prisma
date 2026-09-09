@@ -365,3 +365,17 @@ model WebhookEvent {
   @@index([businessId, createdAt])
   @@index([source, createdAt])
 }
+
+/// Single-use sign-in link. Only the SHA-256 of the token is stored, so a leaked
+/// database row cannot be replayed as a login.
+model LoginToken {
+  id         String    @id @default(cuid())
+  email      String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+  @@index([expiresAt])
+}
