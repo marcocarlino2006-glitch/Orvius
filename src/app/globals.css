@@ -25498,7 +25498,8 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #8b9096 !important;
+  /* 9px uppercase mono needs more than the 4.78:1 the old grey gave it. */
+  color: #a6acb3 !important;
 }
 
 .os-shell-night .os-ring-status-title {
