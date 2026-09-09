@@ -1,6 +1,24 @@
 @import "tailwindcss";
 
 /*
+  Colorway tokens (theme-tokens.css) exposed as Tailwind utilities. `inline`
+  keeps the generated utilities pointing at the custom property instead of
+  snapshotting its value, so bg-ui-surface follows [data-theme] at runtime.
+*/
+@theme inline {
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-surface: var(--ui-surface);
+  --color-ui-surface-hover: var(--ui-surface-hover);
+  --color-ui-text: var(--ui-text);
+  --color-ui-muted: var(--ui-text-muted);
+  --color-ui-border: var(--ui-border);
+  --color-ui-selected: var(--ui-selected);
+  --color-ui-on-selected: var(--ui-on-selected);
+  --color-ui-cta: var(--ui-cta);
+  --color-ui-on-cta: var(--ui-on-cta);
+}
+
+/*
   Orvius — shop command system.
   Craft studied from Cursor × SpaceX, kept Orvius copper (not Cursor orange / cream).
 
@@ -25108,111 +25126,16 @@ body:has(.mkt-page) .shell-header {
   color: #b8562c !important;
 }
 
-/* Site controls — theme + language, parked in the footer bottom-right.
-   Static, so they never follow the scroll. */
-.site-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .mkt-footer-bottom--cursor {
   align-items: center;
   justify-content: flex-start !important;
-  /* Clear the fixed cookie notice so it can't sit on the last row. */
-  padding-bottom: 3.5rem;
+  /* Clear the fixed cookie notice and the utility dock so neither can sit on
+     the last row. */
+  padding-bottom: 4rem;
 }
 
 .mkt-footer-bottom--cursor .mkt-footer-mark {
   margin-left: auto !important;
-}
-
-.mkt-footer-bottom--cursor .site-controls {
-  margin-left: 1.75rem;
-}
-
-.site-controls-theme {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.2rem;
-  background: #ffffff;
-  border: 1px solid #e6e5e0;
-  border-radius: 9999px;
-}
-
-.site-controls-theme button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.85rem;
-  height: 1.85rem;
-  border: 0;
-  border-radius: 9999px;
-  background: transparent;
-  color: #6b6a63;
-  cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
-}
-
-.site-controls-theme button.is-active {
-  background: #26251e;
-  color: #f7f7f4;
-}
-
-.site-controls-lang {
-  position: relative;
-}
-
-.site-controls-lang-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  height: 2.15rem;
-  padding: 0 0.75rem;
-  background: #ffffff;
-  border: 1px solid #e6e5e0;
-  border-radius: 9999px;
-  color: #26251e;
-  font-size: 0.8125rem;
-  cursor: pointer;
-}
-
-.site-controls-lang-menu {
-  position: absolute;
-  right: 0;
-  left: auto;
-  bottom: calc(100% + 0.5rem);
-  margin: 0;
-  padding: 0.3rem;
-  list-style: none;
-  min-width: 9rem;
-  background: #ffffff;
-  border: 1px solid #e6e5e0;
-  border-radius: 0.6rem;
-  box-shadow: 0 12px 34px -12px rgba(38, 37, 30, 0.3);
-}
-
-.site-controls-lang-menu button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.45rem 0.6rem;
-  border: 0;
-  border-radius: 0.4rem;
-  background: transparent;
-  color: #26251e;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.site-controls-lang-menu button:hover {
-  background: #f0eeea;
-}
-
-.site-controls-lang-menu button.is-active {
-  color: #b8562c;
-  font-weight: 600;
 }
 
 /* ============================================================
@@ -25401,32 +25324,6 @@ html[data-theme="night"] .mkt-footer-bottom {
 /* Resources hub links */
 html[data-theme="night"] .mkt-page .mkt-resources-link {
   color: #ededed !important;
-}
-
-/* Bottom-left controls in night mode */
-html[data-theme="night"] .site-controls-theme,
-html[data-theme="night"] .site-controls-lang-btn,
-html[data-theme="night"] .site-controls-lang-menu {
-  background: #2e333a !important;
-  border-color: #3d434a !important;
-}
-
-html[data-theme="night"] .site-controls-lang-btn,
-html[data-theme="night"] .site-controls-lang-menu button {
-  color: #ededed !important;
-}
-
-html[data-theme="night"] .site-controls-theme button {
-  color: #a3a3a3 !important;
-}
-
-html[data-theme="night"] .site-controls-theme button.is-active {
-  background: #ededed !important;
-  color: #171717 !important;
-}
-
-html[data-theme="night"] .site-controls-lang-menu button:hover {
-  background: #3d434a !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

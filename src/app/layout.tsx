@@ -3,8 +3,10 @@ import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 import "./public-v2.css";
+import "./theme-tokens.css";
 
 /**
  * Two voices, no more. Archivo speaks in prose and headlines; Plex Mono speaks
@@ -64,15 +66,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Day is the server default so [data-theme] is never absent and the token set
+  // is unambiguous. The boot script rewrites it before paint, which is the one
+  // divergence suppressHydrationWarning is here to cover.
   return (
-    <html lang="en">
+    <html lang="en" data-theme="day" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{var t=localStorage.getItem('orvius-theme');if(t==='night'){document.documentElement.setAttribute('data-theme','night');}}catch(e){}})();",
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
       <body className={`${sans.variable} ${mono.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>

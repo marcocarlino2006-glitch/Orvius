@@ -1,0 +1,80 @@
+/*
+  Two colorways, one token contract.
+
+  New surfaces read from --ui-* and never hardcode a hex, so a component
+  written once renders correctly on the pitch-dark canvas and on the warm paper
+  canvas. The resolved colorway is carried by [data-theme] and <html> always has
+  it set (server default day, boot script upgrades it before first paint), so no
+  surface has to guess which set is active.
+
+  [data-theme] is matched on any element, not just <html>, so a panel can pin
+  itself to one colorway — that is how the style guide shows both at once.
+
+  Note the roles that invert between colorways. On dark, a selected chip reads
+  as a slightly raised plate (#262626); on paper the same faint plate would be
+  invisible against white, so selection inverts to ink. Same token, same
+  meaning, different execution per canvas.
+*/
+
+:root,
+[data-theme="night"] {
+  color-scheme: dark;
+
+  --ui-bg: #0b0b0b;
+  --ui-surface: #161616;
+  --ui-surface-hover: #222222;
+  --ui-text: #eeeeee;
+  --ui-text-muted: #888888;
+  --ui-border: #262626;
+
+  --ui-selected: #262626;
+  --ui-on-selected: #ffffff;
+  --ui-cta: #ffffff;
+  --ui-on-cta: #0b0b0b;
+
+  /* Metallic top edge — a lit 1px lip, not a soft SaaS elevation blur. */
+  --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
+  --ui-dock-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
+  /*
+    Dock glass. The dock is fixed, so it floats over every section of the page,
+    and the specified 80% is not survivable in either colorway: over the
+    full-bleed copper panel it drops the muted label to 4.09:1 on dark and
+    4.39:1 on light, both under AA. 90% keeps the frosted read and holds
+    >= 4.6:1 against every backdrop the page actually paints —
+    scripts/verify-dock.cjs scans the whole scroll range and asserts it.
+  */
+  --ui-dock-glass: rgb(22 22 22 / 0.9);
+}
+
+[data-theme="day"] {
+  color-scheme: light;
+
+  --ui-bg: #f5f5f0;
+  --ui-surface: #ffffff;
+  /* Hover is derived from the border tone; the brief fixes only the resting
+     values for this colorway. */
+  --ui-surface-hover: #f0f0ea;
+  --ui-text: #0f0f0f;
+  --ui-text-muted: #666666;
+  --ui-border: #e5e5e0;
+
+  --ui-selected: #0f0f0f;
+  --ui-on-selected: #f5f5f0;
+  --ui-cta: #0f0f0f;
+  --ui-on-cta: #f5f5f0;
+
+  --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.9);
+  --ui-dock-shadow: 0 12px 32px rgb(15 15 15 / 0.12);
+  --ui-dock-glass: rgb(255 255 255 / 0.9);
+}
+
+/*
+  Legacy marketing CSS squares off every button inside .mkt-page with
+  `border-radius: 0.2rem !important`. Pill primitives opt out of that rule
+  explicitly rather than each caller fighting it with its own !important.
+*/
+.ui-pill,
+.mkt-page .ui-pill,
+.mkt-page button.ui-pill {
+  border-radius: 9999px !important;
+}
