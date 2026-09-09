@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { SystemStatusPill } from "@/components/system-status-pill";
 
 const NAV = [
   { href: "/product", label: "Product", i18n: "nav.product" },
@@ -70,13 +71,16 @@ export function PremiumNav() {
         className={`mkt-nav mkt-nav--institution ${scrolled ? "mkt-nav--elevated" : ""} ${menuOpen ? "mkt-nav--open" : ""}`}
       >
         <div className="mkt-nav-inner">
-          <Link
-            href="/"
-            className="mkt-nav-brand"
-            onClick={() => setMenuOpen(false)}
-          >
-            <OrviusLogo variant="void" size="lg" />
-          </Link>
+          <div className="mkt-nav-brandline">
+            <Link
+              href="/"
+              className="mkt-nav-brand"
+              onClick={() => setMenuOpen(false)}
+            >
+              <OrviusLogo variant="void" size="lg" />
+            </Link>
+            <SystemStatusPill className="ov-status-pill--nav" />
+          </div>
 
           <nav className="mkt-nav-links" aria-label="Main">
             {NAV.map((item) => (
@@ -127,13 +131,16 @@ export function PremiumNav() {
           aria-label="Navigation menu"
         >
           <div className="mkt-nav-sheet-bar">
-            <Link
-              href="/"
-              className="mkt-nav-brand"
-              onClick={() => setMenuOpen(false)}
-            >
-              <OrviusLogo variant="void" size="lg" />
-            </Link>
+            <div className="mkt-nav-brandline">
+              <Link
+                href="/"
+                className="mkt-nav-brand"
+                onClick={() => setMenuOpen(false)}
+              >
+                <OrviusLogo variant="void" size="lg" />
+              </Link>
+              <SystemStatusPill />
+            </div>
             <button
               type="button"
               className="mkt-nav-menu-toggle mkt-nav-menu-toggle--close"

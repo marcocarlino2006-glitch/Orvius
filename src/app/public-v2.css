@@ -7,7 +7,38 @@
  * shares this letterset so nothing reads borrowed.
  */
 
-:root {
+/*
+ * Night is the default canvas. Orvius is a command center for the shift that
+ * runs after dark, so the public surface is charcoal first and paper second —
+ * the same skin, one variable set apart. Every rule below reads --ov-*, so
+ * flipping the colorway is a palette swap, not a second stylesheet.
+ */
+:root,
+html[data-theme="night"] {
+  --ov-paper: #0b0b0b;
+  --ov-paper-raised: #111111;
+  --ov-ink: #eeeeee;
+  --ov-muted: #888888;
+  --ov-line: #232323;
+  --ov-line-strong: #2e2e2e;
+  --ov-charcoal: #141414;
+  --ov-charcoal-raised: #1a1a1a;
+  --ov-night-text: #eeeeee;
+  /* Copper is lifted on charcoal; the paper value is too dark to read here. */
+  --ov-copper: #d9784b;
+  --ov-copper-dark: #b8562c;
+  --ov-copper-field: #111111;
+  --ov-amber: #f59e0b;
+  --ov-green: #34d399;
+  --ov-emerald: #10b981;
+  /* Headlines run brighter than body ink so display type stays crisp. */
+  --ov-headline: #ffffff;
+  --ov-hairline: rgb(255 255 255 / 0.1);
+  --ov-hairline-strong: rgb(255 255 255 / 0.2);
+  --ov-hairline-hover: rgb(255 255 255 / 0.4);
+}
+
+html[data-theme="day"] {
   --ov-paper: #f5f3ee;
   --ov-paper-raised: #fbfaf6;
   --ov-ink: #1c1e1a;
@@ -20,7 +51,13 @@
   --ov-copper: #b8562c;
   --ov-copper-dark: #8a3d1c;
   --ov-copper-field: #c25f31;
+  --ov-amber: #b45309;
   --ov-green: #2d7a58;
+  --ov-emerald: #059669;
+  --ov-headline: #12140f;
+  --ov-hairline: rgb(28 30 26 / 0.12);
+  --ov-hairline-strong: rgb(28 30 26 / 0.22);
+  --ov-hairline-hover: rgb(28 30 26 / 0.42);
 }
 
 /*
@@ -72,10 +109,87 @@ body {
 .ov-public .orvius-logo-word,
 .ov-auth .orvius-logo-word {
   color: inherit !important;
-  font-family: var(--ov-font) !important;
+  font-family: var(--ov-mono) !important;
   font-weight: 700 !important;
-  letter-spacing: -0.032em !important;
-  text-transform: none !important;
+  letter-spacing: var(--logo-word-tracking, 0.18em) !important;
+  text-transform: uppercase !important;
+  /* Open tracking adds space after the last glyph; pull it back so the lockup
+     is optically centred against the mark. */
+  margin-right: -0.18em;
+}
+
+/* Live system status, set beside the wordmark. */
+
+.ov-public .mkt-nav-brandline,
+.ov-auth .mkt-nav-brandline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.ov-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid rgb(16 185 129 / 0.3);
+  border-radius: 9999px;
+  background: rgb(16 185 129 / 0.1);
+  color: #34d399;
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.ov-status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+/* Only a confirmed-live line gets to pulse. */
+.ov-status-pill--operational .ov-status-dot {
+  animation: ov-status-pulse 2.4s ease-in-out infinite;
+}
+
+.ov-status-pill--checking {
+  border-color: var(--ov-line-strong);
+  background: transparent;
+  color: var(--ov-muted);
+}
+
+.ov-status-pill--degraded {
+  border-color: rgb(245 158 11 / 0.35);
+  background: rgb(245 158 11 / 0.1);
+  color: #fbbf24;
+}
+
+@keyframes ov-status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-status-pill--operational .ov-status-dot {
+    animation: none;
+  }
+}
+
+/* The pill is supporting detail; the wordmark keeps the room on small screens. */
+@media (max-width: 900px) {
+  .ov-status-pill--nav {
+    display: none;
+  }
 }
 
 /* Compact public chrome */
@@ -109,7 +223,7 @@ body {
   margin: 0 auto !important;
   padding: 0 20px !important;
   display: grid !important;
-  grid-template-columns: minmax(150px, 1fr) auto minmax(190px, 1fr) !important;
+  grid-template-columns: minmax(260px, 1fr) auto minmax(200px, 1fr) !important;
   align-items: center !important;
   gap: 24px !important;
 }
@@ -315,7 +429,30 @@ body {
   box-shadow: none !important;
 }
 
-/* Product proof on an Orvius oxide field. */
+/*
+ * Panels that are dark in both colorways — the product showcase and the night
+ * rule cards are instruments, and an instrument does not turn into paper when
+ * the page does. They re-declare the token set locally, so every rule inside
+ * can keep reading --ov-* instead of branching on [data-theme].
+ */
+.ov-public .mkt-showcase-grid,
+.ov-public .mkt-laws--grid .mkt-law {
+  --ov-headline: #ffffff;
+  --ov-ink: #eeeeee;
+  --ov-muted: #a0a0a0;
+  --ov-line: #232323;
+  --ov-line-strong: #2e2e2e;
+  --ov-hairline: rgb(255 255 255 / 0.1);
+  --ov-hairline-strong: rgb(255 255 255 / 0.2);
+  --ov-hairline-hover: rgb(255 255 255 / 0.4);
+  --ov-copper: #d9784b;
+  --ov-amber: #f59e0b;
+}
+
+/* Product proof on a charcoal field with a lit warm top edge. The panel used to
+   be a flat copper block; on the dark canvas the same emphasis comes from the
+   amber lip and its upward bloom, which reads as a powered surface instead of a
+   colour swatch. */
 
 .ov-public .mkt-showcase {
   margin: 0 !important;
@@ -334,10 +471,11 @@ body {
   grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.55fr) !important;
   gap: clamp(32px, 5vw, 76px) !important;
   align-items: center !important;
-  border: 1px solid color-mix(in srgb, var(--ov-copper-dark) 32%, transparent) !important;
-  border-radius: 7px !important;
-  background: var(--ov-copper-field) !important;
-  box-shadow: none !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-top: 2px solid rgb(245 158 11 / 0.6) !important;
+  border-radius: 16px !important;
+  background: #111111 !important;
+  box-shadow: 0 -20px 80px -20px rgb(217 119 6 / 0.15) !important;
 }
 
 .ov-public .mkt-showcase-copy {
@@ -345,24 +483,28 @@ body {
 }
 
 .ov-public .mkt-showcase-eyebrow {
-  color: color-mix(in srgb, var(--ov-ink) 68%, var(--ov-copper-field)) !important;
+  color: var(--ov-amber) !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
 }
 
 .ov-public .mkt-showcase-title {
   max-width: 390px !important;
   margin: 0 !important;
-  color: #1f211d !important;
+  color: var(--ov-headline) !important;
   font-family: var(--ov-font) !important;
   font-size: clamp(2rem, 3.4vw, 3.25rem) !important;
-  font-weight: 400 !important;
+  font-weight: 600 !important;
   line-height: 1.06 !important;
-  letter-spacing: -0.04em !important;
+  letter-spacing: -0.028em !important;
 }
 
 .ov-public .mkt-showcase-lead {
   max-width: 390px !important;
   margin: 1.35rem 0 0 !important;
-  color: color-mix(in srgb, var(--ov-ink) 78%, var(--ov-copper-field)) !important;
+  color: #a8a8a8 !important;
   font-family: var(--ov-font) !important;
   font-size: 0.9375rem !important;
   line-height: 1.55 !important;
@@ -372,25 +514,108 @@ body {
   width: max-content !important;
   max-width: 100% !important;
   margin-top: 1.65rem !important;
-  border: 1px solid color-mix(in srgb, var(--ov-ink) 25%, transparent) !important;
-  border-radius: 4px !important;
-  background: color-mix(in srgb, var(--ov-paper) 35%, transparent) !important;
+  border: 1px solid var(--ov-hairline-strong) !important;
+  border-radius: 9999px !important;
+  background: rgb(255 255 255 / 0.04) !important;
   box-shadow: none !important;
 }
 
 .ov-public .mkt-showcase-stage {
   min-width: 0;
-  border: 1px solid color-mix(in srgb, #0d0f11 42%, transparent) !important;
-  border-radius: 5px !important;
-  background: var(--ov-charcoal) !important;
-  box-shadow: 0 24px 64px color-mix(in srgb, #22150f 22%, transparent) !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-radius: 12px !important;
+  background: #161616 !important;
+  box-shadow: 0 30px 70px -24px rgb(0 0 0 / 0.8) !important;
   overflow: hidden;
 }
 
 .ov-public .mkt-product {
   border: 0 !important;
   border-radius: 0 !important;
-  background: var(--ov-charcoal) !important;
+  background: #161616 !important;
+}
+
+/* ── Dispatch board tags ──
+   The preview shipped its labels as 42–58% translucent sans, which measured
+   between 3.2:1 and 3.9:1 — under AA at 9–11px. Every tag is now an opaque
+   monospaced label on a neutral charcoal plate, so the board reads like an
+   instrument panel instead of a watermark. */
+
+.ov-public .mkt-product,
+.ov-public .mkt-product .mkt-product-body {
+  background: #161616 !important;
+}
+
+.ov-public .mkt-product .mkt-product-chrome {
+  background: #1a1a1a !important;
+  border-bottom-color: var(--ov-hairline) !important;
+}
+
+.ov-public .mkt-product .mkt-product-rail {
+  background: #121212 !important;
+  border-right-color: var(--ov-hairline) !important;
+}
+
+.ov-public .mkt-product .mkt-product-cli {
+  background: #101010 !important;
+  border-top-color: var(--ov-hairline) !important;
+}
+
+.ov-public .mkt-product .mkt-product-chrome-path,
+.ov-public .mkt-product .mkt-product-rail-label,
+.ov-public .mkt-product .mkt-product-stream-kicker,
+.ov-public .mkt-product .mkt-product-cli-label,
+.ov-public .mkt-product .mkt-product-live,
+.ov-public .mkt-product .mkt-product-rail-list time,
+.ov-public .mkt-product .mkt-product-steps em {
+  font-family: var(--ov-mono) !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.ov-public .mkt-product .mkt-product-chrome-path,
+.ov-public .mkt-product .mkt-product-rail-label,
+.ov-public .mkt-product .mkt-product-stream-kicker,
+.ov-public .mkt-product .mkt-product-cli-label,
+.ov-public .mkt-product .mkt-product-steps em {
+  color: #a8a8a8 !important;
+}
+
+.ov-public .mkt-product .mkt-product-rail-list time {
+  color: #8f8f8f !important;
+  font-size: 0.5625rem !important;
+}
+
+.ov-public .mkt-product .mkt-product-rail-list strong {
+  color: #f2f2f2 !important;
+}
+
+.ov-public .mkt-product .mkt-product-rail-list em {
+  color: #9a9a9a !important;
+  font-family: var(--ov-mono) !important;
+  font-style: normal !important;
+}
+
+.ov-public .mkt-product .mkt-product-steps span {
+  color: #e8e8e8 !important;
+}
+
+.ov-public .mkt-product .mkt-product-cli-text {
+  color: #d4d4d4 !important;
+  font-family: var(--ov-mono) !important;
+}
+
+.ov-public .mkt-product .mkt-product-reply {
+  border-color: var(--ov-hairline) !important;
+  background: rgb(255 255 255 / 0.04) !important;
+}
+
+.ov-public .mkt-product .mkt-product-reply p {
+  color: #d4d4d4 !important;
+}
+
+.ov-public .mkt-product .mkt-product-stream-title {
+  color: #ffffff !important;
 }
 
 /* Editorial sections */
@@ -409,19 +634,19 @@ body {
   max-width: 1240px !important;
   margin: 0 auto !important;
   display: grid !important;
-  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr) !important;
-  gap: clamp(52px, 8vw, 120px) !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: clamp(40px, 5vw, 64px) !important;
 }
 
 .ov-public .mkt-manifesto-title {
-  max-width: 530px !important;
+  max-width: 620px !important;
   margin: 0 !important;
-  color: var(--ov-ink) !important;
+  color: var(--ov-headline) !important;
   font-family: var(--ov-font) !important;
   font-size: clamp(2rem, 3.5vw, 3.2rem) !important;
-  font-weight: 400 !important;
+  font-weight: 600 !important;
   line-height: 1.08 !important;
-  letter-spacing: -0.04em !important;
+  letter-spacing: -0.028em !important;
 }
 
 .ov-public .mkt-manifesto-aside {
@@ -432,38 +657,97 @@ body {
   line-height: 1.6 !important;
 }
 
-.ov-public .mkt-laws {
+/* Night rules — three elevated surfaces rather than a ruled list. The grid sits
+   under the lead copy at full width so the cards get room to be read as cards. */
+
+.ov-public .mkt-laws--grid {
   margin: 0 !important;
-  border-top: 1px solid var(--ov-line-strong) !important;
-}
-
-.ov-public .mkt-law {
-  padding: 1.55rem 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
   border: 0 !important;
-  border-bottom: 1px solid var(--ov-line) !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 1rem !important;
 }
 
-.ov-public .mkt-law-id {
-  color: var(--ov-copper-dark) !important;
-  font-family: var(--ov-font) !important;
-  font-size: 0.75rem !important;
+.ov-public .mkt-laws--grid .mkt-law {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.35rem !important;
+  padding: 1.5rem !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-radius: 16px !important;
+  background: #141414 !important;
+  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.05) !important;
+  transition:
+    border-color 200ms ease,
+    background 200ms ease !important;
+}
+
+.ov-public .mkt-laws--grid .mkt-law:hover {
+  border-color: var(--ov-hairline-strong) !important;
+  background: #171717 !important;
+}
+
+.ov-public .mkt-law-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+}
+
+.ov-public .mkt-law-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-radius: 10px !important;
+  background: rgb(255 255 255 / 0.04) !important;
+  color: var(--ov-copper) !important;
+}
+
+.ov-public .mkt-law-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  padding: 0.15rem 0.6rem !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-radius: 9999px !important;
+  background: rgb(255 255 255 / 0.04) !important;
+  color: #a8a8a8 !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+}
+
+.ov-public .mkt-law-badge-sep {
+  color: #5c5c5c !important;
 }
 
 .ov-public .mkt-law-title {
-  color: var(--ov-ink) !important;
+  margin: 0 !important;
+  color: var(--ov-headline) !important;
   font-family: var(--ov-font) !important;
-  font-size: 1.05rem !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.015em !important;
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
 }
 
 .ov-public .mkt-law-body {
-  color: var(--ov-muted) !important;
+  margin: 0.6rem 0 0 !important;
+  color: #a0a0a0 !important;
   font-family: var(--ov-font) !important;
   font-size: 0.875rem !important;
-  line-height: 1.55 !important;
+  line-height: 1.6 !important;
+}
+
+@media (max-width: 900px) {
+  .ov-public .mkt-laws--grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Call proof: charcoal, never pure black. */
@@ -549,11 +833,77 @@ body {
   color: #aeb2b6 !important;
 }
 
+/* ── Operating standards banner ──
+   Full-bleed rule-to-rule strip between the hero and the product proof. It sits
+   a shade below the page canvas so it reads as a plate set into the page. */
+
+.ov-public .ov-stats {
+  padding: 2rem 5vw;
+  border-top: 1px solid var(--ov-hairline);
+  border-bottom: 1px solid var(--ov-hairline);
+  background: #0e0e0e;
+}
+
+.ov-public .ov-stats-inner {
+  width: min(100%, 1240px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 64px);
+}
+
+.ov-public .ov-stat-value {
+  margin: 0;
+  color: var(--ov-headline);
+  font-family: var(--ov-mono);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-stat-label {
+  margin: 0.7rem 0 0;
+  color: var(--ov-copper);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-stat-note {
+  margin: 0.5rem 0 0;
+  max-width: 34ch;
+  color: var(--ov-muted);
+  font-family: var(--ov-font);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.ov-public .ov-stats-foot {
+  width: min(100%, 1240px);
+  margin: 1.75rem auto 0;
+  color: #6f6f6f;
+  font-family: var(--ov-font);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 820px) {
+  .ov-public .ov-stats-inner {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+}
+
 /* Close and footer */
 
 .ov-public .mkt-trynow {
-  padding: 126px 5vw !important;
+  padding: 126px 5vw 150px !important;
   border: 0 !important;
+  border-top: 1px solid var(--ov-line) !important;
   background: var(--ov-paper) !important;
 }
 
@@ -568,27 +918,66 @@ body {
   text-align: left !important;
 }
 
+.ov-public .mkt-trynow-eyebrow {
+  margin: 0 0 1.1rem !important;
+  color: var(--ov-copper) !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
 .ov-public .mkt-trynow-title {
   max-width: 700px !important;
   margin: 0 !important;
-  color: var(--ov-ink) !important;
+  color: var(--ov-headline) !important;
   font-family: var(--ov-font) !important;
-  font-size: clamp(2.5rem, 5vw, 4.6rem) !important;
-  font-weight: 400 !important;
-  line-height: 1 !important;
-  letter-spacing: -0.055em !important;
+  font-size: clamp(2.5rem, 5vw, 4.2rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.032em !important;
+}
+
+.ov-public .mkt-trynow-sub {
+  max-width: 56ch !important;
+  margin: 1.25rem 0 0 !important;
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
 }
 
 .ov-public .mkt-trynow-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
   justify-content: flex-start !important;
-  margin-top: 2rem !important;
+  gap: 1.25rem !important;
+  margin-top: 2.1rem !important;
 }
 
 .ov-public .mkt-trynow-call {
   display: inline-block !important;
-  margin-top: 1rem !important;
+  margin-top: 0 !important;
   color: var(--ov-muted) !important;
-  font-size: 0.8125rem !important;
+  font-size: 0.875rem !important;
+}
+
+.ov-public .mkt-trynow-call:hover {
+  color: var(--ov-headline) !important;
+}
+
+.ov-public .mkt-trynow-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  margin: 1.6rem 0 0 !important;
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
 }
 
 .ov-public .mkt-footer {
@@ -1064,47 +1453,6 @@ body {
   font-family: var(--ov-mono) !important;
 }
 
-/* Night preference keeps public craft charcoal, not black. */
-
-html[data-theme="night"] .ov-public {
-  --ov-paper: #23272c;
-  --ov-paper-raised: #292e34;
-  --ov-ink: #efeee9;
-  --ov-muted: #b0b4b8;
-  --ov-line: #3a4046;
-  --ov-line-strong: #4a5158;
-  --ov-charcoal: #1f2327;
-  --ov-charcoal-raised: #292e34;
-  --ov-copper-dark: #e0a07d;
-  background: var(--ov-paper) !important;
-  color: var(--ov-ink) !important;
-}
-
-html[data-theme="night"] .ov-public .mkt-showcase-grid {
-  background: var(--ov-copper-field) !important;
-}
-
-html[data-theme="night"] .ov-public .mkt-showcase-title {
-  color: #191b1d !important;
-}
-
-html[data-theme="night"] .ov-public .mkt-showcase-lead {
-  color: #49372a !important;
-}
-
-html[data-theme="night"] .ov-public .orvius-logo-mark {
-  color: var(--ov-copper) !important;
-}
-
-html[data-theme="night"] .ov-public .mkt-nav-cta,
-html[data-theme="night"] .ov-public .mkt-hero-clean-cta,
-html[data-theme="night"] .ov-public .mkt-trynow-cta,
-html[data-theme="night"] .ov-public .inst-btn-primary {
-  border-color: #efeee9 !important;
-  background: #efeee9 !important;
-  color: #23272c !important;
-}
-
 /* Responsive public rhythm */
 
 @media (max-width: 980px) {
@@ -1377,12 +1725,13 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 
 .ov-public .ov-hero-title {
   margin: 0;
-  color: var(--ov-ink);
+  color: var(--ov-headline);
   font-family: var(--ov-font);
   font-size: clamp(2.6rem, 4.6vw, 4rem);
   font-weight: 600;
-  line-height: 0.99;
-  letter-spacing: -0.046em;
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
 }
 
 .ov-public .ov-hero-lead {
@@ -1407,9 +1756,9 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 46px;
-  padding: 0 1.15rem;
-  border-radius: 5px;
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
   font-family: var(--ov-font);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -1422,29 +1771,28 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
     box-shadow 130ms ease;
 }
 
+/* The one CTA inverts against the canvas and carries a soft halo, so it reads
+   as the lit control on a dark board rather than another outlined chip. */
 .ov-public .ov-btn--solid {
-  border: 1px solid var(--ov-charcoal);
-  background: var(--ov-charcoal);
-  color: var(--ov-night-text);
-  box-shadow: 0 1px 2px rgb(28 30 26 / 18%);
+  border: 1px solid var(--ov-headline);
+  background: var(--ov-headline);
+  color: var(--ov-paper);
+  box-shadow: 0 0 0 rgb(255 255 255 / 0);
 }
 
 .ov-public .ov-btn--solid:hover {
-  border-color: #14171a;
-  background: #14171a;
-  box-shadow: 0 6px 18px rgb(28 30 26 / 20%);
+  box-shadow: 0 8px 28px -8px rgb(255 255 255 / 0.35);
   transform: translateY(-1px);
 }
 
 .ov-public .ov-btn--quiet {
-  border: 1px solid var(--ov-line-strong);
+  border: 1px solid var(--ov-hairline-strong);
   background: transparent;
-  color: var(--ov-ink);
+  color: var(--ov-headline);
 }
 
 .ov-public .ov-btn--quiet:hover {
-  border-color: var(--ov-copper);
-  color: var(--ov-copper-dark);
+  border-color: var(--ov-hairline-hover);
   transform: translateY(-1px);
 }
 
@@ -1461,14 +1809,22 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 }
 
 .ov-public .ov-hero-pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ov-green);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-green) 20%, transparent);
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--ov-emerald);
+  animation: ov-status-pulse 2.4s ease-in-out infinite;
 }
 
-/* ── Live call console ── */
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-hero-pulse {
+    animation: none;
+  }
+}
+
+/* ── Live call console ──
+   A charcoal instrument on a charcoal page: the frame separates from the canvas
+   by a lit hairline and a raised interior, not by a colour change. */
 
 .ov-public .ov-console {
   margin: 0;
@@ -1482,12 +1838,12 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 }
 
 .ov-public .ov-console-frame {
-  border: 1px solid #333a44;
-  border-radius: 10px;
-  background: linear-gradient(#25292f, #1e2227);
+  border: 1px solid var(--ov-hairline);
+  border-radius: 16px;
+  background: #111111;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 7%),
-    0 26px 70px -22px rgb(20 14 10 / 45%);
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 30px 80px -28px rgb(0 0 0 / 0.85);
   overflow: hidden;
 }
 
@@ -1496,21 +1852,21 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   align-items: center;
   gap: 0.5rem;
   padding: 0.72rem 1rem;
-  border-bottom: 1px solid #2f3640;
-  background: #202429;
+  border-bottom: 1px solid var(--ov-hairline);
+  background: #141414;
   font-family: var(--ov-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
 }
 
 .ov-public .ov-console-shop {
-  color: #eceae4;
-  font-weight: 500;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .ov-public .ov-console-sep,
 .ov-public .ov-console-context {
-  color: #8a9199;
+  color: #8f8f8f;
 }
 
 .ov-public .ov-console-live {
@@ -1518,39 +1874,30 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.16rem 0.45rem;
-  border: 1px solid color-mix(in srgb, var(--ov-green) 42%, transparent);
-  border-radius: 3px;
-  color: #6fd7a8;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid rgb(16 185 129 / 0.3);
+  border-radius: 9999px;
+  background: rgb(16 185 129 / 0.1);
+  color: #34d399;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
 }
 
 .ov-public .ov-console-live i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #43c98a;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--ov-emerald);
 }
 
-.ov-public .ov-console-live i.is-pulsing {
-  animation: ov-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes ov-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 color-mix(in srgb, #43c98a 55%, transparent);
-  }
-  50% {
-    opacity: 0.55;
-    box-shadow: 0 0 0 4px color-mix(in srgb, #43c98a 0%, transparent);
-  }
+/* The dot pulses only while the timeline is actually running. */
+.ov-public .ov-console-live[data-live="true"] i {
+  animation: ov-status-pulse 2s ease-in-out infinite;
 }
 
 .ov-public .ov-console-clock {
-  color: #8a9199;
+  color: #9a9a9a;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1562,10 +1909,17 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 
 .ov-public .ov-console-wire {
   padding: 1.05rem 1.1rem;
-  border-right: 1px solid #2f3640;
+  border-right: 1px solid var(--ov-hairline);
   display: flex;
   flex-direction: column;
   gap: 0.72rem;
+  max-height: 268px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.ov-public .ov-console-wire::-webkit-scrollbar {
+  display: none;
 }
 
 .ov-public .ov-wire-line {
@@ -1576,10 +1930,18 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   font-family: var(--ov-mono);
   font-size: 0.75rem;
   line-height: 1.5;
+  /* Lines already spoken recede so the current one owns the eye. */
+  opacity: 0.62;
+  transition: opacity 200ms ease;
+}
+
+.ov-public .ov-wire-line.is-active,
+.ov-public .ov-wire-line:last-child {
+  opacity: 1;
 }
 
 .ov-public .ov-wire-who {
-  color: #7d848c;
+  color: #8f8f8f;
   font-size: 0.625rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1587,11 +1949,11 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 }
 
 .ov-public .ov-wire-line--orvius .ov-wire-text {
-  color: #edebe5;
+  color: #f2f2f2;
 }
 
 .ov-public .ov-wire-line--caller .ov-wire-text {
-  color: #a7aeb6;
+  color: #b4b4b4;
 }
 
 .ov-public .ov-wire-caret {
@@ -1600,7 +1962,7 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   height: 0.85em;
   margin-left: 2px;
   vertical-align: -0.08em;
-  background: var(--ov-copper-field);
+  background: var(--ov-copper);
   animation: ov-caret 1s steps(2, end) infinite;
 }
 
@@ -1617,12 +1979,12 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 
 .ov-public .ov-console-capture {
   padding: 1.05rem 1.1rem;
-  background: #1b1f23;
+  background: #0e0e0e;
 }
 
 .ov-public .ov-capture-label {
   margin: 0 0 0.75rem;
-  color: #7d848c;
+  color: #8f8f8f;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   letter-spacing: 0.16em;
@@ -1639,16 +2001,16 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   display: grid;
   gap: 0.1rem;
   padding: 0.4rem 0.55rem;
-  border: 1px solid #282e35;
-  border-radius: 4px;
-  background: #1f2429;
+  border: 1px solid var(--ov-hairline);
+  border-radius: 8px;
+  background: #161616;
   transition:
     border-color 220ms ease,
     background 220ms ease;
 }
 
 .ov-public .ov-capture-row dt {
-  color: #767d85;
+  color: #8f8f8f;
   font-family: var(--ov-mono);
   font-size: 0.5625rem;
   letter-spacing: 0.16em;
@@ -1657,28 +2019,25 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 
 .ov-public .ov-capture-row dd {
   margin: 0;
-  color: #5f666e;
+  color: #808080;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
 }
 
 .ov-public .ov-capture-row.is-set {
-  border-color: color-mix(in srgb, var(--ov-copper-field) 34%, transparent);
-  background: color-mix(in srgb, var(--ov-copper) 9%, #1f2429);
+  border-color: color-mix(in srgb, var(--ov-copper) 34%, transparent);
+  background: color-mix(in srgb, var(--ov-copper) 9%, #161616);
+  animation: ov-capture 620ms ease-out;
 }
 
 .ov-public .ov-capture-row.is-set dd {
-  color: #f0ece7;
-}
-
-.ov-public .ov-capture-row.is-set {
-  animation: ov-capture 620ms ease-out;
+  color: #f5f5f5;
 }
 
 @keyframes ov-capture {
   0% {
-    border-color: var(--ov-copper-field);
-    background: color-mix(in srgb, var(--ov-copper) 26%, #1f2429);
+    border-color: var(--ov-copper);
+    background: color-mix(in srgb, var(--ov-copper) 26%, #161616);
     transform: translateX(4px);
   }
   100% {
@@ -1686,13 +2045,105 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   }
 }
 
+/* ── Timeline player ──
+   There is no recording behind this. The waveform is drawn from the script's
+   own timing, so it scrubs the transcript rather than pretending to scrub audio.
+   Bars are tinted by speaker, which makes turn-taking legible at a glance. */
+
+.ov-public .ov-console-player {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 1.1rem;
+  border-top: 1px solid var(--ov-hairline);
+  background: #0e0e0e;
+}
+
+.ov-public .ov-player-toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--ov-hairline-strong);
+  border-radius: 9999px !important;
+  background: #ffffff;
+  color: #0b0b0b;
+  cursor: pointer;
+  transition:
+    transform 130ms ease,
+    box-shadow 130ms ease;
+}
+
+.ov-public .ov-player-toggle:hover {
+  box-shadow: 0 0 18px -4px rgb(255 255 255 / 0.5);
+  transform: scale(1.06);
+}
+
+.ov-public .ov-player-toggle:focus-visible,
+.ov-public .ov-player-track:focus-visible {
+  outline: 2px solid var(--ov-copper);
+  outline-offset: 2px;
+}
+
+.ov-public .ov-player-track {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1.5px;
+  height: 34px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.ov-public .ov-player-bar {
+  flex: 1;
+  min-width: 1px;
+  border-radius: 9999px;
+  background: #2e2e2e;
+  transition: background 120ms ease;
+}
+
+.ov-public .ov-player-bar.is-played.ov-player-bar--orvius {
+  background: var(--ov-copper);
+}
+
+.ov-public .ov-player-bar.is-played.ov-player-bar--caller {
+  background: #d4d4d4;
+}
+
+.ov-public .ov-player-bar.is-played {
+  background: #4a4a4a;
+}
+
+.ov-public .ov-player-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgb(255 255 255 / 0.65);
+  pointer-events: none;
+}
+
+.ov-public .ov-player-time {
+  flex-shrink: 0;
+  color: #9a9a9a;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
 .ov-public .ov-console-rail {
   display: flex;
   flex-wrap: wrap;
   gap: 1.1rem;
   padding: 0.72rem 1.1rem;
-  border-top: 1px solid #2f3640;
-  background: #202429;
+  border-top: 1px solid var(--ov-hairline);
+  background: #141414;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   letter-spacing: 0.13em;
@@ -1703,7 +2154,7 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #6d747c;
+  color: #8f8f8f;
   transition: color 220ms ease;
 }
 
@@ -1711,27 +2162,27 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #3c434b;
+  background: #2e2e2e;
   transition:
     background 220ms ease,
     box-shadow 220ms ease;
 }
 
 .ov-public .ov-rail-step.is-active {
-  color: #e6ddd6;
+  color: #f2f2f2;
 }
 
 .ov-public .ov-rail-step.is-active i {
-  background: var(--ov-copper-field);
+  background: var(--ov-copper);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-copper) 24%, transparent);
 }
 
 .ov-public .ov-rail-step.is-done {
-  color: #b9bfc6;
+  color: #c4c4c4;
 }
 
 .ov-public .ov-rail-step.is-done i {
-  background: #43c98a;
+  background: var(--ov-emerald);
 }
 
 .ov-public .ov-console-caption {
@@ -1769,7 +2220,8 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 
   .ov-public .ov-console-wire {
     border-right: 0;
-    border-bottom: 1px solid #2f3640;
+    border-bottom: 1px solid var(--ov-hairline);
+    max-height: 190px;
   }
 
   .ov-public .ov-console-rail {
@@ -1778,9 +2230,13 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ov-public .ov-console-live i.is-pulsing,
+  .ov-public .ov-console-live i,
   .ov-public .ov-wire-caret,
   .ov-public .ov-capture-row.is-set {
     animation: none !important;
+  }
+
+  .ov-public .ov-player-toggle:hover {
+    transform: none;
   }
 }

@@ -1183,7 +1183,7 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — copper integrated-OV monogram + restrained product wordmark. */
+/* Orvius logo — copper signal aperture + monospaced reporting wordmark. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -1202,21 +1202,21 @@ h3 {
   color: var(--signal);
 }
 
+/* Sizes come from logoSizes via --logo-word-*, so the lockup is tuned in one
+   place instead of here and in TypeScript. */
 .orvius-logo-word {
   display: block;
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: var(--logo-word-size, 1.0625rem);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--logo-word-size, 0.875rem);
   font-weight: 700;
-  letter-spacing: var(--logo-word-tracking, -0.032em);
-  text-transform: none;
+  letter-spacing: var(--logo-word-tracking, 0.17em);
+  text-transform: uppercase;
   line-height: 1;
   color: inherit;
+  /* Open tracking trails the last glyph; reclaim it so the lockup is optically
+     centred against the mark. */
+  margin-right: -0.17em;
 }
-
-.orvius-logo-sm .orvius-logo-word { font-size: 0.9375rem; }
-.orvius-logo-md .orvius-logo-word { font-size: 1.0625rem; }
-.orvius-logo-lg .orvius-logo-word { font-size: 1.125rem; }
-.orvius-logo-xl .orvius-logo-word { font-size: 2.15rem; letter-spacing: -0.025em; }
 
 .orvius-logo-void {
   color: #f4f6f8;
@@ -19028,9 +19028,11 @@ select {
 }
 
 .os-sidebar-brand .orvius-logo-word {
-  font-size: 1.05rem !important;
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  font-size: 0.875rem !important;
   font-weight: 700 !important;
-  letter-spacing: -0.032em !important;
+  letter-spacing: 0.17em !important;
+  text-transform: uppercase !important;
 }
 
 .os-sidebar-brand .orvius-logo-mark {
@@ -25148,8 +25150,8 @@ html[data-theme="night"] .mkt-page .tier1-hero,
 html[data-theme="night"] .mkt-page .tier1-close,
 html[data-theme="night"] .mkt-page .marketing-hero,
 html[data-theme="night"] .mkt-page .mkt-trynow {
-  background: #22252a !important;
-  color: #ededed !important;
+  background: #0b0b0b !important;
+  color: #eeeeee !important;
 }
 
 html[data-theme="night"] .mkt-page .tier1-story,
@@ -25159,9 +25161,9 @@ html[data-theme="night"] .mkt-page .mkt-manifesto,
 html[data-theme="night"] .mkt-page .mkt-close,
 html[data-theme="night"] .mkt-page .mkt-proof-section,
 html[data-theme="night"] .mkt-page .mkt-showcase {
-  background: #292d33 !important;
-  color: #ededed !important;
-  border-color: #3d434a !important;
+  background: #111111 !important;
+  color: #eeeeee !important;
+  border-color: #232323 !important;
 }
 
 /* Ink → light */
@@ -25179,7 +25181,7 @@ html[data-theme="night"] .mkt-page .text-void,
 html[data-theme="night"] .mkt-page .pro-panel-title,
 html[data-theme="night"] .mkt-page .pricing-needs-option-label,
 html[data-theme="night"] .mkt-page .tier1-plan-price {
-  color: #ededed !important;
+  color: #eeeeee !important;
 }
 
 /* Muted → warm gray light */
@@ -25196,7 +25198,7 @@ html[data-theme="night"] .mkt-page .mkt-law-body,
 html[data-theme="night"] .mkt-page .mkt-close-desc,
 html[data-theme="night"] .mkt-page .mkt-proof-lead,
 html[data-theme="night"] .mkt-page .mkt-hero-clean-eyebrow {
-  color: #a3a3a3 !important;
+  color: #888888 !important;
 }
 
 /* Cards / panels → dark */
@@ -25212,18 +25214,18 @@ html[data-theme="night"] .mkt-page .pricing-needs-picker,
 html[data-theme="night"] .mkt-page .pricing-needs-option,
 html[data-theme="night"] .mkt-page .mkt-call-panel,
 html[data-theme="night"] .mkt-page .mkt-showcase-snippet {
-  background: #2e333a !important;
-  border-color: #3d434a !important;
-  color: #ededed !important;
+  background: #141414 !important;
+  border-color: #232323 !important;
+  color: #eeeeee !important;
 }
 
 html[data-theme="night"] .mkt-page .mkt-showcase-snippet code {
-  color: #ededed !important;
+  color: #eeeeee !important;
 }
 
 html[data-theme="night"] .mkt-page .pro-panel-head {
-  background: #22252a !important;
-  border-color: #3d434a !important;
+  background: #0b0b0b !important;
+  border-color: #232323 !important;
 }
 
 /* Inputs → dark */
@@ -25231,9 +25233,9 @@ html[data-theme="night"] .mkt-page input,
 html[data-theme="night"] .mkt-page select,
 html[data-theme="night"] .mkt-page textarea,
 html[data-theme="night"] .mkt-page .input {
-  background: #2e333a !important;
-  color: #ededed !important;
-  border-color: #3d434a !important;
+  background: #141414 !important;
+  color: #eeeeee !important;
+  border-color: #232323 !important;
 }
 
 /* Primary pills invert to light on dark */
@@ -25242,27 +25244,27 @@ html[data-theme="night"] .mkt-page .mkt-btn-chalk,
 html[data-theme="night"] .mkt-page .mkt-btn-ink,
 html[data-theme="night"] .mkt-page .mkt-hero-clean-cta,
 html[data-theme="night"] .mkt-page .mkt-trynow-cta {
-  background: #ededed !important;
-  color: #171717 !important;
-  border-color: #ededed !important;
+  background: #eeeeee !important;
+  color: #0b0b0b !important;
+  border-color: #eeeeee !important;
 }
 
 html[data-theme="night"] .mkt-page .inst-btn-ghost {
-  background: #2e333a !important;
-  color: #ededed !important;
-  border-color: #3d434a !important;
+  background: #141414 !important;
+  color: #eeeeee !important;
+  border-color: #232323 !important;
 }
 
 html[data-theme="night"] .mkt-page .mkt-showcase-copybtn {
-  background: #ededed !important;
-  color: #171717 !important;
+  background: #eeeeee !important;
+  color: #0b0b0b !important;
 }
 
 /* Nav → dark */
 html[data-theme="night"] .mkt-nav--institution,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
-  background: color-mix(in srgb, #22252a 88%, transparent) !important;
-  border-bottom-color: #3d434a !important;
+  background: color-mix(in srgb, #0b0b0b 88%, transparent) !important;
+  border-bottom-color: #232323 !important;
 }
 
 html[data-theme="night"] .mkt-nav-brand .orvius-logo,
@@ -25273,33 +25275,33 @@ html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-login,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login,
 html[data-theme="night"] .mkt-nav-theme {
-  color: #ededed !important;
+  color: #eeeeee !important;
 }
 
 html[data-theme="night"] .mkt-nav-theme:hover {
-  background: #2e333a !important;
+  background: #141414 !important;
 }
 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-cta,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
-  background: #ededed !important;
-  color: #171717 !important;
-  border-color: #ededed !important;
+  background: #eeeeee !important;
+  color: #0b0b0b !important;
+  border-color: #eeeeee !important;
 }
 
 html[data-theme="night"] .mkt-nav-secondary,
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-secondary,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-secondary {
-  background: #2e333a !important;
-  color: #ededed !important;
-  border-color: #3d434a !important;
+  background: #141414 !important;
+  color: #eeeeee !important;
+  border-color: #232323 !important;
 }
 
 /* Footer → dark */
 html[data-theme="night"] .mkt-footer,
 html[data-theme="night"] .mkt-footer--institution {
-  background: #22252a !important;
-  border-top-color: #3d434a !important;
+  background: #0b0b0b !important;
+  border-top-color: #232323 !important;
 }
 
 html[data-theme="night"] .mkt-footer-entity,
@@ -25307,23 +25309,23 @@ html[data-theme="night"] .mkt-footer-heading,
 html[data-theme="night"] .mkt-footer .orvius-logo,
 html[data-theme="night"] .mkt-footer .orvius-logo-word,
 html[data-theme="night"] .mkt-footer .orvius-logo-mark {
-  color: #ededed !important;
+  color: #eeeeee !important;
 }
 
 html[data-theme="night"] .mkt-footer-tagline,
 html[data-theme="night"] .mkt-footer-col a,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-copy,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
-  color: #a3a3a3 !important;
+  color: #888888 !important;
 }
 
 html[data-theme="night"] .mkt-footer-bottom {
-  border-top-color: #3d434a !important;
+  border-top-color: #232323 !important;
 }
 
 /* Resources hub links */
 html[data-theme="night"] .mkt-page .mkt-resources-link {
-  color: #ededed !important;
+  color: #eeeeee !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

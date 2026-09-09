@@ -11,9 +11,12 @@ export const THEME_STORAGE_KEY = "orvius-theme";
 export const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 /**
- * Day is the fallback for a first-time visitor: the marketing canvas is warm
- * paper, and inheriting a dark OS is a surprise nobody asked for.
+ * Night is the fallback for a first-time visitor. Orvius is a command center
+ * for work that happens after dark, and the dark canvas is the identity, not a
+ * preference. Paper stays one click away.
  */
+export const DEFAULT_THEME_CHOICE: ThemeChoice = "night";
+
 export function readThemeChoice(): ThemeChoice {
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
@@ -23,7 +26,7 @@ export function readThemeChoice(): ThemeChoice {
   } catch {
     /* storage blocked — fall through to the default */
   }
-  return "day";
+  return DEFAULT_THEME_CHOICE;
 }
 
 export function resolveTheme(choice: ThemeChoice): ResolvedTheme {
@@ -47,4 +50,4 @@ export function storeThemeChoice(choice: ThemeChoice) {
  * Inlined in <head> so the resolved colorway lands before first paint. Mirrors
  * the functions above; keep the two in sync when the contract changes.
  */
-export const THEME_BOOT_SCRIPT = `(function(){try{var c=localStorage.getItem('${THEME_STORAGE_KEY}');if(c!=='day'&&c!=='night'&&c!=='system'){c='day';}var t=c==='system'?(window.matchMedia('${DARK_QUERY}').matches?'night':'day'):c;document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+export const THEME_BOOT_SCRIPT = `(function(){try{var c=localStorage.getItem('${THEME_STORAGE_KEY}');if(c!=='day'&&c!=='night'&&c!=='system'){c='${DEFAULT_THEME_CHOICE}';}var t=c==='system'?(window.matchMedia('${DARK_QUERY}').matches?'night':'day'):c;document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;

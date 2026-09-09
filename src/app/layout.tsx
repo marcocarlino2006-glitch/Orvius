@@ -66,11 +66,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Day is the server default so [data-theme] is never absent and the token set
-  // is unambiguous. The boot script rewrites it before paint, which is the one
-  // divergence suppressHydrationWarning is here to cover.
+  // Night is the server default so [data-theme] is never absent and the token
+  // set is unambiguous. The boot script rewrites it before paint, which is the
+  // one divergence suppressHydrationWarning is here to cover.
   return (
-    <html lang="en" data-theme="day" suppressHydrationWarning>
+    <html lang="en" data-theme="night" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
