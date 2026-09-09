@@ -986,6 +986,10 @@ html[data-theme="night"] .ov-public .mkt-showcase-lead {
   color: #191b1d !important;
 }
 
+html[data-theme="night"] .ov-public .orvius-logo-mark {
+  color: var(--ov-copper) !important;
+}
+
 html[data-theme="night"] .ov-public .mkt-nav-cta,
 html[data-theme="night"] .ov-public .mkt-hero-clean-cta,
 html[data-theme="night"] .ov-public .mkt-trynow-cta,
@@ -1108,10 +1112,19 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   }
 
   .ov-public .mkt-nav-sheet {
+    position: fixed !important;
     inset: 0 !important;
+    z-index: 79 !important;
+    width: 100% !important;
+    min-height: 100svh !important;
     padding: 0 18px 28px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    opacity: 1 !important;
     background: var(--ov-paper) !important;
     color: var(--ov-ink) !important;
+    backdrop-filter: none !important;
   }
 
   .ov-public .mkt-nav-sheet-bar {
@@ -1120,6 +1133,8 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 
   .ov-public .mkt-nav-sheet-nav {
     margin-top: 52px !important;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 0 !important;
   }
 
@@ -1133,9 +1148,29 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   }
 
   .ov-public .mkt-nav-sheet-cta {
+    width: 100% !important;
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     border-radius: 4px !important;
     background: var(--ov-charcoal) !important;
     color: var(--ov-night-text) !important;
+  }
+
+  .ov-public .mkt-nav-sheet-foot {
+    position: static !important;
+    margin-top: auto !important;
+    padding-top: 40px !important;
+    display: grid !important;
+    gap: 18px !important;
+  }
+
+  .ov-public .mkt-nav-sheet-meta,
+  .ov-public .mkt-nav-sheet-meta a {
+    color: var(--ov-muted) !important;
+    font-family: var(--ov-font) !important;
+    font-size: 0.75rem !important;
   }
 
   .ov-auth {
