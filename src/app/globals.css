@@ -20511,7 +20511,7 @@ select {
 .mkt-page .tier1-close,
 .mkt-page .marketing-hero,
 .mkt-page .marketing-section {
-  background: #05070b !important;
+  
   border-color: color-mix(in srgb, #fff 8%, transparent) !important;
   color: #eef1f5 !important;
 }
@@ -20524,21 +20524,9 @@ select {
     #05070b !important;
 }
 
-.mkt-page .tier1-story,
-.mkt-page .marketing-section {
-  background:
-    linear-gradient(180deg, #070a10 0%, #05070b 100%) !important;
-}
-
 .mkt-page .tier1-close {
-  background: #030508 !important;
+  
   border-top: 1px solid color-mix(in srgb, #fff 8%, transparent);
-}
-
-.mkt-page .tier1-eyebrow,
-.mkt-page .type-eyebrow,
-.mkt-page .brand-intro .tier1-eyebrow {
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
 }
 
 .mkt-page .tier1-page-title,
@@ -20550,26 +20538,11 @@ select {
   color: #f5f7fa !important;
 }
 
-.mkt-page .tier1-section-lead,
-.mkt-page .tier1-hero-lead,
-.mkt-page .tier1-hero-statement,
-.mkt-page .brand-intro-subline,
-.mkt-page .brand-intro-description,
-.mkt-page .text-ash,
-.mkt-page .text-void {
-  color: color-mix(in srgb, #e8ecf2 68%, transparent) !important;
-}
-
 .mkt-page a.underline,
 .mkt-page .home-platform-link,
 .mkt-page .customer-timeline-link {
   color: var(--ov-ink) !important;
   text-decoration-color: color-mix(in srgb, var(--ov-ink) 35%, transparent);
-}
-
-.mkt-page a.underline:hover,
-.mkt-page .home-platform-link:hover {
-  color: #fff !important;
 }
 
 /* Buttons on night marketing */
@@ -20581,21 +20554,16 @@ select {
 
 .mkt-page .inst-btn-primary,
 .mkt-page .tier-btn-primary {
-  background: #f4f6f9 !important;
-  color: #07090c !important;
+  
+  
   border: 1px solid #f4f6f9 !important;
 }
 
 .mkt-page .inst-btn-ghost,
 .mkt-page .tier-btn-ghost {
-  background: transparent !important;
-  color: #f0f0fa !important;
+  
+  
   border: 1px solid color-mix(in srgb, #f0f0fa 35%, transparent) !important;
-}
-
-.mkt-page .inst-btn-ghost:hover {
-  border-color: color-mix(in srgb, #fff 55%, transparent) !important;
-  color: #fff !important;
 }
 
 /* Pricing / plan cards — dense tool tiles on void */
@@ -20612,25 +20580,11 @@ select {
 .mkt-page .tier1-plan-featured,
 .mkt-page .tier1-plan-recommended {
   border-color: color-mix(in srgb, #f0f0fa 28%, transparent) !important;
-  background: #10161f !important;
+  
 }
 
 .mkt-page .tier1-plan-badge {
   color: var(--ov-emerald-text) !important;
-}
-
-.mkt-page .tier1-plan-price,
-.mkt-page .tier1-plan .text-void,
-.mkt-page .tier1-plan .font-semibold {
-  color: #f5f7fa !important;
-}
-
-.mkt-page .tier1-plan-period,
-.mkt-page .tier1-plan-annual-note,
-.mkt-page .tier1-plan-ideal,
-.mkt-page .tier1-plan-list,
-.mkt-page .tier1-plan-list li {
-  color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
 }
 
 .mkt-page .tier1-pricing-plans {
@@ -20663,11 +20617,6 @@ select {
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
   border-radius: 0.3rem !important;
   box-shadow: none !important;
-}
-
-.mkt-page label,
-.mkt-page .label {
-  color: color-mix(in srgb, #c9d2df 70%, transparent) !important;
 }
 
 .mkt-page .border-rule {
@@ -21042,37 +20991,16 @@ body:has(.confirm-shell) {
   color: #f5f7fa !important;
 }
 
-.mkt-page .pricing-wizard-kicker,
-.mkt-page .pricing-wizard-step,
-.mkt-page .pricing-wizard-step-done,
-.mkt-page .pricing-wizard-back,
-.mkt-page .pricing-needs-option-detail,
-.mkt-page .pricing-needs-lead,
-.mkt-page .pricing-matrix-lead,
-.mkt-page .pricing-faq-answer,
-.mkt-page .pricing-page-controls-note {
-  color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
-}
-
 .mkt-page .pricing-needs-option,
 .mkt-page .pricing-wizard .pricing-needs-option {
-  background: #0a0e14 !important;
+  
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.3rem !important;
-  color: #eef1f5 !important;
-}
-
-.mkt-page .pricing-needs-option:hover {
-  border-color: color-mix(in srgb, #fff 22%, transparent) !important;
-}
-
-.mkt-page .pricing-needs-option-active {
-  background: color-mix(in srgb, #fff 5%, #0a0e14) !important;
-  border-color: color-mix(in srgb, #f0f0fa 32%, transparent) !important;
+  
 }
 
 .mkt-page .pricing-needs-result {
-  background: color-mix(in srgb, #fff 4%, #0a0e14) !important;
+  
   border-color: color-mix(in srgb, #fff 14%, transparent) !important;
 }
 
@@ -24094,16 +24022,6 @@ body:has(.confirm-shell) {
   gap: 0.6rem !important;
 }
 
-.mkt-page .call-demo .call-demo-number {
-  color: #e7e9ea !important;
-}
-
-.mkt-page .call-demo .call-demo-live,
-.mkt-page .call-demo .call-demo-hint,
-.mkt-page .call-demo .call-demo-copy {
-  color: #9aa0a6 !important;
-}
-
 .mkt-page .call-demo .inst-btn,
 .mkt-page .call-demo .inst-btn-primary,
 .mkt-page .call-demo .call-demo-copy {
@@ -24120,13 +24038,13 @@ body:has(.confirm-shell) {
 }
 
 .mkt-page .pro-panel-head {
-  background: #1e2125 !important;
+  
   border-bottom: 1px solid #444a51 !important;
   padding: 0.65rem 0.9rem !important;
 }
 
 .mkt-page .pro-panel-title {
-  color: #e7e9ea !important;
+  
   font-size: 0.75rem !important;
 }
 
@@ -24389,8 +24307,8 @@ body:has(.confirm-shell) {
 
 .mkt-page .inst-btn-ghost:hover {
   border-color: var(--ov-line) !important;
-  background: var(--ov-paper-raised) !important;
-  color: var(--ov-headline) !important;
+  
+  
 }
 
 /* Legal prose — follows the colorway, since the doc surface does too. */
@@ -24616,18 +24534,13 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-hero-clean-cta {
-  background: #26251e !important;
-  color: #f7f7f4 !important;
+  
+  
   border: 1px solid #26251e !important;
   border-radius: 999px !important;
   padding: 0.9rem 1.7rem !important;
   font-size: 0.95rem !important;
   min-height: 3rem !important;
-}
-
-.mkt-page .mkt-hero-clean-cta:hover {
-  background: #050505 !important;
-  border-color: #050505 !important;
 }
 
 .mkt-page .mkt-hero-clean-line {
@@ -24696,11 +24609,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-.mkt-page .mkt-btn-chalk:hover {
-  background: #050505 !important;
-  border-color: #050505 !important;
-}
-
 .mkt-page .mkt-close-call,
 .mkt-page .mkt-text-link {
   color: var(--ov-headline) !important;
@@ -24727,8 +24635,8 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-btn-ink {
-  background: #26251e !important;
-  color: #f7f7f4 !important;
+  
+  
   border: 1px solid #26251e !important;
   border-radius: 999px !important;
 }
