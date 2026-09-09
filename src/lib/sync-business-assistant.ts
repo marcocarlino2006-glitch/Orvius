@@ -1,12 +1,14 @@
 import { buildAssistantSystemPrompt } from "@/lib/business";
-import { getAiModelPolicy } from "@/lib/ai-policy";
 import {
   isDemoPlatformLine,
   shopMustNotUseDemoLine,
 } from "@/lib/demo-business";
 import { getWebhookUrl } from "@/lib/env";
 import { attachAssistantToShopLine } from "@/lib/vapi-line";
-import { updateAssistant } from "@/lib/vapi";
+import {
+  buildVapiAssistantConfig,
+  updateAssistant,
+} from "@/lib/vapi";
 import type { Business } from "@prisma/client";
 
 export type AssistantSyncResult = {
@@ -38,19 +40,16 @@ export async function syncBusinessAssistant(
     hoursJson: business.hoursJson,
     servicesJson: business.servicesJson,
   });
-  const receptionist = getAiModelPolicy("receptionist");
-
-  await updateAssistant(business.vapiAssistantId, {
-    name: `${business.name} Receptionist`,
-    firstMessage: greeting,
-    model: {
-      provider: receptionist.provider,
-      model: receptionist.model,
-      messages: [{ role: "system", content: systemPrompt }],
-    },
-    serverUrl: getWebhookUrl("/api/webhooks/vapi"),
-    serverUrlSecret: process.env.VAPI_WEBHOOK_SECRET,
-  });
+  await updateAssistant(
+    business.vapiAssistantId,
+    buildVapiAssistantConfig({
+      businessName: business.name,
+      greeting,
+      systemPrompt,
+      webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+      webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+    }),
+  );
 
   const line = business.vapiPhoneNumber ?? business.twilioPhone ?? null;
   let lineAttached = false;

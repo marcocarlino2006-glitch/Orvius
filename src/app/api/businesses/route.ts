@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAiModelPolicy } from "@/lib/ai-policy";
 import { buildAssistantSystemPrompt, slugify } from "@/lib/business";
 import { assertCustomerShopLine } from "@/lib/demo-business";
 import { getWebhookUrl, verifyAdminRequest } from "@/lib/env";
@@ -179,20 +178,18 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (existing.vapiAssistantId) {
-      const receptionist = getAiModelPolicy("receptionist");
-      await updateAssistant(existing.vapiAssistantId, {
-        name: `${nextName} Receptionist`,
-        firstMessage:
-          greeting ??
-          `Thank you for calling ${nextName}. How can I help you today?`,
-        model: {
-          provider: receptionist.provider,
-          model: receptionist.model,
-          messages: [{ role: "system", content: systemPrompt }],
-        },
-        serverUrl: getWebhookUrl("/api/webhooks/vapi"),
-        serverUrlSecret: process.env.VAPI_WEBHOOK_SECRET,
-      });
+      await updateAssistant(
+        existing.vapiAssistantId,
+        buildVapiAssistantConfig({
+          businessName: nextName,
+          greeting:
+            greeting ??
+            `Thank you for calling ${nextName}. How can I help you today?`,
+          systemPrompt,
+          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+        }),
+      );
     }
 
     const business = await prisma.business.update({

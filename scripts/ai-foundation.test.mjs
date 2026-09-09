@@ -7,12 +7,14 @@ import {
   getTranscriptionModel,
 } from "../src/lib/ai-policy.ts";
 import { runAiReadinessEval } from "../src/lib/ai-eval.ts";
+import { DEMAND_CATEGORY_CODES } from "../src/lib/job-taxonomy.ts";
 import {
   buildOutcomeEvidence,
   isJobOutcomeCode,
   parseFinalAmountCents,
 } from "../src/lib/job-outcome.ts";
 import { buildShopContextPacket } from "../src/lib/shop-context.ts";
+import { buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 
 test("model policy is versioned and each task can roll independently", () => {
   assert.match(AI_POLICY_VERSION, /^\d{4}-\d{2}-\d{2}$/);
@@ -34,6 +36,24 @@ test("offline AI readiness eval protects intake and prompt contracts", () => {
   assert.equal(result.cases, 10);
   assert.equal(result.failures.length, 0);
   assert.equal(result.passed, result.checks);
+});
+
+test("every receptionist sync payload includes the extraction contract", () => {
+  const config = buildVapiAssistantConfig({
+    businessName: "Contract Test HVAC",
+    systemPrompt: "system",
+    greeting: "Hello",
+    webhookUrl: "https://example.com/api/webhooks/vapi",
+  });
+  assert.equal(config.analysisPlan?.structuredDataPlan?.enabled, true);
+  assert.equal(config.analysisPlan?.successEvaluationPlan?.enabled, true);
+  assert.deepEqual(
+    config.analysisPlan?.structuredDataPlan?.schema?.properties?.jobCategory
+      ?.enum,
+    [...DEMAND_CATEGORY_CODES],
+  );
+  assert.equal(config.model.model, getAiModelPolicy("receptionist").model);
+  assert.ok(config.transcriber.model);
 });
 
 test("shop context is bounded and every fact keeps source provenance", () => {

@@ -328,6 +328,34 @@ if (hardcodedModels.length) {
   pass("AI model policy", `All model selection routes through ${modelPolicyOwner}`);
 }
 
+const divergentAssistantSyncs = [];
+for (const file of walkFiles(join(root, "src"))) {
+  const rel = relative(root, file);
+  if (rel === "src/lib/vapi.ts" || !/\.ts$/.test(rel)) continue;
+  try {
+    const source = readFileSync(file, "utf8");
+    if (
+      source.includes("updateAssistant(") &&
+      !source.includes("buildVapiAssistantConfig(")
+    ) {
+      divergentAssistantSyncs.push(rel);
+    }
+  } catch {
+    /* unreadable */
+  }
+}
+if (divergentAssistantSyncs.length) {
+  fail(
+    "AI assistant sync",
+    `Assistant update bypasses the full extraction config in ${divergentAssistantSyncs.join(", ")}`,
+  );
+} else {
+  pass(
+    "AI assistant sync",
+    "Create and update paths share one prompt, model, extraction, and evaluation config",
+  );
+}
+
 // ── AI behavior has a regression gate ──
 try {
   const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
