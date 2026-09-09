@@ -44,8 +44,13 @@ for (const rel of requiredFiles) {
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");
 for (const token of [
-  "recoveredRevenueCents",
-  "recoveredJobsEstimate",
+  /*
+    Attribution is measured, not extrapolated: proof counts jobs whose lead
+    Orvius actually captured. The older recovered* fields derived dollars from
+    an owner-reported baseline, which seasonality could inflate.
+  */
+  "capturedDemandJobs",
+  "capturedDemandEstimatedValueCents",
   "collectedCents",
   "formatWeeklyProof",
   "economicsReady",
