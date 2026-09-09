@@ -33,10 +33,10 @@
   --hairline: #d5dbe3;
   --rule-dark: rgba(12, 16, 22, 0.12);
 
-  /* Accent — copper (trades metal), used sparingly — never Cursor orange */
-  --signal: #c4783a;
-  --signal-hot: #d4894a;
-  --signal-dim: #a8642e;
+  /* Accent — Orvius copper (trades metal), used sparingly */
+  --signal: #b8562c;
+  --signal-hot: #cc6737;
+  --signal-dim: #8a3d1c;
 
   /* Success / recovered revenue */
   --live: #1a9b6e;
@@ -21416,7 +21416,7 @@ body:has(.confirm-shell) {
   --chalk: #22252a;
   --canvas: #22252a;
   --rule: color-mix(in srgb, #fff 10%, transparent);
-  --signal: #d8a15a;
+  --signal: #d9784b;
   background: #22252a !important;
   color: #e8edf4 !important;
 }
@@ -21892,7 +21892,8 @@ body:has(.confirm-shell) {
   --chalk: #22252a;
   --canvas: #22252a;
   --rule: #444a51;
-  --signal: #f2f4f5; /* anti-accent: white, not copper */
+  /* Copper lifted for legibility on the charcoal shell, still the brand accent. */
+  --signal: #d9784b;
   background: #22252a !important;
   color: #e7e9ea !important;
   font-feature-settings: "zero" 1;
@@ -24156,26 +24157,26 @@ body:has(.confirm-shell) {
    ============================================================ */
 
 .mkt-page {
-  /* Warm Cursor paper + near-black ink */
-  --void: #26251e !important;
-  --void-deep: #050505 !important;
-  --chalk: #f7f7f4 !important;
+  /* Orvius warm paper + charcoal ink */
+  --void: #1c1e1a !important;
+  --void-deep: #101210 !important;
+  --chalk: #f5f3ee !important;
   --white: #ffffff !important;
-  --fog: #efeee9 !important;
+  --fog: #eeece6 !important;
   --mist: #34322f !important;
-  --ash: #6b6a63 !important;
-  --ash-soft: #8a8781 !important;
-  --rule: #e6e5e0 !important;
-  --hairline: #e6e5e0 !important;
-  --canvas: #f7f7f4 !important;
-  --signal: #f54e00 !important; /* Cursor orange accent */
-  --signal-dim: #d64500 !important;
-  --mkt-ink: #26251e !important;
-  --mkt-muted: #6b6a63 !important;
+  --ash: #6b6d66 !important;
+  --ash-soft: #8a8b84 !important;
+  --rule: #dcdad2 !important;
+  --hairline: #dcdad2 !important;
+  --canvas: #f5f3ee !important;
+  --signal: #b8562c !important;
+  --signal-dim: #8a3d1c !important;
+  --mkt-ink: #1c1e1a !important;
+  --mkt-muted: #6b6d66 !important;
   --mkt-surface: #ffffff !important;
-  --mkt-inset: #efeee9 !important;
-  background: #f7f7f4 !important;
-  color: #26251e !important;
+  --mkt-inset: #eeece6 !important;
+  background: #f5f3ee !important;
+  color: #1c1e1a !important;
 }
 
 /* Page + hero + section surfaces → paper, kill dark gradients */
@@ -24243,13 +24244,13 @@ body:has(.confirm-shell) {
 .mkt-page .text-signal,
 .mkt-page .mkt-link-arrow,
 .mkt-page .link-arrow {
-  color: #f54e00 !important;
-  text-decoration-color: color-mix(in srgb, #f54e00 40%, transparent) !important;
+  color: #b8562c !important;
+  text-decoration-color: color-mix(in srgb, #b8562c 40%, transparent) !important;
 }
 
 .mkt-page a.underline:hover,
 .mkt-page .home-platform-link:hover {
-  color: #d64500 !important;
+  color: #8a3d1c !important;
 }
 
 /* Cards / panels → white with warm hairline */
@@ -24370,7 +24371,7 @@ body:has(.confirm-shell) {
 }
 
 .mkt-page .legal-prose a {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 /* Global shell header on marketing → paper bar, ink text */
@@ -24500,7 +24501,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .pricing-wizard-step-active {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 .mkt-page .pricing-needs-option,
@@ -24518,7 +24519,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .pricing-needs-option-active {
   background: #fde8dc !important;
-  border-color: #f54e00 !important;
+  border-color: #b8562c !important;
 }
 
 /* ============================================================
@@ -24595,14 +24596,14 @@ body:has(.mkt-page) .shell-header {
   align-items: center;
   gap: 0.55rem;
   margin-top: 1.6rem;
-  color: #f54e00 !important;
+  color: #b8562c !important;
   font-size: 0.9rem;
   text-decoration: none;
   letter-spacing: 0.01em;
 }
 
 .mkt-page .mkt-hero-clean-line:hover {
-  color: #d64500 !important;
+  color: #8a3d1c !important;
 }
 
 /* Airy light sections (night rules + close), ink type */
@@ -24628,7 +24629,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-manifesto-kicker,
 .mkt-page .mkt-close-entity {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 .mkt-page .mkt-manifesto-aside,
@@ -24639,7 +24640,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-law-id {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 .mkt-page .mkt-law {
@@ -24678,7 +24679,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-proof-kicker {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 .mkt-page .mkt-proof-lead,
@@ -24703,7 +24704,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-call-panel-kicker {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 .mkt-page .mkt-call-panel-title {
@@ -24724,7 +24725,7 @@ body:has(.mkt-page) .shell-header {
 
 /* ============================================================
    Cursor exact: font stack + pill button spec (cursor.com).
-   Paper #f7f7f4 · ink #26251e · accent #f54e00 · secondary #e6e5e0.
+   Paper #f7f7f4 · ink #26251e · accent #b8562c · secondary #e6e5e0.
    Type: CursorGothic (proprietary) → Helvetica-grotesque fallback.
    ============================================================ */
 
@@ -24903,7 +24904,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-resources-col .tier1-eyebrow {
-  color: #f54e00 !important;
+  color: #b8562c !important;
   margin-bottom: 1rem;
 }
 
@@ -24925,7 +24926,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-resources-link:hover {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 /* Product showcase — cursor.com "In every tool, at every step" */
@@ -24956,7 +24957,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-showcase-eyebrow {
   margin: 0 0 1rem;
-  color: #f54e00 !important;
+  color: #b8562c !important;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.6875rem;
@@ -25061,7 +25062,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-footer-col a:hover,
 .mkt-footer-links a:hover {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 .mkt-footer-bottom {
@@ -25112,7 +25113,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-trynow-call:hover {
-  color: #f54e00 !important;
+  color: #b8562c !important;
 }
 
 /* Site controls — theme + language, parked in the footer bottom-right.
@@ -25218,7 +25219,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .site-controls-lang-menu button.is-active {
-  color: #f54e00;
+  color: #b8562c;
   font-weight: 600;
 }
 
@@ -25453,8 +25454,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .btn,
 .os-shell-night .label,
 .os-shell-night .ui {
-  font-family: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
-    "Liberation Sans", sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 /* ── Rail ── */
@@ -27128,4 +27128,37 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .os-palette-input:focus-visible {
   outline: none !important;
   box-shadow: none !important;
+}
+
+/* ============================================================
+   ORVIUS REPORTING VOICE — product surfaces
+   The dashboard speaks with the same two letterforms as the public
+   site: Archivo for prose, Plex Mono wherever the interface is
+   reporting machine truth. Appended last so it outranks the older
+   per-component label rules above.
+   ============================================================ */
+
+/* Scoped through .os-shell to outrank the shell's own !important Archivo rules. */
+.os-shell .os-sidebar-label,
+.os-shell .pro-right-now-kicker,
+.os-shell .attention-queue-kicker,
+.os-shell .attention-item-kindlabel,
+.os-shell .shop-outcomes-kicker,
+.os-shell .pro-dispatch-today-kicker,
+.os-shell .pay-prompt-kicker,
+.os-shell .type-eyebrow,
+.os-shell .pro-rail-status,
+.os-shell .os-nav-badge {
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.12em !important;
+}
+
+/* Times, counts, and money are data — never prose. */
+.os-shell .pro-dispatch-today-time,
+.os-shell .attention-item-age,
+.os-shell .shop-outcomes-value,
+.os-shell .pro-metric-value {
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  font-variant-numeric: tabular-nums;
 }
