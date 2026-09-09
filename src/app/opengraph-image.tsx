@@ -27,10 +27,9 @@ export default function OpenGraphImage() {
             style={{
               display: "flex",
               fontSize: 28,
-              fontWeight: 700,
+              fontWeight: 600,
               color: "#f4f6f9",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
+              letterSpacing: "-0.02em",
             }}
           >
             {company.productName}

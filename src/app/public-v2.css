@@ -978,12 +978,15 @@ html[data-theme="night"] .ov-public {
 }
 
 html[data-theme="night"] .ov-public .mkt-showcase-grid {
-  background: #a85b38 !important;
+  background: var(--ov-copper-field) !important;
 }
 
-html[data-theme="night"] .ov-public .mkt-showcase-title,
-html[data-theme="night"] .ov-public .mkt-showcase-lead {
+html[data-theme="night"] .ov-public .mkt-showcase-title {
   color: #191b1d !important;
+}
+
+html[data-theme="night"] .ov-public .mkt-showcase-lead {
+  color: #49372a !important;
 }
 
 html[data-theme="night"] .ov-public .orvius-logo-mark {
