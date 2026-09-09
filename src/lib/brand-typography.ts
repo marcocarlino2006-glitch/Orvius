@@ -14,7 +14,7 @@ export const typeScale = {
 
 /**
  * Logo lockups:
- * 1) Signal O alone (favicon / chrome)
+ * 1) Handoff frame alone (favicon / chrome)
  * 2) Mark + ORVIUS text in the product font (never a second letterset)
  */
 export const logoSizes = {
