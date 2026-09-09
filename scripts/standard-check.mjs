@@ -111,6 +111,8 @@ const HONESTY_RISKS = [
   // Nothing in the product trains on usage yet, so this stays a warning.
   { pattern: /(smarter|learns|improves) (with|from) every/i, label: "learns with every" },
   { pattern: /(sharpens|trains|teaches|tunes) the next/i, label: "sharpens the next" },
+  { pattern: /\b(?:under|within)\s+\d+\s*(?:s|sec|seconds)\b/i, label: "unverified speed" },
+  { pattern: /\b(?:alert|answer|respond)[^.]{0,30}\bin seconds\b/i, label: "unverified speed" },
 ];
 
 try {
@@ -394,6 +396,11 @@ const marketingFiles = [
   "src/app/page.tsx",
   // Hero copy and its translations ship the loudest claims on the site.
   "src/components/home-line-hero.tsx",
+  "src/components/home-tool-showcase.tsx",
+  "src/components/home-product-preview.tsx",
+  "src/components/home-call-story.tsx",
+  "src/app/layout.tsx",
+  "src/app/opengraph-image.tsx",
   "src/lib/i18n.ts",
   // Ring copy describes what is live, and renders on the site and in the app.
   "src/lib/company.ts",

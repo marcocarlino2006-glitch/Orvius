@@ -19,22 +19,26 @@ const sans = Sora({
 
 export const metadata: Metadata = {
   title: {
-    default: "Orvius",
+    default: "Orvius — The AI night shift for the trades",
     template: "%s · Orvius",
   },
-  description: `${company.categoryClaim} ${company.proofLine} Built for HVAC, plumbing, and electrical.`,
+  description:
+    "Orvius answers after-hours and overflow calls for HVAC, plumbing, and electrical shops, captures the request, proposes an open window, and alerts the owner.",
   metadataBase: new URL(`https://${company.domain}`),
+  alternates: { canonical: "/" },
   openGraph: {
-    title: `Orvius — ${company.tagline}`,
-    description: `${company.categoryClaim} ${company.proofLine} Call the live line or book an audit.`,
+    title: "Orvius — The AI night shift for the trades",
+    description:
+      "Call the live product. Orvius captures after-hours demand, proposes an open service window, and alerts the owner.",
     type: "website",
     url: `https://${company.domain}`,
     siteName: company.productName,
   },
   twitter: {
     card: "summary_large_image",
-    title: `Orvius — ${company.tagline}`,
-    description: `${company.categoryClaim} ${company.proofLine}`,
+    title: "Orvius — The AI night shift for the trades",
+    description:
+      "Call the live product. After-hours intake, capacity-aware scheduling, confirmation, and owner alerts.",
   },
 };
 

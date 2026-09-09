@@ -12,8 +12,8 @@ const groups = [
   {
     heading: "Get started",
     links: [
-      { href: "/demo", label: "Run a demo call" },
-      { href: "/pilot", label: "Prove it on your line" },
+      { href: "tel:+18446439170", label: "Call the live AI" },
+      { href: "/pilot", label: "Book a call audit" },
       { href: "/pricing", label: "Pricing & plans" },
     ],
   },
@@ -58,7 +58,7 @@ export default function ResourcesPage() {
               <ul className="mkt-resources-list font-sans">
                 {group.links.map((link) => (
                   <li key={link.href}>
-                    {link.href.startsWith("mailto:") ? (
+                    {link.href.startsWith("mailto:") || link.href.startsWith("tel:") ? (
                       <a href={link.href} className="mkt-resources-link">
                         {link.label}
                         <span aria-hidden> →</span>

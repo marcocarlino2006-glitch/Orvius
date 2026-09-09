@@ -29,21 +29,21 @@ export default function HomePage() {
             Try Orvius now.
           </h2>
           <div className="mkt-trynow-actions font-sans">
-            <Link
-              href="/pilot"
+            <a
+              href="tel:+18446439170"
               className="inst-btn inst-btn-primary mkt-trynow-cta"
               data-i18n="trynow.cta"
             >
-              Get started →
-            </Link>
+              Call the live AI →
+            </a>
           </div>
-          <a
-            href="tel:+18446439170"
+          <Link
+            href="/pilot"
             className="mkt-trynow-call font-sans"
             data-i18n="trynow.call"
           >
-            or call the live line · +1 844 643 9170
-          </a>
+            or book a live call audit
+          </Link>
         </div>
       </section>
     </MarketingShell>

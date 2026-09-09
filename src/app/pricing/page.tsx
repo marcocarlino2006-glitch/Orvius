@@ -53,19 +53,19 @@ export default function PricingPage() {
         <div className="editorial-wrap tier1-close-inner">
           <p className="tier1-eyebrow type-eyebrow">Economics</p>
           <h2 className="tier1-section-title type-headline">
-            One booked job covers the month.
+            Built to pay back with one additional job.
           </h2>
           <p className="tier1-section-lead font-sans">
-            A single after-hours repair often clears ${featured.price}. Orvius
-            exists so that call hits a live line — not voicemail — when it
-            reaches your Orvius number or forward.
+            If your gross profit on an additional booked job exceeds ${featured.price},
+            that job can cover a month of the featured plan. Your ticket,
+            close rate, and margin determine the actual payback.
           </p>
           <div className="tier1-actions tier1-close-actions">
             <a href={demoLineHref()} className="inst-btn inst-btn-primary">
-              Call live demo
+              Call the live AI
             </a>
             <Link href="/pilot" className="inst-btn inst-btn-ghost">
-              Design partner program
+              Book a call audit
             </Link>
           </div>
         </div>

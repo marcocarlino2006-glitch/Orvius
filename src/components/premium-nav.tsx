@@ -69,15 +69,19 @@ export function PremiumNav() {
               Sign in
             </Link>
             <Link
-              href="/demo"
+              href="/pilot"
               className="mkt-btn mkt-nav-secondary"
               data-i18n="nav.bookdemo"
             >
-              Book a demo
+              Book an audit
             </Link>
-            <Link href="/pilot" className="mkt-btn mkt-nav-cta" data-i18n="nav.proveit">
-              Prove it
-            </Link>
+            <a
+              href="tel:+18446439170"
+              className="mkt-btn mkt-nav-cta"
+              data-i18n="nav.proveit"
+            >
+              Call live AI
+            </a>
             <button
               type="button"
               className="mkt-nav-menu-toggle"
@@ -137,13 +141,13 @@ export function PremiumNav() {
           </nav>
 
           <div className="mkt-nav-sheet-foot">
-            <Link
-              href="/pilot"
+            <a
+              href="tel:+18446439170"
               className="mkt-nav-sheet-cta"
               onClick={() => setMenuOpen(false)}
             >
-              Prove it on your line
-            </Link>
+              Call the live AI
+            </a>
             <p className="mkt-nav-sheet-meta font-sans">
               <Link href="/legal" onClick={() => setMenuOpen(false)}>
                 Legal

@@ -27,26 +27,26 @@ export function HomeLineHero() {
         </h1>
 
         <p className="mkt-hero-clean-lead font-sans" data-i18n="hero.lead">
-          Orvius runs the night shift on your line — answers after-hours and
-          overflow calls, qualifies the job, books it, and alerts you in
-          seconds.
+          Orvius answers after-hours and overflow calls, captures the request,
+          proposes an open service window, and alerts the owner — without
+          inventing prices or arrival times.
         </p>
 
         <div className="mkt-hero-clean-actions font-sans">
-          <Link
-            href="/pilot"
+          <a
+            href={demoLineHref()}
             className="inst-btn inst-btn-primary mkt-hero-clean-cta"
             data-i18n="hero.cta"
           >
-            Prove it on your line
-          </Link>
+            Call the live AI
+          </a>
         </div>
 
-        <a href={demoLineHref()} className="mkt-hero-clean-line font-sans">
+        <Link href="/pilot" className="mkt-hero-clean-line font-sans">
           <span className="mkt-hero-live-pulse" aria-hidden />
-          Live line · {DEMO_LINE_DISPLAY}
-          <span aria-hidden> →</span>
-        </a>
+          Book a live call audit
+          <span aria-hidden> · {DEMO_LINE_DISPLAY} →</span>
+        </Link>
       </div>
     </section>
   );

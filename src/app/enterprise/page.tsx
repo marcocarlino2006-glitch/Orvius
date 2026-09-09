@@ -5,24 +5,24 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Enterprise",
-  description: `${company.productName} for multi-shop and franchise operators — dedicated lines per location, central billing, and one operating standard.`,
+  description: `${company.productName} design-partner access for multi-shop and franchise operators evaluating one after-hours operating standard.`,
 };
 
 const pillars = [
   {
     id: "01",
-    title: "One standard, every location.",
-    body: "Dedicated shop lines per location on one workspace — the same answer, booking, and alert loop across the whole footprint.",
+    title: "Map the operating standard.",
+    body: "Document each location's services, hours, escalation rules, call flow, and capacity before software starts making proposals.",
   },
   {
     id: "02",
-    title: "Central billing and admin.",
-    body: "Consolidated billing, per-location roles, and rollup reporting. Volume pricing as you add shops.",
+    title: "Prove one location first.",
+    body: "Start with one live line and measured captured-demand bookings. Expand only after the call, confirmation, and owner-alert loop is reliable.",
   },
   {
     id: "03",
-    title: "Onboarding you can hand off.",
-    body: "Custom onboarding, priority support, and quarterly reviews — with measured captured-demand bookings and recorded payments per shop.",
+    title: "Design the control plane together.",
+    body: "Portfolio roles, consolidated billing, and cross-location reporting are design-partner requirements, not generally available product claims.",
   },
 ] as const;
 
@@ -33,9 +33,9 @@ export default function EnterprisePage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Enterprise"
-            title="Multi-shop, one operating standard."
-            subline="For franchises and operators running 2+ locations."
-            description="Run every shop on the same night-shift OS — dedicated lines per location, central billing, and measurable proof across the footprint."
+            title="Build one standard before scaling every location."
+            subline="A design-partner brief for franchises and multi-shop operators."
+            description="Orvius is proving the autonomous front desk one live location at a time. The multi-location control plane is not generally available yet."
           />
         </div>
       </section>

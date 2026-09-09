@@ -11,7 +11,7 @@ const nightRules = [
     id: "02",
     key: "rule2",
     title: "One board. Not twelve tabs.",
-    body: "Every call, text, and job compounds one customer record. Book and assign from Attention — no CRM scavenger hunt.",
+    body: "Every call, text, job, and recorded outcome stays on one customer record. Book and assign from Attention — no CRM scavenger hunt.",
   },
   {
     id: "03",
@@ -42,8 +42,9 @@ export function HomeStatement() {
             How the shop runs when you&apos;re not on the floor.
           </h2>
           <p className="mkt-manifesto-aside font-sans" data-i18n="rules.aside">
-            Orvius is the night-shift OS — not an AI receptionist bolted onto a
-            CRM. The board holds every call, job, and dollar in one record.
+            Orvius starts as the AI night shift and keeps the operational
+            record. The board connects every call, job, confirmation, and
+            recorded dollar.
           </p>
         </div>
         <ol className="mkt-laws mkt-laws--meta font-sans">

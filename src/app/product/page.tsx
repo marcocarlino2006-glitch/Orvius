@@ -12,12 +12,12 @@ const capabilities = [
   {
     id: "01",
     title: "Answer, qualify, alert.",
-    body: "After-hours and overflow calls get answered, qualified, and the owner is alerted in seconds — demand never dies on voicemail.",
+    body: "After-hours and overflow calls are answered, structured into a service request, and sent to the owner through the configured alert path.",
   },
   {
     id: "02",
     title: "One board. One record.",
-    body: "Every call, text, and job compounds a single customer record. Book and assign from Attention — no CRM scavenger hunt.",
+    body: "Every call, text, job, confirmation, and recorded outcome stays on one customer record. Book and assign from Attention.",
   },
   {
     id: "03",
@@ -34,8 +34,8 @@ export default function ProductPage() {
           <ShellPageIntro
             label="Product"
             title="One system for every call, customer, and job."
-            subline="Not an AI receptionist bolted onto a CRM."
-            description="Orvius answers the night, books the work, alerts the owner, and holds every call, job, and dollar in one record."
+            subline="The front desk and the operational record stay connected."
+            description="Orvius answers after-hours calls, captures the request, proposes an open window, alerts the owner, and keeps the resulting work on one record."
           />
         </div>
       </section>
@@ -65,15 +65,15 @@ export default function ProductPage() {
               See it on a real line.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Run a demo call in the browser, or prove it on your own number.
+              Call the live AI, or audit what happens to your own unanswered traffic.
             </p>
           </div>
           <div className="tier1-actions">
-            <Link href="/demo" className="inst-btn inst-btn-ghost">
-              Run a demo
-            </Link>
+            <a href="tel:+18446439170" className="inst-btn inst-btn-ghost">
+              Call the live AI
+            </a>
             <Link href="/pilot" className="inst-btn inst-btn-primary">
-              Prove it on your line
+              Book a call audit
             </Link>
           </div>
         </div>

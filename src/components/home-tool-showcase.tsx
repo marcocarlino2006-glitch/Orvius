@@ -33,11 +33,12 @@ export function HomeToolShowcase() {
             className="mkt-showcase-title"
             data-i18n="showcase.title"
           >
-            In every call, at every step.
+            From first ring to job record.
           </h2>
           <p className="mkt-showcase-lead font-sans" data-i18n="showcase.lead">
-            Orvius answers the line, qualifies the job, alerts the owner, and
-            works the dispatch board — one record, start to finish.
+            Orvius qualifies the request, proposes a capacity-aware window,
+            texts for confirmation, alerts the owner, and writes one record the
+            shop can act on.
           </p>
 
           <div className="mkt-showcase-snippet">
