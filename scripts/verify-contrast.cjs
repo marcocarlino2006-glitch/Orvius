@@ -1,8 +1,8 @@
 /**
  * Contrast audit for the public surfaces.
  *
- * Walks every text-bearing element on the marketing home page and the sign-in
- * page, in both colorways, and composites the *whole* chain of ancestor
+ * Walks every text-bearing element on every public page, in both colorways,
+ * and composites the *whole* chain of ancestor
  * backgrounds before measuring. Sampling only the nearest non-transparent
  * background is what produces phantom failures: an 8%-alpha plate reads as a
  * fully saturated one, and half the report becomes noise.
@@ -12,7 +12,7 @@
 const puppeteer = require("puppeteer");
 
 const BASE = process.argv[2] ?? "http://localhost:3000";
-const PAGES = ["/", "/signin"];
+const PAGES = require("./public-pages.cjs");
 const THEMES = [
   ["night", "dark"],
   ["day", "light"],

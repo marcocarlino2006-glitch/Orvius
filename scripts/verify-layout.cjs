@@ -21,7 +21,7 @@ const VIEWPORTS = [
   { width: 768, height: 1024, name: "tablet" },
   { width: 390, height: 844, name: "phone" },
 ];
-const PATHS = ["/", "/signin"];
+const PATHS = require("./public-pages.cjs");
 /* The dock is marketing chrome. /signin is a focused conversion surface with no
    translatable copy, so it deliberately does not mount one. */
 const DOCK_PATHS = new Set(["/"]);
@@ -100,8 +100,16 @@ const AUDIT = (expectDock) => {
      otherwise laid out together and move together, so they are not compared.
 */
 const SCROLL_AUDIT = () => {
+  /* The OS shell's topbar and rail are pinned chrome, same as the frosted
+     marketing nav, and its ask dock is a floating control like the utility
+     dock: all are meant to travel over the content they scroll past. */
   const inIntendedOverlay = (el) =>
-    Boolean(el.closest(".mkt-nav, .fixed.right-6.bottom-4, [role='dialog']"));
+    Boolean(
+      el.closest(
+        ".mkt-nav, .fixed.right-6.bottom-4, [role='dialog']," +
+          " .os-topbar, .os-sidebar, .os-ask-dock",
+      ),
+    );
 
   /* Sticky on an ancestor drags the text with it, so walk up to the section. */
   const isStickyDriven = (el) => {
