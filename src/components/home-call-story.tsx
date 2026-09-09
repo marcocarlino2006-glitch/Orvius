@@ -52,7 +52,7 @@ export function HomeCallStory() {
               Call {DEMO_LINE_DISPLAY}
             </a>
             <Link href="/pilot" className="mkt-text-link">
-              Prove it on your line
+              Book a call audit
             </Link>
           </div>
           <p className="mkt-proof-note font-sans">

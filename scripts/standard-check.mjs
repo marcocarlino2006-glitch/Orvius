@@ -399,8 +399,10 @@ const marketingFiles = [
   "src/components/home-tool-showcase.tsx",
   "src/components/home-product-preview.tsx",
   "src/components/home-call-story.tsx",
+  "src/components/home-call-demo.tsx",
+  "src/components/checkout-button.tsx",
+  "src/components/pricing-plan-card.tsx",
   "src/app/layout.tsx",
-  "src/app/opengraph-image.tsx",
   "src/lib/i18n.ts",
   // Ring copy describes what is live, and renders on the site and in the app.
   "src/lib/company.ts",
