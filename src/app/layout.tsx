@@ -1,9 +1,29 @@
 import type { Metadata } from "next";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
 import "./globals.css";
 import "./public-v2.css";
+
+/**
+ * Two voices, no more. Archivo speaks in prose and headlines; Plex Mono speaks
+ * whenever the interface is reporting machine truth — times, numbers, statuses,
+ * phone lines. Mixing a third letterset is what made the old surfaces read cheap.
+ */
+const sans = Archivo({
+  variable: "--font-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const mono = IBM_Plex_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -54,7 +74,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">
+      <body className={`${sans.variable} ${mono.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

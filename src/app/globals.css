@@ -1188,8 +1188,8 @@ h3 {
   display: block;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--logo-word-size, 1.0625rem);
-  font-weight: 600;
-  letter-spacing: var(--logo-word-tracking, -0.018em);
+  font-weight: 700;
+  letter-spacing: var(--logo-word-tracking, -0.032em);
   text-transform: none;
   line-height: 1;
   color: inherit;
@@ -19011,14 +19011,14 @@ select {
 
 .os-sidebar-brand .orvius-logo-word {
   font-size: 1.05rem !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.018em !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.032em !important;
 }
 
 .os-sidebar-brand .orvius-logo-mark {
   width: 1.35rem !important;
   height: 1.35rem !important;
-  color: var(--ov-copper, #bd643c) !important;
+  color: var(--signal) !important;
 }
 
 .os-sidebar-label,

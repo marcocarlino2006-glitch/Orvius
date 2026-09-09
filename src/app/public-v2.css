@@ -1,35 +1,39 @@
 /*
  * ORVIUS PUBLIC SYSTEM
  *
- * One authoritative skin for public marketing and authentication. The product
- * keeps its dense charcoal cockpit; public pages borrow Cursor's restraint:
- * compact chrome, low-contrast borders, unforced typography, and large product
- * proof. Copper is Orvius's signal color — not Cursor's identity or mark.
+ * One authoritative skin for public marketing and authentication. Archivo is the
+ * speaking voice and Plex Mono is the reporting voice; copper on warm paper over
+ * charcoal is the palette. The product keeps its dense cockpit, but every surface
+ * shares this letterset so nothing reads borrowed.
  */
 
 :root {
-  --font-sans: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
-    "Liberation Sans", sans-serif;
-  --ov-font: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
-    "Liberation Sans", sans-serif;
-  --ov-paper: #f6f5f1;
-  --ov-paper-raised: #fbfaf7;
-  --ov-ink: #252620;
-  --ov-muted: #6f706a;
-  --ov-line: #d9d8d1;
-  --ov-line-strong: #c6c5bd;
-  --ov-charcoal: #25292e;
-  --ov-charcoal-raised: #2c3137;
+  --ov-paper: #f5f3ee;
+  --ov-paper-raised: #fbfaf6;
+  --ov-ink: #1c1e1a;
+  --ov-muted: #6b6d66;
+  --ov-line: #dcdad2;
+  --ov-line-strong: #c6c4ba;
+  --ov-charcoal: #22262b;
+  --ov-charcoal-raised: #2b3037;
   --ov-night-text: #f2f1ec;
-  --ov-copper: #bd643c;
-  --ov-copper-dark: #8f4528;
-  --ov-copper-field: #c8754d;
+  --ov-copper: #b8562c;
+  --ov-copper-dark: #8a3d1c;
+  --ov-copper-field: #c25f31;
   --ov-green: #2d7a58;
 }
 
+/*
+ * next/font declares --font-sans and --font-mono on <body>, not on :root, so the
+ * brand aliases have to be defined here or they resolve to nothing and every
+ * font-family that references them silently invalidates.
+ */
 body {
+  --ov-font: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+  --ov-mono: var(--font-mono), ui-monospace, monospace;
   font-family: var(--ov-font);
 }
+
 
 .ov-public {
   min-height: 100vh;
@@ -69,8 +73,8 @@ body {
 .ov-auth .orvius-logo-word {
   color: inherit !important;
   font-family: var(--ov-font) !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.018em !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.032em !important;
   text-transform: none !important;
 }
 
@@ -518,8 +522,25 @@ body {
   color: var(--ov-night-text) !important;
 }
 
+/* The transcript inherits a white surface from the legacy skin, which leaves the
+   Orvius lines invisible against it. It belongs on the panel's dark field. */
+.ov-public .mkt-transcript {
+  border: 1px solid #3b4147 !important;
+  border-radius: 5px !important;
+  background: #1b1f23 !important;
+}
+
 .ov-public .mkt-transcript-line {
   border-color: #3b4147 !important;
+  font-size: 0.8125rem !important;
+}
+
+.ov-public .mkt-transcript-line span {
+  color: #8d9298 !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
 }
 
 .ov-public .mkt-transcript-line-muted {
@@ -534,10 +555,14 @@ body {
   background: var(--ov-paper) !important;
 }
 
+/* The legacy closing block centers via flex, so text-align alone cannot undo it. */
 .ov-public .mkt-trynow-inner {
   width: min(100%, 1240px) !important;
   max-width: 1240px !important;
   margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
   text-align: left !important;
 }
 
@@ -614,7 +639,8 @@ body {
 
 /* Shared secondary marketing pages */
 
-.ov-public .editorial-wrap {
+/* The showcase grid is both a wrap and its own inset panel, so it keeps its inline padding. */
+.ov-public .editorial-wrap:not(.mkt-showcase-grid) {
   width: min(100%, 1240px);
   max-width: 1240px;
   padding-left: 0 !important;
@@ -822,10 +848,11 @@ body {
 .ov-auth-card h1 {
   margin: 0;
   color: var(--ov-ink);
-  font-size: 1.75rem;
-  font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -0.035em;
+  font-family: var(--ov-font);
+  font-size: 1.875rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
 }
 
 .ov-auth-card-head > p:last-child {
@@ -842,22 +869,24 @@ body {
 
 .ov-google-button {
   width: 100%;
-  min-height: 48px;
-  padding: 0 15px;
+  min-height: 52px;
+  padding: 0 18px;
   display: grid;
-  grid-template-columns: 18px 1fr 18px;
+  grid-template-columns: 20px 1fr 20px;
   align-items: center;
-  border: 1px solid var(--ov-line-strong);
-  border-radius: 5px;
+  border: 1px solid #cbc9c0;
+  border-radius: 6px;
   background: #fff;
   color: var(--ov-ink);
   font-family: var(--ov-font);
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.014em;
+  box-shadow: 0 1px 2px rgb(28 30 26 / 6%);
   cursor: pointer;
   transition:
     border-color 120ms ease,
+    box-shadow 120ms ease,
     background 120ms ease,
     transform 120ms ease;
 }
@@ -867,8 +896,9 @@ body {
 }
 
 .ov-google-button:hover {
-  border-color: #aaa9a2;
-  background: #fdfdfc;
+  border-color: var(--ov-copper);
+  background: #fff;
+  box-shadow: 0 4px 14px rgb(184 86 44 / 12%);
   transform: translateY(-1px);
 }
 
@@ -969,6 +999,67 @@ body {
 .ov-auth-footer a {
   color: #73746e;
   text-decoration: none;
+}
+
+/*
+ * The reporting voice. Eyebrows, kickers, law numbers, and live-line metadata are
+ * machine readouts, so they take mono, uppercase, and wide tracking. This block
+ * must stay after the per-section rules above, which each declare their own
+ * !important font stack and would otherwise win on source order.
+ */
+
+.ov-public .mkt-hero-clean-eyebrow,
+.ov-public .mkt-showcase-eyebrow,
+.ov-public .mkt-manifesto-kicker,
+.ov-public .mkt-proof-kicker,
+.ov-public .mkt-law-id,
+.ov-public .mkt-hero-clean-line,
+.ov-public .mkt-trynow-call,
+.ov-public .mkt-footer-heading,
+.ov-public .brand-intro-kicker,
+.ov-public .tier1-eyebrow,
+.ov-auth .ov-auth-eyebrow {
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+/* Headlines carry Archivo's weight; the old 400 read thin and generic. */
+
+.ov-public .mkt-hero-clean-title,
+.ov-public .mkt-showcase-title,
+.ov-public .mkt-manifesto-title,
+.ov-public .mkt-proof-title,
+.ov-public .mkt-trynow-title,
+.ov-public .brand-intro-title,
+.ov-public .tier1-section-title,
+.ov-public .mkt-close-title,
+.ov-public .tier1-page-title {
+  font-family: var(--ov-font) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.ov-public .mkt-hero-clean-title {
+  font-size: clamp(2.4rem, 4vw, 3.5rem) !important;
+}
+
+.ov-public .mkt-law-title,
+.ov-public .mkt-call-panel-title,
+.ov-public .pro-panel-title {
+  font-family: var(--ov-font) !important;
+  font-weight: 600 !important;
+}
+
+/* Numbers, timestamps, and phone lines read as data, not prose. */
+
+.ov-public .mkt-transcript-line,
+.ov-public .mkt-showcase-snippet code,
+.ov-public .tier1-plan-price,
+.ov-public .mkt-footer-entity {
+  font-family: var(--ov-mono) !important;
 }
 
 /* Night preference keeps public craft charcoal, not black. */
@@ -1104,7 +1195,7 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
     font-size: 2.75rem !important;
   }
 
-  .ov-public .editorial-wrap {
+  .ov-public .editorial-wrap:not(.mkt-showcase-grid) {
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
