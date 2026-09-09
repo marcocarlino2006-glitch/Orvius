@@ -1,9 +1,8 @@
 /**
- * Orvius mark — the signal O.
+ * Orvius mark — a notched O resolving into a forward V.
  *
- * Outer ring: the shop's coverage, broken where the night gap is.
- * Inner sweep: the line answering into that gap.
- * Core: the one record every call, job, and dollar compounds into.
+ * The human outer curve reads as the incoming call; the lower-right lift
+ * turns it into a decisive, forward-moving job record.
  *
  * Monochrome via currentColor, so it holds on charcoal and on warm light.
  */
@@ -25,20 +24,10 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-coverage"
-        d="M27.93 13.46 A12.2 12.2 0 1 1 18.54 4.07"
-        stroke="currentColor"
-        strokeWidth="2.9"
-        strokeLinecap="round"
+        className="orvius-mark-monogram"
+        fill="currentColor"
+        d="M27.2 8.2C24.7 4.1 20.2 1.8 15.2 1.9 7.3 2.1 1.2 8.4 1.4 16.2 1.7 24 7.7 30 15.5 30.2L29.3 13.7 23.8 12.8 14.5 25.5C9.6 24.5 6 20.5 5.8 15.6 5.6 10.7 9.4 6.6 14.4 6.3 18 6.1 21.2 7.9 23 10.9Z"
       />
-      <path
-        className="orvius-mark-sweep"
-        d="M20.99 21.99 A7.8 7.8 0 0 1 9.09 12.16"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-      <circle className="orvius-mark-core" cx="16" cy="16" r="3.4" fill="currentColor" />
     </svg>
   );
 }
