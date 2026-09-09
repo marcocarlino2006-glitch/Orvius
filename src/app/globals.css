@@ -19011,13 +19011,14 @@ select {
 
 .os-sidebar-brand .orvius-logo-word {
   font-size: 1.05rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.08em !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.018em !important;
 }
 
 .os-sidebar-brand .orvius-logo-mark {
   width: 1.35rem !important;
   height: 1.35rem !important;
+  color: var(--ov-copper, #bd643c) !important;
 }
 
 .os-sidebar-label,
