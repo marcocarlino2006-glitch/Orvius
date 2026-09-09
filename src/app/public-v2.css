@@ -32,6 +32,10 @@ html[data-theme="night"] {
      display value. */
   --ov-accent-text: #d9784b;
   --ov-emerald-text: #34d399;
+  /* Foreground for text sitting *on* a copper fill. The night copper is light
+     enough that it needs dark ink, and the day copper is dark enough that it
+     needs white, so this flips with the colorway rather than tracking ink. */
+  --ov-on-copper: #12140f;
   --ov-copper-field: #111111;
   --ov-amber: #f59e0b;
   --ov-green: #34d399;
@@ -57,6 +61,7 @@ html[data-theme="day"] {
   --ov-copper-dark: #8a3d1c;
   --ov-accent-text: #8a3d1c;
   --ov-emerald-text: #047857;
+  --ov-on-copper: #ffffff;
   --ov-copper-field: #c25f31;
   --ov-amber: #b45309;
   --ov-green: #2d7a58;
@@ -763,7 +768,7 @@ body {
 
 .ov-public .mkt-law-body {
   margin: 0.6rem 0 0 !important;
-  color: #a0a0a0 !important;
+  color: var(--ov-muted) !important;
   font-family: var(--ov-font) !important;
   font-size: 0.875rem !important;
   line-height: 1.6 !important;

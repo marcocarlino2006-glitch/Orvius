@@ -3731,7 +3731,7 @@ h3 {
 }
 
 .os-ring-live .os-ring-num {
-  color: var(--signal);
+  color: var(--ov-accent-text);
 }
 
 .os-ring-badge {
@@ -3742,7 +3742,7 @@ h3 {
   padding: 0.2rem 0.45rem;
   border-radius: 0.25rem;
   background: var(--signal);
-  color: var(--void);
+  color: var(--ov-on-copper);
 }
 
 .os-ring-badge-next {
@@ -20563,8 +20563,8 @@ select {
 .mkt-page a.underline,
 .mkt-page .home-platform-link,
 .mkt-page .customer-timeline-link {
-  color: #f0f0fa !important;
-  text-decoration-color: color-mix(in srgb, #f0f0fa 35%, transparent);
+  color: var(--ov-ink) !important;
+  text-decoration-color: color-mix(in srgb, var(--ov-ink) 35%, transparent);
 }
 
 .mkt-page a.underline:hover,
@@ -20616,7 +20616,7 @@ select {
 }
 
 .mkt-page .tier1-plan-badge {
-  color: color-mix(in srgb, var(--live, #3dd68c) 90%, #fff) !important;
+  color: var(--ov-emerald-text) !important;
 }
 
 .mkt-page .tier1-plan-price,
@@ -20668,20 +20668,6 @@ select {
 .mkt-page label,
 .mkt-page .label {
   color: color-mix(in srgb, #c9d2df 70%, transparent) !important;
-}
-
-/* Legal prose on void */
-.mkt-page .legal-prose {
-  color: color-mix(in srgb, #e8ecf2 78%, transparent);
-}
-
-.mkt-page .legal-prose h2 {
-  color: #f5f7fa;
-  border-color: color-mix(in srgb, #fff 10%, transparent);
-}
-
-.mkt-page .legal-prose a {
-  color: #f0f0fa;
 }
 
 .mkt-page .border-rule {
@@ -21099,16 +21085,21 @@ body:has(.confirm-shell) {
   color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
 }
 
+/*
+  These outrank .pricing-matrix-feature-label on specificity, so the matrix
+  takes its ink from here — it has to resolve from the colorway or the table
+  keeps the near-white it was authored with and vanishes on the light canvas.
+*/
 .mkt-page .pricing-matrix-table th,
 .mkt-page .pricing-matrix-table td {
-  border-color: color-mix(in srgb, #fff 8%, transparent) !important;
-  color: color-mix(in srgb, #e8ecf2 75%, transparent) !important;
+  border-color: var(--ov-hairline) !important;
+  color: var(--ov-ink) !important;
   background: transparent !important;
 }
 
 .mkt-page .pricing-matrix-category-row th {
-  background: color-mix(in srgb, #fff 3%, transparent) !important;
-  color: #f5f7fa !important;
+  background: color-mix(in srgb, var(--ov-ink) 4%, transparent) !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .pricing-faq-question {
@@ -21119,10 +21110,10 @@ body:has(.confirm-shell) {
 .mkt-page .billing-toggle,
 .mkt-page .pricing-billing-toggle,
 .mkt-page [class*="billing-toggle"] {
-  background: #0a0e14 !important;
-  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
+  background: var(--ov-paper-raised) !important;
+  border: 1px solid var(--ov-hairline) !important;
   border-radius: 0.3rem !important;
-  color: #eef1f5 !important;
+  color: var(--ov-ink) !important;
 }
 
 .mkt-page .early-access-form,
@@ -21688,11 +21679,12 @@ body:has(.confirm-shell) {
 .os-shell-night .pro-stat-label,
 .os-shell-night .pro-kicker,
 .os-shell-night .lead-inbox-card-time,
+/* Solid, not 62%-alpha: the composited tint lands at 4.48 on the panel. */
 .os-shell-night .text-ash,
 .os-shell-night .os-topbar-sub,
 .os-shell-night p,
 .os-shell-night .pro-section-lead {
-  color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
+  color: var(--os-mute) !important;
 }
 
 .os-shell-night .lead-inbox-card-emergency,
@@ -22006,7 +21998,7 @@ body:has(.confirm-shell) {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .lead-rail-kind.is-flare {
@@ -22044,14 +22036,14 @@ body:has(.confirm-shell) {
   margin: 0.2rem 0 0;
   font-size: 0.8125rem;
   line-height: 1.35;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .lead-rail-record {
   display: inline-block;
   margin-top: 0.35rem;
   font-size: 0.6875rem;
-  color: #71767b;
+  color: #9aa0a6;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -22252,8 +22244,8 @@ body:has(.confirm-shell) {
 }
 
 .os-shell-night .status-pill-flare {
-  color: #f4212e !important;
-  border-color: color-mix(in srgb, #f4212e 45%, #444a51) !important;
+  color: #f87171 !important;
+  border-color: color-mix(in srgb, #f87171 45%, #444a51) !important;
 }
 
 .os-shell-night .os-nav-link-active {
@@ -22636,7 +22628,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
   padding-top: 0.15rem;
 }
 
@@ -22656,6 +22648,19 @@ body:has(.confirm-shell) {
   color: #e7e9ea !important;
 }
 
+/* The dim red is tuned for paper; the night shell needs the lighter step. */
+.os-shell-night .text-flare-dim {
+  color: #f87171 !important;
+}
+
+/*
+  Tailwind's bg-white is a literal, so it ignores the shell's remapped --white
+  and leaves a paper card carrying the shell's near-white ink.
+*/
+.os-shell-night .bg-white {
+  background-color: var(--os-panel-raised) !important;
+}
+
 /* Billing instrument unblock */
 .billing-unblock--instrument,
 .os-shell-night .billing-unblock {
@@ -22673,7 +22678,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .os-shell-night .billing-unblock-title,
@@ -22700,7 +22705,7 @@ body:has(.confirm-shell) {
 .billing-unblock-foot {
   margin: 0.55rem 0 0;
   font-size: 0.6875rem;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .billing-unblock-missing code,
@@ -22745,14 +22750,14 @@ body:has(.confirm-shell) {
 }
 
 .onboarding-shell--night .onboarding-eyebrow {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .onboarding-shell--night .onboarding-step {
   background: #292d33 !important;
   border: 1px solid #444a51 !important;
   border-radius: 0.2rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   box-shadow: none !important;
 }
 
@@ -22782,7 +22787,7 @@ body:has(.confirm-shell) {
 .onboarding-shell--night .onboarding-lead,
 .onboarding-shell--night .onboarding-hint,
 .onboarding-shell--night .onboarding-label {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .onboarding-shell--night .onboarding-input,
@@ -22822,7 +22827,7 @@ body:has(.confirm-shell) {
 }
 
 .onboarding-shell--night .onboarding-ring-num {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .onboarding-shell--night .orvius-logo {
@@ -22853,7 +22858,7 @@ body:has(.confirm-shell) {
 .os-kv-note {
   margin: 0;
   font-size: 0.6875rem;
-  color: #71767b;
+  color: #9aa0a6;
   line-height: 1.35;
 }
 
@@ -22889,7 +22894,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .os-kv-stats-value {
@@ -22911,7 +22916,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .os-shell-night .account-grid {
@@ -23156,11 +23161,11 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .owner-alert--critical .owner-alert-kicker {
-  color: #f4212e;
+  color: #f87171;
 }
 
 .owner-alert-dot {
@@ -23176,7 +23181,7 @@ body:has(.confirm-shell) {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .owner-alert-body {
@@ -23199,7 +23204,7 @@ body:has(.confirm-shell) {
 .owner-alert-channel {
   margin: 0.2rem 0 0;
   font-size: 0.75rem;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .owner-alert-kv {
@@ -23207,7 +23212,7 @@ body:has(.confirm-shell) {
 }
 
 .owner-alert-kv-accent dd {
-  color: #f4212e !important;
+  color: #f87171 !important;
 }
 
 .owner-alert-foot {
@@ -23215,7 +23220,7 @@ body:has(.confirm-shell) {
   padding-top: 0.45rem;
   border-top: 1px solid #444a51;
   font-size: 0.6875rem;
-  color: #71767b;
+  color: #9aa0a6;
   line-height: 1.4;
 }
 
@@ -23229,7 +23234,7 @@ body:has(.confirm-shell) {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #71767b;
+  color: #9aa0a6;
 }
 
 .owner-alert-transcript .transcript-line span {
@@ -23270,7 +23275,7 @@ body:has(.confirm-shell) {
 .pay-prompt-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .pay-prompt-title {
@@ -23284,7 +23289,7 @@ body:has(.confirm-shell) {
 .pay-prompt-body {
   margin-top: 0.4rem !important;
   font-size: 0.8125rem !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .pay-prompt-plans {
@@ -23314,7 +23319,7 @@ body:has(.confirm-shell) {
 }
 
 .pay-prompt-plan-tag {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   font-size: 0.6875rem !important;
 }
 
@@ -23342,7 +23347,7 @@ body:has(.confirm-shell) {
 }
 
 .pay-prompt-later {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
   text-decoration: none !important;
   font-size: 0.75rem !important;
   letter-spacing: 0.02em;
@@ -23370,7 +23375,7 @@ body:has(.confirm-shell) {
 .billing-lock-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .billing-lock-title {
@@ -23381,7 +23386,7 @@ body:has(.confirm-shell) {
 .billing-lock-body,
 .billing-lock-price-per,
 .billing-lock-links a {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .billing-lock-price-amt {
@@ -23728,7 +23733,7 @@ body:has(.confirm-shell) {
 
 .tier1-login--craft .tier1-form-sub,
 .tier1-login--craft .tier1-login-lead {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .tier1-login--craft .inst-btn,
@@ -24096,7 +24101,7 @@ body:has(.confirm-shell) {
 .mkt-page .call-demo .call-demo-live,
 .mkt-page .call-demo .call-demo-hint,
 .mkt-page .call-demo .call-demo-copy {
-  color: #71767b !important;
+  color: #9aa0a6 !important;
 }
 
 .mkt-page .call-demo .inst-btn,
@@ -24176,27 +24181,34 @@ body:has(.confirm-shell) {
    accent, soft charcoal pill CTAs. Dashboard stays night OS.
    ============================================================ */
 
+/*
+  The legacy palette below was authored as fixed warm-paper hex, so every
+  marketing page stayed light no matter the colorway. Surfaces and ink have to
+  resolve from the same colorway or they invert against each other — light ink
+  on a still-white card reads worse than the original mismatch — so the whole
+  palette maps onto --ov-* tokens together. The day values of those tokens were
+  derived from these same hexes, so the light canvas is unchanged.
+*/
 .mkt-page {
-  /* Orvius warm paper + charcoal ink */
-  --void: #1c1e1a !important;
+  --void: var(--ov-headline) !important;
   --void-deep: #101210 !important;
-  --chalk: #f5f3ee !important;
-  --white: #ffffff !important;
-  --fog: #eeece6 !important;
-  --mist: #34322f !important;
-  --ash: #6b6d66 !important;
-  --ash-soft: #8a8b84 !important;
-  --rule: #dcdad2 !important;
-  --hairline: #dcdad2 !important;
-  --canvas: #f5f3ee !important;
-  --signal: #b8562c !important;
-  --signal-dim: #8a3d1c !important;
-  --mkt-ink: #1c1e1a !important;
-  --mkt-muted: #6b6d66 !important;
-  --mkt-surface: #ffffff !important;
-  --mkt-inset: #eeece6 !important;
-  background: #f5f3ee !important;
-  color: #1c1e1a !important;
+  --chalk: var(--ov-paper) !important;
+  --white: var(--ov-paper-raised) !important;
+  --fog: var(--ov-line) !important;
+  --mist: var(--ov-ink) !important;
+  --ash: var(--ov-muted) !important;
+  --ash-soft: var(--ov-muted) !important;
+  --rule: var(--ov-line) !important;
+  --hairline: var(--ov-line) !important;
+  --canvas: var(--ov-paper) !important;
+  --signal: var(--ov-copper) !important;
+  --signal-dim: var(--ov-accent-text) !important;
+  --mkt-ink: var(--ov-ink) !important;
+  --mkt-muted: var(--ov-muted) !important;
+  --mkt-surface: var(--ov-paper-raised) !important;
+  --mkt-inset: var(--ov-line) !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
 }
 
 /* Page + hero + section surfaces → paper, kill dark gradients */
@@ -24209,27 +24221,27 @@ body:has(.confirm-shell) {
 .mkt-hero--bleed,
 .mkt-hero--cursor,
 .mkt-hero-void {
-  background: #f7f7f4 !important;
-  border-color: #e6e5e0 !important;
-  color: #26251e !important;
+  background: var(--ov-paper) !important;
+  border-color: var(--ov-line) !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .tier1-story,
 .mkt-page .tier1-story-muted,
 .mkt-page .marketing-section {
-  background: #efeee9 !important;
+  background: var(--ov-paper-raised) !important;
 }
 
 .mkt-page .tier1-close {
-  background: #eeece7 !important;
-  border-top: 1px solid #e6e5e0 !important;
+  background: var(--ov-paper-raised) !important;
+  border-top: 1px solid var(--ov-line) !important;
 }
 
 /* Nav → paper, ink links */
 .mkt-nav--elevated .mkt-nav-rail,
 .mkt-page .mkt-nav-rail {
-  background: color-mix(in srgb, #f7f7f4 88%, transparent) !important;
-  border-color: #e6e5e0 !important;
+  background: color-mix(in srgb, var(--ov-paper) 88%, transparent) !important;
+  border-color: var(--ov-line) !important;
 }
 
 /* Type → ink + warm muted */
@@ -24242,7 +24254,7 @@ body:has(.confirm-shell) {
 .mkt-page .marketing-hero-title-sm,
 .mkt-page .mkt-hero-title,
 .mkt-page .text-void {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .tier1-eyebrow,
@@ -24255,22 +24267,23 @@ body:has(.confirm-shell) {
 .mkt-page .brand-intro-description,
 .mkt-page .text-ash,
 .mkt-page .text-mist {
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
 }
 
-/* Accent links / arrows → Cursor orange */
+/* Accent links / arrows → the text-safe copper, which differs per colorway. */
 .mkt-page a.underline,
 .mkt-page .home-platform-link,
+.mkt-page .home-platform-kicker,
 .mkt-page .text-signal,
 .mkt-page .mkt-link-arrow,
 .mkt-page .link-arrow {
-  color: #b8562c !important;
-  text-decoration-color: color-mix(in srgb, #b8562c 40%, transparent) !important;
+  color: var(--ov-accent-text) !important;
+  text-decoration-color: color-mix(in srgb, var(--ov-accent-text) 40%, transparent) !important;
 }
 
 .mkt-page a.underline:hover,
 .mkt-page .home-platform-link:hover {
-  color: #8a3d1c !important;
+  color: var(--ov-copper) !important;
 }
 
 /* Cards / panels → white with warm hairline */
@@ -24297,15 +24310,15 @@ body:has(.confirm-shell) {
 .mkt-page .pricing-page-controls,
 .mkt-page .tier1-plan-featured,
 .mkt-page .tier1-plan-recommended {
-  background: #ffffff !important;
-  border: 1px solid #e6e5e0 !important;
-  color: #26251e !important;
+  background: var(--ov-paper-raised) !important;
+  border: 1px solid var(--ov-line) !important;
+  color: var(--ov-headline) !important;
   box-shadow: none !important;
 }
 
 .mkt-page .pro-panel-head {
-  background: #efeee9 !important;
-  border-bottom: 1px solid #e6e5e0 !important;
+  background: var(--ov-paper-raised) !important;
+  border-bottom: 1px solid var(--ov-line) !important;
 }
 
 .mkt-page .pro-panel-title,
@@ -24313,7 +24326,7 @@ body:has(.confirm-shell) {
 .mkt-page .tier1-plan .text-void,
 .mkt-page .tier1-plan .font-semibold,
 .mkt-page .call-demo .call-demo-number {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .tier1-plan-period,
@@ -24324,7 +24337,7 @@ body:has(.confirm-shell) {
 .mkt-page .call-demo .call-demo-live,
 .mkt-page .call-demo .call-demo-hint,
 .mkt-page .call-demo .call-demo-copy {
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
 }
 
 /* Inputs → white with warm hairline, ink text */
@@ -24335,14 +24348,14 @@ body:has(.confirm-shell) {
 .mkt-page .tier1-form-slot input,
 .mkt-page .tier1-form-slot select,
 .mkt-page .tier1-form-slot textarea {
-  background: #ffffff !important;
-  color: #26251e !important;
-  border: 1px solid #e6e5e0 !important;
+  background: var(--ov-paper-raised) !important;
+  color: var(--ov-headline) !important;
+  border: 1px solid var(--ov-line) !important;
 }
 
 .mkt-page label,
 .mkt-page .label {
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
 }
 
 /* CTAs → Cursor pills: charcoal primary, hairline ghost */
@@ -24370,35 +24383,41 @@ body:has(.confirm-shell) {
 .mkt-page .inst-btn-ghost,
 .mkt-page .tier-btn-ghost {
   background: transparent !important;
-  color: #26251e !important;
-  border: 1px solid #e6e5e0 !important;
+  color: var(--ov-headline) !important;
+  border: 1px solid var(--ov-line) !important;
 }
 
 .mkt-page .inst-btn-ghost:hover {
-  border-color: #cbc9c2 !important;
-  background: #efedE8 !important;
-  color: #26251e !important;
+  border-color: var(--ov-line) !important;
+  background: var(--ov-paper-raised) !important;
+  color: var(--ov-headline) !important;
 }
 
-/* Legal prose on paper */
+/* Legal prose — follows the colorway, since the doc surface does too. */
 .mkt-page .legal-prose {
-  color: #3a3930 !important;
+  color: var(--ov-ink) !important;
 }
 
 .mkt-page .legal-prose h2 {
-  color: #26251e !important;
-  border-color: #e6e5e0 !important;
+  color: var(--ov-headline) !important;
+  border-color: var(--ov-hairline) !important;
 }
 
 .mkt-page .legal-prose a {
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
+}
+
+/* Base .legal-prose strong/h2 point at --void, which is paper-era ink. */
+.mkt-page .legal-prose strong,
+.mkt-page .legal-prose dt {
+  color: var(--ov-headline) !important;
 }
 
 /* Global shell header on marketing → paper bar, ink text */
 body:has(.mkt-page) .shell-header {
-  background: color-mix(in srgb, #f7f7f4 92%, transparent) !important;
-  border-bottom-color: #e6e5e0 !important;
-  color: #26251e !important;
+  background: color-mix(in srgb, var(--ov-paper) 92%, transparent) !important;
+  border-bottom-color: var(--ov-line) !important;
+  color: var(--ov-headline) !important;
 }
 
 /* Marketing nav → ink links, charcoal pill CTA (both scroll states) */
@@ -24455,8 +24474,8 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-hero--bleed .inst-btn-primary {
-  background: #f7f7f4 !important;
-  color: #26251e !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-headline) !important;
   border-color: #f7f7f4 !important;
 }
 
@@ -24505,7 +24524,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-wizard-legend,
 .mkt-page .pricing-needs-title,
 .mkt-page .pricing-wizard-title {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .pricing-wizard-kicker,
@@ -24517,24 +24536,24 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-matrix-lead,
 .mkt-page .pricing-faq-answer,
 .mkt-page .pricing-page-controls-note {
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
 }
 
 .mkt-page .pricing-wizard-step-active {
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
 }
 
 .mkt-page .pricing-needs-option,
 .mkt-page .pricing-wizard .pricing-needs-option,
 .mkt-page .pricing-needs-result {
-  background: #ffffff !important;
-  border: 1px solid #e6e5e0 !important;
+  background: var(--ov-paper-raised) !important;
+  border: 1px solid var(--ov-line) !important;
   border-radius: 0.4rem !important;
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .pricing-needs-option:hover {
-  border-color: #cbc9c2 !important;
+  border-color: var(--ov-line) !important;
 }
 
 .mkt-page .pricing-needs-option-active {
@@ -24555,7 +24574,7 @@ body:has(.mkt-page) .shell-header {
   justify-content: center;
   text-align: center;
   padding: clamp(7rem, 18vh, 11rem) 1.5rem clamp(4rem, 11vh, 7.5rem);
-  background: #f7f7f4 !important;
+  background: var(--ov-paper) !important;
   border: 0 !important;
 }
 
@@ -24569,7 +24588,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-hero-clean-eyebrow {
   margin: 0 0 1.4rem;
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -24577,7 +24596,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-hero-clean-title {
   margin: 0;
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
   font-weight: 400;
   font-size: clamp(2.75rem, 6vw, 4.5rem);
   line-height: 1.1;
@@ -24587,7 +24606,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-hero-clean-lead {
   margin: 1.65rem auto 0;
   max-width: 36ch;
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
   font-size: clamp(1.05rem, 1.5vw, 1.3rem);
   line-height: 1.5;
 }
@@ -24616,14 +24635,14 @@ body:has(.mkt-page) .shell-header {
   align-items: center;
   gap: 0.55rem;
   margin-top: 1.6rem;
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
   font-size: 0.9rem;
   text-decoration: none;
   letter-spacing: 0.01em;
 }
 
 .mkt-page .mkt-hero-clean-line:hover {
-  color: #8a3d1c !important;
+  color: var(--ov-accent-text) !important;
 }
 
 /* Airy light sections (night rules + close), ink type */
@@ -24631,9 +24650,9 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-manifesto--meta,
 .mkt-page .mkt-close,
 .mkt-page .mkt-close--institution {
-  background: #f7f7f4 !important;
+  background: var(--ov-paper) !important;
   border: 0 !important;
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .mkt-section-inner {
@@ -24644,27 +24663,27 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-manifesto-title,
 .mkt-page .mkt-law-title,
 .mkt-page .mkt-close-title {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .mkt-manifesto-kicker,
 .mkt-page .mkt-close-entity {
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
 }
 
 .mkt-page .mkt-manifesto-aside,
 .mkt-page .mkt-law-body,
 .mkt-page .mkt-close-desc,
 .mkt-page .mkt-close-claim {
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
 }
 
 .mkt-page .mkt-law-id {
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
 }
 
 .mkt-page .mkt-law {
-  border-color: #e6e5e0 !important;
+  border-color: var(--ov-line) !important;
 }
 
 /* Close-section chalk CTA → charcoal pill; secondary → ink */
@@ -24684,27 +24703,27 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-close-call,
 .mkt-page .mkt-text-link {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 /* Proof/story section (inset) → paper + ink; transcript panel white */
 .mkt-page .mkt-proof-section,
 .mkt-page .mkt-proof-section--company {
-  background: #efeee9 !important;
+  background: var(--ov-paper-raised) !important;
   border: 0 !important;
 }
 
 .mkt-page .mkt-proof-title {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .mkt-proof-kicker {
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
 }
 
 .mkt-page .mkt-proof-lead,
 .mkt-page .mkt-proof-note {
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
 }
 
 .mkt-page .mkt-btn-ink {
@@ -24716,31 +24735,31 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-call-panel,
 .mkt-page .mkt-call-panel--company {
-  background: #ffffff !important;
-  border: 1px solid #e6e5e0 !important;
+  background: var(--ov-paper-raised) !important;
+  border: 1px solid var(--ov-line) !important;
   border-radius: 0.6rem !important;
   box-shadow: none !important;
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .mkt-call-panel-kicker {
-  color: var(--ov-accent-text, #b8562c) !important;
+  color: var(--ov-accent-text, var(--ov-accent-text)) !important;
 }
 
 .mkt-page .mkt-call-panel-title {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 .mkt-page .mkt-transcript-line {
-  color: #3a3930 !important;
+  color: var(--ov-ink) !important;
 }
 
 .mkt-page .mkt-transcript-line span {
-  color: #9a9791 !important;
+  color: var(--ov-muted) !important;
 }
 
 .mkt-page .mkt-transcript-line-muted {
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
 }
 
 /* ============================================================
@@ -24793,14 +24812,14 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .inst-btn-ghost,
 .mkt-page .tier-btn-ghost {
   background: #e6e5e0 !important;
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
   border: 1px solid transparent !important;
   border-radius: 9999px !important;
 }
 
 .mkt-page .inst-btn-ghost:hover {
   background: #dbdad3 !important;
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
 }
 
 /* Nav CTA pill (smaller, like cursor.com "Download") */
@@ -24895,7 +24914,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .orvius-logo-word,
 .mkt-nav-brand .orvius-logo-word,
 .mkt-footer .orvius-logo-word {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
   font-weight: 800 !important;
   letter-spacing: 0.02em !important;
 }
@@ -24916,7 +24935,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-resources-col .tier1-eyebrow {
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
   margin-bottom: 1rem;
 }
 
@@ -24930,7 +24949,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-resources-link {
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
   text-decoration: none;
   font-size: 1.05rem;
   letter-spacing: -0.01em;
@@ -24938,12 +24957,12 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-resources-link:hover {
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
 }
 
 /* Product showcase — cursor.com "In every tool, at every step" */
 .mkt-page .mkt-showcase {
-  background: #efeee9 !important;
+  background: var(--ov-paper-raised) !important;
   padding: clamp(4rem, 11vh, 7.5rem) 0 !important;
 }
 
@@ -24969,7 +24988,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-showcase-eyebrow {
   margin: 0 0 1rem;
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.6875rem;
@@ -24978,7 +24997,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-showcase-title {
   margin: 0;
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
   font-weight: 400 !important;
   letter-spacing: -0.03em !important;
   font-size: clamp(1.9rem, 3.2vw, 2.85rem);
@@ -24988,7 +25007,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-showcase-lead {
   margin: 1.1rem 0 1.6rem;
   max-width: 34ch;
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
   font-size: 1.05rem;
   line-height: 1.55;
 }
@@ -24997,8 +25016,8 @@ body:has(.mkt-page) .shell-header {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #ffffff;
-  border: 1px solid #e6e5e0;
+  background: var(--ov-paper-raised);
+  border: 1px solid var(--ov-line);
   border-radius: 0.55rem;
   padding: 0.4rem 0.4rem 0.4rem 0.85rem;
   max-width: 100%;
@@ -25007,7 +25026,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-showcase-snippet code {
   font-family: ui-monospace, "SF Mono", "Liberation Mono", Menlo, monospace;
   font-size: 0.85rem;
-  color: #26251e;
+  color: var(--ov-headline);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -25091,7 +25110,7 @@ body:has(.mkt-page) .shell-header {
    Try Orvius now — centered CTA (cursor.com "Try Cursor now.")
    ============================================================ */
 .mkt-page .mkt-trynow {
-  background: #f7f7f4 !important;
+  background: var(--ov-paper) !important;
   padding: clamp(6rem, 16vh, 10rem) 1.5rem clamp(6rem, 16vh, 10rem) !important;
   text-align: center;
 }
@@ -25106,7 +25125,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-trynow-title {
   margin: 0;
-  color: #26251e !important;
+  color: var(--ov-headline) !important;
   font-weight: 400 !important;
   letter-spacing: -0.035em !important;
   font-size: clamp(2.75rem, 6vw, 4.5rem);
@@ -25119,13 +25138,13 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .mkt-trynow-call {
   margin-top: 1.4rem;
-  color: #6b6a63 !important;
+  color: var(--ov-muted) !important;
   font-size: 0.9rem;
   text-decoration: none;
 }
 
 .mkt-page .mkt-trynow-call:hover {
-  color: #b8562c !important;
+  color: var(--ov-accent-text) !important;
 }
 
 .mkt-footer-bottom--cursor {
@@ -26750,7 +26769,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-radius: 0.2rem;
   font-family: inherit;
   font-size: 0.625rem;
-  color: #8b9096;
+  color: var(--os-mute);
 }
 
 @media (max-width: 640px) {
