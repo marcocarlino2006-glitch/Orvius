@@ -1,6 +1,6 @@
 import { orviusColors } from "@/lib/orvius-colors";
 
-/** Static signal O for OG images and favicons — inline colors, no CSS. */
+/** Static handoff frame for social images and favicons — inline colors, no CSS. */
 export function OrviusMarkGraphic({
   size = 32,
   variant = "dark",
@@ -8,7 +8,7 @@ export function OrviusMarkGraphic({
   size?: number;
   variant?: "dark" | "light";
 }) {
-  const ink = variant === "dark" ? orviusColors.chalk : orviusColors.void;
+  const ink = variant === "dark" ? orviusColors.signal : orviusColors.void;
 
   return (
     <svg
@@ -20,18 +20,9 @@ export function OrviusMarkGraphic({
       aria-hidden
     >
       <path
-        d="M27.93 13.46 A12.2 12.2 0 1 1 18.54 4.07"
-        stroke={ink}
-        strokeWidth="2.9"
-        strokeLinecap="round"
+        d="M4 4H20V9H9V20H4V4ZM28 28H12V23H23V12H28V28Z"
+        fill={ink}
       />
-      <path
-        d="M20.99 21.99 A7.8 7.8 0 0 1 9.09 12.16"
-        stroke={ink}
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-      <circle cx="16" cy="16" r="3.4" fill={ink} />
     </svg>
   );
 }

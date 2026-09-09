@@ -1,11 +1,9 @@
 /**
- * Orvius mark — the signal O.
+ * Orvius mark — the handoff frame.
  *
- * Outer ring: the shop's coverage, broken where the night gap is.
- * Inner sweep: the line answering into that gap.
- * Core: the one record every call, job, and dollar compounds into.
- *
- * Monochrome via currentColor, so it holds on charcoal and on warm light.
+ * Two opposing routes imply one protected service window: demand enters at
+ * the upper left and leaves as an owned job at the lower right. The negative
+ * center keeps the mark legible at favicon size without another generic O.
  */
 
 export type OrviusMarkSvgProps = {
@@ -25,20 +23,10 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-coverage"
-        d="M27.93 13.46 A12.2 12.2 0 1 1 18.54 4.07"
-        stroke="currentColor"
-        strokeWidth="2.9"
-        strokeLinecap="round"
+        className="orvius-mark-handoff"
+        d="M4 4H20V9H9V20H4V4ZM28 28H12V23H23V12H28V28Z"
+        fill="currentColor"
       />
-      <path
-        className="orvius-mark-sweep"
-        d="M20.99 21.99 A7.8 7.8 0 0 1 9.09 12.16"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-      <circle className="orvius-mark-core" cx="16" cy="16" r="3.4" fill="currentColor" />
     </svg>
   );
 }
