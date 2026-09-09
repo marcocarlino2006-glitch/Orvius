@@ -1,11 +1,15 @@
 /**
- * Contrast audit for the public surfaces.
+ * Contrast audit for the whole product — marketing and the owner dashboard.
  *
- * Walks every text-bearing element on every public page, in both colorways,
+ * Walks every text-bearing element on every page, in both colorways,
  * and composites the *whole* chain of ancestor
  * backgrounds before measuring. Sampling only the nearest non-transparent
  * background is what produces phantom failures: an 8%-alpha plate reads as a
  * fully saturated one, and half the report becomes noise.
+ *
+ * The dashboard needs a session, so it is audited in a second pass behind a
+ * fixture sign-in. If that sign-in cannot be established the pass is reported
+ * as skipped rather than quietly counted as clean.
  *
  *   node scripts/verify-contrast.cjs [baseUrl]
  */
@@ -13,6 +17,8 @@ const puppeteer = require("puppeteer");
 
 const BASE = process.argv[2] ?? "http://localhost:3000";
 const PAGES = require("./public-pages.cjs");
+const { dashboardPages } = require("./dashboard-pages.cjs");
+const { signInForAudit } = require("./audit-session.cjs");
 const THEMES = [
   ["night", "dark"],
   ["day", "light"],
@@ -110,41 +116,87 @@ const COLLECT = () => {
   const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const failures = [];
   let checked = 0;
+  let renders = 0;
+
+  /** Measure one route in one colorway on an already-prepared page. */
+  async function auditPath(page, path, theme, label) {
+    await page.goto(BASE + path, { waitUntil: "domcontentloaded", timeout: 90000 });
+    await page.evaluate((t) => localStorage.setItem("orvius-theme", t), theme);
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 90000 });
+    /* Dashboard views fetch on mount and sit behind a skeleton until the data
+       lands. Measuring a skeleton is measuring nothing, so settle on a stable
+       element count before the sweep. */
+    let stable = 0;
+    let last = -1;
+    for (let tick = 0; tick < 40 && stable < 3; tick++) {
+      await new Promise((r) => setTimeout(r, 250));
+      const n = await page.evaluate(() => document.querySelectorAll("body *").length);
+      stable = n === last ? stable + 1 : 0;
+      last = n;
+    }
+
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.body.scrollHeight; y += 400) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 60));
+      }
+      window.scrollTo(0, 0);
+    });
+    await new Promise((r) => setTimeout(r, 800));
+    renders += 1;
+
+    for (const sample of await page.evaluate(COLLECT)) {
+      const value = contrast(sample.color, sample.layers);
+      if (value === null) continue;
+      checked += 1;
+      const large = sample.size >= 24 || (sample.size >= 18.66 && sample.weight >= 700);
+      const floor = large ? 3 : 4.5;
+      if (value < floor) {
+        failures.push(
+          `[${label} ${path}] ${value.toFixed(2)}:1 (need ${floor}) ` +
+            `${sample.name} @${sample.size}px "${sample.text}"`,
+        );
+      }
+    }
+  }
 
   for (const [theme, label] of THEMES) {
     for (const path of PAGES) {
       const page = await browser.newPage();
       await page.setViewport({ width: 1440, height: 900 });
-      await page.goto(BASE + path, { waitUntil: "domcontentloaded", timeout: 90000 });
-      await page.evaluate((t) => localStorage.setItem("orvius-theme", t), theme);
-      await page.reload({ waitUntil: "domcontentloaded", timeout: 90000 });
-      await page.evaluate(async () => {
-        for (let y = 0; y < document.body.scrollHeight; y += 400) {
-          window.scrollTo(0, y);
-          await new Promise((r) => setTimeout(r, 60));
-        }
-        window.scrollTo(0, 0);
-      });
-      await new Promise((r) => setTimeout(r, 1500));
-
-      for (const sample of await page.evaluate(COLLECT)) {
-        const value = contrast(sample.color, sample.layers);
-        if (value === null) continue;
-        checked += 1;
-        const large = sample.size >= 24 || (sample.size >= 18.66 && sample.weight >= 700);
-        const floor = large ? 3 : 4.5;
-        if (value < floor) {
-          failures.push(
-            `[${label} ${path}] ${value.toFixed(2)}:1 (need ${floor}) ` +
-              `${sample.name} @${sample.size}px "${sample.text}"`,
-          );
-        }
-      }
+      await auditPath(page, path, theme, label);
       await page.close();
     }
   }
 
-  console.log(`checked ${checked} text nodes across ${THEMES.length * PAGES.length} renders`);
+  console.log(`public: ${checked} text nodes across ${renders} renders`);
+
+  /* Second pass, behind a session. One page holds the cookie for every route. */
+  const owner = await browser.newPage();
+  await owner.setViewport({ width: 1440, height: 900 });
+  const fixture = await signInForAudit(owner, BASE).catch((err) => {
+    console.log(`dashboard sign-in failed: ${err.message}`);
+    return null;
+  });
+
+  let dashboardAudited = false;
+  if (fixture) {
+    const before = checked;
+    const beforeRenders = renders;
+    for (const [theme, label] of THEMES) {
+      for (const path of dashboardPages(fixture)) {
+        await auditPath(owner, path, theme, label);
+      }
+    }
+    dashboardAudited = true;
+    console.log(
+      `dashboard: ${checked - before} text nodes across ${renders - beforeRenders} renders`,
+    );
+  } else {
+    console.log("dashboard: skipped — no audit session");
+  }
+  await owner.close();
+
   if (failures.length) {
     console.log(`\nAA failures: ${failures.length}`);
     failures.forEach((f) => console.log("  " + f));
@@ -152,5 +204,12 @@ const COLLECT = () => {
     console.log("\nAA: pass — every text node clears 4.5:1 (3:1 for large type)");
   }
   await browser.close();
+
+  /* A skipped dashboard pass is not a pass: fail rather than report green on a
+     surface nothing looked at. */
+  if (!dashboardAudited) {
+    console.log("\nincomplete: the owner dashboard was not measured");
+    process.exit(1);
+  }
   process.exit(failures.length ? 1 : 0);
 })();

@@ -6484,8 +6484,14 @@ h3 {
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--signal) 0%, var(--signal-dim) 100%);
-  color: var(--white);
+  /*
+    The initials used to take --white, which the OS shell remaps to a panel
+    colour, so they rendered as dark slate on copper — about 1.8:1 against the
+    bottom of the old gradient. The ink is stated outright, and the copper runs
+    dark enough to carry it: 7.7:1 at the top, 9.9:1 at the bottom.
+  */
+  background: linear-gradient(135deg, var(--signal-dim) 0%, #6f3016 100%);
+  color: #ffffff;
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -21826,7 +21832,7 @@ body:has(.confirm-shell) {
   --os-live: #00ba7c;
   --void: #f2f4f5;
   --ash: #9aa0a6;
-  --ash-soft: #8b9096;
+  --ash-soft: #a8aeb4;
   --white: #292d33;
   --fog: #1e2125;
   --chalk: #22252a;
@@ -25375,7 +25381,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border: none !important;
   background: transparent !important;
   box-shadow: none !important;
-  color: #8b9096 !important;
+  color: #a8aeb4 !important;
   font-size: 0.8125rem !important;
   font-weight: 450 !important;
   letter-spacing: -0.003em !important;
@@ -25528,7 +25534,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #8b9096 !important;
+  color: #a8aeb4 !important;
 }
 
 .os-shell-night .attention-queue-title {
@@ -25581,7 +25587,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 .os-shell-night .attention-chip {
@@ -25616,7 +25622,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .attention-item-value {
   margin: 0.2rem 0 0 !important;
   font-size: 0.75rem !important;
-  color: #8b9096 !important;
+  color: #a8aeb4 !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -25634,7 +25640,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .attention-item-rollup:hover {
   color: #f2f4f5;
-  border-bottom-color: #8b9096;
+  border-bottom-color: #a8aeb4;
 }
 
 .os-shell-night .attention-item-actions {
@@ -25687,7 +25693,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .attention-item-btn-quiet {
   background: transparent !important;
   border: 1px solid transparent !important;
-  color: #8b9096 !important;
+  color: #a8aeb4 !important;
 }
 
 .os-shell-night .attention-item-btn-quiet:hover {
@@ -25733,7 +25739,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #8b9096 !important;
+  color: #a8aeb4 !important;
 }
 
 .os-shell-night .pro-stat-value {
@@ -26138,7 +26144,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #8b9096 !important;
+  color: #a8aeb4 !important;
 }
 
 .os-shell-night .shop-outcomes-stats {
@@ -26156,7 +26162,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 .os-shell-night .shop-outcome-stat dd {
@@ -26210,7 +26216,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 .os-shell-night .pro-economics-grid dd {
@@ -26285,7 +26291,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   padding: 0.05rem 0.35rem;
   border: 1px solid #444a51;
   border-radius: 0.25rem;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 /* Settings keeps a narrower column than the boards, so its sticky save bar
@@ -26368,7 +26374,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 .os-shell-night .pro-right-now-grid {
@@ -26492,7 +26498,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin: 0;
   font-size: 0.6875rem;
   line-height: 1.35;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 /* ── Rail cards ── */
@@ -26598,7 +26604,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   padding-top: 0.55rem;
   border-top: 1px solid #363b41;
   font-size: 0.6875rem;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 .os-shell-night .pro-rail-card .pro-section-link {
@@ -26632,7 +26638,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin: 0;
   font-size: 0.6875rem;
   line-height: 1.4;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 /* Gate banners sit inside the rail now, so they drop their page-width padding. */
@@ -26747,7 +26753,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-radius: 0.2rem;
   font-family: inherit;
   font-size: 0.625rem;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 .os-palette-list {
@@ -26807,7 +26813,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin-left: auto;
   padding-left: 0.75rem;
   font-size: 0.6875rem;
-  color: #8b9096;
+  color: #a8aeb4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -26856,7 +26862,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-night-watch-stats dt {
   margin: 0 0 0.15rem;
   font-size: 0.625rem;
-  color: #8b9096;
+  color: #a8aeb4;
 }
 
 .os-shell-night .pro-night-watch-stats dd {
