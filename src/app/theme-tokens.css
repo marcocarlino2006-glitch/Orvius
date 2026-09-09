@@ -80,6 +80,17 @@ body {
 }
 
 /*
+  The dock is fixed to the bottom-right, so the last row of any page it floats
+  over has to give up that corner or the dock lands on top of it — which is
+  exactly what happened to the footer's trademark line. This is the dock's
+  vertical footprint (bottom offset + control height + breathing room);
+  surfaces that end at the bottom of the page reserve it as padding.
+*/
+:root {
+  --ui-dock-reserve: 76px;
+}
+
+/*
   Legacy marketing CSS squares off every button inside .mkt-page with
   `border-radius: 0.2rem !important`. Pill primitives opt out of that rule
   explicitly rather than each caller fighting it with its own !important.
