@@ -69,6 +69,17 @@
 }
 
 /*
+  The document carries the colorway too. Without this, html and body stay white
+  and any fixed, translucent surface — the utility dock most of all — composites
+  its glass over white instead of over the canvas, which quietly costs it about
+  1.4:1 of contrast.
+*/
+html,
+body {
+  background: var(--ui-bg);
+}
+
+/*
   Legacy marketing CSS squares off every button inside .mkt-page with
   `border-radius: 0.2rem !important`. Pill primitives opt out of that rule
   explicitly rather than each caller fighting it with its own !important.

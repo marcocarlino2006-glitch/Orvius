@@ -410,6 +410,14 @@ const marketingFiles = [
   "src/lib/company.ts",
   "src/components/home-workflow.tsx",
   "src/components/home-statement.tsx",
+  // The stats banner is the highest-risk surface on the site: a metric strip is
+  // where invented numbers land first.
+  "src/components/home-stats-banner.tsx",
+  "src/components/home-live-call.tsx",
+  // Sign-in copy is public and makes promises about what the product does.
+  "src/components/signin-board.tsx",
+  "src/components/signin-panel.tsx",
+  "src/app/signin/page.tsx",
   "src/app/product/page.tsx",
   "src/app/enterprise/page.tsx",
 ];

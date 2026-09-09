@@ -4,6 +4,7 @@ import { DevSignInButton } from "@/components/dev-sign-in-button";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { SignInBoard } from "@/components/signin-board";
 import { SignInPanel } from "@/components/signin-panel";
+import { SystemStatusPill } from "@/components/system-status-pill";
 import { company } from "@/lib/company";
 import { getDevAuthEmail, isDevAuthBypassEnabled } from "@/lib/dev-auth";
 
@@ -42,9 +43,12 @@ export default async function SignInPage({
     <main className="ov-signin">
       <section className="ov-signin-canvas">
         <div className="ov-signin-canvas-inner">
-          <Link href="/" className="ov-signin-brand" aria-label="Return to Orvius">
-            <OrviusLogo variant="void" size="lg" />
-          </Link>
+          <div className="mkt-nav-brandline">
+            <Link href="/" className="ov-signin-brand" aria-label="Return to Orvius">
+              <OrviusLogo variant="void" size="lg" />
+            </Link>
+            <SystemStatusPill />
+          </div>
 
           <h2 className="ov-signin-pitch">
             The night shift already ran. Here is what it did.

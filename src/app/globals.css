@@ -24724,7 +24724,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-call-panel-kicker {
-  color: #b8562c !important;
+  color: var(--ov-accent-text, #b8562c) !important;
 }
 
 .mkt-page .mkt-call-panel-title {

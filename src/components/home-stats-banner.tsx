@@ -5,9 +5,10 @@ import { ownerSlAs } from "@/lib/institutional-standards";
  *
  * Every figure here is a standard Orvius enforces in code and can be checked
  * against the repository, not a customer average we have not measured. That
- * rules out the usual banner numbers — a "100% coverage" or "$0 missed" claim
- * is exactly what docs/INSTITUTIONAL-PLAYBOOK.md calls a claim we have not
- * earned, and `npm run standard:check` flags the first of those on sight.
+ * rules out the usual banner numbers: a total-coverage percentage or a
+ * zero-missed-revenue figure is the kind of claim
+ * docs/INSTITUTIONAL-PLAYBOOK.md says we have not earned, and
+ * `npm run standard:check` flags them on sight.
  */
 const STATS = [
   {

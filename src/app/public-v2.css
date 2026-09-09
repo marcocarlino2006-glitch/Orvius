@@ -27,6 +27,11 @@ html[data-theme="night"] {
   /* Copper is lifted on charcoal; the paper value is too dark to read here. */
   --ov-copper: #d9784b;
   --ov-copper-dark: #b8562c;
+  /* Text-safe accents. The display copper clears AA on charcoal; on paper it
+     does not, so eyebrows and kickers read from these rather than from the
+     display value. */
+  --ov-accent-text: #d9784b;
+  --ov-emerald-text: #34d399;
   --ov-copper-field: #111111;
   --ov-amber: #f59e0b;
   --ov-green: #34d399;
@@ -50,6 +55,8 @@ html[data-theme="day"] {
   --ov-night-text: #f2f1ec;
   --ov-copper: #b8562c;
   --ov-copper-dark: #8a3d1c;
+  --ov-accent-text: #8a3d1c;
+  --ov-emerald-text: #047857;
   --ov-copper-field: #c25f31;
   --ov-amber: #b45309;
   --ov-green: #2d7a58;
@@ -121,7 +128,8 @@ body {
 /* Live system status, set beside the wordmark. */
 
 .ov-public .mkt-nav-brandline,
-.ov-auth .mkt-nav-brandline {
+.ov-auth .mkt-nav-brandline,
+.ov-signin .mkt-nav-brandline {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -136,7 +144,7 @@ body {
   border: 1px solid rgb(16 185 129 / 0.3);
   border-radius: 9999px;
   background: rgb(16 185 129 / 0.1);
-  color: #34d399;
+  color: var(--ov-emerald-text);
   font-family: var(--ov-mono);
   font-size: 0.6875rem;
   font-weight: 600;
@@ -349,7 +357,7 @@ body {
 .ov-public .mkt-manifesto-kicker,
 .ov-public .mkt-proof-kicker {
   margin: 0 0 1.25rem !important;
-  color: var(--ov-copper-dark) !important;
+  color: var(--ov-accent-text) !important;
   font-family: var(--ov-font) !important;
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
@@ -436,7 +444,11 @@ body {
  * can keep reading --ov-* instead of branching on [data-theme].
  */
 .ov-public .mkt-showcase-grid,
-.ov-public .mkt-laws--grid .mkt-law {
+.ov-public .mkt-laws--grid .mkt-law,
+.ov-public .ov-stats,
+.ov-public .ov-console-frame,
+.ov-public .mkt-proof-section,
+.ov-signin {
   --ov-headline: #ffffff;
   --ov-ink: #eeeeee;
   --ov-muted: #a0a0a0;
@@ -447,6 +459,8 @@ body {
   --ov-hairline-hover: rgb(255 255 255 / 0.4);
   --ov-copper: #d9784b;
   --ov-amber: #f59e0b;
+  --ov-accent-text: #d9784b;
+  --ov-emerald-text: #34d399;
 }
 
 /* Product proof on a charcoal field with a lit warm top edge. The panel used to
@@ -766,7 +780,8 @@ body {
   gap: clamp(48px, 8vw, 120px) !important;
 }
 
-.ov-public .mkt-proof-kicker {
+.ov-public .mkt-proof-kicker,
+.ov-public .mkt-call-panel-kicker {
   color: #e2a07b !important;
 }
 
@@ -885,7 +900,7 @@ body {
 .ov-public .ov-stats-foot {
   width: min(100%, 1240px);
   margin: 1.75rem auto 0;
-  color: #6f6f6f;
+  color: #8f8f8f;
   font-family: var(--ov-font);
   font-size: 0.75rem;
   line-height: 1.5;
@@ -920,7 +935,7 @@ body {
 
 .ov-public .mkt-trynow-eyebrow {
   margin: 0 0 1.1rem !important;
-  color: var(--ov-copper) !important;
+  color: var(--ov-accent-text) !important;
   font-family: var(--ov-mono) !important;
   font-size: 0.6875rem !important;
   font-weight: 500 !important;
@@ -1051,7 +1066,7 @@ body {
 
 .ov-public .brand-intro-kicker,
 .ov-public .tier1-eyebrow {
-  color: var(--ov-copper-dark) !important;
+  color: var(--ov-accent-text) !important;
   font-family: var(--ov-font) !important;
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
@@ -1998,6 +2013,12 @@ body {
   font-family: var(--ov-mono) !important;
 }
 
+/* The snippet sits on the dark panel in both colorways, so it takes the
+   panel's pinned ink rather than the page's. */
+.ov-public .mkt-showcase-snippet code {
+  color: var(--ov-ink) !important;
+}
+
 /* Responsive public rhythm */
 
 @media (max-width: 980px) {
@@ -2260,7 +2281,7 @@ body {
 
 .ov-public .ov-hero-eyebrow {
   margin: 0 0 1.15rem;
-  color: var(--ov-copper-dark);
+  color: var(--ov-accent-text);
   font-family: var(--ov-mono);
   font-size: 0.6875rem;
   font-weight: 500;
@@ -2423,7 +2444,7 @@ body {
   border: 1px solid rgb(16 185 129 / 0.3);
   border-radius: 9999px;
   background: rgb(16 185 129 / 0.1);
-  color: #34d399;
+  color: var(--ov-emerald-text);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
