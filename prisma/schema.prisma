@@ -196,6 +196,13 @@ model Job {
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?
+  /** Structured field outcome — the label future intelligence learns from. */
+  resolutionCode String?
+  /** Short technician evidence, never generated or inferred. */
+  resolutionSummary String?
+  /** Actual total reported at completion; separate from estimate/invoice. */
+  finalAmountCents Int?
+  outcomeCapturedAt DateTime?
   /** Magic-link token for tech field page (/t/[token]). */
   techToken     String?     @unique
   /** Free-text ETA from tech (e.g. "25 min"). */

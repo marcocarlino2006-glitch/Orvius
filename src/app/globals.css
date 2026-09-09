@@ -17409,6 +17409,79 @@ h3 {
   width: 100%;
 }
 
+.tech-field-outcome {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid color-mix(in srgb, #fff 14%, transparent);
+  display: grid;
+  gap: 1rem;
+}
+
+.tech-field-outcome h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #f4f6f8;
+}
+
+.tech-field-outcome label {
+  display: grid;
+  gap: 0.45rem;
+  color: color-mix(in srgb, #e8ecf1 82%, transparent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.tech-field-outcome label em {
+  color: color-mix(in srgb, #e8ecf1 48%, transparent);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.tech-field-outcome select,
+.tech-field-outcome textarea,
+.tech-field-outcome input {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, #fff 16%, transparent);
+  background: color-mix(in srgb, #fff 6%, transparent);
+  color: #f4f6f8;
+  border-radius: 0.35rem;
+  padding: 0.7rem 0.75rem;
+  font: inherit;
+}
+
+.tech-field-outcome select option {
+  background: #25292e;
+}
+
+.tech-field-outcome textarea {
+  resize: vertical;
+  min-height: 5rem;
+  line-height: 1.45;
+}
+
+.tech-field-money {
+  position: relative;
+}
+
+.tech-field-money > span {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: color-mix(in srgb, #e8ecf1 55%, transparent);
+}
+
+.tech-field-money input {
+  padding-left: 1.55rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tech-field-complete {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, #fff 14%, transparent);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    CRAFT LOCK — Cursor × SpaceX mechanics (final cascade)
    Keep Orvius copper. Kill SaaS soft shadows / bounce / heavy display weight.

@@ -8,6 +8,11 @@ import {
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jobTitle } from "@/lib/job-schedule";
+import {
+  isJobOutcomeCode,
+  parseFinalAmountCents,
+  type JobOutcomeCode,
+} from "@/lib/job-outcome";
 import type { JobStatus } from "@/lib/job-status";
 
 export { suggestedSchedule, jobTitle } from "@/lib/job-schedule";
@@ -294,5 +299,37 @@ export async function updateJobStatus(jobId: string, status: JobStatus) {
   return prisma.job.update({
     where: { id: jobId },
     data,
+  });
+}
+
+export async function completeJobWithOutcome(
+  jobId: string,
+  outcome: {
+    resolutionCode: JobOutcomeCode;
+    resolutionSummary?: string | null;
+    finalAmountCents?: number | null;
+  },
+) {
+  if (!isJobOutcomeCode(outcome.resolutionCode)) {
+    throw new Error("Choose what happened before completing the job");
+  }
+  const finalAmountCents = parseFinalAmountCents(outcome.finalAmountCents);
+  if (
+    outcome.finalAmountCents != null &&
+    finalAmountCents == null
+  ) {
+    throw new Error("Final amount must be between $0 and $50,000");
+  }
+  const now = new Date();
+  return prisma.job.update({
+    where: { id: jobId },
+    data: {
+      status: "completed",
+      completedAt: now,
+      resolutionCode: outcome.resolutionCode,
+      resolutionSummary: outcome.resolutionSummary?.trim().slice(0, 500) || null,
+      finalAmountCents,
+      outcomeCapturedAt: now,
+    },
   });
 }

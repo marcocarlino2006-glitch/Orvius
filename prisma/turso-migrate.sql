@@ -175,3 +175,9 @@ CREATE INDEX IF NOT EXISTS "Job_businessId_categoryCode_idx" ON "Job"("businessI
 -- Confirmation lifecycle: real delivery stamps + one unconfirmed reminder
 ALTER TABLE "Job" ADD COLUMN "customerConfirmSentAt" DATETIME;
 ALTER TABLE "Job" ADD COLUMN "customerConfirmReminderSentAt" DATETIME;
+
+-- Outcome loop: what the technician actually found and what the work closed at
+ALTER TABLE "Job" ADD COLUMN "resolutionCode" TEXT;
+ALTER TABLE "Job" ADD COLUMN "resolutionSummary" TEXT;
+ALTER TABLE "Job" ADD COLUMN "finalAmountCents" INTEGER;
+ALTER TABLE "Job" ADD COLUMN "outcomeCapturedAt" DATETIME;
