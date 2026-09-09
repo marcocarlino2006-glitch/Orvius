@@ -1,21 +1,9 @@
 import type { Metadata } from "next";
-import { Sora } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
 import "./globals.css";
-
-/**
- * One letterset — Grok-grade consistency.
- * Sora carries logo wordmark, UI, body, and display.
- * No Syne / Space Grotesk / Barlow / SVG caps fighting each other.
- */
-const sans = Sora({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
+import "./public-v2.css";
 
 export const metadata: Metadata = {
   title: {
@@ -66,7 +54,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${sans.variable} antialiased`}>
+      <body className="antialiased">
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

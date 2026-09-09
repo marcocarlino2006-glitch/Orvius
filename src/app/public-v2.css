@@ -1,0 +1,1176 @@
+/*
+ * ORVIUS PUBLIC SYSTEM
+ *
+ * One authoritative skin for public marketing and authentication. The product
+ * keeps its dense charcoal cockpit; public pages borrow Cursor's restraint:
+ * compact chrome, low-contrast borders, unforced typography, and large product
+ * proof. Copper is Orvius's signal color — not Cursor's identity or mark.
+ */
+
+:root {
+  --font-sans: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
+    "Liberation Sans", sans-serif;
+  --ov-font: "Helvetica Neue", "Helvetica Neue LT", Helvetica, Arial,
+    "Liberation Sans", sans-serif;
+  --ov-paper: #f6f5f1;
+  --ov-paper-raised: #fbfaf7;
+  --ov-ink: #252620;
+  --ov-muted: #6f706a;
+  --ov-line: #d9d8d1;
+  --ov-line-strong: #c6c5bd;
+  --ov-charcoal: #25292e;
+  --ov-charcoal-raised: #2c3137;
+  --ov-night-text: #f2f1ec;
+  --ov-copper: #bd643c;
+  --ov-copper-dark: #8f4528;
+  --ov-copper-field: #c8754d;
+  --ov-green: #2d7a58;
+}
+
+body {
+  font-family: var(--ov-font);
+}
+
+.ov-public {
+  min-height: 100vh;
+  overflow: clip;
+  background: var(--ov-paper);
+  color: var(--ov-ink);
+  font-family: var(--ov-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.ov-public *,
+.ov-auth * {
+  box-sizing: border-box;
+}
+
+.ov-public a,
+.ov-auth a {
+  text-underline-offset: 0.16em;
+}
+
+/* Brand */
+
+.ov-public .orvius-logo,
+.ov-auth .orvius-logo {
+  gap: 0.52rem !important;
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .orvius-logo-mark,
+.ov-auth .orvius-logo-mark {
+  color: var(--ov-copper) !important;
+}
+
+.ov-public .orvius-logo-word,
+.ov-auth .orvius-logo-word {
+  color: inherit !important;
+  font-family: var(--ov-font) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.018em !important;
+  text-transform: none !important;
+}
+
+/* Compact public chrome */
+
+.ov-public .mkt-nav {
+  position: fixed !important;
+  inset: 0 0 auto !important;
+  z-index: 80 !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  border: 0 !important;
+  border-bottom: 1px solid transparent !important;
+  background: color-mix(in srgb, var(--ov-paper) 94%, transparent) !important;
+  backdrop-filter: blur(14px);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease !important;
+}
+
+.ov-public .mkt-nav--elevated {
+  border-bottom-color: var(--ov-line) !important;
+  background: color-mix(in srgb, var(--ov-paper) 98%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-nav-inner {
+  width: 100% !important;
+  max-width: 1440px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+  display: grid !important;
+  grid-template-columns: minmax(150px, 1fr) auto minmax(250px, 1fr) !important;
+  align-items: center !important;
+  gap: 24px !important;
+}
+
+.ov-public .mkt-nav-brand {
+  width: max-content;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ov-public .mkt-nav-links {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1.55rem !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .mkt-nav-links a,
+.ov-public .mkt-nav-login {
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.006em !important;
+  text-transform: none !important;
+}
+
+.ov-public .mkt-nav-links a {
+  position: relative;
+}
+
+.ov-public .mkt-nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -4px;
+  height: 1px;
+  background: var(--ov-ink);
+  transition: right 140ms ease;
+}
+
+.ov-public .mkt-nav-links a:hover::after {
+  right: 0;
+}
+
+.ov-public .mkt-nav-actions {
+  justify-self: end !important;
+  gap: 0.45rem !important;
+}
+
+.ov-public .mkt-nav-secondary,
+.ov-public .mkt-nav-cta {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 0 0.8rem !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.006em !important;
+  text-transform: none !important;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease !important;
+}
+
+.ov-public .mkt-nav-secondary {
+  color: var(--ov-ink) !important;
+  border: 1px solid var(--ov-line-strong) !important;
+  background: transparent !important;
+}
+
+.ov-public .mkt-nav-cta {
+  color: var(--ov-night-text) !important;
+  border: 1px solid var(--ov-charcoal) !important;
+  background: var(--ov-charcoal) !important;
+}
+
+.ov-public .mkt-nav-secondary:hover,
+.ov-public .mkt-nav-cta:hover {
+  transform: translateY(-1px) !important;
+}
+
+.ov-public .mkt-nav-menu-toggle {
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid var(--ov-line-strong) !important;
+  border-radius: 4px !important;
+  color: var(--ov-ink) !important;
+  background: transparent !important;
+}
+
+/* Hero: text stays quiet; the product carries the visual weight. */
+
+.ov-public .mkt-hero--clean {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .mkt-hero-clean {
+  width: min(100%, 1440px) !important;
+  min-height: 530px !important;
+  margin: 0 auto !important;
+  padding: 142px 5vw 92px !important;
+  text-align: left !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+
+.ov-public .mkt-hero-clean-eyebrow,
+.ov-public .mkt-showcase-eyebrow,
+.ov-public .mkt-manifesto-kicker,
+.ov-public .mkt-proof-kicker {
+  margin: 0 0 1.25rem !important;
+  color: var(--ov-copper-dark) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.ov-public .mkt-hero-clean-title {
+  max-width: 760px !important;
+  margin: 0 !important;
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2.35rem, 4.2vw, 3.8rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.06 !important;
+  letter-spacing: -0.044em !important;
+  text-wrap: balance;
+}
+
+.ov-public .mkt-hero-clean-lead {
+  max-width: 660px !important;
+  margin: 1.65rem 0 0 !important;
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 1.0625rem !important;
+  font-weight: 400 !important;
+  line-height: 1.55 !important;
+  letter-spacing: -0.012em !important;
+}
+
+.ov-public .mkt-hero-clean-actions {
+  margin-top: 2rem !important;
+}
+
+.ov-public .mkt-hero-clean-cta,
+.ov-public .mkt-trynow-cta,
+.ov-public .inst-btn-primary {
+  min-height: 42px !important;
+  padding: 0 1rem !important;
+  border: 1px solid var(--ov-charcoal) !important;
+  border-radius: 4px !important;
+  background: var(--ov-charcoal) !important;
+  color: var(--ov-night-text) !important;
+  box-shadow: none !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+}
+
+.ov-public .mkt-hero-clean-cta:hover,
+.ov-public .mkt-trynow-cta:hover,
+.ov-public .inst-btn-primary:hover {
+  border-color: #111315 !important;
+  background: #111315 !important;
+  transform: translateY(-1px);
+}
+
+.ov-public .mkt-hero-clean-line {
+  margin-top: 1.05rem !important;
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  text-decoration: none !important;
+}
+
+.ov-public .mkt-hero-clean-line:hover {
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .mkt-hero-live-pulse {
+  width: 6px !important;
+  height: 6px !important;
+  background: var(--ov-green) !important;
+  box-shadow: none !important;
+}
+
+/* Product proof on an Orvius oxide field. */
+
+.ov-public .mkt-showcase {
+  margin: 0 !important;
+  padding: 20px 20px 104px !important;
+  border: 0 !important;
+  background: var(--ov-paper) !important;
+}
+
+.ov-public .mkt-showcase-grid {
+  width: min(100%, 1360px) !important;
+  max-width: 1360px !important;
+  min-height: 680px !important;
+  margin: 0 auto !important;
+  padding: clamp(32px, 5vw, 72px) !important;
+  display: grid !important;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.55fr) !important;
+  gap: clamp(32px, 5vw, 76px) !important;
+  align-items: center !important;
+  border: 1px solid color-mix(in srgb, var(--ov-copper-dark) 32%, transparent) !important;
+  border-radius: 7px !important;
+  background: var(--ov-copper-field) !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-showcase-copy {
+  display: block !important;
+}
+
+.ov-public .mkt-showcase-eyebrow {
+  color: color-mix(in srgb, var(--ov-ink) 68%, var(--ov-copper-field)) !important;
+}
+
+.ov-public .mkt-showcase-title {
+  max-width: 390px !important;
+  margin: 0 !important;
+  color: #1f211d !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2rem, 3.4vw, 3.25rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.06 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.ov-public .mkt-showcase-lead {
+  max-width: 390px !important;
+  margin: 1.35rem 0 0 !important;
+  color: color-mix(in srgb, var(--ov-ink) 78%, var(--ov-copper-field)) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.55 !important;
+}
+
+.ov-public .mkt-showcase-snippet {
+  width: max-content !important;
+  max-width: 100% !important;
+  margin-top: 1.65rem !important;
+  border: 1px solid color-mix(in srgb, var(--ov-ink) 25%, transparent) !important;
+  border-radius: 4px !important;
+  background: color-mix(in srgb, var(--ov-paper) 35%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-showcase-stage {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, #0d0f11 42%, transparent) !important;
+  border-radius: 5px !important;
+  background: var(--ov-charcoal) !important;
+  box-shadow: 0 24px 64px color-mix(in srgb, #22150f 22%, transparent) !important;
+  overflow: hidden;
+}
+
+.ov-public .mkt-product {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--ov-charcoal) !important;
+}
+
+/* Editorial sections */
+
+.ov-public .mkt-manifesto,
+.ov-public .mkt-manifesto--meta {
+  padding: 118px 5vw !important;
+  border: 0 !important;
+  border-top: 1px solid var(--ov-line) !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .mkt-manifesto-meta {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr) !important;
+  gap: clamp(52px, 8vw, 120px) !important;
+}
+
+.ov-public .mkt-manifesto-title {
+  max-width: 530px !important;
+  margin: 0 !important;
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2rem, 3.5vw, 3.2rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.ov-public .mkt-manifesto-aside {
+  max-width: 500px !important;
+  margin-top: 1.5rem !important;
+  color: var(--ov-muted) !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.6 !important;
+}
+
+.ov-public .mkt-laws {
+  margin: 0 !important;
+  border-top: 1px solid var(--ov-line-strong) !important;
+}
+
+.ov-public .mkt-law {
+  padding: 1.55rem 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ov-line) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-law-id {
+  color: var(--ov-copper-dark) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.75rem !important;
+}
+
+.ov-public .mkt-law-title {
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 1.05rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.015em !important;
+}
+
+.ov-public .mkt-law-body {
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.55 !important;
+}
+
+/* Call proof: charcoal, never pure black. */
+
+.ov-public .mkt-proof-section {
+  padding: 112px 5vw !important;
+  border: 0 !important;
+  background: var(--ov-charcoal) !important;
+  color: var(--ov-night-text) !important;
+}
+
+.ov-public .mkt-proof-layout {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+  gap: clamp(48px, 8vw, 120px) !important;
+}
+
+.ov-public .mkt-proof-kicker {
+  color: #e2a07b !important;
+}
+
+.ov-public .mkt-proof-title {
+  color: var(--ov-night-text) !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2rem, 3.7vw, 3.25rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.07 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.ov-public .mkt-proof-lead,
+.ov-public .mkt-proof-note {
+  color: #b8bcc0 !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .mkt-btn-ink {
+  border: 1px solid var(--ov-night-text) !important;
+  border-radius: 4px !important;
+  background: var(--ov-night-text) !important;
+  color: var(--ov-charcoal) !important;
+}
+
+.ov-public .mkt-text-link {
+  color: var(--ov-night-text) !important;
+}
+
+.ov-public .mkt-call-panel {
+  border: 1px solid #444a51 !important;
+  border-radius: 6px !important;
+  background: var(--ov-charcoal-raised) !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-call-panel-title,
+.ov-public .mkt-transcript-line {
+  color: var(--ov-night-text) !important;
+}
+
+.ov-public .mkt-transcript-line {
+  border-color: #3b4147 !important;
+}
+
+.ov-public .mkt-transcript-line-muted {
+  color: #aeb2b6 !important;
+}
+
+/* Close and footer */
+
+.ov-public .mkt-trynow {
+  padding: 126px 5vw !important;
+  border: 0 !important;
+  background: var(--ov-paper) !important;
+}
+
+.ov-public .mkt-trynow-inner {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+  text-align: left !important;
+}
+
+.ov-public .mkt-trynow-title {
+  max-width: 700px !important;
+  margin: 0 !important;
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2.5rem, 5vw, 4.6rem) !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.ov-public .mkt-trynow-actions {
+  justify-content: flex-start !important;
+  margin-top: 2rem !important;
+}
+
+.ov-public .mkt-trynow-call {
+  display: inline-block !important;
+  margin-top: 1rem !important;
+  color: var(--ov-muted) !important;
+  font-size: 0.8125rem !important;
+}
+
+.ov-public .mkt-footer {
+  padding: 64px 20px 24px !important;
+  border: 0 !important;
+  border-top: 1px solid var(--ov-line) !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .mkt-footer-grid {
+  width: min(100%, 1320px) !important;
+  max-width: 1320px !important;
+  margin: 0 auto !important;
+}
+
+.ov-public .mkt-footer-heading,
+.ov-public .mkt-footer a,
+.ov-public .mkt-footer-copy,
+.ov-public .mkt-footer-mark,
+.ov-public .mkt-footer-entity,
+.ov-public .mkt-footer-tagline {
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .mkt-footer-heading {
+  color: var(--ov-ink) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.ov-public .mkt-footer a {
+  font-size: 0.8125rem !important;
+}
+
+.ov-public .mkt-footer a:hover {
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .mkt-footer-bottom {
+  width: min(100%, 1320px) !important;
+  max-width: 1320px !important;
+  margin: 56px auto 0 !important;
+  padding-top: 20px !important;
+  border-top: 1px solid var(--ov-line) !important;
+}
+
+/* Shared secondary marketing pages */
+
+.ov-public .editorial-wrap {
+  width: min(100%, 1240px);
+  max-width: 1240px;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.ov-public .tier1-hero {
+  padding: 142px 5vw 88px !important;
+  border: 0 !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .tier1-hero-compact {
+  min-height: 500px !important;
+}
+
+.ov-public .brand-intro-kicker,
+.ov-public .tier1-eyebrow {
+  color: var(--ov-copper-dark) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.ov-public .brand-intro-title,
+.ov-public .tier1-section-title {
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.ov-public .brand-intro-title {
+  max-width: 830px !important;
+  font-size: clamp(2.6rem, 5vw, 4.6rem) !important;
+  line-height: 1 !important;
+}
+
+.ov-public .brand-intro-subline,
+.ov-public .brand-intro-description,
+.ov-public .tier1-section-lead {
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .tier1-story,
+.ov-public .tier1-close {
+  padding: 96px 5vw !important;
+  border: 0 !important;
+  border-top: 1px solid var(--ov-line) !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .tier1-story-muted {
+  background: var(--ov-paper-raised) !important;
+}
+
+.ov-public .inst-btn,
+.ov-public .mkt-btn,
+.ov-public .btn {
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-family: var(--ov-font) !important;
+  text-transform: none !important;
+}
+
+.ov-public .inst-btn-ghost {
+  border-color: var(--ov-line-strong) !important;
+  background: transparent !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .pro-panel,
+.ov-public .tier1-plan,
+.ov-public .mkt-resources-col,
+.ov-public .call-demo {
+  border-color: var(--ov-line) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+.ov-public .input,
+.ov-public input,
+.ov-public select,
+.ov-public textarea {
+  border-color: var(--ov-line-strong) !important;
+  border-radius: 4px !important;
+  background: var(--ov-paper-raised) !important;
+  color: var(--ov-ink) !important;
+  box-shadow: none !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .input:focus,
+.ov-public input:focus,
+.ov-public select:focus,
+.ov-public textarea:focus {
+  border-color: var(--ov-copper) !important;
+  outline: 2px solid color-mix(in srgb, var(--ov-copper) 18%, transparent) !important;
+  outline-offset: 1px;
+}
+
+/* Authentication: one calm, trustworthy surface. */
+
+.ov-auth {
+  --ov-auth-width: 430px;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: 64px 1fr 56px;
+  color: var(--ov-ink);
+  background:
+    radial-gradient(
+      circle at 50% 46%,
+      color-mix(in srgb, var(--ov-copper) 7%, transparent),
+      transparent 28rem
+    ),
+    linear-gradient(color-mix(in srgb, var(--ov-line) 34%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ov-line) 34%, transparent) 1px, transparent 1px),
+    var(--ov-paper);
+  background-size: auto, 40px 40px, 40px 40px, auto;
+  font-family: var(--ov-font);
+}
+
+.ov-auth-header {
+  width: 100%;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid color-mix(in srgb, var(--ov-line) 72%, transparent);
+  background: color-mix(in srgb, var(--ov-paper) 86%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.ov-auth-header > a:first-child {
+  display: inline-flex;
+}
+
+.ov-auth-audit {
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.ov-auth-audit:hover {
+  color: var(--ov-ink);
+}
+
+.ov-auth-stage {
+  width: 100%;
+  padding: 56px 20px;
+  display: grid;
+  place-items: center;
+}
+
+.ov-auth-card {
+  width: min(100%, var(--ov-auth-width));
+  padding: 38px;
+  border: 1px solid var(--ov-line-strong);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ov-paper-raised) 96%, transparent);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--ov-charcoal) 8%, transparent);
+}
+
+.ov-auth-card-head {
+  text-align: center;
+}
+
+.ov-auth-signal {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1.35rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ov-line);
+  border-radius: 7px;
+  background: var(--ov-paper);
+}
+
+.ov-auth-signal .orvius-logo {
+  color: var(--ov-copper) !important;
+}
+
+.ov-auth-eyebrow {
+  margin: 0 0 0.7rem;
+  color: var(--ov-copper-dark);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.ov-auth-card h1 {
+  margin: 0;
+  color: var(--ov-ink);
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.ov-auth-card-head > p:last-child {
+  max-width: 320px;
+  margin: 0.8rem auto 0;
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.ov-auth-actions {
+  margin-top: 1.8rem;
+}
+
+.ov-google-button {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 15px;
+  display: grid;
+  grid-template-columns: 18px 1fr 18px;
+  align-items: center;
+  border: 1px solid var(--ov-line-strong);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--ov-ink);
+  font-family: var(--ov-font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    transform 120ms ease;
+}
+
+.ov-google-button span {
+  grid-column: 2;
+}
+
+.ov-google-button:hover {
+  border-color: #aaa9a2;
+  background: #fdfdfc;
+  transform: translateY(-1px);
+}
+
+.ov-google-button:focus-visible,
+.ov-auth button:focus-visible,
+.ov-auth a:focus-visible {
+  outline: 2px solid var(--ov-copper);
+  outline-offset: 3px;
+}
+
+.ov-auth-assurance {
+  max-width: 310px;
+  margin: 0.85rem auto 0;
+  color: #82837d;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.ov-auth-error {
+  margin: 1.25rem 0 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #d8a48f;
+  border-radius: 5px;
+  background: #fff3ed;
+  color: #7c321e;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.ov-auth-dev,
+.ov-auth-setup {
+  margin-top: 1rem;
+  border-top: 1px solid var(--ov-line);
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+}
+
+.ov-auth-dev summary,
+.ov-auth-setup summary {
+  padding-top: 0.9rem;
+  color: var(--ov-muted);
+  cursor: pointer;
+}
+
+.ov-auth-dev p,
+.ov-auth-setup p,
+.ov-auth-setup ol {
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.ov-auth-dev .tier1-login-dev-btn {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 0.7rem;
+  border: 1px solid var(--ov-line-strong) !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  text-transform: none !important;
+}
+
+.ov-auth-setup code {
+  font-size: 0.68rem;
+  overflow-wrap: anywhere;
+}
+
+.ov-auth-legal {
+  margin: 1.5rem 0 0;
+  color: #858680;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.ov-auth-legal a {
+  color: #676863;
+}
+
+.ov-auth-footer {
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid color-mix(in srgb, var(--ov-line) 72%, transparent);
+  color: #858680;
+  font-size: 0.6875rem;
+}
+
+.ov-auth-footer nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.ov-auth-footer a {
+  color: #73746e;
+  text-decoration: none;
+}
+
+/* Night preference keeps public craft charcoal, not black. */
+
+html[data-theme="night"] .ov-public {
+  --ov-paper: #23272c;
+  --ov-paper-raised: #292e34;
+  --ov-ink: #efeee9;
+  --ov-muted: #b0b4b8;
+  --ov-line: #3a4046;
+  --ov-line-strong: #4a5158;
+  --ov-charcoal: #1f2327;
+  --ov-charcoal-raised: #292e34;
+  --ov-copper-dark: #e0a07d;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+html[data-theme="night"] .ov-public .mkt-showcase-grid {
+  background: #a85b38 !important;
+}
+
+html[data-theme="night"] .ov-public .mkt-showcase-title,
+html[data-theme="night"] .ov-public .mkt-showcase-lead {
+  color: #191b1d !important;
+}
+
+html[data-theme="night"] .ov-public .mkt-nav-cta,
+html[data-theme="night"] .ov-public .mkt-hero-clean-cta,
+html[data-theme="night"] .ov-public .mkt-trynow-cta,
+html[data-theme="night"] .ov-public .inst-btn-primary {
+  border-color: #efeee9 !important;
+  background: #efeee9 !important;
+  color: #23272c !important;
+}
+
+/* Responsive public rhythm */
+
+@media (max-width: 980px) {
+  .ov-public .mkt-nav-inner {
+    grid-template-columns: 1fr auto !important;
+  }
+
+  .ov-public .mkt-nav-links,
+  .ov-public .mkt-nav-login,
+  .ov-public .mkt-nav-secondary,
+  .ov-public .mkt-nav-cta {
+    display: none !important;
+  }
+
+  .ov-public .mkt-nav-menu-toggle {
+    display: grid !important;
+  }
+
+  .ov-public .mkt-showcase-grid,
+  .ov-public .mkt-manifesto-meta,
+  .ov-public .mkt-proof-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ov-public .mkt-showcase-grid {
+    gap: 44px !important;
+  }
+
+  .ov-public .mkt-showcase-title,
+  .ov-public .mkt-showcase-lead {
+    max-width: 640px !important;
+  }
+
+  .ov-public .mkt-manifesto-meta {
+    gap: 60px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .ov-public .mkt-nav-inner {
+    padding: 0 16px !important;
+  }
+
+  .ov-public .mkt-hero-clean {
+    min-height: 500px !important;
+    padding: 120px 20px 70px !important;
+  }
+
+  .ov-public .mkt-hero-clean-title {
+    font-size: clamp(2.5rem, 12vw, 3.25rem) !important;
+  }
+
+  .ov-public .mkt-hero-clean-lead {
+    font-size: 0.9375rem !important;
+  }
+
+  .ov-public .mkt-showcase {
+    padding: 10px 10px 72px !important;
+  }
+
+  .ov-public .mkt-showcase-grid {
+    min-height: 0 !important;
+    padding: 34px 20px 20px !important;
+    gap: 32px !important;
+  }
+
+  .ov-public .mkt-showcase-title,
+  .ov-public .mkt-manifesto-title,
+  .ov-public .mkt-proof-title {
+    font-size: 2.25rem !important;
+  }
+
+  .ov-public .mkt-manifesto,
+  .ov-public .mkt-proof-section,
+  .ov-public .mkt-trynow,
+  .ov-public .tier1-story,
+  .ov-public .tier1-close {
+    padding: 76px 20px !important;
+  }
+
+  .ov-public .tier1-hero {
+    min-height: 0 !important;
+    padding: 120px 20px 72px !important;
+  }
+
+  .ov-public .brand-intro-title {
+    font-size: 2.75rem !important;
+  }
+
+  .ov-public .editorial-wrap {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .ov-public .mkt-footer {
+    padding: 52px 20px 24px !important;
+  }
+
+  .ov-public .mkt-footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 36px 24px !important;
+  }
+
+  .ov-public .mkt-footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .ov-public .mkt-footer-bottom {
+    align-items: flex-start !important;
+    gap: 0.65rem !important;
+  }
+
+  .ov-public .mkt-nav-sheet {
+    inset: 0 !important;
+    padding: 0 18px 28px !important;
+    background: var(--ov-paper) !important;
+    color: var(--ov-ink) !important;
+  }
+
+  .ov-public .mkt-nav-sheet-bar {
+    height: 60px !important;
+  }
+
+  .ov-public .mkt-nav-sheet-nav {
+    margin-top: 52px !important;
+    gap: 0 !important;
+  }
+
+  .ov-public .mkt-nav-sheet-nav a {
+    padding: 0.85rem 0 !important;
+    border-bottom: 1px solid var(--ov-line) !important;
+    color: var(--ov-ink) !important;
+    font-size: 1.75rem !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  .ov-public .mkt-nav-sheet-cta {
+    border-radius: 4px !important;
+    background: var(--ov-charcoal) !important;
+    color: var(--ov-night-text) !important;
+  }
+
+  .ov-auth {
+    grid-template-rows: 56px 1fr 52px;
+  }
+
+  .ov-auth-header,
+  .ov-auth-footer {
+    padding: 0 16px;
+  }
+
+  .ov-auth-stage {
+    padding: 30px 16px;
+    align-items: center;
+  }
+
+  .ov-auth-card {
+    padding: 30px 22px;
+    border-radius: 7px;
+  }
+
+  .ov-auth-footer > span {
+    display: none;
+  }
+
+  .ov-auth-footer {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public *,
+  .ov-auth * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

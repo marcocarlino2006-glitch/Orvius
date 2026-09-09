@@ -52,7 +52,7 @@ type MarketingShellProps = PublicLayoutProps & {
 function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
   const year = new Date().getFullYear();
   return (
-    <div className="mkt-page mkt-page--craft">
+    <div className="ov-public mkt-page mkt-page--craft">
       <PremiumNav />
       <main>{children}</main>
       <footer className="mkt-footer mkt-footer--institution mkt-footer--cursor">
