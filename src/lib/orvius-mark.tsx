@@ -1,11 +1,8 @@
 /**
- * Orvius mark — the signal O.
+ * Orvius mark — an open service window drawn as one continuous route.
  *
- * Outer ring: the shop's coverage, broken where the night gap is.
- * Inner sweep: the line answering into that gap.
- * Core: the one record every call, job, and dollar compounds into.
- *
- * Monochrome via currentColor, so it holds on charcoal and on warm light.
+ * The orthogonal line enters, frames the work, and exits through the opening.
+ * Even coordinates and a four-unit stroke keep it crisp at 16, 24, and 48px.
  */
 
 export type OrviusMarkSvgProps = {
@@ -25,20 +22,13 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-coverage"
-        d="M27.93 13.46 A12.2 12.2 0 1 1 18.54 4.07"
+        className="orvius-mark-route"
+        d="M26 6H6V26H18V16H26"
         stroke="currentColor"
-        strokeWidth="2.9"
-        strokeLinecap="round"
+        strokeWidth="4"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
       />
-      <path
-        className="orvius-mark-sweep"
-        d="M20.99 21.99 A7.8 7.8 0 0 1 9.09 12.16"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-      <circle className="orvius-mark-core" cx="16" cy="16" r="3.4" fill="currentColor" />
     </svg>
   );
 }
