@@ -1,6 +1,6 @@
 import { orviusColors } from "@/lib/orvius-colors";
 
-/** Static handoff frame for social images and favicons — inline colors, no CSS. */
+/** Static open-OV monogram for social images and favicons — inline colors. */
 export function OrviusMarkGraphic({
   size = 32,
   variant = "dark",
@@ -20,8 +20,16 @@ export function OrviusMarkGraphic({
       aria-hidden
     >
       <path
-        d="M4 4H20V9H9V20H4V4ZM28 28H12V23H23V12H28V28Z"
-        fill={ink}
+        d="M16 5H11C7 5 5 8 5 12V20C5 24 7 27 11 27H16"
+        stroke={ink}
+        strokeWidth="4"
+        strokeLinecap="square"
+      />
+      <path
+        d="M16.5 5.5L22 26.5L27.5 5.5"
+        stroke={ink}
+        strokeWidth="4"
+        strokeLinejoin="bevel"
       />
     </svg>
   );
