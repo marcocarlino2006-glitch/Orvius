@@ -209,18 +209,20 @@ body {
 
 .ov-public .mkt-hero--clean {
   min-height: 0 !important;
-  padding: 0 !important;
+  padding: 0 5vw !important;
   border: 0 !important;
   background: var(--ov-paper) !important;
   color: var(--ov-ink) !important;
 }
 
+/* Every public section shares one 1240px rail inside a 5vw gutter, so section
+   content and the showcase panel's outer edge start on the same vertical line. */
 .ov-public .mkt-hero-clean {
-  width: min(100%, 1440px) !important;
-  max-width: 1440px !important;
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
   min-height: 484px !important;
   margin: 0 auto !important;
-  padding: 126px 5vw 72px !important;
+  padding: 126px 0 72px !important;
   text-align: left !important;
   display: flex !important;
   flex-direction: column !important;
@@ -317,14 +319,14 @@ body {
 
 .ov-public .mkt-showcase {
   margin: 0 !important;
-  padding: 20px 20px 104px !important;
+  padding: 20px 5vw 104px !important;
   border: 0 !important;
   background: var(--ov-paper) !important;
 }
 
 .ov-public .mkt-showcase-grid {
-  width: min(100%, 1360px) !important;
-  max-width: 1360px !important;
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
   min-height: 680px !important;
   margin: 0 auto !important;
   padding: clamp(32px, 5vw, 72px) !important;
@@ -590,7 +592,7 @@ body {
 }
 
 .ov-public .mkt-footer {
-  padding: 64px 20px 24px !important;
+  padding: 64px 5vw 24px !important;
   border: 0 !important;
   border-top: 1px solid var(--ov-line) !important;
   background: var(--ov-paper) !important;
@@ -598,8 +600,8 @@ body {
 }
 
 .ov-public .mkt-footer-grid {
-  width: min(100%, 1320px) !important;
-  max-width: 1320px !important;
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
   margin: 0 auto !important;
 }
 
@@ -630,8 +632,8 @@ body {
 }
 
 .ov-public .mkt-footer-bottom {
-  width: min(100%, 1320px) !important;
-  max-width: 1320px !important;
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
   margin: 56px auto 0 !important;
   padding-top: 20px !important;
   border-top: 1px solid var(--ov-line) !important;
@@ -1146,9 +1148,13 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
     padding: 0 16px !important;
   }
 
+  .ov-public .mkt-hero--clean {
+    padding: 0 20px !important;
+  }
+
   .ov-public .mkt-hero-clean {
     min-height: 462px !important;
-    padding: 112px 20px 58px !important;
+    padding: 112px 0 58px !important;
   }
 
   .ov-public .mkt-hero-clean-title {
@@ -1160,7 +1166,7 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   }
 
   .ov-public .mkt-showcase {
-    padding: 10px 10px 72px !important;
+    padding: 10px 20px 72px !important;
   }
 
   .ov-public .mkt-showcase-grid {
