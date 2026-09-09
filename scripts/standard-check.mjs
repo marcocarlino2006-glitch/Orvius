@@ -437,7 +437,31 @@ for (const rel of marketingFiles) {
 }
 pass("Honesty scan", "Marketing files checked for overclaims");
 
-// ── Reliability (live health if server up) ──
+// ── Reliability ──
+/*
+  Credentials are read here rather than asked of /api/health.
+
+  Whether Twilio and Vapi are configured is a fact about the environment, but
+  the only thing that used to check it was a call to the running app — so with
+  the app down the whole block was skipped and the scorecard came back one gate
+  better than with the app up. A check that improves when there is less
+  evidence is worse than no check. This mirrors config.ready in src/lib/env.ts;
+  keep the list in step with REQUIRED there.
+*/
+const RELIABILITY_ENV = [
+  "TWILIO_ACCOUNT_SID",
+  "TWILIO_AUTH_TOKEN",
+  "TWILIO_PHONE_NUMBER",
+  "VAPI_API_KEY",
+];
+const missingEnv = RELIABILITY_ENV.filter((name) => !process.env[name]?.trim());
+if (missingEnv.length) {
+  fail("Reliability config", `Missing ${missingEnv.join(", ")}`);
+} else {
+  pass("Reliability config", "Twilio + Vapi credentials present");
+}
+
+// The rest genuinely needs the app, since it is about runtime reachability.
 try {
   const adminKey = process.env.ORVIUS_ADMIN_KEY?.trim();
   const health = await fetchWithTimeout("/api/health", {
@@ -450,10 +474,6 @@ try {
         "Reliability live",
         "Health is production-locked — pass ORVIUS_ADMIN_KEY for detailed SMS/config checks",
       );
-    } else if (json.configured) {
-      pass("Reliability config", "Twilio + Vapi credentials present");
-    } else {
-      fail("Reliability config", "Missing Twilio or Vapi credentials");
     }
     if (json.ownerPhoneIsTwilioLine) {
       fail("Reliability SMS", "Owner phone equals Twilio line — alerts will not reach cell");
@@ -464,7 +484,7 @@ try {
     }
   }
 } catch {
-  warn("Reliability live", "App not running — skip live health checks");
+  warn("Reliability live", "App not running — skipped runtime SMS reachability");
 }
 
 // ── Institutional playbook ──
