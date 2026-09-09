@@ -1,9 +1,8 @@
 /**
- * Orvius mark — the signal O.
+ * Orvius mark — a protected signal frame.
  *
- * Outer ring: the shop's coverage, broken where the night gap is.
- * Inner sweep: the line answering into that gap.
- * Core: the one record every call, job, and dollar compounds into.
+ * The clipped frame conveys a durable operating boundary. The asymmetric
+ * voiceprint inside carries the signal without relying on broadcast arcs.
  *
  * Monochrome via currentColor, so it holds on charcoal and on warm light.
  */
@@ -25,20 +24,19 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-coverage"
-        d="M27.93 13.46 A12.2 12.2 0 1 1 18.54 4.07"
+        className="orvius-mark-frame"
+        d="M10 4H22L28 10V22L22 28H10L4 22V10L10 4Z"
         stroke="currentColor"
-        strokeWidth="2.9"
-        strokeLinecap="round"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
       />
       <path
-        className="orvius-mark-sweep"
-        d="M20.99 21.99 A7.8 7.8 0 0 1 9.09 12.16"
+        className="orvius-mark-voice"
+        d="M10 14.5V17.5M14 11.5V20.5M18 9V23M22 12V20M26 14.5V17.5"
         stroke="currentColor"
-        strokeWidth="2.6"
+        strokeWidth="2.5"
         strokeLinecap="round"
       />
-      <circle className="orvius-mark-core" cx="16" cy="16" r="3.4" fill="currentColor" />
     </svg>
   );
 }
