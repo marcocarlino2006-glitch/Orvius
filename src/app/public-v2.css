@@ -105,7 +105,7 @@ body {
   margin: 0 auto !important;
   padding: 0 20px !important;
   display: grid !important;
-  grid-template-columns: minmax(150px, 1fr) auto minmax(250px, 1fr) !important;
+  grid-template-columns: minmax(150px, 1fr) auto minmax(190px, 1fr) !important;
   align-items: center !important;
   gap: 24px !important;
 }
@@ -214,9 +214,9 @@ body {
 .ov-public .mkt-hero-clean {
   width: min(100%, 1440px) !important;
   max-width: 1440px !important;
-  min-height: 530px !important;
+  min-height: 484px !important;
   margin: 0 auto !important;
-  padding: 142px 5vw 92px !important;
+  padding: 126px 5vw 72px !important;
   text-align: left !important;
   display: flex !important;
   flex-direction: column !important;
@@ -775,12 +775,22 @@ body {
 }
 
 .ov-auth-card {
+  position: relative;
   width: min(100%, var(--ov-auth-width));
   padding: 38px;
   border: 1px solid var(--ov-line-strong);
   border-radius: 8px;
   background: color-mix(in srgb, var(--ov-paper-raised) 96%, transparent);
   box-shadow: 0 20px 60px color-mix(in srgb, var(--ov-charcoal) 8%, transparent);
+  overflow: hidden;
+}
+
+.ov-auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ov-copper) 0 28%, var(--ov-charcoal) 28% 100%);
 }
 
 .ov-auth-card-head {
@@ -873,7 +883,7 @@ body {
   max-width: 310px;
   margin: 0.85rem auto 0;
   color: #82837d;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   line-height: 1.45;
   text-align: center;
 }
@@ -932,7 +942,7 @@ body {
 .ov-auth-legal {
   margin: 1.5rem 0 0;
   color: #858680;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   text-align: center;
 }
@@ -1046,12 +1056,12 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
   }
 
   .ov-public .mkt-hero-clean {
-    min-height: 500px !important;
-    padding: 120px 20px 70px !important;
+    min-height: 462px !important;
+    padding: 112px 20px 58px !important;
   }
 
   .ov-public .mkt-hero-clean-title {
-    font-size: clamp(2.5rem, 12vw, 3.25rem) !important;
+    font-size: clamp(2.25rem, 10.8vw, 2.75rem) !important;
   }
 
   .ov-public .mkt-hero-clean-lead {
@@ -1064,11 +1074,14 @@ html[data-theme="night"] .ov-public .inst-btn-primary {
 
   .ov-public .mkt-showcase-grid {
     min-height: 0 !important;
-    padding: 34px 20px 20px !important;
-    gap: 32px !important;
+    padding: 32px 20px 24px !important;
+    gap: 28px !important;
   }
 
-  .ov-public .mkt-showcase-title,
+  .ov-public .mkt-showcase-title {
+    font-size: 2rem !important;
+  }
+
   .ov-public .mkt-manifesto-title,
   .ov-public .mkt-proof-title {
     font-size: 2.25rem !important;

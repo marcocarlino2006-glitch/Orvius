@@ -11,10 +11,7 @@ const NAV = [
   { href: "/resources", label: "Resources", i18n: "nav.resources" },
 ] as const;
 
-/**
- * Company chrome — Grok-grade restraint on a night-shift field.
- * Circular menu control. Full-bleed void drawer. No cream SaaS sheet.
- */
+/** Compact company chrome with one primary action and an accessible mobile sheet. */
 export function PremiumNav() {
   const menuId = useId();
   const [scrolled, setScrolled] = useState(false);
@@ -95,18 +92,11 @@ export function PremiumNav() {
             </Link>
             <Link
               href="/pilot"
-              className="mkt-btn mkt-nav-secondary"
+              className="mkt-btn mkt-nav-cta"
               data-i18n="nav.bookdemo"
             >
               Book an audit
             </Link>
-            <a
-              href="tel:+18446439170"
-              className="mkt-btn mkt-nav-cta"
-              data-i18n="nav.proveit"
-            >
-              Call live AI
-            </a>
             <button
               type="button"
               className="mkt-nav-menu-toggle"
