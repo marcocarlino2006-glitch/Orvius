@@ -3,7 +3,10 @@
  * Screenshots one selector on one owner route, for checking a region the
  * whole-page shots render too small to judge.
  *
- * Usage: node scripts/probe-crop.mjs <path> <selector> <out.png> [base-url]
+ * Usage: node scripts/probe-crop.mjs <path> <selector> <out.png> [base-url] [click-first]
+ *
+ * `click-first` is for regions that only exist once something is open, such
+ * as a popover menu.
  */
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
@@ -13,8 +16,15 @@ const require = createRequire(import.meta.url);
 const puppeteer = require("puppeteer");
 const { signInForAudit } = require("./audit-session.cjs");
 
-const [, , PATH = "/dashboard", SELECTOR = "body", OUT = "/tmp/crop.png", BASE = "http://127.0.0.1:3000"] =
-  process.argv;
+const [
+  ,
+  ,
+  PATH = "/dashboard",
+  SELECTOR = "body",
+  OUT = "/tmp/crop.png",
+  BASE = "http://127.0.0.1:3000",
+  CLICK_FIRST = "",
+] = process.argv;
 
 mkdirSync(dirname(OUT), { recursive: true });
 
@@ -36,6 +46,11 @@ try {
     content: `*,*::before,*::after{animation-duration:0s!important;transition-duration:0s!important}`,
   });
   await new Promise((r) => setTimeout(r, 2000));
+
+  if (CLICK_FIRST) {
+    await page.click(CLICK_FIRST);
+    await new Promise((r) => setTimeout(r, 500));
+  }
 
   const el = await page.$(SELECTOR);
   if (!el) {
