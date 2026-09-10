@@ -1941,47 +1941,29 @@ h3 {
   animation: cookie-slide-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.os-profile-menu-header {
+/* Copy on the left, the one action on the right, wrapping on a phone. */
+.pro-settings-billing-row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--chalk) 8%, transparent);
 }
 
-.os-profile-menu-avatar {
-  width: 2.25rem;
-  height: 2.25rem;
-}
-
-.os-profile-menu-header-copy {
-  min-width: 0;
-}
-
-.os-profile-menu-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--mist);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
+/*
+  The one line the trigger below has no room for: which account you are signed
+  in as. It captions the menu rather than reintroducing the avatar, the name
+  and the plan the trigger is already showing.
+*/
 .os-profile-menu-email {
-  margin-top: 0.1rem;
+  margin: 0;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--chalk) 8%, transparent);
   font-size: 0.6875rem;
   color: color-mix(in srgb, var(--mist) 55%, var(--ash));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.os-profile-menu-plan {
-  margin-top: 0.35rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--signal-hot);
 }
 
 .os-profile-menu-links {
@@ -11458,7 +11440,58 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* ── Command board ── */
 .os-shell-night .attention-queue-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 0.55rem;
+}
+
+.os-shell-night .attention-queue-head-copy {
+  min-width: 0;
+}
+
+/*
+  The number that decides whether the owner gets out of bed. Set on the
+  trailing edge of the head, sized like the board's other headline figures,
+  and captioned so it is never mistaken for money already collected.
+*/
+.os-shell-night .attention-queue-stake {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  margin: 0;
+  flex: none;
+  text-align: right;
+}
+
+.os-shell-night .attention-queue-stake-value {
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #f4f4f4;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell-night .attention-queue-stake-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #adadac;
+}
+
+@media (max-width: 560px) {
+  .os-shell-night .attention-queue-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .os-shell-night .attention-queue-stake {
+    align-items: flex-start;
+    text-align: left;
+  }
 }
 
 .os-shell-night .attention-queue-kicker {

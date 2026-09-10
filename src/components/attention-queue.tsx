@@ -223,6 +223,15 @@ export function AttentionQueue({
 
   const criticalCount = items.filter((i) => i.impact === "critical").length;
 
+  /*
+    What is actually riding on the board. Every row already carried its own
+    estimate and nothing added them up, so the owner deciding whether to get
+    out of bed had to do the arithmetic in their head. Rolled-up rows are not
+    counted, so this understates rather than overstates.
+  */
+  const stakeCents = items.reduce((sum, item) => sum + (item.estimatedRevenueCents ?? 0), 0);
+  const stake = formatCents(stakeCents);
+
   return (
     <section
       id="attention-board"
@@ -230,15 +239,23 @@ export function AttentionQueue({
       aria-label="Needs attention"
     >
       <div className="attention-queue-head font-sans">
-        <p className="attention-queue-kicker type-eyebrow">On the board</p>
-        <h2 className="attention-queue-title">
-          {items.length} {items.length === 1 ? "row needs" : "rows need"} you
-        </h2>
-        <p className="attention-queue-lead">
-          {criticalCount > 0
-            ? `${criticalCount} critical, ranked first. Act top down.`
-            : "Nothing critical. Ranked by urgency — act top down."}
-        </p>
+        <div className="attention-queue-head-copy">
+          <p className="attention-queue-kicker type-eyebrow">On the board</p>
+          <h2 className="attention-queue-title">
+            {items.length} {items.length === 1 ? "row needs" : "rows need"} you
+          </h2>
+          <p className="attention-queue-lead">
+            {criticalCount > 0
+              ? `${criticalCount} critical, ranked first. Act top down.`
+              : "Nothing critical. Ranked by urgency — act top down."}
+          </p>
+        </div>
+        {stake ? (
+          <p className="attention-queue-stake">
+            <span className="attention-queue-stake-value">{stake}</span>
+            <span className="attention-queue-stake-label">on the board, estimated</span>
+          </p>
+        ) : null}
       </div>
 
       <ul className="attention-queue-list">

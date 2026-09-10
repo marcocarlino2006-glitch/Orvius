@@ -24,10 +24,14 @@ type MenuItem = {
   hint?: string;
 };
 
+/*
+  Two links, and the corner holds nothing else. Billing lives on Settings,
+  which is the single setup hub, rather than being a third row here and a
+  fourth copy of itself in the sidebar.
+*/
 const accountLinks: MenuItem[] = [
-  { href: "/dashboard/profile", label: "Profile", hint: "Account & shop" },
-  { href: "/dashboard/settings", label: "Settings", hint: "Line & alerts" },
-  { href: "/dashboard/billing", label: "Billing", hint: "Plan & invoices" },
+  { href: "/dashboard/profile", label: "Profile", hint: "You & your shop" },
+  { href: "/dashboard/settings", label: "Settings", hint: "Line, alerts & plan" },
 ];
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
@@ -93,7 +97,6 @@ export function OsSidebarFooter() {
 
   const name = session.user.name ?? "User";
   const email = session.user.email ?? "";
-  const businessName = account?.business?.name ?? "Your business";
   const planLabel = planDisplayLabel(account);
 
   return (
@@ -108,18 +111,14 @@ export function OsSidebarFooter() {
           role="menu"
           aria-label="Account menu"
         >
-          <div className="os-profile-menu-header">
-            <span className="os-sidebar-avatar os-profile-menu-avatar" aria-hidden>
-              {initials(session.user.name, session.user.email)}
-            </span>
-            <div className="os-profile-menu-header-copy">
-              <p className="os-profile-menu-name">{name}</p>
-              <p className="os-profile-menu-email">{email}</p>
-              <p className="os-profile-menu-plan">
-                {businessName} · {planLabel}
-              </p>
-            </div>
-          </div>
+          {/*
+            The button below already carries the avatar, the name and the
+            plan, and the shop name is at the top of the sidebar. Repeating
+            all four here made the popover look like a second account panel
+            rather than a menu, so the header says only the one thing the
+            button has no room for.
+          */}
+          <p className="os-profile-menu-email">{email}</p>
 
           <div className="os-profile-menu-links">
             {accountLinks.map((item) => (
@@ -137,13 +136,6 @@ export function OsSidebarFooter() {
           </div>
 
           <div className="os-profile-menu-footer">
-            <Link
-              href="/"
-              className="os-profile-menu-link"
-              onClick={() => setOpen(false)}
-            >
-              orvius.im
-            </Link>
             <button
               type="button"
               className="os-profile-menu-signout"

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { OsShell } from "@/components/os-shell";
 import { ProPageStrip } from "@/components/pro-page-strip";
@@ -423,6 +424,23 @@ export default function DashboardSettingsPage() {
             </div>
           </details>
         ) : null}
+
+        {/*
+          Billing's home. It used to sit in the sidebar's account list and
+          again in the profile menu, and in neither place was it near the
+          plan it governs. Settings is the one setup hub, so it lives here.
+        */}
+        <ShellPanel title="Plan & billing" dense>
+          <div className="pro-settings-billing-row">
+            <p className="account-settings-hint font-sans">
+              Your plan, payment method and invoices. The plan you are on is
+              named once, on the profile button in the corner.
+            </p>
+            <Link href="/dashboard/billing" className="btn btn-secondary text-sm">
+              Open billing
+            </Link>
+          </div>
+        </ShellPanel>
 
         <details className="pro-settings-secondary font-sans">
           <summary>Your data</summary>

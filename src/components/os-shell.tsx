@@ -3,11 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  osCurrentRing,
-  osProductNav,
-  osWorkspaceNav,
-} from "@/lib/os-nav";
+import { osCurrentRing, osProductNav } from "@/lib/os-nav";
 import { useBusiness } from "@/lib/use-business";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
@@ -178,27 +174,12 @@ export function OsShell({
         </ul>
       </nav>
 
-      <nav className="os-sidebar-nav" aria-label="Account">
-        <p className="os-sidebar-label font-sans">Account</p>
-        <ul>
-          {osWorkspaceNav.map((item) => {
-            const active = navActive(pathname, item.href);
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`os-nav-link font-sans ${active ? "os-nav-link-active" : ""}`}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <OsIcon name={item.icon} />
-                  <span className="os-nav-label">{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
+      {/*
+        Account links live in the profile menu below and nowhere else. This
+        corner used to hold both: an "Account" nav section listing Settings,
+        Profile and Billing, and directly beneath it a profile button whose
+        menu listed the same three. Every shop we watched picked one.
+      */}
       <OsSidebarFooter />
     </div>
   );

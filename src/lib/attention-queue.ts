@@ -2,6 +2,7 @@ import "server-only";
 
 import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
+import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import type {
@@ -20,7 +21,54 @@ export { attentionKindLabel } from "@/lib/attention-types";
 const FOLLOWUP_HOURS = 4;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-function kindRank(kind: AttentionKind, urgency?: string | null): number {
+/*
+  Housekeeping. Real work, but not work anyone does in the dark, and the
+  board should not spend its first screen on it while the line is live.
+*/
+const HOUSEKEEPING: ReadonlySet<AttentionKind> = new Set([
+  "founder_cert",
+  "missing_baseline",
+  "stale_weekly_proof",
+  "available_tech",
+]);
+
+/* Rows that only exist because a call came in and nobody has answered it. */
+const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
+  "needs_capture",
+  "needs_qualify",
+  "urgent_lead",
+  "needs_booking",
+  "new_lead",
+]);
+
+/**
+ * Where a row sits on the board. Lower is higher up.
+ *
+ * The same row is not worth the same at both ends of the day. Orvius exists
+ * because the shop's phone rings after it closes, so inside that window a
+ * lead nobody has qualified is the whole product working, and setting an
+ * average-ticket baseline is not something an owner does at 2am. Outside the
+ * window the ordering stands as authored.
+ *
+ * The nudge is deliberately smaller than the gaps between kinds, so it
+ * reorders rows within a tier rather than letting the clock outrank an
+ * emergency.
+ */
+function kindRank(
+  kind: AttentionKind,
+  urgency?: string | null,
+  afterHours = false,
+): number {
+  return baseRank(kind, urgency) + (afterHours ? nightShift(kind) : 0);
+}
+
+function nightShift(kind: AttentionKind): number {
+  if (NIGHT_WORK.has(kind)) return -3;
+  if (HOUSEKEEPING.has(kind)) return 12;
+  return 0;
+}
+
+function baseRank(kind: AttentionKind, urgency?: string | null): number {
   const emergency = isPriorityUrgency(urgency);
   switch (kind) {
     case "billing_action":
@@ -116,6 +164,9 @@ export async function getAttentionQueue(
         vapiPhoneNumber: true,
         twilioPhone: true,
         ownerPhone: true,
+        /* Read to rank: what matters at 2am is not what matters at 2pm. */
+        hoursJson: true,
+        timezone: true,
       },
     }),
     prisma.ownerNotification.findMany({
@@ -140,6 +191,17 @@ export async function getAttentionQueue(
 
   const ticket = business?.avgTicketCents ?? null;
 
+  /*
+    Read once and passed down, so every row on a single board is ranked
+    against the same moment. Recomputing per row would let a queue built
+    across midnight order itself by two different sets of rules.
+  */
+  const afterHours = isAfterHours(
+    now,
+    business?.hoursJson ?? "{}",
+    business?.timezone ?? undefined,
+  );
+
   const items: AttentionItem[] = [];
 
   const status = (business?.billingStatus ?? "none").toLowerCase();
@@ -147,7 +209,7 @@ export async function getAttentionQueue(
     items.push({
       id: `billing_action:${businessId}`,
       kind: "billing_action",
-      rank: kindRank("billing_action"),
+      rank: kindRank("billing_action", null, afterHours),
       impact: "critical",
       title: status === "past_due" ? "Payment failed" : "Subscription canceled",
       detail: "Shop access depends on an active plan.",
@@ -171,7 +233,7 @@ export async function getAttentionQueue(
       items.push({
         id: `billing_action:${businessId}`,
         kind: "billing_action",
-        rank: kindRank("billing_action"),
+        rank: kindRank("billing_action", null, afterHours),
         impact: "critical",
         title:
           daysLeft <= 0
@@ -195,7 +257,7 @@ export async function getAttentionQueue(
     items.push({
       id: `needs_capture:${businessId}`,
       kind: "needs_capture",
-      rank: kindRank("needs_capture"),
+      rank: kindRank("needs_capture", null, afterHours),
       impact: "critical",
       title: "Prove your line",
       detail: "Place one test call so we know Orvius answers end-to-end.",
@@ -213,7 +275,7 @@ export async function getAttentionQueue(
     items.push({
       id: `needs_capture:${businessId}`,
       kind: "needs_capture",
-      rank: kindRank("needs_capture"),
+      rank: kindRank("needs_capture", null, afterHours),
       impact: "critical",
       title: "Confirm call capture",
       detail: "Forward missed calls to Orvius — or publish the Orvius number.",
@@ -238,7 +300,7 @@ export async function getAttentionQueue(
     items.push({
       id: `founder_cert:${businessId}`,
       kind: "founder_cert",
-      rank: kindRank("founder_cert"),
+      rank: kindRank("founder_cert", null, afterHours),
       impact: "med",
       title: `Phone cert ${certDone}/5`,
       detail: "Five real-phone drills before you trust after-hours alone.",
@@ -259,7 +321,7 @@ export async function getAttentionQueue(
     items.push({
       id: `missing_baseline:${businessId}`,
       kind: "missing_baseline",
-      rank: kindRank("missing_baseline"),
+      rank: kindRank("missing_baseline", null, afterHours),
       impact: "med",
       title: "Baseline economics missing",
       detail: "Set avg ticket + before-Orvius weekly numbers when you have a minute.",
@@ -283,7 +345,7 @@ export async function getAttentionQueue(
     items.push({
       id: `stale_weekly_proof:${businessId}`,
       kind: "stale_weekly_proof",
-      rank: kindRank("stale_weekly_proof"),
+      rank: kindRank("stale_weekly_proof", null, afterHours),
       impact: "high",
       title: "Weekly proof due",
       detail: proofAt
@@ -330,7 +392,7 @@ export async function getAttentionQueue(
     items.push({
       id: `open_invoice:${invoice.id}`,
       kind: "open_invoice",
-      rank: kindRank("open_invoice"),
+      rank: kindRank("open_invoice", null, afterHours),
       impact: "high",
       title: `Open invoice · $${Math.round(invoice.amountCents / 100)}`,
       detail: `Status ${invoice.status} — close money in the CRM.`,
@@ -347,7 +409,7 @@ export async function getAttentionQueue(
     items.push({
       id: `open_estimate:${estimate.id}`,
       kind: "open_estimate",
-      rank: kindRank("open_estimate"),
+      rank: kindRank("open_estimate", null, afterHours),
       impact: "med",
       title: `Open estimate · $${Math.round(estimate.amountCents / 100)}`,
       detail: `Status ${estimate.status} — convert or close.`,
@@ -366,7 +428,7 @@ export async function getAttentionQueue(
     items.push({
       id: `alert_failed:${alert.id}`,
       kind: "alert_failed",
-      rank: kindRank("alert_failed"),
+      rank: kindRank("alert_failed", null, afterHours),
       impact: "critical",
       title: "Owner alert failed",
       detail: [
@@ -450,7 +512,7 @@ export async function getAttentionQueue(
     items.push({
       id: `${kind}:${lead.id}`,
       kind,
-      rank: kindRank(kind, lead.urgency) + Math.min(ageHrs, 20),
+      rank: kindRank(kind, lead.urgency, afterHours) + Math.min(ageHrs, 20),
       impact,
       title: who,
       detail,
@@ -507,7 +569,7 @@ export async function getAttentionQueue(
       items.push({
         id: `needs_customer_confirm:${job.id}`,
         kind: "needs_customer_confirm",
-        rank: kindRank("needs_customer_confirm", urgency) + (dueToday ? 0 : 4),
+        rank: kindRank("needs_customer_confirm", urgency, afterHours) + (dueToday ? 0 : 4),
         impact: isPriorityUrgency(urgency) || dueToday ? "critical" : "high",
         title: who,
         detail: [
@@ -544,7 +606,7 @@ export async function getAttentionQueue(
       items.push({
         id: `unassigned_job:${job.id}`,
         kind: "unassigned_job",
-        rank: kindRank("unassigned_job", urgency) + (dueToday ? 0 : 5),
+        rank: kindRank("unassigned_job", urgency, afterHours) + (dueToday ? 0 : 5),
         impact: isPriorityUrgency(urgency) || dueToday ? "critical" : "high",
         title: who,
         detail: [
@@ -578,7 +640,7 @@ export async function getAttentionQueue(
       items.push({
         id: `appointment_at_risk:${job.id}`,
         kind: "appointment_at_risk",
-        rank: kindRank("appointment_at_risk", urgency),
+        rank: kindRank("appointment_at_risk", urgency, afterHours),
         impact: "critical",
         title: who,
         detail: [
@@ -618,7 +680,7 @@ export async function getAttentionQueue(
     items.push({
       id: `available_tech:${tech.id}`,
       kind: "available_tech",
-      rank: kindRank("available_tech"),
+      rank: kindRank("available_tech", null, afterHours),
       impact: "med",
       title: tech.name,
       detail: tech.phone
