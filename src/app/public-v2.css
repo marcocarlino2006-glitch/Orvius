@@ -2552,7 +2552,7 @@ body {
 
 .ov-public .ov-console-desk {
   position: relative;
-  padding: 0 clamp(10px, 1.6vw, 20px) clamp(10px, 1.6vw, 20px);
+  padding: 0 clamp(14px, 2.2vw, 28px) clamp(14px, 2.2vw, 28px);
   border: 1px solid var(--ov-hairline-strong);
   border-radius: 20px;
   /* The bezel reads as the dark edge of a monitor in both colorways; a screen
@@ -2593,7 +2593,7 @@ body {
     color-mix(in srgb, var(--ov-copper) 60%, transparent),
     transparent 68%
   );
-  animation: ov-aurora-a 26s ease-in-out infinite;
+  animation: ov-aurora-a 15s ease-in-out infinite;
 }
 
 .ov-public .ov-console-aurora--b {
@@ -2606,7 +2606,7 @@ body {
     color-mix(in srgb, var(--ov-emerald) 48%, transparent),
     transparent 66%
   );
-  animation: ov-aurora-b 37s ease-in-out infinite;
+  animation: ov-aurora-b 21s ease-in-out infinite;
 }
 
 .ov-public .ov-console-aurora--c {
@@ -2619,7 +2619,7 @@ body {
     color-mix(in srgb, var(--ov-amber) 40%, transparent),
     transparent 70%
   );
-  animation: ov-aurora-c 43s ease-in-out infinite;
+  animation: ov-aurora-c 26s ease-in-out infinite;
 }
 
 @keyframes ov-aurora-a {
@@ -2628,7 +2628,7 @@ body {
     transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(14%, 10%, 0) scale(1.18);
+    transform: translate3d(26%, 18%, 0) scale(1.34);
   }
 }
 
@@ -2638,7 +2638,7 @@ body {
     transform: translate3d(0, 0, 0) scale(1.08);
   }
   50% {
-    transform: translate3d(-16%, -12%, 0) scale(0.92);
+    transform: translate3d(-28%, -20%, 0) scale(0.78);
   }
 }
 
@@ -2648,7 +2648,7 @@ body {
     transform: translate3d(0, 0, 0) scale(0.94);
   }
   50% {
-    transform: translate3d(-10%, 14%, 0) scale(1.16);
+    transform: translate3d(-20%, 24%, 0) scale(1.32);
   }
 }
 
