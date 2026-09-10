@@ -53,8 +53,13 @@ export function JobCard({
     >
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
+          {/*
+            The kicker says why this row wants attention, the badge beside the
+            title says what state it is in. Naming the status here as well put
+            "Emergency · scheduled" above a SCHEDULED pill on the same row.
+          */}
           <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
-            {emergency ? "Emergency" : "Job"} · {jobStatusLabel(status)}
+            {emergency ? "Emergency" : "Job"}
           </p>
           <time className="lead-rail-time">{when}</time>
         </div>

@@ -34,15 +34,26 @@ export function ProSetupScore({ wedge }: { wedge: WedgeReadiness | null | undefi
         <>
           <p className="pro-setup-score-next font-sans">{next.label}</p>
           <p className="pro-setup-score-detail font-sans">{next.detail}</p>
-          <Link href={next.actionHref ?? "/dashboard/settings"} className="pro-section-link">
-            Fix this →
-          </Link>
         </>
       ) : (
         <p className="pro-setup-score-detail font-sans">
           Every front-door check passes. Keep the weekly proof stamped.
         </p>
       )}
+
+      <div className="pro-rail-card-foot font-sans">
+        <span>
+          {wedge.total - wedge.score > 0
+            ? `${wedge.total - wedge.score} left to prove`
+            : "All checks proven"}
+        </span>
+        <Link
+          href={next?.actionHref ?? "/dashboard/settings"}
+          className="pro-section-link"
+        >
+          {next ? "Fix this →" : "Settings →"}
+        </Link>
+      </div>
     </section>
   );
 }

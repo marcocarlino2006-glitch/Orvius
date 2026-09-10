@@ -292,6 +292,17 @@ export function AttentionQueue({
                   ) : null}
                 </div>
                 <div className="attention-item-actions">
+                  {/*
+                    The escape hatch leads, so the recommended action always
+                    lands on the trailing edge of the row. Rows whose only
+                    action is to open the record get one button, not two links
+                    to the same place.
+                  */}
+                  {hasPrimary ? (
+                    <Link href={item.href} className="attention-item-btn attention-item-btn-quiet">
+                      Open
+                    </Link>
+                  ) : null}
                   {showCall ? (
                     <a
                       href={telHref(item.meta!.phone!)}
@@ -341,14 +352,11 @@ export function AttentionQueue({
                       compact
                     />
                   ) : null}
-                  <Link
-                    href={item.href}
-                    className={`attention-item-btn ${
-                      hasPrimary ? "attention-item-btn-quiet" : "attention-item-btn-primary"
-                    }`}
-                  >
-                    {hasPrimary ? "Open" : item.recommendedAction}
-                  </Link>
+                  {hasPrimary ? null : (
+                    <Link href={item.href} className="attention-item-btn attention-item-btn-primary">
+                      {item.recommendedAction}
+                    </Link>
+                  )}
                 </div>
               </article>
             </li>
