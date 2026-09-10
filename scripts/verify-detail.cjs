@@ -66,6 +66,30 @@ const COLLECT = `
       return { tag: el.tagName.toLowerCase(), cls, text };
     };
 
+    /*
+      A link running through a sentence is sized by the line-height of the text
+      around it, and padding it out would break the paragraph. WCAG 2.2 excepts
+      it for exactly that reason; the test is whether the link's parent holds
+      prose of its own beside it.
+    */
+    const inlineInProse = (el) => {
+      if (el.tagName !== "A" || !el.parentElement) return false;
+      return Array.from(el.parentElement.childNodes).some(
+        (n) => n.nodeType === 3 && n.textContent.trim().length > 0,
+      );
+    };
+
+    /*
+      A checkbox inside a label is not the target — the label is, because
+      clicking anywhere in it toggles the box. Measuring the input alone
+      reports a 13px target the owner never has to hit.
+    */
+    const effectiveTarget = (el) => {
+      if (el.tagName !== "INPUT" && el.tagName !== "SELECT") return el;
+      const wrapper = el.closest("label");
+      return wrapper && wrapper.contains(el) ? wrapper : el;
+    };
+
     for (const el of document.querySelectorAll("body *")) {
       const cs = getComputedStyle(el);
       if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") continue;
@@ -84,10 +108,11 @@ const COLLECT = `
       const interactive =
         el.matches("a[href], button, input, select, textarea, summary, [role=button], [tabindex]:not([tabindex='-1'])") &&
         !el.disabled;
-      if (interactive && rect.width > 0 && rect.height > 0) {
-        const shortest = Math.min(rect.width, rect.height);
+      if (interactive && rect.width > 0 && rect.height > 0 && !inlineInProse(el)) {
+        const box = effectiveTarget(el).getBoundingClientRect();
+        const shortest = Math.min(box.width, box.height);
         if (shortest < ${TARGET_FLOOR_PX}) {
-          out.targets.push({ ...label(el), w: Math.round(rect.width), h: Math.round(rect.height) });
+          out.targets.push({ ...label(el), w: Math.round(box.width), h: Math.round(box.height) });
         }
       }
 

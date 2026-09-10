@@ -6016,6 +6016,52 @@ select {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif !important;
 }
 
+/*
+  A default checkbox renders at 13×13 and in the brand's stock blue, which is
+  both fiddly to hit and the one bit of chrome on the board that isn't ours.
+  18px with a warm accent reads as part of the product; the 24px pointer target
+  WCAG asks for comes from the label, which wraps the input and is what a
+  person actually clicks.
+*/
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  cursor: pointer;
+  accent-color: var(--signal);
+}
+
+label:has(> input[type="checkbox"]),
+label:has(> input[type="radio"]) {
+  min-height: 1.5rem;
+  cursor: pointer;
+}
+
+/*
+  Standalone links and buttons on the board — the ones that sit on their own
+  line rather than inside a sentence — get the 24px pointer target WCAG 2.2
+  asks for. Links running inline through a paragraph are excluded by that
+  criterion and are left at their line-height so the paragraph stays a
+  paragraph.
+*/
+:is(
+  .customer-timeline-link,
+  .post-lock-strip-link,
+  .pro-section-link,
+  .pro-setup-step-link,
+  .pro-economics-pointer,
+  .dispatch-crew-phone,
+  .pro-signal-bar-line,
+  .lead-rail-name,
+  .lead-rail-record
+),
+.account-legal-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+}
+
 .mkt-page,
 .mkt-page * {
   font-family: var(--font-sans), system-ui, sans-serif;

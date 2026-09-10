@@ -815,7 +815,8 @@
 }
 
 .dispatch-crew-phone {
-  display: block;
+  display: flex;
+  align-items: center;
   margin-top: 0.25rem;
   padding: 0;
   border: none;
@@ -1522,7 +1523,8 @@
 }
 
 .pro-signal-bar-line {
-  display: block;
+  display: flex;
+  align-items: center;
   font-size: clamp(1.25rem, 3vw, 1.75rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -2829,7 +2831,8 @@
 }
 
 .lead-rail-record {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   margin-top: 0.35rem;
   font-size: 0.6875rem;
   color: #a09f9e;
