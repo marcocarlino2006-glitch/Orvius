@@ -2877,7 +2877,7 @@
 
 .billing-unblock-kicker {
   margin: 0;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2959,7 +2959,7 @@
 }
 
 .os-kv-stats-label {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2981,7 +2981,7 @@
 
 .os-kv-notes-label {
   margin: 0 0 0.35rem;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;

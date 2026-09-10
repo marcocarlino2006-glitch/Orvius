@@ -1115,7 +1115,7 @@ h3 {
 }
 
 .os-nav-badge {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -6732,7 +6732,7 @@ select {
 
 .mkt-product-rail-label {
   margin: 0.35rem 0 0.15rem;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -6833,7 +6833,7 @@ select {
 
 .mkt-product-stream-kicker {
   margin: 0;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -6923,7 +6923,7 @@ select {
 
 .mkt-product-cli-label {
   flex-shrink: 0;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -7836,7 +7836,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .attention-queue-kicker {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.14em !important;
   color: color-mix(in srgb, #d1d1d1 48%, transparent) !important;
 }
@@ -7868,7 +7868,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .attention-item-kind {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
   color: color-mix(in srgb, #d1d1d1 50%, transparent) !important;
@@ -7967,7 +7967,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-stat-label {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
 }
 
 /*
@@ -8011,7 +8011,7 @@ body:has(.mkt-page) .shell-header {
   color: color-mix(in srgb, #ececec 78%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 16%, transparent) !important;
   padding: 0.12rem 0.35rem !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   font-weight: 700 !important;
@@ -8375,7 +8375,7 @@ body:has(.mkt-page) .shell-header {
   border: 1px solid #4b4945 !important;
   border-radius: 0.15rem !important;
   color: #a09f9e !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   padding: 0.1rem 0.3rem !important;
@@ -8932,7 +8932,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .post-lock-strip-label,
 .os-shell-night .post-lock-kicker {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.14em !important;
   color: #a09f9e !important;
 }
@@ -8952,7 +8952,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-signal-bar-kicker {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.14em !important;
   color: #a09f9e !important;
 }
@@ -9130,7 +9130,7 @@ body:has(.mkt-page) .shell-header {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -9150,7 +9150,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .owner-alert-time {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -9244,7 +9244,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .pay-prompt-kicker {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.14em !important;
   color: #a09f9e !important;
 }
@@ -9344,7 +9344,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .billing-lock-kicker {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.14em !important;
   color: #a09f9e !important;
 }
@@ -9434,7 +9434,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .ask-source {
   margin: 0 0 0.35rem;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -9469,7 +9469,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .ask-hit-type {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -9519,7 +9519,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-stat-label {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   letter-spacing: 0.12em !important;
   color: #a09f9e !important;
 }
@@ -9567,7 +9567,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .lead-status-actions-label {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -9638,7 +9638,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .ask-rail-kind {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -9743,7 +9743,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .plan-upgrade-gate-kicker {
   color: #a09f9e !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
 }
 
 .os-shell-night .plan-upgrade-gate-title {
@@ -9915,7 +9915,7 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.15rem !important;
   min-width: 1.1rem !important;
   height: 1.1rem !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
 }
 
 /* Pricing / demo / legal under marketing night densify */
@@ -10050,7 +10050,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .pro-toolbar-label {
   color: #a09f9e !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
 }
 
 .os-shell-night .pro-toolbar-input,
@@ -11101,7 +11101,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .os-sidebar-label {
   margin: 0 0 0.3rem !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
@@ -11236,7 +11236,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-radius: 9999px !important;
   background: transparent !important;
   color: #a09f9e !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
@@ -11313,7 +11313,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .attention-queue-kicker {
   margin: 0 0 0.2rem !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
@@ -11366,7 +11366,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .attention-item-kindlabel {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -11376,7 +11376,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .attention-chip {
   padding: 0.05rem 0.4rem;
   border-radius: 9999px;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -11518,7 +11518,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .pro-stat-label {
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
@@ -11919,7 +11919,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .shop-outcomes-kicker {
   margin: 0 !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
@@ -11937,7 +11937,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .shop-outcome-stat dt {
   margin: 0 0 0.2rem;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -11991,7 +11991,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-economics-grid dt {
   margin: 0 0 0.2rem;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -12547,7 +12547,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-palette-group-label {
   margin: 0;
   padding: 0.35rem 0.55rem 0.25rem;
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
