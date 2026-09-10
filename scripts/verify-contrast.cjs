@@ -98,6 +98,18 @@ const COLLECT = () => {
     if (cs.visibility === "hidden" || cs.display === "none") continue;
     if (Number(cs.opacity) < 0.15) continue;
 
+    /*
+      WCAG 1.4.3 exempts inactive controls from the contrast minimum, and
+      dimming a disabled button is how a disabled button is conveyed. Measuring
+      them anyway produced fourteen permanent failures — the pricing buttons
+      that sit on "Loading…" until checkout config arrives, the pilot and
+      sign-in submits that stay disabled until their form validates, and the
+      ui-kit's deliberately disabled sample. A failure list that is never empty
+      is a failure list nobody reads, which is the same way the site went a
+      long time with a 2.51:1 separator in plain sight.
+    */
+    if (el.closest("[disabled], [aria-disabled='true']")) continue;
+
     const layers = [];
     for (let node = el; node; node = node.parentElement) {
       const bg = getComputedStyle(node).backgroundColor;
