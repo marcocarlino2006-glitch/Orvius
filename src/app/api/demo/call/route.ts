@@ -9,7 +9,7 @@ import {
   notifyOwner,
 } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
-import { isProduction } from "@/lib/runtime";
+import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 import { z } from "zod";
 
 const demoCallSchema = z.object({
@@ -28,7 +28,13 @@ const demoCallSchema = z.object({
  * Creates call + lead and optionally notifies owner.
  */
 export async function POST(request: NextRequest) {
-  if (isProduction() && !verifyAdminRequest(request)) {
+  /*
+    This creates a shop, a call and a lead, and texts an owner. The guard was
+    isProduction(), so a dev server pointed at the live database would have
+    let anyone do all of that to a real shop. What makes it safe is the data
+    it writes to, not the build it runs in.
+  */
+  if (!isUnauthenticatedAccessAllowed() && !verifyAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
