@@ -1,14 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const NOTIFICATION_RETRY_MINUTES = [1, 5, 15, 60, 240];
-
-function getNotificationRetryAt(attempts, now = Date.now()) {
-  const minutes = NOTIFICATION_RETRY_MINUTES[
-    Math.min(attempts, NOTIFICATION_RETRY_MINUTES.length - 1)
-  ];
-  return new Date(now + minutes * 60_000);
-}
+/*
+  Imported, not copied. The copy that used to live here escalated correctly on
+  its own terms and told us nothing: it was called with 0, which the shipped
+  caller never does, so it certified a one-minute first retry that the queue
+  could not perform. A test that re-implements its subject cannot see the
+  subject's callers, which is the only place that kind of fault lives.
+*/
+import {
+  MAX_ATTEMPTS,
+  NOTIFICATION_RETRY_MINUTES,
+  getNotificationRetryAt,
+} from "../src/lib/notification-queue.ts";
 
 function normalizePhone(phone) {
   if (!phone?.trim()) return null;
@@ -59,20 +63,20 @@ test("dedupe keys are stable per inbound event", () => {
   assert.equal(buildLeadAlertDedupeKey({ messageSid: "SM123" }), "sms:SM123");
 });
 
-test("notification retry backoff escalates to 4 hours", () => {
+test("notification retry backoff walks every rung to 4 hours", () => {
   const base = Date.parse("2026-01-01T00:00:00.000Z");
   assert.deepEqual(NOTIFICATION_RETRY_MINUTES, [1, 5, 15, 60, 240]);
 
-  assert.equal(
-    getNotificationRetryAt(0, base).toISOString(),
-    "2026-01-01T00:01:00.000Z",
+  /* One more attempt than there are gaps between attempts. */
+  assert.equal(MAX_ATTEMPTS, NOTIFICATION_RETRY_MINUTES.length + 1);
+
+  const waitAfter = (attempts) =>
+    (getNotificationRetryAt(attempts, base).getTime() - base) / 60_000;
+
+  assert.deepEqual(
+    NOTIFICATION_RETRY_MINUTES.map((_, i) => waitAfter(i + 1)),
+    NOTIFICATION_RETRY_MINUTES,
+    "every published rung is one the queue can actually reach",
   );
-  assert.equal(
-    getNotificationRetryAt(4, base).toISOString(),
-    "2026-01-01T04:00:00.000Z",
-  );
-  assert.equal(
-    getNotificationRetryAt(99, base).toISOString(),
-    "2026-01-01T04:00:00.000Z",
-  );
+  assert.equal(waitAfter(99), 240, "the last rung is the ceiling");
 });

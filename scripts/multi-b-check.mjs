@@ -97,18 +97,39 @@ if (!ciMode) {
   console.log("⚠️  Live shop gates skipped (MULTI_B_CI=1) — run full check on agent/prod");
 }
 
+/*
+  A cron that exists is not a cron that runs often enough. This used to assert
+  only that the entry was present, and passed the whole time the drain was
+  scheduled daily while owner alerts retried on a 1/5/15/60/240-minute ladder —
+  a failed 2am alert sat until 09:00 UTC. The gate now reads the first rung out
+  of the source and requires the schedule to keep up with it.
+*/
 gate(
   "cron",
-  "Notification cron scheduled",
+  "Notification cron keeps up with the retry ladder",
   (() => {
     try {
       const v = JSON.parse(readFileSync(join(root, "vercel.json"), "utf8"));
-      return Boolean(v.crons?.some((c) => String(c.path).includes("cron/notifications")));
+      const entry = v.crons?.find((c) => String(c.path).includes("cron/notifications"));
+      if (!entry) return false;
+
+      const queue = readFileSync(join(root, "src/lib/notification-queue.ts"), "utf8");
+      const ladder = queue.match(/NOTIFICATION_RETRY_MINUTES\s*=\s*\[([^\]]+)\]/);
+      const firstRung = ladder ? Number(ladder[1].split(",")[0].trim()) : 5;
+
+      /* Only the minute field can make a cron sub-hourly. Anything else — a
+         fixed minute, an hourly or daily entry — is slower than any rung. */
+      const minuteField = String(entry.schedule).trim().split(/\s+/)[0];
+      const everyMinutes =
+        minuteField === "*"
+          ? 1
+          : Number(minuteField.match(/^\*\/(\d+)$/)?.[1] ?? NaN);
+      return Number.isFinite(everyMinutes) && everyMinutes <= firstRung;
     } catch {
       return false;
     }
   })(),
-  "vercel.json → /api/cron/notifications",
+  "vercel.json → /api/cron/notifications must run at least as often as NOTIFICATION_RETRY_MINUTES[0]",
 );
 
 gate(
