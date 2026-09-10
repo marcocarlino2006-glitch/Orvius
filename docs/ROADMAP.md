@@ -16,7 +16,7 @@
 | Launch gates UI | ✅ | Settings cockpit + Today banners |
 | Sales machine | ✅ code | Pipeline **empty** — 0 touches |
 | Economics ritual | ✅ surfaces | Baseline + proof **unset** |
-| Ops cron | ✅ vercel.json | Notifications daily 09:00 UTC (Hobby cron limit) |
+| Ops cron | ✅ vercel.json | Daily 09:00 UTC sweep; webhooks drain the retry ladder in between (Hobby cron limit) |
 | Stripe / ARR | ❌ | **$0** — founder keys |
 | Phone cert | ❌ | Persistable, not completed |
 | Formation | ❌ | Counsel |

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
+import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import {
   extractLeadFromStructuredData,
@@ -329,17 +330,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      after(async () => {
-        try {
-          await processNotificationQueue(10);
-        } catch (error) {
-          logError("vapi.webhook.queue_process_failed", {
-            vapiCallId,
-            businessId: business.id,
-            error: error instanceof Error ? error.message : "unknown",
-          });
-        }
-      });
+      after(() => drainOwnerAlerts({ at: "vapi.webhook", vapiCallId, businessId: business.id }));
 
       return NextResponse.json({
         ok: true,

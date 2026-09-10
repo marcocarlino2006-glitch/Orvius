@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
+import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import { logInfo } from "@/lib/logger";
 import {
@@ -54,6 +56,13 @@ export async function POST(request: NextRequest) {
       matched: updated.count,
     });
   }
+
+  /*
+    A delivery receipt is the moment a retry becomes due: this is where an
+    owner alert is marked failed, and the next rung of the ladder is already
+    waiting by the time the callback lands.
+  */
+  after(() => drainOwnerAlerts({ at: "twilio.status", messageSid, messageStatus }));
 
   return NextResponse.json({ ok: true, matched: updated.count });
 }

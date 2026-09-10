@@ -397,29 +397,42 @@ test("a claim left behind by a dead drain is taken back when its lease expires",
   }
 });
 
-test("the scheduled drain runs at least as often as the first retry rung", () => {
+test("something advances the ladder faster than its first rung", () => {
   const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
   const entry = config.crons?.find((c) => String(c.path).includes("cron/notifications"));
   assert.ok(entry, "the queue has a scheduled drain");
 
   /*
-    This is the invariant that was silently false: the ladder retries after one
-    minute, and the drain was scheduled daily, so a failed 2am alert waited
-    until 09:00 UTC and five attempts would have taken five days.
+    The invariant is that a failed alert gets its next attempt on schedule,
+    not that a particular mechanism provides it. Daily-only was silently
+    false — a 2am failure waited until 09:00 UTC and five attempts took five
+    days. Demanding a per-minute cron instead was false in the other
+    direction: this project's Vercel scope rejects the build, so the answer
+    became no deploys at all.
+
+    Webhooks satisfy it honestly. A call, a text or a delivery receipt is both
+    the traffic that produces an alert and the moment a retry falls due, so
+    either a sub-rung cron or a drain on every webhook counts.
   */
   const minuteField = String(entry.schedule).trim().split(/\s+/)[0];
   const everyMinutes =
     minuteField === "*"
       ? 1
       : Number(minuteField.match(/^\*\/(\d+)$/)?.[1] ?? NaN);
-  assert.ok(
-    Number.isFinite(everyMinutes),
-    `schedule "${entry.schedule}" never runs sub-hourly`,
-  );
-  assert.ok(
-    everyMinutes <= NOTIFICATION_RETRY_MINUTES[0],
-    `drain runs every ${everyMinutes}m but the first retry is ${NOTIFICATION_RETRY_MINUTES[0]}m`,
-  );
+  if (Number.isFinite(everyMinutes) && everyMinutes <= NOTIFICATION_RETRY_MINUTES[0]) return;
+
+  for (const rel of [
+    "../src/app/api/webhooks/vapi/route.ts",
+    "../src/app/api/webhooks/twilio/sms/route.ts",
+    "../src/app/api/webhooks/twilio/status/route.ts",
+  ]) {
+    const source = readFileSync(new URL(rel, import.meta.url), "utf8");
+    assert.match(
+      source,
+      /drainOwnerAlerts\s*\(/,
+      `${rel} does not drain the queue, and the cron runs "${entry.schedule}"`,
+    );
+  }
 });
 
 test.after(() => prisma.$disconnect());

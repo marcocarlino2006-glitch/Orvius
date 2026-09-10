@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
+import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { inferExplicitUrgency, maybeAutoBookLead } from "@/lib/auto-job";
 import { company } from "@/lib/company";
@@ -235,17 +236,7 @@ export async function POST(request: NextRequest) {
     payload: { from, to, leadId: lead.id },
   });
 
-  after(async () => {
-    try {
-      await processNotificationQueue(10);
-    } catch (error) {
-      logError("twilio.sms.queue_process_failed", {
-        messageSid,
-        businessId: business.id,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-    }
-  });
+  after(() => drainOwnerAlerts({ at: "twilio.sms", messageSid, businessId: business.id }));
 
   const safetyReply =
     demand.categoryCode === "plumb.gas" ||
