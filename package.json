@@ -26,6 +26,8 @@
     "ai:eval:live": "npm run ai:eval -- --live",
     "backfill:demand": "node --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/backfill-demand.mjs",
     "standard:check": "node scripts/standard-check.mjs",
+    "css:audit": "node scripts/css-usage.mjs",
+    "css:prune": "node scripts/css-prune.mjs",
     "ci": "node scripts/ci-gate.mjs",
     "ci:quick": "npm run build && npm run test:trust && npm run standard:check && BULLETPROOF_SKIP_CASH=1 npm run bulletproof",
     "wedge:ready": "node scripts/wedge-ready.mjs",

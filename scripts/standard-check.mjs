@@ -5,6 +5,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
+import { analyzeCssUsage } from "./lib/css-usage.mjs";
+
 /** Every file under dir, skipping build output and dependencies. */
 function* walkFiles(dir) {
   let entries;
@@ -207,6 +209,31 @@ try {
   fail("Trust UI", "ring1-trust-strip.tsx still present — use measured ProAlertSpeedBadge");
 } catch {
   pass("Trust UI", "No hardcoded trust strip; alert speed is measured");
+}
+
+// ── No dead CSS ──
+/*
+  A stylesheet nobody renders is not inert. It is the thing a later change reads
+  to decide what the design already does, and 1,134 of these had accumulated —
+  two full abandoned skins, argued over in review, rendered nowhere. The audit
+  protects dynamically assembled names by prefix, so `attention-item-${impact}`
+  keeps its variants; anything it still calls dead is genuinely unreachable and
+  npm run css:prune will remove it.
+*/
+const cssUsage = analyzeCssUsage();
+if (cssUsage.dead.size) {
+  const sample = [...cssUsage.dead].sort().slice(0, 8);
+  fail(
+    "No dead CSS",
+    `${cssUsage.dead.size} class(es) declared but never rendered (${sample.join(", ")}${
+      cssUsage.dead.size > sample.length ? ", …" : ""
+    }) — run npm run css:audit`,
+  );
+} else {
+  pass(
+    "No dead CSS",
+    `All ${cssUsage.verdicts.size} declared classes reachable (${cssUsage.dynamicPrefixes.size} dynamic prefixes protected)`,
+  );
 }
 
 // ── One receptionist prompt ──
