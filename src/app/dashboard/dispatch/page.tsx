@@ -342,13 +342,31 @@ export default function DispatchPage() {
             </div>
           ))}
         </div>
-      ) : !board?.jobCount && !board?.columns.length ? (
-        <ShellEmpty>
-          No jobs scheduled for this day.{" "}
-          <Link href="/dashboard/inbox" className="pro-section-link">
-            Book from inbox
-          </Link>
-        </ShellEmpty>
+      ) : !board?.jobCount ? (
+        /*
+          A day with no work used to render a column per crew member, each
+          headed "0 jobs" and each saying "Nothing scheduled" — the same fact
+          five times, in the five places you look first. Say it once, point at
+          the thing to do about it, and keep the crew reachable underneath.
+        */
+        <>
+          <ShellEmpty>
+            No jobs scheduled for this day.{" "}
+            <Link href="/dashboard/inbox" className="pro-section-link">
+              Book from inbox
+            </Link>
+          </ShellEmpty>
+          {technicians.length ? (
+            <ul className="dispatch-crew-roster font-sans">
+              {technicians.map((tech) => (
+                <li key={tech.id} className="dispatch-crew-roster-item">
+                  <span className="dispatch-crew-roster-name">{tech.name}</span>
+                  <CrewPhoneEdit tech={tech} onSaved={load} />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
       ) : (
         <div className="dispatch-board">
           {columns.map((col) => (

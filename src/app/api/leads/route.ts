@@ -57,11 +57,29 @@ export async function GET(request: NextRequest) {
       job: lead.job,
     })),
     nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
-    counts: {
-      total: await prisma.lead.count({ where: tenant }),
-      new: await prisma.lead.count({ where: { ...tenant, status: "new" } }),
-      contacted: await prisma.lead.count({ where: { ...tenant, status: "contacted" } }),
-      booked: await prisma.lead.count({ where: { ...tenant, status: "booked" } }),
-    },
+    counts: await leadCounts(tenant),
   });
+}
+
+/*
+  A count for every status the inbox can filter by, not the four someone
+  happened to add. Lost and Spam were missing, so those two chips rendered
+  bare next to four that carried a number, and a chip with no count reads as
+  a chip that failed to load rather than one holding zero.
+
+  One grouped query rather than a count per status: this ran four in series
+  on every inbox load and would have run six.
+*/
+async function leadCounts(tenant: { businessId: string }) {
+  const grouped = await prisma.lead.groupBy({
+    by: ["status"],
+    where: tenant,
+    _count: { _all: true },
+  });
+  const byStatus = new Map(grouped.map((row) => [row.status, row._count._all]));
+  const counts: Record<string, number> = {
+    total: grouped.reduce((sum, row) => sum + row._count._all, 0),
+  };
+  for (const status of VALID_STATUSES) counts[status] = byStatus.get(status) ?? 0;
+  return counts;
 }

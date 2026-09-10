@@ -64,14 +64,14 @@ export function LeadInboxCard({
     >
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
+          {/*
+            One rule across the rails: the kicker says why this row wants
+            attention, the badge says what state it is in. Printing the status
+            in both put "booked" above a BOOKED pill on the same line.
+          */}
           <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
-            {emergency
-              ? "Emergency"
-              : status === "new"
-                ? "Needs you"
-                : status.replace(/_/g, " ")}
+            {emergency ? "Emergency" : status === "new" ? "Needs you" : "Lead"}
             {returning ? " · returning" : ""}
-            {booked ? " · booked" : ""}
           </p>
           <time dateTime={createdAt} className="lead-rail-time">
             {when}

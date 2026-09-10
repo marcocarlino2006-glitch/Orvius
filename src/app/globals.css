@@ -2529,6 +2529,55 @@ h3 {
   color: var(--ash);
 }
 
+.dispatch-crew-roster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dispatch-crew-roster-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.5rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
+  border-radius: 0.25rem;
+}
+
+.dispatch-crew-roster-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--void);
+}
+
+.pro-list-end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.9rem 0 0;
+  padding: 0 0.15rem;
+}
+
+.pro-list-end-rule {
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--void) 10%, transparent);
+}
+
+.pro-list-end-text {
+  flex: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+  font-variant-numeric: tabular-nums;
+}
+
 .pro-empty-state-action {
   display: flex;
   justify-content: center;
@@ -6036,6 +6085,61 @@ label:has(> input[type="checkbox"]),
 label:has(> input[type="radio"]) {
   min-height: 1.5rem;
   cursor: pointer;
+}
+
+/*
+  Form controls, ours rather than the browser's.
+
+  A native select draws its own chevron, a date input draws its own calendar
+  glyph, and on a dark panel the UA's default field comes out pale grey. Three
+  controls on the board — the day picker and two crew fields on Dispatch, and
+  the technician select on Command — were the only pixels the browser owned,
+  and they were the loudest thing on the page.
+
+  This is a base rule rather than another class, because the failure was never
+  that someone styled a control badly. It was that a control went in without a
+  class and inherited the platform. Anything more specific still wins.
+*/
+.os-shell-night
+  :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]) {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #4b4945;
+  border-radius: 0.25rem;
+  background-color: #27241f;
+  color: #f7f9f9;
+  font-size: 0.8125rem;
+  transition: border-color 110ms ease, box-shadow 110ms ease;
+}
+
+.os-shell-night :is(input, select, textarea)::placeholder {
+  color: #a09f9e;
+}
+
+/* The chevron the select no longer draws for itself, in our ink. */
+.os-shell-night select {
+  padding-right: 1.9rem;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23a09f9e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  text-overflow: ellipsis;
+}
+
+/*
+  A date input keeps its picker button — replacing the calendar entirely would
+  cost the keyboard and locale behaviour the platform gets right. Inverting it
+  is enough to stop it being the one bright object on a dark row.
+*/
+.os-shell-night input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.os-shell-night input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 /*
@@ -12294,6 +12398,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   letter-spacing: -0.02em;
   color: #f4f4f4;
   font-variant-numeric: tabular-nums;
+}
+
+/* No reading yet, rather than a number that failed to render. */
+.os-shell-night .pro-right-now-value-absent {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #a09f9e;
 }
 
 .os-shell-night .pro-right-now-pip {

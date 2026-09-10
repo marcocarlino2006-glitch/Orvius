@@ -7,6 +7,7 @@ import {
   ProFilterBar,
   ProStatRow,
   ProEmptyState,
+  ProListEnd,
 } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
@@ -34,6 +35,8 @@ type LeadCounts = {
   new: number;
   contacted: number;
   booked: number;
+  lost: number;
+  spam: number;
 };
 
 const FILTERS = [
@@ -171,6 +174,10 @@ export default function InboxPage() {
               ))}
             </ul>
           )}
+          {leads.length ? (
+            <ProListEnd count={leads.length} noun="lead"
+                scope={filter ? FILTERS.find((f) => f.value === filter)?.label.toLowerCase() : undefined} />
+          ) : null}
         </>
       )}
     </OsShell>

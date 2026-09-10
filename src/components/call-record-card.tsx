@@ -60,8 +60,14 @@ export function CallRecordCard({
     >
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
+          {/*
+            The status lives in the badge beside the caller's name. Naming it
+            here too printed "Call · completed" above a COMPLETED pill on the
+            same row, which reads as two different facts until you notice it
+            is one.
+          */}
           <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
-            Call · {formatStatus(status)}
+            Call
             {booked ? " · booked" : ""}
             {returning ? " · returning" : ""}
           </p>

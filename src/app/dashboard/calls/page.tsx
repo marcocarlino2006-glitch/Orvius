@@ -2,7 +2,7 @@
 
 import { CallRecordCard } from "@/components/call-record-card";
 import { ProPageStrip } from "@/components/pro-page-strip";
-import { ProEmptyState } from "@/components/pro-page-chrome";
+import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
@@ -95,6 +95,9 @@ export default function CallsPage() {
               ))}
             </ul>
           )}
+          {calls.length ? (
+            <ProListEnd count={calls.length} noun="call" />
+          ) : null}
         </>
       )}
     </OsShell>

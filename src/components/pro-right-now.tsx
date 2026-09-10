@@ -132,7 +132,17 @@ export function ProRightNow({
           const body = (
             <>
               <p className="pro-right-now-label font-sans">{tile.label}</p>
-              <p className="pro-right-now-value font-sans">
+              {/*
+                An em dash set at the same weight as "20h ago" reads as a
+                glyph that failed to load, not as "nothing measured yet". The
+                note underneath already says which it is, so the value only
+                has to stop competing with the tiles that hold a number.
+              */}
+              <p
+                className={`pro-right-now-value font-sans${
+                  tile.value === "—" ? " pro-right-now-value-absent" : ""
+                }`}
+              >
                 <span className={`pro-right-now-pip pro-right-now-pip-${tile.tone}`} aria-hidden />
                 {tile.value}
               </p>

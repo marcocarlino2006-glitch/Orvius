@@ -142,6 +142,37 @@ export function ProEmptyState({ title, body, action, compact }: ProEmptyStatePro
   );
 }
 
+type ProListEndProps = {
+  /** How many rows are above this line. */
+  count: number;
+  /** Plural noun for the rows — "call", "lead", "job". */
+  noun: string;
+  /** Set when the list is filtered, so the line says what it counted. */
+  scope?: string;
+};
+
+/**
+ * The line that closes a list.
+ *
+ * A list of one row followed by half a screen of nothing does not read as
+ * "there is one". It reads as a page that failed to finish loading, and the
+ * owner's next move is to refresh rather than to act. Saying how many there
+ * are, and that there are no more, is the difference between a quiet screen
+ * and a broken one.
+ */
+export function ProListEnd({ count, noun, scope }: ProListEndProps) {
+  const plural = count === 1 ? noun : `${noun}s`;
+  return (
+    <p className="pro-list-end font-sans" role="status">
+      <span className="pro-list-end-rule" aria-hidden="true" />
+      <span className="pro-list-end-text">
+        {count} {plural}
+        {scope ? ` ${scope}` : ""} · nothing older
+      </span>
+    </p>
+  );
+}
+
 type ProFilterOption = {
   value: string;
   label: string;

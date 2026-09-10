@@ -5,6 +5,7 @@ import {
   ProSearchBar,
   ProStatRow,
   ProEmptyState,
+  ProListEnd,
 } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
@@ -119,6 +120,9 @@ export default function CustomersPage() {
               ))}
             </ul>
           )}
+          {customers.length ? (
+            <ProListEnd count={customers.length} noun="customer" />
+          ) : null}
         </>
       )}
       </PlanUpgradeGate>

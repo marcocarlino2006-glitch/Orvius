@@ -2,7 +2,7 @@
 
 import { JobCard } from "@/components/job-card";
 import { ProPageStrip } from "@/components/pro-page-strip";
-import { ProEmptyState } from "@/components/pro-page-chrome";
+import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
@@ -191,6 +191,9 @@ export default function JobsPage() {
               ))}
             </ul>
           )}
+          {jobs.length ? (
+            <ProListEnd count={jobs.length} noun="job" />
+          ) : null}
         </>
       )}
       </PlanUpgradeGate>
