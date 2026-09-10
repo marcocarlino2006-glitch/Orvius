@@ -24,31 +24,31 @@
 
   Cursor mechanics: display weight 400–500, aggressive negative tracking,
   8px CTA radius, hairline depth (no soft elevation theater), calm UI type.
-  SpaceX mechanics: black void hero, spectral chalk #f0f0fa, uppercase tracked
+  SpaceX mechanics: black void hero, spectral chalk #f1f1f1, uppercase tracked
   mission labels, ghost outline pills over imagery, zero chrome noise.
 */
 
 :root {
   /* Canvas — cool industrial paper (Cursor restraint, cooler than cream) */
-  --canvas: #f1f3f6;
-  --chalk: #f1f3f6;
-  --fog: #e8ecf1;
-  --warm-close: #f1f3f6;
+  --canvas: #f3f3f3;
+  --chalk: #f3f3f3;
+  --fog: #ececec;
+  --warm-close: #f3f3f3;
   --white: #ffffff;
   /* SpaceX spectral chalk — type on void */
-  --spectral: #f0f0fa;
+  --spectral: #f1f1f1;
 
   /* Ink — graphite (near Cursor warm-black, cooler for trades) */
-  --void: #0c1016;
+  --void: #120f09;
   --void-deep: #000000;
-  --panel: #12171f;
-  --mist: #dde3ea;
+  --panel: #191611;
+  --mist: #e2e2e2;
 
   /* Neutrals */
-  --ash: #5c6570;
-  --ash-soft: #7a8490;
-  --rule: #d5dbe3;
-  --hairline: #d5dbe3;
+  --ash: #666461;
+  --ash-soft: #848381;
+  --rule: #dadada;
+  --hairline: #dadada;
   --rule-dark: rgba(12, 16, 22, 0.12);
 
   /* Accent — Orvius copper (trades metal), used sparingly */
@@ -97,7 +97,7 @@
   --surface-border: color-mix(in srgb, var(--void) 10%, transparent);
   --surface-border-strong: color-mix(in srgb, var(--void) 16%, transparent);
   --surface-bg: color-mix(in srgb, var(--white, #fff) 92%, var(--fog));
-  --surface-bg-dark: color-mix(in srgb, #12161e 92%, #fff);
+  --surface-bg-dark: color-mix(in srgb, #181610 92%, #fff);
   --surface-border-dark: color-mix(in srgb, #fff 10%, transparent);
 
   /* Typography scale — Cursor display tracking */
@@ -586,7 +586,7 @@ h3 {
 }
 
 .orvius-logo-void {
-  color: #f4f6f8;
+  color: #f6f6f6;
 }
 
 .orvius-logo-chalk {
@@ -1596,12 +1596,12 @@ h3 {
    ═══════════════════════════════════════════════════════ */
 
 .os-shell-pro {
-  background: #eceff3 !important;
+  background: #efefef !important;
   color: var(--void);
 }
 
 .os-sidebar-pro {
-  background: #0c1016 !important;
+  background: #120f09 !important;
   border-color: color-mix(in srgb, #fff 8%, transparent);
 }
 
@@ -1637,7 +1637,7 @@ h3 {
 
 .os-sidebar-pro .os-nav-link-active {
   background: color-mix(in srgb, var(--signal) 16%, transparent);
-  color: #f4f6f8;
+  color: #f6f6f6;
   box-shadow: inset 3px 0 0 var(--signal);
 }
 
@@ -4252,7 +4252,7 @@ h3 {
 }
 
 .mkt-nav--elevated {
-  background: color-mix(in srgb, #f7f8fa 94%, transparent);
+  background: color-mix(in srgb, #f8f8f8 94%, transparent);
   border-bottom-color: color-mix(in srgb, var(--void) 8%, transparent);
   box-shadow: none;
   backdrop-filter: blur(10px) saturate(120%);
@@ -4294,7 +4294,7 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo {
-  color: #f4f6f8;
+  color: #f6f6f6;
 }
 
 .mkt-nav--elevated .mkt-nav-brand .orvius-logo {
@@ -4330,39 +4330,39 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-links a {
-  color: color-mix(in srgb, #f4f6f8 72%, transparent);
+  color: color-mix(in srgb, #f6f6f6 72%, transparent);
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-links a:hover {
-  color: #f4f6f8;
+  color: #f6f6f6;
   background: color-mix(in srgb, #fff 8%, transparent);
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-login {
-  color: color-mix(in srgb, #f4f6f8 72%, transparent);
+  color: color-mix(in srgb, #f6f6f6 72%, transparent);
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-login:hover {
-  color: #f4f6f8;
+  color: #f6f6f6;
   background: color-mix(in srgb, #fff 8%, transparent);
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta {
   background: transparent !important;
-  color: #f4f6f8 !important;
-  border-color: color-mix(in srgb, #f4f6f8 36%, transparent) !important;
+  color: #f6f6f6 !important;
+  border-color: color-mix(in srgb, #f6f6f6 36%, transparent) !important;
   box-shadow: none;
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta:hover {
   background: color-mix(in srgb, #fff 10%, transparent) !important;
-  border-color: color-mix(in srgb, #f4f6f8 62%, transparent) !important;
+  border-color: color-mix(in srgb, #f6f6f6 62%, transparent) !important;
   color: #fff !important;
 }
 
 .mkt-nav--elevated .mkt-nav-cta {
   background: var(--void) !important;
-  color: #f4f6f8 !important;
+  color: #f6f6f6 !important;
   border-color: var(--void) !important;
 }
 
@@ -4371,12 +4371,12 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-toggle {
-  border-color: color-mix(in srgb, #f4f6f8 28%, transparent);
-  color: #f4f6f8;
+  border-color: color-mix(in srgb, #f6f6f6 28%, transparent);
+  color: #f6f6f6;
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-icon span {
-  background: #f4f6f8;
+  background: #f6f6f6;
 }
 
 .mkt-nav-links a::after {
@@ -4980,7 +4980,7 @@ h3 {
   font-weight: 700;
   line-height: 1.02;
   letter-spacing: -0.02em;
-  color: #f4f6f8;
+  color: #f6f6f6;
 }
 
 .mkt-laws {
@@ -5020,7 +5020,7 @@ h3 {
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.015em;
-  color: #f4f6f8;
+  color: #f6f6f6;
 }
 
 .mkt-law-body {
@@ -5028,7 +5028,7 @@ h3 {
   max-width: 44ch;
   font-size: 0.9875rem;
   line-height: 1.55;
-  color: color-mix(in srgb, #e8ecf1 68%, transparent);
+  color: color-mix(in srgb, #ececec 68%, transparent);
 }
 
 @media (min-width: 900px) {
@@ -5119,8 +5119,8 @@ h3 {
 
 .public-shell {
   min-height: 100vh;
-  background: #0b0d10;
-  color: #f4f6f8;
+  background: #100d07;
+  color: #f6f6f6;
   padding: 2rem 1.25rem 3rem;
 }
 
@@ -5162,7 +5162,7 @@ h3 {
 .tech-field-muted,
 .tech-field-status {
   margin: 0.5rem 0 0;
-  color: color-mix(in srgb, #e8ecf1 70%, transparent);
+  color: color-mix(in srgb, #ececec 70%, transparent);
   font-size: 0.9375rem;
   line-height: 1.5;
 }
@@ -5191,7 +5191,7 @@ h3 {
   margin-top: 2rem;
   font-size: 0.75rem;
   line-height: 1.45;
-  color: color-mix(in srgb, #e8ecf1 45%, transparent);
+  color: color-mix(in srgb, #ececec 45%, transparent);
 }
 
 .tech-field-meta {
@@ -5204,7 +5204,7 @@ h3 {
   font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: color-mix(in srgb, #e8ecf1 50%, transparent);
+  color: color-mix(in srgb, #ececec 50%, transparent);
 }
 
 .tech-field-meta dd {
@@ -5213,7 +5213,7 @@ h3 {
 }
 
 .tech-field-meta a {
-  color: #f4f6f8;
+  color: #f6f6f6;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -5227,7 +5227,7 @@ h3 {
 .tech-field-eta input {
   border: 1px solid color-mix(in srgb, #fff 16%, transparent);
   background: color-mix(in srgb, #fff 6%, transparent);
-  color: #f4f6f8;
+  color: #f6f6f6;
   border-radius: 0.35rem;
   padding: 0.65rem 0.75rem;
 }
@@ -5236,7 +5236,7 @@ h3 {
 
 .public-money,
 .tech-field {
-  color: #f4f6f8;
+  color: #f6f6f6;
 }
 
 .public-money-shop,
@@ -5272,7 +5272,7 @@ h3 {
 .tech-field-muted,
 .tech-field-status {
   margin: 0.5rem 0 0;
-  color: color-mix(in srgb, #e8ecf1 70%, transparent);
+  color: color-mix(in srgb, #ececec 70%, transparent);
   font-size: 0.9375rem;
   line-height: 1.5;
 }
@@ -5298,7 +5298,7 @@ h3 {
   margin-top: 2rem;
   font-size: 0.75rem;
   line-height: 1.45;
-  color: color-mix(in srgb, #e8ecf1 45%, transparent);
+  color: color-mix(in srgb, #ececec 45%, transparent);
 }
 
 .tech-field-meta {
@@ -5311,7 +5311,7 @@ h3 {
   font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: color-mix(in srgb, #e8ecf1 50%, transparent);
+  color: color-mix(in srgb, #ececec 50%, transparent);
 }
 
 .tech-field-meta dd {
@@ -5320,7 +5320,7 @@ h3 {
 }
 
 .tech-field-meta a {
-  color: #f4f6f8;
+  color: #f6f6f6;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -5334,7 +5334,7 @@ h3 {
 .tech-field-eta input {
   border: 1px solid color-mix(in srgb, #fff 16%, transparent);
   background: color-mix(in srgb, #fff 6%, transparent);
-  color: #f4f6f8;
+  color: #f6f6f6;
   border-radius: 0.35rem;
   padding: 0.65rem 0.75rem;
 }
@@ -5355,19 +5355,19 @@ h3 {
 .tech-field-outcome h2 {
   margin: 0;
   font-size: 1.125rem;
-  color: #f4f6f8;
+  color: #f6f6f6;
 }
 
 .tech-field-outcome label {
   display: grid;
   gap: 0.45rem;
-  color: color-mix(in srgb, #e8ecf1 82%, transparent);
+  color: color-mix(in srgb, #ececec 82%, transparent);
   font-size: 0.8125rem;
   font-weight: 600;
 }
 
 .tech-field-outcome label em {
-  color: color-mix(in srgb, #e8ecf1 48%, transparent);
+  color: color-mix(in srgb, #ececec 48%, transparent);
   font-style: normal;
   font-weight: 400;
 }
@@ -5378,14 +5378,14 @@ h3 {
   width: 100%;
   border: 1px solid color-mix(in srgb, #fff 16%, transparent);
   background: color-mix(in srgb, #fff 6%, transparent);
-  color: #f4f6f8;
+  color: #f6f6f6;
   border-radius: 0.35rem;
   padding: 0.7rem 0.75rem;
   font: inherit;
 }
 
 .tech-field-outcome select option {
-  background: #25292e;
+  background: #2a2823;
 }
 
 .tech-field-outcome textarea {
@@ -5403,7 +5403,7 @@ h3 {
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: color-mix(in srgb, #e8ecf1 55%, transparent);
+  color: color-mix(in srgb, #ececec 55%, transparent);
 }
 
 .tech-field-money input {
@@ -5513,9 +5513,9 @@ button.btn {
 .mkt-product--company {
   width: min(100%, 34rem);
   margin-left: auto;
-  color: #e8ecf1;
-  background: color-mix(in srgb, #0a0c10 88%, transparent);
-  border: 1px solid color-mix(in srgb, #f0f0fa 12%, transparent);
+  color: #ececec;
+  background: color-mix(in srgb, #0f0c06 88%, transparent);
+  border: 1px solid color-mix(in srgb, #f1f1f1 12%, transparent);
   border-radius: 0.75rem;
   padding: 1.25rem 1.35rem 1.35rem;
   backdrop-filter: blur(8px);
@@ -5630,7 +5630,7 @@ button.btn {
   margin: 0 0 1rem;
   padding: 0.55rem 0.85rem;
   border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
-  background: color-mix(in srgb, var(--void) 3%, var(--chalk, #f1f3f6));
+  background: color-mix(in srgb, var(--void) 3%, var(--chalk, #f3f3f3));
   border-radius: 0.4rem;
   font-size: 0.8125rem;
   color: var(--ash);
@@ -5733,8 +5733,8 @@ button.btn {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .mkt-nav--institution {
-  border-bottom: 1px solid color-mix(in srgb, #f0f0fa 8%, transparent);
-  background: color-mix(in srgb, #05070b 78%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, #f1f1f1 8%, transparent);
+  background: color-mix(in srgb, #0a0701 78%, transparent);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
@@ -5752,20 +5752,20 @@ button.btn {
 
 .mkt-nav--institution.mkt-nav--elevated {
   background: color-mix(in srgb, #070809 94%, transparent);
-  border-bottom-color: color-mix(in srgb, #f0f0fa 10%, transparent);
+  border-bottom-color: color-mix(in srgb, #f1f1f1 10%, transparent);
   box-shadow: none;
 }
 
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
-  color: #f4f6f8;
+  color: #f6f6f6;
 }
 
 .mkt-nav--institution .mkt-nav-links a,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
 .mkt-nav--institution .mkt-nav-login,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login {
-  color: color-mix(in srgb, #f0f0fa 72%, transparent);
+  color: color-mix(in srgb, #f1f1f1 72%, transparent);
 }
 
 .mkt-nav--institution .mkt-nav-links a:hover,
@@ -5781,13 +5781,13 @@ button.btn {
   font-size: 0.6875rem !important;
   letter-spacing: 0.1em !important;
   background: transparent !important;
-  color: #f0f0fa !important;
-  border: 1px solid color-mix(in srgb, #f0f0fa 38%, transparent) !important;
+  color: #f1f1f1 !important;
+  border: 1px solid color-mix(in srgb, #f1f1f1 38%, transparent) !important;
 }
 
 .mkt-nav--institution .mkt-nav-cta:hover {
-  background: color-mix(in srgb, #f0f0fa 10%, transparent) !important;
-  border-color: color-mix(in srgb, #f0f0fa 62%, transparent) !important;
+  background: color-mix(in srgb, #f1f1f1 10%, transparent) !important;
+  border-color: color-mix(in srgb, #f1f1f1 62%, transparent) !important;
 }
 
 .mkt-nav--institution .mkt-btn {
@@ -5820,7 +5820,7 @@ button.btn {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: color-mix(in srgb, #f0f0fa 72%, transparent);
+  color: color-mix(in srgb, #f1f1f1 72%, transparent);
 }
 
 .mkt-footer-tagline {
@@ -5828,7 +5828,7 @@ button.btn {
   max-width: 28ch;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: color-mix(in srgb, #f0f0fa 48%, transparent);
+  color: color-mix(in srgb, #f1f1f1 48%, transparent);
 }
 
 .mkt-footer-col {
@@ -5843,11 +5843,11 @@ button.btn {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #f0f0fa;
+  color: #f1f1f1;
 }
 
 .mkt-footer-col a {
-  color: color-mix(in srgb, #f0f0fa 55%, transparent);
+  color: color-mix(in srgb, #f1f1f1 55%, transparent);
   text-decoration: none;
   font-size: 0.875rem;
   transition: color 140ms ease;
@@ -5872,7 +5872,7 @@ button.btn {
 .mkt-footer--institution .mkt-footer-mark {
   margin: 0;
   font-size: 0.75rem;
-  color: color-mix(in srgb, #f0f0fa 38%, transparent);
+  color: color-mix(in srgb, #f1f1f1 38%, transparent);
 }
 
 @media (max-width: 900px) {
@@ -5903,11 +5903,11 @@ button.btn {
   border-radius: 0.65rem;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, #161b24 92%, #fff), #0a0d12 100%);
+    linear-gradient(180deg, color-mix(in srgb, #1d1a15 92%, #fff), #100d07 100%);
   backdrop-filter: blur(10px);
   padding: 1.15rem 1.2rem 1.25rem;
   box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
-  color: #eef1f5;
+  color: #f1f1f1;
 }
 
 .mkt-product-live {
@@ -5935,7 +5935,7 @@ button.btn {
 .mkt-manifesto--meta {
   padding-block: clamp(4.75rem, 12vh, 7.5rem);
   background:
-    linear-gradient(180deg, #07090c 0%, #0a0d12 100%);
+    linear-gradient(180deg, #0c0903 0%, #100d07 100%);
   border-block: 1px solid color-mix(in srgb, #fff 7%, transparent);
 }
 
@@ -5963,7 +5963,7 @@ button.btn {
   max-width: 36ch;
   font-size: 1rem;
   line-height: 1.6;
-  color: color-mix(in srgb, #e8ecf1 62%, transparent);
+  color: color-mix(in srgb, #ececec 62%, transparent);
 }
 
 .mkt-laws--meta {
@@ -5998,7 +5998,7 @@ button.btn {
   .mkt-product--stage {
     min-height: 28rem;
     padding: 1.35rem 1.4rem 1.45rem;
-    background: linear-gradient(180deg, #171c26 0%, #0b0e14 100%);
+    background: linear-gradient(180deg, #1f1c17 0%, #110e08 100%);
     opacity: 1;
   }
 }
@@ -6230,11 +6230,11 @@ select {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-shell-pro {
-  --os-paper: #eceff3;
-  --os-panel: #f7f8fa;
-  --os-ink: #0c1016;
-  --os-mute: #5c6570;
-  --os-line: color-mix(in srgb, #0c1016 12%, transparent);
+  --os-paper: #efefef;
+  --os-panel: #f8f8f8;
+  --os-ink: #120f09;
+  --os-mute: #666461;
+  --os-line: color-mix(in srgb, #120f09 12%, transparent);
   --os-radius: 0.3125rem;
   --os-flare: #b42318;
   --shadow-soft: none;
@@ -6436,16 +6436,16 @@ select {
   min-width: 7.5rem;
   min-height: 2.25rem;
   border-radius: var(--os-radius, 0.3125rem);
-  border: 1px solid var(--os-line, color-mix(in srgb, #0c1016 12%, transparent));
-  background: color-mix(in srgb, #0c1016 6%, transparent);
+  border: 1px solid var(--os-line, color-mix(in srgb, #120f09 12%, transparent));
+  background: color-mix(in srgb, #120f09 6%, transparent);
 }
 
 .os-shell-pro .dispatch-col-loading,
 .os-shell-pro .dispatch-col.dispatch-col-loading {
   border-radius: var(--os-radius, 0.3125rem) !important;
   box-shadow: none !important;
-  border: 1px solid var(--os-line, color-mix(in srgb, #0c1016 12%, transparent)) !important;
-  background: var(--os-panel, #f7f8fa) !important;
+  border: 1px solid var(--os-line, color-mix(in srgb, #120f09 12%, transparent)) !important;
+  background: var(--os-panel, #f8f8f8) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -6457,18 +6457,18 @@ select {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 999px !important;
-  border: 1px solid color-mix(in srgb, #f0f0fa 28%, transparent) !important;
+  border: 1px solid color-mix(in srgb, #f1f1f1 28%, transparent) !important;
   background: transparent !important;
-  color: #f0f0fa !important;
+  color: #f1f1f1 !important;
   box-shadow: none !important;
 }
 
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-menu-toggle {
-  border-color: color-mix(in srgb, #f0f0fa 22%, transparent) !important;
+  border-color: color-mix(in srgb, #f1f1f1 22%, transparent) !important;
 }
 
 .mkt-nav--institution .mkt-nav-menu-icon span {
-  background: #f0f0fa;
+  background: #f1f1f1;
 }
 
 .mkt-nav--institution .mkt-nav-login {
@@ -6493,8 +6493,8 @@ select {
   z-index: 60;
   display: flex;
   flex-direction: column;
-  background: #05070b;
-  color: #f4f6f9;
+  background: #0a0701;
+  color: #f6f6f6;
   padding:
     max(0.75rem, env(safe-area-inset-top))
     clamp(1.25rem, 5vw, 1.75rem)
@@ -6512,7 +6512,7 @@ select {
 
 .mkt-nav-sheet-bar .mkt-nav-brand,
 .mkt-nav-sheet-bar .orvius-logo {
-  color: #f4f6f9 !important;
+  color: #f6f6f6 !important;
 }
 
 .mkt-nav-sheet-nav {
@@ -6527,8 +6527,8 @@ select {
   align-items: center;
   justify-content: space-between;
   padding: 1.15rem 0;
-  border-bottom: 1px solid color-mix(in srgb, #f0f0fa 10%, transparent);
-  color: #f4f6f9;
+  border-bottom: 1px solid color-mix(in srgb, #f1f1f1 10%, transparent);
+  color: #f6f6f6;
   text-decoration: none;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.35rem, 5vw, 1.65rem);
@@ -6537,7 +6537,7 @@ select {
 }
 
 .mkt-nav-sheet-nav a:first-child {
-  border-top: 1px solid color-mix(in srgb, #f0f0fa 10%, transparent);
+  border-top: 1px solid color-mix(in srgb, #f1f1f1 10%, transparent);
 }
 
 .mkt-nav-sheet-foot {
@@ -6554,8 +6554,8 @@ select {
   justify-content: center;
   min-height: 3.15rem;
   border-radius: 0.35rem;
-  background: #f4f6f9;
-  color: #05070b;
+  background: #f6f6f6;
+  color: #0a0701;
   text-decoration: none;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.8125rem;
@@ -6571,7 +6571,7 @@ select {
   justify-content: center;
   margin: 0;
   font-size: 0.75rem;
-  color: color-mix(in srgb, #f0f0fa 48%, transparent);
+  color: color-mix(in srgb, #f1f1f1 48%, transparent);
 }
 
 .mkt-nav-sheet-meta a {
@@ -6632,8 +6632,8 @@ select {
   display: flex;
   flex-direction: column;
   gap: 0;
-  background: #0a0e14 !important;
-  color: #e8edf4;
+  background: #100d07 !important;
+  color: #ececec;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent);
   border-radius: 0.375rem;
   overflow: hidden;
@@ -6646,7 +6646,7 @@ select {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.55rem 0.85rem;
-  background: color-mix(in srgb, #fff 3.5%, #0a0e14);
+  background: color-mix(in srgb, #fff 3.5%, #100d07);
   border-bottom: 1px solid color-mix(in srgb, #fff 8%, transparent);
 }
 
@@ -6685,7 +6685,7 @@ select {
 .mkt-product-chrome-path {
   font-size: 0.6875rem;
   letter-spacing: 0.02em;
-  color: color-mix(in srgb, #c9d2df 55%, transparent);
+  color: color-mix(in srgb, #d1d1d1 55%, transparent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -6723,7 +6723,7 @@ select {
   margin: 0;
   padding: 0.85rem 0.75rem;
   border-right: 1px solid color-mix(in srgb, #fff 8%, transparent);
-  background: color-mix(in srgb, #000 22%, #0a0e14);
+  background: color-mix(in srgb, #000 22%, #100d07);
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
@@ -6736,7 +6736,7 @@ select {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, #c9d2df 48%, transparent);
+  color: color-mix(in srgb, #d1d1d1 48%, transparent);
 }
 
 .mkt-product-rail-label:first-child {
@@ -6782,7 +6782,7 @@ select {
   height: 0.55rem;
   margin-top: 0.28rem;
   border-radius: 50%;
-  border: 1.5px solid color-mix(in srgb, #c9d2df 45%, transparent);
+  border: 1.5px solid color-mix(in srgb, #d1d1d1 45%, transparent);
 }
 
 .mkt-product-rail-list li.is-hot .mkt-product-rail-mark {
@@ -6802,7 +6802,7 @@ select {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: #f2f5f8;
+  color: #f5f5f5;
   line-height: 1.25;
 }
 
@@ -6811,14 +6811,14 @@ select {
   margin-top: 0.12rem;
   font-style: normal;
   font-size: 0.6875rem;
-  color: color-mix(in srgb, #c9d2df 58%, transparent);
+  color: color-mix(in srgb, #d1d1d1 58%, transparent);
   line-height: 1.3;
 }
 
 .mkt-product-rail-list time {
   font-size: 0.625rem;
   font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, #c9d2df 42%, transparent);
+  color: color-mix(in srgb, #d1d1d1 42%, transparent);
   padding-top: 0.15rem;
 }
 
@@ -6828,7 +6828,7 @@ select {
   flex-direction: column;
   gap: 0.65rem;
   min-width: 0;
-  background: #0c1118;
+  background: #13100a;
 }
 
 .mkt-product-stream-kicker {
@@ -6837,7 +6837,7 @@ select {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, #c9d2df 48%, transparent);
+  color: color-mix(in srgb, #d1d1d1 48%, transparent);
 }
 
 .mkt-product-stream-title {
@@ -6846,7 +6846,7 @@ select {
   font-weight: 650;
   letter-spacing: -0.025em;
   line-height: 1.2;
-  color: #f4f6f9;
+  color: #f6f6f6;
 }
 
 .mkt-product-steps {
@@ -6866,15 +6866,15 @@ select {
   padding: 0.28rem 0;
   border-bottom: 1px solid color-mix(in srgb, #fff 5%, transparent);
   font-size: 0.75rem;
-  color: color-mix(in srgb, #c9d2df 45%, transparent);
+  color: color-mix(in srgb, #d1d1d1 45%, transparent);
 }
 
 .mkt-product-steps li.is-done {
-  color: color-mix(in srgb, #e8edf4 78%, transparent);
+  color: color-mix(in srgb, #ececec 78%, transparent);
 }
 
 .mkt-product-steps li.is-active {
-  color: #f4f6f9;
+  color: #f6f6f6;
 }
 
 .mkt-product-steps li.is-active span::before {
@@ -6893,7 +6893,7 @@ select {
   font-style: normal;
   font-variant-numeric: tabular-nums;
   font-size: 0.6875rem;
-  color: color-mix(in srgb, #c9d2df 42%, transparent);
+  color: color-mix(in srgb, #d1d1d1 42%, transparent);
 }
 
 .mkt-product-reply {
@@ -6908,7 +6908,7 @@ select {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: color-mix(in srgb, #e8edf4 88%, transparent);
+  color: color-mix(in srgb, #ececec 88%, transparent);
 }
 
 .mkt-product-cli {
@@ -6917,7 +6917,7 @@ select {
   gap: 0.65rem;
   padding: 0.55rem 0.85rem;
   border-top: 1px solid color-mix(in srgb, #fff 8%, transparent);
-  background: color-mix(in srgb, #000 35%, #0a0e14);
+  background: color-mix(in srgb, #000 35%, #100d07);
   min-width: 0;
 }
 
@@ -6927,12 +6927,12 @@ select {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: color-mix(in srgb, #c9d2df 48%, transparent);
+  color: color-mix(in srgb, #d1d1d1 48%, transparent);
 }
 
 .mkt-product-cli-text {
   font-size: 0.75rem;
-  color: color-mix(in srgb, #e8edf4 78%, transparent);
+  color: color-mix(in srgb, #ececec 78%, transparent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -7029,13 +7029,13 @@ select {
 
 /* —— Marketing page always night —— */
 .mkt-page {
-  --mkt-ink: #f2f4f7;
-  --mkt-muted: color-mix(in srgb, #c9d2df 62%, transparent);
-  --mkt-surface: #0c1118;
-  --mkt-inset: #0a0e14;
-  --canvas-night: #05070b;
-  background: #05070b !important;
-  color: #eef1f5 !important;
+  --mkt-ink: #f4f4f4;
+  --mkt-muted: color-mix(in srgb, #d1d1d1 62%, transparent);
+  --mkt-surface: #13100a;
+  --mkt-inset: #100d07;
+  --canvas-night: #0a0701;
+  background: #0a0701 !important;
+  color: #f1f1f1 !important;
 }
 
 .mkt-page .editorial-wrap {
@@ -7049,14 +7049,14 @@ select {
 .mkt-page .marketing-section {
   
   border-color: color-mix(in srgb, #fff 8%, transparent) !important;
-  color: #eef1f5 !important;
+  color: #f1f1f1 !important;
 }
 
 .mkt-page .tier1-hero {
   padding-top: clamp(6.5rem, 14vh, 8.5rem);
   background:
-    radial-gradient(ellipse 70% 45% at 80% 0%, color-mix(in srgb, #3a4a62 16%, transparent), transparent 58%),
-    #05070b !important;
+    radial-gradient(ellipse 70% 45% at 80% 0%, color-mix(in srgb, #4b4945 16%, transparent), transparent 58%),
+    #0a0701 !important;
 }
 
 .mkt-page .tier1-close {
@@ -7068,7 +7068,7 @@ select {
 .mkt-page .tier1-section-title,
 .mkt-page .type-headline,
 .mkt-page .brand-intro .tier1-page-title {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .mkt-page a.underline,
@@ -7087,28 +7087,28 @@ select {
 .mkt-page .inst-btn-primary {
   
   
-  border: 1px solid #f4f6f9 !important;
+  border: 1px solid #f6f6f6 !important;
 }
 
 .mkt-page .inst-btn-ghost {
   
   
-  border: 1px solid color-mix(in srgb, #f0f0fa 35%, transparent) !important;
+  border: 1px solid color-mix(in srgb, #f1f1f1 35%, transparent) !important;
 }
 
 /* Pricing / plan cards — dense tool tiles on void */
 .mkt-page .tier1-plan,
 .mkt-page .pro-panel {
-  background: #0c1118 !important;
+  background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.375rem !important;
   box-shadow: none !important;
-  color: #eef1f5 !important;
+  color: #f1f1f1 !important;
 }
 
 .mkt-page .tier1-plan-featured,
 .mkt-page .tier1-plan-recommended {
-  border-color: color-mix(in srgb, #f0f0fa 28%, transparent) !important;
+  border-color: color-mix(in srgb, #f1f1f1 28%, transparent) !important;
   
 }
 
@@ -7132,7 +7132,7 @@ select {
 .mkt-page .pricing-faq,
 .mkt-page .pricing-feature-matrix,
 .mkt-page .pricing-needs-picker {
-  color: color-mix(in srgb, #e8ecf2 70%, transparent);
+  color: color-mix(in srgb, #ececec 70%, transparent);
 }
 
 .mkt-page .pricing-billing-toggle,
@@ -7148,8 +7148,8 @@ select {
 .mkt-page .tier1-form-slot input,
 .mkt-page .tier1-form-slot select,
 .mkt-page .tier1-form-slot textarea {
-  background: #0a0e14 !important;
-  color: #f2f4f7 !important;
+  background: #100d07 !important;
+  color: #f4f4f4 !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
   border-radius: 0.3rem !important;
   box-shadow: none !important;
@@ -7161,14 +7161,14 @@ select {
 
 /* Call demo — force void reading on marketing */
 .mkt-page .call-demo-light {
-  background: #0c1118 !important;
+  background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  color: #eef1f5 !important;
+  color: #f1f1f1 !important;
 }
 
 .mkt-page .call-demo-light .call-demo-number,
 .mkt-page .call-demo-light .call-demo-label {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 /* —— Login: full industrial void —— */
@@ -7199,11 +7199,11 @@ select {
 .tier1-footer {
   background: #050607 !important;
   border-top: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  color: color-mix(in srgb, #f0f0fa 55%, transparent) !important;
+  color: color-mix(in srgb, #f1f1f1 55%, transparent) !important;
 }
 
 .tier1-footer a {
-  color: color-mix(in srgb, #f0f0fa 62%, transparent) !important;
+  color: color-mix(in srgb, #f1f1f1 62%, transparent) !important;
 }
 
 /* Shell header chalk → void when on night public pages */
@@ -7211,73 +7211,73 @@ select {
 body:has(.mkt-page) .shell-header {
   background: color-mix(in srgb, #070809 92%, transparent) !important;
   border-bottom-color: color-mix(in srgb, #fff 10%, transparent) !important;
-  color: #f0f0fa !important;
+  color: #f1f1f1 !important;
 }
 
 /* —— Paywall / billing lock — industrial, not soft card —— */
 .pay-prompt-card,
 .billing-lock-card {
-  background: #0c1118 !important;
+  background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
   border-radius: 0.375rem !important;
   box-shadow: none !important;
-  color: #eef1f5 !important;
+  color: #f1f1f1 !important;
 }
 
 .pay-prompt-backdrop,
 .billing-lock {
-  background: color-mix(in srgb, #05070b 72%, transparent) !important;
+  background: color-mix(in srgb, #0a0701 72%, transparent) !important;
 }
 
 .pay-prompt-kicker,
 .billing-lock-kicker {
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 55%, transparent) !important;
 }
 
 .pay-prompt-title,
 .billing-lock-title {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .pay-prompt-body,
 .billing-lock-body,
 .pay-prompt-plan-tag,
 .billing-lock-price-per {
-  color: color-mix(in srgb, #c9d2df 65%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 65%, transparent) !important;
 }
 
 .pay-prompt-plan {
-  background: #0a0e14 !important;
+  background: #100d07 !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.3rem !important;
 }
 
 .pay-prompt-plan--featured {
-  border-color: color-mix(in srgb, #f0f0fa 28%, transparent) !important;
+  border-color: color-mix(in srgb, #f1f1f1 28%, transparent) !important;
 }
 
 .pay-prompt-plan-name,
 .pay-prompt-plan-price,
 .billing-lock-price-amt {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .pay-prompt-later {
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 55%, transparent) !important;
 }
 
 /* Cookie consent */
 .cookie-consent {
-  background: #0c1118 !important;
+  background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.375rem !important;
-  color: #eef1f5 !important;
+  color: #f1f1f1 !important;
   box-shadow: none !important;
 }
 
 /* —— OS spine density pass 2 —— */
 .os-shell-pro .os-sidebar {
-  background: #0c1016 !important;
+  background: #120f09 !important;
   border-right: 1px solid color-mix(in srgb, #fff 8%, transparent) !important;
 }
 
@@ -7336,7 +7336,7 @@ body:has(.mkt-page) .shell-header {
 
 /* Public estimate / tech field keep void; tighten radii */
 .public-shell {
-  background: #05070b !important;
+  background: #0a0701 !important;
 }
 
 .public-shell .btn,
@@ -7350,17 +7350,17 @@ body:has(.mkt-page) .shell-header {
 /* Night panels used by billing success / docs */
 .mkt-page .mkt-doc-panel,
 .mkt-page .panel-chalk {
-  background: #0c1118 !important;
+  background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.375rem !important;
   box-shadow: none !important;
-  color: #eef1f5 !important;
+  color: #f1f1f1 !important;
 }
 
 /* OwnerAlertCard / soft marketing embeds on night pages */
 .mkt-page .owner-alert-card,
 .mkt-page .panel {
-  background: #0c1118 !important;
+  background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.375rem !important;
   box-shadow: none !important;
@@ -7371,16 +7371,16 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-faq-item,
 .mkt-page .pricing-feature-matrix,
 .mkt-page .pricing-needs-picker {
-  background: #0c1118 !important;
+  background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.375rem !important;
-  color: #eef1f5 !important;
+  color: #f1f1f1 !important;
 }
 
 .mkt-page .pricing-faq summary,
 .mkt-page .pricing-feature-matrix th,
 .mkt-page .pricing-feature-matrix td {
-  color: color-mix(in srgb, #e8ecf2 78%, transparent) !important;
+  color: color-mix(in srgb, #ececec 78%, transparent) !important;
   border-color: color-mix(in srgb, #fff 8%, transparent) !important;
 }
 
@@ -7389,11 +7389,11 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-faq-item,
 .mkt-page .pricing-matrix-scroll,
 .mkt-page .pricing-page-controls {
-  background: #0c1118 !important;
+  background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.375rem !important;
   box-shadow: none !important;
-  color: #eef1f5 !important;
+  color: #f1f1f1 !important;
 }
 
 .mkt-page .pricing-wizard-title,
@@ -7404,7 +7404,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-needs-option-label,
 .mkt-page .pricing-faq-question,
 .mkt-page .pricing-matrix-feature-label {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .mkt-page .pricing-needs-option,
@@ -7421,12 +7421,12 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .pricing-needs-result-plan {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .mkt-page .pricing-needs-result-reason,
 .mkt-page .pricing-needs-result-kicker {
-  color: color-mix(in srgb, #c9d2df 62%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 62%, transparent) !important;
 }
 
 /*
@@ -7482,7 +7482,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-pro .os-sidebar-pro .os-nav-link-active {
   background: color-mix(in srgb, #fff 9%, transparent) !important;
   color: #fff !important;
-  box-shadow: inset 3px 0 0 #f5f7fa !important;
+  box-shadow: inset 3px 0 0 #f7f7f7 !important;
 }
 
 .os-shell-pro .pro-stat-live,
@@ -7666,13 +7666,13 @@ body:has(.mkt-page) .shell-header {
 .os-shell-pro .os-sidebar-pro .os-nav-link,
 .os-shell-pro .os-sidebar .os-nav-link {
   border-radius: 0.25rem !important;
-  color: color-mix(in srgb, #e8edf4 72%, transparent) !important;
+  color: color-mix(in srgb, #ececec 72%, transparent) !important;
 }
 
 .os-shell-pro .os-sidebar-pro .os-nav-link:hover,
 .os-shell-pro .os-sidebar .os-nav-link:hover {
   background: color-mix(in srgb, #fff 6%, transparent) !important;
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .os-shell-pro .os-ring-status {
@@ -7683,16 +7683,16 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-pro .os-ring-status-title {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .os-shell-pro .os-ring-status-module,
 .os-shell-pro .os-sidebar-label {
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 55%, transparent) !important;
 }
 
 .os-shell-pro .os-sidebar-brand .orvius-logo {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .os-shell-pro .lead-inbox-card,
@@ -7708,32 +7708,32 @@ body:has(.mkt-page) .shell-header {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-shell-night {
-  --os-paper: #22252a;
-  --os-panel: #292d33;
-  --os-ink: #f2f4f5;
-  --os-mute: color-mix(in srgb, #c9d2df 62%, transparent);
+  --os-paper: #27241f;
+  --os-panel: #2f2d28;
+  --os-ink: #f4f4f4;
+  --os-mute: color-mix(in srgb, #d1d1d1 62%, transparent);
   --os-line: color-mix(in srgb, #fff 10%, transparent);
   --os-flare: #e5484d;
   --os-live: #3dd68c;
-  --void: #f2f4f5;
-  --ash: color-mix(in srgb, #c9d2df 62%, transparent);
-  --ash-soft: color-mix(in srgb, #c9d2df 45%, transparent);
-  --white: #292d33;
-  --fog: #1e2125;
-  --chalk: #22252a;
-  --canvas: #22252a;
+  --void: #f4f4f4;
+  --ash: color-mix(in srgb, #d1d1d1 62%, transparent);
+  --ash-soft: color-mix(in srgb, #d1d1d1 45%, transparent);
+  --white: #2f2d28;
+  --fog: #23201b;
+  --chalk: #27241f;
+  --canvas: #27241f;
   --rule: color-mix(in srgb, #fff 10%, transparent);
   --signal: #d9784b;
-  background: #22252a !important;
-  color: #e8edf4 !important;
+  background: #27241f !important;
+  color: #ececec !important;
 }
 
 .os-shell-night .os-main-pro,
 .os-shell-night .os-content-pro,
 .os-shell-night .os-content,
 .os-shell-night .os-main {
-  background: #22252a !important;
-  color: #e8edf4 !important;
+  background: #27241f !important;
+  color: #ececec !important;
 }
 
 /* Compact instrument topbar — not a marketing hero */
@@ -7742,7 +7742,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-topbar {
   padding: 0.75rem 1rem !important;
   border-bottom: 1px solid var(--os-line) !important;
-  background: #24272c !important;
+  background: #292722 !important;
 }
 
 @media (min-width: 1024px) {
@@ -7756,7 +7756,7 @@ body:has(.mkt-page) .shell-header {
   font-size: 1.15rem !important;
   font-weight: 650 !important;
   letter-spacing: -0.02em !important;
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
   margin: 0.15rem 0 0 !important;
 }
 
@@ -7813,17 +7813,17 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-ask-dock-panel,
 .os-shell-night .pro-empty-state,
 .os-shell-night .capture-setup-panel {
-  background: #0e1319 !important;
+  background: #14120c !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #e8edf4 !important;
+  color: #ececec !important;
 }
 
 .os-shell-night .attention-item,
 .os-shell-night .approve-queue-item,
 .os-shell-night .dispatch-job-chip {
-  background: #24272c !important;
+  background: #292722 !important;
   border: 1px solid color-mix(in srgb, #fff 8%, transparent) !important;
   border-radius: 0.2rem !important;
   box-shadow: none !important;
@@ -7838,20 +7838,20 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .attention-queue-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: color-mix(in srgb, #c9d2df 48%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 48%, transparent) !important;
 }
 
 .os-shell-night .attention-queue-title {
   font-size: 1.05rem !important;
   font-weight: 650 !important;
   letter-spacing: -0.02em !important;
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
   margin: 0.2rem 0 0 !important;
 }
 
 .os-shell-night .attention-queue-lead {
   font-size: 0.75rem !important;
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 55%, transparent) !important;
   margin: 0.2rem 0 0.65rem !important;
   max-width: none !important;
 }
@@ -7871,7 +7871,7 @@ body:has(.mkt-page) .shell-header {
   font-size: 0.5625rem !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
-  color: color-mix(in srgb, #c9d2df 50%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 50%, transparent) !important;
   margin: 0 !important;
 }
 
@@ -7882,7 +7882,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .attention-item-title {
   font-size: 0.875rem !important;
   font-weight: 600 !important;
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
   margin: 0.1rem 0 0 !important;
   letter-spacing: -0.01em;
 }
@@ -7890,7 +7890,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .attention-item-detail,
 .os-shell-night .attention-item-value {
   font-size: 0.75rem !important;
-  color: color-mix(in srgb, #c9d2df 58%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 58%, transparent) !important;
   margin: 0.1rem 0 0 !important;
 }
 
@@ -7923,15 +7923,15 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .attention-item-btn-primary,
 .os-shell-night .btn-void {
-  background: #f4f6f9 !important;
-  color: #07090c !important;
-  border: 1px solid #f4f6f9 !important;
+  background: #f6f6f6 !important;
+  color: #0c0903 !important;
+  border: 1px solid #f6f6f6 !important;
 }
 
 .os-shell-night .attention-item-btn,
 .os-shell-night .btn-secondary {
   background: transparent !important;
-  color: #e8edf4 !important;
+  color: #ececec !important;
   border: 1px solid color-mix(in srgb, #fff 18%, transparent) !important;
 }
 
@@ -7940,7 +7940,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .job-card,
 .os-shell-night .call-record-card,
 .os-shell-night .customer-record-card {
-  background: #0e1319 !important;
+  background: #14120c !important;
 }
 
 .os-shell-night .pro-stat-value,
@@ -7948,7 +7948,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night h1,
 .os-shell-night h2,
 .os-shell-night h3 {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 .os-shell-night .pro-stat-label,
@@ -7972,7 +7972,7 @@ body:has(.mkt-page) .shell-header {
 
 /*
   Brand copper and flare are picked to sit on paper, and on the shell's panel
-  at rgb(41,45,51) they land at 4.44:1 and 3.68:1 — both under AA, on the two
+  at rgb(47,45,40) they land at 4.44:1 and 3.68:1 — both under AA, on the two
   bits of the board that exist to be noticed. Lifted just far enough to clear
   it: 5.1:1 for the unassigned count, 5.0:1 for an emergency, the latter being
   the same red the rest of the night shell already uses for this reason.
@@ -7986,17 +7986,17 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-page-strip {
-  background: #24272c !important;
+  background: #292722 !important;
   padding: 0.5rem 0.7rem !important;
 }
 
 .os-shell-night .pro-page-strip-line,
 .os-shell-night .pro-page-strip-meta {
-  color: #e8edf4 !important;
+  color: #ececec !important;
 }
 
 .os-shell-night .pro-page-strip-badge {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
   border-color: color-mix(in srgb, #fff 22%, transparent) !important;
 }
 
@@ -8008,7 +8008,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .status-pill-flare {
   border-radius: 0.15rem !important;
   background: transparent !important;
-  color: color-mix(in srgb, #e8edf4 78%, transparent) !important;
+  color: color-mix(in srgb, #ececec 78%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 16%, transparent) !important;
   padding: 0.12rem 0.35rem !important;
   font-size: 0.5625rem !important;
@@ -8018,8 +8018,8 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .status-pill-live {
-  border-color: color-mix(in srgb, #f4f6f9 40%, transparent) !important;
-  color: #f5f7fa !important;
+  border-color: color-mix(in srgb, #f6f6f6 40%, transparent) !important;
+  color: #f7f7f7 !important;
 }
 
 .os-shell-night .status-pill-flare {
@@ -8049,19 +8049,19 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .pro-stat {
   border-radius: 0.15rem !important;
-  background: #24272c !important;
+  background: #292722 !important;
 }
 
 .os-shell-night .pro-stat-live,
 .os-shell-night .pro-stat.is-active {
   border-top: 2px solid #d8a15a !important;
   border-color: color-mix(in srgb, #fff 14%, transparent) !important;
-  background: #0e1319 !important;
+  background: #14120c !important;
 }
 
 .os-shell-night .pro-filter-bar .btn {
   background: transparent !important;
-  color: color-mix(in srgb, #c9d2df 70%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 70%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
   border-radius: 0.2rem !important;
 }
@@ -8069,8 +8069,8 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night input,
 .os-shell-night select,
 .os-shell-night textarea {
-  background: #24272c !important;
-  color: #f2f5f8 !important;
+  background: #292722 !important;
+  color: #f5f5f5 !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
   border-radius: 0.2rem !important;
 }
@@ -8078,12 +8078,12 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .owner-setup-banner,
 .os-shell-night .pro-setup-alert,
 .os-shell-night .post-lock-banner {
-  background: #0e1319 !important;
+  background: #14120c !important;
   border-left: 2px solid var(--signal) !important;
 }
 
 .os-shell-night .dispatch-col {
-  background: #0e1319 !important;
+  background: #14120c !important;
   min-height: 10rem;
   padding: 0.55rem !important;
 }
@@ -8093,18 +8093,18 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .dispatch-job-chip {
-  background: #24272c !important;
-  color: #e8edf4 !important;
+  background: #292722 !important;
+  color: #ececec !important;
 }
 
 .os-shell-night .os-ask-dock-trigger {
-  background: #f4f6f9 !important;
-  color: #07090c !important;
+  background: #f6f6f6 !important;
+  color: #0c0903 !important;
   border-radius: 0.2rem !important;
 }
 
 .os-shell-night .os-mobile-nav {
-  background: #24272c !important;
+  background: #292722 !important;
   border-top-color: color-mix(in srgb, #fff 10%, transparent) !important;
 }
 
@@ -8114,7 +8114,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .home-platform-link,
 .os-shell-night .customer-timeline-link {
-  color: #f5f7fa !important;
+  color: #f7f7f7 !important;
 }
 
 /* Kill soft hover lift forever on night OS */
@@ -8142,32 +8142,32 @@ body:has(.mkt-page) .shell-header {
 /* ═══════════════════════════════════════════════════════════════════════════
    MASTERY — Cursor density × Grok true-black restraint
    Study notes applied:
-   - Grok: OLED #000, monochrome #E7E9EA / #71767B, white = accent, no decor
+   - Grok: OLED #000, monochrome #e9e9e9 / #767572, white = accent, no decor
    - Cursor: ALL-CAPS rail labels, timestamps right, dense rows, hairlines
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-shell-night {
   /* Charcoal surface stack: canvas, panel, raised panel, hairline. */
-  --os-paper: #22252a;
-  --os-panel: #292d33;
-  --os-panel-raised: #2e333a;
-  --os-ink: #f2f4f5;
-  --os-mute: #9aa0a6;
-  --os-line: #444a51;
+  --os-paper: #27241f;
+  --os-panel: #2f2d28;
+  --os-panel-raised: #34322d;
+  --os-ink: #f4f4f4;
+  --os-mute: #a09f9e;
+  --os-line: #4b4945;
   --os-flare: #f4212e;
   --os-live: #00ba7c;
-  --void: #f2f4f5;
-  --ash: #9aa0a6;
-  --ash-soft: #a8aeb4;
-  --white: #292d33;
-  --fog: #1e2125;
-  --chalk: #22252a;
-  --canvas: #22252a;
-  --rule: #444a51;
+  --void: #f4f4f4;
+  --ash: #a09f9e;
+  --ash-soft: #adadac;
+  --white: #2f2d28;
+  --fog: #23201b;
+  --chalk: #27241f;
+  --canvas: #27241f;
+  --rule: #4b4945;
   /* Copper lifted for legibility on the charcoal shell, still the brand accent. */
   --signal: #d9784b;
-  background: #22252a !important;
-  color: #e7e9ea !important;
+  background: #27241f !important;
+  color: #e9e9e9 !important;
   font-feature-settings: "zero" 1;
 }
 
@@ -8175,27 +8175,27 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-content-pro,
 .os-shell-night .os-content,
 .os-shell-night .os-main {
-  background: #22252a !important;
-  color: #e7e9ea !important;
+  background: #27241f !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .os-sidebar-pro,
 .os-shell-night .os-sidebar {
-  background: #22252a !important;
-  border-right: 1px solid #444a51 !important;
+  background: #27241f !important;
+  border-right: 1px solid #4b4945 !important;
 }
 
 .os-shell-night .os-topbar-pro,
 .os-shell-night .os-topbar-night {
-  background: #22252a !important;
-  border-bottom: 1px solid #444a51 !important;
+  background: #27241f !important;
+  border-bottom: 1px solid #4b4945 !important;
   padding: 0.65rem 1rem !important;
 }
 
 .os-shell-night .os-topbar-title {
   font-size: 1.25rem !important; /* Grok: tool titles stay modest */
   font-weight: 700 !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .os-topbar-live {
@@ -8218,22 +8218,22 @@ body:has(.mkt-page) .shell-header {
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   background: transparent !important;
-  color: #e7e9ea !important;
-  border: 1px solid #444a51 !important;
+  color: #e9e9e9 !important;
+  border: 1px solid #4b4945 !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .lead-rail-actions .btn-void,
 .os-shell-night .lead-quick-actions .btn-void {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
-  border-color: #e7e9ea !important;
+  border-color: #e9e9e9 !important;
 }
 
 /* Attention board = Cursor IN PROGRESS rail */
 .os-shell-night .attention-queue {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   padding: 0.75rem !important;
 }
@@ -8241,16 +8241,16 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .attention-queue-list {
   gap: 0 !important;
   margin-top: 0.65rem !important;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.2rem;
   overflow: hidden;
 }
 
 .os-shell-night .attention-item {
   border: none !important;
-  border-bottom: 1px solid #444a51 !important;
+  border-bottom: 1px solid #4b4945 !important;
   border-radius: 0 !important;
-  background: #292d33 !important;
+  background: #2f2d28 !important;
   padding: 0.65rem 0.75rem !important;
   margin: 0 !important;
 }
@@ -8265,7 +8265,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .attention-item-kind {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .attention-item-critical .attention-item-kind {
@@ -8274,26 +8274,26 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .attention-item-title {
   font-size: 0.9rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .attention-item-detail,
 .os-shell-night .attention-item-value {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .attention-item-btn,
 .os-shell-night .attention-item-btn-primary {
   border-radius: 0.2rem !important;
   background: transparent !important;
-  color: #e7e9ea !important;
-  border: 1px solid #444a51 !important;
+  color: #e9e9e9 !important;
+  border: 1px solid #4b4945 !important;
 }
 
 .os-shell-night .attention-item-btn-primary {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
-  border-color: #e7e9ea !important;
+  border-color: #e9e9e9 !important;
 }
 
 /* Panels / stats — Grok surfaces */
@@ -8309,22 +8309,22 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-shop-outcomes,
 .os-shell-night .pro-setup-alert,
 .os-shell-night .account-billing-plan {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .pro-stat-live {
-  border-top: 2px solid #e7e9ea !important;
-  background: #383e46 !important;
+  border-top: 2px solid #e9e9e9 !important;
+  background: #3f3d39 !important;
 }
 
 .os-shell-night .pro-stat-label,
 .os-shell-night .attention-queue-kicker,
 .os-shell-night .os-sidebar-label {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .pro-stat-value,
@@ -8332,28 +8332,28 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night h2,
 .os-shell-night h3,
 .os-shell-night .attention-queue-title {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .btn-void {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
-  border: 1px solid #e7e9ea !important;
+  border: 1px solid #e9e9e9 !important;
   border-radius: 0.2rem !important;
 }
 
 .os-shell-night .btn-secondary,
 .os-shell-night .btn {
   background: transparent !important;
-  color: #e7e9ea !important;
-  border: 1px solid #444a51 !important;
+  color: #e9e9e9 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
 }
 
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn {
   background: transparent !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   border: 1px solid transparent !important;
   border-radius: 0.2rem !important;
 }
@@ -8361,9 +8361,9 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-filter-bar .btn-void,
 .os-shell-night .pro-page-filters .btn-void,
 .os-shell-night .pro-page-filters button[aria-pressed="true"] {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
-  border-color: #e7e9ea !important;
+  border-color: #e9e9e9 !important;
 }
 
 .os-shell-night .status-pill,
@@ -8372,9 +8372,9 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .status-pill-muted,
 .os-shell-night .status-pill-flare {
   background: transparent !important;
-  border: 1px solid #444a51 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.15rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.5625rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -8383,17 +8383,17 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .status-pill-flare {
   color: #f87171 !important;
-  border-color: color-mix(in srgb, #f87171 45%, #444a51) !important;
+  border-color: color-mix(in srgb, #f87171 45%, #4b4945) !important;
 }
 
 .os-shell-night .os-nav-link-active {
-  background: #292d33 !important;
+  background: #2f2d28 !important;
   color: #fff !important;
-  box-shadow: inset 2px 0 0 #e7e9ea !important;
+  box-shadow: inset 2px 0 0 #e9e9e9 !important;
 }
 
 .os-shell-night .os-ask-dock-trigger {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
   border-radius: 0.2rem !important;
 }
@@ -8418,13 +8418,13 @@ body:has(.mkt-page) .shell-header {
 
 /* Marketing void → Grok true black */
 .mkt-page {
-  background: #22252a !important;
+  background: #27241f !important;
 }
 
 .mkt-footer--institution,
 .mkt-footer--cursor {
-  background: #22252a !important;
-  border-top-color: #444a51 !important;
+  background: #27241f !important;
+  border-top-color: #4b4945 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -8438,7 +8438,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-stat {
   border-top: none !important;
   border-radius: 0.15rem !important;
-  background: #292d33 !important;
+  background: #2f2d28 !important;
 }
 
 .os-shell-night .pro-stat::before,
@@ -8449,16 +8449,16 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-stat-live,
 .os-shell-night .pro-stat.is-active,
 .os-shell-night .pro-stat[data-highlight="true"] {
-  border-color: #444a51 !important;
-  border-left: 2px solid #e7e9ea !important;
-  background: #383e46 !important;
+  border-color: #4b4945 !important;
+  border-left: 2px solid #e9e9e9 !important;
+  background: #3f3d39 !important;
   box-shadow: none !important;
 }
 
 /* Kill copper top accents on stats forever */
 .os-shell-night .pro-stat,
 .os-shell-night .pro-page-stats .pro-stat {
-  border-top-color: #444a51 !important;
+  border-top-color: #4b4945 !important;
   background-image: none !important;
 }
 
@@ -8468,9 +8468,9 @@ body:has(.mkt-page) .shell-header {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.55rem 0.75rem !important;
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
-  border-left: 2px solid #e7e9ea !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
+  border-left: 2px solid #e9e9e9 !important;
   border-radius: 0.2rem !important;
   margin-bottom: 0.65rem !important;
 }
@@ -8478,12 +8478,12 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .owner-setup-banner-copy {
   margin: 0 !important;
   font-size: 0.8125rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .dispatch-col {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   padding: 0.5rem !important;
   display: flex;
@@ -8500,9 +8500,9 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .dispatch-job-chip.lead-rail-row {
   display: block;
   padding: 0.55rem 0.65rem;
-  border: 1px solid #444a51 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
-  background: #1e2125 !important;
+  background: #23201b !important;
 }
 
 .os-shell-night .dispatch-col-unassigned {
@@ -8510,15 +8510,15 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .os-ask-dock-chip {
-  background: #292d33 !important;
-  color: #e7e9ea !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  color: #e9e9e9 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
 }
 
 .os-shell-night .os-ask-dock-panel {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
 }
@@ -8530,14 +8530,14 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .pro-panel,
 .os-shell-night section.pro-panel {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .pro-panel-title {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.625rem !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
@@ -8547,14 +8547,14 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-panel-body p,
 .os-shell-night .pro-panel-body dd,
 .os-shell-night .pro-panel-body dt {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night input[type="search"] {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .account-grid,
@@ -8564,9 +8564,9 @@ body:has(.mkt-page) .shell-header {
 
 /* Marketing: kill leftover white mastery cards if any */
 .mkt-page .tier1-plan {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
-  color: #e7e9ea !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
+  color: #e9e9e9 !important;
   box-shadow: none !important;
 }
 
@@ -8602,7 +8602,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .pro-panel-head {
   padding: 0.55rem 0.75rem !important;
-  border-bottom: 1px solid #444a51 !important;
+  border-bottom: 1px solid #4b4945 !important;
 }
 
 .os-shell-night .pro-panel-body {
@@ -8627,8 +8627,8 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .capture-setup-panel {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   padding: 0.75rem !important;
   box-shadow: none !important;
@@ -8637,17 +8637,17 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .cookie-consent,
 .cookie-consent {
   border-radius: 0.2rem !important;
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
 }
 
 .os-shell-night .post-lock-banner,
 .os-shell-night .post-lock-strip {
   padding: 0.5rem 0.7rem !important;
   border-radius: 0.2rem !important;
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
-  border-left: 2px solid #e7e9ea !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
+  border-left: 2px solid #e9e9e9 !important;
 }
 
 .os-shell-night .attention-item {
@@ -8702,7 +8702,7 @@ body:has(.mkt-page) .shell-header {
   grid-template-columns: 7rem minmax(0, 1fr);
   gap: 0.5rem;
   padding: 0.35rem 0;
-  border-bottom: 1px solid #444a51;
+  border-bottom: 1px solid #4b4945;
 }
 
 .os-kv > div:last-child {
@@ -8715,24 +8715,24 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9aa0a6;
+  color: #a09f9e;
   padding-top: 0.15rem;
 }
 
 .os-kv dd {
   margin: 0;
   font-size: 0.8125rem;
-  color: #e7e9ea;
+  color: #e9e9e9;
   line-height: 1.4;
 }
 
 .os-shell-night .os-kv dt {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .os-kv dd,
 .os-shell-night .os-kv .text-void {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 /* The dim red is tuned for paper; the night shell needs the lighter step. */
@@ -8751,9 +8751,9 @@ body:has(.mkt-page) .shell-header {
 /* Billing instrument unblock */
 .billing-unblock--instrument,
 .os-shell-night .billing-unblock {
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
-  border-left: 2px solid #e7e9ea !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
+  border-left: 2px solid #e9e9e9 !important;
   border-radius: 0.2rem !important;
   padding: 0.7rem 0.75rem !important;
   box-shadow: none !important;
@@ -8764,7 +8764,7 @@ body:has(.mkt-page) .shell-header {
   margin: 0.25rem 0 0.55rem !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .billing-unblock-steps,
@@ -8776,17 +8776,17 @@ body:has(.mkt-page) .shell-header {
   gap: 0.35rem;
   font-size: 0.75rem;
   line-height: 1.4;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .billing-unblock-missing code,
 .billing-unblock-foot code {
   font-size: 0.625rem;
   padding: 0.05rem 0.25rem;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.15rem;
   margin-right: 0.25rem;
-  color: #e7e9ea;
+  color: #e9e9e9;
 }
 
 .os-shell-night .account-billing-plan {
@@ -8798,82 +8798,82 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .account-plan-name,
 .os-shell-night .account-billing-plan-name {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 1rem !important;
 }
 
 .os-shell-night .account-plan-price,
 .os-shell-night .account-billing-plan-price {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 /* Night onboarding — Grok void */
 
 .onboarding-shell--night .onboarding-step {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   box-shadow: none !important;
 }
 
 .onboarding-shell--night .onboarding-panel {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .onboarding-shell--night .onboarding-lead,
 .onboarding-shell--night .onboarding-hint,
 .onboarding-shell--night .onboarding-label {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .onboarding-shell--night .onboarding-input,
 .onboarding-shell--night input,
 .onboarding-shell--night select,
 .onboarding-shell--night textarea {
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .onboarding-shell--night .onboarding-trade {
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .onboarding-shell--night .btn-void,
 .onboarding-shell--night .onboarding-btn-primary {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
   border-radius: 0.2rem !important;
 }
 
 .onboarding-shell--night .btn-ghost {
   background: transparent !important;
-  color: #e7e9ea !important;
-  border: 1px solid #444a51 !important;
+  color: #e9e9e9 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
 }
 
 .onboarding-shell--night .orvius-logo {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 /* Owner alert / transcript on night details */
 .os-shell-night .owner-alert-card,
 .os-shell-night .transcript-cinema {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-kv-block dd {
@@ -8887,9 +8887,9 @@ body:has(.mkt-page) .shell-header {
   flex-direction: column;
   gap: 0.15rem;
   padding: 0.35rem 0.45rem;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.2rem;
-  background: #1e2125;
+  background: #23201b;
 }
 
 .os-shell-night .account-grid {
@@ -8901,15 +8901,15 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-settings-secondary {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
   padding: 0 !important;
 }
 
 .os-shell-night .pro-settings-secondary summary {
   padding: 0.55rem 0.65rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 0.75rem !important;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -8922,9 +8922,9 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .post-lock-strip,
 .os-shell-night .post-lock-banner {
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
-  border-left: 2px solid #71767b !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
+  border-left: 2px solid #767572 !important;
   border-radius: 0.2rem !important;
   box-shadow: none !important;
   padding: 0.45rem 0.65rem !important;
@@ -8934,18 +8934,18 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .post-lock-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .post-lock-strip-copy,
 .os-shell-night .post-lock-message {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 0.75rem !important;
 }
 
 .os-shell-night .pro-signal-bar {
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
   box-shadow: none !important;
   padding: 0.4rem 0.55rem !important;
@@ -8954,19 +8954,19 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-signal-bar-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .pro-signal-bar-line,
 .os-shell-night .pro-signal-bar-meta {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 0.75rem !important;
 }
 
 /* Sticky lead bar + ask dock — kill soft pills / cream leftovers */
 .os-shell-night .lead-detail-sticky {
-  background: #22252a !important;
-  border-top: 1px solid #444a51 !important;
+  background: #27241f !important;
+  border-top: 1px solid #4b4945 !important;
   backdrop-filter: none !important;
   padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom, 0px)) !important;
 }
@@ -8991,21 +8991,21 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .lead-detail-sticky-btn,
 .os-shell-night .lead-detail-sticky-btn-muted {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
-  color: #e7e9ea !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .lead-detail-sticky-btn-primary {
-  background: #e7e9ea !important;
-  border: 1px solid #e7e9ea !important;
+  background: #e9e9e9 !important;
+  border: 1px solid #e9e9e9 !important;
   color: #000000 !important;
 }
 
 .os-shell-night .os-ask-dock-trigger {
-  background: #292d33 !important;
-  color: #e7e9ea !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  color: #e9e9e9 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
   box-shadow: none !important;
   min-height: 2.25rem !important;
@@ -9013,22 +9013,22 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .os-ask-dock-trigger-mark {
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.15rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   width: 1.35rem !important;
   height: 1.35rem !important;
 }
 
 .os-shell-night .os-ask-dock-trigger-mark svg {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   fill: currentColor !important;
   stroke: currentColor !important;
 }
 
 .os-shell-night .os-ask-dock-trigger-label {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 0.6875rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.08em !important;
@@ -9036,9 +9036,9 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .os-ask-dock-open .os-ask-dock-trigger {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
-  border-color: #e7e9ea !important;
+  border-color: #e9e9e9 !important;
 }
 
 .os-shell-night .os-ask-dock-open .os-ask-dock-trigger-label {
@@ -9057,9 +9057,9 @@ body:has(.mkt-page) .shell-header {
   gap: 0 !important;
   margin-bottom: 0.65rem !important;
   padding: 0 !important;
-  border: 1px solid #444a51 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
-  background: #1e2125 !important;
+  background: #23201b !important;
   overflow: hidden;
   width: fit-content;
   max-width: 100%;
@@ -9069,10 +9069,10 @@ body:has(.mkt-page) .shell-header {
   margin: 0 !important;
   padding: 0.4rem 0.7rem !important;
   border: 0 !important;
-  border-right: 1px solid #444a51 !important;
+  border-right: 1px solid #4b4945 !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.6875rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
@@ -9085,30 +9085,30 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-filter-tab:hover {
-  color: #e7e9ea !important;
-  background: #292d33 !important;
+  color: #e9e9e9 !important;
+  background: #2f2d28 !important;
 }
 
 .os-shell-night .pro-filter-tab-active,
 .os-shell-night .pro-filter-tab[aria-selected="true"] {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000000 !important;
   box-shadow: none !important;
 }
 
 /* Owner alert — instrument, not soft product surface */
 .owner-alert {
-  background: #292d33;
-  border: 1px solid #444a51;
+  background: #2f2d28;
+  border: 1px solid #4b4945;
   border-radius: 0.25rem;
   box-shadow: none;
   overflow: hidden;
-  color: #e7e9ea;
+  color: #e9e9e9;
 }
 
 .owner-alert--chalk {
-  background: #292d33;
-  color: #e7e9ea;
+  background: #2f2d28;
+  color: #e9e9e9;
 }
 
 .owner-alert--critical {
@@ -9121,8 +9121,8 @@ body:has(.mkt-page) .shell-header {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.45rem 0.65rem;
-  border-bottom: 1px solid #444a51;
-  background: #1e2125;
+  border-bottom: 1px solid #4b4945;
+  background: #23201b;
 }
 
 .owner-alert-kicker {
@@ -9134,7 +9134,7 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .owner-alert--critical .owner-alert-kicker {
@@ -9154,7 +9154,7 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .owner-alert-body {
@@ -9170,14 +9170,14 @@ body:has(.mkt-page) .shell-header {
   font-size: 1.05rem;
   font-weight: 650;
   letter-spacing: -0.02em;
-  color: #e7e9ea;
+  color: #e9e9e9;
   line-height: 1.25;
 }
 
 .owner-alert-channel {
   margin: 0.2rem 0 0;
   font-size: 0.75rem;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .owner-alert-kv {
@@ -9191,9 +9191,9 @@ body:has(.mkt-page) .shell-header {
 .owner-alert-foot {
   margin: 0.55rem 0 0;
   padding-top: 0.45rem;
-  border-top: 1px solid #444a51;
+  border-top: 1px solid #4b4945;
   font-size: 0.6875rem;
-  color: #9aa0a6;
+  color: #a09f9e;
   line-height: 1.4;
 }
 
@@ -9207,18 +9207,18 @@ body:has(.mkt-page) .shell-header {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .owner-alert-transcript .transcript-line span {
-  color: #e7e9ea;
+  color: #e9e9e9;
   font-weight: 600;
 }
 
 .os-shell-night .owner-alert,
 .os-shell-night .owner-alert-card {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
@@ -9227,7 +9227,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pay-prompt-backdrop,
 .pay-prompt-card--instrument ~ .pay-prompt-backdrop,
 .pay-prompt .pay-prompt-backdrop {
-  background: color-mix(in srgb, #22252a 78%, transparent) !important;
+  background: color-mix(in srgb, #27241f 78%, transparent) !important;
   backdrop-filter: none !important;
 }
 
@@ -9237,16 +9237,16 @@ body:has(.mkt-page) .shell-header {
   width: min(30rem, 100%) !important;
   padding: 0.85rem 0.9rem 0.85rem !important;
   border-radius: 0.25rem !important;
-  border: 1px solid #444a51 !important;
-  background: #1e2125 !important;
+  border: 1px solid #4b4945 !important;
+  background: #23201b !important;
   box-shadow: none !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .pay-prompt-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .pay-prompt-title {
@@ -9254,13 +9254,13 @@ body:has(.mkt-page) .shell-header {
   font-size: 1.15rem !important;
   font-weight: 650 !important;
   letter-spacing: -0.02em !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .pay-prompt-body {
   margin-top: 0.4rem !important;
   font-size: 0.8125rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .pay-prompt-plans {
@@ -9271,18 +9271,18 @@ body:has(.mkt-page) .shell-header {
 .pay-prompt-plan {
   padding: 0.55rem 0.6rem !important;
   border-radius: 0.2rem !important;
-  border: 1px solid #444a51 !important;
-  background: #292d33 !important;
+  border: 1px solid #4b4945 !important;
+  background: #2f2d28 !important;
 }
 
 .pay-prompt-plan--featured {
-  border-color: #e7e9ea !important;
-  background: #292d33 !important;
+  border-color: #e9e9e9 !important;
+  background: #2f2d28 !important;
 }
 
 .pay-prompt-plan-name,
 .pay-prompt-plan-price {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .pay-prompt-plan-price {
@@ -9290,7 +9290,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .pay-prompt-plan-tag {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.6875rem !important;
 }
 
@@ -9304,33 +9304,33 @@ body:has(.mkt-page) .shell-header {
 .pay-prompt-checkout .btn,
 .os-shell-night .pay-prompt .btn-void {
   border-radius: 0.2rem !important;
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
-  border: 1px solid #e7e9ea !important;
+  border: 1px solid #e9e9e9 !important;
 }
 
 .pay-prompt-secondary .btn,
 .pay-prompt-secondary .btn-secondary {
   border-radius: 0.2rem !important;
   background: transparent !important;
-  color: #e7e9ea !important;
-  border: 1px solid #444a51 !important;
+  color: #e9e9e9 !important;
+  border: 1px solid #4b4945 !important;
 }
 
 .pay-prompt-later {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   text-decoration: none !important;
   font-size: 0.75rem !important;
   letter-spacing: 0.02em;
 }
 
 .pay-prompt-later:hover {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .billing-lock,
 .billing-lock--instrument {
-  background: color-mix(in srgb, #22252a 86%, transparent) !important;
+  background: color-mix(in srgb, #27241f 86%, transparent) !important;
   backdrop-filter: none !important;
 }
 
@@ -9338,30 +9338,30 @@ body:has(.mkt-page) .shell-header {
   width: min(28rem, 100%) !important;
   padding: 0.9rem !important;
   border-radius: 0.25rem !important;
-  border: 1px solid #444a51 !important;
-  background: #1e2125 !important;
+  border: 1px solid #4b4945 !important;
+  background: #23201b !important;
   box-shadow: none !important;
 }
 
 .billing-lock-kicker {
   font-size: 0.5625rem !important;
   letter-spacing: 0.14em !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .billing-lock-title {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 1.2rem !important;
 }
 
 .billing-lock-body,
 .billing-lock-price-per,
 .billing-lock-links a {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .billing-lock-price-amt {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .billing-lock-cta,
@@ -9381,10 +9381,10 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .ask-input,
 .os-shell-night .ask-hero .input {
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   min-height: 2.35rem;
 }
 
@@ -9396,21 +9396,21 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .ask-empty-state {
   margin-top: 0.75rem;
   padding: 0.65rem;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.2rem;
-  background: #1e2125;
+  background: #23201b;
 }
 
 .os-shell-night .ask-empty-title {
   margin: 0;
-  color: #e7e9ea;
+  color: #e9e9e9;
   font-size: 0.875rem;
   font-weight: 650;
 }
 
 .os-shell-night .ask-empty {
   margin: 0.35rem 0 0 !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.8125rem !important;
   line-height: 1.45 !important;
   max-width: none !important;
@@ -9427,7 +9427,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .ask-q {
   margin: 0 0 0.45rem;
-  color: #e7e9ea;
+  color: #e9e9e9;
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -9438,12 +9438,12 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .os-shell-night .ask-answer {
   margin: 0;
-  color: #e7e9ea;
+  color: #e9e9e9;
   font-size: 0.8125rem;
   line-height: 1.45;
 }
@@ -9462,9 +9462,9 @@ body:has(.mkt-page) .shell-header {
   grid-template-columns: 4.5rem minmax(0, 1fr);
   gap: 0.35rem 0.55rem;
   padding: 0.4rem 0.5rem;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.2rem;
-  background: #1e2125;
+  background: #23201b;
   text-decoration: none;
 }
 
@@ -9473,18 +9473,18 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .os-shell-night .ask-hit-title {
   grid-column: 2;
-  color: #e7e9ea;
+  color: #e9e9e9;
   font-size: 0.8125rem;
 }
 
 .os-shell-night .ask-hit-sum {
   grid-column: 2;
-  color: #9aa0a6;
+  color: #a09f9e;
   font-size: 0.75rem;
 }
 
@@ -9521,12 +9521,12 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-stat-label {
   font-size: 0.5625rem !important;
   letter-spacing: 0.12em !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .pro-stat-value {
   font-size: 1.15rem !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 /* Kill remaining soft radii under night shell */
@@ -9571,7 +9571,7 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .lead-status-actions-row {
@@ -9603,9 +9603,9 @@ body:has(.mkt-page) .shell-header {
   flex-direction: column !important;
   gap: 0 !important;
   margin-top: 0.65rem !important;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.2rem;
-  background: #1e2125;
+  background: #23201b;
   overflow: hidden;
 }
 
@@ -9618,9 +9618,9 @@ body:has(.mkt-page) .shell-header {
   text-align: left;
   padding: 0.55rem 0.65rem;
   border: 0;
-  border-bottom: 1px solid #444a51;
+  border-bottom: 1px solid #4b4945;
   background: transparent;
-  color: #e7e9ea;
+  color: #e9e9e9;
   cursor: pointer;
 }
 
@@ -9629,7 +9629,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .ask-rail-row:hover:not(:disabled) {
-  background: #292d33;
+  background: #2f2d28;
 }
 
 .os-shell-night .ask-rail-row:disabled {
@@ -9642,12 +9642,12 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .os-shell-night .ask-rail-q {
   font-size: 0.8125rem;
-  color: #e7e9ea;
+  color: #e9e9e9;
   line-height: 1.35;
 }
 
@@ -9656,8 +9656,8 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9aa0a6;
-  border: 1px solid #444a51;
+  color: #a09f9e;
+  border: 1px solid #4b4945;
   border-radius: 0.15rem;
   padding: 0.2rem 0.4rem;
 }
@@ -9687,9 +9687,9 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .assign-tech-btn,
 .os-shell-night .assign-tech-empty {
   border-radius: 0.2rem !important;
-  border: 1px solid #444a51 !important;
-  background: #1e2125 !important;
-  color: #e7e9ea !important;
+  border: 1px solid #4b4945 !important;
+  background: #23201b !important;
+  color: #e9e9e9 !important;
   font-size: 0.6875rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.04em;
@@ -9700,9 +9700,9 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .assign-tech-btn,
 .os-shell-night .assign-tech-btn--block {
-  background: #e7e9ea !important;
+  background: #e9e9e9 !important;
   color: #000 !important;
-  border-color: #e7e9ea !important;
+  border-color: #e9e9e9 !important;
   cursor: pointer;
 }
 
@@ -9737,22 +9737,22 @@ body:has(.mkt-page) .shell-header {
   max-width: none !important;
   padding: 0.75rem !important;
   border-radius: 0.25rem !important;
-  border: 1px solid #444a51 !important;
-  background: #292d33 !important;
+  border: 1px solid #4b4945 !important;
+  background: #2f2d28 !important;
 }
 
 .os-shell-night .plan-upgrade-gate-kicker {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.5625rem !important;
 }
 
 .os-shell-night .plan-upgrade-gate-title {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 1rem !important;
 }
 
 .os-shell-night .plan-upgrade-gate-detail {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.8125rem !important;
   margin-top: 0.4rem !important;
 }
@@ -9771,8 +9771,8 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .dispatch-job-chip {
   padding: 0.45rem 0.55rem !important;
   border-radius: 0.2rem !important;
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
 }
 
 .os-shell-night .dispatch-col {
@@ -9813,15 +9813,15 @@ body:has(.mkt-page) .shell-header {
 /* Transcript cinema denser instrument */
 .os-shell-night .transcript-cinema {
   border-radius: 0.25rem !important;
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .transcript-cinema-head {
   padding: 0.4rem 0.65rem !important;
-  border-bottom: 1px solid #444a51 !important;
-  background: #1e2125 !important;
+  border-bottom: 1px solid #4b4945 !important;
+  background: #23201b !important;
 }
 
 .os-shell-night .transcript-cinema-body {
@@ -9832,19 +9832,19 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .transcript-cinema-line {
   margin-top: 0.45rem !important;
   font-size: 0.75rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .transcript-cinema-line-ai,
 .os-shell-night .transcript-cinema-speaker {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .transcript-cinema-foot {
   padding: 0.4rem 0.65rem !important;
-  border-top: 1px solid #444a51 !important;
+  border-top: 1px solid #4b4945 !important;
   font-size: 0.6875rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 /* Force canvas true black everywhere in shell */
@@ -9853,7 +9853,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-content,
 .os-shell-night .os-sidebar,
 .os-shell-night .os-sidebar-inner {
-  background: #22252a !important;
+  background: #27241f !important;
 }
 
 .os-shell-night .dispatch-job-assign .assign-tech-btn,
@@ -9886,21 +9886,21 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .os-ring-status {
-  border: 1px solid #444a51 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
-  background: #1e2125 !important;
+  background: #23201b !important;
   padding: 0.45rem 0.55rem !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .os-ring-status-title {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 0.8125rem !important;
   font-weight: 650 !important;
 }
 
 .os-shell-night .os-ring-status-module {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.6875rem !important;
 }
 
@@ -9933,17 +9933,17 @@ body:has(.mkt-page) .shell-header {
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.2rem;
   overflow: hidden;
-  background: #1e2125;
+  background: #23201b;
 }
 
 .os-shell-night .customer-timeline-item {
   display: block;
   margin: 0;
   padding: 0;
-  border-bottom: 1px solid #444a51;
+  border-bottom: 1px solid #4b4945;
 }
 
 .os-shell-night .customer-timeline-item:last-child {
@@ -9965,15 +9965,15 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .customer-timeline-card .text-void {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .customer-timeline-card .text-ash {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .customer-timeline-link {
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   font-size: 0.75rem !important;
 }
 
@@ -9987,8 +9987,8 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .call-demo-void,
 .mkt-page .call-demo-section {
   border-radius: 0.2rem !important;
-  border: 1px solid #444a51 !important;
-  background: #292d33 !important;
+  border: 1px solid #4b4945 !important;
+  background: #2f2d28 !important;
   box-shadow: none !important;
   padding: 0.85rem 0.95rem !important;
   gap: 0.6rem !important;
@@ -10003,15 +10003,15 @@ body:has(.mkt-page) .shell-header {
 
 /* Marketing pro-panel (demo simulate) → dark head, X palette, no cream */
 .mkt-page .pro-panel {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
   box-shadow: none !important;
 }
 
 .mkt-page .pro-panel-head {
   
-  border-bottom: 1px solid #444a51 !important;
+  border-bottom: 1px solid #4b4945 !important;
   padding: 0.65rem 0.9rem !important;
 }
 
@@ -10032,16 +10032,16 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-wizard,
 .mkt-page .pricing-matrix-scroll,
 .mkt-page .pricing-page-controls {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
   box-shadow: none !important;
 }
 
 /* Night OS dispatch "add to crew" toolbar → flat instrument */
 .os-shell-night .pro-toolbar {
-  background: #1e2125 !important;
-  border: 1px solid #444a51 !important;
+  background: #23201b !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.2rem !important;
   box-shadow: none !important;
   padding: 0.6rem 0.7rem !important;
@@ -10049,16 +10049,16 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-toolbar-label {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.5625rem !important;
 }
 
 .os-shell-night .pro-toolbar-input,
 .os-shell-night .pro-toolbar .input {
   border-radius: 0.2rem !important;
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
-  color: #e7e9ea !important;
+  background: #2f2d28 !important;
+  border: 1px solid #4b4945 !important;
+  color: #e9e9e9 !important;
   min-height: 1.85rem !important;
 }
 
@@ -10538,8 +10538,8 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .inst-btn-primary:hover {
-  background: #22252a !important;
-  border-color: #22252a !important;
+  background: #27241f !important;
+  border-color: #27241f !important;
 }
 
 /* Secondary pill — cursor.com "Request a demo" style */
@@ -10758,7 +10758,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-showcase-copybtn:hover {
-  background: #22252a;
+  background: #27241f;
 }
 
 .mkt-page .mkt-showcase-copied {
@@ -10771,7 +10771,7 @@ body:has(.mkt-page) .shell-header {
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 30px 70px -28px rgba(38, 37, 30, 0.35);
-  background: #1e2125;
+  background: #23201b;
 }
 
 .mkt-page .mkt-showcase-stage .mkt-product {
@@ -11086,7 +11086,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .os-sidebar-brand:hover {
-  background: #2b2f35 !important;
+  background: #312f2a !important;
 }
 
 /* Shop identity — quiet block, not a card */
@@ -11096,7 +11096,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-radius: 0 !important;
   padding: 0 0.4rem 0.9rem !important;
   margin: 0 0 0.5rem !important;
-  border-bottom: 1px solid #3d434a !important;
+  border-bottom: 1px solid #44423e !important;
 }
 
 .os-shell-night .os-sidebar-label {
@@ -11106,7 +11106,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
   /* 9px uppercase mono needs more than the 4.78:1 the old grey gave it. */
-  color: #a6acb3 !important;
+  color: #ababaa !important;
 }
 
 .os-shell-night .os-ring-status-title {
@@ -11114,7 +11114,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.875rem !important;
   font-weight: 600 !important;
   letter-spacing: -0.006em !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .os-ring-status-module {
@@ -11123,7 +11123,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.4rem !important;
   margin: 0.25rem 0 0 !important;
   font-size: 0.75rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -11164,7 +11164,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border: none !important;
   background: transparent !important;
   box-shadow: none !important;
-  color: #a8aeb4 !important;
+  color: #adadac !important;
   font-size: 0.8125rem !important;
   font-weight: 450 !important;
   letter-spacing: -0.003em !important;
@@ -11186,8 +11186,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .os-nav-link:hover {
-  background: #2b2f35 !important;
-  color: #e7e9ea !important;
+  background: #312f2a !important;
+  color: #e9e9e9 !important;
 }
 
 .os-shell-night .os-nav-link:hover .os-nav-icon {
@@ -11196,7 +11196,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .os-sidebar-pro .os-nav-link-active,
 .os-shell-night .os-nav-link-active {
-  background: #383e46 !important;
+  background: #3f3d39 !important;
   color: #ffffff !important;
   font-weight: 550 !important;
   box-shadow: none !important;
@@ -11207,13 +11207,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .os-nav-link-disabled {
-  color: #7f858b !important;
+  color: #858482 !important;
   cursor: default;
 }
 
 .os-shell-night .os-nav-link-disabled:hover {
   background: transparent !important;
-  color: #7f858b !important;
+  color: #858482 !important;
 }
 
 .os-shell-night .os-nav-badge {
@@ -11232,10 +11232,10 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .os-nav-lock {
   padding: 0.05rem 0.35rem !important;
-  border: 1px solid #444a51 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 9999px !important;
   background: transparent !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-size: 0.5625rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.1em !important;
@@ -11246,7 +11246,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .os-sidebar-footer {
   margin-top: auto !important;
   padding-top: 0.6rem !important;
-  border-top: 1px solid #3d434a !important;
+  border-top: 1px solid #44423e !important;
 }
 
 .os-shell-night .os-sidebar-user {
@@ -11259,7 +11259,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .os-sidebar-user:hover {
-  background: #2b2f35 !important;
+  background: #312f2a !important;
 }
 
 /* ── Topbar ── */
@@ -11269,8 +11269,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   top: 0;
   z-index: 30;
   padding: 0.7rem 1.35rem !important;
-  border-bottom: 1px solid #3d434a !important;
-  background: #22252a !important;
+  border-bottom: 1px solid #44423e !important;
+  background: #27241f !important;
 }
 
 .os-shell-night .os-topbar-live {
@@ -11281,7 +11281,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.6875rem !important;
   font-weight: 500 !important;
   letter-spacing: 0.01em !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -11295,7 +11295,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .os-topbar-sub {
   margin-top: 0.15rem !important;
   font-size: 0.8125rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .os-content-pro {
@@ -11317,7 +11317,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #a8aeb4 !important;
+  color: #adadac !important;
 }
 
 .os-shell-night .attention-queue-title {
@@ -11331,11 +11331,11 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .attention-queue-lead {
   margin: 0.15rem 0 0 !important;
   font-size: 0.8125rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .attention-queue-list {
-  border: 1px solid #3d434a !important;
+  border: 1px solid #44423e !important;
   border-radius: 0.4rem !important;
 }
 
@@ -11345,13 +11345,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   align-items: center !important;
   gap: 1rem !important;
   padding: 0.7rem 0.9rem !important;
-  border-bottom: 1px solid #3d434a !important;
-  background: #292d33 !important;
+  border-bottom: 1px solid #44423e !important;
+  background: #2f2d28 !important;
   transition: background 110ms ease;
 }
 
 .os-shell-night .attention-item:hover {
-  background: #31363d !important;
+  background: #373530 !important;
 }
 
 .os-shell-night .attention-item-critical {
@@ -11370,7 +11370,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 .os-shell-night .attention-chip {
@@ -11399,13 +11399,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .attention-item-detail {
   margin: 0.1rem 0 0 !important;
   font-size: 0.8125rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .attention-item-value {
   margin: 0.2rem 0 0 !important;
   font-size: 0.75rem !important;
-  color: #a8aeb4 !important;
+  color: #adadac !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -11415,15 +11415,15 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin-top: 0.35rem;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #b9bec4;
+  color: #bdbdbd;
   text-decoration: none;
-  border-bottom: 1px solid #4b5157;
+  border-bottom: 1px solid #52504c;
   padding-bottom: 1px;
 }
 
 .os-shell-night .attention-item-rollup:hover {
-  color: #f2f4f5;
-  border-bottom-color: #a8aeb4;
+  color: #f4f4f4;
+  border-bottom-color: #adadac;
 }
 
 .os-shell-night .attention-item-actions {
@@ -11450,13 +11450,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .attention-item-btn {
   background: transparent !important;
-  border: 1px solid #444a51 !important;
-  color: #c4c8cc !important;
+  border: 1px solid #4b4945 !important;
+  color: #c7c7c7 !important;
 }
 
 .os-shell-night .attention-item-btn:hover {
-  background: #383e46 !important;
-  border-color: #525860 !important;
+  background: #3f3d39 !important;
+  border-color: #595754 !important;
   color: #ffffff !important;
 }
 
@@ -11476,19 +11476,19 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .attention-item-btn-quiet {
   background: transparent !important;
   border: 1px solid transparent !important;
-  color: #a8aeb4 !important;
+  color: #adadac !important;
 }
 
 .os-shell-night .attention-item-btn-quiet:hover {
-  background: #383e46 !important;
+  background: #3f3d39 !important;
   color: #ffffff !important;
   border-color: transparent !important;
 }
 
 /* ── Panels + stats ── */
 .os-shell-night .pro-panel {
-  background: #292d33 !important;
-  border: 1px solid #3d434a !important;
+  background: #2f2d28 !important;
+  border: 1px solid #44423e !important;
   border-radius: 0.4rem !important;
   overflow: hidden;
 }
@@ -11500,8 +11500,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.75rem !important;
   padding: 0.7rem 0.9rem !important;
   margin: 0 !important;
-  border-bottom: 1px solid #3d434a !important;
-  background: #2e333a !important;
+  border-bottom: 1px solid #44423e !important;
+  background: #34322d !important;
 }
 
 .os-shell-night .pro-panel-title {
@@ -11522,7 +11522,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #a8aeb4 !important;
+  color: #adadac !important;
 }
 
 .os-shell-night .pro-stat-value {
@@ -11545,7 +11545,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.75rem !important;
   font-weight: 600 !important;
   letter-spacing: -0.002em !important;
-  color: #e7e9ea !important;
+  color: #e9e9e9 !important;
   text-transform: none !important;
 }
 
@@ -11554,9 +11554,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   width: 100%;
   max-width: 26rem;
   padding: 0.5rem 0.65rem !important;
-  border: 1px solid #444a51 !important;
+  border: 1px solid #4b4945 !important;
   border-radius: 0.35rem !important;
-  background: #22252a !important;
+  background: #27241f !important;
   color: #f7f9f9 !important;
   font-size: 0.875rem !important;
   transition: border-color 110ms ease, box-shadow 110ms ease;
@@ -11570,7 +11570,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .onboarding-input:focus,
 .os-shell-night .onboarding-textarea:focus {
   outline: none;
-  border-color: #9aa0a6 !important;
+  border-color: #a09f9e !important;
   box-shadow: 0 0 0 3px rgba(231, 233, 234, 0.09) !important;
 }
 
@@ -11579,13 +11579,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin-top: 0.35rem !important;
   font-size: 0.75rem !important;
   line-height: 1.45 !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .account-settings-hint {
   font-size: 0.8125rem !important;
   line-height: 1.5 !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .pro-settings-test-row {
@@ -11595,19 +11595,19 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   flex-wrap: wrap;
   margin-top: 1rem !important;
   padding-top: 0.9rem !important;
-  border-top: 1px solid #3d434a !important;
+  border-top: 1px solid #44423e !important;
 }
 
 .os-shell-night .pro-settings-test-meta {
   font-size: 0.75rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 /* Secondary settings groups become real disclosure rows */
 .os-shell-night .pro-settings-secondary {
-  border: 1px solid #3d434a !important;
+  border: 1px solid #44423e !important;
   border-radius: 0.4rem !important;
-  background: #292d33 !important;
+  background: #2f2d28 !important;
   padding: 0 !important;
   overflow: hidden;
 }
@@ -11620,7 +11620,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   min-height: 2.75rem;
   padding: 0 0.9rem !important;
   margin: 0 !important;
-  background: #2e333a !important;
+  background: #34322d !important;
   color: #f7f9f9 !important;
   font-size: 0.8125rem !important;
   font-weight: 600 !important;
@@ -11639,8 +11639,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   content: "";
   width: 0.45rem;
   height: 0.45rem;
-  border-right: 1.5px solid #71767b;
-  border-bottom: 1.5px solid #71767b;
+  border-right: 1.5px solid #767572;
+  border-bottom: 1.5px solid #767572;
   transform: rotate(45deg);
   transition: transform 140ms ease;
   flex-shrink: 0;
@@ -11651,12 +11651,12 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .pro-settings-secondary > summary:hover {
-  background: #31363d !important;
+  background: #373530 !important;
 }
 
 .os-shell-night .pro-settings-secondary-body {
   padding: 0.9rem !important;
-  border-top: 1px solid #3d434a !important;
+  border-top: 1px solid #44423e !important;
 }
 
 .os-shell-night .pro-founder-cert-list {
@@ -11676,13 +11676,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-radius: 0.3rem;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #c4c8cc;
+  color: #c7c7c7;
   cursor: pointer;
   transition: background 110ms ease;
 }
 
 .os-shell-night .pro-founder-cert-item:hover {
-  background: #31363d;
+  background: #373530;
   color: #f7f9f9;
 }
 
@@ -11696,16 +11696,16 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   flex-wrap: wrap;
   margin-top: 0.25rem;
   padding: 0.75rem 0.9rem;
-  border: 1px solid #3d434a;
+  border: 1px solid #44423e;
   border-radius: 0.4rem;
-  background: rgba(41, 45, 51, 0.95);
+  background: rgba(47, 45, 40, 0.95);
   backdrop-filter: saturate(140%) blur(10px);
 }
 
 .os-shell-night .pro-settings-savebar-hint {
   margin: 0;
   font-size: 0.75rem;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 /* ── Shared focus treatment ── */
@@ -11769,13 +11769,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .btn-secondary {
   background: transparent !important;
-  border: 1px solid #444a51 !important;
-  color: #c4c8cc !important;
+  border: 1px solid #4b4945 !important;
+  color: #c7c7c7 !important;
 }
 
 .os-shell-night .btn-secondary:hover:not(:disabled) {
-  background: #383e46 !important;
-  border-color: #525860 !important;
+  background: #3f3d39 !important;
+  border-color: #595754 !important;
   color: #ffffff !important;
 }
 
@@ -11802,14 +11802,14 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night button.btn-secondary,
 .os-shell-night a.btn-secondary {
   background: transparent !important;
-  border: 1px solid #444a51 !important;
-  color: #c4c8cc !important;
+  border: 1px solid #4b4945 !important;
+  color: #c7c7c7 !important;
 }
 
 .os-shell-night button.btn-secondary:hover:not(:disabled),
 .os-shell-night a.btn-secondary:hover {
-  background: #383e46 !important;
-  border-color: #525860 !important;
+  background: #3f3d39 !important;
+  border-color: #595754 !important;
   color: #ffffff !important;
 }
 
@@ -11855,7 +11855,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* Row meta reads as a label, not a whisper */
 .os-shell-night .attention-item-kindlabel,
 .os-shell-night .lead-rail-kind {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 /* Board column keeps a readable measure */
@@ -11875,13 +11875,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   letter-spacing: -0.002em !important;
   text-transform: none !important;
   background: transparent !important;
-  border: 1px solid #444a51 !important;
-  color: #c4c8cc !important;
+  border: 1px solid #4b4945 !important;
+  color: #c7c7c7 !important;
 }
 
 .os-shell-night .lead-quick-btn:hover {
-  background: #383e46 !important;
-  border-color: #525860 !important;
+  background: #3f3d39 !important;
+  border-color: #595754 !important;
   color: #ffffff !important;
 }
 
@@ -11903,7 +11903,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* Opaque topbar: content must not ghost through while scrolling */
 .os-shell-night .os-topbar-pro,
 .os-shell-night .os-topbar-night {
-  background: #22252a !important;
+  background: #27241f !important;
   backdrop-filter: none;
 }
 
@@ -11911,8 +11911,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* ── Mastery round 5 — numbers become numbers ── */
 .os-shell-night .shop-outcomes,
 .os-shell-night .pro-economics {
-  background: #292d33 !important;
-  border: 1px solid #3d434a !important;
+  background: #2f2d28 !important;
+  border: 1px solid #44423e !important;
   border-radius: 0.4rem !important;
   padding: 0.9rem !important;
 }
@@ -11923,7 +11923,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
-  color: #a8aeb4 !important;
+  color: #adadac !important;
 }
 
 .os-shell-night .shop-outcomes-stats {
@@ -11932,7 +11932,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.75rem 1.25rem;
   margin: 0.7rem 0 0;
   padding: 0.8rem 0 0;
-  border-top: 1px solid #3d434a;
+  border-top: 1px solid #44423e;
 }
 
 .os-shell-night .shop-outcome-stat dt {
@@ -11941,7 +11941,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 .os-shell-night .shop-outcome-stat dd {
@@ -11960,14 +11960,14 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.25rem;
   margin: 0.8rem 0 0 !important;
   padding: 0.75rem 0 0 !important;
-  border-top: 1px solid #3d434a;
+  border-top: 1px solid #44423e;
   list-style: none;
   font-size: 0.8125rem !important;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .shop-outcomes-meta strong {
-  color: #c4c8cc;
+  color: #c7c7c7;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -11986,7 +11986,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 1rem 1.5rem;
   margin: 0.85rem 0 0 !important;
   padding: 0.85rem 0 0 !important;
-  border-top: 1px solid #3d434a;
+  border-top: 1px solid #44423e;
 }
 
 .os-shell-night .pro-economics-grid dt {
@@ -11995,7 +11995,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 .os-shell-night .pro-economics-grid dd {
@@ -12013,7 +12013,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.75rem !important;
   line-height: 1.5 !important;
   text-wrap: balance;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .pro-economics-actions {
@@ -12023,7 +12023,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   flex-wrap: wrap;
   margin-top: 0.9rem !important;
   padding-top: 0.85rem !important;
-  border-top: 1px solid #3d434a;
+  border-top: 1px solid #44423e;
 }
 
 /* Inline assign control on the board */
@@ -12032,9 +12032,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   min-height: 1.85rem !important;
   padding: 0 0.6rem !important;
   border-radius: 0.3rem !important;
-  border: 1px solid #444a51 !important;
-  background: #22252a !important;
-  color: #c4c8cc !important;
+  border: 1px solid #4b4945 !important;
+  background: #27241f !important;
+  color: #c7c7c7 !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
   letter-spacing: -0.002em !important;
@@ -12068,9 +12068,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .billing-unblock-missing code {
   font-size: 0.6875rem;
   padding: 0.05rem 0.35rem;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.25rem;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 /* Settings keeps a narrower column than the boards, so its sticky save bar
@@ -12153,7 +12153,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 .os-shell-night .pro-right-now-grid {
@@ -12175,9 +12175,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   align-items: flex-start;
   gap: 0.45rem;
   padding: 1rem 1.05rem 1.1rem;
-  border: 1px solid #3d434a;
+  border: 1px solid #44423e;
   border-radius: 0.5rem;
-  background: #292d33;
+  background: #2f2d28;
 }
 
 .os-shell-night .pro-right-now-cold-title {
@@ -12185,7 +12185,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 1.0625rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: #f2f4f5 !important;
+  color: #f4f4f4 !important;
 }
 
 .os-shell-night .pro-right-now-cold-note {
@@ -12193,21 +12193,21 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   max-width: 54ch;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 .os-shell-night .pro-right-now-cold-cta {
   margin-top: 0.15rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #f2f4f5;
+  color: #f4f4f4;
   text-decoration: none;
-  border-bottom: 1px solid #6b7280;
+  border-bottom: 1px solid #73726f;
   padding-bottom: 1px;
 }
 
 .os-shell-night .pro-right-now-cold-cta:hover {
-  border-bottom-color: #f2f4f5;
+  border-bottom-color: #f4f4f4;
 }
 
 .os-shell-night .pro-right-now-tile {
@@ -12215,9 +12215,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.8rem 0.9rem 0.85rem;
-  border: 1px solid #3d434a;
+  border: 1px solid #44423e;
   border-radius: 0.5rem;
-  background: #292d33;
+  background: #2f2d28;
   text-decoration: none;
   transition:
     background 120ms ease,
@@ -12225,8 +12225,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night a.pro-right-now-tile:hover {
-  background: #31363d;
-  border-color: #525860;
+  background: #373530;
+  border-color: #595754;
 }
 
 .os-shell-night .pro-right-now-label {
@@ -12234,7 +12234,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.02em;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .os-shell-night .pro-right-now-value {
@@ -12246,7 +12246,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  color: #f2f4f5;
+  color: #f4f4f4;
   font-variant-numeric: tabular-nums;
 }
 
@@ -12270,14 +12270,14 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .pro-right-now-pip-quiet {
-  background: #6d7379;
+  background: #73726f;
 }
 
 .os-shell-night .pro-right-now-note {
   margin: 0;
   font-size: 0.6875rem;
   line-height: 1.35;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 /* ── Rail cards ── */
@@ -12286,9 +12286,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   flex-direction: column;
   gap: 0.6rem;
   padding: 0.85rem 0.9rem 0.9rem;
-  border: 1px solid #3d434a;
+  border: 1px solid #44423e;
   border-radius: 0.5rem;
-  background: #292d33;
+  background: #2f2d28;
 }
 
 .os-shell-night .pro-rail-card-head {
@@ -12303,7 +12303,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: #f2f4f5;
+  color: #f4f4f4;
 }
 
 .os-shell-night .pro-rail-status {
@@ -12365,12 +12365,12 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-rail-row-label {
   font-size: 0.6875rem;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .os-shell-night .pro-rail-row-value {
   font-size: 0.6875rem;
-  color: #e4e7e9;
+  color: #e7e7e7;
   text-align: right;
   overflow-wrap: anywhere;
 }
@@ -12381,9 +12381,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   justify-content: space-between;
   gap: 0.5rem;
   padding-top: 0.55rem;
-  border-top: 1px solid #363b41;
+  border-top: 1px solid #3d3a36;
   font-size: 0.6875rem;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 .os-shell-night .pro-rail-card .pro-section-link {
@@ -12395,7 +12395,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-setup-score-bar {
   height: 0.3rem;
   border-radius: 999px;
-  background: #383e46;
+  background: #3f3d39;
   overflow: hidden;
 }
 
@@ -12403,21 +12403,21 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: #f2f4f5;
+  background: #f4f4f4;
 }
 
 .os-shell-night .pro-setup-score-next {
   margin: 0;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #f2f4f5;
+  color: #f4f4f4;
 }
 
 .os-shell-night .pro-setup-score-detail {
   margin: 0;
   font-size: 0.6875rem;
   line-height: 1.4;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 /* Gate banners sit inside the rail now, so they drop their page-width padding. */
@@ -12432,10 +12432,10 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.4rem;
   height: 1.9rem;
   padding: 0 0.55rem;
-  border: 1px solid #3d434a;
+  border: 1px solid #44423e;
   border-radius: 0.4rem;
-  background: #292d33;
-  color: #9aa0a6;
+  background: #2f2d28;
+  color: #a09f9e;
   font-size: 0.75rem;
   cursor: pointer;
   transition:
@@ -12445,9 +12445,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .os-topbar-search:hover {
-  background: #31363d;
-  border-color: #525860;
-  color: #f2f4f5;
+  background: #373530;
+  border-color: #595754;
+  color: #f4f4f4;
 }
 
 .os-shell-night .os-topbar-search svg {
@@ -12458,7 +12458,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .os-topbar-search kbd {
   padding: 0.05rem 0.25rem;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.2rem;
   font-family: inherit;
   font-size: 0.625rem;
@@ -12496,9 +12496,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   flex-direction: column;
   width: min(38rem, 100%);
   max-height: 70vh;
-  border: 1px solid #4a5058;
+  border: 1px solid #514f4b;
   border-radius: 0.6rem;
-  background: #292d33;
+  background: #2f2d28;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
@@ -12508,7 +12508,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   align-items: center;
   gap: 0.6rem;
   padding: 0.75rem 0.9rem;
-  border-bottom: 1px solid #3d434a;
+  border-bottom: 1px solid #44423e;
 }
 
 .os-palette-input {
@@ -12516,23 +12516,23 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   min-width: 0;
   border: 0;
   background: transparent;
-  color: #f2f4f5;
+  color: #f4f4f4;
   font-size: 0.9375rem;
   outline: none;
 }
 
 .os-palette-input::placeholder {
-  color: #7f858b;
+  color: #858482;
 }
 
 .os-palette-kbd,
 .os-palette-field kbd {
   padding: 0.1rem 0.3rem;
-  border: 1px solid #444a51;
+  border: 1px solid #4b4945;
   border-radius: 0.2rem;
   font-family: inherit;
   font-size: 0.625rem;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 .os-palette-list {
@@ -12551,7 +12551,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #7f858b;
+  color: #858482;
 }
 
 .os-palette-row {
@@ -12563,14 +12563,14 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border: 0;
   border-radius: 0.35rem;
   background: transparent;
-  color: #e4e7e9;
+  color: #e7e7e7;
   font-size: 0.8125rem;
   text-align: left;
   cursor: pointer;
 }
 
 .os-palette-row-active {
-  background: #383e46;
+  background: #3f3d39;
   color: #ffffff;
 }
 
@@ -12592,7 +12592,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin-left: auto;
   padding-left: 0.75rem;
   font-size: 0.6875rem;
-  color: #a8aeb4;
+  color: #adadac;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -12603,11 +12603,11 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin: 0;
   padding: 0.7rem 0.9rem;
   font-size: 0.75rem;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .os-palette-note {
-  border-top: 1px solid #3d434a;
+  border-top: 1px solid #44423e;
   color: #4fd6a8;
 }
 
@@ -12621,7 +12621,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin: 0;
   font-size: 0.6875rem;
   line-height: 1.45;
-  color: #9aa0a6;
+  color: #a09f9e;
 }
 
 .os-shell-night .pro-night-watch-stats {
@@ -12633,15 +12633,15 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-night-watch-stats > div {
   padding: 0.45rem 0.55rem;
-  border: 1px solid #363b41;
+  border: 1px solid #3d3a36;
   border-radius: 0.35rem;
-  background: #2e333a;
+  background: #34322d;
 }
 
 .os-shell-night .pro-night-watch-stats dt {
   margin: 0 0 0.15rem;
   font-size: 0.625rem;
-  color: #a8aeb4;
+  color: #adadac;
 }
 
 .os-shell-night .pro-night-watch-stats dd {
@@ -12649,14 +12649,14 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 1.125rem;
   font-weight: 600;
   line-height: 1;
-  color: #f2f4f5;
+  color: #f4f4f4;
   font-variant-numeric: tabular-nums;
 }
 
 .os-shell-night .pro-night-watch-warn {
   margin: 0;
   padding-top: 0.5rem;
-  border-top: 1px solid #363b41;
+  border-top: 1px solid #3d3a36;
   font-size: 0.6875rem;
   line-height: 1.4;
   color: #e0b782;
@@ -12698,7 +12698,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .os-palette-empty {
-  color: #9aa0a6 !important;
+  color: #a09f9e !important;
 }
 
 /* The floating dock is fixed to the bottom-right, so the sticky save bar keeps
@@ -12723,7 +12723,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   box-shadow: none !important;
   padding: 0 !important;
   min-height: 0 !important;
-  color: #f2f4f5 !important;
+  color: #f4f4f4 !important;
 }
 
 /* The palette autofocuses its only input, so the shell's focus ring would just
