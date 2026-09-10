@@ -51,6 +51,9 @@ const required = [
   "VAPI_API_KEY",
   "NEXT_PUBLIC_APP_URL",
   "DATABASE_URL",
+  /* Vercel only sends the bearer header when this is set, and the cron route
+     refuses to drain without it. Missing means the owner alert queue stops. */
+  "CRON_SECRET",
 ];
 
 for (const key of required) {

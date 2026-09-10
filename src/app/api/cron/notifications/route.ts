@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
-import { verifyAdminRequest } from "@/lib/env";
+import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
+import { logError } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
 import { isProduction } from "@/lib/runtime";
 
@@ -19,12 +20,30 @@ import { isProduction } from "@/lib/runtime";
 export async function GET(request: NextRequest) {
   if (isProduction()) {
     const cronSecret = process.env.CRON_SECRET?.trim();
-    const authHeader = request.headers.get("authorization");
-    const bearer = authHeader?.startsWith("Bearer ")
-      ? authHeader.slice("Bearer ".length)
-      : null;
 
-    if (cronSecret && bearer !== cronSecret && !verifyAdminRequest(request)) {
+    /*
+      The guard used to be conditional on the secret existing, so production
+      without CRON_SECRET meant no check at all: anyone could drive the queue
+      and read back how many alerts a shop had waiting. Refusing instead is
+      the only safe reading of a missing secret, and 503 rather than 401 says
+      whose fault it is. deploy:check treats the secret as required so this
+      cannot quietly stop the drain — Vercel only sends the bearer header when
+      CRON_SECRET is set, which is the same condition being checked here.
+    */
+    if (!cronSecret) {
+      logError("cron.secret_missing", {
+        detail: "CRON_SECRET is unset in production; refusing to drain",
+      });
+      return NextResponse.json(
+        { error: "CRON_SECRET is not configured" },
+        { status: 503 },
+      );
+    }
+
+    if (
+      !secretsMatch(getBearerToken(request), cronSecret) &&
+      !verifyAdminRequest(request)
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
