@@ -6,6 +6,20 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 import { analyzeCssUsage } from "./lib/css-usage.mjs";
+import { closure, orphanModules, routeEntries } from "./lib/module-graph.mjs";
+
+/** Repo-relative modules some route on `surface` renders. */
+function surfaceModules(surface) {
+  const cache = new Map();
+  const found = new Set();
+  for (const entry of routeEntries()) {
+    if (entry.surface !== surface) continue;
+    for (const file of entry.entries) {
+      for (const module of closure(file, cache)) found.add(relative(root, module));
+    }
+  }
+  return [...found].sort();
+}
 
 /** Every file under dir, skipping build output and dependencies. */
 function* walkFiles(dir) {
@@ -147,17 +161,18 @@ for (const path of TENANT_APIS) {
 }
 
 // ── Clarity (static scan) ──
-const clarityFiles = [
-  "src/lib/os-nav.ts",
-  "src/components/onboarding-wizard.tsx",
-  "src/app/dashboard/calls/[id]/page.tsx",
-  "src/app/dashboard/inbox/[id]/page.tsx",
-  "src/components/profile-menu.tsx",
-  "src/components/pro-setup-hub.tsx",
-  "src/components/pro-shop-outcomes.tsx",
-  "src/components/pro-signal-bar.tsx",
-  "src/app/dashboard/settings/page.tsx",
-];
+/*
+  Every module a dashboard route renders, rather than the nine that were listed
+  by hand. A hand-kept list of filenames is a sample, and a sample only ever
+  covers the surfaces someone remembered — the one it named that mattered most,
+  profile-menu.tsx, had been superseded by an inline rewrite and deleted, so the
+  gate's next report was going to be that its own list needed updating.
+
+  Restricted to .tsx because this is about copy an owner reads. src/lib/vapi.ts
+  and twilio-client.ts say "Vapi" and "Twilio" constantly and should: that is
+  the vendor's name in an API client, not jargon in front of a plumber.
+*/
+const clarityFiles = surfaceModules("dashboard").filter((rel) => rel.endsWith(".tsx"));
 
 const HONESTY_UI_PATTERNS = [
   { pattern: /<\s*60s/i, label: "hardcoded alert speed claim" },
@@ -182,7 +197,10 @@ for (const rel of clarityFiles) {
 }
 
 if (!checks.some((c) => c.name.startsWith("Clarity") && c.ok === false)) {
-  pass("Clarity scan", "No Ring/Vapi/command-center jargon in key owner UI");
+  pass(
+    "Clarity scan",
+    `No Ring/Vapi/command-center jargon across ${clarityFiles.length} modules the dashboard renders`,
+  );
 }
 
 // ── Honesty (dashboard UI — measured claims only) ──
@@ -209,6 +227,27 @@ try {
   fail("Trust UI", "ring1-trust-strip.tsx still present — use measured ProAlertSpeedBadge");
 } catch {
   pass("Trust UI", "No hardcoded trust strip; alert speed is measured");
+}
+
+// ── No unreachable modules ──
+/*
+  Thirteen components, 1,012 lines, that no page imported and no script ran.
+  They were not harmless: each one held its own class names, which is what kept
+  127 dead CSS rules looking used, and one of them kept a multi-b gate green by
+  existing on disk while master:class demanded it not be rendered.
+
+  Nothing catches this by review. A component stops being reachable the moment
+  its last import is deleted, and that deletion is a one-line diff in a file
+  nobody associates with the component.
+*/
+const orphans = orphanModules().map((file) => relative(root, file));
+if (orphans.length) {
+  fail(
+    "No unreachable modules",
+    `${orphans.length} module(s) no route, handler or script can reach: ${orphans.join(", ")}`,
+  );
+} else {
+  pass("No unreachable modules", "Every module under src/ is reachable from an entry point");
 }
 
 // ── No dead CSS ──
@@ -418,50 +457,65 @@ try {
 }
 
 // ── Honesty (marketing scan) ──
-const marketingFiles = [
-  "src/lib/trust.ts",
-  "src/app/page.tsx",
-  // Hero copy and its translations ship the loudest claims on the site.
-  "src/components/home-line-hero.tsx",
-  "src/components/home-tool-showcase.tsx",
-  "src/components/home-product-preview.tsx",
-  "src/components/home-call-story.tsx",
-  "src/components/home-call-demo.tsx",
-  "src/components/checkout-button.tsx",
-  "src/components/pricing-plan-card.tsx",
-  "src/lib/pricing-faq.ts",
-  "src/app/layout.tsx",
-  "src/app/demo/page.tsx",
-  "src/lib/i18n.ts",
-  // Ring copy describes what is live, and renders on the site and in the app.
-  "src/lib/company.ts",
-  "src/components/home-statement.tsx",
-  // The stats banner is the highest-risk surface on the site: a metric strip is
-  // where invented numbers land first.
-  "src/components/home-stats-banner.tsx",
-  "src/components/home-live-call.tsx",
-  // Sign-in copy is public and makes promises about what the product does.
-  "src/components/signin-board.tsx",
-  "src/components/signin-panel.tsx",
-  "src/app/signin/page.tsx",
-  "src/app/product/page.tsx",
-  "src/app/enterprise/page.tsx",
-];
+/*
+  Every module a public route renders. The list this replaces named 23 files and
+  described each one as the highest-risk surface on the site, which is the usual
+  fate of a hand-kept list: it grows by whatever someone was editing that day,
+  and the page nobody was editing is the page it cannot see.
+
+  Not restricted to .tsx, because a good deal of the copy lives in lib —
+  company.ts, pricing-faq.ts, i18n.ts — and a claim is a claim wherever it is
+  written down.
+*/
+const marketingFiles = surfaceModules("public");
+
+const NEGATIONS = /\b(no|not|never|cannot|can't|won't|without|unless|don't|doesn't)\b/i;
+
+const PHRASE_BOUNDARY = [". ", ".<", "<li", "<p", "<h1", "<h2", "<h3"];
+
+/**
+ * Whether a claim is being disowned rather than made.
+ *
+ * "No method of transmission or storage is 100% secure" is a disclaimer, and so
+ * is a bullet under the heading "What Orvius does not do (yet)" — flagging
+ * either one trains the reader to ignore this gate.
+ *
+ * Two windows, because the two cases hide the negation in different places. The
+ * phrase the claim sits in catches the sentence that negates itself; the heading
+ * above it catches a list whose items carry no negation of their own, and no
+ * full stops either. Both are deliberately tight: a first attempt read back to
+ * the nearest full stop and no further, which reaches across whole paragraphs in
+ * JSX and quietly excused an internal "arrives within 30 seconds" on the strength
+ * of an unrelated "not" three sentences earlier.
+ */
+function isDisowned(content, index) {
+  const before = content.slice(0, index);
+
+  const phraseStart = Math.max(...PHRASE_BOUNDARY.map((token) => before.lastIndexOf(token)));
+  if (NEGATIONS.test(before.slice(Math.max(phraseStart, 0)))) return true;
+
+  const headingStart = Math.max(
+    before.lastIndexOf("<h1"),
+    before.lastIndexOf("<h2"),
+    before.lastIndexOf("<h3"),
+  );
+  if (headingStart < 0) return false;
+  const heading = content.slice(headingStart).match(/^<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/);
+  return heading ? NEGATIONS.test(heading[1]) : false;
+}
 for (const rel of marketingFiles) {
-  let content;
-  try {
-    content = readFileSync(join(root, rel), "utf8");
-  } catch {
-    warn(`Honesty ${rel}`, "File missing");
-    continue;
-  }
+  const content = readFileSync(join(root, rel), "utf8");
   for (const risk of HONESTY_RISKS) {
-    if (risk.pattern.test(content)) {
+    const match = content.match(risk.pattern);
+    if (match?.index !== undefined && !isDisowned(content, match.index)) {
       warn(`Honesty ${rel}`, `Review claim: "${risk.label}"`);
     }
   }
 }
-pass("Honesty scan", "Marketing files checked for overclaims");
+pass(
+  "Honesty scan",
+  `${marketingFiles.length} modules on the public surface checked for overclaims`,
+);
 
 // ── Reliability ──
 /*

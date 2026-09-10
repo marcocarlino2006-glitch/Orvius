@@ -106,6 +106,21 @@ function layoutsFor(pageFile) {
 */
 const CONVENTION_ENTRY = /\/(route|middleware|icon|apple-icon|opengraph-image|twitter-image|sitemap|robots|manifest|not-found|error|global-error|loading|template|default)\.(tsx?|jsx?)$/;
 
+/**
+ * Which of the three surfaces a route belongs to.
+ *
+ * `admin` is separated from `public` because the two are held to opposite
+ * standards. /admin is an internal runbook: it names Twilio and Vapi because
+ * those are the consoles the founder has to open, and it says "confirm owner
+ * SMS arrives within 30 seconds" because that is the test to run. Both read as
+ * violations of the marketing and owner-copy standards, and neither is one.
+ */
+export function surfaceOf(route) {
+  if (route.startsWith("/dashboard")) return "dashboard";
+  if (route.startsWith("/admin")) return "admin";
+  return "public";
+}
+
 /** Each page, the layouts that wrap it, and which surface it belongs to. */
 export function routeEntries() {
   return walk(APP, [".tsx"])
@@ -115,7 +130,7 @@ export function routeEntries() {
       return {
         page,
         route,
-        surface: route.startsWith("/dashboard") ? "dashboard" : "public",
+        surface: surfaceOf(route),
         entries: [page, ...layoutsFor(page)],
       };
     });
