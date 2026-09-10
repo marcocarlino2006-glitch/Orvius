@@ -1,59 +1,53 @@
 #!/usr/bin/env node
 /**
- * Report how much of each stylesheet belongs to one surface only.
+ * Report how much of each stylesheet only one surface can reach.
  *
  * Usage: node scripts/css-surface.mjs
  */
 import { readFileSync } from "node:fs";
 
-import { analyzeCssUsage, repoRoot, requiredClasses } from "./lib/css-usage.mjs";
+import postcss from "postcss";
+
+import { analyzeCssUsage, requiredClasses } from "./lib/css-usage.mjs";
 import { analyzeSurfaces } from "./lib/css-surface.mjs";
+import { repoRoot } from "./lib/module-graph.mjs";
 
 const surfaces = analyzeSurfaces();
 const { verdicts } = analyzeCssUsage();
+const names = [...surfaces.keys()].sort();
 
-const dashboard = surfaces.get("dashboard") ?? new Set();
-const pub = surfaces.get("public") ?? new Set();
+/** Which surfaces can render a given class. */
+const owners = (classes) => names.filter((name) => classes.some((c) => surfaces.get(name).has(c)));
 
-const tally = { dashboard: 0, public: 0, shared: 0, neither: 0 };
+const byClass = new Map();
 for (const name of verdicts.keys()) {
-  const inDash = dashboard.has(name);
-  const inPub = pub.has(name);
-  if (inDash && inPub) tally.shared += 1;
-  else if (inDash) tally.dashboard += 1;
-  else if (inPub) tally.public += 1;
-  else tally.neither += 1;
+  const who = owners([name]);
+  const key = who.length === 0 ? "unreachable" : who.join("+");
+  byClass.set(key, (byClass.get(key) ?? 0) + 1);
+}
+console.log("classes by surface:");
+for (const [key, count] of [...byClass].sort((a, b) => b[1] - a[1])) {
+  console.log(`  ${key.padEnd(24)} ${String(count).padStart(5)}`);
 }
 
-console.log("classes by surface:", tally);
-
-/* Rule-level weight, since a class count says nothing about bytes. */
-const postcss = (await import("postcss")).default;
-
 for (const rel of ["src/app/globals.css", "src/app/public-v2.css"]) {
-  const css = readFileSync(`${repoRoot}/${rel}`, "utf8");
-  const root = postcss.parse(css);
-  const bytes = { dashboard: 0, public: 0, shared: 0, unclassed: 0 };
-  const rules = { dashboard: 0, public: 0, shared: 0, unclassed: 0 };
+  const root = postcss.parse(readFileSync(`${repoRoot}/${rel}`, "utf8"));
+  const bytes = new Map();
+  const rules = new Map();
 
   root.walkRules((rule) => {
     const classes = rule.selectors.flatMap(requiredClasses);
-    if (!classes.length) {
-      bytes.unclassed += rule.toString().length;
-      rules.unclassed += 1;
-      return;
-    }
-    const inDash = classes.some((c) => dashboard.has(c));
-    const inPub = classes.some((c) => pub.has(c));
-    const key = inDash && inPub ? "shared" : inDash ? "dashboard" : inPub ? "public" : "unclassed";
-    bytes[key] += rule.toString().length;
-    rules[key] += 1;
+    /* A rule with no class in it — a bare element or :root — belongs to every
+       surface by definition, so it can never be moved out of the shared file. */
+    const key = classes.length === 0 ? "element/token" : (owners(classes).join("+") || "unreachable");
+    bytes.set(key, (bytes.get(key) ?? 0) + rule.toString().length);
+    rules.set(key, (rules.get(key) ?? 0) + 1);
   });
 
   console.log(`\n${rel}`);
-  for (const key of ["dashboard", "public", "shared", "unclassed"]) {
+  for (const [key, count] of [...bytes].sort((a, b) => b[1] - a[1])) {
     console.log(
-      `  ${key.padEnd(10)} ${String(rules[key]).padStart(5)} rules  ${(bytes[key] / 1024).toFixed(1).padStart(8)}kb`,
+      `  ${key.padEnd(24)} ${String(rules.get(key)).padStart(5)} rules  ${(count / 1024).toFixed(1).padStart(8)}kb`,
     );
   }
 }

@@ -48,11 +48,23 @@ const FREEZE = `
   Geometry as well as colour. Colour alone would have called a stylesheet
   deletion safe while a grid collapsed underneath it: a removed display or
   padding rule moves everything and repaints nothing.
+
+  The text is fingerprinted alongside it, because geometry is not purely a
+  function of style. The dashboard says "Last call 15h ago", and an hour later
+  it says 16h and the span is a pixel narrower — a difference the diff reported
+  as a styling regression when the stylesheet had not changed at all. Recording
+  a hash of the text lets the comparison tell a rule that moved something from
+  data that moved underneath it, without storing the page's contents.
 */
 const COLLECT = () =>
   Array.from(document.querySelectorAll("body *")).map((el, i) => {
     const cs = getComputedStyle(el);
     const r = el.getBoundingClientRect();
+    const text = el.textContent ?? "";
+    let hash = 0;
+    for (let c = 0; c < text.length; c++) {
+      hash = (Math.imul(hash, 31) + text.charCodeAt(c)) | 0;
+    }
     return [
       i,
       el.tagName,
@@ -69,6 +81,7 @@ const COLLECT = () =>
       Math.round(r.y),
       Math.round(r.width),
       Math.round(r.height),
+      (hash >>> 0).toString(36),
     ].join("|");
   });
 
