@@ -753,10 +753,14 @@
   padding: 0;
 }
 
-.dispatch-col-empty {
-  font-size: 0.8125rem;
-  color: var(--ash-soft);
-  padding: 0.5rem 0;
+/*
+  An empty column, said without words. The column header carries the count, so
+  a sentence here repeated it — once per column on a quiet day.
+*/
+.dispatch-col-slot {
+  min-height: 3.25rem;
+  border: 1px dashed var(--hairline, #3d3a36);
+  border-radius: 0.25rem;
 }
 
 .dispatch-job-chip {

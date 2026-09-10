@@ -397,7 +397,13 @@ export default function DispatchPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="dispatch-col-empty font-sans">Nothing scheduled</p>
+                /*
+                  The header above already says "0 jobs", so a sentence here
+                  only repeats it — and on a quiet day it repeated it once per
+                  column. A dashed slot says the column is empty rather than
+                  broken, and says it without words.
+                */
+                <div className="dispatch-col-slot" aria-hidden />
               )}
             </section>
           ))}

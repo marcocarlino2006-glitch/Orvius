@@ -241,10 +241,13 @@ const COLLECT = `
       per crew slot and put "Nothing scheduled" in each, so an empty day read
       as four separate pieces of bad news instead of one quiet day.
     */
+    const EMPTY_SLOT = "[class*=empty], [class*=-none], [role=status]";
     const emptyTexts = new Map();
-    for (const el of document.querySelectorAll("[class*=empty], [class*=-none], [role=status]")) {
+    for (const el of document.querySelectorAll(EMPTY_SLOT)) {
       const cs = getComputedStyle(el);
       if (cs.display === "none" || cs.visibility === "hidden") continue;
+      /* Innermost only: a wrapper and its one child read as the same text. */
+      if (el.querySelector(EMPTY_SLOT)) continue;
       const text = (el.textContent || "").trim().replace(/\\s+/g, " ");
       if (!text || text.length > 80) continue;
       if (!emptyTexts.has(text)) emptyTexts.set(text, []);
