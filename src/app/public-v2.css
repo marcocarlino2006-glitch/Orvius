@@ -602,7 +602,7 @@ body {
 
 .ov-public .mkt-product .mkt-product-rail-list time {
   color: #8f8f8f !important;
-  font-size: 0.5625rem !important;
+  font-size: 0.625rem !important;
 }
 
 .ov-public .mkt-product .mkt-product-rail-list strong {
@@ -1334,7 +1334,7 @@ body {
   background: rgb(255 255 255 / 0.04);
   color: #a8a8a8;
   font-family: var(--ov-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.14em;
 }
@@ -2687,17 +2687,23 @@ body {
     background 220ms ease;
 }
 
+/* This board is the part of the hero people actually read to understand what
+   the product does, so it gets the 10px label tier rather than the 9px floor;
+   uppercase mono this letter-spaced needs the extra pixel to stay a word. */
 .ov-public .ov-capture-row dt {
-  color: #8f8f8f;
+  color: #9a9a9a;
   font-family: var(--ov-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
+/* An empty field should read as pending, so it stays quieter than its label —
+   but the em-dash was the dimmest text in the hero at 4.58:1, close enough to
+   the line to look broken rather than waiting. */
 .ov-public .ov-capture-row dd {
   margin: 0;
-  color: #808080;
+  color: #8f8f8f;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
 }
