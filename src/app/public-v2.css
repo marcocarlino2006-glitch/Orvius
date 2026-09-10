@@ -2543,18 +2543,187 @@ body {
   margin: 0;
 }
 
+/* ---- The desk -------------------------------------------------------------
+   The console is software running on a machine at 2 AM, so it is presented
+   through a screen rather than pasted onto the page: a bezel, a wallpaper that
+   drifts, and a menubar the window sits under. Everything here is decoration —
+   the desk carries no text a reader needs, so it is aria-hidden in the markup
+   and nothing in it is focusable. */
+
+.ov-public .ov-console-desk {
+  position: relative;
+  padding: 0 clamp(10px, 1.6vw, 20px) clamp(10px, 1.6vw, 20px);
+  border: 1px solid var(--ov-hairline-strong);
+  border-radius: 20px;
+  /* The bezel reads as the dark edge of a monitor in both colorways; a screen
+     does not turn to paper when the page does. */
+  background: #14120b;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 40px 110px -34px rgb(0 0 0 / 0.7);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ov-public .ov-console-wallpaper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(168deg, #2c2415 0%, #17140c 58%, #100f09 100%);
+  overflow: hidden;
+}
+
+/* Three slow blooms at different periods. Because the periods do not divide
+   into each other the pattern does not visibly repeat, which is what keeps it
+   feeling like ambient light rather than a looping asset. */
+.ov-public .ov-console-aurora {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(46px);
+  will-change: transform;
+}
+
+.ov-public .ov-console-aurora--a {
+  top: -28%;
+  left: -14%;
+  width: 62%;
+  height: 86%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ov-copper) 60%, transparent),
+    transparent 68%
+  );
+  animation: ov-aurora-a 26s ease-in-out infinite;
+}
+
+.ov-public .ov-console-aurora--b {
+  right: -20%;
+  bottom: -34%;
+  width: 70%;
+  height: 92%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ov-emerald) 48%, transparent),
+    transparent 66%
+  );
+  animation: ov-aurora-b 37s ease-in-out infinite;
+}
+
+.ov-public .ov-console-aurora--c {
+  top: 18%;
+  left: 38%;
+  width: 46%;
+  height: 62%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ov-amber) 40%, transparent),
+    transparent 70%
+  );
+  animation: ov-aurora-c 43s ease-in-out infinite;
+}
+
+@keyframes ov-aurora-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(14%, 10%, 0) scale(1.18);
+  }
+}
+
+@keyframes ov-aurora-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(-16%, -12%, 0) scale(0.92);
+  }
+}
+
+@keyframes ov-aurora-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.94);
+  }
+  50% {
+    transform: translate3d(-10%, 14%, 0) scale(1.16);
+  }
+}
+
+/*
+  The wallpaper is ambience, not information, so it stops moving for anyone who
+  has asked the OS to stop motion. The gradient stays — it is the still frame of
+  the same picture, so nothing about the composition changes.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-console-aurora {
+    animation: none;
+  }
+}
+
+.ov-public .ov-console-menubar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 30px;
+  padding: 0 0.35rem;
+  color: color-mix(in srgb, #edecec 62%, transparent);
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-console-lights {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.ov-public .ov-console-lights i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.22);
+}
+
+/* One lit pip, in the accent, so the machine reads as awake. */
+.ov-public .ov-console-lights i:first-child {
+  background: var(--ov-copper);
+}
+
+.ov-public .ov-console-menutitle {
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, #edecec 82%, transparent);
+}
+
+.ov-public .ov-console-menuclock {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A legacy `.mkt-page *` rule targets every element directly, so inherited type
+   loses to it. The console states its own letterset instead of relying on that. */
 .ov-public .ov-console-frame,
 .ov-public .ov-console-frame * {
   font-family: var(--ov-mono);
 }
 
 .ov-public .ov-console-frame {
+  position: relative;
+  z-index: 1;
   border: 1px solid var(--ov-hairline);
-  border-radius: 16px;
+  border-radius: 12px;
   background: #1b1913;
+  /* Drawn as a window lifted off the wallpaper behind it rather than a card
+     lifted off the page — hence a shorter, tighter drop than the desk's. */
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.06),
-    0 30px 80px -28px rgb(0 0 0 / 0.85);
+    0 18px 44px -20px rgb(0 0 0 / 0.9);
   overflow: hidden;
 }
 
