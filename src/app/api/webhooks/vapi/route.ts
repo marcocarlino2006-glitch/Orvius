@@ -91,7 +91,14 @@ export async function POST(request: NextRequest) {
       source: "vapi",
       externalId: vapiCallId,
       eventType: type,
-      status: "skipped",
+      /*
+        "failed", not "skipped", and the distinction is the whole fix.
+        claimWebhookEvent only reclaims rows left in processing, failed or
+        error — a skipped row is treated as settled forever. So when the shop
+        row did show up and Vapi re-sent the report, the claim was refused by
+        the record of the first miss and the retry accomplished nothing.
+      */
+      status: "failed",
       payload: { type, inboundNumber, assistantId },
       error: "business not found",
     });
@@ -101,7 +108,18 @@ export async function POST(request: NextRequest) {
       assistantId,
       type,
     });
-    return NextResponse.json({ ok: true, skipped: "business not found" });
+    /*
+      A call we cannot attribute to a shop is a dropped call, not a skip. This
+      answered 200, which told Vapi the report was handled and threw away the
+      only copy of it — no lead, no alert, and nothing on either side saying a
+      job had gone missing. The usual cause is a shop row that is not visible
+      yet or a line that was just moved, both of which a redelivery fixes, so
+      the honest answer is that we could not accept it.
+    */
+    return NextResponse.json(
+      { ok: false, error: "business not found for call" },
+      { status: 503 },
+    );
   }
 
   if (type === "call-started" || type === "status-update") {

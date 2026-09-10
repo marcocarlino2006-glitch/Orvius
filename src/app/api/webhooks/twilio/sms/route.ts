@@ -59,6 +59,21 @@ export async function POST(request: NextRequest) {
   const business = await resolveBusinessByInboundPhone(to);
 
   if (!business) {
+    /*
+      `to` is one of our own numbers, so failing to resolve it to a shop is a
+      misconfiguration on our side and the text is lost. Unlike the Vapi report
+      this cannot answer 5xx — Twilio does not retry inbound message webhooks
+      and a non-2xx would also swallow the reply to the customer — so the miss
+      is written down instead of leaving only a log line nobody queries.
+    */
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `unrouted:${to}:${from}:${Date.now()}`,
+      eventType: "inbound",
+      status: "failed",
+      payload: { from, to },
+      error: "no shop owns this inbound number",
+    });
     logWarn("twilio.sms.business_not_found", { from, to, messageSid });
     return twimlResponse(
       "Thanks for your message. We'll follow up as soon as possible.",
