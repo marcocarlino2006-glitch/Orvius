@@ -11,14 +11,22 @@
  * on a JS timer, so the split between played and unplayed waveform bars will
  * differ run to run. Same colours, different counts: that one is expected.
  *
- *   node scripts/snapshot-computed.cjs <outFile> [baseUrl]
+ * The dashboard is included behind a session. Leaving it out would have made
+ * this useless for the change it was written for: most of the stylesheet is
+ * product UI, so a diff that stops at the sign-in wall cannot say whether a
+ * deletion moved anything an owner looks at.
+ *
+ *   node scripts/snapshot-computed.cjs <outFile> [baseUrl] [--public-only]
  */
 const { writeFileSync } = require("node:fs");
 const puppeteer = require("puppeteer");
 
 const PAGES = require("./public-pages.cjs");
 const OUT = process.argv[2];
-const BASE = process.argv[3] ?? "http://localhost:3000";
+const BASE = process.argv[3]?.startsWith("http")
+  ? process.argv[3]
+  : "http://localhost:3000";
+const PUBLIC_ONLY = process.argv.includes("--public-only");
 const THEMES = ["night", "day"];
 
 if (!OUT) {
@@ -36,9 +44,15 @@ const FREEZE = `
   }
 `;
 
+/*
+  Geometry as well as colour. Colour alone would have called a stylesheet
+  deletion safe while a grid collapsed underneath it: a removed display or
+  padding rule moves everything and repaints nothing.
+*/
 const COLLECT = () =>
   Array.from(document.querySelectorAll("body *")).map((el, i) => {
     const cs = getComputedStyle(el);
+    const r = el.getBoundingClientRect();
     return [
       i,
       el.tagName,
@@ -47,8 +61,48 @@ const COLLECT = () =>
       cs.backgroundColor,
       cs.borderTopColor,
       cs.borderBottomColor,
+      cs.display,
+      cs.position,
+      cs.fontSize,
+      cs.fontWeight,
+      Math.round(r.x),
+      Math.round(r.y),
+      Math.round(r.width),
+      Math.round(r.height),
     ].join("|");
   });
+
+async function record(context, path, theme, snapshot) {
+  const page = await context.newPage();
+  await page.setViewport({ width: 1440, height: 900 });
+  await page.emulateMediaFeatures([
+    {
+      name: "prefers-color-scheme",
+      value: theme === "night" ? "dark" : "light",
+    },
+  ]);
+  await page
+    .goto(`${BASE}${path}`, { waitUntil: "networkidle2", timeout: 60000 })
+    .catch(() => page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" }));
+  await page.addStyleTag({ content: FREEZE });
+  await page.evaluate((t) => {
+    document.documentElement.setAttribute("data-theme", t);
+  }, theme);
+
+  /* Pages that fetch on mount keep changing shape after load, and a
+     half-rendered page reads as a styling change when it is not. Settle on
+     a stable element count before measuring. */
+  let stable = 0;
+  let last = -1;
+  for (let tick = 0; tick < 40 && stable < 3; tick++) {
+    await new Promise((r) => setTimeout(r, 250));
+    const n = await page.evaluate(() => document.querySelectorAll("body *").length);
+    stable = n === last ? stable + 1 : 0;
+    last = n;
+  }
+  snapshot[`${path}::${theme}`] = await page.evaluate(COLLECT);
+  await page.close();
+}
 
 (async () => {
   const browser = await puppeteer.launch({
@@ -58,35 +112,29 @@ const COLLECT = () =>
 
   for (const path of PAGES) {
     for (const theme of THEMES) {
-      const page = await browser.newPage();
-      await page.setViewport({ width: 1440, height: 900 });
-      await page.emulateMediaFeatures([
-        {
-          name: "prefers-color-scheme",
-          value: theme === "night" ? "dark" : "light",
-        },
-      ]);
-      await page
-        .goto(`${BASE}${path}`, { waitUntil: "networkidle2", timeout: 60000 })
-        .catch(() => page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" }));
-      await page.addStyleTag({ content: FREEZE });
-      await page.evaluate((t) => {
-        document.documentElement.setAttribute("data-theme", t);
-      }, theme);
+      await record(browser, path, theme, snapshot);
+    }
+  }
 
-      /* Pages that fetch on mount keep changing shape after load, and a
-         half-rendered page reads as a styling change when it is not. Settle on
-         a stable element count before measuring. */
-      let stable = 0;
-      let last = -1;
-      for (let tick = 0; tick < 40 && stable < 3; tick++) {
-        await new Promise((r) => setTimeout(r, 250));
-        const n = await page.evaluate(() => document.querySelectorAll("body *").length);
-        stable = n === last ? stable + 1 : 0;
-        last = n;
+  if (!PUBLIC_ONLY) {
+    const { dashboardPages } = require("./dashboard-pages.cjs");
+    const { signInForAudit } = require("./audit-session.cjs");
+
+    /* Its own context, so the session cookie cannot leak into the public
+       renders above and change what they show. */
+    const owner = await browser.createBrowserContext();
+    const page = await owner.newPage();
+    const fixture = await signInForAudit(page, BASE).catch(() => null);
+    await page.close();
+
+    if (!fixture) {
+      console.warn("dashboard skipped: could not sign in");
+    } else {
+      for (const path of dashboardPages(fixture)) {
+        for (const theme of THEMES) {
+          await record(owner, path, theme, snapshot);
+        }
       }
-      snapshot[`${path}::${theme}`] = await page.evaluate(COLLECT);
-      await page.close();
     }
   }
 
