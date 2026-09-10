@@ -17,7 +17,17 @@ type ProEconomicsPanelProps = {
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Owner economics — attributed bookings, estimated value, collected $, open $.
+ * Owner economics — the funnel, then the money, then the proof.
+ *
+ * This used to be two sections stacked on the board. One was headed "last 7
+ * days · economics" and the other "shop economics · last 7 days", and between
+ * them they printed the pipeline twice, collected twice, and jobs booked
+ * under two different names. An owner reading down the page had to work out
+ * whether the second panel was new information. It was not.
+ *
+ * So the counts and the dollars are one section now, in that order, because
+ * the counts explain the dollars: calls became leads became jobs, and the
+ * jobs are what the money is.
  */
 export function ProEconomicsPanel({
   outcomes,
@@ -62,6 +72,16 @@ export function ProEconomicsPanel({
   const collected = formatCents(outcomes.collectedCents);
   const pipeline = formatCents(outcomes.estimatedPipelineCents);
 
+  const funnel = [
+    { label: "Calls", value: String(outcomes.calls) },
+    { label: "Leads", value: String(outcomes.leads) },
+    { label: "Booked", value: String(outcomes.jobsBooked) },
+    {
+      label: "Booking rate",
+      value: outcomes.bookingRate != null ? `${outcomes.bookingRate}%` : "—",
+    },
+  ];
+
   return (
     <section
       id="shop-economics"
@@ -69,12 +89,22 @@ export function ProEconomicsPanel({
       aria-label="Shop economics"
     >
       <div className="pro-economics-head">
-        <p className="shop-outcomes-kicker type-eyebrow">Shop economics</p>
         <p className="pro-economics-title">
           {shopName ? `${shopName} · ` : ""}
-          last {outcomes.windowDays} days
+          Last {outcomes.windowDays} days
         </p>
       </div>
+
+      {/* The funnel first: these counts are what the dollars below are made of. */}
+      <dl className="pro-economics-funnel">
+        {funnel.map((step, index) => (
+          <div key={step.label}>
+            {index > 0 ? <span className="pro-economics-funnel-arrow" aria-hidden /> : null}
+            <dt>{step.label}</dt>
+            <dd>{step.value}</dd>
+          </div>
+        ))}
+      </dl>
 
       {stale && !proofOnBoard ? (
         <p className="pro-economics-stale font-sans" role="status">
@@ -132,6 +162,56 @@ export function ProEconomicsPanel({
           </p>
         </div>
       </dl>
+
+      {/*
+        The nuance the grid cannot hold: which of these were after hours,
+        which were emergencies, and what is still unmeasured because the shop
+        has not set a baseline.
+      */}
+      <ul className="pro-economics-notes">
+        {outcomes.afterHoursLeads > 0 ? (
+          <li>
+            <strong>{outcomes.afterHoursLeads}</strong> after-hours leads ·{" "}
+            <strong>{outcomes.afterHoursBooked}</strong> booked
+          </li>
+        ) : null}
+        {outcomes.emergenciesBooked > 0 ? (
+          <li>
+            <strong>{outcomes.emergenciesBooked}</strong> emergencies booked
+          </li>
+        ) : null}
+        {outcomes.unassignedJobs > 0 ? (
+          <li>
+            <strong>{outcomes.unassignedJobs}</strong> jobs still need a tech
+          </li>
+        ) : null}
+        {outcomes.jobsPerWeekVsBaseline != null ? (
+          <li>
+            Jobs/week vs before Orvius:{" "}
+            <strong>
+              {outcomes.jobsPerWeekVsBaseline > 0 ? "+" : ""}
+              {outcomes.jobsPerWeekVsBaseline}
+            </strong>
+            {" · owner-reported context, not attribution"}
+          </li>
+        ) : null}
+        {!outcomes.avgTicketCents ? (
+          <li>
+            <Link href="/dashboard/settings" className="pro-section-link">
+              Set avg ticket →
+            </Link>{" "}
+            to estimate captured-demand value
+          </li>
+        ) : null}
+        {!outcomes.economicsReady ? (
+          <li>
+            <Link href="/dashboard/settings" className="pro-section-link">
+              Set before-Orvius baseline →
+            </Link>{" "}
+            for measured lift (jobs/week + missed calls)
+          </li>
+        ) : null}
+      </ul>
 
       <div className="pro-economics-actions">
         {stale && proofOnBoard ? (

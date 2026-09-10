@@ -12938,7 +12938,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell .attention-queue-kicker,
 .os-shell .attention-item-kindlabel,
 .os-shell .shop-outcomes-kicker,
-.os-shell .pro-dispatch-today-kicker,
 .os-shell .pay-prompt-kicker,
 .os-shell .type-eyebrow,
 .os-shell .pro-rail-status,
@@ -12953,4 +12952,186 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell .attention-item-age {
   font-family: var(--font-mono), ui-monospace, monospace !important;
   font-variant-numeric: tabular-nums;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Surface hierarchy on the board
+
+   One rule up the file hands roughly twenty components the same fill, the
+   same 1px border and the same radius: the attention board, the economics
+   panel, every record card, every banner, every empty state and the ask
+   dock. It reads as a wireframe with content poured into it, because nothing
+   says what matters by how it looks — only by where it sits.
+
+   So the main column gets three tiers instead of one: the board is lifted and
+   carries the brand edge, reading sections sit on the canvas behind a
+   hairline, and record cards keep the quiet card they should have.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/*
+  Tier one, the thing you act on. The only lifted surface in the column and
+  the only place the brand colour touches structure, so the eye lands here
+  before anywhere else on the page.
+*/
+.os-shell-night .attention-queue {
+  position: relative;
+  overflow: hidden;
+  background: #262420 !important;
+  border: 1px solid #46443e !important;
+  border-radius: 0.5rem !important;
+  padding: 0.95rem !important;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 10px 28px -18px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* The brand edge. Structure, not text, so it costs no contrast. */
+.os-shell-night .attention-queue::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--signal) 0%,
+    var(--signal-hot) 38%,
+    color-mix(in srgb, var(--signal) 25%, transparent) 100%
+  );
+}
+
+/*
+  Tier two, the things you read. A section heading and a hairline is enough
+  to separate them; boxing them made the page four identical rectangles deep
+  and buried the one rectangle that mattered.
+*/
+.os-shell-night .pro-economics,
+.os-shell-night .pro-dispatch-today {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid #2e2c26 !important;
+  border-radius: 0 !important;
+  padding: 1.15rem 0 0 !important;
+  box-shadow: none !important;
+}
+
+/*
+  The heading of a tier-two section, marked by a short brand rule rather than
+  another tiny grey eyebrow. There were ten of those on this page.
+*/
+.os-shell-night .pro-economics-title,
+.os-shell-night .pro-dispatch-today-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.15rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+  color: #f4f4f4 !important;
+}
+
+.os-shell-night .pro-economics-title::before,
+.os-shell-night .pro-dispatch-today-kicker::before {
+  content: "";
+  width: 0.1875rem;
+  height: 0.875rem;
+  flex: none;
+  border-radius: 999px;
+  background: var(--signal-hot);
+}
+
+/*
+  The funnel: calls became leads became jobs. Read as one line with the
+  arrows drawn between the steps, so it is legible as a sequence rather than
+  as four unrelated counters in four boxes.
+*/
+.os-shell-night .pro-economics-funnel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.9rem;
+  margin: 0.85rem 0 0 !important;
+}
+
+.os-shell-night .pro-economics-funnel > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+/*
+  The connector between two steps. Centred on the figures rather than left on
+  the text baseline, where a 1px rule reads as a stray dash sitting under the
+  labels instead of as a link between the counts.
+*/
+.os-shell-night .pro-economics-funnel-arrow {
+  width: 1.25rem;
+  height: 1px;
+  align-self: center;
+  margin-right: 0.15rem;
+  background: #46443e;
+}
+
+.os-shell-night .pro-economics-funnel dt {
+  order: 2;
+  font-size: 0.6875rem;
+  color: #a09f9e;
+}
+
+.os-shell-night .pro-economics-funnel dd {
+  order: 1;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #f4f4f4;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell-night .pro-economics-notes {
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: #a09f9e;
+}
+
+.os-shell-night .pro-economics-notes strong {
+  font-weight: 600;
+  color: #e7e7e7;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+  The active screen, in the brand colour rather than a 16% wash that read as
+  another grey. The bar carries the identity; the label stays neutral so it
+  keeps its contrast.
+*/
+.os-sidebar-pro .os-nav-link-active {
+  background: color-mix(in srgb, var(--signal) 22%, transparent);
+  color: #fbfbfb;
+  box-shadow: inset 0.1875rem 0 0 var(--signal-hot);
+}
+
+.os-sidebar-pro .os-nav-link-active svg {
+  color: var(--signal-hot);
+}
+
+/*
+  The money labels, in the same voice as the funnel above them. They were
+  0.16em-tracked uppercase micro-caps, which is the device this page already
+  used ten times over — and using it inside a section whose own funnel labels
+  are sentence case made one section look like two.
+*/
+.os-shell-night .pro-economics-grid dt {
+  font-size: 0.6875rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #a09f9e !important;
 }

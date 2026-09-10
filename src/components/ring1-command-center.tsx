@@ -9,10 +9,8 @@ import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProLineWatch } from "@/components/pro-line-watch";
 import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
-import { ProRightNow } from "@/components/pro-right-now";
 import { ProSetupScore } from "@/components/pro-setup-score";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
-import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import type { AttentionItem } from "@/lib/attention-types";
@@ -107,16 +105,15 @@ export function Ring1CommandCenter() {
     !(data?.health?.stuckPendingAlerts) &&
     !(data?.wedge && !data.wedge.ready);
 
+  /*
+    The board opens the page. A four-tile "Right now" strip used to sit above
+    it restating the rail beside it almost line for line — its alert-speed and
+    last-call tiles were the same sentences as Line watch — and on a quiet
+    shop three of its four tiles were zeros. Four boxes of restated status is
+    not what a command centre should show first.
+  */
   return (
     <section className="ring1-command ring1-cockpit" aria-label="Command">
-      <ProRightNow
-        waiting={newLeads}
-        unassigned={data?.dispatchToday.unassigned ?? 0}
-        health={data?.health ?? null}
-        outcomes={data?.outcomes ?? null}
-        loading={loading}
-      />
-
       <div className="ring1-cockpit-main">
         <ApproveQueue onChange={load} />
 
@@ -126,8 +123,6 @@ export function Ring1CommandCenter() {
           technicians={data?.technicians ?? []}
           onAction={load}
         />
-
-        <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
 
         {!loading && data?.outcomes ? (
           <ProEconomicsPanel

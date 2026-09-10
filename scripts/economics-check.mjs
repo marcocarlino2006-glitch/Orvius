@@ -26,7 +26,6 @@ console.log("\n💰 Orvius economics mastery check\n");
 const requiredFiles = [
   "src/lib/money.ts",
   "src/lib/shop-outcomes.ts",
-  "src/components/pro-shop-outcomes.tsx",
   "src/components/pro-economics-panel.tsx",
   "src/app/api/shop/weekly-proof/route.ts",
   "src/app/api/account/export/route.ts",
@@ -41,6 +40,40 @@ for (const rel of requiredFiles) {
       : fail(`${rel} missing`),
   );
 }
+
+/*
+  The economics surface used to be asserted by counting files, which two
+  panels satisfied while printing the pipeline twice under two headings. What
+  matters is that one section carries the whole story: the funnel that
+  produced the jobs, the dollars those jobs represent, and the proof ritual.
+  So the check reads the panel instead of the directory.
+*/
+const panelSrc = readFileSync(
+  resolve(root, "src/components/pro-economics-panel.tsx"),
+  "utf8",
+);
+for (const [what, needle] of [
+  ["the funnel", "pro-economics-funnel"],
+  ["the money grid", "pro-economics-grid"],
+  ["the weekly proof ritual", "copyWeeklyProofRitual"],
+]) {
+  results.push(
+    panelSrc.includes(needle)
+      ? pass(`one economics section carries ${what}`)
+      : fail(`economics section missing ${what}`),
+  );
+}
+
+const commandSrc = readFileSync(
+  resolve(root, "src/components/ring1-command-center.tsx"),
+  "utf8",
+);
+const economicsSections = (commandSrc.match(/<ProEconomicsPanel|<ProShopOutcomes/g) ?? []).length;
+results.push(
+  economicsSections === 1
+    ? pass("Command shows exactly one economics section")
+    : fail(`Command shows ${economicsSections} economics sections — the owner reads it twice`),
+);
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");
 for (const token of [
