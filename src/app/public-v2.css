@@ -125,9 +125,23 @@ body {
   font-weight: 700 !important;
   letter-spacing: var(--logo-word-tracking, 0.18em) !important;
   text-transform: uppercase !important;
-  /* Open tracking adds space after the last glyph; pull it back so the lockup
-     is optically centred against the mark. */
+  /* Open tracking adds space after the last glyph; pull it back so the word
+     sits flush with whatever it is aligned against. */
   margin-right: -0.18em;
+}
+
+/*
+  In the header the name stands alone, with no mark to share the weight and no
+  status pill to trail it, so it is set larger and tracked tighter than the
+  label-sized lockup it replaced — at 0.9375rem and 0.18em it read as a caption
+  rather than as the thing the page is named after.
+*/
+.ov-public .mkt-nav-brand .orvius-logo-word,
+.ov-auth .mkt-nav-brand .orvius-logo-word,
+.ov-signin .mkt-nav-brand .orvius-logo-word {
+  font-size: 1.0625rem !important;
+  letter-spacing: 0.13em !important;
+  margin-right: -0.13em;
 }
 
 /* Live system status, set beside the wordmark. */
@@ -941,15 +955,16 @@ body {
   background: var(--ov-paper) !important;
 }
 
-/* The legacy closing block centers via flex, so text-align alone cannot undo it. */
+/* The closing invitation is centred: it is the one block on the page that is
+   addressed straight at the reader rather than laid out as a column of record. */
 .ov-public .mkt-trynow-inner {
   width: min(100%, 1240px) !important;
   max-width: 1240px !important;
   margin: 0 auto !important;
   display: flex !important;
   flex-direction: column !important;
-  align-items: flex-start !important;
-  text-align: left !important;
+  align-items: center !important;
+  text-align: center !important;
 }
 
 .ov-public .mkt-trynow-eyebrow {
@@ -986,7 +1001,7 @@ body {
   display: flex !important;
   flex-wrap: wrap !important;
   align-items: center !important;
-  justify-content: flex-start !important;
+  justify-content: center !important;
   gap: 1.25rem !important;
   margin-top: 2.1rem !important;
 }

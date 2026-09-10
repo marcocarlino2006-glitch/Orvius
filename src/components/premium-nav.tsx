@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { OrviusLogo } from "@/components/orvius-logo";
-import { SystemStatusPill } from "@/components/system-status-pill";
 
 const NAV = [
   { href: "/product", label: "Product", i18n: "nav.product" },
@@ -72,14 +71,15 @@ export function PremiumNav() {
       >
         <div className="mkt-nav-inner">
           <div className="mkt-nav-brandline">
+            {/* The name carries the header on its own — no mark beside it and
+                no status pill trailing it. */}
             <Link
               href="/"
               className="mkt-nav-brand"
               onClick={() => setMenuOpen(false)}
             >
-              <OrviusLogo variant="void" size="lg" />
+              <OrviusLogo variant="void" size="lg" wordmarkOnly />
             </Link>
-            <SystemStatusPill className="ov-status-pill--nav" />
           </div>
 
           <nav className="mkt-nav-links" aria-label="Main">
@@ -137,9 +137,8 @@ export function PremiumNav() {
                 className="mkt-nav-brand"
                 onClick={() => setMenuOpen(false)}
               >
-                <OrviusLogo variant="void" size="lg" />
+                <OrviusLogo variant="void" size="lg" wordmarkOnly />
               </Link>
-              <SystemStatusPill />
             </div>
             <button
               type="button"
