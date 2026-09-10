@@ -286,7 +286,7 @@ h3 {
 
 .input {
   width: 100%;
-  border-radius: 0.45rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--rule);
   background: var(--white);
   padding: 0.875rem 1rem;
@@ -629,7 +629,7 @@ h3 {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.875rem;
   padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   transition:
     color 160ms ease,
     background 160ms ease;
@@ -673,7 +673,7 @@ h3 {
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   border: 1px solid transparent;
   transition:
     border-color 160ms ease,
@@ -780,7 +780,7 @@ h3 {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 1rem;
   padding: 0.75rem 0.5rem;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   transition:
     color 160ms ease,
     background 160ms ease;
@@ -1090,7 +1090,7 @@ h3 {
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.4rem 0.5rem;
-  border-radius: 0.3125rem;
+  border-radius: 0.25rem;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--ash);
@@ -1120,7 +1120,7 @@ h3 {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 0.15rem 0.35rem;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   background: color-mix(in srgb, var(--signal) 14%, var(--white));
   color: var(--signal-dim);
 }
@@ -1211,7 +1211,7 @@ h3 {
   flex-direction: column;
   gap: 0;
   border: 1px solid var(--rule);
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   overflow: hidden;
 }
 
@@ -1430,7 +1430,7 @@ h3 {
 .call-demo {
   display: flex; flex-direction: column; gap: 0.875rem;
   padding: 1.25rem 1.375rem;
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -1626,7 +1626,7 @@ h3 {
 
 .os-sidebar-pro .os-nav-link {
   color: color-mix(in srgb, var(--mist) 72%, var(--ash));
-  border-radius: 0.4375rem;
+  border-radius: 0.5rem;
   padding: 0.5rem 0.625rem;
 }
 
@@ -2023,7 +2023,7 @@ h3 {
   margin: 0 0.5rem;
   padding: 0.625rem 0.5rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: transparent;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -2164,7 +2164,7 @@ h3 {
 .os-ask-dock-panel {
   width: 100%;
   padding: 1rem;
-  border-radius: 0.875rem;
+  border-radius: 0.75rem;
   border: 1px solid color-mix(in srgb, var(--void) 10%, var(--rule));
   background: color-mix(in srgb, var(--white) 92%, var(--chalk));
   box-shadow:
@@ -2221,7 +2221,7 @@ h3 {
   width: 1.75rem;
   height: 1.75rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: color-mix(in srgb, var(--void) 5%, var(--fog));
   color: var(--ash);
   font-size: 1.125rem;
@@ -2444,7 +2444,7 @@ h3 {
   position: relative;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   padding: 1rem 1.125rem;
   background: var(--white);
   box-shadow: var(--shadow-soft);
@@ -2483,7 +2483,7 @@ h3 {
 /* Pro panels */
 .pro-panel {
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   background: var(--white);
   box-shadow: var(--shadow-soft);
   overflow: hidden;
@@ -2513,7 +2513,7 @@ h3 {
 
 .pro-empty-state {
   border: 1px dashed color-mix(in srgb, var(--void) 12%, var(--rule));
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   background:
     radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--signal) 5%, transparent), transparent 65%),
     color-mix(in srgb, var(--fog) 45%, var(--white));
@@ -2574,7 +2574,7 @@ h3 {
 .pro-filter-tab {
   padding: 0.5rem 0.875rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: transparent;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -2654,7 +2654,7 @@ h3 {
 .live-status-bar-pro {
   margin-bottom: 1.75rem;
   border: 1px solid color-mix(in srgb, var(--live) 22%, var(--rule));
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   background:
     radial-gradient(ellipse 80% 100% at 0% 50%, color-mix(in srgb, var(--live) 6%, transparent), transparent 70%),
     var(--white);
@@ -2869,7 +2869,7 @@ h3 {
 .pro-ring-banner {
   margin-bottom: 1.75rem;
   padding: 1rem 1.25rem;
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
   background:
     radial-gradient(ellipse 70% 100% at 0% 50%, color-mix(in srgb, var(--signal) 5%, transparent), transparent 70%),
@@ -2912,7 +2912,7 @@ h3 {
 .pro-search-input {
   width: 100%;
   padding-left: 2.75rem;
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--void) 10%, var(--rule));
   background: var(--white);
   box-shadow: var(--shadow-soft);
@@ -3328,7 +3328,7 @@ h3 {
   text-align: left;
   padding: 0.75rem 0.875rem;
   border: 1px solid var(--rule);
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: var(--chalk);
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
@@ -3361,7 +3361,7 @@ h3 {
 .pricing-needs-result {
   margin-top: 1.25rem;
   padding: 1rem 1.125rem;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   border: 1px solid color-mix(in srgb, var(--signal) 25%, var(--rule));
   background: color-mix(in srgb, var(--signal) 5%, var(--white));
 }
@@ -3458,7 +3458,7 @@ h3 {
   margin-bottom: 2.5rem;
   padding: 1.75rem;
   border: 1px solid var(--rule);
-  border-radius: 0.4375rem;
+  border-radius: 0.5rem;
   background: var(--white);
   box-shadow: var(--shadow-soft);
 }
@@ -3558,7 +3558,7 @@ h3 {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border: 1px solid var(--rule);
-  border-radius: 0.4375rem;
+  border-radius: 0.5rem;
   background: var(--white);
 }
 
@@ -3653,7 +3653,7 @@ h3 {
   margin: 0;
   padding: 0;
   border: 1px solid var(--rule);
-  border-radius: 0.4375rem;
+  border-radius: 0.5rem;
   background: var(--white);
   overflow: hidden;
 }
@@ -3736,7 +3736,7 @@ h3 {
   gap: 0.75rem;
   padding: 2rem 1.75rem;
   border: 1px solid var(--rule);
-  border-radius: 0.4375rem;
+  border-radius: 0.5rem;
   background: var(--chalk);
   box-shadow: var(--shadow-soft);
 }
@@ -3838,7 +3838,7 @@ h3 {
   gap: 1rem 1.5rem;
   margin-bottom: 1.5rem;
   padding: 1.125rem 1.25rem;
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--signal) 18%, var(--rule));
   background:
     radial-gradient(ellipse 80% 80% at 0% 0%, color-mix(in srgb, var(--signal) 5%, transparent), transparent 55%),
@@ -3854,7 +3854,7 @@ h3 {
   gap: 1rem 1.25rem;
   margin-bottom: 1rem;
   padding: 1rem 1.125rem;
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, #c0392b 35%, var(--rule));
   background: color-mix(in srgb, #c0392b 7%, var(--white));
 }
@@ -3999,7 +3999,7 @@ h3 {
   left: 0;
   right: 0;
   height: 1.5px;
-  border-radius: 1px;
+  border-radius: 0.125rem;
   background: var(--void);
   transition: transform 200ms ease, opacity 200ms ease, top 200ms ease;
 }
@@ -4453,7 +4453,7 @@ h3 {
   margin: 0;
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--void) 12%, transparent);
-  border-radius: 0.65rem;
+  border-radius: 0.75rem;
   background: color-mix(in srgb, var(--canvas) 80%, transparent);
   color: var(--void);
   cursor: pointer;
@@ -4808,7 +4808,7 @@ h3 {
 .mkt-call-panel {
   background: var(--white);
   border: 1px solid var(--hairline);
-  border-radius: 0.875rem;
+  border-radius: 0.75rem;
   box-shadow: var(--shadow-lift);
   padding: 1.15rem 1.2rem 1.2rem;
   display: flex;
@@ -4908,7 +4908,7 @@ h3 {
   gap: 0.65rem;
   max-width: min(20rem, calc(100vw - 2rem));
   padding: 0.4rem 0.45rem 0.4rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 999px;
   background: #141310;
   color: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -4940,7 +4940,7 @@ h3 {
   flex-shrink: 0;
   border: none;
   cursor: pointer;
-  border-radius: 9999px;
+  border-radius: 999px;
   padding: 0.4rem 0.85rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -5228,7 +5228,7 @@ h3 {
   border: 1px solid color-mix(in srgb, #fff 16%, transparent);
   background: color-mix(in srgb, #fff 6%, transparent);
   color: #f6f6f6;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   padding: 0.65rem 0.75rem;
 }
 
@@ -5335,7 +5335,7 @@ h3 {
   border: 1px solid color-mix(in srgb, #fff 16%, transparent);
   background: color-mix(in srgb, #fff 6%, transparent);
   color: #f6f6f6;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   padding: 0.65rem 0.75rem;
 }
 
@@ -5379,7 +5379,7 @@ h3 {
   border: 1px solid color-mix(in srgb, #fff 16%, transparent);
   background: color-mix(in srgb, #fff 6%, transparent);
   color: #f6f6f6;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   padding: 0.7rem 0.75rem;
   font: inherit;
 }
@@ -5631,7 +5631,7 @@ button.btn {
   padding: 0.55rem 0.85rem;
   border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
   background: color-mix(in srgb, var(--void) 3%, var(--chalk, #f3f3f3));
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   font-size: 0.8125rem;
   color: var(--ash);
 }
@@ -5775,7 +5775,7 @@ button.btn {
 
 .mkt-nav--institution .mkt-nav-cta,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   min-height: 2.35rem;
   padding: 0.55rem 1.1rem !important;
   font-size: 0.6875rem !important;
@@ -5791,7 +5791,7 @@ button.btn {
 }
 
 .mkt-nav--institution .mkt-btn {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-footer--institution {
@@ -5900,7 +5900,7 @@ button.btn {
 .mkt-product--stage {
   width: 100%;
   margin: 0;
-  border-radius: 0.65rem;
+  border-radius: 0.75rem;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent);
   background:
     linear-gradient(180deg, color-mix(in srgb, #1d1a15 92%, #fff), #100d07 100%);
@@ -6148,7 +6148,7 @@ label:has(> input[type="radio"]) {
 .inst-btn-full,
 .mkt-btn,
 .mkt-nav-cta {
-  border-radius: 0.625rem !important;
+  border-radius: 0.5rem !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -6599,7 +6599,7 @@ label:has(> input[type="radio"]) {
   align-items: center;
   justify-content: center;
   min-height: 3.15rem;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   background: #f6f6f6;
   color: #0a0701;
   text-decoration: none;
@@ -6681,7 +6681,7 @@ label:has(> input[type="radio"]) {
   background: #100d07 !important;
   color: #ececec;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent);
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   overflow: hidden;
   font-family: var(--font-sans), system-ui, sans-serif;
 }
@@ -6946,7 +6946,7 @@ label:has(> input[type="radio"]) {
   margin-top: auto;
   padding: 0.7rem 0.75rem;
   border: 1px solid color-mix(in srgb, #fff 9%, transparent);
-  border-radius: 0.3rem;
+  border-radius: 0.25rem;
   background: color-mix(in srgb, #fff 3%, transparent);
 }
 
@@ -7127,7 +7127,7 @@ label:has(> input[type="radio"]) {
 /* Buttons on night marketing */
 .mkt-page .inst-btn,
 .mkt-page .mkt-btn {
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-page .inst-btn-primary {
@@ -7147,7 +7147,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .pro-panel {
   background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.375rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   color: #f1f1f1 !important;
 }
@@ -7184,7 +7184,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .pricing-billing-toggle,
 .mkt-page [class*="pricing-"] button,
 .mkt-page [class*="pricing-"] .btn {
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
 }
 
 /* Forms on night pages */
@@ -7197,7 +7197,7 @@ label:has(> input[type="radio"]) {
   background: #100d07 !important;
   color: #f4f4f4 !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
@@ -7225,7 +7225,7 @@ label:has(> input[type="radio"]) {
 .onboarding-panel,
 .onboarding-shell .pro-panel,
 .onboarding-shell .panel-chalk {
-  border-radius: 0.3125rem !important;
+  border-radius: 0.25rem !important;
   border: 1px solid var(--os-line) !important;
   box-shadow: none !important;
   background: var(--os-panel) !important;
@@ -7236,7 +7236,7 @@ label:has(> input[type="radio"]) {
 .onboarding-shell input,
 .onboarding-shell select,
 .onboarding-shell textarea {
-  border-radius: 0.3125rem !important;
+  border-radius: 0.25rem !important;
 }
 
 /* —— PublicLayout / 404 / light cursor pages → night —— */
@@ -7265,7 +7265,7 @@ body:has(.mkt-page) .shell-header {
 .billing-lock-card {
   background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
-  border-radius: 0.375rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   color: #f1f1f1 !important;
 }
@@ -7295,7 +7295,7 @@ body:has(.mkt-page) .shell-header {
 .pay-prompt-plan {
   background: #100d07 !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .pay-prompt-plan--featured {
@@ -7316,7 +7316,7 @@ body:has(.mkt-page) .shell-header {
 .cookie-consent {
   background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.375rem !important;
+  border-radius: 0.25rem !important;
   color: #f1f1f1 !important;
   box-shadow: none !important;
 }
@@ -7388,7 +7388,7 @@ body:has(.mkt-page) .shell-header {
 .public-shell .btn,
 .public-shell button,
 .public-shell input {
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
 }
 
 /* Confirm / bare token routes */
@@ -7398,7 +7398,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .panel-chalk {
   background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.375rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   color: #f1f1f1 !important;
 }
@@ -7408,7 +7408,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .panel {
   background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.375rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
@@ -7419,7 +7419,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-needs-picker {
   background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.375rem !important;
+  border-radius: 0.25rem !important;
   color: #f1f1f1 !important;
 }
 
@@ -7437,7 +7437,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-page-controls {
   background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.375rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   color: #f1f1f1 !important;
 }
@@ -7457,7 +7457,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-wizard .pricing-needs-option {
   
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
   
 }
 
@@ -7501,7 +7501,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page [class*="billing-toggle"] {
   background: var(--ov-paper-raised) !important;
   border: 1px solid var(--ov-hairline) !important;
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
   color: var(--ov-ink) !important;
 }
 
@@ -7871,7 +7871,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .dispatch-job-chip {
   background: #292722 !important;
   border: 1px solid color-mix(in srgb, #fff 8%, transparent) !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.55rem 0.7rem !important;
 }
@@ -7957,7 +7957,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .btn-void,
 .os-shell-night .btn-secondary,
 .os-shell-night button.btn {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0.25rem 0.55rem !important;
   font-size: 0.6875rem !important;
@@ -8052,7 +8052,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .status-pill-neutral,
 .os-shell-night .status-pill-muted,
 .os-shell-night .status-pill-flare {
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   background: transparent !important;
   color: color-mix(in srgb, #ececec 78%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 16%, transparent) !important;
@@ -8081,7 +8081,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .lead-quick-actions .btn,
 .os-shell-night .lead-quick-actions a {
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   min-height: 1.7rem !important;
   font-size: 0.625rem !important;
   padding: 0.2rem 0.45rem !important;
@@ -8094,7 +8094,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-stat {
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   background: #292722 !important;
 }
 
@@ -8109,7 +8109,7 @@ body:has(.mkt-page) .shell-header {
   background: transparent !important;
   color: color-mix(in srgb, #d1d1d1 70%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night input,
@@ -8118,7 +8118,7 @@ body:has(.mkt-page) .shell-header {
   background: #292722 !important;
   color: #f5f5f5 !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .owner-setup-banner,
@@ -8146,7 +8146,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-ask-dock-trigger {
   background: #f6f6f6 !important;
   color: #0c0903 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .os-mobile-nav {
@@ -8257,7 +8257,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .lead-rail-actions .btn,
 .os-shell-night .lead-quick-actions .btn,
 .os-shell-night .lead-quick-actions a {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   min-height: 1.7rem !important;
   padding: 0.2rem 0.5rem !important;
   font-size: 0.625rem !important;
@@ -8288,7 +8288,7 @@ body:has(.mkt-page) .shell-header {
   gap: 0 !important;
   margin-top: 0.65rem !important;
   border: 1px solid #4b4945;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   overflow: hidden;
 }
 
@@ -8330,7 +8330,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .attention-item-btn,
 .os-shell-night .attention-item-btn-primary {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: transparent !important;
   color: #e9e9e9 !important;
   border: 1px solid #4b4945 !important;
@@ -8385,7 +8385,7 @@ body:has(.mkt-page) .shell-header {
   background: #e9e9e9 !important;
   color: #000 !important;
   border: 1px solid #e9e9e9 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .btn-secondary,
@@ -8393,7 +8393,7 @@ body:has(.mkt-page) .shell-header {
   background: transparent !important;
   color: #e9e9e9 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .pro-filter-bar .btn,
@@ -8401,7 +8401,7 @@ body:has(.mkt-page) .shell-header {
   background: transparent !important;
   color: #a09f9e !important;
   border: 1px solid transparent !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .pro-filter-bar .btn-void,
@@ -8419,7 +8419,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .status-pill-flare {
   background: transparent !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   color: #a09f9e !important;
   font-size: 0.625rem !important;
   letter-spacing: 0.08em !important;
@@ -8441,7 +8441,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-ask-dock-trigger {
   background: #e9e9e9 !important;
   color: #000 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .ring1-command {
@@ -8483,7 +8483,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .pro-stat {
   border-top: none !important;
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   background: #2f2d28 !important;
 }
 
@@ -8517,7 +8517,7 @@ body:has(.mkt-page) .shell-header {
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
   border-left: 2px solid #e9e9e9 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   margin-bottom: 0.65rem !important;
 }
 
@@ -8547,7 +8547,7 @@ body:has(.mkt-page) .shell-header {
   display: block;
   padding: 0.55rem 0.65rem;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: #23201b !important;
 }
 
@@ -8559,7 +8559,7 @@ body:has(.mkt-page) .shell-header {
   background: #2f2d28 !important;
   color: #e9e9e9 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .os-ask-dock-panel {
@@ -8570,7 +8570,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .os-ask-dock-trigger {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
@@ -8599,7 +8599,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night input[type="search"] {
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   color: #e9e9e9 !important;
 }
 
@@ -8682,7 +8682,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .cookie-consent,
 .cookie-consent {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
 }
@@ -8690,7 +8690,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .post-lock-banner,
 .os-shell-night .post-lock-strip {
   padding: 0.5rem 0.7rem !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
   border-left: 2px solid #e9e9e9 !important;
@@ -8800,7 +8800,7 @@ body:has(.mkt-page) .shell-header {
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
   border-left: 2px solid #e9e9e9 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   padding: 0.7rem 0.75rem !important;
   box-shadow: none !important;
 }
@@ -8830,7 +8830,7 @@ body:has(.mkt-page) .shell-header {
   font-size: 0.625rem;
   padding: 0.05rem 0.25rem;
   border: 1px solid #4b4945;
-  border-radius: 0.15rem;
+  border-radius: 0.125rem;
   margin-right: 0.25rem;
   color: #e9e9e9;
 }
@@ -8858,7 +8858,7 @@ body:has(.mkt-page) .shell-header {
 .onboarding-shell--night .onboarding-step {
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   color: #a09f9e !important;
   box-shadow: none !important;
 }
@@ -8883,14 +8883,14 @@ body:has(.mkt-page) .shell-header {
 .onboarding-shell--night textarea {
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   color: #e9e9e9 !important;
 }
 
 .onboarding-shell--night .onboarding-trade {
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   color: #e9e9e9 !important;
 }
 
@@ -8898,14 +8898,14 @@ body:has(.mkt-page) .shell-header {
 .onboarding-shell--night .onboarding-btn-primary {
   background: #e9e9e9 !important;
   color: #000 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .onboarding-shell--night .btn-ghost {
   background: transparent !important;
   color: #e9e9e9 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .onboarding-shell--night .orvius-logo {
@@ -8934,7 +8934,7 @@ body:has(.mkt-page) .shell-header {
   gap: 0.15rem;
   padding: 0.35rem 0.45rem;
   border: 1px solid #4b4945;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   background: #23201b;
 }
 
@@ -8949,7 +8949,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-settings-secondary {
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   padding: 0 !important;
 }
 
@@ -8971,7 +8971,7 @@ body:has(.mkt-page) .shell-header {
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
   border-left: 2px solid #767572 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.45rem 0.65rem !important;
 }
@@ -8992,7 +8992,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-signal-bar {
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.4rem 0.55rem !important;
 }
@@ -9025,7 +9025,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .lead-detail-sticky-btn,
 .os-shell-night .lead-detail-sticky-btn-muted,
 .os-shell-night .lead-detail-sticky-btn-primary {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   min-height: 2.25rem !important;
   padding: 0.4rem 0.75rem !important;
   font-size: 0.75rem !important;
@@ -9052,7 +9052,7 @@ body:has(.mkt-page) .shell-header {
   background: #2f2d28 !important;
   color: #e9e9e9 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   min-height: 2.25rem !important;
   padding: 0.35rem 0.55rem !important;
@@ -9061,7 +9061,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-ask-dock-trigger-mark {
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   color: #e9e9e9 !important;
   width: 1.35rem !important;
   height: 1.35rem !important;
@@ -9104,7 +9104,7 @@ body:has(.mkt-page) .shell-header {
   margin-bottom: 0.65rem !important;
   padding: 0 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: #23201b !important;
   overflow: hidden;
   width: fit-content;
@@ -9316,7 +9316,7 @@ body:has(.mkt-page) .shell-header {
 
 .pay-prompt-plan {
   padding: 0.55rem 0.6rem !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   border: 1px solid #4b4945 !important;
   background: #2f2d28 !important;
 }
@@ -9349,7 +9349,7 @@ body:has(.mkt-page) .shell-header {
 .pay-prompt-checkout .inst-btn,
 .pay-prompt-checkout .btn,
 .os-shell-night .pay-prompt .btn-void {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: #e9e9e9 !important;
   color: #000 !important;
   border: 1px solid #e9e9e9 !important;
@@ -9357,7 +9357,7 @@ body:has(.mkt-page) .shell-header {
 
 .pay-prompt-secondary .btn,
 .pay-prompt-secondary .btn-secondary {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: transparent !important;
   color: #e9e9e9 !important;
   border: 1px solid #4b4945 !important;
@@ -9413,7 +9413,7 @@ body:has(.mkt-page) .shell-header {
 .billing-lock-cta,
 .billing-lock-checkout .btn,
 .billing-lock-checkout .inst-btn {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 /* Ask page densify */
@@ -9429,7 +9429,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .ask-hero .input {
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   color: #e9e9e9 !important;
   min-height: 2.35rem;
 }
@@ -9443,7 +9443,7 @@ body:has(.mkt-page) .shell-header {
   margin-top: 0.75rem;
   padding: 0.65rem;
   border: 1px solid #4b4945;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   background: #23201b;
 }
 
@@ -9509,7 +9509,7 @@ body:has(.mkt-page) .shell-header {
   gap: 0.35rem 0.55rem;
   padding: 0.4rem 0.5rem;
   border: 1px solid #4b4945;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   background: #23201b;
   text-decoration: none;
 }
@@ -9538,7 +9538,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .ring1-lead-status .btn,
 .os-shell-night .lead-status-actions .btn,
 .os-shell-night .ring1-lead-status button {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0.25rem 0.55rem !important;
   font-size: 0.6875rem !important;
@@ -9582,21 +9582,21 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night select,
 .os-shell-night textarea,
 .os-shell-night .inst-btn {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .rounded-full {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 /* Signal / shop line strip */
 .os-shell-night .pro-page-strip,
 .os-shell-night .pro-signal-bar {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night [class*="os-shop"] {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .lead-status-actions {
@@ -9636,11 +9636,11 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .btn,
 .mkt-page .inst-btn,
 .mkt-page button {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-page .status-pill {
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
 }
 
 /* Ask suggestion rails — Cursor density, not chip cloud */
@@ -9650,7 +9650,7 @@ body:has(.mkt-page) .shell-header {
   gap: 0 !important;
   margin-top: 0.65rem !important;
   border: 1px solid #4b4945;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   background: #23201b;
   overflow: hidden;
 }
@@ -9704,7 +9704,7 @@ body:has(.mkt-page) .shell-header {
   text-transform: uppercase;
   color: #a09f9e;
   border: 1px solid #4b4945;
-  border-radius: 0.15rem;
+  border-radius: 0.125rem;
   padding: 0.2rem 0.4rem;
 }
 
@@ -9732,7 +9732,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .assign-tech-select,
 .os-shell-night .assign-tech-btn,
 .os-shell-night .assign-tech-empty {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   border: 1px solid #4b4945 !important;
   background: #23201b !important;
   color: #e9e9e9 !important;
@@ -9763,7 +9763,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .today-priority-btn {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0.3rem 0.55rem !important;
   font-size: 0.6875rem !important;
@@ -9816,14 +9816,14 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .dispatch-job-chip.lead-rail-row,
 .os-shell-night .dispatch-job-chip {
   padding: 0.45rem 0.55rem !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
 }
 
 .os-shell-night .dispatch-col {
   padding: 0.4rem !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   gap: 0.3rem !important;
 }
 
@@ -9836,7 +9836,7 @@ body:has(.mkt-page) .shell-header {
   min-height: 1.75rem !important;
   padding: 0.2rem 0.5rem !important;
   font-size: 0.625rem !important;
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   box-shadow: none !important;
 }
 
@@ -9850,7 +9850,7 @@ body:has(.mkt-page) .shell-header {
   min-height: 1.75rem !important;
   padding: 0.2rem 0.5rem !important;
   font-size: 0.625rem !important;
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 700;
@@ -9928,12 +9928,12 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-sidebar [class*="shop"],
 .os-shell-night .os-sidebar-brand,
 .os-shell-night aside a[href="/dashboard/settings"] {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .os-shell-night .os-ring-status {
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: #23201b !important;
   padding: 0.45rem 0.55rem !important;
   box-shadow: none !important;
@@ -9951,14 +9951,14 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .os-nav-link {
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   min-height: 1.7rem !important;
   padding: 0.25rem 0.45rem !important;
   font-size: 0.8125rem !important;
 }
 
 .os-shell-night .os-nav-badge {
-  border-radius: 0.15rem !important;
+  border-radius: 0.125rem !important;
   min-width: 1.1rem !important;
   height: 1.1rem !important;
   font-size: 0.625rem !important;
@@ -9968,7 +9968,7 @@ body:has(.mkt-page) .shell-header {
 
 .mkt-page .rounded-full,
 .mkt-page [class*="pill"] {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 /* Customer timeline → rail instruments */
@@ -9980,7 +9980,7 @@ body:has(.mkt-page) .shell-header {
   padding: 0;
   list-style: none;
   border: 1px solid #4b4945;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   overflow: hidden;
   background: #23201b;
 }
@@ -10032,7 +10032,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .call-demo,
 .mkt-page .call-demo-void,
 .mkt-page .call-demo-section {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   border: 1px solid #4b4945 !important;
   background: #2f2d28 !important;
   box-shadow: none !important;
@@ -10043,7 +10043,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .call-demo .inst-btn,
 .mkt-page .call-demo .inst-btn-primary,
 .mkt-page .call-demo .call-demo-copy {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
@@ -10051,7 +10051,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pro-panel {
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
@@ -10080,7 +10080,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-page-controls {
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
@@ -10088,7 +10088,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-toolbar {
   background: #23201b !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.6rem 0.7rem !important;
   gap: 0.55rem 1rem !important;
@@ -10101,7 +10101,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .pro-toolbar-input,
 .os-shell-night .pro-toolbar .input {
-  border-radius: 0.2rem !important;
+  border-radius: 0.25rem !important;
   background: #2f2d28 !important;
   border: 1px solid #4b4945 !important;
   color: #e9e9e9 !important;
@@ -10434,7 +10434,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .pricing-needs-result {
   background: var(--ov-paper-raised) !important;
   border: 1px solid var(--ov-line) !important;
-  border-radius: 0.4rem !important;
+  border-radius: 0.5rem !important;
   color: var(--ov-headline) !important;
 }
 
@@ -10526,7 +10526,7 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-call-panel--company {
   background: var(--ov-paper-raised) !important;
   border: 1px solid var(--ov-line) !important;
-  border-radius: 0.6rem !important;
+  border-radius: 0.5rem !important;
   box-shadow: none !important;
   color: var(--ov-headline) !important;
 }
@@ -10575,7 +10575,7 @@ body:has(.mkt-page) .shell-header {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
-  border-radius: 9999px !important;
+  border-radius: 999px !important;
   padding: 0.78rem 1.35rem 0.8rem !important;
   font-size: 1rem !important;
   font-weight: 400 !important;
@@ -10593,7 +10593,7 @@ body:has(.mkt-page) .shell-header {
   background: #e6e5e0 !important;
   color: var(--ov-headline) !important;
   border: 1px solid transparent !important;
-  border-radius: 9999px !important;
+  border-radius: 999px !important;
 }
 
 .mkt-page .inst-btn-ghost:hover {
@@ -10608,7 +10608,7 @@ body:has(.mkt-page) .shell-header {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
-  border-radius: 9999px !important;
+  border-radius: 999px !important;
   padding: 0.4rem 0.75rem !important;
   font-size: 0.875rem !important;
   font-weight: 400 !important;
@@ -10773,7 +10773,7 @@ body:has(.mkt-page) .shell-header {
   gap: 0.5rem;
   background: var(--ov-paper-raised);
   border: 1px solid var(--ov-line);
-  border-radius: 0.55rem;
+  border-radius: 0.5rem;
   padding: 0.4rem 0.4rem 0.4rem 0.85rem;
   max-width: 100%;
 }
@@ -10796,7 +10796,7 @@ body:has(.mkt-page) .shell-header {
   height: 2rem;
   padding: 0 0.5rem;
   border: 0;
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   background: #26251e;
   color: #f7f7f4;
   cursor: pointer;
@@ -10814,7 +10814,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-showcase-stage {
-  border-radius: 14px;
+  border-radius: 0.75rem;
   overflow: hidden;
   box-shadow: 0 30px 70px -28px rgba(38, 37, 30, 0.35);
   background: #23201b;
@@ -11128,7 +11128,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   min-height: 2.25rem !important;
   padding: 0 0.4rem !important;
   margin-bottom: 0.9rem !important;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
 }
 
 .os-shell-night .os-sidebar-brand:hover {
@@ -11176,7 +11176,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .os-ring-status-dot {
   width: 0.375rem;
   height: 0.375rem;
-  border-radius: 9999px;
+  border-radius: 999px;
   background: #00ba7c;
   box-shadow: 0 0 0 3px rgba(0, 186, 124, 0.15);
   flex-shrink: 0;
@@ -11206,7 +11206,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.6rem !important;
   min-height: 2rem !important;
   padding: 0 0.45rem !important;
-  border-radius: 0.35rem !important;
+  border-radius: 0.25rem !important;
   border: none !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -11266,7 +11266,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   min-width: 1.15rem;
   padding: 0 0.3rem !important;
   border: none !important;
-  border-radius: 9999px !important;
+  border-radius: 999px !important;
   background: #f4212e !important;
   color: #ffffff !important;
   font-size: 0.625rem !important;
@@ -11279,7 +11279,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .os-nav-lock {
   padding: 0.05rem 0.35rem !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 9999px !important;
+  border-radius: 999px !important;
   background: transparent !important;
   color: #a09f9e !important;
   font-size: 0.625rem !important;
@@ -11297,7 +11297,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .os-sidebar-user {
   width: 100%;
-  border-radius: 0.35rem !important;
+  border-radius: 0.25rem !important;
   padding: 0.4rem 0.45rem !important;
   background: transparent !important;
   border: none !important;
@@ -11382,7 +11382,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .attention-queue-list {
   border: 1px solid #44423e !important;
-  border-radius: 0.4rem !important;
+  border-radius: 0.5rem !important;
 }
 
 .os-shell-night .attention-item {
@@ -11421,7 +11421,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .attention-chip {
   padding: 0.05rem 0.4rem;
-  border-radius: 9999px;
+  border-radius: 999px;
   font-size: 0.625rem;
   font-weight: 650;
   letter-spacing: 0.1em;
@@ -11486,7 +11486,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   align-items: center;
   min-height: 1.85rem !important;
   padding: 0 0.7rem !important;
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
   letter-spacing: -0.002em !important;
@@ -11535,7 +11535,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-panel {
   background: #2f2d28 !important;
   border: 1px solid #44423e !important;
-  border-radius: 0.4rem !important;
+  border-radius: 0.5rem !important;
   overflow: hidden;
 }
 
@@ -11601,7 +11601,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   max-width: 26rem;
   padding: 0.5rem 0.65rem !important;
   border: 1px solid #4b4945 !important;
-  border-radius: 0.35rem !important;
+  border-radius: 0.25rem !important;
   background: #27241f !important;
   color: #f7f9f9 !important;
   font-size: 0.875rem !important;
@@ -11652,7 +11652,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* Secondary settings groups become real disclosure rows */
 .os-shell-night .pro-settings-secondary {
   border: 1px solid #44423e !important;
-  border-radius: 0.4rem !important;
+  border-radius: 0.5rem !important;
   background: #2f2d28 !important;
   padding: 0 !important;
   overflow: hidden;
@@ -11719,7 +11719,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   align-items: flex-start;
   gap: 0.6rem;
   padding: 0.45rem 0.5rem;
-  border-radius: 0.3rem;
+  border-radius: 0.25rem;
   font-size: 0.8125rem;
   line-height: 1.45;
   color: #c7c7c7;
@@ -11743,7 +11743,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin-top: 0.25rem;
   padding: 0.75rem 0.9rem;
   border: 1px solid #44423e;
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   background: rgba(47, 45, 40, 0.95);
   backdrop-filter: saturate(140%) blur(10px);
 }
@@ -11789,7 +11789,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night a.btn {
   min-height: 2.1rem;
   padding: 0 0.85rem;
-  border-radius: 0.35rem !important;
+  border-radius: 0.25rem !important;
   font-size: 0.8125rem !important;
   font-weight: 550 !important;
   letter-spacing: -0.003em !important;
@@ -11883,7 +11883,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 500 !important;
   letter-spacing: -0.002em !important;
   text-transform: none !important;
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0 0.7rem !important;
 }
@@ -11915,7 +11915,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .lead-rail-actions .lead-quick-btn {
   min-height: 1.85rem !important;
   padding: 0 0.7rem !important;
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
   letter-spacing: -0.002em !important;
@@ -11959,7 +11959,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-economics {
   background: #2f2d28 !important;
   border: 1px solid #44423e !important;
-  border-radius: 0.4rem !important;
+  border-radius: 0.5rem !important;
   padding: 0.9rem !important;
 }
 
@@ -12077,7 +12077,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .attention-item-assign .assign-tech-btn {
   min-height: 1.85rem !important;
   padding: 0 0.6rem !important;
-  border-radius: 0.3rem !important;
+  border-radius: 0.25rem !important;
   border: 1px solid #4b4945 !important;
   background: #27241f !important;
   color: #c7c7c7 !important;
@@ -12100,8 +12100,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .pro-panel-head {
-  border-top-left-radius: 0.4rem;
-  border-top-right-radius: 0.4rem;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
 }
 
 .os-shell-night .billing-unblock-missing {
@@ -12479,7 +12479,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   height: 1.9rem;
   padding: 0 0.55rem;
   border: 1px solid #44423e;
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   background: #2f2d28;
   color: #a09f9e;
   font-size: 0.75rem;
@@ -12505,7 +12505,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .os-topbar-search kbd {
   padding: 0.05rem 0.25rem;
   border: 1px solid #4b4945;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   font-family: inherit;
   font-size: 0.625rem;
   color: var(--os-mute);
@@ -12543,7 +12543,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   width: min(38rem, 100%);
   max-height: 70vh;
   border: 1px solid #514f4b;
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   background: #2f2d28;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
@@ -12575,7 +12575,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-palette-field kbd {
   padding: 0.1rem 0.3rem;
   border: 1px solid #4b4945;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   font-family: inherit;
   font-size: 0.625rem;
   color: #adadac;
@@ -12607,7 +12607,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   width: 100%;
   padding: 0.45rem 0.55rem;
   border: 0;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   background: transparent;
   color: #e7e7e7;
   font-size: 0.8125rem;
@@ -12680,7 +12680,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-night-watch-stats > div {
   padding: 0.45rem 0.55rem;
   border: 1px solid #3d3a36;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   background: #34322d;
 }
 
