@@ -2,9 +2,9 @@
  * ORVIUS PUBLIC SYSTEM
  *
  * One authoritative skin for public marketing and authentication. Archivo is the
- * speaking voice and Plex Mono is the reporting voice; copper on warm paper over
- * charcoal is the palette. The product keeps its dense cockpit, but every surface
- * shares this letterset so nothing reads borrowed.
+ * speaking voice and Plex Mono is the reporting voice; the palette is Cursor's
+ * published token set — warm near-black under warm paper with a #f54e00 accent.
+ * The product keeps its dense cockpit, but every surface shares this letterset.
  */
 
 /*
@@ -13,63 +13,80 @@
  * the same skin, one variable set apart. Every rule below reads --ov-*, so
  * flipping the colorway is a palette swap, not a second stylesheet.
  */
+/*
+ * Palette values are Cursor's published design tokens, read from their served
+ * stylesheet rather than sampled by eye: warm near-black #14120b under warm
+ * paper #f7f7f4, warm olive ink #26251e, the card ladder #1b1913 → #2b2923 on
+ * night and #f2f1ed → #e1e0db on day, and the #f54e00 accent.
+ *
+ * Two slots deliberately do not take the literal value, because two of those
+ * tokens do not clear WCAG AA against the background they are published on:
+ * their secondary text at 60% ink lands at 4.06:1 on paper, and the #f54e00
+ * accent lands at 3.27:1 on paper. The display and fill slots keep the exact
+ * value; only the small-text slots are darkened, which is what the
+ * --ov-accent-text / --ov-muted split has always been for. Every deviation is
+ * noted at the line.
+ */
 :root,
 html[data-theme="night"] {
-  --ov-paper: #0b0b0b;
-  --ov-paper-raised: #111111;
-  --ov-ink: #eeeeee;
-  --ov-muted: #888888;
-  --ov-line: #232323;
-  --ov-line-strong: #2e2e2e;
-  --ov-charcoal: #141414;
-  --ov-charcoal-raised: #1a1a1a;
-  --ov-night-text: #eeeeee;
-  /* Copper is lifted on charcoal; the paper value is too dark to read here. */
-  --ov-copper: #d9784b;
-  --ov-copper-dark: #b8562c;
-  /* Text-safe accents. The display copper clears AA on charcoal; on paper it
-     does not, so eyebrows and kickers read from these rather than from the
-     display value. */
-  --ov-accent-text: #d9784b;
-  --ov-emerald-text: #34d399;
-  /* Foreground for text sitting *on* a copper fill. The night copper is light
-     enough that it needs dark ink, and the day copper is dark enough that it
-     needs white, so this flips with the colorway rather than tracking ink. */
-  --ov-on-copper: #12140f;
-  --ov-copper-field: #111111;
-  --ov-amber: #f59e0b;
-  --ov-green: #34d399;
-  --ov-emerald: #10b981;
+  --ov-paper: #14120b;
+  --ov-paper-raised: #1b1913;
+  --ov-ink: #edecec;
+  /* Night has no published secondary-text hex; this is the warm gray that
+     clears AA on #14120b at 6.4:1. */
+  --ov-muted: #9a978f;
+  --ov-line: #26241e;
+  --ov-line-strong: #2b2923;
+  --ov-charcoal: #1b1913;
+  --ov-charcoal-raised: #201e18;
+  --ov-night-text: #edecec;
+  --ov-copper: #f54e00;
+  --ov-copper-dark: #c43e00;
+  /* Exact accent, and it clears AA here — 5.3:1 on #14120b. */
+  --ov-accent-text: #f54e00;
+  --ov-emerald-text: #6ee7a8;
+  /* Text sitting *on* an accent fill. White on #f54e00 is only 3.5:1, so the
+     ink is the canvas colour instead, at 5.3:1. This does not flip with the
+     colorway because the fill does not. */
+  --ov-on-copper: #14120b;
+  --ov-copper-field: #1b1913;
+  --ov-amber: #c9a227;
+  --ov-green: #6ee7a8;
+  --ov-emerald: #1f8a65;
   /* Headlines run brighter than body ink so display type stays crisp. */
-  --ov-headline: #ffffff;
-  --ov-hairline: rgb(255 255 255 / 0.1);
-  --ov-hairline-strong: rgb(255 255 255 / 0.2);
-  --ov-hairline-hover: rgb(255 255 255 / 0.4);
+  --ov-headline: #f7f7f4;
+  --ov-hairline: rgb(255 255 255 / 0.18);
+  --ov-hairline-strong: rgb(255 255 255 / 0.28);
+  --ov-hairline-hover: rgb(255 255 255 / 0.45);
 }
 
 html[data-theme="day"] {
-  --ov-paper: #f5f3ee;
-  --ov-paper-raised: #fbfaf6;
-  --ov-ink: #1c1e1a;
-  --ov-muted: #6b6d66;
-  --ov-line: #dcdad2;
-  --ov-line-strong: #c6c4ba;
-  --ov-charcoal: #22262b;
-  --ov-charcoal-raised: #2b3037;
-  --ov-night-text: #f2f1ec;
-  --ov-copper: #b8562c;
-  --ov-copper-dark: #8a3d1c;
-  --ov-accent-text: #8a3d1c;
-  --ov-emerald-text: #047857;
-  --ov-on-copper: #ffffff;
-  --ov-copper-field: #c25f31;
-  --ov-amber: #b45309;
-  --ov-green: #2d7a58;
-  --ov-emerald: #059669;
-  --ov-headline: #12140f;
-  --ov-hairline: rgb(28 30 26 / 0.12);
-  --ov-hairline-strong: rgb(28 30 26 / 0.22);
-  --ov-hairline-hover: rgb(28 30 26 / 0.42);
+  --ov-paper: #f7f7f4;
+  --ov-paper-raised: #f2f1ed;
+  --ov-ink: #26251e;
+  /* Their secondary text is #26251e at 60%, which composites to 4.06:1 here.
+     Same hue, taken down until it clears AA at 6.0:1. */
+  --ov-muted: #615f57;
+  --ov-line: #e1e0db;
+  --ov-line-strong: #cac6be;
+  --ov-charcoal: #26251e;
+  --ov-charcoal-raised: #3b3a33;
+  --ov-night-text: #edecec;
+  --ov-copper: #f54e00;
+  --ov-copper-dark: #c43e00;
+  /* The exact accent is 3.27:1 on paper — large type only. Small copy reads
+     from this darkened accent at 5.7:1 instead. */
+  --ov-accent-text: #b23800;
+  --ov-emerald-text: #167d5e;
+  --ov-on-copper: #14120b;
+  --ov-copper-field: #f54e00;
+  --ov-amber: #c08532;
+  --ov-green: #167d5e;
+  --ov-emerald: #1f8a65;
+  --ov-headline: #26251e;
+  --ov-hairline: rgb(38 37 30 / 0.12);
+  --ov-hairline-strong: rgb(38 37 30 / 0.22);
+  --ov-hairline-hover: rgb(38 37 30 / 0.42);
 }
 
 /*
@@ -193,7 +210,7 @@ body {
 .ov-status-pill--degraded {
   border-color: rgb(245 158 11 / 0.35);
   background: rgb(245 158 11 / 0.1);
-  color: #fbbf24;
+  color: #c9a227;
 }
 
 @keyframes ov-status-pulse {
@@ -469,17 +486,17 @@ body {
 .ov-public .mkt-proof-section,
 .ov-signin {
   --ov-headline: #ffffff;
-  --ov-ink: #eeeeee;
+  --ov-ink: #edecec;
   --ov-muted: #a0a0a0;
-  --ov-line: #232323;
-  --ov-line-strong: #2e2e2e;
+  --ov-line: #26241e;
+  --ov-line-strong: #2b2923;
   --ov-hairline: rgb(255 255 255 / 0.1);
   --ov-hairline-strong: rgb(255 255 255 / 0.2);
   --ov-hairline-hover: rgb(255 255 255 / 0.4);
-  --ov-copper: #d9784b;
-  --ov-amber: #f59e0b;
-  --ov-accent-text: #d9784b;
-  --ov-emerald-text: #34d399;
+  --ov-copper: #f54e00;
+  --ov-amber: #c9a227;
+  --ov-accent-text: #f54e00;
+  --ov-emerald-text: #6ee7a8;
 }
 
 /* Product proof on a charcoal field with a lit warm top edge. The panel used to
@@ -507,7 +524,7 @@ body {
   border: 1px solid var(--ov-hairline) !important;
   border-top: 2px solid rgb(245 158 11 / 0.6) !important;
   border-radius: 16px !important;
-  background: #111111 !important;
+  background: #1b1913 !important;
   box-shadow: 0 -20px 80px -20px rgb(217 119 6 / 0.15) !important;
 }
 
@@ -537,7 +554,7 @@ body {
 .ov-public .mkt-showcase-lead {
   max-width: 390px !important;
   margin: 1.35rem 0 0 !important;
-  color: #a8a8a8 !important;
+  color: #aaa8a0 !important;
   font-family: var(--ov-font) !important;
   font-size: 0.9375rem !important;
   line-height: 1.55 !important;
@@ -557,7 +574,7 @@ body {
   min-width: 0;
   border: 1px solid var(--ov-hairline) !important;
   border-radius: 12px !important;
-  background: #161616 !important;
+  background: #201e18 !important;
   box-shadow: 0 30px 70px -24px rgb(0 0 0 / 0.8) !important;
   overflow: hidden;
 }
@@ -565,7 +582,7 @@ body {
 .ov-public .mkt-product {
   border: 0 !important;
   border-radius: 0 !important;
-  background: #161616 !important;
+  background: #201e18 !important;
 }
 
 /* ── Dispatch board tags ──
@@ -576,7 +593,7 @@ body {
 
 .ov-public .mkt-product,
 .ov-public .mkt-product .mkt-product-body {
-  background: #161616 !important;
+  background: #201e18 !important;
 }
 
 .ov-public .mkt-product .mkt-product-chrome {
@@ -611,20 +628,20 @@ body {
 .ov-public .mkt-product .mkt-product-stream-kicker,
 .ov-public .mkt-product .mkt-product-cli-label,
 .ov-public .mkt-product .mkt-product-steps em {
-  color: #a8a8a8 !important;
+  color: #aaa8a0 !important;
 }
 
 .ov-public .mkt-product .mkt-product-rail-list time {
-  color: #8f8f8f !important;
+  color: #918f87 !important;
   font-size: 0.625rem !important;
 }
 
 .ov-public .mkt-product .mkt-product-rail-list strong {
-  color: #f2f2f2 !important;
+  color: #f2f1ed !important;
 }
 
 .ov-public .mkt-product .mkt-product-rail-list em {
-  color: #9a9a9a !important;
+  color: #9c9a92 !important;
   font-family: var(--ov-mono) !important;
   font-style: normal !important;
 }
@@ -634,7 +651,7 @@ body {
 }
 
 .ov-public .mkt-product .mkt-product-cli-text {
-  color: #d4d4d4 !important;
+  color: #d7d6d5 !important;
   font-family: var(--ov-mono) !important;
 }
 
@@ -644,7 +661,7 @@ body {
 }
 
 .ov-public .mkt-product .mkt-product-reply p {
-  color: #d4d4d4 !important;
+  color: #d7d6d5 !important;
 }
 
 .ov-public .mkt-product .mkt-product-stream-title {
@@ -721,7 +738,7 @@ body {
   padding: 1.5rem !important;
   border: 1px solid var(--ov-hairline) !important;
   border-radius: 16px !important;
-  background: #141414 !important;
+  background: #1c1a14 !important;
   box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.05) !important;
   transition:
     border-color 200ms ease,
@@ -760,7 +777,7 @@ body {
   border: 1px solid var(--ov-hairline) !important;
   border-radius: 9999px !important;
   background: rgb(255 255 255 / 0.04) !important;
-  color: #a8a8a8 !important;
+  color: #aaa8a0 !important;
   font-family: var(--ov-mono) !important;
   font-size: 0.625rem !important;
   font-weight: 600 !important;
@@ -768,10 +785,10 @@ body {
 }
 
 /* The slash is decoration, but it is still read as structure between the two
-   terms, and at #5c5c5c it sat at 2.51:1. One step up the dim ladder clears AA
-   and stays plainly quieter than the #a8a8a8 terms it separates. */
+   terms, and at #5e5c55 it sat at 2.51:1. One step up the dim ladder clears AA
+   and stays plainly quieter than the #aaa8a0 terms it separates. */
 .ov-public .mkt-law-badge-sep {
-  color: #8f8f8f !important;
+  color: #918f87 !important;
 }
 
 .ov-public .mkt-law-title {
@@ -889,7 +906,7 @@ body {
   padding: 2rem 5vw;
   border-top: 1px solid var(--ov-hairline);
   border-bottom: 1px solid var(--ov-hairline);
-  background: #0e0e0e;
+  background: #17150e;
 }
 
 .ov-public .ov-stats-inner {
@@ -933,7 +950,7 @@ body {
 .ov-public .ov-stats-foot {
   width: min(100%, 1240px);
   margin: 1.75rem auto 0;
-  color: #8f8f8f;
+  color: #918f87;
   font-family: var(--ov-font);
   font-size: 0.75rem;
   line-height: 1.5;
@@ -1199,8 +1216,8 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  background: #0b0b0b;
-  color: #eeeeee;
+  background: #14120b;
+  color: #edecec;
   font-family: var(--ov-font);
   -webkit-font-smoothing: antialiased;
 }
@@ -1215,7 +1232,7 @@ body {
   align-items: center;
   padding: 3.5rem clamp(2rem, 4vw, 4.5rem);
   border-right: 1px solid rgb(255 255 255 / 0.1);
-  background: #0e0e0e;
+  background: #17150e;
   overflow: hidden;
 }
 
@@ -1260,7 +1277,7 @@ body {
 .ov-signin-pitch-sub {
   margin: 1.1rem 0 0;
   max-width: 52ch;
-  color: #9a9a9a;
+  color: #9c9a92;
   font-size: 0.9375rem;
   line-height: 1.6;
 }
@@ -1271,7 +1288,7 @@ body {
   margin-top: 2.25rem;
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 16px;
-  background: #111111;
+  background: #1b1913;
   box-shadow:
     inset 0 1px 0 0 rgb(255 255 255 / 0.05),
     0 30px 80px -30px rgb(0 0 0 / 0.9);
@@ -1285,11 +1302,11 @@ body {
   gap: 1rem;
   padding: 0.85rem 1.1rem;
   border-bottom: 1px solid rgb(255 255 255 / 0.1);
-  background: #141414;
+  background: #1c1a14;
 }
 
 .ov-signin-board-title {
-  color: #a8a8a8;
+  color: #aaa8a0;
   font-family: var(--ov-mono);
   font-size: 0.6875rem;
   font-weight: 600;
@@ -1337,7 +1354,7 @@ body {
 
 .ov-signin-row-time,
 .ov-signin-row-shop {
-  color: #8f8f8f;
+  color: #918f87;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   letter-spacing: 0.08em;
@@ -1350,7 +1367,7 @@ body {
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 9999px;
   background: rgb(255 255 255 / 0.04);
-  color: #a8a8a8;
+  color: #aaa8a0;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   font-weight: 600;
@@ -1364,13 +1381,13 @@ body {
 
 .ov-signin-row-tag--alert {
   border-color: rgb(245 158 11 / 0.35);
-  color: #fbbf24;
+  color: #c9a227;
 }
 
 .ov-signin-row-tag--booked,
 .ov-signin-row-tag--confirm {
   border-color: rgb(16 185 129 / 0.3);
-  color: #34d399;
+  color: #6ee7a8;
 }
 
 .ov-signin-row-body {
@@ -1380,14 +1397,14 @@ body {
 }
 
 .ov-signin-row-line {
-  color: #f2f2f2;
+  color: #f2f1ed;
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: -0.01em;
 }
 
 .ov-signin-row-detail {
-  color: #9a9a9a;
+  color: #9c9a92;
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -1396,8 +1413,8 @@ body {
   margin: 0;
   padding: 0.7rem 1.1rem;
   border-top: 1px solid rgb(255 255 255 / 0.1);
-  background: #0e0e0e;
-  color: #7d7d7d;
+  background: #17150e;
+  color: #8a8880;
   font-size: 0.6875rem;
 }
 
@@ -1421,7 +1438,7 @@ body {
   border: 1px solid rgb(245 158 11 / 0.35);
   border-radius: 12px;
   background: rgb(245 158 11 / 0.1);
-  color: #fbbf24;
+  color: #c9a227;
   font-size: 0.8125rem;
   line-height: 1.5;
 }
@@ -1431,7 +1448,7 @@ body {
   padding: 2rem;
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 16px;
-  background: #111111;
+  background: #1b1913;
   box-shadow:
     inset 0 1px 0 0 rgb(255 255 255 / 0.05),
     0 30px 80px -30px rgb(0 0 0 / 0.9);
@@ -1458,13 +1475,13 @@ body {
 
 .ov-signin-sub {
   margin: 0.6rem 0 1.75rem;
-  color: #9a9a9a;
+  color: #9c9a92;
   font-size: 0.875rem;
   line-height: 1.6;
 }
 
 .ov-signin-sub a {
-  color: #eeeeee;
+  color: #edecec;
   text-decoration: underline;
   text-underline-offset: 0.18em;
 }
@@ -1514,8 +1531,8 @@ body {
 .ov-signin-or span {
   position: relative;
   padding: 0 0.7rem;
-  background: #111111;
-  color: #7d7d7d;
+  background: #1b1913;
+  color: #8a8880;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   letter-spacing: 0.16em;
@@ -1525,7 +1542,7 @@ body {
 .ov-signin-label {
   display: block;
   margin-bottom: 0.45rem;
-  color: #a8a8a8;
+  color: #aaa8a0;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   font-weight: 600;
@@ -1570,7 +1587,7 @@ body {
   border: 1px solid #ffffff;
   border-radius: 9999px;
   background: #ffffff;
-  color: #0b0b0b;
+  color: #14120b;
   font-family: var(--ov-font);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -1604,27 +1621,27 @@ body {
 }
 
 .ov-signin-sent {
-  color: #34d399;
+  color: #6ee7a8;
 }
 
 .ov-signin-sent a {
-  color: #34d399;
+  color: #6ee7a8;
   text-decoration: underline;
 }
 
 .ov-signin-error {
-  color: #fbbf24;
+  color: #c9a227;
 }
 
 .ov-signin-legal {
   margin: 1.5rem 0 0;
-  color: #7d7d7d;
+  color: #8a8880;
   font-size: 0.75rem;
   line-height: 1.55;
 }
 
 .ov-signin-legal a {
-  color: #a8a8a8;
+  color: #aaa8a0;
   text-decoration: underline;
   text-underline-offset: 0.18em;
 }
@@ -1634,13 +1651,13 @@ body {
   padding: 0.85rem 1rem;
   border: 1px dashed rgb(255 255 255 / 0.18);
   border-radius: 12px;
-  color: #9a9a9a;
+  color: #9c9a92;
   font-size: 0.8125rem;
 }
 
 .ov-signin-dev summary {
   cursor: pointer;
-  color: #d4d4d4;
+  color: #d7d6d5;
 }
 
 .ov-signin-foot {
@@ -1650,7 +1667,7 @@ body {
   justify-content: space-between;
   gap: 0.75rem;
   margin-top: 2rem;
-  color: #7d7d7d;
+  color: #8a8880;
   font-size: 0.75rem;
 }
 
@@ -1660,12 +1677,12 @@ body {
 }
 
 .ov-signin-foot a {
-  color: #a8a8a8;
+  color: #aaa8a0;
   text-decoration: none;
 }
 
 .ov-signin-foot a:hover {
-  color: #eeeeee;
+  color: #edecec;
 }
 
 /* ── Link verification ── */
@@ -1681,7 +1698,7 @@ body {
   padding: 2rem;
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 16px;
-  background: #111111;
+  background: #1b1913;
   text-align: center;
 }
 
@@ -1695,7 +1712,7 @@ body {
 
 .ov-signin-verify p {
   margin: 0.75rem 0 0;
-  color: #9a9a9a;
+  color: #9c9a92;
   font-size: 0.875rem;
   line-height: 1.6;
 }
@@ -2526,8 +2543,6 @@ body {
   margin: 0;
 }
 
-/* A legacy `.mkt-page *` rule targets every element directly, so inherited type
-   loses to it. The console states its own letterset instead of relying on that. */
 .ov-public .ov-console-frame,
 .ov-public .ov-console-frame * {
   font-family: var(--ov-mono);
@@ -2536,7 +2551,7 @@ body {
 .ov-public .ov-console-frame {
   border: 1px solid var(--ov-hairline);
   border-radius: 16px;
-  background: #111111;
+  background: #1b1913;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.06),
     0 30px 80px -28px rgb(0 0 0 / 0.85);
@@ -2549,7 +2564,7 @@ body {
   gap: 0.5rem;
   padding: 0.72rem 1rem;
   border-bottom: 1px solid var(--ov-hairline);
-  background: #141414;
+  background: #1c1a14;
   font-family: var(--ov-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
@@ -2562,7 +2577,7 @@ body {
 
 .ov-public .ov-console-sep,
 .ov-public .ov-console-context {
-  color: #8f8f8f;
+  color: #918f87;
 }
 
 .ov-public .ov-console-live {
@@ -2593,7 +2608,7 @@ body {
 }
 
 .ov-public .ov-console-clock {
-  color: #9a9a9a;
+  color: #9c9a92;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2637,7 +2652,7 @@ body {
 }
 
 .ov-public .ov-wire-who {
-  color: #8f8f8f;
+  color: #918f87;
   font-size: 0.625rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2645,7 +2660,7 @@ body {
 }
 
 .ov-public .ov-wire-line--orvius .ov-wire-text {
-  color: #f2f2f2;
+  color: #f2f1ed;
 }
 
 .ov-public .ov-wire-line--caller .ov-wire-text {
@@ -2675,12 +2690,12 @@ body {
 
 .ov-public .ov-console-capture {
   padding: 1.05rem 1.1rem;
-  background: #0e0e0e;
+  background: #17150e;
 }
 
 .ov-public .ov-capture-label {
   margin: 0 0 0.75rem;
-  color: #8f8f8f;
+  color: #918f87;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   letter-spacing: 0.16em;
@@ -2699,7 +2714,7 @@ body {
   padding: 0.4rem 0.55rem;
   border: 1px solid var(--ov-hairline);
   border-radius: 8px;
-  background: #161616;
+  background: #201e18;
   transition:
     border-color 220ms ease,
     background 220ms ease;
@@ -2709,7 +2724,7 @@ body {
    the product does, so it gets the 10px label tier rather than the 9px floor;
    uppercase mono this letter-spaced needs the extra pixel to stay a word. */
 .ov-public .ov-capture-row dt {
-  color: #9a9a9a;
+  color: #9c9a92;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   letter-spacing: 0.16em;
@@ -2721,14 +2736,14 @@ body {
    the line to look broken rather than waiting. */
 .ov-public .ov-capture-row dd {
   margin: 0;
-  color: #8f8f8f;
+  color: #918f87;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
 }
 
 .ov-public .ov-capture-row.is-set {
   border-color: color-mix(in srgb, var(--ov-copper) 34%, transparent);
-  background: color-mix(in srgb, var(--ov-copper) 9%, #161616);
+  background: color-mix(in srgb, var(--ov-copper) 9%, #201e18);
   animation: ov-capture 620ms ease-out;
 }
 
@@ -2739,7 +2754,7 @@ body {
 @keyframes ov-capture {
   0% {
     border-color: var(--ov-copper);
-    background: color-mix(in srgb, var(--ov-copper) 26%, #161616);
+    background: color-mix(in srgb, var(--ov-copper) 26%, #201e18);
     transform: translateX(4px);
   }
   100% {
@@ -2758,7 +2773,7 @@ body {
   gap: 0.85rem;
   padding: 0.7rem 1.1rem;
   border-top: 1px solid var(--ov-hairline);
-  background: #0e0e0e;
+  background: #17150e;
 }
 
 .ov-public .ov-player-toggle {
@@ -2772,7 +2787,7 @@ body {
   border: 1px solid var(--ov-hairline-strong);
   border-radius: 9999px !important;
   background: #ffffff;
-  color: #0b0b0b;
+  color: #14120b;
   cursor: pointer;
   transition:
     transform 130ms ease,
@@ -2805,7 +2820,7 @@ body {
   flex: 1;
   min-width: 1px;
   border-radius: 9999px;
-  background: #2e2e2e;
+  background: #2b2923;
   transition: background 120ms ease;
 }
 
@@ -2814,7 +2829,7 @@ body {
 }
 
 .ov-public .ov-player-bar.is-played.ov-player-bar--caller {
-  background: #d4d4d4;
+  background: #d7d6d5;
 }
 
 .ov-public .ov-player-bar.is-played {
@@ -2832,7 +2847,7 @@ body {
 
 .ov-public .ov-player-time {
   flex-shrink: 0;
-  color: #9a9a9a;
+  color: #9c9a92;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   letter-spacing: 0.08em;
@@ -2845,7 +2860,7 @@ body {
   gap: 1.1rem;
   padding: 0.72rem 1.1rem;
   border-top: 1px solid var(--ov-hairline);
-  background: #141414;
+  background: #1c1a14;
   font-family: var(--ov-mono);
   font-size: 0.625rem;
   letter-spacing: 0.13em;
@@ -2856,7 +2871,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #8f8f8f;
+  color: #918f87;
   transition: color 220ms ease;
 }
 
@@ -2864,14 +2879,14 @@ body {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #2e2e2e;
+  background: #2b2923;
   transition:
     background 220ms ease,
     box-shadow 220ms ease;
 }
 
 .ov-public .ov-rail-step.is-active {
-  color: #f2f2f2;
+  color: #f2f1ed;
 }
 
 .ov-public .ov-rail-step.is-active i {
