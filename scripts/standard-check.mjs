@@ -435,7 +435,6 @@ const marketingFiles = [
   "src/lib/i18n.ts",
   // Ring copy describes what is live, and renders on the site and in the app.
   "src/lib/company.ts",
-  "src/components/home-workflow.tsx",
   "src/components/home-statement.tsx",
   // The stats banner is the highest-risk surface on the site: a metric strip is
   // where invented numbers land first.

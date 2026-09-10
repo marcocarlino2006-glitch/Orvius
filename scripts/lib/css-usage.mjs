@@ -1,27 +1,18 @@
 /**
  * Which CSS classes nothing renders.
  *
- * Deleting a rule because grep found no match is how a dynamically built
- * class name gets removed: `attention-item-critical` is never written down
- * anywhere, it is assembled as `attention-item-${item.impact}`. So a class is
- * only reported as dead when it appears nowhere literally AND no template
- * literal in the codebase builds a name that could become it.
+ * Deleting a rule because grep found no match is how a dynamically built class
+ * name gets removed: `attention-item-critical` is never written down anywhere,
+ * it is assembled as `attention-item-${item.impact}`. So a class is reported
+ * dead only when no rendered module names it literally and no interpolation in
+ * a rendered module could build it.
  */
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, extname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
-export const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
+import { renderedModules, repoRoot, walk } from "./module-graph.mjs";
 
-export function walk(dir, exts, out = []) {
-  for (const entry of readdirSync(dir)) {
-    if (entry === "node_modules" || entry === ".next" || entry.startsWith(".")) continue;
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) walk(full, exts, out);
-    else if (exts.includes(extname(full))) out.push(full);
-  }
-  return out;
-}
+export { repoRoot, walk };
 
 /*
   Comments are stripped before anything is counted. A class named in prose
@@ -33,17 +24,44 @@ export function walk(dir, exts, out = []) {
 const stripComments = (text) =>
   text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-export function analyzeCssUsage() {
-  const cssFiles = walk(join(repoRoot, "src"), [".css"]);
-  const codeFiles = [
-    ...walk(join(repoRoot, "src"), [".tsx", ".ts", ".jsx", ".js"]),
-    ...walk(join(repoRoot, "scripts"), [".mjs", ".cjs", ".js"]),
-  ].filter((f) => !f.includes("css-usage") && !f.includes("css-prune"));
+/*
+  Only string literals are read, not every identifier in the file. A class name
+  reaches the DOM as text, so a bare identifier scan credits any surface that
+  happens to have a variable called `card` or `title`.
+*/
+const stringLiteralRe = /"([^"\\\n]*)"|'([^'\\\n]*)'|`((?:[^`\\]|\\.)*)`/g;
+const tokenRe = /[A-Za-z][\w-]*/g;
 
-  const codeText = codeFiles
-    .map((f) => stripComments(readFileSync(f, "utf8")))
-    .join("\n");
+/** Every class-shaped token written down in a module's string literals. */
+function literalTokens(text) {
+  const tokens = new Set();
+  for (const lit of text.matchAll(stringLiteralRe)) {
+    const body = lit[1] ?? lit[2] ?? lit[3] ?? "";
+    for (const token of body.matchAll(tokenRe)) tokens.add(token[0]);
+  }
+  return tokens;
+}
 
+/*
+  A prefix only protects a name whose remainder is one segment.
+
+  The suffix an interpolation supplies is an enum value — `warn`, `critical`,
+  `past_due` — so `attention-item-${impact}` covers attention-item-critical and
+  nothing deeper. Protecting every descendant instead let `orvius-${planId}`,
+  which is a Stripe product key built in the billing route, vouch for twenty
+  `orvius-*` classes that no page has rendered in months.
+*/
+function protectingPrefix(name, prefixes) {
+  for (const prefix of prefixes) {
+    if (!name.startsWith(prefix) || name === prefix) continue;
+    const remainder = name.slice(prefix.length);
+    if (!remainder.includes("-")) return prefix;
+  }
+  return null;
+}
+
+/** Class names each stylesheet declares, mapped to the files declaring them. */
+function declaredClasses(cssFiles) {
   const declared = new Map();
   for (const file of cssFiles) {
     const withoutComments = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -55,27 +73,38 @@ export function analyzeCssUsage() {
       }
     }
   }
+  return declared;
+}
 
-  /* Every literal prefix that sits immediately before an interpolation, so
-     `pro-rail-status-${tone}` protects pro-rail-status-warn and its siblings. */
+export function analyzeCssUsage() {
+  const cssFiles = walk(join(repoRoot, "src"), [".css"]);
+
+  /*
+    The corpus is what a URL can reach, not what src/ contains. Scanning src/
+    counted twelve components no route imports, and scanning scripts/ counted
+    `ring1-trust-strip` because standard-check.mjs names the file it asserts is
+    deleted — a class kept alive by the check proving it should be gone.
+  */
+  const codeText = [...renderedModules()]
+    .map((f) => stripComments(readFileSync(f, "utf8")))
+    .join("\n");
+
   const dynamicPrefixes = new Set();
   for (const match of codeText.matchAll(/([A-Za-z][\w-]*-)\$\{/g)) {
     dynamicPrefixes.add(match[1]);
   }
 
-  const literal = new Set();
-  for (const match of codeText.matchAll(/[A-Za-z][\w-]*/g)) literal.add(match[0]);
+  const literal = literalTokens(codeText);
+  const declared = declaredClasses(cssFiles);
 
   const verdicts = new Map();
   for (const [name, files] of declared) {
-    const dynamicPrefix = [...dynamicPrefixes].find(
-      (p) => name.startsWith(p) && name !== p,
-    );
+    const dynamicPrefix = protectingPrefix(name, dynamicPrefixes);
     verdicts.set(name, {
       name,
       files: [...files],
       verdict: literal.has(name) ? "used" : dynamicPrefix ? "dynamic" : "dead",
-      dynamicPrefix: dynamicPrefix ?? null,
+      dynamicPrefix,
     });
   }
 

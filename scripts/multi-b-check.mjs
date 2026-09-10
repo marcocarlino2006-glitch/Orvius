@@ -139,12 +139,28 @@ gate(
   "playbook + copy templates",
 );
 
+/*
+  This asked whether launch-gates-strip.tsx existed on disk, and master:class
+  asks that Settings not render it — so both gates were green while the file sat
+  there imported by nothing. A file-exists check cannot tell a shipped surface
+  from an abandoned one, which is the only thing this gate was ever for.
+
+  Settings now shows the cert through ProSetupHub, so that is what gets checked:
+  the surface an owner reaches, plus the column the progress is stored in.
+*/
 gate(
   "launch_gates_ui",
-  "Launch gates + cert persistence",
-  fileOk("src/components/launch-gates-strip.tsx") &&
-    readFileSync(join(root, "prisma/schema.prisma"), "utf8").includes("founderCertJson"),
-  "Settings cockpit",
+  "Founder cert reaches Settings",
+  (() => {
+    try {
+      const settings = readFileSync(join(root, "src/app/dashboard/settings/page.tsx"), "utf8");
+      const schema = readFileSync(join(root, "prisma/schema.prisma"), "utf8");
+      return /ProSetupHub/.test(settings) && schema.includes("founderCertJson");
+    } catch {
+      return false;
+    }
+  })(),
+  "Settings renders ProSetupHub and Business.founderCertJson persists it",
 );
 
 gate(
