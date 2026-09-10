@@ -753,8 +753,11 @@ body {
   letter-spacing: 0.14em !important;
 }
 
+/* The slash is decoration, but it is still read as structure between the two
+   terms, and at #5c5c5c it sat at 2.51:1. One step up the dim ladder clears AA
+   and stays plainly quieter than the #a8a8a8 terms it separates. */
 .ov-public .mkt-law-badge-sep {
-  color: #5c5c5c !important;
+  color: #8f8f8f !important;
 }
 
 .ov-public .mkt-law-title {

@@ -81,7 +81,15 @@ const COLLECT = () => {
       .map((n) => n.textContent.trim())
       .join(" ")
       .trim();
-    if (ownText.length < 2) continue;
+    /*
+      One character counts. This used to require two, which quietly excused
+      every single-glyph label on the site — the em-dash placeholders in the
+      hero's capture board, badge counts, close and check marks. Those are
+      often the dimmest text on a surface, so skipping them meant the audit
+      reported green on exactly the text most likely to fail. The trim above
+      already drops whitespace-only nodes.
+    */
+    if (ownText.length < 1) continue;
 
     const rect = el.getBoundingClientRect();
     if (rect.width < 2 || rect.height < 2) continue;
