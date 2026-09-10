@@ -56,10 +56,30 @@ const COOLNESS = `
   }
 `;
 
+/**
+ * Copy that was written for whoever runs Orvius, not for the shop.
+ *
+ * The post-lock banner and the billing instrument name STRIPE_SECRET_KEY,
+ * point at docs/BILLING-SETUP.md and say "Counsel-confirm formation state —
+ * never invent". Both rendered to every signed-in owner. Reading the source
+ * cannot answer this — the banner's text is assembled server-side and
+ * rendered as {gate.detail}, and one founder-guarded block would excuse every
+ * unguarded line in the same file. So the question is asked of the screen,
+ * signed in as a shop owner, which is the only place the answer is true.
+ */
+const RUNBOOK_COPY = `
+  [
+    { re: /\\b[A-Z][A-Z0-9]+(_[A-Z0-9]+)+\\b/, what: "an env var name" },
+    { re: /npm run |docs\\/[A-Za-z-]+\\.md/, what: "a command or runbook path" },
+    { re: /never invent|do not claim|counsel-confirm/i, what: "an internal instruction" },
+  ]
+`;
+
 const COLLECT = `
   () => {
     const coolness = ${COOLNESS};
-    const out = { tiny: [], targets: [], overflow: [], cool: [], radii: {}, fonts: {} };
+    const runbook = ${RUNBOOK_COPY};
+    const out = { tiny: [], targets: [], overflow: [], cool: [], runbook: [], radii: {}, fonts: {} };
     const label = (el) => {
       const cls = typeof el.className === "string" ? el.className.trim().split(/\\s+/)[0] : "";
       const text = (el.textContent || "").trim().replace(/\\s+/g, " ").slice(0, 48);
@@ -104,6 +124,19 @@ const COLLECT = `
         out.tiny.push({ ...label(el), px: Number(size.toFixed(2)) });
       }
       if (ownText) out.fonts[size.toFixed(2)] = (out.fonts[size.toFixed(2)] || 0) + 1;
+
+      if (ownText) {
+        const own = Array.from(el.childNodes)
+          .filter((n) => n.nodeType === 3)
+          .map((n) => n.textContent)
+          .join(" ");
+        for (const risk of runbook) {
+          if (risk.re.test(own)) {
+            out.runbook.push({ ...label(el), what: risk.what });
+            break;
+          }
+        }
+      }
 
       const interactive =
         el.matches("a[href], button, input, select, textarea, summary, [role=button], [tabindex]:not([tabindex='-1'])") &&
@@ -157,7 +190,7 @@ const COLLECT = `
     process.exit(2);
   }
 
-  const findings = { tiny: [], targets: [], overflow: [], cool: [] };
+  const findings = { tiny: [], targets: [], overflow: [], cool: [], runbook: [] };
   const radii = {};
   const fonts = {};
   let pagesSeen = 0;
@@ -177,7 +210,7 @@ const COLLECT = `
     await new Promise((r) => setTimeout(r, 2500));
 
     const result = await page.evaluate(`(${COLLECT})()`);
-    for (const key of ["tiny", "targets", "overflow", "cool"]) {
+    for (const key of ["tiny", "targets", "overflow", "cool", "runbook"]) {
       for (const row of result[key]) findings[key].push({ route: path, ...row });
     }
     for (const [k, v] of Object.entries(result.radii)) radii[k] = (radii[k] || 0) + v;
@@ -205,6 +238,7 @@ const COLLECT = `
   const targets = group(findings.targets, (r) => `${r.cls}|${r.tag}`);
   const overflow = group(findings.overflow, (r) => `${r.cls}|${r.tag}`);
   const cool = group(findings.cool, (r) => `${r.cls}|${r.prop}|${r.value}`);
+  const runbook = group(findings.runbook, (r) => `${r.cls}|${r.what}|${r.text}`);
 
   const section = (title, rows, render) => {
     console.log(`\n${title} — ${rows.length} distinct`);
@@ -219,6 +253,7 @@ const COLLECT = `
   section("Pointer targets under 24px", targets, (r) => `${r.w}×${r.h}  ${r.tag}.${r.cls}  "${r.text}"`);
   section("Text clipped without an ellipsis", overflow, (r) => `${r.tag}.${r.cls}  "${r.text}"`);
   section("Cool neutrals on a warm palette", cool, (r) => `${r.prop} ${r.value} (+${r.blueOverRed} blue)  .${r.cls || r.tag}`);
+  section("Founder runbook copy on an owner's screen", runbook, (r) => `${r.what}  .${r.cls || r.tag}  "${r.text}"`);
 
   console.log(`\nFont sizes in use: ${Object.keys(fonts).sort((a, b) => a - b).join(", ")}`);
   console.log(
@@ -228,7 +263,7 @@ const COLLECT = `
       .join(", ")}`,
   );
 
-  const blockers = tiny.length + targets.length + overflow.length + cool.length;
+  const blockers = tiny.length + targets.length + overflow.length + cool.length + runbook.length;
   console.log(`\n${blockers} distinct detail defect(s)`);
   process.exit(blockers ? 1 : 0);
 })();

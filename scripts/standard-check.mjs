@@ -203,6 +203,71 @@ if (!checks.some((c) => c.name.startsWith("Clarity") && c.ok === false)) {
   );
 }
 
+// ── Runbook language on the owner surface ──
+/*
+  The post-lock banner and the billing instrument were written for the person
+  who owns the Stripe account: they name STRIPE_SECRET_KEY, point at
+  docs/BILLING-SETUP.md, and say "Counsel-confirm formation state — never
+  invent". Both rendered to every signed-in owner, so a plumber opening
+  Billing read a note telling them not to claim self-serve checkout.
+
+  A module may still carry that copy — someone has to read it — but only if it
+  checks who is looking. Importing the founder guard is the precondition, so
+  adding runbook language to an unguarded dashboard module fails here.
+*/
+/*
+  Whether a module can say "not you". The test is a call, not an import: a
+  route that imports the guard and never invokes it reads as guarded to a
+  grep and is wide open at runtime, which is the mistake this gate exists to
+  find in the first place.
+
+  What an owner actually reads is checked at runtime by verify-detail.cjs,
+  which crawls all fourteen routes signed in as a shop owner. Source is the
+  wrong place for that question — one guarded block would excuse every
+  unguarded line in the same file.
+*/
+const CALLS_FOUNDER_GUARD = /isFounderEmail\s*\(/;
+
+// ── Founder-only data leaves through a founder-only route ──
+/*
+  Every gate in bulletproof-status.ts is marked founderOnly and nothing read
+  the flag: the route serving them checked entitlement and stopped there, so
+  any paying owner could fetch the list of Stripe env vars still missing and
+  the note that formation state was unconfirmed.
+
+  The rule is about the data, not the words: if a route's import closure
+  reaches a module that marks something founderOnly, that route has to ask
+  who is calling.
+*/
+const founderOnlyModules = [...walkFiles(join(root, "src"))].filter(
+  (file) => /\.tsx?$/.test(file) && readFileSync(file, "utf8").includes("founderOnly"),
+);
+
+if (founderOnlyModules.length) {
+  const closureCache = new Map();
+  const apiRoutes = [...walkFiles(join(root, "src/app/api"))].filter((file) =>
+    file.endsWith("/route.ts"),
+  );
+  for (const route of apiRoutes) {
+    const reached = closure(route, closureCache);
+    const carries = founderOnlyModules.filter(
+      (module) => module !== route && reached.has(module),
+    );
+    if (!carries.length) continue;
+    if (CALLS_FOUNDER_GUARD.test(readFileSync(route, "utf8"))) continue;
+    fail(
+      `Founder data ${relative(root, route)}`,
+      `Serves founderOnly data from ${relative(root, carries[0])} without checking who is calling`,
+    );
+  }
+}
+if (!checks.some((c) => c.name.startsWith("Founder data") && c.ok === false)) {
+  pass(
+    "Founder data",
+    `founderOnly data in ${founderOnlyModules.length} module(s) only leaves through founder-checked routes`,
+  );
+}
+
 // ── Honesty (dashboard UI — measured claims only) ──
 for (const rel of clarityFiles) {
   let content;

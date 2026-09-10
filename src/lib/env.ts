@@ -25,6 +25,7 @@ export function getConfigStatus() {
   const optional = [
     "VAPI_WEBHOOK_SECRET",
     "ORVIUS_ADMIN_KEY",
+    "ORVIUS_FOUNDER_EMAILS",
     "OPENAI_API_KEY",
     "RESEND_API_KEY",
     "RESEND_FROM",

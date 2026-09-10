@@ -10,6 +10,7 @@ import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
 
 type AccountResponse = {
+  founder?: boolean;
   business: {
     name: string;
     ownerPhone: string | null;
@@ -310,7 +311,7 @@ export default function DashboardSettingsPage() {
             <span className="onboarding-hint">
               {account?.alerts.emailConfigured
                 ? "Email failover is live — used when SMS fails or is unavailable."
-                : "Email failover needs RESEND_API_KEY on the platform (founder env). Without it, SMS-only alerts."}
+                : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
             </span>
           </label>
 
@@ -390,31 +391,38 @@ export default function DashboardSettingsPage() {
           </div>
         </details>
 
-        <details className="pro-settings-secondary font-sans">
-          <summary>
-            Founder phone certification ({certDone}/{FOUNDER_CERT.length})
-            {certSaving ? " · saving…" : ""}
-          </summary>
-          <div className="pro-settings-secondary-body">
-            <p className="account-settings-hint font-sans mb-3">
-              Internal dogfood checklist — not part of the owner go-live ritual.
-            </p>
-            <ul className="pro-founder-cert-list">
-              {FOUNDER_CERT.map((label, index) => (
-                <li key={label}>
-                  <label className="pro-founder-cert-item font-sans">
-                    <input
-                      type="checkbox"
-                      checked={certChecks[index] ?? false}
-                      onChange={() => toggleCert(index)}
-                    />
-                    <span>{label}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </details>
+        {/*
+          The certification is ours, not the shop's — five real calls we place
+          before we trust the line overnight. It says so itself ("internal
+          dogfood checklist"), and it was sitting in every owner's Settings.
+        */}
+        {account?.founder ? (
+          <details className="pro-settings-secondary font-sans">
+            <summary>
+              Founder phone certification ({certDone}/{FOUNDER_CERT.length})
+              {certSaving ? " · saving…" : ""}
+            </summary>
+            <div className="pro-settings-secondary-body">
+              <p className="account-settings-hint font-sans mb-3">
+                Internal dogfood checklist — not part of the owner go-live ritual.
+              </p>
+              <ul className="pro-founder-cert-list">
+                {FOUNDER_CERT.map((label, index) => (
+                  <li key={label}>
+                    <label className="pro-founder-cert-item font-sans">
+                      <input
+                        type="checkbox"
+                        checked={certChecks[index] ?? false}
+                        onChange={() => toggleCert(index)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        ) : null}
 
         <details className="pro-settings-secondary font-sans">
           <summary>Your data</summary>

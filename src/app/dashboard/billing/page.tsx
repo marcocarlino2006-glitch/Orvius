@@ -18,6 +18,7 @@ type BillingReadiness = {
 
 type BillingAccount = {
   user: { email: string | null };
+  founder?: boolean;
   business: {
     name: string;
     billingStatus: string;
@@ -84,6 +85,7 @@ export default function DashboardBillingPage() {
   const email = session?.user?.email ?? account?.user.email ?? "";
   const paidPlans = getPaidPlans();
   const checkoutReady = account?.billing.configured ?? false;
+  const founder = account?.founder ?? false;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
   const locked = !entitled && status !== "past_due";
   const needsPay = locked || status === "past_due" || status === "pilot" || status === "none";
@@ -190,42 +192,51 @@ export default function DashboardBillingPage() {
             </>
           ) : (
             <>
+              {/*
+                What an owner needs to know here is whether they owe anything
+                and what happens next. The setup instrument below says neither
+                — it names env vars and an npm script — so it is shown only to
+                whoever owns the Stripe account.
+              */}
               <p className="font-sans text-sm leading-relaxed text-ash">
-                Self-serve checkout stays dark until Stripe is configured. Do not claim
-                paid checkout until these gates are green.
+                Card payment isn&apos;t open yet, so there is nothing to pay today. Your
+                line keeps answering on design partner access, and we will write to you
+                before that changes.
               </p>
-              <div className="billing-unblock billing-unblock--instrument mt-4 font-sans">
-                <p className="billing-unblock-kicker">Stripe gates</p>
-                <p className="billing-unblock-title">Checkout stays dark until these are green</p>
-                <ol className="billing-unblock-steps">
-                  {(account?.billing.readiness?.nextSteps?.length
-                    ? account.billing.readiness.nextSteps
-                    : [
-                        "Add STRIPE_SECRET_KEY on Vercel",
-                        "Run stripe:setup · paste price IDs",
-                        "Webhook + STRIPE_WEBHOOK_SECRET",
-                        "Redeploy · then Subscribe",
-                      ]
-                  ).map((step) => (
-                    <li key={step}>{step}</li>
-                  ))}
-                </ol>
-                {account?.billing.readiness?.missing?.length ? (
-                  <p className="billing-unblock-missing">
-                    Missing ·{" "}
-                    {account.billing.readiness.missing.map((m) => (
-                      <code key={m}>{m}</code>
+              {founder ? (
+                <div className="billing-unblock billing-unblock--instrument mt-4 font-sans">
+                  <p className="billing-unblock-kicker">Stripe gates</p>
+                  <p className="billing-unblock-title">Checkout stays dark until these are green</p>
+                  <ol className="billing-unblock-steps">
+                    {(account?.billing.readiness?.nextSteps?.length
+                      ? account.billing.readiness.nextSteps
+                      : [
+                          "Add STRIPE_SECRET_KEY on Vercel",
+                          "Run stripe:setup · paste price IDs",
+                          "Webhook + STRIPE_WEBHOOK_SECRET",
+                          "Redeploy · then Subscribe",
+                        ]
+                    ).map((step) => (
+                      <li key={step}>{step}</li>
                     ))}
+                  </ol>
+                  {account?.billing.readiness?.missing?.length ? (
+                    <p className="billing-unblock-missing">
+                      Missing ·{" "}
+                      {account.billing.readiness.missing.map((m) => (
+                        <code key={m}>{m}</code>
+                      ))}
+                    </p>
+                  ) : null}
+                  <p className="billing-unblock-foot">
+                    Runbook · <code>docs/BILLING-SETUP.md</code>
+                    {" · "}
+                    <Link href="/pilot" className="pro-section-link">
+                      Design partner
+                    </Link>
                   </p>
-                ) : null}
-                <p className="billing-unblock-foot">
-                  Runbook · <code>docs/BILLING-SETUP.md</code>
-                  {" · "}
-                  <Link href="/pilot" className="pro-section-link">
-                    Design partner
-                  </Link>
-                </p>
-              </div>
+                </div>
+              ) : null}
             </>
           )}
         </ShellPanel>

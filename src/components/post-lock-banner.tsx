@@ -17,6 +17,10 @@ type Status = {
 /**
  * Founder post-lock instrument.
  * Compact on Settings. Full only on Billing. Never crowds Command/Today.
+ *
+ * Who may see it is decided by /api/bulletproof, which returns 403 to anyone
+ * who is not the founder. A non-ok response reads as "nothing to show" below,
+ * so an owner gets no banner and no round trip worth reading.
  */
 export function PostLockBanner() {
   const pathname = usePathname();
