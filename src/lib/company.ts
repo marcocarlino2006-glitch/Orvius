@@ -15,7 +15,7 @@ export const company = {
   categoryClaim:
     "The night-shift OS for HVAC, plumbing, and electrical.",
   /** Wedge proof — measurable today. */
-  proofLine: "Missed calls become booked jobs.",
+  proofLine: "The night shift that books the job.",
   vision:
     "Make missed night jobs obsolete. Orvius is the shop OS that runs after hours — captures demand, books the work, alerts the owner, and compounds one record across every call, job, and dollar. Humans keep high-risk overrides.",
   /** Product goal — not a warranty of 100% answer rate. */

@@ -28,16 +28,16 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Für HLK-, Klempner- und Elektrobetriebe",
   },
   "hero.title": {
-    en: "Missed calls become booked jobs.",
-    es: "Las llamadas perdidas se vuelven trabajos agendados.",
-    fr: "Les appels manqués deviennent des interventions planifiées.",
-    de: "Verpasste Anrufe werden zu gebuchten Aufträgen.",
+    en: "The night shift that books the job.",
+    es: "El turno de noche que agenda el trabajo.",
+    fr: "L'équipe de nuit qui planifie l'intervention.",
+    de: "Die Nachtschicht, die den Auftrag bucht.",
   },
   "hero.lead": {
-    en: "Orvius runs the night shift on your line — answers after-hours and overflow calls, qualifies the job, books it, and alerts you in seconds.",
-    es: "Orvius cubre el turno de noche en tu línea: contesta llamadas fuera de horario y desbordadas, califica el trabajo, lo agenda y te avisa en segundos.",
-    fr: "Orvius assure le service de nuit sur votre ligne : il répond aux appels hors horaires et en débordement, qualifie la demande, la planifie et vous alerte en quelques secondes.",
-    de: "Orvius übernimmt die Nachtschicht auf Ihrer Leitung: nimmt Anrufe außerhalb der Geschäftszeiten und bei Überlauf an, qualifiziert den Auftrag, bucht ihn und benachrichtigt Sie in Sekunden.",
+    en: "After-hours and overflow calls get answered, qualified, booked, and pushed to the owner — before the morning truck rolls.",
+    es: "Las llamadas fuera de horario y el desborde se contestan, califican, agendan y llegan al dueño — antes de que salga el camión de la mañana.",
+    fr: "Les appels hors horaires et en débordement sont pris, qualifiés, planifiés et transmis au patron — avant le départ du camion du matin.",
+    de: "Anrufe außerhalb der Geschäftszeiten und bei Überlauf werden angenommen, qualifiziert, gebucht und an den Inhaber geschickt — bevor der Morgenwagen rollt.",
   },
   "hero.cta": {
     en: "Prove it on your line",
@@ -45,7 +45,13 @@ export const translations: Record<string, Record<Lang, string>> = {
     fr: "Testez-le sur votre ligne",
     de: "Testen Sie es auf Ihrer Leitung",
   },
-  "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
+  "hero.secondary": {
+    en: "Book a walkthrough",
+    es: "Reservar una demo",
+    fr: "Réserver une démo",
+    de: "Demo buchen",
+  },
+  "hero.liveline": { en: "Live line · call it now", es: "Línea en vivo · llámala ya", fr: "Ligne en direct · appelez maintenant", de: "Live-Leitung · jetzt anrufen" },
 
   "showcase.eyebrow": { en: "On the line", es: "En la línea", fr: "En ligne", de: "Am Telefon" },
   "showcase.title": {
