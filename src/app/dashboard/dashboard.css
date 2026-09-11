@@ -1015,6 +1015,36 @@
   color: var(--ash);
 }
 
+/*
+  The error boundary renders outside OsShell, so it brings its own ground with
+  it. It has to: the shell is the most likely thing to have thrown, and a page
+  that inherits a background from the component that just failed inherits
+  nothing at all.
+*/
+.os-error-page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: #17150f;
+}
+
+.os-error-page .plan-upgrade-gate-inner {
+  max-width: 30rem;
+}
+
+/* The one line that answers "is my phone still being answered". */
+.os-error-page .os-error-lead {
+  color: #e9e9e9 !important;
+}
+
+.os-error-meta {
+  margin: 0.85rem 0 0;
+  font-size: 0.6875rem;
+  color: #a09f9e;
+  word-break: break-word;
+}
+
 .plan-upgrade-gate {
   padding: 2rem 0;
 }

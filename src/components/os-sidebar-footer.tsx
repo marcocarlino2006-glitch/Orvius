@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
+import { supportEmail, supportMailto } from "@/lib/support";
 
 type AccountData = {
   business: {
@@ -58,6 +60,7 @@ function planDisplayLabel(account: AccountData | null): string {
 
 export function OsSidebarFooter() {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [account, setAccount] = useState<AccountData | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -133,6 +136,26 @@ export function OsSidebarFooter() {
                 {item.hint ? <span className="os-profile-menu-hint">{item.hint}</span> : null}
               </Link>
             ))}
+
+            {/*
+              The only way to reach a person from inside the product. It used to
+              be a mailto in the marketing footer and a line in a Legal panel on
+              the billing page — findable by someone browsing the site, and not
+              by the owner at 3am with a shop to run, which is the only person
+              who ever needs it.
+
+              An <a> rather than a Link because it leaves the app, and it
+              arrives carrying the screen they were on.
+            */}
+            <a
+              href={supportMailto({ subject: "Help", path: pathname })}
+              role="menuitem"
+              className="os-profile-menu-link"
+              onClick={() => setOpen(false)}
+            >
+              <span>Get help</span>
+              <span className="os-profile-menu-hint">{supportEmail}</span>
+            </a>
           </div>
 
           <div className="os-profile-menu-footer">
