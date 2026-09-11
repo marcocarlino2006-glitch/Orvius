@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DashboardSkeleton } from "@/components/shell-skeleton";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
 import {
@@ -18,13 +19,20 @@ type PlanUpgradeGateProps = {
 export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
   const { access, loading } = usePlanAccess();
 
-  if (loading) {
-    return (
-      <div className="plan-upgrade-gate plan-upgrade-gate-loading font-sans">
-        Loading…
-      </div>
-    );
-  }
+  /*
+    The plan check resolves before the page's own fetch, so this state is the
+    first thing an owner sees on Customers, Jobs, Dispatch and Ask. It used to
+    be the words "Loading…" in a div with no stylesheet behind it —
+    plan-upgrade-gate-loading was never declared — which put unstyled 16px text
+    in the corner of an otherwise finished shell on every visit to four routes.
+
+    Showing the skeleton the wrapped page shows makes the two loads one: gate,
+    then page, then content, with nothing changing shape in between. The
+    aria-busy it carries also matters off-screen — every audit in scripts/ waits
+    on that attribute before measuring, so without it these four routes were
+    being measured mid-load.
+  */
+  if (loading) return <DashboardSkeleton />;
 
   const effectivePlan = access?.effectivePlan ?? "pilot";
   if (canAccessModule(effectivePlan, module)) {
