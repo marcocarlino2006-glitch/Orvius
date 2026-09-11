@@ -2,7 +2,7 @@
 
 import { AssignTechButton } from "@/components/assign-tech-button";
 import { JobStatusAdvance } from "@/components/job-status-advance";
-import { ProPageStrip } from "@/components/pro-page-strip";
+import { ProLead } from "@/components/pro-lead";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert, ShellBadge, ShellEmpty } from "@/components/shell-primitives";
@@ -276,14 +276,20 @@ export default function DispatchPage() {
       }
     >
       <PlanUpgradeGate module="dispatch">
-      <ProPageStrip />
-
-      <div className="pro-dispatch-head font-sans">
-        <p className="pro-dispatch-day">{dayLabel}</p>
-        <p className="pro-dispatch-count">
-          {board?.jobCount ?? 0} job{board?.jobCount === 1 ? "" : "s"} scheduled
-        </p>
-      </div>
+      <ProLead
+        loading={loading && !board}
+        figure={String(board?.jobCount ?? 0)}
+        caption={board?.jobCount === 1 ? "job on the board" : "jobs on the board"}
+        detail={dayLabel}
+        facts={[
+          {
+            label: "unassigned",
+            value: board?.unassigned.length ?? 0,
+            live: (board?.unassigned.length ?? 0) > 0,
+          },
+          { label: "crew", value: technicians.length },
+        ]}
+      />
 
       <div className="pro-toolbar pro-page-toolbar">
         <label className="pro-toolbar-field font-sans">

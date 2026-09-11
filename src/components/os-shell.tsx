@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { isAfterHours } from "@/lib/after-hours";
 import { osCurrentRing, osProductNav } from "@/lib/os-nav";
 import { useBusiness } from "@/lib/use-business";
 import { usePlanAccess } from "@/lib/use-plan-access";
@@ -47,10 +48,25 @@ export function OsShell({
   const unassignedJobs = business?.signals.unassignedJobs ?? 0;
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  /*
+    Read after mount, never during render. The server runs in UTC and the shop
+    does not, so deriving this inline makes the server and the browser disagree
+    about the label and React replaces it mid-paint.
+  */
+  const [offHours, setOffHours] = useState(false);
 
   useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const read = () => setOffHours(isAfterHours(new Date()));
+    read();
+    /* Re-read on the minute so a shop that crosses six o'clock with the tab
+       open sees the label change without a reload. */
+    const timer = window.setInterval(read, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -200,13 +216,21 @@ export function OsShell({
           <div className="os-topbar-row">
             <OsMobileNavButton open={navOpen} onToggle={() => setNavOpen((v) => !v)} />
             <div className="os-topbar-copy">
+              {/*
+                The state of the line, and nothing that is already on screen.
+                This slot used to print the new-lead count — which every page now
+                leads with in display type an inch below it — or else the shop's
+                phone number, which the sidebar shows two inches to the left. Both
+                readings were the same sentence twice. What an owner cannot see
+                anywhere else is whether the thing is picking up right now.
+              */}
               <p className="os-topbar-live font-sans">
                 <span className="pro-live-dot" />
-                {newLeads > 0
-                  ? `${newLeads} lead${newLeads === 1 ? "" : "s"} need follow-up`
-                  : business?.line
-                    ? business.line
-                    : "Finish setup in Settings"}
+                {business?.line
+                  ? offHours
+                    ? "Answering — after hours"
+                    : "Answering"
+                  : "Finish setup in Settings"}
               </p>
               <h1 className="os-topbar-title font-sans">{title}</h1>
               {subtitle ? (

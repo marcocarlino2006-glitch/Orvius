@@ -34,10 +34,14 @@ export function CustomerRecordCard({
     <Link href={`/dashboard/customers/${id}`} className="lead-rail-row">
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
+          {/*
+            One statement of the fact, not three. This read "Customer · returning
+            · 2 touches" beside a "Returning" badge, on a page where every row is
+            a customer by definition — so of four pieces of text, one was a
+            tautology and two were the same claim.
+          */}
           <p className="lead-rail-kind">
-            Customer
-            {returning ? " · returning" : ""}
-            {` · ${interactionCount} touch${interactionCount === 1 ? "" : "es"}`}
+            {interactionCount} call{interactionCount === 1 ? "" : "s"}
           </p>
           <time dateTime={lastSeenAt} className="lead-rail-time">
             {when}

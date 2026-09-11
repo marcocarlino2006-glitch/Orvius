@@ -1,11 +1,10 @@
 "use client";
 
 import { LeadInboxCard } from "@/components/lead-inbox-card";
-import { ProPageStrip } from "@/components/pro-page-strip";
+import { ProLead } from "@/components/pro-lead";
 import { LEAD_STATUSES } from "@/components/lead-status-actions";
 import {
   ProFilterBar,
-  ProStatRow,
   ProEmptyState,
   ProListEnd,
 } from "@/components/pro-page-chrome";
@@ -89,19 +88,27 @@ export default function InboxPage() {
         <ProShopLineCta label="Call your line" showNumber={false} />
       }
     >
-      <ProPageStrip followUpCount={newCount} />
-
-      {counts ? (
-        <ProStatRow
-          className="pro-page-stats"
-          stats={[
-            { label: "Total", value: counts.total },
-            { label: "Needs follow-up", value: counts.new, highlight: counts.new > 0 },
-            { label: "Contacted", value: counts.contacted },
-            { label: "Booked", value: counts.booked },
-          ]}
-        />
-      ) : null}
+      <ProLead
+        loading={loading && !counts}
+        figure={String(newCount)}
+        caption={
+          newCount === 1 ? "lead needs a callback" : "leads need a callback"
+        }
+        detail={
+          newCount > 0
+            ? "Captured while you were on a job. Oldest first."
+            : "Everyone who called has been answered."
+        }
+        facts={
+          counts
+            ? [
+                { label: "captured", value: counts.total },
+                { label: "contacted", value: counts.contacted },
+                { label: "booked", value: counts.booked, live: counts.booked > 0 },
+              ]
+            : undefined
+        }
+      />
 
       <ProFilterBar
         className="pro-page-filters"

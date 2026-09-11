@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ShellStat } from "@/components/shell-primitives";
 
 type ProRingBannerProps = {
   ring?: number;
@@ -62,35 +61,6 @@ export function ProSearchBar({
         placeholder={placeholder}
         className="pro-search-input font-sans"
       />
-    </div>
-  );
-}
-
-type ProStatRowProps = {
-  stats: Array<{ label: string; value: string | number; highlight?: boolean }>;
-  className?: string;
-};
-
-export function ProStatRow({ stats, className = "" }: ProStatRowProps) {
-  const gridClass =
-    stats.length === 3
-      ? "grid-cols-3"
-      : stats.length <= 2
-        ? "grid-cols-2"
-        : stats.length === 4
-          ? "grid-cols-2 sm:grid-cols-4"
-          : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5";
-
-  return (
-    <div className={`pro-stat-grid grid gap-3 ${gridClass} ${className}`}>
-      {stats.map((stat) => (
-        <ShellStat
-          key={stat.label}
-          label={stat.label}
-          value={stat.value}
-          highlight={stat.highlight}
-        />
-      ))}
     </div>
   );
 }

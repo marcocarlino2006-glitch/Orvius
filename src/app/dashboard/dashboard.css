@@ -470,46 +470,69 @@
   font-size: 0.875rem;
 }
 
+/*
+  The pipeline is a tab rail, so it should look like one.
+
+  It was six bordered boxes, each with a tracked-caps label above a large bold
+  count — the exact figure every admin template opens with, and the reason this
+  page read as scaffolding. It is worse than decorative: the boxes gave the
+  counts the visual weight of headline numbers, so the biggest thing on the Jobs
+  screen was whichever stage happened to hold the most work, and the filter they
+  actually are was the last thing you noticed.
+
+  Same six controls, read as tabs: label at body size, count trailing it quietly,
+  and one underline in the brand colour marking where you are.
+*/
 .jobs-pipeline {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: 0 1.5rem;
+  margin: 0 0 1.25rem;
+  border-bottom: 1px solid #2e2c26;
 }
 
 .jobs-pipeline-stage {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-  min-width: 6.5rem;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid var(--rule);
-  border-radius: 0.25rem;
-  background: var(--white);
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0 0 0.7rem;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
   text-align: left;
   cursor: pointer;
   text-decoration: none;
-  color: inherit;
+  color: #a4a2a0;
+  transition: color 0.12s ease;
+}
+
+.jobs-pipeline-stage:hover {
+  color: #ededed;
 }
 
 .jobs-pipeline-stage-active {
-  border-color: color-mix(in srgb, var(--signal) 40%, var(--rule));
-  background: color-mix(in srgb, var(--signal) 6%, var(--white));
+  color: #fbfbfb;
+  border-bottom-color: var(--signal-hot);
 }
 
 .jobs-pipeline-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ash);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.006em;
+  text-transform: none;
+  color: inherit;
 }
 
 .jobs-pipeline-count {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--void);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #a4a2a0;
+  font-variant-numeric: tabular-nums;
+}
+
+.jobs-pipeline-stage-active .jobs-pipeline-count {
+  color: var(--signal-hot);
 }
 
 .shop-outcomes {
@@ -2993,4 +3016,167 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #a09f9e;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   The type scale, and the one figure each page leads with.
+
+   Measured before this existed: the largest text rendering anywhere in the
+   product was 22px, with eleven sizes packed between 10px and 22px. On /jobs
+   the biggest thing on screen was the character "0"; on /inbox and /customers
+   it was "1"; on /ask nothing exceeded body copy. Everything spoke at the same
+   volume, so nothing led, and the screens read as a template no matter how
+   carefully the small type was set.
+
+   A display step fixes that only if it is rationed. One figure per page gets
+   it — the number an owner opened the page to see — and nothing else may.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.os-shell-night {
+  --os-display: 2.75rem;
+  --os-figure: 1.625rem;
+  --os-lede: 1.0625rem;
+}
+
+@media (max-width: 900px) {
+  .os-shell-night {
+    --os-display: 2.125rem;
+    --os-figure: 1.375rem;
+  }
+}
+
+/*
+  Replaces two things that opened almost every page: a banner restating the
+  shop's phone number, which the page header and the sidebar were already
+  showing, and a strip of four to six identical boxes whose values on a real
+  early shop were mostly zero.
+*/
+.pro-lead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin: 0 0 1.4rem;
+  padding: 0 0 1.15rem;
+  border-bottom: 1px solid #2e2c26;
+}
+
+.pro-lead-main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.pro-lead-figure {
+  margin: 0;
+  font-size: var(--os-display);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  color: #fbfbfb;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The one place the brand gets a surface this large. */
+.pro-lead-figure-hot {
+  color: var(--signal-hot);
+}
+
+/*
+  Holds the figure's exact footprint while the fetch is in flight, so the page
+  does not reflow the moment the real number lands.
+*/
+.pro-lead-figure-wait {
+  display: block;
+  width: 2.4ch;
+  height: calc(var(--os-display) * 0.92);
+  border-radius: 3px;
+  background: linear-gradient(90deg, #26241f 0%, #332f28 50%, #26241f 100%);
+  background-size: 200% 100%;
+  animation: pro-lead-wait 1.4s ease-in-out infinite;
+}
+
+@keyframes pro-lead-wait {
+  0%,
+  100% {
+    background-position: 0% 0;
+  }
+  50% {
+    background-position: 100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-lead-figure-wait {
+    animation: none;
+  }
+}
+
+.pro-lead-copy {
+  min-width: 0;
+}
+
+.pro-lead-caption {
+  margin: 0;
+  font-size: var(--os-lede);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  color: #ededed;
+}
+
+.pro-lead-detail {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #a4a2a0;
+}
+
+/*
+  The supporting counts, inline. They were boxes, which gave a 0 the same
+  visual weight as the figure above and turned a quiet week into six framed
+  zeros. As a run of text they stay readable and stop competing.
+*/
+.pro-lead-facts {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 1.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pro-lead-facts li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: #a4a2a0;
+}
+
+.pro-lead-facts b {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #ededed;
+  font-variant-numeric: tabular-nums;
+}
+
+.pro-lead-facts li.is-live b {
+  color: var(--signal-hot);
+}
+
+.pro-lead-side {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+@media (max-width: 720px) {
+  .pro-lead {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
 }

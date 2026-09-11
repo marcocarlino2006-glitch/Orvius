@@ -42,25 +42,6 @@ export function ShellPanel({
   );
 }
 
-export function ShellStat({
-  label,
-  value,
-  highlight = false,
-}: {
-  label: string;
-  value: string | number;
-  highlight?: boolean;
-}) {
-  const active = highlight || (value !== "—" && value !== 0);
-
-  return (
-    <div className={`pro-stat ${active ? "pro-stat-live" : ""}`}>
-      <p className="pro-stat-label font-sans">{label}</p>
-      <p className="pro-stat-value font-sans">{value}</p>
-    </div>
-  );
-}
-
 export function ShellBadge({
   tone,
   children,

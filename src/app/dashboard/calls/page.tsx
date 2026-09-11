@@ -1,14 +1,15 @@
 "use client";
 
 import { CallRecordCard } from "@/components/call-record-card";
-import { ProPageStrip } from "@/components/pro-page-strip";
+import { ProLead } from "@/components/pro-lead";
 import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { isAfterHours } from "@/lib/after-hours";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CallRow = {
   id: string;
@@ -46,6 +47,18 @@ export default function CallsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const tally = useMemo(
+    () => ({
+      afterHours: calls.filter((call) => isAfterHours(new Date(call.createdAt)))
+        .length,
+      booked: calls.filter((call) => call.booked).length,
+      returning: calls.filter(
+        (call) => (call.customer?.interactionCount ?? 0) > 1,
+      ).length,
+    }),
+    [calls],
+  );
+
   return (
     <OsShell
       title="Calls"
@@ -55,7 +68,22 @@ export default function CallsPage() {
         </Link>
       }
     >
-      <ProPageStrip />
+      <ProLead
+        loading={loading}
+        figure={String(calls.length)}
+        caption={calls.length === 1 ? "call answered" : "calls answered"}
+        detail="Every one transcribed, qualified, and filed against a customer."
+        facts={[
+          {
+            label: "after hours",
+            value: tally.afterHours,
+            live: tally.afterHours > 0,
+          },
+          { label: "booked", value: tally.booked, live: tally.booked > 0 },
+          { label: "returning", value: tally.returning },
+        ]}
+        action={<ProShopLineCta label="Test call" showNumber={false} />}
+      />
 
       {loading ? (
         <DashboardSkeleton />
