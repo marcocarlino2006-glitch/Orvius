@@ -263,7 +263,16 @@
   font-size: 0.875rem;
 }
 
+/*
+  24px of target. This one is a flex item in a section head, so its parent was
+  stretching it to the row height and padding alone could not move it — hence a
+  floor rather than padding. Costs three pixels on the heads where the link is
+  the tallest thing in the row.
+*/
 .pro-section-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--void);
@@ -824,11 +833,13 @@
   color: var(--flare-dim);
 }
 
+/* 24px of target, no extra height — see .lead-rail-name. */
 .dispatch-crew-phone {
   display: flex;
   align-items: center;
-  margin-top: 0.25rem;
-  padding: 0;
+  padding: 0.25rem 0;
+  margin-top: 0;
+  margin-bottom: -0.25rem;
   border: none;
   background: none;
   font-size: 0.6875rem;
@@ -2155,7 +2166,11 @@
   color: var(--ash);
 }
 
+/* 24px of target, no extra height — see .lead-rail-name. */
 .pro-setup-step-link {
+  display: inline-block;
+  padding-block: 0.2rem;
+  margin-block: -0.2rem;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--signal);
@@ -2747,6 +2762,12 @@
   color: #d6d5d3;
 }
 
+.pro-loading-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #a09f9e;
+}
+
 .lead-rail-title-row {
   display: flex;
   align-items: center;
@@ -2755,7 +2776,17 @@
   margin-top: 0.2rem;
 }
 
+/*
+  A row's primary link, grown to the 24px WCAG 2.5.8 asks for.
+
+  Padding makes the target; the matching negative margin keeps the row exactly
+  as tall as it was, so fifty rows of a dense rail do not each gain four pixels
+  to buy a hit area. The inline exception in 2.5.8 does not cover these — they
+  are standalone links on their own line, not words inside a sentence.
+*/
 .lead-rail-name {
+  padding-block: 0.15rem;
+  margin-block: -0.15rem;
   font-size: 0.9375rem;
   font-weight: 600;
   color: #e9e9e9;
@@ -2777,7 +2808,9 @@
 .lead-rail-record {
   display: inline-flex;
   align-items: center;
-  margin-top: 0.35rem;
+  padding-block: 0.25rem;
+  margin-top: 0.1rem;
+  margin-bottom: -0.25rem;
   font-size: 0.6875rem;
   color: #a09f9e;
   text-decoration: underline;

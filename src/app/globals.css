@@ -1202,7 +1202,11 @@ h3 {
   }
 }
 
+/* 24px of target, no extra row height — see .lead-rail-name. */
 .customer-timeline-link {
+  display: inline-block;
+  padding-block: 0.3125rem;
+  margin-block: -0.3125rem;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--void);
@@ -11437,10 +11441,16 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-variant-numeric: tabular-nums;
 }
 
-/* Roll-up line: the rest of one customer's rows, folded. */
+/*
+  Roll-up line: the rest of one customer's rows, folded.
+
+  The target grows upward only. Its underline is a border-bottom, so padding on
+  that side would push the rule away from the text it belongs to.
+*/
 .os-shell-night .attention-item-rollup {
   display: inline-block;
-  margin-top: 0.35rem;
+  padding-top: 0.3rem;
+  margin-top: 0.05rem;
   font-size: 0.75rem;
   font-weight: 500;
   color: #bdbdbd;
@@ -12496,8 +12506,11 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   color: #ecc79a !important;
 }
 
-/* Points at the board instead of repeating its button. */
+/* Points at the board instead of repeating its button. Target grows upward,
+   for the same reason as .attention-item-rollup. */
 .os-shell-night .pro-economics-pointer {
+  display: inline-block;
+  padding-top: 0.2rem;
   font-size: 0.8125rem;
   font-weight: 500;
   color: #ecc79a;

@@ -71,6 +71,25 @@ export function ShellEmpty({
   );
 }
 
+/**
+ * The "still fetching" state, with the marker that says so.
+ *
+ * This existed eight times as a bare <p>Loading…</p>. It read correctly to a
+ * person and was invisible to everything else: aria-busy was missing, so a
+ * screen reader got a paragraph rather than a busy region, and every audit in
+ * scripts/ waits on `[aria-busy], [class*="-loading"], [class*="skeleton"]`
+ * before measuring — so a route that used this state was measured *while
+ * loading*. That is how the surface audit came to report the job detail page
+ * as 89% empty with one font size on it: it was looking at this word.
+ */
+export function ShellLoading({ label = "Loading…" }: { label?: string }) {
+  return (
+    <p className="pro-loading-text font-sans" aria-busy="true">
+      {label}
+    </p>
+  );
+}
+
 export function ShellAlert({
   tone,
   children,

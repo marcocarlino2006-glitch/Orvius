@@ -3,7 +3,7 @@
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
 import { OsShell } from "@/components/os-shell";
-import { ShellPanel } from "@/components/shell-primitives";
+import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { company, getPaidPlans, pricing } from "@/lib/company";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -95,7 +95,7 @@ export default function DashboardBillingPage() {
       <div className="account-grid">
         <ShellPanel title="Current plan" dense>
           {loading ? (
-            <p className="font-sans text-sm text-ash">Loading…</p>
+            <ShellLoading />
           ) : (
             <>
               <div className="account-plan-badge font-sans">
@@ -143,7 +143,7 @@ export default function DashboardBillingPage() {
 
         <ShellPanel title={needsPay && !loading ? "Subscribe" : "Subscribe"} dense>
           {loading ? (
-            <p className="font-sans text-sm text-ash">Loading…</p>
+            <ShellLoading />
           ) : status === "active" ? (
             <p className="font-sans text-sm text-live">
               Subscription active. Receipts are sent to your email from Stripe.

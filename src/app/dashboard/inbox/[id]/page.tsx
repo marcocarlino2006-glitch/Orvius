@@ -7,7 +7,11 @@ import { LeadStatusActions } from "@/components/lead-status-actions";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import {
+  ShellAlert,
+  ShellLoading,
+  ShellPanel,
+} from "@/components/shell-primitives";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -78,7 +82,7 @@ export default function LeadDetailPage() {
   if (loading) {
     return (
       <OsShell title="Lead" subtitle="Loading…">
-        <p className="font-sans text-sm text-ash">Loading…</p>
+        <ShellLoading />
       </OsShell>
     );
   }

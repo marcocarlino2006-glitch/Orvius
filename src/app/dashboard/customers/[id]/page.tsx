@@ -2,7 +2,12 @@
 
 import { CustomerTimeline } from "@/components/customer-timeline";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
+import {
+  ShellAlert,
+  ShellBadge,
+  ShellLoading,
+  ShellPanel,
+} from "@/components/shell-primitives";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -65,7 +70,7 @@ export default function CustomerDetailPage() {
   if (loading) {
     return (
       <OsShell title="Customer" subtitle="Loading record…">
-        <p className="font-sans text-sm text-ash">Loading…</p>
+        <ShellLoading />
       </OsShell>
     );
   }

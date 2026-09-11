@@ -4,7 +4,12 @@ import { CallPlayer } from "@/components/call-player";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
+import {
+  ShellAlert,
+  ShellBadge,
+  ShellLoading,
+  ShellPanel,
+} from "@/components/shell-primitives";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -98,7 +103,7 @@ export default function CallDetailPage() {
   if (loading) {
     return (
       <OsShell title="Call" subtitle="Loading…">
-        <p className="font-sans text-sm text-ash">Loading…</p>
+        <ShellLoading />
       </OsShell>
     );
   }
