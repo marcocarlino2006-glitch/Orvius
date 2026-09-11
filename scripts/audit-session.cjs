@@ -14,6 +14,7 @@
  * local dev database. Nothing here ships to a customer.
  */
 const { createHash, randomBytes } = require("node:crypto");
+const { fixtureRecording } = require("./lib/fixture-audio.cjs");
 
 const AUDIT_EMAIL = "contrast-audit@orvius.invalid";
 
@@ -189,11 +190,18 @@ async function buildWeek(prisma, business) {
 
   const calls = [];
   const leads = [];
-  for (const row of CALLS) {
+  for (const [index, row] of CALLS.entries()) {
     const person = PEOPLE[row.who];
     const customer = customers[row.who];
     const at = new Date(Date.now() - row.hoursAgo * 3_600_000);
 
+    /*
+      Audio on the recent calls only. Every one would be ~30MB of synthesised
+      PCM for a fixture, and the calls a review actually opens are the ones at
+      the top of the list. The rest keep a null recordingUrl, which is also the
+      state a real shop is in whenever Vapi has not posted the file back yet —
+      worth having on screen somewhere.
+    */
     const call = await prisma.call.create({
       data: {
         businessId: business.id,
@@ -204,6 +212,7 @@ async function buildWeek(prisma, business) {
         booked: row.booked,
         summary: row.summary,
         transcript: row.transcript,
+        recordingUrl: index < 5 ? fixtureRecording(row.dur, index + 1) : null,
         ownerNotifiedAt: at,
         createdAt: at,
       },

@@ -6,7 +6,6 @@ import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { TranscriptCinema } from "@/components/transcript-cinema";
-import { ProSignalBar } from "@/components/pro-signal-bar";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
@@ -119,8 +118,6 @@ export default function LeadDetailPage() {
         </div>
       }
     >
-      <ProSignalBar showInboxLink={false} compact />
-
       <div className="ring1-lead-status mb-3">
         <LeadStatusActions
           leadId={lead.id}

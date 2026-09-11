@@ -1,8 +1,8 @@
 "use client";
 
+import { CallPlayer } from "@/components/call-player";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { TranscriptCinema } from "@/components/transcript-cinema";
-import { ProSignalBar } from "@/components/pro-signal-bar";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
@@ -140,8 +140,6 @@ export default function CallDetailPage() {
         </div>
       }
     >
-      <ProSignalBar showInboxLink={false} compact />
-
       {situation?.needsReview ? (
         <div className="mb-6">
           <ShellAlert tone="error">
@@ -190,19 +188,18 @@ export default function CallDetailPage() {
             </ShellPanel>
           ) : null}
 
-          {call.transcript ? (
-            <TranscriptCinema transcript={call.transcript} variant="void" />
+          {/*
+            Audio above the words. An owner working through the night's calls
+            plays first and reads only when the summary is ambiguous, and the
+            player used to sit below a full transcript — off the bottom of the
+            screen on any call longer than a minute.
+          */}
+          {call.recordingUrl ? (
+            <CallPlayer src={call.recordingUrl} durationSec={call.durationSec} />
           ) : null}
 
-          {call.recordingUrl ? (
-            <a
-              href={call.recordingUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-secondary text-sm"
-            >
-              Play recording
-            </a>
+          {call.transcript ? (
+            <TranscriptCinema transcript={call.transcript} variant="void" />
           ) : null}
         </div>
 
