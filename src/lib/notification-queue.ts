@@ -401,8 +401,17 @@ async function markDeliveryFailure(
     ownerEmail: string | null;
   },
   error: string,
+  /*
+    Skip the ladder. Some failures are verdicts rather than bad luck — a
+    landline cannot receive an SMS on the sixth attempt either — and spending
+    five hours of backoff to find that out is five hours the owner does not
+    know a customer called.
+  */
+  options: { exhaust?: boolean } = {},
 ) {
-  const attempts = row.attempts + 1;
+  const attempts = options.exhaust
+    ? MAX_ATTEMPTS
+    : row.attempts + 1;
   const exhausted = attempts >= MAX_ATTEMPTS;
 
   await prisma.ownerNotification.update({
@@ -429,6 +438,87 @@ async function markDeliveryFailure(
       });
     }
   }
+}
+
+/*
+  Twilio error codes that are a verdict on the number, not a bad minute.
+
+  A shop owner who typed their office landline into the setup form hits 30006
+  every single time, and the useful response is the email backup now rather
+  than after the full ladder.
+*/
+const PERMANENT_SMS_ERROR_CODES = new Set([
+  "21610", // recipient replied STOP
+  "21614", // not a mobile number
+  "30003", // unreachable handset
+  "30004", // message blocked
+  "30005", // unknown handset
+  "30006", // landline or unreachable carrier
+]);
+
+/** Twilio's terminal failure verdicts. Everything else is still in flight. */
+const CARRIER_FAILURE_STATUSES = new Set(["undelivered", "failed"]);
+
+export function isCarrierFailureStatus(status: string | null | undefined) {
+  return CARRIER_FAILURE_STATUSES.has((status ?? "").trim().toLowerCase());
+}
+
+/**
+ * Apply a Twilio delivery receipt to the queue.
+ *
+ * `messages.create` resolving means Twilio accepted the message, not that
+ * anyone received it. The carrier's verdict arrives minutes later on the status
+ * callback, and a rejection there used to be written to `deliveryStatus` while
+ * `status` stayed "sent" — which the queue reads as delivered and final. So the
+ * ladder never advanced, the email failover never fired, the shop's failed-alert
+ * count stayed zero, and the attention board stayed clean. The owner was never
+ * told a customer had called, and nothing in the product knew that had happened.
+ *
+ * Reopening the row is what makes the rest of the machinery true.
+ */
+export async function applySmsDeliveryReceipt(params: {
+  messageSid: string;
+  messageStatus: string;
+  errorCode?: string | null;
+}) {
+  if (!isCarrierFailureStatus(params.messageStatus)) {
+    return { reopened: 0, exhausted: 0 };
+  }
+
+  const rows = await prisma.ownerNotification.findMany({
+    where: { deliveryId: params.messageSid, channel: "sms" },
+  });
+
+  const code = (params.errorCode ?? "").trim();
+  const permanent = code ? PERMANENT_SMS_ERROR_CODES.has(code) : false;
+  const reason = [
+    `Twilio reported ${params.messageStatus}`,
+    code ? `(error ${code})` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  let exhausted = 0;
+  for (const row of rows) {
+    /*
+      Already given up on, so there is nothing to reopen — and re-running the
+      failover would mail the owner a second copy of the same lead.
+    */
+    if (row.attempts >= MAX_ATTEMPTS) continue;
+
+    await markDeliveryFailure(row, reason, { exhaust: permanent });
+    if (permanent) exhausted += 1;
+  }
+
+  logInfo("notification.sms_receipt_applied", {
+    messageSid: params.messageSid,
+    messageStatus: params.messageStatus,
+    errorCode: code || null,
+    permanent,
+    reopened: rows.length,
+  });
+
+  return { reopened: rows.length, exhausted };
 }
 
 export async function processNotificationQueue(limit = 20) {

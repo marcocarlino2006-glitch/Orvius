@@ -20,6 +20,7 @@ import { PrismaClient } from "@prisma/client";
 import {
   MAX_ATTEMPTS,
   NOTIFICATION_RETRY_MINUTES,
+  applySmsDeliveryReceipt,
   enqueueOwnerAlert,
   getNotificationRetryAt,
   processNotificationQueue,
@@ -310,6 +311,115 @@ test("SMS that exhausts its attempts fails over to email rather than going quiet
         );
       },
     );
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
+/*
+  Twilio accepting a message is not the carrier delivering it.
+
+  These three cover the gap that made the whole ladder above decorative for the
+  most common real failure: `messages.create` resolves, the row goes to "sent",
+  and the carrier's rejection lands minutes later on the status callback. That
+  verdict used to be written to `deliveryStatus` and nowhere else, so the queue
+  still read the row as delivered, the failover never fired, and the shop's
+  failed-alert count stayed at zero while the owner heard nothing at all.
+*/
+async function sentSms(shop, tag) {
+  const deliveryId = `SM${tag}${Date.now()}${Math.random().toString(16).slice(2, 6)}`;
+  const row = await prisma.ownerNotification.create({
+    data: {
+      businessId: shop.id,
+      businessName: shop.name,
+      channel: "sms",
+      dedupeKey: `receipt:${tag}:${shop.id}`,
+      message: "No heat, two kids in the house",
+      ownerPhone: shop.ownerPhone,
+      status: "sent",
+      attempts: 1,
+      deliveryId,
+      deliveryStatus: "sent",
+      processedAt: new Date(),
+    },
+  });
+  return { row, deliveryId };
+}
+
+test("a carrier rejection puts the alert back on the retry ladder", async () => {
+  const shop = await makeShop();
+  try {
+    const { row, deliveryId } = await sentSms(shop, "transient");
+
+    const result = await applySmsDeliveryReceipt({
+      messageSid: deliveryId,
+      messageStatus: "undelivered",
+    });
+    assert.equal(result.reopened, 1);
+
+    const after = await prisma.ownerNotification.findUnique({ where: { id: row.id } });
+    assert.equal(after.status, "pending", "a rejected alert is not finished");
+    assert.equal(after.attempts, 2);
+    assert.ok(after.nextRetryAt, "and it is due again");
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
+test("a delivered receipt leaves the alert alone", async () => {
+  const shop = await makeShop();
+  try {
+    const { row, deliveryId } = await sentSms(shop, "delivered");
+
+    const result = await applySmsDeliveryReceipt({
+      messageSid: deliveryId,
+      messageStatus: "delivered",
+    });
+    assert.equal(result.reopened, 0);
+
+    const after = await prisma.ownerNotification.findUnique({ where: { id: row.id } });
+    assert.equal(after.status, "sent");
+    assert.equal(after.attempts, 1, "success does not spend a rung");
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
+test("a landline skips the ladder and emails the owner now", async () => {
+  const shop = await makeShop();
+  try {
+    await withEnv({ RESEND_API_KEY: "test-key" }, async () => {
+      const { row, deliveryId } = await sentSms(shop, "landline");
+
+      /* Twilio replays receipts. The second one must not mail a second copy. */
+      await applySmsDeliveryReceipt({
+        messageSid: deliveryId,
+        messageStatus: "undelivered",
+        errorCode: "30006",
+      });
+      await applySmsDeliveryReceipt({
+        messageSid: deliveryId,
+        messageStatus: "undelivered",
+        errorCode: "30006",
+      });
+
+      const after = await prisma.ownerNotification.findUnique({ where: { id: row.id } });
+      assert.equal(after.status, "failed");
+      assert.equal(
+        after.attempts,
+        MAX_ATTEMPTS,
+        "a number that cannot receive SMS is not worth five hours of backoff",
+      );
+
+      const failovers = await prisma.ownerNotification.count({
+        where: {
+          businessId: shop.id,
+          dedupeKey: `${row.dedupeKey}:sms-failover`,
+          channel: "email",
+        },
+      });
+      assert.equal(failovers, 1, "one backup email, however many receipts arrive");
+    });
   } finally {
     await dropShop(shop.id);
   }

@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import { logInfo } from "@/lib/logger";
+import { applySmsDeliveryReceipt } from "@/lib/notification-queue";
 import {
   getTwilioStatusWebhookUrl,
   validateTwilioRequest,
@@ -41,12 +42,28 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  /*
+    The receipt is the only place a carrier rejection is ever reported, so it
+    has to be the place the retry ladder gets reopened. Updating
+    `deliveryStatus` above is bookkeeping; this is the part that acts on it.
+  */
+  const receipt = await applySmsDeliveryReceipt({
+    messageSid,
+    messageStatus,
+    errorCode,
+  });
+
   await recordWebhookEvent({
     source: "twilio-status",
     externalId: messageSid,
     eventType: messageStatus || "status",
     status: "processed",
-    payload: { messageStatus, errorCode, matched: updated.count },
+    payload: {
+      messageStatus,
+      errorCode,
+      matched: updated.count,
+      reopened: receipt.reopened,
+    },
   });
 
   if (updated.count > 0) {
@@ -58,13 +75,16 @@ export async function POST(request: NextRequest) {
   }
 
   /*
-    A delivery receipt is the moment a retry becomes due: this is where an
-    owner alert is marked failed, and the next rung of the ladder is already
-    waiting by the time the callback lands.
+    Reopened rows are due immediately on the first rung, so draining here means
+    the next attempt is already in flight by the time this returns.
   */
   after(() => drainOwnerAlerts({ at: "twilio.status", messageSid, messageStatus }));
 
-  return NextResponse.json({ ok: true, matched: updated.count });
+  return NextResponse.json({
+    ok: true,
+    matched: updated.count,
+    reopened: receipt.reopened,
+  });
 }
 
 export async function GET() {
