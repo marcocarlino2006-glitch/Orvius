@@ -210,7 +210,7 @@ export function CallPlayer({ src, durationSec }: CallPlayerProps) {
         />
       </div>
 
-      <p className="call-player-time font-sans">
+      <p className="call-player-time os-own-color font-sans">
         {clock(at)}
         <span> / {clock(total)}</span>
       </p>

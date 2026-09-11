@@ -88,9 +88,17 @@ export function WeeklyTrend({ weeks }: WeeklyTrendProps) {
   return (
     <div className="trend">
       <div className="trend-head font-sans">
-        <p className="trend-title">Leads a week, and how many booked</p>
+        <p className="trend-title os-own-color">
+          Leads a week, and how many booked
+        </p>
         {change != null ? (
-          <p className={change >= 0 ? "trend-delta is-up" : "trend-delta"}>
+          <p
+            className={
+              change >= 0
+                ? "trend-delta is-up os-own-color"
+                : "trend-delta os-own-color"
+            }
+          >
             {change >= 0 ? "+" : ""}
             {change}%{" "}
             <span>

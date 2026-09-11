@@ -531,7 +531,7 @@
 }
 
 .jobs-pipeline-stage-active .jobs-pipeline-count {
-  color: var(--signal-hot);
+  color: var(--signal-text);
 }
 
 .shop-outcomes {
@@ -3056,7 +3056,7 @@
 }
 
 .pro-lead-facts li.is-live b {
-  color: var(--signal-hot);
+  color: var(--signal-text);
 }
 
 .pro-lead-side {
@@ -3308,7 +3308,7 @@
 }
 
 .trend-delta.is-up {
-  color: var(--signal-hot);
+  color: var(--signal-text);
 }
 
 .trend-delta span {

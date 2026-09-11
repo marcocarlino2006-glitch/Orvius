@@ -55,6 +55,18 @@
   --signal: #b8562c;
   --signal-hot: #cc6737;
   --signal-dim: #8a3d1c;
+  /*
+    Copper for text small enough that AA asks for 4.5:1 rather than 3:1.
+
+    --signal-hot is sized for the display figure: on the shell's panel it lands
+    at 4.10:1, which clears the large-text floor the 44px number is measured
+    against and misses the normal-text floor everything else is. Rather than
+    lighten --signal-hot — it is a fill colour in forty-odd places, and lifting
+    it would push the white text sitting on those fills the wrong way — small
+    brand-coloured text reads this token, and each colorway sets it to the
+    copper that passes on its own ground.
+  */
+  --signal-text: var(--signal-dim);
 
   /* Success / recovered revenue */
   --live: #1a9b6e;
@@ -7792,6 +7804,7 @@ body:has(.mkt-page) .shell-header {
   --canvas: #27241f;
   --rule: color-mix(in srgb, #fff 10%, transparent);
   --signal: #d9784b;
+  --signal-text: #d9784b;
   background: #27241f !important;
   color: #ececec !important;
 }
@@ -8017,9 +8030,26 @@ body:has(.mkt-page) .shell-header {
   color: #f7f7f7 !important;
 }
 
+/*
+  Muted body copy by default — and, now, a way out of it.
+
+  This rule is the reason the product could not hold a hierarchy. Every <p>
+  inside the night shell resolved to one grey whatever its class said, and
+  because it carries !important the only way past it was to answer !important
+  with !important. The display type scale added on this branch was flattened by
+  it without a sound: the lead figure on /calls measured 44px and
+  rgb(160,159,158), while the class on it asked for var(--signal-hot). Which is
+  also why the brand never landed on anything larger than a badge.
+
+  Deleting the blanket is not the fix to make here. Six hundred-odd rules in
+  this scope are override-on-override and the muted default is load-bearing for
+  most of them; dropping it would repaint screens nobody is looking at. So the
+  rule keeps its job and gains an opt-out, and a component that means to own its
+  own colour says so at the point of use instead of escalating.
+*/
 .os-shell-night .text-ash,
 .os-shell-night .os-topbar-sub,
-.os-shell-night p {
+.os-shell-night p:not(.os-own-color) {
   color: var(--os-mute) !important;
 }
 
@@ -8221,6 +8251,7 @@ body:has(.mkt-page) .shell-header {
   --rule: #4b4945;
   /* Copper lifted for legibility on the charcoal shell, still the brand accent. */
   --signal: #d9784b;
+  --signal-text: #d9784b;
   background: #27241f !important;
   color: #e9e9e9 !important;
   font-feature-settings: "zero" 1;

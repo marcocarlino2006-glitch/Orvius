@@ -60,12 +60,14 @@ export function ProLead({
         {loading ? (
           <span className="pro-lead-figure-wait" aria-hidden />
         ) : (
-          <p className={`pro-lead-figure ${hot ? "pro-lead-figure-hot" : ""}`}>
+          <p
+            className={`pro-lead-figure os-own-color ${hot ? "pro-lead-figure-hot" : ""}`}
+          >
             {figure}
           </p>
         )}
         <div className="pro-lead-copy">
-          <p className="pro-lead-caption">{caption}</p>
+          <p className="pro-lead-caption os-own-color">{caption}</p>
           {detail && !loading ? (
             <p className="pro-lead-detail">{detail}</p>
           ) : null}
