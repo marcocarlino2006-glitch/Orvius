@@ -1,5 +1,7 @@
 # Orvius HVAC Dominance Capabilities
 
+> **Product surface:** `/admin/daily` (founder daily run). Source of truth: `src/lib/hvac-dominance.ts`.
+
 A multibillion-dollar company does not need the most features. It needs to become the most trusted and economically valuable system in a critical workflow. For Orvius, that means mastering five capabilities simultaneously.
 
 ## 1. Demand capture

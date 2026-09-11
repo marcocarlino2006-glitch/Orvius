@@ -160,3 +160,6 @@ ALTER TABLE "Job" ADD COLUMN "customerConfirmToken" TEXT;
 ALTER TABLE "Job" ADD COLUMN "customerConfirmedAt" DATETIME;
 CREATE UNIQUE INDEX IF NOT EXISTS "Job_customerConfirmToken_key" ON "Job"("customerConfirmToken");
 ALTER TABLE "Business" ADD COLUMN "overflowForwardConfirmedAt" DATETIME;
+
+-- Founder expansion gates (operating scorecard)
+ALTER TABLE "Business" ADD COLUMN "expansionGatesJson" TEXT;

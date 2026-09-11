@@ -1,5 +1,7 @@
 # Orvius Multibillion-Dollar Operating Scorecard
 
+> **Product surface:** `/admin/daily` (founder daily run). Source of truth: `src/lib/operating-scorecard.ts`. Expansion gates persist on the shop as `Business.expansionGatesJson`.
+
 ## The core rule
 
 Do not confuse activity with progress. Calls made, features shipped, and signups acquired matter only if they produce customer value, retention, and durable economics. Orvius should run the company from a small set of leading and lagging indicators.

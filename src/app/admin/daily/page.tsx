@@ -1,13 +1,22 @@
 "use client";
 
+import { HvacDominancePanel } from "@/components/hvac-dominance-panel";
+import { OperatingScorecardPanel } from "@/components/operating-scorecard-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellBadge, ShellPanel } from "@/components/shell-primitives";
+import {
+  emptyExpansionGates,
+  parseExpansionGatesJson,
+  serializeExpansionGates,
+  type ExpansionGateId,
+  type ExpansionGatesState,
+} from "@/lib/operating-scorecard";
 import {
   fillOutreachTemplate,
   outreachTemplates,
 } from "@/lib/outreach-templates";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type GateSnapshot = {
   checkoutReady: boolean;
@@ -29,10 +38,13 @@ type Prospect = {
 };
 
 /**
- * Founder morning run — one URL for domination execution.
+ * Founder morning run — gates, cash, 20 touches, operating scorecard, HVAC dominance.
  */
 export default function AdminDailyPage() {
   const [gates, setGates] = useState<GateSnapshot | null>(null);
+  const [expansionGates, setExpansionGates] =
+    useState<ExpansionGatesState>(emptyExpansionGates());
+  const [gatesSaving, setGatesSaving] = useState(false);
   const [due, setDue] = useState<Prospect[]>([]);
   const [touchesToday, setTouchesToday] = useState(0);
   const [dailyTarget, setDailyTarget] = useState(20);
@@ -40,7 +52,7 @@ export default function AdminDailyPage() {
   const [note, setNote] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const [accountRes, waitRes] = await Promise.all([
@@ -76,6 +88,9 @@ export default function AdminDailyPage() {
             proofAt > 0 && Date.now() - proofAt <= 7 * 24 * 60 * 60 * 1000,
           wedgeReady: Boolean(data.wedge?.ready),
         });
+        setExpansionGates(
+          parseExpansionGatesJson(data.business?.expansionGatesJson),
+        );
       }
 
       if (waitRes.ok) {
@@ -83,8 +98,6 @@ export default function AdminDailyPage() {
         setTouchesToday(data.touchesTodayCount ?? 0);
         setDailyTarget(data.dailyTarget ?? 20);
         setOverdueCount(data.overdueCount ?? 0);
-        const start = new Date();
-        start.setHours(0, 0, 0, 0);
         const entries = (data.entries ?? []) as Prospect[];
         setDue(
           entries
@@ -98,11 +111,11 @@ export default function AdminDailyPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   async function logTouch(id: string, status: string) {
     const next = new Date();
@@ -122,12 +135,39 @@ export default function AdminDailyPage() {
     await load();
   }
 
+  async function toggleExpansionGate(id: ExpansionGateId) {
+    const previous = expansionGates;
+    const next: ExpansionGatesState = {
+      ...expansionGates,
+      [id]: !expansionGates[id],
+    };
+    setExpansionGates(next);
+    setGatesSaving(true);
+    try {
+      const res = await fetch("/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          expansionGatesJson: serializeExpansionGates(next),
+        }),
+      });
+      if (!res.ok) {
+        setExpansionGates(previous);
+        setNote("Could not save expansion gate");
+        return;
+      }
+      setNote(`Expansion gate ${next[id] ? "closed" : "reopened"}`);
+    } finally {
+      setGatesSaving(false);
+    }
+  }
+
   const underTarget = touchesToday < dailyTarget;
 
   return (
     <OsShell
       title="Daily run"
-      subtitle="Multi-b execution — gates, cash, then 20 touches."
+      subtitle="Multi-b execution — gates, cash, 20 touches, then scorecard."
       actions={
         <Link href="/admin" className="btn btn-secondary text-sm">
           Full admin
@@ -144,14 +184,17 @@ export default function AdminDailyPage() {
                 Phone cert {gates.certDone}/5{" "}
                 {gates.certDone >= 5 ? "✓" : "— blocking outreach claims"}
               </span>
-              <Link href="/dashboard/settings#founder-cert" className="btn btn-secondary text-xs">
+              <Link
+                href="/dashboard/settings#founder-cert"
+                className="btn btn-secondary text-xs"
+              >
                 Certify
               </Link>
             </li>
             <li className="flex flex-wrap items-center justify-between gap-2">
               <span>
-                Stripe checkout {gates.checkoutReady ? "ready" : "blocked"} · status{" "}
-                {gates.billingStatus}
+                Stripe checkout {gates.checkoutReady ? "ready" : "blocked"} ·
+                status {gates.billingStatus}
               </span>
               <Link href="/dashboard/billing" className="btn btn-void text-xs">
                 Unblock / pay
@@ -168,7 +211,10 @@ export default function AdminDailyPage() {
             </li>
             <li className="flex flex-wrap items-center justify-between gap-2">
               <span>Wedge {gates.wedgeReady ? "ready" : "not ready"}</span>
-              <Link href="/dashboard/settings" className="btn btn-secondary text-xs">
+              <Link
+                href="/dashboard/settings"
+                className="btn btn-secondary text-xs"
+              >
                 Settings
               </Link>
             </li>
@@ -180,7 +226,8 @@ export default function AdminDailyPage() {
         <ShellPanel title="2 · Distribution (20 touches)">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="font-sans text-sm text-ash">
-              Overdue {overdueCount} · due queue below. Hit the number before building features.
+              Overdue {overdueCount} · due queue below. Hit the number before
+              building features.
             </p>
             <ShellBadge tone={underTarget || overdueCount > 0 ? "flare" : "live"}>
               {touchesToday}/{dailyTarget}
@@ -204,7 +251,9 @@ export default function AdminDailyPage() {
               Import CSV
             </Link>
           </div>
-          {note ? <p className="mt-2 font-sans text-xs text-live">{note}</p> : null}
+          {note ? (
+            <p className="mt-2 font-sans text-xs text-live">{note}</p>
+          ) : null}
           {due.length === 0 ? (
             <p className="mt-4 font-sans text-sm text-ash">
               No due prospects. Import a CSV on Admin or add owners via /pilot.
@@ -236,7 +285,8 @@ export default function AdminDailyPage() {
                       className="btn btn-secondary text-xs"
                       onClick={async () => {
                         const body = fillOutreachTemplate(
-                          outreachTemplates.find((t) => t.id === "cold_dm")!.body,
+                          outreachTemplates.find((t) => t.id === "cold_dm")!
+                            .body,
                           {
                             name: p.businessName?.split(" ")[0],
                             business: p.businessName ?? undefined,
@@ -249,7 +299,10 @@ export default function AdminDailyPage() {
                       Copy DM
                     </button>
                     {p.phone ? (
-                      <a href={`tel:${p.phone}`} className="btn btn-secondary text-xs">
+                      <a
+                        href={`tel:${p.phone}`}
+                        className="btn btn-secondary text-xs"
+                      >
                         Call
                       </a>
                     ) : null}
@@ -264,17 +317,33 @@ export default function AdminDailyPage() {
       <div className="mt-6">
         <ShellPanel title="3 · Shop truth">
           <p className="font-sans text-sm text-ash">
-            After touches: verify Summit line, copy weekly proof, close open money on Today.
+            After touches: verify Summit line, copy weekly proof, close open
+            money on Today.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link href="/dashboard" className="btn btn-void text-sm">
               Open Today
             </Link>
-            <Link href="/dashboard/billing" className="btn btn-secondary text-sm">
+            <Link
+              href="/dashboard/billing"
+              className="btn btn-secondary text-sm"
+            >
               Billing
             </Link>
           </div>
         </ShellPanel>
+      </div>
+
+      <div className="mt-6">
+        <OperatingScorecardPanel
+          gates={expansionGates}
+          saving={gatesSaving}
+          onToggleGate={toggleExpansionGate}
+        />
+      </div>
+
+      <div className="mt-6">
+        <HvacDominancePanel />
       </div>
     </OsShell>
   );

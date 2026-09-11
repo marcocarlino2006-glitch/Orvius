@@ -28,6 +28,7 @@ const patchSchema = z.object({
   baselineMissedCallsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   baselineJobsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   founderCertJson: z.string().max(500).nullable().optional(),
+  expansionGatesJson: z.string().max(500).nullable().optional(),
   overflowForwardConfirmedAt: z.boolean().optional(),
 });
 
@@ -63,6 +64,7 @@ export async function GET() {
         pilotEndsAt: businessRecord.pilotEndsAt,
         lastWeeklyProofAt: businessRecord.lastWeeklyProofAt,
         founderCertJson: businessRecord.founderCertJson,
+        expansionGatesJson: businessRecord.expansionGatesJson,
         overflowForwardConfirmedAt: businessRecord.overflowForwardConfirmedAt,
       }
     : null;
@@ -181,6 +183,9 @@ export async function PATCH(request: Request) {
         ...(body.founderCertJson !== undefined
           ? { founderCertJson: body.founderCertJson }
           : {}),
+        ...(body.expansionGatesJson !== undefined
+          ? { expansionGatesJson: body.expansionGatesJson }
+          : {}),
         ...(body.overflowForwardConfirmedAt === true
           ? { overflowForwardConfirmedAt: new Date() }
           : body.overflowForwardConfirmedAt === false
@@ -226,6 +231,7 @@ export async function PATCH(request: Request) {
         baselineMissedCallsPerWeek: saved.baselineMissedCallsPerWeek,
         baselineJobsPerWeek: saved.baselineJobsPerWeek,
         founderCertJson: saved.founderCertJson,
+        expansionGatesJson: saved.expansionGatesJson,
         overflowForwardConfirmedAt: saved.overflowForwardConfirmedAt,
         twilioPhone: saved.twilioPhone,
         vapiPhoneNumber: saved.vapiPhoneNumber,
