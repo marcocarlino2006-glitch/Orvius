@@ -136,6 +136,18 @@ export function routeEntries() {
     });
 }
 
+/*
+  Convention files that put DOM on the screen.
+
+  A subset of CONVENTION_ENTRY, and the distinction matters: `route.ts` and
+  `sitemap.ts` are entry points that render nothing, while these five paint
+  real pixels without any module importing them. Left out of renderedModules,
+  their classes were reported as never rendered — so the CSS audit called the
+  error boundary dead and css-prune-dead.mjs would have deleted the styling off
+  the one screen an owner sees when everything else has failed.
+*/
+const DOM_CONVENTION = /\/(not-found|error|global-error|loading|template|default)\.(tsx|jsx)$/;
+
 /** Modules reachable from a rendered page — the only ones that can style anything. */
 export function renderedModules() {
   const cache = new Map();
@@ -144,6 +156,14 @@ export function renderedModules() {
     for (const entry of entries) {
       for (const file of closure(entry, cache)) all.add(file);
     }
+  }
+  /*
+    Wrapped by the same layouts as the pages beside them, so the layouts are
+    already in the set by this point; only the convention file's own closure is
+    missing.
+  */
+  for (const file of walk(APP, [".tsx"]).filter((f) => DOM_CONVENTION.test(f))) {
+    for (const target of closure(file, cache)) all.add(target);
   }
   return all;
 }
