@@ -11251,7 +11251,14 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   padding: 0 0.3rem !important;
   border: none !important;
   border-radius: 999px !important;
-  background: #f4212e !important;
+  /*
+    Deepened from the #f4212e flare token. Flare is tuned to be read *as* text
+    on the charcoal panel, and it is the only place in the shell where it is
+    used the other way round — as a fill with white on top — where it put a
+    10px count at 4.11:1. Nobody caught it because the badge only paints when
+    the shop has work waiting, so an empty demo account never rendered it.
+  */
+  background: #d91b28 !important;
   color: #ffffff !important;
   font-size: 0.625rem !important;
   font-weight: 650 !important;
@@ -12338,8 +12345,15 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* ── Rail badge for jobs with no tech ── */
 .os-shell-night .os-nav-badge-warn {
-  background: color-mix(in srgb, #d8a15a 22%, transparent) !important;
-  color: #e0b782 !important;
+  /*
+    Opaque, like the count badge beside it, because a translucent plate makes a
+    badge's legibility a function of the row under it. Amber at 22% over the
+    charcoal rail read 5.81:1, but the same badge on the *active* rail item sat
+    on #3f3d39 instead, the plate lifted the ground to rgb(97,83,64), and the
+    count dropped to 4.00:1 — under AA on the one screen you reach it from.
+  */
+  background: #d8a15a !important;
+  color: #27241f !important;
 }
 
 /* ── Command palette ── */
