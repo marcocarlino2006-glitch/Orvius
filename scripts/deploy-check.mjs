@@ -44,6 +44,50 @@ console.log("\n🚀 Orvius deploy check\n");
 const env = loadEnv();
 const results = [];
 
+/*
+  Ask production before judging the local .env.
+
+  This script used to read .env alone and print "TWILIO_ACCOUNT_SID missing —
+  add before Vercel deploy" for keys Vercel has had for weeks, then exit 1. The
+  effect was to report a live deployment as unshippable, which is worse than no
+  check: the founder reasonably concluded the line was not up. Vercel's
+  environment is the one that serves calls, so it is the one that decides, and
+  a gap in .env is a local-development note.
+*/
+const PROD_HEALTH = process.env.PROD_URL ?? "https://orvius.im";
+let prodConfigured = null;
+
+try {
+  const res = await fetch(`${PROD_HEALTH}/api/health`, {
+    signal: AbortSignal.timeout(8000),
+  });
+  if (res.ok) {
+    const health = await res.json();
+    prodConfigured = Boolean(health.configured);
+    results.push(
+      prodConfigured
+        ? pass(
+            `Production credentials live — Twilio + Vapi configured on ${PROD_HEALTH}${
+              health.twilioPhone ? ` (${health.twilioPhone})` : ""
+            }`,
+          )
+        : fail(`Production reachable but not configured — ${PROD_HEALTH}`),
+    );
+  } else {
+    results.push(warn(`Production health returned ${res.status} — cannot confirm live credentials`));
+  }
+} catch {
+  results.push(warn(`Could not reach ${PROD_HEALTH}/api/health — judging .env alone`));
+}
+
+/* Covered by /api/health's `configured`, so production can settle these. */
+const CALL_KEYS = new Set([
+  "TWILIO_ACCOUNT_SID",
+  "TWILIO_AUTH_TOKEN",
+  "TWILIO_PHONE_NUMBER",
+  "VAPI_API_KEY",
+]);
+
 const required = [
   "TWILIO_ACCOUNT_SID",
   "TWILIO_AUTH_TOKEN",
@@ -52,16 +96,20 @@ const required = [
   "NEXT_PUBLIC_APP_URL",
   "DATABASE_URL",
   /* Vercel only sends the bearer header when this is set, and the cron route
-     refuses to drain without it. Missing means the owner alert queue stops. */
+     refuses to drain without it. Missing means the owner alert queue stops.
+     Health cannot report it, so npm run prod:verify probes the route instead. */
   "CRON_SECRET",
 ];
 
+console.log("\n   Local .env (what npm run dev uses):");
 for (const key of required) {
-  results.push(
-    env[key]?.trim()
-      ? pass(`${key} set`)
-      : fail(`${key} missing — add before Vercel deploy`),
-  );
+  if (env[key]?.trim()) {
+    results.push(pass(`${key} set`));
+  } else if (CALL_KEYS.has(key) && prodConfigured) {
+    results.push(warn(`${key} not in local .env — production has it; only npm run dev is affected`));
+  } else {
+    results.push(fail(`${key} missing — add before Vercel deploy`));
+  }
 }
 
 const appUrl = env.NEXT_PUBLIC_APP_URL?.trim() ?? "";
@@ -168,7 +216,7 @@ try {
 try {
   const res = await fetch("https://orvius.im", { redirect: "follow" });
   if (res.ok) {
-    results.push(pass("orvius.im responds — DNS may be live"));
+    results.push(pass("orvius.im serves the marketing site"));
   } else {
     results.push(
       warn(`orvius.im returns ${res.status} — update DNS (remove Manus CNAME)`),
@@ -186,6 +234,10 @@ console.log("   4. Namecheap DNS — docs/DNS-ORVIUS-IM.md");
 console.log("   5. npm run stripe:setup → npm run billing:check → add STRIPE_* to Vercel (docs/BILLING-SETUP.md)");
 console.log("   6. WEBHOOK_BASE_URL=https://api.orvius.im npm run vapi:webhook");
 console.log("   7. Call Twilio line → verify /dashboard + owner SMS\n");
+console.log(
+  "   This checks what you are about to ship. To check what is already\n" +
+    "   serving traffic — TLS, closed doors, code drift — run npm run prod:verify\n",
+);
 
 const blockers = results.filter((r) => r === false);
 if (blockers.length) {
