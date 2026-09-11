@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { normalizePhone } from "@/lib/customer";
 import { listCrew } from "@/lib/field";
@@ -55,14 +56,32 @@ export async function POST(request: Request) {
     }
   }
 
-  const technician = await prisma.technician.create({
-    data: {
-      businessId: business.id,
-      name,
-      phone,
-      role: "tech",
-    },
-  });
+  try {
+    const technician = await prisma.technician.create({
+      data: {
+        businessId: business.id,
+        name,
+        phone,
+        role: "tech",
+      },
+    });
 
-  return NextResponse.json({ technician });
+    return NextResponse.json({ technician });
+  } catch (error) {
+    /*
+      P2002 is the unique on (businessId, name). Saying so beats a 500: the
+      form's whole job is to name a person, and two people on one crew with the
+      same name cannot be told apart on the board anyway.
+    */
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { error: `${name} is already on your crew.` },
+        { status: 409 },
+      );
+    }
+    throw error;
+  }
 }

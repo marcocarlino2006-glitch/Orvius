@@ -194,3 +194,34 @@ CREATE TABLE IF NOT EXISTS "LoginToken" (
 CREATE UNIQUE INDEX IF NOT EXISTS "LoginToken_tokenHash_key" ON "LoginToken"("tokenHash");
 CREATE INDEX IF NOT EXISTS "LoginToken_email_createdAt_idx" ON "LoginToken"("email", "createdAt");
 CREATE INDEX IF NOT EXISTS "LoginToken_expiresAt_idx" ON "LoginToken"("expiresAt");
+
+-- Crew duplication: ensureCrew read the technician table and then created the
+-- owner row, so two requests arriving together each saw it empty and each
+-- seeded one. The dispatch page fetches the board and the crew in parallel, so
+-- that happened on a shop's first ever load; two fixture shops carry three
+-- identical owner records and the board draws the same person three times.
+--
+-- The unique index below is what closes it, and it cannot be created while the
+-- duplicates are still there. So: point every job at the oldest row of its
+-- (business, name) group, drop the rest, then add the index. All three
+-- statements are no-ops on a database that has already been through this.
+UPDATE "Job"
+SET "technicianId" = (
+  SELECT MIN(keep."id")
+  FROM "Technician" keep
+  WHERE keep."businessId" = (
+      SELECT had."businessId" FROM "Technician" had WHERE had."id" = "Job"."technicianId"
+    )
+    AND keep."name" = (
+      SELECT had."name" FROM "Technician" had WHERE had."id" = "Job"."technicianId"
+    )
+)
+WHERE "technicianId" IS NOT NULL;
+
+DELETE FROM "Technician"
+WHERE "id" NOT IN (
+  SELECT MIN("id") FROM "Technician" GROUP BY "businessId", "name"
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Technician_businessId_name_key"
+  ON "Technician"("businessId", "name");
