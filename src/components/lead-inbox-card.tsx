@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
 import { LeadQuickActions } from "@/components/lead-quick-actions";
 import { LeadStatusBadge } from "@/components/lead-status-actions";
+import { isEmergency, notableUrgency } from "@/lib/urgency";
 
 type LeadInboxCardProps = {
   id?: string;
@@ -12,7 +13,6 @@ type LeadInboxCardProps = {
   service: string | null;
   urgency: string | null;
   address?: string | null;
-  business: string | null;
   channel?: string;
   status?: string;
   createdAt: string;
@@ -21,15 +21,6 @@ type LeadInboxCardProps = {
   booked?: boolean;
   onStatusChange?: (status: string) => void;
 };
-
-function formatUrgency(urgency: string | null) {
-  if (!urgency) return null;
-  return urgency.replace(/-/g, " ");
-}
-
-function isEmergency(urgency: string | null) {
-  return urgency?.toLowerCase() === "emergency";
-}
 
 /**
  * Cursor-grade lead row — density first, not a soft marketing card.
@@ -41,7 +32,6 @@ export function LeadInboxCard({
   service,
   urgency,
   address,
-  business,
   channel = "Inbound",
   status = "new",
   createdAt,
@@ -51,6 +41,13 @@ export function LeadInboxCard({
   onStatusChange,
 }: LeadInboxCardProps) {
   const emergency = isEmergency(urgency);
+  /*
+    The kicker earns its line or it does not get one. It used to read "LEAD" on
+    every row of a list of leads, which is the page's own title repeated
+    seventy-six times in tracked caps.
+  */
+  const kicker = emergency ? "Emergency" : returning ? "Returning" : null;
+  const notable = notableUrgency(urgency);
   const when = new Date(createdAt).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
@@ -69,10 +66,11 @@ export function LeadInboxCard({
             attention, the badge says what state it is in. Printing the status
             in both put "booked" above a BOOKED pill on the same line.
           */}
-          <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
-            {emergency ? "Emergency" : status === "new" ? "Needs you" : "Lead"}
-            {returning ? " · returning" : ""}
-          </p>
+          {kicker ? (
+            <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
+              {kicker}
+            </p>
+          ) : null}
           <time dateTime={createdAt} className="lead-rail-time">
             {when}
           </time>
@@ -88,17 +86,21 @@ export function LeadInboxCard({
           )}
           <div className="lead-rail-badges">
             {status !== "new" ? <LeadStatusBadge status={status} /> : null}
-            {urgency && !emergency ? (
-              <ShellBadge tone="neutral">{formatUrgency(urgency)}</ShellBadge>
-            ) : null}
+            {notable ? <ShellBadge tone="neutral">{notable}</ShellBadge> : null}
           </div>
         </div>
 
+        {/*
+          What they need, first and in the row's own voice. It used to be the
+          third item in a grey run-on that opened with the channel and closed
+          with the shop's own name — so the most useful fact on the row was
+          behind two the owner already knew.
+        */}
         <p className="lead-rail-sub">
-          {channel} · {service ?? "General inquiry"}
+          <b className="lead-rail-need">{service ?? "General inquiry"}</b>
+          {channel !== "Call" ? ` · ${channel}` : ""}
           {phone ? ` · ${phone}` : ""}
           {address ? ` · ${address}` : ""}
-          {business ? ` · ${business}` : ""}
         </p>
 
         {customerId ? (

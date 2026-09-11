@@ -2712,14 +2712,40 @@
 }
 
 .lead-rail-kind.is-flare {
-  color: #f4212e;
+  color: var(--flare-text);
 }
 
+/*
+  Pushed right by itself rather than by space-between, because the kicker to
+  its left is now optional — a row with nothing exceptional to say drops it,
+  and with one child the old space-between put the timestamp on the left.
+*/
 .lead-rail-time {
+  margin-left: auto;
   font-size: 0.6875rem;
   color: #a09f9e;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+/* A count of calls, set as the number it is rather than as a label. */
+.lead-rail-count {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #a09f9e;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A customer who has called more than once is the asset on the page. */
+.lead-rail-count.is-live {
+  color: var(--live-text);
+}
+
+/* What the customer needs — the one fact on the row worth reading first. */
+.lead-rail-need {
+  font-weight: 600;
+  color: #d6d5d3;
 }
 
 .lead-rail-title-row {

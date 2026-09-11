@@ -24,7 +24,6 @@ type LeadRow = {
   status: string;
   source: string;
   createdAt: string;
-  business: { name: string } | null;
   customer: { id: string; interactionCount: number } | null;
   job: { id: string; status: string } | null;
 };
@@ -155,7 +154,6 @@ export default function InboxPage() {
                     service={lead.serviceType}
                     urgency={lead.urgency}
                     address={lead.address}
-                    business={lead.business?.name ?? null}
                     channel={lead.source === "sms" ? "Text" : "Call"}
                     status={lead.status}
                     createdAt={lead.createdAt}

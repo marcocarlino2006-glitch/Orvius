@@ -95,12 +95,16 @@ export default function CustomerDetailPage() {
       <div className="os-detail-grid">
         <ShellPanel title="Profile" dense>
           <div className="flex flex-wrap gap-2">
+            {/*
+              The interaction count was a flare pill here and a Calls figure in
+              the stat row twelve lines down — the same number twice, one of
+              them in the colour the product reserves for emergencies.
+            */}
             {customer.returning ? (
               <ShellBadge tone="live">Returning customer</ShellBadge>
             ) : (
               <ShellBadge tone="neutral">First contact</ShellBadge>
             )}
-            <ShellBadge tone="flare">{customer.interactionCount} interactions</ShellBadge>
           </div>
 
           <dl className="os-kv font-sans">

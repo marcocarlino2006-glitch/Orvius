@@ -113,7 +113,6 @@ export default function CallsPage() {
                     durationSec={call.durationSec}
                     booked={call.booked}
                     createdAt={call.createdAt}
-                    businessName={call.business?.name}
                     leadName={call.lead?.name}
                     serviceType={call.lead?.serviceType}
                     urgency={call.lead?.urgency}

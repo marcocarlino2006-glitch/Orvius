@@ -71,11 +71,16 @@
   /* Success / recovered revenue */
   --live: #1a9b6e;
   --live-soft: #22b07e;
+  /* Same arrangement as --signal-text: --live is 4.39:1 on the night panel. */
+  --live-text: #0f7a56;
 
   /* Emergency */
   --flare: #ef4444;
   --flare-hot: #f87171;
   --flare-dim: #dc2626;
+  /* Flare at a size AA measures against 4.5:1, same arrangement as
+     --signal-text: #f4212e is 3.76:1 on the night panel. */
+  --flare-text: var(--flare-dim);
 
   --background: var(--canvas);
   --foreground: var(--void);
@@ -7805,6 +7810,8 @@ body:has(.mkt-page) .shell-header {
   --rule: color-mix(in srgb, #fff 10%, transparent);
   --signal: #d9784b;
   --signal-text: #d9784b;
+  --flare-text: #ff6b74;
+  --live-text: #00ba7c;
   background: #27241f !important;
   color: #ececec !important;
 }
@@ -8252,6 +8259,8 @@ body:has(.mkt-page) .shell-header {
   /* Copper lifted for legibility on the charcoal shell, still the brand accent. */
   --signal: #d9784b;
   --signal-text: #d9784b;
+  --flare-text: #ff6b74;
+  --live-text: #00ba7c;
   background: #27241f !important;
   color: #e9e9e9 !important;
   font-feature-settings: "zero" 1;
@@ -11924,9 +11933,17 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
 }
 
-/* Row meta reads as a label, not a whisper */
+/*
+  Row meta reads as a label, not a whisper — except when the label is an alarm.
+
+  Without the :not(), this rule was repainting every EMERGENCY kicker in the
+  product the same grey as the word "Lead" beside it. The alarm on a
+  three-in-the-morning no-heat call was indistinguishable from a routine row's
+  timestamp, and the only visible difference was two pixels of red at the far
+  left edge of the row.
+*/
 .os-shell-night .attention-item-kindlabel,
-.os-shell-night .lead-rail-kind {
+.os-shell-night .lead-rail-kind:not(.is-flare) {
   color: #a09f9e !important;
 }
 
