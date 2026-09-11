@@ -57,17 +57,30 @@ export function ProLead({
   return (
     <div className="pro-lead">
       <div className="pro-lead-main font-sans">
+        {/*
+          The figure is hidden from assistive tech and folded into the heading
+          below it instead. Split across two elements it announced as "16" and
+          then, separately, "calls answered" — and the heading it replaced on
+          the Command board was the only h2 on that page, so dropping it left
+          the queue's h3 item titles jumping straight from the page h1.
+        */}
         {loading ? (
           <span className="pro-lead-figure-wait" aria-hidden />
         ) : (
           <p
+            aria-hidden
             className={`pro-lead-figure os-own-color ${hot ? "pro-lead-figure-hot" : ""}`}
           >
             {figure}
           </p>
         )}
         <div className="pro-lead-copy">
-          <p className="pro-lead-caption os-own-color">{caption}</p>
+          <h2
+            className="pro-lead-caption os-own-color"
+            aria-label={loading ? caption : `${figure} ${caption}`}
+          >
+            {caption}
+          </h2>
           {detail && !loading ? (
             <p className="pro-lead-detail">{detail}</p>
           ) : null}
