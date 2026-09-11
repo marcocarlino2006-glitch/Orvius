@@ -28,6 +28,7 @@ import {
 } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { twimlMessage as twimlResponse } from "@/lib/twiml";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -313,25 +314,6 @@ async function handleSmsKeyword(params: {
     });
   }
   return smsStartConfirmation(program);
-}
-
-function twimlResponse(message: string) {
-  const twiml = message
-    ? `<Response><Message>${escapeXml(message)}</Message></Response>`
-    : "<Response></Response>";
-
-  return new NextResponse(twiml, {
-    headers: { "Content-Type": "text/xml" },
-  });
-}
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
 }
 
 export async function GET() {
