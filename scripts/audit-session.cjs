@@ -133,11 +133,55 @@ const JOBS = [
   { who: 11, dayOffset: -6, hour: 12, status: "completed", tech: 2, title: "Zone valve head replacement", service: "Zone valve", urgency: "urgent", finalCents: 46500, estimateCents: 46500 },
 ];
 
+/*
+  Six weeks of finished work sitting behind the fortnight above.
+
+  Without it the trend on the Command page has two data points, which is the
+  state it refuses to draw a chart for — correctly, and so the one thing the
+  chart exists to show could never be reviewed. These are closed records only:
+  a lead, and for the booked share a completed job. The volumes rise, because a
+  shop that just turned the service on is the case worth looking at.
+*/
+const HISTORY = [
+  { weeksAgo: 7, leads: 6, booked: 3 },
+  { weeksAgo: 6, leads: 9, booked: 5 },
+  { weeksAgo: 5, leads: 7, booked: 4 },
+  { weeksAgo: 4, leads: 12, booked: 8 },
+  { weeksAgo: 3, leads: 11, booked: 7 },
+  { weeksAgo: 2, leads: 15, booked: 11 },
+];
+
+const HISTORY_SERVICES = [
+  { service: "No heat", urgency: "emergency" },
+  { service: "AC not cooling", urgency: "urgent" },
+  { service: "Drain backup", urgency: "emergency" },
+  { service: "No hot water", urgency: "urgent" },
+  { service: "Furnace maintenance", urgency: "routine" },
+  { service: "Thermostat replacement", urgency: "routine" },
+  { service: "Leaking valve", urgency: "urgent" },
+  { service: "Duct cleaning", urgency: "routine" },
+];
+
 function atDay(dayOffset, hour) {
   const d = new Date();
   d.setDate(d.getDate() + dayOffset);
   d.setHours(hour, 0, 0, 0);
   return d;
+}
+
+/**
+ * A day inside a past week, measured from that week's Monday.
+ *
+ * Placing history by "today minus N days" instead put six leads across a span
+ * that straddled two Mondays, so a week seeded with six showed as three and
+ * three — and the chart under review was not the chart the numbers described.
+ */
+function atWeek(weeksAgo, dayInWeek, hour) {
+  const monday = new Date();
+  monday.setHours(hour, 0, 0, 0);
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) - weeksAgo * 7);
+  monday.setDate(monday.getDate() + dayInWeek);
+  return monday;
 }
 
 /** Every fixture row this shop owns, in an order the foreign keys tolerate. */
@@ -240,15 +284,31 @@ async function buildWeek(prisma, business) {
   }
 
   const jobs = [];
+  const claimed = new Set();
   for (const row of JOBS) {
     const customer = customers[row.who];
     const scheduledAt = atDay(row.dayOffset, row.hour);
     const done = row.status === "completed";
 
+    /*
+      Attached to the call it came from. Jobs used to be created free-standing,
+      which meant no lead had a job, which meant the booking rate on the
+      Command page and the booked share of every trend bar were flatly zero —
+      the fixture was quietly contradicting the thing it exists to show.
+    */
+    const origin = leads.find(
+      (lead) =>
+        !claimed.has(lead.id) &&
+        lead.customerId === customer.id &&
+        lead.serviceType === row.service,
+    );
+    if (origin) claimed.add(origin.id);
+
     const job = await prisma.job.create({
       data: {
         businessId: business.id,
         customerId: customer.id,
+        leadId: origin?.id ?? null,
         technicianId: row.tech === null ? null : crew[row.tech].id,
         title: row.title,
         serviceType: row.service,
@@ -286,6 +346,55 @@ async function buildWeek(prisma, business) {
           jobId: job.id,
           amountCents: row.estimateCents,
           status: "sent",
+        },
+      });
+    }
+  }
+
+  for (const week of HISTORY) {
+    for (let i = 0; i < week.leads; i++) {
+      const customer = customers[i % customers.length];
+      const kind = HISTORY_SERVICES[i % HISTORY_SERVICES.length];
+      /* Spread across the working week rather than stacked on one day, so the
+         inbox's date grouping and the weekly buckets both look real. */
+      const at = atWeek(week.weeksAgo, i % 6, 8 + (i % 9));
+      const wasBooked = i < week.booked;
+
+      const lead = await prisma.lead.create({
+        data: {
+          businessId: business.id,
+          customerId: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          serviceType: kind.service,
+          urgency: kind.urgency,
+          address: customer.address,
+          status: wasBooked ? "booked" : "lost",
+          source: "call",
+          firstContactedAt: at,
+          closedAt: at,
+          createdAt: at,
+        },
+      });
+
+      if (!wasBooked) continue;
+
+      await prisma.job.create({
+        data: {
+          businessId: business.id,
+          customerId: customer.id,
+          leadId: lead.id,
+          technicianId: crew[i % crew.length].id,
+          title: `${kind.service} — ${customer.name.split(" ")[0]}`,
+          serviceType: kind.service,
+          urgency: kind.urgency,
+          address: customer.address,
+          status: "completed",
+          scheduledAt: at,
+          completedAt: at,
+          finalAmountCents: 22000 + (i % 7) * 5500,
+          outcomeCapturedAt: at,
+          createdAt: at,
         },
       });
     }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { WeeklyTrend } from "@/components/weekly-trend";
 import { formatCents } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
@@ -105,6 +106,13 @@ export function ProEconomicsPanel({
           </div>
         ))}
       </dl>
+
+      {/*
+        Directly under the funnel, because the funnel says what happened this
+        week and the only useful follow-up question is whether that is better
+        than last week — which nothing on this page could answer.
+      */}
+      <WeeklyTrend weeks={outcomes.weeks} />
 
       {stale && !proofOnBoard ? (
         <p className="pro-economics-stale font-sans" role="status">

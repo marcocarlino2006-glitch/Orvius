@@ -2,6 +2,33 @@ import { isAfterHours } from "@/lib/business";
 import { estimatedRevenueCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
+/** How much history the trend draws. Eight weeks fits a screen and a season. */
+const TREND_WEEKS = 8;
+
+export type OutcomeWeek = {
+  /** Monday of the week, as an ISO date. */
+  start: string;
+  leads: number;
+  booked: number;
+  /**
+   * The week still in progress. It has to be marked, because a Tuesday-morning
+   * bar next to seven finished weeks looks like collapse and is not.
+   */
+  partial: boolean;
+};
+
+/*
+  Monday, not Sunday. A trades week runs Monday to Saturday with emergencies on
+  the weekend attached to the week they interrupt, so a Sunday-aligned bucket
+  splits every weekend across two bars.
+*/
+function weekStart(at: Date) {
+  const start = new Date(at);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+  return start;
+}
+
 export type ShopOutcomes = {
   windowDays: number;
   since: string;
@@ -33,6 +60,11 @@ export type ShopOutcomes = {
   openEstimateCents: number;
   openInvoiceCents: number;
   economicsReady: boolean;
+  /**
+   * Captured demand by week, oldest first, independent of `windowDays` — the
+   * trend is about history and the window is about right now.
+   */
+  weeks: OutcomeWeek[];
 };
 
 /**
@@ -47,6 +79,9 @@ export async function getShopOutcomes(
   const since = new Date();
   since.setDate(since.getDate() - windowDays);
   since.setHours(0, 0, 0, 0);
+
+  const trendSince = weekStart(new Date());
+  trendSince.setDate(trendSince.getDate() - 7 * (TREND_WEEKS - 1));
 
   const business = await prisma.business.findUnique({
     where: { id: businessId },
@@ -70,6 +105,7 @@ export async function getShopOutcomes(
     payments,
     openEstimates,
     openInvoices,
+    trendLeads,
   ] = await Promise.all([
     prisma.call.count({
       where: { businessId, createdAt: { gte: since } },
@@ -140,6 +176,13 @@ export async function getShopOutcomes(
       },
       select: { amountCents: true },
     }),
+    /* Bucketed in JS rather than with a date-truncating GROUP BY, which SQLite
+       and libsql spell differently and which would hide the empty weeks — and
+       an empty week is the most informative bar on the chart. */
+    prisma.lead.findMany({
+      where: { businessId, createdAt: { gte: trendSince } },
+      select: { createdAt: true, job: { select: { id: true } } },
+    }),
   ]);
 
   const leadCount = leads.length;
@@ -183,6 +226,30 @@ export async function getShopOutcomes(
       baselineJobs != null,
   );
 
+  const currentWeek = weekStart(new Date()).getTime();
+  const buckets = new Map<number, { leads: number; booked: number }>();
+  for (let i = 0; i < TREND_WEEKS; i++) {
+    buckets.set(trendSince.getTime() + i * 7 * 86_400_000, {
+      leads: 0,
+      booked: 0,
+    });
+  }
+  for (const lead of trendLeads) {
+    const key = weekStart(lead.createdAt).getTime();
+    const bucket = buckets.get(key);
+    if (!bucket) continue;
+    bucket.leads += 1;
+    if (lead.job) bucket.booked += 1;
+  }
+  const trend: OutcomeWeek[] = [...buckets.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([at, counts]) => ({
+      start: new Date(at).toISOString().slice(0, 10),
+      leads: counts.leads,
+      booked: counts.booked,
+      partial: at === currentWeek,
+    }));
+
   return {
     windowDays,
     since: since.toISOString(),
@@ -215,6 +282,7 @@ export async function getShopOutcomes(
     openEstimateCents,
     openInvoiceCents,
     economicsReady,
+    weeks: trend,
   };
 }
 

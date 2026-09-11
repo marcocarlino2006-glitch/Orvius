@@ -7,7 +7,6 @@ import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
-import { isAfterHours } from "@/lib/after-hours";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -19,6 +18,8 @@ type CallRow = {
   durationSec: number | null;
   booked: boolean;
   createdAt: string;
+  /** Set by the API against the shop's own hours, not the viewer's clock. */
+  afterHours: boolean;
   business: { name: string } | null;
   customer: { id: string; name: string | null; interactionCount: number } | null;
   lead: {
@@ -49,8 +50,7 @@ export default function CallsPage() {
 
   const tally = useMemo(
     () => ({
-      afterHours: calls.filter((call) => isAfterHours(new Date(call.createdAt)))
-        .length,
+      afterHours: calls.filter((call) => call.afterHours).length,
       booked: calls.filter((call) => call.booked).length,
       returning: calls.filter(
         (call) => (call.customer?.interactionCount ?? 0) > 1,

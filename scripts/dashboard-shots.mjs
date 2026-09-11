@@ -38,7 +38,19 @@ for (const path of dashboardPages(fixture)) {
   await page.addStyleTag({
     content: `*,*::before,*::after{animation-duration:0s!important;transition-duration:0s!important}`,
   });
-  await new Promise((r) => setTimeout(r, 2000));
+  /*
+    Wait for the page to stop loading rather than for a fixed two seconds.
+    Every screen here fetches after mount, and the flat wait was catching the
+    Command page mid-skeleton and the call player before it had decoded its
+    recording — so the audit was reviewing placeholders.
+  */
+  await page
+    .waitForFunction(
+      `!document.querySelector('[class*="-loading"], [class*="skeleton"], [aria-busy="true"]')`,
+      { timeout: 20000, polling: 250 },
+    )
+    .catch(() => undefined);
+  await new Promise((r) => setTimeout(r, 1500));
   const name = path.replace(/^\/dashboard\/?/, "") || "home";
   await page.screenshot({ path: `${OUT}/${name.replace(/\//g, "_")}.png` });
   console.log(`${path} → ${name.replace(/\//g, "_")}.png`);

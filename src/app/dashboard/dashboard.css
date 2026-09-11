@@ -3261,3 +3261,175 @@
     flex-basis: 100%;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Captured demand, week over week.
+   The first chart in the product. Eighty-eight components rendered not one
+   shape, so every number an owner had described right now and none of them
+   could say whether right now was an improvement.
+   Height is leads that week; the filled part is the share that booked. The
+   week still running is hatched, because a Tuesday bar beside seven finished
+   weeks reads as a collapse.
+   ────────────────────────────────────────────────────────────────────────── */
+.trend {
+  margin: 0 0 1.25rem;
+  padding: 0.95rem 1rem 0.8rem;
+  border: 1px solid #2e2c26;
+  border-radius: 0.375rem;
+  background: #201e1a;
+}
+
+.trend-thin {
+  padding: 0.7rem 1rem;
+}
+
+.trend-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.85rem;
+}
+
+.trend-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #ededed;
+}
+
+.trend-delta {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #a4a2a0;
+}
+
+.trend-delta.is-up {
+  color: var(--signal-hot);
+}
+
+.trend-delta span {
+  font-weight: 400;
+  color: #a4a2a0;
+}
+
+.trend-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+  Capped, not stretched. Eight bars sharing the full panel width came out
+  110px wide against 90px tall, which reads as a row of blocks rather than a
+  chart — the eye compares areas instead of heights and the trend disappears.
+*/
+.trend-week {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  max-width: 3.25rem;
+  min-width: 0;
+}
+
+.trend-bar-track {
+  display: flex;
+  align-items: flex-end;
+  height: 5.5rem;
+}
+
+/*
+  Hollow by default: the outline is the week's volume and the fill inside it is
+  the booked share, so one bar carries both without a second series.
+*/
+.trend-bar {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  border: 1px solid #4a463d;
+  border-radius: 2px 2px 0 0;
+  background: #26241f;
+}
+
+.trend-bar-booked {
+  display: block;
+  width: 100%;
+  border-radius: 1px 1px 0 0;
+  background: var(--signal-hot);
+}
+
+/* The week in progress, marked rather than drawn as finished. */
+.trend-bar.is-partial {
+  border-style: dashed;
+  border-color: #5c574c;
+}
+
+.trend-bar.is-partial .trend-bar-booked {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--signal-hot) 0 3px,
+    #201e1a 3px 6px
+  );
+}
+
+.trend-week-label {
+  margin: 0.35rem 0 0;
+  overflow: hidden;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #a4a2a0;
+}
+
+.trend-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin: 0.7rem 0 0;
+  font-size: 0.6875rem;
+  color: #a4a2a0;
+}
+
+.trend-key {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+}
+
+.trend-key:not(:first-child) {
+  margin-left: 0.75rem;
+}
+
+.trend-key-booked {
+  background: var(--signal-hot);
+}
+
+.trend-key-open {
+  border: 1px solid #4a463d;
+  background: #26241f;
+}
+
+.trend-key-partial {
+  border: 1px dashed #5c574c;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--signal-hot) 0 3px,
+    #201e1a 3px 6px
+  );
+}
+
+.trend-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #a4a2a0;
+}

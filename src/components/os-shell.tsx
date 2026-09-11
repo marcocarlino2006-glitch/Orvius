@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { isAfterHours } from "@/lib/after-hours";
 import { osCurrentRing, osProductNav } from "@/lib/os-nav";
 import { useBusiness } from "@/lib/use-business";
 import { usePlanAccess } from "@/lib/use-plan-access";
@@ -49,24 +48,16 @@ export function OsShell({
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   /*
-    Read after mount, never during render. The server runs in UTC and the shop
-    does not, so deriving this inline makes the server and the browser disagree
-    about the label and React replaces it mid-paint.
+    Decided on the server, against the shop's own hours and timezone. Reading
+    the browser clock here would have been two lines shorter and wrong in two
+    ways: it disagrees with the server during hydration, and it would tell a
+    shop that answers until eight that it is after hours at six.
   */
-  const [offHours, setOffHours] = useState(false);
+  const offHours = business?.signals.afterHoursNow ?? false;
 
   useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
-
-  useEffect(() => {
-    const read = () => setOffHours(isAfterHours(new Date()));
-    read();
-    /* Re-read on the minute so a shop that crosses six o'clock with the tab
-       open sees the label change without a reload. */
-    const timer = window.setInterval(read, 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
