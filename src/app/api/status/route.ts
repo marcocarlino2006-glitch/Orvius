@@ -5,8 +5,22 @@ export const dynamic = "force-dynamic";
 
 export type PublicStatus = {
   status: "operational" | "degraded";
+  /*
+    What the word above is a claim about.
+
+    The badge renders "OPERATIONAL", and a shop owner reads that as "my calls
+    are being answered" — which this endpoint has not checked and cannot. Voice
+    does not pass through this app at all. Shipping the scope alongside the
+    verdict is what keeps a green badge from being a promise about the phone.
+  */
+  scope: string;
   checkedAt: string;
 };
+
+const SCOPE_COPY = {
+  operational: "Orvius app and records are reachable. Live line status is on your dashboard.",
+  degraded: "Orvius app is not fully reachable. Inbound calls are answered by the voice line, not this app.",
+} as const;
 
 /**
  * Cheap public liveness for the header status pill. Deliberately not
@@ -30,8 +44,10 @@ export async function GET() {
     databaseUp = false;
   }
 
+  const status = databaseUp ? "operational" : "degraded";
   const body: PublicStatus = {
-    status: databaseUp ? "operational" : "degraded",
+    status,
+    scope: SCOPE_COPY[status],
     checkedAt: new Date().toISOString(),
   };
 
