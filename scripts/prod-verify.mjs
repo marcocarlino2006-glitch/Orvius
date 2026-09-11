@@ -274,7 +274,12 @@ try {
   if (json?.checkoutReady) {
     pass("Checkout", "Stripe live — the site can take money");
   } else {
-    warn("Checkout", "Stripe not configured — a visitor clicking subscribe gets an error");
+    /*
+      Not a failure. The pricing page reads checkoutReady and offers a call
+      audit instead of a dead subscribe button, so the site stays honest while
+      unconfigured — it just cannot collect.
+    */
+    warn("Checkout", "Stripe not configured — pricing falls back to the call audit, no self-serve revenue");
   }
 } catch (error) {
   fail("/api/billing/checkout", `unreachable: ${error.message}`);
