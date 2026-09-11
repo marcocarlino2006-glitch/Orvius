@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isPrivilegedRequest } from "@/lib/admin-access";
 import { getAuthConfigStatus } from "@/lib/auth-env";
-import { getConfigStatus, verifyAdminRequest } from "@/lib/env";
+import { getConfigStatus } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { isProduction } from "@/lib/runtime";
 
 export async function GET(request: NextRequest) {
   const config = getConfigStatus();
-  const auth = getAuthConfigStatus();
-
-  // Always expose counts + readiness for gates / ops. Public counts are not secrets.
+  const authStatus = getAuthConfigStatus();
   let businessCount = 0;
   let leadCount = 0;
   let callCount = 0;
@@ -45,9 +44,17 @@ export async function GET(request: NextRequest) {
 
   const stats = { businessCount, leadCount, callCount, jobCount };
 
-  // Production without admin still gets readiness + stats (needed by dogfood / pre-post).
-  // Detailed config/auth item lists stay admin-only.
-  if (isProduction() && !verifyAdminRequest(request)) {
+  /*
+    Readiness is public and the counts are not.
+
+    Whether the line is configured, and which number it is, are things we print
+    on the website for customers to call. How many shops and leads are behind
+    it is not: anonymous `curl` against production returned "4 shops, 19 leads",
+    which is the one number a prospect or a competitor should have to ask us
+    for. Gates keep working — they run against a local build, where this branch
+    is not taken, and against production with the admin key.
+  */
+  if (isProduction() && !(await isPrivilegedRequest(request))) {
     return NextResponse.json({
       ok: true,
       service: "orvius",
@@ -55,7 +62,6 @@ export async function GET(request: NextRequest) {
       ownerSmsEnabled,
       twilioPhone,
       appUrl: config.appUrl,
-      stats,
     });
   }
 
@@ -75,12 +81,12 @@ export async function GET(request: NextRequest) {
     stats,
     config: config.items,
     auth: {
-      ready: auth.ready,
-      items: auth.items,
-      redirectUris: auth.redirectUris,
+      ready: authStatus.ready,
+      items: authStatus.items,
+      redirectUris: authStatus.redirectUris,
     },
     nextSteps: config.ready
-      ? auth.ready
+      ? authStatus.ready
         ? [
             "Run npm run onboard if no business exists",
             "Deploy to Vercel so Vapi webhooks reach production",

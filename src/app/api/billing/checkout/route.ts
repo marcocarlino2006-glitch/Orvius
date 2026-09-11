@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { isPrivilegedRequest } from "@/lib/admin-access";
 import { company } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
 import {
@@ -32,12 +33,18 @@ export async function POST(request: NextRequest) {
     const body = checkoutSchema.parse(await request.json());
 
     if (!isPlanCheckoutReady(body.planId, body.interval)) {
-      const readiness = getBillingReadiness();
+      /*
+        The visitor gets the sentence; only we get the diagnosis. This branch
+        runs before sign-in, so attaching the readiness object published the
+        names of every Stripe variable still unset to anyone who posted here.
+      */
       return NextResponse.json(
         {
           error:
             "Billing is not configured yet for this plan. Apply for the pilot and we will send a checkout link after your trial.",
-          billing: readiness,
+          ...((await isPrivilegedRequest(request))
+            ? { billing: getBillingReadiness() }
+            : {}),
         },
         { status: 503 },
       );
@@ -118,8 +125,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  const readiness = getBillingReadiness();
+export async function GET(request: NextRequest) {
   const plans = getPaidPlans().map((plan) => ({
     id: plan.id,
     name: plan.name,
@@ -132,12 +138,19 @@ export async function GET() {
     configured: isStripePlanConfigured(plan.id as PaidPlanId),
   }));
 
+  /*
+    The pricing page needs to know whether it may offer a subscribe button, and
+    that is all it reads. `readiness` names the unset variables and the dashboard
+    pages to visit, so it stays with the caller who can act on it.
+  */
   return NextResponse.json({
     configured: isStripeConfigured(),
     checkoutReady: isStripeCheckoutConfigured(),
-    readiness,
     plans,
     currency: "usd",
     legalEntity: company.legalName,
+    ...((await isPrivilegedRequest(request))
+      ? { readiness: getBillingReadiness() }
+      : {}),
   });
 }
