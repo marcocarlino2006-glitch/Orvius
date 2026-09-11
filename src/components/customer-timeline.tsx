@@ -3,18 +3,17 @@ import { ShellBadge } from "@/components/shell-primitives";
 import type { TimelineEvent } from "@/lib/customer";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 
+/*
+  Colour on this timeline means urgency, not what kind of record it is.
+
+  It used to mean both, and the fallback arm of this switch was `flare` — so
+  every lead on a customer's history wore the colour the product reserves for a
+  burst pipe. One record had twenty-three emergency-red pills on it and two of
+  them were emergencies. A payment stays green because money arriving is the
+  one event type that is itself good news.
+*/
 function badgeTone(type: TimelineEvent["type"]) {
-  switch (type) {
-    case "job":
-    case "call":
-    case "payment":
-      return "live" as const;
-    case "estimate":
-    case "invoice":
-      return "neutral" as const;
-    default:
-      return "flare" as const;
-  }
+  return type === "payment" ? ("live" as const) : ("muted" as const);
 }
 
 export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {

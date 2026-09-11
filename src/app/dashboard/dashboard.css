@@ -300,7 +300,6 @@
   color: var(--void);
 }
 
-.attention-queue-lead,
 .attention-queue-empty {
   margin: 0.35rem 0 0;
   font-size: 0.875rem;

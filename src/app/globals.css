@@ -7936,13 +7936,6 @@ body:has(.mkt-page) .shell-header {
   margin: 0.2rem 0 0 !important;
 }
 
-.os-shell-night .attention-queue-lead {
-  font-size: 0.75rem !important;
-  color: color-mix(in srgb, #d1d1d1 55%, transparent) !important;
-  margin: 0.2rem 0 0.65rem !important;
-  max-width: none !important;
-}
-
 .os-shell-night .attention-queue-list {
   gap: 0.35rem !important;
 }
@@ -11352,62 +11345,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   max-width: 78rem;
 }
 
-/* ── Command board ── */
-.os-shell-night .attention-queue-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.55rem;
-}
-
-.os-shell-night .attention-queue-head-copy {
-  min-width: 0;
-}
-
-/*
-  The number that decides whether the owner gets out of bed. Set on the
-  trailing edge of the head, sized like the board's other headline figures,
-  and captioned so it is never mistaken for money already collected.
-*/
-.os-shell-night .attention-queue-stake {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.1rem;
-  margin: 0;
-  flex: none;
-  text-align: right;
-}
-
-.os-shell-night .attention-queue-stake-value {
-  font-size: 1.375rem;
-  font-weight: 600;
-  line-height: 1.1;
-  color: #f4f4f4;
-  font-variant-numeric: tabular-nums;
-}
-
-.os-shell-night .attention-queue-stake-label {
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #adadac;
-}
-
-@media (max-width: 560px) {
-  .os-shell-night .attention-queue-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .os-shell-night .attention-queue-stake {
-    align-items: flex-start;
-    text-align: left;
-  }
-}
-
 .os-shell-night .attention-queue-kicker {
   margin: 0 0 0.2rem !important;
   font-size: 0.625rem !important;
@@ -11423,12 +11360,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
   letter-spacing: -0.012em !important;
   color: #f7f9f9 !important;
-}
-
-.os-shell-night .attention-queue-lead {
-  margin: 0.15rem 0 0 !important;
-  font-size: 0.8125rem !important;
-  color: #a09f9e !important;
 }
 
 .os-shell-night .attention-queue-list {
