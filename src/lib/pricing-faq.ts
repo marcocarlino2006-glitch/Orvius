@@ -39,7 +39,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "fleet",
     question: "When do I need Fleet?",
     answer:
-      "Fleet is built for 6+ trucks — unlimited technicians on dispatch, priority onboarding, and a dedicated support line. Growing shops with 3–5 trucks are usually on Pro.",
+      "Fleet is built for 6+ trucks — unlimited technicians on dispatch and the multi-truck dispatch workflows. Pro caps technicians at 15. Growing shops with 3–5 trucks are usually on Pro. Support is the same on every plan: email us and you get a person, normally within a business day.",
   },
   {
     id: "multi",
