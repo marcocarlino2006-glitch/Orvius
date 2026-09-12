@@ -26,7 +26,7 @@ export default function HomePage() {
             className="mkt-trynow-title"
             data-i18n="trynow.title"
           >
-            Try Orvius now.
+            Prove Orvius on your line.
           </h2>
           <div className="mkt-trynow-actions font-sans">
             <Link
@@ -34,7 +34,7 @@ export default function HomePage() {
               className="inst-btn inst-btn-primary mkt-trynow-cta"
               data-i18n="trynow.cta"
             >
-              Get started →
+              Prove it on your line
             </Link>
           </div>
           <a

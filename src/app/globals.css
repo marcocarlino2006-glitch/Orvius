@@ -143,8 +143,8 @@
   --color-border: var(--border);
   --color-success: var(--success);
   --font-sans: var(--font-sans);
-  --font-brand: var(--font-sans);
-  --font-display: var(--font-sans);
+  --font-brand: var(--font-display);
+  --font-display: var(--font-display);
 }
 
 * {
@@ -9879,39 +9879,40 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night {
-  --os-paper: #22252a;
-  --os-panel: #292d33;
-  --os-panel-raised: #2e333a;
-  --os-ink: #f2f4f5;
-  --os-mute: #9aa0a6;
-  --os-line: #444a51;
-  --os-flare: #f4212e;
-  --os-live: #00ba7c;
-  --void: #f2f4f5;
-  --ash: #9aa0a6;
-  --ash-soft: #8b9096;
-  --white: #292d33;
-  --fog: #1e2125;
-  --chalk: #22252a;
-  --canvas: #22252a;
-  --rule: #444a51;
-  --signal: #f2f4f5; /* anti-accent: white, not copper */
-  background: #22252a !important;
-  color: #e7e9ea !important;
-  font-feature-settings: "zero" 1;
+  /* Institution night — Orvius graphite + copper (not Twitter charcoal/green) */
+  --os-paper: #0c1016;
+  --os-panel: #12171f;
+  --os-panel-raised: #181e28;
+  --os-ink: #f1f3f6;
+  --os-mute: #7a8490;
+  --os-line: color-mix(in srgb, #f1f3f6 12%, transparent);
+  --os-flare: #cf2d56;
+  --os-live: #1a9b6e;
+  --void: #f1f3f6;
+  --ash: #7a8490;
+  --ash-soft: #8a94a0;
+  --white: #12171f;
+  --fog: #0a0e14;
+  --chalk: #0c1016;
+  --canvas: #0c1016;
+  --rule: color-mix(in srgb, #f1f3f6 12%, transparent);
+  --signal: #c4783a;
+  background: #0c1016 !important;
+  color: #e8ecf1 !important;
+  font-feature-settings: "ss01" 1, "zero" 1;
 }
 
 .os-shell-night .os-main-pro,
 .os-shell-night .os-content-pro,
 .os-shell-night .os-content,
 .os-shell-night .os-main {
-  background: #22252a !important;
-  color: #e7e9ea !important;
+  background: #0c1016 !important;
+  color: #e8ecf1 !important;
 }
 
 .os-shell-night .os-sidebar-pro,
 .os-shell-night .os-sidebar {
-  background: #22252a !important;
+  background: #0a0e14 !important;
   border-right: 1px solid #444a51 !important;
 }
 
@@ -9950,7 +9951,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .lead-rail-row-emergency {
-  box-shadow: inset 2px 0 0 #f4212e;
+  box-shadow: inset 2px 0 0 #cf2d56;
 }
 
 .lead-rail-meta {
@@ -9970,7 +9971,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .lead-rail-kind.is-flare {
-  color: #f4212e;
+  color: #cf2d56;
 }
 
 .lead-rail-time {
@@ -10068,7 +10069,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .attention-item-critical .attention-item-kind {
-  color: #f4212e !important;
+  color: #cf2d56 !important;
 }
 
 .os-shell-night .attention-item-detail,
@@ -10171,8 +10172,8 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .status-pill-flare {
-  color: #f4212e !important;
-  border-color: color-mix(in srgb, #f4212e 45%, #444a51) !important;
+  color: #cf2d56 !important;
+  border-color: color-mix(in srgb, #cf2d56 45%, #444a51) !important;
 }
 
 .os-shell-night .os-nav-link-active {
@@ -10186,12 +10187,12 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page {
-  background: #22252a !important;
+  background: #0c1016 !important;
 }
 
 .mkt-footer--institution,
 .mkt-footer--cursor {
-  background: #22252a !important;
+  background: #0c1016 !important;
   border-top-color: #444a51 !important;
 }
 
@@ -10247,7 +10248,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .dispatch-col-unassigned {
-  border-left: 2px solid #f4212e !important;
+  border-left: 2px solid #cf2d56 !important;
 }
 
 .os-shell-night .os-ask-dock-chip {
@@ -10533,7 +10534,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .onboarding-shell--night {
-  background: #22252a !important;
+  background: #0c1016 !important;
   color: #e7e9ea !important;
   min-height: 100svh;
 }
@@ -10774,7 +10775,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .lead-detail-sticky {
-  background: #22252a !important;
+  background: #0c1016 !important;
   border-top: 1px solid #444a51 !important;
   backdrop-filter: none !important;
   padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom, 0px)) !important;
@@ -10908,14 +10909,14 @@ body:has(.mkt-page) .shell-header {
 }
 
 .owner-alert--critical .owner-alert-kicker {
-  color: #f4212e;
+  color: #cf2d56;
 }
 
 .owner-alert-dot {
   width: 0.4rem;
   height: 0.4rem;
   border-radius: 0;
-  background: #f4212e;
+  background: #cf2d56;
   box-shadow: none;
 }
 
@@ -10955,7 +10956,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .owner-alert-kv-accent dd {
-  color: #f4212e !important;
+  color: #cf2d56 !important;
 }
 
 .owner-alert-foot {
@@ -10998,7 +10999,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pay-prompt-backdrop,
 .pay-prompt-card--instrument ~ .pay-prompt-backdrop,
 .pay-prompt .pay-prompt-backdrop {
-  background: color-mix(in srgb, #22252a 78%, transparent) !important;
+  background: color-mix(in srgb, #0c1016 78%, transparent) !important;
   backdrop-filter: none !important;
 }
 
@@ -11101,7 +11102,7 @@ body:has(.mkt-page) .shell-header {
 
 .billing-lock,
 .billing-lock--instrument {
-  background: color-mix(in srgb, #22252a 86%, transparent) !important;
+  background: color-mix(in srgb, #0c1016 86%, transparent) !important;
   backdrop-filter: none !important;
 }
 
@@ -11344,7 +11345,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .lead-status-actions-error {
   margin: 0;
   font-size: 0.75rem;
-  color: #f4212e;
+  color: #cf2d56;
 }
 
 .mkt-page .btn,
@@ -11427,12 +11428,12 @@ body:has(.mkt-page) .shell-header {
 }
 
 .tier1-login--craft {
-  background: #22252a !important;
+  background: #0c1016 !important;
 }
 
 .tier1-login--craft .tier1-login-form,
 .tier1-login--craft .tier1-login-form-inner {
-  background: #22252a !important;
+  background: #0c1016 !important;
   color: #e7e9ea !important;
 }
 
@@ -11509,7 +11510,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .assign-tech-error {
   margin: 0;
   font-size: 0.6875rem;
-  color: #f4212e;
+  color: #cf2d56;
 }
 
 .os-shell-night .today-priority-btn,
@@ -11646,7 +11647,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .os-content,
 .os-shell-night .os-sidebar,
 .os-shell-night .os-sidebar-inner {
-  background: #22252a !important;
+  background: #0c1016 !important;
 }
 
 .os-shell-night .dispatch-job-assign .assign-tech-btn,
@@ -11841,87 +11842,139 @@ body:has(.mkt-page) .shell-header {
 }
 
 /* ============================================================
-   B6: home hero + try-now + site-controls (Orvius copper/void).
-   Cursor cream/orange eras deleted — do not re-layer them.
+   Institution first viewport — brand mass, one claim, copper CTA.
+   Chase/Stripe weight. Orvius void + copper only.
    ============================================================ */
 
-.mkt-page .mkt-hero--clean {
-  min-height: 84vh;
+.mkt-page .mkt-hero--clean,
+.mkt-page .mkt-hero--institution {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: clamp(7rem, 18vh, 11rem) 1.5rem clamp(4rem, 11vh, 7.5rem);
-  background: #05070b !important;
+  padding: clamp(6.5rem, 14vh, 9rem) 1.5rem clamp(4rem, 10vh, 6.5rem);
+  background: #070a0e !important;
   border: 0 !important;
+  overflow: hidden;
+}
+
+.mkt-page .mkt-hero-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -10%, color-mix(in srgb, #c4783a 14%, transparent), transparent 58%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, color-mix(in srgb, #3a4a62 18%, transparent), transparent 55%),
+    linear-gradient(180deg, #0a0e14 0%, #070a0e 48%, #05070b 100%);
 }
 
 .mkt-page .mkt-hero-clean {
-  max-width: 62rem;
+  position: relative;
+  z-index: 1;
+  max-width: 54rem;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.mkt-page .mkt-hero-clean-eyebrow {
-  margin: 0 0 1.4rem;
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+.mkt-page .mkt-hero-brand {
+  margin: 0 0 clamp(1.75rem, 4vh, 2.75rem);
+}
+
+.mkt-page .mkt-hero-brand .orvius-logo-word {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+  color: #f1f3f6 !important;
 }
 
 .mkt-page .mkt-hero-clean-title {
   margin: 0;
   color: #f5f7fa !important;
-  font-weight: 400;
-  font-size: clamp(2.75rem, 6vw, 4.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 500;
+  font-size: clamp(2.85rem, 7vw, 5.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  max-width: 14ch;
 }
 
 .mkt-page .mkt-hero-clean-lead {
-  margin: 1.65rem auto 0;
-  max-width: 36ch;
-  color: color-mix(in srgb, #e8ecf2 68%, transparent) !important;
-  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
-  line-height: 1.5;
+  margin: 1.5rem auto 0;
+  max-width: 38ch;
+  color: color-mix(in srgb, #e8ecf2 72%, transparent) !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-size: clamp(1.05rem, 1.55vw, 1.25rem);
+  line-height: 1.55;
+  font-weight: 400;
 }
 
 .mkt-page .mkt-hero-clean-actions {
-  margin-top: 2.3rem;
+  margin-top: 2.4rem;
+}
+
+.mkt-page .mkt-hero-clean-cta,
+.mkt-page .mkt-trynow-cta,
+.mkt-page .mkt-btn,
+.mkt-page .mkt-nav-cta,
+.mkt-page .inst-btn {
+  border-radius: 0.25rem !important;
 }
 
 .mkt-page .mkt-hero-clean-cta {
-  background: var(--signal, #c4783a) !important;
+  background: #c4783a !important;
   color: #0c1016 !important;
-  border: 1px solid var(--signal, #c4783a) !important;
-  border-radius: 0.2rem !important;
-  padding: 0.9rem 1.7rem !important;
-  font-size: 0.95rem !important;
-  min-height: 3rem !important;
+  border: 1px solid #c4783a !important;
+  padding: 0.95rem 1.85rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  min-height: 3.1rem !important;
+  box-shadow: none !important;
 }
 
 .mkt-page .mkt-hero-clean-cta:hover {
-  background: var(--signal-hot, #d4894a) !important;
-  border-color: var(--signal-hot, #d4894a) !important;
+  background: #d4894a !important;
+  border-color: #d4894a !important;
 }
 
 .mkt-page .mkt-hero-clean-line {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  margin-top: 1.6rem;
-  color: var(--signal, #c4783a) !important;
+  margin-top: 1.75rem;
+  color: #c4783a !important;
   font-size: 0.9rem;
+  font-weight: 500;
   text-decoration: none;
   letter-spacing: 0.01em;
 }
 
 .mkt-page .mkt-hero-clean-line:hover {
-  color: var(--signal-hot, #d4894a) !important;
+  color: #d4894a !important;
 }
+
+.mkt-page .mkt-hero-live-pulse {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #1a9b6e;
+  box-shadow: 0 0 0 0 color-mix(in srgb, #1a9b6e 55%, transparent);
+  animation: orvius-live-pulse 1.8s ease-out infinite;
+}
+
+@keyframes orvius-live-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, #1a9b6e 50%, transparent); }
+  70% { box-shadow: 0 0 0 0.55rem transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
 
 .mkt-page .mkt-trynow {
   background: #05070b !important;
@@ -12166,7 +12219,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   width: 0.375rem;
   height: 0.375rem;
   border-radius: 9999px;
-  background: #00ba7c;
+  background: #1a9b6e;
   box-shadow: 0 0 0 3px rgba(0, 186, 124, 0.15);
   flex-shrink: 0;
 }
@@ -12256,7 +12309,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   padding: 0 0.3rem !important;
   border: none !important;
   border-radius: 9999px !important;
-  background: #f4212e !important;
+  background: #cf2d56 !important;
   color: #ffffff !important;
   font-size: 0.625rem !important;
   font-weight: 650 !important;
@@ -12373,7 +12426,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 }
 
 .os-shell-night .attention-item-critical {
-  box-shadow: inset 2px 0 0 #f4212e !important;
+  box-shadow: inset 2px 0 0 #cf2d56 !important;
 }
 
 .os-shell-night .attention-item-kind {
@@ -12532,7 +12585,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   padding: 0.5rem 0.65rem !important;
   border: 1px solid #444a51 !important;
   border-radius: 0.35rem !important;
-  background: #22252a !important;
+  background: #0c1016 !important;
   color: #f7f9f9 !important;
   font-size: 0.875rem !important;
   transition: border-color 110ms ease, box-shadow 110ms ease;
@@ -12848,7 +12901,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 
 .os-shell-night .os-topbar-pro,
 .os-shell-night .os-topbar-night {
-  background: #22252a !important;
+  background: #0c1016 !important;
   backdrop-filter: none;
 }
 
@@ -12915,7 +12968,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   padding: 0 0.6rem !important;
   border-radius: 0.3rem !important;
   border: 1px solid #444a51 !important;
-  background: #22252a !important;
+  background: #0c1016 !important;
   color: #c4c8cc !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
@@ -13065,7 +13118,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 }
 
 .os-shell-night .pro-right-now-pip-live {
-  background: #00ba7c;
+  background: #1a9b6e;
 }
 
 .os-shell-night .pro-right-now-pip-watch {
@@ -13073,7 +13126,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 }
 
 .os-shell-night .pro-right-now-pip-flare {
-  background: #f4212e;
+  background: #cf2d56;
 }
 
 .os-shell-night .pro-right-now-pip-quiet {
@@ -13123,7 +13176,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 }
 
 .os-shell-night .pro-rail-status-healthy {
-  background: color-mix(in srgb, #00ba7c 18%, transparent);
+  background: color-mix(in srgb, #1a9b6e 18%, transparent);
   color: #4fd6a8;
 }
 
@@ -13133,7 +13186,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 }
 
 .os-shell-night .pro-rail-status-critical {
-  background: color-mix(in srgb, #f4212e 20%, transparent);
+  background: color-mix(in srgb, #cf2d56 20%, transparent);
   color: #ff8a90;
 }
 
@@ -13162,7 +13215,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 }
 
 .os-shell-night .pro-rail-pip-ok {
-  background: #00ba7c;
+  background: #1a9b6e;
 }
 
 .os-shell-night .pro-rail-pip-warn {
@@ -13495,4 +13548,62 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .os-palette-input:focus-visible {
   outline: none !important;
   box-shadow: none !important;
+}
+
+
+/* ============================================================
+   INSTITUTION LOCK — Chase/Stripe weight, Orvius materials only.
+   One radius. Copper survives. Brand type on display face.
+   ============================================================ */
+
+.orvius-logo-word,
+.mkt-nav-brand .orvius-logo-word {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.12em !important;
+}
+
+.mkt-page .mkt-btn,
+.mkt-page .mkt-nav-cta,
+.mkt-page .mkt-nav-secondary,
+.mkt-page .inst-btn,
+.mkt-page .inst-btn-primary,
+.mkt-page .mkt-trynow-cta {
+  border-radius: 0.25rem !important;
+}
+
+.mkt-page .mkt-nav-cta,
+.mkt-page .inst-btn-primary,
+.mkt-page .mkt-trynow-cta {
+  background: #c4783a !important;
+  color: #0c1016 !important;
+  border-color: #c4783a !important;
+  font-weight: 600 !important;
+}
+
+.mkt-page .mkt-trynow {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, #c4783a 8%, transparent), transparent 60%),
+    #070a0e !important;
+}
+
+.mkt-page .mkt-trynow-title {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.os-shell-night .os-nav-link-active,
+.os-shell-night .os-nav-link[aria-current="page"] {
+  color: #c4783a !important;
+  border-color: color-mix(in srgb, #c4783a 55%, transparent) !important;
+}
+
+.os-shell-night .btn-primary,
+.os-shell-night .pro-btn-primary,
+.os-shell-night .inst-btn-primary {
+  background: #c4783a !important;
+  border-color: #c4783a !important;
+  color: #0c1016 !important;
+  border-radius: 0.25rem !important;
 }

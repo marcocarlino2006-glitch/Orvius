@@ -13,13 +13,12 @@ export const typeScale = {
 } as const;
 
 /**
- * Logo lockups:
- * 1) Signal O alone (favicon / chrome)
- * 2) Mark + ORVIUS text in the product font (never a second letterset)
+ * Brand lockup: signal O + ORVIUS.
+ * Wordmark uses the display face (Space Grotesk); product UI uses IBM Plex Sans.
  */
 export const logoSizes = {
   sm: { mark: 18, word: "0.9375rem", tracking: "0.08em" },
   md: { mark: 22, word: "1.0625rem", tracking: "0.08em" },
   lg: { mark: 26, word: "1.2rem", tracking: "0.085em" },
-  xl: { mark: 40, word: "2.35rem", tracking: "0.06em" },
+  xl: { mark: 48, word: "2.85rem", tracking: "0.14em" },
 } as const;

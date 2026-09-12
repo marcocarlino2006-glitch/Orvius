@@ -96,8 +96,8 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Wöchentlich zurückgewonnene Aufträge und Umsätze als abgestempelter Nachweis. Keine Schaufenster-Dashboards. Kein erfundener ARR.",
   },
 
-  "trynow.title": { en: "Try Orvius now.", es: "Prueba Orvius ahora.", fr: "Essayez Orvius maintenant.", de: "Testen Sie Orvius jetzt." },
-  "trynow.cta": { en: "Get started →", es: "Empezar →", fr: "Commencer →", de: "Loslegen →" },
+  "trynow.title": { en: "Prove Orvius on your line.", es: "Prueba Orvius en tu línea.", fr: "Prouvez Orvius sur votre ligne.", de: "Beweisen Sie Orvius auf Ihrer Leitung." },
+  "trynow.cta": { en: "Prove it on your line", es: "Pruébalo en tu línea", fr: "Prouvez-le sur votre ligne", de: "Beweisen Sie es auf Ihrer Leitung" },
   "trynow.call": {
     en: "or call the live line · +1 844 643 9170",
     es: "o llama a la línea en vivo · +1 844 643 9170",
