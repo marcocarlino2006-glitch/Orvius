@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { getBulletproofStatus } from "@/lib/bulletproof-status";
+import { isFounderEmail } from "@/lib/is-founder";
 import { requireEntitledSession } from "@/lib/tenant";
 
 /** Founder-facing status — drives POST LOCK banner. */
 export async function GET() {
   const auth = await requireEntitledSession();
   if ("error" in auth) return auth.error;
+  if (!isFounderEmail(auth.email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const status = getBulletproofStatus();
   return NextResponse.json({

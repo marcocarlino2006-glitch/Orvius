@@ -66,7 +66,9 @@ function kindRank(kind: AttentionKind, urgency?: string | null): number {
 export async function getAttentionQueue(
   businessId: string,
   limit = 12,
+  options?: { includeFounderInstruments?: boolean },
 ): Promise<AttentionItem[]> {
+  const includeFounderInstruments = options?.includeFounderInstruments === true;
   const now = new Date();
   const followupCutoff = new Date(now.getTime() - FOLLOWUP_HOURS * 60 * 60 * 1000);
   const dayStart = new Date(now);
@@ -226,7 +228,7 @@ export async function getAttentionQueue(
   } catch {
     certDone = 0;
   }
-  if (certDone < 5) {
+  if (includeFounderInstruments && certDone < 5) {
     items.push({
       id: `founder_cert:${businessId}`,
       kind: "founder_cert",
