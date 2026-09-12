@@ -13740,6 +13740,34 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #0c1016 !important;
 }
 
+/* Beat older outline CTA locks (.mkt-nav:not(.elevated) .mkt-nav-cta) */
+.mkt-page .mkt-nav.mkt-nav--institution .mkt-nav-cta,
+.mkt-page .mkt-nav.mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta,
+.mkt-page .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta {
+  background: #c4783a !important;
+  color: #0c1016 !important;
+  border: 1px solid #c4783a !important;
+  border-radius: 0.25rem !important;
+}
+
+.mkt-page .mkt-nav.mkt-nav--institution .mkt-nav-cta:hover,
+.mkt-page .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta:hover {
+  background: #d4894a !important;
+  border-color: #d4894a !important;
+  color: #0c1016 !important;
+}
+
+.mkt-page .cookie-bar {
+  border-radius: 0.25rem !important;
+}
+
+.mkt-page .cookie-bar-accept {
+  border-radius: 0.25rem !important;
+  background: #c4783a !important;
+  color: #0c1016 !important;
+  border: 0 !important;
+}
+
 .mkt-page .mkt-nav-secondary {
   border-radius: 0.25rem !important;
   border: 1px solid color-mix(in srgb, #f1f3f6 28%, transparent) !important;
