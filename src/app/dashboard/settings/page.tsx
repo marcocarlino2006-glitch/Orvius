@@ -42,6 +42,9 @@ type AccountResponse = {
   viewer?: {
     isFounder?: boolean;
   };
+  lineProvision?: {
+    error?: string | null;
+  };
 };
 
 const FOUNDER_CERT = [
@@ -210,7 +213,9 @@ export default function DashboardSettingsPage() {
           baselineJobsPerWeek: baselineJobs.trim()
             ? Math.round(Number(baselineJobs.replace(/[^0-9.]/g, "")))
             : null,
-          founderCertJson: JSON.stringify(certChecks),
+          ...(account?.viewer?.isFounder
+            ? { founderCertJson: JSON.stringify(certChecks) }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -233,12 +238,28 @@ export default function DashboardSettingsPage() {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Test failed");
-      setTestResult(data.message ?? "Test alert sent");
+      if (data.ok === false) {
+        throw new Error(
+          data.error ??
+            data.message ??
+            "Alert did not deliver — check owner mobile / SMS config",
+        );
+      }
+      setTestResult(data.message ?? "Test alert delivered");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Test failed");
     } finally {
       setTesting(false);
     }
+  }
+
+  async function retryProvision() {
+    const res = await fetch("/api/account/sync-assistant", { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error ?? "Could not provision line");
+    }
+    await loadAccount();
   }
 
   async function exportShopData() {
@@ -282,6 +303,8 @@ export default function DashboardSettingsPage() {
               lineVerified={Boolean(account?.business?.lineVerifiedAt)}
               saving={overflowSaving}
               onConfirmOverflow={(next) => saveOverflow(next)}
+              lineProvisionError={account?.lineProvision?.error}
+              onRetryProvision={retryProvision}
             />
           </ShellPanel>
         </div>

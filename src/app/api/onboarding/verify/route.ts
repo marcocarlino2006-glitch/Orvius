@@ -26,12 +26,22 @@ export async function GET() {
     }),
   ]);
 
-  const verified = Boolean(business.lineVerifiedAt || completedCall);
+  let lineVerifiedAt = business.lineVerifiedAt;
+  if (!lineVerifiedAt && completedCall) {
+    const updated = await prisma.business.update({
+      where: { id: business.id },
+      data: { lineVerifiedAt: completedCall.createdAt },
+      select: { lineVerifiedAt: true },
+    });
+    lineVerifiedAt = updated.lineVerifiedAt;
+  }
+
+  const verified = Boolean(lineVerifiedAt);
 
   return NextResponse.json({
     verified,
     line,
-    lineVerifiedAt: business.lineVerifiedAt?.toISOString() ?? null,
+    lineVerifiedAt: lineVerifiedAt?.toISOString() ?? null,
     firstCall: completedCall
       ? {
           id: completedCall.id,

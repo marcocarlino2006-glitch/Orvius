@@ -29,6 +29,16 @@ import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
 
+
+function serviceFromSmsBody(body: string): string {
+  const cleaned = body.replace(/\s+/g, " ").trim();
+  if (cleaned.length >= 2) {
+    // Cap so lead cards stay scannable; qualify gate needs ≥2 chars and not placeholder.
+    return cleaned.slice(0, 80);
+  }
+  return "SMS inquiry";
+}
+
 export async function POST(request: NextRequest) {
   const form = await request.formData();
   const from = String(form.get("From") ?? "");
@@ -141,7 +151,7 @@ export async function POST(request: NextRequest) {
       externalId: messageSid || null,
       phone: from,
       notes: body,
-      serviceType: "SMS inquiry",
+      serviceType: serviceFromSmsBody(body),
       source: "sms",
       status: "new",
     },
@@ -175,7 +185,7 @@ export async function POST(request: NextRequest) {
     lead: {
       name: null,
       phone: from,
-      serviceType: "SMS inquiry",
+      serviceType: serviceFromSmsBody(body),
       urgency: null,
       address: null,
     },

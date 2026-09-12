@@ -40,7 +40,9 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const businessRecord = await getBusinessForOwnerWithAutoLine(email);
+  const owned = await getBusinessForOwnerWithAutoLine(email);
+  const businessRecord = owned?.business ?? null;
+  const lineProvisionError = owned?.lineProvisionError ?? null;
 
   const founder = isFounderEmail(email);
 
@@ -105,6 +107,9 @@ export async function GET() {
     alerts: {
       smsEnabled: process.env.ENABLE_OWNER_SMS === "true",
       emailConfigured: isEmailConfigured(),
+    },
+    lineProvision: {
+      error: lineProvisionError,
     },
     viewer: {
       isFounder: founder,
