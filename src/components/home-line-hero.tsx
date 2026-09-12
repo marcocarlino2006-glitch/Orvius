@@ -2,8 +2,8 @@ import Link from "next/link";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
- * Cursor-craft hero: calm, centered, light. One headline, one lead, one
- * charcoal pill CTA, and a quiet live-line link. No dark product bleed.
+ * Home hero: brand, one headline, one lead, one CTA, live-line link.
+ * Orvius void + copper — not Cursor cream/orange.
  */
 export function HomeLineHero() {
   return (

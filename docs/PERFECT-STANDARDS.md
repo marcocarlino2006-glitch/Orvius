@@ -55,7 +55,7 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 
 - **B1 nuance:** Prod health shows Twilio configured + real traffic (`configured:true`, calls/jobs). FAILURE-LOG stamps Summit 8/8 (2026-09-05). Status stays **FOUNDER_GATE** — continuous cell proof is founder-owned; agent cannot mark telephony DONE. Re-verify with `npm run wedge:ready` against prod DB.
 - **B3 nuance:** SMS→email failover **code** is live; `RESEND_API_KEY` on prod is founder paste.
-- **B6:** globals.css ~17.0k after dead-component + unused-era cut (was 26.9k → 18.2k → 17.0k). Target &lt;8k still open.
+- **B6:** globals.css ~16.3k after Cursor cream/orange era delete + Orvius hero/trynow restore (was 26.9k → 18.2k → 17.0k → 16.3k). Target &lt;8k still open. Multi-b product gates stay 9/11 under `MULTI_B_CI=1`.
 - **H13:** Money CRM (estimates/invoices/manual pay) is live; Connect shop payouts still next. Copy now says platform card ≠ shop bank.
 - **H21:** `@sentry/nextjs` wired fail-soft (`instrumentation.ts`, sentry.*.config). Live DSN still founder paste — without DSN the app no-ops cleanly.
 - **H24:** App copy already one mailbox (`hello@orvius.im`). Inbox/DNS remains ops.
