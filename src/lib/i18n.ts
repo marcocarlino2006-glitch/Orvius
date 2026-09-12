@@ -34,10 +34,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Verpasste Anrufe werden zu gebuchten Aufträgen.",
   },
   "hero.lead": {
-    en: "Orvius runs the night shift on your line — answers after-hours and overflow calls, qualifies the job, books it, and alerts you in seconds.",
-    es: "Orvius cubre el turno de noche en tu línea: contesta llamadas fuera de horario y desbordadas, califica el trabajo, lo agenda y te avisa en segundos.",
-    fr: "Orvius assure le service de nuit sur votre ligne : il répond aux appels hors horaires et en débordement, qualifie la demande, la planifie et vous alerte en quelques secondes.",
-    de: "Orvius übernimmt die Nachtschicht auf Ihrer Leitung: nimmt Anrufe außerhalb der Geschäftszeiten und bei Überlauf an, qualifiziert den Auftrag, bucht ihn und benachrichtigt Sie in Sekunden.",
+    en: "The night-shift OS for HVAC, plumbing, and electrical — answers your line after hours, books the job, and alerts the shop in seconds.",
+    es: "El OS del turno de noche para HVAC, plomería y electricidad: contesta tu línea fuera de horario, agenda el trabajo y avisa al taller en segundos.",
+    fr: "L’OS de nuit pour le CVC, la plomberie et l’électricité — répond sur votre ligne hors horaires, planifie le chantier et alerte l’atelier en quelques secondes.",
+    de: "Das Nachtschicht-OS für HLK, Sanitär und Elektro — nimmt Ihre Leitung nach Feierabend an, bucht den Auftrag und alarmiert die Werkstatt in Sekunden.",
   },
   "hero.cta": {
     en: "Prove it on your line",
