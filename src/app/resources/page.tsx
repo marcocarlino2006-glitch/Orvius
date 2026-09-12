@@ -30,7 +30,7 @@ const groups = [
     heading: "Company",
     links: [
       { href: "/about", label: "About Orvius" },
-      { href: "/enterprise", label: "Enterprise & multi-shop" },
+      { href: "/enterprise", label: "Multi-shop" },
       { href: "mailto:hello@orvius.im", label: "Contact us" },
     ],
   },
@@ -43,7 +43,7 @@ export default function ResourcesPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Resources"
-            title="Everything to run the night shift."
+            title="Guides, trust, and company links."
             subline="Guides, trust, and the company behind the line."
             description="Start a demo, read how we handle your data, or reach the team."
           />

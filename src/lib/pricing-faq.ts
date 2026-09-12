@@ -15,7 +15,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "line-vs-pro",
     question: "What's the difference between Line and Pro?",
     answer:
-      "Line is the front door — every call answered, qualified, and alerted. Pro adds the full shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
+      "Line is the front door — after-hours and overflow answered, qualified, and alerted. Pro adds the full shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
   },
   {
     id: "annual",

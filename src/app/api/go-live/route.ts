@@ -13,10 +13,11 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const business = await getBusinessForOwnerWithAutoLine(email);
-  if (!business) {
+  const owned = await getBusinessForOwnerWithAutoLine(email);
+  if (!owned) {
     return NextResponse.json({ error: "No shop" }, { status: 404 });
   }
+  const { business } = owned;
 
   const billing = getBillingReadiness();
   let certDone = 0;

@@ -14,7 +14,7 @@ export const LANGS: { code: Lang; label: string }[] = [
 
 export const translations: Record<string, Record<Lang, string>> = {
   "nav.product": { en: "Product", es: "Producto", fr: "Produit", de: "Produkt" },
-  "nav.enterprise": { en: "Enterprise", es: "Empresas", fr: "Entreprise", de: "Unternehmen" },
+  "nav.enterprise": { en: "Multi-shop", es: "Multi-taller", fr: "Multi-sites", de: "Multi-Standort" },
   "nav.pricing": { en: "Pricing", es: "Precios", fr: "Tarifs", de: "Preise" },
   "nav.resources": { en: "Resources", es: "Recursos", fr: "Ressources", de: "Ressourcen" },
   "nav.signin": { en: "Sign in", es: "Iniciar sesión", fr: "Se connecter", de: "Anmelden" },
@@ -28,16 +28,16 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Für HLK-, Klempner- und Elektrobetriebe",
   },
   "hero.title": {
-    en: "Missed calls become booked jobs.",
-    es: "Las llamadas perdidas se vuelven trabajos agendados.",
-    fr: "Les appels manqués deviennent des interventions planifiées.",
-    de: "Verpasste Anrufe werden zu gebuchten Aufträgen.",
+    en: "The night shift that books the job.",
+    es: "El turno de noche que agenda el trabajo.",
+    fr: "L'équipe de nuit qui planifie l'intervention.",
+    de: "Die Nachtschicht, die den Auftrag bucht.",
   },
   "hero.lead": {
-    en: "Orvius runs the night shift on your line — answers after-hours and overflow calls, qualifies the job, books it, and alerts you in seconds.",
-    es: "Orvius cubre el turno de noche en tu línea: contesta llamadas fuera de horario y desbordadas, califica el trabajo, lo agenda y te avisa en segundos.",
-    fr: "Orvius assure le service de nuit sur votre ligne : il répond aux appels hors horaires et en débordement, qualifie la demande, la planifie et vous alerte en quelques secondes.",
-    de: "Orvius übernimmt die Nachtschicht auf Ihrer Leitung: nimmt Anrufe außerhalb der Geschäftszeiten und bei Überlauf an, qualifiziert den Auftrag, bucht ihn und benachrichtigt Sie in Sekunden.",
+    en: "After-hours and overflow calls get answered, qualified, booked, and pushed to the owner — before the morning truck rolls.",
+    es: "Las llamadas fuera de horario y el desborde se contestan, califican, agendan y llegan al dueño — antes de que salga el camión de la mañana.",
+    fr: "Les appels hors horaires et en débordement sont pris, qualifiés, planifiés et transmis au patron — avant le départ du camion du matin.",
+    de: "Anrufe außerhalb der Geschäftszeiten und bei Überlauf werden angenommen, qualifiziert, gebucht und an den Inhaber geschickt — bevor der Morgenwagen rollt.",
   },
   "hero.cta": {
     en: "Prove it on your line",
@@ -45,7 +45,13 @@ export const translations: Record<string, Record<Lang, string>> = {
     fr: "Testez-le sur votre ligne",
     de: "Testen Sie es auf Ihrer Leitung",
   },
-  "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
+  "hero.secondary": {
+    en: "Book a walkthrough",
+    es: "Reservar una demo",
+    fr: "Réserver une démo",
+    de: "Demo buchen",
+  },
+  "hero.liveline": { en: "Live line · call it now", es: "Línea en vivo · llámala ya", fr: "Ligne en direct · appelez maintenant", de: "Live-Leitung · jetzt anrufen" },
 
   "showcase.eyebrow": { en: "On the line", es: "En la línea", fr: "En ligne", de: "Am Telefon" },
   "showcase.title": {
@@ -74,9 +80,9 @@ export const translations: Record<string, Record<Lang, string>> = {
     fr: "Orvius est le système d'exploitation de l'équipe de nuit — pas un standard IA greffé sur un CRM. Le tableau réunit chaque appel, intervention et euro dans un seul dossier.",
     de: "Orvius ist das Betriebssystem für die Nachtschicht — keine an ein CRM geschraubte KI-Rezeption. Das Board bündelt jeden Anruf, Auftrag und Euro in einem Datensatz.",
   },
-  "rule1.title": { en: "The bay never goes dark.", es: "El taller nunca se apaga.", fr: "L'atelier ne s'éteint jamais.", de: "Die Werkstatt steht nie still." },
+  "rule1.title": { en: "The bay stays lit after hours.", es: "El taller sigue encendido fuera de horario.", fr: "L'atelier reste allumé hors horaires.", de: "Die Werkstatt bleibt nach Feierabend erreichbar." },
   "rule1.body": {
-    en: "After-hours and overflow get answered, qualified, and alerted — demand does not die on voicemail.",
+    en: "After-hours and overflow get answered, qualified, and alerted — so demand is less likely to die on voicemail.",
     es: "Las llamadas fuera de horario y el exceso se contestan, califican y avisan — la demanda no muere en el buzón.",
     fr: "Les appels hors horaires et les débordements sont pris, qualifiés et signalés — la demande ne meurt pas dans la messagerie.",
     de: "Anrufe außerhalb der Zeiten und Überlauf werden angenommen, qualifiziert und gemeldet — Nachfrage stirbt nicht in der Mailbox.",

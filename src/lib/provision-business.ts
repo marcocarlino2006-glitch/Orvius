@@ -170,12 +170,12 @@ export function shopNeedsAutoLine(business: {
 }
 
 /**
- * Silently provision a dedicated line when a customer shop needs one.
- * No manual re-sync — runs automatically on dashboard load.
+ * Provision a dedicated line when a customer shop needs one.
+ * Failures are returned (not swallowed) so Settings can show the real block.
  */
 export async function autoEnsureCustomerShopLine(
   business: Business,
-): Promise<{ business: Business; provisioned: boolean }> {
+): Promise<{ business: Business; provisioned: boolean; error?: string }> {
   if (!shopNeedsAutoLine(business)) {
     return { business, provisioned: false };
   }
@@ -184,16 +184,21 @@ export async function autoEnsureCustomerShopLine(
     const result = await ensureDedicatedShopLine(business);
     return { business: result.business, provisioned: true };
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Dedicated line provisioning failed";
     logError("autoEnsureCustomerShopLine.failed", {
       businessId: business.id,
       name: business.name,
-      error: error instanceof Error ? error.message : "unknown",
+      error: message,
     });
-    return { business, provisioned: false };
+    return { business, provisioned: false, error: message };
   }
 }
 
-export async function getBusinessForOwnerWithAutoLine(email: string) {
+export async function getBusinessForOwnerWithAutoLine(email: string): Promise<{
+  business: Business;
+  lineProvisionError: string | null;
+} | null> {
   const business = await prisma.business.findFirst({
     where: { ownerEmail: email.toLowerCase(), isActive: true },
     orderBy: { createdAt: "asc" },
@@ -201,8 +206,11 @@ export async function getBusinessForOwnerWithAutoLine(email: string) {
 
   if (!business) return null;
 
-  const { business: ready } = await autoEnsureCustomerShopLine(business);
-  return ready;
+  const ensured = await autoEnsureCustomerShopLine(business);
+  return {
+    business: ensured.business,
+    lineProvisionError: ensured.error ?? null,
+  };
 }
 
 /**

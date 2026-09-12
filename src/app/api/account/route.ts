@@ -18,6 +18,7 @@ import {
 } from "@/lib/billing-entitlement";
 import { getShopHealth } from "@/lib/shop-health";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
+import { isFounderEmail } from "@/lib/is-founder";
 import { z } from "zod";
 
 const patchSchema = z.object({
@@ -39,7 +40,11 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const businessRecord = await getBusinessForOwnerWithAutoLine(email);
+  const owned = await getBusinessForOwnerWithAutoLine(email);
+  const businessRecord = owned?.business ?? null;
+  const lineProvisionError = owned?.lineProvisionError ?? null;
+
+  const founder = isFounderEmail(email);
 
   const business = businessRecord
     ? {
@@ -62,7 +67,9 @@ export async function GET() {
         baselineJobsPerWeek: businessRecord.baselineJobsPerWeek,
         pilotEndsAt: businessRecord.pilotEndsAt,
         lastWeeklyProofAt: businessRecord.lastWeeklyProofAt,
-        founderCertJson: businessRecord.founderCertJson,
+        ...(founder
+          ? { founderCertJson: businessRecord.founderCertJson }
+          : {}),
         overflowForwardConfirmedAt: businessRecord.overflowForwardConfirmedAt,
       }
     : null;
@@ -101,6 +108,12 @@ export async function GET() {
       smsEnabled: process.env.ENABLE_OWNER_SMS === "true",
       emailConfigured: isEmailConfigured(),
     },
+    lineProvision: {
+      error: lineProvisionError,
+    },
+    viewer: {
+      isFounder: founder,
+    },
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),
@@ -136,6 +149,10 @@ export async function PATCH(request: Request) {
 
     if (!existing) {
       return NextResponse.json({ error: "No shop linked" }, { status: 404 });
+    }
+
+    if (body.founderCertJson !== undefined && !isFounderEmail(email)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     if (body.ownerPhone !== undefined) {

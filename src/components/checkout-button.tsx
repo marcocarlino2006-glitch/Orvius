@@ -40,7 +40,7 @@ export function CheckoutButton({
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
 
-  const buttonLabel = label ?? "Subscribe";
+  const buttonLabel = label ?? "Start checkout";
 
   useEffect(() => {
     if (emailProp) {
@@ -149,12 +149,12 @@ export function CheckoutButton({
     return (
       <div className={className}>
         <Link href="/dashboard/billing" className="inst-btn inst-btn-primary w-full justify-center">
-          Open billing unblock
+          Continue to billing
         </Link>
         <p className="mt-3 font-sans text-sm text-ash">
           {annualMissing
-            ? "Annual billing isn’t configured yet for this plan. Switch to monthly or finish Stripe setup."
-            : "Self-serve checkout is not live yet. Founders: finish Stripe on Billing. Shops: apply for the pilot."}{" "}
+            ? "Annual billing isn’t configured yet for this plan. Switch to monthly or contact Orvius."
+            : "Self-serve checkout is not live yet. Apply for the pilot to get started."}{" "}
           <Link href="/pilot" className="underline underline-offset-2">
             Pilot apply
           </Link>

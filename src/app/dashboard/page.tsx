@@ -11,7 +11,7 @@ export default function DashboardPage() {
       title="Command"
       actions={
         <Link href="/dashboard/ask" className="btn btn-void text-sm">
-          Ops copilot
+          Ask
         </Link>
       }
     >

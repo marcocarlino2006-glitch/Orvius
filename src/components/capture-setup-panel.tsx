@@ -13,7 +13,9 @@ type CaptureSetupPanelProps = {
   overflowConfirmed: boolean;
   lineVerified: boolean;
   saving?: boolean;
+  lineProvisionError?: string | null;
   onConfirmOverflow: (next: boolean) => Promise<void> | void;
+  onRetryProvision?: () => Promise<void> | void;
 };
 
 /** Owner capture setup: forward vs publish, carrier steps, text-me, confirm. */
@@ -22,11 +24,14 @@ export function CaptureSetupPanel({
   overflowConfirmed,
   lineVerified,
   saving = false,
+  lineProvisionError = null,
   onConfirmOverflow,
+  onRetryProvision,
 }: CaptureSetupPanelProps) {
   const [mode, setMode] = useState<CaptureMode>("forward");
   const [carrier, setCarrier] = useState<CarrierId>("verizon");
   const [texting, setTexting] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,9 +89,37 @@ export function CaptureSetupPanel({
       <p className="account-settings-value mt-3">
         Your Orvius line:{" "}
         {line ?? (
-          <span className="text-ash">Provisioning your dedicated number</span>
+          <span className="text-ash">Provisioning your dedicated number…</span>
         )}
       </p>
+      {!line && lineProvisionError ? (
+        <div className="mt-3 rounded-md border border-flare/30 bg-flare/5 p-3 font-sans text-sm text-void">
+          <p className="font-medium">Line not assigned yet</p>
+          <p className="mt-1 text-ash">{lineProvisionError}</p>
+          {onRetryProvision ? (
+            <button
+              type="button"
+              className="btn btn-secondary mt-3 text-xs"
+              disabled={retrying}
+              onClick={async () => {
+                setRetrying(true);
+                setError(null);
+                try {
+                  await onRetryProvision();
+                } catch (err) {
+                  setError(
+                    err instanceof Error ? err.message : "Retry failed",
+                  );
+                } finally {
+                  setRetrying(false);
+                }
+              }}
+            >
+              {retrying ? "Retrying…" : "Retry provisioning"}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="capture-setup-modes mt-4">
         <button

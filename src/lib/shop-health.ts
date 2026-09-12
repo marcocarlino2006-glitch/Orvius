@@ -167,7 +167,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
           ? "Ready"
           : "Resend configured — add owner email in Settings"
         : ownerEmailOk
-          ? "Add RESEND_API_KEY for email backup"
+          ? "Email backup not configured on platform yet"
           : "Optional",
     },
     {

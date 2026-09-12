@@ -35,13 +35,18 @@ export async function requireBusinessSession() {
     return { error: unauthorizedResponse() };
   }
 
-  const business = await getBusinessForOwnerWithAutoLine(email);
+  const owned = await getBusinessForOwnerWithAutoLine(email);
 
-  if (!business) {
+  if (!owned) {
     return { error: noBusinessResponse() };
   }
 
-  return { session, email, business };
+  return {
+    session,
+    email,
+    business: owned.business,
+    lineProvisionError: owned.lineProvisionError,
+  };
 }
 
 /** Auth + active billing — blocks expired pilot / canceled shops. */

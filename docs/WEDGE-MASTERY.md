@@ -1,83 +1,27 @@
-# Wedge mastery
+# Wedge mastery — shop-owner ready before money
 
-**The wedge:** Inbound call or SMS → qualify → lead in dashboard → owner alert.
+Order: master the owner loop **before** public posting and charging.
 
-Master this before anything else.
+## Checklist (must be green)
 
-## One-command setup
+| # | Check | How it becomes true |
+|---|--------|---------------------|
+| 1 | Dedicated shop line | Twilio+Vapi provision via `ensureDedicatedShopLine`. Settings shows real error + Retry if blocked. |
+| 2 | Line tested end-to-end | Completed Vapi call stamps `lineVerifiedAt` (EOC webhook). Onboarding verify also stamps when a completed call exists. |
+| 3 | Owner mobile configured | Settings → owner phone ≠ shop line. Non-founders can save without cert payload. |
+| 4 | Owner alert delivered | Settings → Send test alert. UI requires `ok: true`, not just HTTP 200. |
+| 5 | First lead in inbox | Real call or SMS creates a Lead. |
+| 6 | Lead auto-books to dispatch | Qualified lead (phone + service/address) → Job. SMS body becomes service text so qualify can pass. |
+| 7 | Shop health clear | No critical line/assistant failure; stuck alerts cleared. |
+| 8 | Founder phone cert 5/5 | Founder-only dogfood on Settings before promising after-hours. |
 
-```bash
-# Terminal 1 — keep dev server running
-npm run dev
-
-# Terminal 2 — tunnel (required for live calls until Vercel deploy)
-npx cloudflared tunnel --url http://127.0.0.1:3000 2>&1 | tee /tmp/orvius-tunnel.log
-
-# Terminal 3 — master the wedge
-npm run master:wedge
-```
-
-This runs: setup check → restore live phones → sync prompt → Vapi webhook → phone attach → E2E → edge-case drill.
-
-## Founder certification (real phone)
-
-Call **your Twilio number** from your cell.
-
-**Important:** Set `ORVIUS_OWNER_PHONE` in `.env` to **your personal cell** — not the Twilio line. Otherwise owner SMS alerts go nowhere useful.
-
-Complete this script:
-
-| # | Scenario | Pass criteria |
-|---|----------|---------------|
-| 1 | AC emergency after hours | Name, phone, service, urgency, address captured |
-| 2 | "Can I talk to someone?" | Offers 15-min callback, captures number |
-| 3 | Plumbing estimate, not urgent | Urgency = this-week or flexible |
-| 4 | Hang up mid-call | Partial lead OK, no crash |
-| 5 | Inbound SMS | Lead + auto-reply |
-
-After each: lead in `/dashboard`, owner SMS if enabled.
-
-Log every miss in `docs/FAILURE-LOG.md`. Zero repeat failures.
-
-## Internal drills (no phone)
+## Commands
 
 ```bash
-npm run e2e:dogfood      # happy path
-npm run wedge:drill      # edge cases
-npm run pre-post:check   # full gate
+npm run wedge:ready
+MULTI_B_SKIP_CASH=1 npm run multi-b:check
 ```
 
-## Scripts reference
+## Partner rule
 
-| Command | Purpose |
-|---------|---------|
-| `npm run master:wedge` | Full wedge setup + drills |
-| `npm run restore:phones` | Fix DB phones after e2e (uses .env) |
-| `npm run sync:prompt` | Push latest receptionist prompt to Vapi |
-| `npm run go-live` | Tunnel + webhook + phone (dev) |
-
-## Mastery bar
-
-You are wedge-certified when:
-
-- [ ] 5 founder call scenarios pass on real phone (track in Settings → Founder phone certification)
-- [ ] Owner SMS arrives &lt;30s every time
-- [ ] Dashboard matches what happened on the call
-- [ ] Every inbound lead auto-books to dispatch (call + SMS)
-- [ ] Unassigned jobs get a tech from Today in one tap
-- [ ] You'd put your own shop on Orvius tomorrow
-- [ ] Failure log has zero blockers
-- [ ] `npm run wedge:ready` is 8/8 (includes exclusive line + auto-book)
-- [ ] No shared phone numbers across shops (`npm run repair:shared-lines`)
-
-Full multi-billion battle list: `docs/MULTI-BILLION-BATTLES.md`.
-
-### Battle 1 ops (2026-09-03)
-
-- Wedge scripts use Turso-aware Prisma (`scripts/lib/db.mjs`)
-- Inbound call/SMS resolve shops via `resolveBusinessByInboundPhone` (one number → one shop)
-- Shared-line collisions: `npm run repair:shared-lines` then `npm run restore:phones`
-
----
-
-*Last updated: 2026-09-03*
+Design-partner / dogfood until 1–7 are green on a real line. Then post with earned proof. Then Stripe.

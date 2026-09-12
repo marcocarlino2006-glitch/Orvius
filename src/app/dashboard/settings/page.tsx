@@ -39,6 +39,12 @@ type AccountResponse = {
     smsEnabled: boolean;
     emailConfigured: boolean;
   };
+  viewer?: {
+    isFounder?: boolean;
+  };
+  lineProvision?: {
+    error?: string | null;
+  };
 };
 
 const FOUNDER_CERT = [
@@ -207,7 +213,9 @@ export default function DashboardSettingsPage() {
           baselineJobsPerWeek: baselineJobs.trim()
             ? Math.round(Number(baselineJobs.replace(/[^0-9.]/g, "")))
             : null,
-          founderCertJson: JSON.stringify(certChecks),
+          ...(account?.viewer?.isFounder
+            ? { founderCertJson: JSON.stringify(certChecks) }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -230,12 +238,28 @@ export default function DashboardSettingsPage() {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Test failed");
-      setTestResult(data.message ?? "Test alert sent");
+      if (data.ok === false) {
+        throw new Error(
+          data.error ??
+            data.message ??
+            "Alert did not deliver — check owner mobile / SMS config",
+        );
+      }
+      setTestResult(data.message ?? "Test alert delivered");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Test failed");
     } finally {
       setTesting(false);
     }
+  }
+
+  async function retryProvision() {
+    const res = await fetch("/api/account/sync-assistant", { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error ?? "Could not provision line");
+    }
+    await loadAccount();
   }
 
   async function exportShopData() {
@@ -279,6 +303,8 @@ export default function DashboardSettingsPage() {
               lineVerified={Boolean(account?.business?.lineVerifiedAt)}
               saving={overflowSaving}
               onConfirmOverflow={(next) => saveOverflow(next)}
+              lineProvisionError={account?.lineProvision?.error}
+              onRetryProvision={retryProvision}
             />
           </ShellPanel>
         </div>
@@ -310,7 +336,9 @@ export default function DashboardSettingsPage() {
             <span className="onboarding-hint">
               {account?.alerts.emailConfigured
                 ? "Email failover is live — used when SMS fails or is unavailable."
-                : "Email failover needs RESEND_API_KEY on the platform (founder env). Without it, SMS-only alerts."}
+                : account?.viewer?.isFounder
+                  ? "Email failover needs RESEND_API_KEY on the platform. Without it, SMS-only alerts."
+                  : "Email backup is not configured on the platform yet. Alerts stay SMS-only until Orvius turns it on."}
             </span>
           </label>
 
@@ -390,31 +418,33 @@ export default function DashboardSettingsPage() {
           </div>
         </details>
 
-        <details className="pro-settings-secondary font-sans">
-          <summary>
-            Founder phone certification ({certDone}/{FOUNDER_CERT.length})
-            {certSaving ? " · saving…" : ""}
-          </summary>
-          <div className="pro-settings-secondary-body">
-            <p className="account-settings-hint font-sans mb-3">
-              Internal dogfood checklist — not part of the owner go-live ritual.
-            </p>
-            <ul className="pro-founder-cert-list">
-              {FOUNDER_CERT.map((label, index) => (
-                <li key={label}>
-                  <label className="pro-founder-cert-item font-sans">
-                    <input
-                      type="checkbox"
-                      checked={certChecks[index] ?? false}
-                      onChange={() => toggleCert(index)}
-                    />
-                    <span>{label}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </details>
+        {account?.viewer?.isFounder ? (
+          <details id="founder-cert" className="pro-settings-secondary font-sans">
+            <summary>
+              Founder phone certification ({certDone}/{FOUNDER_CERT.length})
+              {certSaving ? " · saving…" : ""}
+            </summary>
+            <div className="pro-settings-secondary-body">
+              <p className="account-settings-hint font-sans mb-3">
+                Internal dogfood checklist — not part of the owner go-live ritual.
+              </p>
+              <ul className="pro-founder-cert-list">
+                {FOUNDER_CERT.map((label, index) => (
+                  <li key={label}>
+                    <label className="pro-founder-cert-item font-sans">
+                      <input
+                        type="checkbox"
+                        checked={certChecks[index] ?? false}
+                        onChange={() => toggleCert(index)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        ) : null}
 
         <details className="pro-settings-secondary font-sans">
           <summary>Your data</summary>

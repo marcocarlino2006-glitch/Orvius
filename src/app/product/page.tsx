@@ -12,7 +12,7 @@ const capabilities = [
   {
     id: "01",
     title: "Answer, qualify, alert.",
-    body: "After-hours and overflow calls get answered, qualified, and the owner is alerted in seconds — demand never dies on voicemail.",
+    body: "After-hours and overflow calls get answered, qualified, and the owner is alerted fast — so demand is less likely to die on voicemail.",
   },
   {
     id: "02",
@@ -22,7 +22,7 @@ const capabilities = [
   {
     id: "03",
     title: "Dispatch and money.",
-    body: "Auto-book to the dispatch board, assign techs by SMS, and prove recovered jobs and dollars as a stamped weekly artifact.",
+    body: "Book onto the board, assign techs, and copy recovered jobs and dollars as a stamped weekly artifact — when those rings are live for your plan.",
   },
 ] as const;
 
@@ -33,9 +33,9 @@ export default function ProductPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Product"
-            title="One system for every call, customer, and job."
+            title="Night shift first. Shop OS next."
             subline="Not an AI receptionist bolted onto a CRM."
-            description="Orvius answers the night, books the work, alerts the owner, and holds every call, job, and dollar in one record."
+            description="Orvius answers after-hours and overflow, books what it can, alerts the owner, and compounds one customer record — then expands into the shop OS."
           />
         </div>
       </section>

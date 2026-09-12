@@ -38,10 +38,15 @@ async function main() {
     process.exit(1);
   }
 
+  const marketingLine = normalizePhone(process.env.TWILIO_PHONE_NUMBER);
   const shopLines = [business.vapiPhoneNumber, business.twilioPhone].filter(
     Boolean,
   );
-  const uniqueLines = [...new Set(shopLines.map((l) => normalizePhone(l) ?? l))];
+  // Dedicated means: has a line AND it is not the shared marketing demo number.
+  const dedicatedLines = shopLines.filter(
+    (l) => !marketingLine || normalizePhone(l) !== marketingLine,
+  );
+  const uniqueLines = [...new Set(dedicatedLines.map((l) => normalizePhone(l) ?? l))];
 
   const collisions = [];
   for (const line of uniqueLines) {
@@ -76,8 +81,8 @@ async function main() {
   const items = [
     {
       label: "Dedicated shop line",
-      ok: shopLines.length > 0,
-      detail: shopLines[0] ?? "missing",
+      ok: dedicatedLines.length > 0,
+      detail: dedicatedLines[0] ?? (shopLines[0] ? "demo/marketing line — not dedicated" : "missing"),
     },
     {
       label: "Line exclusive (no shared number)",

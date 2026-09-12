@@ -43,7 +43,8 @@
     "repair:lines": "node scripts/repair-customer-lines.mjs",
     "repair:shared-lines": "node scripts/repair-shared-lines.mjs",
     "bulletproof:product": "BULLETPROOF_SKIP_CASH=1 npm run bulletproof",
-    "master:class": "node scripts/master-class-check.mjs"
+    "master:class": "node scripts/master-class-check.mjs",
+    "wedge:dogfood": "node scripts/wedge-dogfood.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
