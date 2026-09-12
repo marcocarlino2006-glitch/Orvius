@@ -112,7 +112,7 @@ export const osRings = [
     name: "Money",
     module: "Estimate · invoice · pay",
     status: "next" as const,
-    body: "Draft estimates and invoices on jobs; record payments manually. Card rails next.",
+    body: "Draft estimates and invoices on jobs; record payments manually. Public card (when Stripe keys are live) settles on Orvius until Connect — not the shop bank.",
   },
   {
     ring: 6,

@@ -33,7 +33,7 @@ const expanding = [
   },
   {
     title: "Money",
-    body: "Draft estimates and invoices on the job. Card rails stay next — not claimed as live.",
+    body: "Draft estimates and invoices on the job; record payments manually. Public card (when Stripe is live) settles on Orvius until Connect — not the shop bank.",
   },
   {
     title: "Proof",

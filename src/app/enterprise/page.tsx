@@ -22,7 +22,7 @@ const pillars = [
   {
     id: "03",
     title: "Onboarding you can hand off.",
-    body: "Custom onboarding, priority support, and quarterly reviews — with proof of recovered jobs and dollars per shop.",
+    body: "Custom onboarding, direct founder email, and quarterly reviews — with proof of recovered jobs and dollars per shop. Timed priority SLA only once support is staffed.",
   },
 ] as const;
 
