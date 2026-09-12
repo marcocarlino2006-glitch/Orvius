@@ -94,7 +94,9 @@ if (!ciMode) {
   const standard = runNpm("standard:check");
   gate("standard", "Institutional standard", standard.ok, "isolation + honesty");
 } else {
-  console.log("⚠️  Live shop gates skipped (MULTI_B_CI=1) — run full check on agent/prod");
+  console.log("⚠️  Live shop gates skipped (MULTI_B_CI=1) — NOT counted green.");
+  gate("wedge", "Wedge readiness (Summit)", false, "skipped in CI — must pass on agent/prod");
+  gate("standard", "Institutional standard", false, "skipped in CI — must pass on agent/prod");
 }
 
 gate(

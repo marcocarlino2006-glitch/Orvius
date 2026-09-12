@@ -31,7 +31,7 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
   },
   {
     id: "ai-receptionist",
-    label: "AI receptionist (your shop name)",
+    label: "After-hours answer (your shop name)",
     category: "Front door",
     values: {
       pilot: true,

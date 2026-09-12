@@ -6,11 +6,9 @@ import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
 import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
-import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProLineWatch } from "@/components/pro-line-watch";
 import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
 import { ProRightNow } from "@/components/pro-right-now";
-import { ProSetupScore } from "@/components/pro-setup-score";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
@@ -128,13 +126,6 @@ export function Ring1CommandCenter() {
 
         <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
 
-        {!loading && data?.outcomes ? (
-          <ProEconomicsPanel
-            outcomes={data.outcomes}
-            lastWeeklyProofAt={data.lastWeeklyProofAt}
-          />
-        ) : null}
-
         {canDispatch && data?.dispatchToday ? (
           <ProDispatchToday
             jobs={data.dispatchToday.jobs}
@@ -167,7 +158,6 @@ export function Ring1CommandCenter() {
       <aside className="ring1-cockpit-rail" aria-label="Shop status">
         <ProNightWatch coverage={data?.coverage ?? null} outcomes={data?.outcomes ?? null} />
         <ProLineWatch health={data?.health ?? null} />
-        <ProSetupScore wedge={data?.wedge ?? null} />
 
         {!attentionCoversGates ? (
           <ProTodayAlerts

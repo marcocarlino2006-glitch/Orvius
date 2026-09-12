@@ -33,7 +33,7 @@ export function HomeToolShowcase() {
             className="mkt-showcase-title"
             data-i18n="showcase.title"
           >
-            In every call, at every step.
+            On the line, when it matters.
           </h2>
           <p className="mkt-showcase-lead font-sans" data-i18n="showcase.lead">
             Orvius answers the line, qualifies the job, alerts the owner, and

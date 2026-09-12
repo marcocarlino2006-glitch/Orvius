@@ -48,10 +48,12 @@ const nextAuth = NextAuth({
         return isDevAuthBypassEnabled();
       }
       const allowed = getAllowedEmails();
-      if (!allowed.length) {
-        return true;
-      }
       const email = user.email?.toLowerCase();
+      // Production: empty allowlist = deny all (fail closed).
+      // Non-prod: empty allowlist = open for local dogfood.
+      if (!allowed.length) {
+        return process.env.NODE_ENV !== "production" && process.env.VERCEL_ENV !== "production";
+      }
       return email ? allowed.includes(email) : false;
     },
   },

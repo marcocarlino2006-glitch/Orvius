@@ -33,9 +33,9 @@ export default function ProductPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Product"
-            title="One system for every call, customer, and job."
+            title="Night shift first. Shop OS next."
             subline="Not an AI receptionist bolted onto a CRM."
-            description="Orvius answers the night, books the work, alerts the owner, and holds every call, job, and dollar in one record."
+            description="Orvius answers after-hours and overflow, alerts the owner, and compounds one record — then expands into the shop OS."
           />
         </div>
       </section>

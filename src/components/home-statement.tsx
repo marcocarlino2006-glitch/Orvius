@@ -4,8 +4,8 @@ const nightRules = [
   {
     id: "01",
     key: "rule1",
-    title: "The bay never goes dark.",
-    body: "After-hours and overflow get answered, qualified, and alerted — demand does not die on voicemail.",
+    title: "The bay stays lit after hours.",
+    body: "After-hours and overflow get answered, qualified, and alerted — demand is less likely to die on voicemail.",
   },
   {
     id: "02",

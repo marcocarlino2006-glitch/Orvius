@@ -53,9 +53,12 @@ export async function GET(request: NextRequest) {
       service: "orvius",
       configured: config.ready,
       ownerSmsEnabled,
-      twilioPhone,
-      appUrl: config.appUrl,
-      stats,
+      stats: {
+        businessCount,
+        leadCount,
+        callCount,
+        jobCount,
+      },
     });
   }
 
