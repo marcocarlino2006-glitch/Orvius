@@ -47,18 +47,23 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
 
-  "showcase.eyebrow": { en: "On the line", es: "En la línea", fr: "En ligne", de: "Am Telefon" },
+  "showcase.eyebrow": {
+    en: "Command board",
+    es: "Tablero de mando",
+    fr: "Tableau de commandement",
+    de: "Kommandozentrale",
+  },
   "showcase.title": {
-    en: "In every call, at every step.",
-    es: "En cada llamada, en cada paso.",
-    fr: "À chaque appel, à chaque étape.",
-    de: "Bei jedem Anruf, in jedem Schritt.",
+    en: "The night board your shop runs on.",
+    es: "El tablero nocturno de tu taller.",
+    fr: "Le tableau de nuit de votre atelier.",
+    de: "Das Nachtboard Ihres Betriebs.",
   },
   "showcase.lead": {
-    en: "Orvius answers the line, qualifies the job, alerts the owner, and works the dispatch board — one record, start to finish.",
-    es: "Orvius contesta la línea, califica el trabajo, avisa al dueño y gestiona el tablero de despacho — un solo registro, de principio a fin.",
-    fr: "Orvius répond, qualifie la demande, alerte le patron et gère le tableau de répartition — un seul dossier, du début à la fin.",
-    de: "Orvius nimmt ab, qualifiziert den Auftrag, alarmiert den Inhaber und steuert das Dispositions-Board — ein Datensatz, von Anfang bis Ende.",
+    en: "Answer, qualify, book, alert — one graphite board. Copper marks what still needs the owner. No scavenger hunt across tools.",
+    es: "Contestar, calificar, reservar, avisar — un solo tablero. El cobre marca lo que aún necesita al dueño. Sin cazar datos en otras apps.",
+    fr: "Répondre, qualifier, réserver, alerter — un seul tableau. Le cuivre marque ce qui attend le patron. Plus de chasse aux dossiers.",
+    de: "Annehmen, qualifizieren, buchen, alarmieren — ein Board. Kupfer markiert, was den Inhaber braucht. Keine Datensuche in anderen Tools.",
   },
 
   "rules.kicker": { en: "Night rules", es: "Reglas de la noche", fr: "Règles de nuit", de: "Nachtregeln" },

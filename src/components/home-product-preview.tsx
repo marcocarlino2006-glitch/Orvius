@@ -56,12 +56,8 @@ export function HomeProductPreview({
     >
       <header className="mkt-product-chrome font-sans">
         <div className="mkt-product-chrome-left">
-          <span className="mkt-product-chrome-dots" aria-hidden>
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="mkt-product-chrome-path">orvius.im/command</span>
+          <span className="mkt-product-chrome-mark" aria-hidden />
+          <span className="mkt-product-chrome-path">Command board</span>
         </div>
         <p className="mkt-product-live">
           <span className="mkt-product-live-dot" aria-hidden />

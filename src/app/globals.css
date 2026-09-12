@@ -317,13 +317,14 @@ h3 {
 }
 
 .btn-void {
-  background: #26251e;
-  color: #f7f7f4;
+  background: #0c1016;
+  color: #f1f3f6;
 }
 
 .btn-void:hover {
-  background: #1a1915;
+  background: #12171f;
   box-shadow: none;
+  border-color: color-mix(in srgb, #c4783a 55%, transparent);
 }
 
 .label {
@@ -2173,9 +2174,7 @@ h3 {
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
   border-radius: var(--radius-lg);
   background: var(--white);
-  box-shadow:
-    0 1px 2px rgba(10, 11, 10, 0.02),
-    0 8px 24px rgba(10, 11, 10, 0.04);
+  box-shadow: none;
   transition:
     border-color 200ms ease,
     box-shadow 200ms ease,
@@ -6614,7 +6613,7 @@ h3 {
   font-weight: 700 !important;
   letter-spacing: 0.09em !important;
   text-transform: uppercase !important;
-  border-radius: 2rem !important;
+  border-radius: 0.25rem !important;
   box-shadow: none !important;
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
@@ -7603,7 +7602,7 @@ button.btn {
 .mkt-btn,
 .mkt-btn-ghost-light,
 .mkt-nav-cta {
-  border-radius: 2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .btn,
@@ -8565,7 +8564,7 @@ select {
 .mkt-nav--institution .mkt-nav-menu-toggle {
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
   border: 1px solid color-mix(in srgb, #f0f0fa 28%, transparent) !important;
   background: transparent !important;
   color: #f0f0fa !important;
@@ -8756,29 +8755,14 @@ select {
   min-width: 0;
 }
 
-.mkt-product-chrome-dots {
-  display: inline-flex;
-  gap: 0.28rem;
-}
-
-.mkt-product-chrome-dots i {
+.mkt-product-chrome-mark {
   display: block;
-  width: 0.42rem;
-  height: 0.42rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, #fff 18%, transparent);
-}
-
-.mkt-product-chrome-dots i:nth-child(1) {
-  background: #ff5f57;
-}
-
-.mkt-product-chrome-dots i:nth-child(2) {
-  background: #febc2e;
-}
-
-.mkt-product-chrome-dots i:nth-child(3) {
-  background: #28c840;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 0.1rem;
+  background: #c4783a;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #c4783a 35%, transparent);
+  flex-shrink: 0;
 }
 
 .mkt-product-chrome-path {
@@ -13606,4 +13590,280 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   border-color: #c4783a !important;
   color: #0c1016 !important;
   border-radius: 0.25rem !important;
+}
+
+
+/* ============================================================
+   INSTITUTION WAVE 2 — showcase weight + command board chrome.
+   ============================================================ */
+
+.mkt-showcase {
+  position: relative;
+  padding: clamp(4.5rem, 10vh, 7rem) 1.5rem;
+  background:
+    linear-gradient(180deg, #f1f3f6 0%, #e8ecf1 100%);
+  color: #0c1016;
+  border-top: 1px solid color-mix(in srgb, #0c1016 8%, transparent);
+}
+
+.mkt-showcase-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: clamp(2rem, 5vw, 3.5rem);
+  align-items: center;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.mkt-showcase-eyebrow {
+  margin: 0 0 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #0c1016 48%, transparent);
+}
+
+.mkt-showcase-title {
+  margin: 0;
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2rem, 4.2vw, 3.15rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: #0c1016;
+  max-width: 12ch;
+}
+
+.mkt-showcase-lead {
+  margin: 1.15rem 0 0;
+  max-width: 36ch;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, #0c1016 68%, transparent);
+}
+
+.mkt-showcase-snippet {
+  margin-top: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem 0.7rem 1rem;
+  border: 1px solid color-mix(in srgb, #0c1016 14%, transparent);
+  border-radius: 0.25rem;
+  background: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  color: #0c1016;
+}
+
+.mkt-showcase-snippet code {
+  font: inherit;
+  letter-spacing: 0.01em;
+}
+
+.mkt-showcase-copybtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border: 0;
+  border-radius: 0.2rem;
+  background: transparent;
+  color: #c4783a;
+  cursor: pointer;
+}
+
+.mkt-showcase-copybtn:hover {
+  background: color-mix(in srgb, #c4783a 12%, transparent);
+}
+
+.mkt-showcase-copied {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1a9b6e;
+}
+
+.mkt-showcase-stage {
+  min-width: 0;
+}
+
+.mkt-product--dense,
+.mkt-product--stage {
+  border-radius: 0.25rem !important;
+  border: 1px solid color-mix(in srgb, #f1f3f6 12%, transparent) !important;
+  background: #0c1016 !important;
+  box-shadow:
+    0 24px 48px -28px rgba(12, 16, 22, 0.55),
+    0 0 0 1px color-mix(in srgb, #c4783a 18%, transparent) !important;
+  overflow: hidden;
+}
+
+.mkt-product-chrome {
+  border-radius: 0 !important;
+}
+
+.mkt-product-chrome-path {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-size: 0.625rem !important;
+}
+
+.mkt-product-live {
+  color: #c4783a !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  font-size: 0.625rem !important;
+}
+
+.mkt-product-live-dot {
+  background: #1a9b6e !important;
+  box-shadow: 0 0 0 0 color-mix(in srgb, #1a9b6e 50%, transparent);
+}
+
+.mkt-page .mkt-nav-cta,
+.mkt-page .mkt-nav-cta:visited {
+  background: #c4783a !important;
+  color: #0c1016 !important;
+  border: 1px solid #c4783a !important;
+  border-radius: 0.25rem !important;
+}
+
+.mkt-page .mkt-nav-cta:hover {
+  background: #d4894a !important;
+  border-color: #d4894a !important;
+  color: #0c1016 !important;
+}
+
+.mkt-page .mkt-nav-secondary {
+  border-radius: 0.25rem !important;
+  border: 1px solid color-mix(in srgb, #f1f3f6 28%, transparent) !important;
+  background: transparent !important;
+  color: #f1f3f6 !important;
+}
+
+.tier1-hero,
+.tier1-hero-compact {
+  background: #0c1016 !important;
+  color: #f1f3f6 !important;
+  border-bottom: 1px solid color-mix(in srgb, #f1f3f6 8%, transparent);
+}
+
+.tier1-hero .type-headline,
+.tier1-hero .tier1-page-title,
+.shell-page-intro .type-headline {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif !important;
+  letter-spacing: -0.035em !important;
+}
+
+.tier1-story {
+  background: #f1f3f6 !important;
+}
+
+.pro-card {
+  box-shadow: none !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 0.25rem !important;
+}
+
+.pro-card:hover {
+  transform: none !important;
+  border-color: color-mix(in srgb, #c4783a 35%, var(--rule)) !important;
+}
+
+/* Paper day OS — copper discipline (not Twitter green / Cursor orange) */
+.os-shell:not(.os-shell-night) .btn-primary,
+.os-shell:not(.os-shell-night) .pro-btn-primary,
+.os-shell:not(.os-shell-night) .inst-btn-primary {
+  background: #c4783a !important;
+  border-color: #c4783a !important;
+  color: #0c1016 !important;
+  border-radius: 0.25rem !important;
+  font-weight: 600 !important;
+}
+
+.os-shell:not(.os-shell-night) .btn-primary:hover,
+.os-shell:not(.os-shell-night) .pro-btn-primary:hover {
+  background: #d4894a !important;
+  border-color: #d4894a !important;
+}
+
+.os-shell:not(.os-shell-night) .btn-void {
+  background: #0c1016 !important;
+  color: #f1f3f6 !important;
+  border-radius: 0.25rem !important;
+  border: 1px solid #0c1016 !important;
+}
+
+.os-shell:not(.os-shell-night) .btn-void:hover {
+  border-color: color-mix(in srgb, #c4783a 55%, #0c1016) !important;
+  box-shadow: none !important;
+}
+
+.os-shell:not(.os-shell-night) .os-nav-link-active,
+.os-shell:not(.os-shell-night) .os-nav-link[aria-current="page"] {
+  color: #c4783a !important;
+  border-color: color-mix(in srgb, #c4783a 40%, transparent) !important;
+}
+
+.os-shell:not(.os-shell-night) .status-pill-live,
+.os-shell:not(.os-shell-night) .pro-live-dot {
+  background: #1a9b6e !important;
+}
+
+.mkt-product-band {
+  background: #f1f3f6 !important;
+  padding-block: clamp(3.5rem, 8vh, 5.5rem) !important;
+}
+
+.mkt-product-band-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(2rem, 5vw, 3.5rem);
+  align-items: center;
+}
+
+.mkt-product-band-stage {
+  min-width: 0;
+}
+
+.mkt-product-band .tier1-section-title,
+.mkt-page .tier1-section-title {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif !important;
+  letter-spacing: -0.035em !important;
+  font-weight: 500 !important;
+}
+
+.mkt-page .inst-btn,
+.mkt-page .inst-btn-ghost {
+  border-radius: 0.25rem !important;
+}
+
+.mkt-page .inst-btn-ghost {
+  border: 1px solid color-mix(in srgb, #0c1016 22%, transparent) !important;
+  color: #0c1016 !important;
+  background: transparent !important;
+}
+
+.tier1-hero .inst-btn-ghost,
+.tier1-close .inst-btn-ghost {
+  border-color: color-mix(in srgb, #f1f3f6 32%, transparent) !important;
+  color: #f1f3f6 !important;
+}
+
+@media (max-width: 900px) {
+  .mkt-showcase-grid {
+    grid-template-columns: 1fr;
+  }
+  .mkt-showcase-title {
+    max-width: none;
+  }
+  .mkt-product-band-grid {
+    grid-template-columns: 1fr;
+  }
 }

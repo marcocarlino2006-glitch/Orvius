@@ -1,3 +1,4 @@
+import { HomeProductPreview } from "@/components/home-product-preview";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { company, osRings } from "@/lib/company";
 import type { Metadata } from "next";
@@ -57,30 +58,35 @@ export default function ProductPage() {
         </div>
       </section>
 
-      <section className="tier1-story">
-        <div className="editorial-wrap">
-          <p className="tier1-eyebrow type-eyebrow">
-            Live today{liveRing ? ` · ${liveRing.name}` : ""}
-          </p>
-          <h2 className="tier1-section-title type-headline">
-            The night-shift loop.
-          </h2>
-          <p className="tier1-section-lead font-sans max-w-2xl">
-            Master this on a real line before the rest of the OS matters.
-          </p>
-          <ol className="mkt-laws mkt-laws--meta font-sans mt-8">
-            {liveLoop.map((c) => (
-              <li key={c.id} className="mkt-law">
-                <span className="mkt-law-id" aria-hidden>
-                  {c.id}
-                </span>
-                <div className="mkt-law-copy">
-                  <h3 className="mkt-law-title">{c.title}</h3>
-                  <p className="mkt-law-body">{c.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+      <section className="tier1-story mkt-product-band">
+        <div className="editorial-wrap mkt-product-band-grid">
+          <div>
+            <p className="tier1-eyebrow type-eyebrow">
+              Live today{liveRing ? ` · ${liveRing.name}` : ""}
+            </p>
+            <h2 className="tier1-section-title type-headline">
+              The night-shift loop.
+            </h2>
+            <p className="tier1-section-lead font-sans max-w-2xl">
+              Master this on a real line before the rest of the OS matters.
+            </p>
+            <ol className="mkt-laws mkt-laws--meta font-sans mt-8">
+              {liveLoop.map((c) => (
+                <li key={c.id} className="mkt-law">
+                  <span className="mkt-law-id" aria-hidden>
+                    {c.id}
+                  </span>
+                  <div className="mkt-law-copy">
+                    <h3 className="mkt-law-title">{c.title}</h3>
+                    <p className="mkt-law-body">{c.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="mkt-product-band-stage" aria-hidden>
+            <HomeProductPreview stage />
+          </div>
         </div>
       </section>
 

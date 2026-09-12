@@ -79,6 +79,9 @@ export default function MultiShopPage() {
             <Link href="/pricing" className="inst-btn inst-btn-primary">
               View pricing
             </Link>
+            <Link href="/pilot" className="inst-btn inst-btn-ghost">
+              Prove it on your line
+            </Link>
           </div>
         </div>
       </section>

@@ -5,8 +5,8 @@ import { HomeProductPreview } from "@/components/home-product-preview";
 import { DEMO_LINE_DISPLAY, DEMO_LINE_TEL } from "@/lib/demo-line";
 
 /**
- * Cursor-style product showcase: feature copy + copy-snippet on the left,
- * a framed product mockup on the right. Dark app on a light section.
+ * Institutional product showcase: command-board presence on cool paper.
+ * Copy left, dense night OS preview right — no macOS chrome, no soft cards.
  */
 export function HomeToolShowcase() {
   const [copied, setCopied] = useState(false);
@@ -26,18 +26,18 @@ export function HomeToolShowcase() {
       <div className="editorial-wrap mkt-showcase-grid">
         <div className="mkt-showcase-copy">
           <p className="mkt-showcase-eyebrow font-sans" data-i18n="showcase.eyebrow">
-            On the line
+            Command board
           </p>
           <h2
             id="home-showcase-heading"
             className="mkt-showcase-title"
             data-i18n="showcase.title"
           >
-            On the line, when it matters.
+            The night board your shop runs on.
           </h2>
           <p className="mkt-showcase-lead font-sans" data-i18n="showcase.lead">
-            Orvius answers the line, qualifies the job, alerts the owner, and
-            works the dispatch board — one record, start to finish.
+            Answer, qualify, book, alert — one graphite board. Copper marks
+            what still needs the owner. No scavenger hunt across tools.
           </p>
 
           <div className="mkt-showcase-snippet">
