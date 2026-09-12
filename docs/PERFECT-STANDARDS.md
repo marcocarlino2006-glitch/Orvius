@@ -24,7 +24,7 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 | H9 | Command cockpit density | CODE_DONE |
 | H10 | Nav ahead of wedge | CODE_DONE |
 | H11 | Marketing oversells loop depth | CODE_DONE |
-| H12 | Single-owner only | OPEN |
+| H12 | Single-owner only | CODE_DONE |
 | H13 | Money ring / Connect | OPEN |
 | H14 | Absolutist copy residue | CODE_DONE |
 | H15 | README / AI receptionist story | CODE_DONE |
@@ -46,10 +46,17 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 
 | ID | Gap | Status |
 |----|-----|--------|
-| M29 | Settings density | OPEN |
+| M29 | Settings density | CODE_DONE |
 | M30 | Copilot vs Ask naming | CODE_DONE |
-| M31 | Secondary pages thin | OPEN |
+| M31 | Secondary pages thin | CODE_DONE |
 | M32 | package 1.0.0 overclaim | CODE_DONE |
+
+## Notes (this pass)
+
+- **B6**: Cut ~8.7k lines of dead homepage/marketing eras + orphan braces. File ~18.2k (from 26.9k). Target &lt;8k still open — remaining night densify / cascade locks need a supersession pass, not blind delete.
+- **H12**: `src/lib/seats.ts` + Settings “Workspace access” panel. Enterprise copy no longer claims live per-location roles.
+- **M29**: Capture + alerts lead; baseline/export collapsed; founder cert only with `?founder=1`; save no longer ships `founderCertJson`.
+- **M31**: Product / about / resources thickened with honest live-vs-next framing; killed absolutist “never dies on voicemail.”
 
 ## Founder paste list (cannot code alone)
 

@@ -12,12 +12,12 @@ const pillars = [
   {
     id: "01",
     title: "One standard, every location.",
-    body: "Dedicated shop lines per location on one workspace — the same answer, booking, and alert loop across the whole footprint.",
+    body: "Dedicated shop lines per location — the same answer, booking, and alert loop. Today each shop is still a single-owner workspace; shared operator seats are design-partner scope, not self-serve RBAC.",
   },
   {
     id: "02",
-    title: "Central billing and admin.",
-    body: "Consolidated billing, per-location roles, and rollup reporting. Volume pricing as you add shops.",
+    title: "Central billing, honest access.",
+    body: "Consolidated billing and rollup reporting as the footprint proves out. Per-location dashboard roles are on the roadmap — not shipped as multi-user seats today.",
   },
   {
     id: "03",
@@ -35,7 +35,7 @@ export default function MultiShopPage() {
             label="Multi-shop"
             title="Multi-shop, one operating standard."
             subline="For franchises and operators running 2+ locations."
-            description="For operators with 2+ locations. Start as a design partner — dedicated lines per shop, then volume pricing as the footprint proves out."
+            description="For operators with 2+ locations. Start as a design partner — dedicated lines per shop, then volume pricing as the footprint proves out. Multi-user seats are not self-serve yet."
           />
         </div>
       </section>
@@ -71,7 +71,7 @@ export default function MultiShopPage() {
           </div>
           <div className="tier1-actions">
             <a
-              href="mailto:hello@orvius.im?subject=Multi-shop%20%E2%80%94%20multi-shop"
+              href={`mailto:${company.contactEmail}?subject=Multi-shop%20design%20partner`}
               className="inst-btn inst-btn-ghost"
             >
               Contact sales
