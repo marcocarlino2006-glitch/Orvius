@@ -39,11 +39,9 @@
   --signal-hot: #d4894a;
   --signal-dim: #a8642e;
 
-  /* Success / recovered revenue */
   --live: #1a9b6e;
   --live-soft: #22b07e;
 
-  /* Emergency */
   --flare: #ef4444;
   --flare-hot: #f87171;
   --flare-dim: #dc2626;
@@ -61,12 +59,10 @@
   --border: var(--hairline);
   --success: var(--live);
 
-  /* Cursor: hairline depth only — no multi-layer soft elevation */
   --shadow-soft: none;
   --shadow-lift: none;
   --shadow-hairline: 0 0 0 1px color-mix(in srgb, var(--void) 8%, transparent);
 
-  /* Grok-clean surface system — one box language everywhere */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -83,7 +79,6 @@
   --surface-bg-dark: color-mix(in srgb, #12161e 92%, #fff);
   --surface-border-dark: color-mix(in srgb, #fff 10%, transparent);
 
-  /* Typography scale — Cursor display tracking */
   --text-caption: 0.6875rem;
   --text-small: 0.8125rem;
   --text-body: 1rem;
@@ -102,7 +97,6 @@
   --leading-normal: 1.55;
   --leading-relaxed: 1.65;
 
-  /* Spacing scale (4px base) */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -149,7 +143,6 @@
   --color-border: var(--border);
   --color-success: var(--success);
   --font-sans: var(--font-sans);
-  /* One letterset — logo, UI, display all ride Sora */
   --font-brand: var(--font-sans);
   --font-display: var(--font-sans);
 }
@@ -178,42 +171,18 @@ body {
 nav,
 button,
 .btn,
-.label,
-.ui {
+.label{
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   letter-spacing: var(--tracking-snug);
 }
 
-/* ── Type system ── */
-
-.type-wordmark {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-weight: 800;
-  letter-spacing: var(--tracking-brand);
-  text-transform: uppercase;
-  line-height: 1;
-  color: var(--void);
-}
-
 .type-eyebrow {
-  /* SpaceX mission label */
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: var(--tracking-mission);
   text-transform: uppercase;
   color: var(--ash);
-}
-
-.type-display {
-  /* Cursor display: weight 400 + aggressive negative tracking */
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.75rem, 5.5vw, 4.25rem);
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: var(--tracking-display);
-  text-transform: none;
-  color: var(--void);
 }
 
 .type-headline {
@@ -273,45 +242,11 @@ h3 {
   font-weight: 600;
 }
 
-.eyebrow {
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ash);
-}
-
-.display-xl {
-  font-size: clamp(3.5rem, 11vw, 7.5rem);
-  line-height: 0.92;
-  letter-spacing: -0.055em;
-}
-
-.display-lg {
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 1.06;
-  letter-spacing: -0.04em;
-}
-
-.product-workspace {
-  background:
-    radial-gradient(900px 420px at 100% -10%, color-mix(in srgb, var(--signal) 10%, transparent), transparent 55%),
-    linear-gradient(180deg, var(--chalk) 0%, color-mix(in srgb, var(--fog) 40%, var(--chalk)) 100%);
-  padding-bottom: max(7rem, env(safe-area-inset-bottom, 0px));
-}
-
 .card {
   background: var(--card);
   border: 1px solid var(--rule);
   border-radius: 0.5rem;
   box-shadow: var(--shadow-soft);
-}
-
-.card-elevated {
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-radius: 0.5rem;
-  box-shadow: var(--shadow-lift);
 }
 
 .input {
@@ -341,7 +276,6 @@ h3 {
 }
 
 .btn {
-  /* Cursor button — gothic 14/400, 8px radius, flat */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -369,15 +303,6 @@ h3 {
 .btn:active {
   transform: none;
   transition-duration: 80ms;
-}
-
-.btn-primary {
-  background: #26251e;
-  color: #f7f7f4;
-}
-
-.btn-primary:hover {
-  background: #1a1915;
 }
 
 .btn-secondary {
@@ -411,12 +336,6 @@ h3 {
   color: var(--ash);
 }
 
-.panel-void {
-  background: color-mix(in srgb, var(--panel) 90%, var(--void));
-  border: 1px solid var(--rule-dark);
-  border-radius: 0.5rem;
-}
-
 .panel-chalk {
   background: var(--white);
   border: 1px solid var(--rule);
@@ -435,45 +354,8 @@ h3 {
   }
 }
 
-.orvius-grain {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
-  opacity: 0.045;
-  pointer-events: none;
-}
-
-
-.home-statement {
-  font-size: clamp(1.875rem, 4vw, 3rem);
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-  max-width: 14ch;
-}
-
-.home-close-title {
-  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-}
-
-.home-flare-accent {
-  left: max(1.5rem, calc(50% - 36rem));
-}
-
-.product-float {
-  animation:
-    rise-in 680ms cubic-bezier(0.22, 1, 0.36, 1) 220ms both,
-    product-float 6s ease-in-out 1.2s infinite;
-}
-
 .product-float-none {
   animation: none;
-}
-
-.product-glow {
-  box-shadow:
-    var(--shadow-product),
-    0 0 48px color-mix(in srgb, var(--signal) 16%, transparent);
-  animation: product-glow-pulse 4s ease-in-out infinite;
 }
 
 @keyframes product-glow-pulse {
@@ -500,22 +382,6 @@ h3 {
 .lead-inbox-card:hover {
   border-color: color-mix(in srgb, var(--void) 18%, var(--rule));
   box-shadow: var(--shadow-lift);
-}
-
-@media (max-width: 639px) {
-  .lead-inbox-detail {
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .lead-inbox-detail dd {
-    text-align: left;
-  }
-
-  .lead-inbox-value {
-    display: block;
-    word-break: break-word;
-  }
 }
 
 .demo-preset-scroll {
@@ -546,52 +412,22 @@ h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .orvius-atmosphere::after {
-    animation: none;
-    opacity: 0.45;
-    transform: none;
-  }
+  
 
-  .product-float,
-  .product-glow {
-    animation: none;
-  }
+  
 
-  .reveal,
-  .reveal-visible,
-  .reveal-group > .reveal-item,
-  .reveal-group.reveal-group-visible > .reveal-item {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
+  
 
-  .anim-rise,
-  .anim-rise-delay-1,
-  .anim-rise-delay-2,
-  .anim-rise-delay-3,
-  .anim-pulse,
-  .anim-line,
+  
   .transcript-line,
-  .transcript-foot,
   .shell-mobile-nav,
   .shell-header-backdrop {
     animation: none;
   }
 
-  .transcript-line,
-  .transcript-foot {
+  .transcript-line{
     opacity: 1;
   }
-}
-
-/* Shell header */
-.shell-header {
-  z-index: 40;
-  transition:
-    background 320ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 320ms cubic-bezier(0.22, 1, 0.36, 1),
-    backdrop-filter 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .shell-header-bar {
@@ -608,17 +444,6 @@ h3 {
   }
 }
 
-.shell-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.625rem;
-  transition: opacity 160ms ease;
-}
-
-.shell-logo:hover {
-  opacity: 0.88;
-}
-
 .shell-brand {
   display: inline-flex;
   align-items: center;
@@ -630,7 +455,6 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — signal mark + Sora wordmark (one letterset) */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -639,8 +463,7 @@ h3 {
   line-height: 1;
 }
 
-.orvius-logo-mark,
-.orvius-mark-svg {
+.orvius-logo-mark{
   display: block;
   flex-shrink: 0;
   color: inherit;
@@ -676,75 +499,6 @@ h3 {
 
 .orvius-logo--text .orvius-logo-mark {
   display: none;
-}
-
-.orvius-wordmark-svg {
-  display: none;
-}
-
-
-.shell-header-void.shell-header-elevated {
-  background: color-mix(in srgb, var(--void) 88%, transparent);
-  border-bottom: 1px solid var(--rule-dark);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.shell-header-void.shell-header-glass:not(.shell-header-elevated) {
-  background: transparent;
-  border-bottom: 1px solid transparent;
-}
-
-.shell-header-chalk.shell-header-elevated {
-  background: color-mix(in srgb, var(--canvas) 88%, transparent);
-  border-bottom: 1px solid var(--hairline);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.shell-header-chalk.shell-header-glass:not(.shell-header-elevated) {
-  background: transparent;
-  border-bottom: 1px solid transparent;
-}
-
-.shell-header-chalk .shell-wordmark {
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 1.0625rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  text-transform: none;
-}
-
-.shell-nav-link {
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.875rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  transition:
-    color 160ms ease,
-    background 160ms ease;
-}
-
-.shell-nav-link-void {
-  color: var(--ash-soft);
-}
-
-.shell-nav-link-void:hover {
-  color: var(--chalk);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.shell-nav-link-chalk {
-  color: var(--ash);
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  text-transform: none;
-}
-
-.shell-nav-link-chalk:hover {
-  color: var(--void);
-  background: color-mix(in srgb, var(--void) 4%, transparent);
 }
 
 .shell-header-cta {
@@ -910,14 +664,6 @@ h3 {
   animation-delay: 0.55s;
 }
 
-.transcript-foot {
-  opacity: 0;
-}
-
-.reveal-visible .transcript-foot {
-  animation: rise-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.75s both;
-}
-
 .preview-crossfade {
   transition:
     opacity 280ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -953,7 +699,6 @@ h3 {
   border: 0;
 }
 
-/* Page transitions */
 .page-enter {
   animation: page-fade-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -967,10 +712,6 @@ h3 {
   }
 }
 
-.app-shell-content {
-  animation: content-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
-}
-
 @keyframes content-rise {
   from {
     opacity: 0;
@@ -982,7 +723,6 @@ h3 {
   }
 }
 
-/* Skeleton loading */
 .skeleton {
   background: linear-gradient(
     90deg,
@@ -1001,10 +741,6 @@ h3 {
   100% {
     background-position: -200% 0;
   }
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft-opacity 1.8s ease-in-out infinite;
 }
 
 @keyframes pulse-soft-opacity {
@@ -1039,7 +775,6 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
-  .app-shell-content,
   .success-pop {
     animation: none;
   }
@@ -1049,9 +784,7 @@ h3 {
     background: var(--fog);
   }
 
-  .animate-pulse-soft {
-    animation: none;
-  }
+  
 }
 
 .legal-prose {
@@ -1102,7 +835,6 @@ h3 {
   font-weight: 600;
 }
 
-/* Editorial homepage — Claude / Anthropic restraint */
 .editorial-wrap {
   width: 100%;
   max-width: 72rem;
@@ -1125,39 +857,6 @@ h3 {
   color: var(--signal-dim);
 }
 
-
-.brand-intro-center {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.brand-intro-left {
-  text-align: left;
-}
-
-.brand-intro-left .home-brand-kicker {
-  margin-bottom: 1rem;
-}
-
-.brand-intro-title {
-  font-size: clamp(2.35rem, 4.8vw, 3.75rem);
-  line-height: 1.06;
-  letter-spacing: -0.045em;
-  font-weight: 500;
-  max-width: 18ch;
-}
-
-.brand-intro-left .home-trust,
-.brand-intro-left .home-os-subline {
-  max-width: 42ch;
-}
-
-.site-footer {
-  position: relative;
-}
-
 .home-os-live-dot {
   width: 0.45rem;
   height: 0.45rem;
@@ -1176,7 +875,6 @@ h3 {
   color: var(--ash);
 }
 
-/* Orvius OS product shell */
 .os-shell {
   display: grid;
   min-height: 100vh;
@@ -1369,19 +1067,6 @@ h3 {
   }
 }
 
-.customer-record-card {
-  display: block;
-  border: 1px solid var(--rule);
-  border-radius: 0.5rem;
-  background: var(--white);
-  padding: 1.15rem 1.25rem;
-}
-
-.customer-record-card:hover {
-  border-color: color-mix(in srgb, var(--void) 18%, var(--rule));
-  box-shadow: var(--shadow-lift);
-}
-
 .customer-timeline {
   list-style: none;
   margin: 0;
@@ -1434,7 +1119,6 @@ h3 {
   text-decoration-color: var(--void);
 }
 
-/* Orvius OS rings */
 .os-rings {
   list-style: none;
   margin: 0;
@@ -1603,13 +1287,6 @@ h3 {
   gap: 1.5rem;
 }
 
-.ask-q {
-  font-size: 1.25rem;
-  letter-spacing: -0.03em;
-  color: var(--void);
-  max-width: 28ch;
-}
-
 .ask-a {
   margin-top: 0.75rem;
   padding: 1rem 1.15rem;
@@ -1696,27 +1373,11 @@ h3 {
   color: var(--chalk);
 }
 
-.shell-header-void.shell-header-glass.shell-header-elevated {
-  background: color-mix(in srgb, var(--void) 72%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--chalk) 6%, transparent);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-}
-.shell-header-void .shell-nav-link-void { font-size: 0.8125rem; font-weight: 500; }
-
-/* Cursor-grade — flat dark, sans-first, product-forward */
 .cursor-page { background: var(--void); color: var(--chalk); padding-bottom: env(safe-area-inset-bottom, 0px); }
 @media (max-width: 767px) {
   .cursor-page { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)); }
 }
 
-.call-demo {
-  display: flex; flex-direction: column; gap: 0.875rem;
-  padding: 1.25rem 1.375rem;
-  border-radius: 0.625rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
-}
 .call-demo-live {
   display: inline-flex;
   align-items: center;
@@ -1734,7 +1395,7 @@ h3 {
 .call-demo-actions {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem;
 }
-.call-demo-call { padding: 0.75rem 1.25rem; font-size: 0.875rem; }
+
 .call-demo-copy {
   font-size: var(--text-caption);
   font-weight: 600;
@@ -1763,7 +1424,7 @@ h3 {
 .call-demo-light .call-demo-hint {
   color: var(--ash-soft);
 }
-.home-platform-head { max-width: 42rem; }
+
 .home-platform-kicker {
   font-size: 0.6875rem; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
@@ -1777,7 +1438,6 @@ h3 {
 }
 .home-platform-link:hover { text-decoration-color: var(--void); }
 
-/* Static live indicators — no pulse */
 .live-dot {
   width: 0.45rem; height: 0.45rem;
   border-radius: 999px; flex-shrink: 0;
@@ -1787,8 +1447,6 @@ h3 {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--live) 28%, transparent);
 }
 
-
-/* Sticky mobile call bar */
 .home-sticky-call {
   position: fixed;
   left: 0;
@@ -1841,18 +1499,6 @@ h3 {
   color: var(--chalk);
 }
 
-.demo-live-banner { margin-bottom: 2rem; max-width: 28rem; }
-.pilot-live-call { margin-top: 2.5rem; max-width: 32rem; }
-
-/* ═══════════════════════════════════════════════════════
-   Orvius Pro — product shell & dashboard
-   ═══════════════════════════════════════════════════════ */
-
-.os-shell-pro {
-  background: #eceff3 !important;
-  color: var(--void);
-}
-
 .os-sidebar-pro {
   background: #0c1016 !important;
   border-color: color-mix(in srgb, #fff 8%, transparent);
@@ -1872,13 +1518,6 @@ h3 {
 .os-sidebar-pro .os-sidebar-ring-item,
 .os-sidebar-pro .os-sign-out {
   color: color-mix(in srgb, var(--mist) 58%, var(--ash));
-}
-
-.os-ring-status-pro {
-  padding: 0.875rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--chalk) 10%, transparent);
-  background: color-mix(in srgb, var(--chalk) 4%, transparent);
 }
 
 .os-ring-status-title {
@@ -1907,12 +1546,6 @@ h3 {
   color: var(--mist);
 }
 
-.os-sidebar-pro .os-nav-link-active {
-  background: color-mix(in srgb, var(--signal) 16%, transparent);
-  color: #f4f6f8;
-  box-shadow: inset 3px 0 0 var(--signal);
-}
-
 .os-sidebar-pro .os-nav-badge {
   background: color-mix(in srgb, var(--mist) 12%, transparent);
   color: color-mix(in srgb, var(--mist) 88%, var(--ash));
@@ -1920,11 +1553,6 @@ h3 {
 
 .os-sidebar-pro .os-sidebar-ring-live {
   color: var(--signal-hot);
-}
-
-.os-user-panel-pro {
-  padding-top: 0.5rem;
-  border-top: 1px solid color-mix(in srgb, var(--chalk) 8%, transparent);
 }
 
 .os-main-pro {
@@ -1991,54 +1619,6 @@ h3 {
   box-shadow: var(--shadow-lift);
 }
 
-.pay-prompt-card--past_due {
-  border-color: color-mix(in srgb, var(--flare, #e05a32) 45%, var(--rule));
-}
-
-.pay-prompt-kicker {
-  margin: 0;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ash);
-}
-
-.pay-prompt-title {
-  margin: 0.45rem 0 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-  color: var(--void);
-}
-
-.pay-prompt-body {
-  margin: 0.65rem 0 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: color-mix(in srgb, var(--void) 72%, transparent);
-}
-
-.pay-prompt-plans {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-  margin-top: 1.1rem;
-}
-
-.pay-prompt-plan {
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--rule);
-  background: color-mix(in srgb, var(--fog) 70%, transparent);
-}
-
-.pay-prompt-plan--featured {
-  border-color: color-mix(in srgb, var(--void) 35%, var(--rule));
-  background: color-mix(in srgb, var(--void) 4%, var(--chalk, #fff));
-}
-
 .pay-prompt-plan-name {
   margin: 0;
   font-size: 0.75rem;
@@ -2046,32 +1626,10 @@ h3 {
   color: var(--void);
 }
 
-.pay-prompt-plan-price {
-  margin: 0.2rem 0 0;
-  font-size: 1.25rem;
-  font-weight: 750;
-  letter-spacing: -0.03em;
-  color: var(--void);
-}
-
 .pay-prompt-plan-price span {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--ash);
-}
-
-.pay-prompt-plan-tag {
-  margin: 0.35rem 0 0;
-  font-size: 0.7rem;
-  line-height: 1.35;
-  color: var(--ash);
-}
-
-.pay-prompt-actions {
-  margin-top: 1.15rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
 }
 
 .pay-prompt-checkout .inst-btn,
@@ -2086,21 +1644,6 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem 0.75rem;
-}
-
-.pay-prompt-later {
-  border: 0;
-  background: transparent;
-  padding: 0.35rem 0;
-  font-size: 0.8125rem;
-  color: var(--ash);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
-.pay-prompt-later:hover {
-  color: var(--void);
 }
 
 @media (max-width: 480px) {
@@ -2120,33 +1663,6 @@ h3 {
   backdrop-filter: blur(4px);
 }
 
-.billing-lock-card {
-  width: min(26rem, 100%);
-  padding: 1.5rem 1.4rem 1.35rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--rule);
-  background: var(--chalk, #fff);
-  box-shadow: var(--shadow-lift);
-}
-
-.billing-lock-kicker {
-  margin: 0;
-  font-size: 0.6875rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ash);
-}
-
-.billing-lock-title {
-  margin: 0.5rem 0 0;
-  font-size: 1.45rem;
-  font-weight: 750;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-  color: var(--void);
-}
-
 .billing-lock-body {
   margin: 0.65rem 0 0;
   font-size: 0.9rem;
@@ -2159,13 +1675,6 @@ h3 {
   display: flex;
   align-items: baseline;
   gap: 0.4rem;
-}
-
-.billing-lock-price-amt {
-  font-size: 1.75rem;
-  font-weight: 750;
-  letter-spacing: -0.03em;
-  color: var(--void);
 }
 
 .billing-lock-price-per {
@@ -2341,12 +1850,6 @@ h3 {
   gap: 1.25rem;
 }
 
-.account-settings-value {
-  margin-top: 0.15rem;
-  font-size: 0.8125rem;
-  color: var(--ash);
-}
-
 .account-plan-badge {
   padding: 1rem 1.125rem;
   border-radius: 0.5rem;
@@ -2364,14 +1867,6 @@ h3 {
 .account-plan-price {
   margin-top: 0.25rem;
   font-size: 0.875rem;
-  color: var(--ash);
-}
-
-.account-plan-list {
-  margin: 1rem 0 0;
-  padding-left: 1.125rem;
-  font-size: 0.875rem;
-  line-height: 1.65;
   color: var(--ash);
 }
 
@@ -2545,18 +2040,6 @@ h3 {
   color: var(--void);
 }
 
-.os-ask-dock-close {
-  width: 1.75rem;
-  height: 1.75rem;
-  border: none;
-  border-radius: 0.375rem;
-  background: color-mix(in srgb, var(--void) 5%, var(--fog));
-  color: var(--ash);
-  font-size: 1.125rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
 .os-ask-dock-hint {
   margin-bottom: 0.75rem;
   font-size: 0.8125rem;
@@ -2659,22 +2142,6 @@ h3 {
   color: var(--ash-soft);
 }
 
-.os-ask-dock-send {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: var(--void);
-  color: var(--chalk);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
 .os-ask-dock-send:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -2682,24 +2149,6 @@ h3 {
 
 .os-ask-dock-send:not(:disabled):hover {
   transform: translateY(-1px);
-}
-
-.os-ask-dock-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 0.875rem 0.625rem 0.625rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--void) 12%, var(--rule));
-  background: color-mix(in srgb, var(--white) 94%, var(--chalk));
-  box-shadow:
-    0 1px 2px rgba(10, 11, 10, 0.05),
-    0 12px 32px rgba(10, 11, 10, 0.1);
-  cursor: pointer;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
 }
 
 .os-ask-dock-trigger:hover {
@@ -2714,25 +2163,12 @@ h3 {
     0 16px 40px color-mix(in srgb, var(--signal) 12%, transparent);
 }
 
-.os-ask-dock-trigger-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--signal) 0%, var(--signal-dim) 100%);
-  color: var(--white);
-  font-size: 0.625rem;
-}
-
 .os-ask-dock-trigger-label {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--void);
 }
 
-/* Pro cards */
 .pro-card {
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
   border-radius: var(--radius-lg);
@@ -2758,45 +2194,13 @@ h3 {
   overflow: hidden;
 }
 
-.lead-inbox-card-emergency {
-  border-color: color-mix(in srgb, var(--void) 20%, var(--rule));
-  box-shadow: none;
-}
-
-.lead-inbox-card-emergency::before {
-  content: "";
-  display: block;
-  height: 2px;
-  background: var(--flare-dim);
-}
-
-.lead-inbox-card-link:hover {
-  transform: translateY(-2px);
-}
-
 .customer-record-card.pro-card {
   display: block;
   padding: 1.25rem 1.375rem;
 }
 
-.customer-record-avatar {
-  background: linear-gradient(135deg, var(--void-deep) 0%, var(--panel) 100%);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--mist) 12%, transparent);
-}
-
-/* Pro stats */
 .pro-stat-grid {
   gap: 0.875rem;
-}
-
-.pro-stat {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
-  border-radius: 0.625rem;
-  padding: 1rem 1.125rem;
-  background: var(--white);
-  box-shadow: var(--shadow-soft);
 }
 
 .pro-stat-live {
@@ -2829,7 +2233,6 @@ h3 {
   color: var(--void);
 }
 
-/* Pro panels */
 .pro-panel {
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
   border-radius: 0.625rem;
@@ -2906,32 +2309,10 @@ h3 {
   padding: 1.75rem 1.25rem;
 }
 
-.pro-live-dot {
-  display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--live-soft);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--live) 18%, transparent);
-  flex-shrink: 0;
-}
-
 .os-sidebar-pro .pro-live-dot,
 .ring1-trust-strip .pro-live-dot,
 .os-topbar-live .pro-live-dot {
   animation: cinema-ring 1.4s ease-out infinite;
-}
-
-.pro-kicker {
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ash);
-}
-
-.pro-kicker-flare {
-  color: var(--flare-dim);
 }
 
 .pro-filter-bar {
@@ -2970,16 +2351,6 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
-.ring1-command-stats {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-@media (min-width: 768px) {
-  .ring1-command-stats {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
 .pro-list-item {
   list-style: none;
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
@@ -3010,28 +2381,12 @@ h3 {
   color: var(--ash);
 }
 
-.pro-section-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
 .pro-section-kicker {
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--signal-dim);
-}
-
-.pro-section-title {
-  margin-top: 0.35rem;
-  font-size: clamp(1.5rem, 2.5vw, 1.875rem);
-  line-height: 1.08;
-  letter-spacing: -0.035em;
 }
 
 .pro-section-link {
@@ -3076,7 +2431,6 @@ h3 {
   border-color: color-mix(in srgb, var(--void) 12%, var(--rule));
 }
 
-/* Ring 1 — Front door mastery */
 .ring1-command { display: flex; flex-direction: column; gap: 1.75rem; }
 
 .attention-queue {
@@ -3214,7 +2568,6 @@ h3 {
   flex-wrap: wrap;
   gap: 0.375rem;
 }
-
 
 .attention-item-assign {
   display: flex;
@@ -3409,11 +2762,6 @@ h3 {
   background: color-mix(in srgb, var(--signal) 6%, var(--white));
 }
 
-.jobs-pipeline-stage-coming {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .jobs-pipeline-label {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -3439,17 +2787,6 @@ h3 {
   margin: 0;
 }
 
-.shop-outcomes-line {
-  margin: 0.35rem 0 0;
-  font-size: 0.9375rem;
-  line-height: 1.45;
-  color: var(--void);
-}
-
-.shop-outcomes-line strong {
-  font-weight: 700;
-}
-
 .shop-outcomes-meta {
   list-style: none;
   margin: 0.75rem 0 0;
@@ -3465,7 +2802,6 @@ h3 {
   color: var(--void);
   font-weight: 600;
 }
-
 
 .pro-economics {
   margin-top: 0.75rem;
@@ -3648,9 +2984,6 @@ h3 {
   margin-top: 0.35rem;
 }
 
-@media (max-width: 640px) {
-}
-
 .tier1-strategy-list {
   list-style: none;
   margin: 1.5rem 0 0;
@@ -3693,36 +3026,6 @@ h3 {
   100% { background-position: -200% 0; }
 }
 
-
-.ring1-recent-call-list { display: flex; flex-direction: column; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
-.ring1-recent-call {
-  display: flex; align-items: center; gap: 0.75rem;
-  padding: 0.875rem 1rem; border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
-  background: var(--white); box-shadow: var(--shadow-soft);
-  text-decoration: none; color: inherit;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-}
-.ring1-recent-call:hover {
-  border-color: color-mix(in srgb, var(--signal) 24%, var(--rule));
-  box-shadow: var(--shadow-lift);
-  transform: translateY(-1px);
-}
-.ring1-recent-call-icon {
-  display: flex; align-items: center; justify-content: center;
-  width: 2rem; height: 2rem; border-radius: 0.45rem; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--void), color-mix(in srgb, var(--panel) 80%, var(--void)));
-}
-.ring1-recent-call-main { flex: 1; min-width: 0; }
-.ring1-recent-call-title {
-  display: block; font-size: 0.875rem; font-weight: 600; color: var(--void);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ring1-recent-call-meta {
-  display: block; margin-top: 0.15rem; font-size: 0.75rem; color: var(--ash);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.call-record-card { display: block; padding: 1.125rem 1.25rem; text-decoration: none; color: inherit; }
 .transcript-cinema { border-radius: 0.625rem; overflow: hidden; border: 1px solid var(--rule); background: var(--white); box-shadow: var(--shadow-soft); }
 .transcript-cinema-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -3750,29 +3053,12 @@ h3 {
   color: var(--live); background: color-mix(in srgb, var(--live) 5%, var(--white));
 }
 
-.cookie-consent-minimal {
-  animation: cookie-slide-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.cookie-consent-accept {
-  color: var(--signal-dim);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.cookie-consent-accept:hover { color: var(--signal); }
 @keyframes cookie-slide-in {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-
-/* ═══════════════════════════════════════════════════════
-   Visual quality pass — unified pro chrome
-   ═══════════════════════════════════════════════════════ */
 
 .pro-ring-banner {
   margin-bottom: 1.75rem;
@@ -4211,11 +3497,6 @@ h3 {
   color: var(--ash);
 }
 
-.demo-pro-banner {
-  margin-bottom: 1.75rem;
-  max-width: 32rem;
-}
-
 .demo-pro-grid {
   display: grid;
   gap: 2rem;
@@ -4252,9 +3533,6 @@ h3 {
 
 .os-sidebar-pro .os-ring-status-title,
 .os-sidebar-pro .os-nav-link-active { color: var(--mist); }
-/* ═══════════════════════════════════════════════════════
-   Unified marketing system — one light language sitewide
-   ═══════════════════════════════════════════════════════ */
 
 .marketing-page {
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -4266,9 +3544,6 @@ h3 {
   }
 }
 
-
-.brand-intro-left .marketing-hero-title { max-width: 24ch; }
-
 .brand-intro-subline {
   margin-top: 0.75rem;
   color: var(--void);
@@ -4278,7 +3553,6 @@ h3 {
   margin-top: 0.75rem;
   max-width: 42rem;
 }
-
 
 .marketing-section {
   padding-block: clamp(4rem, 9vh, 6.5rem);
@@ -4296,27 +3570,16 @@ h3 {
   color: var(--signal-dim);
 }
 
-.brand-intro-center .marketing-hero-title {
-  max-width: 18ch;
-  margin-inline: auto;
-}
-
 .brand-intro-center .brand-intro-description,
 .brand-intro-center .brand-intro-subline {
   margin-inline: auto;
 }
-
-
-/* ═══════════════════════════════════════════════════════
-   Institutional tier — multi-billion-dollar visual system
-   ═══════════════════════════════════════════════════════ */
 
 .tier1-page {
   --tier1-max: 80rem;
 }
 
 .tier1-eyebrow {
-  /* spacing hooks — pair with .type-eyebrow */
 }
 
 .tier1-eyebrow-light {
@@ -4344,7 +3607,6 @@ h3 {
   margin-top: var(--space-8);
 }
 
-.marketing-hero-call,
 .tier1-hero-call {
   position: relative;
   z-index: 1;
@@ -4396,7 +3658,6 @@ h3 {
 }
 
 .inst-btn {
-  /* Cursor product button */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4477,7 +3738,6 @@ h3 {
   min-height: 3rem;
 }
 
-
 .tier1-story-muted {
   background: var(--chalk);
 }
@@ -4485,7 +3745,6 @@ h3 {
 .tier1-card-title {
   margin-top: var(--space-3);
 }
-
 
 .tier1-story-grid {
   display: grid;
@@ -4707,7 +3966,6 @@ h3 {
   color: var(--ash);
 }
 
-/* ── Pricing page: billing toggle ── */
 .pricing-page-controls {
   display: flex;
   flex-direction: column;
@@ -4771,7 +4029,6 @@ h3 {
   color: var(--ash);
 }
 
-/* ── Pricing wizard (plan finder) ── */
 .pricing-wizard {
   margin-bottom: 2.5rem;
   padding: 1.75rem;
@@ -4812,10 +4069,6 @@ h3 {
   font-weight: 700;
 }
 
-.pricing-wizard-step-done {
-  color: var(--ash);
-}
-
 .pricing-wizard-panel {
   margin: 0;
   padding: 0;
@@ -4849,7 +4102,6 @@ h3 {
   max-width: 28rem;
 }
 
-/* ── Feature comparison matrix ── */
 .pricing-matrix {
   margin-top: 3rem;
   margin-bottom: 3rem;
@@ -4949,7 +4201,6 @@ h3 {
   color: var(--ash);
 }
 
-/* ── Pricing FAQ ── */
 .pricing-faq {
   margin-bottom: 3rem;
 }
@@ -5087,23 +4338,6 @@ h3 {
 @media (min-width: 1400px) {
   .tier1-pricing-plans {
     grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-.account-grid-plans {
-  display: grid;
-  gap: 1.25rem;
-}
-
-@media (min-width: 768px) {
-  .account-grid-plans {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1100px) {
-  .account-grid-plans {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -5412,7 +4646,6 @@ h3 {
   word-break: break-all;
 }
 
-/* ── Onboarding ── */
 .onboarding-loading {
   display: grid;
   grid-template-columns: 15rem 1fr;
@@ -5597,10 +4830,6 @@ h3 {
   background: var(--white);
   color: var(--void);
   box-shadow: var(--shadow-soft);
-}
-
-.onboarding-step-done {
-  color: var(--void);
 }
 
 .onboarding-step-num {
@@ -5900,7 +5129,6 @@ h3 {
   color: var(--ash);
 }
 
-/* ── Dashboard signal chrome ── */
 .pro-signal-bar {
   display: flex;
   flex-wrap: wrap;
@@ -6020,15 +5248,6 @@ h3 {
 
 .dispatch-job-chip-title {
   font-family: var(--font-sans), system-ui, sans-serif;
-}
-
-.lead-inbox-name-link {
-  text-decoration: none;
-  color: inherit;
-}
-
-.lead-inbox-name-link:hover h3 {
-  color: var(--signal);
 }
 
 .lead-quick-actions {
@@ -6217,12 +5436,6 @@ h3 {
   margin-left: 3.25rem;
 }
 
-.assign-tech-inline {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
 .assign-tech-block {
   display: flex;
   flex-wrap: wrap;
@@ -6261,10 +5474,6 @@ h3 {
     gap: 0.35rem;
   }
 }
-
-/* ═══════════════════════════════════════════════════════
-   Visual polish — Today pulse, status pills, mobile nav
-   ═══════════════════════════════════════════════════════ */
 
 .pro-today-pulse {
   position: relative;
@@ -6498,21 +5707,6 @@ h3 {
   text-decoration: underline;
 }
 
-.ring1-lead-grid {
-  display: grid;
-  gap: 1rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-@media (min-width: 1024px) {
-  .ring1-lead-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.125rem;
-  }
-}
-
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -6638,10 +5832,6 @@ h3 {
   }
 }
 
-.ring1-recent-call-icon {
-  color: var(--mist);
-}
-
 .pro-stat {
   border-radius: var(--radius-lg);
 }
@@ -6654,19 +5844,6 @@ h3 {
   font-size: 1.125rem;
   letter-spacing: -0.025em;
 }
-
-.ring1-more-card {
-  border-radius: var(--radius-lg);
-  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
-}
-
-.ring1-more-card:hover {
-  transform: translateY(-2px);
-}
-
-/* ═══════════════════════════════════════════════════════
-   Phase 2 polish — page strip, setup hub, cards
-   ═══════════════════════════════════════════════════════ */
 
 .pro-page-strip {
   display: flex;
@@ -6747,15 +5924,6 @@ h3 {
 
 .pro-page-toolbar {
   margin-bottom: 1.25rem;
-}
-
-.pro-record-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .pro-setup-hub {
@@ -7008,21 +6176,6 @@ h3 {
   color: var(--ash);
 }
 
-/* Job card */
-.job-card {
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-}
-
-/* Call record card */
-.call-record-card {
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-}
-
-/* Ask dock polish */
 .os-ask-dock-trigger {
   background: linear-gradient(135deg, var(--void-deep) 0%, var(--panel) 100%);
   border: 1px solid color-mix(in srgb, var(--mist) 12%, transparent);
@@ -7061,10 +6214,6 @@ h3 {
   justify-content: center;
 }
 
-/* ═══════════════════════════════════════════════════════
-   Institutional marketing — multi-billion bar, not generic SaaS
-   ═══════════════════════════════════════════════════════ */
-
 .tier1-story {
   padding-block: var(--section-y);
   border-top: 1px solid var(--rule);
@@ -7076,7 +6225,6 @@ h3 {
   backdrop-filter: blur(16px);
 }
 
-/* Today command center — priority leads + sticky lead actions */
 .today-priority {
   display: flex;
   flex-direction: column;
@@ -7190,10 +6338,6 @@ h3 {
   cursor: wait;
 }
 
-.ring1-lead-grid-with-bar {
-  padding-bottom: 5.5rem;
-}
-
 .lead-detail-sticky {
   position: fixed;
   left: 0;
@@ -7247,44 +6391,16 @@ h3 {
   }
 }
 
-
 .home-close .tier1-section-title {
   max-width: 18ch;
 }
 
-
 @media (prefers-reduced-motion: reduce) {
-  .home-hero-content,
-  .home-bleed-stage-board,
-  .home-bleed-stage-wash,
-  .home-story .home-story-line,
-  .home-os-path-item,
-  .mkt-hero-inner,
+  
   .mkt-product {
     animation: none !important;
   }
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Marketing — SpaceX restraint × Cursor product trust
-   Sparse chrome · graphite void · chalk type · copper as signal only
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-.mkt-page {
-  --mkt-ink: var(--void);
-  --mkt-muted: var(--ash);
-  --mkt-surface: var(--white);
-  --mkt-inset: var(--fog);
-  --mkt-dark: var(--void-deep);
-  --mkt-dark-elevated: var(--panel);
-  --mkt-dark-border: rgba(255, 255, 255, 0.08);
-  --mkt-dark-muted: rgba(255, 255, 255, 0.62);
-  background: var(--canvas);
-  color: var(--mkt-ink);
-  min-height: 100vh;
-}
-
-/* ── Nav — SpaceX / Cursor: fixed over hero void, elevate after ── */
 
 .mkt-nav {
   position: fixed;
@@ -7362,8 +6478,6 @@ h3 {
   color: var(--void);
 }
 
-.mkt-nav-brand .orvius-logo-word { line-height: 1; }
-
 @media (max-width: 480px) {
   .mkt-nav-brand .orvius-logo-word { line-height: 1; }
 }
@@ -7374,7 +6488,6 @@ h3 {
   justify-content: center;
   gap: 0.1rem;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  /* Exact SpaceX nav: D-DIN caps */
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -7632,10 +6745,7 @@ h3 {
   padding-inline: 1.2rem;
 }
 
-/* ── Buttons — Cursor filled + SpaceX ghost ── */
-
 .mkt-btn {
-  /* SpaceX button voice — D-DIN via Barlow Condensed */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -7666,7 +6776,6 @@ h3 {
   transform: none;
 }
 
-
 .mkt-btn-ink {
   background: #000;
   color: var(--spectral) !important;
@@ -7690,30 +6799,9 @@ h3 {
   outline-offset: 2px;
 }
 
-
-.mkt-kicker {
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ash);
-  margin: 0 0 0.85rem;
-}
-
 .mkt-section-header-light .mkt-kicker,
 .mkt-section-dark .mkt-kicker {
   color: var(--mkt-dark-muted);
-}
-
-.mkt-live-dot {
-  display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--live);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--live) 22%, transparent);
-  animation: mkt-live-pulse 2.4s ease-in-out infinite;
 }
 
 @keyframes mkt-live-pulse {
@@ -7741,7 +6829,6 @@ h3 {
   color: var(--signal);
   border-bottom-color: color-mix(in srgb, var(--signal) 45%, transparent);
 }
-
 
 .mkt-hero-live-pulse {
   position: relative;
@@ -7792,9 +6879,7 @@ h3 {
   }
 }
 
-
 .mkt-btn-hero {
-  /* SpaceX LEARN MORE proportions */
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif !important;
   border-radius: 2rem !important;
   min-height: 3.15rem !important;
@@ -7822,14 +6907,6 @@ h3 {
   color: var(--mkt-dark-muted);
 }
 
-.mkt-product-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-weight: 600;
-  color: var(--live-soft);
-}
-
 .mkt-product-shell {
   display: grid;
   grid-template-columns: 9.5rem minmax(0, 1fr);
@@ -7852,25 +6929,6 @@ h3 {
   padding: 1rem 0.75rem;
   border-right: 1px solid var(--mkt-dark-border);
   background: rgba(0, 0, 0, 0.28);
-}
-
-/* ── Sections ── */
-
-.mkt-section {
-  padding-block: clamp(4.5rem, 9vh, 6.5rem);
-}
-
-.mkt-section-light {
-  background: var(--canvas);
-}
-
-.mkt-section-dark {
-  background: var(--mkt-dark);
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.mkt-section-inset {
-  background: var(--mkt-inset);
 }
 
 .mkt-section-inner {
@@ -7912,8 +6970,6 @@ h3 {
   color: var(--mkt-dark-muted);
 }
 
-/* ── Proof split + filled call panel ── */
-
 .mkt-proof-layout {
   display: grid;
   gap: clamp(2rem, 4vw, 3rem);
@@ -7946,13 +7002,6 @@ h3 {
   margin-top: 1.35rem;
 }
 
-.mkt-proof-note {
-  margin: 1rem 0 0;
-  font-size: 0.75rem;
-  color: var(--ash-soft);
-  max-width: 42ch;
-}
-
 .mkt-proof-cta {
   margin-top: 1.25rem;
   display: inline-flex;
@@ -7968,13 +7017,6 @@ h3 {
   flex-direction: column;
   gap: 1rem;
   min-height: 28rem;
-}
-
-.mkt-call-panel-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: flex-start;
 }
 
 .mkt-call-panel-kicker {
@@ -8000,8 +7042,6 @@ h3 {
   border-top: 1px solid var(--hairline);
 }
 
-/* ── Transcript ── */
-
 .mkt-transcript {
   max-width: 40rem;
   padding: 1.25rem 1.35rem;
@@ -8009,18 +7049,6 @@ h3 {
   background: var(--white);
   border: 1px solid var(--hairline);
   box-shadow: var(--shadow-soft);
-}
-
-.mkt-transcript-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-bottom: 0.85rem;
-  margin-bottom: 0.85rem;
-  border-bottom: 1px solid var(--hairline);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--ash);
 }
 
 .mkt-transcript-line {
@@ -8044,20 +7072,6 @@ h3 {
 .mkt-transcript-line-muted {
   color: var(--ash);
 }
-
-.mkt-transcript-foot {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 1rem 0 0;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--hairline);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--live);
-}
-
-/* ── Proof ── */
 
 .mkt-proof-grid {
   display: grid;
@@ -8110,9 +7124,6 @@ h3 {
   font-style: italic;
 }
 
-/* Cookie bar — compact, non-overlapping */
-
-/* Left side, so it never collides with the footer bottom-right controls. */
 .cookie-bar {
   position: fixed;
   left: 1rem;
@@ -8168,8 +7179,6 @@ h3 {
 .cookie-bar-accept:hover {
   background: rgba(255, 255, 255, 0.9);
 }
-
-/* ── Manifesto — first principles ── */
 
 .mkt-manifesto {
   padding-block: clamp(4.5rem, 12vh, 7rem);
@@ -8282,8 +7291,6 @@ h3 {
   }
 }
 
-/* ── Footer ── */
-
 .mkt-footer {
   padding: 2.5rem clamp(1.5rem, 5vw, 3rem) 2rem;
   background: var(--mkt-dark);
@@ -8322,13 +7329,10 @@ h3 {
 @media (prefers-reduced-motion: reduce) {
   .mkt-product-toast,
   .mkt-product-rich,
-  .mkt-hero-copy,
   .cookie-bar {
     animation: none !important;
   }
 }
-
-/* Legal fortress UI */
 
 .onboarding-consent {
   display: flex;
@@ -8353,7 +7357,6 @@ h3 {
   text-underline-offset: 2px;
 }
 
-
 .mkt-footer-meta {
   display: flex;
   flex-direction: column;
@@ -8374,7 +7377,6 @@ h3 {
   }
 }
 
-
 .tier1-login-legal {
   margin: 1rem 0 0;
   font-size: 0.8rem;
@@ -8386,58 +7388,9 @@ h3 {
   text-underline-offset: 2px;
 }
 
-
-
-/* ── Public magic-link shells (estimate + tech field) ── */
-
-.public-shell {
-  min-height: 100vh;
-  background: #0b0d10;
-  color: #f4f6f8;
-  padding: 2rem 1.25rem 3rem;
-}
-
 .public-shell-inner {
   max-width: 28rem;
   margin: 0 auto;
-}
-
-.public-money-shop,
-.tech-field-shop {
-  margin: 0 0 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, #c4783a 90%, #fff);
-}
-
-.public-money-title,
-.tech-field-title {
-  margin: 0;
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.public-money-amount {
-  margin: 1.25rem 0 0;
-  font-size: 2rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.public-money-meta,
-.public-money-notes,
-.public-money-status,
-.public-money-muted,
-.tech-field-muted,
-.tech-field-status {
-  margin: 0.5rem 0 0;
-  color: color-mix(in srgb, #e8ecf1 70%, transparent);
-  font-size: 0.9375rem;
-  line-height: 1.5;
 }
 
 .public-money-actions,
@@ -8452,57 +7405,6 @@ h3 {
 .approve-queue-error,
 .job-money-error {
   color: #f97066;
-}
-
-.public-money-ok,
-.tech-field-ok {
-  color: #6ee7b7;
-  font-weight: 600;
-}
-
-.public-money-fine {
-  margin-top: 2rem;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  color: color-mix(in srgb, #e8ecf1 45%, transparent);
-}
-
-.tech-field-meta {
-  margin: 1.25rem 0 0;
-  display: grid;
-  gap: 0.85rem;
-}
-
-.tech-field-meta dt {
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, #e8ecf1 50%, transparent);
-}
-
-.tech-field-meta dd {
-  margin: 0.2rem 0 0;
-  font-size: 0.9875rem;
-}
-
-.tech-field-meta a {
-  color: #f4f6f8;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.tech-field-eta {
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
-}
-
-.tech-field-eta input {
-  border: 1px solid color-mix(in srgb, #fff 16%, transparent);
-  background: color-mix(in srgb, #fff 6%, transparent);
-  color: #f4f6f8;
-  border-radius: 0.35rem;
-  padding: 0.65rem 0.75rem;
 }
 
 .job-money-actions {
@@ -8534,8 +7436,6 @@ h3 {
   word-break: break-all;
   color: var(--void);
 }
-
-/* Approve-first queue on Command */
 
 .approve-queue {
   margin-bottom: 1.5rem;
@@ -8713,17 +7613,6 @@ h3 {
   width: 100%;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   CRAFT LOCK — Cursor × SpaceX mechanics (final cascade)
-   Keep Orvius copper. Kill SaaS soft shadows / bounce / heavy display weight.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-.mkt-page,
-.mkt-page * {
-  --shadow-soft: none;
-  --shadow-lift: none;
-}
-
 .mkt-page .panel-chalk,
 .mkt-page .mkt-card,
 .mkt-page .mkt-path-card,
@@ -8734,10 +7623,7 @@ h3 {
   border-color: color-mix(in srgb, var(--void) 10%, transparent);
 }
 
-.mkt-kicker,
-.mkt-eyebrow,
-.mkt-path-label,
-.mkt-section-kicker {
+.mkt-kicker{
   font-size: 0.6875rem !important;
   font-weight: 600 !important;
   letter-spacing: var(--tracking-mission) !important;
@@ -8745,26 +7631,9 @@ h3 {
 }
 
 .mkt-section-title,
-.mkt-path-title,
 
 .mkt-nav-links a::after {
   display: none; /* SpaceX: no underline theater */
-}
-
-.mkt-hero-phone {
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--spectral) 72%, transparent);
-  text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--spectral) 28%, transparent);
-}
-
-.mkt-hero-phone:hover {
-  color: var(--spectral);
-  border-bottom-color: color-mix(in srgb, var(--spectral) 55%, transparent);
 }
 
 .btn,
@@ -8778,7 +7647,6 @@ button.btn {
   transform: none !important;
 }
 
-/* ── BUTTON FONT LOCK — SpaceX DIN + Cursor gothic ── */
 .mkt-btn,
 .mkt-btn-hero,
 .mkt-btn-chalk,
@@ -8790,8 +7658,7 @@ button.btn {
 .mkt-nav-links a,
 .mkt-nav-login,
 .mkt-nav-drawer a,
-.mkt-nav-drawer-cta,
-.mkt-hero-phone {
+.mkt-nav-drawer-cta{
   font-family: var(--font-brand), "Arial Narrow", "Helvetica Neue", Arial, sans-serif !important;
   text-transform: uppercase !important;
   letter-spacing: 0.09em !important;
@@ -8808,9 +7675,6 @@ button.btn {
 
 .btn,
 .inst-btn,
-.tier-btn,
-.pro-btn,
-.tier-btn-primary,
 .inst-btn-primary {
   font-family: var(--font-sans), system-ui, sans-serif !important;
   font-weight: 400 !important;
@@ -8821,20 +7685,14 @@ button.btn {
   transform: none !important;
 }
 
-.mkt-hero-title,
-.mkt-hero-title--absolute,
 .mkt-section-title,
-.type-display,
 .type-headline,
 .type-title {
   font-family: var(--font-sans), system-ui, sans-serif !important;
   font-weight: 400 !important;
 }
 
-
-/* ── LOGO LOCK — never inherit button DIN / gothic onto the letterset ── */
 .orvius-logo,
-.orvius-wordmark-svg,
 .orvius-logo-mark,
 .mkt-nav-brand .orvius-logo,
 .mkt-hero-brand-lockup .orvius-logo {
@@ -8845,7 +7703,6 @@ button.btn {
   border-radius: 0 !important;
 }
 
-/* ── Company presence — sparse product atmosphere ── */
 .mkt-product--company {
   width: min(100%, 34rem);
   margin-left: auto;
@@ -8857,7 +7714,6 @@ button.btn {
   backdrop-filter: blur(8px);
 }
 
-/* Hero atmosphere — dissolve the card so it reads as depth, not UI chrome */
 .mkt-product--atmosphere {
   width: min(100%, 34rem);
   background: transparent;
@@ -8867,7 +7723,6 @@ button.btn {
   padding: 0;
   box-shadow: none;
 }
-
 
 .mkt-product--company .mkt-product-chip:disabled,
 .mkt-product--company .mkt-product-chip-busy {
@@ -8956,7 +7811,6 @@ button.btn {
   gap: 0.7rem;
 }
 
-/* Flatten OS status card — less dashboard SaaS */
 .os-ring-status-pro {
   border: none !important;
   background: transparent !important;
@@ -8964,14 +7818,11 @@ button.btn {
   padding-inline: 0 !important;
 }
 
-.os-live-dot,
 .pro-live-dot {
   box-shadow: none !important;
   animation: none !important;
 }
 
-
-/* Manus bar — fail-closed founder post lock */
 .post-lock-strip {
   display: flex;
   flex-wrap: wrap;
@@ -9046,7 +7897,6 @@ button.btn {
   color: var(--ash, #5c5a55);
 }
 
-/* —— Frictionless owner setup —— */
 .owner-setup-banner {
   display: flex;
   flex-wrap: wrap;
@@ -9147,11 +7997,6 @@ button.btn {
   margin-top: 0.35rem;
 }
 
-.assign-tech-one-tap {
-  width: 100%;
-}
-
-/* Settings — secondary panels stay collapsed so ritual leads */
 .pro-settings-secondary {
   margin: 0;
   border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
@@ -9219,10 +8064,6 @@ button.btn {
   margin-top: 0.2rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Institutional presence — big-company craft, not thin startup theater
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .mkt-nav--institution {
   border-bottom: 1px solid color-mix(in srgb, #f0f0fa 8%, transparent);
   background: color-mix(in srgb, #05070b 78%, transparent);
@@ -9280,7 +8121,6 @@ button.btn {
   background: color-mix(in srgb, #f0f0fa 10%, transparent) !important;
   border-color: color-mix(in srgb, #f0f0fa 62%, transparent) !important;
 }
-
 
 .mkt-close--institution .mkt-btn,
 .mkt-close--institution .mkt-btn-lg,
@@ -9387,10 +8227,6 @@ button.btn {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Meta-grade marketing — product stage, material light, display type
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .mkt-product--stage {
   width: 100%;
   margin: 0;
@@ -9436,15 +8272,6 @@ button.btn {
   color: color-mix(in srgb, var(--live) 85%, #fff);
 }
 
-.mkt-product-live-dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 999px;
-  background: var(--live);
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 50%, transparent);
-  animation: mkt-live-pulse 2.2s ease-out infinite;
-}
-
 .mkt-product--stage .mkt-product-queue {
   margin-top: 1.1rem;
   gap: 0.45rem;
@@ -9456,25 +8283,6 @@ button.btn {
   border-radius: 0.45rem;
   padding: 0.7rem 0.8rem;
 }
-
-.mkt-product--stage .mkt-product-row-hot,
-.mkt-product--stage .mkt-product-row-active {
-  border-color: color-mix(in srgb, var(--signal) 45%, transparent);
-  background: color-mix(in srgb, var(--signal) 10%, #0a0d12);
-}
-
-.mkt-product--stage .mkt-product-alert-kicker {
-  color: color-mix(in srgb, var(--signal) 80%, #fff);
-}
-
-.mkt-product--stage .mkt-product-alert-title {
-  color: #f7f8fa;
-}
-
-.mkt-product--stage .mkt-product-alert-meta {
-  color: color-mix(in srgb, #c8d0db 72%, transparent);
-}
-
 
 .mkt-product--stage .mkt-product-row-tag {
   color: color-mix(in srgb, #f0f0fa 58%, transparent);
@@ -9495,19 +8303,6 @@ button.btn {
   background: transparent;
 }
 
-.mkt-product--stage .mkt-product-alert-kicker {
-  color: color-mix(in srgb, var(--signal) 80%, #fff);
-}
-
-.mkt-product--stage .mkt-product-alert-title {
-  color: #f7f8fa;
-}
-
-.mkt-product--stage .mkt-product-alert-meta {
-  color: color-mix(in srgb, #c8d0db 72%, transparent);
-}
-
-/* Manifesto — denser institutional split */
 .mkt-manifesto--meta {
   padding-block: clamp(4.75rem, 12vh, 7.5rem);
   background:
@@ -9567,8 +8362,6 @@ button.btn {
   }
 }
 
-
-/* Meta stage polish */
 .mkt-product--stage .mkt-product-row-hot,
 .mkt-product--stage .mkt-product-row-active {
   border-color: color-mix(in srgb, var(--signal) 45%, transparent);
@@ -9582,26 +8375,10 @@ button.btn {
   color: color-mix(in srgb, #c8d0db 72%, transparent);
 }
 
-/* Billion-bar stage mass */
 @media (min-width: 981px) {
-  .mkt-hero-stage-wrap {
-    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-    gap: clamp(1.5rem, 3vw, 3rem);
-  }
-  .mkt-hero-stage {
-    width: min(100%, 44rem);
-  }
-  .mkt-hero-stage-frame {
-    padding: 0.85rem;
-    border-radius: 1.15rem;
-    transform: perspective(1800px) rotateY(-12deg) rotateX(5deg) scale(1.04);
-    box-shadow:
-      0 0 0 1px color-mix(in srgb, #000 60%, transparent),
-      0 40px 100px color-mix(in srgb, #000 62%, transparent),
-      0 12px 32px color-mix(in srgb, #000 40%, transparent),
-      inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent),
-      inset 0 -1px 0 color-mix(in srgb, #fff 6%, transparent);
-  }
+  
+  
+  
   .mkt-product--stage {
     min-height: 28rem;
     padding: 1.35rem 1.4rem 1.45rem;
@@ -9609,10 +8386,6 @@ button.btn {
     opacity: 1;
   }
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Craft mastery — one font, one box language (Grok-clean consistency)
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 html,
 body,
@@ -9628,14 +8401,9 @@ select {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-.mkt-hero-title,
-.mkt-hero-title--meta,
-.mkt-hero-title--absolute,
 .mkt-manifesto-title,
 .mkt-law-title,
-.mkt-close-title,
 .mkt-proof-title,
-.type-display,
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif !important;
   font-weight: 700 !important;
@@ -9651,7 +8419,6 @@ select {
 .mkt-nav-cta,
 .mkt-nav-links a,
 .mkt-nav-login,
-.mkt-hero-live-label,
 .mkt-manifesto-kicker,
 .mkt-law-id,
 .mkt-footer-heading,
@@ -9675,13 +8442,9 @@ select {
 
 .mkt-product--stage,
 .mkt-product--company,
-.mkt-hero-stage-frame,
 .mkt-proof-card,
 .panel-chalk,
-.shell-panel,
-.os-panel,
-.pro-panel,
-.home-os-panel {
+.pro-panel{
   border-radius: var(--radius-box, var(--radius-lg)) !important;
 }
 
@@ -9689,7 +8452,6 @@ select {
 .mkt-product--company .mkt-product-row {
   border-radius: var(--radius-control, var(--radius-md)) !important;
 }
-
 
 .mkt-nav-brand .orvius-logo-word {
   font-weight: 700;
@@ -9699,7 +8461,6 @@ select {
 .mkt-nav-links a,
 .mkt-nav-login,
 .mkt-footer-heading,
-.mkt-hero-live-label,
 .mkt-manifesto-kicker,
 .mkt-product-kicker,
 .mkt-product-live {
@@ -9708,21 +8469,6 @@ select {
   font-weight: 600 !important;
 }
 
-/* Template / surface boxes — identical material language */
-.orvius-box {
-  border: 1px solid var(--surface-border-dark, color-mix(in srgb, #fff 10%, transparent));
-  background: var(--surface-bg-dark, #12161e);
-  border-radius: var(--radius-box, var(--radius-lg));
-  padding: 1rem 1.1rem;
-}
-
-.orvius-box--chalk {
-  border-color: var(--surface-border);
-  background: var(--surface-bg);
-}
-
-
-/* Login craft — same Sora + same box language as marketing */
 .tier1-login,
 .tier1-login button,
 .tier1-login input {
@@ -9781,7 +8527,6 @@ select {
   font-weight: 500 !important;
 }
 
-/* Quiet details — never paint setup/dev chrome as product CTAs */
 .tier1-login-setup,
 .tier1-login-dev {
   border: none !important;
@@ -9791,8 +8536,6 @@ select {
   min-height: 0 !important;
 }
 
-
-/* Kill leftover pills on auth + pricing surfaces */
 .tier1-login-actions .inst-btn,
 .tier1-login-actions .google-sign-in-btn,
 .tier1-login-dev-btn,
@@ -9803,10 +8546,6 @@ select {
 .mkt-nav-cta {
   border-radius: 0.625rem !important;
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Dashboard craft — same Sora + box language as marketing
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-shell,
 .os-shell-pro,
@@ -9852,15 +8591,9 @@ select {
 }
 
 .os-ring-status-pro,
-.os-panel,
-.os-panel-pro,
 .pro-panel,
-.shell-panel,
-.account-panel,
 .pro-setup-hub,
-.pro-settings-card,
-.capture-setup,
-.os-main-card {
+.capture-setup{
   border-radius: var(--radius-box, var(--radius-lg)) !important;
 }
 
@@ -9887,39 +8620,24 @@ select {
 
 .os-shell-pro h1,
 .os-shell-pro h2,
-.os-shell-pro .os-page-title,
-.os-page-title {
+.os-shell-pro .os-page-title{
   font-family: var(--font-sans), system-ui, sans-serif !important;
   font-weight: 700 !important;
   letter-spacing: -0.03em !important;
 }
 
-.paywall-modal,
-.pay-prompt-modal,
 .post-lock-banner,
 .post-lock-strip {
   border-radius: var(--radius-box, var(--radius-lg)) !important;
   font-family: var(--font-sans), system-ui, sans-serif !important;
 }
 
-.paywall-modal button,
-.pay-prompt-modal button {
-  border-radius: var(--radius-cta, var(--radius-md)) !important;
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   OS SPINE CRAFT — industrial night-shift weight across Command→Settings
-   Scoped to .os-shell-pro so marketing stays untouched.
-   Kills: soft card elevation, 999px pills, pink urgency wash, airy SaaS density.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .os-shell-pro {
-  --os-paper: #eceff3;
-  --os-panel: #f7f8fa;
-  --os-ink: #0c1016;
-  --os-mute: #5c6570;
-  --os-line: color-mix(in srgb, #0c1016 12%, transparent);
+  --os-paper: #12161c;
+  --os-panel: #181d25;
+  --os-ink: #eef1f5;
+  --os-mute: #8b93a0;
+  --os-line: color-mix(in srgb, #eef1f5 12%, transparent);
   --os-radius: 0.3125rem;
   --os-flare: #b42318;
   --shadow-soft: none;
@@ -9944,12 +8662,6 @@ select {
   box-shadow: none !important;
 }
 
-.os-shell-pro .os-topbar-title {
-  letter-spacing: -0.03em;
-  font-weight: 700;
-}
-
-/* —— Panels / cards: hairline boxes, no lift theater —— */
 .os-shell-pro .pro-card,
 .os-shell-pro .pro-stat,
 .os-shell-pro .pro-panel,
@@ -9985,7 +8697,6 @@ select {
   border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
 }
 
-/* —— Controls: hard geometry, never sausages —— */
 .os-shell-pro .btn,
 .os-shell-pro .btn-void,
 .os-shell-pro .btn-secondary,
@@ -10031,7 +8742,6 @@ select {
   color: #fff !important;
 }
 
-/* —— Urgency: left rail industrial, no pink wash —— */
 .os-shell-pro .attention-item-critical,
 .os-shell-pro .lead-inbox-card-emergency,
 .os-shell-pro .job-card-emergency,
@@ -10070,7 +8780,6 @@ select {
   background: #fff !important;
 }
 
-/* —— Density —— */
 .os-shell-pro .attention-item {
   padding: 0.7rem 0.85rem !important;
   gap: 0.55rem 0.85rem !important;
@@ -10101,21 +8810,10 @@ select {
   padding: 0.85rem 0.95rem !important;
 }
 
-.os-shell-pro .pro-stat-value {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-}
-
-.os-shell-pro .pro-kicker-flare,
-.os-shell-pro .live-dot-flare {
-  color: var(--os-flare) !important;
-}
-
 .os-shell-pro .live-dot-flare {
   background: var(--os-flare) !important;
 }
 
-/* Assign CTA — box, not sausage */
 .os-shell-pro .assign-tech-one-tap,
 .os-shell-pro .assign-tech-btn,
 .os-shell-pro .assign-tech-primary {
@@ -10127,14 +8825,12 @@ select {
   font-size: 0.6875rem !important;
 }
 
-/* Hide floating star / noisy FAB if present */
 .os-shell-pro .os-ask-fab,
 .os-shell-pro .ask-fab,
 .os-shell-pro button[aria-label*="Ask"][class*="fab"] {
   border-radius: var(--os-radius) !important;
 }
 
-/* Shop line / follow-up banners — institutional strip, not peach promo */
 .os-shell-pro .pro-signal-bar,
 .os-shell-pro .live-status-bar,
 .os-shell-pro .owner-setup-banner {
@@ -10163,11 +8859,6 @@ select {
   border: 1px solid var(--os-line, color-mix(in srgb, #0c1016 12%, transparent)) !important;
   background: var(--os-panel, #f7f8fa) !important;
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Mobile marketing craft — Grok precision on Orvius night void
-   Circular menu. Full-bleed sheet. No cream drawer / sausage Try CTA.
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 .mkt-nav--institution .mkt-nav-menu-toggle {
   width: 2.5rem;
@@ -10202,7 +8893,6 @@ select {
   }
 }
 
-/* Full-bleed void sheet — replaces cream SaaS drawer */
 .mkt-nav-sheet {
   position: fixed;
   inset: 0;
@@ -10310,23 +9000,10 @@ select {
   }
 }
 
-/* Mobile hero — Grok density: brand, claim, one line, one CTA group */
 @media (max-width: 859px) {
-
-
-
-
-
-
-
-
 
   .mkt-hero--bleed .mkt-btn-hero,
 
-
-
-
-  /* Hide duplicate Try CTA in sticky header on phone — Grok keeps chrome quiet */
   .mkt-nav--institution .mkt-nav-actions .mkt-nav-cta {
     display: none !important;
   }
@@ -10338,10 +9015,7 @@ select {
   }
 }
 
-/* Mobile first viewport: Grok discipline — type only, no underlay collision */
 @media (max-width: 859px) {
-
-
 
   .mkt-nav-menu-toggle,
   .mkt-nav-menu-toggle--close {
@@ -10351,7 +9025,6 @@ select {
   }
 }
 
-/* —— Dense product board —— */
 .mkt-product--dense {
   display: flex;
   flex-direction: column;
@@ -10662,8 +9335,6 @@ select {
   text-overflow: ellipsis;
 }
 
-/* Dense product inside desktop plane */
-
 @media (max-width: 640px) {
   .mkt-product-body {
     grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
@@ -10710,14 +9381,13 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mkt-hero-product-band,
+  
   .mkt-product-live-dot,
   .mkt-product-steps li.is-active span::before {
     animation: none !important;
   }
 }
 
-/* —— Cursor-grade footer columns —— */
 .mkt-footer--cursor {
   padding-top: clamp(3.25rem, 7vh, 4.5rem);
 }
@@ -10725,10 +9395,6 @@ select {
 .mkt-footer-grid--cursor {
   grid-template-columns: minmax(0, 1.35fr) repeat(4, minmax(0, 1fr));
   gap: 2rem 2.25rem;
-}
-
-.mkt-footer-bottom--cursor {
-  margin-top: 2.5rem;
 }
 
 @media (max-width: 900px) {
@@ -10751,24 +9417,6 @@ select {
   .mkt-footer--cursor .mkt-footer-col:last-child {
     border-bottom: none;
   }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   WHOLE PRODUCT CRAFT — one Cursor-grade industrial standard
-   Marketing: night void everywhere (kills cream tier1 / marketing-hero).
-   Login / onboarding / locks: tool density, hard radii, no soft SaaS.
-   OS spine: denser industrial paper (extends .os-shell-pro).
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* —— Marketing page always night —— */
-.mkt-page {
-  --mkt-ink: #f2f4f7;
-  --mkt-muted: color-mix(in srgb, #c9d2df 62%, transparent);
-  --mkt-surface: #0c1118;
-  --mkt-inset: #0a0e14;
-  --canvas-night: #05070b;
-  background: #05070b !important;
-  color: #eef1f5 !important;
 }
 
 .mkt-page .editorial-wrap {
@@ -10842,7 +9490,6 @@ select {
   color: #fff !important;
 }
 
-/* Buttons on night marketing */
 .mkt-page .inst-btn,
 .mkt-page .tier-btn,
 .mkt-page .mkt-btn {
@@ -10868,7 +9515,6 @@ select {
   color: #fff !important;
 }
 
-/* Pricing / plan cards — dense tool tiles on void */
 .mkt-page .tier1-plan,
 .mkt-page .tier1-story-card,
 .mkt-page .pro-panel {
@@ -10921,7 +9567,6 @@ select {
   border-radius: 0.3rem !important;
 }
 
-/* Forms on night pages */
 .mkt-page input,
 .mkt-page select,
 .mkt-page textarea,
@@ -10940,7 +9585,6 @@ select {
   color: color-mix(in srgb, #c9d2df 70%, transparent) !important;
 }
 
-/* Legal prose on void */
 .mkt-page .legal-prose {
   color: color-mix(in srgb, #e8ecf2 78%, transparent);
 }
@@ -10958,7 +9602,6 @@ select {
   border-color: color-mix(in srgb, #fff 10%, transparent) !important;
 }
 
-/* Call demo — force void reading on marketing */
 .mkt-page .call-demo-light {
   background: #0c1118 !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
@@ -10970,7 +9613,6 @@ select {
   color: #f5f7fa !important;
 }
 
-/* —— Login: full industrial void —— */
 .tier1-login {
   background: #05070b;
 }
@@ -11032,15 +9674,14 @@ select {
   }
 }
 
-/* —— Onboarding: industrial tool paper (matches OS spine) —— */
 .onboarding-shell {
-  --os-paper: #eceff3;
-  --os-panel: #f7f8fa;
-  --os-ink: #0c1016;
-  --os-mute: #5c6570;
-  --os-line: color-mix(in srgb, #0c1016 12%, transparent);
-  background:
-    linear-gradient(180deg, #e8ebf0 0%, #eceff3 100%) !important;
+  --os-paper: #0c1016;
+  --os-panel: #12171f;
+  --os-ink: #f1f3f6;
+  --os-mute: #7a8490;
+  --os-line: color-mix(in srgb, #f1f3f6 12%, transparent);
+  background: #0c1016 !important;
+  color: #f1f3f6;
 }
 
 .onboarding-glow {
@@ -11070,9 +9711,6 @@ select {
   border-radius: 0.3125rem !important;
 }
 
-/* —— PublicLayout / 404 / light cursor pages → night —— */
-
-/* Site footer on PublicLayout */
 .tier1-footer {
   background: #050607 !important;
   border-top: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
@@ -11083,20 +9721,12 @@ select {
   color: color-mix(in srgb, #f0f0fa 62%, transparent) !important;
 }
 
-/* Shell header chalk → void when on night public pages */
-.cursor-page-light ~ header,
-.shell-header--chalk {
-  /* keep specificity via body children handled below */
-}
-
-body:has(.cursor-page-light) .shell-header,
 body:has(.mkt-page) .shell-header {
   background: color-mix(in srgb, #070809 92%, transparent) !important;
   border-bottom-color: color-mix(in srgb, #fff 10%, transparent) !important;
   color: #f0f0fa !important;
 }
 
-/* —— Paywall / billing lock — industrial, not soft card —— */
 .pay-prompt-card,
 .billing-lock-card {
   background: #0c1118 !important;
@@ -11128,37 +9758,12 @@ body:has(.mkt-page) .shell-header {
   color: color-mix(in srgb, #c9d2df 65%, transparent) !important;
 }
 
-.pay-prompt-plan {
-  background: #0a0e14 !important;
-  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.3rem !important;
-}
-
-.pay-prompt-plan--featured {
-  border-color: color-mix(in srgb, #f0f0fa 28%, transparent) !important;
-}
-
 .pay-prompt-plan-name,
 .pay-prompt-plan-price,
 .billing-lock-price-amt {
   color: #f5f7fa !important;
 }
 
-.pay-prompt-later {
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
-}
-
-/* Cookie consent */
-.cookie-consent,
-.cookie-banner {
-  background: #0c1118 !important;
-  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  border-radius: 0.375rem !important;
-  color: #eef1f5 !important;
-  box-shadow: none !important;
-}
-
-/* —— OS spine density pass 2 —— */
 .os-shell-pro .os-sidebar {
   background: #0c1016 !important;
   border-right: 1px solid color-mix(in srgb, #fff 8%, transparent) !important;
@@ -11219,7 +9824,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: var(--os-radius) !important;
 }
 
-/* Public estimate / tech field keep void; tighten radii */
 .public-shell {
   background: #05070b !important;
 }
@@ -11230,8 +9834,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.3rem !important;
 }
 
-/* Confirm / bare token routes */
-/* Night panels used by billing success / docs */
 .mkt-page .mkt-doc-panel,
 .mkt-page .panel-chalk {
   background: #0c1118 !important;
@@ -11241,7 +9843,6 @@ body:has(.mkt-page) .shell-header {
   color: #eef1f5 !important;
 }
 
-/* OwnerAlertCard / soft marketing embeds on night pages */
 .mkt-page .owner-alert-card,
 .mkt-page .shell-panel,
 .mkt-page .panel {
@@ -11251,7 +9852,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-/* FAQ / matrix / needs picker density */
 .mkt-page .pricing-faq details,
 .mkt-page .pricing-faq-item,
 .mkt-page .feature-matrix,
@@ -11271,7 +9871,6 @@ body:has(.mkt-page) .shell-header {
   border-color: color-mix(in srgb, #fff 8%, transparent) !important;
 }
 
-/* —— Pricing internals: kill remaining cream cards —— */
 .mkt-page .pricing-wizard,
 .mkt-page .pricing-needs,
 .mkt-page .pricing-faq-item,
@@ -11372,7 +9971,6 @@ body:has(.mkt-page) .shell-header {
   color: inherit;
 }
 
-/* Final dashboard craft lock — filters, badges, nav rail */
 .os-shell-pro .inbox-filters .btn,
 .os-shell-pro .inbox-filters a,
 .os-shell-pro .pro-filter-bar .btn,
@@ -11406,7 +10004,6 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-pro .pro-kicker-flare,
 .os-shell-pro .live-dot-flare {
-  /* keep flare color for emergency signal; no wash behind it */
 }
 
 .os-shell-pro .lead-inbox-card,
@@ -11420,277 +10017,6 @@ body:has(.mkt-page) .shell-header {
   padding: 0.65rem 0.85rem !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   DASHBOARD CRAFT PASS 3 — hold industrial standard across the OS
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-.os-shell-pro .os-topbar-pro,
-.os-shell-pro .os-topbar {
-  padding: 1rem 1.15rem 0.9rem !important;
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-bottom: 1px solid var(--os-line) !important;
-  box-shadow: none !important;
-}
-
-@media (min-width: 1024px) {
-  .os-shell-pro .os-topbar-pro,
-  .os-shell-pro .os-topbar {
-    padding: 1.15rem 1.75rem 1rem !important;
-  }
-}
-
-.os-shell-pro .os-content-pro,
-.os-shell-pro .os-content {
-  padding: 1.1rem 1.15rem 5.5rem !important;
-}
-
-@media (min-width: 1024px) {
-  .os-shell-pro .os-content-pro,
-  .os-shell-pro .os-content {
-    padding: 1.25rem 1.75rem 5.5rem !important;
-  }
-}
-
-.os-shell-pro .call-record-card,
-.os-shell-pro .approve-queue,
-.os-shell-pro .approve-queue-item,
-.os-shell-pro .approve-item,
-.os-shell-pro .pro-dispatch-today,
-.os-shell-pro .pro-setup-hub,
-.os-shell-pro .pro-setup-alert,
-.os-shell-pro .pro-setup-card,
-.os-shell-pro .account-billing-plan,
-.os-shell-pro .ring1-metric,
-.os-shell-pro .ring1-recent-call,
-.os-shell-pro .ring1-more-card,
-.os-shell-pro .pro-economics-panel,
-.os-shell-pro .pro-shop-outcomes,
-.os-shell-pro .owner-alert-card,
-.os-shell-pro .transcript-cinema,
-.os-shell-pro .capture-setup-panel,
-.os-shell-pro .go-live-checklist,
-.os-shell-pro .launch-gates-strip,
-.os-shell-pro .pro-page-strip,
-.os-shell-pro .os-ask-dock-panel {
-  border-radius: var(--os-radius) !important;
-  border: 1px solid var(--os-line) !important;
-  box-shadow: none !important;
-  transform: none !important;
-  background: var(--os-panel) !important;
-}
-
-.os-shell-pro .call-record-card:hover,
-.os-shell-pro .approve-queue-item:hover,
-.os-shell-pro .ring1-more-card:hover,
-.os-shell-pro .ring1-recent-call:hover,
-.os-shell-pro .dispatch-job-chip:hover {
-  transform: none !important;
-  box-shadow: none !important;
-  border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
-}
-
-.pro-page-strip-badge,
-.os-shell-pro .pro-page-strip-pill,
-.os-shell-pro .pro-page-strip-badge {
-  display: inline-flex !important;
-  align-items: center;
-  padding: 0.3rem 0.55rem !important;
-  border-radius: 0.25rem !important;
-  font-size: 0.625rem !important;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--os-ink) !important;
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
-}
-
-.os-shell-pro .pro-setup-alert {
-  background: var(--os-panel) !important;
-  border-left: 3px solid var(--os-flare) !important;
-  box-shadow: none !important;
-}
-
-.os-shell-pro .dispatch-col-unassigned,
-.os-shell-pro .pro-today-pulse {
-  background: var(--os-panel) !important;
-  background-image: none !important;
-}
-
-.os-shell-pro .inbox-filters .btn-void,
-.os-shell-pro .pro-filter-bar .btn-void {
-  box-shadow: none !important;
-}
-
-.os-shell-pro .os-ask-dock-trigger,
-.os-shell-pro .os-ask-dock-chip,
-.os-shell-pro .os-ask-dock-send,
-.os-shell-pro .os-ask-dock-form input,
-.os-shell-pro .os-ask-dock-form button {
-  border-radius: var(--os-radius) !important;
-}
-
-.os-shell-pro .os-ask-dock-trigger {
-  min-height: 2.5rem !important;
-  padding: 0.45rem 0.85rem !important;
-  box-shadow: none !important;
-  border: 1px solid var(--os-line) !important;
-  background: var(--os-ink) !important;
-  color: #fff !important;
-  backdrop-filter: none !important;
-}
-
-.os-shell-pro .os-ask-dock-trigger-mark {
-  border-radius: 0.25rem !important;
-}
-
-.os-shell-pro .os-ask-dock-panel {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
-  border: 1px solid var(--os-line) !important;
-}
-
-.os-shell-pro .os-ask-dock-chip {
-  background: #fff !important;
-  border: 1px solid var(--os-line) !important;
-  box-shadow: none !important;
-  padding: 0.35rem 0.55rem !important;
-  font-size: 0.75rem !important;
-}
-
-.os-shell-pro .approve-queue-item,
-.os-shell-pro .approve-item {
-  padding: 0.7rem 0.85rem !important;
-  background: #fff !important;
-}
-
-.os-shell-pro .job-card-emergency {
-  border-left: 3px solid var(--os-flare) !important;
-}
-
-.os-shell-pro .job-card-emergency::before,
-.os-shell-pro .lead-inbox-card-emergency::before {
-  display: none !important;
-}
-
-.os-shell-pro .lead-inbox-card-emergency {
-  border-left: 3px solid var(--os-flare) !important;
-}
-
-.os-shell-pro .account-billing-plan,
-.os-shell-pro .tier1-plan {
-  background: var(--os-panel) !important;
-  border: 1px solid var(--os-line) !important;
-  border-radius: var(--os-radius) !important;
-  box-shadow: none !important;
-}
-
-.os-shell-pro .os-mobile-nav,
-.os-shell-pro .os-mobile-nav a,
-.os-shell-pro .os-mobile-nav button {
-  border-radius: var(--os-radius) !important;
-  box-shadow: none !important;
-}
-
-.os-shell-pro .os-mobile-nav {
-  background: var(--os-panel) !important;
-  border-top: 1px solid var(--os-line) !important;
-}
-
-.os-shell-pro .ring1-metric {
-  padding: 0.85rem 0.95rem !important;
-}
-
-.os-shell-pro .ring1-recent-call,
-.os-shell-pro .ring1-more-card {
-  padding: 0.7rem 0.85rem !important;
-}
-
-.os-shell-pro a.lead-inbox-card-link,
-.os-shell-pro .lead-inbox-card-link,
-.os-shell-pro .lead-inbox-card-link:hover {
-  transform: none !important;
-}
-
-.os-shell-pro .os-sidebar-pro .os-nav-link,
-.os-shell-pro .os-sidebar .os-nav-link {
-  border-radius: 0.25rem !important;
-  color: color-mix(in srgb, #e8edf4 72%, transparent) !important;
-}
-
-.os-shell-pro .os-sidebar-pro .os-nav-link:hover,
-.os-shell-pro .os-sidebar .os-nav-link:hover {
-  background: color-mix(in srgb, #fff 6%, transparent) !important;
-  color: #f5f7fa !important;
-}
-
-.os-shell-pro .os-ring-status-pro,
-.os-shell-pro .os-ring-status {
-  border-radius: var(--os-radius) !important;
-  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  background: color-mix(in srgb, #fff 4%, transparent) !important;
-  box-shadow: none !important;
-}
-
-.os-shell-pro .os-ring-status-title {
-  color: #f5f7fa !important;
-}
-
-.os-shell-pro .os-ring-status-module,
-.os-shell-pro .os-sidebar-label {
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
-}
-
-.os-shell-pro .os-sidebar-brand .orvius-logo {
-  color: #f5f7fa !important;
-}
-
-.os-shell-pro .lead-inbox-card,
-.os-shell-pro .job-card,
-.os-shell-pro .call-record-card,
-.os-shell-pro .pro-page-strip {
-  background: #fff !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   OS NIGHT INDUSTRIAL — visible break from soft light SaaS
-   Dark canvas + dense rows + hairline tools. Same language as marketing void.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-.os-shell-night {
-  --os-paper: #22252a;
-  --os-panel: #292d33;
-  --os-ink: #f2f4f5;
-  --os-mute: color-mix(in srgb, #c9d2df 62%, transparent);
-  --os-line: color-mix(in srgb, #fff 10%, transparent);
-  --os-flare: #e5484d;
-  --os-live: #3dd68c;
-  --void: #f2f4f5;
-  --ash: color-mix(in srgb, #c9d2df 62%, transparent);
-  --ash-soft: color-mix(in srgb, #c9d2df 45%, transparent);
-  --white: #292d33;
-  --fog: #1e2125;
-  --chalk: #22252a;
-  --canvas: #22252a;
-  --rule: color-mix(in srgb, #fff 10%, transparent);
-  --signal: #d8a15a;
-  background: #22252a !important;
-  color: #e8edf4 !important;
-}
-
-.os-shell-night .os-main-pro,
-.os-shell-night .os-content-pro,
-.os-shell-night .os-content,
-.os-shell-night .os-main {
-  background: #22252a !important;
-  color: #e8edf4 !important;
-}
-
-/* Compact instrument topbar — not a marketing hero */
 .os-shell-night .os-topbar-pro,
 .os-shell-night .os-topbar-night,
 .os-shell-night .os-topbar {
@@ -11706,25 +10032,6 @@ body:has(.mkt-page) .shell-header {
   }
 }
 
-.os-shell-night .os-topbar-title {
-  font-size: 1.15rem !important;
-  font-weight: 650 !important;
-  letter-spacing: -0.02em !important;
-  color: #f5f7fa !important;
-  margin: 0.15rem 0 0 !important;
-}
-
-.os-shell-night .os-topbar-sub {
-  display: none !important; /* kill airy marketing subcopy in the tool */
-}
-
-.os-shell-night .os-topbar-live {
-  font-size: 0.625rem !important;
-  letter-spacing: 0.12em !important;
-  color: var(--os-live) !important;
-  margin: 0 !important;
-}
-
 .os-shell-night .os-content-pro,
 .os-shell-night .os-content {
   padding: 0.85rem 1rem 5rem !important;
@@ -11736,7 +10043,6 @@ body:has(.mkt-page) .shell-header {
   }
 }
 
-/* All panels: dark hairline tools */
 .os-shell-night .pro-card,
 .os-shell-night .pro-stat,
 .os-shell-night .pro-panel,
@@ -11788,81 +10094,6 @@ body:has(.mkt-page) .shell-header {
   padding: 0.55rem 0.7rem !important;
 }
 
-/* Dense attention board — Cursor row density */
-.os-shell-night .attention-queue {
-  padding: 0.75rem !important;
-}
-
-.os-shell-night .attention-queue-kicker {
-  font-size: 0.5625rem !important;
-  letter-spacing: 0.14em !important;
-  color: color-mix(in srgb, #c9d2df 48%, transparent) !important;
-}
-
-.os-shell-night .attention-queue-title {
-  font-size: 1.05rem !important;
-  font-weight: 650 !important;
-  letter-spacing: -0.02em !important;
-  color: #f5f7fa !important;
-  margin: 0.2rem 0 0 !important;
-}
-
-.os-shell-night .attention-queue-lead {
-  font-size: 0.75rem !important;
-  color: color-mix(in srgb, #c9d2df 55%, transparent) !important;
-  margin: 0.2rem 0 0.65rem !important;
-  max-width: none !important;
-}
-
-.os-shell-night .attention-queue-list {
-  gap: 0.35rem !important;
-}
-
-.os-shell-night .attention-item {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
-  gap: 0.5rem 0.85rem !important;
-  align-items: center !important;
-}
-
-.os-shell-night .attention-item-kind {
-  font-size: 0.5625rem !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-  color: color-mix(in srgb, #c9d2df 50%, transparent) !important;
-  margin: 0 !important;
-}
-
-.os-shell-night .attention-item-critical .attention-item-kind {
-  color: #ff8d85 !important;
-}
-
-.os-shell-night .attention-item-title {
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  color: #f5f7fa !important;
-  margin: 0.1rem 0 0 !important;
-  letter-spacing: -0.01em;
-}
-
-.os-shell-night .attention-item-detail,
-.os-shell-night .attention-item-value {
-  font-size: 0.75rem !important;
-  color: color-mix(in srgb, #c9d2df 58%, transparent) !important;
-  margin: 0.1rem 0 0 !important;
-}
-
-.os-shell-night .attention-item-critical {
-  border-left: 2px solid var(--os-flare) !important;
-}
-
-.os-shell-night .attention-item-actions {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 0.3rem !important;
-  justify-content: flex-end !important;
-}
-
 .os-shell-night .attention-item-btn,
 .os-shell-night .attention-item-btn-primary,
 .os-shell-night .btn,
@@ -11895,7 +10126,6 @@ body:has(.mkt-page) .shell-header {
   border: 1px solid color-mix(in srgb, #fff 18%, transparent) !important;
 }
 
-/* Inbox / job cards — dense night tiles */
 .os-shell-night .lead-inbox-card,
 .os-shell-night .job-card,
 .os-shell-night .call-record-card,
@@ -11945,23 +10175,6 @@ body:has(.mkt-page) .shell-header {
   color: #ff8d85 !important;
 }
 
-.os-shell-night .pro-stat {
-  padding: 0.65rem 0.75rem !important;
-}
-
-.os-shell-night .pro-stat-value {
-  font-size: 1.25rem !important;
-}
-
-.os-shell-night .pro-stat-label {
-  font-size: 0.5625rem !important;
-}
-
-.os-shell-night .pro-page-strip {
-  background: #24272c !important;
-  padding: 0.5rem 0.7rem !important;
-}
-
 .os-shell-night .pro-page-strip-line,
 .os-shell-night .pro-page-strip-meta {
   color: #e8edf4 !important;
@@ -11995,12 +10208,6 @@ body:has(.mkt-page) .shell-header {
   color: #f5f7fa !important;
 }
 
-.os-shell-night .status-pill-flare {
-  color: #ff8d85 !important;
-  border-color: color-mix(in srgb, #e5484d 45%, transparent) !important;
-}
-
-/* Compact lead/job action rows */
 .os-shell-night .lead-quick-actions,
 .os-shell-night .lead-inbox-card-actions,
 .os-shell-night .job-card-actions {
@@ -12017,16 +10224,10 @@ body:has(.mkt-page) .shell-header {
   padding: 0.2rem 0.45rem !important;
 }
 
-/* Stats as instrument strips, not soft metric cards */
 .os-shell-night .pro-page-stats,
 .os-shell-night .pro-stats,
 .os-shell-night [class*="stat-grid"] {
   gap: 0.4rem !important;
-}
-
-.os-shell-night .pro-stat {
-  border-radius: 0.15rem !important;
-  background: #24272c !important;
 }
 
 .os-shell-night .pro-stat-live,
@@ -12069,25 +10270,9 @@ body:has(.mkt-page) .shell-header {
   border-left: 2px solid var(--signal) !important;
 }
 
-.os-shell-night .dispatch-col {
-  background: #0e1319 !important;
-  min-height: 10rem;
-  padding: 0.55rem !important;
-}
-
-.os-shell-night .dispatch-col-unassigned {
-  border-left: 2px solid var(--os-flare) !important;
-}
-
 .os-shell-night .dispatch-job-chip {
   background: #24272c !important;
   color: #e8edf4 !important;
-}
-
-.os-shell-night .os-ask-dock-trigger {
-  background: #f4f6f9 !important;
-  color: #07090c !important;
-  border-radius: 0.2rem !important;
 }
 
 .os-shell-night .os-mobile-nav {
@@ -12105,7 +10290,6 @@ body:has(.mkt-page) .shell-header {
   color: #f5f7fa !important;
 }
 
-/* Kill soft hover lift forever on night OS */
 .os-shell-night *:hover {
   box-shadow: none !important;
 }
@@ -12117,26 +10301,11 @@ body:has(.mkt-page) .shell-header {
   border-color: color-mix(in srgb, #fff 20%, transparent) !important;
 }
 
-/* Pro section heads denser */
 .os-shell-night .pro-section-head {
   margin-bottom: 0.65rem !important;
 }
 
-.os-shell-night .ring1-command {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   MASTERY — Cursor density × Grok true-black restraint
-   Study notes applied:
-   - Grok: OLED #000, monochrome #E7E9EA / #71767B, white = accent, no decor
-   - Cursor: ALL-CAPS rail labels, timestamps right, dense rows, hairlines
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .os-shell-night {
-  /* Charcoal surface stack: canvas, panel, raised panel, hairline. */
   --os-paper: #22252a;
   --os-panel: #292d33;
   --os-panel-raised: #2e333a;
@@ -12173,28 +10342,6 @@ body:has(.mkt-page) .shell-header {
   border-right: 1px solid #444a51 !important;
 }
 
-.os-shell-night .os-topbar-pro,
-.os-shell-night .os-topbar-night {
-  background: #22252a !important;
-  border-bottom: 1px solid #444a51 !important;
-  padding: 0.65rem 1rem !important;
-}
-
-.os-shell-night .os-topbar-title {
-  font-size: 1.25rem !important; /* Grok: tool titles stay modest */
-  font-weight: 700 !important;
-  color: #e7e9ea !important;
-}
-
-.os-shell-night .os-topbar-live {
-  color: #00ba7c !important;
-}
-
-.os-shell-night .os-content-pro {
-  padding: 0.75rem 1rem 4.5rem !important;
-}
-
-/* Cursor rail list */
 .os-lead-rail {
   list-style: none;
   margin: 0.5rem 0 0;
@@ -12336,7 +10483,6 @@ body:has(.mkt-page) .shell-header {
   border-color: #e7e9ea !important;
 }
 
-/* Attention board = Cursor IN PROGRESS rail */
 .os-shell-night .attention-queue {
   background: #292d33 !important;
   border: 1px solid #444a51 !important;
@@ -12344,43 +10490,12 @@ body:has(.mkt-page) .shell-header {
   padding: 0.75rem !important;
 }
 
-.os-shell-night .attention-queue-list {
-  gap: 0 !important;
-  margin-top: 0.65rem !important;
-  border: 1px solid #444a51;
-  border-radius: 0.2rem;
-  overflow: hidden;
-}
-
-.os-shell-night .attention-item {
-  border: none !important;
-  border-bottom: 1px solid #444a51 !important;
-  border-radius: 0 !important;
-  background: #292d33 !important;
-  padding: 0.65rem 0.75rem !important;
-  margin: 0 !important;
-}
-
 .os-shell-night .attention-queue-list > li:last-child .attention-item {
   border-bottom: none !important;
 }
 
-.os-shell-night .attention-item-critical {
-  box-shadow: inset 2px 0 0 #f4212e !important;
-  border-left: none !important;
-}
-
-.os-shell-night .attention-item-kind {
-  color: #9aa0a6 !important;
-}
-
 .os-shell-night .attention-item-critical .attention-item-kind {
   color: #f4212e !important;
-}
-
-.os-shell-night .attention-item-title {
-  font-size: 0.9rem !important;
-  color: #e7e9ea !important;
 }
 
 .os-shell-night .attention-item-detail,
@@ -12396,13 +10511,6 @@ body:has(.mkt-page) .shell-header {
   border: 1px solid #444a51 !important;
 }
 
-.os-shell-night .attention-item-btn-primary {
-  background: #e7e9ea !important;
-  color: #000 !important;
-  border-color: #e7e9ea !important;
-}
-
-/* Panels / stats — Grok surfaces */
 .os-shell-night .pro-card,
 .os-shell-night .pro-stat,
 .os-shell-night .pro-panel,
@@ -12502,44 +10610,12 @@ body:has(.mkt-page) .shell-header {
   box-shadow: inset 2px 0 0 #e7e9ea !important;
 }
 
-.os-shell-night .os-ask-dock-trigger {
-  background: #e7e9ea !important;
-  color: #000 !important;
-  border-radius: 0.2rem !important;
-}
-
-.os-shell-night .ring1-command {
-  gap: 0.65rem !important;
-}
-
-.os-shell-night .pro-page-stats {
-  gap: 0.35rem !important;
-  margin-bottom: 0.65rem !important;
-}
-
 .os-shell-night .pro-page-filters {
   margin-bottom: 0.65rem !important;
 }
 
-.os-shell-night .pro-page-strip {
-  margin-bottom: 0.65rem !important;
-  padding: 0.45rem 0.65rem !important;
-}
-
-/* Marketing void → Grok true black */
 .mkt-page {
   background: #22252a !important;
-}
-
-.mkt-hero--bleed,
-.mkt-hero--cursor {
-  background: #22252a !important;
-}
-
-.mkt-hero-void {
-  background:
-    radial-gradient(ellipse 55% 40% at 78% 55%, color-mix(in srgb, #272a2e 55%, transparent), transparent 62%),
-    #000000 !important;
 }
 
 .mkt-footer--institution,
@@ -12548,18 +10624,8 @@ body:has(.mkt-page) .shell-header {
   border-top-color: #444a51 !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   KEEP WORKING — finish soft leftovers (calls/customers/dispatch/ask/stats)
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .os-shell-night .pro-ring-banner {
   display: none !important;
-}
-
-.os-shell-night .pro-stat {
-  border-top: none !important;
-  border-radius: 0.15rem !important;
-  background: #292d33 !important;
 }
 
 .os-shell-night .pro-stat::before,
@@ -12576,7 +10642,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-/* Kill copper top accents on stats forever */
 .os-shell-night .pro-stat,
 .os-shell-night .pro-page-stats .pro-stat {
   border-top-color: #444a51 !important;
@@ -12600,22 +10665,6 @@ body:has(.mkt-page) .shell-header {
   margin: 0 !important;
   font-size: 0.8125rem !important;
   color: #e7e9ea !important;
-}
-
-.os-shell-night .dispatch-col {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
-  border-radius: 0.25rem !important;
-  padding: 0.5rem !important;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.os-shell-night .dispatch-job-chip-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
 }
 
 .os-shell-night .dispatch-job-chip.lead-rail-row {
@@ -12644,11 +10693,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-.os-shell-night .os-ask-dock-trigger {
-  border-radius: 0.2rem !important;
-  box-shadow: none !important;
-}
-
 .os-shell-night .pro-panel,
 .os-shell-night .ShellPanel,
 .os-shell-night section.pro-panel {
@@ -12656,13 +10700,6 @@ body:has(.mkt-page) .shell-header {
   border: 1px solid #444a51 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-}
-
-.os-shell-night .pro-panel-title {
-  color: #9aa0a6 !important;
-  font-size: 0.625rem !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
 }
 
 .os-shell-night .pro-panel-body,
@@ -12686,7 +10723,6 @@ body:has(.mkt-page) .shell-header {
   gap: 0.65rem !important;
 }
 
-/* Marketing: kill leftover white mastery cards if any */
 .mkt-page .mkt-path-card--mastery,
 .mkt-page .mkt-plan-card--mastery,
 .mkt-page .tier1-plan {
@@ -12696,7 +10732,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-/* KEEP WORKING wave 2 — denser rails + instrument panels */
 .os-shell-night .lead-rail-row {
   padding: 0.5rem 0.7rem !important;
 }
@@ -12710,35 +10745,8 @@ body:has(.mkt-page) .shell-header {
   line-height: 1.3 !important;
 }
 
-.os-shell-night .os-topbar-title {
-  font-size: 1.05rem !important;
-}
-
 .os-shell-night .os-topbar-pro {
   padding: 0.5rem 0.85rem !important;
-}
-
-.os-shell-night .os-content-pro {
-  padding: 0.65rem 0.85rem 4rem !important;
-}
-
-.os-shell-night .pro-panel {
-  padding: 0 !important;
-}
-
-.os-shell-night .pro-panel-head {
-  padding: 0.55rem 0.75rem !important;
-  border-bottom: 1px solid #444a51 !important;
-}
-
-.os-shell-night .pro-panel-body {
-  padding: 0.65rem 0.75rem 0.75rem !important;
-}
-
-.os-shell-night .account-grid {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 0.5rem !important;
 }
 
 @media (min-width: 960px) {
@@ -12763,9 +10771,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .cookie-consent,
-.os-shell-night .cookie-banner,
-.cookie-consent,
-.cookie-banner {
+.os-shell-night .cookie-banner{
   border-radius: 0.2rem !important;
   background: #292d33 !important;
   border: 1px solid #444a51 !important;
@@ -12780,14 +10786,6 @@ body:has(.mkt-page) .shell-header {
   border-left: 2px solid #e7e9ea !important;
 }
 
-.os-shell-night .attention-item {
-  padding: 0.5rem 0.65rem !important;
-}
-
-.os-shell-night .attention-queue-title {
-  font-size: 0.95rem !important;
-}
-
 .os-shell-night .pro-page-strip {
   margin-bottom: 0.5rem !important;
 }
@@ -12800,7 +10798,6 @@ body:has(.mkt-page) .shell-header {
   gap: 0.5rem !important;
 }
 
-/* Detail pages: denser panel stacks */
 .os-shell-night .ring1-lead-grid {
   display: flex !important;
   flex-direction: column !important;
@@ -12810,10 +10807,6 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .ring1-lead-grid .pro-panel {
   margin: 0 !important;
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   CRAFT PASS — detail instruments, billing gates, night onboarding
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-detail-grid {
   display: grid;
@@ -12896,7 +10889,6 @@ body:has(.mkt-page) .shell-header {
   color: #e7e9ea !important;
 }
 
-/* Billing instrument unblock */
 .billing-unblock--instrument,
 .os-shell-night .billing-unblock {
   background: #1e2125 !important;
@@ -12971,7 +10963,6 @@ body:has(.mkt-page) .shell-header {
   color: #e7e9ea !important;
 }
 
-/* Night onboarding — Grok void */
 .onboarding-shell--night {
   background: #22252a !important;
   color: #e7e9ea !important;
@@ -13069,7 +11060,6 @@ body:has(.mkt-page) .shell-header {
   color: #e7e9ea !important;
 }
 
-/* Owner alert / transcript on night details */
 .os-shell-night .panel-void,
 .os-shell-night .owner-alert-card,
 .os-shell-night .transcript-cinema {
@@ -13162,13 +11152,6 @@ body:has(.mkt-page) .shell-header {
   gap: 0.5rem !important;
 }
 
-.os-shell-night .pro-settings-secondary {
-  background: #292d33 !important;
-  border: 1px solid #444a51 !important;
-  border-radius: 0.2rem !important;
-  padding: 0 !important;
-}
-
 .os-shell-night .pro-settings-secondary summary {
   padding: 0.55rem 0.65rem !important;
   color: #e7e9ea !important;
@@ -13176,10 +11159,6 @@ body:has(.mkt-page) .shell-header {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-weight: 700;
-}
-
-.os-shell-night .pro-settings-secondary-body {
-  padding: 0 0.65rem 0.65rem !important;
 }
 
 .os-shell-night .post-lock-strip,
@@ -13225,7 +11204,6 @@ body:has(.mkt-page) .shell-header {
   font-size: 0.75rem !important;
 }
 
-/* Sticky lead bar + ask dock — kill soft pills / cream leftovers */
 .os-shell-night .lead-detail-sticky {
   background: #22252a !important;
   border-top: 1px solid #444a51 !important;
@@ -13307,11 +11285,6 @@ body:has(.mkt-page) .shell-header {
   color: #000 !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   MASTERY WAVE — SpaceX / Grok / Cursor craft across remaining soft chrome
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* Filter bar → Cursor segment instrument */
 .os-shell-night .pro-filter-bar,
 .os-shell-night .pro-page-filters {
   display: inline-flex !important;
@@ -13325,21 +11298,6 @@ body:has(.mkt-page) .shell-header {
   overflow: hidden;
   width: fit-content;
   max-width: 100%;
-}
-
-.os-shell-night .pro-filter-tab {
-  margin: 0 !important;
-  padding: 0.4rem 0.7rem !important;
-  border: 0 !important;
-  border-right: 1px solid #444a51 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: #9aa0a6 !important;
-  font-size: 0.6875rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.06em !important;
-  text-transform: uppercase !important;
-  box-shadow: none !important;
 }
 
 .os-shell-night .pro-filter-tab:last-child {
@@ -13356,25 +11314,6 @@ body:has(.mkt-page) .shell-header {
   background: #e7e9ea !important;
   color: #000000 !important;
   box-shadow: none !important;
-}
-
-/* Owner alert — instrument, not soft product surface */
-.owner-alert {
-  background: #292d33;
-  border: 1px solid #444a51;
-  border-radius: 0.25rem;
-  box-shadow: none;
-  overflow: hidden;
-  color: #e7e9ea;
-}
-
-.owner-alert--chalk {
-  background: #292d33;
-  color: #e7e9ea;
-}
-
-.owner-alert--critical {
-  border-left: 2px solid #f4212e;
 }
 
 .owner-alert-head {
@@ -13487,7 +11426,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-/* Pay prompt + billing lock — night instruments (overlays) */
 .os-shell-night .pay-prompt-backdrop,
 .pay-prompt-card--instrument ~ .pay-prompt-backdrop,
 .pay-prompt .pay-prompt-backdrop {
@@ -13634,7 +11572,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.2rem !important;
 }
 
-/* Ask page densify */
 .os-shell-night .ask-hero {
   margin-bottom: 0.65rem;
 }
@@ -13652,11 +11589,6 @@ body:has(.mkt-page) .shell-header {
   min-height: 2.35rem;
 }
 
-.os-shell-night .ask-suggestions {
-  margin-top: 0.55rem !important;
-  gap: 0.35rem !important;
-}
-
 .os-shell-night .ask-chip {
   border-radius: 0.2rem !important;
   border: 1px solid #444a51 !important;
@@ -13669,14 +11601,6 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .ask-chip:hover:not(:disabled) {
   border-color: #e7e9ea !important;
   background: #292d33 !important;
-}
-
-.os-shell-night .ask-empty-state {
-  margin-top: 0.75rem;
-  padding: 0.65rem;
-  border: 1px solid #444a51;
-  border-radius: 0.2rem;
-  background: #1e2125;
 }
 
 .os-shell-night .ask-empty-title {
@@ -13766,7 +11690,6 @@ body:has(.mkt-page) .shell-header {
   font-size: 0.75rem;
 }
 
-/* Lead status chips on detail */
 .os-shell-night .ring1-lead-status .btn,
 .os-shell-night .lead-status-actions .btn,
 .os-shell-night .ring1-lead-status button {
@@ -13779,7 +11702,6 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
 }
 
-/* Stats strip denser */
 .os-shell-night .pro-page-stats,
 .os-shell-night .pro-stat-row {
   display: grid !important;
@@ -13798,18 +11720,6 @@ body:has(.mkt-page) .shell-header {
   padding: 0.45rem 0.55rem !important;
 }
 
-.os-shell-night .pro-stat-label {
-  font-size: 0.5625rem !important;
-  letter-spacing: 0.12em !important;
-  color: #9aa0a6 !important;
-}
-
-.os-shell-night .pro-stat-value {
-  font-size: 1.15rem !important;
-  color: #e7e9ea !important;
-}
-
-/* Kill remaining soft radii under night shell */
 .os-shell-night .btn,
 .os-shell-night button,
 .os-shell-night .input,
@@ -13823,7 +11733,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.2rem !important;
 }
 
-/* Signal / shop line strip */
 .os-shell-night .pro-shop-line,
 .os-shell-night .pro-page-strip,
 .os-shell-night .pro-signal-bar {
@@ -13869,7 +11778,6 @@ body:has(.mkt-page) .shell-header {
   color: #f4212e;
 }
 
-/* Marketing night densify leftovers */
 .mkt-page .btn,
 .mkt-page .inst-btn,
 .mkt-page button {
@@ -13881,7 +11789,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.15rem !important;
 }
 
-/* Ask suggestion rails — Cursor density, not chip cloud */
 .os-shell-night .ask-suggestions {
   display: flex !important;
   flex-direction: column !important;
@@ -13950,7 +11857,6 @@ body:has(.mkt-page) .shell-header {
   margin-top: 0.5rem !important;
 }
 
-/* Login night instrument */
 .tier1-login--craft {
   background: #22252a !important;
 }
@@ -13984,7 +11890,6 @@ body:has(.mkt-page) .shell-header {
   padding: 0.55rem 0.65rem !important;
 }
 
-/* Dispatch board denser columns */
 .os-shell-night .dispatch-board {
   gap: 0.45rem !important;
 }
@@ -13996,7 +11901,6 @@ body:has(.mkt-page) .shell-header {
   color: #9aa0a6 !important;
 }
 
-/* Assign tech — instrument, not fat CTA */
 .os-shell-night .assign-tech-inline,
 .os-shell-night .dispatch-job-assign {
   display: flex;
@@ -14052,7 +11956,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-/* Plan upgrade gate night */
 .os-shell-night .plan-upgrade-gate {
   padding: 0.5rem 0 !important;
 }
@@ -14086,7 +11989,6 @@ body:has(.mkt-page) .shell-header {
   gap: 0.4rem !important;
 }
 
-/* Dispatch mastery — kill soft card air + fat assign CTAs */
 .os-shell-night .dispatch-job-chip-wrap {
   gap: 0.3rem !important;
 }
@@ -14134,7 +12036,6 @@ body:has(.mkt-page) .shell-header {
   font-weight: 700;
 }
 
-/* Transcript cinema denser instrument */
 .os-shell-night .transcript-cinema {
   border-radius: 0.25rem !important;
   background: #292d33 !important;
@@ -14171,7 +12072,6 @@ body:has(.mkt-page) .shell-header {
   color: #9aa0a6 !important;
 }
 
-/* Force canvas true black everywhere in shell */
 .os-shell-night,
 .os-shell-night .os-main,
 .os-shell-night .os-content,
@@ -14202,7 +12102,6 @@ body:has(.mkt-page) .shell-header {
   max-width: 100%;
 }
 
-/* Shop card hard radius */
 .os-shell-night .os-sidebar [class*="shop"],
 .os-shell-night .os-sidebar-brand,
 .os-shell-night .os-shop,
@@ -14219,32 +12118,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-.os-shell-night .os-ring-status-title {
-  color: #e7e9ea !important;
-  font-size: 0.8125rem !important;
-  font-weight: 650 !important;
-}
-
-.os-shell-night .os-ring-status-module {
-  color: #9aa0a6 !important;
-  font-size: 0.6875rem !important;
-}
-
-.os-shell-night .os-nav-link {
-  border-radius: 0.15rem !important;
-  min-height: 1.7rem !important;
-  padding: 0.25rem 0.45rem !important;
-  font-size: 0.8125rem !important;
-}
-
-.os-shell-night .os-nav-badge {
-  border-radius: 0.15rem !important;
-  min-width: 1.1rem !important;
-  height: 1.1rem !important;
-  font-size: 0.5625rem !important;
-}
-
-/* Pricing / demo / legal under marketing night densify */
 .mkt-page .mkt-pricing-card,
 .mkt-page .mkt-card,
 .mkt-page .mkt-path-card,
@@ -14260,7 +12133,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.2rem !important;
 }
 
-/* Customer timeline → rail instruments */
 .os-shell-night .customer-timeline {
   display: flex;
   flex-direction: column;
@@ -14312,12 +12184,6 @@ body:has(.mkt-page) .shell-header {
   font-size: 0.75rem !important;
 }
 
-/* ============================================================
-   Cursor × Grok craft — marketing call-demo + demo simulate panel,
-   pricing internals to hard X palette, night dispatch crew toolbar.
-   ============================================================ */
-
-/* Marketing call-demo → flat X instrument (pricing / demo / pilot) */
 .mkt-page .call-demo,
 .mkt-page .call-demo-void,
 .mkt-page .call-demo-section {
@@ -14346,7 +12212,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-/* Marketing pro-panel (demo simulate) → dark head, X palette, no cream */
 .mkt-page .pro-panel {
   background: #292d33 !important;
   border: 1px solid #444a51 !important;
@@ -14369,7 +12234,6 @@ body:has(.mkt-page) .shell-header {
   padding: 0.85rem 0.9rem 0.95rem !important;
 }
 
-/* Pricing internals → migrate blue-tint chrome to hard X palette */
 .mkt-page .pricing-faq details,
 .mkt-page .pricing-faq-item,
 .mkt-page .feature-matrix,
@@ -14386,7 +12250,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-/* Night OS dispatch "add to crew" toolbar → flat instrument */
 .os-shell-night .pro-toolbar {
   background: #1e2125 !important;
   border: 1px solid #444a51 !important;
@@ -14636,228 +12499,28 @@ body:has(.mkt-page) .shell-header {
   font-weight: 600;
 }
 
-
-/* ============================================================
-   NIGHT MODE — dark theme for marketing (data-theme="night").
-   Higher specificity than the light rules, so it wins.
-   ============================================================ */
-html[data-theme="night"] .mkt-page,
-html[data-theme="night"] .mkt-page .mkt-hero--clean,
-html[data-theme="night"] .mkt-page .tier1-hero,
-html[data-theme="night"] .mkt-page .tier1-close,
-html[data-theme="night"] .mkt-page .marketing-hero,
-html[data-theme="night"] .mkt-page .mkt-trynow {
-  background: #22252a !important;
-  color: #ededed !important;
-}
-
-html[data-theme="night"] .mkt-page .tier1-story,
-html[data-theme="night"] .mkt-page .tier1-story-muted,
-html[data-theme="night"] .mkt-page .marketing-section,
-html[data-theme="night"] .mkt-page .mkt-manifesto,
-html[data-theme="night"] .mkt-page .mkt-close,
-html[data-theme="night"] .mkt-page .mkt-proof-section,
-html[data-theme="night"] .mkt-page .mkt-showcase {
-  background: #292d33 !important;
-  color: #ededed !important;
-  border-color: #3d434a !important;
-}
-
-/* Ink → light */
-html[data-theme="night"] .mkt-page .mkt-hero-clean-title,
-html[data-theme="night"] .mkt-page .mkt-trynow-title,
-html[data-theme="night"] .mkt-page .mkt-showcase-title,
-html[data-theme="night"] .mkt-page .mkt-manifesto-title,
-html[data-theme="night"] .mkt-page .mkt-law-title,
-html[data-theme="night"] .mkt-page .mkt-close-title,
-html[data-theme="night"] .mkt-page .mkt-proof-title,
-html[data-theme="night"] .mkt-page .tier1-page-title,
-html[data-theme="night"] .mkt-page .tier1-section-title,
-html[data-theme="night"] .mkt-page .type-headline,
-html[data-theme="night"] .mkt-page .text-void,
-html[data-theme="night"] .mkt-page .pro-panel-title,
-html[data-theme="night"] .mkt-page .pricing-needs-option-label,
-html[data-theme="night"] .mkt-page .tier1-plan-price {
-  color: #ededed !important;
-}
-
-/* Muted → warm gray light */
-html[data-theme="night"] .mkt-page .mkt-hero-clean-lead,
-html[data-theme="night"] .mkt-page .mkt-showcase-lead,
-html[data-theme="night"] .mkt-page .mkt-trynow-call,
-html[data-theme="night"] .mkt-page .tier1-section-lead,
-html[data-theme="night"] .mkt-page .tier1-hero-lead,
-html[data-theme="night"] .mkt-page .brand-intro-subline,
-html[data-theme="night"] .mkt-page .brand-intro-description,
-html[data-theme="night"] .mkt-page .text-ash,
-html[data-theme="night"] .mkt-page .mkt-manifesto-aside,
-html[data-theme="night"] .mkt-page .mkt-law-body,
-html[data-theme="night"] .mkt-page .mkt-close-desc,
-html[data-theme="night"] .mkt-page .mkt-proof-lead,
-html[data-theme="night"] .mkt-page .mkt-hero-clean-eyebrow {
-  color: #a3a3a3 !important;
-}
-
-/* Cards / panels → dark */
-html[data-theme="night"] .mkt-page .tier1-plan,
-html[data-theme="night"] .mkt-page .tier1-story-card,
-html[data-theme="night"] .mkt-page .pro-panel,
-html[data-theme="night"] .mkt-page .mkt-card,
-html[data-theme="night"] .mkt-page .mkt-pricing-card,
-html[data-theme="night"] .mkt-page .call-demo,
-html[data-theme="night"] .mkt-page .call-demo-void,
-html[data-theme="night"] .mkt-page .pricing-wizard,
-html[data-theme="night"] .mkt-page .pricing-needs-picker,
-html[data-theme="night"] .mkt-page .pricing-needs-option,
-html[data-theme="night"] .mkt-page .mkt-call-panel,
-html[data-theme="night"] .mkt-page .mkt-showcase-snippet {
-  background: #2e333a !important;
-  border-color: #3d434a !important;
-  color: #ededed !important;
-}
-
-html[data-theme="night"] .mkt-page .mkt-showcase-snippet code {
-  color: #ededed !important;
-}
-
-html[data-theme="night"] .mkt-page .pro-panel-head {
-  background: #22252a !important;
-  border-color: #3d434a !important;
-}
-
-/* Inputs → dark */
-html[data-theme="night"] .mkt-page input,
-html[data-theme="night"] .mkt-page select,
-html[data-theme="night"] .mkt-page textarea,
-html[data-theme="night"] .mkt-page .input {
-  background: #2e333a !important;
-  color: #ededed !important;
-  border-color: #3d434a !important;
-}
-
-/* Primary pills invert to light on dark */
-html[data-theme="night"] .mkt-page .inst-btn-primary,
-html[data-theme="night"] .mkt-page .mkt-btn-chalk,
-html[data-theme="night"] .mkt-page .mkt-btn-ink,
-html[data-theme="night"] .mkt-page .mkt-hero-clean-cta,
-html[data-theme="night"] .mkt-page .mkt-trynow-cta {
-  background: #ededed !important;
-  color: #171717 !important;
-  border-color: #ededed !important;
-}
-
-html[data-theme="night"] .mkt-page .inst-btn-ghost {
-  background: #2e333a !important;
-  color: #ededed !important;
-  border-color: #3d434a !important;
-}
-
-html[data-theme="night"] .mkt-page .mkt-showcase-copybtn {
-  background: #ededed !important;
-  color: #171717 !important;
-}
-
-/* Nav → dark */
-html[data-theme="night"] .mkt-nav--institution,
-html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
-  background: color-mix(in srgb, #22252a 88%, transparent) !important;
-  border-bottom-color: #3d434a !important;
-}
-
-html[data-theme="night"] .mkt-nav-brand .orvius-logo,
-html[data-theme="night"] .mkt-nav-brand .orvius-logo-word,
-html[data-theme="night"] .mkt-nav-brand .orvius-logo-mark,
-html[data-theme="night"] .mkt-nav--institution .mkt-nav-links a,
-html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
-html[data-theme="night"] .mkt-nav--institution .mkt-nav-login,
-html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login,
-html[data-theme="night"] .mkt-nav-theme {
-  color: #ededed !important;
-}
-
-html[data-theme="night"] .mkt-nav-theme:hover {
-  background: #2e333a !important;
-}
-
-html[data-theme="night"] .mkt-nav--institution .mkt-nav-cta,
-html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
-  background: #ededed !important;
-  color: #171717 !important;
-  border-color: #ededed !important;
-}
-
-html[data-theme="night"] .mkt-nav-secondary,
-html[data-theme="night"] .mkt-nav--institution .mkt-nav-secondary,
-html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-secondary {
-  background: #2e333a !important;
-  color: #ededed !important;
-  border-color: #3d434a !important;
-}
-
-/* Footer → dark */
-html[data-theme="night"] .mkt-footer,
-html[data-theme="night"] .mkt-footer--institution {
-  background: #22252a !important;
-  border-top-color: #3d434a !important;
-}
-
-html[data-theme="night"] .mkt-footer-entity,
-html[data-theme="night"] .mkt-footer-heading,
-html[data-theme="night"] .mkt-footer .orvius-logo,
-html[data-theme="night"] .mkt-footer .orvius-logo-word,
-html[data-theme="night"] .mkt-footer .orvius-logo-mark {
-  color: #ededed !important;
-}
-
-html[data-theme="night"] .mkt-footer-tagline,
-html[data-theme="night"] .mkt-footer-col a,
-html[data-theme="night"] .mkt-footer--institution .mkt-footer-copy,
-html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
-  color: #a3a3a3 !important;
-}
-
-html[data-theme="night"] .mkt-footer-bottom {
-  border-top-color: #3d434a !important;
-}
-
-/* Resources hub links */
-html[data-theme="night"] .mkt-page .mkt-resources-link {
-  color: #ededed !important;
-}
-
-/* Bottom-left controls in night mode */
+/* B6: night mode — site-controls only (mkt already forced night). */
 html[data-theme="night"] .site-controls-theme,
 html[data-theme="night"] .site-controls-lang-btn,
 html[data-theme="night"] .site-controls-lang-menu {
   background: #2e333a !important;
   border-color: #3d434a !important;
 }
-
 html[data-theme="night"] .site-controls-lang-btn,
 html[data-theme="night"] .site-controls-lang-menu button {
   color: #ededed !important;
 }
-
 html[data-theme="night"] .site-controls-theme button {
   color: #a3a3a3 !important;
 }
-
 html[data-theme="night"] .site-controls-theme button.is-active {
   background: #ededed !important;
   color: #171717 !important;
 }
-
 html[data-theme="night"] .site-controls-lang-menu button:hover {
   background: #3d434a !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   OS MASTERY — sidebar, command board, settings
-   One type system with the marketing site (neutral grotesque), icon-led rail,
-   real row hierarchy on the board, and a sectioned settings surface.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* ── One letterset across site and product ── */
 .os-shell-night,
 .os-shell-night .font-sans,
 .os-shell-night nav,
@@ -14872,7 +12535,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
     "Liberation Sans", sans-serif;
 }
 
-/* ── Rail ── */
 @media (min-width: 1024px) {
   .os-shell-night .os-sidebar {
     width: 15.75rem !important;
@@ -14897,7 +12559,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   background: #2b2f35 !important;
 }
 
-/* Shop identity — quiet block, not a card */
 .os-shell-night .os-ring-status {
   background: transparent !important;
   border: none !important;
@@ -15049,7 +12710,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   text-transform: uppercase !important;
 }
 
-/* Rail footer — account row */
 .os-shell-night .os-sidebar-footer {
   margin-top: auto !important;
   padding-top: 0.6rem !important;
@@ -15067,17 +12727,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 
 .os-shell-night .os-sidebar-user:hover {
   background: #2b2f35 !important;
-}
-
-/* ── Topbar ── */
-.os-shell-night .os-topbar-pro,
-.os-shell-night .os-topbar-night {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  padding: 0.7rem 1.35rem !important;
-  border-bottom: 1px solid #3d434a !important;
-  background: #22252a !important;
 }
 
 .os-shell-night .os-topbar-live {
@@ -15109,11 +12758,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   padding: 1.1rem 1.35rem 5rem !important;
 }
 
-.os-shell-night .os-content-pro > * {
-  max-width: 78rem;
-}
-
-/* ── Command board ── */
 .os-shell-night .attention-queue-head {
   margin-bottom: 0.55rem;
 }
@@ -15275,25 +12919,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   border-color: transparent !important;
 }
 
-/* ── Panels + stats ── */
-.os-shell-night .pro-panel {
-  background: #292d33 !important;
-  border: 1px solid #3d434a !important;
-  border-radius: 0.4rem !important;
-  overflow: hidden;
-}
-
-.os-shell-night .pro-panel-head {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 0.75rem !important;
-  padding: 0.7rem 0.9rem !important;
-  margin: 0 !important;
-  border-bottom: 1px solid #3d434a !important;
-  background: #2e333a !important;
-}
-
 .os-shell-night .pro-panel-title {
   margin: 0 !important;
   font-size: 0.8125rem !important;
@@ -15321,12 +12946,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   letter-spacing: -0.02em !important;
   color: #f7f9f9 !important;
   font-variant-numeric: tabular-nums;
-}
-
-/* ── Settings ── */
-.os-shell-night .pro-settings-form {
-  max-width: 58rem;
-  gap: 0.9rem !important;
 }
 
 .os-shell-night .onboarding-label {
@@ -15393,7 +13012,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #9aa0a6 !important;
 }
 
-/* Secondary settings groups become real disclosure rows */
 .os-shell-night .pro-settings-secondary {
   border: 1px solid #3d434a !important;
   border-radius: 0.4rem !important;
@@ -15476,29 +13094,12 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #f7f9f9;
 }
 
-.os-shell-night .pro-settings-savebar {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 0.25rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid #3d434a;
-  border-radius: 0.4rem;
-  background: rgba(41, 45, 51, 0.95);
-  backdrop-filter: saturate(140%) blur(10px);
-}
-
 .os-shell-night .pro-settings-savebar-hint {
   margin: 0;
   font-size: 0.75rem;
   color: #9aa0a6;
 }
 
-/* ── Shared focus treatment ── */
 .os-shell-night a:focus-visible,
 .os-shell-night button:focus-visible,
 .os-shell-night summary:focus-visible,
@@ -15509,11 +13110,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   outline-offset: 2px;
 }
 
-/* ── Mastery round 2 ── */
-
-/* Copilot dock sits opposite the rail so it never covers the board or the
-   settings save bar. The wrapper shrinks to its trigger and stays transparent
-   to pointer events, so it can't swallow clicks on the page beneath it. */
 .os-shell-night .os-ask-dock {
   left: auto !important;
   right: 1.35rem !important;
@@ -15527,7 +13123,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   pointer-events: auto;
 }
 
-/* App buttons speak in sentence case, like the site */
 .os-shell-night .btn,
 .os-shell-night button.btn,
 .os-shell-night a.btn {
@@ -15569,7 +13164,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #ffffff !important;
 }
 
-/* One column width for the whole settings surface */
 .os-shell-night .pro-settings-page {
   display: flex;
   flex-direction: column;
@@ -15603,7 +13197,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #ffffff !important;
 }
 
-/* Panel titles read as headings, not micro-labels */
 .os-shell-night .pro-panel .pro-panel-title,
 .os-shell-night .pro-panel-head .pro-panel-title {
   color: #f7f9f9 !important;
@@ -15613,7 +13206,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   text-transform: none !important;
 }
 
-/* ── Mastery round 3 — one button voice across every product surface ── */
 .os-shell-night .lead-quick-actions .btn,
 .os-shell-night .lead-inbox-card-actions .btn,
 .os-shell-night .lead-rail-actions .btn,
@@ -15645,19 +13237,16 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600 !important;
 }
 
-/* Row meta reads as a label, not a whisper */
 .os-shell-night .attention-item-kindlabel,
 .os-shell-night .lead-rail-kind,
 .os-shell-night .lead-inbox-card-kind {
   color: #9aa0a6 !important;
 }
 
-/* Board column keeps a readable measure */
 .os-shell-night .os-content-pro > * {
   max-width: 72rem;
 }
 
-/* Inbox row actions join the same button voice */
 .os-shell-night .lead-quick-btn,
 .os-shell-night .lead-quick-actions .lead-quick-btn,
 .os-shell-night .lead-rail-actions .lead-quick-btn {
@@ -15692,17 +13281,12 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #000000 !important;
 }
 
-/* ── Mastery round 4 ── */
-
-/* Opaque topbar: content must not ghost through while scrolling */
 .os-shell-night .os-topbar-pro,
 .os-shell-night .os-topbar-night {
   background: #22252a !important;
   backdrop-filter: none;
 }
 
-
-/* ── Mastery round 5 — numbers become numbers ── */
 .os-shell-night .shop-outcomes,
 
 .os-shell-night .shop-outcomes-kicker {
@@ -15760,13 +13344,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-variant-numeric: tabular-nums;
 }
 
-
-
-
-
-
-
-/* Inline assign control on the board */
 .os-shell-night .attention-item-assign .assign-tech-select,
 .os-shell-night .attention-item-assign .assign-tech-btn {
   min-height: 1.85rem !important;
@@ -15788,7 +13365,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 600 !important;
 }
 
-/* ── Mastery round 6 — panel edges must not clip content ── */
 .os-shell-night .pro-panel {
   overflow: visible;
 }
@@ -15813,18 +13389,10 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #8b9096;
 }
 
-/* Settings keeps a narrower column than the boards, so its sticky save bar
-   ends well before the floating dock. */
 .os-shell-night .os-content-pro > .pro-settings-page {
   max-width: 62rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   COCKPIT — right-now strip, status rail, command palette, topbar search
-   Charcoal surfaces. Every number on these surfaces comes from shop records.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* ── Two-column cockpit: board on the left, shop status parked on the right ── */
 .os-shell-night .ring1-cockpit {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -15857,7 +13425,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   }
 }
 
-/* ── Right-now strip ── */
 .os-shell-night .pro-right-now {
   display: flex;
   flex-direction: column;
@@ -15955,7 +13522,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #8b9096;
 }
 
-/* ── Rail cards ── */
 .os-shell-night .pro-rail-card {
   display: flex;
   flex-direction: column;
@@ -16066,7 +13632,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   white-space: nowrap;
 }
 
-/* ── Setup score ── */
 .os-shell-night .pro-setup-score-bar {
   height: 0.3rem;
   border-radius: 999px;
@@ -16095,12 +13660,10 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #8b9096;
 }
 
-/* Gate banners sit inside the rail now, so they drop their page-width padding. */
 .os-shell-night .ring1-cockpit-rail .pro-today-alerts {
   gap: 0.5rem;
 }
 
-/* ── Topbar search ── */
 .os-shell-night .os-topbar-search {
   display: inline-flex;
   align-items: center;
@@ -16147,13 +13710,11 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   }
 }
 
-/* ── Rail badge for jobs with no tech ── */
 .os-shell-night .os-nav-badge-warn {
   background: color-mix(in srgb, #d8a15a 22%, transparent) !important;
   color: #e0b782 !important;
 }
 
-/* ── Command palette ── */
 .os-palette-backdrop {
   position: fixed;
   inset: 0;
@@ -16286,7 +13847,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #4fd6a8;
 }
 
-/* ── Night watch rail card ── */
 .os-shell-night .pro-rail-status-night {
   background: color-mix(in srgb, #6f8dff 22%, transparent);
   color: #a7b8ff;
@@ -16337,11 +13897,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #e0b782;
 }
 
-/* Stale-proof notice: a solid amber on charcoal instead of translucent ink on
-   a red wash, which fell under 2:1 once the canvas lifted. */
-
-/* The shell forces a muted color on every <p> with !important, which swallowed
-   the palette's confirmation line. Say it louder, in the same night scope. */
 .os-shell-night .os-palette-note {
   color: #6ee7b7 !important;
 }
@@ -16350,8 +13905,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #9aa0a6 !important;
 }
 
-/* The floating dock is fixed to the bottom-right, so the sticky save bar keeps
-   a lane clear for it instead of parking its button underneath. */
 .os-shell-night .pro-settings-savebar {
   padding-right: 10rem;
 }
@@ -16363,8 +13916,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   }
 }
 
-/* The shell styles every input as a bordered field; the palette's box is the
-   dialog itself, so its input stays chromeless. */
 .os-shell-night .os-palette-input {
   border: 0 !important;
   border-radius: 0 !important;
@@ -16375,8 +13926,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   color: #f2f4f5 !important;
 }
 
-/* The palette autofocuses its only input, so the shell's focus ring would just
-   draw a box around the whole dialog header. The caret carries focus here. */
 .os-shell-night .os-palette-input:focus,
 .os-shell-night .os-palette-input:focus-visible {
   outline: none !important;
