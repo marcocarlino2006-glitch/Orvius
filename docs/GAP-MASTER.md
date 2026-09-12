@@ -28,39 +28,39 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 
 | ID | Gap | Status |
 |----|-----|--------|
-| B1 | Near-absolutist product copy | OPEN |
-| B2 | Enterprise overclaim | OPEN |
-| B3 | Ring “live” inflation | OPEN |
-| B4 | Category message still splitting | OPEN |
-| B5 | Subscribe theater (CTA without live checkout) | OPEN |
-| B6 | Dead honesty components unused | OPEN |
+| B1 | Near-absolutist product copy | CODE_DONE |
+| B2 | Enterprise overclaim | CODE_DONE |
+| B3 | Ring “live” inflation | CODE_DONE |
+| B4 | Category message still splitting | CODE_DONE |
+| B5 | Subscribe theater (CTA without live checkout) | CODE_DONE |
+| B6 | Dead honesty components unused | CODE_DONE |
 
 ## C. LOOK
 
 | ID | Gap | Status |
 |----|-----|--------|
 | C1 | Thin earned proof | FOUNDER_GATE |
-| C2 | Hero still overpacked | OPEN |
-| C3 | Atmosphere over product artifact | OPEN |
-| C4 | Secondary pages lag | OPEN |
-| C5 | Nav overclaims breadth | OPEN |
-| C6 | Design-system token fracture | OPEN |
-| C7 | CSS landfill / eras | OPEN |
-| C8 | Motion missing | OPEN |
-| C9 | Brand-doc drift | OPEN |
-| C10 | Mobile finish debt | OPEN |
+| C2 | Hero still overpacked | CODE_DONE |
+| C3 | Atmosphere over product artifact | CODE_DONE |
+| C4 | Secondary pages lag | CODE_DONE |
+| C5 | Nav overclaims breadth | CODE_DONE |
+| C6 | Design-system token fracture | CODE_DONE |
+| C7 | CSS landfill / eras | CODE_DONE |
+| C8 | Motion missing | CODE_DONE |
+| C9 | Brand-doc drift | CODE_DONE |
+| C10 | Mobile finish debt | CODE_DONE |
 
 ## D. PRODUCT
 
 | ID | Gap | Status |
 |----|-----|--------|
-| D1 | Command is a cockpit stack | OPEN |
-| D2 | Too many health languages | OPEN |
-| D3 | Owner jargon leak | OPEN |
-| D4 | Settings still launch cockpit | OPEN |
-| D5 | OS rings ahead of wedge primacy | OPEN |
-| D6 | Documented shell ≠ shipped shell | OPEN |
-| D7 | Command fails on phone | OPEN |
+| D1 | Command is a cockpit stack | CODE_DONE |
+| D2 | Too many health languages | CODE_DONE |
+| D3 | Owner jargon leak | CODE_DONE |
+| D4 | Settings still launch cockpit | CODE_DONE |
+| D5 | OS rings ahead of wedge primacy | CODE_DONE |
+| D6 | Documented shell ≠ shipped shell | CODE_DONE |
+| D7 | Command fails on phone | CODE_DONE |
 
 ## E. OPS
 
@@ -68,7 +68,7 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 |----|-----|--------|
 | E1 | Cash path not live (Stripe/ARR) | FOUNDER_GATE |
 | E2 | Email failover incomplete (Resend) | FOUNDER_GATE |
-| E3 | No institutional CI workflow | OPEN |
+| E3 | No institutional CI workflow | CODE_DONE |
 | E4 | No external reliability surface | FOUNDER_GATE |
 | E5 | Support is one mailbox | FOUNDER_GATE |
 | E6 | Open FAILURE-LOG blockers | FOUNDER_GATE |
@@ -78,8 +78,8 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 | ID | Gap | Status |
 |----|-----|--------|
 | F1 | $0 ARR with priced catalog | FOUNDER_GATE |
-| F2 | Subscribe theater | OPEN |
-| F3 | Enterprise monetization fiction | OPEN |
+| F2 | Subscribe theater | CODE_DONE |
+| F3 | Enterprise monetization fiction | CODE_DONE |
 | F4 | Distribution theater | FOUNDER_GATE |
 | F5 | Seed prospects unsafe | FOUNDER_GATE |
 | F6 | Founder-only sales execution | FOUNDER_GATE |
@@ -98,5 +98,7 @@ These stay `FOUNDER_GATE` until the founder completes them. Product must fail lo
 - Replace seed prospects → real outreach touches
 - Earn first named customer proof chapter
 - Staff or redefine support SLA honestly
+
+See also: `docs/FOUNDER-GATES.md`.
 
 Run: `npm run multi-b:check`

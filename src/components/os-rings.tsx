@@ -17,18 +17,26 @@ export function OsRings({ variant = "light", limit, liveOnly = false }: OsRingsP
       {rings.map((item) => {
         const isLive = item.status === "live";
         const isNext = item.status === "next";
+        const isBuilding = item.status === "building";
+        const isPlanned = item.status === "planned";
 
         return (
           <li
             key={item.ring}
             className={`os-ring ${isLive ? "os-ring-live" : ""} ${isNext ? "os-ring-next" : ""} ${
-              isDark ? "os-ring-dark" : "os-ring-light"
-            }`}
+              isBuilding ? "os-ring-building" : ""
+            } ${isDark ? "os-ring-dark" : "os-ring-light"}`}
           >
             <div className="os-ring-meta font-sans">
               <span className="os-ring-num">{String(item.ring).padStart(2, "0")}</span>
               {isLive ? <span className="os-ring-badge">Live</span> : null}
+              {isBuilding ? (
+                <span className="os-ring-badge os-ring-badge-building">Building</span>
+              ) : null}
               {isNext ? <span className="os-ring-badge os-ring-badge-next">Next</span> : null}
+              {isPlanned ? (
+                <span className="os-ring-badge os-ring-badge-planned">Planned</span>
+              ) : null}
             </div>
             <div className="os-ring-content">
               <p className="os-ring-name type-title">{item.name}</p>

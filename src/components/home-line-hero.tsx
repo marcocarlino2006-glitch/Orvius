@@ -4,7 +4,7 @@ import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
  * Brand-first hero — Orvius owns the viewport.
- * One claim. One line of proof. CTA pair. Live line as the product artifact.
+ * Brand. One claim. One CTA. Live line as the product artifact.
  * Cool industrial plane + copper signal — not Cursor cream/orange costume.
  */
 export function HomeLineHero() {
@@ -44,13 +44,6 @@ export function HomeLineHero() {
           >
             Prove it on your line
           </Link>
-          <Link
-            href="/demo"
-            className="inst-btn inst-btn-ghost mkt-hero-brand-secondary"
-            data-i18n="hero.secondary"
-          >
-            Book a walkthrough
-          </Link>
         </div>
 
         <a
@@ -66,7 +59,7 @@ export function HomeLineHero() {
             {DEMO_LINE_DISPLAY}
           </span>
           <span className="mkt-hero-line-artifact-hint">
-            Hear the night shift answer →
+            Call the live line →
           </span>
         </a>
       </div>

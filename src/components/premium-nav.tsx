@@ -6,7 +6,7 @@ import { OrviusLogo } from "@/components/orvius-logo";
 
 const NAV = [
   { href: "/product", label: "Product", i18n: "nav.product" },
-  { href: "/enterprise", label: "Enterprise", i18n: "nav.enterprise" },
+  { href: "/enterprise", label: "Multi-shop", i18n: "nav.enterprise" },
   { href: "/pricing", label: "Pricing", i18n: "nav.pricing" },
   { href: "/resources", label: "Resources", i18n: "nav.resources" },
 ] as const;

@@ -40,7 +40,7 @@ export function CheckoutButton({
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
 
-  const buttonLabel = label ?? "Subscribe";
+  const buttonLabel = label ?? "Start checkout";
 
   useEffect(() => {
     if (emailProp) {

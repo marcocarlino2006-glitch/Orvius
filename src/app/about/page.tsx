@@ -45,7 +45,7 @@ export default function AboutPage() {
             ship what shops can use today — then expand when the loop is airtight.
           </p>
           <div className="tier1-rings">
-            <OsRings liveOnly />
+            <OsRings />
           </div>
         </div>
       </section>

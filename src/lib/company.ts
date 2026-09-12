@@ -20,7 +20,7 @@ export const company = {
     "Make missed night jobs obsolete. Orvius is the shop OS that runs after hours — captures demand, books the work, alerts the owner, and compounds one record across every call, job, and dollar. Humans keep high-risk overrides.",
   /** Product goal — not a warranty of 100% answer rate. */
   mission:
-    "Night rule: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
+    "Night rule: capture overflow and after-hours calls, qualify, book what you can, escalate emergencies, and alert the owner — so demand is less likely to die on voicemail. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
   strategy: [
     "Close Capture→Record→Command→Proof on the line before platform vapor — then expand rings.",
     "Dominate one trade and geography with trade-specific intelligence and reliable workflow execution.",
@@ -77,7 +77,7 @@ export const exponentialLoops = [
 ] as const;
 
 
-/** Orvius OS — expansion rings. One ring at a time; never skip. */
+/** Orvius OS — expansion rings. One ring at a time; never skip. Status must match shipped depth. */
 export const osRings = [
   {
     ring: 1,
@@ -90,36 +90,36 @@ export const osRings = [
     ring: 2,
     name: "Customers",
     module: "Record · history · recognition",
-    status: "live" as const,
-    body: "Callers become customers. Full history from first touch.",
+    status: "building" as const,
+    body: "Callers become customers. History compounds from first touch — still thickening.",
   },
   {
     ring: 3,
     name: "Jobs",
     module: "Book · confirm · schedule",
-    status: "live" as const,
-    body: "Leads become booked appointments — not sticky notes.",
+    status: "building" as const,
+    body: "Leads become booked appointments — core path works; polish continues.",
   },
   {
     ring: 4,
     name: "Field",
     module: "Dispatch · assign · status",
-    status: "live" as const,
-    body: "Who goes where. The day runs from one board.",
+    status: "building" as const,
+    body: "Who goes where on one board — available on Pro; not the wedge claim yet.",
   },
   {
     ring: 5,
     name: "Money",
     module: "Estimate · invoice · pay",
-    status: "live" as const,
+    status: "next" as const,
     body: "Draft estimates and invoices on jobs; record payments manually. Card rails next.",
   },
   {
     ring: 6,
     name: "Intelligence",
-    module: "AI on every layer",
-    status: "live" as const,
-    body: "Smarter with every call, job, and outcome. Ask and outcomes live on shop records.",
+    module: "Ask on shop records",
+    status: "building" as const,
+    body: "Ask and outcomes on shop records — not AI on every layer yet.",
   },
   {
     ring: 7,
@@ -137,7 +137,8 @@ export const osRings = [
   },
 ] as const;
 
-export const osCurrentRing = 5;
+/** Wedge-first: front door is the live ring; deeper nav is preview. */
+export const osCurrentRing = 1;
 
 export const legalPages = [
   {

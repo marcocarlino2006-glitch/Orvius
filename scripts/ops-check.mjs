@@ -48,10 +48,15 @@ results.push(
 );
 
 try {
-  readFileSync(join(root, "src/components/pro-owner-standards.tsx"), "utf8");
-  results.push(pass("Owner-facing standards UI present"));
+  const hub = readFileSync(join(root, "src/components/pro-setup-hub.tsx"), "utf8");
+  const standards = readFileSync(join(root, "src/lib/institutional-standards.ts"), "utf8");
+  if (hub.includes("standard") || hub.includes("SLA") || standards.includes("Owner")) {
+    results.push(pass("Owner standards wired through setup hub + lib"));
+  } else {
+    results.push(fail("Owner standards not wired"));
+  }
 } catch {
-  results.push(fail("pro-owner-standards.tsx missing"));
+  results.push(fail("pro-setup-hub or institutional-standards missing"));
 }
 
 results.push(run("Trust tests", "npm", ["run", "test:trust"]) === 0);

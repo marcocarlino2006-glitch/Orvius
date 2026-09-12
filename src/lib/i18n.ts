@@ -14,7 +14,7 @@ export const LANGS: { code: Lang; label: string }[] = [
 
 export const translations: Record<string, Record<Lang, string>> = {
   "nav.product": { en: "Product", es: "Producto", fr: "Produit", de: "Produkt" },
-  "nav.enterprise": { en: "Enterprise", es: "Empresas", fr: "Entreprise", de: "Unternehmen" },
+  "nav.enterprise": { en: "Multi-shop", es: "Multi-taller", fr: "Multi-sites", de: "Multi-Standort" },
   "nav.pricing": { en: "Pricing", es: "Precios", fr: "Tarifs", de: "Preise" },
   "nav.resources": { en: "Resources", es: "Recursos", fr: "Ressources", de: "Ressourcen" },
   "nav.signin": { en: "Sign in", es: "Iniciar sesión", fr: "Se connecter", de: "Anmelden" },
@@ -80,9 +80,9 @@ export const translations: Record<string, Record<Lang, string>> = {
     fr: "Orvius est le système d'exploitation de l'équipe de nuit — pas un standard IA greffé sur un CRM. Le tableau réunit chaque appel, intervention et euro dans un seul dossier.",
     de: "Orvius ist das Betriebssystem für die Nachtschicht — keine an ein CRM geschraubte KI-Rezeption. Das Board bündelt jeden Anruf, Auftrag und Euro in einem Datensatz.",
   },
-  "rule1.title": { en: "The bay never goes dark.", es: "El taller nunca se apaga.", fr: "L'atelier ne s'éteint jamais.", de: "Die Werkstatt steht nie still." },
+  "rule1.title": { en: "The bay stays lit after hours.", es: "El taller sigue encendido fuera de horario.", fr: "L'atelier reste allumé hors horaires.", de: "Die Werkstatt bleibt nach Feierabend erreichbar." },
   "rule1.body": {
-    en: "After-hours and overflow get answered, qualified, and alerted — demand does not die on voicemail.",
+    en: "After-hours and overflow get answered, qualified, and alerted — so demand is less likely to die on voicemail.",
     es: "Las llamadas fuera de horario y el exceso se contestan, califican y avisan — la demanda no muere en el buzón.",
     fr: "Les appels hors horaires et les débordements sont pris, qualifiés et signalés — la demande ne meurt pas dans la messagerie.",
     de: "Anrufe außerhalb der Zeiten und Überlauf werden angenommen, qualifiziert und gemeldet — Nachfrage stirbt nicht in der Mailbox.",

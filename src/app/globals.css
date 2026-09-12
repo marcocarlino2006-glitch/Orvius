@@ -43,9 +43,9 @@
   --live-soft: #22b07e;
 
   /* Emergency */
-  --flare: #ef4444;
-  --flare-hot: #f87171;
-  --flare-dim: #dc2626;
+  --flare: #cf2d56;
+  --flare-hot: #e03d66;
+  --flare-dim: #b82548;
 
   --background: var(--canvas);
   --foreground: var(--void);
@@ -26990,4 +26990,34 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .os-palette-input:focus-visible {
   outline: none !important;
   box-shadow: none !important;
+}
+
+/* Gap mastery C8 — intentional hero presence (not noise) */
+@keyframes mkt-hero-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mkt-hero--brand .mkt-hero-brand-lockup {
+  animation: mkt-hero-rise 0.7s ease-out both;
+}
+.mkt-hero--brand .mkt-hero-brand-title {
+  animation: mkt-hero-rise 0.75s ease-out 0.06s both;
+}
+.mkt-hero--brand .mkt-hero-brand-lead {
+  animation: mkt-hero-rise 0.75s ease-out 0.12s both;
+}
+.mkt-hero--brand .mkt-hero-brand-actions {
+  animation: mkt-hero-rise 0.75s ease-out 0.18s both;
+}
+.mkt-hero--brand .mkt-hero-line-artifact {
+  animation: mkt-hero-rise 0.8s ease-out 0.24s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mkt-hero--brand .mkt-hero-brand-lockup,
+  .mkt-hero--brand .mkt-hero-brand-title,
+  .mkt-hero--brand .mkt-hero-brand-lead,
+  .mkt-hero--brand .mkt-hero-brand-actions,
+  .mkt-hero--brand .mkt-hero-line-artifact {
+    animation: none;
+  }
 }
