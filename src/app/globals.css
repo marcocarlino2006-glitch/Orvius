@@ -2194,11 +2194,6 @@ h3 {
   overflow: hidden;
 }
 
-.customer-record-card.pro-card {
-  display: block;
-  padding: 1.25rem 1.375rem;
-}
-
 .pro-stat-grid {
   gap: 0.875rem;
 }
@@ -3502,10 +3497,6 @@ h3 {
   font-size: 0.75rem;
   line-height: 1.55;
   color: var(--ash);
-}
-
-.customer-record-card.pro-card:hover {
-  transform: translateY(-2px);
 }
 
 .pro-filter-bar .btn {
@@ -6718,11 +6709,6 @@ h3 {
   }
 }
 
-.mkt-btn-pill {
-  border-radius: 9999px;
-  padding-inline: 1.2rem;
-}
-
 .mkt-btn {
   display: inline-flex;
   align-items: center;
@@ -6855,22 +6841,6 @@ h3 {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.mkt-btn-hero {
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif !important;
-  border-radius: 2rem !important;
-  min-height: 3.15rem !important;
-  padding: 0.95rem 2.15rem !important;
-  font-size: 0.8125rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.09em !important;
-  text-transform: uppercase !important;
-  box-shadow: none !important;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease;
 }
 
 .mkt-product-chrome {
@@ -7060,14 +7030,6 @@ h3 {
   .mkt-proof-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-}
-
-.mkt-proof-card {
-  padding: 1.35rem 1.25rem;
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  border: 1px solid var(--hairline);
-  box-shadow: var(--shadow-soft);
 }
 
 .mkt-proof-label {
@@ -7593,9 +7555,6 @@ h3 {
 
 .mkt-page .panel-chalk,
 .mkt-page .mkt-card,
-.mkt-page .mkt-path-card,
-.mkt-page .mkt-trust-card,
-.mkt-page .mkt-proof-card,
 .mkt-page .mkt-pricing-card {
   box-shadow: none !important;
   border-color: color-mix(in srgb, var(--void) 10%, transparent);
@@ -7626,8 +7585,6 @@ button.btn {
 }
 
 .mkt-btn,
-.mkt-btn-hero,
-.mkt-btn-chalk,
 .mkt-btn-ghost-light,
 .mkt-btn-primary,
 .mkt-btn-ink,
@@ -7644,8 +7601,6 @@ button.btn {
 }
 
 .mkt-btn,
-.mkt-btn-hero,
-.mkt-btn-chalk,
 .mkt-btn-ghost-light,
 .mkt-nav-cta {
   border-radius: 2rem !important;
@@ -8100,10 +8055,6 @@ button.btn {
   border-color: color-mix(in srgb, #f0f0fa 62%, transparent) !important;
 }
 
-.mkt-close--institution .mkt-btn,
-.mkt-close--institution .mkt-btn-lg,
-.mkt-hero--command .mkt-btn-hero,
-.mkt-hero--command .mkt-btn-chalk,
 .mkt-nav--institution .mkt-btn {
   border-radius: 0.2rem !important;
 }
@@ -8390,8 +8341,6 @@ select {
 }
 
 .mkt-btn,
-.mkt-btn-hero,
-.mkt-btn-chalk,
 .mkt-btn-ghost-light,
 .mkt-btn-lg,
 .mkt-nav-cta,
@@ -8408,8 +8357,6 @@ select {
 }
 
 .mkt-btn,
-.mkt-btn-hero,
-.mkt-btn-chalk,
 .mkt-btn-ghost-light,
 .mkt-btn-lg,
 .mkt-nav-cta,
@@ -8420,7 +8367,6 @@ select {
 
 .mkt-product--stage,
 .mkt-product--company,
-.mkt-proof-card,
 .panel-chalk,
 .pro-panel{
   border-radius: var(--radius-box, var(--radius-lg)) !important;
@@ -8758,7 +8704,7 @@ select {
 
 @media (max-width: 859px) {
 
-  .mkt-hero--bleed .mkt-btn-hero,
+  
 
   .mkt-nav--institution .mkt-nav-actions .mkt-nav-cta {
     display: none !important;
@@ -9127,13 +9073,9 @@ select {
     font-size: 0.6875rem;
   }
 
-  .mkt-hero--cursor .mkt-hero-product-band .mkt-product {
-    max-height: min(48svh, 22rem);
-  }
+  
 
-  .mkt-hero--cursor .mkt-hero-product-band .mkt-product-cli {
-    display: none;
-  }
+  
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -9183,15 +9125,13 @@ select {
 .mkt-page .tier1-story,
 .mkt-page .tier1-story-muted,
 .mkt-page .tier1-close,
-.mkt-page .marketing-hero,
 .mkt-page .marketing-section {
   background: #05070b !important;
   border-color: color-mix(in srgb, #fff 8%, transparent) !important;
   color: #eef1f5 !important;
 }
 
-.mkt-page .tier1-hero,
-.mkt-page .marketing-hero {
+.mkt-page .tier1-hero{
   padding-top: clamp(6.5rem, 14vh, 8.5rem);
   background:
     radial-gradient(ellipse 70% 45% at 80% 0%, color-mix(in srgb, #3a4a62 16%, transparent), transparent 58%),
@@ -9218,9 +9158,7 @@ select {
 .mkt-page .tier1-page-title,
 .mkt-page .tier1-section-title,
 .mkt-page .type-headline,
-.mkt-page .brand-intro .tier1-page-title,
-.mkt-page .marketing-hero-title,
-.mkt-page .marketing-hero-title-sm {
+.mkt-page .brand-intro .tier1-page-title{
   color: #f5f7fa !important;
 }
 
@@ -9701,8 +9639,6 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .dispatch-col,
 .os-shell-night .lead-inbox-card,
 .os-shell-night .job-card,
-.os-shell-night .customer-record-card,
-.os-shell-night .call-record-card,
 .os-shell-night .pro-signal-bar,
 .os-shell-night .owner-setup-banner,
 .os-shell-night .post-lock-strip,
@@ -9717,7 +9653,6 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-setup-card,
 .os-shell-night .account-billing-plan,
 .os-shell-night .ring1-metric,
-.os-shell-night .ring1-recent-call,
 .os-shell-night .ring1-more-card,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .pro-shop-outcomes,
@@ -9777,9 +9712,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .lead-inbox-card,
-.os-shell-night .job-card,
-.os-shell-night .call-record-card,
-.os-shell-night .customer-record-card {
+.os-shell-night .job-card{
   background: #0e1319 !important;
 }
 
@@ -9887,21 +9820,11 @@ body:has(.mkt-page) .shell-header {
   background: #0e1319 !important;
 }
 
-.os-shell-night .inbox-filters .btn,
-.os-shell-night .inbox-filters a,
 .os-shell-night .pro-filter-bar .btn {
   background: transparent !important;
   color: color-mix(in srgb, #c9d2df 70%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
   border-radius: 0.2rem !important;
-}
-
-.os-shell-night .inbox-filters .btn-void,
-.os-shell-night .inbox-filters a.is-active,
-.os-shell-night .inbox-filters .btn.active {
-  background: #f4f6f9 !important;
-  color: #07090c !important;
-  border-color: #f4f6f9 !important;
 }
 
 .os-shell-night input,
@@ -10216,7 +10139,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.2rem !important;
 }
 
-.os-shell-night .inbox-filters .btn,
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn {
   background: transparent !important;
@@ -10225,7 +10147,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.2rem !important;
 }
 
-.os-shell-night .inbox-filters .btn-void,
 .os-shell-night .pro-filter-bar .btn-void,
 .os-shell-night .pro-page-filters .btn-void,
 .os-shell-night .pro-page-filters button[aria-pressed="true"] {
@@ -10373,7 +10294,6 @@ body:has(.mkt-page) .shell-header {
   gap: 0.65rem !important;
 }
 
-.mkt-page .mkt-path-card--mastery,
 .mkt-page .mkt-plan-card--mastery,
 .mkt-page .tier1-plan {
   background: #292d33 !important;
@@ -10420,7 +10340,6 @@ body:has(.mkt-page) .shell-header {
   box-shadow: none !important;
 }
 
-.os-shell-night .cookie-consent,
 .os-shell-night .cookie-banner{
   border-radius: 0.2rem !important;
   background: #292d33 !important;
@@ -11769,9 +11688,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .mkt-pricing-card,
-.mkt-page .mkt-card,
-.mkt-page .mkt-path-card,
-.mkt-page .mkt-proof-card {
+.mkt-page .mkt-card{
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   background: #292d33 !important;
@@ -12859,7 +12776,6 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
 .os-shell-night .lead-quick-actions .btn,
 .os-shell-night .lead-inbox-card-actions .btn,
 .os-shell-night .lead-rail-actions .btn,
-.os-shell-night .inbox-filters .btn,
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn,
 .os-shell-night .pro-panel .btn,
@@ -12881,8 +12797,7 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   font-weight: 500 !important;
 }
 
-.os-shell-night .pro-filter-tab.is-active,
-.os-shell-night .inbox-filters .btn.active {
+.os-shell-night .pro-filter-tab.is-active{
   color: #ffffff !important;
   font-weight: 600 !important;
 }

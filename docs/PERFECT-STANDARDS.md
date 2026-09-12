@@ -51,15 +51,11 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 | M31 | Secondary pages thin | CODE_DONE |
 | M32 | package 1.0.0 overclaim | CODE_DONE |
 
-## Notes (needle push)
+## Notes
 
-- **B1 nuance:** Prod health shows Twilio configured + real traffic (`configured:true`, calls/jobs). FAILURE-LOG stamps Summit 8/8 (2026-09-05). Status stays **FOUNDER_GATE** — continuous cell proof is founder-owned; agent cannot mark telephony DONE. Re-verify with `npm run wedge:ready` against prod DB.
-- **B3 nuance:** SMS→email failover **code** is live; `RESEND_API_KEY` on prod is founder paste.
-- **B6:** globals.css ~13.6k after unused purge, selector dedupe, night collapse, light `.os-shell-pro` paint strip (was 26.9k → 16.4k → 13.9k → 13.6k). Target <8k still open. Multi-b stays 9/11 under `MULTI_B_CI=1`.
-- **H13:** Money CRM (estimates/invoices/manual pay) is live; Connect shop payouts still next. Copy now says platform card ≠ shop bank.
-- **H21:** `@sentry/nextjs` wired fail-soft (`instrumentation.ts`, sentry.*.config). Live DSN still founder paste — without DSN the app no-ops cleanly.
-- **H24:** App copy already one mailbox (`hello@orvius.im`). Inbox/DNS remains ops.
-- **H25:** Support row no longer hardcodes `ok: true`; target is founder best-effort, not a fake 1-day SLA.
+- **Multi-b path:** Under `MULTI_B_CI=1` score stays **9/11** by design (wedge + institutional skipped, not vanity-green). Closing the last two requires founder Twilio/Vapi on the install + Summit `wedge:ready` 8/8 against prod DB. Code side: Clarity gate fixed (`profile-menu` → `os-sidebar-footer`); reliability now honors env credentials so a stale local server cannot fake-fail a credentialed install.
+- **B6:** globals.css ~13.5k after landfill cuts (was 26.9k). Target <8k open.
+
 
 ## Founder paste list (cannot code alone)
 

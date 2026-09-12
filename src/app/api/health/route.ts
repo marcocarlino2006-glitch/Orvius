@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     service: "orvius",
-    version: "1.0.0",
+    version: process.env.npm_package_version ?? "0.1.0",
     configured: config.ready,
     appUrl: config.appUrl,
     webhookUrl: config.webhookUrl,
