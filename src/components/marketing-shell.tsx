@@ -135,6 +135,7 @@ export function ShellPageIntro({
   return (
     <BrandIntro
       className={className}
+      brand
       kicker={label}
       title={title}
       subline={subline}

@@ -13789,6 +13789,14 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
   letter-spacing: -0.035em !important;
 }
 
+.brand-intro-mark {
+  margin: 0 0 1.25rem;
+}
+
+.brand-intro-mark .orvius-logo {
+  color: #f1f3f6;
+}
+
 .tier1-story {
   background: #f1f3f6 !important;
 }
