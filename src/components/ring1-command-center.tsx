@@ -10,6 +10,7 @@ import { ProLineWatch } from "@/components/pro-line-watch";
 import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
 import { ProRightNow } from "@/components/pro-right-now";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
+import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
 import { usePlanAccess } from "@/lib/use-plan-access";
@@ -125,6 +126,10 @@ export function Ring1CommandCenter() {
         />
 
         <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
+        <ProEconomicsPanel
+          outcomes={data?.outcomes}
+          lastWeeklyProofAt={data?.lastWeeklyProofAt}
+        />
 
         {canDispatch && data?.dispatchToday ? (
           <ProDispatchToday

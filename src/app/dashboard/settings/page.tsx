@@ -5,6 +5,10 @@ import { OsShell } from "@/components/os-shell";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { ProSetupHub } from "@/components/pro-setup-hub";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import {
+  buildShopLaunchGates,
+  LaunchGatesStrip,
+} from "@/components/launch-gates-strip";
 import { workspaceAccess } from "@/lib/seats";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -32,6 +36,11 @@ type AccountResponse = {
   alerts: {
     smsEnabled: boolean;
     emailConfigured: boolean;
+  };
+  billing?: {
+    configured?: boolean;
+    entitled?: boolean;
+    status?: string;
   };
 };
 
@@ -79,6 +88,7 @@ export default function DashboardSettingsPage() {
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
   const [showFounderTools, setShowFounderTools] = useState(false);
+
 
   async function loadAccount() {
     const res = await fetch("/api/account");
@@ -266,6 +276,37 @@ export default function DashboardSettingsPage() {
         <ProPageStrip />
 
         <ProSetupHub health={account?.health} wedge={account?.wedge} />
+
+        <LaunchGatesStrip
+          gates={buildShopLaunchGates({
+            certDone,
+            certTotal: FOUNDER_CERT.length,
+            baselineReady: Boolean(
+              account?.business?.avgTicketCents &&
+                account?.business?.baselineMissedCallsPerWeek != null &&
+                account?.business?.baselineJobsPerWeek != null,
+            ),
+            proofFresh: Boolean(
+              account?.business?.lastWeeklyProofAt &&
+                Date.now() -
+                  new Date(account.business.lastWeeklyProofAt).getTime() <
+                  7 * 24 * 60 * 60 * 1000,
+            ),
+            lastProofLabel: account?.business?.lastWeeklyProofAt
+              ? `Last proof ${new Date(account.business.lastWeeklyProofAt).toLocaleDateString()}`
+              : "No weekly proof copied yet",
+            checkoutReady: Boolean(account?.billing?.configured),
+            entitled: Boolean(account?.billing?.entitled),
+            billingStatus: account?.billing?.status ?? "none",
+            wedgeReady: Boolean(account?.wedge?.ready),
+            wedgeScore:
+              account?.wedge != null
+                ? `${account.wedge.score}/${account.wedge.total}`
+                : undefined,
+            overflowForwardConfirmed: overflowForward,
+          })}
+          title="Launch gates"
+        />
 
         <form className="account-stack pro-settings-form" onSubmit={save}>
           <div id="overflow-forward">
