@@ -1,51 +1,66 @@
 import Link from "next/link";
+import { OrviusLogo } from "@/components/orvius-logo";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
- * Cursor-craft hero: calm, centered, light. One headline, one lead, one
- * charcoal pill CTA, and a quiet live-line link. No dark product bleed.
+ * Brand-first hero — Orvius owns the viewport.
+ * Brand. One claim. One CTA. Live line as the product artifact.
+ * Cool industrial plane + copper signal — not Cursor cream/orange costume.
  */
 export function HomeLineHero() {
   return (
     <section
-      className="mkt-hero mkt-hero--clean"
+      className="mkt-hero mkt-hero--brand"
       aria-labelledby="home-hero-heading"
     >
-      <div className="mkt-hero-clean">
-        <p className="mkt-hero-clean-eyebrow font-sans" data-i18n="hero.eyebrow">
-          For HVAC, plumbing &amp; electrical shops
-        </p>
+      <div className="mkt-hero-brand-atmosphere" aria-hidden />
+      <div className="mkt-hero-brand-inner">
+        <div className="mkt-hero-brand-lockup">
+          <OrviusLogo
+            variant="void"
+            size="xl"
+            className="mkt-hero-brand-logo"
+          />
+        </div>
 
         <h1
           id="home-hero-heading"
-          className="mkt-hero-clean-title"
+          className="mkt-hero-brand-title"
           data-i18n="hero.title"
         >
-          Missed calls become
-          <br />
-          booked jobs.
+          The night shift that books the job.
         </h1>
 
-        <p className="mkt-hero-clean-lead font-sans" data-i18n="hero.lead">
-          Orvius runs the night shift on your line — answers after-hours and
-          overflow calls, qualifies the job, books it, and alerts you in
-          seconds.
+        <p className="mkt-hero-brand-lead font-sans" data-i18n="hero.lead">
+          After-hours and overflow calls get answered, qualified, booked, and
+          pushed to the owner — before the morning truck rolls.
         </p>
 
-        <div className="mkt-hero-clean-actions font-sans">
+        <div className="mkt-hero-brand-actions font-sans">
           <Link
             href="/pilot"
-            className="inst-btn inst-btn-primary mkt-hero-clean-cta"
+            className="inst-btn inst-btn-primary mkt-hero-brand-cta"
             data-i18n="hero.cta"
           >
             Prove it on your line
           </Link>
         </div>
 
-        <a href={demoLineHref()} className="mkt-hero-clean-line font-sans">
-          <span className="mkt-hero-live-pulse" aria-hidden />
-          Live line · {DEMO_LINE_DISPLAY}
-          <span aria-hidden> →</span>
+        <a
+          href={demoLineHref()}
+          className="mkt-hero-line-artifact font-sans"
+          aria-label={`Call the live Orvius line at ${DEMO_LINE_DISPLAY}`}
+        >
+          <span className="mkt-hero-line-artifact-meta">
+            <span className="mkt-hero-live-pulse" aria-hidden />
+            <span data-i18n="hero.liveline">Live line · call it now</span>
+          </span>
+          <span className="mkt-hero-line-artifact-number">
+            {DEMO_LINE_DISPLAY}
+          </span>
+          <span className="mkt-hero-line-artifact-hint">
+            Call the live line →
+          </span>
         </a>
       </div>
     </section>

@@ -4,25 +4,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Enterprise",
-  description: `${company.productName} for multi-shop and franchise operators — dedicated lines per location, central billing, and one operating standard.`,
+  title: "Multi-shop",
+  description: `${company.productName} for operators with 2+ shops — design-partner rollout, dedicated lines, and a shared operating standard. Volume pricing is custom.`,
 };
 
 const pillars = [
   {
     id: "01",
-    title: "One standard, every location.",
-    body: "Dedicated shop lines per location on one workspace — the same answer, booking, and alert loop across the whole footprint.",
+    title: "Same night shift, every location.",
+    body: "Each shop gets its own line on one Orvius workspace — answer, book, and alert loops stay consistent as you add locations.",
   },
   {
     id: "02",
-    title: "Central billing and admin.",
-    body: "Consolidated billing, per-location roles, and rollup reporting. Volume pricing as you add shops.",
+    title: "Billing that matches the footprint.",
+    body: "Multi-shop pricing is custom today. We consolidate invoices and roles as you grow — not a self-serve enterprise suite yet.",
   },
   {
     id: "03",
     title: "Onboarding you can hand off.",
-    body: "Custom onboarding, priority support, and quarterly reviews — with proof of recovered jobs and dollars per shop.",
+    body: "Design-partner onboarding and priority support while we prove recovered jobs and dollars per shop.",
   },
 ] as const;
 
@@ -32,10 +32,10 @@ export default function EnterprisePage() {
       <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap">
           <ShellPageIntro
-            label="Enterprise"
-            title="Multi-shop, one operating standard."
+            label="Multi-shop"
+            title="Multi-shop, one night-shift standard."
             subline="For franchises and operators running 2+ locations."
-            description="Run every shop on the same night-shift OS — dedicated lines per location, central billing, and measurable proof across the footprint."
+            description="For operators running 2+ locations. Start as a design partner — dedicated lines per shop, then volume pricing as the footprint proves out."
           />
         </div>
       </section>
@@ -65,13 +65,13 @@ export default function EnterprisePage() {
               Talk through your footprint.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Multi-shop pricing is custom. Tell us how many locations you run
-              and we&apos;ll set the standard up with you.
+              Multi-shop is not self-serve yet. Tell us how many locations you run
+              and we&apos;ll design the rollout with you.
             </p>
           </div>
           <div className="tier1-actions">
             <a
-              href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop"
+              href="mailto:hello@orvius.im?subject=Multi-shop%20%E2%80%94%20design%20partner"
               className="inst-btn inst-btn-ghost"
             >
               Contact sales

@@ -1,3 +1,5 @@
+> **GAP-MASTER brand note (C9):** Shipped chrome is cool industrial paper (`#F1F3F6`), graphite void (`#0C1016`), copper signal (`#C4783A`), Sora UI type — not cream/orange Cursor costume and not Fraunces-on-void. Prefer `src/lib/orvius-colors.ts` + `:root` in `globals.css` over this doc when they disagree.
+
 # Orvius Shell System
 
 One company, two planes, shared chrome.

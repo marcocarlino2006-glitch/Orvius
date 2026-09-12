@@ -7,6 +7,7 @@ import { getDispatchBoard, listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
+import { isFounderEmail } from "@/lib/is-founder";
 import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
@@ -20,7 +21,8 @@ function startOfToday() {
 export async function GET() {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business } = authResult;
+  const { business, email } = authResult;
+  const founder = isFounderEmail(email);
 
   const today = startOfToday();
   const businessFilter = { businessId: business.id };
@@ -81,7 +83,9 @@ export async function GET() {
     getShopHealth(business.id),
     listCrew(business.id),
     getShopOutcomes(business.id, 7),
-    getAttentionQueue(business.id, 12),
+    getAttentionQueue(business.id, 12, {
+      includeFounderInstruments: founder,
+    }),
   ]);
 
   const wedge = await getWedgeReadiness(business.id, health);
@@ -152,13 +156,16 @@ export async function GET() {
       forwardConfirmed: business.overflowForwardConfirmedAt != null,
     },
     gates: {
-      certDone,
+      certDone: founder ? certDone : 5,
       certTotal: 5,
-      certIncomplete: certDone < 5,
+      certIncomplete: founder ? certDone < 5 : false,
       economicsReady: outcomes.economicsReady,
       proofStale,
       pilotDaysLeft,
       checkoutReady: isStripeCheckoutConfigured(),
+    },
+    viewer: {
+      isFounder: founder,
     },
     metrics: {
       callsToday,

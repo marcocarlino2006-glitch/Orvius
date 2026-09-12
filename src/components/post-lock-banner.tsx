@@ -15,12 +15,13 @@ type Status = {
 };
 
 /**
- * Founder post-lock instrument.
- * Compact on Settings. Full only on Billing. Never crowds Command/Today.
+ * Founder-only post-lock instrument.
+ * Hidden from shop owners. Compact on Settings, full on Billing.
  */
 export function PostLockBanner() {
   const pathname = usePathname();
   const [status, setStatus] = useState<Status | null>(null);
+  const [isFounder, setIsFounder] = useState(false);
 
   const onBilling = pathname?.startsWith("/dashboard/billing");
   const onSettings = pathname?.startsWith("/dashboard/settings");
@@ -28,6 +29,20 @@ export function PostLockBanner() {
 
   useEffect(() => {
     if (!show) return;
+    let cancelled = false;
+    fetch("/api/account")
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setIsFounder(Boolean(data?.viewer?.isFounder));
+      })
+      .catch(() => null);
+    return () => {
+      cancelled = true;
+    };
+  }, [show]);
+
+  useEffect(() => {
+    if (!show || !isFounder) return;
     let cancelled = false;
     fetch("/api/bulletproof")
       .then(async (res) => {
@@ -41,32 +56,23 @@ export function PostLockBanner() {
     return () => {
       cancelled = true;
     };
-  }, [show]);
+  }, [show, isFounder]);
 
-  if (!show || !status || status.fullyReady) return null;
+  if (!show || !isFounder || !status || status.fullyReady) return null;
 
-  const openCount = status.openGates.length;
-
-  // Settings: one quiet line — don't compete with the owner ritual
-  if (onSettings && !onBilling) {
+  if (onSettings) {
     return (
       <p className="post-lock-strip font-sans" role="status">
-        <span className="post-lock-strip-label">Post lock</span>
+        <span className="post-lock-strip-label">Founder gates</span>
         <span className="post-lock-strip-copy">
-          {openCount} founder gate{openCount === 1 ? "" : "s"} still open — billing
-          claims stay dark.
+          {status.openGates.length} open · {status.message}
         </span>
         <Link href="/dashboard/billing" className="post-lock-strip-link">
-          Review
+          Unblock
         </Link>
       </p>
     );
   }
-
-  const cashOpen = status.openGates.filter(
-    (g) => g.id.startsWith("stripe") || g.id === "billing_full",
-  );
-  const legalOpen = status.openGates.filter((g) => g.id === "formation");
 
   return (
     <section className="post-lock-banner font-sans" role="status" aria-live="polite">
@@ -75,26 +81,21 @@ export function PostLockBanner() {
       <ul className="post-lock-gates">
         {status.openGates.map((gate) => (
           <li key={gate.id}>
-            <strong>{gate.label}</strong> — {gate.detail}
+            <strong>{gate.label}</strong>
+            <span>{gate.detail}</span>
           </li>
         ))}
       </ul>
       <div className="post-lock-actions">
         {!status.checkoutPublicReady ? (
-          <Link href="/dashboard/billing" className="btn btn-void text-sm">
-            Unblock Stripe
-          </Link>
-        ) : null}
-        {legalOpen.length > 0 ? (
           <span className="post-lock-hint">
-            Reply with LLC formation state (one word) — never invent it.
+            Finish Stripe keys before claiming paid checkout.
           </span>
-        ) : null}
-        {cashOpen.length > 0 ? (
+        ) : (
           <span className="post-lock-hint">
-            Pilot/outreach OK. Do not claim self-serve paid checkout yet.
+            Checkout ready — formation still blocks legal claims.
           </span>
-        ) : null}
+        )}
       </div>
     </section>
   );

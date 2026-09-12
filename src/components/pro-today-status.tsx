@@ -151,7 +151,7 @@ export function ProTodayAlerts({
           <div className="pro-today-alert-copy font-sans">
             <p className="pro-today-alert-title">Phone certification incomplete</p>
             <p className="pro-today-alert-detail">
-              Multi-b rule: finish 5 real-cell scenarios before high-volume outreach.
+              Finish 5 real-phone scenarios before trusting after-hours alone.
             </p>
           </div>
           <Link href="/dashboard/settings#founder-cert" className="btn btn-void text-sm">
@@ -165,13 +165,15 @@ export function ProTodayAlerts({
           <div className="pro-today-alert-copy font-sans">
             <p className="pro-today-alert-title">
               {!checkoutReady
-                ? "Stripe not live — cannot collect money"
+                ? "Checkout not available yet"
                 : pilotDaysLeft != null && pilotDaysLeft <= 0
                   ? "Pilot ended — subscribe to keep the line"
                   : `Pilot ends in ${pilotDaysLeft} day${pilotDaysLeft === 1 ? "" : "s"}`}
             </p>
             <p className="pro-today-alert-detail">
-              Category leaders collect cash. Open billing and close the founder unblock.
+              {!checkoutReady
+                ? "Self-serve checkout is not live. Apply for the pilot or contact Orvius to continue."
+                : "Open billing to keep your line after the pilot window."}
             </p>
           </div>
           <Link href="/dashboard/billing" className="btn btn-void text-sm">

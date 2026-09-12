@@ -121,9 +121,10 @@ gate(
 gate(
   "launch_gates_ui",
   "Launch gates + cert persistence",
-  fileOk("src/components/launch-gates-strip.tsx") &&
+  fileOk("src/app/admin/daily/page.tsx") &&
+    fileOk("src/lib/is-founder.ts") &&
     readFileSync(join(root, "prisma/schema.prisma"), "utf8").includes("founderCertJson"),
-  "Settings cockpit",
+  "Founder daily + cert field (not owner Settings theater)",
 );
 
 gate(

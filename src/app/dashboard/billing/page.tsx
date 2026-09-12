@@ -38,6 +38,9 @@ type BillingAccount = {
     entitled?: boolean;
     pilotEndsAt?: string | null;
   };
+  viewer?: {
+    isFounder?: boolean;
+  };
 };
 
 function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | null) {
@@ -188,7 +191,7 @@ export default function DashboardBillingPage() {
                 ))}
               </ul>
             </>
-          ) : (
+          ) : account?.viewer?.isFounder ? (
             <>
               <p className="font-sans text-sm leading-relaxed text-ash">
                 Self-serve checkout stays dark until Stripe is configured. Do not claim
@@ -225,6 +228,21 @@ export default function DashboardBillingPage() {
                     Design partner
                   </Link>
                 </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="font-sans text-sm leading-relaxed text-ash">
+                Self-serve checkout is not live yet. Apply for the design partner pilot
+                or contact Orvius to keep your line.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link href="/pilot" className="btn btn-void text-sm">
+                  Apply for pilot
+                </Link>
+                <a href={`mailto:${company.supportEmail}`} className="btn btn-secondary text-sm">
+                  Contact Orvius
+                </a>
               </div>
             </>
           )}
