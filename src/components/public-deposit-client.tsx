@@ -23,7 +23,9 @@ export function PublicDepositClient({ token }: { token: string }) {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/public/deposit/${token}`);
+      const res = await fetch(`/api/public/deposit/${token}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Deposit not found");
       setDeposit(data.deposit);
@@ -156,7 +158,9 @@ export function PublicDepositClient({ token }: { token: string }) {
       <p className="public-money-fine">
         {deposit.paid
           ? "Keep this page for your records."
-          : `Card details are handled by Stripe and never touch ${deposit.shopName} or Orvius. Funds go straight to the shop.`}
+          : deposit.cardPayAvailable
+            ? `Card details are handled by Stripe and never touch ${deposit.shopName} or Orvius. Funds go straight to the shop.`
+            : "Nothing is owed through this page. Your appointment stands on what you agreed with the shop."}
       </p>
     </div>
   );
