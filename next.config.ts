@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const nextConfig: NextConfig = {
   // Local/preview uses `next start`. Enable standalone only for Docker builds.
@@ -18,5 +18,5 @@ export default withSentryConfig(nextConfig, {
     disable: !hasSentryAuth,
   },
   widenClientFileUpload: false,
-  disableLogger: true,
+  webpack: { treeshake: { removeDebugLogging: true } },
 });

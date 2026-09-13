@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -32,9 +33,21 @@ export default function DashboardError({
 
   useEffect(() => {
     /*
-      Client-side, so this is the only record that the owner hit this at all —
-      the server never saw a render it could log.
+      The server never saw a render it could log, so this is the only report
+      that the owner hit this at all. It used to be a console.error, which is
+      to say it was a record in one person's browser that nobody would ever
+      read — a crash we could not have known about until someone wrote in.
+
+      The pathname is tagged rather than buried in the payload because the
+      question we will actually ask is "which screen", and a tag is what you
+      can group by. No DSN in local and preview builds, so nothing is sent.
     */
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) {
+      Sentry.captureException(error, {
+        tags: { surface: "dashboard", route: pathname },
+        extra: { digest: error.digest },
+      });
+    }
     console.error("dashboard.render_error", {
       digest: error.digest,
       message: error.message,

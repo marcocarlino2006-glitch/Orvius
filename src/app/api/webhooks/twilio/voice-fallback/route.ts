@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
@@ -160,6 +161,25 @@ export async function POST(request: NextRequest) {
     greeting is returned even if our own bookkeeping throws — a database
     problem is not a reason to put them back into the silence.
   */
+  /*
+    Reaching this line means Twilio tried the primary voice URL and it errored
+    or timed out — so Vapi is not answering, and every shop on the platform is
+    taking voicemail instead of calls. That is the loudest thing that can
+    happen to this product, and until now the only trace of it was a log line
+    nobody was watching: we would have found out from an owner.
+
+    Reported on the first leg only, so one failed call is one event rather than
+    two, and inside `after` so the caller's greeting is never waiting on it.
+  */
+  after(() => {
+    if (!process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) return;
+    Sentry.captureMessage("Voice fallback answered a call — primary line failed", {
+      level: "error",
+      tags: { surface: "voice", reason: "vapi_unreachable" },
+      extra: { callSid, businessId: business.id },
+    });
+  });
+
   try {
     await openMissedCall({
       businessId: business.id,
