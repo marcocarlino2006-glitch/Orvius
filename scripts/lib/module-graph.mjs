@@ -104,7 +104,7 @@ function layoutsFor(pageFile) {
   alive, and a module-reachability check that omitted them would call half the
   business logic dead.
 */
-const CONVENTION_ENTRY = /\/(route|middleware|icon|apple-icon|opengraph-image|twitter-image|sitemap|robots|manifest|not-found|error|global-error|loading|template|default)\.(tsx?|jsx?)$/;
+const CONVENTION_ENTRY = /\/(route|middleware|instrumentation|instrumentation-client|icon|apple-icon|opengraph-image|twitter-image|sitemap|robots|manifest|not-found|error|global-error|loading|template|default)\.(tsx?|jsx?)$/;
 
 /**
  * Which of the three surfaces a route belongs to.

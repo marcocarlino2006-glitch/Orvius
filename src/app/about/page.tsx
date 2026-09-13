@@ -1,6 +1,7 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { OsRings } from "@/components/os-rings";
 import { company } from "@/lib/company";
+import { workspaceAccessPublicClaim } from "@/lib/seats";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -44,6 +45,16 @@ export default function AboutPage() {
             Built by {company.legalName} for {company.trades.join(", ")}. We
             label production paths Live and limited paths Beta — then expand
             when the loop is airtight.
+          </p>
+          {/*
+            Read from lib/seats rather than written here, because it is a claim
+            about what the product does and the next person to add an invite
+            screen needs the sentence to move with the code. Saying it out loud
+            also prevents the reasonable assumption that a shop can buy one
+            plan and give the office and the dispatcher their own logins.
+          */}
+          <p className="tier1-section-lead font-sans max-w-2xl">
+            {workspaceAccessPublicClaim()}
           </p>
           <div className="tier1-rings">
             <OsRings liveOnly />
