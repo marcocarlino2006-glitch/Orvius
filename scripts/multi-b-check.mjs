@@ -66,6 +66,33 @@ gate(
 );
 
 gate(
+  "operating_scorecard_product",
+  "Operating scorecard in product",
+  fileOk("src/lib/operating-scorecard.ts") &&
+    fileOk("src/components/operating-scorecard-panel.tsx") &&
+    fileOk("docs/OPERATING-SCORECARD.md") &&
+    readFileSync(join(root, "src/app/admin/daily/page.tsx"), "utf8").includes(
+      "OperatingScorecardPanel",
+    ) &&
+    readFileSync(join(root, "prisma/schema.prisma"), "utf8").includes(
+      "expansionGatesJson",
+    ),
+  "/admin/daily + expansionGatesJson",
+);
+
+gate(
+  "hvac_dominance_product",
+  "HVAC dominance in product",
+  fileOk("src/lib/hvac-dominance.ts") &&
+    fileOk("src/components/hvac-dominance-panel.tsx") &&
+    fileOk("docs/HVAC-DOMINANCE-CAPABILITIES.md") &&
+    readFileSync(join(root, "src/app/admin/daily/page.tsx"), "utf8").includes(
+      "HvacDominancePanel",
+    ),
+  "/admin/daily dominance + moat",
+);
+
+gate(
   "hard_paywall",
   "Hard monetization code",
   fileOk("src/lib/billing-entitlement.ts") &&

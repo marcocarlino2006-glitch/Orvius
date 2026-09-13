@@ -32,6 +32,8 @@ model Business {
   lastWeeklyProofAt    DateTime?
   /** Founder phone cert checklist JSON — boolean[] matching Settings scenarios. */
   founderCertJson      String?
+  /** Expansion gates JSON — { pain, workflow, pay_retain, distribution }. */
+  expansionGatesJson   String?
   /** Owner confirmed missed/busy/after-hours forward to Orvius line. */
   overflowForwardConfirmedAt DateTime?
   lineVerifiedAt       DateTime?
