@@ -141,7 +141,9 @@ export function JobMoneyPanel({
       {!estimate ? (
         <>
           <p className="job-money-lead">
-            Draft an estimate, send a customer link to accept, then collect payment.
+            Draft an estimate, send a customer link to accept, then record payment
+            manually. Public card checkout (if Stripe keys are live) settles on
+            Orvius until Connect — not the shop bank.
           </p>
           <label className="mt-4 block">
             <span className="label">Amount ($)</span>

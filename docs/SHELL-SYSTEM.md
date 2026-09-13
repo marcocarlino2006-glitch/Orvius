@@ -1,56 +1,29 @@
 # Orvius Shell System
 
+> **PERFECT-STANDARDS note:** Shipped chrome is cool industrial paper (`#F1F3F6`), graphite void (`#0C1016`), copper signal (`#C4783A`) — see `src/lib/orvius-colors.ts`. Older cream/orange/flare docs are obsolete.
+
 One company, two planes, shared chrome.
 
 ## Planes
 
 | Plane | Background | Use |
 |-------|------------|-----|
-| **Void** | `#0A0B0A` | Marketing — home, pilot |
-| **Chalk** | `#F2F1EC` | Product — dashboard, admin, demo, domains |
+| **Paper** | `#F1F3F6` | Product — dashboard, settings, billing |
+| **Void** | `#0C1016` | Marketing accents, night instruments |
 
-Accent **Flare** (`#E8461C`) is signal only — CTAs, labels, pulse. **Live** is success only.
+Accent **Copper** (`#C4783A`) is signal. **Live** (`#1A9B6E`) is success. **Flare** (`#CF2D56`) is danger only.
 
 ## Components
 
 | Component | Role |
 |-----------|------|
-| `ShellHeader` | Top nav — `plane="void"` or `"chalk"` |
-| `MarketingShell` | Void wrapper + header + footer + profile menu |
-| `AppShell` | Chalk product workspace + flare rule + profile menu |
-| `ProfileMenu` | Claude-style bottom-left navigation (all pages) |
-| `SiteFooter` | Void footer on marketing pages |
-| `shell-primitives` | Panels, stats, badges, forms, lists |
+| `PremiumNav` / marketing shell | Public chrome |
+| `OsShell` | Product workspace |
+| Shell primitives | Panels, alerts, buttons |
 
 ## Rules
 
-1. Never hardcode hex on pages — use Chromatics tokens (`void`, `chalk`, `flare`, etc.)
-2. Marketing CTAs on void: `btn-on-void` / `btn-on-void-secondary`
-3. Product CTAs on chalk: `btn-primary` / `btn-secondary`
-4. Dark cards on void: `panel-void`
-5. Product cards on chalk: `card`
-6. Profile menu is the single navigation hub — do not add competing nav patterns
-
-## File map
-
-```
-src/components/
-  shell-header.tsx      — shared top bar
-  marketing-shell.tsx   — void page wrapper
-  app-shell.tsx         — product page wrapper
-  profile-menu.tsx      — global menu
-  site-footer.tsx       — marketing footer
-  shell-primitives.tsx  — UI building blocks
-src/lib/orvius-colors.ts — token source of truth
-src/app/globals.css     — CSS tokens + utilities
-```
-
-## Shell mastery checklist
-
-- [ ] Home + pilot feel like one void brand plane
-- [ ] Dashboard + admin + demo + domains feel like one chalk workspace
-- [ ] Profile menu identical behavior everywhere
-- [ ] No orphan headers or duplicate nav patterns
-- [ ] Forms, cards, badges use primitives only
-
-*Last updated: 2026-08-27*
+1. Prefer tokens from `orvius-colors.ts` / CSS variables — do not invent new hex on pages.
+2. Wedge-first nav: Command / Inbox / Calls before deeper OS rings.
+3. No founder instruments on owner Settings.
+4. `globals.css` eras must be deleted, not layered — see PERFECT-STANDARDS B6.

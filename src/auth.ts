@@ -65,10 +65,12 @@ const nextAuth = NextAuth({
       // The email-link provider already redeemed a single-use token against the
       // allowlist; re-running the check here is harmless and keeps one gate.
       const allowed = getAllowedEmails();
-      if (!allowed.length) {
-        return true;
-      }
       const email = user.email?.toLowerCase();
+      // Production: empty allowlist = deny all (fail closed).
+      // Non-prod: empty allowlist = open for local dogfood.
+      if (!allowed.length) {
+        return process.env.NODE_ENV !== "production" && process.env.VERCEL_ENV !== "production";
+      }
       return email ? allowed.includes(email) : false;
     },
   },

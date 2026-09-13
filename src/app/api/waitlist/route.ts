@@ -5,6 +5,7 @@ import { notifyOwner } from "@/lib/notifications";
 import { verifyAdminRequest } from "@/lib/env";
 import { logWarn } from "@/lib/logger";
 import { z } from "zod";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 const PIPELINE_STATUSES = [
   "new",
@@ -161,6 +162,22 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const ip = clientIp(request);
+  const limited = rateLimit({
+    key: `waitlist:${ip}`,
+    limit: 8,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limited.retryAfterSec) },
+      },
+    );
+  }
+
   try {
     const body = waitlistSchema.parse(await request.json());
     // Quiet honeypot: bots usually populate every field. Return a normal

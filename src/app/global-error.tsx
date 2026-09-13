@@ -1,5 +1,7 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
 import { company } from "@/lib/company";
 
 /*
@@ -18,6 +20,17 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  /*
+    The server never saw a render it could log, so without this the only trace
+    of a total failure is in one owner's browser console — which is to say
+    nowhere. The DSN check keeps local and preview builds from reporting.
+  */
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) {
+      Sentry.captureException(error);
+    }
+  }, [error]);
+
   return (
     <html lang="en">
       <body

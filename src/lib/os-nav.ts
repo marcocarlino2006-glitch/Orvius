@@ -9,6 +9,7 @@ export type OsNavItem = {
   badge?: string;
 };
 
+/** Wedge-first nav. Deeper rings stay reachable but Command/Inbox/Calls are primary. */
 export const osProductNav: OsNavItem[] = [
   { href: "/dashboard", label: "Command", icon: "command", ring: 1 },
   { href: "/dashboard/inbox", label: "Inbox", icon: "inbox", ring: 1 },
@@ -16,7 +17,7 @@ export const osProductNav: OsNavItem[] = [
   { href: "/dashboard/customers", label: "Customers", icon: "customers", ring: 2 },
   { href: "/dashboard/jobs", label: "Jobs", icon: "jobs", ring: 3 },
   { href: "/dashboard/dispatch", label: "Dispatch", icon: "dispatch", ring: 4 },
-  { href: "/dashboard/ask", label: "Copilot", icon: "copilot" },
+  { href: "/dashboard/ask", label: "Ask", icon: "copilot" },
 ];
 
 export const osWorkspaceNav: OsNavItem[] = [

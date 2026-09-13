@@ -39,7 +39,7 @@ Code reference: `src/lib/institutional-standards.ts`
 | Shop line | Dedicated number, verified test call | Wedge readiness, shop health |
 | Alert delivery | No stuck queue, failures surfaced | `OwnerNotification` queue, Today banner |
 | Tenant isolation | Shop A never sees Shop B | API 401 without session; standard check |
-| Support | Reply within 1 business day | hello@orvius.im (honest until we staff 24/7) |
+| Support | Best-effort · founder-staffed (no timed SLA) | hello@orvius.im — flip to a timed SLA only when staffed |
 
 Owners see this on **Today** and **Settings** via "Your service level."
 

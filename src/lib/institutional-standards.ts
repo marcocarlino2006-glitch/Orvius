@@ -10,7 +10,7 @@ import type { ShopHealth } from "@/lib/shop-health";
 export const ownerSlAs = {
   alertP95TargetSec: 60,
   supportEmail: company.supportEmail,
-  supportResponseTarget: "Within 1 business day",
+  supportResponseTarget: "Best-effort · founder-staffed (no timed SLA)",
   lineCoverageLabel: "24/7 when your shop line is live",
   billingEntity: company.legalName,
 } as const;
@@ -131,7 +131,7 @@ export function getOwnerStandardsReport(health: ShopHealth | null): OwnerStandar
       label: "Support",
       target: ownerSlAs.supportResponseTarget,
       actual: ownerSlAs.supportEmail,
-      ok: true,
+      ok: null,
       href: `mailto:${ownerSlAs.supportEmail}`,
     },
   ];
