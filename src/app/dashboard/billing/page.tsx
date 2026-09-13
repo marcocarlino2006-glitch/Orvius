@@ -2,6 +2,7 @@
 
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
+import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { company, getPaidPlans, pricing } from "@/lib/company";
@@ -243,14 +244,7 @@ export default function DashboardBillingPage() {
       </div>
 
       <div className="mt-3">
-        <ShellPanel title="Estimate card pay" dense>
-          <p className="font-sans text-sm leading-relaxed text-ash">
-            Public estimate card checkout runs on the Orvius Stripe account today.
-            Money does not land in the shop&apos;s bank until Stripe Connect ships —
-            say that on every money demo. Subscriptions above fund Orvius, not job
-            payouts.
-          </p>
-        </ShellPanel>
+        <ConnectPayoutsPanel />
       </div>
 
       <div className="mt-3">

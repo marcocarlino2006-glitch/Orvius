@@ -169,8 +169,8 @@ export function PublicEstimateClient({ token }: { token: string }) {
 
       <p className="public-money-fine">
         {cardReady
-          ? "Card payments run on Orvius checkout today. Direct shop payouts via Stripe Connect ship next."
-          : "Card checkout is not configured yet. Accept here and settle with the shop — or the shop can record payment from the job."}
+          ? `Card details are handled by Stripe and never touch ${estimate.shopName} or Orvius. Funds go straight to the shop.`
+          : "This shop is not set up to take cards yet. Accept here and settle with the shop directly."}
       </p>
     </div>
   );
