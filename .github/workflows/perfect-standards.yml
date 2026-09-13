@@ -9,6 +9,13 @@ on:
 jobs:
   gates:
     runs-on: ubuntu-latest
+    # Most of test:trust writes to the database — leads, jobs, alert queues —
+    # so the suite needs one to exist. A throwaway SQLite file per run is the
+    # right shape: the tests already clean up after themselves, and nothing
+    # here should be able to reach real shop data. Relative to prisma/, which
+    # is where the datasource resolves it from.
+    env:
+      DATABASE_URL: "file:./ci.db"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,6 +24,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx prisma generate
+      - name: Create the schema the suite writes to
+        run: npx prisma db push --skip-generate
       - run: npx tsc --noEmit
       - run: npm run test:trust
       - name: Multi-b check (honest — skips stay yellow, never counted green)
