@@ -68,9 +68,25 @@ npm run billing:check
 
 Each plan's Subscribe button only appears when that plan's price ID is configured.
 
+## Fair use (included usage)
+
+Flat SaaS price — **not** unlimited telephony. Each paid plan includes:
+
+| Plan | Answered minutes / mo | Owner SMS / mo |
+|------|----------------------:|---------------:|
+| Line | 300 | 200 |
+| Pro | 750 | 500 |
+| Fleet | 2,000 | 1,500 |
+
+Soft overage today: warn at ~80%, quote before charging (~$0.12/min · ~$0.03/SMS on Line/Pro). Hard Stripe meters later.
+
+Source of truth: `src/lib/plan-usage.ts` · meter: Dashboard → Billing · API `/api/billing/usage`.
+
 ## Not done yet
 
 - Plan upgrades/downgrades in-app (use Stripe Customer Portal for now)
+- Hard metered Stripe prices / automatic overage invoices
+- Per-seat dashboard billing (crew SMS ≠ seats)
 
 ## Hard monetization (trial end)
 

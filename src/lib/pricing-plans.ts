@@ -60,10 +60,11 @@ export const pricingPlans: readonly PricingPlan[] = [
     idealFor: "Owner-operators who need every call answered and alerted",
     highlights: [
       "Dedicated shop line + After-hours answer",
+      "300 answered minutes / month included",
+      "200 owner SMS / month included",
       "Qualified leads — urgency, service, address",
       "Owner SMS alerts + lead inbox",
       "Call log with transcripts",
-      "Business hours & services you control",
     ],
   },
   {
@@ -81,6 +82,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     idealFor: "Shops turning leads into jobs with 3–5 trucks",
     highlights: [
       "Everything in Line",
+      "750 answered minutes / month included",
+      "500 owner SMS / month included",
       "Customer records & full history",
       "Jobs, scheduling, and dispatch board",
       "Ask — shop intelligence on your data",
@@ -101,10 +104,11 @@ export const pricingPlans: readonly PricingPlan[] = [
     idealFor: "Fleet shops with daily dispatch load and multiple crews",
     highlights: [
       "Everything in Pro",
+      "2,000 answered minutes / month included",
+      "1,500 owner SMS / month included",
       "Unlimited technicians on dispatch",
       "Priority onboarding & support line",
       "Quarterly shop health review",
-      "Multi-truck dispatch workflows",
     ],
   },
   {
