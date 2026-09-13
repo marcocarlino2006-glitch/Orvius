@@ -34,6 +34,78 @@ function loadDatabaseUrl() {
   return match ? match[1] : null;
 }
 
+/**
+ * Split the file into statements, ignoring semicolons that do not end one.
+ *
+ * This used to be `sql.split(";")`, which is a grenade with the pin out. A
+ * prose semicolon inside a `--` comment — "on a shop's first ever load; two
+ * fixture shops carry three" — cut a statement in half and sent the second
+ * half, bare English, to the database as SQL. It came back `near "two":
+ * syntax error`, which is not one of the tolerated messages below, so the
+ * migration threw and the deploy failed.
+ *
+ * The reason that cost real time to find is the skip above: every local and
+ * preview build points at file-backed SQLite and returns before reading this
+ * file at all. So the SQL was unparsed everywhere except production, and the
+ * only symptom was a red deploy with a green local build.
+ *
+ * Comments are therefore stripped before splitting, and a semicolon inside a
+ * string literal is not treated as a terminator either.
+ */
+export function splitStatements(sql) {
+  const statements = [];
+  let current = "";
+  let inString = false;
+  let inComment = false;
+
+  for (let i = 0; i < sql.length; i += 1) {
+    const char = sql[i];
+    const next = sql[i + 1];
+
+    if (inComment) {
+      if (char === "\n") {
+        inComment = false;
+        current += char;
+      }
+      continue;
+    }
+
+    if (inString) {
+      current += char;
+      if (char === "'") {
+        // '' is an escaped quote inside a literal, not the end of one.
+        if (next === "'") {
+          current += next;
+          i += 1;
+        } else {
+          inString = false;
+        }
+      }
+      continue;
+    }
+
+    if (char === "-" && next === "-") {
+      inComment = true;
+      i += 1;
+      continue;
+    }
+    if (char === "'") {
+      inString = true;
+      current += char;
+      continue;
+    }
+    if (char === ";") {
+      statements.push(current);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+
+  statements.push(current);
+  return statements.map((s) => s.trim()).filter(Boolean);
+}
+
 async function main() {
   const databaseUrl = loadDatabaseUrl();
 
@@ -63,7 +135,7 @@ async function main() {
   const sql = readFileSync(resolve(root, "prisma/turso-migrate.sql"), "utf8");
   const client = createClient({ url: parsed.toString(), authToken });
 
-  for (const statement of sql.split(";").map((s) => s.trim()).filter(Boolean)) {
+  for (const statement of splitStatements(sql)) {
     try {
       await client.execute(statement);
     } catch (error) {
@@ -78,7 +150,14 @@ async function main() {
   console.log("✅ Turso migrations applied");
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+/*
+  Only when run as a command. The statement splitter is imported by the test
+  beside this file, and importing a module should never be what applies a
+  migration to production.
+*/
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
