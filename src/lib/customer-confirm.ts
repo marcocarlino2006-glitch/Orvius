@@ -1,9 +1,12 @@
 import { randomBytes } from "node:crypto";
+import { sendCustomerSms } from "@/lib/customer-sms";
 import { getAppBaseUrl } from "@/lib/domains";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
-import { sendSms } from "@/lib/twilio-sms";
+
+export const CONFIRM_REMINDER_AFTER_HOURS = 12;
+export const CONFIRM_REMINDER_MIN_LEAD_HOURS = 2;
 
 function formatWindow(iso: Date | string | null | undefined): string | null {
   if (!iso) return null;
@@ -51,7 +54,15 @@ export async function ensureCustomerConfirmToken(jobId: string): Promise<string>
 export async function sendCustomerConfirmSms(jobId: string): Promise<{
   sent: boolean;
   reason?: string;
-}> {
+}>;
+export async function sendCustomerConfirmSms(
+  jobId: string,
+  options: { reminder?: boolean },
+): Promise<{ sent: boolean; reason?: string }>;
+export async function sendCustomerConfirmSms(
+  jobId: string,
+  options: { reminder?: boolean } = {},
+): Promise<{ sent: boolean; reason?: string }> {
   const job = await prisma.job.findUnique({
     where: { id: jobId },
     include: {
@@ -70,6 +81,9 @@ export async function sendCustomerConfirmSms(jobId: string): Promise<{
 
   if (!job) return { sent: false, reason: "not_found" };
   if (job.customerConfirmedAt) return { sent: false, reason: "already_confirmed" };
+  if (options.reminder && job.customerConfirmReminderSentAt) {
+    return { sent: false, reason: "reminder_already_sent" };
+  }
 
   const to = job.customer?.phone?.trim() || job.lead?.phone?.trim() || null;
   if (!to) return { sent: false, reason: "no_customer_phone" };
@@ -79,21 +93,33 @@ export async function sendCustomerConfirmSms(jobId: string): Promise<{
   const shop = job.business.name;
   const body = withSmsOptOutFooter(
     [
-      `${shop}: we have you down for service`,
+      options.reminder
+        ? `${shop}: please confirm your proposed service window`
+        : `${shop}: we have you down for service`,
       when ? `Proposed window: ${when}` : "We'll confirm timing shortly",
       `Confirm here: ${customerConfirmUrl(token)}`,
     ].join("\n"),
   );
 
   try {
-    const result = await sendSms({ to, body });
-    if (!result) {
-      return { sent: false, reason: "sms_not_configured" };
-    }
+    const result = await sendCustomerSms({
+      businessId: job.businessId,
+      to,
+      body,
+    });
+    if (!result.sent) return result;
+    const sentAt = new Date();
+    await prisma.job.update({
+      where: { id: jobId },
+      data: options.reminder
+        ? { customerConfirmReminderSentAt: sentAt }
+        : { customerConfirmSentAt: sentAt },
+    });
     logInfo("customer.confirm_sms_sent", {
       jobId,
       businessId: job.businessId,
       sid: result.sid,
+      reminder: Boolean(options.reminder),
     });
     return { sent: true };
   } catch (error) {
@@ -106,6 +132,75 @@ export async function sendCustomerConfirmSms(jobId: string): Promise<{
       reason: error instanceof Error ? error.message : "send_failed",
     };
   }
+}
+
+export function shouldSendConfirmationReminder(
+  job: {
+    status: string;
+    scheduledAt: Date | null;
+    customerConfirmedAt: Date | null;
+    customerConfirmSentAt: Date | null;
+    customerConfirmReminderSentAt: Date | null;
+  },
+  now = new Date(),
+) {
+  if (job.status !== "scheduled") return false;
+  if (
+    !job.scheduledAt ||
+    job.customerConfirmedAt ||
+    !job.customerConfirmSentAt ||
+    job.customerConfirmReminderSentAt
+  ) {
+    return false;
+  }
+
+  const ageMs = now.getTime() - job.customerConfirmSentAt.getTime();
+  const leadMs = job.scheduledAt.getTime() - now.getTime();
+  return (
+    ageMs >= CONFIRM_REMINDER_AFTER_HOURS * 60 * 60_000 &&
+    leadMs >= CONFIRM_REMINDER_MIN_LEAD_HOURS * 60 * 60_000
+  );
+}
+
+/**
+ * One operational reminder for a proposed window that remains unconfirmed.
+ * No repeated drip campaign: one retry is useful; more becomes harassment.
+ */
+export async function sendDueCustomerConfirmationReminders(
+  now = new Date(),
+  limit = 25,
+) {
+  const candidates = await prisma.job.findMany({
+    where: {
+      status: "scheduled",
+      customerConfirmedAt: null,
+      customerConfirmSentAt: { not: null },
+      customerConfirmReminderSentAt: null,
+      scheduledAt: { gt: now },
+    },
+    orderBy: { customerConfirmSentAt: "asc" },
+    take: Math.max(1, Math.min(limit * 4, 100)),
+    select: {
+      id: true,
+      status: true,
+      scheduledAt: true,
+      customerConfirmedAt: true,
+      customerConfirmSentAt: true,
+      customerConfirmReminderSentAt: true,
+    },
+  });
+
+  let sent = 0;
+  let skipped = 0;
+  for (const job of candidates) {
+    if (sent >= limit) break;
+    if (!shouldSendConfirmationReminder(job, now)) continue;
+    const result = await sendCustomerConfirmSms(job.id, { reminder: true });
+    if (result.sent) sent += 1;
+    else skipped += 1;
+  }
+
+  return { checked: candidates.length, sent, skipped };
 }
 
 export async function confirmJobByCustomerToken(token: string) {

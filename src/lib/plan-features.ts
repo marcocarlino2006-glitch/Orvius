@@ -17,7 +17,16 @@ export type PlanModule =
 export type PlanFeatureSet = {
   modules: readonly PlanModule[];
   maxTechnicians: number | null;
-  prioritySupport: boolean;
+  /*
+    There is no `prioritySupport` here on purpose.
+
+    It used to sit in this type, set true for Fleet, and be read by nothing —
+    so the pricing page could sell a support tier and point at a flag as
+    evidence it existed. Support is one inbox answered by one person, the same
+    for every plan, and the published standard in institutional-standards.ts
+    says so. A plan tier gates capability; if it ever gates support, that has
+    to be something the product can actually do differently.
+  */
 };
 
 const LINE_MODULES: PlanModule[] = ["today", "inbox", "calls"];
@@ -35,24 +44,20 @@ export const planFeatures: Record<PaidPlanId, PlanFeatureSet> = {
   line: {
     modules: LINE_MODULES,
     maxTechnicians: 0,
-    prioritySupport: false,
   },
   pro: {
     modules: PRO_MODULES,
     maxTechnicians: 15,
-    prioritySupport: false,
   },
   fleet: {
     modules: PRO_MODULES,
     maxTechnicians: null,
-    prioritySupport: true,
   },
 };
 
 const EXPIRED_FEATURES: PlanFeatureSet = {
   modules: [],
   maxTechnicians: 0,
-  prioritySupport: false,
 };
 
 /**

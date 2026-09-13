@@ -141,6 +141,18 @@ model Lead {
   notes       String?
   status      String    @default("new")
   source      String    @default("call")
+  /**
+   * Canonical demand taxonomy code (src/lib/job-taxonomy.ts). Derived, never
+   * typed by an owner. Free-text serviceType cannot be counted across shops;
+   * this can, and a call answered without it is a call whose category is gone.
+   */
+  categoryCode String?
+  /** ZIP parsed from address — the unit local price benchmarks group on. */
+  postalCode   String?
+  /** First time the shop worked this lead, for speed-to-lead vs. win rate. */
+  firstContactedAt DateTime?
+  /** When the lead reached a terminal status (booked, lost, spam). */
+  closedAt         DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -148,6 +160,8 @@ model Lead {
 
   @@unique([businessId, externalId])
   @@index([businessId, createdAt])
+  @@index([businessId, categoryCode])
+  @@index([businessId, postalCode])
 }
 
 model Job {
@@ -165,16 +179,30 @@ model Job {
   urgency       String?
   address       String?
   notes         String?
+  /** Carried from the lead so completed work joins the same taxonomy. */
+  categoryCode  String?
+  postalCode    String?
   status        String      @default("scheduled")
   scheduledAt   DateTime?
   confirmedAt   DateTime?
   /** Public token for customer confirm link (/c/[token]). */
   customerConfirmToken String? @unique
+  /** Stamped only after Twilio accepts the initial confirmation SMS. */
+  customerConfirmSentAt DateTime?
+  /** One retry only; stamped only after Twilio accepts it. */
+  customerConfirmReminderSentAt DateTime?
   /** When the customer confirmed the proposed window. */
   customerConfirmedAt DateTime?
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?
+  /** Structured field outcome — the label future intelligence learns from. */
+  resolutionCode String?
+  /** Short technician evidence, never generated or inferred. */
+  resolutionSummary String?
+  /** Actual total reported at completion; separate from estimate/invoice. */
+  finalAmountCents Int?
+  outcomeCapturedAt DateTime?
   /** Magic-link token for tech field page (/t/[token]). */
   techToken     String?     @unique
   /** Free-text ETA from tech (e.g. "25 min"). */
@@ -187,6 +215,7 @@ model Job {
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
   @@index([technicianId, scheduledAt])
+  @@index([businessId, categoryCode])
 }
 
 model Technician {
@@ -202,6 +231,18 @@ model Technician {
 
   jobs Job[]
 
+  /*
+    One name, one person. ensureCrew read the table and then created the owner
+    row, so two requests arriving together — which is exactly what the dispatch
+    page does, fetching the board and the crew in parallel — each saw an empty
+    table and each seeded a row. Two of the four fixture shops carry three
+    identical owner records, and the board draws the same person three times.
+
+    It also settles a thing the add-technician form never handled: a shop could
+    enter "Ray" twice and then have no way to tell the two Rays apart when
+    assigning a job.
+  */
+  @@unique([businessId, name])
   @@index([businessId, isActive])
 }
 
@@ -335,4 +376,18 @@ model WebhookEvent {
   @@unique([source, externalId, eventType])
   @@index([businessId, createdAt])
   @@index([source, createdAt])
+}
+
+/// Single-use sign-in link. Only the SHA-256 of the token is stored, so a leaked
+/// database row cannot be replayed as a login.
+model LoginToken {
+  id         String    @id @default(cuid())
+  email      String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+  @@index([expiresAt])
 }

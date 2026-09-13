@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
 import { jobStatusLabel } from "@/lib/job-status";
+import { isEmergency } from "@/lib/urgency";
 
 type JobCardProps = {
   id: string;
@@ -35,7 +36,7 @@ export function JobCard({
   urgency,
   technicianName,
 }: JobCardProps) {
-  const emergency = urgency?.toLowerCase().includes("emergency");
+  const emergency = isEmergency(urgency);
   const when = scheduledAt
     ? new Date(scheduledAt).toLocaleString(undefined, {
         weekday: "short",
@@ -53,9 +54,15 @@ export function JobCard({
     >
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
-          <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
-            {emergency ? "Emergency" : "Job"} · {jobStatusLabel(status)}
-          </p>
+          {/*
+            The kicker says why this row wants attention, the badge beside the
+            title says what state it is in. Naming the status here as well put
+            "Emergency · scheduled" above a SCHEDULED pill on the same row —
+            and "JOB", on the jobs list, said nothing at all.
+          */}
+          {emergency ? (
+            <p className="lead-rail-kind is-flare">Emergency</p>
+          ) : null}
           <time className="lead-rail-time">{when}</time>
         </div>
         <div className="lead-rail-title-row">

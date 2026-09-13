@@ -16,10 +16,36 @@ export function isPriorityUrgency(urgency?: string | null): boolean {
 /** @deprecated Use isPriorityUrgency — kept for imports during transition. */
 export const isAutoBookUrgency = isPriorityUrgency;
 
+/**
+ * SMS has no voice-agent extraction pass. Infer urgency only from explicit
+ * language; silence stays null instead of the system pretending to know.
+ */
+export function inferExplicitUrgency(
+  text: string | null | undefined,
+): "emergency" | "same-day" | "this-week" | "flexible" | null {
+  const value = (text ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+  if (!value) return null;
+  if (
+    /\b(emergency|gas leak|smell gas|sparking|electrical fire|burst pipe|flooding|water everywhere)\b/.test(
+      value,
+    )
+  ) {
+    return "emergency";
+  }
+  if (/\b(asap|urgent|today|same[ -]?day|no heat|no cooling)\b/.test(value)) {
+    return "same-day";
+  }
+  if (/\b(this week|next few days)\b/.test(value)) return "this-week";
+  if (/\b(no rush|whenever|flexible)\b/.test(value)) return "flexible";
+  return null;
+}
+
 export type AutoBookSkipReason =
   | "already_booked"
   | "missing_business"
   | "unqualified"
+  | "non_service"
+  | "capacity_unavailable"
   | "plan_blocked"
   | "not_found";
 
@@ -45,18 +71,20 @@ export function isLeadQualifiedForBooking(lead: {
   serviceType?: string | null;
   address?: string | null;
   name?: string | null;
+  categoryCode?: string | null;
 }): boolean {
+  if (lead.categoryCode === "other.non_service") return false;
   if (!hasUsablePhone(lead.phone)) return false;
   const service = lead.serviceType?.trim() ?? "";
   const address = lead.address?.trim() ?? "";
-  if (service.length < 2 && address.length < 4) return false;
-  // Refuse generic SMS placeholders as "service"
-  if (
-    !address &&
-    /^(sms inquiry|sms|text|unknown|n\/?a)$/i.test(service)
-  ) {
-    return false;
+  if (lead.categoryCode && lead.categoryCode !== "other.non_service") {
+    return true;
   }
+  // Unknown words without a service location are a callback request, not an
+  // appointment. A recognised category may be proposed before the address is
+  // known; otherwise require an address and keep the lead open to qualify.
+  if (!address) return false;
+  if (service.length < 2 && address.length < 4) return false;
   return true;
 }
 
@@ -111,7 +139,10 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
       jobId: null,
       created: false,
       qualified: false,
-      skipReason: "unqualified",
+      skipReason:
+        lead.categoryCode === "other.non_service"
+          ? "non_service"
+          : "unqualified",
     };
   }
 
@@ -129,12 +160,28 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     };
   }
 
-  const job = await createJobFromLead({
-    leadId,
-    notes: hasJobs
-      ? "Auto-booked from inbound lead"
-      : "Auto-booked priority capture (Line)",
-  });
+  let job;
+  try {
+    job = await createJobFromLead({
+      leadId,
+      notes: hasJobs
+        ? "Auto-booked from inbound lead"
+        : "Auto-booked priority capture (Line)",
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith("No appointment capacity")
+    ) {
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "capacity_unavailable",
+      };
+    }
+    throw error;
+  }
 
   return { jobId: job.id, created: true, qualified: true };
 }

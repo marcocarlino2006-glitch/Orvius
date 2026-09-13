@@ -42,25 +42,6 @@ export function ShellPanel({
   );
 }
 
-export function ShellStat({
-  label,
-  value,
-  highlight = false,
-}: {
-  label: string;
-  value: string | number;
-  highlight?: boolean;
-}) {
-  const active = highlight || (value !== "—" && value !== 0);
-
-  return (
-    <div className={`pro-stat ${active ? "pro-stat-live" : ""}`}>
-      <p className="pro-stat-label font-sans">{label}</p>
-      <p className="pro-stat-value font-sans">{value}</p>
-    </div>
-  );
-}
-
 export function ShellBadge({
   tone,
   children,
@@ -87,6 +68,25 @@ export function ShellEmpty({
       <p className="pro-empty-state-text">{children}</p>
       {action ? <div className="pro-empty-state-action">{action}</div> : null}
     </div>
+  );
+}
+
+/**
+ * The "still fetching" state, with the marker that says so.
+ *
+ * This existed eight times as a bare <p>Loading…</p>. It read correctly to a
+ * person and was invisible to everything else: aria-busy was missing, so a
+ * screen reader got a paragraph rather than a busy region, and every audit in
+ * scripts/ waits on `[aria-busy], [class*="-loading"], [class*="skeleton"]`
+ * before measuring — so a route that used this state was measured *while
+ * loading*. That is how the surface audit came to report the job detail page
+ * as 89% empty with one font size on it: it was looking at this word.
+ */
+export function ShellLoading({ label = "Loading…" }: { label?: string }) {
+  return (
+    <p className="pro-loading-text font-sans" aria-busy="true">
+      {label}
+    </p>
   );
 }
 

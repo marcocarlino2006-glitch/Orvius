@@ -25,17 +25,6 @@ export function estimatedRevenueCents(
   return avgTicketCents * count;
 }
 
-/**
- * Recovered demand estimate — only when we have a ticket and a measured lift signal.
- * Prefer jobs/week vs baseline; else after-hours leads that booked a job.
- */
-export function recoveredRevenueCents(input: {
-  avgTicketCents: number | null | undefined;
-  recoveredJobs: number | null | undefined;
-}): number | null {
-  return estimatedRevenueCents(input.avgTicketCents, input.recoveredJobs ?? 0);
-}
-
 export function parseAvgTicketDollars(raw: string | number): number | null {
   const n = typeof raw === "number" ? raw : Number(String(raw).replace(/[^0-9.]/g, ""));
   if (!Number.isFinite(n) || n < 50 || n > 50_000) return null;

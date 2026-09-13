@@ -6,6 +6,9 @@ import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
+/** Statuses a lead does not come back from, so the clock stops here. */
+const TERMINAL_STATUSES = new Set(["booked", "lost", "spam"]);
+
 const LEAD_INCLUDE = {
   business: { select: { id: true, name: true } },
   customer: {
@@ -126,15 +129,26 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const existing = await prisma.lead.findFirst({
     where: { id, businessId: business.id },
-    select: { id: true },
+    select: { id: true, firstContactedAt: true },
   });
   if (!existing) {
     return forbiddenResponse();
   }
 
+  // Stamped from the status change rather than asked for, so the shop pays no
+  // attention tax and "how fast did we answer, and did we win" stays answerable.
+  const now = new Date();
+  const worked = body.status !== "new";
+  const terminal = TERMINAL_STATUSES.has(body.status);
+
   const lead = await prisma.lead.update({
     where: { id },
-    data: { status: body.status },
+    data: {
+      status: body.status,
+      firstContactedAt:
+        worked && !existing.firstContactedAt ? now : undefined,
+      closedAt: terminal ? now : null,
+    },
   });
 
   return NextResponse.json({ lead });

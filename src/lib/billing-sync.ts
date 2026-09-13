@@ -1,9 +1,34 @@
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
-import { isPaidPlanId } from "@/lib/pricing-plans";
+import { isPaidPlanId, planIdForStripePriceId } from "@/lib/pricing-plans";
 import type Stripe from "stripe";
 
+/**
+ * Which plan a shop is entitled to, read from what it is being billed for.
+ *
+ * This used to read `metadata.planId` first, and metadata is written by one
+ * place only: our own checkout. Stripe's customer portal changes the
+ * subscription's price and leaves metadata alone, so every plan change made
+ * there used to land as a billing change with no entitlement change:
+ *
+ *   Line → Fleet  charged the higher price, still gated to Line modules.
+ *   Fleet → Line  charged the lower price, kept every Fleet module.
+ *
+ * One is a refund and a support ticket, the other is revenue leaking for as
+ * long as the shop stays. The price is the fact; metadata is a hint, so it is
+ * now only the fallback for a subscription created outside checkout — a
+ * dashboard comp, a migrated price id — where there is nothing better to read.
+ */
 export function resolveBillingPlan(subscription: Stripe.Subscription): string | null {
+  for (const item of subscription.items?.data ?? []) {
+    const price = item.price as Stripe.Price | string | null | undefined;
+    const priceId = typeof price === "string" ? price : price?.id;
+    if (!priceId) continue;
+
+    const fromPrice = planIdForStripePriceId(priceId);
+    if (fromPrice) return fromPrice;
+  }
+
   const planId = subscription.metadata.planId?.trim();
   if (planId && isPaidPlanId(planId)) return planId;
 

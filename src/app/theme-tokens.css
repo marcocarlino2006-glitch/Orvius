@@ -1,0 +1,123 @@
+/*
+  Two colorways, one token contract.
+
+  New surfaces read from --ui-* and never hardcode a hex, so a component
+  written once renders correctly on the pitch-dark canvas and on the warm paper
+  canvas. The resolved colorway is carried by [data-theme] and <html> always has
+  it set (server default day, boot script upgrades it before first paint), so no
+  surface has to guess which set is active.
+
+  [data-theme] is matched on any element, not just <html>, so a panel can pin
+  itself to one colorway — that is how the style guide shows both at once.
+
+  Note the roles that invert between colorways. On dark, a selected chip reads
+  as a slightly raised plate (#26241e); on paper the same faint plate would be
+  invisible against white, so selection inverts to ink. Same token, same
+  meaning, different execution per canvas.
+
+  The neutrals here are warm, not gray: they are the same near-black-under-warm
+  -paper ladder the marketing skin runs on, so a --ui-* surface placed next to
+  an --ov-* one does not read as a slightly blue patch.
+*/
+
+:root,
+[data-theme="night"] {
+  color-scheme: dark;
+
+  --ui-bg: #14120b;
+  --ui-surface: #201e18;
+  --ui-surface-hover: #2b2923;
+  --ui-text: #edecec;
+  --ui-text-muted: #8a8880;
+  --ui-border: #26241e;
+
+  --ui-selected: #26241e;
+  --ui-on-selected: #ffffff;
+  --ui-cta: #ffffff;
+  --ui-on-cta: #14120b;
+
+  /* Metallic top edge — a lit 1px lip, not a soft SaaS elevation blur. */
+  --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
+  --ui-dock-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
+  /*
+    Dock glass. The dock is fixed, so it floats over every section of the page,
+    and the specified 80% is not survivable in either colorway: over the
+    full-bleed copper panel it drops the muted label to 4.09:1 on dark and
+    4.39:1 on light, both under AA. 90% keeps the frosted read and holds
+    >= 4.6:1 against every backdrop the page actually paints —
+    scripts/verify-dock.cjs scans the whole scroll range and asserts it.
+  */
+  --ui-dock-glass: rgb(32 30 24 / 0.9);
+}
+
+[data-theme="day"] {
+  color-scheme: light;
+
+  --ui-bg: #f7f7f4;
+  --ui-surface: #ffffff;
+  /* Hover is derived from the border tone; the brief fixes only the resting
+     values for this colorway. */
+  --ui-surface-hover: #f2f1ed;
+  --ui-text: #26251e;
+  --ui-text-muted: #615f57;
+  --ui-border: #e1e0db;
+
+  --ui-selected: #26251e;
+  --ui-on-selected: #f7f7f4;
+  --ui-cta: #26251e;
+  --ui-on-cta: #f7f7f4;
+
+  --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.9);
+  --ui-dock-shadow: 0 12px 32px rgb(38 37 30 / 0.12);
+  --ui-dock-glass: rgb(255 255 255 / 0.9);
+}
+
+/*
+  The document carries the colorway too. Without this, html and body stay white
+  and any fixed, translucent surface — the utility dock most of all — composites
+  its glass over white instead of over the canvas, which quietly costs it about
+  1.4:1 of contrast.
+*/
+html,
+body {
+  background: var(--ui-bg);
+}
+
+/*
+  The dock is fixed to the bottom-right, so the last row of any page it floats
+  over has to give up that corner or the dock lands on top of it — which is
+  exactly what happened to the footer's trademark line. This is the dock's
+  vertical footprint (bottom offset + control height + breathing room);
+  surfaces that end at the bottom of the page reserve it as padding.
+*/
+:root {
+  --ui-dock-reserve: 76px;
+}
+
+/*
+  Legacy marketing CSS squares off every button inside .mkt-page with
+  `border-radius: 0.2rem !important`. Pill primitives opt out of that rule
+  explicitly rather than each caller fighting it with its own !important.
+*/
+.ui-pill,
+.mkt-page .ui-pill,
+.mkt-page button.ui-pill {
+  border-radius: 9999px !important;
+}
+
+/*
+  Keyboard focus, drawn as an outline rather than a ring.
+
+  The pills ask for `focus-visible:ring-2` alongside a lip shadow, and both
+  utilities write the same box-shadow property — the ring computes its value
+  and then never reaches the painted shadow. Paired with the
+  `focus-visible:outline-none` in the same class list, that left these controls
+  with no focus indicator at all: tabbing onto one changed nothing on screen.
+  An outline occupies its own property, so it cannot be crowded out.
+*/
+.ui-pill:focus-visible {
+  outline-style: solid !important;
+  outline-width: 2px !important;
+  outline-color: var(--ui-text) !important;
+  outline-offset: 2px !important;
+}

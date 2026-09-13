@@ -50,7 +50,7 @@ Owners see this on **Today** and **Settings** via "Your service level."
 ### Daily (founder / ops)
 
 - Check design partner shop health in dashboard
-- Clear stuck notification queue (`/api/cron/notifications` or manual)
+- Review failed owner alerts in shop health (the queue drains itself every minute; a row still pending after five is a real fault, not a backlog)
 - Log any wedge miss in `docs/FAILURE-LOG.md`
 
 ### Before every deploy

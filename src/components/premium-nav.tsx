@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { OrviusLogo } from "@/components/orvius-logo";
 
 const NAV = [
@@ -11,14 +11,12 @@ const NAV = [
   { href: "/resources", label: "Resources", i18n: "nav.resources" },
 ] as const;
 
-/**
- * Company chrome — Grok-grade restraint on a night-shift field.
- * Circular menu control. Full-bleed void drawer. No cream SaaS sheet.
- */
+/** Compact company chrome with one primary action and an accessible mobile sheet. */
 export function PremiumNav() {
   const menuId = useId();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function onScroll() {
@@ -31,14 +29,38 @@ export function PremiumNav() {
 
   useEffect(() => {
     if (!menuOpen) return;
+    const restoreFocus = document.activeElement as HTMLElement | null;
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        menuRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKey);
+    window.requestAnimationFrame(() => {
+      menuRef.current?.querySelector<HTMLElement>("button, a[href]")?.focus();
+    });
     return () => {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", onKey);
+      restoreFocus?.focus();
     };
   }, [menuOpen]);
 
@@ -48,13 +70,17 @@ export function PremiumNav() {
         className={`mkt-nav mkt-nav--institution ${scrolled ? "mkt-nav--elevated" : ""} ${menuOpen ? "mkt-nav--open" : ""}`}
       >
         <div className="mkt-nav-inner">
-          <Link
-            href="/"
-            className="mkt-nav-brand"
-            onClick={() => setMenuOpen(false)}
-          >
-            <OrviusLogo variant="void" size="lg" />
-          </Link>
+          <div className="mkt-nav-brandline">
+            {/* The name carries the header on its own — no mark beside it and
+                no status pill trailing it. */}
+            <Link
+              href="/"
+              className="mkt-nav-brand"
+              onClick={() => setMenuOpen(false)}
+            >
+              <OrviusLogo variant="void" size="lg" wordmarkOnly />
+            </Link>
+          </div>
 
           <nav className="mkt-nav-links" aria-label="Main">
             {NAV.map((item) => (
@@ -65,18 +91,15 @@ export function PremiumNav() {
           </nav>
 
           <div className="mkt-nav-actions">
-            <Link href="/login" className="mkt-nav-login" data-i18n="nav.signin">
+            <Link href="/signin" className="mkt-nav-login" data-i18n="nav.signin">
               Sign in
             </Link>
             <Link
-              href="/demo"
-              className="mkt-btn mkt-nav-secondary"
+              href="/pilot"
+              className="mkt-btn mkt-nav-cta"
               data-i18n="nav.bookdemo"
             >
-              Book a demo
-            </Link>
-            <Link href="/pilot" className="mkt-btn mkt-nav-cta" data-i18n="nav.proveit">
-              Prove it
+              Book an audit
             </Link>
             <button
               type="button"
@@ -99,15 +122,24 @@ export function PremiumNav() {
       </header>
 
       {menuOpen ? (
-        <div id={menuId} className="mkt-nav-sheet" role="dialog" aria-modal="true">
+        <div
+          id={menuId}
+          ref={menuRef}
+          className="mkt-nav-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+        >
           <div className="mkt-nav-sheet-bar">
-            <Link
-              href="/"
-              className="mkt-nav-brand"
-              onClick={() => setMenuOpen(false)}
-            >
-              <OrviusLogo variant="void" size="lg" />
-            </Link>
+            <div className="mkt-nav-brandline">
+              <Link
+                href="/"
+                className="mkt-nav-brand"
+                onClick={() => setMenuOpen(false)}
+              >
+                <OrviusLogo variant="void" size="lg" wordmarkOnly />
+              </Link>
+            </div>
             <button
               type="button"
               className="mkt-nav-menu-toggle mkt-nav-menu-toggle--close"
@@ -131,19 +163,22 @@ export function PremiumNav() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/login" onClick={() => setMenuOpen(false)}>
+            <Link href="/signin" onClick={() => setMenuOpen(false)}>
               Sign in
+            </Link>
+            <Link href="/pilot" onClick={() => setMenuOpen(false)}>
+              Book a call audit
             </Link>
           </nav>
 
           <div className="mkt-nav-sheet-foot">
-            <Link
-              href="/pilot"
+            <a
+              href="tel:+18446439170"
               className="mkt-nav-sheet-cta"
               onClick={() => setMenuOpen(false)}
             >
-              Prove it on your line
-            </Link>
+              Call the live AI
+            </a>
             <p className="mkt-nav-sheet-meta font-sans">
               <Link href="/legal" onClick={() => setMenuOpen(false)}>
                 Legal

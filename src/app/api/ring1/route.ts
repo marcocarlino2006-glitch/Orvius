@@ -166,7 +166,7 @@ export async function GET() {
       newLeads,
       totalCalls,
       totalLeads,
-      answerRate: outcomes.bookingRate,
+      leadBookingRate: outcomes.bookingRate,
       lastCallAt: lastCall?.createdAt.toISOString() ?? null,
       lastCaller: lastCall?.callerPhone ?? null,
     },

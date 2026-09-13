@@ -9,7 +9,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Signal O alone — favicon / avatar. */
+/** Signal-aperture mark alone — favicon / avatar. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -24,7 +24,7 @@ type OrviusLogoProps = {
   variant?: "void" | "chalk";
   /** Text wordmark only (no mark). */
   wordmarkOnly?: boolean;
-  /** Signal O alone. */
+  /** Signal-aperture mark alone. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -32,7 +32,7 @@ type OrviusLogoProps = {
 };
 
 /**
- * One type system: signal mark + ORVIUS in the product font.
+ * One lockup: signal aperture + ORVIUS in the reporting voice (Plex Mono).
  * No second SVG letterset fighting Space Grotesk / Syne / Barlow.
  */
 export function OrviusLogo({

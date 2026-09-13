@@ -17,9 +17,12 @@ const transcript = [
   { who: "Caller", line: "1842 Oak Street. 512-555-0123.", muted: true },
   {
     who: "Orvius",
-    line: "Treating this as an emergency. Notifying the owner now.",
+    line: "Got it. I'll mark this same-day and check the next open window.",
   },
-  { who: "Orvius", line: "Booked for today. On the dispatch board." },
+  {
+    who: "Orvius",
+    line: "Your proposed window will arrive by text for confirmation. The owner has your request.",
+  },
 ] as const;
 
 /**
@@ -37,18 +40,19 @@ export function HomeCallStory() {
         <div className="mkt-proof-copy">
           <p className="mkt-proof-kicker font-sans">On the wire</p>
           <h2 id="home-proof-heading" className="mkt-proof-title">
-            Call it. Hear the night shift.
+            Call the product. Hear the night shift.
           </h2>
           <p className="mkt-proof-lead font-sans">
-            {summitCaseStudy.name} — labeled reference shop. The product is the
-            live line. Dial it, or audit your after-hours traffic.
+            {summitCaseStudy.name} is the labeled reference implementation, not
+            a customer case study. Dial the live line and test the same intake
+            flow a shop receives.
           </p>
           <div className="mkt-proof-actions font-sans">
             <a href={demoLineHref()} className="mkt-btn mkt-btn-ink">
               Call {DEMO_LINE_DISPLAY}
             </a>
             <Link href="/pilot" className="mkt-text-link">
-              Prove it on your line
+              Book a call audit
             </Link>
           </div>
           <p className="mkt-proof-note font-sans">

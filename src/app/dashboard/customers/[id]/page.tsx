@@ -2,7 +2,12 @@
 
 import { CustomerTimeline } from "@/components/customer-timeline";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
+import {
+  ShellAlert,
+  ShellBadge,
+  ShellLoading,
+  ShellPanel,
+} from "@/components/shell-primitives";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -65,7 +70,7 @@ export default function CustomerDetailPage() {
   if (loading) {
     return (
       <OsShell title="Customer" subtitle="Loading record…">
-        <p className="font-sans text-sm text-ash">Loading…</p>
+        <ShellLoading />
       </OsShell>
     );
   }
@@ -95,12 +100,16 @@ export default function CustomerDetailPage() {
       <div className="os-detail-grid">
         <ShellPanel title="Profile" dense>
           <div className="flex flex-wrap gap-2">
+            {/*
+              The interaction count was a flare pill here and a Calls figure in
+              the stat row twelve lines down — the same number twice, one of
+              them in the colour the product reserves for emergencies.
+            */}
             {customer.returning ? (
               <ShellBadge tone="live">Returning customer</ShellBadge>
             ) : (
               <ShellBadge tone="neutral">First contact</ShellBadge>
             )}
-            <ShellBadge tone="flare">{customer.interactionCount} interactions</ShellBadge>
           </div>
 
           <dl className="os-kv font-sans">

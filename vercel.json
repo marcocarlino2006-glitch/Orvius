@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run db:generate && npm run build",
+  "buildCommand": "npm run db:generate && npm run db:migrate:turso && npm run build",
   "regions": ["iad1"],
   "crons": [
     {

@@ -7,20 +7,35 @@ import {
   getDevAuthUser,
   isDevAuthBypassEnabled,
 } from "@/lib/dev-auth";
-
-function getAllowedEmails() {
-  return (
-    process.env.ORVIUS_AUTH_ALLOWED_EMAILS?.split(",")
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean) ?? []
-  );
-}
+import { getAllowedEmails } from "@/lib/auth-allowlist";
 
 const providers: Provider[] = [
   Google({
     clientId: process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
     clientSecret:
       process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET ?? "",
+  }),
+  /**
+   * Passwordless email. This is a Credentials provider rather than the built-in
+   * Email provider because the session strategy is JWT and there is no NextAuth
+   * database adapter here; the token itself is issued, hashed, and redeemed in
+   * lib/magic-link, so the provider only has to exchange a claimed token for a
+   * user. The token is claimed exactly once inside consumeMagicLink.
+   */
+  Credentials({
+    id: "email-link",
+    name: "Email link",
+    credentials: { token: { type: "text" } },
+    async authorize(credentials) {
+      const token = typeof credentials?.token === "string" ? credentials.token : "";
+      // Imported here rather than at module scope: consumeMagicLink reaches
+      // node:crypto and Prisma, and this module is on the edge middleware's
+      // import path.
+      const { consumeMagicLink } = await import("@/lib/magic-link");
+      const email = await consumeMagicLink(token);
+      if (!email) return null;
+      return { id: email, email, name: email.split("@")[0] };
+    },
   }),
 ];
 
@@ -47,6 +62,8 @@ const nextAuth = NextAuth({
       if (account?.provider === "dev") {
         return isDevAuthBypassEnabled();
       }
+      // The email-link provider already redeemed a single-use token against the
+      // allowlist; re-running the check here is harmless and keeps one gate.
       const allowed = getAllowedEmails();
       const email = user.email?.toLowerCase();
       // Production: empty allowlist = deny all (fail closed).

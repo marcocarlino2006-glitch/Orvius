@@ -160,3 +160,68 @@ ALTER TABLE "Job" ADD COLUMN "customerConfirmToken" TEXT;
 ALTER TABLE "Job" ADD COLUMN "customerConfirmedAt" DATETIME;
 CREATE UNIQUE INDEX IF NOT EXISTS "Job_customerConfirmToken_key" ON "Job"("customerConfirmToken");
 ALTER TABLE "Business" ADD COLUMN "overflowForwardConfirmedAt" DATETIME;
+
+-- Demand capture: canonical job category, service-area ZIP, lead lifecycle
+ALTER TABLE "Lead" ADD COLUMN "categoryCode" TEXT;
+ALTER TABLE "Lead" ADD COLUMN "postalCode" TEXT;
+ALTER TABLE "Lead" ADD COLUMN "firstContactedAt" DATETIME;
+ALTER TABLE "Lead" ADD COLUMN "closedAt" DATETIME;
+CREATE INDEX IF NOT EXISTS "Lead_businessId_categoryCode_idx" ON "Lead"("businessId", "categoryCode");
+CREATE INDEX IF NOT EXISTS "Lead_businessId_postalCode_idx" ON "Lead"("businessId", "postalCode");
+ALTER TABLE "Job" ADD COLUMN "categoryCode" TEXT;
+ALTER TABLE "Job" ADD COLUMN "postalCode" TEXT;
+CREATE INDEX IF NOT EXISTS "Job_businessId_categoryCode_idx" ON "Job"("businessId", "categoryCode");
+
+-- Confirmation lifecycle: real delivery stamps + one unconfirmed reminder
+ALTER TABLE "Job" ADD COLUMN "customerConfirmSentAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "customerConfirmReminderSentAt" DATETIME;
+
+-- Outcome loop: what the technician actually found and what the work closed at
+ALTER TABLE "Job" ADD COLUMN "resolutionCode" TEXT;
+ALTER TABLE "Job" ADD COLUMN "resolutionSummary" TEXT;
+ALTER TABLE "Job" ADD COLUMN "finalAmountCents" INTEGER;
+ALTER TABLE "Job" ADD COLUMN "outcomeCapturedAt" DATETIME;
+
+-- Passwordless sign-in: single-use, hashed magic-link tokens
+CREATE TABLE IF NOT EXISTS "LoginToken" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "email" TEXT NOT NULL,
+  "tokenHash" TEXT NOT NULL,
+  "expiresAt" DATETIME NOT NULL,
+  "usedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "LoginToken_tokenHash_key" ON "LoginToken"("tokenHash");
+CREATE INDEX IF NOT EXISTS "LoginToken_email_createdAt_idx" ON "LoginToken"("email", "createdAt");
+CREATE INDEX IF NOT EXISTS "LoginToken_expiresAt_idx" ON "LoginToken"("expiresAt");
+
+-- Crew duplication: ensureCrew read the technician table and then created the
+-- owner row, so two requests arriving together each saw it empty and each
+-- seeded one. The dispatch page fetches the board and the crew in parallel, so
+-- that happened on a shop's first ever load; two fixture shops carry three
+-- identical owner records and the board draws the same person three times.
+--
+-- The unique index below is what closes it, and it cannot be created while the
+-- duplicates are still there. So: point every job at the oldest row of its
+-- (business, name) group, drop the rest, then add the index. All three
+-- statements are no-ops on a database that has already been through this.
+UPDATE "Job"
+SET "technicianId" = (
+  SELECT MIN(keep."id")
+  FROM "Technician" keep
+  WHERE keep."businessId" = (
+      SELECT had."businessId" FROM "Technician" had WHERE had."id" = "Job"."technicianId"
+    )
+    AND keep."name" = (
+      SELECT had."name" FROM "Technician" had WHERE had."id" = "Job"."technicianId"
+    )
+)
+WHERE "technicianId" IS NOT NULL;
+
+DELETE FROM "Technician"
+WHERE "id" NOT IN (
+  SELECT MIN("id") FROM "Technician" GROUP BY "businessId", "name"
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Technician_businessId_name_key"
+  ON "Technician"("businessId", "name");

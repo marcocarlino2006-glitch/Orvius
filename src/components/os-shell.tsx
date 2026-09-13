@@ -3,11 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  osCurrentRing,
-  osProductNav,
-  osWorkspaceNav,
-} from "@/lib/os-nav";
+import { osCurrentRing, osProductNav } from "@/lib/os-nav";
 import { useBusiness } from "@/lib/use-business";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
@@ -51,6 +47,13 @@ export function OsShell({
   const unassignedJobs = business?.signals.unassignedJobs ?? 0;
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  /*
+    Decided on the server, against the shop's own hours and timezone. Reading
+    the browser clock here would have been two lines shorter and wrong in two
+    ways: it disagrees with the server during hydration, and it would tell a
+    shop that answers until eight that it is after hours at six.
+  */
+  const offHours = business?.signals.afterHoursNow ?? false;
 
   useEffect(() => {
     setNavOpen(false);
@@ -178,27 +181,12 @@ export function OsShell({
         </ul>
       </nav>
 
-      <nav className="os-sidebar-nav" aria-label="Account">
-        <p className="os-sidebar-label font-sans">Account</p>
-        <ul>
-          {osWorkspaceNav.map((item) => {
-            const active = navActive(pathname, item.href);
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`os-nav-link font-sans ${active ? "os-nav-link-active" : ""}`}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <OsIcon name={item.icon} />
-                  <span className="os-nav-label">{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
+      {/*
+        Account links live in the profile menu below and nowhere else. This
+        corner used to hold both: an "Account" nav section listing Settings,
+        Profile and Billing, and directly beneath it a profile button whose
+        menu listed the same three. Every shop we watched picked one.
+      */}
       <OsSidebarFooter />
     </div>
   );
@@ -219,13 +207,21 @@ export function OsShell({
           <div className="os-topbar-row">
             <OsMobileNavButton open={navOpen} onToggle={() => setNavOpen((v) => !v)} />
             <div className="os-topbar-copy">
+              {/*
+                The state of the line, and nothing that is already on screen.
+                This slot used to print the new-lead count — which every page now
+                leads with in display type an inch below it — or else the shop's
+                phone number, which the sidebar shows two inches to the left. Both
+                readings were the same sentence twice. What an owner cannot see
+                anywhere else is whether the thing is picking up right now.
+              */}
               <p className="os-topbar-live font-sans">
                 <span className="pro-live-dot" />
-                {newLeads > 0
-                  ? `${newLeads} lead${newLeads === 1 ? "" : "s"} need follow-up`
-                  : business?.line
-                    ? business.line
-                    : "Finish setup in Settings"}
+                {business?.line
+                  ? offHours
+                    ? "Answering — after hours"
+                    : "Answering"
+                  : "Finish setup in Settings"}
               </p>
               <h1 className="os-topbar-title font-sans">{title}</h1>
               {subtitle ? (

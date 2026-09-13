@@ -99,7 +99,7 @@ export function PricingPlanCard({
       {recommended ? (
         <p className="tier1-plan-badge type-caption">Recommended</p>
       ) : featured ? (
-        <p className="tier1-plan-badge type-caption">Most popular</p>
+        <p className="tier1-plan-badge type-caption">Complete workflow</p>
       ) : null}
       <p className="tier1-eyebrow type-eyebrow">{plan.name}</p>
       {isPilot ? (

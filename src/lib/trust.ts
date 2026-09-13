@@ -72,7 +72,7 @@ export const pricingComparison = [
   {
     label: "Orvius Fleet",
     cost: "$499/mo",
-    pain: "Multi-tech dispatch. Founder email until support is staffed.",
+    pain: "Multi-tech dispatch, unlimited technicians.",
     highlight: false,
   },
 ] as const;

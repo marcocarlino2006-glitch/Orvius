@@ -18,7 +18,7 @@ export const company = {
   proofLine: "Missed calls become booked jobs.",
   vision:
     "Make missed night jobs obsolete. Orvius is the shop OS that runs after hours — captures demand, books the work, alerts the owner, and compounds one record across every call, job, and dollar. Humans keep high-risk overrides.",
-  /** Product goal — not a warranty of 100% answer rate. */
+  /** Product goal — not a warranty of a perfect answer rate. */
   mission:
     "Night rule: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
   strategy: [
@@ -67,7 +67,8 @@ export const exponentialLoops = [
   {
     id: 4,
     name: "Proof",
-    claim: "Weekly recovered $ and jobs copy as an honest, stamped artifact.",
+    claim:
+      "Weekly captured-demand bookings and estimated value copy as an honest, stamped artifact.",
   },
   {
     id: 5,
@@ -90,36 +91,36 @@ export const osRings = [
     ring: 2,
     name: "Customers",
     module: "Record · history · recognition",
-    status: "building" as const,
-    body: "Callers become customers. History compounds — still thickening.",
+    status: "live" as const,
+    body: "Callers become customers. Full history from first touch.",
   },
   {
     ring: 3,
     name: "Jobs",
     module: "Book · confirm · schedule",
-    status: "building" as const,
-    body: "Leads become booked appointments — core path works; polish continues.",
+    status: "live" as const,
+    body: "Leads become booked appointments — not sticky notes.",
   },
   {
     ring: 4,
     name: "Field",
     module: "Dispatch · assign · status",
-    status: "building" as const,
-    body: "Who goes where on one board — available on Pro; not the wedge claim yet.",
+    status: "live" as const,
+    body: "Who goes where. The day runs from one board.",
   },
   {
     ring: 5,
     name: "Money",
     module: "Estimate · invoice · pay",
-    status: "next" as const,
-    body: "Draft estimates and invoices on jobs; record payments manually. Public card (when Stripe keys are live) settles on Orvius until Connect — not the shop bank.",
+    status: "beta" as const,
+    body: "Draft estimates and invoices on jobs; record payments manually. Card rails next.",
   },
   {
     ring: 6,
     name: "Intelligence",
-    module: "Ask on shop records",
-    status: "building" as const,
-    body: "Ask and outcomes on shop records — not AI on every layer yet.",
+    module: "Answers from your own records",
+    status: "beta" as const,
+    body: "Ask retrieves calls, jobs, customers, and technician-recorded outcomes with source context. It does not train itself or invent missing facts.",
   },
   {
     ring: 7,
@@ -137,7 +138,7 @@ export const osRings = [
   },
 ] as const;
 
-export const osCurrentRing = 1;
+export const osCurrentRing = 5;
 
 export const legalPages = [
   {

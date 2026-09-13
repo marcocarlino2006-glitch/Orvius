@@ -3,7 +3,7 @@ import { company } from "@/lib/company";
 import { DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { ImageResponse } from "next/og";
 
-export const alt = "Orvius — The night shift for the trades";
+export const alt = "Orvius — The AI night shift for the trades";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -17,7 +17,7 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#05070b",
+          background: "#23262b",
           padding: "72px 80px",
         }}
       >
@@ -27,10 +27,9 @@ export default function OpenGraphImage() {
             style={{
               display: "flex",
               fontSize: 28,
-              fontWeight: 700,
+              fontWeight: 600,
               color: "#f4f6f9",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
+              letterSpacing: "-0.02em",
             }}
           >
             {company.productName}
@@ -49,7 +48,7 @@ export default function OpenGraphImage() {
               maxWidth: 900,
             }}
           >
-            The night shift for the trades.
+            The AI night shift for the trades.
           </div>
           <div
             style={{
@@ -68,7 +67,8 @@ export default function OpenGraphImage() {
               color: "rgba(244,246,249,0.62)",
             }}
           >
-            After-hours answer, book, and alert — on your board by morning.
+            Call the live product. Capture the request, propose an open window,
+            and alert the owner.
           </div>
         </div>
 

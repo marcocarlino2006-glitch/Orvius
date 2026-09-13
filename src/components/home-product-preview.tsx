@@ -56,8 +56,12 @@ export function HomeProductPreview({
     >
       <header className="mkt-product-chrome font-sans">
         <div className="mkt-product-chrome-left">
-          <span className="mkt-product-chrome-mark" aria-hidden />
-          <span className="mkt-product-chrome-path">Command board</span>
+          <span className="mkt-product-chrome-dots" aria-hidden>
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className="mkt-product-chrome-path">Illustrative product preview</span>
         </div>
         <p className="mkt-product-live">
           <span className="mkt-product-live-dot" aria-hidden />
@@ -129,11 +133,11 @@ export function HomeProductPreview({
           <ol className="mkt-product-steps">
             <li className="is-done">
               <span>Answered</span>
-              <em>0.8s</em>
+              <em>live</em>
             </li>
             <li className={phase === "incoming" ? "is-active" : "is-done"}>
               <span>Read service · urgency · address</span>
-              <em>{phase === "incoming" ? "…" : "2s"}</em>
+              <em>{phase === "incoming" ? "…" : "saved"}</em>
             </li>
             <li
               className={
@@ -141,7 +145,7 @@ export function HomeProductPreview({
               }
             >
               <span>Book job · alert owner SMS</span>
-              <em>{phase === "cleared" ? "1s" : phase === "working" ? "…" : ""}</em>
+              <em>{phase === "cleared" ? "sent" : phase === "working" ? "…" : ""}</em>
             </li>
             <li className={phase === "cleared" ? "is-done" : ""}>
               <span>On the board before morning</span>
@@ -152,9 +156,9 @@ export function HomeProductPreview({
           <div className="mkt-product-reply">
             <p>
               {phase === "cleared"
-                ? "Emergency AC · Oak St is booked. Jake M. rolling — ETA 45 min. Owner SMS delivered."
+                ? "Same-day AC · Oak St has a proposed window. Owner alert accepted for delivery."
                 : phase === "working"
-                  ? "Confirming callback number, marking emergency, writing the job to Summit HVAC."
+                  ? "Confirming callback number, checking capacity, writing the request to Summit HVAC."
                   : "Inbound after hours. Capturing name, phone, service, urgency, address."}
             </p>
           </div>
@@ -164,7 +168,7 @@ export function HomeProductPreview({
       <div className="mkt-product-cli font-sans" aria-hidden>
         <span className="mkt-product-cli-label">Live line</span>
         <span className="mkt-product-cli-text">
-          +1 844 643 9170 · ask emergency AC · owner alert under 60s
+          +1 844 643 9170 · structured intake · proposed window · owner alert
         </span>
       </div>
     </div>

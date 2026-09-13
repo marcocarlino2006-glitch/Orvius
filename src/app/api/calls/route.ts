@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAfterHours } from "@/lib/business";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
 
@@ -17,6 +18,23 @@ export async function GET(request: NextRequest) {
   );
   const cursor = searchParams.get("cursor")?.trim() || null;
   const tenant = { businessId: business.id };
+
+  /*
+    Classified here, not in the browser.
+
+    Whether a call came in after hours is the one number on the Calls page that
+    states what the shop is paying for, and it is a property of the shop's own
+    hours — a plumber answering until eight and a shop closing at four do not
+    share a cutoff. Deriving it client-side from the viewer's clock would get it
+    wrong for both of them, and wrong again for an owner checking the board from
+    another timezone.
+  */
+  const hours = await prisma.business.findUnique({
+    where: { id: business.id },
+    select: { hoursJson: true, timezone: true },
+  });
+  const timezone = hours?.timezone ?? "America/New_York";
+  const hoursJson = hours?.hoursJson ?? "{}";
 
   const calls = await prisma.call.findMany({
     take: limit + 1,
@@ -49,6 +67,7 @@ export async function GET(request: NextRequest) {
       durationSec: call.durationSec,
       booked: call.booked,
       createdAt: call.createdAt.toISOString(),
+      afterHours: isAfterHours(call.createdAt, hoursJson, timezone),
       business: call.business,
       customer: call.customer,
       lead: call.lead,

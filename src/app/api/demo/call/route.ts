@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { maybeAutoBookLead } from "@/lib/auto-job";
 import { linkTouchToCustomer } from "@/lib/customer";
+import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { verifyAdminRequest } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import {
@@ -8,7 +9,7 @@ import {
   notifyOwner,
 } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
-import { isProduction } from "@/lib/runtime";
+import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 import { z } from "zod";
 
 const demoCallSchema = z.object({
@@ -27,7 +28,13 @@ const demoCallSchema = z.object({
  * Creates call + lead and optionally notifies owner.
  */
 export async function POST(request: NextRequest) {
-  if (isProduction() && !verifyAdminRequest(request)) {
+  /*
+    This creates a shop, a call and a lead, and texts an owner. The guard was
+    isProduction(), so a dev server pointed at the live database would have
+    let anyone do all of that to a real shop. What makes it safe is the data
+    it writes to, not the build it runs in.
+  */
+  if (!isUnauthenticatedAccessAllowed() && !verifyAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -88,6 +95,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const demand = deriveDemandSignal({
+      serviceType: body.serviceType,
+      notes: body.notes,
+      summary,
+      address: body.address,
+      trade: tradeForCapture(business),
+    });
+
     const lead = await prisma.lead.create({
       data: {
         businessId: business.id,
@@ -101,6 +116,8 @@ export async function POST(request: NextRequest) {
         notes: body.notes ?? summary,
         source: "demo",
         status: "new",
+        categoryCode: demand.categoryCode,
+        postalCode: demand.postalCode,
       },
     });
 

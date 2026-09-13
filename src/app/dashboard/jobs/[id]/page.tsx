@@ -2,7 +2,12 @@
 
 import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellBadge, ShellPanel } from "@/components/shell-primitives";
+import {
+  ShellAlert,
+  ShellBadge,
+  ShellLoading,
+  ShellPanel,
+} from "@/components/shell-primitives";
 import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -118,7 +123,7 @@ export default function JobDetailPage() {
   if (loading) {
     return (
       <OsShell title="Job" subtitle="Loading…">
-        <p className="font-sans text-sm text-ash">Loading…</p>
+        <ShellLoading />
       </OsShell>
     );
   }

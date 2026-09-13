@@ -99,18 +99,59 @@ if (!ciMode) {
   gate("standard", "Institutional standard", false, "skipped in CI — must pass on agent/prod");
 }
 
+/*
+  A cron that exists is not a cron that runs often enough. This gate used to
+  assert only that the entry was present, and passed the whole time the drain
+  was daily while owner alerts retried on a 1/5/15/60/240-minute ladder — a
+  failed 2am alert sat until 09:00 UTC. Then it was tightened to demand a
+  per-minute schedule, and that broke deploys outright: this project's Vercel
+  scope allows one cron a day, and a minute cron is not a slower schedule
+  there, it is a rejected build. The same fix has now been made and reverted
+  three times.
+
+  So the gate stops asking about the scheduler and asks the question it
+  actually cares about: can the ladder advance without waiting a day. It can
+  if the webhooks drain the queue, because a call, a text or a delivery
+  receipt is both the traffic that produces an alert and the moment a retry
+  falls due. The daily cron only has to sweep what went stale while the phone
+  was quiet, so either a fast cron or a drain on every webhook satisfies this
+  — and losing both fails it.
+*/
 gate(
   "cron",
-  "Notification cron scheduled",
+  "Retry ladder advances faster than the ladder's first rung",
   (() => {
     try {
       const v = JSON.parse(readFileSync(join(root, "vercel.json"), "utf8"));
-      return Boolean(v.crons?.some((c) => String(c.path).includes("cron/notifications")));
+      const entry = v.crons?.find((c) => String(c.path).includes("cron/notifications"));
+      if (!entry) return false;
+
+      const queue = readFileSync(join(root, "src/lib/notification-queue.ts"), "utf8");
+      const ladder = queue.match(/NOTIFICATION_RETRY_MINUTES\s*=\s*\[([^\]]+)\]/);
+      const firstRung = ladder ? Number(ladder[1].split(",")[0].trim()) : 5;
+
+      /* Only the minute field can make a cron sub-hourly. Anything else — a
+         fixed minute, an hourly or daily entry — is slower than any rung. */
+      const minuteField = String(entry.schedule).trim().split(/\s+/)[0];
+      const everyMinutes =
+        minuteField === "*"
+          ? 1
+          : Number(minuteField.match(/^\*\/(\d+)$/)?.[1] ?? NaN);
+      if (Number.isFinite(everyMinutes) && everyMinutes <= firstRung) return true;
+
+      const webhooks = [
+        "src/app/api/webhooks/vapi/route.ts",
+        "src/app/api/webhooks/twilio/sms/route.ts",
+        "src/app/api/webhooks/twilio/status/route.ts",
+      ];
+      return webhooks.every((rel) =>
+        /drainOwnerAlerts\s*\(/.test(readFileSync(join(root, rel), "utf8")),
+      );
     } catch {
       return false;
     }
   })(),
-  "vercel.json → /api/cron/notifications",
+  "a sub-rung cron in vercel.json, or every Twilio/Vapi webhook draining the queue",
 );
 
 gate(
@@ -120,12 +161,28 @@ gate(
   "playbook + copy templates",
 );
 
+/*
+  This asked whether launch-gates-strip.tsx existed on disk, and master:class
+  asks that Settings not render it — so both gates were green while the file sat
+  there imported by nothing. A file-exists check cannot tell a shipped surface
+  from an abandoned one, which is the only thing this gate was ever for.
+
+  Settings now shows the cert through ProSetupHub, so that is what gets checked:
+  the surface an owner reaches, plus the column the progress is stored in.
+*/
 gate(
   "launch_gates_ui",
-  "Launch gates + cert persistence",
-  fileOk("src/components/launch-gates-strip.tsx") &&
-    readFileSync(join(root, "prisma/schema.prisma"), "utf8").includes("founderCertJson"),
-  "Settings cockpit",
+  "Founder cert reaches Settings",
+  (() => {
+    try {
+      const settings = readFileSync(join(root, "src/app/dashboard/settings/page.tsx"), "utf8");
+      const schema = readFileSync(join(root, "prisma/schema.prisma"), "utf8");
+      return /ProSetupHub/.test(settings) && schema.includes("founderCertJson");
+    } catch {
+      return false;
+    }
+  })(),
+  "Settings renders ProSetupHub and Business.founderCertJson persists it",
 );
 
 gate(

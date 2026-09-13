@@ -1,12 +1,27 @@
 /**
- * Orvius mark — the signal O.
+ * Orvius mark — the signal aperture.
  *
- * Outer ring: the shop's coverage, broken where the night gap is.
- * Inner sweep: the line answering into that gap.
- * Core: the one record every call, job, and dollar compounds into.
- *
- * Monochrome via currentColor, so it holds on charcoal and on warm light.
+ * A precision rounded-square aperture (the O) holds a five-bar call waveform
+ * whose valley falls to a point (the V). The initials are still there, but the
+ * mark now reads as what the product is: a live line being watched. Every
+ * coordinate sits on a 32-unit grid at half-unit precision so the emblem stays
+ * crisp at favicon scale.
  */
+
+const APERTURE = { x: 2.5, y: 2.5, size: 27, radius: 7.5, stroke: 2.25 } as const;
+const BAR_STROKE = 2.25;
+
+/**
+ * Bar half-heights, symmetric around the centre line: tall shoulders falling to
+ * a point. This is the V, drawn as signal rather than as a letter.
+ */
+const BARS: { x: number; half: number }[] = [
+  { x: 9, half: 6 },
+  { x: 12.5, half: 3.9 },
+  { x: 16, half: 1.6 },
+  { x: 19.5, half: 3.9 },
+  { x: 23, half: 6 },
+];
 
 export type OrviusMarkSvgProps = {
   className?: string;
@@ -24,21 +39,29 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      <path
-        className="orvius-mark-coverage"
-        d="M27.93 13.46 A12.2 12.2 0 1 1 18.54 4.07"
+      <rect
+        className="orvius-mark-aperture"
+        x={APERTURE.x}
+        y={APERTURE.y}
+        width={APERTURE.size}
+        height={APERTURE.size}
+        rx={APERTURE.radius}
         stroke="currentColor"
-        strokeWidth="2.9"
-        strokeLinecap="round"
+        strokeWidth={APERTURE.stroke}
       />
-      <path
-        className="orvius-mark-sweep"
-        d="M20.99 21.99 A7.8 7.8 0 0 1 9.09 12.16"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-      <circle className="orvius-mark-core" cx="16" cy="16" r="3.4" fill="currentColor" />
+      {BARS.map((bar) => (
+        <line
+          key={bar.x}
+          className="orvius-mark-bar"
+          x1={bar.x}
+          y1={16 - bar.half}
+          x2={bar.x}
+          y2={16 + bar.half}
+          stroke="currentColor"
+          strokeWidth={BAR_STROKE}
+          strokeLinecap="round"
+        />
+      ))}
     </svg>
   );
 }

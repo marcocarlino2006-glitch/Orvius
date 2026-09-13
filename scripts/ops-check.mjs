@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { renderedModules } from "./lib/module-graph.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -47,12 +48,32 @@ results.push(
     : fail("src/lib/institutional-standards.ts missing"),
 );
 
-try {
-  readFileSync(join(root, "src/components/pro-owner-standards.tsx"), "utf8");
-  results.push(pass("Owner-facing standards UI present"));
-} catch {
-  results.push(fail("pro-owner-standards.tsx missing"));
-}
+/*
+  The question is whether the owner ever sees these standards, and this asked
+  whether one file exists. pro-owner-standards.tsx was deleted on purpose — the
+  import graph showed nothing rendered it — so the check has been failing ever
+  since while three live components carried the standards to the screen. A file
+  name is not the behaviour; ask the graph which rendered modules read them.
+*/
+const standardsReaders = [...renderedModules()].filter(
+  (file) =>
+    file.includes("/src/components/") &&
+    /institutional-standards|institutionalStandards/.test(
+      readFileSync(file, "utf8"),
+    ),
+);
+
+results.push(
+  standardsReaders.length > 0
+    ? pass(
+        `Owner-facing standards reach the screen — ${standardsReaders
+          .map((file) => file.split("/").pop())
+          .join(", ")}`,
+      )
+    : fail(
+        "Owner SLAs are codified but no rendered component reads them — the owner never sees them",
+      ),
+);
 
 results.push(run("Trust tests", "npm", ["run", "test:trust"]) === 0);
 

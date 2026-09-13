@@ -5,6 +5,8 @@ import {
   getCustomerTimeline,
   normalizePhone,
 } from "@/lib/customer";
+import { formatCents } from "@/lib/money";
+import { jobOutcomeLabel } from "@/lib/job-outcome";
 
 const STOP = new Set([
   "the",
@@ -57,6 +59,8 @@ export type MemoryHit = {
   title: string;
   summary: string;
   score: number;
+  /** Timestamp on the source row, so model context never loses provenance. */
+  observedAt: string;
 };
 
 export type ShopMemory = {
@@ -173,6 +177,7 @@ export async function retrieveShopMemory(
           .filter(Boolean)
           .join(" · "),
         score: 1,
+        observedAt: job.updatedAt.toISOString(),
       };
     });
     const briefingCalls = calls.slice(0, 3).map((call) => ({
@@ -184,6 +189,7 @@ export async function retrieveShopMemory(
         .filter(Boolean)
         .join(" · "),
       score: 1,
+      observedAt: call.updatedAt.toISOString(),
     }));
 
     return {
@@ -230,6 +236,7 @@ export async function retrieveShopMemory(
         .filter(Boolean)
         .join(" · "),
       score: score || 1,
+      observedAt: customer.updatedAt.toISOString(),
     });
   }
 
@@ -244,6 +251,8 @@ export async function retrieveShopMemory(
       job.urgency,
       who,
       job.technician?.name,
+      job.resolutionCode,
+      job.resolutionSummary,
     );
     let score = scoreText(text, terms);
     if (wantsJobs) score += 2;
@@ -274,10 +283,16 @@ export async function retrieveShopMemory(
         who,
         job.address,
         `scheduled ${formatWhen(job.scheduledAt)}`,
+        jobOutcomeLabel(job.resolutionCode),
+        job.resolutionSummary,
+        job.finalAmountCents != null
+          ? `final ${formatCents(job.finalAmountCents)}`
+          : null,
       ]
         .filter(Boolean)
         .join(" · "),
       score: score || 1,
+      observedAt: job.updatedAt.toISOString(),
     });
   }
 
@@ -311,6 +326,7 @@ export async function retrieveShopMemory(
         .filter(Boolean)
         .join(" · "),
       score: score || 1,
+      observedAt: lead.updatedAt.toISOString(),
     });
   }
 
@@ -340,6 +356,7 @@ export async function retrieveShopMemory(
         .filter(Boolean)
         .join(" · "),
       score: score || 1,
+      observedAt: call.updatedAt.toISOString(),
     });
   }
 

@@ -1,141 +1,20 @@
-import { DevSignInButton } from "@/components/dev-sign-in-button";
-import { GoogleSignInButton } from "@/components/google-sign-in-button";
-import { OrviusLogo } from "@/components/orvius-logo";
-import { getAuthConfigStatus } from "@/lib/auth-env";
-import { company } from "@/lib/company";
-import { getDevAuthEmail, isDevAuthBypassEnabled } from "@/lib/dev-auth";
-import type { Metadata } from "next";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  description: `Sign in to ${company.productName} with Google.`,
-};
-
+/**
+ * /login predates /signin and is linked from older emails, docs, and bookmarks.
+ * It forwards rather than 404s, carrying the callback and error params so a
+ * redirect mid-sign-in still lands the visitor on the right screen.
+ */
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string; error?: string; dev?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const callbackUrl = params.callbackUrl ?? "/dashboard";
-  const error = params.error;
-  const auth = getAuthConfigStatus();
-  const missing = auth.items.filter((item) => !item.optional && !item.configured);
-  // Builder chrome stays off the finished login surface unless ?dev=1
-  const showDevChrome =
-    isDevAuthBypassEnabled() &&
-    (params.dev === "1" || params.dev === "true");
-  const devEmail = showDevChrome ? getDevAuthEmail() : null;
-
-  return (
-    <main className="tier1-login tier1-login--craft">
-      <section className="tier1-login-brand">
-        <div className="tier1-login-brand-glow" aria-hidden />
-        <div className="tier1-login-brand-inner">
-          <OrviusLogo size="lg" variant="void" />
-          <h1 className="tier1-login-title font-sans">
-            Sign in to your workspace.
-          </h1>
-          <p className="tier1-login-lead font-sans">
-            Inbox, customers, jobs, dispatch — one system of record for every
-            call, customer, and job.
-          </p>
-          <ul className="tier1-login-rings font-sans">
-            <li>01 · Answer · qualify · alert</li>
-            <li>02 · Customer records</li>
-            <li>03 · Jobs &amp; scheduling</li>
-            <li>04 · Field dispatch</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="tier1-login-form">
-        <div className="tier1-login-form-inner">
-          <h2 className="tier1-form-title font-sans">Workspace access</h2>
-          <p className="tier1-form-sub font-sans">
-            Use the Google account connected to your Orvius shop.
-          </p>
-
-          {error ? (
-            <p className="tier1-login-error font-sans">
-              {error === "Configuration"
-                ? "Google sign-in is not configured yet. Add OAuth credentials in Vercel (see steps below)."
-                : "Sign in failed. Verify your account is authorized, then try again."}
-            </p>
-          ) : null}
-
-          <div className="tier1-login-actions">
-            <GoogleSignInButton callbackUrl={callbackUrl} />
-            {showDevChrome ? (
-              <details className="tier1-login-dev font-sans" open>
-                <summary className="tier1-login-dev-summary">Local build access</summary>
-                <p className="tier1-login-dev-note">
-                  Skips Google while building. Never available in production.
-                </p>
-                <DevSignInButton
-                  callbackUrl={callbackUrl}
-                  email={devEmail ?? undefined}
-                />
-              </details>
-            ) : null}
-          </div>
-
-          {process.env.NODE_ENV === "development" && !auth.ready ? (
-            <details className="tier1-login-setup font-sans">
-              <summary className="tier1-login-setup-title">Having trouble signing in?</summary>
-              <p className="tier1-login-setup-lead">
-                Connect Google OAuth in Vercel before the sign-in button works.
-              </p>
-              <ol className="tier1-login-setup-steps">
-                <li>
-                  Open{" "}
-                  <a
-                    href="https://console.cloud.google.com/apis/credentials"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Google Cloud Console → Credentials
-                  </a>
-                  , create an OAuth client (Web application).
-                </li>
-                <li>
-                  Add these redirect URIs:
-                  <ul className="tier1-login-setup-uris">
-                    {auth.redirectUris.map((uri) => (
-                      <li key={uri}>
-                        <code>{uri}</code>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-                <li>
-                  In Vercel → Project → Settings → Environment Variables, add:
-                  <ul className="tier1-login-setup-uris">
-                    {missing.map((item) => (
-                      <li key={item.name}>
-                        <code>{item.name}</code>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-                <li>Redeploy, then return here and sign in.</li>
-              </ol>
-            </details>
-          ) : null}
-
-          <p className="tier1-login-legal font-sans">
-            By signing in you agree to the{" "}
-            <Link href="/terms">Terms of Service</Link> and{" "}
-            <Link href="/privacy">Privacy Policy</Link>.
-          </p>
-
-          <div className="tier1-login-links font-sans">
-            <Link href="/">← orvius.im</Link>
-            <Link href="/pilot">Design partner program</Link>
-          </div>
-        </div>
-      </section>
-    </main>
-  );
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  const suffix = query.toString();
+  redirect(suffix ? `/signin?${suffix}` : "/signin");
 }

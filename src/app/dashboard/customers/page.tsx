@@ -1,10 +1,11 @@
 "use client";
 
 import { CustomerRecordCard } from "@/components/customer-record-card";
+import { ProLead } from "@/components/pro-lead";
 import {
   ProSearchBar,
-  ProStatRow,
   ProEmptyState,
+  ProListEnd,
 } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
@@ -48,20 +49,22 @@ export default function CustomersPage() {
       .finally(() => setLoading(false));
   }, [query]);
 
-  const stats = useMemo(() => {
+  const tally = useMemo(() => {
     const returning = customers.filter((c) => c.returning).length;
-    const totalInteractions = customers.reduce((sum, c) => sum + c.interactionCount, 0);
-    return [
-      { label: "Customers", value: customers.length },
-      { label: "Returning", value: returning, highlight: returning > 0 },
-      { label: "Touchpoints", value: totalInteractions },
-      {
-        label: "Avg per customer",
-        value: customers.length
-          ? Math.round((totalInteractions / customers.length) * 10) / 10
-          : "—",
-      },
-    ];
+    const touchpoints = customers.reduce((sum, c) => sum + c.interactionCount, 0);
+    return {
+      returning,
+      touchpoints,
+      /*
+        Repeat rate is the number that decides whether a shop grows, so it leads
+        this page rather than the headcount. Withheld below ten customers: one
+        repeat out of three is 33% and means nothing.
+      */
+      repeatRate:
+        customers.length >= 10
+          ? `${Math.round((returning / customers.length) * 100)}%`
+          : null,
+    };
   }, [customers]);
 
   return (
@@ -71,7 +74,37 @@ export default function CustomersPage() {
         <DashboardSkeleton />
       ) : (
         <>
-          {!loading ? <ProStatRow stats={stats} className="pro-page-stats" /> : null}
+          <ProLead
+            loading={loading && !customers.length}
+            figure={tally.repeatRate ?? String(customers.length)}
+            caption={
+              tally.repeatRate
+                ? "of your customers called back"
+                : customers.length === 1
+                  ? "customer on file"
+                  : "customers on file"
+            }
+            detail={
+              tally.repeatRate
+                ? `${tally.returning} of ${customers.length} have called more than once.`
+                : "They appear on their first call and stay linked to every job after."
+            }
+            facts={
+              tally.repeatRate
+                ? [
+                    { label: "customers", value: customers.length },
+                    { label: "touchpoints", value: tally.touchpoints },
+                  ]
+                : [
+                    {
+                      label: "returning",
+                      value: tally.returning,
+                      live: tally.returning > 0,
+                    },
+                    { label: "touchpoints", value: tally.touchpoints },
+                  ]
+            }
+          />
 
           <ProSearchBar
             value={query}
@@ -119,6 +152,9 @@ export default function CustomersPage() {
               ))}
             </ul>
           )}
+          {customers.length ? (
+            <ProListEnd count={customers.length} noun="customer" />
+          ) : null}
         </>
       )}
       </PlanUpgradeGate>

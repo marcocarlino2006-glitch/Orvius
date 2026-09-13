@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { JOB_OUTCOMES, jobOutcomeLabel } from "@/lib/job-outcome";
 
 type TechJob = {
   title: string;
@@ -10,6 +11,9 @@ type TechJob = {
   serviceType: string | null;
   notes: string | null;
   etaText: string | null;
+  resolutionCode: string | null;
+  resolutionSummary: string | null;
+  finalAmountCents: number | null;
   scheduledAt: string | null;
   shopName: string;
   customerName: string | null;
@@ -32,6 +36,9 @@ export function TechFieldClient({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [etaText, setEtaText] = useState("");
+  const [resolutionCode, setResolutionCode] = useState("");
+  const [resolutionSummary, setResolutionSummary] = useState("");
+  const [finalAmount, setFinalAmount] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -40,6 +47,13 @@ export function TechFieldClient({ token }: { token: string }) {
       if (!res.ok) throw new Error(data.error ?? "Job not found");
       setJob(data.job);
       setEtaText(data.job.etaText ?? "");
+      setResolutionCode(data.job.resolutionCode ?? "");
+      setResolutionSummary(data.job.resolutionSummary ?? "");
+      setFinalAmount(
+        data.job.finalAmountCents != null
+          ? String(data.job.finalAmountCents / 100)
+          : "",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Job not found");
     } finally {
@@ -51,7 +65,7 @@ export function TechFieldClient({ token }: { token: string }) {
     void load();
   }, [load]);
 
-  async function patch(body: Record<string, string>) {
+  async function patch(body: Record<string, string | number | null>) {
     setBusy(true);
     setError(null);
     try {
@@ -84,6 +98,28 @@ export function TechFieldClient({ token }: { token: string }) {
   }
 
   const next = ADVANCES[job.status] ?? null;
+
+  function completeWithOutcome() {
+    if (!resolutionCode) {
+      setError("Choose what happened before completing the job.");
+      return;
+    }
+    const dollars = finalAmount.trim() ? Number(finalAmount) : null;
+    if (
+      dollars != null &&
+      (!Number.isFinite(dollars) || dollars < 0 || dollars > 50_000)
+    ) {
+      setError("Final amount must be between $0 and $50,000.");
+      return;
+    }
+    void patch({
+      status: "completed",
+      resolutionCode,
+      resolutionSummary,
+      finalAmountCents:
+        dollars == null ? null : Math.round(dollars * 100),
+    });
+  }
 
   return (
     <div className="tech-field font-sans">
@@ -156,7 +192,65 @@ export function TechFieldClient({ token }: { token: string }) {
         </label>
       ) : null}
 
-      {next ? (
+      {job.status === "on_site" ? (
+        <section className="tech-field-outcome" aria-labelledby="job-outcome-title">
+          <h2 id="job-outcome-title">Close the loop</h2>
+          <p className="tech-field-muted">
+            One outcome makes future quoting and diagnosis more accurate.
+          </p>
+          <label>
+            <span>What happened?</span>
+            <select
+              value={resolutionCode}
+              onChange={(event) => setResolutionCode(event.target.value)}
+              disabled={busy}
+            >
+              <option value="">Choose one</option>
+              {JOB_OUTCOMES.map((outcome) => (
+                <option key={outcome.code} value={outcome.code}>
+                  {outcome.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>What fixed it? <em>Optional</em></span>
+            <textarea
+              value={resolutionSummary}
+              onChange={(event) => setResolutionSummary(event.target.value)}
+              placeholder="e.g. Replaced failed 45/5 capacitor"
+              maxLength={500}
+              rows={3}
+              disabled={busy}
+            />
+          </label>
+          <label>
+            <span>Final amount <em>Optional</em></span>
+            <div className="tech-field-money">
+              <span aria-hidden>$</span>
+              <input
+                type="number"
+                min="0"
+                max="50000"
+                step="0.01"
+                inputMode="decimal"
+                value={finalAmount}
+                onChange={(event) => setFinalAmount(event.target.value)}
+                placeholder="0.00"
+                disabled={busy}
+              />
+            </div>
+          </label>
+          <button
+            type="button"
+            className="btn btn-void tech-field-advance"
+            disabled={busy}
+            onClick={completeWithOutcome}
+          >
+            {busy ? "Completing…" : "Complete job"}
+          </button>
+        </section>
+      ) : next ? (
         <button
           type="button"
           className="btn btn-void tech-field-advance"
@@ -166,7 +260,18 @@ export function TechFieldClient({ token }: { token: string }) {
           {busy ? "Updating…" : next.label}
         </button>
       ) : job.status === "completed" ? (
-        <p className="tech-field-ok">Job complete.</p>
+        <div className="tech-field-complete">
+          <p className="tech-field-ok">Job complete.</p>
+          {job.resolutionCode ? (
+            <p className="tech-field-muted">
+              {jobOutcomeLabel(job.resolutionCode)}
+              {job.resolutionSummary ? ` · ${job.resolutionSummary}` : ""}
+              {job.finalAmountCents != null
+                ? ` · $${(job.finalAmountCents / 100).toFixed(2)}`
+                : ""}
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

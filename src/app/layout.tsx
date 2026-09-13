@@ -1,24 +1,32 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
+import "./public-v2.css";
+import "./theme-tokens.css";
 
 /**
- * Institutional letterset — Stripe/Chase weight without stealing their look.
- * Space Grotesk: brand + display (industrial mass).
- * IBM Plex Sans: product + body (bank/ops clarity).
+ * Two voices, no more. Archivo speaks in prose and headlines; Plex Mono speaks
+ * whenever the interface is reporting machine truth — times, numbers, statuses,
+ * phone lines. Mixing a third letterset is what made the old surfaces read cheap.
  */
-const display = Space_Grotesk({
-  variable: "--font-display",
+const sans = Archivo({
+  variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const sans = IBM_Plex_Sans({
-  variable: "--font-sans",
+/*
+  600 and 700 are loaded because the wordmark asks for bold. Without them the
+  browser synthesises it, and a smeared faux-bold is the one place on the page
+  where that is unmissable.
+*/
+const mono = IBM_Plex_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
@@ -26,22 +34,35 @@ const sans = IBM_Plex_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Orvius",
+    default: "Orvius — The AI night shift for the trades",
     template: "%s · Orvius",
   },
-  description: `${company.categoryClaim} ${company.proofLine} Built for HVAC, plumbing, and electrical.`,
+  description:
+    "Orvius answers after-hours and overflow calls for HVAC, plumbing, and electrical shops, captures the request, proposes an open window, and alerts the owner.",
   metadataBase: new URL(`https://${company.domain}`),
+  alternates: { canonical: "/" },
   openGraph: {
-    title: `Orvius — ${company.tagline}`,
-    description: `${company.categoryClaim} ${company.proofLine} Call the live line or book an audit.`,
+    title: "Orvius — The AI night shift for the trades",
+    description:
+      "Call the live product. Orvius captures after-hours demand, proposes an open service window, and alerts the owner.",
     type: "website",
     url: `https://${company.domain}`,
     siteName: company.productName,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Orvius — The AI night shift for the trades",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `Orvius — ${company.tagline}`,
-    description: `${company.categoryClaim} ${company.proofLine}`,
+    title: "Orvius — The AI night shift for the trades",
+    description:
+      "Call the live product. After-hours intake, capacity-aware scheduling, confirmation, and owner alerts.",
+    images: ["/opengraph-image"],
   },
 };
 
@@ -50,17 +71,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Night is the server default so [data-theme] is never absent and the token
+  // set is unambiguous. The boot script rewrites it before paint, which is the
+  // one divergence suppressHydrationWarning is here to cover.
   return (
-    <html lang="en">
+    <html lang="en" data-theme="night" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{var t=localStorage.getItem('orvius-theme');if(t==='night'){document.documentElement.setAttribute('data-theme','night');}}catch(e){}})();",
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className={`${sans.variable} ${display.variable} antialiased`}>
+      <body className={`${sans.variable} ${mono.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

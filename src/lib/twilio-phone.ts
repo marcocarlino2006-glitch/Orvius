@@ -32,9 +32,29 @@ export async function purchaseLocalNumber(ownerPhone?: string | null) {
     smsUrl: getWebhookUrl("/api/webhooks/twilio/sms"),
     smsMethod: "POST",
     friendlyName: "Orvius shop line",
+    ...voiceFallback(),
   });
 
   return purchased.phoneNumber;
+}
+
+/*
+  The net under the AI line.
+
+  `voiceUrl` is not ours to set — the number gets imported into Vapi and Vapi
+  owns it. `voiceFallbackUrl` is the hook Twilio reserves for the case where
+  that primary URL errors or times out, which is exactly the Vapi outage this
+  covers, and it is a separate field so setting it cannot disturb the import.
+
+  Left unset, Twilio's documented behaviour on a failing voice URL is to play
+  its own error announcement and hang up. That is what a homeowner with a burst
+  pipe was getting at 3am, and the shop was never told the call happened.
+*/
+function voiceFallback() {
+  return {
+    voiceFallbackUrl: getWebhookUrl("/api/webhooks/twilio/voice-fallback"),
+    voiceFallbackMethod: "POST" as const,
+  };
 }
 
 export async function releasePhoneNumber(phoneNumber: string) {
@@ -55,9 +75,15 @@ export async function configureSmsWebhook(phoneNumber: string) {
   const entry = numbers[0];
   if (!entry) return;
 
+  /*
+    Also repoints the voice fallback, because every line provisioned before it
+    existed still has an empty field there. This runs on the repair path, so
+    those numbers pick it up without anyone reprovisioning a shop.
+  */
   await client.incomingPhoneNumbers(entry.sid).update({
     smsUrl: getWebhookUrl("/api/webhooks/twilio/sms"),
     smsMethod: "POST",
+    ...voiceFallback(),
   });
 }
 

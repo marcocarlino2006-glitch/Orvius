@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildSearchFilters } from "@/lib/search-query";
 import { requireEntitledSession } from "@/lib/tenant";
 
 export type SearchHit = {
@@ -19,22 +20,12 @@ export async function GET(request: Request) {
   const { business } = authResult;
 
   const q = new URL(request.url).searchParams.get("q")?.trim() ?? "";
-  if (q.length < 2) return NextResponse.json({ hits: [] });
-
-  const businessFilter = { businessId: business.id };
-  const digits = q.replace(/[^0-9]/g, "");
-  const phoneMatch = digits.length >= 4 ? { contains: digits } : undefined;
+  const where = buildSearchFilters(business.id, q);
+  if (!where) return NextResponse.json({ hits: [] });
 
   const [leads, customers, jobs] = await Promise.all([
     prisma.lead.findMany({
-      where: {
-        ...businessFilter,
-        OR: [
-          { name: { contains: q } },
-          { serviceType: { contains: q } },
-          ...(phoneMatch ? [{ phone: phoneMatch }] : []),
-        ],
-      },
+      where: where.lead,
       take: PER_KIND,
       orderBy: { createdAt: "desc" },
       select: {
@@ -47,22 +38,13 @@ export async function GET(request: Request) {
       },
     }),
     prisma.customer.findMany({
-      where: {
-        ...businessFilter,
-        OR: [
-          { name: { contains: q } },
-          ...(phoneMatch ? [{ phone: phoneMatch }] : []),
-        ],
-      },
+      where: where.customer,
       take: PER_KIND,
       orderBy: { lastSeenAt: "desc" },
       select: { id: true, name: true, phone: true, interactionCount: true },
     }),
     prisma.job.findMany({
-      where: {
-        ...businessFilter,
-        OR: [{ title: { contains: q } }, { address: { contains: q } }],
-      },
+      where: where.job,
       take: PER_KIND,
       orderBy: [{ scheduledAt: "desc" }, { createdAt: "desc" }],
       select: {
