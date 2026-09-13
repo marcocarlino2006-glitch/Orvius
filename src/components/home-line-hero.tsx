@@ -4,7 +4,7 @@ import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /**
  * First viewport — Chase/Stripe weight for a trades night OS.
- * Brand mass first. One headline. One lead. One CTA. Live line.
+ * Brand mass. Live digit motion. One claim. One CTA.
  * Full-bleed void plane; copper signal only.
  */
 export function HomeLineHero() {
@@ -14,10 +14,20 @@ export function HomeLineHero() {
       aria-labelledby="home-hero-heading"
     >
       <div className="mkt-hero-atmosphere" aria-hidden />
-      <div className="mkt-hero-clean">
+      <div className="mkt-hero-clean mkt-hero-stage">
         <div className="mkt-hero-brand">
           <OrviusLogo variant="void" size="xl" />
         </div>
+
+        <a href={demoLineHref()} className="mkt-hero-live-line font-sans">
+          <span className="mkt-hero-live-pulse" aria-hidden />
+          <span className="mkt-hero-live-digit type-phone">
+            {DEMO_LINE_DISPLAY}
+          </span>
+          <span className="mkt-hero-live-label" aria-hidden>
+            Live line
+          </span>
+        </a>
 
         <h1
           id="home-hero-heading"
@@ -30,7 +40,7 @@ export function HomeLineHero() {
         </h1>
 
         <p className="mkt-hero-clean-lead font-sans" data-i18n="hero.lead">
-          The night-shift OS for HVAC, plumbing, and electrical — answers your
+          The night shift OS for HVAC, plumbing, and electrical — answers your
           line after hours, books the job, and alerts the shop in seconds.
         </p>
 
@@ -43,12 +53,6 @@ export function HomeLineHero() {
             Prove it on your line
           </Link>
         </div>
-
-        <a href={demoLineHref()} className="mkt-hero-clean-line font-sans">
-          <span className="mkt-hero-live-pulse" aria-hidden />
-          Live line · {DEMO_LINE_DISPLAY}
-          <span aria-hidden> →</span>
-        </a>
       </div>
     </section>
   );

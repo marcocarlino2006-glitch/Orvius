@@ -54,7 +54,7 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 ## Notes
 
 - **Multi-b path:** Under `MULTI_B_CI=1` score stays **9/11** by design (wedge + institutional skipped, not vanity-green). CI exits **0** when only those intentional skips remain — skips stay printed red, never counted green. Closing the last two requires founder Twilio/Vapi on the install + Summit `wedge:ready` 8/8 against prod DB. Code side: Clarity gate fixed (`profile-menu` → `os-sidebar-footer`); reliability now honors env credentials so a stale local server cannot fake-fail a credentialed install.
-- **B6:** globals.css ~13.9k after landfill cuts (was 26.9k). Target <8k open. Institution wave locks currently sit at file end — next cut is duplicate night-OS rules + superseded marketing eras, not more appends.
+- **B6:** globals.css ~13.5k after landfill cuts (was 26.9k). Target <8k open. This grind deleted night Pass1 surface dupes + unused family rules and fixed a broken media-query from the cut. Institution locks stay at file end — next cut is mid-night overlap + superseded `.mkt-page` void-force eras, with build verification after every delete.
 
 
 ## Founder paste list (cannot code alone)
