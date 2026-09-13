@@ -14,6 +14,7 @@ const groups = [
     links: [
       { href: "/demo", label: "Run a demo call" },
       { href: "/pilot", label: "Prove it on your line" },
+      { href: "/product", label: "What ships today" },
       { href: "/pricing", label: "Pricing & plans" },
     ],
   },
@@ -30,8 +31,8 @@ const groups = [
     heading: "Company",
     links: [
       { href: "/about", label: "About Orvius" },
-      { href: "/enterprise", label: "Enterprise & multi-shop" },
-      { href: "mailto:hello@orvius.im", label: "Contact us" },
+      { href: "/enterprise", label: "Multi-shop (design partner)" },
+      { href: `mailto:${company.contactEmail}`, label: "Contact us" },
     ],
   },
 ] as const;
@@ -43,9 +44,9 @@ export default function ResourcesPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Resources"
-            title="Everything to run the night shift."
-            subline="Guides, trust, and the company behind the line."
-            description="Start a demo, read how we handle your data, or reach the team."
+            title="Prove the line. Then expand."
+            subline="Demo, pilot, trust docs, and the company behind Orvius."
+            description="Start with a demo call or your own number. Read how we handle shop data. Reach us when you are ready for multi-shop."
           />
         </div>
       </section>

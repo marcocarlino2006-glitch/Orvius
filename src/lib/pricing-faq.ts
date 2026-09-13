@@ -9,13 +9,13 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "pilot",
     question: "What do I get with the design partner program?",
     answer:
-      "30 days free with a dedicated shop line, AI receptionist, owner SMS alerts, and full Pro workspace access. We onboard your shop personally — no credit card required. After the program, you pick Line, Pro, or Fleet.",
+      "30 days free with a dedicated shop line, after-hours answer, owner SMS alerts, and full Pro workspace access. We onboard your shop personally — no credit card required. After the program, you pick Line, Pro, or Fleet.",
   },
   {
     id: "line-vs-pro",
     question: "What's the difference between Line and Pro?",
     answer:
-      "Line is the front door — every call answered, qualified, and alerted. Pro adds the full shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
+      "Line is the front door — after-hours and overflow answered, qualified, and alerted. Pro adds the full shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
   },
   {
     id: "annual",
@@ -33,7 +33,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "one-job",
     question: "Does one booked job cover the month?",
     answer:
-      "For most shops, yes. A single after-hours repair or emergency call often clears a month of Pro. Orvius exists so that call is never voicemail.",
+      "For most shops, yes. A single after-hours repair or emergency call often clears a month of Pro. Orvius exists so that call is far less likely to die on voicemail.",
   },
   {
     id: "fleet",
@@ -45,7 +45,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "multi",
     question: "Do you support multiple locations?",
     answer:
-      "Yes — Multi-shop is for owners running 2+ locations or franchise groups. Each location gets its own line and AI receptionist with central billing. Email hello@orvius.im for volume pricing.",
+      "Yes — Multi-shop is for owners running 2+ locations or franchise groups. Each location gets its own line and after-hours answer with central billing. Email hello@orvius.im for volume pricing.",
   },
   {
     id: "stripe",

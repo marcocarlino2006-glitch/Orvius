@@ -34,10 +34,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Verpasste Anrufe werden zu gebuchten Aufträgen.",
   },
   "hero.lead": {
-    en: "Orvius runs the night shift on your line — answers after-hours and overflow calls, qualifies the job, books it, and alerts you in seconds.",
-    es: "Orvius cubre el turno de noche en tu línea: contesta llamadas fuera de horario y desbordadas, califica el trabajo, lo agenda y te avisa en segundos.",
-    fr: "Orvius assure le service de nuit sur votre ligne : il répond aux appels hors horaires et en débordement, qualifie la demande, la planifie et vous alerte en quelques secondes.",
-    de: "Orvius übernimmt die Nachtschicht auf Ihrer Leitung: nimmt Anrufe außerhalb der Geschäftszeiten und bei Überlauf an, qualifiziert den Auftrag, bucht ihn und benachrichtigt Sie in Sekunden.",
+    en: "The night-shift OS for HVAC, plumbing, and electrical — answers your line after hours, books the job, and alerts the shop in seconds.",
+    es: "El OS del turno de noche para HVAC, plomería y electricidad: contesta tu línea fuera de horario, agenda el trabajo y avisa al taller en segundos.",
+    fr: "L’OS de nuit pour le CVC, la plomberie et l’électricité — répond sur votre ligne hors horaires, planifie le chantier et alerte l’atelier en quelques secondes.",
+    de: "Das Nachtschicht-OS für HLK, Sanitär und Elektro — nimmt Ihre Leitung nach Feierabend an, bucht den Auftrag und alarmiert die Werkstatt in Sekunden.",
   },
   "hero.cta": {
     en: "Prove it on your line",
@@ -47,18 +47,23 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
 
-  "showcase.eyebrow": { en: "On the line", es: "En la línea", fr: "En ligne", de: "Am Telefon" },
+  "showcase.eyebrow": {
+    en: "Command board",
+    es: "Tablero de mando",
+    fr: "Tableau de commandement",
+    de: "Kommandozentrale",
+  },
   "showcase.title": {
-    en: "In every call, at every step.",
-    es: "En cada llamada, en cada paso.",
-    fr: "À chaque appel, à chaque étape.",
-    de: "Bei jedem Anruf, in jedem Schritt.",
+    en: "The night board your shop runs on.",
+    es: "El tablero nocturno de tu taller.",
+    fr: "Le tableau de nuit de votre atelier.",
+    de: "Das Nachtboard Ihres Betriebs.",
   },
   "showcase.lead": {
-    en: "Orvius answers the line, qualifies the job, alerts the owner, and works the dispatch board — one record, start to finish.",
-    es: "Orvius contesta la línea, califica el trabajo, avisa al dueño y gestiona el tablero de despacho — un solo registro, de principio a fin.",
-    fr: "Orvius répond, qualifie la demande, alerte le patron et gère le tableau de répartition — un seul dossier, du début à la fin.",
-    de: "Orvius nimmt ab, qualifiziert den Auftrag, alarmiert den Inhaber und steuert das Dispositions-Board — ein Datensatz, von Anfang bis Ende.",
+    en: "Answer, qualify, book, alert — one graphite board. Copper marks what still needs the owner. No scavenger hunt across tools.",
+    es: "Contestar, calificar, reservar, avisar — un solo tablero. El cobre marca lo que aún necesita al dueño. Sin cazar datos en otras apps.",
+    fr: "Répondre, qualifier, réserver, alerter — un seul tableau. Le cuivre marque ce qui attend le patron. Plus de chasse aux dossiers.",
+    de: "Annehmen, qualifizieren, buchen, alarmieren — ein Board. Kupfer markiert, was den Inhaber braucht. Keine Datensuche in anderen Tools.",
   },
 
   "rules.kicker": { en: "Night rules", es: "Reglas de la noche", fr: "Règles de nuit", de: "Nachtregeln" },
@@ -74,9 +79,9 @@ export const translations: Record<string, Record<Lang, string>> = {
     fr: "Orvius est le système d'exploitation de l'équipe de nuit — pas un standard IA greffé sur un CRM. Le tableau réunit chaque appel, intervention et euro dans un seul dossier.",
     de: "Orvius ist das Betriebssystem für die Nachtschicht — keine an ein CRM geschraubte KI-Rezeption. Das Board bündelt jeden Anruf, Auftrag und Euro in einem Datensatz.",
   },
-  "rule1.title": { en: "The bay never goes dark.", es: "El taller nunca se apaga.", fr: "L'atelier ne s'éteint jamais.", de: "Die Werkstatt steht nie still." },
+  "rule1.title": { en: "The bay stays lit after hours.", es: "El taller nunca se apaga.", fr: "L'atelier ne s'éteint jamais.", de: "Die Werkstatt steht nie still." },
   "rule1.body": {
-    en: "After-hours and overflow get answered, qualified, and alerted — demand does not die on voicemail.",
+    en: "After-hours and overflow get answered, qualified, and alerted — demand is less likely to die on voicemail.",
     es: "Las llamadas fuera de horario y el exceso se contestan, califican y avisan — la demanda no muere en el buzón.",
     fr: "Les appels hors horaires et les débordements sont pris, qualifiés et signalés — la demande ne meurt pas dans la messagerie.",
     de: "Anrufe außerhalb der Zeiten und Überlauf werden angenommen, qualifiziert und gemeldet — Nachfrage stirbt nicht in der Mailbox.",
@@ -96,8 +101,8 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Wöchentlich zurückgewonnene Aufträge und Umsätze als abgestempelter Nachweis. Keine Schaufenster-Dashboards. Kein erfundener ARR.",
   },
 
-  "trynow.title": { en: "Try Orvius now.", es: "Prueba Orvius ahora.", fr: "Essayez Orvius maintenant.", de: "Testen Sie Orvius jetzt." },
-  "trynow.cta": { en: "Get started →", es: "Empezar →", fr: "Commencer →", de: "Loslegen →" },
+  "trynow.title": { en: "Prove Orvius on your line.", es: "Prueba Orvius en tu línea.", fr: "Prouvez Orvius sur votre ligne.", de: "Beweisen Sie Orvius auf Ihrer Leitung." },
+  "trynow.cta": { en: "Prove it on your line", es: "Pruébalo en tu línea", fr: "Prouvez-le sur votre ligne", de: "Beweisen Sie es auf Ihrer Leitung" },
   "trynow.call": {
     en: "or call the live line · +1 844 643 9170",
     es: "o llama a la línea en vivo · +1 844 643 9170",

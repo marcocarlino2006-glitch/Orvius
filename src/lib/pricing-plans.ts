@@ -40,7 +40,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     idealFor: "Shops validating Orvius before committing",
     highlights: [
       "Dedicated local line assigned at onboarding",
-      "Full AI receptionist on your shop number",
+      "Full After-hours answer on your shop number",
       "Lead inbox + owner SMS alerts",
       "Pro workspace during trial",
       "Personal onboarding — no credit card",
@@ -59,7 +59,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     stripeProductKey: "orvius-line",
     idealFor: "Owner-operators who need every call answered and alerted",
     highlights: [
-      "Dedicated shop line + AI receptionist",
+      "Dedicated shop line + After-hours answer",
       "Qualified leads — urgency, service, address",
       "Owner SMS alerts + lead inbox",
       "Call log with transcripts",

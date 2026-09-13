@@ -16,6 +16,7 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Owner-facing economics summary — recovered $, collected $, CRM open $, proof export.
+ * Required by multi-b economics:check (shop money layer, not SaaS billing).
  */
 export function ProEconomicsPanel({
   outcomes,
@@ -24,7 +25,9 @@ export function ProEconomicsPanel({
 }: ProEconomicsPanelProps) {
   const [copyState, setCopyState] = useState<"idle" | "ok" | "err">("idle");
   const [busy, setBusy] = useState(false);
-  const [proofAt, setProofAt] = useState<string | null>(lastWeeklyProofAt ?? null);
+  const [proofAt, setProofAt] = useState<string | null>(
+    lastWeeklyProofAt ?? null,
+  );
 
   useEffect(() => {
     setProofAt(lastWeeklyProofAt ?? null);
@@ -54,6 +57,9 @@ export function ProEconomicsPanel({
   const recovered = formatCents(outcomes.recoveredRevenueCents);
   const collected = formatCents(outcomes.collectedCents);
   const pipeline = formatCents(outcomes.estimatedPipelineCents);
+  const openMoney = formatCents(
+    outcomes.openEstimateCents + outcomes.openInvoiceCents,
+  );
 
   return (
     <section
@@ -71,8 +77,8 @@ export function ProEconomicsPanel({
 
       {stale ? (
         <p className="pro-economics-stale font-sans" role="status">
-          Weekly proof is stale or missing — copy a fresh proof for this week&apos;s
-          design-partner ritual.
+          Weekly proof is stale or missing — copy a fresh proof for this
+          week&apos;s design-partner ritual.
         </p>
       ) : (
         <p className="pro-economics-proof-meta font-sans">
@@ -113,13 +119,10 @@ export function ProEconomicsPanel({
         </div>
         <div>
           <dt>Open money</dt>
-          <dd>
-            {formatCents(outcomes.openEstimateCents + outcomes.openInvoiceCents) ??
-              "$0"}
-          </dd>
+          <dd>{openMoney ?? "$0"}</dd>
           <p className="pro-economics-hint">
-            Estimates {formatCents(outcomes.openEstimateCents) ?? "$0"} · invoices{" "}
-            {formatCents(outcomes.openInvoiceCents) ?? "$0"}
+            Estimates {formatCents(outcomes.openEstimateCents) ?? "$0"} ·
+            invoices {formatCents(outcomes.openInvoiceCents) ?? "$0"}
           </p>
         </div>
       </dl>
@@ -131,13 +134,19 @@ export function ProEconomicsPanel({
           disabled={busy}
           onClick={copyWeeklyProof}
         >
-          {busy ? "Preparing…" : stale ? "Copy weekly proof (due)" : "Copy weekly proof"}
+          {busy
+            ? "Preparing…"
+            : stale
+              ? "Copy weekly proof (due)"
+              : "Copy weekly proof"}
         </button>
         <Link href="/dashboard/settings" className="pro-section-link text-sm">
           Edit ticket &amp; baseline →
         </Link>
         {copyState === "ok" ? (
-          <span className="pro-economics-status">Copied — paste into notes / Slack</span>
+          <span className="pro-economics-status">
+            Copied — paste into notes / Slack
+          </span>
         ) : null}
         {copyState === "err" ? (
           <span className="pro-economics-status pro-economics-status--err">

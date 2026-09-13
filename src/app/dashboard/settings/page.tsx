@@ -5,6 +5,11 @@ import { OsShell } from "@/components/os-shell";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { ProSetupHub } from "@/components/pro-setup-hub";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import {
+  buildShopLaunchGates,
+  LaunchGatesStrip,
+} from "@/components/launch-gates-strip";
+import { workspaceAccess } from "@/lib/seats";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
@@ -24,20 +29,18 @@ type AccountResponse = {
     founderCertJson?: string | null;
     overflowForwardConfirmedAt?: string | null;
     lineVerifiedAt?: string | null;
-    billingStatus?: string;
-    pilotEndsAt?: string | null;
   } | null;
   line?: string | null;
   health: ShopHealth | null;
   wedge: WedgeReadiness | null;
+  alerts: {
+    smsEnabled: boolean;
+    emailConfigured: boolean;
+  };
   billing?: {
     configured?: boolean;
     entitled?: boolean;
     status?: string;
-  };
-  alerts: {
-    smsEnabled: boolean;
-    emailConfigured: boolean;
   };
 };
 
@@ -48,8 +51,6 @@ const FOUNDER_CERT = [
   "Hang-up mid-call — partial lead, no crash",
   "Inbound SMS — lead + auto-reply",
 ] as const;
-
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function parseCert(raw: string | null | undefined): boolean[] {
   const empty = FOUNDER_CERT.map(() => false);
@@ -86,6 +87,8 @@ export default function DashboardSettingsPage() {
   const [certSaving, setCertSaving] = useState(false);
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
+  const [showFounderTools, setShowFounderTools] = useState(false);
+
 
   async function loadAccount() {
     const res = await fetch("/api/account");
@@ -116,6 +119,12 @@ export default function DashboardSettingsPage() {
 
   useEffect(() => {
     loadAccount().catch(() => null);
+  }, []);
+
+  useEffect(() => {
+    setShowFounderTools(
+      new URLSearchParams(window.location.search).get("founder") === "1",
+    );
   }, []);
 
   async function persistCert(next: boolean[]) {
@@ -150,7 +159,6 @@ export default function DashboardSettingsPage() {
     account?.business?.twilioPhone ??
     null;
 
-  
   async function saveOverflow(next: boolean) {
     setOverflowSaving(true);
     setError(null);
@@ -207,7 +215,6 @@ export default function DashboardSettingsPage() {
           baselineJobsPerWeek: baselineJobs.trim()
             ? Math.round(Number(baselineJobs.replace(/[^0-9.]/g, "")))
             : null,
-          founderCertJson: JSON.stringify(certChecks),
         }),
       });
       const data = await res.json();
@@ -264,194 +271,259 @@ export default function DashboardSettingsPage() {
   const certDone = certChecks.filter(Boolean).length;
 
   return (
-    <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
+    <OsShell title="Settings" subtitle="Capture and alerts first.">
       <div className="pro-settings-page">
         <ProPageStrip />
 
         <ProSetupHub health={account?.health} wedge={account?.wedge} />
 
+        <LaunchGatesStrip
+          gates={buildShopLaunchGates({
+            certDone,
+            certTotal: FOUNDER_CERT.length,
+            baselineReady: Boolean(
+              account?.business?.avgTicketCents &&
+                account?.business?.baselineMissedCallsPerWeek != null &&
+                account?.business?.baselineJobsPerWeek != null,
+            ),
+            proofFresh: Boolean(
+              account?.business?.lastWeeklyProofAt &&
+                Date.now() -
+                  new Date(account.business.lastWeeklyProofAt).getTime() <
+                  7 * 24 * 60 * 60 * 1000,
+            ),
+            lastProofLabel: account?.business?.lastWeeklyProofAt
+              ? `Last proof ${new Date(account.business.lastWeeklyProofAt).toLocaleDateString()}`
+              : "No weekly proof copied yet",
+            checkoutReady: Boolean(account?.billing?.configured),
+            entitled: Boolean(account?.billing?.entitled),
+            billingStatus: account?.billing?.status ?? "none",
+            wedgeReady: Boolean(account?.wedge?.ready),
+            wedgeScore:
+              account?.wedge != null
+                ? `${account.wedge.score}/${account.wedge.total}`
+                : undefined,
+            overflowForwardConfirmed: overflowForward,
+          })}
+          title="Launch gates"
+        />
+
         <form className="account-stack pro-settings-form" onSubmit={save}>
-        <div id="overflow-forward">
-          <ShellPanel title="Call capture" dense>
-            <CaptureSetupPanel
-              line={line}
-              overflowConfirmed={overflowForward}
-              lineVerified={Boolean(account?.business?.lineVerifiedAt)}
-              saving={overflowSaving}
-              onConfirmOverflow={(next) => saveOverflow(next)}
-            />
-          </ShellPanel>
-        </div>
-
-        <ShellPanel title="Owner alerts" dense>
-          <label className="onboarding-field font-sans">
-            <span className="onboarding-label">Your mobile</span>
-            <input
-              type="tel"
-              value={ownerPhone}
-              onChange={(e) => setOwnerPhone(e.target.value)}
-              className="onboarding-input"
-              placeholder="+1 555 123 4567"
-            />
-            <span className="onboarding-hint">
-              Must be your cell — not your shop line. Lead summaries text here.
-            </span>
-          </label>
-
-          <label className="onboarding-field font-sans mt-4">
-            <span className="onboarding-label">Owner email</span>
-            <input
-              type="email"
-              value={ownerEmail}
-              onChange={(e) => setOwnerEmail(e.target.value)}
-              className="onboarding-input"
-              placeholder="you@yourshop.com"
-            />
-            <span className="onboarding-hint">
-              {account?.alerts.emailConfigured
-                ? "Email failover is live — used when SMS fails or is unavailable."
-                : "Email failover needs RESEND_API_KEY on the platform (founder env). Without it, SMS-only alerts."}
-            </span>
-          </label>
-
-          <div className="pro-settings-test-row">
-            <button
-              type="button"
-              className="btn btn-secondary text-sm"
-              disabled={testing}
-              onClick={sendTestAlert}
-            >
-              {testing ? "Sending test…" : "Send test alert"}
-            </button>
-            <span className="pro-settings-test-meta font-sans">
-              SMS {account?.alerts.smsEnabled ? "enabled" : "off"} · Email{" "}
-              {account?.alerts.emailConfigured ? "ready" : "not configured"}
-            </span>
-          </div>
-        </ShellPanel>
-
-        <details className="pro-settings-secondary font-sans">
-          <summary>Opening line + baseline</summary>
-          <div id="economics-baseline" className="pro-settings-secondary-body">
-            <label className="onboarding-field font-sans">
-              <span className="onboarding-label">Opening line</span>
-              <textarea
-                value={greeting}
-                onChange={(e) => setGreeting(e.target.value)}
-                className="onboarding-textarea"
-                rows={3}
-                placeholder={`Thank you for calling ${account?.business?.name ?? "your shop"}. How can I help you today?`}
+          <div id="overflow-forward">
+            <ShellPanel title="Call capture" dense>
+              <CaptureSetupPanel
+                line={line}
+                overflowConfirmed={overflowForward}
+                lineVerified={Boolean(account?.business?.lineVerifiedAt)}
+                saving={overflowSaving}
+                onConfirmOverflow={(next) => saveOverflow(next)}
               />
-            </label>
-            <label className="onboarding-field font-sans mt-4">
-              <span className="onboarding-label">Average ticket ($)</span>
+            </ShellPanel>
+          </div>
+
+          <ShellPanel title="Owner alerts" dense>
+            <label className="onboarding-field font-sans">
+              <span className="onboarding-label">Your mobile</span>
               <input
-                type="number"
-                min={50}
-                max={50000}
-                step={1}
-                value={avgTicket}
-                onChange={(e) => setAvgTicket(e.target.value)}
+                type="tel"
+                value={ownerPhone}
+                onChange={(e) => setOwnerPhone(e.target.value)}
                 className="onboarding-input"
-                placeholder="285"
+                placeholder="+1 555 123 4567"
               />
               <span className="onboarding-hint">
-                Estimates pipeline value on Command — not collected revenue.
+                Must be your cell — not your shop line. Lead summaries text here.
               </span>
             </label>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="onboarding-field font-sans">
-                <span className="onboarding-label">Missed calls / week before Orvius</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={500}
-                  step={1}
-                  value={baselineMissed}
-                  onChange={(e) => setBaselineMissed(e.target.value)}
-                  className="onboarding-input"
-                  placeholder="12"
-                />
-              </label>
-              <label className="onboarding-field font-sans">
-                <span className="onboarding-label">Jobs booked / week before Orvius</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={500}
-                  step={1}
-                  value={baselineJobs}
-                  onChange={(e) => setBaselineJobs(e.target.value)}
-                  className="onboarding-input"
-                  placeholder="8"
-                />
-              </label>
+
+            <label className="onboarding-field font-sans mt-4">
+              <span className="onboarding-label">Owner email</span>
+              <input
+                type="email"
+                value={ownerEmail}
+                onChange={(e) => setOwnerEmail(e.target.value)}
+                className="onboarding-input"
+                placeholder="you@yourshop.com"
+              />
+              <span className="onboarding-hint">
+                {account?.alerts.emailConfigured
+                  ? "Email failover is live — used when SMS fails or is unavailable."
+                  : "Email failover needs RESEND_API_KEY on the platform (founder env). Without it, SMS-only alerts."}
+              </span>
+            </label>
+
+            <div className="pro-settings-test-row">
+              <button
+                type="button"
+                className="btn btn-secondary text-sm"
+                disabled={testing}
+                onClick={sendTestAlert}
+              >
+                {testing ? "Sending test…" : "Send test alert"}
+              </button>
+              <span className="pro-settings-test-meta font-sans">
+                SMS {account?.alerts.smsEnabled ? "enabled" : "off"} · Email{" "}
+                {account?.alerts.emailConfigured ? "ready" : "not configured"}
+              </span>
             </div>
-          </div>
-        </details>
+          </ShellPanel>
 
-        <details className="pro-settings-secondary font-sans">
-          <summary>
-            Founder phone certification ({certDone}/{FOUNDER_CERT.length})
-            {certSaving ? " · saving…" : ""}
-          </summary>
-          <div className="pro-settings-secondary-body">
-            <p className="account-settings-hint font-sans mb-3">
-              Internal dogfood checklist — not part of the owner go-live ritual.
-            </p>
-            <ul className="pro-founder-cert-list">
-              {FOUNDER_CERT.map((label, index) => (
-                <li key={label}>
-                  <label className="pro-founder-cert-item font-sans">
-                    <input
-                      type="checkbox"
-                      checked={certChecks[index] ?? false}
-                      onChange={() => toggleCert(index)}
-                    />
-                    <span>{label}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </details>
-
-        <details className="pro-settings-secondary font-sans">
-          <summary>Your data</summary>
-          <div className="pro-settings-secondary-body">
+          <ShellPanel title="Workspace access" dense>
             <p className="account-settings-hint font-sans">
-              Download customers, leads, jobs, and money records as JSON.
+              {workspaceAccess.summary}
             </p>
-            <button
-              type="button"
-              className="btn btn-secondary text-sm mt-4"
-              disabled={exporting}
-              onClick={exportShopData}
-            >
-              {exporting ? "Preparing export…" : "Export shop data"}
+            <p className="account-settings-hint font-sans mt-3">
+              {workspaceAccess.roadmapNote}
+            </p>
+            <ul className="pro-settings-access-list font-sans mt-4">
+              <li>
+                <span className="pro-settings-access-label">Model</span>
+                <span>Single owner</span>
+              </li>
+              <li>
+                <span className="pro-settings-access-label">Invite seats</span>
+                <span>Not shipped</span>
+              </li>
+              <li>
+                <span className="pro-settings-access-label">Field crew</span>
+                <span>SMS job links — not logins</span>
+              </li>
+            </ul>
+          </ShellPanel>
+
+          <details className="pro-settings-secondary font-sans">
+            <summary>Opening line + baseline</summary>
+            <div id="economics-baseline" className="pro-settings-secondary-body">
+              <label className="onboarding-field font-sans">
+                <span className="onboarding-label">Opening line</span>
+                <textarea
+                  value={greeting}
+                  onChange={(e) => setGreeting(e.target.value)}
+                  className="onboarding-textarea"
+                  rows={3}
+                  placeholder={`Thank you for calling ${account?.business?.name ?? "your shop"}. How can I help you today?`}
+                />
+              </label>
+              <label className="onboarding-field font-sans mt-4">
+                <span className="onboarding-label">Average ticket ($)</span>
+                <input
+                  type="number"
+                  min={50}
+                  max={50000}
+                  step={1}
+                  value={avgTicket}
+                  onChange={(e) => setAvgTicket(e.target.value)}
+                  className="onboarding-input"
+                  placeholder="285"
+                />
+                <span className="onboarding-hint">
+                  Estimates pipeline value on Command — not collected revenue.
+                </span>
+              </label>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <label className="onboarding-field font-sans">
+                  <span className="onboarding-label">
+                    Missed calls / week before Orvius
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={500}
+                    step={1}
+                    value={baselineMissed}
+                    onChange={(e) => setBaselineMissed(e.target.value)}
+                    className="onboarding-input"
+                    placeholder="12"
+                  />
+                </label>
+                <label className="onboarding-field font-sans">
+                  <span className="onboarding-label">
+                    Jobs booked / week before Orvius
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={500}
+                    step={1}
+                    value={baselineJobs}
+                    onChange={(e) => setBaselineJobs(e.target.value)}
+                    className="onboarding-input"
+                    placeholder="8"
+                  />
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <details className="pro-settings-secondary font-sans">
+            <summary>Your data</summary>
+            <div className="pro-settings-secondary-body">
+              <p className="account-settings-hint font-sans">
+                Download customers, leads, jobs, and money records as JSON.
+              </p>
+              <button
+                type="button"
+                className="btn btn-secondary text-sm mt-4"
+                disabled={exporting}
+                onClick={exportShopData}
+              >
+                {exporting ? "Preparing export…" : "Export shop data"}
+              </button>
+            </div>
+          </details>
+
+          {showFounderTools ? (
+            <details className="pro-settings-secondary font-sans" open>
+              <summary>
+                Founder phone certification ({certDone}/{FOUNDER_CERT.length})
+                {certSaving ? " · saving…" : ""}
+              </summary>
+              <div className="pro-settings-secondary-body">
+                <p className="account-settings-hint font-sans mb-3">
+                  Internal dogfood checklist — not part of the owner go-live
+                  ritual. Open with <code>?founder=1</code>.
+                </p>
+                <ul className="pro-founder-cert-list">
+                  {FOUNDER_CERT.map((label, index) => (
+                    <li key={label}>
+                      <label className="pro-founder-cert-item font-sans">
+                        <input
+                          type="checkbox"
+                          checked={certChecks[index] ?? false}
+                          onChange={() => toggleCert(index)}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </details>
+          ) : null}
+
+          {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
+          {syncWarning ? <ShellAlert tone="error">{syncWarning}</ShellAlert> : null}
+          {saved ? (
+            <ShellAlert tone="success">
+              Saved. Your receptionist is updated.
+            </ShellAlert>
+          ) : null}
+          {testResult ? (
+            <ShellAlert tone="success">{testResult}</ShellAlert>
+          ) : null}
+
+          <div className="pro-settings-savebar">
+            <p className="pro-settings-savebar-hint font-sans">
+              {saving
+                ? "Saving your changes…"
+                : saved
+                  ? "All changes saved."
+                  : "Changes apply to your live receptionist."}
+            </p>
+            <button type="submit" className="btn btn-void" disabled={saving}>
+              {saving ? "Saving…" : "Save settings"}
             </button>
           </div>
-        </details>
-
-        {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
-        {syncWarning ? <ShellAlert tone="error">{syncWarning}</ShellAlert> : null}
-        {saved ? (
-          <ShellAlert tone="success">Saved. Your receptionist is updated.</ShellAlert>
-        ) : null}
-        {testResult ? <ShellAlert tone="success">{testResult}</ShellAlert> : null}
-
-        <div className="pro-settings-savebar">
-          <p className="pro-settings-savebar-hint font-sans">
-            {saving
-              ? "Saving your changes…"
-              : saved
-                ? "All changes saved."
-                : "Changes apply to your live receptionist."}
-          </p>
-          <button type="submit" className="btn btn-void" disabled={saving}>
-            {saving ? "Saving…" : "Save settings"}
-          </button>
-        </div>
         </form>
       </div>
     </OsShell>

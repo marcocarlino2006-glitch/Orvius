@@ -1,5 +1,6 @@
+import { HomeProductPreview } from "@/components/home-product-preview";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
-import { company } from "@/lib/company";
+import { company, osRings } from "@/lib/company";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,57 +9,107 @@ export const metadata: Metadata = {
   description: `${company.productName} — the night-shift OS for the trades. Answer, book, alert, dispatch, and prove it — one record.`,
 };
 
-const capabilities = [
+const liveLoop = [
   {
     id: "01",
-    title: "Answer, qualify, alert.",
-    body: "After-hours and overflow calls get answered, qualified, and the owner is alerted in seconds — demand never dies on voicemail.",
+    title: "Answer and qualify.",
+    body: "After-hours and overflow calls get answered and qualified. Emergencies escalate; estimates land as leads.",
   },
   {
     id: "02",
-    title: "One board. One record.",
-    body: "Every call, text, and job compounds a single customer record. Book and assign from Attention — no CRM scavenger hunt.",
+    title: "Alert the owner.",
+    body: "A clean summary hits the owner’s phone in seconds — so the night job does not wait for morning voicemail.",
   },
   {
     id: "03",
-    title: "Dispatch and money.",
-    body: "Auto-book to the dispatch board, assign techs by SMS, and prove recovered jobs and dollars as a stamped weekly artifact.",
+    title: "Book into one record.",
+    body: "Priority work can auto-book. Every call and text compounds the same customer record — no CRM scavenger hunt.",
+  },
+] as const;
+
+const expanding = [
+  {
+    title: "Dispatch",
+    body: "Assign techs by SMS job links. Crew rows are field tools — not extra dashboard seats.",
+  },
+  {
+    title: "Money",
+    body: "Draft estimates and invoices on the job; record payments manually. Public card (when Stripe is live) settles on Orvius until Connect — not the shop bank.",
+  },
+  {
+    title: "Proof",
+    body: "Weekly recovered jobs and dollars copy as a stamped artifact the owner can trust.",
   },
 ] as const;
 
 export default function ProductPage() {
+  const liveRing = osRings.find((r) => r.status === "live");
+
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Product"
-            title="One system for every call, customer, and job."
+            title="Night shift first. Shop OS next."
             subline="Not an AI receptionist bolted onto a CRM."
-            description="Orvius answers the night, books the work, alerts the owner, and holds every call, job, and dollar in one record."
+            description="Orvius answers after-hours and overflow, alerts the owner, and compounds one record — then expands into the shop OS when the wedge is proven."
           />
         </div>
       </section>
 
-      <section className="tier1-story">
-        <div className="editorial-wrap">
-          <ol className="mkt-laws mkt-laws--meta font-sans">
-            {capabilities.map((c) => (
-              <li key={c.id} className="mkt-law">
-                <span className="mkt-law-id" aria-hidden>
-                  {c.id}
-                </span>
-                <div className="mkt-law-copy">
-                  <h3 className="mkt-law-title">{c.title}</h3>
-                  <p className="mkt-law-body">{c.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+      <section className="tier1-story mkt-product-band">
+        <div className="editorial-wrap mkt-product-band-grid">
+          <div>
+            <p className="tier1-eyebrow type-eyebrow">
+              Live today{liveRing ? ` · ${liveRing.name}` : ""}
+            </p>
+            <h2 className="tier1-section-title type-headline">
+              The night-shift loop.
+            </h2>
+            <p className="tier1-section-lead font-sans max-w-2xl">
+              Master this on a real line before the rest of the OS matters.
+            </p>
+            <ol className="mkt-laws mkt-laws--meta font-sans mt-8">
+              {liveLoop.map((c) => (
+                <li key={c.id} className="mkt-law">
+                  <span className="mkt-law-id" aria-hidden>
+                    {c.id}
+                  </span>
+                  <div className="mkt-law-copy">
+                    <h3 className="mkt-law-title">{c.title}</h3>
+                    <p className="mkt-law-body">{c.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="mkt-product-band-stage" aria-hidden>
+            <HomeProductPreview stage />
+          </div>
         </div>
       </section>
 
       <section className="tier1-story tier1-story-muted">
+        <div className="editorial-wrap">
+          <p className="tier1-eyebrow type-eyebrow">Expanding next</p>
+          <h2 className="tier1-section-title type-headline">
+            One record. More rings.
+          </h2>
+          <p className="tier1-section-lead font-sans max-w-2xl">
+            Shipping in order — never as vapor features ahead of the wedge.
+          </p>
+          <ul className="tier1-strategy-list font-sans mt-6">
+            {expanding.map((item) => (
+              <li key={item.title}>
+                <strong>{item.title}.</strong> {item.body}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="tier1-story">
         <div className="editorial-wrap tier1-story-grid">
           <div>
             <h2 className="tier1-section-title type-headline">

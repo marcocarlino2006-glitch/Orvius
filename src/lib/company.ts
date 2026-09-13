@@ -90,36 +90,36 @@ export const osRings = [
     ring: 2,
     name: "Customers",
     module: "Record · history · recognition",
-    status: "live" as const,
-    body: "Callers become customers. Full history from first touch.",
+    status: "building" as const,
+    body: "Callers become customers. History compounds — still thickening.",
   },
   {
     ring: 3,
     name: "Jobs",
     module: "Book · confirm · schedule",
-    status: "live" as const,
-    body: "Leads become booked appointments — not sticky notes.",
+    status: "building" as const,
+    body: "Leads become booked appointments — core path works; polish continues.",
   },
   {
     ring: 4,
     name: "Field",
     module: "Dispatch · assign · status",
-    status: "live" as const,
-    body: "Who goes where. The day runs from one board.",
+    status: "building" as const,
+    body: "Who goes where on one board — available on Pro; not the wedge claim yet.",
   },
   {
     ring: 5,
     name: "Money",
     module: "Estimate · invoice · pay",
-    status: "live" as const,
-    body: "Draft estimates and invoices on jobs; record payments manually. Card rails next.",
+    status: "next" as const,
+    body: "Draft estimates and invoices on jobs; record payments manually. Public card (when Stripe keys are live) settles on Orvius until Connect — not the shop bank.",
   },
   {
     ring: 6,
     name: "Intelligence",
-    module: "AI on every layer",
-    status: "live" as const,
-    body: "Smarter with every call, job, and outcome. Ask and outcomes live on shop records.",
+    module: "Ask on shop records",
+    status: "building" as const,
+    body: "Ask and outcomes on shop records — not AI on every layer yet.",
   },
   {
     ring: 7,
@@ -137,7 +137,7 @@ export const osRings = [
   },
 ] as const;
 
-export const osCurrentRing = 5;
+export const osCurrentRing = 1;
 
 export const legalPages = [
   {

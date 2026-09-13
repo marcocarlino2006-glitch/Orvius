@@ -128,7 +128,7 @@ const clarityFiles = [
   "src/components/onboarding-wizard.tsx",
   "src/app/dashboard/calls/[id]/page.tsx",
   "src/app/dashboard/inbox/[id]/page.tsx",
-  "src/components/profile-menu.tsx",
+  "src/components/os-sidebar-footer.tsx",
   "src/components/pro-setup-hub.tsx",
   "src/components/pro-shop-outcomes.tsx",
   "src/components/pro-signal-bar.tsx",
@@ -211,7 +211,19 @@ for (const rel of marketingFiles) {
 }
 pass("Honesty scan", "Marketing files checked for overclaims");
 
-// ── Reliability (live health if server up) ──
+// ── Reliability (env first; live health is a probe) ──
+const twilioReady = Boolean(
+  process.env.TWILIO_ACCOUNT_SID?.trim() &&
+    process.env.TWILIO_AUTH_TOKEN?.trim() &&
+    process.env.TWILIO_PHONE_NUMBER?.trim(),
+);
+const vapiReady = Boolean(process.env.VAPI_API_KEY?.trim());
+const telephonyEnvReady = twilioReady && vapiReady;
+
+if (telephonyEnvReady) {
+  pass("Reliability config", "Twilio + Vapi credentials present in env");
+}
+
 try {
   const adminKey = process.env.ORVIUS_ADMIN_KEY?.trim();
   const health = await fetchWithTimeout("/api/health", {
@@ -225,7 +237,15 @@ try {
         "Health is production-locked — pass ORVIUS_ADMIN_KEY for detailed SMS/config checks",
       );
     } else if (json.configured) {
-      pass("Reliability config", "Twilio + Vapi credentials present");
+      if (!telephonyEnvReady) {
+        pass("Reliability config", "Twilio + Vapi credentials present (health probe)");
+      }
+      pass("Reliability live", "Health probe sees telephony ready");
+    } else if (telephonyEnvReady) {
+      warn(
+        "Reliability live",
+        "Env has credentials but health says not configured — restart the app to load env",
+      );
     } else {
       fail("Reliability config", "Missing Twilio or Vapi credentials");
     }
@@ -233,12 +253,19 @@ try {
       fail("Reliability SMS", "Owner phone equals Twilio line — alerts will not reach cell");
     } else if (json.ownerSmsReachable) {
       pass("Reliability SMS", "Owner SMS path reachable");
-    } else if (json.configured !== undefined) {
+    } else if (telephonyEnvReady || json.configured !== undefined) {
       warn("Reliability SMS", "Owner SMS not fully configured");
     }
   }
 } catch {
-  warn("Reliability live", "App not running — skip live health checks");
+  if (telephonyEnvReady) {
+    warn("Reliability live", "App not running — env credentials OK; start app for live SMS probe");
+  } else {
+    warn(
+      "Reliability live",
+      "App not running and telephony env empty — founder paste Twilio/Vapi to close this gate",
+    );
+  }
 }
 
 // ── Institutional playbook ──
