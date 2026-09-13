@@ -11,6 +11,7 @@ import { getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ token: string }> };
 type LoadedDeposit = NonNullable<Awaited<ReturnType<typeof getDepositByToken>>>;
@@ -35,7 +36,15 @@ export async function GET(_request: Request, { params }: Params) {
   if (!deposit?.publicToken) {
     return NextResponse.json({ error: "Deposit not found" }, { status: 404 });
   }
-  return NextResponse.json({ deposit: serializePublic(deposit) });
+  /*
+    Whether this deposit is already paid, and whether the shop can take a card
+    at all, both change without the customer doing anything. A cached body here
+    shows someone a pay button for money they have already sent.
+  */
+  return NextResponse.json(
+    { deposit: serializePublic(deposit) },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 const actionSchema = z.object({

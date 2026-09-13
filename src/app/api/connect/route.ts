@@ -12,6 +12,7 @@ import {
 import { requireBusinessSession } from "@/lib/tenant";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /*
   Payment onboarding deliberately uses `requireBusinessSession` rather than
@@ -20,13 +21,28 @@ export const runtime = "nodejs";
   push a subscription would be self-defeating.
 */
 
+/*
+  Onboarding status must never be served from a cache.
+
+  A shop leaves Orvius to fill in Stripe's forms and comes back minutes later
+  having been cleared. Without this, the browser is free to replay the body it
+  got before they left — so the owner is told to connect an account they just
+  connected, and the only way out is a hard reload they have no reason to try.
+*/
+function uncached(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: { ...init?.headers, "Cache-Control": "no-store" },
+  });
+}
+
 export async function GET() {
   const authResult = await requireBusinessSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 
   if (!isConnectConfigured()) {
-    return NextResponse.json({
+    return uncached({
       configured: false,
       feeRate: formatPlatformFeeRate(),
       status: getConnectStatus(business),
@@ -41,7 +57,7 @@ export async function GET() {
     ? await refreshConnectAccount(business).catch(() => null)
     : null;
 
-  return NextResponse.json({
+  return uncached({
     configured: true,
     feeRate: formatPlatformFeeRate(),
     status: refreshed ?? getConnectStatus(business),

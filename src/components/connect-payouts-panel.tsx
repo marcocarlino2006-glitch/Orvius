@@ -45,7 +45,7 @@ export function ConnectPayoutsPanel() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/connect");
+      const res = await fetch("/api/connect", { cache: "no-store" });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Could not load payout status");
       setData(body);
