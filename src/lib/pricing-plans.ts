@@ -231,6 +231,31 @@ export function getConfiguredPaidPlans(
     .filter((id) => isPlanCheckoutReady(id, interval));
 }
 
+/**
+ * Which plan a Stripe price belongs to — the inverse of the lookup above.
+ *
+ * Entitlement has to be answerable from the subscription itself, because the
+ * subscription is the only record of what a shop is actually being charged.
+ * Reading it from our own metadata instead works right up until the price
+ * changes without the metadata changing, which is exactly what the Stripe
+ * customer portal does on every upgrade and downgrade.
+ *
+ * Both intervals are checked: monthly and annual are different price ids for
+ * the same plan, and a shop that pays yearly is on the plan it bought.
+ */
+export function planIdForStripePriceId(priceId: string): PaidPlanId | null {
+  const wanted = priceId.trim();
+  if (!wanted) return null;
+
+  for (const plan of getPaidPlans()) {
+    const planId = plan.id as PaidPlanId;
+    for (const interval of ["month", "year"] as const) {
+      if (getStripePriceIdForPlan(planId, interval) === wanted) return planId;
+    }
+  }
+  return null;
+}
+
 export function requireStripePriceIdForPlan(
   planId: PaidPlanId,
   interval: BillingInterval = "month",
