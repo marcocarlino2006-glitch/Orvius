@@ -35,7 +35,7 @@ model Business {
    * only field allowed to gate card collection. An account can exist, and can
    * have submitted every detail, while still not being cleared to charge.
    */
-  stripeConnectAccountId        String?
+  stripeConnectAccountId        String?  @unique
   stripeConnectChargesEnabled   Boolean  @default(false)
   stripeConnectPayoutsEnabled   Boolean  @default(false)
   stripeConnectDetailsSubmitted Boolean  @default(false)

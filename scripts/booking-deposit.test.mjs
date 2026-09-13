@@ -21,23 +21,40 @@ import {
   isDepositAmountValid,
   resolveDepositAmountCents,
 } from "../src/lib/booking-deposit.ts";
-import { getConnectStatus } from "../src/lib/stripe-connect.ts";
+import {
+  getConnectStatus,
+  syncConnectAccount,
+} from "../src/lib/stripe-connect.ts";
 
 const prisma = new PrismaClient();
 
-/** A shop cleared by Stripe to charge cards. */
-const CLEARED = {
-  stripeConnectAccountId: "acct_test_cleared",
-  stripeConnectChargesEnabled: true,
-  stripeConnectPayoutsEnabled: true,
-  stripeConnectDetailsSubmitted: true,
-};
+function unique(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+}
+
+/**
+ * A shop cleared by Stripe to charge cards.
+ *
+ * The account id is minted per shop because one Stripe account belongs to
+ * exactly one shop, and the column enforces it.
+ */
+function cleared() {
+  return {
+    stripeConnectAccountId: unique("acct_test_cleared"),
+    stripeConnectChargesEnabled: true,
+    stripeConnectPayoutsEnabled: true,
+    stripeConnectDetailsSubmitted: true,
+  };
+}
+
+/** The same shape for the pure status tests, where no row is written. */
+const CLEARED = cleared();
 
 async function makeShop(overrides = {}) {
   return prisma.business.create({
     data: {
       name: "Deposit Proof Plumbing",
-      slug: `deposit-proof-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      slug: unique("deposit-proof"),
       billingStatus: "pilot",
       ...overrides,
     },
@@ -173,7 +190,7 @@ test("readiness names the blocker so the UI can act on it", () => {
 });
 
 test("a second request for the same lead reuses the deposit", async () => {
-  const shop = await makeShop(CLEARED);
+  const shop = await makeShop(cleared());
   const lead = await makeLead(shop.id);
 
   const first = await createDepositForLead({
@@ -197,7 +214,7 @@ test("a second request for the same lead reuses the deposit", async () => {
 });
 
 test("a canceled deposit does not block asking again", async () => {
-  const shop = await makeShop(CLEARED);
+  const shop = await makeShop(cleared());
   const lead = await makeLead(shop.id);
 
   const first = await createDepositForLead({
@@ -221,7 +238,7 @@ test("a canceled deposit does not block asking again", async () => {
 });
 
 test("an out-of-range amount never reaches the database", async () => {
-  const shop = await makeShop(CLEARED);
+  const shop = await makeShop(cleared());
   const lead = await makeLead(shop.id);
 
   await assert.rejects(
@@ -258,7 +275,7 @@ function paidSession(deposit, businessId, overrides = {}) {
 }
 
 test("fulfilment marks the deposit paid and stamps what Orvius earned", async () => {
-  const shop = await makeShop(CLEARED);
+  const shop = await makeShop(cleared());
   const lead = await makeLead(shop.id);
   const { deposit } = await createDepositForLead({
     businessId: shop.id,
@@ -280,7 +297,7 @@ test("fulfilment marks the deposit paid and stamps what Orvius earned", async ()
 });
 
 test("a replayed webhook is a no-op, not a second payment", async () => {
-  const shop = await makeShop(CLEARED);
+  const shop = await makeShop(cleared());
   const lead = await makeLead(shop.id);
   const { deposit } = await createDepositForLead({
     businessId: shop.id,
@@ -308,8 +325,8 @@ test("a replayed webhook is a no-op, not a second payment", async () => {
 });
 
 test("an unpaid or foreign session cannot mark a deposit paid", async () => {
-  const shop = await makeShop(CLEARED);
-  const other = await makeShop(CLEARED);
+  const shop = await makeShop(cleared());
+  const other = await makeShop(cleared());
   const lead = await makeLead(shop.id);
   const { deposit } = await createDepositForLead({
     businessId: shop.id,
@@ -341,6 +358,74 @@ test("an unpaid or foreign session cannot mark a deposit paid", async () => {
 
   const stored = await prisma.deposit.findUnique({ where: { id: deposit.id } });
   assert.equal(stored.status, "pending");
+});
+
+/** An account object as Stripe returns it. */
+function stripeAccount(accountId, businessId, overrides = {}) {
+  return {
+    id: accountId,
+    charges_enabled: true,
+    payouts_enabled: true,
+    details_submitted: true,
+    metadata: { businessId, product: "orvius" },
+    ...overrides,
+  };
+}
+
+test("a cleared account is persisted for the shop that owns it", async () => {
+  const shop = await makeShop({ stripeConnectAccountId: unique("acct_sync") });
+
+  const result = await syncConnectAccount(
+    stripeAccount(shop.stripeConnectAccountId, shop.id),
+    shop.id,
+  );
+
+  assert.ok(!("unmatched" in result) && !("mismatch" in result));
+  assert.equal(result.status.canAcceptPayments, true);
+
+  const stored = await prisma.business.findUnique({ where: { id: shop.id } });
+  assert.equal(stored.stripeConnectChargesEnabled, true);
+  assert.ok(stored.stripeConnectUpdatedAt);
+});
+
+test("an account resolving to another shop is refused, not written", async () => {
+  /*
+    The failure this guards against is a shop being told it can take cards
+    because a different shop finished verification. Stripe resolves the
+    account from its own metadata, so a mis-keyed id points the sync at the
+    wrong row; the caller names the shop it asked about, and a disagreement
+    has to stop before anything is persisted.
+  */
+  const asking = await makeShop({ stripeConnectAccountId: unique("acct_asking") });
+  const owner = await makeShop({ stripeConnectAccountId: unique("acct_owner") });
+
+  const result = await syncConnectAccount(
+    stripeAccount(asking.stripeConnectAccountId, owner.id),
+    asking.id,
+  );
+
+  assert.ok("mismatch" in result);
+  assert.equal(result.resolvedBusinessId, owner.id);
+
+  // Neither shop may have been touched.
+  const askingAfter = await prisma.business.findUnique({
+    where: { id: asking.id },
+  });
+  const ownerAfter = await prisma.business.findUnique({ where: { id: owner.id } });
+  assert.equal(askingAfter.stripeConnectChargesEnabled, false);
+  assert.equal(ownerAfter.stripeConnectChargesEnabled, false);
+  assert.equal(
+    ownerAfter.stripeConnectAccountId,
+    owner.stripeConnectAccountId,
+    "the asking shop's account id must not have been moved onto the owner",
+  );
+});
+
+test("an account naming no known shop is reported unmatched", async () => {
+  const result = await syncConnectAccount(
+    stripeAccount(unique("acct_orphan"), "biz_does_not_exist"),
+  );
+  assert.ok("unmatched" in result);
 });
 
 test.after(async () => {

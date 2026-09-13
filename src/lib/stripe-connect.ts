@@ -152,8 +152,19 @@ export async function createConnectLoginLink(accountId: string) {
   return link.url;
 }
 
-/** Persist Stripe's capability verdict for an account. */
-export async function syncConnectAccount(account: Stripe.Account) {
+/**
+ * Persist Stripe's capability verdict for an account.
+ *
+ * `expectBusinessId` is for callers that already know which shop the account
+ * must belong to. The check has to happen before the write: the account id is
+ * unique per shop, so persisting a resolution that disagrees with the caller
+ * would either steal the id from its real owner or fail on the constraint,
+ * and neither tells the caller what went wrong.
+ */
+export async function syncConnectAccount(
+  account: Stripe.Account,
+  expectBusinessId?: string,
+) {
   const businessId = account.metadata?.businessId?.trim();
 
   const business = businessId
@@ -163,6 +174,14 @@ export async function syncConnectAccount(account: Stripe.Account) {
       });
 
   if (!business) return { unmatched: true as const, accountId: account.id };
+
+  if (expectBusinessId && business.id !== expectBusinessId) {
+    return {
+      mismatch: true as const,
+      accountId: account.id,
+      resolvedBusinessId: business.id,
+    };
+  }
 
   const updated = await prisma.business.update({
     where: { id: business.id },
@@ -193,6 +212,23 @@ export async function refreshConnectAccount(
 
   const stripe = getStripe();
   const account = await stripe.accounts.retrieve(accountId);
-  const result = await syncConnectAccount(account);
-  return "unmatched" in result ? null : result.status;
+
+  /*
+    Scoped to the shop that asked. Stripe resolves the account by its own
+    metadata, so without this a mis-keyed id would report another shop's
+    payment status on this owner's dashboard — and tell them they can take
+    cards when their own account is nowhere near cleared.
+  */
+  const result = await syncConnectAccount(account, business.id);
+  if ("unmatched" in result) return null;
+  if ("mismatch" in result) {
+    console.error("connect.refresh_owner_mismatch", {
+      requested: business.id,
+      resolved: result.resolvedBusinessId,
+      accountId,
+    });
+    return null;
+  }
+
+  return result.status;
 }

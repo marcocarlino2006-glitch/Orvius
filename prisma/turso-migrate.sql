@@ -260,3 +260,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Deposit_publicToken_key" ON "Deposit"("public
 CREATE UNIQUE INDEX IF NOT EXISTS "Deposit_stripeSessionId_key" ON "Deposit"("stripeSessionId");
 CREATE INDEX IF NOT EXISTS "Deposit_businessId_status_idx" ON "Deposit"("businessId", "status");
 CREATE INDEX IF NOT EXISTS "Deposit_businessId_createdAt_idx" ON "Deposit"("businessId", "createdAt");
+
+-- One Stripe account belongs to exactly one shop. Without this, a mis-keyed
+-- account id makes the lookup in syncConnectAccount ambiguous, and one shop's
+-- payment status can be reported on another shop's dashboard.
+CREATE UNIQUE INDEX IF NOT EXISTS "Business_stripeConnectAccountId_key"
+  ON "Business"("stripeConnectAccountId");
