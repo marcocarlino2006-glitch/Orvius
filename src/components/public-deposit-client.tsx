@@ -62,7 +62,6 @@ export function PublicDepositClient({ token }: { token: string }) {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error ?? "Could not confirm payment");
           setDeposit(data.deposit);
-          setNote("Deposit received. Your appointment is held.");
           window.history.replaceState({}, "", `/d/${token}`);
         } catch (err) {
           setError(
@@ -123,7 +122,9 @@ export function PublicDepositClient({ token }: { token: string }) {
   return (
     <div className="public-money font-sans">
       <p className="public-money-shop">{deposit.shopName}</p>
-      <h1 className="public-money-title">Hold your appointment</h1>
+      <h1 className="public-money-title">
+        {deposit.paid ? "Appointment held" : "Hold your appointment"}
+      </h1>
       <p className="public-money-amount">{deposit.amountLabel}</p>
       <p className="public-money-notes">
         This deposit holds your slot and comes off your final bill. It is paid
