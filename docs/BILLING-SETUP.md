@@ -24,7 +24,16 @@ Pilot shops get **Pro access** during the 30-day program. Line subscribers see u
 npm run billing:check
 ```
 
-## Step 1 — Stripe secret key
+## Step 1 — Paste Stripe secret (one command)
+
+```bash
+npm run billing:paste -- --secret sk_test_... --setup
+```
+
+Writes `STRIPE_SECRET_KEY` to `.env` and creates Line/Pro/Fleet prices.
+Optional: `--publishable pk_...` and `--webhook whsec_...` in the same call.
+
+Or paste by hand:
 
 ```
 STRIPE_SECRET_KEY=sk_test_...
@@ -34,7 +43,9 @@ STRIPE_SECRET_KEY=sk_test_...
 
 ```bash
 npm run stripe:setup
+# or: npm run stripe:setup -- --secret sk_test_...
 ```
+
 
 Writes to `.env`:
 
