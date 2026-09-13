@@ -4,6 +4,7 @@ import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
 import { isEmailConfigured } from "@/lib/email";
+import { isFounderEmail } from "@/lib/founder";
 import { prisma } from "@/lib/prisma";
 import {
   getShopLines,
@@ -87,6 +88,14 @@ export async function GET() {
   const entitled = billingFields ? isBillingEntitled(billingFields) : false;
   const pilotEnds = billingFields ? resolvePilotEndsAt(billingFields) : null;
 
+  /*
+    Readiness names the env vars Stripe is still waiting on and the npm script
+    that creates the price IDs. That is a runbook for whoever owns the Stripe
+    account, and it was going out to every owner who opened Billing.
+  */
+  const founder = isFounderEmail(email);
+  const readiness = getBillingReadiness();
+
   return NextResponse.json({
     user: {
       name: session.user.name ?? null,
@@ -101,10 +110,13 @@ export async function GET() {
       smsEnabled: process.env.ENABLE_OWNER_SMS === "true",
       emailConfigured: isEmailConfigured(),
     },
+    founder,
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),
-      readiness: getBillingReadiness(),
+      readiness: founder
+        ? readiness
+        : { ...readiness, missing: [], nextSteps: [] },
       status: business?.billingStatus ?? "none",
       planId: currentPlanId,
       plan: currentPlan ?? pricing.pro,

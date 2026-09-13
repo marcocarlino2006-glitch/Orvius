@@ -99,12 +99,18 @@ export const pricingPlans: readonly PricingPlan[] = [
     stripePriceEnvKeyAnnual: "STRIPE_PRICE_ID_FLEET_ANNUAL",
     stripeProductKey: "orvius-fleet",
     idealFor: "Fleet shops with daily dispatch load and multiple crews",
+    /*
+      "Priority onboarding & support line" and "Quarterly shop health review"
+      used to be on this list. Neither existed: support is one inbox for every
+      plan, there is no second number to call, and nothing in the product
+      schedules or delivers a review. Selling either one is a refund with extra
+      steps, so the list says only what a Fleet subscriber actually gets.
+    */
     highlights: [
       "Everything in Pro",
       "Unlimited technicians on dispatch",
-      "Priority onboarding & support line",
-      "Quarterly shop health review",
       "Multi-truck dispatch workflows",
+      "Shop health and alert delivery, measured per line",
     ],
   },
   {
@@ -117,11 +123,16 @@ export const pricingPlans: readonly PricingPlan[] = [
     href: "mailto:hello@orvius.im?subject=Orvius%20Multi-shop",
     contactSales: true,
     idealFor: "Owners running multiple brands or locations",
+    /*
+      Contact-sales, so the terms are whatever the conversation agrees to —
+      which is exactly why this list must not pre-commit to a support tier the
+      product cannot deliver. Everything here is either a capability that
+      exists or a thing genuinely settled per deal.
+    */
     highlights: [
       "Dedicated lines per location",
       "Central billing & admin",
       "Custom onboarding playbook",
-      "Priority support & quarterly reviews",
       "Volume pricing on 3+ shops",
     ],
   },
@@ -218,6 +229,31 @@ export function getConfiguredPaidPlans(
   return getPaidPlans()
     .map((p) => p.id)
     .filter((id) => isPlanCheckoutReady(id, interval));
+}
+
+/**
+ * Which plan a Stripe price belongs to — the inverse of the lookup above.
+ *
+ * Entitlement has to be answerable from the subscription itself, because the
+ * subscription is the only record of what a shop is actually being charged.
+ * Reading it from our own metadata instead works right up until the price
+ * changes without the metadata changing, which is exactly what the Stripe
+ * customer portal does on every upgrade and downgrade.
+ *
+ * Both intervals are checked: monthly and annual are different price ids for
+ * the same plan, and a shop that pays yearly is on the plan it bought.
+ */
+export function planIdForStripePriceId(priceId: string): PaidPlanId | null {
+  const wanted = priceId.trim();
+  if (!wanted) return null;
+
+  for (const plan of getPaidPlans()) {
+    const planId = plan.id as PaidPlanId;
+    for (const interval of ["month", "year"] as const) {
+      if (getStripePriceIdForPlan(planId, interval) === wanted) return planId;
+    }
+  }
+  return null;
 }
 
 export function requireStripePriceIdForPlan(

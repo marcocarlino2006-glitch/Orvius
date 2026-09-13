@@ -44,9 +44,6 @@ const webhookBase = process.env.WEBHOOK_BASE_URL ?? tunnel;
 
 if (webhookBase) {
   console.log(`\n🌐 Public webhook base: ${webhookBase}\n`);
-  run("Sync receptionist prompt to Vapi", "node", ["scripts/sync-prompt.mjs"], {
-    WEBHOOK_BASE_URL: webhookBase,
-  });
   run("Configure Vapi webhook", "node", [
     "scripts/configure-vapi-webhook.mjs",
     webhookBase,
@@ -59,7 +56,6 @@ if (webhookBase) {
   console.log(
     "   npx cloudflared tunnel --url http://127.0.0.1:3000 2>&1 | tee /tmp/orvius-tunnel.log\n",
   );
-  run("Sync prompt (local webhook URL)", "node", ["scripts/sync-prompt.mjs"]);
 }
 
 run("E2E dogfood", "npm", ["run", "e2e:dogfood"], {

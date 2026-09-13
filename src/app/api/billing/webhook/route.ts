@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
+import { fulfillDepositCheckoutSession } from "@/lib/booking-deposit";
 import { fulfillEstimateCheckoutSession } from "@/lib/estimate-pay";
 import { getStripe } from "@/lib/stripe";
+import { syncConnectAccount } from "@/lib/stripe-connect";
 import type Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -56,6 +58,17 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        /*
+          Customer payments are direct charges on a shop's connected account,
+          so these events arrive with `event.account` set rather than on the
+          platform's own stream. The session object is delivered in full, so
+          fulfilment needs no connected-account retrieve.
+        */
+        if (session.mode === "payment" && session.metadata?.kind === "booking_deposit") {
+          await fulfillDepositCheckoutSession(session);
+          break;
+        }
 
         if (session.mode === "payment" && session.metadata?.kind === "estimate_pay") {
           await fulfillEstimateCheckoutSession(session);
@@ -119,6 +132,19 @@ export async function POST(request: Request) {
             event.type,
             subscription.id,
           );
+        }
+        break;
+      }
+      case "account.updated": {
+        /*
+          Stripe's verdict on a shop's identity verification. This is the only
+          thing that opens the card path, and it can land hours after the owner
+          finished the form, so it cannot be inferred at onboarding time.
+        */
+        const account = event.data.object as Stripe.Account;
+        const result = await syncConnectAccount(account);
+        if ("unmatched" in result) {
+          console.error("[billing.webhook] account.updated unmatched", account.id);
         }
         break;
       }

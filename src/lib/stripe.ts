@@ -31,6 +31,33 @@ export function isStripePlanConfigured(planId: PaidPlanId) {
   return isPlanCheckoutReady(planId);
 }
 
+/*
+  Local override so the money rail can be exercised against stripe-mock, which
+  validates requests against Stripe's own OpenAPI spec. Without it the only way
+  to prove a Connect direct charge is shaped correctly is to have live keys,
+  which means the take rate ships untested.
+
+  Refused outright in production, and only honoured for a test-mode key, so a
+  misplaced env var cannot quietly point real charges at another host.
+*/
+function resolveApiHost() {
+  const base = process.env.STRIPE_API_BASE?.trim();
+  if (!base) return null;
+  if (process.env.NODE_ENV === "production") return null;
+  if (!process.env.STRIPE_SECRET_KEY?.trim().startsWith("sk_test")) return null;
+
+  try {
+    const url = new URL(base);
+    return {
+      host: url.hostname,
+      port: Number(url.port) || (url.protocol === "https:" ? 443 : 80),
+      protocol: url.protocol === "https:" ? ("https" as const) : ("http" as const),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
   if (!secretKey) {
@@ -38,7 +65,8 @@ export function getStripe() {
   }
 
   if (!stripeClient) {
-    stripeClient = new Stripe(secretKey);
+    const override = resolveApiHost();
+    stripeClient = new Stripe(secretKey, override ?? undefined);
   }
 
   return stripeClient;

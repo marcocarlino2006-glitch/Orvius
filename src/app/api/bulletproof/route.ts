@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
 import { getBulletproofStatus } from "@/lib/bulletproof-status";
-import { requireEntitledSession } from "@/lib/tenant";
+import { isFounderEmail } from "@/lib/founder";
+import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 
-/** Founder-facing status — drives POST LOCK banner. */
+/**
+ * Founder-facing status — drives the POST LOCK banner.
+ *
+ * Every gate this returns is marked founderOnly, and until now nothing read
+ * that flag: any entitled owner could fetch the list of Stripe env vars still
+ * missing and the note that formation state is unconfirmed. The banner reads
+ * an unauthorised response as "nothing to show", so the check belongs here
+ * rather than in the component.
+ */
 export async function GET() {
   const auth = await requireEntitledSession();
   if ("error" in auth) return auth.error;
+  if (!isFounderEmail(auth.email)) return forbiddenResponse();
 
   const status = getBulletproofStatus();
   return NextResponse.json({

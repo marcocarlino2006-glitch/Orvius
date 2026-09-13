@@ -41,7 +41,7 @@ export default function PilotPage() {
         <div className="editorial-wrap" style={{ maxWidth: "36rem" }}>
           <p className="tier1-eyebrow type-eyebrow">Request</p>
           <h2 className="tier1-section-title type-headline">
-            Book the audit. We reply within a day.
+            Book the audit. We&apos;ll email to schedule.
           </h2>
           <p className="tier1-section-lead font-sans">
             Leave shop details. We schedule a short call, review after-hours
@@ -52,7 +52,7 @@ export default function PilotPage() {
           </div>
           <p className="tier1-section-lead font-sans" style={{ marginTop: "1.5rem" }}>
             Prefer to start yourself?{" "}
-            <Link href="/login" className="customer-timeline-link">
+            <Link href="/signin" className="customer-timeline-link">
               Sign in and get a dedicated number →
             </Link>
           </p>

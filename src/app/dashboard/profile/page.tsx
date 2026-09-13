@@ -1,7 +1,7 @@
 "use client";
 
 import { OsShell } from "@/components/os-shell";
-import { ShellPanel } from "@/components/shell-primitives";
+import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -38,7 +38,7 @@ export default function DashboardProfilePage() {
       <div className="account-grid">
         <ShellPanel title="Account" dense>
           {loading ? (
-            <p className="font-sans text-sm text-ash">Loading…</p>
+            <ShellLoading />
           ) : (
             <dl className="os-kv font-sans">
               <div>
@@ -67,7 +67,7 @@ export default function DashboardProfilePage() {
           }
         >
           {loading ? (
-            <p className="font-sans text-sm text-ash">Loading…</p>
+            <ShellLoading />
           ) : account?.business ? (
             <dl className="os-kv font-sans">
               <div>

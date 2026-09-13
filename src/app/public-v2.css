@@ -1,0 +1,2710 @@
+/*
+ * ORVIUS PUBLIC SYSTEM
+ *
+ * One authoritative skin for public marketing and authentication. Archivo is the
+ * speaking voice and Plex Mono is the reporting voice; the palette is Cursor's
+ * published token set — warm near-black under warm paper with a #f54e00 accent.
+ * The product keeps its dense cockpit, but every surface shares this letterset.
+ */
+
+/*
+ * Night is the default canvas. Orvius is a command center for the shift that
+ * runs after dark, so the public surface is charcoal first and paper second —
+ * the same skin, one variable set apart. Every rule below reads --ov-*, so
+ * flipping the colorway is a palette swap, not a second stylesheet.
+ */
+/*
+ * Palette values are Cursor's published design tokens, read from their served
+ * stylesheet rather than sampled by eye: warm near-black #14120b under warm
+ * paper #f7f7f4, warm olive ink #26251e, the card ladder #1b1913 → #2b2923 on
+ * night and #f2f1ed → #e1e0db on day, and the #f54e00 accent.
+ *
+ * Two slots deliberately do not take the literal value, because two of those
+ * tokens do not clear WCAG AA against the background they are published on:
+ * their secondary text at 60% ink lands at 4.06:1 on paper, and the #f54e00
+ * accent lands at 3.27:1 on paper. The display and fill slots keep the exact
+ * value; only the small-text slots are darkened, which is what the
+ * --ov-accent-text / --ov-muted split has always been for. Every deviation is
+ * noted at the line.
+ */
+:root,
+html[data-theme="night"] {
+  --ov-paper: #14120b;
+  --ov-paper-raised: #1b1913;
+  --ov-ink: #edecec;
+  /* Night has no published secondary-text hex; this is the warm gray that
+     clears AA on #14120b at 6.4:1. */
+  --ov-muted: #9a978f;
+  --ov-line: #26241e;
+  --ov-line-strong: #2b2923;
+  --ov-charcoal: #1b1913;
+  --ov-charcoal-raised: #201e18;
+  --ov-night-text: #edecec;
+  --ov-copper: #f54e00;
+  --ov-copper-dark: #c43e00;
+  /* Exact accent, and it clears AA here — 5.3:1 on #14120b. */
+  --ov-accent-text: #f54e00;
+  --ov-emerald-text: #6ee7a8;
+  /* Text sitting *on* an accent fill. White on #f54e00 is only 3.5:1, so the
+     ink is the canvas colour instead, at 5.3:1. This does not flip with the
+     colorway because the fill does not. */
+  --ov-on-copper: #14120b;
+  --ov-copper-field: #1b1913;
+  --ov-amber: #c9a227;
+  --ov-green: #6ee7a8;
+  --ov-emerald: #1f8a65;
+  /* Headlines run brighter than body ink so display type stays crisp. */
+  --ov-headline: #f7f7f4;
+  --ov-hairline: rgb(255 255 255 / 0.18);
+  --ov-hairline-strong: rgb(255 255 255 / 0.28);
+  --ov-hairline-hover: rgb(255 255 255 / 0.45);
+}
+
+html[data-theme="day"] {
+  --ov-paper: #f7f7f4;
+  --ov-paper-raised: #f2f1ed;
+  --ov-ink: #26251e;
+  /* Their secondary text is #26251e at 60%, which composites to 4.06:1 here.
+     Same hue, taken down until it clears AA at 6.0:1. */
+  --ov-muted: #615f57;
+  --ov-line: #e1e0db;
+  --ov-line-strong: #cac6be;
+  --ov-charcoal: #26251e;
+  --ov-charcoal-raised: #3b3a33;
+  --ov-night-text: #edecec;
+  --ov-copper: #f54e00;
+  --ov-copper-dark: #c43e00;
+  /* The exact accent is 3.27:1 on paper — large type only. Small copy reads
+     from this darkened accent at 5.7:1 instead. */
+  --ov-accent-text: #b23800;
+  --ov-emerald-text: #167d5e;
+  --ov-on-copper: #14120b;
+  --ov-copper-field: #f54e00;
+  --ov-amber: #c08532;
+  --ov-green: #167d5e;
+  --ov-emerald: #1f8a65;
+  --ov-headline: #26251e;
+  --ov-hairline: rgb(38 37 30 / 0.12);
+  --ov-hairline-strong: rgb(38 37 30 / 0.22);
+  --ov-hairline-hover: rgb(38 37 30 / 0.42);
+}
+
+/*
+ * next/font declares --font-sans and --font-mono on <body>, not on :root, so the
+ * brand aliases have to be defined here or they resolve to nothing and every
+ * font-family that references them silently invalidates.
+ */
+body {
+  --ov-font: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+  --ov-mono: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--ov-font);
+}
+
+
+.ov-public {
+  min-height: 100vh;
+  overflow: clip;
+  background: var(--ov-paper);
+  color: var(--ov-ink);
+  font-family: var(--ov-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.ov-public * {
+  box-sizing: border-box;
+}
+
+.ov-public a {
+  text-underline-offset: 0.16em;
+}
+
+/* Brand */
+
+.ov-public .orvius-logo {
+  gap: 0.52rem !important;
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .orvius-logo-mark {
+  color: var(--ov-copper) !important;
+}
+
+.ov-public .orvius-logo-word {
+  color: inherit !important;
+  font-family: var(--ov-mono) !important;
+  font-weight: 700 !important;
+  letter-spacing: var(--logo-word-tracking, 0.18em) !important;
+  text-transform: uppercase !important;
+  /* Open tracking adds space after the last glyph; pull it back so the word
+     sits flush with whatever it is aligned against. */
+  margin-right: -0.18em;
+}
+
+/*
+  In the header the name stands alone, with no mark to share the weight and no
+  status pill to trail it, so it is set larger and tracked tighter than the
+  label-sized lockup it replaced — at 0.9375rem and 0.18em it read as a caption
+  rather than as the thing the page is named after.
+*/
+.ov-public .mkt-nav-brand .orvius-logo-word,
+.ov-signin .mkt-nav-brand .orvius-logo-word {
+  font-size: 1.0625rem !important;
+  letter-spacing: 0.13em !important;
+  margin-right: -0.13em;
+}
+
+/* Live system status, set beside the wordmark. */
+
+.ov-public .mkt-nav-brandline,
+.ov-signin .mkt-nav-brandline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.ov-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid rgb(16 185 129 / 0.3);
+  border-radius: 9999px;
+  background: rgb(16 185 129 / 0.1);
+  color: var(--ov-emerald-text);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.ov-status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+/* Only a confirmed-live line gets to pulse. */
+.ov-status-pill--operational .ov-status-dot {
+  animation: ov-status-pulse 2.4s ease-in-out infinite;
+}
+
+.ov-status-pill--checking {
+  border-color: var(--ov-line-strong);
+  background: transparent;
+  color: var(--ov-muted);
+}
+
+.ov-status-pill--degraded {
+  border-color: rgb(245 158 11 / 0.35);
+  background: rgb(245 158 11 / 0.1);
+  color: #c9a227;
+}
+
+@keyframes ov-status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-status-pill--operational .ov-status-dot {
+    animation: none;
+  }
+}
+
+/* The pill is supporting detail; the wordmark keeps the room on small screens. */
+@media (max-width: 900px) {
+  .ov-status-pill--nav {
+    display: none;
+  }
+}
+
+/* Compact public chrome */
+
+.ov-public .mkt-nav {
+  position: fixed !important;
+  inset: 0 0 auto !important;
+  z-index: 80 !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  border: 0 !important;
+  border-bottom: 1px solid transparent !important;
+  background: color-mix(in srgb, var(--ov-paper) 94%, transparent) !important;
+  backdrop-filter: blur(14px);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease !important;
+}
+
+.ov-public .mkt-nav--elevated {
+  border-bottom-color: var(--ov-line) !important;
+  background: color-mix(in srgb, var(--ov-paper) 98%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-nav-inner {
+  width: 100% !important;
+  max-width: 1440px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+  display: grid !important;
+  grid-template-columns: minmax(260px, 1fr) auto minmax(200px, 1fr) !important;
+  align-items: center !important;
+  gap: 24px !important;
+}
+
+.ov-public .mkt-nav-brand {
+  width: max-content;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ov-public .mkt-nav-links {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1.55rem !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .mkt-nav-links a,
+.ov-public .mkt-nav-login {
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.006em !important;
+  text-transform: none !important;
+}
+
+.ov-public .mkt-nav-links a {
+  position: relative;
+}
+
+.ov-public .mkt-nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -4px;
+  height: 1px;
+  background: var(--ov-ink);
+  transition: right 140ms ease;
+}
+
+.ov-public .mkt-nav-links a:hover::after {
+  right: 0;
+}
+
+.ov-public .mkt-nav-actions {
+  justify-self: end !important;
+  gap: 0.45rem !important;
+}
+
+.ov-public .mkt-nav-cta {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 0 0.8rem !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.006em !important;
+  text-transform: none !important;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease !important;
+}
+
+.ov-public .mkt-nav-cta {
+  color: var(--ov-night-text) !important;
+  border: 1px solid var(--ov-charcoal) !important;
+  background: var(--ov-charcoal) !important;
+}
+
+.ov-public .mkt-nav-cta:hover {
+  transform: translateY(-1px) !important;
+}
+
+.ov-public .mkt-nav-menu-toggle {
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid var(--ov-line-strong) !important;
+  border-radius: 4px !important;
+  color: var(--ov-ink) !important;
+  background: transparent !important;
+}
+
+/* Hero: text stays quiet; the product carries the visual weight. */
+
+/* Every public section shares one 1240px rail inside a 5vw gutter, so section
+   content and the showcase panel's outer edge start on the same vertical line. */
+
+.ov-public .mkt-showcase-eyebrow,
+.ov-public .mkt-manifesto-kicker,
+.ov-public .mkt-proof-kicker {
+  margin: 0 0 1.25rem !important;
+  color: var(--ov-accent-text) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.ov-public .mkt-trynow-cta,
+.ov-public .inst-btn-primary {
+  min-height: 42px !important;
+  padding: 0 1rem !important;
+  border: 1px solid var(--ov-charcoal) !important;
+  border-radius: 4px !important;
+  background: var(--ov-charcoal) !important;
+  color: var(--ov-night-text) !important;
+  box-shadow: none !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+}
+
+.ov-public .mkt-trynow-cta:hover,
+.ov-public .inst-btn-primary:hover {
+  border-color: #111315 !important;
+  background: #111315 !important;
+  transform: translateY(-1px);
+}
+
+/*
+ * Panels that are dark in both colorways — the product showcase and the night
+ * rule cards are instruments, and an instrument does not turn into paper when
+ * the page does. They re-declare the token set locally, so every rule inside
+ * can keep reading --ov-* instead of branching on [data-theme].
+ */
+.ov-public .mkt-showcase-grid,
+.ov-public .mkt-laws--grid .mkt-law,
+.ov-public .ov-stats,
+.ov-public .ov-console-frame,
+.ov-public .mkt-proof-section,
+.ov-signin {
+  --ov-headline: #ffffff;
+  --ov-ink: #edecec;
+  --ov-muted: #a0a0a0;
+  --ov-line: #26241e;
+  --ov-line-strong: #2b2923;
+  --ov-hairline: rgb(255 255 255 / 0.1);
+  --ov-hairline-strong: rgb(255 255 255 / 0.2);
+  --ov-hairline-hover: rgb(255 255 255 / 0.4);
+  --ov-copper: #f54e00;
+  --ov-amber: #c9a227;
+  --ov-accent-text: #f54e00;
+  --ov-emerald-text: #6ee7a8;
+}
+
+/* Product proof on a charcoal field with a lit warm top edge. The panel used to
+   be a flat copper block; on the dark canvas the same emphasis comes from the
+   amber lip and its upward bloom, which reads as a powered surface instead of a
+   colour swatch. */
+
+.ov-public .mkt-showcase {
+  margin: 0 !important;
+  padding: 20px 5vw 104px !important;
+  border: 0 !important;
+  background: var(--ov-paper) !important;
+}
+
+.ov-public .mkt-showcase-grid {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  min-height: 680px !important;
+  margin: 0 auto !important;
+  padding: clamp(32px, 5vw, 72px) !important;
+  display: grid !important;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.55fr) !important;
+  gap: clamp(32px, 5vw, 76px) !important;
+  align-items: center !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-top: 2px solid rgb(245 158 11 / 0.6) !important;
+  border-radius: 16px !important;
+  background: #1b1913 !important;
+  box-shadow: 0 -20px 80px -20px rgb(217 119 6 / 0.15) !important;
+}
+
+.ov-public .mkt-showcase-copy {
+  display: block !important;
+}
+
+.ov-public .mkt-showcase-eyebrow {
+  color: var(--ov-amber) !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+.ov-public .mkt-showcase-title {
+  max-width: 390px !important;
+  margin: 0 !important;
+  color: var(--ov-headline) !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2rem, 3.4vw, 3.25rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.06 !important;
+  letter-spacing: -0.028em !important;
+}
+
+.ov-public .mkt-showcase-lead {
+  max-width: 390px !important;
+  margin: 1.35rem 0 0 !important;
+  color: #aaa8a0 !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.55 !important;
+}
+
+.ov-public .mkt-showcase-snippet {
+  width: max-content !important;
+  max-width: 100% !important;
+  margin-top: 1.65rem !important;
+  border: 1px solid var(--ov-hairline-strong) !important;
+  border-radius: 9999px !important;
+  background: rgb(255 255 255 / 0.04) !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-showcase-stage {
+  min-width: 0;
+  border: 1px solid var(--ov-hairline) !important;
+  border-radius: 12px !important;
+  background: #201e18 !important;
+  box-shadow: 0 30px 70px -24px rgb(0 0 0 / 0.8) !important;
+  overflow: hidden;
+}
+
+.ov-public .mkt-product {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #201e18 !important;
+}
+
+/* ── Dispatch board tags ──
+   The preview shipped its labels as 42–58% translucent sans, which measured
+   between 3.2:1 and 3.9:1 — under AA at 9–11px. Every tag is now an opaque
+   monospaced label on a neutral charcoal plate, so the board reads like an
+   instrument panel instead of a watermark. */
+
+.ov-public .mkt-product,
+.ov-public .mkt-product .mkt-product-body {
+  background: #201e18 !important;
+}
+
+.ov-public .mkt-product .mkt-product-chrome {
+  background: #1a1a1a !important;
+  border-bottom-color: var(--ov-hairline) !important;
+}
+
+.ov-public .mkt-product .mkt-product-rail {
+  background: #121212 !important;
+  border-right-color: var(--ov-hairline) !important;
+}
+
+.ov-public .mkt-product .mkt-product-cli {
+  background: #101010 !important;
+  border-top-color: var(--ov-hairline) !important;
+}
+
+.ov-public .mkt-product .mkt-product-chrome-path,
+.ov-public .mkt-product .mkt-product-rail-label,
+.ov-public .mkt-product .mkt-product-stream-kicker,
+.ov-public .mkt-product .mkt-product-cli-label,
+.ov-public .mkt-product .mkt-product-live,
+.ov-public .mkt-product .mkt-product-rail-list time,
+.ov-public .mkt-product .mkt-product-steps em {
+  font-family: var(--ov-mono) !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.ov-public .mkt-product .mkt-product-chrome-path,
+.ov-public .mkt-product .mkt-product-rail-label,
+.ov-public .mkt-product .mkt-product-stream-kicker,
+.ov-public .mkt-product .mkt-product-cli-label,
+.ov-public .mkt-product .mkt-product-steps em {
+  color: #aaa8a0 !important;
+}
+
+.ov-public .mkt-product .mkt-product-rail-list time {
+  color: #918f87 !important;
+  font-size: 0.625rem !important;
+}
+
+.ov-public .mkt-product .mkt-product-rail-list strong {
+  color: #f2f1ed !important;
+}
+
+.ov-public .mkt-product .mkt-product-rail-list em {
+  color: #9c9a92 !important;
+  font-family: var(--ov-mono) !important;
+  font-style: normal !important;
+}
+
+.ov-public .mkt-product .mkt-product-steps span {
+  color: #e8e8e8 !important;
+}
+
+.ov-public .mkt-product .mkt-product-cli-text {
+  color: #d7d6d5 !important;
+  font-family: var(--ov-mono) !important;
+}
+
+.ov-public .mkt-product .mkt-product-reply {
+  border-color: var(--ov-hairline) !important;
+  background: rgb(255 255 255 / 0.04) !important;
+}
+
+.ov-public .mkt-product .mkt-product-reply p {
+  color: #d7d6d5 !important;
+}
+
+.ov-public .mkt-product .mkt-product-stream-title {
+  color: #ffffff !important;
+}
+
+/* Editorial sections */
+
+.ov-public .mkt-manifesto,
+.ov-public .mkt-manifesto--meta {
+  padding: 118px 5vw !important;
+  border: 0 !important;
+  border-top: 1px solid var(--ov-line) !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .mkt-manifesto-meta {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: clamp(40px, 5vw, 64px) !important;
+}
+
+/*
+  The lead used to be the pinned left column of a two-column section, so it
+  carried `position: sticky`. It now stacks above the card grid in a single
+  column, where pinning has nothing to scroll against and instead lets the
+  headline drift down over the cards. Unpin it.
+*/
+.ov-public .mkt-manifesto-meta-lead {
+  position: static !important;
+  top: auto !important;
+}
+
+.ov-public .mkt-manifesto-title {
+  max-width: 620px !important;
+  margin: 0 !important;
+  color: var(--ov-headline) !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2rem, 3.5vw, 3.2rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.028em !important;
+}
+
+.ov-public .mkt-manifesto-aside {
+  max-width: 500px !important;
+  margin-top: 1.5rem !important;
+  color: var(--ov-muted) !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Night rules — three elevated surfaces rather than a ruled list. The grid sits
+   under the lead copy at full width so the cards get room to be read as cards. */
+
+.ov-public .mkt-laws--grid {
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  border: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 1rem !important;
+}
+
+.ov-public .mkt-laws--grid .mkt-law {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.35rem !important;
+  padding: 1.5rem !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-radius: 16px !important;
+  background: #1c1a14 !important;
+  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.05) !important;
+  transition:
+    border-color 200ms ease,
+    background 200ms ease !important;
+}
+
+.ov-public .mkt-laws--grid .mkt-law:hover {
+  border-color: var(--ov-hairline-strong) !important;
+  background: #171717 !important;
+}
+
+.ov-public .mkt-law-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+}
+
+.ov-public .mkt-law-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-radius: 10px !important;
+  background: rgb(255 255 255 / 0.04) !important;
+  color: var(--ov-copper) !important;
+}
+
+.ov-public .mkt-law-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  padding: 0.15rem 0.6rem !important;
+  border: 1px solid var(--ov-hairline) !important;
+  border-radius: 9999px !important;
+  background: rgb(255 255 255 / 0.04) !important;
+  color: #aaa8a0 !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+}
+
+/* The slash is decoration, but it is still read as structure between the two
+   terms, and at #5e5c55 it sat at 2.51:1. One step up the dim ladder clears AA
+   and stays plainly quieter than the #aaa8a0 terms it separates. */
+.ov-public .mkt-law-badge-sep {
+  color: #918f87 !important;
+}
+
+.ov-public .mkt-law-title {
+  margin: 0 !important;
+  color: var(--ov-headline) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.ov-public .mkt-law-body {
+  margin: 0.6rem 0 0 !important;
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+}
+
+@media (max-width: 900px) {
+  .ov-public .mkt-laws--grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Call proof: charcoal, never pure black. */
+
+.ov-public .mkt-proof-section {
+  padding: 112px 5vw !important;
+  border: 0 !important;
+  background: var(--ov-charcoal) !important;
+  color: var(--ov-night-text) !important;
+}
+
+.ov-public .mkt-proof-layout {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+  gap: clamp(48px, 8vw, 120px) !important;
+}
+
+.ov-public .mkt-proof-kicker,
+.ov-public .mkt-call-panel-kicker {
+  color: #e2a07b !important;
+}
+
+.ov-public .mkt-proof-title {
+  color: var(--ov-night-text) !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2rem, 3.7vw, 3.25rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.07 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.ov-public .mkt-proof-lead,
+.ov-public .mkt-proof-note {
+  color: #b8bcc0 !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .mkt-btn-ink {
+  border: 1px solid var(--ov-night-text) !important;
+  border-radius: 4px !important;
+  background: var(--ov-night-text) !important;
+  color: var(--ov-charcoal) !important;
+}
+
+.ov-public .mkt-text-link {
+  color: var(--ov-night-text) !important;
+}
+
+.ov-public .mkt-call-panel {
+  border: 1px solid #444a51 !important;
+  border-radius: 6px !important;
+  background: var(--ov-charcoal-raised) !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-call-panel-title,
+.ov-public .mkt-transcript-line {
+  color: var(--ov-night-text) !important;
+}
+
+/* The transcript inherits a white surface from the legacy skin, which leaves the
+   Orvius lines invisible against it. It belongs on the panel's dark field. */
+.ov-public .mkt-transcript {
+  border: 1px solid #3b4147 !important;
+  border-radius: 5px !important;
+  background: #1b1f23 !important;
+}
+
+.ov-public .mkt-transcript-line {
+  border-color: #3b4147 !important;
+  font-size: 0.8125rem !important;
+}
+
+.ov-public .mkt-transcript-line span {
+  color: #8d9298 !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.ov-public .mkt-transcript-line-muted {
+  color: #aeb2b6 !important;
+}
+
+/* ── Operating standards banner ──
+   Full-bleed rule-to-rule strip between the hero and the product proof. It sits
+   a shade below the page canvas so it reads as a plate set into the page. */
+
+.ov-public .ov-stats {
+  padding: 2rem 5vw;
+  border-top: 1px solid var(--ov-hairline);
+  border-bottom: 1px solid var(--ov-hairline);
+  background: #17150e;
+}
+
+.ov-public .ov-stats-inner {
+  width: min(100%, 1240px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 64px);
+}
+
+.ov-public .ov-stat-value {
+  margin: 0;
+  color: var(--ov-headline);
+  font-family: var(--ov-mono);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-stat-label {
+  margin: 0.7rem 0 0;
+  color: var(--ov-copper);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-stat-note {
+  margin: 0.5rem 0 0;
+  max-width: 34ch;
+  color: var(--ov-muted);
+  font-family: var(--ov-font);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.ov-public .ov-stats-foot {
+  width: min(100%, 1240px);
+  margin: 1.75rem auto 0;
+  color: #918f87;
+  font-family: var(--ov-font);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 820px) {
+  .ov-public .ov-stats-inner {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+}
+
+/* Close and footer */
+
+.ov-public .mkt-trynow {
+  padding: 126px 5vw 150px !important;
+  border: 0 !important;
+  border-top: 1px solid var(--ov-line) !important;
+  background: var(--ov-paper) !important;
+}
+
+/* The closing invitation is centred: it is the one block on the page that is
+   addressed straight at the reader rather than laid out as a column of record. */
+.ov-public .mkt-trynow-inner {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.ov-public .mkt-trynow-eyebrow {
+  margin: 0 0 1.1rem !important;
+  color: var(--ov-accent-text) !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+.ov-public .mkt-trynow-title {
+  max-width: 700px !important;
+  margin: 0 !important;
+  color: var(--ov-headline) !important;
+  font-family: var(--ov-font) !important;
+  font-size: clamp(2.5rem, 5vw, 4.2rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.032em !important;
+}
+
+.ov-public .mkt-trynow-sub {
+  max-width: 56ch !important;
+  margin: 1.25rem 0 0 !important;
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+.ov-public .mkt-trynow-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 1.25rem !important;
+  margin-top: 2.1rem !important;
+}
+
+.ov-public .mkt-trynow-call {
+  display: inline-block !important;
+  margin-top: 0 !important;
+  color: var(--ov-muted) !important;
+  font-size: 0.875rem !important;
+}
+
+.ov-public .mkt-trynow-call:hover {
+  color: var(--ov-headline) !important;
+}
+
+.ov-public .mkt-trynow-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  margin: 1.6rem 0 0 !important;
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+/* The bottom padding clears the fixed utility dock — see --ui-dock-reserve. */
+.ov-public .mkt-footer {
+  padding: 64px 5vw var(--ui-dock-reserve) !important;
+  border: 0 !important;
+  border-top: 1px solid var(--ov-line) !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .mkt-footer-grid {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+}
+
+.ov-public .mkt-footer-heading,
+.ov-public .mkt-footer a,
+.ov-public .mkt-footer-copy,
+.ov-public .mkt-footer-mark,
+.ov-public .mkt-footer-entity,
+.ov-public .mkt-footer-tagline {
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .mkt-footer-heading {
+  color: var(--ov-ink) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.ov-public .mkt-footer a {
+  font-size: 0.8125rem !important;
+}
+
+.ov-public .mkt-footer a:hover {
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .mkt-footer-bottom {
+  width: min(100%, 1240px) !important;
+  max-width: 1240px !important;
+  margin: 56px auto 0 !important;
+  padding-top: 20px !important;
+  border-top: 1px solid var(--ov-line) !important;
+}
+
+/* Shared secondary marketing pages */
+
+/* The showcase grid is both a wrap and its own inset panel, so it keeps its inline padding. */
+.ov-public .editorial-wrap:not(.mkt-showcase-grid) {
+  width: min(100%, 1240px);
+  max-width: 1240px;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.ov-public .tier1-hero {
+  padding: 142px 5vw 88px !important;
+  border: 0 !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .tier1-hero-compact {
+  min-height: 500px !important;
+}
+
+.ov-public .tier1-eyebrow {
+  color: var(--ov-accent-text) !important;
+  font-family: var(--ov-font) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.ov-public .tier1-section-title {
+  color: var(--ov-ink) !important;
+  font-family: var(--ov-font) !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.ov-public .brand-intro-subline,
+.ov-public .brand-intro-description,
+.ov-public .tier1-section-lead {
+  color: var(--ov-muted) !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .tier1-story,
+.ov-public .tier1-close {
+  padding: 96px 5vw !important;
+  border: 0 !important;
+  border-top: 1px solid var(--ov-line) !important;
+  background: var(--ov-paper) !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .tier1-story-muted {
+  background: var(--ov-paper-raised) !important;
+}
+
+.ov-public .inst-btn,
+.ov-public .mkt-btn,
+.ov-public .btn {
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-family: var(--ov-font) !important;
+  text-transform: none !important;
+}
+
+.ov-public .inst-btn-ghost {
+  border-color: var(--ov-line-strong) !important;
+  background: transparent !important;
+  color: var(--ov-ink) !important;
+}
+
+.ov-public .pro-panel,
+.ov-public .tier1-plan,
+.ov-public .mkt-resources-col,
+.ov-public .call-demo {
+  border-color: var(--ov-line) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+.ov-public .input,
+.ov-public input,
+.ov-public select,
+.ov-public textarea {
+  border-color: var(--ov-line-strong) !important;
+  border-radius: 4px !important;
+  background: var(--ov-paper-raised) !important;
+  color: var(--ov-ink) !important;
+  box-shadow: none !important;
+  font-family: var(--ov-font) !important;
+}
+
+.ov-public .input:focus,
+.ov-public input:focus,
+.ov-public select:focus,
+.ov-public textarea:focus {
+  border-color: var(--ov-copper) !important;
+  outline: 2px solid color-mix(in srgb, var(--ov-copper) 18%, transparent) !important;
+  outline-offset: 1px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SIGN-IN — split canvas
+   Left half is the product doing its job; right half is the only thing that
+   asks for input. The board is decorative weight, so it is the half that
+   disappears on narrow screens rather than being squeezed into a strip.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.ov-signin {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  background: #14120b;
+  color: #edecec;
+  font-family: var(--ov-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.ov-signin * {
+  box-sizing: border-box;
+}
+
+.ov-signin-canvas {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 3.5rem clamp(2rem, 4vw, 4.5rem);
+  border-right: 1px solid rgb(255 255 255 / 0.1);
+  background: #17150e;
+  overflow: hidden;
+}
+
+/* One warm bloom behind the board so the dark half is not a flat rectangle. */
+.ov-signin-canvas::before {
+  content: "";
+  position: absolute;
+  inset: -30% -20% auto -30%;
+  height: 90%;
+  background: radial-gradient(circle at 40% 45%, rgb(217 119 6 / 0.14), transparent 62%);
+  pointer-events: none;
+}
+
+.ov-signin-canvas-inner {
+  position: relative;
+  width: min(100%, 620px);
+  margin-left: auto;
+  margin-right: clamp(0px, 3vw, 48px);
+}
+
+.ov-signin-brand {
+  display: inline-flex;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.ov-signin-brand--mobile {
+  display: none;
+  margin-bottom: 2rem;
+}
+
+.ov-signin-pitch {
+  margin: 2.75rem 0 0;
+  max-width: 18ch;
+  color: #ffffff;
+  font-size: clamp(1.9rem, 2.6vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+}
+
+.ov-signin-pitch-sub {
+  margin: 1.1rem 0 0;
+  max-width: 52ch;
+  color: #9c9a92;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* ── Dispatch board ── */
+
+.ov-signin-board {
+  margin-top: 2.25rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 16px;
+  background: #1b1913;
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.05),
+    0 30px 80px -30px rgb(0 0 0 / 0.9);
+  overflow: hidden;
+}
+
+.ov-signin-board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+  background: #1c1a14;
+}
+
+.ov-signin-board-title {
+  color: #aaa8a0;
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ov-signin-feed {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ov-signin-row {
+  display: grid;
+  grid-template-columns: 44px 74px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.72rem 1.1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.ov-signin-row:last-child {
+  border-bottom: 0;
+  /* The tail of the feed fades out, so the list reads as continuing rather
+     than as five hand-picked rows. */
+  opacity: 0.45;
+}
+
+.ov-signin-row.is-newest {
+  background: rgb(255 255 255 / 0.03);
+  animation: ov-row-in 420ms ease-out;
+}
+
+@keyframes ov-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ov-signin-row-time,
+.ov-signin-row-shop {
+  color: #918f87;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-signin-row-tag {
+  justify-self: start;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.04);
+  color: #aaa8a0;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.ov-signin-row-tag--intake {
+  border-color: rgb(217 120 75 / 0.35);
+  color: #e08a5c;
+}
+
+.ov-signin-row-tag--alert {
+  border-color: rgb(245 158 11 / 0.35);
+  color: #c9a227;
+}
+
+.ov-signin-row-tag--booked,
+.ov-signin-row-tag--confirm {
+  border-color: rgb(16 185 129 / 0.3);
+  color: #6ee7a8;
+}
+
+.ov-signin-row-body {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ov-signin-row-line {
+  color: #f2f1ed;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.ov-signin-row-detail {
+  color: #9c9a92;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.ov-signin-board-foot {
+  margin: 0;
+  padding: 0.7rem 1.1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+  background: #17150e;
+  color: #8a8880;
+  font-size: 0.6875rem;
+}
+
+/* ── Auth card ── */
+
+.ov-signin-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.ov-signin-panel-inner {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.ov-signin-alert {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgb(245 158 11 / 0.35);
+  border-radius: 12px;
+  background: rgb(245 158 11 / 0.1);
+  color: #c9a227;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.ov-signin-card {
+  width: 100%;
+  padding: 2rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 16px;
+  background: #1b1913;
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.05),
+    0 30px 80px -30px rgb(0 0 0 / 0.9);
+}
+
+.ov-signin-eyebrow {
+  margin: 0;
+  color: var(--ov-copper);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ov-signin-title {
+  margin: 0.75rem 0 0;
+  color: #ffffff;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.028em;
+}
+
+.ov-signin-sub {
+  margin: 0.6rem 0 1.75rem;
+  color: #9c9a92;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.ov-signin-sub a {
+  color: #edecec;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.ov-signin-sso {
+  width: 100%;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0 1rem;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 9999px;
+  background: transparent;
+  color: #ffffff;
+  font-family: var(--ov-font);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.ov-signin-sso:hover {
+  border-color: rgb(255 255 255 / 0.4);
+  background: rgb(255 255 255 / 0.04);
+}
+
+.ov-signin-or {
+  position: relative;
+  margin: 1.35rem 0;
+  text-align: center;
+}
+
+.ov-signin-or::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.ov-signin-or span {
+  position: relative;
+  padding: 0 0.7rem;
+  background: #1b1913;
+  color: #8a8880;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ov-signin-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: #aaa8a0;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ov-signin-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 1.1rem;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 9999px;
+  background: #171717;
+  color: #ffffff;
+  font-family: var(--ov-font);
+  font-size: 0.9375rem;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.ov-signin-input::placeholder {
+  color: #6f6f6f;
+}
+
+.ov-signin-input:focus {
+  outline: none;
+  border-color: rgb(255 255 255 / 0.4);
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.07);
+}
+
+/* The one committing action on the page: white, and lit on hover. */
+.ov-signin-submit {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.1rem;
+  border: 1px solid #ffffff;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #14120b;
+  font-family: var(--ov-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.ov-signin-submit:hover:not(:disabled) {
+  box-shadow: 0 8px 30px -8px rgb(255 255 255 / 0.45);
+  transform: translateY(-1px);
+}
+
+.ov-signin-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ov-signin-status:empty {
+  display: none;
+}
+
+.ov-signin-sent,
+.ov-signin-error {
+  margin: 0.9rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.ov-signin-sent {
+  color: #6ee7a8;
+}
+
+.ov-signin-sent a {
+  color: #6ee7a8;
+  text-decoration: underline;
+}
+
+.ov-signin-error {
+  color: #c9a227;
+}
+
+.ov-signin-legal {
+  margin: 1.5rem 0 0;
+  color: #8a8880;
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.ov-signin-legal a {
+  color: #aaa8a0;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.ov-signin-dev {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px dashed rgb(255 255 255 / 0.18);
+  border-radius: 12px;
+  color: #9c9a92;
+  font-size: 0.8125rem;
+}
+
+.ov-signin-dev summary {
+  cursor: pointer;
+  color: #d7d6d5;
+}
+
+.ov-signin-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  color: #8a8880;
+  font-size: 0.75rem;
+}
+
+.ov-signin-foot nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.ov-signin-foot a {
+  color: #aaa8a0;
+  text-decoration: none;
+}
+
+.ov-signin-foot a:hover {
+  color: #edecec;
+}
+
+/* ── Link verification ── */
+
+.ov-signin--verify {
+  grid-template-columns: 1fr;
+  place-items: center;
+  padding: 2rem;
+}
+
+.ov-signin-verify {
+  width: min(100%, 28rem);
+  padding: 2rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 16px;
+  background: #1b1913;
+  text-align: center;
+}
+
+.ov-signin-verify h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+}
+
+.ov-signin-verify p {
+  margin: 0.75rem 0 0;
+  color: #9c9a92;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.ov-signin-verify .ov-signin-submit {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .ov-signin {
+    grid-template-columns: 1fr;
+  }
+
+  .ov-signin-canvas {
+    display: none;
+  }
+
+  .ov-signin-brand--mobile {
+    display: inline-flex;
+  }
+
+  .ov-signin-panel {
+    align-items: flex-start;
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-signin-row.is-newest {
+    animation: none;
+  }
+
+  .ov-signin-submit:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Authentication: one calm, trustworthy surface. */
+
+/*
+ * The reporting voice. Eyebrows, kickers, law numbers, and live-line metadata are
+ * machine readouts, so they take mono, uppercase, and wide tracking. This block
+ * must stay after the per-section rules above, which each declare their own
+ * !important font stack and would otherwise win on source order.
+ */
+
+.ov-public .mkt-showcase-eyebrow,
+.ov-public .mkt-manifesto-kicker,
+.ov-public .mkt-proof-kicker,
+.ov-public .mkt-law-id,
+.ov-public .mkt-trynow-call,
+.ov-public .mkt-footer-heading,
+.ov-public .tier1-eyebrow {
+  font-family: var(--ov-mono) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+/* Headlines carry Archivo's weight; the old 400 read thin and generic. */
+
+.ov-public .mkt-showcase-title,
+.ov-public .mkt-manifesto-title,
+.ov-public .mkt-proof-title,
+.ov-public .mkt-trynow-title,
+.ov-public .tier1-section-title,
+.ov-public .tier1-page-title {
+  font-family: var(--ov-font) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.ov-public .mkt-law-title,
+.ov-public .mkt-call-panel-title,
+.ov-public .pro-panel-title {
+  font-family: var(--ov-font) !important;
+  font-weight: 600 !important;
+}
+
+/* Numbers, timestamps, and phone lines read as data, not prose. */
+
+.ov-public .mkt-transcript-line,
+.ov-public .mkt-showcase-snippet code,
+.ov-public .tier1-plan-price,
+.ov-public .mkt-footer-entity {
+  font-family: var(--ov-mono) !important;
+}
+
+/* The snippet sits on the dark panel in both colorways, so it takes the
+   panel's pinned ink rather than the page's. */
+.ov-public .mkt-showcase-snippet code {
+  color: var(--ov-ink) !important;
+}
+
+/* Responsive public rhythm */
+
+@media (max-width: 980px) {
+  .ov-public .mkt-nav-inner {
+    grid-template-columns: 1fr auto !important;
+  }
+
+  .ov-public .mkt-nav-links,
+  .ov-public .mkt-nav-login,
+  .ov-public .mkt-nav-cta {
+    display: none !important;
+  }
+
+  .ov-public .mkt-nav-menu-toggle {
+    display: grid !important;
+  }
+
+  .ov-public .mkt-showcase-grid,
+  .ov-public .mkt-manifesto-meta,
+  .ov-public .mkt-proof-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ov-public .mkt-showcase-grid {
+    gap: 44px !important;
+  }
+
+  .ov-public .mkt-showcase-title,
+  .ov-public .mkt-showcase-lead {
+    max-width: 640px !important;
+  }
+
+  .ov-public .mkt-manifesto-meta {
+    gap: 60px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .ov-public .mkt-nav-inner {
+    padding: 0 16px !important;
+  }
+
+  .ov-public .mkt-showcase {
+    padding: 10px 20px 72px !important;
+  }
+
+  .ov-public .mkt-showcase-grid {
+    min-height: 0 !important;
+    padding: 32px 20px 24px !important;
+    gap: 28px !important;
+  }
+
+  .ov-public .mkt-showcase-title {
+    font-size: 2rem !important;
+  }
+
+  .ov-public .mkt-manifesto-title,
+  .ov-public .mkt-proof-title {
+    font-size: 2.25rem !important;
+  }
+
+  .ov-public .mkt-manifesto,
+  .ov-public .mkt-proof-section,
+  .ov-public .mkt-trynow,
+  .ov-public .tier1-story,
+  .ov-public .tier1-close {
+    padding: 76px 20px !important;
+  }
+
+  .ov-public .tier1-hero {
+    min-height: 0 !important;
+    padding: 120px 20px 72px !important;
+  }
+
+  .ov-public .editorial-wrap:not(.mkt-showcase-grid) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .ov-public .mkt-footer {
+    padding: 52px 20px 24px !important;
+  }
+
+  .ov-public .mkt-footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 36px 24px !important;
+  }
+
+  .ov-public .mkt-footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .ov-public .mkt-footer-bottom {
+    align-items: flex-start !important;
+    gap: 0.65rem !important;
+  }
+
+  .ov-public .mkt-nav-sheet {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 79 !important;
+    width: 100% !important;
+    min-height: 100svh !important;
+    padding: 0 18px 28px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    opacity: 1 !important;
+    background: var(--ov-paper) !important;
+    color: var(--ov-ink) !important;
+    backdrop-filter: none !important;
+  }
+
+  .ov-public .mkt-nav-sheet-bar {
+    height: 60px !important;
+  }
+
+  .ov-public .mkt-nav-sheet-nav {
+    margin-top: 52px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  .ov-public .mkt-nav-sheet-nav a {
+    padding: 0.85rem 0 !important;
+    border-bottom: 1px solid var(--ov-line) !important;
+    color: var(--ov-ink) !important;
+    font-size: 1.75rem !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  .ov-public .mkt-nav-sheet-cta {
+    width: 100% !important;
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    background: var(--ov-charcoal) !important;
+    color: var(--ov-night-text) !important;
+  }
+
+  .ov-public .mkt-nav-sheet-foot {
+    position: static !important;
+    margin-top: auto !important;
+    padding-top: 40px !important;
+    display: grid !important;
+    gap: 18px !important;
+  }
+
+  .ov-public .mkt-nav-sheet-meta,
+  .ov-public .mkt-nav-sheet-meta a {
+    color: var(--ov-muted) !important;
+    font-family: var(--ov-font) !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ============================================================
+   HERO — the product carries it
+   One claim, one live console. The console is built from layered
+   charcoal with hairline borders and a single soft shadow, so it
+   reads as a real surface rather than a flat screenshot.
+   ============================================================ */
+
+.ov-public .ov-hero {
+  position: relative;
+  padding: 118px 5vw 96px;
+  background: var(--ov-paper);
+  overflow: clip;
+}
+
+/* A single warm bloom behind the console gives the section depth
+   without gradients that muddy the paper. */
+.ov-public .ov-hero::before {
+  content: "";
+  position: absolute;
+  top: -12%;
+  right: -6%;
+  width: 62%;
+  height: 118%;
+  background: radial-gradient(
+    circle at 62% 42%,
+    color-mix(in srgb, var(--ov-copper) 16%, transparent),
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.ov-public .ov-hero-inner {
+  position: relative;
+  width: min(100%, 1240px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  gap: clamp(40px, 5vw, 72px);
+  align-items: center;
+}
+
+.ov-public .ov-hero-eyebrow {
+  margin: 0 0 1.15rem;
+  color: var(--ov-accent-text);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-hero-title {
+  margin: 0;
+  color: var(--ov-headline);
+  font-family: var(--ov-font);
+  font-size: clamp(2.6rem, 4.6vw, 4rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+}
+
+.ov-public .ov-hero-lead {
+  max-width: 44ch;
+  margin: 1.5rem 0 0;
+  color: var(--ov-muted);
+  font-family: var(--ov-font);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  letter-spacing: -0.012em;
+}
+
+.ov-public .ov-hero-actions {
+  margin-top: 2.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ov-public .ov-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-family: var(--ov-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.014em;
+  text-decoration: none;
+  transition:
+    transform 130ms ease,
+    background 130ms ease,
+    border-color 130ms ease,
+    box-shadow 130ms ease;
+}
+
+/* The one CTA inverts against the canvas and carries a soft halo, so it reads
+   as the lit control on a dark board rather than another outlined chip. */
+.ov-public .ov-btn--solid {
+  border: 1px solid var(--ov-headline);
+  background: var(--ov-headline);
+  color: var(--ov-paper);
+  box-shadow: 0 0 0 rgb(255 255 255 / 0);
+}
+
+.ov-public .ov-btn--solid:hover {
+  box-shadow: 0 8px 28px -8px rgb(255 255 255 / 0.35);
+  transform: translateY(-1px);
+}
+
+.ov-public .ov-btn--quiet {
+  border: 1px solid var(--ov-hairline-strong);
+  background: transparent;
+  color: var(--ov-headline);
+}
+
+.ov-public .ov-btn--quiet:hover {
+  border-color: var(--ov-hairline-hover);
+  transform: translateY(-1px);
+}
+
+/* ── The live line ──
+   The claim and the number the claim is about, as one target. It sits below the
+   CTAs because it is the thing to dial by hand, not a third button. */
+
+.ov-public .ov-hero-liveline {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 1.75rem;
+  padding: 0.15rem 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ov-public .ov-hero-liveline-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ov-muted);
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-hero-liveline-number {
+  display: inline-flex;
+  color: var(--ov-headline);
+  font-family: var(--ov-mono);
+  font-size: clamp(1.5rem, 2.6vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  transition: color 140ms ease;
+}
+
+.ov-public .ov-hero-liveline-gap {
+  width: 0.34em;
+}
+
+.ov-public .ov-hero-liveline-digit {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.3em);
+  animation: ov-liveline-digit 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes ov-liveline-digit {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The underline is drawn rather than text-decoration so it can grow from the
+   left on hover without shifting the digits. */
+.ov-public .ov-hero-liveline-number::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -0.28rem 0;
+  height: 1px;
+  background: var(--ov-accent-text);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease;
+}
+
+.ov-public .ov-hero-liveline-number {
+  position: relative;
+}
+
+.ov-public .ov-hero-liveline:hover .ov-hero-liveline-number {
+  color: var(--ov-accent-text);
+}
+
+.ov-public .ov-hero-liveline:hover .ov-hero-liveline-number::after {
+  transform: scaleX(1);
+}
+
+.ov-public .ov-hero-liveline:focus-visible {
+  outline: 2px solid var(--ov-accent-text);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-hero-liveline-digit {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+.ov-public .ov-hero-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--ov-emerald);
+  animation: ov-status-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-hero-pulse {
+    animation: none;
+  }
+}
+
+/* ── Live call console ──
+   A charcoal instrument on a charcoal page: the frame separates from the canvas
+   by a lit hairline and a raised interior, not by a colour change. */
+
+.ov-public .ov-console {
+  margin: 0;
+}
+
+/* ---- The desk -------------------------------------------------------------
+   The console is software running on a machine at 2 AM, so it is presented
+   through a screen rather than pasted onto the page: a bezel, a wallpaper that
+   drifts, and a menubar the window sits under. Everything here is decoration —
+   the desk carries no text a reader needs, so it is aria-hidden in the markup
+   and nothing in it is focusable. */
+
+.ov-public .ov-console-desk {
+  position: relative;
+  padding: 0 clamp(14px, 2.2vw, 28px) clamp(14px, 2.2vw, 28px);
+  border: 1px solid var(--ov-hairline-strong);
+  border-radius: 20px;
+  /* The bezel reads as the dark edge of a monitor in both colorways; a screen
+     does not turn to paper when the page does. */
+  background: #14120b;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 40px 110px -34px rgb(0 0 0 / 0.7);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ov-public .ov-console-wallpaper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(168deg, #2c2415 0%, #17140c 58%, #100f09 100%);
+  overflow: hidden;
+}
+
+/* Three slow blooms at different periods. Because the periods do not divide
+   into each other the pattern does not visibly repeat, which is what keeps it
+   feeling like ambient light rather than a looping asset. */
+.ov-public .ov-console-aurora {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(46px);
+  will-change: transform;
+}
+
+.ov-public .ov-console-aurora--a {
+  top: -28%;
+  left: -14%;
+  width: 62%;
+  height: 86%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ov-copper) 60%, transparent),
+    transparent 68%
+  );
+  animation: ov-aurora-a 15s ease-in-out infinite;
+}
+
+.ov-public .ov-console-aurora--b {
+  right: -20%;
+  bottom: -34%;
+  width: 70%;
+  height: 92%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ov-emerald) 48%, transparent),
+    transparent 66%
+  );
+  animation: ov-aurora-b 21s ease-in-out infinite;
+}
+
+.ov-public .ov-console-aurora--c {
+  top: 18%;
+  left: 38%;
+  width: 46%;
+  height: 62%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ov-amber) 40%, transparent),
+    transparent 70%
+  );
+  animation: ov-aurora-c 26s ease-in-out infinite;
+}
+
+@keyframes ov-aurora-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(26%, 18%, 0) scale(1.34);
+  }
+}
+
+@keyframes ov-aurora-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(-28%, -20%, 0) scale(0.78);
+  }
+}
+
+@keyframes ov-aurora-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.94);
+  }
+  50% {
+    transform: translate3d(-20%, 24%, 0) scale(1.32);
+  }
+}
+
+/*
+  The wallpaper is ambience, not information, so it stops moving for anyone who
+  has asked the OS to stop motion. The gradient stays — it is the still frame of
+  the same picture, so nothing about the composition changes.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-console-aurora {
+    animation: none;
+  }
+}
+
+.ov-public .ov-console-menubar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 30px;
+  padding: 0 0.35rem;
+  color: color-mix(in srgb, #edecec 62%, transparent);
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-console-lights {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.ov-public .ov-console-lights i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.22);
+}
+
+/* One lit pip, in the accent, so the machine reads as awake. */
+.ov-public .ov-console-lights i:first-child {
+  background: var(--ov-copper);
+}
+
+.ov-public .ov-console-menutitle {
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, #edecec 82%, transparent);
+}
+
+.ov-public .ov-console-menuclock {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A legacy `.mkt-page *` rule targets every element directly, so inherited type
+   loses to it. The console states its own letterset instead of relying on that. */
+.ov-public .ov-console-frame,
+.ov-public .ov-console-frame * {
+  font-family: var(--ov-mono);
+}
+
+.ov-public .ov-console-frame {
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--ov-hairline);
+  border-radius: 12px;
+  background: #1b1913;
+  /* Drawn as a window lifted off the wallpaper behind it rather than a card
+     lifted off the page — hence a shorter, tighter drop than the desk's. */
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 18px 44px -20px rgb(0 0 0 / 0.9);
+  overflow: hidden;
+}
+
+.ov-public .ov-console-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.72rem 1rem;
+  border-bottom: 1px solid var(--ov-hairline);
+  background: #1c1a14;
+  font-family: var(--ov-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+}
+
+.ov-public .ov-console-shop {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ov-public .ov-console-sep,
+.ov-public .ov-console-context {
+  color: #918f87;
+}
+
+.ov-public .ov-console-live {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid rgb(16 185 129 / 0.3);
+  border-radius: 9999px;
+  background: rgb(16 185 129 / 0.1);
+  color: var(--ov-emerald-text);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.ov-public .ov-console-live i {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--ov-emerald);
+}
+
+/* The dot pulses only while the timeline is actually running. */
+.ov-public .ov-console-live[data-live="true"] i {
+  animation: ov-status-pulse 2s ease-in-out infinite;
+}
+
+.ov-public .ov-console-clock {
+  color: #9c9a92;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-console-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+  min-height: 268px;
+}
+
+.ov-public .ov-console-wire {
+  padding: 1.05rem 1.1rem;
+  border-right: 1px solid var(--ov-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+  max-height: 268px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.ov-public .ov-console-wire::-webkit-scrollbar {
+  display: none;
+}
+
+.ov-public .ov-wire-line {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 0.6rem;
+  font-family: var(--ov-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  /* Lines already spoken recede so the current one owns the eye. */
+  opacity: 0.62;
+  transition: opacity 200ms ease;
+}
+
+.ov-public .ov-wire-line.is-active,
+.ov-public .ov-wire-line:last-child {
+  opacity: 1;
+}
+
+.ov-public .ov-wire-who {
+  color: #918f87;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding-top: 0.15rem;
+}
+
+.ov-public .ov-wire-line--orvius .ov-wire-text {
+  color: #f2f1ed;
+}
+
+.ov-public .ov-wire-line--caller .ov-wire-text {
+  color: #b4b4b4;
+}
+
+.ov-public .ov-wire-caret {
+  display: inline-block;
+  width: 6px;
+  height: 0.85em;
+  margin-left: 2px;
+  vertical-align: -0.08em;
+  background: var(--ov-copper);
+  animation: ov-caret 1s steps(2, end) infinite;
+}
+
+@keyframes ov-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.ov-public .ov-console-capture {
+  padding: 1.05rem 1.1rem;
+  background: #17150e;
+}
+
+.ov-public .ov-capture-label {
+  margin: 0 0 0.75rem;
+  color: #918f87;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-capture-list {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ov-public .ov-capture-row {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--ov-hairline);
+  border-radius: 8px;
+  background: #201e18;
+  transition:
+    border-color 220ms ease,
+    background 220ms ease;
+}
+
+/* This board is the part of the hero people actually read to understand what
+   the product does, so it gets the 10px label tier rather than the 9px floor;
+   uppercase mono this letter-spaced needs the extra pixel to stay a word. */
+.ov-public .ov-capture-row dt {
+  color: #9c9a92;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* An empty field should read as pending, so it stays quieter than its label —
+   but the em-dash was the dimmest text in the hero at 4.58:1, close enough to
+   the line to look broken rather than waiting. */
+.ov-public .ov-capture-row dd {
+  margin: 0;
+  color: #918f87;
+  font-family: var(--ov-mono);
+  font-size: 0.75rem;
+}
+
+.ov-public .ov-capture-row.is-set {
+  border-color: color-mix(in srgb, var(--ov-copper) 34%, transparent);
+  background: color-mix(in srgb, var(--ov-copper) 9%, #201e18);
+  animation: ov-capture 620ms ease-out;
+}
+
+.ov-public .ov-capture-row.is-set dd {
+  color: #f5f5f5;
+}
+
+@keyframes ov-capture {
+  0% {
+    border-color: var(--ov-copper);
+    background: color-mix(in srgb, var(--ov-copper) 26%, #201e18);
+    transform: translateX(4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* ── Timeline player ──
+   There is no recording behind this. The waveform is drawn from the script's
+   own timing, so it scrubs the transcript rather than pretending to scrub audio.
+   Bars are tinted by speaker, which makes turn-taking legible at a glance. */
+
+.ov-public .ov-console-player {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 1.1rem;
+  border-top: 1px solid var(--ov-hairline);
+  background: #17150e;
+}
+
+.ov-public .ov-player-toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--ov-hairline-strong);
+  border-radius: 9999px !important;
+  background: #ffffff;
+  color: #14120b;
+  cursor: pointer;
+  transition:
+    transform 130ms ease,
+    box-shadow 130ms ease;
+}
+
+.ov-public .ov-player-toggle:hover {
+  box-shadow: 0 0 18px -4px rgb(255 255 255 / 0.5);
+  transform: scale(1.06);
+}
+
+.ov-public .ov-player-toggle:focus-visible,
+.ov-public .ov-player-track:focus-visible {
+  outline: 2px solid var(--ov-copper);
+  outline-offset: 2px;
+}
+
+.ov-public .ov-player-track {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1.5px;
+  height: 34px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.ov-public .ov-player-bar {
+  flex: 1;
+  min-width: 1px;
+  border-radius: 9999px;
+  background: #2b2923;
+  transition: background 120ms ease;
+}
+
+.ov-public .ov-player-bar.is-played.ov-player-bar--orvius {
+  background: var(--ov-copper);
+}
+
+.ov-public .ov-player-bar.is-played.ov-player-bar--caller {
+  background: #d7d6d5;
+}
+
+.ov-public .ov-player-bar.is-played {
+  background: #4a4a4a;
+}
+
+.ov-public .ov-player-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgb(255 255 255 / 0.65);
+  pointer-events: none;
+}
+
+.ov-public .ov-player-time {
+  flex-shrink: 0;
+  color: #9c9a92;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-console-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  padding: 0.72rem 1.1rem;
+  border-top: 1px solid var(--ov-hairline);
+  background: #1c1a14;
+  font-family: var(--ov-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.ov-public .ov-rail-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #918f87;
+  transition: color 220ms ease;
+}
+
+.ov-public .ov-rail-step i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #2b2923;
+  transition:
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.ov-public .ov-rail-step.is-active {
+  color: #f2f1ed;
+}
+
+.ov-public .ov-rail-step.is-active i {
+  background: var(--ov-copper);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-copper) 24%, transparent);
+}
+
+.ov-public .ov-rail-step.is-done {
+  color: #c4c4c4;
+}
+
+.ov-public .ov-rail-step.is-done i {
+  background: var(--ov-emerald);
+}
+
+.ov-public .ov-console-caption {
+  margin: 0.85rem 0 0;
+  color: var(--ov-muted);
+  font-family: var(--ov-font);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-hero-inner {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .ov-public .ov-hero::before {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .ov-public .ov-hero {
+    padding: 96px 20px 68px;
+  }
+
+  .ov-public .ov-hero-title {
+    font-size: clamp(2.35rem, 11vw, 2.9rem);
+  }
+
+  .ov-public .ov-console-body {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .ov-public .ov-console-wire {
+    border-right: 0;
+    border-bottom: 1px solid var(--ov-hairline);
+    max-height: 190px;
+  }
+
+  .ov-public .ov-console-rail {
+    gap: 0.6rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-console-live i,
+  .ov-public .ov-wire-caret,
+  .ov-public .ov-capture-row.is-set {
+    animation: none !important;
+  }
+
+  .ov-public .ov-player-toggle:hover {
+    transform: none;
+  }
+}

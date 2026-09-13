@@ -8,6 +8,7 @@ import {
 import { AssignTechButton, type TechOption } from "@/components/assign-tech-button";
 import { JobStatusAdvance } from "@/components/job-status-advance";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
+import { ProLead } from "@/components/pro-lead";
 import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
@@ -221,19 +222,44 @@ export function AttentionQueue({
     );
   }
 
+  const criticalCount = items.filter((i) => i.impact === "critical").length;
+
+  /*
+    What is actually riding on the board. Every row already carried its own
+    estimate and nothing added them up, so the owner deciding whether to get
+    out of bed had to do the arithmetic in their head. Rolled-up rows are not
+    counted, so this understates rather than overstates.
+  */
+  const stakeCents = items.reduce((sum, item) => sum + (item.estimatedRevenueCents ?? 0), 0);
+  const stake = formatCents(stakeCents);
+
   return (
-    <section className="attention-queue" aria-label="Needs attention">
-      <div className="attention-queue-head font-sans">
-        <p className="attention-queue-kicker type-eyebrow">
-          Critical board · {items.filter((i) => i.impact === "critical").length}
-        </p>
-        <h2 className="attention-queue-title">
-          {items.length} waiting
-        </h2>
-        <p className="attention-queue-lead">
-          Ranked by urgency. Act here.
-        </p>
-      </div>
+    <section
+      id="attention-board"
+      className="attention-queue"
+      aria-label="Needs attention"
+    >
+      {/*
+        The same opening as every list page, for the screen the owner lands on.
+        It used to be the odd one out: its queue length was 22px where /calls
+        and /inbox lead at 44px, so the home screen had the weakest hierarchy in
+        the product. It also said "on the board" twice — once as a kicker above
+        the count and once as the label under the money.
+      */}
+      <ProLead
+        figure={String(items.length)}
+        caption={items.length === 1 ? "row needs you" : "rows need you"}
+        detail={
+          criticalCount > 0
+            ? `${criticalCount} critical, ranked first. Act top down.`
+            : "Nothing critical. Ranked by urgency — act top down."
+        }
+        facts={
+          stake
+            ? [{ label: "on the board, estimated", value: stake, live: true }]
+            : undefined
+        }
+      />
 
       <ul className="attention-queue-list">
         {items.map((item) => {
@@ -276,8 +302,27 @@ export function AttentionQueue({
                       Est. {formatCents(item.estimatedRevenueCents)}
                     </p>
                   ) : null}
+                  {item.rolledUp && item.group ? (
+                    <Link
+                      href={item.group.href ?? item.href}
+                      className="attention-item-rollup"
+                    >
+                      +{item.rolledUp} more for {item.group.label}
+                    </Link>
+                  ) : null}
                 </div>
                 <div className="attention-item-actions">
+                  {/*
+                    The escape hatch leads, so the recommended action always
+                    lands on the trailing edge of the row. Rows whose only
+                    action is to open the record get one button, not two links
+                    to the same place.
+                  */}
+                  {hasPrimary ? (
+                    <Link href={item.href} className="attention-item-btn attention-item-btn-quiet">
+                      Open
+                    </Link>
+                  ) : null}
                   {showCall ? (
                     <a
                       href={telHref(item.meta!.phone!)}
@@ -327,14 +372,11 @@ export function AttentionQueue({
                       compact
                     />
                   ) : null}
-                  <Link
-                    href={item.href}
-                    className={`attention-item-btn ${
-                      hasPrimary ? "attention-item-btn-quiet" : "attention-item-btn-primary"
-                    }`}
-                  >
-                    {hasPrimary ? "Open" : item.recommendedAction}
-                  </Link>
+                  {hasPrimary ? null : (
+                    <Link href={item.href} className="attention-item-btn attention-item-btn-primary">
+                      {item.recommendedAction}
+                    </Link>
+                  )}
                 </div>
               </article>
             </li>

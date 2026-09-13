@@ -12,11 +12,21 @@ import { z } from "zod";
 
 type Params = { params: Promise<{ token: string }> };
 
+/** Card pay is a direct charge, so the shop's Connect state has to come along. */
+const BUSINESS_SELECT = {
+  id: true,
+  name: true,
+  stripeConnectAccountId: true,
+  stripeConnectChargesEnabled: true,
+  stripeConnectPayoutsEnabled: true,
+  stripeConnectDetailsSubmitted: true,
+} as const;
+
 async function loadEstimate(token: string) {
   return prisma.estimate.findFirst({
     where: { publicToken: token },
     include: {
-      business: { select: { id: true, name: true } },
+      business: { select: BUSINESS_SELECT },
       job: { select: { id: true, title: true, address: true } },
       invoice: {
         include: {
@@ -49,7 +59,7 @@ function serializePublic(estimate: NonNullable<Awaited<ReturnType<typeof loadEst
           paid: estimate.invoice.status === "paid",
         }
       : null,
-    cardPayAvailable: isEstimateCardPayReady(),
+    cardPayAvailable: isEstimateCardPayReady(estimate.business),
   };
 }
 
@@ -71,7 +81,7 @@ const actionSchema = z.object({
  * Public customer actions — authorize by unguessable token only.
  * accept → mark accepted + create invoice if needed
  * pay_manual → customer attests cash/check/venmo; records payment
- * pay_card → Stripe Checkout (platform account until Connect)
+ * pay_card → Stripe Checkout as a direct charge on the shop's own account
  * confirm_card → verify Checkout session after redirect
  */
 export async function POST(request: Request, { params }: Params) {
@@ -104,7 +114,7 @@ export async function POST(request: Request, { params }: Params) {
           acceptedAt: estimate.acceptedAt ?? new Date(),
         },
         include: {
-          business: { select: { id: true, name: true } },
+          business: { select: BUSINESS_SELECT },
           job: { select: { id: true, title: true, address: true } },
           invoice: {
             include: {
@@ -123,11 +133,17 @@ export async function POST(request: Request, { params }: Params) {
       if (!body.sessionId) {
         return NextResponse.json({ error: "sessionId required" }, { status: 400 });
       }
-      if (!isEstimateCardPayReady()) {
+      if (!isEstimateCardPayReady(estimate.business)) {
         return NextResponse.json({ error: "Card pay unavailable" }, { status: 503 });
       }
       const stripe = getStripe();
-      const session = await stripe.checkout.sessions.retrieve(body.sessionId);
+      /*
+        The session was created on the shop's connected account, so a plain
+        platform retrieve would report it as missing.
+      */
+      const session = await stripe.checkout.sessions.retrieve(body.sessionId, {
+        stripeAccount: estimate.business.stripeConnectAccountId!,
+      });
       if (session.metadata?.publicToken !== token) {
         return NextResponse.json({ error: "Session mismatch" }, { status: 400 });
       }
@@ -140,9 +156,9 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     if (body.action === "pay_card") {
-      if (!isEstimateCardPayReady()) {
+      if (!isEstimateCardPayReady(estimate.business)) {
         return NextResponse.json(
-          { error: "Card checkout is not configured yet" },
+          { error: "This shop is not set up to take cards yet" },
           { status: 503 },
         );
       }
@@ -163,6 +179,7 @@ export async function POST(request: Request, { params }: Params) {
         publicToken: estimate.publicToken,
         invoiceId,
         jobTitle: estimate.job?.title,
+        business: estimate.business,
       });
 
       if (!session.url) {

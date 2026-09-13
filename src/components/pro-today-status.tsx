@@ -185,7 +185,7 @@ export function ProTodayAlerts({
           <div className="pro-today-alert-copy font-sans">
             <p className="pro-today-alert-title">Baseline economics missing</p>
             <p className="pro-today-alert-detail">
-              Set avg ticket + before-Orvius baselines to measure recovered jobs.
+              Set avg ticket + a before-Orvius baseline to compare weekly job volume.
             </p>
           </div>
           <Link

@@ -50,7 +50,7 @@ export function HomeCallDemo({
 
       <div className="call-demo-actions font-sans">
         <a href={demoLineHref()} className="inst-btn inst-btn-primary inst-btn-sm">
-          Call live demo
+          Call the live AI
         </a>
         <button type="button" className="call-demo-copy" onClick={copy}>
           {copied ? "Copied" : "Copy number"}
@@ -59,8 +59,8 @@ export function HomeCallDemo({
 
       {showHint ? (
         <p className="call-demo-hint type-caption">
-          {DEMO_LINE_BUSINESS} · Ask for an emergency AC repair · Owner SMS in
-          under 60 seconds
+          {DEMO_LINE_BUSINESS} · Ask for a same-day AC repair · Hear the
+          structured intake flow
         </p>
       ) : null}
     </div>

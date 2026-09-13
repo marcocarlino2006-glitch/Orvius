@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ShellStat } from "@/components/shell-primitives";
 
 type ProRingBannerProps = {
   ring?: number;
@@ -66,48 +65,30 @@ export function ProSearchBar({
   );
 }
 
-type ProStatRowProps = {
-  stats: Array<{ label: string; value: string | number; highlight?: boolean }>;
-  className?: string;
-};
-
-export function ProStatRow({ stats, className = "" }: ProStatRowProps) {
-  const gridClass =
-    stats.length === 3
-      ? "grid-cols-3"
-      : stats.length <= 2
-        ? "grid-cols-2"
-        : stats.length === 4
-          ? "grid-cols-2 sm:grid-cols-4"
-          : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5";
-
-  return (
-    <div className={`pro-stat-grid grid gap-3 ${gridClass} ${className}`}>
-      {stats.map((stat) => (
-        <ShellStat
-          key={stat.label}
-          label={stat.label}
-          value={stat.value}
-          highlight={stat.highlight}
-        />
-      ))}
-    </div>
-  );
-}
-
 type ProSectionHeadProps = {
   kicker: string;
   title: string;
   action?: ReactNode;
   className?: string;
+  /* The right level depends on what encloses it, so the caller decides. h3
+     suits a section nested under a panel heading; a section sitting directly
+     under the page title needs h2, or the outline skips a level. */
+  level?: 2 | 3;
 };
 
-export function ProSectionHead({ kicker, title, action, className = "" }: ProSectionHeadProps) {
+export function ProSectionHead({
+  kicker,
+  title,
+  action,
+  className = "",
+  level = 3,
+}: ProSectionHeadProps) {
+  const Heading = level === 2 ? "h2" : "h3";
   return (
     <div className={`pro-section-head ${className}`}>
       <div>
         <p className="pro-section-kicker font-sans">{kicker}</p>
-        <h3 className="pro-section-title font-sans">{title}</h3>
+        <Heading className="pro-section-title font-sans">{title}</Heading>
       </div>
       {action}
     </div>
@@ -128,6 +109,37 @@ export function ProEmptyState({ title, body, action, compact }: ProEmptyStatePro
       {body ? <p className="pro-empty-state-text">{body}</p> : null}
       {action ? <div className="pro-empty-state-action">{action}</div> : null}
     </div>
+  );
+}
+
+type ProListEndProps = {
+  /** How many rows are above this line. */
+  count: number;
+  /** Plural noun for the rows — "call", "lead", "job". */
+  noun: string;
+  /** Set when the list is filtered, so the line says what it counted. */
+  scope?: string;
+};
+
+/**
+ * The line that closes a list.
+ *
+ * A list of one row followed by half a screen of nothing does not read as
+ * "there is one". It reads as a page that failed to finish loading, and the
+ * owner's next move is to refresh rather than to act. Saying how many there
+ * are, and that there are no more, is the difference between a quiet screen
+ * and a broken one.
+ */
+export function ProListEnd({ count, noun, scope }: ProListEndProps) {
+  const plural = count === 1 ? noun : `${noun}s`;
+  return (
+    <p className="pro-list-end font-sans" role="status">
+      <span className="pro-list-end-rule" aria-hidden="true" />
+      <span className="pro-list-end-text">
+        {count} {plural}
+        {scope ? ` ${scope}` : ""} · nothing older
+      </span>
+    </p>
   );
 }
 

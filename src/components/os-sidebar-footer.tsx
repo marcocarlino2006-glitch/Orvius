@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
+import { supportEmail, supportMailto } from "@/lib/support";
 
 type AccountData = {
   business: {
@@ -24,10 +26,14 @@ type MenuItem = {
   hint?: string;
 };
 
+/*
+  Two links, and the corner holds nothing else. Billing lives on Settings,
+  which is the single setup hub, rather than being a third row here and a
+  fourth copy of itself in the sidebar.
+*/
 const accountLinks: MenuItem[] = [
-  { href: "/dashboard/profile", label: "Profile", hint: "Account & shop" },
-  { href: "/dashboard/settings", label: "Settings", hint: "Line & alerts" },
-  { href: "/dashboard/billing", label: "Billing", hint: "Plan & invoices" },
+  { href: "/dashboard/profile", label: "Profile", hint: "You & your shop" },
+  { href: "/dashboard/settings", label: "Settings", hint: "Line, alerts & plan" },
 ];
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
@@ -54,6 +60,7 @@ function planDisplayLabel(account: AccountData | null): string {
 
 export function OsSidebarFooter() {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [account, setAccount] = useState<AccountData | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -93,7 +100,6 @@ export function OsSidebarFooter() {
 
   const name = session.user.name ?? "User";
   const email = session.user.email ?? "";
-  const businessName = account?.business?.name ?? "Your business";
   const planLabel = planDisplayLabel(account);
 
   return (
@@ -108,18 +114,14 @@ export function OsSidebarFooter() {
           role="menu"
           aria-label="Account menu"
         >
-          <div className="os-profile-menu-header">
-            <span className="os-sidebar-avatar os-profile-menu-avatar" aria-hidden>
-              {initials(session.user.name, session.user.email)}
-            </span>
-            <div className="os-profile-menu-header-copy">
-              <p className="os-profile-menu-name">{name}</p>
-              <p className="os-profile-menu-email">{email}</p>
-              <p className="os-profile-menu-plan">
-                {businessName} · {planLabel}
-              </p>
-            </div>
-          </div>
+          {/*
+            The button below already carries the avatar, the name and the
+            plan, and the shop name is at the top of the sidebar. Repeating
+            all four here made the popover look like a second account panel
+            rather than a menu, so the header says only the one thing the
+            button has no room for.
+          */}
+          <p className="os-profile-menu-email">{email}</p>
 
           <div className="os-profile-menu-links">
             {accountLinks.map((item) => (
@@ -134,16 +136,29 @@ export function OsSidebarFooter() {
                 {item.hint ? <span className="os-profile-menu-hint">{item.hint}</span> : null}
               </Link>
             ))}
-          </div>
 
-          <div className="os-profile-menu-footer">
-            <Link
-              href="/"
+            {/*
+              The only way to reach a person from inside the product. It used to
+              be a mailto in the marketing footer and a line in a Legal panel on
+              the billing page — findable by someone browsing the site, and not
+              by the owner at 3am with a shop to run, which is the only person
+              who ever needs it.
+
+              An <a> rather than a Link because it leaves the app, and it
+              arrives carrying the screen they were on.
+            */}
+            <a
+              href={supportMailto({ subject: "Help", path: pathname })}
+              role="menuitem"
               className="os-profile-menu-link"
               onClick={() => setOpen(false)}
             >
-              orvius.im
-            </Link>
+              <span>Get help</span>
+              <span className="os-profile-menu-hint">{supportEmail}</span>
+            </a>
+          </div>
+
+          <div className="os-profile-menu-footer">
             <button
               type="button"
               className="os-profile-menu-signout"

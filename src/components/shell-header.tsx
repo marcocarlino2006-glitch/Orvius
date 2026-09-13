@@ -114,7 +114,7 @@ export function ShellHeader({
   const headerCta = signedIn
     ? { href: "/dashboard", label: "Dashboard" }
     : cta;
-  const signInHref = "/login";
+  const signInHref = "/signin";
 
   return (
     <>

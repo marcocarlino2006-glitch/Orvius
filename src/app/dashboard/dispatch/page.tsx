@@ -2,7 +2,7 @@
 
 import { AssignTechButton } from "@/components/assign-tech-button";
 import { JobStatusAdvance } from "@/components/job-status-advance";
-import { ProPageStrip } from "@/components/pro-page-strip";
+import { ProLead } from "@/components/pro-lead";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert, ShellBadge, ShellEmpty } from "@/components/shell-primitives";
@@ -276,14 +276,20 @@ export default function DispatchPage() {
       }
     >
       <PlanUpgradeGate module="dispatch">
-      <ProPageStrip />
-
-      <div className="pro-dispatch-head font-sans">
-        <p className="pro-dispatch-day">{dayLabel}</p>
-        <p className="pro-dispatch-count">
-          {board?.jobCount ?? 0} job{board?.jobCount === 1 ? "" : "s"} scheduled
-        </p>
-      </div>
+      <ProLead
+        loading={loading && !board}
+        figure={String(board?.jobCount ?? 0)}
+        caption={board?.jobCount === 1 ? "job on the board" : "jobs on the board"}
+        detail={dayLabel}
+        facts={[
+          {
+            label: "unassigned",
+            value: board?.unassigned.length ?? 0,
+            live: (board?.unassigned.length ?? 0) > 0,
+          },
+          { label: "crew", value: technicians.length },
+        ]}
+      />
 
       <div className="pro-toolbar pro-page-toolbar">
         <label className="pro-toolbar-field font-sans">
@@ -342,13 +348,31 @@ export default function DispatchPage() {
             </div>
           ))}
         </div>
-      ) : !board?.jobCount && !board?.columns.length ? (
-        <ShellEmpty>
-          No jobs scheduled for this day.{" "}
-          <Link href="/dashboard/inbox" className="pro-section-link">
-            Book from inbox
-          </Link>
-        </ShellEmpty>
+      ) : !board?.jobCount ? (
+        /*
+          A day with no work used to render a column per crew member, each
+          headed "0 jobs" and each saying "Nothing scheduled" — the same fact
+          five times, in the five places you look first. Say it once, point at
+          the thing to do about it, and keep the crew reachable underneath.
+        */
+        <>
+          <ShellEmpty>
+            No jobs scheduled for this day.{" "}
+            <Link href="/dashboard/inbox" className="pro-section-link">
+              Book from inbox
+            </Link>
+          </ShellEmpty>
+          {technicians.length ? (
+            <ul className="dispatch-crew-roster font-sans">
+              {technicians.map((tech) => (
+                <li key={tech.id} className="dispatch-crew-roster-item">
+                  <span className="dispatch-crew-roster-name">{tech.name}</span>
+                  <CrewPhoneEdit tech={tech} onSaved={load} />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
       ) : (
         <div className="dispatch-board">
           {columns.map((col) => (
@@ -379,7 +403,13 @@ export default function DispatchPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="dispatch-col-empty font-sans">Nothing scheduled</p>
+                /*
+                  The header above already says "0 jobs", so a sentence here
+                  only repeats it — and on a quiet day it repeated it once per
+                  column. A dashed slot says the column is empty rather than
+                  broken, and says it without words.
+                */
+                <div className="dispatch-col-slot" aria-hidden />
               )}
             </section>
           ))}

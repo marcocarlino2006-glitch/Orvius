@@ -39,7 +39,7 @@ export const shopNeeds: readonly ShopNeed[] = [
   {
     id: "dispatch-fleet",
     label: "Dispatching 6+ techs is chaos",
-    detail: "Multi-truck dispatch. Founder email until support is staffed.",
+    detail: "Multi-truck dispatch with unlimited technicians.",
     planId: "fleet",
   },
 ] as const;

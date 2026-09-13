@@ -1,10 +1,44 @@
 export const TRADES = ["HVAC", "Plumbing", "Electrical"] as const;
 export type Trade = (typeof TRADES)[number];
 
-const TRADE_KEYWORDS: Record<Trade, string[]> = {
-  HVAC: ["hvac", "ac ", " a/c", "air condition", "heat", "furnace", "cooling", "heat pump"],
-  Plumbing: ["plumb", "drain", "leak", "water heater", "sewer", "pipe", "toilet", "faucet"],
-  Electrical: ["electric", "outlet", "panel", "breaker", "wiring", "light", "power"],
+/*
+  Word boundaries rather than padded spaces. Two of these used to be written
+  as "ac " and " a/c", which is a word boundary spelled as a character that
+  only exists between words — so "A/C Doctors" and "Summit AC" matched
+  nothing, because the padding they needed was off the end of the name. A shop
+  that matches nothing gets no prompt pack, and answers an air-conditioning
+  call with the generic script at two in the morning.
+*/
+const TRADE_KEYWORDS: Record<Trade, RegExp[]> = {
+  HVAC: [
+    /hvac/,
+    /\bac\b/,
+    /\ba\/c\b/,
+    /air condition/,
+    /heat/,
+    /furnace/,
+    /cooling/,
+    /heat pump/,
+  ],
+  Plumbing: [
+    /plumb/,
+    /drain/,
+    /leak/,
+    /water heater/,
+    /sewer/,
+    /pipe/,
+    /toilet/,
+    /faucet/,
+  ],
+  Electrical: [
+    /electric/,
+    /outlet/,
+    /panel/,
+    /breaker/,
+    /wiring/,
+    /light/,
+    /power/,
+  ],
 };
 
 /** Infer primary trade from servicesJson or shop name for prompt packs. */
@@ -27,7 +61,7 @@ export function inferTradeFromBusiness(input: {
   let bestScore = 0;
 
   for (const trade of TRADES) {
-    const score = TRADE_KEYWORDS[trade].filter((kw) => haystack.includes(kw)).length;
+    const score = TRADE_KEYWORDS[trade].filter((kw) => kw.test(haystack)).length;
     if (score > bestScore) {
       bestScore = score;
       best = trade;

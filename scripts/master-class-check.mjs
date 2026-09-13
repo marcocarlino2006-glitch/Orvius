@@ -147,12 +147,18 @@ try {
   const statement = read("src/components/home-statement.tsx");
   const company = read("src/lib/company.ts");
   const preview = read("src/components/home-product-preview.tsx");
+  /*
+    The hero moved from the mkt-* skin to the ov-* one, so match either prefix.
+    What is being asserted is unchanged and is about substance, not selectors:
+    the line is a callable artifact, its digits carry motion, the product runs
+    on a stage beside it, and the copy makes the night-shift claim.
+  */
   if (
-    /mkt-hero-live-line/.test(hero) &&
+    /(mkt|ov)-hero-live-?line/.test(hero) &&
     /night shift/i.test(hero) &&
     /DEMO_LINE_DISPLAY/.test(hero) &&
-    /mkt-hero-live-digit/.test(hero) &&
-    (/mkt-hero-stage/.test(hero) || /atmosphere/.test(hero))
+    /(mkt|ov)-hero-live-?line-digit|mkt-hero-live-digit/.test(hero) &&
+    (/(mkt|ov)-hero-stage/.test(hero) || /atmosphere/.test(hero))
   ) {
     pass(
       "Presence hero",

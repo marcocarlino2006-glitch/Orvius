@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
+import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
-import { maybeAutoBookLead } from "@/lib/auto-job";
+import { inferExplicitUrgency, maybeAutoBookLead } from "@/lib/auto-job";
 import { company } from "@/lib/company";
+import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import { demandCategoryLabel } from "@/lib/job-taxonomy";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -25,6 +28,7 @@ import {
 } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { twimlMessage as twimlResponse } from "@/lib/twiml";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -57,6 +61,21 @@ export async function POST(request: NextRequest) {
   const business = await resolveBusinessByInboundPhone(to);
 
   if (!business) {
+    /*
+      `to` is one of our own numbers, so failing to resolve it to a shop is a
+      misconfiguration on our side and the text is lost. Unlike the Vapi report
+      this cannot answer 5xx — Twilio does not retry inbound message webhooks
+      and a non-2xx would also swallow the reply to the customer — so the miss
+      is written down instead of leaving only a log line nobody queries.
+    */
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `unrouted:${to}:${from}:${Date.now()}`,
+      eventType: "inbound",
+      status: "failed",
+      payload: { from, to },
+      error: "no shop owns this inbound number",
+    });
     logWarn("twilio.sms.business_not_found", { from, to, messageSid });
     return twimlResponse(
       "Thanks for your message. We'll follow up as soon as possible.",
@@ -135,15 +154,29 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // A text says "SMS inquiry" in serviceType and everything real in the body,
+  // so the widened pass is what classifies these.
+  const demand = deriveDemandSignal({
+    serviceType: "SMS inquiry",
+    notes: body,
+    trade: tradeForCapture(business),
+  });
+  const serviceType =
+    demandCategoryLabel(demand.categoryCode) ?? "SMS inquiry";
+  const urgency = inferExplicitUrgency(body);
+
   const lead = await prisma.lead.create({
     data: {
       businessId: business.id,
       externalId: messageSid || null,
       phone: from,
       notes: body,
-      serviceType: "SMS inquiry",
+      serviceType,
+      urgency,
       source: "sms",
       status: "new",
+      categoryCode: demand.categoryCode,
+      postalCode: demand.postalCode,
     },
   });
 
@@ -175,8 +208,8 @@ export async function POST(request: NextRequest) {
     lead: {
       name: null,
       phone: from,
-      serviceType: "SMS inquiry",
-      urgency: null,
+      serviceType,
+      urgency,
       address: null,
     },
     job: bookedJob,
@@ -204,19 +237,14 @@ export async function POST(request: NextRequest) {
     payload: { from, to, leadId: lead.id },
   });
 
-  after(async () => {
-    try {
-      await processNotificationQueue(10);
-    } catch (error) {
-      logError("twilio.sms.queue_process_failed", {
-        messageSid,
-        businessId: business.id,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-    }
-  });
+  after(() => drainOwnerAlerts({ at: "twilio.sms", messageSid, businessId: business.id }));
 
-  return twimlResponse(SMS_REPLY);
+  const safetyReply =
+    demand.categoryCode === "plumb.gas" ||
+    demand.categoryCode === "elec.hazard"
+      ? "If there is immediate danger, leave the area and call 911. We received your service request and will follow up shortly."
+      : SMS_REPLY;
+  return twimlResponse(safetyReply);
 }
 
 async function handleSmsKeyword(params: {
@@ -286,25 +314,6 @@ async function handleSmsKeyword(params: {
     });
   }
   return smsStartConfirmation(program);
-}
-
-function twimlResponse(message: string) {
-  const twiml = message
-    ? `<Response><Message>${escapeXml(message)}</Message></Response>`
-    : "<Response></Response>";
-
-  return new NextResponse(twiml, {
-    headers: { "Content-Type": "text/xml" },
-  });
-}
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
 }
 
 export async function GET() {

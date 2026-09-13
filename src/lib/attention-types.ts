@@ -32,6 +32,13 @@ export type AttentionItem = {
   entityId: string;
   createdAt: string;
   estimatedRevenueCents?: number | null;
+  /**
+   * Who this row is about, so one customer with several open jobs cannot take
+   * over the board. Shop-level rows (billing, proof, setup) carry no group.
+   */
+  group?: { key: string; label: string; href?: string };
+  /** Rows for the same person folded behind this one. */
+  rolledUp?: number;
   meta?: {
     urgency?: string | null;
     address?: string | null;

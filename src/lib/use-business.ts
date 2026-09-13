@@ -8,7 +8,7 @@ export type BusinessMetrics = {
   newLeads: number;
   totalCalls: number;
   totalLeads: number;
-  answerRate: number | null;
+  leadBookingRate: number | null;
   lastCallAt: string | null;
   lastCaller: string | null;
 };
@@ -19,6 +19,12 @@ export type BusinessSignals = {
   jobsToday: number;
   lineVerified: boolean;
   alertsFailed24h: number;
+  /*
+    Whether the clock is currently outside the shop's own configured hours —
+    decided on the server against hoursJson and the shop's timezone, because a
+    shop that answers until eight should not be told it is after hours at six.
+  */
+  afterHoursNow: boolean;
 };
 
 export type BusinessSnapshot = {
@@ -38,6 +44,7 @@ type Ring1Response = {
   metrics: BusinessMetrics;
   dispatchToday?: { jobCount: number; unassigned: number };
   health?: { lineVerified: boolean; failedAlerts24h: number };
+  coverage?: { afterHoursNow: boolean };
 };
 
 export function useBusiness(refreshMs?: number) {
@@ -60,6 +67,7 @@ export function useBusiness(refreshMs?: number) {
             jobsToday: json.dispatchToday?.jobCount ?? 0,
             lineVerified: Boolean(json.health?.lineVerified),
             alertsFailed24h: json.health?.failedAlerts24h ?? 0,
+            afterHoursNow: Boolean(json.coverage?.afterHoursNow),
           },
         });
       }

@@ -1,3 +1,9 @@
+import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
+import {
+  getAiModelPolicy,
+  getTranscriptionModel,
+} from "@/lib/ai-policy";
+
 const VAPI_BASE = "https://api.vapi.ai";
 
 type VapiAssistantPayload = {
@@ -142,12 +148,13 @@ export function buildVapiAssistantConfig(params: {
   webhookUrl: string;
   webhookSecret?: string;
 }): VapiAssistantPayload {
+  const receptionist = getAiModelPolicy("receptionist");
   return {
     name: `${params.businessName} Receptionist`,
     firstMessage: params.greeting,
     model: {
-      provider: "openai",
-      model: "gpt-4o",
+      provider: receptionist.provider,
+      model: receptionist.model,
       messages: [{ role: "system", content: params.systemPrompt }],
     },
     voice: {
@@ -156,7 +163,7 @@ export function buildVapiAssistantConfig(params: {
     },
     transcriber: {
       provider: "deepgram",
-      model: "nova-2",
+      model: getTranscriptionModel(),
     },
     serverUrl: params.webhookUrl,
     serverUrlSecret: params.webhookSecret,
@@ -187,6 +194,12 @@ export function buildVapiAssistantConfig(params: {
             serviceType: {
               type: "string",
               description: "Requested service (HVAC, plumbing, etc.)",
+            },
+            jobCategory: {
+              type: "string",
+              enum: [...DEMAND_CATEGORY_CODES],
+              description:
+                "Closest matching job category code. Choose the single best match from the list; omit entirely if none fits rather than guessing.",
             },
             urgency: {
               type: "string",
@@ -241,6 +254,8 @@ export function extractLeadFromStructuredData(
     email: typeof data.email === "string" ? data.email : undefined,
     serviceType:
       typeof data.serviceType === "string" ? data.serviceType : undefined,
+    jobCategory:
+      typeof data.jobCategory === "string" ? data.jobCategory : undefined,
     urgency: typeof data.urgency === "string" ? data.urgency : undefined,
     address: typeof data.address === "string" ? data.address : undefined,
     notes: typeof data.notes === "string" ? data.notes : undefined,

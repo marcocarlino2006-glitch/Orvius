@@ -9,15 +9,36 @@ export async function ensureCrew(businessId: string) {
   });
   if (existing.length) return existing;
 
+  /*
+    Asked of the whole table, not just the active rows. An owner who takes
+    themselves off the crew should stay off it; keying the seed on active rows
+    alone meant re-creating the record they had just removed on the next load.
+  */
+  const seeded = await prisma.technician.findFirst({
+    where: { businessId },
+    select: { id: true },
+  });
+  if (seeded) return existing;
+
   const business = await prisma.business.findUnique({
     where: { id: businessId },
     select: { name: true, ownerPhone: true },
   });
+  const name = business?.name ? `${business.name} owner` : "Owner";
 
-  const owner = await prisma.technician.create({
-    data: {
+  /*
+    Upsert, because the read above is not a lock. The dispatch page fetches the
+    board and the crew at the same moment, and both paths land here: with a
+    create, both inserted, and the board drew the owner twice. Against the
+    unique on (businessId, name) the second writer's insert collapses into a
+    no-op update and both callers get the same row back.
+  */
+  const owner = await prisma.technician.upsert({
+    where: { businessId_name: { businessId, name } },
+    update: {},
+    create: {
       businessId,
-      name: business?.name ? `${business.name} owner` : "Owner",
+      name,
       phone: business?.ownerPhone,
       role: "owner",
     },

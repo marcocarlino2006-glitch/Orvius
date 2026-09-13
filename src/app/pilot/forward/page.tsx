@@ -86,7 +86,7 @@ export default function PilotForwardPage() {
             <Link href="/demo" className="inst-btn inst-btn-ghost">
               Run the browser demo
             </Link>
-            <Link href="/login" className="inst-btn inst-btn-ghost">
+            <Link href="/signin" className="inst-btn inst-btn-ghost">
               Sign in to get your line
             </Link>
           </div>

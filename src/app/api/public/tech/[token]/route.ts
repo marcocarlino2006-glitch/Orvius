@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { ensureJobTechToken } from "@/lib/ensure-tech-token";
-import { isJobStatus, updateJobStatus } from "@/lib/job";
+import {
+  completeJobWithOutcome,
+  isJobStatus,
+  updateJobStatus,
+} from "@/lib/job";
+import { isJobOutcomeCode } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -27,6 +32,9 @@ function serializeTechJob(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>)
     serviceType: job.serviceType,
     notes: job.notes,
     etaText: job.etaText,
+    resolutionCode: job.resolutionCode,
+    resolutionSummary: job.resolutionSummary,
+    finalAmountCents: job.finalAmountCents,
     scheduledAt: job.scheduledAt?.toISOString() ?? null,
     shopName: job.business.name,
     customerName:
@@ -48,6 +56,9 @@ export async function GET(_request: Request, { params }: Params) {
 const patchSchema = z.object({
   status: z.enum(["confirmed", "en_route", "on_site", "completed"]).optional(),
   etaText: z.string().max(80).optional(),
+  resolutionCode: z.string().optional(),
+  resolutionSummary: z.string().max(500).optional(),
+  finalAmountCents: z.number().int().min(0).max(5_000_000).nullable().optional(),
 });
 
 export async function PATCH(request: Request, { params }: Params) {
@@ -71,7 +82,21 @@ export async function PATCH(request: Request, { params }: Params) {
       if (!isJobStatus(body.status)) {
         return NextResponse.json({ error: "Invalid status" }, { status: 400 });
       }
-      await updateJobStatus(job.id, body.status);
+      if (body.status === "completed") {
+        if (!isJobOutcomeCode(body.resolutionCode)) {
+          return NextResponse.json(
+            { error: "Choose what happened before completing the job" },
+            { status: 400 },
+          );
+        }
+        await completeJobWithOutcome(job.id, {
+          resolutionCode: body.resolutionCode,
+          resolutionSummary: body.resolutionSummary,
+          finalAmountCents: body.finalAmountCents,
+        });
+      } else {
+        await updateJobStatus(job.id, body.status);
+      }
     }
 
     // Ensure token stays stable if somehow cleared

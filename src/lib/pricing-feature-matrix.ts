@@ -163,26 +163,38 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
   },
   {
     id: "onboarding",
-    label: "Personal onboarding",
+    label: "Onboarding",
     category: "Support",
+    /*
+      Onboarding is self-serve on every paid plan — sign in, answer the wizard,
+      and the line is provisioned by the time you reach the forwarding step.
+      "Priority" and "Dedicated" described a queue that does not exist.
+    */
     values: {
-      pilot: true,
-      line: "Email",
-      pro: "Email",
-      fleet: "Priority",
-      multi: "Dedicated",
+      pilot: "Guided",
+      line: "Self-serve",
+      pro: "Self-serve",
+      fleet: "Self-serve",
+      multi: "Custom playbook",
     },
   },
   {
     id: "support",
     label: "Support",
     category: "Support",
+    /*
+      One row, one answer. This used to climb from "Email" to "Priority email"
+      to "Priority line" to "Dedicated CSM" across the tiers, and all four were
+      the same inbox — there is no second number and there is no CSM. A matrix
+      exists so a buyer can tell the plans apart; inventing a difference here
+      is the one thing it must never do.
+    */
     values: {
-      pilot: "Design partner",
-      line: "Email",
-      pro: "Priority email",
-      fleet: "Priority line",
-      multi: "Dedicated CSM",
+      pilot: "Email · 1 business day",
+      line: "Email · 1 business day",
+      pro: "Email · 1 business day",
+      fleet: "Email · 1 business day",
+      multi: "Email · 1 business day",
     },
   },
   {

@@ -37,6 +37,7 @@ export function OsCommandPalette({
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const restoreFocusTo = useRef<HTMLElement | null>(null);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [searching, setSearching] = useState(false);
@@ -49,8 +50,13 @@ export function OsCommandPalette({
       setHits([]);
       setActive(0);
       setNote(null);
+      // Hand focus back to whatever opened the palette.
+      restoreFocusTo.current?.focus();
+      restoreFocusTo.current = null;
       return;
     }
+    const opener = document.activeElement;
+    restoreFocusTo.current = opener instanceof HTMLElement ? opener : null;
     inputRef.current?.focus();
   }, [open]);
 
@@ -177,6 +183,13 @@ export function OsCommandPalette({
     setActive(0);
   }, [query, hits.length]);
 
+  useEffect(() => {
+    if (!open) return;
+    document
+      .getElementById(`os-palette-option-${active}`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [active, open]);
+
   if (!open) return null;
 
   const groups: Array<{ group: string; items: PaletteItem[] }> = [];
@@ -190,6 +203,22 @@ export function OsCommandPalette({
     if (event.key === "Escape") {
       event.preventDefault();
       onClose();
+      return;
+    }
+    // The palette is modal: Tab must not walk into the page behind it.
+    if (event.key === "Tab") {
+      event.preventDefault();
+      inputRef.current?.focus();
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      setActive(0);
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      setActive(Math.max(0, items.length - 1));
       return;
     }
     if (event.key === "ArrowDown") {
@@ -218,6 +247,7 @@ export function OsCommandPalette({
         aria-modal="true"
         aria-label="Search and jump"
         onMouseDown={(event) => event.stopPropagation()}
+        onKeyDown={onKeyDown}
       >
         <div className="os-palette-field">
           <input
@@ -229,23 +259,44 @@ export function OsCommandPalette({
             onKeyDown={onKeyDown}
             autoComplete="off"
             spellCheck={false}
+            role="combobox"
+            aria-expanded
+            aria-controls="os-palette-list"
+            aria-autocomplete="list"
+            aria-activedescendant={
+              items.length ? `os-palette-option-${active}` : undefined
+            }
           />
           <kbd className="os-palette-kbd">Esc</kbd>
         </div>
 
-        <div className="os-palette-list" role="listbox">
+        <div
+          className="os-palette-list"
+          role="listbox"
+          id="os-palette-list"
+          aria-label="Results"
+        >
           {groups.map((group) => (
-            <div className="os-palette-group" key={group.group}>
-              <p className="os-palette-group-label font-sans">{group.group}</p>
+            <div
+              className="os-palette-group"
+              key={group.group}
+              role="group"
+              aria-label={group.group}
+            >
+              <p className="os-palette-group-label font-sans" aria-hidden>
+                {group.group}
+              </p>
               {group.items.map((item) => {
                 index += 1;
                 const isActive = index === active;
                 return (
                   <button
                     key={item.id}
+                    id={`os-palette-option-${index}`}
                     type="button"
                     role="option"
                     aria-selected={isActive}
+                    tabIndex={-1}
                     className={`os-palette-row font-sans ${
                       isActive ? "os-palette-row-active" : ""
                     }`}
@@ -270,7 +321,9 @@ export function OsCommandPalette({
           ) : null}
         </div>
 
-        {note ? <p className="os-palette-note font-sans">{note}</p> : null}
+        <p className="os-palette-note font-sans" role="status" aria-live="polite">
+          {note}
+        </p>
       </div>
     </div>
   );

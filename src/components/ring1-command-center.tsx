@@ -6,12 +6,11 @@ import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
 import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
+import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProLineWatch } from "@/components/pro-line-watch";
 import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
-import { ProRightNow } from "@/components/pro-right-now";
+import { ProSetupScore } from "@/components/pro-setup-score";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
-import { ProEconomicsPanel } from "@/components/pro-economics-panel";
-import { ProShopOutcomes } from "@/components/pro-shop-outcomes";
 import { ProTodayAlerts } from "@/components/pro-today-status";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import type { AttentionItem } from "@/lib/attention-types";
@@ -106,16 +105,16 @@ export function Ring1CommandCenter() {
     !(data?.health?.stuckPendingAlerts) &&
     !(data?.wedge && !data.wedge.ready);
 
+  /*
+    The board opens the page. A four-tile "Right now" strip used to sit above
+    it restating the rail beside it almost line for line — its alert-speed and
+    last-call tiles were the same sentences as Line watch — and on a quiet
+    shop three of its four tiles were zeros. Four boxes of restated status is
+    not what a command centre should show first.
+  */
   return (
     <section className="ring1-command ring1-cockpit" aria-label="Command">
       <div className="ring1-cockpit-main">
-        <ProRightNow
-          waiting={newLeads}
-          unassigned={data?.dispatchToday.unassigned ?? 0}
-          health={data?.health ?? null}
-          loading={loading}
-        />
-
         <ApproveQueue onChange={load} />
 
         <AttentionQueue
@@ -125,11 +124,13 @@ export function Ring1CommandCenter() {
           onAction={load}
         />
 
-        <ProShopOutcomes outcomes={data?.outcomes} loading={loading} />
-        <ProEconomicsPanel
-          outcomes={data?.outcomes}
-          lastWeeklyProofAt={data?.lastWeeklyProofAt}
-        />
+        {!loading && data?.outcomes ? (
+          <ProEconomicsPanel
+            outcomes={data.outcomes}
+            lastWeeklyProofAt={data.lastWeeklyProofAt}
+            proofOnBoard={attention.some((i) => i.kind === "stale_weekly_proof")}
+          />
+        ) : null}
 
         {canDispatch && data?.dispatchToday ? (
           <ProDispatchToday
@@ -163,6 +164,7 @@ export function Ring1CommandCenter() {
       <aside className="ring1-cockpit-rail" aria-label="Shop status">
         <ProNightWatch coverage={data?.coverage ?? null} outcomes={data?.outcomes ?? null} />
         <ProLineWatch health={data?.health ?? null} />
+        <ProSetupScore wedge={data?.wedge ?? null} />
 
         {!attentionCoversGates ? (
           <ProTodayAlerts
