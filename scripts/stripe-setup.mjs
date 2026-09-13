@@ -71,16 +71,27 @@ function upsertEnv(key, value) {
   writeFileSync(envPath, `${nextLines.join("\n").replace(/\n+$/, "")}\n`, "utf8");
 }
 
+function arg(flag) {
+  const i = process.argv.indexOf(flag);
+  if (i === -1) return null;
+  return process.argv[i + 1] ?? null;
+}
+
 const { env } = loadEnvFile();
-const secretKey = env.STRIPE_SECRET_KEY?.trim();
+const secretFromArg = arg("--secret")?.trim();
+if (secretFromArg) {
+  upsertEnv("STRIPE_SECRET_KEY", secretFromArg);
+}
+const secretKey =
+  secretFromArg || env.STRIPE_SECRET_KEY?.trim() || process.env.STRIPE_SECRET_KEY?.trim();
 
 console.log("\n💳 Orvius Stripe setup — Line, Pro, Fleet (monthly + annual)\n");
 
 if (!secretKey) {
   console.log("❌ STRIPE_SECRET_KEY missing in .env\n");
-  console.log("1. Stripe Dashboard → Developers → API keys → copy Secret key");
-  console.log("2. Add to .env: STRIPE_SECRET_KEY=sk_test_...");
-  console.log("3. Re-run: npm run stripe:setup\n");
+  console.log("Next unfinished step: paste the secret key");
+  console.log("  npm run billing:paste -- --secret sk_test_... --setup");
+  console.log("  # or: npm run stripe:setup -- --secret sk_test_...\n");
   process.exit(1);
 }
 

@@ -35,17 +35,19 @@ node --test scripts/pay-prompt.test.mjs
 npm run billing:check
 ```
 
-Founder: set `STRIPE_*` on Vercel → `npm run stripe:setup` → first paid shop.
+Founder: `npm run billing:paste -- --secret sk_… --setup` → mirror `STRIPE_*` on Vercel → first paid shop.
 
 ## Founder certification gate (Battle 1)
 
 Before outreach volume or paid claims:
 
 ```bash
+npm run wedge:bootstrap      # Summit shop shell if DB is empty (does not fake the line)
 npm run wedge:ready          # 8/8 for Summit / design partner shop
 npm run master:wedge         # setup + drills
 # Then 5 real calls from YOUR cell — see docs/WEDGE-MASTERY.md
 ```
+
 
 Log every miss in `docs/FAILURE-LOG.md`. Zero open blockers.
 Settings → Founder phone certification checklist.

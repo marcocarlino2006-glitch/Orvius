@@ -4,6 +4,17 @@
 
 Master this before anything else.
 
+## Empty DB / next unfinished step
+
+If `wedge:ready` says **No active business**:
+
+```bash
+npm run wedge:bootstrap   # Summit HVAC shell only — does not fake the line
+npm run wedge:ready       # scores real reds (dedicated line is first miss)
+```
+
+Then attach Twilio + Vapi (onboarding / `npm run onboard`) and re-score.
+
 ## One-command setup
 
 ```bash

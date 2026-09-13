@@ -34,7 +34,13 @@ async function main() {
       });
 
   if (!business) {
-    console.error("❌ No active business — run onboarding first");
+    console.error("❌ No active business — wedge has nothing to score.");
+    console.error("");
+    console.error("Next unfinished step:");
+    console.error("  npm run wedge:bootstrap");
+    console.error("  # then attach Twilio/Vapi line and re-run:");
+    console.error("  npm run wedge:ready");
+    console.error("");
     process.exit(1);
   }
 
@@ -136,6 +142,7 @@ async function main() {
   console.log(`\nScore: ${score}/${items.length}`);
   if (score === items.length) {
     console.log("✅ WEDGE READY — shop is production-grade\n");
+    console.log("Next unfinished step: Stripe → first Checkout → first $\n");
     process.exit(0);
   }
 
@@ -144,7 +151,23 @@ async function main() {
       "\nFix shared lines: npm run repair:lines — or node scripts/repair-shared-lines.mjs\n",
     );
   }
-  console.log("❌ WEDGE NOT READY — complete checklist above\n");
+
+  const firstMiss = items.find((item) => !item.ok);
+  if (firstMiss) {
+    console.log(`\nNext unfinished step: ${firstMiss.label}`);
+    if (firstMiss.label === "Dedicated shop line") {
+      console.log("  → Attach Twilio + Vapi in onboarding (or npm run onboard)");
+    } else if (firstMiss.label === "Line tested end-to-end") {
+      console.log("  → Prove call from your cell → Settings cert / lineVerifiedAt");
+    } else if (firstMiss.label.startsWith("Owner")) {
+      console.log("  → Settings → owner mobile + send test alert");
+    } else if (firstMiss.label.includes("lead") || firstMiss.label.includes("book")) {
+      console.log("  → Place a real after-hours call that books a job");
+    }
+    console.log("");
+  }
+
+  console.log("❌ WEDGE NOT READY — finish the next unfinished step above\n");
   process.exit(1);
 }
 

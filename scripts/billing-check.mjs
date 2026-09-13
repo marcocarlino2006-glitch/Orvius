@@ -137,9 +137,16 @@ console.log("\n─────────────────────�
 const blockers = checks.filter((c) => c.ok === false);
 if (blockers.length === 0) {
   console.log("✅ BILLING: Monthly plans ready for checkout\n");
+  console.log("Next unfinished step: first live Checkout on a pilot shop → first $\n");
   process.exit(0);
 }
 
 console.log(`❌ BILLING: ${blockers.length} blocker(s)\n`);
-console.log("Run: npm run stripe:setup (after STRIPE_SECRET_KEY is set)\n");
+if (!secretKey) {
+  console.log("Next unfinished step: paste the Stripe secret key");
+  console.log("  npm run billing:paste -- --secret sk_test_... --setup\n");
+} else {
+  console.log("Next unfinished step: npm run stripe:setup");
+  console.log("  then webhook secret → npm run billing:paste -- --webhook whsec_...\n");
+}
 process.exit(1);
