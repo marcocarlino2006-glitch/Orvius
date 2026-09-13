@@ -1,10 +1,23 @@
+import { calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
+import { getConnectStatus } from "@/lib/stripe-connect";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
-/** Platform card checkout for estimates — Connect payouts to shops come next. */
-export function isEstimateCardPayReady() {
-  return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+type ConnectableShop = Parameters<typeof getConnectStatus>[0];
+
+/**
+ * Card pay needs the shop's own Stripe account, not just ours.
+ *
+ * This used to be a platform-key check, which meant a customer's card money
+ * landed in an Orvius balance and had to be paid out to the shop by hand —
+ * both a money-transmission problem and a promise we could not keep at
+ * volume. Cards now settle to the shop, so an unonboarded shop has no card
+ * path at all and the manual "I paid by cash/check" route carries it.
+ */
+export function isEstimateCardPayReady(business: ConnectableShop) {
+  if (!process.env.STRIPE_SECRET_KEY?.trim()) return false;
+  return getConnectStatus(business).canAcceptPayments;
 }
 
 export async function ensureInvoiceForEstimate(estimate: {
@@ -37,7 +50,12 @@ export async function ensureInvoiceForEstimate(estimate: {
   return created.id;
 }
 
-/** Create a one-time Stripe Checkout session for a public estimate. */
+/**
+ * Checkout session for a public estimate, charged on the shop's own account.
+ *
+ * A direct charge, so the session lives on the connected account and has to be
+ * retrieved with the same `stripeAccount` option it was created with.
+ */
 export async function createEstimateCheckoutSession(params: {
   estimateId: string;
   businessId: string;
@@ -46,44 +64,55 @@ export async function createEstimateCheckoutSession(params: {
   publicToken: string;
   invoiceId: string;
   jobTitle?: string | null;
+  business: ConnectableShop;
 }) {
+  const connect = getConnectStatus(params.business);
+  if (!connect.canAcceptPayments || !connect.accountId) {
+    throw new Error("Shop is not cleared to accept card payments");
+  }
+  if (!isChargeableAmount(params.amountCents)) {
+    throw new Error(`Estimate below Stripe minimum: ${params.amountCents}`);
+  }
+
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
   const title = params.jobTitle?.trim() || "Service estimate";
+  const applicationFeeCents = calculatePlatformFeeCents(params.amountCents);
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "usd",
-          unit_amount: params.amountCents,
-          product_data: {
-            name: `${params.businessName} — ${title}`,
-            description: "Estimate payment via Orvius",
+  const metadata = {
+    kind: "estimate_pay",
+    estimateId: params.estimateId,
+    invoiceId: params.invoiceId,
+    businessId: params.businessId,
+    publicToken: params.publicToken,
+  };
+
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: "payment",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            unit_amount: params.amountCents,
+            product_data: {
+              name: `${params.businessName} — ${title}`,
+              description: "Estimate payment via Orvius",
+            },
           },
         },
-      },
-    ],
-    success_url: `${baseUrl}/e/${params.publicToken}?paid=1&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}/e/${params.publicToken}?canceled=1`,
-    metadata: {
-      kind: "estimate_pay",
-      estimateId: params.estimateId,
-      invoiceId: params.invoiceId,
-      businessId: params.businessId,
-      publicToken: params.publicToken,
-    },
-    payment_intent_data: {
-      metadata: {
-        kind: "estimate_pay",
-        estimateId: params.estimateId,
-        invoiceId: params.invoiceId,
-        businessId: params.businessId,
+      ],
+      success_url: `${baseUrl}/e/${params.publicToken}?paid=1&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/e/${params.publicToken}?canceled=1`,
+      metadata,
+      payment_intent_data: {
+        application_fee_amount: applicationFeeCents,
+        metadata,
       },
     },
-  });
+    { stripeAccount: connect.accountId },
+  );
 
   return session;
 }

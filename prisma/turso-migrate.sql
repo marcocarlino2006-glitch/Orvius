@@ -225,3 +225,38 @@ WHERE "id" NOT IN (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "Technician_businessId_name_key"
   ON "Technician"("businessId", "name");
+
+-- Connect: the shop's own Stripe account, so customer card money settles to
+-- the shop and Orvius only takes an application fee. chargesEnabled is
+-- Stripe's post-verification verdict and is what gates card collection.
+ALTER TABLE "Business" ADD COLUMN "stripeConnectAccountId" TEXT;
+ALTER TABLE "Business" ADD COLUMN "stripeConnectChargesEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "stripeConnectPayoutsEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "stripeConnectDetailsSubmitted" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "stripeConnectUpdatedAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "depositEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "depositAmountCents" INTEGER;
+
+CREATE TABLE IF NOT EXISTS "Deposit" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "leadId" TEXT,
+  "jobId" TEXT,
+  "amountCents" INTEGER NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "publicToken" TEXT,
+  "stripeSessionId" TEXT,
+  "stripePaymentIntentId" TEXT,
+  "applicationFeeCents" INTEGER,
+  "sentAt" DATETIME,
+  "paidAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Deposit_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "Deposit_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "Lead"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT "Deposit_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job"("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Deposit_publicToken_key" ON "Deposit"("publicToken");
+CREATE UNIQUE INDEX IF NOT EXISTS "Deposit_stripeSessionId_key" ON "Deposit"("stripeSessionId");
+CREATE INDEX IF NOT EXISTS "Deposit_businessId_status_idx" ON "Deposit"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "Deposit_businessId_createdAt_idx" ON "Deposit"("businessId", "createdAt");

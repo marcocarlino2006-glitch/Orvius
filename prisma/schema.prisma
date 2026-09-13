@@ -26,6 +26,23 @@ model Business {
   stripeSubscriptionId String?
   billingStatus        String   @default("pilot")
   billingPlan          String?
+  /**
+   * Connect: the shop's own Stripe account. Customer card money settles to the
+   * shop directly and Orvius only ever takes an application fee, which is what
+   * keeps us out of being a money transmitter.
+   *
+   * `chargesEnabled` is Stripe's verdict after identity verification and is the
+   * only field allowed to gate card collection. An account can exist, and can
+   * have submitted every detail, while still not being cleared to charge.
+   */
+  stripeConnectAccountId        String?
+  stripeConnectChargesEnabled   Boolean  @default(false)
+  stripeConnectPayoutsEnabled   Boolean  @default(false)
+  stripeConnectDetailsSubmitted Boolean  @default(false)
+  stripeConnectUpdatedAt        DateTime?
+  /** Deposit asked for at booking. Null amount or false means deposits off. */
+  depositEnabled                Boolean  @default(false)
+  depositAmountCents            Int?
   /** When the free design-partner window ends. After this, subscribe or lock. */
   pilotEndsAt          DateTime?
   /** Last time owner copied/exported weekly economics proof. */
@@ -54,6 +71,7 @@ model Business {
   estimates        Estimate[]
   invoices         Invoice[]
   payments         Payment[]
+  deposits         Deposit[]
   copilotActions   CopilotAction[]
   ownerNotifications OwnerNotification[]
   webhookEvents      WebhookEvent[]
@@ -156,7 +174,8 @@ model Lead {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  job Job?
+  job      Job?
+  deposits Deposit[]
 
   @@unique([businessId, externalId])
   @@index([businessId, createdAt])
@@ -211,6 +230,7 @@ model Job {
   updatedAt     DateTime    @updatedAt
 
   estimate Estimate?
+  deposits Deposit[]
 
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
@@ -298,6 +318,46 @@ model Payment {
   method      String?
   createdAt   DateTime @default(now())
 
+  @@index([businessId, createdAt])
+}
+
+/**
+ * Money collected when the job is booked, on the shop's own Stripe account.
+ *
+ * Deliberately not an Estimate or an Invoice. Both of those describe work that
+ * has already been scoped and priced, and a deposit is taken before either
+ * exists — at 2am, on the call, which is the only moment the customer is
+ * motivated. It hangs off the lead rather than the job because a lead is the
+ * one thing every answered call produces; a job may never be booked, and on
+ * the Line plan routinely is not.
+ */
+model Deposit {
+  id                    String    @id @default(cuid())
+  businessId            String
+  business              Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  leadId                String?
+  lead                  Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  jobId                 String?
+  job                   Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  amountCents           Int
+  /** pending | paid | canceled | refunded */
+  status                String    @default("pending")
+  /** Public magic-link token for the customer pay page (/d/[token]). */
+  publicToken           String?   @unique
+  /**
+   * Checkout session id, which lives on the connected account rather than the
+   * platform. Unique so a replayed webhook cannot record a second payment.
+   */
+  stripeSessionId       String?   @unique
+  stripePaymentIntentId String?
+  /** What Orvius earned here, stamped at fulfilment and never recomputed. */
+  applicationFeeCents   Int?
+  sentAt                DateTime?
+  paidAt                DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([businessId, status])
   @@index([businessId, createdAt])
 }
 
