@@ -13903,3 +13903,22 @@ html[data-theme="night"] .site-controls-lang-menu button:hover {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Fair-use meter on Billing */
+.billing-usage-track {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #0c1016 10%, transparent);
+  overflow: hidden;
+}
+.billing-usage-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #c4783a;
+}
+.billing-usage-warn {
+  color: #a8642e;
+  margin: 0 0 0.5rem;
+}

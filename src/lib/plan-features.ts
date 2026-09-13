@@ -18,6 +18,10 @@ export type PlanFeatureSet = {
   modules: readonly PlanModule[];
   maxTechnicians: number | null;
   prioritySupport: boolean;
+  /** Included answered minutes / month (fair use). */
+  answeredMinutes: number | null;
+  /** Included owner SMS / month (fair use). */
+  ownerSms: number | null;
 };
 
 const LINE_MODULES: PlanModule[] = ["today", "inbox", "calls"];
@@ -36,16 +40,22 @@ export const planFeatures: Record<PaidPlanId, PlanFeatureSet> = {
     modules: LINE_MODULES,
     maxTechnicians: 0,
     prioritySupport: false,
+    answeredMinutes: 300,
+    ownerSms: 200,
   },
   pro: {
     modules: PRO_MODULES,
     maxTechnicians: 15,
     prioritySupport: false,
+    answeredMinutes: 750,
+    ownerSms: 500,
   },
   fleet: {
     modules: PRO_MODULES,
     maxTechnicians: null,
     prioritySupport: true,
+    answeredMinutes: 2000,
+    ownerSms: 1500,
   },
 };
 
@@ -53,6 +63,8 @@ const EXPIRED_FEATURES: PlanFeatureSet = {
   modules: [],
   maxTechnicians: 0,
   prioritySupport: false,
+  answeredMinutes: 0,
+  ownerSms: 0,
 };
 
 /**

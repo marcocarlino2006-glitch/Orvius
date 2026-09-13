@@ -1,6 +1,7 @@
 "use client";
 
 import { BillingPortalButton } from "@/components/billing-portal-button";
+import { BillingUsagePanel } from "@/components/billing-usage-panel";
 import { CheckoutButton } from "@/components/checkout-button";
 import { OsShell } from "@/components/os-shell";
 import { ShellPanel } from "@/components/shell-primitives";
@@ -139,6 +140,10 @@ export default function DashboardBillingPage() {
           )}
         </ShellPanel>
 
+        <ShellPanel title="Fair use this month" dense>
+          <BillingUsagePanel />
+        </ShellPanel>
+
         <ShellPanel title={needsPay && !loading ? "Subscribe" : "Subscribe"} dense>
           {loading ? (
             <p className="font-sans text-sm text-ash">Loading…</p>
@@ -164,8 +169,8 @@ export default function DashboardBillingPage() {
             <>
               <p className="font-sans text-sm leading-relaxed text-ash">
                 {locked
-                  ? "Choose a plan to unlock your shop — flat monthly, billed by "
-                  : "Choose a plan — flat monthly, billed by "}
+                  ? "Choose a plan to unlock your shop — flat monthly with fair-use minutes/SMS, billed by "
+                  : "Choose a plan — flat monthly with fair-use minutes/SMS, billed by "}
                 {company.legalName} via Stripe.
               </p>
               <ul className="account-billing-plans mt-5 space-y-4">

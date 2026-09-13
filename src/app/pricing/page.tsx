@@ -24,9 +24,9 @@ export default function PricingPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Pricing"
-            title={`From $${getLowestPaidPrice("year")} per month. Flat.`}
-            subline="Monthly or annual — pick the plan that matches your shop."
-            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks. Multi-shop for 2+ locations."
+            title={`From $${getLowestPaidPrice("year")} per month. Fair use included.`}
+            subline="Flat SaaS price. Answered minutes and owner SMS capped so the line stays honest."
+            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks. Every plan shows included usage — not fake unlimited."
           />
           {!checkoutReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
@@ -47,6 +47,36 @@ export default function PricingPage() {
 
       <section className="tier1-story">
         <PricingPagePlans />
+      </section>
+
+      <section className="tier1-story tier1-story-muted">
+        <div className="editorial-wrap">
+          <p className="tier1-eyebrow type-eyebrow">Fair use</p>
+          <h2 className="tier1-section-title type-headline">
+            What &ldquo;included&rdquo; means.
+          </h2>
+          <p className="tier1-section-lead font-sans max-w-2xl">
+            Orvius is not per-minute phone billing. You pay a flat plan. Each plan
+            includes answered minutes and owner SMS. If a shop blows past fair
+            use, we warn first — then quote overage before anything extra hits
+            the card. Soft overage today; hard Stripe meters when volume earns it.
+          </p>
+          <ul className="tier1-strategy-list font-sans mt-6">
+            <li>
+              <strong>Line.</strong> 300 answered min · 200 owner SMS / month.
+            </li>
+            <li>
+              <strong>Pro.</strong> 750 answered min · 500 owner SMS / month.
+            </li>
+            <li>
+              <strong>Fleet.</strong> 2,000 answered min · 1,500 owner SMS / month.
+            </li>
+            <li>
+              <strong>Overage (quoted).</strong> About $0.12 / answered min and
+              $0.03 / SMS on Line/Pro — lower on Fleet.
+            </li>
+          </ul>
+        </div>
       </section>
 
       <section className="tier1-close">
