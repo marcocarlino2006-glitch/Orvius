@@ -8057,6 +8057,17 @@ body:has(.mkt-page) .shell-header {
   color: var(--os-mute) !important;
 }
 
+/*
+  The share box mixes --fog with a literal #fff, which is a soft grey card on
+  paper and a washed-out light slab at night. It carries the deposit link now,
+  so it sits in the middle of the Money panel rather than tucked under an
+  estimate — it needs the raised-panel surface like any other inset block.
+*/
+.os-shell-night .job-money-share {
+  border-color: var(--os-line);
+  background: var(--os-panel-raised);
+}
+
 .os-shell-night .pro-stat {
   padding: 0.65rem 0.75rem !important;
 }

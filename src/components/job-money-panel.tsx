@@ -206,7 +206,9 @@ export function JobMoneyPanel({
 
   return (
     <div className="job-money font-sans">
-      {error ? <p className="job-money-error">{error}</p> : null}
+      {error ? (
+        <p className="os-own-color job-money-error">{error}</p>
+      ) : null}
 
       {/*
         Booking deposit first, because chronologically it is first: it is asked
