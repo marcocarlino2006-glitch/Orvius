@@ -137,7 +137,16 @@ export async function createDepositForLead(params: {
       },
       orderBy: { createdAt: "desc" },
     });
-    if (existing) return { deposit: existing, created: false };
+    if (existing) {
+      if (params.jobId && !existing.jobId) {
+        const linked = await prisma.deposit.update({
+          where: { id: existing.id },
+          data: { jobId: params.jobId },
+        });
+        return { deposit: linked, created: false };
+      }
+      return { deposit: existing, created: false };
+    }
   }
 
   const deposit = await prisma.deposit.create({
@@ -187,6 +196,94 @@ export async function sendDepositLink(params: {
   }
 
   return result;
+}
+
+export type EnsureBookingDepositResult =
+  | {
+      ok: true;
+      skipped: true;
+      reason: "deposits_off" | "connect_incomplete";
+    }
+  | {
+      ok: true;
+      skipped: false;
+      deposit: Deposit;
+      created: boolean;
+      sms: Awaited<ReturnType<typeof sendDepositLink>> | null;
+    }
+  | {
+      ok: false;
+      error: "business_not_found" | "lead_not_found" | "job_mismatch";
+    };
+
+/**
+ * Close booking → money when the shop explicitly opted in.
+ *
+ * The readiness check is both the consent boundary and the payment-safety
+ * boundary. A retry reuses the same active deposit, links it to the booked job,
+ * and never texts again after a successful delivery.
+ */
+export async function ensureBookingDepositForJob(params: {
+  businessId: string;
+  leadId: string;
+  jobId: string;
+  sendSms?: boolean;
+}): Promise<EnsureBookingDepositResult> {
+  const [business, lead] = await Promise.all([
+    prisma.business.findUnique({
+      where: { id: params.businessId },
+      select: {
+        id: true,
+        name: true,
+        depositEnabled: true,
+        depositAmountCents: true,
+        stripeConnectAccountId: true,
+        stripeConnectChargesEnabled: true,
+        stripeConnectPayoutsEnabled: true,
+        stripeConnectDetailsSubmitted: true,
+      },
+    }),
+    prisma.lead.findFirst({
+      where: { id: params.leadId, businessId: params.businessId },
+      select: {
+        phone: true,
+        job: { select: { id: true } },
+      },
+    }),
+  ]);
+
+  if (!business) return { ok: false, error: "business_not_found" };
+  if (!lead) return { ok: false, error: "lead_not_found" };
+  if (lead.job?.id !== params.jobId) {
+    return { ok: false, error: "job_mismatch" };
+  }
+
+  const readiness = getDepositReadiness(business);
+  if (!readiness.ready) {
+    return { ok: true, skipped: true, reason: readiness.reason };
+  }
+
+  const { deposit, created } = await createDepositForLead({
+    businessId: params.businessId,
+    leadId: params.leadId,
+    jobId: params.jobId,
+    amountCents: readiness.amountCents,
+  });
+
+  let sms: Awaited<ReturnType<typeof sendDepositLink>> | null = null;
+  if (
+    params.sendSms !== false &&
+    lead.phone?.trim() &&
+    !deposit.sentAt
+  ) {
+    sms = await sendDepositLink({
+      business,
+      deposit,
+      toPhone: lead.phone,
+    });
+  }
+
+  return { ok: true, skipped: false, deposit, created, sms };
 }
 
 /**
