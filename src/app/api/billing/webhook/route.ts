@@ -56,14 +56,18 @@ export async function POST(request: Request) {
   }
 
   /*
+    Every handler below is individually idempotent — deposits and invoices both
+    check their own paid state first — so this is a second line of defence
+    rather than a fix for a live double-charge.
+
+    What it does buy: Stripe retries for days on any non-2xx, and each retry
+    re-ran the whole handler, including its Stripe API calls. It also leaves
+    this route with the same audit row every other webhook in the app already
+    writes, and it means the next handler added here inherits replay
+    protection instead of having to remember it.
+
     Claimed only after the signature check, so a forged payload cannot burn an
     event id and suppress the real delivery that follows it.
-
-    Stripe retries for days on any non-2xx, and it also re-sends on its own
-    schedule, so a handler that is not idempotent double-applies. That matters
-    most on the two money paths this route owns: a replayed deposit or estimate
-    session would fulfil twice, texting the customer a second receipt for one
-    payment.
   */
   const claim = await claimWebhookEvent({
     source: "stripe",
