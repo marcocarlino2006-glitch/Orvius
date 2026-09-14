@@ -7817,6 +7817,16 @@ body:has(.mkt-page) .shell-header {
   --signal-text: #d9784b;
   --flare-text: #ff6b74;
   --live-text: #00ba7c;
+  /*
+    Semantic accents. Copper means work Orvius performed, never generic
+    decoration. Red is reserved for intervention, green for verified outcomes,
+    amber for pending decisions, and blue for neutral system evidence.
+  */
+  --os-agent: #e0855a;
+  --os-danger: #f97066;
+  --os-success: #6ee7b7;
+  --os-attention: #ecc79a;
+  --os-info: #8fb8e8;
   background: #27241f !important;
   color: #ececec !important;
 }

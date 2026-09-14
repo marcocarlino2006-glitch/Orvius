@@ -106,7 +106,11 @@ export function ApproveQueue({ onChange }: { onChange?: () => void }) {
   const hasApprovals = items.length > 0;
 
   return (
-    <section className="approve-queue font-sans" aria-label="Approve queue">
+    <section
+      id="agent-control"
+      className="approve-queue font-sans"
+      aria-label="Agent control"
+    >
       <header className="approve-queue-head">
         <p className="approve-queue-kicker">Agent control</p>
         <h2 className="approve-queue-title">

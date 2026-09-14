@@ -26,7 +26,9 @@ console.log("\n💰 Orvius economics mastery check\n");
 const requiredFiles = [
   "src/lib/money.ts",
   "src/lib/shop-outcomes.ts",
+  "src/lib/shift-timeline.ts",
   "src/components/pro-command-outcomes.tsx",
+  "src/components/pro-shift-timeline.tsx",
   "src/components/pro-economics-panel.tsx",
   "src/app/api/shop/weekly-proof/route.ts",
   "src/app/api/account/export/route.ts",
@@ -77,11 +79,14 @@ results.push(
 );
 
 const outcomeLead = commandSrc.indexOf("<ProCommandOutcomes");
+const shiftTimeline = commandSrc.indexOf("<ProShiftTimeline");
 const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
 results.push(
-  outcomeLead >= 0 && exceptionBoard >= 0 && outcomeLead < exceptionBoard
-    ? pass("Command leads with measured outcomes before owner exceptions")
-    : fail("Command must show measured outcomes before the exception board"),
+  outcomeLead >= 0 &&
+    shiftTimeline > outcomeLead &&
+    exceptionBoard > shiftTimeline
+    ? pass("Command moves from measured outcomes to audit trail to exceptions")
+    : fail("Command must show outcomes, then shift evidence, then exceptions"),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");

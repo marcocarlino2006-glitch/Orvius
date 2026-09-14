@@ -7,6 +7,7 @@ import { getDispatchBoard, listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
+import { getShiftTimeline } from "@/lib/shift-timeline";
 import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
@@ -40,6 +41,7 @@ export async function GET() {
     crew,
     outcomes,
     attention,
+    shiftTimeline,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -82,6 +84,7 @@ export async function GET() {
     listCrew(business.id),
     getShopOutcomes(business.id, 7),
     getAttentionQueue(business.id, 12),
+    getShiftTimeline(business.id),
   ]);
 
   const wedge = await getWedgeReadiness(business.id, health);
@@ -172,6 +175,7 @@ export async function GET() {
     },
     outcomes,
     attention,
+    shiftTimeline,
     lastWeeklyProofAt: business.lastWeeklyProofAt?.toISOString() ?? null,
     recentLeads: recentLeads.map((lead) => ({
       id: lead.id,

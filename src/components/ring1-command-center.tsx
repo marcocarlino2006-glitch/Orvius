@@ -12,11 +12,13 @@ import { ProLineWatch } from "@/components/pro-line-watch";
 import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
 import { ProSetupScore } from "@/components/pro-setup-score";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
+import { ProShiftTimeline } from "@/components/pro-shift-timeline";
 import { ProTodayAlerts } from "@/components/pro-today-status";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import type { AttentionItem } from "@/lib/attention-types";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
+import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
 type Ring1Data = {
@@ -24,6 +26,7 @@ type Ring1Data = {
     newLeads: number;
   };
   outcomes?: ShopOutcomes;
+  shiftTimeline?: ShiftEvent[];
   attention?: AttentionItem[];
   dispatchToday: {
     jobCount: number;
@@ -112,6 +115,11 @@ export function Ring1CommandCenter() {
         <ProCommandOutcomes
           outcomes={data?.outcomes}
           attentionCount={attention.length}
+          loading={loading}
+        />
+
+        <ProShiftTimeline
+          events={data?.shiftTimeline ?? []}
           loading={loading}
         />
 
