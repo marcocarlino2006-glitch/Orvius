@@ -7,7 +7,7 @@ import {
   getDevAuthUser,
   isDevAuthBypassEnabled,
 } from "@/lib/dev-auth";
-import { getAllowedEmails } from "@/lib/auth-allowlist";
+import { isDashboardEmailAuthorized } from "@/lib/auth-allowlist";
 
 const providers: Provider[] = [
   Google({
@@ -58,20 +58,26 @@ const nextAuth = NextAuth({
   providers,
   callbacks: {
     ...authConfig.callbacks,
-    signIn({ user, account }) {
+    async signIn({ user, account }) {
       if (account?.provider === "dev") {
         return isDevAuthBypassEnabled();
       }
-      // The email-link provider already redeemed a single-use token against the
-      // allowlist; re-running the check here is harmless and keeps one gate.
-      const allowed = getAllowedEmails();
-      const email = user.email?.toLowerCase();
-      // Production: empty allowlist = deny all (fail closed).
-      // Non-prod: empty allowlist = open for local dogfood.
-      if (!allowed.length) {
-        return process.env.NODE_ENV !== "production" && process.env.VERCEL_ENV !== "production";
-      }
-      return email ? allowed.includes(email) : false;
+
+      return isDashboardEmailAuthorized(user.email, async (email) => {
+        /*
+         * Dynamic for the same reason consumeMagicLink is dynamic above:
+         * auth.ts is reachable from edge middleware, but this callback runs on
+         * the Node auth route. Pulling Prisma in at module scope breaks the edge
+         * bundle; loading it only here lets an existing shop owner authenticate
+         * without weakening the gate for unknown Google accounts.
+         */
+        const { prisma } = await import("@/lib/prisma");
+        const shop = await prisma.business.findFirst({
+          where: { ownerEmail: email, isActive: true },
+          select: { id: true },
+        });
+        return Boolean(shop);
+      });
     },
   },
 });
