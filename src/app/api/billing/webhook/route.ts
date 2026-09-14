@@ -4,6 +4,7 @@ import { fulfillDepositCheckoutSession } from "@/lib/booking-deposit";
 import { fulfillEstimateCheckoutSession } from "@/lib/estimate-pay";
 import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
+import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import type Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -52,6 +53,26 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid signature";
     return NextResponse.json({ error: message }, { status: 400 });
+  }
+
+  /*
+    Claimed only after the signature check, so a forged payload cannot burn an
+    event id and suppress the real delivery that follows it.
+
+    Stripe retries for days on any non-2xx, and it also re-sends on its own
+    schedule, so a handler that is not idempotent double-applies. That matters
+    most on the two money paths this route owns: a replayed deposit or estimate
+    session would fulfil twice, texting the customer a second receipt for one
+    payment.
+  */
+  const claim = await claimWebhookEvent({
+    source: "stripe",
+    externalId: event.id,
+    eventType: event.type,
+    payload: { account: event.account ?? null },
+  });
+  if (!claim.claimed) {
+    return NextResponse.json({ received: true, duplicate: true });
   }
 
   try {
@@ -164,10 +185,29 @@ export async function POST(request: Request) {
         break;
     }
 
+    await completeWebhookEvent({
+      source: "stripe",
+      externalId: event.id,
+      eventType: event.type,
+      status: "processed",
+    });
+
     return NextResponse.json({ received: true });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Webhook handler failed";
+    /*
+      "failed", so claimWebhookEvent reclaims it — this answers 500 to ask
+      Stripe for the retry, and a row left in "processing" would make that
+      retry a no-op.
+    */
+    await completeWebhookEvent({
+      source: "stripe",
+      externalId: event.id,
+      eventType: event.type,
+      status: "failed",
+      error: message,
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
