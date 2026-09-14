@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   arePublicLaunchRequirementsMet,
+  canOfferCheckout,
 } from "../src/lib/public-launch-readiness.ts";
 import {
   canCreateShopForEmail,
@@ -87,4 +88,10 @@ test("public launch fails closed when any required system is unavailable", () =>
       `${key} must block public self-serve`,
     );
   }
+});
+
+test("public checkout stays hidden while invited owners can still subscribe", () => {
+  assert.equal(canOfferCheckout(null, false), false);
+  assert.equal(canOfferCheckout("owner@shop.test", false), true);
+  assert.equal(canOfferCheckout(null, true), true);
 });

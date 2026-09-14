@@ -23,6 +23,13 @@ export function arePublicLaunchRequirementsMet(
   return Object.values(requirements).every(Boolean);
 }
 
+export function canOfferCheckout(
+  sessionEmail: string | null | undefined,
+  publicLaunchReady: boolean,
+) {
+  return Boolean(sessionEmail?.trim()) || publicLaunchReady;
+}
+
 /** Public-safe launch truth. It exposes booleans, never secret names or values. */
 export function getPublicLaunchReadiness() {
   const requirements: PublicLaunchRequirements = {
