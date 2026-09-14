@@ -5189,8 +5189,7 @@ h3 {
 .public-money-error,
 .tech-field-error,
 .approve-queue-error,
-.job-money-error,
-.panel-action-error {
+.job-money-error {
   color: #f97066;
 }
 
