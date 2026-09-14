@@ -3,6 +3,7 @@
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
 import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
+import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { company, getPaidPlans, pricing } from "@/lib/company";
@@ -245,6 +246,15 @@ export default function DashboardBillingPage() {
 
       <div className="mt-3">
         <ConnectPayoutsPanel />
+      </div>
+
+      {/*
+        Deposits sit under payouts because they are the same decision in two
+        steps: connect an account, then say what to ask for. Splitting them
+        across two screens is how an owner ends up with one half done.
+      */}
+      <div className="mt-3">
+        <DepositSettingsPanel />
       </div>
 
       <div className="mt-3">

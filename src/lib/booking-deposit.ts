@@ -50,6 +50,48 @@ export function resolveDepositAmountCents(
   return amount;
 }
 
+/**
+ * Whether a change to a shop's deposit settings leaves them coherent.
+ *
+ * Deposits on with no amount resolves to null and collects nothing, so the
+ * settings screen reads as working while every request fails later — at the
+ * point where an owner is already on the phone with a customer. The
+ * combination is refused when it is saved instead.
+ */
+export function validateDepositSettingsChange(params: {
+  current: DepositSettings;
+  next: { depositEnabled?: boolean; depositAmountCents?: number | null };
+}): { ok: true } | { ok: false; error: string } {
+  const { current, next } = params;
+  if (next.depositEnabled === undefined && next.depositAmountCents === undefined) {
+    return { ok: true };
+  }
+
+  const enabled = next.depositEnabled ?? current.depositEnabled;
+  const amountCents =
+    next.depositAmountCents !== undefined
+      ? next.depositAmountCents
+      : current.depositAmountCents;
+
+  if (!enabled) return { ok: true };
+
+  if (amountCents == null) {
+    return {
+      ok: false,
+      error: "Set a deposit amount before turning deposits on.",
+    };
+  }
+
+  if (!isDepositAmountValid(amountCents)) {
+    return {
+      ok: false,
+      error: `Deposit must be between $${(STRIPE_MIN_CHARGE_CENTS / 100).toFixed(2)} and $${MAX_DEPOSIT_CENTS / 100}.`,
+    };
+  }
+
+  return { ok: true };
+}
+
 /** Whether this shop could take a deposit right now, and why not if it can't. */
 export function getDepositReadiness(
   business: DepositSettings &
