@@ -2731,6 +2731,12 @@ a.pro-shift-event:hover .pro-shift-event-title {
   background: var(--fog);
 }
 
+@media (max-width: 767px) {
+  .os-shell-night:has(.lead-detail-sticky) .os-ask-dock {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .onboarding-consent {
   display: flex;
   flex-direction: column;

@@ -268,7 +268,7 @@ export default function DispatchPage() {
   return (
     <OsShell
       title="Dispatch"
-      subtitle="Live field board — assign, advance status, SMS the tech. Map view next."
+      subtitle="Every job has an owner, a live status, and a next move."
       actions={
         <Link href="/dashboard/jobs" className="btn btn-void text-sm">
           All jobs
