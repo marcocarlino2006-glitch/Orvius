@@ -110,7 +110,9 @@ export function ConnectPayoutsPanel() {
       </p>
 
       {error ? (
-        <p className="mt-4 font-sans text-sm text-alarm">{error}</p>
+        <p className="os-own-color panel-action-error mt-4 font-sans text-sm">
+          {error}
+        </p>
       ) : null}
 
       <div className="mt-5">
