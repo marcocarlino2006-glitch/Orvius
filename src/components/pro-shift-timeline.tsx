@@ -31,7 +31,7 @@ export function ProShiftTimeline({
   events: ShiftEvent[];
   loading?: boolean;
 }) {
-  const visible = events.slice(0, 10);
+  const visible = events.slice(0, 6);
 
   return (
     <section className="pro-shift" aria-labelledby="pro-shift-title">

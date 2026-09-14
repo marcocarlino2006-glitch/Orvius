@@ -84,6 +84,7 @@ export async function getShiftTimeline(
           serviceType: true,
           source: true,
           createdAt: true,
+          job: { select: { createdAt: true } },
         },
       }),
       prisma.job.findMany({
@@ -104,6 +105,7 @@ export async function getShiftTimeline(
           completedAt: true,
           resolutionSummary: true,
           finalAmountCents: true,
+          lead: { select: { source: true } },
         },
       }),
       prisma.ownerNotification.findMany({
@@ -168,6 +170,7 @@ export async function getShiftTimeline(
   }
 
   for (const lead of standaloneLeads) {
+    if (lead.job?.createdAt && lead.job.createdAt >= since) continue;
     const service = compact(lead.serviceType) ?? "service request";
     events.push({
       key: `lead_captured:${lead.id}`,
@@ -189,7 +192,9 @@ export async function getShiftTimeline(
         tone: "agent",
         at: job.createdAt.toISOString(),
         title: `Booked ${job.title}`,
-        detail: `Job status: ${job.status}`,
+        detail: job.lead?.source
+          ? `Captured from ${job.lead.source} · Job status: ${job.status}`
+          : `Job status: ${job.status}`,
         href: `/dashboard/jobs/${job.id}`,
         amountCents: null,
       });

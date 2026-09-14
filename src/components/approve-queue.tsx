@@ -95,35 +95,47 @@ export function ApproveQueue({ onChange }: { onChange?: () => void }) {
     }
   }
 
-  if (loading && items.length === 0 && activity.length === 0) {
-    return null;
-  }
-
-  if (items.length === 0 && activity.length === 0) {
-    return null;
-  }
-
   const hasApprovals = items.length > 0;
+  const hasActivity = activity.length > 0;
+  const isEmpty = !loading && !hasApprovals && !hasActivity;
 
   return (
     <section
       id="agent-control"
       className="approve-queue font-sans"
       aria-label="Agent control"
+      aria-busy={loading}
     >
       <header className="approve-queue-head">
         <p className="approve-queue-kicker">Agent control</p>
         <h2 className="approve-queue-title">
-          {hasApprovals ? "Needs your OK" : "Recent agent activity"}
+          {loading && !hasApprovals && !hasActivity
+            ? "Checking agent activity"
+            : hasApprovals
+              ? "Needs your OK"
+              : hasActivity
+                ? "Recent agent activity"
+                : "No approvals waiting"}
         </h2>
         <p className="approve-queue-lead">
           {hasApprovals
             ? "High-risk moves wait for approval. Every decision stays in the audit trail."
-            : "What the agent proposed, what ran, and what you dismissed."}
+            : hasActivity
+              ? "What the agent proposed, what ran, and what you dismissed."
+              : loading
+                ? "Reading the shop's approval queue and audit trail."
+                : "Routine work runs inside your rules. High-risk moves stop here before they run."}
         </p>
       </header>
 
       {error ? <p className="approve-queue-error">{error}</p> : null}
+
+      {isEmpty ? (
+        <div className="agent-control-clear">
+          <span aria-hidden />
+          <p>Guardrails active</p>
+        </div>
+      ) : null}
 
       {hasApprovals ? (
         <ul className="approve-queue-list">
@@ -154,7 +166,7 @@ export function ApproveQueue({ onChange }: { onChange?: () => void }) {
         </ul>
       ) : null}
 
-      {activity.length > 0 ? (
+      {hasActivity ? (
         <div className="agent-activity">
           {hasApprovals ? (
             <p className="agent-activity-title">Recent audit trail</p>

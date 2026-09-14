@@ -55,6 +55,15 @@ test("the shift timeline is measured, deduplicated, sorted, and tenant scoped", 
       createdAt: new Date(Date.now() - 40 * 60 * 1000),
     },
   });
+  const pureLead = await prisma.lead.create({
+    data: {
+      businessId: shop.id,
+      name: "Morgan",
+      serviceType: "Estimate request",
+      source: "sms",
+      createdAt: new Date(Date.now() - 38 * 60 * 1000),
+    },
+  });
   const job = await prisma.job.create({
     data: {
       businessId: shop.id,
@@ -67,10 +76,20 @@ test("the shift timeline is measured, deduplicated, sorted, and tenant scoped", 
       finalAmountCents: 42500,
     },
   });
+  const textJob = await prisma.job.create({
+    data: {
+      businessId: shop.id,
+      leadId: textLead.id,
+      title: "Burst pipe — Renee",
+      status: "scheduled",
+      createdAt: new Date(Date.now() - 36 * 60 * 1000),
+    },
+  });
   const deposit = await prisma.deposit.create({
     data: {
       businessId: shop.id,
       leadId: textLead.id,
+      jobId: textJob.id,
       amountCents: 4900,
       sentAt: new Date(Date.now() - 30 * 60 * 1000),
       paidAt: new Date(Date.now() - 20 * 60 * 1000),
@@ -113,9 +132,14 @@ test("the shift timeline is measured, deduplicated, sorted, and tenant scoped", 
     !keys.includes(`lead_captured:${callLead.id}`),
     "the lead attached to a call must not double-count the same inbound touch",
   );
-  assert.ok(keys.includes(`lead_captured:${textLead.id}`));
+  assert.ok(
+    !keys.includes(`lead_captured:${textLead.id}`),
+    "a lead booked during the shift must resolve to the stronger booking event",
+  );
+  assert.ok(keys.includes(`lead_captured:${pureLead.id}`));
   assert.ok(keys.includes(`job_booked:${job.id}`));
   assert.ok(keys.includes(`job_completed:${job.id}`));
+  assert.ok(keys.includes(`job_booked:${textJob.id}`));
   assert.ok(keys.includes(`deposit_sent:${deposit.id}`));
   assert.ok(keys.includes(`deposit_paid:${deposit.id}`));
   assert.ok(keys.includes(`owner_alerted:${sentAlert.id}:sms`));

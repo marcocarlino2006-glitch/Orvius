@@ -95,12 +95,6 @@ export function Ring1CommandCenter() {
     ((data?.dispatchToday.unassigned ?? 0) > 0 ||
       (data?.dispatchToday.jobCount ?? 0) > 0);
 
-  const attentionCoversGates = attention.some((item) =>
-    ["billing_action", "founder_cert", "missing_baseline", "stale_weekly_proof", "alert_failed", "needs_capture"].includes(
-      item.kind,
-    ),
-  );
-
   const empty =
     !loading &&
     attention.length === 0 &&
@@ -174,7 +168,7 @@ export function Ring1CommandCenter() {
         <ProLineWatch health={data?.health ?? null} />
         {!data?.wedge?.ready ? <ProSetupScore wedge={data?.wedge ?? null} /> : null}
 
-        {!attentionCoversGates ? (
+        {attention.length === 0 ? (
           <ProTodayAlerts
             health={data?.health ?? null}
             wedge={data?.wedge ?? null}
