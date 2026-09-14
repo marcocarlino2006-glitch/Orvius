@@ -9,11 +9,19 @@ type Proposal = {
   createdAt: string;
 };
 
+type Activity = Proposal & {
+  status: "executed" | "cancelled";
+  executedAt: string | null;
+};
+
 /**
- * Approve-first queue — high-risk Copilot proposals waiting on the owner.
+ * Agent control — high-risk moves wait for approval, and every resolved move
+ * stays visible afterward. The audit trail is as important as the button:
+ * autonomy without evidence is just another black box.
  */
 export function ApproveQueue({ onChange }: { onChange?: () => void }) {
   const [items, setItems] = useState<Proposal[]>([]);
+  const [activity, setActivity] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +44,18 @@ export function ApproveQueue({ onChange }: { onChange?: () => void }) {
             preview: p.preview,
             createdAt: p.createdAt,
           }),
+        ),
+      );
+      setActivity(
+        (data.activity ?? []).map(
+          (item: {
+            id: string;
+            action: string;
+            preview: string;
+            status: "executed" | "cancelled";
+            createdAt: string;
+            executedAt: string | null;
+          }) => item,
         ),
       );
     } catch {
@@ -66,7 +86,7 @@ export function ApproveQueue({ onChange }: { onChange?: () => void }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Action failed");
-      setItems((prev) => prev.filter((p) => p.id !== proposalId));
+      await load();
       onChange?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
@@ -75,52 +95,96 @@ export function ApproveQueue({ onChange }: { onChange?: () => void }) {
     }
   }
 
-  if (loading && items.length === 0) {
+  if (loading && items.length === 0 && activity.length === 0) {
     return null;
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && activity.length === 0) {
     return null;
   }
+
+  const hasApprovals = items.length > 0;
 
   return (
     <section className="approve-queue font-sans" aria-label="Approve queue">
       <header className="approve-queue-head">
-        <p className="approve-queue-kicker">Approve first</p>
-        <h2 className="approve-queue-title">Needs your OK</h2>
+        <p className="approve-queue-kicker">Agent control</p>
+        <h2 className="approve-queue-title">
+          {hasApprovals ? "Needs your OK" : "Recent agent activity"}
+        </h2>
         <p className="approve-queue-lead">
-          High-risk moves stay queued until you approve. Autonomy with overrides.
+          {hasApprovals
+            ? "High-risk moves wait for approval. Every decision stays in the audit trail."
+            : "What the agent proposed, what ran, and what you dismissed."}
         </p>
       </header>
 
       {error ? <p className="approve-queue-error">{error}</p> : null}
 
-      <ul className="approve-queue-list">
-        {items.map((item) => (
-          <li key={item.id} className="approve-queue-item">
-            <p className="approve-queue-action">{item.action.replace(/_/g, " ")}</p>
-            <p className="approve-queue-preview">{item.preview}</p>
-            <div className="approve-queue-actions">
-              <button
-                type="button"
-                className="btn btn-void text-sm"
-                disabled={busyId === item.id}
-                onClick={() => void act(item.id, "execute")}
-              >
-                {busyId === item.id ? "Working…" : "Approve"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary text-sm"
-                disabled={busyId === item.id}
-                onClick={() => void act(item.id, "cancel")}
-              >
-                Dismiss
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {hasApprovals ? (
+        <ul className="approve-queue-list">
+          {items.map((item) => (
+            <li key={item.id} className="approve-queue-item">
+              <p className="approve-queue-action">{item.action.replace(/_/g, " ")}</p>
+              <p className="approve-queue-preview">{item.preview}</p>
+              <div className="approve-queue-actions">
+                <button
+                  type="button"
+                  className="btn btn-void text-sm"
+                  disabled={busyId === item.id}
+                  onClick={() => void act(item.id, "execute")}
+                >
+                  {busyId === item.id ? "Working…" : "Approve"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary text-sm"
+                  disabled={busyId === item.id}
+                  onClick={() => void act(item.id, "cancel")}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {activity.length > 0 ? (
+        <div className="agent-activity">
+          {hasApprovals ? (
+            <p className="agent-activity-title">Recent audit trail</p>
+          ) : null}
+          <ol className="agent-activity-list">
+            {activity.map((item) => {
+              const at = item.executedAt ?? item.createdAt;
+              return (
+                <li key={item.id}>
+                  <span
+                    className={`agent-activity-status agent-activity-status--${item.status}`}
+                  >
+                    {item.status === "executed" ? "Executed" : "Dismissed"}
+                  </span>
+                  <div>
+                    <p>{item.preview}</p>
+                    <span>
+                      {item.action.replace(/_/g, " ")} ·{" "}
+                      <time dateTime={at}>
+                        {new Date(at).toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </time>
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ) : null}
     </section>
   );
 }

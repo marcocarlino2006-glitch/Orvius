@@ -2622,6 +2622,92 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.agent-activity {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
+}
+
+.agent-activity-title {
+  margin: 0;
+  color: var(--ash);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.agent-activity-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agent-activity-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.7rem;
+}
+
+.agent-activity-list p {
+  margin: 0;
+  color: var(--void);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.agent-activity-list div > span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ash);
+  font-size: 0.6875rem;
+  text-transform: capitalize;
+}
+
+.agent-activity-status {
+  min-width: 4.4rem;
+  padding: 0.18rem 0.35rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.agent-activity-status--executed {
+  color: #3f8f67;
+}
+
+.agent-activity-status--cancelled {
+  color: var(--ash);
+}
+
+.os-shell-night .agent-activity {
+  border-top-color: #44423e;
+}
+
+.os-shell-night .agent-activity-list p {
+  color: #e9e9e9;
+}
+
+.os-shell-night .agent-activity-list div > span {
+  color: #a09f9e;
+}
+
+.os-shell-night .agent-activity-status--executed {
+  color: #6ee7b7;
+}
+
+.os-shell-night .agent-activity-status--cancelled {
+  color: #a09f9e;
+}
+
 .owner-setup-banner {
   display: flex;
   flex-wrap: wrap;
