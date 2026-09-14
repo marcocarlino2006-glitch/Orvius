@@ -247,10 +247,6 @@
   color: var(--void);
 }
 
-.panel-action-error {
-  color: #f97066;
-}
-
 .account-plan-price {
   margin-top: 0.25rem;
   font-size: 0.875rem;
