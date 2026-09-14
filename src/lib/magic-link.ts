@@ -1,9 +1,9 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { isEmailAllowed } from "@/lib/auth-allowlist";
-import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import { company } from "@/lib/company";
 import { getAppUrl } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 /**
  * Passwordless sign-in links.
@@ -32,7 +32,7 @@ export function normalizeEmail(raw: string) {
 
 export function isMagicLinkEmailAuthorized(
   email: string,
-  publicSignupReady = getBulletproofStatus().publicSelfServeReady,
+  publicSignupReady = getPublicLaunchReadiness().ready,
 ) {
   return publicSignupReady || isEmailAllowed(email);
 }

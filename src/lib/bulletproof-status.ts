@@ -3,13 +3,9 @@
  * Product never looks “fully live” when cash or counsel gates are red.
  */
 
-import { getAuthConfigStatus } from "@/lib/auth-env";
 import { getBillingReadiness } from "@/lib/billing-readiness";
 import { company } from "@/lib/company";
-import { isEmailConfigured } from "@/lib/email";
-import { getConfigStatus, isConfigured } from "@/lib/env";
-import { isSelfServeSignupEnabled } from "@/lib/self-serve-signup";
-import { canProvisionDedicatedLine } from "@/lib/twilio-phone";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 export type BulletproofGate = {
   id: string;
@@ -34,31 +30,10 @@ export type BulletproofStatus = {
   gates: BulletproofGate[];
 };
 
-export type PublicLaunchRequirements = {
-  selfServeEnabled: boolean;
-  authReady: boolean;
-  billingReady: boolean;
-  telephonyReady: boolean;
-  lineProvisioningReady: boolean;
-  voiceWebhookReady: boolean;
-  emailReady: boolean;
-  legalReady: boolean;
-};
-
-export function arePublicLaunchRequirementsMet(
-  requirements: PublicLaunchRequirements,
-) {
-  return Object.values(requirements).every(Boolean);
-}
-
 export function getBulletproofStatus(): BulletproofStatus {
   const billing = getBillingReadiness();
-  const auth = getAuthConfigStatus();
-  const telephony = getConfigStatus();
-  const selfServeEnabled = isSelfServeSignupEnabled();
-  const lineProvisioningReady = canProvisionDedicatedLine();
-  const vapiWebhookReady = isConfigured("VAPI_WEBHOOK_SECRET");
-  const emailReady = isEmailConfigured();
+  const launch = getPublicLaunchReadiness();
+  const requirements = launch.requirements;
   const formationReady = Boolean(company.formationStateConfirmed?.trim());
   const stripeKey = billing.config.secretKey;
   const webhook = billing.config.webhookSecret;
@@ -94,8 +69,8 @@ export function getBulletproofStatus(): BulletproofStatus {
     {
       id: "self_serve_signup",
       label: "Public signup switch",
-      ok: selfServeEnabled,
-      detail: selfServeEnabled
+      ok: requirements.selfServeEnabled,
+      detail: requirements.selfServeEnabled
         ? "New owners may enter onboarding"
         : "Set ORVIUS_SELF_SERVE_SIGNUP=1 only after every launch gate is green",
       founderOnly: true,
@@ -103,8 +78,8 @@ export function getBulletproofStatus(): BulletproofStatus {
     {
       id: "auth",
       label: "Production authentication",
-      ok: auth.ready,
-      detail: auth.ready
+      ok: requirements.authReady,
+      detail: requirements.authReady
         ? "Google authentication configured"
         : "AUTH_SECRET and Google OAuth credentials are required",
       founderOnly: true,
@@ -112,9 +87,12 @@ export function getBulletproofStatus(): BulletproofStatus {
     {
       id: "telephony",
       label: "Telephony stack",
-      ok: telephony.ready && lineProvisioningReady,
+      ok:
+        requirements.telephonyReady &&
+        requirements.lineProvisioningReady,
       detail:
-        telephony.ready && lineProvisioningReady
+        requirements.telephonyReady &&
+        requirements.lineProvisioningReady
           ? "Twilio and Vapi can provision and answer"
           : "Twilio and Vapi must be complete before public onboarding",
       founderOnly: true,
@@ -122,8 +100,8 @@ export function getBulletproofStatus(): BulletproofStatus {
     {
       id: "vapi_webhook",
       label: "Voice webhook authentication",
-      ok: vapiWebhookReady,
-      detail: vapiWebhookReady
+      ok: requirements.voiceWebhookReady,
+      detail: requirements.voiceWebhookReady
         ? "VAPI_WEBHOOK_SECRET present"
         : "Set VAPI_WEBHOOK_SECRET before accepting public calls",
       founderOnly: true,
@@ -131,8 +109,8 @@ export function getBulletproofStatus(): BulletproofStatus {
     {
       id: "transactional_email",
       label: "Transactional email",
-      ok: emailReady,
-      detail: emailReady
+      ok: requirements.emailReady,
+      detail: requirements.emailReady
         ? "Email sign-in and failover delivery configured"
         : "Set RESEND_API_KEY for sign-in links and alert failover",
       founderOnly: true,
@@ -162,16 +140,7 @@ export function getBulletproofStatus(): BulletproofStatus {
   const openGates = gates.filter((g) => !g.ok);
   const checkoutPublicReady = billing.fullyReady;
   const legalReady = formationReady;
-  const publicSelfServeReady = arePublicLaunchRequirementsMet({
-    selfServeEnabled,
-    authReady: auth.ready,
-    billingReady: checkoutPublicReady,
-    telephonyReady: telephony.ready,
-    lineProvisioningReady,
-    voiceWebhookReady: vapiWebhookReady,
-    emailReady,
-    legalReady,
-  });
+  const publicSelfServeReady = launch.ready;
   const fullyReady = publicSelfServeReady;
 
   return {

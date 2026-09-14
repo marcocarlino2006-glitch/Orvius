@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   arePublicLaunchRequirementsMet,
-} from "../src/lib/bulletproof-status.ts";
+} from "../src/lib/public-launch-readiness.ts";
 import {
   canCreateShopForEmail,
   isSelfServeSignupEnabled,

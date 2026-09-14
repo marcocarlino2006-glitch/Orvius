@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { isPrivilegedRequest } from "@/lib/admin-access";
-import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import { company } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import {
   getAppBaseUrl,
   getBillingReadiness,
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     configured: isStripeConfigured(),
     checkoutReady: isStripeCheckoutConfigured(),
-    selfServeAvailable: getBulletproofStatus().publicSelfServeReady,
+    selfServeAvailable: getPublicLaunchReadiness().ready,
     plans,
     currency: "usd",
     legalEntity: company.legalName,

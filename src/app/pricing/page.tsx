@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
-import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import { demoLineHref } from "@/lib/demo-line";
 import { getFeaturedPlan, getLowestPaidPrice } from "@/lib/company";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 const featured = getFeaturedPlan();
 
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default function PricingPage() {
-  const selfServeReady = getBulletproofStatus().publicSelfServeReady;
+  const selfServeReady = getPublicLaunchReadiness().ready;
 
   return (
     <MarketingShell>

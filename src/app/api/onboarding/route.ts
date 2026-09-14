@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
-import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import {
   findBusinessForOwner,
   isOnboardingComplete,
   provisionBusiness,
 } from "@/lib/provision-business";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { TRADES } from "@/lib/trades";
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
   }
 
   const invitedEmails = getAllowedEmails();
-  const publicSignupReady = getBulletproofStatus().publicSelfServeReady;
+  const publicSignupReady = getPublicLaunchReadiness().ready;
   if (
     !canCreateShopForEmail(
       email,

@@ -64,10 +64,10 @@ const nextAuth = NextAuth({
       }
 
       if (user.email) {
-        const { getBulletproofStatus } = await import(
-          "@/lib/bulletproof-status"
+        const { getPublicLaunchReadiness } = await import(
+          "@/lib/public-launch-readiness"
         );
-        if (getBulletproofStatus().publicSelfServeReady) return true;
+        if (getPublicLaunchReadiness().ready) return true;
       }
 
       return isDashboardEmailAuthorized(user.email, async (email) => {
