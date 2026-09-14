@@ -15,8 +15,8 @@ export default function DashboardPage() {
         </Link>
       }
     >
-      <OwnerSetupBanner />
       <Ring1CommandCenter />
+      <OwnerSetupBanner />
     </OsShell>
   );
 }

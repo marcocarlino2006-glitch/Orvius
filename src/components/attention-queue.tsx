@@ -248,7 +248,9 @@ export function AttentionQueue({
       */}
       <ProLead
         figure={String(items.length)}
-        caption={items.length === 1 ? "row needs you" : "rows need you"}
+        caption={
+          items.length === 1 ? "exception needs you" : "exceptions need you"
+        }
         detail={
           criticalCount > 0
             ? `${criticalCount} critical, ranked first. Act top down.`

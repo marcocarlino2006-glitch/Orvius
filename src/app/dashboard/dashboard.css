@@ -287,6 +287,61 @@
 }
 .ring1-command { display: flex; flex-direction: column; gap: 1.75rem; }
 
+.pro-command-outcomes {
+  position: relative;
+  overflow: hidden;
+  padding: 1.2rem 1.25rem 1.1rem;
+  border: 1px solid #4d4942;
+  border-top: 3px solid var(--signal-hot);
+  border-radius: 0.5rem;
+  background:
+    radial-gradient(
+      circle at 88% 0%,
+      color-mix(in srgb, var(--signal-hot) 13%, transparent),
+      transparent 32%
+    ),
+    #2f2d28;
+}
+
+.pro-command-outcomes-kicker {
+  margin: 0 0 0.85rem;
+  color: #c8c5bf;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pro-command-outcomes .pro-lead {
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.pro-command-outcomes .pro-lead-figure {
+  font-size: clamp(2.6rem, 5vw, 4.5rem);
+}
+
+.pro-command-outcomes .pro-lead-caption {
+  max-width: 24ch;
+  font-size: clamp(1.05rem, 1.8vw, 1.4rem);
+}
+
+.pro-command-outcomes .pro-lead-detail {
+  max-width: 62ch;
+}
+
+@media (max-width: 720px) {
+  .pro-command-outcomes {
+    padding: 1rem;
+  }
+
+  .pro-command-outcomes .pro-lead-main {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .attention-queue {
   padding: 1.25rem 1.25rem 1.125rem;
   border: 1px solid var(--rule);
