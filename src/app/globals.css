@@ -8632,7 +8632,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 .os-shell-night .pro-panel-body,
-.os-shell-night .pro-panel-body p,
+.os-shell-night .pro-panel-body p:not(.os-own-color),
 .os-shell-night .pro-panel-body dd,
 .os-shell-night .pro-panel-body dt {
   color: #e9e9e9 !important;
