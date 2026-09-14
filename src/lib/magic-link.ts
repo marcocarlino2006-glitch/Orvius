@@ -1,9 +1,9 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { isEmailAllowed } from "@/lib/auth-allowlist";
+import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import { company } from "@/lib/company";
 import { getAppUrl } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
-import { isSelfServeSignupEnabled } from "@/lib/self-serve-signup";
 
 /**
  * Passwordless sign-in links.
@@ -30,6 +30,13 @@ export function normalizeEmail(raw: string) {
   return raw.trim().toLowerCase();
 }
 
+export function isMagicLinkEmailAuthorized(
+  email: string,
+  publicSignupReady = getBulletproofStatus().publicSelfServeReady,
+) {
+  return publicSignupReady || isEmailAllowed(email);
+}
+
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -45,7 +52,7 @@ export async function issueMagicLink(rawEmail: string): Promise<IssueResult> {
   if (!EMAIL_PATTERN.test(email) || email.length > 254) {
     return { ok: false, reason: "invalid-email" };
   }
-  if (!isSelfServeSignupEnabled() && !isEmailAllowed(email)) {
+  if (!isMagicLinkEmailAuthorized(email)) {
     return { ok: false, reason: "not-allowed" };
   }
 
@@ -95,7 +102,9 @@ export async function consumeMagicLink(token: string): Promise<string | null> {
   }
 
   if (record.usedAt || record.expiresAt.getTime() < Date.now()) return null;
-  if (!isSelfServeSignupEnabled() && !isEmailAllowed(record.email)) return null;
+  if (!isMagicLinkEmailAuthorized(record.email)) {
+    return null;
+  }
 
   // Conditional update: whoever flips usedAt first wins, so a link replayed in
   // two tabs authenticates exactly once.

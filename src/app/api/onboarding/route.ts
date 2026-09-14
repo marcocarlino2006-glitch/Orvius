@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
+import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import {
   findBusinessForOwner,
   isOnboardingComplete,
@@ -56,9 +57,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const invitedEmails = getAllowedEmails();
+  const publicSignupReady = getBulletproofStatus().publicSelfServeReady;
   if (
-    !canCreateShopForEmail(email, (normalized) =>
-      getAllowedEmails().includes(normalized),
+    !canCreateShopForEmail(
+      email,
+      (normalized) => invitedEmails.includes(normalized),
+      publicSignupReady,
     )
   ) {
     return NextResponse.json(

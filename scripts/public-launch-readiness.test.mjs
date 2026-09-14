@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { isDashboardEmailAuthorized } from "../src/lib/auth-allowlist.ts";
 import {
   arePublicLaunchRequirementsMet,
 } from "../src/lib/bulletproof-status.ts";
@@ -32,13 +31,14 @@ test("public signup is explicit and invite onboarding remains available", async 
   await withEnv({ ORVIUS_SELF_SERVE_SIGNUP: undefined }, async () => {
     assert.equal(isSelfServeSignupEnabled(), false);
     assert.equal(
-      canCreateShopForEmail("owner@shop.test", () => false),
+      canCreateShopForEmail("owner@shop.test", () => false, false),
       false,
     );
     assert.equal(
       canCreateShopForEmail(
         " INVITED@SHOP.TEST ",
         (email) => email === "invited@shop.test",
+        false,
       ),
       true,
     );
@@ -47,25 +47,21 @@ test("public signup is explicit and invite onboarding remains available", async 
   await withEnv({ ORVIUS_SELF_SERVE_SIGNUP: "true" }, async () => {
     assert.equal(isSelfServeSignupEnabled(), true);
     assert.equal(
-      canCreateShopForEmail("new-owner@shop.test", () => false),
+      canCreateShopForEmail("new-owner@shop.test", () => false, true),
       true,
     );
   });
 });
 
-test("the public signup switch authorizes a new owner without weakening empty-email checks", async () => {
+test("a raw signup switch cannot bypass a red composed launch gate", async () => {
   await withEnv({ ORVIUS_SELF_SERVE_SIGNUP: "1" }, async () => {
-    let ownershipLookups = 0;
+    assert.equal(isSelfServeSignupEnabled(), true);
     assert.equal(
-      await isDashboardEmailAuthorized("new-owner@shop.test", async () => {
-        ownershipLookups += 1;
-        return false;
-      }),
-      true,
+      canCreateShopForEmail("new-owner@shop.test", () => false, false),
+      false,
     );
-    assert.equal(ownershipLookups, 0);
     assert.equal(
-      await isDashboardEmailAuthorized(null, async () => true),
+      canCreateShopForEmail(null, () => true, true),
       false,
     );
   });

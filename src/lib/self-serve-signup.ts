@@ -14,8 +14,9 @@ export function isSelfServeSignupEnabled() {
 export function canCreateShopForEmail(
   email: string | null | undefined,
   isExplicitlyInvited: (normalizedEmail: string) => boolean,
+  publicSignupReady: boolean,
 ) {
   const normalized = email?.trim().toLowerCase();
   if (!normalized) return false;
-  return isSelfServeSignupEnabled() || isExplicitlyInvited(normalized);
+  return publicSignupReady || isExplicitlyInvited(normalized);
 }

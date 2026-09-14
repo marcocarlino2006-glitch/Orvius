@@ -5,9 +5,9 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { SignInBoard } from "@/components/signin-board";
 import { SignInPanel } from "@/components/signin-panel";
 import { SystemStatusPill } from "@/components/system-status-pill";
+import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import { company } from "@/lib/company";
 import { getDevAuthEmail, isDevAuthBypassEnabled } from "@/lib/dev-auth";
-import { isSelfServeSignupEnabled } from "@/lib/self-serve-signup";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -39,7 +39,7 @@ export default async function SignInPage({
   const error = params.error ? (ERRORS[params.error] ?? ERRORS.CredentialsSignin) : null;
   const showDevChrome =
     isDevAuthBypassEnabled() && (params.dev === "1" || params.dev === "true");
-  const selfServeEnabled = isSelfServeSignupEnabled();
+  const selfServeEnabled = getBulletproofStatus().publicSelfServeReady;
 
   return (
     <main className="ov-signin">

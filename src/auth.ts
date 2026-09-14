@@ -63,6 +63,13 @@ const nextAuth = NextAuth({
         return isDevAuthBypassEnabled();
       }
 
+      if (user.email) {
+        const { getBulletproofStatus } = await import(
+          "@/lib/bulletproof-status"
+        );
+        if (getBulletproofStatus().publicSelfServeReady) return true;
+      }
+
       return isDashboardEmailAuthorized(user.email, async (email) => {
         /*
          * Dynamic for the same reason consumeMagicLink is dynamic above:
