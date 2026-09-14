@@ -15,6 +15,19 @@ import { useCallback, useEffect, useState } from "react";
 
 type Tech = { id: string; name: string; phone: string | null };
 
+type DepositState = {
+  id: string;
+  amountCents: number;
+  status: string;
+  payUrl: string | null;
+  sentAt: string | null;
+  paidAt: string | null;
+} | null;
+
+type DepositReadiness =
+  | { ready: true; amountCents: number }
+  | { ready: false; reason: "connect_incomplete" | "deposits_off" };
+
 type JobDetail = {
   id: string;
   title: string;
@@ -61,6 +74,14 @@ export default function JobDetailPage() {
   const params = useParams<{ id: string }>();
   const jobId = params.id;
   const [job, setJob] = useState<JobDetail | null>(null);
+  /*
+    Deposit state is kept out of `job` on purpose — the PATCH response carries
+    a job without it, so folding the two together would blank the deposit
+    every time the owner changed a status or a technician.
+  */
+  const [deposit, setDeposit] = useState<DepositState>(null);
+  const [depositReadiness, setDepositReadiness] =
+    useState<DepositReadiness | null>(null);
   const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +101,8 @@ export default function JobDetailPage() {
     ])
       .then(([jobData, techData]) => {
         setJob(jobData.job);
+        setDeposit(jobData.deposit ?? null);
+        setDepositReadiness(jobData.depositReadiness ?? null);
         setCrew(techData.technicians ?? []);
         if (jobData.job?.scheduledAt) {
           const d = new Date(jobData.job.scheduledAt);
@@ -368,6 +391,10 @@ export default function JobDetailPage() {
               jobId={job.id}
               avgTicketCents={job.business?.avgTicketCents ?? null}
               estimate={job.estimate}
+              leadId={job.lead?.id ?? null}
+              customerPhone={job.lead?.phone ?? job.customer?.phone ?? null}
+              deposit={deposit}
+              depositReadiness={depositReadiness}
               onRefresh={load}
             />
           </ShellPanel>
