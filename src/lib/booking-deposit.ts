@@ -9,6 +9,7 @@ import {
 } from "@/lib/platform-fee";
 import { prisma } from "@/lib/prisma";
 import { mintPublicToken } from "@/lib/public-tokens";
+import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
 
@@ -182,10 +183,11 @@ export async function sendDepositLink(params: {
   const result = await sendCustomerSms({
     businessId: params.business.id,
     to: params.toPhone,
-    body:
+    body: withSmsOptOutFooter(
       `${params.business.name}: to lock in your appointment, ` +
       `please pay your $${dollars} deposit here: ` +
       depositPayUrl(params.deposit.publicToken),
+    ),
   });
 
   if (result.sent) {
