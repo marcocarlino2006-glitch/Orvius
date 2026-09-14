@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { formatCentsExact } from "@/lib/money";
@@ -30,7 +30,6 @@ export function DepositSettingsPanel() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const errorRef = useRef<HTMLParagraphElement>(null);
 
   const load = useCallback(async () => {
     try {
@@ -61,71 +60,6 @@ export function DepositSettingsPanel() {
   useEffect(() => {
     void load();
   }, [load]);
-
-  useEffect(() => {
-    const element = errorRef.current;
-    if (!error || !element) return;
-
-    const rules: Array<{
-      href: string | null;
-      selector: string;
-      color: string;
-      priority: string;
-      matches: boolean;
-    }> = [];
-    const visit = (cssRules: CSSRuleList, href: string | null) => {
-      for (const rule of cssRules) {
-        if (rule instanceof CSSStyleRule) {
-          const mentionsRelevantClass =
-            rule.selectorText.includes("panel-action-error") ||
-            rule.selectorText.includes("os-own-color");
-          let matches = false;
-          try {
-            matches = element.matches(rule.selectorText);
-          } catch {
-            // Ignore selectors unsupported by Element.matches.
-          }
-          if (mentionsRelevantClass || (matches && rule.style.color)) {
-            rules.push({
-              href,
-              selector: rule.selectorText,
-              color: rule.style.getPropertyValue("color"),
-              priority: rule.style.getPropertyPriority("color"),
-              matches,
-            });
-          }
-        }
-        const nested = (rule as CSSRule & { cssRules?: CSSRuleList }).cssRules;
-        if (nested) visit(nested, href);
-      }
-    };
-
-    const stylesheets: Array<{ href: string | null; accessible: boolean }> = [];
-    for (const sheet of document.styleSheets) {
-      try {
-        stylesheets.push({ href: sheet.href, accessible: true });
-        visit(sheet.cssRules, sheet.href);
-      } catch {
-        stylesheets.push({ href: sheet.href, accessible: false });
-      }
-    }
-
-    const computed = getComputedStyle(element);
-    void fetch("/api/debug-css", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        className: element.className,
-        computedColor: computed.color,
-        inlineColor: element.style.color,
-        parentColor: element.parentElement
-          ? getComputedStyle(element.parentElement).color
-          : null,
-        stylesheets,
-        rules,
-      }),
-    });
-  }, [error]);
 
   async function save() {
     setSaving(true);
@@ -236,10 +170,7 @@ export function DepositSettingsPanel() {
       </label>
 
       {error ? (
-        <p
-          ref={errorRef}
-          className="os-own-color panel-action-error mt-4 font-sans text-sm"
-        >
+        <p className="os-own-color panel-action-error mt-4 font-sans text-sm">
           {error}
         </p>
       ) : null}
