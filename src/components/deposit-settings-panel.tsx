@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
-import { formatCents } from "@/lib/money";
+import { formatCentsExact } from "@/lib/money";
 
 type DepositsResponse = {
   enabled: boolean;
@@ -110,11 +110,20 @@ export function DepositSettingsPanel() {
   const needsConnect =
     !data.readiness.ready && data.readiness.reason === "connect_incomplete";
 
+  /*
+    The field only accepts whole dollars, so the bounds it enforces and the
+    bounds it advertises are derived from one pair of numbers. Formatting the
+    raw cents for the hint instead happened to read "$1" for a 50c floor only
+    because the money formatter rounds.
+  */
+  const minDollars = Math.ceil(data.minCents / 100);
+  const maxDollars = Math.floor(data.maxCents / 100);
+
   return (
     <ShellPanel title="Booking deposits" dense>
       <p className="account-plan-name font-sans">
         {data.readiness.ready
-          ? `Asking ${formatCents(data.readiness.amountCents)} at booking`
+          ? `Asking ${formatCentsExact(data.readiness.amountCents)} at booking`
           : "Not asking for a deposit"}
       </p>
       <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
@@ -142,8 +151,8 @@ export function DepositSettingsPanel() {
         <span className="onboarding-label">Deposit amount ($)</span>
         <input
           type="number"
-          min={Math.ceil(data.minCents / 100)}
-          max={Math.floor(data.maxCents / 100)}
+          min={minDollars}
+          max={maxDollars}
           step={1}
           value={amount}
           onChange={(e) => {
@@ -155,9 +164,8 @@ export function DepositSettingsPanel() {
           disabled={saving}
         />
         <span className="onboarding-hint">
-          Between {formatCents(data.minCents)} and{" "}
-          {formatCents(data.maxCents)}. Credited against the final bill by your
-          shop — Orvius does not decide that.
+          Whole dollars, ${minDollars} to ${maxDollars}. Credited against the
+          final bill by your shop — Orvius does not decide that.
         </span>
       </label>
 
@@ -191,8 +199,8 @@ export function DepositSettingsPanel() {
         </p>
       ) : data.netCents != null && data.amountCents != null ? (
         <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
-          You keep {formatCents(data.netCents)} of every{" "}
-          {formatCents(data.amountCents)} deposit. Orvius keeps {data.feeRate};
+          You keep {formatCentsExact(data.netCents)} of every{" "}
+          {formatCentsExact(data.amountCents)} deposit. Orvius keeps {data.feeRate};
           Stripe&rsquo;s processing fee is separate and charged by Stripe.
         </p>
       ) : null}

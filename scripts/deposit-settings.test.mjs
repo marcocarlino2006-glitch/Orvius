@@ -5,11 +5,12 @@
  * the Billing screen reads "on" while every deposit request is refused later,
  * at the moment an owner is on the phone with a customer.
  *
- * The webhook claim: Stripe retries for days on a non-2xx and also re-sends on
- * its own schedule, so the billing route has to be idempotent per event id.
- * The subtle half is the failure path — a row left in "processing" makes
- * Stripe's retry a no-op, which is how a paid deposit stays unfulfilled. This
- * exact mistake was already made once on the Vapi route, so it is pinned here.
+ * The webhook claim: the risky half is not the duplicate, it is the failure
+ * path. Adding a claim to a route means a first delivery that throws must
+ * leave its row reclaimable, or Stripe's retry is refused and the payment is
+ * never fulfilled — the claim turns a recoverable error into a permanent one.
+ * That exact mistake was already made once on the Vapi route, so it is pinned
+ * here for the billing route too.
  */
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -25,6 +26,7 @@ import {
   hasProcessedWebhookEvent,
 } from "../src/lib/webhook-events.ts";
 import { STRIPE_MIN_CHARGE_CENTS } from "../src/lib/platform-fee.ts";
+import { formatCents, formatCentsExact } from "../src/lib/money.ts";
 
 const prisma = new PrismaClient();
 
@@ -106,6 +108,19 @@ test("a change touching neither field is left alone", () => {
     next: {},
   });
   assert.equal(result.ok, true);
+});
+
+test("deposit figures are shown to the cent, not rounded", () => {
+  /*
+    formatCents rounds to whole dollars, which is right for the pipeline
+    estimates it was written for. On a deposit it hides the fee: the shop's
+    net on $49 reads back as the full $49, and on a $1 deposit the 2% cut
+    rounds away to nothing.
+  */
+  assert.equal(formatCents(4802), "$48");
+  assert.equal(formatCentsExact(4802), "$48.02");
+  assert.equal(formatCentsExact(98), "$0.98");
+  assert.equal(formatCentsExact(4900), "$49.00");
 });
 
 test("a replayed Stripe event is refused a second claim", async () => {

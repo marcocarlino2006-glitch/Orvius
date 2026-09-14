@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCents } from "@/lib/money";
+import { formatCents, formatCentsExact } from "@/lib/money";
 import { useState } from "react";
 
 type EstimateState = {
@@ -220,12 +220,12 @@ export function JobMoneyPanel({
           <>
             <p className="job-money-lead">
               {deposit.status === "paid"
-                ? `${formatCents(deposit.amountCents)} paid${
+                ? `${formatCentsExact(deposit.amountCents)} paid${
                     deposit.paidAt
                       ? ` on ${new Date(deposit.paidAt).toLocaleDateString()}`
                       : ""
                   }.`
-                : `${formatCents(deposit.amountCents)} requested${
+                : `${formatCentsExact(deposit.amountCents)} requested${
                     deposit.sentAt ? " and texted" : ""
                   } — not paid yet.`}
             </p>
@@ -249,8 +249,8 @@ export function JobMoneyPanel({
           <>
             <p className="job-money-lead">
               {customerPhone
-                ? `Text this customer a link to pay ${formatCents(depositReadiness.amountCents)} and hold the slot.`
-                : `Create a link for ${formatCents(depositReadiness.amountCents)} to hold the slot. No phone on file, so it will not send itself.`}
+                ? `Text this customer a link to pay ${formatCentsExact(depositReadiness.amountCents)} and hold the slot.`
+                : `Create a link for ${formatCentsExact(depositReadiness.amountCents)} to hold the slot. No phone on file, so it will not send itself.`}
             </p>
             <button
               type="button"
@@ -261,8 +261,8 @@ export function JobMoneyPanel({
               {depositBusy
                 ? "Requesting…"
                 : customerPhone
-                  ? `Text ${formatCents(depositReadiness.amountCents)} deposit link`
-                  : `Create ${formatCents(depositReadiness.amountCents)} deposit link`}
+                  ? `Text ${formatCentsExact(depositReadiness.amountCents)} deposit link`
+                  : `Create ${formatCentsExact(depositReadiness.amountCents)} deposit link`}
             </button>
           </>
         ) : (
@@ -280,7 +280,13 @@ export function JobMoneyPanel({
           </p>
         )}
 
-        {depositNote ? (
+        {/*
+          Held back until the deposit itself is on screen. Every wording of
+          this note points at the link ("copy it below"), and the refresh that
+          brings the link lands a beat after the request resolves — so shown
+          eagerly it spends that beat pointing at nothing.
+        */}
+        {depositNote && deposit ? (
           <p className="job-money-lead">{depositNote}</p>
         ) : null}
       </div>
