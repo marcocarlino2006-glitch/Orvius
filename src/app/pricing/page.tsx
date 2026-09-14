@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
-import { isAnyPlanCheckoutReady } from "@/lib/billing-readiness";
+import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import { demoLineHref } from "@/lib/demo-line";
 import { getFeaturedPlan, getLowestPaidPrice } from "@/lib/company";
 
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default function PricingPage() {
-  const checkoutReady = isAnyPlanCheckoutReady();
+  const selfServeReady = getBulletproofStatus().publicSelfServeReady;
 
   return (
     <MarketingShell>
@@ -28,10 +28,10 @@ export default function PricingPage() {
             subline="Monthly or annual — pick the plan that matches your shop."
             description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks. Multi-shop for 2+ locations."
           />
-          {!checkoutReady ? (
+          {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
-              Self-serve checkout unlocks when Stripe is live. Until then, start
-              as a{" "}
+              Public self-serve opens only when signup, billing, telephony and
+              support gates are verified. Until then, start as a{" "}
               <Link href="/pilot" className="underline underline-offset-2">
                 design partner pilot
               </Link>{" "}

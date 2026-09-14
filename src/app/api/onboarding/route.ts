@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getAllowedEmails } from "@/lib/auth-allowlist";
 import {
   findBusinessForOwner,
   isOnboardingComplete,
   provisionBusiness,
 } from "@/lib/provision-business";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { TRADES } from "@/lib/trades";
 import { z } from "zod";
 
@@ -51,6 +54,35 @@ export async function POST(request: NextRequest) {
 
   if (!email || !session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (
+    !canCreateShopForEmail(email, (normalized) =>
+      getAllowedEmails().includes(normalized),
+    )
+  ) {
+    return NextResponse.json(
+      {
+        error: "New shop signup is not open on this deployment.",
+        code: "self_serve_signup_disabled",
+      },
+      { status: 403 },
+    );
+  }
+
+  const limit = rateLimit({
+    key: `onboarding:${clientIp(request)}`,
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many setup attempts. Try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSec) },
+      },
+    );
   }
 
   if (await isOnboardingComplete(email)) {

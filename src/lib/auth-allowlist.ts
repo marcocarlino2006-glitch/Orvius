@@ -1,3 +1,5 @@
+import { isSelfServeSignupEnabled } from "@/lib/self-serve-signup";
+
 /**
  * The owner allowlist, kept in its own module with no runtime dependencies.
  *
@@ -36,6 +38,7 @@ export async function isDashboardEmailAuthorized(
   const normalizedEmail = email?.trim().toLowerCase();
   if (!normalizedEmail) return false;
 
+  if (isSelfServeSignupEnabled()) return true;
   if (getAllowedEmails().includes(normalizedEmail)) return true;
 
   try {

@@ -3,6 +3,7 @@ import { isEmailAllowed } from "@/lib/auth-allowlist";
 import { company } from "@/lib/company";
 import { getAppUrl } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { isSelfServeSignupEnabled } from "@/lib/self-serve-signup";
 
 /**
  * Passwordless sign-in links.
@@ -44,7 +45,7 @@ export async function issueMagicLink(rawEmail: string): Promise<IssueResult> {
   if (!EMAIL_PATTERN.test(email) || email.length > 254) {
     return { ok: false, reason: "invalid-email" };
   }
-  if (!isEmailAllowed(email)) {
+  if (!isSelfServeSignupEnabled() && !isEmailAllowed(email)) {
     return { ok: false, reason: "not-allowed" };
   }
 
@@ -94,7 +95,7 @@ export async function consumeMagicLink(token: string): Promise<string | null> {
   }
 
   if (record.usedAt || record.expiresAt.getTime() < Date.now()) return null;
-  if (!isEmailAllowed(record.email)) return null;
+  if (!isSelfServeSignupEnabled() && !isEmailAllowed(record.email)) return null;
 
   // Conditional update: whoever flips usedAt first wins, so a link replayed in
   // two tabs authenticates exactly once.
