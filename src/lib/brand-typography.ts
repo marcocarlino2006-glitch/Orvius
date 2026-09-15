@@ -20,8 +20,8 @@ export const typeScale = {
  *    it a mark rather than another piece of interface copy.
  */
 export const logoSizes = {
-  sm: { mark: 18, word: "1rem", tracking: "-0.055em" },
-  md: { mark: 22, word: "1.075rem", tracking: "-0.055em" },
-  lg: { mark: 25, word: "1.2rem", tracking: "-0.06em" },
-  xl: { mark: 40, word: "2rem", tracking: "-0.065em" },
+  sm: { mark: 20, word: "1.0625rem", tracking: "-0.06em" },
+  md: { mark: 24, word: "1.2rem", tracking: "-0.06em" },
+  lg: { mark: 28, word: "1.35rem", tracking: "-0.065em" },
+  xl: { mark: 44, word: "2.25rem", tracking: "-0.07em" },
 } as const;
