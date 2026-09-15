@@ -245,37 +245,31 @@ export default function DashboardBillingPage() {
         </ShellPanel>
       </div>
 
-      <div className="mt-3">
-        <ConnectPayoutsPanel />
-      </div>
+      <ConnectPayoutsPanel />
 
       {/*
         Deposits sit under payouts because they are the same decision in two
         steps: connect an account, then say what to ask for. Splitting them
         across two screens is how an owner ends up with one half done.
       */}
-      <div className="mt-3">
-        <DepositSettingsPanel />
-      </div>
+      <DepositSettingsPanel />
 
-      <div className="mt-3">
-        <ShellPanel title="Legal" dense>
-          <ul className="account-legal-links font-sans">
-            <li>
-              <Link href="/terms">Terms of Service</Link>
-            </li>
-            <li>
-              <Link href="/refunds">Refunds & cancellation</Link>
-            </li>
-            <li>
-              <Link href="/privacy">Privacy Policy</Link>
-            </li>
-            <li>
-              <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
-            </li>
-          </ul>
-        </ShellPanel>
-      </div>
+      <ShellPanel title="Legal" dense>
+        <ul className="account-legal-links font-sans">
+          <li>
+            <Link href="/terms">Terms of Service</Link>
+          </li>
+          <li>
+            <Link href="/refunds">Refunds & cancellation</Link>
+          </li>
+          <li>
+            <Link href="/privacy">Privacy Policy</Link>
+          </li>
+          <li>
+            <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
+          </li>
+        </ul>
+      </ShellPanel>
     </OsShell>
   );
 }
