@@ -22,7 +22,7 @@ test("the open signal gate stays simple and distinct at favicon scale", () => {
   const mark = read("src/lib/orvius-mark.tsx");
   assert.match(mark, /fillRule="evenodd"/);
   assert.match(mark, /M12\.25 16h13/);
-  assert.match(mark, /M12 12h18v8H12/);
+  assert.match(mark, /Zm2 10h18v8H12/);
   assert.doesNotMatch(mark, /\bBARS\b|\.map\(/);
 });
 
