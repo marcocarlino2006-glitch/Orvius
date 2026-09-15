@@ -6228,6 +6228,7 @@ label:has(> input[type="radio"]) {
   font-size: 1.5rem !important;
   font-weight: 800 !important;
   letter-spacing: -0.075em !important;
+  text-transform: lowercase !important;
 }
 
 .os-sidebar-brand .orvius-logo-mark {
