@@ -1,9 +1,8 @@
 /**
  * Orvius mark — the open orbit.
  *
- * A near-circular operational loop stays open for one contained diagonal signal.
- * It carries the geometric confidence of infrastructure brands without using
- * Oracle's horizontal ellipse or Oculus's nested visor.
+ * A wide, deliberately open operational loop is completed by one contained
+ * signal cut. Its proportions and break keep it distinct from a closed oval.
  */
 
 export type OrviusMarkSvgProps = {
@@ -24,14 +23,14 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
     >
       <path
         className="orvius-mark-orbit"
-        d="M23.5 5.8A12 12 0 1 0 27.2 21"
+        d="M25 7H10c-4.5 0-7 2.5-7 7v4c0 4.5 2.5 7 7 7h12c4.5 0 7-2.5 7-7v-2"
         stroke="currentColor"
-        strokeWidth="4.75"
+        strokeWidth="4.5"
         strokeLinecap="square"
       />
       <path
         className="orvius-mark-beam"
-        d="m22.75 9.25-9.5 9.5"
+        d="m29 7-7 9"
         stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="square"

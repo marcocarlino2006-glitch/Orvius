@@ -1,6 +1,6 @@
 /** Brand typography — Archivo speaks, Plex Mono reports. */
 
-export const brandWordmark = "ORVIUS";
+export const brandWordmark = "orvius";
 
 export const typeScale = {
   caption: "0.75rem",
@@ -14,8 +14,8 @@ export const typeScale = {
 
 /**
  * Logo lockups:
- * 1) Open-orbit insignia alone (favicon / chrome)
- * 2) Insignia + engineered display lettering drawn for Orvius.
+ * 1) Horizontal signal loop alone (favicon / chrome)
+ * 2) Signal loop + a large, heavy lowercase wordmark.
  */
 export const logoSizes = {
   sm: { mark: 22, word: "1.2rem", tracking: "-0.065em" },

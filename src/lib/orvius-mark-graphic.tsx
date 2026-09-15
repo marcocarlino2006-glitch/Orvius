@@ -1,6 +1,6 @@
 import { orviusColors } from "@/lib/orvius-colors";
 
-/** Static open-orbit mark for social images and favicons — inline colors. */
+/** Static horizontal signal-loop mark for social images and favicons. */
 export function OrviusMarkGraphic({
   size = 32,
   variant = "dark",
@@ -20,13 +20,13 @@ export function OrviusMarkGraphic({
       aria-hidden
     >
       <path
-        d="M23.5 5.8A12 12 0 1 0 27.2 21"
+        d="M25 7H10c-4.5 0-7 2.5-7 7v4c0 4.5 2.5 7 7 7h12c4.5 0 7-2.5 7-7v-2"
         stroke={ink}
-        strokeWidth="4.75"
+        strokeWidth="4.5"
         strokeLinecap="square"
       />
       <path
-        d="m22.75 9.25-9.5 9.5"
+        d="m29 7-7 9"
         stroke={orviusColors.signal}
         strokeWidth="3"
         strokeLinecap="square"

@@ -3,7 +3,6 @@
 import type { CSSProperties } from "react";
 import { brandWordmark, logoSizes } from "@/lib/brand-typography";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
-import { OrviusWordmarkSvg } from "@/lib/orvius-wordmark";
 
 type OrviusMarkProps = {
   size?: number;
@@ -33,7 +32,7 @@ type OrviusLogoProps = {
 };
 
 /**
- * One lockup: open-orbit insignia + engineered ORVIUS lettering.
+ * One lockup: a horizontal signal loop and a large lowercase Orvius wordmark.
  */
 export function OrviusLogo({
   size = "md",
@@ -87,7 +86,7 @@ export function OrviusLogo({
       {wordmarkOnly ? null : (
         <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
       )}
-      <OrviusWordmarkSvg className="orvius-logo-word" />
+      <span className="orvius-logo-word">{brandWordmark}</span>
     </span>
   );
 }
