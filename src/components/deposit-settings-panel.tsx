@@ -110,6 +110,25 @@ export function DepositSettingsPanel() {
   const needsConnect =
     !data.readiness.ready && data.readiness.reason === "connect_incomplete";
 
+  if (needsConnect) {
+    return (
+      <ShellPanel title="Booking deposits" dense>
+        <div className="payment-locked-state font-sans">
+          <span className="payment-state-step" aria-hidden>
+            2
+          </span>
+          <div>
+            <p className="payment-state-title">Available after payouts</p>
+            <p className="payment-state-copy">
+              Connect payouts first. Then choose the deposit amount Orvius
+              requests when a customer books.
+            </p>
+          </div>
+        </div>
+      </ShellPanel>
+    );
+  }
+
   /*
     The field only accepts whole dollars, so the bounds it enforces and the
     bounds it advertises are derived from one pair of numbers. Formatting the
@@ -127,9 +146,8 @@ export function DepositSettingsPanel() {
           : "Not asking for a deposit"}
       </p>
       <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
-        A deposit is asked for when the job is booked — while the furnace is
-        still out and the customer wants a commitment that someone is coming.
-        It is the cheapest no-show insurance a shop can buy.
+        Require a deposit when a job is booked to reduce no-shows and secure
+        the appointment.
       </p>
 
       <label className="onboarding-field font-sans mt-5">
@@ -189,17 +207,7 @@ export function DepositSettingsPanel() {
         ) : null}
       </div>
 
-      {/*
-        Enabled and connected are two different gates, and an owner who has
-        only cleared one of them needs to know which. The payout panel this
-        sits under is where the other one is cleared.
-      */}
-      {needsConnect ? (
-        <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
-          Your amount is saved, but deposits stay uncollected until the payout
-          account above finishes connecting.
-        </p>
-      ) : data.netCents != null && data.amountCents != null ? (
+      {data.netCents != null && data.amountCents != null ? (
         <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
           You keep {formatCentsExact(data.netCents)} of every{" "}
           {formatCentsExact(data.amountCents)} deposit. Orvius keeps {data.feeRate};

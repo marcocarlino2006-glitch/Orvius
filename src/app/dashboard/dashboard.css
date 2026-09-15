@@ -3948,3 +3948,410 @@ a.pro-shift-event:hover .pro-shift-event-title {
   font-size: 0.8125rem;
   color: #a4a2a0;
 }
+
+/* ── Command: measured work, not a stack of dashboard cards ── */
+.pro-command-outcomes {
+  padding: clamp(1.35rem, 2.4vw, 2rem);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 0.875rem;
+  background:
+    radial-gradient(circle at 92% -20%, rgba(224, 133, 90, 0.12), transparent 34%),
+    linear-gradient(145deg, #292722 0%, #24221e 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 20px 55px -42px rgba(0, 0, 0, 0.95);
+}
+
+.pro-command-outcomes-head,
+.pro-command-outcomes-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pro-command-outcomes-head > span {
+  color: #888681;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pro-command-outcomes-kicker {
+  margin: 0;
+  color: #aaa8a3;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.pro-command-outcomes-summary {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.8rem, 2vw, 1.35rem);
+  margin-top: clamp(1.3rem, 3vw, 2.15rem);
+}
+
+.pro-command-outcomes-figure {
+  margin: 0;
+  color: #f6f5f2;
+  font-size: clamp(3rem, 7vw, 5.75rem);
+  font-weight: 560;
+  letter-spacing: -0.07em;
+  line-height: 0.88;
+  font-variant-numeric: tabular-nums;
+}
+
+.pro-command-outcomes-summary h2 {
+  max-width: 16ch;
+  margin: 0;
+  color: #a6a39d;
+  font-size: clamp(0.95rem, 1.7vw, 1.2rem);
+  font-weight: 480;
+  letter-spacing: -0.018em;
+  line-height: 1.25;
+}
+
+.pro-command-outcomes-wait {
+  display: block;
+  width: min(22rem, 60vw);
+  height: 4.75rem;
+  border-radius: 0.45rem;
+  background: linear-gradient(90deg, #302e29, #3a3731, #302e29);
+  background-size: 200% 100%;
+  animation: pro-lead-wait 1.4s ease-in-out infinite;
+}
+
+.pro-command-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: clamp(1.5rem, 3vw, 2.25rem) 0 0;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.065);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.pro-command-flow > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.28rem;
+  min-width: 0;
+  padding: 0 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.pro-command-flow > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.pro-command-flow dt {
+  overflow: hidden;
+  color: #8f8d88;
+  font-size: 0.6875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pro-command-flow dd {
+  margin: 0;
+  color: #e9e8e4;
+  font-size: 1.15rem;
+  font-weight: 590;
+  font-variant-numeric: tabular-nums;
+}
+
+.pro-command-outcomes-foot {
+  margin-top: 1rem;
+}
+
+.pro-command-outcomes-foot p {
+  margin: 0;
+  color: #aaa8a3;
+  font-size: 0.75rem;
+}
+
+.pro-command-outcomes-foot a {
+  color: #e8a27f;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pro-command-outcomes-foot a:hover {
+  color: #f3bd9f;
+}
+
+.pro-shift,
+.os-shell-night .pro-shift {
+  padding: 1.35rem 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.approve-queue,
+.os-shell-night .approve-queue {
+  margin-bottom: 0 !important;
+  padding: 1.35rem 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.attention-queue,
+.os-shell-night .attention-queue {
+  padding: 1.35rem 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.attention-queue::before,
+.os-shell-night .attention-queue::before {
+  display: none !important;
+}
+
+.attention-queue-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.attention-queue-title,
+.os-shell-night .attention-queue-title {
+  margin: 0.22rem 0 0 !important;
+  color: #f4f3ef !important;
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem) !important;
+  font-weight: 590 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.attention-queue-summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  color: #8f8d88;
+  font-size: 0.6875rem;
+}
+
+.attention-queue-summary strong {
+  color: #d3d1cc;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+}
+
+.attention-queue-critical {
+  color: #f08b82;
+}
+
+.attention-queue-guidance {
+  margin: 0.45rem 0 0;
+  color: #8f8d88 !important;
+  font-size: 0.75rem;
+}
+
+.attention-queue-list,
+.os-shell-night .attention-queue-list {
+  margin-top: 1rem !important;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0.625rem !important;
+  background: #292722;
+}
+
+@media (max-width: 640px) {
+  .pro-command-outcomes-summary {
+    display: block;
+  }
+
+  .pro-command-outcomes-summary h2 {
+    margin-top: 0.65rem;
+  }
+
+  .pro-command-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 0;
+  }
+
+  .pro-command-flow > div:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .attention-queue-head {
+    display: block;
+  }
+
+  .attention-queue-summary {
+    justify-content: flex-start;
+    margin-top: 0.65rem;
+  }
+}
+
+/* ── Billing: one settings instrument instead of stacked setup cards ── */
+.billing-settings {
+  width: 100%;
+  max-width: 64rem;
+}
+
+.billing-settings > .mt-3 {
+  margin-top: 0 !important;
+}
+
+.billing-settings > .pro-panel,
+.billing-settings > div > .pro-panel,
+.os-shell-night .billing-settings > .pro-panel,
+.os-shell-night .billing-settings > div > .pro-panel {
+  display: grid;
+  grid-template-columns: minmax(10rem, 13rem) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  padding: clamp(1.35rem, 2.5vw, 2rem) 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.billing-settings > .pro-panel:first-child {
+  padding-top: 0 !important;
+  border-top: 0 !important;
+}
+
+.billing-settings .pro-panel-head,
+.os-shell-night .billing-settings .pro-panel-head {
+  align-items: flex-start;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.billing-settings .pro-panel-title,
+.os-shell-night .billing-settings .pro-panel-title {
+  color: #aaa8a3 !important;
+  font-size: 0.75rem !important;
+  font-weight: 570 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.billing-settings .pro-panel-body,
+.os-shell-night .billing-settings .pro-panel-body {
+  min-width: 0;
+  padding: 0 !important;
+}
+
+.billing-settings .account-plan-name {
+  color: #f3f2ef !important;
+  font-size: 1.05rem;
+  font-weight: 590;
+  letter-spacing: -0.018em;
+}
+
+.billing-settings .account-plan-price {
+  color: #aaa8a3 !important;
+  font-size: 0.8125rem;
+}
+
+.billing-settings .onboarding-input {
+  width: 8.5rem !important;
+  max-width: 8.5rem !important;
+}
+
+.billing-settings .pro-founder-cert-item {
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.payment-locked-state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.85rem;
+  max-width: 34rem;
+}
+
+.payment-state-indicator,
+.payment-state-step {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 50%;
+  color: #aaa8a3;
+  font-size: 0.6875rem;
+  font-weight: 650;
+}
+
+.payment-state-indicator::after {
+  content: "";
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: #8c8983;
+}
+
+.payment-state-title {
+  margin: 0;
+  color: #e9e8e4 !important;
+  font-size: 0.875rem;
+  font-weight: 580;
+  letter-spacing: -0.01em;
+}
+
+.payment-state-copy {
+  max-width: 52ch;
+  margin: 0.3rem 0 0;
+  color: #8f8d88 !important;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.billing-settings .account-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+}
+
+.billing-settings .account-legal-links a {
+  color: #aaa8a3 !important;
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.billing-settings .account-legal-links a:hover {
+  color: #f1f0ed !important;
+}
+
+.billing-settings .btn {
+  border-color: rgba(255, 255, 255, 0.11) !important;
+  background: #e7e5e0 !important;
+  color: #1f1e1b !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.billing-settings .btn:hover {
+  background: #f1efea !important;
+}
+
+@media (max-width: 720px) {
+  .billing-settings > .pro-panel,
+  .billing-settings > div > .pro-panel,
+  .os-shell-night .billing-settings > .pro-panel,
+  .os-shell-night .billing-settings > div > .pro-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+}

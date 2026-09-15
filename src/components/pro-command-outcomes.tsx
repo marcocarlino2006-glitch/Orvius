@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ProLead } from "@/components/pro-lead";
 import { formatCents } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 
@@ -28,69 +27,72 @@ export function ProCommandOutcomes({
     outcomes?.capturedDemandEstimatedValueCents,
   );
   const figure = capturedValue ?? String(capturedJobs);
-  const caption = capturedValue
-    ? "estimated booked value from Orvius"
+  const metricLabel = capturedValue
+    ? "Estimated booked value"
     : capturedJobs === 1
-      ? "job booked from Orvius-captured demand"
-      : "jobs booked from Orvius-captured demand";
-
-  const detail = outcomes
-    ? `${outcomes.calls} captured ${
-        outcomes.calls === 1 ? "call" : "calls"
-      } became ${outcomes.leads} ${
-        outcomes.leads === 1 ? "lead" : "leads"
-      } and ${outcomes.jobsBooked} booked ${
-        outcomes.jobsBooked === 1 ? "job" : "jobs"
-      } in the last ${outcomes.windowDays} days.`
-    : "Measured calls, leads, bookings, and value will appear here.";
+      ? "Job booked from captured demand"
+      : "Jobs booked from captured demand";
 
   return (
     <section
       className="pro-command-outcomes"
       aria-label="Work completed by Orvius"
     >
-      <p className="pro-command-outcomes-kicker font-sans">
-        Orvius ran the front desk
-      </p>
-      <ProLead
-        figure={figure}
-        caption={caption}
-        detail={detail}
-        loading={loading}
-        facts={
-          loading
-            ? undefined
-            : [
-                {
-                  label:
-                    attentionCount === 1
-                      ? "exception needs you"
-                      : "exceptions need you",
-                  value: attentionCount,
-                  live: attentionCount > 0,
-                },
-                ...(outcomes?.afterHoursBooked
-                  ? [
-                      {
-                        label: "booked after hours",
-                        value: outcomes.afterHoursBooked,
-                      },
-                    ]
-                  : []),
-              ]
-        }
-        action={
-          !loading && attentionCount > 0 ? (
-            <a href="#attention-board" className="btn btn-void text-sm">
-              Work the exceptions
-            </a>
-          ) : !loading ? (
-            <Link href="/dashboard/calls" className="btn btn-secondary text-sm">
-              Review captured calls
-            </Link>
-          ) : null
-        }
-      />
+      <header className="pro-command-outcomes-head font-sans">
+        <p className="pro-command-outcomes-kicker">Front desk performance</p>
+        <span>
+          Last {outcomes?.windowDays ?? 7} days
+        </span>
+      </header>
+
+      <div className="pro-command-outcomes-summary font-sans">
+        {loading ? (
+          <span className="pro-command-outcomes-wait" aria-hidden />
+        ) : (
+          <>
+            <p className="pro-command-outcomes-figure">{figure}</p>
+            <h2>{metricLabel}</h2>
+          </>
+        )}
+      </div>
+
+      {!loading && outcomes ? (
+        <dl className="pro-command-flow font-sans">
+          <div>
+            <dt>Calls captured</dt>
+            <dd>{outcomes.calls}</dd>
+          </div>
+          <div>
+            <dt>Qualified leads</dt>
+            <dd>{outcomes.leads}</dd>
+          </div>
+          <div>
+            <dt>Jobs booked</dt>
+            <dd>{outcomes.jobsBooked}</dd>
+          </div>
+          <div>
+            <dt>After hours</dt>
+            <dd>{outcomes.afterHoursBooked}</dd>
+          </div>
+        </dl>
+      ) : null}
+
+      {!loading ? (
+        <footer className="pro-command-outcomes-foot font-sans">
+          <p>
+            {attentionCount > 0
+              ? `${attentionCount} ${
+                  attentionCount === 1 ? "exception requires" : "exceptions require"
+                } review`
+              : "No exceptions require review"}
+          </p>
+          {attentionCount > 0 ? (
+            <a href="#attention-board">Review exceptions</a>
+          ) : (
+            <Link href="/dashboard/calls">Review calls</Link>
+          )}
+        </footer>
+      ) : null}
     </section>
   );
 }

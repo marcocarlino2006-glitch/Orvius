@@ -90,11 +90,13 @@ export default function DashboardBillingPage() {
   const founder = account?.founder ?? false;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
   const locked = !entitled && status !== "past_due";
-  const needsPay = locked || status === "past_due" || status === "pilot" || status === "none";
 
   return (
-    <OsShell title="Billing">
-      <div className="account-grid">
+    <OsShell
+      title="Billing"
+      subtitle="Plans, payouts, and customer payment controls."
+    >
+      <div className="billing-settings">
         <ShellPanel title="Current plan" dense>
           {loading ? (
             <ShellLoading />
@@ -143,7 +145,7 @@ export default function DashboardBillingPage() {
           )}
         </ShellPanel>
 
-        <ShellPanel title={needsPay && !loading ? "Subscribe" : "Subscribe"} dense>
+        <ShellPanel title="Subscription" dense>
           {loading ? (
             <ShellLoading />
           ) : status === "active" ? (
@@ -201,9 +203,8 @@ export default function DashboardBillingPage() {
                 whoever owns the Stripe account.
               */}
               <p className="font-sans text-sm leading-relaxed text-ash">
-                Card payment isn&apos;t open yet, so there is nothing to pay today. Your
-                line keeps answering on design partner access, and we will write to you
-                before that changes.
+                No payment is due today. Your design-partner access remains
+                active, and we will notify you before billing begins.
               </p>
               {founder ? (
                 <div className="billing-unblock billing-unblock--instrument mt-4 font-sans">

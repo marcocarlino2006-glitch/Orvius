@@ -8,7 +8,6 @@ import {
 import { AssignTechButton, type TechOption } from "@/components/assign-tech-button";
 import { JobStatusAdvance } from "@/components/job-status-advance";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
-import { ProLead } from "@/components/pro-lead";
 import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
@@ -239,29 +238,27 @@ export function AttentionQueue({
       className="attention-queue"
       aria-label="Needs attention"
     >
-      {/*
-        The same opening as every list page, for the screen the owner lands on.
-        It used to be the odd one out: its queue length was 22px where /calls
-        and /inbox lead at 44px, so the home screen had the weakest hierarchy in
-        the product. It also said "on the board" twice — once as a kicker above
-        the count and once as the label under the money.
-      */}
-      <ProLead
-        figure={String(items.length)}
-        caption={
-          items.length === 1 ? "exception needs you" : "exceptions need you"
-        }
-        detail={
-          criticalCount > 0
-            ? `${criticalCount} critical, ranked first. Act top down.`
-            : "Nothing critical. Ranked by urgency — act top down."
-        }
-        facts={
-          stake
-            ? [{ label: "on the board, estimated", value: stake, live: true }]
-            : undefined
-        }
-      />
+      <header className="attention-queue-head font-sans">
+        <div>
+          <p className="attention-queue-kicker">Priority queue</p>
+          <h2 className="attention-queue-title">
+            {items.length} {items.length === 1 ? "exception" : "exceptions"}
+          </h2>
+        </div>
+        <div className="attention-queue-summary" aria-label="Queue summary">
+          {criticalCount > 0 ? (
+            <span className="attention-queue-critical">
+              {criticalCount} critical
+            </span>
+          ) : (
+            <span>Nothing critical</span>
+          )}
+          {stake ? <strong>{stake} estimated</strong> : null}
+        </div>
+      </header>
+      <p className="attention-queue-guidance font-sans">
+        Ranked by urgency and customer impact.
+      </p>
 
       <ul className="attention-queue-list">
         {items.map((item) => {
