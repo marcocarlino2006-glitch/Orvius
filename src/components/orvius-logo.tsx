@@ -9,7 +9,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Live-visor insignia alone — favicon / avatar. */
+/** Signal-bridge insignia alone — favicon / avatar. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -24,7 +24,7 @@ type OrviusLogoProps = {
   variant?: "void" | "chalk";
   /** Text wordmark only (no mark). */
   wordmarkOnly?: boolean;
-  /** Live-visor insignia alone. */
+  /** Signal-bridge insignia alone. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -32,7 +32,7 @@ type OrviusLogoProps = {
 };
 
 /**
- * One lockup: an asymmetric live visor and a large lowercase Orvius wordmark.
+ * One lockup: a horizontal signal bridge and a large lowercase wordmark.
  */
 export function OrviusLogo({
   size = "md",

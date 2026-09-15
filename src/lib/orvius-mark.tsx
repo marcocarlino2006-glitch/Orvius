@@ -1,9 +1,9 @@
 /**
- * Orvius mark — the live visor.
+ * Orvius mark — the signal bridge.
  *
- * A single horizontal operating loop uses an offset inner counter and one live
- * signal segment. The asymmetry gives Orvius forward motion while preserving
- * the severe simplicity that makes infrastructure marks durable.
+ * Two opposing orbital brackets are joined by one live signal. The silhouette
+ * preserves horizontal, infrastructure-grade simplicity without reproducing a
+ * closed nested visor.
  */
 
 export type OrviusMarkSvgProps = {
@@ -23,16 +23,17 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-visor"
-        fill="currentColor"
-        fillRule="evenodd"
-        d="M11 5h9c6.627 0 12 4.925 12 11s-5.373 11-12 11h-9C4.925 27 0 22.075 0 16S4.925 5 11 5Zm-.5 7h12a4 4 0 1 1 0 8h-12a4 4 0 1 1 0-8Z"
+        className="orvius-mark-brackets"
+        d="M14 7h-3c-5.5 0-9 3.5-9 9s3.5 9 9 9h3M18 7h3c5.5 0 9 3.5 9 9s-3.5 9-9 9h-3"
+        stroke="currentColor"
+        strokeWidth="4.5"
+        strokeLinecap="square"
       />
       <path
         className="orvius-mark-beam"
-        d="M10.5 16h6"
+        d="M11.5 16h9"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="3"
         strokeLinecap="round"
       />
     </svg>

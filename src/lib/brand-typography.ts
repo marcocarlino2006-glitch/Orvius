@@ -14,8 +14,8 @@ export const typeScale = {
 
 /**
  * Logo lockups:
- * 1) Live visor alone (favicon / chrome)
- * 2) Live visor + a large, heavy lowercase wordmark.
+ * 1) Signal bridge alone (favicon / chrome)
+ * 2) Signal bridge + a large, heavy lowercase wordmark.
  */
 export const logoSizes = {
   sm: { mark: 22, word: "1.2rem", tracking: "-0.065em" },

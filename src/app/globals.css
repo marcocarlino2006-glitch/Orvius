@@ -567,7 +567,7 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — asymmetric live visor + heavy lowercase wordmark. */
+/* Orvius logo — horizontal signal bridge + heavy lowercase wordmark. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -10670,7 +10670,7 @@ body:has(.mkt-page) .shell-header {
   letter-spacing: -0.006em !important;
 }
 
-/* Trademark lockup — original live visor + heavy lowercase wordmark. */
+/* Trademark lockup — original signal bridge + heavy lowercase wordmark. */
 .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
