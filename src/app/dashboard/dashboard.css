@@ -3987,8 +3987,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .pro-command-outcomes-summary {
   display: flex;
-  align-items: baseline;
-  gap: clamp(0.8rem, 2vw, 1.35rem);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
   margin-top: clamp(1.3rem, 3vw, 2.15rem);
 }
 
@@ -4003,12 +4004,13 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .pro-command-outcomes-summary h2 {
+  order: -1;
   max-width: 16ch;
   margin: 0;
   color: #a6a39d;
-  font-size: clamp(0.95rem, 1.7vw, 1.2rem);
+  font-size: 0.75rem;
   font-weight: 480;
-  letter-spacing: -0.018em;
+  letter-spacing: 0.01em;
   line-height: 1.25;
 }
 
@@ -4174,7 +4176,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   }
 
   .pro-command-outcomes-summary h2 {
-    margin-top: 0.65rem;
+    margin-bottom: 0.55rem;
   }
 
   .pro-command-flow {

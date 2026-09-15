@@ -128,7 +128,6 @@ export default function DashboardBillingPage() {
               {account?.business ? (
                 <p className="mt-2 font-sans text-xs text-ash">
                   Billed to {account.business.name}
-                  {email ? ` · ${email}` : ""}
                 </p>
               ) : null}
               {(status === "active" || status === "past_due") && hasStripeCustomer ? (
