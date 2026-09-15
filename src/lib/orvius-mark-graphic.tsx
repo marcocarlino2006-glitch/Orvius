@@ -26,12 +26,11 @@ export function OrviusMarkGraphic({
         strokeLinecap="square"
       />
       <path
-        d="m29 6-9.25 9.25"
+        d="m22.75 9.25-9.5 9.5"
         stroke={orviusColors.signal}
-        strokeWidth="3.25"
+        strokeWidth="3"
         strokeLinecap="square"
       />
-      <circle cx="17" cy="18" r="2.25" fill={ink} />
     </svg>
   );
 }

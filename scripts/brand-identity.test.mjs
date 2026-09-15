@@ -21,8 +21,8 @@ test("the primary wordmark uses one engineered display identity", () => {
 test("the open orbit stays simple and distinct at favicon scale", () => {
   const mark = read("src/lib/orvius-mark.tsx");
   assert.match(mark, /M23\.5 5\.8A12 12 0 1 0 27\.2 21/);
-  assert.match(mark, /m29 6-9\.25 9\.25/);
-  assert.match(mark, /className="orvius-mark-core"/);
+  assert.match(mark, /m22\.75 9\.25-9\.5 9\.5/);
+  assert.doesNotMatch(mark, /<circle|orvius-mark-core/);
   assert.doesNotMatch(mark, /aperture|rounded gate|plain V/i);
   assert.doesNotMatch(mark, /\bBARS\b|\.map\(/);
 });
