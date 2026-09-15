@@ -4,6 +4,7 @@ import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
+import { ownerSetupHref } from "@/lib/owner-setup";
 import { prisma } from "@/lib/prisma";
 import type {
   AttentionImpact,
@@ -262,7 +263,7 @@ export async function getAttentionQueue(
       title: "Prove your line",
       detail: "Place one test call so we know Orvius answers end-to-end.",
       recommendedAction: "Call your Orvius line",
-      href: "/dashboard/settings#overflow-forward",
+      href: ownerSetupHref("verify"),
       entityType: "shop",
       entityId: businessId,
       createdAt: now.toISOString(),
@@ -280,7 +281,7 @@ export async function getAttentionQueue(
       title: "Confirm call capture",
       detail: "Forward missed calls to Orvius — or publish the Orvius number.",
       recommendedAction: "Finish capture setup",
-      href: "/dashboard/settings#overflow-forward",
+      href: ownerSetupHref("capture"),
       entityType: "shop",
       entityId: businessId,
       createdAt: now.toISOString(),

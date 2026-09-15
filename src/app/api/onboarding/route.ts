@@ -9,6 +9,7 @@ import {
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
+import { getOwnerSetupStatus } from "@/lib/owner-setup";
 import { TRADES } from "@/lib/trades";
 import { z } from "zod";
 
@@ -31,10 +32,13 @@ export async function GET() {
   }
 
   const business = await findBusinessForOwner(email);
-  const complete = Boolean(business);
+  const setup = business ? getOwnerSetupStatus(business) : null;
 
   return NextResponse.json({
-    complete,
+    provisioned: Boolean(business),
+    complete: setup?.ready ?? false,
+    ready: setup?.ready ?? false,
+    setup,
     business: business
       ? {
           id: business.id,
@@ -44,6 +48,9 @@ export async function GET() {
           twilioPhone: business.twilioPhone,
           vapiPhoneNumber: business.vapiPhoneNumber,
           billingStatus: business.billingStatus,
+          overflowForwardConfirmedAt:
+            business.overflowForwardConfirmedAt?.toISOString() ?? null,
+          lineVerifiedAt: business.lineVerifiedAt?.toISOString() ?? null,
         }
       : null,
   });
@@ -109,10 +116,14 @@ export async function POST(request: NextRequest) {
     });
 
     const line = business.vapiPhoneNumber ?? business.twilioPhone;
+    const setup = getOwnerSetupStatus(business);
 
     return NextResponse.json(
       {
-        complete: true,
+        provisioned: true,
+        complete: setup.ready,
+        ready: setup.ready,
+        setup,
         dedicatedLine: true,
         line,
         message: line

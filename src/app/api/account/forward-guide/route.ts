@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    message: "Setup steps texted to your mobile. Reply DONE when finished.",
+    message:
+      "Setup steps texted. After forwarding, call your Orvius line once; then reply DONE.",
   });
 }

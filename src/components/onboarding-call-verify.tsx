@@ -29,18 +29,29 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
   const [captureConfirmed, setCaptureConfirmed] = useState(false);
   const [captureSaving, setCaptureSaving] = useState(false);
   const [captureError, setCaptureError] = useState<string | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
   const check = useCallback(async () => {
     try {
       const res = await fetch("/api/onboarding/verify");
-      if (!res.ok) return;
+      if (!res.ok) {
+        setVerifyError(
+          res.status === 401
+            ? "Your session expired. Sign in again, then return to setup."
+            : "We couldn't verify the line right now.",
+        );
+        setPolling(false);
+        return;
+      }
       const json = (await res.json()) as VerifyState;
       setState(json);
+      setVerifyError(null);
       if (json.verified) {
         setPolling(false);
       }
     } catch {
-      /* keep polling */
+      setVerifyError("Connection lost while checking the line.");
+      setPolling(false);
     }
   }, []);
 
@@ -131,8 +142,22 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
 
       {!verified ? (
         <p className="onboarding-verify-waiting font-sans">
-          Waiting for your test call…
+          {verifyError ?? "Waiting for your test call…"}
         </p>
+      ) : null}
+
+      {verifyError ? (
+        <button
+          type="button"
+          className="onboarding-verify-link font-sans"
+          onClick={() => {
+            setVerifyError(null);
+            setPolling(true);
+            void check();
+          }}
+        >
+          Try verification again
+        </button>
       ) : null}
 
       <div className="onboarding-actions onboarding-actions-split">

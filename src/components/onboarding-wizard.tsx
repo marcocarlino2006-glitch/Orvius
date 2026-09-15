@@ -7,7 +7,7 @@ import { company, pricing } from "@/lib/company";
 import { TRADES, type Trade } from "@/lib/trades";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const STEPS = [
   { id: "welcome", label: "Welcome" },
@@ -18,6 +18,15 @@ const STEPS = [
 
 type StepId = (typeof STEPS)[number]["id"];
 type PostProvision = "capture" | "prove" | null;
+type ResumePayload = {
+  provisioned?: boolean;
+  ready?: boolean;
+  setup?: { line?: string | null; nextStep?: string };
+  business?: {
+    name?: string;
+    ownerPhone?: string | null;
+  } | null;
+};
 
 export function OnboardingWizard() {
   const router = useRouter();
@@ -32,6 +41,42 @@ export function OnboardingWizard() {
   const [postProvision, setPostProvision] = useState<PostProvision>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedSms, setAcceptedSms] = useState(false);
+  const [resuming, setResuming] = useState(true);
+
+  const resumeExisting = useCallback(async () => {
+    const res = await fetch("/api/onboarding");
+    if (!res.ok) return false;
+    const json = (await res.json()) as ResumePayload;
+    if (!json.provisioned || !json.business) return false;
+
+    if (json.ready) {
+      router.replace("/dashboard");
+      return true;
+    }
+
+    setName(json.business.name?.trim() ?? "");
+    setOwnerPhone(json.business.ownerPhone?.trim() ?? "");
+    const line = json.setup?.line?.trim() ?? null;
+    if (line) {
+      setProvisionedLine(line);
+      setPostProvision("prove");
+      setError(null);
+    } else {
+      setStep("live");
+      setError(
+        "Your shop exists, but its line is still provisioning. Open Settings or try again shortly.",
+      );
+    }
+    return true;
+  }, [router]);
+
+  useEffect(() => {
+    void resumeExisting()
+      .catch(() => {
+        /* New shops continue with the normal wizard. */
+      })
+      .finally(() => setResuming(false));
+  }, [resumeExisting]);
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
   const defaultGreeting = name.trim()
@@ -70,6 +115,7 @@ export function OnboardingWizard() {
 
       const json = (await res.json()) as { error?: string; line?: string | null };
       if (!res.ok) {
+        if (res.status === 409 && (await resumeExisting())) return;
         setError(json.error ?? "Setup failed. Try again.");
         return;
       }
@@ -90,6 +136,25 @@ export function OnboardingWizard() {
   }
 
   const inPostFlow = Boolean(provisionedLine && postProvision);
+
+  if (resuming) {
+    return (
+      <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
+        <div className="onboarding-glow" aria-hidden />
+        <div className="onboarding-frame">
+          <header className="onboarding-header">
+            <OrviusLogo size="md" variant="void" />
+            <p className="onboarding-eyebrow font-sans">
+              {company.productName} setup
+            </p>
+          </header>
+          <div className="onboarding-panel" aria-busy="true">
+            <p className="onboarding-lead font-sans">Restoring your setup…</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">

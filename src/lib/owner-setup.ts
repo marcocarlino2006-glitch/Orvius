@@ -57,6 +57,14 @@ export function getOwnerSetupStatus(business: {
   };
 }
 
+export function ownerSetupHref(
+  nextStep: OwnerSetupStatus["nextStep"],
+): string {
+  if (nextStep === "owner_phone") return "/dashboard/settings";
+  if (nextStep === "done") return "/dashboard";
+  return "/dashboard/onboarding";
+}
+
 export async function sendOwnerForwardGuide(params: {
   business: Pick<Business, "id" | "name" | "ownerPhone">;
   orviusLine: string;
