@@ -21,9 +21,9 @@ test("the primary wordmark stays large, heavy, and lowercase", () => {
 
 test("the split signal bridge stays simple at favicon scale", () => {
   const mark = read("src/lib/orvius-mark.tsx");
-  assert.match(mark, /M14 7h-3c-5\.5 0-9 3\.5-9 9/);
-  assert.match(mark, /M18 7h3c5\.5 0 9 3\.5 9 9/);
-  assert.match(mark, /M11\.5 16h9/);
+  assert.match(mark, /M11 7H9c-4\.5 0-7 3\.5-7 9/);
+  assert.match(mark, /M21 7h2c4\.5 0 7 3\.5 7 9/);
+  assert.match(mark, /M9\.5 16h13/);
   assert.doesNotMatch(mark, /fillRule="evenodd"/);
   assert.doesNotMatch(mark, /<circle|orvius-mark-core/);
   assert.doesNotMatch(mark, /aperture|rounded gate|plain V/i);

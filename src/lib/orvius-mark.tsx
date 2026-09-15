@@ -24,14 +24,14 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
     >
       <path
         className="orvius-mark-brackets"
-        d="M14 7h-3c-5.5 0-9 3.5-9 9s3.5 9 9 9h3M18 7h3c5.5 0 9 3.5 9 9s-3.5 9-9 9h-3"
+        d="M11 7H9c-4.5 0-7 3.5-7 9s2.5 9 7 9h2M21 7h2c4.5 0 7 3.5 7 9s-2.5 9-7 9h-2"
         stroke="currentColor"
         strokeWidth="4.5"
         strokeLinecap="square"
       />
       <path
         className="orvius-mark-beam"
-        d="M11.5 16h9"
+        d="M9.5 16h13"
         stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="round"
