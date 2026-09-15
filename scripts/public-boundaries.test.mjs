@@ -18,7 +18,7 @@ test("production health publishes readiness but keeps operational detail privile
   const publicGuard = source.indexOf(
     "if (isProduction() && !(await isPrivilegedRequest(request)))",
   );
-  const detailedResponse = source.indexOf('"version": "1.0.0"');
+  const detailedResponse = source.indexOf('version: "1.0.0"');
 
   assert.ok(publicGuard >= 0, "production must distinguish anonymous callers");
   assert.ok(
