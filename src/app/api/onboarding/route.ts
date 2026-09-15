@@ -9,7 +9,7 @@ import {
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
-import { getOwnerSetupStatus } from "@/lib/owner-setup";
+import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
 import { TRADES } from "@/lib/trades";
 import { z } from "zod";
 

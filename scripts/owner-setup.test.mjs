@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import {
   getOwnerSetupStatus,
   ownerSetupHref,
-} from "../src/lib/owner-setup.ts";
+} from "../src/lib/owner-setup-state.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");

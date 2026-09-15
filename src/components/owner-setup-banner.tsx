@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getOwnerSetupStatus, ownerSetupHref } from "@/lib/owner-setup";
+import {
+  getOwnerSetupStatus,
+  ownerSetupHref,
+} from "@/lib/owner-setup-state";
 
 type SetupBusiness = {
   ownerPhone?: string | null;

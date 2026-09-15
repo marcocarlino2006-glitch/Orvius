@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import type { CarrierId } from "@/lib/carrier-forward";
-import { getShopLine, sendOwnerForwardGuide } from "@/lib/owner-setup";
+import { sendOwnerForwardGuide } from "@/lib/owner-setup";
+import { getShopLine } from "@/lib/owner-setup-state";
 import { requireEntitledSession } from "@/lib/tenant";
 
 const bodySchema = z.object({

@@ -4,7 +4,7 @@ import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
-import { ownerSetupHref } from "@/lib/owner-setup";
+import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
 import type {
   AttentionImpact,
