@@ -185,6 +185,8 @@ export function AttentionQueue({
   technicians = [],
   onAction,
 }: AttentionQueueProps) {
+  const [expanded, setExpanded] = useState(false);
+
   if (loading && !items.length) {
     return (
       <section
@@ -231,6 +233,7 @@ export function AttentionQueue({
   */
   const stakeCents = items.reduce((sum, item) => sum + (item.estimatedRevenueCents ?? 0), 0);
   const stake = formatCents(stakeCents);
+  const visibleItems = expanded ? items : items.slice(0, 5);
 
   return (
     <section
@@ -261,7 +264,7 @@ export function AttentionQueue({
       </p>
 
       <ul className="attention-queue-list">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const showCall = canCall(item);
           const showBook = canBook(item);
           const showAssign = canAssign(item);
@@ -382,6 +385,23 @@ export function AttentionQueue({
           );
         })}
       </ul>
+      {items.length > visibleItems.length ? (
+        <button
+          type="button"
+          className="attention-queue-more font-sans"
+          onClick={() => setExpanded(true)}
+        >
+          Show {items.length - visibleItems.length} more exceptions
+        </button>
+      ) : expanded && items.length > 5 ? (
+        <button
+          type="button"
+          className="attention-queue-more font-sans"
+          onClick={() => setExpanded(false)}
+        >
+          Show only highest priority
+        </button>
+      ) : null}
     </section>
   );
 }

@@ -12122,7 +12122,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 @media (min-width: 1280px) {
   .os-shell-night .ring1-cockpit {
-    grid-template-columns: minmax(0, 1fr) 19.5rem;
+    grid-template-columns: minmax(0, 1fr) 17.5rem;
     align-items: start;
   }
 

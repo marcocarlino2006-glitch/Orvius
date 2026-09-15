@@ -29,12 +29,10 @@ export function ProShiftTimeline({
   events,
   loading = false,
   moneyEnabled = false,
-  setupReady = false,
 }: {
   events: ShiftEvent[];
   loading?: boolean;
   moneyEnabled?: boolean;
-  setupReady?: boolean;
 }) {
   const visible = events.slice(0, 6);
   const proof = buildPipelineProof(events, moneyEnabled);
@@ -69,11 +67,6 @@ export function ProShiftTimeline({
               </li>
             ))}
           </ol>
-          {!setupReady ? (
-            <Link href="/dashboard/settings">
-              Finish setup before testing the full loop →
-            </Link>
-          ) : null}
         </div>
       ) : null}
 

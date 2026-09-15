@@ -87,7 +87,9 @@ export function ProCommandOutcomes({
               : "No exceptions require review"}
           </p>
           {attentionCount > 0 ? (
-            <a href="#attention-board">Review exceptions</a>
+            <a href="#attention-board" className="btn btn-void text-sm">
+              Review {attentionCount} exceptions
+            </a>
           ) : (
             <Link href="/dashboard/calls">Review calls</Link>
           )}

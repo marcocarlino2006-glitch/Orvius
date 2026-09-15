@@ -8,13 +8,10 @@ import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
-import { ProLineWatch } from "@/components/pro-line-watch";
 import { ProLaunchControl } from "@/components/pro-launch-control";
-import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
-import { ProSetupScore } from "@/components/pro-setup-score";
+import type { CoverageState } from "@/components/pro-night-watch";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProShiftTimeline } from "@/components/pro-shift-timeline";
-import { ProTodayAlerts } from "@/components/pro-today-status";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import type { AttentionItem } from "@/lib/attention-types";
 import type { ShopHealth } from "@/lib/shop-health";
@@ -104,7 +101,6 @@ export function Ring1CommandCenter() {
     return () => clearInterval(interval);
   }, [load]);
 
-  const newLeads = data?.metrics.newLeads ?? 0;
   const attention = data?.attention ?? [];
   const hasDispatchWork =
     canDispatch &&
@@ -150,21 +146,22 @@ export function Ring1CommandCenter() {
           loading={loading}
         />
 
-        <ProShiftTimeline
-          events={data?.shiftTimeline ?? []}
-          loading={loading}
-          moneyEnabled={data?.business?.depositEnabled ?? false}
-          setupReady={data?.wedge?.ready ?? false}
-        />
-
-        <ApproveQueue onChange={load} />
-
         <AttentionQueue
           items={attention}
           loading={loading}
           technicians={data?.technicians ?? []}
           onAction={load}
         />
+
+        {loading || (data?.shiftTimeline?.length ?? 0) > 0 ? (
+          <ProShiftTimeline
+            events={data?.shiftTimeline ?? []}
+            loading={loading}
+            moneyEnabled={data?.business?.depositEnabled ?? false}
+          />
+        ) : null}
+
+        <ApproveQueue onChange={load} hideWhenEmpty />
 
         {!loading && data?.outcomes ? (
           <ProEconomicsPanel
@@ -211,23 +208,10 @@ export function Ring1CommandCenter() {
           checkoutReady={data?.gates?.checkoutReady ?? false}
           billingStatus={data?.business?.billingStatus}
           referenceImplementation={data?.business?.referenceImplementation}
+          coverage={data?.coverage}
+          health={data?.health}
+          outcomes={data?.outcomes}
         />
-        <ProNightWatch coverage={data?.coverage ?? null} outcomes={data?.outcomes ?? null} />
-        <ProLineWatch health={data?.health ?? null} />
-        {!data?.wedge?.ready ? <ProSetupScore wedge={data?.wedge ?? null} /> : null}
-
-        {attention.length === 0 ? (
-          <ProTodayAlerts
-            health={data?.health ?? null}
-            wedge={data?.wedge ?? null}
-            newLeads={newLeads}
-            economicsReady={data?.gates?.economicsReady ?? true}
-            proofStale={data?.gates?.proofStale ?? false}
-            certIncomplete={data?.gates?.certIncomplete ?? false}
-            pilotDaysLeft={data?.gates?.pilotDaysLeft ?? null}
-            checkoutReady={data?.gates?.checkoutReady ?? true}
-          />
-        ) : null}
       </aside>
     </section>
   );

@@ -19,7 +19,13 @@ type Activity = Proposal & {
  * stays visible afterward. The audit trail is as important as the button:
  * autonomy without evidence is just another black box.
  */
-export function ApproveQueue({ onChange }: { onChange?: () => void }) {
+export function ApproveQueue({
+  onChange,
+  hideWhenEmpty = false,
+}: {
+  onChange?: () => void;
+  hideWhenEmpty?: boolean;
+}) {
   const [items, setItems] = useState<Proposal[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +104,8 @@ export function ApproveQueue({ onChange }: { onChange?: () => void }) {
   const hasApprovals = items.length > 0;
   const hasActivity = activity.length > 0;
   const isEmpty = !loading && !hasApprovals && !hasActivity;
+
+  if (hideWhenEmpty && !hasApprovals && !hasActivity) return null;
 
   return (
     <section

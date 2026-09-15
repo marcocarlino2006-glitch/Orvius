@@ -4152,11 +4152,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .pro-command-outcomes-kicker {
   margin: 0;
-  color: #aaa8a3;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
+  color: #d1cfca;
+  font-size: 0.8125rem;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  text-transform: none;
 }
 
 .pro-command-outcomes-summary {
@@ -4181,9 +4181,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
   order: -1;
   max-width: 16ch;
   margin: 0;
-  color: #a6a39d;
-  font-size: 0.75rem;
-  font-weight: 480;
+  color: #bbb8b2;
+  font-size: 0.8125rem;
+  font-weight: 520;
   letter-spacing: 0.01em;
   line-height: 1.25;
 }
@@ -4223,8 +4223,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .pro-command-flow dt {
   overflow: hidden;
-  color: #8f8d88;
-  font-size: 0.6875rem;
+  color: #a7a49f;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4232,8 +4232,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .pro-command-flow dd {
   margin: 0;
   color: #e9e8e4;
-  font-size: 1.15rem;
-  font-weight: 590;
+  font-size: 1.25rem;
+  font-weight: 620;
   font-variant-numeric: tabular-nums;
 }
 
@@ -4256,6 +4256,70 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .pro-command-outcomes-foot a:hover {
   color: #f3bd9f;
+}
+
+.pro-command-outcomes-foot a.btn,
+.pro-command-outcomes-foot a.btn:hover {
+  color: #1d1a17;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.pro-control-center {
+  gap: 0.85rem !important;
+  padding: 1rem !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  border-radius: 0.75rem !important;
+  background:
+    radial-gradient(circle at 100% 0, rgba(224, 133, 90, 0.08), transparent 38%),
+    #2c2a25 !important;
+}
+
+.pro-control-lead {
+  margin: 0;
+  color: #c7c4be !important;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.pro-control-pulse {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 0;
+  margin: 0;
+  padding: 0.8rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.pro-control-pulse > div {
+  min-width: 0;
+  padding: 0 0.7rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.pro-control-pulse > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.pro-control-pulse dt {
+  color: #8f8d88;
+  font-size: 0.625rem;
+}
+
+.pro-control-pulse dd {
+  margin: 0.25rem 0 0;
+  color: #f1f0ec;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.pro-control-action {
+  width: 100%;
+  min-height: 2.35rem;
+  justify-content: center;
+  font-size: 0.75rem;
 }
 
 .pro-shift,
@@ -4342,6 +4406,21 @@ a.pro-shift-event:hover .pro-shift-event-title {
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 0.625rem !important;
   background: #292722;
+}
+
+.attention-queue-more {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 0;
+  color: #bbb8b2;
+  background: transparent;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.attention-queue-more:hover {
+  color: #f4f3ef;
 }
 
 @media (max-width: 640px) {

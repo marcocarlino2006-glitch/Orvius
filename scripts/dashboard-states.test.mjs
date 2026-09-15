@@ -25,3 +25,21 @@ test("Command exposes failed refreshes and a real retry action", () => {
   assert.match(command, /Try again/);
   assert.doesNotMatch(command, /if \(!res\.ok\) return/);
 });
+
+test("Command keeps one flagship hierarchy and one control rail", () => {
+  const command = read("src/components/ring1-command-center.tsx");
+  const outcomes = command.indexOf("<ProCommandOutcomes");
+  const attention = command.indexOf("<AttentionQueue");
+  const timeline = command.indexOf("<ProShiftTimeline");
+
+  assert.ok(outcomes >= 0 && attention > outcomes && timeline > attention);
+  assert.equal((command.match(/<ProLaunchControl/g) ?? []).length, 1);
+  assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
+  assert.match(command, /<ApproveQueue onChange=\{load\} hideWhenEmpty/);
+
+  const queue = read("src/components/attention-queue.tsx");
+  assert.match(queue, /items\.slice\(0, 5\)/);
+
+  const shift = read("src/components/pro-shift-timeline.tsx");
+  assert.doesNotMatch(shift, /Finish setup before testing the full loop/);
+});

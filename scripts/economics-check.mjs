@@ -83,10 +83,10 @@ const shiftTimeline = commandSrc.indexOf("<ProShiftTimeline");
 const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
 results.push(
   outcomeLead >= 0 &&
-    shiftTimeline > outcomeLead &&
-    exceptionBoard > shiftTimeline
-    ? pass("Command moves from measured outcomes to audit trail to exceptions")
-    : fail("Command must show outcomes, then shift evidence, then exceptions"),
+    exceptionBoard > outcomeLead &&
+    shiftTimeline > exceptionBoard
+    ? pass("Command moves from measured outcomes to exceptions to audit trail")
+    : fail("Command must show outcomes, then exceptions, then shift evidence"),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");
