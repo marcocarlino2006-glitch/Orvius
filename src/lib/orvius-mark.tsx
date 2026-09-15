@@ -1,8 +1,9 @@
 /**
- * Orvius mark — the open orbit.
+ * Orvius mark — the live visor.
  *
- * A wide, deliberately open operational loop is completed by one contained
- * signal cut. Its proportions and break keep it distinct from a closed oval.
+ * A single horizontal operating loop uses an offset inner counter and one live
+ * signal segment. The asymmetry gives Orvius forward motion while preserving
+ * the severe simplicity that makes infrastructure marks durable.
  */
 
 export type OrviusMarkSvgProps = {
@@ -22,18 +23,17 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-orbit"
-        d="M25 7H10c-4.5 0-7 2.5-7 7v4c0 4.5 2.5 7 7 7h12c4.5 0 7-2.5 7-7v-2"
-        stroke="currentColor"
-        strokeWidth="4.5"
-        strokeLinecap="square"
+        className="orvius-mark-visor"
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M11 5h9c6.627 0 12 4.925 12 11s-5.373 11-12 11h-9C4.925 27 0 22.075 0 16S4.925 5 11 5Zm-.5 7h12a4 4 0 1 1 0 8h-12a4 4 0 1 1 0-8Z"
       />
       <path
         className="orvius-mark-beam"
-        d="m29 7-7 9"
+        d="M10.5 16h6"
         stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="square"
+        strokeWidth="2.5"
+        strokeLinecap="round"
       />
     </svg>
   );

@@ -19,10 +19,11 @@ test("the primary wordmark stays large, heavy, and lowercase", () => {
   assert.match(publicCss, /font-size: 1\.65rem !important/);
 });
 
-test("the horizontal signal loop stays simple at favicon scale", () => {
+test("the asymmetric live visor stays simple at favicon scale", () => {
   const mark = read("src/lib/orvius-mark.tsx");
-  assert.match(mark, /M25 7H10c-4\.5 0-7 2\.5-7 7v4/);
-  assert.match(mark, /m29 7-7 9/);
+  assert.match(mark, /M11 5h9c6\.627 0 12 4\.925 12 11/);
+  assert.match(mark, /M10\.5 16h6/);
+  assert.match(mark, /fillRule="evenodd"/);
   assert.doesNotMatch(mark, /<circle|orvius-mark-core/);
   assert.doesNotMatch(mark, /aperture|rounded gate|plain V/i);
   assert.doesNotMatch(mark, /\bBARS\b|\.map\(/);
