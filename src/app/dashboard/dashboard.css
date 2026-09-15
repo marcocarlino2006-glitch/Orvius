@@ -4179,7 +4179,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .pro-command-outcomes-summary h2 {
   order: -1;
-  max-width: 16ch;
+  max-width: none;
   margin: 0;
   color: #bbb8b2;
   font-size: 0.8125rem;
@@ -4322,6 +4322,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
   font-size: 0.75rem;
 }
 
+.pro-control-center .pro-rail-row-label,
+.pro-control-center .pro-rail-row-value {
+  font-size: 0.75rem;
+}
+
 .pro-shift,
 .os-shell-night .pro-shift {
   padding: 1.35rem 0 0 !important;
@@ -4432,6 +4437,16 @@ a.pro-shift-event:hover .pro-shift-event-title {
     margin-bottom: 0.55rem;
   }
 
+  .pro-command-outcomes-foot {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pro-command-outcomes-foot a.btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .pro-command-flow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem 0;
@@ -4442,6 +4457,15 @@ a.pro-shift-event:hover .pro-shift-event-title {
     border-left: 0;
   }
 
+  .pro-command-flow dt {
+    font-size: 0.8125rem;
+  }
+
+  .pro-command-flow > div {
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+  }
+
   .attention-queue-head {
     display: block;
   }
@@ -4449,6 +4473,14 @@ a.pro-shift-event:hover .pro-shift-event-title {
   .attention-queue-summary {
     justify-content: flex-start;
     margin-top: 0.65rem;
+  }
+
+  .trend-bars {
+    padding-bottom: 0.65rem;
+  }
+
+  .trend-legend {
+    row-gap: 0.45rem;
   }
 }
 

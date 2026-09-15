@@ -44,7 +44,7 @@ export function ProLaunchControl({
   const nextSetup = wedge?.items.find((item) => !item.ok);
   const status = atRisk ? "critical" : setupReady ? "healthy" : "attention";
   const statusLabel = atRisk
-    ? "Act now"
+    ? "Coverage risk"
     : setupReady
       ? "Covered"
       : "Setup";
