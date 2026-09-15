@@ -735,6 +735,139 @@ a.pro-shift-event:hover .pro-shift-event-title {
   }
 }
 
+/* ── Settings: the same quiet instrument used by Billing ── */
+.pro-settings-page {
+  width: 100%;
+  max-width: 64rem !important;
+  gap: 0 !important;
+}
+
+.pro-settings-page > .pro-page-strip,
+.os-shell-night .pro-settings-page > .pro-page-strip {
+  margin: 0 !important;
+  padding: 0 0 1.15rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.pro-settings-form,
+.os-shell-night .pro-settings-form {
+  gap: 0 !important;
+}
+
+.pro-settings-form > .pro-panel,
+.pro-settings-form > div > .pro-panel,
+.os-shell-night .pro-settings-form > .pro-panel,
+.os-shell-night .pro-settings-form > div > .pro-panel {
+  display: grid;
+  grid-template-columns: minmax(10rem, 13rem) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  margin: 0 !important;
+  padding: clamp(1.35rem, 2.5vw, 2rem) 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.pro-settings-form > div:first-child > .pro-panel {
+  border-top: 0 !important;
+}
+
+.pro-settings-form .pro-panel-head,
+.os-shell-night .pro-settings-form .pro-panel-head {
+  align-items: flex-start !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.pro-settings-form .pro-panel-title,
+.os-shell-night .pro-settings-form .pro-panel-title {
+  color: #aaa8a3 !important;
+  font-size: 0.75rem !important;
+  font-weight: 570 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.pro-settings-form .pro-panel-body,
+.os-shell-night .pro-settings-form .pro-panel-body {
+  min-width: 0;
+  padding: 0 !important;
+}
+
+.pro-settings-form .pro-settings-secondary,
+.os-shell-night .pro-settings-form .pro-settings-secondary {
+  margin: 0 !important;
+  padding: clamp(1.35rem, 2.5vw, 2rem) 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.pro-settings-form .pro-settings-secondary > summary,
+.os-shell-night .pro-settings-form .pro-settings-secondary > summary {
+  min-height: 0;
+  padding: 0 !important;
+  background: transparent !important;
+  color: #aaa8a3 !important;
+  font-size: 0.75rem !important;
+  font-weight: 570 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.pro-settings-form .pro-settings-secondary[open] {
+  display: grid;
+  grid-template-columns: minmax(10rem, 13rem) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.pro-settings-form .pro-settings-secondary[open] > summary {
+  align-self: start;
+}
+
+.pro-settings-form .pro-settings-secondary-body,
+.os-shell-night .pro-settings-form .pro-settings-secondary-body {
+  min-width: 0;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.pro-settings-form .pro-settings-savebar,
+.os-shell-night .pro-settings-form .pro-settings-savebar {
+  margin: 0 !important;
+  padding: 0.9rem 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 !important;
+  background: rgba(36, 34, 30, 0.94) !important;
+}
+
+.dashboard-list-skeleton-row {
+  align-items: center;
+  min-height: 5.5rem;
+}
+
+@media (max-width: 720px) {
+  .pro-settings-form > .pro-panel,
+  .pro-settings-form > div > .pro-panel,
+  .os-shell-night .pro-settings-form > .pro-panel,
+  .os-shell-night .pro-settings-form > div > .pro-panel,
+  .pro-settings-form .pro-settings-secondary[open] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+  }
+
+  .pro-settings-page > .pro-page-strip {
+    padding-bottom: 0.9rem !important;
+  }
+}
+
 .attention-queue {
   padding: 1.25rem 1.25rem 1.125rem;
   border: 1px solid var(--rule);

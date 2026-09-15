@@ -4,7 +4,6 @@ import Link from "next/link";
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { OsShell } from "@/components/os-shell";
 import { ProPageStrip } from "@/components/pro-page-strip";
-import { ProSetupHub } from "@/components/pro-setup-hub";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -269,8 +268,6 @@ export default function DashboardSettingsPage() {
     <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
       <div className="pro-settings-page">
         <ProPageStrip />
-
-        <ProSetupHub health={account?.health} wedge={account?.wedge} />
 
         <form className="account-stack pro-settings-form" onSubmit={save}>
         <div id="overflow-forward">

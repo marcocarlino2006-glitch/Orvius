@@ -43,3 +43,17 @@ test("Command keeps one flagship hierarchy and one control rail", () => {
   const shift = read("src/components/pro-shift-timeline.tsx");
   assert.doesNotMatch(shift, /Finish setup before testing the full loop/);
 });
+
+test("Settings and loading states use the same owner-system language", () => {
+  const settings = read("src/app/dashboard/settings/page.tsx");
+  assert.doesNotMatch(settings, /<ProSetupHub/);
+  assert.match(settings, /className="account-stack pro-settings-form"/);
+
+  const skeleton = read("src/components/shell-skeleton.tsx");
+  assert.match(skeleton, /className="os-lead-rail dashboard-list-skeleton"/);
+  assert.doesNotMatch(skeleton, /lead-inbox-card pro-card/);
+
+  const css = read("src/app/dashboard/dashboard.css");
+  assert.match(css, /Settings: the same quiet instrument used by Billing/);
+  assert.match(css, /\.pro-settings-form > \.pro-panel/);
+});

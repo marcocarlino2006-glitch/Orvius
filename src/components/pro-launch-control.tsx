@@ -179,6 +179,7 @@ export function ProLaunchControl({
 export { ProLineWatch } from "@/components/pro-line-watch";
 export { ProNightWatch } from "@/components/pro-night-watch";
 export { ProSetupScore } from "@/components/pro-setup-score";
+export { ProSetupHub } from "@/components/pro-setup-hub";
 export {
   ProTodayAlerts,
   ProTodayPulse,
