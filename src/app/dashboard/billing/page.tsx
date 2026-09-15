@@ -54,7 +54,7 @@ function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | nul
       if (pilotEndsAt) {
         const ends = new Date(pilotEndsAt);
         if (!Number.isNaN(ends.getTime())) {
-          return `Design partner access through ${ends.toLocaleDateString()}. Then subscribe to keep the line.`;
+          return `Design partner access is active through ${ends.toLocaleDateString()}.`;
         }
       }
       return "You are on the design partner program (30-day pilot).";
@@ -125,11 +125,6 @@ export default function DashboardBillingPage() {
               <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
                 {statusCopy(status, entitled, pilotEndsAt)}
               </p>
-              {pilotEndsAt && status === "pilot" && entitled ? (
-                <p className="mt-2 font-sans text-xs text-ash">
-                  Pilot ends {new Date(pilotEndsAt).toLocaleString()}
-                </p>
-              ) : null}
               {account?.business ? (
                 <p className="mt-2 font-sans text-xs text-ash">
                   Billed to {account.business.name}

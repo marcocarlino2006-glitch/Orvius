@@ -4256,6 +4256,13 @@ a.pro-shift-event:hover .pro-shift-event-title {
   letter-spacing: -0.018em;
 }
 
+.billing-settings .account-plan-badge {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 .billing-settings .account-plan-price {
   color: #aaa8a3 !important;
   font-size: 0.8125rem;
@@ -4279,7 +4286,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
   max-width: 34rem;
 }
 
-.payment-state-indicator,
 .payment-state-step {
   display: grid;
   place-items: center;
@@ -4291,14 +4297,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: #aaa8a3;
   font-size: 0.6875rem;
   font-weight: 650;
-}
-
-.payment-state-indicator::after {
-  content: "";
-  width: 0.42rem;
-  height: 0.42rem;
-  border-radius: 50%;
-  background: #8c8983;
 }
 
 .payment-state-title {

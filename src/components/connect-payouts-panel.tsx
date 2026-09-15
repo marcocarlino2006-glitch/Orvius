@@ -94,7 +94,9 @@ export function ConnectPayoutsPanel() {
     return (
       <ShellPanel title="Payouts" dense>
         <div className="payment-locked-state font-sans">
-          <span className="payment-state-indicator" aria-hidden />
+          <span className="payment-state-step" aria-hidden>
+            1
+          </span>
           <div>
             <p className="payment-state-title">Payments setup pending</p>
             <p className="payment-state-copy">
