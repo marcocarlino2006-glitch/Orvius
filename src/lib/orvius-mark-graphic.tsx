@@ -1,6 +1,6 @@
 import { orviusColors } from "@/lib/orvius-colors";
 
-/** Static signal-route mark for social images and favicons — inline colors. */
+/** Static signal-vector mark for social images and favicons — inline colors. */
 export function OrviusMarkGraphic({
   size = 32,
   variant = "dark",
@@ -21,13 +21,11 @@ export function OrviusMarkGraphic({
     >
       <path
         fill={ink}
-        d="M2 4h7.25L16 21.2 22.75 4H30L20.15 27.1C19.45 28.9 17.9 30 16 30s-3.45-1.1-4.15-2.9L2 4Z"
+        d="M2 4 13 8l2 21-5-9 1-6-6-2-3-8Zm28 0L19 8l-2 21 5-9-1-6 6-2 3-8Z"
       />
       <path
-        d="M16 4v13"
-        stroke={ink}
-        strokeWidth="4"
-        strokeLinecap="round"
+        fill={orviusColors.signal}
+        d="m15 7 1-3 1 3 1 22-2 3-2-3 1-22Z"
       />
     </svg>
   );

@@ -1,6 +1,6 @@
 /** Brand typography — Archivo speaks, Plex Mono reports. */
 
-export const brandWordmark = "orvius";
+export const brandWordmark = "ORVIUS";
 
 export const typeScale = {
   caption: "0.75rem",
@@ -15,9 +15,7 @@ export const typeScale = {
 /**
  * Logo lockups:
  * 1) Signal-route monogram alone (favicon / chrome)
- * 2) Monogram + a heavy lowercase wordmark. Archivo's broad counters and
- *    rounded shoulders give the name authority; tight optical spacing keeps it
- *    a mark rather than another piece of interface copy.
+ * 2) Insignia + engineered display lettering drawn for Orvius.
  */
 export const logoSizes = {
   sm: { mark: 22, word: "1.2rem", tracking: "-0.065em" },

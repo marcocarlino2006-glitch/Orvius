@@ -1,9 +1,9 @@
 /**
- * Orvius mark — one call, one decisive route.
+ * Orvius mark — the signal vector.
  *
- * A heavy V is crossed by one live vertical signal. It reads as Orvius's
- * initial and as an inbound call routed into action. The angular silhouette is
- * deliberately unrelated to the closed oval language used by Oracle.
+ * Two swept vectors converge around one live beam: an inbound transmission
+ * becoming decisive motion. The separated geometry stays recognizable without
+ * collapsing into a generic letter or app tile.
  */
 
 export type OrviusMarkSvgProps = {
@@ -23,16 +23,14 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-route"
+        className="orvius-mark-vector"
         fill="currentColor"
-        d="M2 4h7.25L16 21.2 22.75 4H30L20.15 27.1C19.45 28.9 17.9 30 16 30s-3.45-1.1-4.15-2.9L2 4Z"
+        d="M2 4 13 8l2 21-5-9 1-6-6-2-3-8Zm28 0L19 8l-2 21 5-9-1-6 6-2 3-8Z"
       />
       <path
-        className="orvius-mark-signal"
-        d="M16 4v13"
-        stroke="currentColor"
-        strokeWidth="4"
-        strokeLinecap="round"
+        className="orvius-mark-beam"
+        fill="currentColor"
+        d="m15 7 1-3 1 3 1 22-2 3-2-3 1-22Z"
       />
     </svg>
   );

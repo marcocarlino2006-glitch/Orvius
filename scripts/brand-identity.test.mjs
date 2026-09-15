@@ -9,20 +9,20 @@ import { brandWordmark, logoSizes } from "../src/lib/brand-typography.ts";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
 
-test("the primary wordmark is one disciplined lowercase identity", () => {
-  assert.equal(brandWordmark, "orvius");
+test("the primary wordmark uses one engineered display identity", () => {
+  assert.equal(brandWordmark, "ORVIUS");
   assert.equal(logoSizes.lg.word, "1.75rem");
-  for (const size of Object.values(logoSizes)) {
-    assert.match(size.tracking, /^-/, "every lockup keeps the same tight rhythm");
-  }
-  assert.match(read("src/app/public-v2.css"), /font-weight: 800 !important/);
+  const wordmark = read("src/lib/orvius-wordmark.tsx");
+  assert.match(wordmark, /viewBox="0 0 170 32"/);
+  assert.equal((wordmark.match(/<path/g) ?? []).length, 6);
+  assert.match(read("src/app/public-v2.css"), /height: 1\.65rem !important/);
 });
 
-test("the signal route stays simple and distinct at favicon scale", () => {
+test("the signal vector stays simple and distinct at favicon scale", () => {
   const mark = read("src/lib/orvius-mark.tsx");
-  assert.match(mark, /M2 4h7\.25L16 21\.2/);
-  assert.match(mark, /M16 4v13/);
-  assert.doesNotMatch(mark, /aperture|ellipse|rounded gate/i);
+  assert.match(mark, /M2 4 13 8l2 21/);
+  assert.match(mark, /m15 7 1-3 1 3/);
+  assert.doesNotMatch(mark, /aperture|ellipse|rounded gate|plain V/i);
   assert.doesNotMatch(mark, /\bBARS\b|\.map\(/);
 });
 

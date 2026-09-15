@@ -3,13 +3,14 @@
 import type { CSSProperties } from "react";
 import { brandWordmark, logoSizes } from "@/lib/brand-typography";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
+import { OrviusWordmarkSvg } from "@/lib/orvius-wordmark";
 
 type OrviusMarkProps = {
   size?: number;
   className?: string;
 };
 
-/** Open-line mark alone — favicon / avatar. */
+/** Signal-vector insignia alone — favicon / avatar. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -24,7 +25,7 @@ type OrviusLogoProps = {
   variant?: "void" | "chalk";
   /** Text wordmark only (no mark). */
   wordmarkOnly?: boolean;
-  /** Open-line mark alone. */
+  /** Signal-vector insignia alone. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -32,8 +33,7 @@ type OrviusLogoProps = {
 };
 
 /**
- * One lockup: signal-route monogram + the heavy lowercase Orvius wordmark.
- * The name stays typographic so it remains sharp and accessible at every size.
+ * One lockup: signal-vector insignia + engineered ORVIUS lettering.
  */
 export function OrviusLogo({
   size = "md",
@@ -87,7 +87,7 @@ export function OrviusLogo({
       {wordmarkOnly ? null : (
         <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
       )}
-      <span className="orvius-logo-word">{brandWordmark}</span>
+      <OrviusWordmarkSvg className="orvius-logo-word" />
     </span>
   );
 }
