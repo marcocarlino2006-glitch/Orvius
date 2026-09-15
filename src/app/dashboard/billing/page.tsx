@@ -243,7 +243,6 @@ export default function DashboardBillingPage() {
             </>
           )}
         </ShellPanel>
-      </div>
 
       <ConnectPayoutsPanel />
 
@@ -270,6 +269,7 @@ export default function DashboardBillingPage() {
           </li>
         </ul>
       </ShellPanel>
+      </div>
     </OsShell>
   );
 }
