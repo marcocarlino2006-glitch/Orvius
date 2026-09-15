@@ -16,6 +16,8 @@ export type ShiftEventTone =
   | "attention"
   | "neutral";
 
+export type PipelineProofStage = "call" | "lead" | "job" | "alert" | "money";
+
 export type ShiftEvent = {
   key: string;
   kind: ShiftEventKind;
@@ -25,6 +27,7 @@ export type ShiftEvent = {
   detail: string | null;
   href: string | null;
   amountCents: number | null;
+  proves: PipelineProofStage[];
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -166,6 +169,7 @@ export async function getShiftTimeline(
       detail: compact(call.summary) ?? `Call status: ${call.status}`,
       href: `/dashboard/calls/${call.id}`,
       amountCents: null,
+      proves: call.lead ? ["call", "lead"] : ["call"],
     });
   }
 
@@ -181,6 +185,7 @@ export async function getShiftTimeline(
       detail: `Source: ${lead.source}`,
       href: `/dashboard/inbox/${lead.id}`,
       amountCents: null,
+      proves: ["lead"],
     });
   }
 
@@ -197,6 +202,7 @@ export async function getShiftTimeline(
           : `Job status: ${job.status}`,
         href: `/dashboard/jobs/${job.id}`,
         amountCents: null,
+        proves: ["job"],
       });
     }
     if (job.completedAt && job.completedAt >= since) {
@@ -209,6 +215,7 @@ export async function getShiftTimeline(
         detail: compact(job.resolutionSummary),
         href: `/dashboard/jobs/${job.id}`,
         amountCents: job.finalAmountCents,
+        proves: ["job"],
       });
     }
   }
@@ -227,6 +234,7 @@ export async function getShiftTimeline(
         ? `/dashboard/inbox/${notification.leadId}`
         : null,
       amountCents: null,
+      proves: ["alert"],
     });
   }
 
@@ -246,6 +254,7 @@ export async function getShiftTimeline(
         detail: "Awaiting customer payment",
         href,
         amountCents: deposit.amountCents,
+        proves: ["money"],
       });
     }
     if (deposit.paidAt && deposit.paidAt >= since) {
@@ -258,6 +267,7 @@ export async function getShiftTimeline(
         detail: "Funds settle directly to the shop",
         href,
         amountCents: deposit.amountCents,
+        proves: ["money"],
       });
     }
   }
@@ -276,6 +286,7 @@ export async function getShiftTimeline(
         ? `/dashboard/jobs/${payment.invoice.jobId}`
         : null,
       amountCents: payment.amountCents,
+      proves: ["money"],
     });
   }
 

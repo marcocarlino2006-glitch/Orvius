@@ -368,6 +368,96 @@
   font-size: 0.6875rem;
 }
 
+.pro-shift-proof {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.pro-shift-proof-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pro-shift-proof-head p,
+.pro-shift-proof-head span {
+  margin: 0;
+  color: var(--os-mute, #a09f9e);
+  font-size: 0.6875rem;
+}
+
+.pro-shift-proof-head strong {
+  margin-left: 0.35rem;
+  color: var(--os-ink, #f4f4f4);
+  font-weight: 650;
+}
+
+.pro-shift-proof ol {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pro-shift-proof li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  color: var(--os-mute, #a09f9e);
+  font-size: 0.6875rem;
+}
+
+.pro-shift-proof li > span {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: none;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.pro-shift-proof li[data-state="proven"] {
+  color: var(--os-success, #6ee7b7);
+}
+
+.pro-shift-proof li[data-state="proven"] > span {
+  background: currentColor;
+  box-shadow: 0 0 0.55rem color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.pro-shift-proof li[data-state="optional"] {
+  color: var(--os-mute, #777570);
+}
+
+.pro-shift-proof small {
+  overflow: hidden;
+  font-size: 0.5625rem;
+  text-overflow: ellipsis;
+}
+
+.pro-shift-proof > a {
+  display: inline-block;
+  margin-top: 0.75rem;
+  color: var(--os-agent, #e0855a);
+  font-size: 0.6875rem;
+  text-decoration: none;
+}
+
+.pro-launch-disclosure {
+  margin: 0.85rem 0 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--os-mute, #a09f9e);
+  font-size: 0.6875rem;
+  line-height: 1.45;
+}
+
 .pro-shift-list {
   display: grid;
   margin: 1rem 0 0;
@@ -549,6 +639,10 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
   .pro-shift {
     padding: 1rem;
+  }
+
+  .pro-shift-proof ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .pro-shift-event {

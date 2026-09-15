@@ -167,8 +167,8 @@ export function ProTodayAlerts({
               {!checkoutReady
                 ? "Stripe not live — cannot collect money"
                 : pilotDaysLeft != null && pilotDaysLeft <= 0
-                  ? "Pilot ended — subscribe to keep the line"
-                  : `Pilot ends in ${pilotDaysLeft} day${pilotDaysLeft === 1 ? "" : "s"}`}
+                  ? "Design-partner access ended — subscribe to keep the line"
+                  : `Design-partner access review in ${pilotDaysLeft} day${pilotDaysLeft === 1 ? "" : "s"}`}
             </p>
             <p className="pro-today-alert-detail">
               Category leaders collect cash. Open billing and close the founder unblock.

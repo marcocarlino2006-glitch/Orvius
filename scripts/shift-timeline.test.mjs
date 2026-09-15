@@ -143,6 +143,16 @@ test("the shift timeline is measured, deduplicated, sorted, and tenant scoped", 
   assert.ok(keys.includes(`deposit_sent:${deposit.id}`));
   assert.ok(keys.includes(`deposit_paid:${deposit.id}`));
   assert.ok(keys.includes(`owner_alerted:${sentAlert.id}:sms`));
+  assert.deepEqual(
+    events.find((event) => event.key === `call_captured:${call.id}`)?.proves,
+    ["call", "lead"],
+    "a call with a qualified lead proves both stages without duplicating the feed",
+  );
+  assert.deepEqual(
+    events.find((event) => event.key === `owner_alerted:${sentAlert.id}:sms`)
+      ?.proves,
+    ["alert"],
+  );
   assert.ok(
     !events.some((event) => event.key.includes(otherLead.id)),
     "another shop's events must never enter this feed",

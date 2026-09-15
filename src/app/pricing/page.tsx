@@ -12,7 +12,7 @@ const featured = getFeaturedPlan();
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Orvius plans from $124/mo (annual) — Line, Pro, Fleet, and Multi-shop. Monthly or annual billing.",
+    "Orvius plans from $124/mo (annual) — Line, Pro, and Fleet. Monthly or annual billing.",
 };
 
 export default function PricingPage() {
@@ -26,17 +26,17 @@ export default function PricingPage() {
             label="Pricing"
             title={`From $${getLowestPaidPrice("year")} per month. Flat.`}
             subline="Monthly or annual — pick the plan that matches your shop."
-            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks. Multi-shop for 2+ locations."
+            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks."
           />
           {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
               Public self-serve opens only when signup, billing, telephony and
-              support gates are verified. Until then, start as a{" "}
+              support gates are verified. Until then, book a{" "}
               <Link href="/pilot" className="underline underline-offset-2">
-                design partner pilot
+                call audit
               </Link>{" "}
-              — we set the line up with you. Subscribe buttons route to the pilot
-              until billing is green.
+              and we&apos;ll verify the setup with you. We do not advertise a
+              free trial or collect payment outside verified Stripe checkout.
             </p>
           ) : null}
           <div className="tier1-hero-call">

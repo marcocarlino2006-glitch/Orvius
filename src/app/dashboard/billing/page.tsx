@@ -45,7 +45,7 @@ type BillingAccount = {
 
 function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | null) {
   if (!entitled && (status === "pilot" || status === "none")) {
-    return "Pilot ended — subscribe to reopen your shop.";
+    return "Design-partner access ended — subscribe to reopen your shop.";
   }
   switch (status) {
     case "active":
@@ -57,7 +57,7 @@ function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | nul
           return `Design partner access is active through ${ends.toLocaleDateString()}.`;
         }
       }
-      return "You are on the design partner program (30-day pilot).";
+      return "Your design-partner access is active.";
     }
     case "past_due":
       return "Payment failed — update billing to keep your line live.";

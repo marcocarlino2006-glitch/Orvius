@@ -237,8 +237,8 @@ export async function getAttentionQueue(
         impact: "critical",
         title:
           daysLeft <= 0
-            ? "Pilot ended — subscribe"
-            : `Pilot ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
+            ? "Design-partner access ended — subscribe"
+            : `Access review in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
         detail: "Subscribe so missed calls keep becoming booked jobs.",
         recommendedAction: "Choose a plan",
         href: "/dashboard/billing",

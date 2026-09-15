@@ -6,12 +6,6 @@ export type PricingFaqItem = {
 
 export const pricingFaq: readonly PricingFaqItem[] = [
   {
-    id: "pilot",
-    question: "What do I get with the design partner program?",
-    answer:
-      "30 days free with a dedicated shop line, AI receptionist, owner SMS alerts, and full Pro workspace access. We onboard your shop personally — no credit card required. After the program, you pick Line, Pro, or Fleet.",
-  },
-  {
     id: "line-vs-pro",
     question: "What's the difference between Line and Pro?",
     answer:
@@ -42,15 +36,9 @@ export const pricingFaq: readonly PricingFaqItem[] = [
       "Fleet is built for 6+ trucks — unlimited technicians on dispatch and the multi-truck dispatch workflows. Pro caps technicians at 15. Growing shops with 3–5 trucks are usually on Pro. Support is the same on every plan: email us and you get a person, normally within a business day.",
   },
   {
-    id: "multi",
-    question: "Do you support multiple locations?",
+    id: "launch",
+    question: "What happens before my line goes live?",
     answer:
-      "The multi-location control plane is not generally available yet. We are mapping roles, billing, and reporting requirements with qualified design partners; email hello@orvius.im to discuss your footprint.",
-  },
-  {
-    id: "stripe",
-    question: "Why does checkout say design partner instead of Subscribe?",
-    answer:
-      "Self-serve Stripe checkout requires billing to be configured in production. Until then, start with the free design partner program — we'll send a checkout link when your trial ends.",
+      "We verify your shop name, services, hours, escalation number, and one real test call. Early accounts receive founder-assisted onboarding while these checks are automated. Your selected paid plan begins through Stripe checkout; there is no advertised free-trial period.",
   },
 ] as const;

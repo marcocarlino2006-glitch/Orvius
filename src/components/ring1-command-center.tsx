@@ -9,6 +9,7 @@ import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
 import { ProLineWatch } from "@/components/pro-line-watch";
+import { ProLaunchControl } from "@/components/pro-launch-control";
 import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
 import { ProSetupScore } from "@/components/pro-setup-score";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
@@ -22,6 +23,11 @@ import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
 type Ring1Data = {
+  business?: {
+    billingStatus?: string | null;
+    depositEnabled?: boolean;
+    referenceImplementation?: boolean;
+  };
   metrics: {
     newLeads: number;
   };
@@ -115,6 +121,8 @@ export function Ring1CommandCenter() {
         <ProShiftTimeline
           events={data?.shiftTimeline ?? []}
           loading={loading}
+          moneyEnabled={data?.business?.depositEnabled ?? false}
+          setupReady={data?.wedge?.ready ?? false}
         />
 
         <ApproveQueue onChange={load} />
@@ -164,6 +172,14 @@ export function Ring1CommandCenter() {
       </div>
 
       <aside className="ring1-cockpit-rail" aria-label="Shop status">
+        <ProLaunchControl
+          wedge={data?.wedge}
+          events={data?.shiftTimeline ?? []}
+          moneyEnabled={data?.business?.depositEnabled ?? false}
+          checkoutReady={data?.gates?.checkoutReady ?? false}
+          billingStatus={data?.business?.billingStatus}
+          referenceImplementation={data?.business?.referenceImplementation}
+        />
         <ProNightWatch coverage={data?.coverage ?? null} outcomes={data?.outcomes ?? null} />
         <ProLineWatch health={data?.health ?? null} />
         {!data?.wedge?.ready ? <ProSetupScore wedge={data?.wedge ?? null} /> : null}

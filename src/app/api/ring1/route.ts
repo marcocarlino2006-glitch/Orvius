@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAttentionQueue } from "@/lib/attention-queue";
 import { isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
-import { getShopLineForBusiness } from "@/lib/demo-business";
+import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { getDispatchBoard, listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
@@ -144,6 +144,8 @@ export async function GET() {
       ownerPhone: business.ownerPhone,
       billingStatus: business.billingStatus,
       pilotEndsAt: business.pilotEndsAt?.toISOString() ?? null,
+      depositEnabled: business.depositEnabled,
+      referenceImplementation: isDemoBusiness(business),
     },
     coverage: {
       afterHoursNow: isAfterHours(
