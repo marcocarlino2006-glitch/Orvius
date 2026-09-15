@@ -1,9 +1,9 @@
 /**
- * Orvius mark — the signal vector.
+ * Orvius mark — the open orbit.
  *
- * Two swept vectors converge around one live beam: an inbound transmission
- * becoming decisive motion. The separated geometry stays recognizable without
- * collapsing into a generic letter or app tile.
+ * A near-circular operational loop stays open for one diagonal inbound signal.
+ * It carries the geometric confidence of infrastructure brands without using
+ * Oracle's horizontal ellipse or Oculus's nested visor.
  */
 
 export type OrviusMarkSvgProps = {
@@ -23,14 +23,25 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-vector"
-        fill="currentColor"
-        d="M2 4 13 8l2 21-5-9 1-6-6-2-3-8Zm28 0L19 8l-2 21 5-9-1-6 6-2 3-8Z"
+        className="orvius-mark-orbit"
+        d="M23.5 5.8A12 12 0 1 0 27.2 21"
+        stroke="currentColor"
+        strokeWidth="4.75"
+        strokeLinecap="square"
       />
       <path
         className="orvius-mark-beam"
+        d="m29 6-9.25 9.25"
+        stroke="currentColor"
+        strokeWidth="3.25"
+        strokeLinecap="square"
+      />
+      <circle
+        className="orvius-mark-core"
+        cx="17"
+        cy="18"
+        r="2.25"
         fill="currentColor"
-        d="m15 7 1-3 1 3 1 22-2 3-2-3 1-22Z"
       />
     </svg>
   );

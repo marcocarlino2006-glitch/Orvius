@@ -14,7 +14,7 @@ export const typeScale = {
 
 /**
  * Logo lockups:
- * 1) Signal-route monogram alone (favicon / chrome)
+ * 1) Open-orbit insignia alone (favicon / chrome)
  * 2) Insignia + engineered display lettering drawn for Orvius.
  */
 export const logoSizes = {

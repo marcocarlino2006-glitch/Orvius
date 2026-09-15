@@ -18,11 +18,12 @@ test("the primary wordmark uses one engineered display identity", () => {
   assert.match(read("src/app/public-v2.css"), /height: 1\.65rem !important/);
 });
 
-test("the signal vector stays simple and distinct at favicon scale", () => {
+test("the open orbit stays simple and distinct at favicon scale", () => {
   const mark = read("src/lib/orvius-mark.tsx");
-  assert.match(mark, /M2 4 13 8l2 21/);
-  assert.match(mark, /m15 7 1-3 1 3/);
-  assert.doesNotMatch(mark, /aperture|ellipse|rounded gate|plain V/i);
+  assert.match(mark, /M23\.5 5\.8A12 12 0 1 0 27\.2 21/);
+  assert.match(mark, /m29 6-9\.25 9\.25/);
+  assert.match(mark, /className="orvius-mark-core"/);
+  assert.doesNotMatch(mark, /aperture|rounded gate|plain V/i);
   assert.doesNotMatch(mark, /\bBARS\b|\.map\(/);
 });
 

@@ -567,7 +567,7 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — signal-vector insignia + engineered display lettering. */
+/* Orvius logo — open-orbit insignia + engineered display lettering. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -599,7 +599,7 @@ h3 {
 
 .orvius-wordmark-svg path {
   stroke: currentColor;
-  stroke-width: 4.5;
+  stroke-width: 5;
   stroke-linecap: square;
   stroke-linejoin: bevel;
 }
@@ -10671,7 +10671,7 @@ body:has(.mkt-page) .shell-header {
   letter-spacing: -0.006em !important;
 }
 
-/* Trademark lockup — original vector mark + engineered ORVIUS lettering. */
+/* Trademark lockup — original open orbit + engineered ORVIUS lettering. */
 .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {

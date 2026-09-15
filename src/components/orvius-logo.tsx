@@ -10,7 +10,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Signal-vector insignia alone — favicon / avatar. */
+/** Open-orbit insignia alone — favicon / avatar. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -25,7 +25,7 @@ type OrviusLogoProps = {
   variant?: "void" | "chalk";
   /** Text wordmark only (no mark). */
   wordmarkOnly?: boolean;
-  /** Signal-vector insignia alone. */
+  /** Open-orbit insignia alone. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -33,7 +33,7 @@ type OrviusLogoProps = {
 };
 
 /**
- * One lockup: signal-vector insignia + engineered ORVIUS lettering.
+ * One lockup: open-orbit insignia + engineered ORVIUS lettering.
  */
 export function OrviusLogo({
   size = "md",
