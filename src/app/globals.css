@@ -6156,8 +6156,8 @@ label:has(> input[type="radio"]) {
 }
 
 .mkt-nav-brand .orvius-logo-word {
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: -0.055em;
 }
 
 .mkt-nav-links a,
@@ -7943,7 +7943,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .attention-queue-title {
   font-size: 1.05rem !important;
-  font-weight: 650 !important;
+  font-weight: 600 !important;
   letter-spacing: -0.02em !important;
   color: #f7f7f7 !important;
   margin: 0.2rem 0 0 !important;
