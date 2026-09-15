@@ -224,6 +224,12 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
     (shopMustNotUseDemoLine(business) && isDemoPlatformLine(currentLine));
 
   if (!needsLine && currentLine) {
+    /*
+      Existing numbers predate some webhook hardening. Twilio updates are
+      idempotent, so every repair also backfills SMS delivery receipts and the
+      Vapi-outage voice fallback instead of assuming the number is already safe.
+    */
+    await configureSmsWebhook(currentLine);
     await attachAssistantToShopLine({
       phone: currentLine,
       assistantId: business.vapiAssistantId,

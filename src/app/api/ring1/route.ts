@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import { getAttentionQueue } from "@/lib/attention-queue";
 import { isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
+import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { getDispatchBoard, listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
@@ -88,6 +90,11 @@ export async function GET() {
   ]);
 
   const wedge = await getWedgeReadiness(business.id, health);
+  if (health.stuckPendingAlerts > 0) {
+    after(() =>
+      drainOwnerAlerts({ at: "ring1.health", businessId: business.id }),
+    );
+  }
 
   const priorityLeads = priorityLeadsRaw
     .sort((a, b) => {

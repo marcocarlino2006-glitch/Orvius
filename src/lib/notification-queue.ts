@@ -267,8 +267,6 @@ async function deliverQueuedRow(row: {
       },
     });
 
-    await markCallOwnerNotifiedFromLead(row.leadId);
-
     logInfo("notification.sms_sent", {
       businessId: row.businessId,
       leadId: row.leadId,
@@ -481,13 +479,26 @@ export async function applySmsDeliveryReceipt(params: {
   messageStatus: string;
   errorCode?: string | null;
 }) {
-  if (!isCarrierFailureStatus(params.messageStatus)) {
-    return { reopened: 0, exhausted: 0 };
+  const status = params.messageStatus.trim().toLowerCase();
+  const delivered = status === "delivered";
+  if (!delivered && !isCarrierFailureStatus(status)) {
+    return { reopened: 0, exhausted: 0, delivered: 0 };
   }
 
   const rows = await prisma.ownerNotification.findMany({
-    where: { deliveryId: params.messageSid, channel: "sms" },
+    where: {
+      deliveryId: params.messageSid,
+      channel: "sms",
+      status: "sent",
+    },
   });
+
+  if (delivered) {
+    for (const row of rows) {
+      await markCallOwnerNotifiedFromLead(row.leadId);
+    }
+    return { reopened: 0, exhausted: 0, delivered: rows.length };
+  }
 
   const code = (params.errorCode ?? "").trim();
   const permanent = code ? PERMANENT_SMS_ERROR_CODES.has(code) : false;
@@ -499,6 +510,7 @@ export async function applySmsDeliveryReceipt(params: {
     .join(" ");
 
   let exhausted = 0;
+  let reopened = 0;
   for (const row of rows) {
     /*
       Already given up on, so there is nothing to reopen — and re-running the
@@ -507,6 +519,7 @@ export async function applySmsDeliveryReceipt(params: {
     if (row.attempts >= MAX_ATTEMPTS) continue;
 
     await markDeliveryFailure(row, reason, { exhaust: permanent });
+    reopened += 1;
     if (permanent) exhausted += 1;
   }
 
@@ -515,10 +528,10 @@ export async function applySmsDeliveryReceipt(params: {
     messageStatus: params.messageStatus,
     errorCode: code || null,
     permanent,
-    reopened: rows.length,
+    reopened,
   });
 
-  return { reopened: rows.length, exhausted };
+  return { reopened, exhausted, delivered: 0 };
 }
 
 export async function processNotificationQueue(limit = 20) {
