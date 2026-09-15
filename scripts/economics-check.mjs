@@ -133,4 +133,4 @@ if (blockers > 0) {
   process.exit(1);
 }
 console.log("✅ ECONOMICS: mastery surfaces ready\n");
-console.log("Owner next: set avg ticket + baseline in Settings, then Copy weekly proof on Today.\n");
+console.log("Owner next: set avg ticket + baseline in Settings, then copy weekly proof in Command.\n");
