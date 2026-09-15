@@ -1,5 +1,5 @@
 import { isAfterHours } from "@/lib/business";
-import { estimatedRevenueCents } from "@/lib/money";
+import { estimatedRevenueCents, formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
 /** How much history the trend draws. Eight weeks fits a screen and a season. */
@@ -288,6 +288,9 @@ export async function getShopOutcomes(
 
 /** Printable weekly proof block for design-partner artifacts. */
 export function formatWeeklyProof(outcomes: ShopOutcomes, shopName: string): string {
+  const completedWeeks = outcomes.weeks.filter((week) => !week.partial);
+  const latestWeek = completedWeeks.at(-1);
+  const priorWeek = completedWeeks.at(-2);
   const lines = [
     `Orvius weekly proof — ${shopName}`,
     `Window: last ${outcomes.windowDays} days (since ${outcomes.since.slice(0, 10)})`,
@@ -296,13 +299,16 @@ export function formatWeeklyProof(outcomes: ShopOutcomes, shopName: string): str
     `After-hours leads: ${outcomes.afterHoursLeads} (booked ${outcomes.afterHoursBooked})`,
     `Booked from captured demand: ${outcomes.capturedDemandJobs} (call/SMS leads → jobs)`,
     outcomes.capturedDemandEstimatedValueCents != null
-      ? `Estimated value at owner avg ticket: $${(outcomes.capturedDemandEstimatedValueCents / 100).toFixed(0)}`
+      ? `Estimated value at owner avg ticket: ${formatCentsExact(outcomes.capturedDemandEstimatedValueCents)}`
+      : null,
+    latestWeek && priorWeek
+      ? `Completed-week trend: ${latestWeek.booked} booked vs ${priorWeek.booked} prior (${latestWeek.leads} leads vs ${priorWeek.leads})`
       : null,
     outcomes.jobsPerWeekVsBaseline != null
       ? `Jobs/week vs owner-reported before-Orvius baseline: ${outcomes.jobsPerWeekVsBaseline >= 0 ? "+" : ""}${outcomes.jobsPerWeekVsBaseline} (context, not attribution)`
       : null,
-    `Collected (recorded payments): $${(outcomes.collectedCents / 100).toFixed(0)}`,
-    `Open estimates: $${(outcomes.openEstimateCents / 100).toFixed(0)} · Open invoices: $${(outcomes.openInvoiceCents / 100).toFixed(0)}`,
+    `Collected (recorded payments): ${formatCentsExact(outcomes.collectedCents)}`,
+    `Open estimates: ${formatCentsExact(outcomes.openEstimateCents)} · Open invoices: ${formatCentsExact(outcomes.openInvoiceCents)}`,
     "Label: booking counts and recorded payments are measured CRM events; dollar value uses owner avg ticket and is not audited GAAP revenue.",
   ];
   return lines.filter(Boolean).join("\n");
