@@ -9,13 +9,6 @@ export function OrviusMarkGraphic({
   variant?: "dark" | "light";
 }) {
   const ink = variant === "dark" ? orviusColors.signal : orviusColors.void;
-  const bars = [
-    { x: 9, half: 6 },
-    { x: 12.5, half: 3.9 },
-    { x: 16, half: 1.6 },
-    { x: 19.5, half: 3.9 },
-    { x: 23, half: 6 },
-  ];
 
   return (
     <svg
@@ -26,27 +19,17 @@ export function OrviusMarkGraphic({
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <rect
-        x="2.5"
-        y="2.5"
-        width="27"
-        height="27"
-        rx="7.5"
-        stroke={ink}
-        strokeWidth="2.25"
+      <path
+        fill={ink}
+        fillRule="evenodd"
+        d="M10 2h12c4.418 0 8 3.582 8 8v12c0 4.418-3.582 8-8 8H10c-4.418 0-8-3.582-8-8V10c0-4.418 3.582-8 8-8Zm2 10h8a4 4 0 1 1 0 8h-8a4 4 0 1 1 0-8Z"
       />
-      {bars.map((bar) => (
-        <line
-          key={bar.x}
-          x1={bar.x}
-          y1={16 - bar.half}
-          x2={bar.x}
-          y2={16 + bar.half}
-          stroke={ink}
-          strokeWidth="2.25"
-          strokeLinecap="round"
-        />
-      ))}
+      <path
+        d="M12.25 16h7.5"
+        stroke={ink}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

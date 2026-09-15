@@ -567,7 +567,7 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — copper signal aperture + monospaced reporting wordmark. */
+/* Orvius logo — open-line aperture + restrained lowercase wordmark. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -590,16 +590,14 @@ h3 {
    place instead of here and in TypeScript. */
 .orvius-logo-word {
   display: block;
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--logo-word-size, 0.875rem);
-  font-weight: 700;
-  letter-spacing: var(--logo-word-tracking, 0.17em);
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: var(--logo-word-tracking, -0.055em);
+  text-transform: lowercase;
   line-height: 1;
   color: inherit;
-  /* Open tracking trails the last glyph; reclaim it so the lockup is optically
-     centred against the mark. */
-  margin-right: -0.17em;
+  margin-right: var(--logo-word-tracking, -0.055em);
 }
 
 .orvius-logo-void {
@@ -6224,11 +6222,11 @@ label:has(> input[type="radio"]) {
 }
 
 .os-sidebar-brand .orvius-logo-word {
-  font-family: var(--font-mono), ui-monospace, monospace !important;
-  font-size: 0.875rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.17em !important;
-  text-transform: uppercase !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-size: 1.075rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.055em !important;
+  text-transform: lowercase !important;
 }
 
 .os-sidebar-brand .orvius-logo-mark {
@@ -7857,7 +7855,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-night .os-topbar-title {
   font-size: 1.15rem !important;
-  font-weight: 650 !important;
+  font-weight: 600 !important;
   letter-spacing: -0.02em !important;
   color: #f7f7f7 !important;
   margin: 0.15rem 0 0 !important;
@@ -10670,7 +10668,7 @@ body:has(.mkt-page) .shell-header {
   letter-spacing: -0.006em !important;
 }
 
-/* Trademark lockup — mark + ORVIUS wordmark, ink, tight like CURSOR */
+/* Trademark lockup — original open-line mark + lowercase wordmark. */
 .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
@@ -10682,12 +10680,14 @@ body:has(.mkt-page) .shell-header {
 .mkt-nav-brand .orvius-logo-word,
 .mkt-footer .orvius-logo-word {
   color: var(--ov-headline) !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.02em !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.055em !important;
+  text-transform: lowercase !important;
 }
 
 .mkt-nav-brand .orvius-logo-word {
-  font-size: 1.0625rem !important;
+  font-size: 1.125rem !important;
 }
 
 .mkt-nav-brand .orvius-logo-mark {
