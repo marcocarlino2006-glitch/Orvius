@@ -116,7 +116,7 @@ export function minimumPlanForModule(module: PlanModule): PaidPlanId {
 export function moduleLabel(module: PlanModule): string {
   switch (module) {
     case "today":
-      return "Today";
+      return "Command";
     case "inbox":
       return "Inbox";
     case "calls":

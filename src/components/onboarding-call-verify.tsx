@@ -127,8 +127,8 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
           <p className="onboarding-lead font-sans">
             {verified
               ? leadName
-                ? `${shopName} received a lead from ${leadName}. Confirm how callers reach Orvius, then open Today.`
-                : `${shopName} is receiving calls. Confirm capture is live, then work from Today.`
+                ? `${shopName} received a lead from ${leadName}. Confirm how callers reach Orvius, then open Command.`
+                : `${shopName} is receiving calls. Confirm capture is live, then work from Command.`
               : `Tap Call — Orvius answers as ${shopName}, qualifies, and texts you. We watch for the lead.`}
           </p>
         </div>
@@ -256,7 +256,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
             Open dashboard anyway
           </button>
           {" — "}
-          we&apos;ll remind you to finish prove-it on Today.
+          we&apos;ll remind you to finish prove-it in Command.
         </p>
       ) : null}
 

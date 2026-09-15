@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Billing is not configured yet for this plan. Apply for the pilot and we will send a checkout link after your trial.",
+            "Verified Stripe checkout is not live for this plan yet. Book a call audit and we will confirm availability without collecting payment.",
           ...((await isPrivilegedRequest(request))
             ? { billing: getBillingReadiness() }
             : {}),

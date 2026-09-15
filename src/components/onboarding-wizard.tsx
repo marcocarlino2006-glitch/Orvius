@@ -210,7 +210,7 @@ export function OnboardingWizard() {
                 <li>
                   <span className="onboarding-ring-num">03</span>
                   <span>
-                    <strong>Prove it once</strong> · Call the line, get the SMS, work from Today
+                    <strong>Prove it once</strong> · Call the line, get the SMS, work from Command
                   </span>
                 </li>
               </ul>

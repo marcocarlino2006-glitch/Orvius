@@ -28,6 +28,8 @@ test("public pricing offers only concrete paid plans", () => {
 test("launch copy discloses assisted operations without a public free trial", () => {
   const publicCopy = [
     read("src/app/pricing/page.tsx"),
+    read("src/app/pilot/page.tsx"),
+    read("src/app/api/billing/checkout/route.ts"),
     read("src/lib/pricing-faq.ts"),
     ...pricingPlans.map((plan) =>
       [plan.tagline, plan.period, plan.idealFor, ...plan.highlights].join(" "),
@@ -37,4 +39,16 @@ test("launch copy discloses assisted operations without a public free trial", ()
   assert.doesNotMatch(publicCopy, /30 days free|free design partner|during trial/i);
   assert.match(publicCopy, /founder-assisted/i);
   assert.match(publicCopy, /no advertised free-trial period/i);
+});
+
+test("owner-facing navigation consistently calls the home surface Command", () => {
+  const ownerCopy = [
+    read("src/components/onboarding-call-verify.tsx"),
+    read("src/components/onboarding-wizard.tsx"),
+    read("src/app/api/webhooks/twilio/sms/route.ts"),
+    read("src/lib/institutional-standards.ts"),
+  ].join("\n");
+
+  assert.doesNotMatch(ownerCopy, /open Today|work from Today|on Today/i);
+  assert.match(ownerCopy, /open Command|work from Command|in Command/i);
 });
