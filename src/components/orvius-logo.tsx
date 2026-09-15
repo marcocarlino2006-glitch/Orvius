@@ -32,7 +32,7 @@ type OrviusLogoProps = {
 };
 
 /**
- * One lockup: open-line aperture + the lowercase Orvius wordmark.
+ * One lockup: signal-route monogram + the heavy lowercase Orvius wordmark.
  * The name stays typographic so it remains sharp and accessible at every size.
  */
 export function OrviusLogo({

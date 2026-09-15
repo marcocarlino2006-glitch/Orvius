@@ -1,11 +1,9 @@
 /**
- * Orvius mark — the open line.
+ * Orvius mark — one call, one decisive route.
  *
- * A single rounded gate carries one live signal through its open right edge. The
- * silhouette is deliberately simple enough to survive at 16px, while the open
- * line ties the mark to Orvius's first job: keeping the shop's line moving.
- * It is not a letter trapped in an app tile and it does not need a waveform to
- * explain itself.
+ * A heavy V is crossed by one live vertical signal. It reads as Orvius's
+ * initial and as an inbound call routed into action. The angular silhouette is
+ * deliberately unrelated to the closed oval language used by Oracle.
  */
 
 export type OrviusMarkSvgProps = {
@@ -25,16 +23,15 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-aperture"
+        className="orvius-mark-route"
         fill="currentColor"
-        fillRule="evenodd"
-        d="M10 2h12c4.418 0 8 3.582 8 8v12c0 4.418-3.582 8-8 8H10c-4.418 0-8-3.582-8-8V10c0-4.418 3.582-8 8-8Zm2 10h18v8H12a4 4 0 1 1 0-8Z"
+        d="M2 4h7.25L16 21.2 22.75 4H30L20.15 27.1C19.45 28.9 17.9 30 16 30s-3.45-1.1-4.15-2.9L2 4Z"
       />
       <path
-        className="orvius-mark-line"
-        d="M12.25 16h13"
+        className="orvius-mark-signal"
+        d="M16 4v13"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="4"
         strokeLinecap="round"
       />
     </svg>

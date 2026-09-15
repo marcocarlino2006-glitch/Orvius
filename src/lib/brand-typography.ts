@@ -14,14 +14,14 @@ export const typeScale = {
 
 /**
  * Logo lockups:
- * 1) Signal aperture alone (favicon / chrome)
- * 2) Aperture + a restrained lowercase wordmark. Archivo's broad counters and
- *    rounded shoulders give the name its own voice; tight optical spacing keeps
- *    it a mark rather than another piece of interface copy.
+ * 1) Signal-route monogram alone (favicon / chrome)
+ * 2) Monogram + a heavy lowercase wordmark. Archivo's broad counters and
+ *    rounded shoulders give the name authority; tight optical spacing keeps it
+ *    a mark rather than another piece of interface copy.
  */
 export const logoSizes = {
-  sm: { mark: 20, word: "1.0625rem", tracking: "-0.06em" },
-  md: { mark: 24, word: "1.2rem", tracking: "-0.06em" },
-  lg: { mark: 28, word: "1.35rem", tracking: "-0.065em" },
-  xl: { mark: 44, word: "2.25rem", tracking: "-0.07em" },
+  sm: { mark: 22, word: "1.2rem", tracking: "-0.065em" },
+  md: { mark: 28, word: "1.5rem", tracking: "-0.07em" },
+  lg: { mark: 34, word: "1.75rem", tracking: "-0.075em" },
+  xl: { mark: 52, word: "2.75rem", tracking: "-0.08em" },
 } as const;

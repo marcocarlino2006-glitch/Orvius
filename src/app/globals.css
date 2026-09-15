@@ -567,7 +567,7 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — open-line aperture + restrained lowercase wordmark. */
+/* Orvius logo — signal-route monogram + heavy lowercase wordmark. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -592,7 +592,7 @@ h3 {
   display: block;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--logo-word-size, 0.875rem);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: var(--logo-word-tracking, -0.055em);
   text-transform: lowercase;
   line-height: 1;
@@ -6156,8 +6156,8 @@ label:has(> input[type="radio"]) {
 }
 
 .mkt-nav-brand .orvius-logo-word {
-  font-weight: 700;
-  letter-spacing: -0.055em;
+  font-weight: 800;
+  letter-spacing: -0.075em;
 }
 
 .mkt-nav-links a,
@@ -6223,15 +6223,15 @@ label:has(> input[type="radio"]) {
 
 .os-sidebar-brand .orvius-logo-word {
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-size: 1.2rem !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.055em !important;
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.07em !important;
   text-transform: lowercase !important;
 }
 
 .os-sidebar-brand .orvius-logo-mark {
-  width: 1.35rem !important;
-  height: 1.35rem !important;
+  width: 1.75rem !important;
+  height: 1.75rem !important;
   color: var(--signal) !important;
 }
 
@@ -10668,7 +10668,7 @@ body:has(.mkt-page) .shell-header {
   letter-spacing: -0.006em !important;
 }
 
-/* Trademark lockup — original open-line mark + lowercase wordmark. */
+/* Trademark lockup — original route mark + heavy lowercase wordmark. */
 .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
@@ -10681,13 +10681,13 @@ body:has(.mkt-page) .shell-header {
 .mkt-footer .orvius-logo-word {
   color: var(--ov-headline) !important;
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 650 !important;
-  letter-spacing: -0.055em !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.075em !important;
   text-transform: lowercase !important;
 }
 
 .mkt-nav-brand .orvius-logo-word {
-  font-size: 1.3rem !important;
+  font-size: 1.65rem !important;
 }
 
 .mkt-nav-brand .orvius-logo-mark {
