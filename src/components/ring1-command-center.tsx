@@ -71,17 +71,28 @@ const REFRESH_MS = 30_000;
 export function Ring1CommandCenter() {
   const [data, setData] = useState<Ring1Data | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { access } = usePlanAccess();
   const canDispatch = access?.canAccess("dispatch") ?? false;
 
   const load = useCallback(async () => {
     try {
       const res = await fetch("/api/ring1");
-      if (!res.ok) return;
+      if (!res.ok) {
+        throw new Error(
+          res.status === 401
+            ? "Your session expired. Sign in again to refresh Command."
+            : "Command could not refresh.",
+        );
+      }
       const json = await res.json();
       setData(json);
+      setLoadError(null);
     } catch {
-      /* keep last good data */
+      setLoadError(
+        "Live refresh is temporarily unavailable. Existing information remains visible.",
+      );
     } finally {
       setLoading(false);
     }
@@ -112,6 +123,27 @@ export function Ring1CommandCenter() {
   return (
     <section className="ring1-command ring1-cockpit" aria-label="Command">
       <div className="ring1-cockpit-main">
+        {loadError ? (
+          <div className="pro-command-recovery font-sans" role="alert">
+            <div>
+              <strong>Connection needs attention</strong>
+              <span>{loadError}</span>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary text-sm"
+              disabled={refreshing}
+              onClick={async () => {
+                setRefreshing(true);
+                await load();
+                setRefreshing(false);
+              }}
+            >
+              {refreshing ? "Retrying…" : "Try again"}
+            </button>
+          </div>
+        ) : null}
+
         <ProCommandOutcomes
           outcomes={data?.outcomes}
           attentionCount={attention.length}
