@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-process.env.STRIPE_PRICE_PRO = "price_activation_pro";
+process.env.STRIPE_PRICE_ID_PRO = "price_activation_pro";
 
 const { resolvePaidCheckoutActivation } = await import(
   "../src/lib/billing-sync.ts"
