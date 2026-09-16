@@ -2097,6 +2097,11 @@ h3 {
   color: color-mix(in srgb, var(--mist) 45%, var(--ash));
 }
 
+.os-profile-menu-link:hover .os-profile-menu-hint,
+.os-profile-menu-link:focus-visible .os-profile-menu-hint {
+  color: color-mix(in srgb, var(--mist) 52%, var(--ash));
+}
+
 .os-profile-menu-footer {
   display: flex;
   flex-direction: column;
