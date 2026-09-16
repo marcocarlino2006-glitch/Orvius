@@ -68,6 +68,12 @@ if (fileOk("docs/STANDINGS.md")) {
   fail("Standings analysis", "docs/STANDINGS.md missing");
 }
 
+if (fileOk("scripts/master-all.mjs") && fileOk("src/lib/multi-b-mastery.ts")) {
+  pass("Master-all path", "master:all script + multi-b-mastery module");
+} else {
+  fail("Master-all path", "scripts/master-all.mjs or src/lib/multi-b-mastery.ts missing");
+}
+
 try {
   const bar = read("src/lib/beyond-bar.ts");
   const hasLaws = /beyondLaws/.test(bar) && /L10/.test(bar);

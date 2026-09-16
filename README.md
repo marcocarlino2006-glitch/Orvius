@@ -23,6 +23,8 @@ npm run beyond:check
 
 See `docs/WEDGE-MASTERY.md`, `docs/PERFECT-STANDARDS.md`, `docs/BEYOND-BAR.md`, `docs/MULTI-B-STRICT.md`, and `docs/STANDINGS.md`.
 
+Master the close sequence: `npm run master:all` · `/admin/daily`
+
 ## Stack
 
 - Next.js 15 (App Router)

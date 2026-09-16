@@ -133,6 +133,8 @@ We are **between Floor and One-shop**. We are **not** at Ten-shops or Category O
 
 ## 5. Ordered work (no corners, no skipping)
 
+**Cockpit:** `/admin/daily` (Master all) · **CLI:** `npm run master:all`
+
 ### Founder-critical (blocks multi-b)
 1. Paste Stripe → `npm run stripe:setup` → webhook → **first paid Checkout**
 2. Paste `RESEND_API_KEY` on Vercel
@@ -145,8 +147,8 @@ We are **between Floor and One-shop**. We are **not** at Ten-shops or Category O
 
 ### Agent/code (does not print ARR alone)
 9. Ensure CI envs always `npm ci` so trust tests can’t false-fail
-10. Cut CSS landfill (B6) toward &lt;8k
-11. Keep beyond/multi-b/bulletproof honest — never vanity-green
+10. Cut CSS landfill (B6) toward &lt;8k when eras are safe to delete
+11. Keep beyond/multi-b/bulletproof/master:all honest — never vanity-green
 12. Only after 1–8: deepen money rail ops, then plugs when a paying shop asks
 
 ---
@@ -168,11 +170,14 @@ We are **between Floor and One-shop**. We are **not** at Ten-shops or Category O
 npm ci
 npm run db:generate
 npm run beyond:check
+npm run master:all
 npm run multi-b:check
 npm run billing:check
 npm run wedge:ready          # needs prod DB + live line
 npm run bulletproof          # full bar before any post
 ```
+
+Open every morning: **/admin/daily** (Master all scorecard)
 
 ---
 

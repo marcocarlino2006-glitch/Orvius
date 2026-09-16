@@ -16,10 +16,11 @@ Run:
 
 ```bash
 npm run beyond:check
+npm run master:all
 ```
 
-Exit 0 = the product still holds the bar in code.
-Exit 1 = something slipped below. Fix before claiming craft.
+Exit 0 on beyond = laws hold in code.  
+`master:all` prints the single next gate — founder gates stay red until you close them.
 
 ---
 
@@ -114,8 +115,11 @@ npm run standard:check      # institutional floor
 npm run master:class        # craft + presence
 npm run multi-b:check       # cash + battles honesty
 npm run beyond:check        # this bar — floor + craft + monopoly laws
+npm run master:all          # ordered close sequence — next gate only
 npm run bulletproof         # allowed to post the wedge
 ```
+
+Cockpit: **/admin/daily**
 
 ---
 
