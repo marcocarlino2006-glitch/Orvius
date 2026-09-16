@@ -131,6 +131,62 @@ We are **between Floor and One-shop**. We are **not** at Ten-shops or Category O
 
 ---
 
+## 4b. Look & operate — is it multi-b level?
+
+**Short answer: not yet.** Intent and some craft are strong. The surface still reads
+as a serious early product, not as Toast / Stripe / Linear inevitability.
+
+### Look (presence / brand / UI)
+
+| Bar | Multi-b standard | Orvius today | Grade |
+|-----|------------------|--------------|-------|
+| Brand-swap test | Unmistakable without the nav | Night-shift claim + live line help; still flirts with “AI SaaS landing” below the fold | **B−** |
+| First viewport budget | Brand + one claim + one CTA group + one dominant artifact | Hero is close (claim + live line + stage). Stats strip + showcase still add funnel noise | **B** |
+| Visual system | One era, one letterset, ruthless cohesion | Archivo + Plex Mono is right. **~15k CSS lines** across `mkt-` / `ov-` / `inst-` / `os-` eras | **C+** |
+| Real atmosphere | Product/place/context as the visual idea | Live-call stage is the right idea; no dominant shop/bay photography or night-atmosphere plane | **C+** |
+| Confidence | Quiet authority (Anthropic/Stripe) | Direct and honest — good. Still some startup CTA stacking residue in older cuts | **B−** |
+| Product shell | Calm utility (Claude/Linear) | OsShell + Command + Ask dock is institutional-shaped | **B+** |
+
+**Look verdict:** Multi-b *direction*, not multi-b *finish*. A shop owner should feel
+“this is the default night OS,” not “this is a sharp SaaS site.” Closing that gap
+means one visual era, hero diet (no stats in first beat), and atmosphere that
+belongs only to the trades — not another Cursor-clone showcase.
+
+### Operate (how the company and product run)
+
+| Bar | Multi-b standard | Orvius today | Grade |
+|-----|------------------|--------------|-------|
+| Owner at 2am | Alert + act without hunting | Attention queue + prove ritual designed for this | **B+** (code) / **?** (live) |
+| Fail closed | Money/auth/cron never soft | Paywall, 401, cron secret, confirm-after-prove | **A−** (code) |
+| Honest money | Pipeline ≠ collected; no fake checkout | Enforced in UI + checks | **A−** (code) |
+| Daily cadence | Same rituals every day | `/admin/daily` mastery cockpit exists | **B** tool / **F** habit until founder runs it |
+| Support | Stated SLA matches staffing | Best-effort honesty — correct | **B** |
+| Public claims | Only what works in prod | Manus / bulletproof gates | **A−** (discipline) / red until cash live |
+| Shipping craft | One system, no landfill | CSS eras + stacked marketing sections | **C** |
+
+**Operate verdict:** The *operating system of the company* (gates, honesty, fail-closed)
+is closer to multi-b than the *look*. The *operating system of the shop* (live wedge,
+money, weekly proof, 20 touches) is still founder-red. Multi-b companies look finished
+because they operate finished — the UI polish follows the ritual, not the reverse.
+
+### Combined scorecard
+
+```text
+LOOK     ████████░░░░  ~65%  — strong intent, eras unfinished
+OPERATE  ██████░░░░░░  ~55%  — code discipline high, live ops low
+MULTI-B  needs both above ~90% with cash + density
+```
+
+### What would make look + operate multi-b
+
+1. **One CSS era** — cut landfill to one `ov-`/`os-` system (&lt;8k)  
+2. **Hero diet** — brand, one claim, live line, one CTA pair; stats/showcase below or gone  
+3. **Trades atmosphere** — night bay / van / board as the visual plane, not generic SaaS dark  
+4. **Command as the product** — every owner session starts on Attention + money truth  
+5. **Run the mastery cockpit daily** until gates 1–9 are green — look without ops is theater  
+
+---
+
 ## 5. Ordered work (no corners, no skipping)
 
 **Cockpit:** `/admin/daily` (Master all) · **CLI:** `npm run master:all`
