@@ -3,10 +3,10 @@
 import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
 import { OnboardingCaptureStep } from "@/components/onboarding-capture-step";
 import { OrviusLogo } from "@/components/orvius-logo";
-import { company, pricing } from "@/lib/company";
+import { company } from "@/lib/company";
 import { TRADES, type Trade } from "@/lib/trades";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 const STEPS = [
@@ -30,6 +30,8 @@ type ResumePayload = {
 
 export function OnboardingWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const checkoutSessionId = searchParams.get("session_id")?.trim() ?? "";
   const [step, setStep] = useState<StepId>("welcome");
   const [name, setName] = useState("");
   const [trade, setTrade] = useState<Trade>("HVAC");
@@ -110,6 +112,7 @@ export function OnboardingWizard() {
           trade,
           ownerPhone: ownerPhone.trim(),
           greeting: greeting.trim() || undefined,
+          checkoutSessionId,
         }),
       });
 
@@ -150,6 +153,34 @@ export function OnboardingWizard() {
           </header>
           <div className="onboarding-panel" aria-busy="true">
             <p className="onboarding-lead font-sans">Restoring your setup…</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!checkoutSessionId && !provisionedLine) {
+    return (
+      <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
+        <div className="onboarding-glow" aria-hidden />
+        <div className="onboarding-frame">
+          <header className="onboarding-header">
+            <OrviusLogo size="md" variant="void" />
+            <p className="onboarding-eyebrow font-sans">
+              {company.productName} setup
+            </p>
+          </header>
+          <div className="onboarding-panel">
+            <h1 className="onboarding-title font-sans">Choose your plan first.</h1>
+            <p className="onboarding-lead font-sans">
+              Paid checkout happens before we provision your dedicated number.
+              There is no automatic trial or surprise phone charge.
+            </p>
+            <div className="onboarding-actions">
+              <Link href="/pricing" className="btn btn-void font-sans">
+                View paid plans
+              </Link>
+            </div>
           </div>
         </div>
       </main>
@@ -347,7 +378,7 @@ export function OnboardingWizard() {
                 </div>
                 <div>
                   <dt>Plan</dt>
-                  <dd>Design partner · {pricing.pilot.period}</dd>
+                  <dd>Paid subscription · verified</dd>
                 </div>
               </dl>
               <label className="onboarding-field font-sans">

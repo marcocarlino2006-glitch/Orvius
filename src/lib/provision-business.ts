@@ -90,6 +90,11 @@ export type ProvisionInput = {
   ownerPhone: string;
   greeting?: string;
   timezone?: string;
+  billing: {
+    customerId: string;
+    subscriptionId: string;
+    planId: string;
+  };
 };
 
 export type ProvisionResult = {
@@ -415,12 +420,11 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         twilioPhone: shopLine,
         vapiPhoneNumber: shopLine,
         vapiAssistantId,
-        billingStatus: "pilot",
-        pilotEndsAt: (() => {
-          const d = new Date();
-          d.setDate(d.getDate() + 30);
-          return d;
-        })(),
+        billingStatus: "active",
+        billingPlan: input.billing.planId,
+        stripeCustomerId: input.billing.customerId,
+        stripeSubscriptionId: input.billing.subscriptionId,
+        pilotEndsAt: null,
       },
     });
 

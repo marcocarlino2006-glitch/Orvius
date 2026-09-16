@@ -50,6 +50,82 @@ export function mapStripeStatusToBilling(
   return "incomplete";
 }
 
+export type PaidCheckoutActivation = {
+  customerId: string;
+  subscriptionId: string;
+  planId: string;
+};
+
+export function resolvePaidCheckoutActivation(
+  session: Stripe.Checkout.Session,
+  subscription: Stripe.Subscription,
+  expectedEmail: string,
+): PaidCheckoutActivation {
+  if (session.mode !== "subscription") {
+    throw new Error("Checkout is not a subscription");
+  }
+
+  const checkoutEmail = (
+    session.customer_email ??
+    session.customer_details?.email ??
+    ""
+  ).toLowerCase();
+  if (!checkoutEmail || checkoutEmail !== expectedEmail.toLowerCase()) {
+    throw new Error("Checkout does not belong to this account");
+  }
+
+  if (mapStripeStatusToBilling(subscription.status) !== "active") {
+    throw new Error("Complete payment before creating your shop line");
+  }
+
+  const planId = resolveBillingPlan(subscription);
+  if (!planId) {
+    throw new Error("Checkout plan could not be verified");
+  }
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
+
+  return {
+    customerId,
+    subscriptionId: subscription.id,
+    planId,
+  };
+}
+
+export async function getPaidCheckoutActivation(
+  sessionId: string,
+  expectedEmail: string,
+): Promise<PaidCheckoutActivation> {
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ["subscription"],
+  });
+  const subRef = session.subscription;
+  if (!subRef) throw new Error("Checkout has no subscription");
+  const subscription =
+    typeof subRef === "string"
+      ? await stripe.subscriptions.retrieve(subRef)
+      : subRef;
+  return resolvePaidCheckoutActivation(session, subscription, expectedEmail);
+}
+
+export async function linkPaidCheckoutToBusiness(
+  activation: PaidCheckoutActivation,
+  businessId: string,
+) {
+  const stripe = getStripe();
+  await stripe.subscriptions.update(activation.subscriptionId, {
+    metadata: {
+      businessId,
+      planId: activation.planId,
+      product: `orvius-${activation.planId}`,
+    },
+  });
+}
+
 /**
  * Sync Stripe subscription → Business billing fields.
  * Returns business id when matched, null when no shop found.
@@ -109,7 +185,10 @@ export async function syncSubscriptionToBusiness(
 }
 
 /** Activate from a Checkout session id (success-page fallback if webhook is slow). */
-export async function confirmCheckoutSession(sessionId: string) {
+export async function confirmCheckoutSession(
+  sessionId: string,
+  expectedEmail: string,
+) {
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId, {
     expand: ["subscription"],
@@ -117,6 +196,18 @@ export async function confirmCheckoutSession(sessionId: string) {
 
   if (session.mode !== "subscription") {
     return { ok: false as const, error: "Not a subscription checkout" };
+  }
+
+  const checkoutEmail = (
+    session.customer_email ??
+    session.customer_details?.email ??
+    ""
+  ).toLowerCase();
+  if (!checkoutEmail || checkoutEmail !== expectedEmail.toLowerCase()) {
+    return {
+      ok: false as const,
+      error: "Checkout does not belong to this account",
+    };
   }
 
   const subRef = session.subscription;

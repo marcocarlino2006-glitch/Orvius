@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
 import {
+  getPaidCheckoutActivation,
+  linkPaidCheckoutToBusiness,
+} from "@/lib/billing-sync";
+import {
   findBusinessForOwner,
   isOnboardingComplete,
   provisionBusiness,
@@ -21,6 +25,7 @@ const createSchema = z.object({
     .min(10, "Enter a valid mobile number for owner alerts"),
   greeting: z.string().max(280).optional(),
   timezone: z.string().optional(),
+  checkoutSessionId: z.string().min(8, "Paid checkout is required"),
 });
 
 export async function GET() {
@@ -104,16 +109,50 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const parsed = createSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.errors.map((item) => item.message).join(", ") },
+      { status: 400 },
+    );
+  }
+
+  let billing;
   try {
-    const body = createSchema.parse(await request.json());
-    const { business, dedicatedLine } = await provisionBusiness({
+    billing = await getPaidCheckoutActivation(
+      parsed.data.checkoutSessionId,
+      email,
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Complete paid checkout before creating your shop line",
+        code: "paid_checkout_required",
+      },
+      { status: 402 },
+    );
+  }
+
+  try {
+    const body = parsed.data;
+    const { business } = await provisionBusiness({
       name: body.name,
       trade: body.trade,
       ownerEmail: email,
       ownerPhone: body.ownerPhone,
       greeting: body.greeting,
       timezone: body.timezone,
+      billing,
     });
+
+    try {
+      await linkPaidCheckoutToBusiness(billing, business.id);
+    } catch (error) {
+      console.error("Could not attach Stripe metadata after provisioning:", error);
+    }
 
     const line = business.vapiPhoneNumber ?? business.twilioPhone;
     const setup = getOwnerSetupStatus(business);
