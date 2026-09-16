@@ -112,7 +112,7 @@ export function LeadInboxCard({
             href={`/dashboard/customers/${customerId}`}
             className="lead-rail-record"
           >
-            Customer record
+            {booked ? "Customer record" : "Contact history"}
           </Link>
         ) : null}
       </div>

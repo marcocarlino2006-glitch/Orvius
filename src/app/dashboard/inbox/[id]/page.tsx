@@ -267,7 +267,7 @@ export default function LeadDetailPage() {
           ) : null}
 
           {lead.customer ? (
-            <ShellPanel title="Customer" dense>
+            <ShellPanel title={lead.job ? "Customer" : "Contact"} dense>
               <p className="font-sans text-sm text-ash">
                 {lead.customer.interactionCount} interaction
                 {lead.customer.interactionCount === 1 ? "" : "s"} on record.
