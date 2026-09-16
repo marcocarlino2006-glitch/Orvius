@@ -9,7 +9,8 @@ print billions, translated into laws Orvius must never break, plus the moves
 that make a night-shift trades OS harder to displace than a generic AI
 receptionist.
 
-**Full strict checklist (every item, no corners):** `docs/MULTI-B-STRICT.md`
+**Full strict checklist (every item, no corners):** `docs/MULTI-B-STRICT.md`  
+**Honest have-vs-need analysis:** `docs/STANDINGS.md`
 
 Run:
 

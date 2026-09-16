@@ -57,6 +57,17 @@ if (fileOk("docs/MULTI-B-STRICT.md")) {
   fail("Strict checklist", "docs/MULTI-B-STRICT.md missing");
 }
 
+if (fileOk("docs/STANDINGS.md")) {
+  const standings = read("docs/STANDINGS.md");
+  if (/have vs need/i.test(standings) && /Gap map/i.test(standings)) {
+    pass("Standings analysis", "docs/STANDINGS.md — have vs need present");
+  } else {
+    fail("Standings analysis", "STANDINGS.md missing required sections");
+  }
+} else {
+  fail("Standings analysis", "docs/STANDINGS.md missing");
+}
+
 try {
   const bar = read("src/lib/beyond-bar.ts");
   const hasLaws = /beyondLaws/.test(bar) && /L10/.test(bar);
