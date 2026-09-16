@@ -9,7 +9,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Signal O alone — favicon / avatar. */
+/** Signal-bridge insignia alone — favicon / avatar. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -24,7 +24,7 @@ type OrviusLogoProps = {
   variant?: "void" | "chalk";
   /** Text wordmark only (no mark). */
   wordmarkOnly?: boolean;
-  /** Signal O alone. */
+  /** Signal-bridge insignia alone. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -32,8 +32,7 @@ type OrviusLogoProps = {
 };
 
 /**
- * One type system: signal mark + ORVIUS in the product font.
- * No second SVG letterset fighting Space Grotesk / Syne / Barlow.
+ * One lockup: a horizontal signal bridge and a large lowercase wordmark.
  */
 export function OrviusLogo({
   size = "md",

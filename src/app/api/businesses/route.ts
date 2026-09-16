@@ -178,19 +178,18 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (existing.vapiAssistantId) {
-      await updateAssistant(existing.vapiAssistantId, {
-        name: `${nextName} Receptionist`,
-        firstMessage:
-          greeting ??
-          `Thank you for calling ${nextName}. How can I help you today?`,
-        model: {
-          provider: "openai",
-          model: "gpt-4o",
-          messages: [{ role: "system", content: systemPrompt }],
-        },
-        serverUrl: getWebhookUrl("/api/webhooks/vapi"),
-        serverUrlSecret: process.env.VAPI_WEBHOOK_SECRET,
-      });
+      await updateAssistant(
+        existing.vapiAssistantId,
+        buildVapiAssistantConfig({
+          businessName: nextName,
+          greeting:
+            greeting ??
+            `Thank you for calling ${nextName}. How can I help you today?`,
+          systemPrompt,
+          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+        }),
+      );
     }
 
     const business = await prisma.business.update({

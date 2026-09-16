@@ -17,23 +17,31 @@ export function formatCents(cents: number | null | undefined): string | null {
   }).format(centsToDollars(cents));
 }
 
+/**
+ * Exact money — for amounts actually charged, kept, or owed.
+ *
+ * formatCents rounds to whole dollars, which is right for pipeline estimates
+ * and wrong for a real charge: it reports a $49.02 net as "$49", and a 2% fee
+ * on a small deposit rounds away entirely, so the shop reads it as free.
+ */
+export function formatCentsExact(
+  cents: number | null | undefined,
+): string | null {
+  if (cents == null || !Number.isFinite(cents)) return null;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(centsToDollars(cents));
+}
+
 export function estimatedRevenueCents(
   avgTicketCents: number | null | undefined,
   count: number,
 ): number | null {
   if (avgTicketCents == null || avgTicketCents <= 0 || count <= 0) return null;
   return avgTicketCents * count;
-}
-
-/**
- * Recovered demand estimate — only when we have a ticket and a measured lift signal.
- * Prefer jobs/week vs baseline; else after-hours leads that booked a job.
- */
-export function recoveredRevenueCents(input: {
-  avgTicketCents: number | null | undefined;
-  recoveredJobs: number | null | undefined;
-}): number | null {
-  return estimatedRevenueCents(input.avgTicketCents, input.recoveredJobs ?? 0);
 }
 
 export function parseAvgTicketDollars(raw: string | number): number | null {

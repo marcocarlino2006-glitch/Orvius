@@ -26,6 +26,23 @@ model Business {
   stripeSubscriptionId String?
   billingStatus        String   @default("pilot")
   billingPlan          String?
+  /**
+   * Connect: the shop's own Stripe account. Customer card money settles to the
+   * shop directly and Orvius only ever takes an application fee, which is what
+   * keeps us out of being a money transmitter.
+   *
+   * `chargesEnabled` is Stripe's verdict after identity verification and is the
+   * only field allowed to gate card collection. An account can exist, and can
+   * have submitted every detail, while still not being cleared to charge.
+   */
+  stripeConnectAccountId        String?  @unique
+  stripeConnectChargesEnabled   Boolean  @default(false)
+  stripeConnectPayoutsEnabled   Boolean  @default(false)
+  stripeConnectDetailsSubmitted Boolean  @default(false)
+  stripeConnectUpdatedAt        DateTime?
+  /** Deposit asked for at booking. Null amount or false means deposits off. */
+  depositEnabled                Boolean  @default(false)
+  depositAmountCents            Int?
   /** When the free design-partner window ends. After this, subscribe or lock. */
   pilotEndsAt          DateTime?
   /** Last time owner copied/exported weekly economics proof. */
@@ -54,6 +71,7 @@ model Business {
   estimates        Estimate[]
   invoices         Invoice[]
   payments         Payment[]
+  deposits         Deposit[]
   copilotActions   CopilotAction[]
   ownerNotifications OwnerNotification[]
   webhookEvents      WebhookEvent[]
@@ -141,13 +159,28 @@ model Lead {
   notes       String?
   status      String    @default("new")
   source      String    @default("call")
+  /**
+   * Canonical demand taxonomy code (src/lib/job-taxonomy.ts). Derived, never
+   * typed by an owner. Free-text serviceType cannot be counted across shops;
+   * this can, and a call answered without it is a call whose category is gone.
+   */
+  categoryCode String?
+  /** ZIP parsed from address — the unit local price benchmarks group on. */
+  postalCode   String?
+  /** First time the shop worked this lead, for speed-to-lead vs. win rate. */
+  firstContactedAt DateTime?
+  /** When the lead reached a terminal status (booked, lost, spam). */
+  closedAt         DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  job Job?
+  job      Job?
+  deposits Deposit[]
 
   @@unique([businessId, externalId])
   @@index([businessId, createdAt])
+  @@index([businessId, categoryCode])
+  @@index([businessId, postalCode])
 }
 
 model Job {
@@ -165,16 +198,30 @@ model Job {
   urgency       String?
   address       String?
   notes         String?
+  /** Carried from the lead so completed work joins the same taxonomy. */
+  categoryCode  String?
+  postalCode    String?
   status        String      @default("scheduled")
   scheduledAt   DateTime?
   confirmedAt   DateTime?
   /** Public token for customer confirm link (/c/[token]). */
   customerConfirmToken String? @unique
+  /** Stamped only after Twilio accepts the initial confirmation SMS. */
+  customerConfirmSentAt DateTime?
+  /** One retry only; stamped only after Twilio accepts it. */
+  customerConfirmReminderSentAt DateTime?
   /** When the customer confirmed the proposed window. */
   customerConfirmedAt DateTime?
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?
+  /** Structured field outcome — the label future intelligence learns from. */
+  resolutionCode String?
+  /** Short technician evidence, never generated or inferred. */
+  resolutionSummary String?
+  /** Actual total reported at completion; separate from estimate/invoice. */
+  finalAmountCents Int?
+  outcomeCapturedAt DateTime?
   /** Magic-link token for tech field page (/t/[token]). */
   techToken     String?     @unique
   /** Free-text ETA from tech (e.g. "25 min"). */
@@ -183,10 +230,12 @@ model Job {
   updatedAt     DateTime    @updatedAt
 
   estimate Estimate?
+  deposits Deposit[]
 
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
   @@index([technicianId, scheduledAt])
+  @@index([businessId, categoryCode])
 }
 
 model Technician {
@@ -202,6 +251,18 @@ model Technician {
 
   jobs Job[]
 
+  /*
+    One name, one person. ensureCrew read the table and then created the owner
+    row, so two requests arriving together — which is exactly what the dispatch
+    page does, fetching the board and the crew in parallel — each saw an empty
+    table and each seeded a row. Two of the four fixture shops carry three
+    identical owner records, and the board draws the same person three times.
+
+    It also settles a thing the add-technician form never handled: a shop could
+    enter "Ray" twice and then have no way to tell the two Rays apart when
+    assigning a job.
+  */
+  @@unique([businessId, name])
   @@index([businessId, isActive])
 }
 
@@ -257,6 +318,46 @@ model Payment {
   method      String?
   createdAt   DateTime @default(now())
 
+  @@index([businessId, createdAt])
+}
+
+/**
+ * Money collected when the job is booked, on the shop's own Stripe account.
+ *
+ * Deliberately not an Estimate or an Invoice. Both of those describe work that
+ * has already been scoped and priced, and a deposit is taken before either
+ * exists — at 2am, on the call, which is the only moment the customer is
+ * motivated. It hangs off the lead rather than the job because a lead is the
+ * one thing every answered call produces; a job may never be booked, and on
+ * the Line plan routinely is not.
+ */
+model Deposit {
+  id                    String    @id @default(cuid())
+  businessId            String
+  business              Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  leadId                String?
+  lead                  Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  jobId                 String?
+  job                   Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  amountCents           Int
+  /** pending | paid | canceled | refunded */
+  status                String    @default("pending")
+  /** Public magic-link token for the customer pay page (/d/[token]). */
+  publicToken           String?   @unique
+  /**
+   * Checkout session id, which lives on the connected account rather than the
+   * platform. Unique so a replayed webhook cannot record a second payment.
+   */
+  stripeSessionId       String?   @unique
+  stripePaymentIntentId String?
+  /** What Orvius earned here, stamped at fulfilment and never recomputed. */
+  applicationFeeCents   Int?
+  sentAt                DateTime?
+  paidAt                DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([businessId, status])
   @@index([businessId, createdAt])
 }
 
@@ -335,4 +436,18 @@ model WebhookEvent {
   @@unique([source, externalId, eventType])
   @@index([businessId, createdAt])
   @@index([source, createdAt])
+}
+
+/// Single-use sign-in link. Only the SHA-256 of the token is stored, so a leaked
+/// database row cannot be replayed as a login.
+model LoginToken {
+  id         String    @id @default(cuid())
+  email      String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+  @@index([expiresAt])
 }

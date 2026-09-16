@@ -1,6 +1,7 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { OsRings } from "@/components/os-rings";
 import { company } from "@/lib/company";
+import { workspaceAccessPublicClaim } from "@/lib/seats";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -26,9 +27,7 @@ export default function AboutPage() {
       <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
           <p className="tier1-eyebrow type-eyebrow">Best possible outcome</p>
-          <h2 className="tier1-section-title type-headline">
-            Where we&apos;re going.
-          </h2>
+          <h2 className="tier1-section-title type-headline">Where we&apos;re going.</h2>
           <p className="tier1-section-lead font-sans">{company.vision}</p>
           <ul className="tier1-strategy-list font-sans">
             {company.strategy.map((item) => (
@@ -40,15 +39,22 @@ export default function AboutPage() {
 
       <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap">
-          <p className="tier1-eyebrow type-eyebrow">What&apos;s live</p>
-          <h2 className="tier1-section-title type-headline">
-            One ring at a time.
-          </h2>
+          <p className="tier1-eyebrow type-eyebrow">Available now</p>
+          <h2 className="tier1-section-title type-headline">One ring at a time.</h2>
           <p className="tier1-section-lead font-sans max-w-2xl">
-            Built by {company.legalName} for {company.trades.join(", ")}. The
-            night-shift wedge ships first — answer, qualify, alert, book — then
-            rings expand when that loop is airtight on a live line. One signed-in
-            owner per shop workspace today.
+            Built by {company.legalName} for {company.trades.join(", ")}. We
+            label production paths Live and limited paths Beta — then expand
+            when the loop is airtight.
+          </p>
+          {/*
+            Read from lib/seats rather than written here, because it is a claim
+            about what the product does and the next person to add an invite
+            screen needs the sentence to move with the code. Saying it out loud
+            also prevents the reasonable assumption that a shop can buy one
+            plan and give the office and the dispatcher their own logins.
+          */}
+          <p className="tier1-section-lead font-sans max-w-2xl">
+            {workspaceAccessPublicClaim()}
           </p>
           <div className="tier1-rings">
             <OsRings liveOnly />
@@ -59,9 +65,7 @@ export default function AboutPage() {
       <section className="tier1-story">
         <div className="editorial-wrap tier1-story-grid">
           <div>
-            <h2 className="tier1-section-title type-headline">
-              {company.legalName}
-            </h2>
+            <h2 className="tier1-section-title type-headline">{company.legalName}</h2>
             <p className="tier1-section-lead font-sans">
               Contracts and subscriptions are with {company.legalName}.{" "}
               {company.productName} is the product brand.

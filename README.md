@@ -39,7 +39,9 @@ npm run db:generate && npm run db:push
 npm run dev
 ```
 
-Fill Twilio, Vapi, Auth, and (when ready) Stripe + Resend. Production auth requires `ORVIUS_AUTH_ALLOWED_EMAILS`. Production cron requires `CRON_SECRET`.
+Fill Twilio, Vapi, Auth, and (when ready) Stripe + Resend. Production dashboard
+access requires either an active shop `ownerEmail` or an explicit
+`ORVIUS_AUTH_ALLOWED_EMAILS` entry. Production cron requires `CRON_SECRET`.
 
 ## Partner rule
 

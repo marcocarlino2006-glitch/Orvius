@@ -160,3 +160,109 @@ ALTER TABLE "Job" ADD COLUMN "customerConfirmToken" TEXT;
 ALTER TABLE "Job" ADD COLUMN "customerConfirmedAt" DATETIME;
 CREATE UNIQUE INDEX IF NOT EXISTS "Job_customerConfirmToken_key" ON "Job"("customerConfirmToken");
 ALTER TABLE "Business" ADD COLUMN "overflowForwardConfirmedAt" DATETIME;
+
+-- Demand capture: canonical job category, service-area ZIP, lead lifecycle
+ALTER TABLE "Lead" ADD COLUMN "categoryCode" TEXT;
+ALTER TABLE "Lead" ADD COLUMN "postalCode" TEXT;
+ALTER TABLE "Lead" ADD COLUMN "firstContactedAt" DATETIME;
+ALTER TABLE "Lead" ADD COLUMN "closedAt" DATETIME;
+CREATE INDEX IF NOT EXISTS "Lead_businessId_categoryCode_idx" ON "Lead"("businessId", "categoryCode");
+CREATE INDEX IF NOT EXISTS "Lead_businessId_postalCode_idx" ON "Lead"("businessId", "postalCode");
+ALTER TABLE "Job" ADD COLUMN "categoryCode" TEXT;
+ALTER TABLE "Job" ADD COLUMN "postalCode" TEXT;
+CREATE INDEX IF NOT EXISTS "Job_businessId_categoryCode_idx" ON "Job"("businessId", "categoryCode");
+
+-- Confirmation lifecycle: real delivery stamps + one unconfirmed reminder
+ALTER TABLE "Job" ADD COLUMN "customerConfirmSentAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "customerConfirmReminderSentAt" DATETIME;
+
+-- Outcome loop: what the technician actually found and what the work closed at
+ALTER TABLE "Job" ADD COLUMN "resolutionCode" TEXT;
+ALTER TABLE "Job" ADD COLUMN "resolutionSummary" TEXT;
+ALTER TABLE "Job" ADD COLUMN "finalAmountCents" INTEGER;
+ALTER TABLE "Job" ADD COLUMN "outcomeCapturedAt" DATETIME;
+
+-- Passwordless sign-in: single-use, hashed magic-link tokens
+CREATE TABLE IF NOT EXISTS "LoginToken" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "email" TEXT NOT NULL,
+  "tokenHash" TEXT NOT NULL,
+  "expiresAt" DATETIME NOT NULL,
+  "usedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "LoginToken_tokenHash_key" ON "LoginToken"("tokenHash");
+CREATE INDEX IF NOT EXISTS "LoginToken_email_createdAt_idx" ON "LoginToken"("email", "createdAt");
+CREATE INDEX IF NOT EXISTS "LoginToken_expiresAt_idx" ON "LoginToken"("expiresAt");
+
+-- Crew duplication: ensureCrew read the technician table and then created the
+-- owner row, so two requests arriving together each saw it empty and each
+-- seeded one. The dispatch page fetches the board and the crew in parallel, so
+-- that happened on a shop's first ever load; two fixture shops carry three
+-- identical owner records and the board draws the same person three times.
+--
+-- The unique index below is what closes it, and it cannot be created while the
+-- duplicates are still there. So: point every job at the oldest row of its
+-- (business, name) group, drop the rest, then add the index. All three
+-- statements are no-ops on a database that has already been through this.
+UPDATE "Job"
+SET "technicianId" = (
+  SELECT MIN(keep."id")
+  FROM "Technician" keep
+  WHERE keep."businessId" = (
+      SELECT had."businessId" FROM "Technician" had WHERE had."id" = "Job"."technicianId"
+    )
+    AND keep."name" = (
+      SELECT had."name" FROM "Technician" had WHERE had."id" = "Job"."technicianId"
+    )
+)
+WHERE "technicianId" IS NOT NULL;
+
+DELETE FROM "Technician"
+WHERE "id" NOT IN (
+  SELECT MIN("id") FROM "Technician" GROUP BY "businessId", "name"
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Technician_businessId_name_key"
+  ON "Technician"("businessId", "name");
+
+-- Connect: the shop's own Stripe account, so customer card money settles to
+-- the shop and Orvius only takes an application fee. chargesEnabled is
+-- Stripe's post-verification verdict and is what gates card collection.
+ALTER TABLE "Business" ADD COLUMN "stripeConnectAccountId" TEXT;
+ALTER TABLE "Business" ADD COLUMN "stripeConnectChargesEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "stripeConnectPayoutsEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "stripeConnectDetailsSubmitted" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "stripeConnectUpdatedAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "depositEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "depositAmountCents" INTEGER;
+
+CREATE TABLE IF NOT EXISTS "Deposit" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "leadId" TEXT,
+  "jobId" TEXT,
+  "amountCents" INTEGER NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "publicToken" TEXT,
+  "stripeSessionId" TEXT,
+  "stripePaymentIntentId" TEXT,
+  "applicationFeeCents" INTEGER,
+  "sentAt" DATETIME,
+  "paidAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Deposit_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "Deposit_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "Lead"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT "Deposit_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job"("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Deposit_publicToken_key" ON "Deposit"("publicToken");
+CREATE UNIQUE INDEX IF NOT EXISTS "Deposit_stripeSessionId_key" ON "Deposit"("stripeSessionId");
+CREATE INDEX IF NOT EXISTS "Deposit_businessId_status_idx" ON "Deposit"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "Deposit_businessId_createdAt_idx" ON "Deposit"("businessId", "createdAt");
+
+-- One Stripe account belongs to exactly one shop. Without this, a mis-keyed
+-- account id makes the lookup in syncConnectAccount ambiguous, and one shop's
+-- payment status can be reported on another shop's dashboard.
+CREATE UNIQUE INDEX IF NOT EXISTS "Business_stripeConnectAccountId_key"
+  ON "Business"("stripeConnectAccountId");

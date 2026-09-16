@@ -1,6 +1,6 @@
-/** Brand typography — one letterset everywhere (logo + product + marketing). */
+/** Brand typography — Archivo speaks, Plex Mono reports. */
 
-export const brandWordmark = "ORVIUS";
+export const brandWordmark = "orvius";
 
 export const typeScale = {
   caption: "0.75rem",
@@ -13,12 +13,13 @@ export const typeScale = {
 } as const;
 
 /**
- * Brand lockup: signal O + ORVIUS.
- * Wordmark uses the display face (Space Grotesk); product UI uses IBM Plex Sans.
+ * Logo lockups:
+ * 1) Signal bridge alone (favicon / chrome)
+ * 2) Signal bridge + a large, heavy lowercase wordmark.
  */
 export const logoSizes = {
-  sm: { mark: 18, word: "0.9375rem", tracking: "0.08em" },
-  md: { mark: 22, word: "1.0625rem", tracking: "0.08em" },
-  lg: { mark: 26, word: "1.2rem", tracking: "0.085em" },
-  xl: { mark: 48, word: "2.85rem", tracking: "0.14em" },
+  sm: { mark: 22, word: "1.2rem", tracking: "-0.065em" },
+  md: { mark: 28, word: "1.5rem", tracking: "-0.07em" },
+  lg: { mark: 34, word: "1.75rem", tracking: "-0.075em" },
+  xl: { mark: 52, word: "2.75rem", tracking: "-0.08em" },
 } as const;

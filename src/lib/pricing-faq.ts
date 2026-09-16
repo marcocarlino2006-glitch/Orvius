@@ -6,16 +6,10 @@ export type PricingFaqItem = {
 
 export const pricingFaq: readonly PricingFaqItem[] = [
   {
-    id: "pilot",
-    question: "What do I get with the design partner program?",
-    answer:
-      "30 days free with a dedicated shop line, after-hours answer, owner SMS alerts, and full Pro workspace access. We onboard your shop personally — no credit card required. After the program, you pick Line, Pro, or Fleet.",
-  },
-  {
     id: "line-vs-pro",
     question: "What's the difference between Line and Pro?",
     answer:
-      "Line is the front door — after-hours and overflow answered, qualified, and alerted. Pro adds the full shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
+      "Line is the front door — every call answered, qualified, and alerted. Pro adds the full shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
   },
   {
     id: "annual",
@@ -33,24 +27,18 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "one-job",
     question: "Does one booked job cover the month?",
     answer:
-      "For most shops, yes. A single after-hours repair or emergency call often clears a month of Pro. Orvius exists so that call is far less likely to die on voicemail.",
+      "It can when the gross profit on that additional job exceeds the plan price. Your ticket, close rate, and margin determine the actual payback; Orvius does not guarantee it.",
   },
   {
     id: "fleet",
     question: "When do I need Fleet?",
     answer:
-      "Fleet is built for 6+ trucks — unlimited technicians on dispatch, priority onboarding, and a dedicated support line. Growing shops with 3–5 trucks are usually on Pro.",
+      "Fleet is built for 6+ trucks — unlimited technicians on dispatch and the multi-truck dispatch workflows. Pro caps technicians at 15. Growing shops with 3–5 trucks are usually on Pro. Support is the same on every plan: email us and you get a person, normally within a business day.",
   },
   {
-    id: "multi",
-    question: "Do you support multiple locations?",
+    id: "launch",
+    question: "What happens before my line goes live?",
     answer:
-      "Yes — Multi-shop is for owners running 2+ locations or franchise groups. Each location gets its own line and after-hours answer with central billing. Email hello@orvius.im for volume pricing.",
-  },
-  {
-    id: "stripe",
-    question: "Why does checkout say design partner instead of Subscribe?",
-    answer:
-      "Self-serve Stripe checkout requires billing to be configured in production. Until then, start with the free design partner program — we'll send a checkout link when your trial ends.",
+      "We verify your shop name, services, hours, escalation number, and one real test call. Early accounts receive founder-assisted onboarding while these checks are automated. Your selected paid plan begins through Stripe checkout; there is no advertised free-trial period.",
   },
 ] as const;

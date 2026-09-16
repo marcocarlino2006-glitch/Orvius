@@ -1,6 +1,7 @@
 "use client";
 
 import { HomeCallDemo } from "@/components/home-call-demo";
+import { demoLineHref } from "@/lib/demo-line";
 import {
   leadFromDemoForm,
   OwnerAlertCard,
@@ -112,7 +113,7 @@ export default function DemoPage() {
         <div className="editorial-wrap demo-pro">
           <div className="demo-pro-grid">
             <div className="demo-pro-main">
-              <ProSectionHead kicker="Simulate" title="Run a demo call" />
+              <ProSectionHead kicker="Simulate" title="Run a demo call" level={2} />
 
               <div className="demo-preset-scroll mb-6 flex gap-2 overflow-x-auto pb-1">
                 {presets.map((preset) => (
@@ -133,7 +134,7 @@ export default function DemoPage() {
 
               <form onSubmit={runDemo} className="pro-panel">
                 <div className="pro-panel-head">
-                  <h2 className="pro-panel-title font-sans">Simulate inbound call</h2>
+                  <h3 className="pro-panel-title font-sans">Simulate inbound call</h3>
                 </div>
                 <div className="pro-panel-body space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -235,17 +236,17 @@ export default function DemoPage() {
                     ) : null}
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                       <Link
-                        href="/dashboard/inbox"
+                        href="/pilot"
                         className="inst-btn inst-btn-primary inst-btn-sm w-full sm:w-auto"
                       >
-                        Open inbox
+                        Book a call audit
                       </Link>
-                      <Link
-                        href="/dashboard"
+                      <a
+                        href={demoLineHref()}
                         className="inst-btn inst-btn-ghost inst-btn-sm w-full sm:w-auto"
                       >
-                        Command center
-                      </Link>
+                        Call the live AI
+                      </a>
                     </div>
                   </ShellPanel>
                 </div>

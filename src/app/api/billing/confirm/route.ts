@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await confirmCheckoutSession(sessionId);
+    const result = await confirmCheckoutSession(
+      sessionId,
+      session.user.email,
+    );
     if (!result.ok) {
       return NextResponse.json(result, { status: 409 });
     }

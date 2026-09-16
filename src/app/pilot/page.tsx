@@ -21,7 +21,7 @@ export default function PilotPage() {
             label="Live call audit"
             title="See what your missed calls are costing."
             subline="We walk your after-hours and overflow pattern — then go live if it is a fit"
-            description={`No slide deck. A real look at what Orvius would capture for your ${company.trades.join(" / ")} shop. 30 days free when you start.`}
+            description={`No slide deck. A real look at what Orvius would capture for your ${company.trades.join(" / ")} shop. If it fits, choose a paid plan through verified Stripe checkout.`}
           />
           <div className="tier1-hero-call">
             <HomeCallDemo variant="void" size="section" />
@@ -41,7 +41,7 @@ export default function PilotPage() {
         <div className="editorial-wrap" style={{ maxWidth: "36rem" }}>
           <p className="tier1-eyebrow type-eyebrow">Request</p>
           <h2 className="tier1-section-title type-headline">
-            Book the audit. We reply within a day.
+            Book the audit. We&apos;ll email to schedule.
           </h2>
           <p className="tier1-section-lead font-sans">
             Leave shop details. We schedule a short call, review after-hours
@@ -51,8 +51,8 @@ export default function PilotPage() {
             <EarlyAccessForm variant="full" />
           </div>
           <p className="tier1-section-lead font-sans" style={{ marginTop: "1.5rem" }}>
-            Prefer to start yourself?{" "}
-            <Link href="/login" className="customer-timeline-link">
+            Already invited to onboard?{" "}
+            <Link href="/signin" className="customer-timeline-link">
               Sign in and get a dedicated number →
             </Link>
           </p>

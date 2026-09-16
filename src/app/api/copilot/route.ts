@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { sendCustomerSms } from "@/lib/customer-sms";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
-import { sendSms } from "@/lib/twilio-sms";
 import { z } from "zod";
 
 const proposeSchema = z.object({
@@ -22,7 +22,7 @@ const cancelSchema = z.object({
   proposalId: z.string().min(1),
 });
 
-/** List open approve-first proposals for Command. */
+/** List open approvals and the recent audit trail for Command. */
 export async function GET() {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
@@ -31,11 +31,21 @@ export async function GET() {
   const planGate = requirePlanModule(business, "ask");
   if ("error" in planGate) return planGate.error;
 
-  const proposals = await prisma.copilotAction.findMany({
-    where: { businessId: business.id, status: "proposed" },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
+  const [proposals, activity] = await Promise.all([
+    prisma.copilotAction.findMany({
+      where: { businessId: business.id, status: "proposed" },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.copilotAction.findMany({
+      where: {
+        businessId: business.id,
+        status: { in: ["executed", "cancelled"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+    }),
+  ]);
 
   return NextResponse.json({
     proposals: proposals.map((p) => ({
@@ -43,6 +53,14 @@ export async function GET() {
       action: p.action,
       preview: p.preview,
       createdAt: p.createdAt.toISOString(),
+    })),
+    activity: activity.map((item) => ({
+      id: item.id,
+      action: item.action,
+      preview: item.preview,
+      status: item.status,
+      createdAt: item.createdAt.toISOString(),
+      executedAt: item.executedAt?.toISOString() ?? null,
     })),
   });
 }
@@ -137,7 +155,10 @@ export async function POST(request: Request) {
         }
         await prisma.lead.update({
           where: { id: params.leadId },
-          data: { status: "contacted" },
+          data: {
+            status: "contacted",
+            firstContactedAt: lead.firstContactedAt ?? new Date(),
+          },
         });
         result = { leadId: params.leadId, status: "contacted" };
       } else if (proposal.action === "sms_followup") {
@@ -151,14 +172,30 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "Lead has no phone" }, { status: 400 });
         }
         const message = `Hi${lead.name ? ` ${lead.name}` : ""} — this is ${business.name}. We received your service request and will follow up shortly. Reply STOP to opt out.`;
-        const sms = await sendSms({ to: lead.phone, body: message });
-        if (!sms) {
-          return NextResponse.json({ error: "SMS unavailable" }, { status: 503 });
+        const sms = await sendCustomerSms({
+          businessId: business.id,
+          to: lead.phone,
+          body: message,
+        });
+        if (!sms.sent) {
+          const optedOut = sms.reason === "customer_opted_out";
+          return NextResponse.json(
+            {
+              error: optedOut
+                ? "Customer opted out of SMS"
+                : "SMS unavailable",
+              reason: sms.reason,
+            },
+            { status: optedOut ? 409 : 503 },
+          );
         }
         if (lead.status === "new") {
           await prisma.lead.update({
             where: { id: lead.id },
-            data: { status: "contacted" },
+            data: {
+              status: "contacted",
+              firstContactedAt: lead.firstContactedAt ?? new Date(),
+            },
           });
         }
         result = { leadId: lead.id, smsSid: sms.sid };

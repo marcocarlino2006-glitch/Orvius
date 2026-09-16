@@ -1,8 +1,8 @@
 "use client";
 
 import { JobCard } from "@/components/job-card";
-import { ProPageStrip } from "@/components/pro-page-strip";
-import { ProEmptyState } from "@/components/pro-page-chrome";
+import { ProLead } from "@/components/pro-lead";
+import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
@@ -79,12 +79,13 @@ export default function JobsPage() {
         if (!res.ok) throw new Error("Failed to load jobs");
         return res.json();
       }),
-      fetch("/api/leads").then(async (res) => (res.ok ? res.json() : { leads: [] })),
+      fetch("/api/leads?limit=1").then(async (res) =>
+        res.ok ? res.json() : { counts: { new: 0 } },
+      ),
     ])
       .then(([jobData, leadData]) => {
         setJobs(jobData.jobs ?? []);
-        const leads = (leadData.leads ?? []) as Array<{ status: string }>;
-        setNewLeadCount(leads.filter((l) => l.status === "new").length);
+        setNewLeadCount(leadData.counts?.new ?? 0);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -104,6 +105,20 @@ export default function JobsPage() {
     return counts;
   }, [jobs]);
 
+  /*
+    Open work, not total work. A shop that closed four hundred jobs last year
+    does not need that number at the top of the board every morning; it needs
+    the count still on its plate, and how much of it has nobody driving to it.
+  */
+  const open = useMemo(
+    () => jobs.filter((job) => job.status !== "completed" && job.status !== "cancelled"),
+    [jobs],
+  );
+  const unassigned = useMemo(
+    () => open.filter((job) => !job.technician).length,
+    [open],
+  );
+
   return (
     <OsShell
       title="Jobs"
@@ -115,7 +130,27 @@ export default function JobsPage() {
       }
     >
       <PlanUpgradeGate module="jobs">
-      <ProPageStrip />
+      <ProLead
+        loading={loading}
+        figure={String(open.length)}
+        caption={open.length === 1 ? "job still open" : "jobs still open"}
+        detail={
+          unassigned > 0
+            ? `${unassigned} of them have no tech assigned yet.`
+            : "Every open job has a tech on it."
+        }
+        facts={[
+          { label: "new leads", value: newLeadCount, live: newLeadCount > 0 },
+          { label: "completed", value: stageCounts.completed ?? 0 },
+        ]}
+        action={
+          unassigned > 0 ? (
+            <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+              Assign {unassigned}
+            </Link>
+          ) : null
+        }
+      />
 
       {loading ? (
         <DashboardSkeleton />
@@ -191,6 +226,9 @@ export default function JobsPage() {
               ))}
             </ul>
           )}
+          {jobs.length ? (
+            <ProListEnd count={jobs.length} noun="job" />
+          ) : null}
         </>
       )}
       </PlanUpgradeGate>

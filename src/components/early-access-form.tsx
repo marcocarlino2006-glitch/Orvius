@@ -17,6 +17,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [website, setWebsite] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -34,7 +35,8 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
           phone: phone || undefined,
           trade: trade || undefined,
           city: city || undefined,
-          plan: "pilot",
+          plan: "pro",
+          website,
         }),
       });
 
@@ -52,10 +54,10 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
     return (
       <div className="success-pop rounded-md border border-live/30 bg-live/10 p-6 text-center">
         <p className="font-sans text-lg font-medium text-live">
-          You&apos;re on the list.
+          Audit request received.
         </p>
         <p className="mt-2 font-sans text-sm text-ash-soft">
-          We&apos;ll reach out within 24 hours to get you set up.
+          Next, we&apos;ll email you to schedule the call audit.
         </p>
       </div>
     );
@@ -64,6 +66,19 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
   if (variant === "full") {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
+        <label
+          aria-hidden="true"
+          style={{ position: "absolute", left: "-9999px" }}
+        >
+          Website
+          <input
+            name="website"
+            value={website}
+            onChange={(event) => setWebsite(event.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="Business name">
             <input
@@ -149,7 +164,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
           disabled={loading || !acceptedTerms}
           className={`btn btn-void w-full sm:w-auto ${loading ? "btn-loading" : ""}`}
         >
-          {loading ? "Submitting..." : "Apply for free pilot"}
+          {loading ? "Submitting..." : "Request call audit"}
         </button>
       </form>
     );

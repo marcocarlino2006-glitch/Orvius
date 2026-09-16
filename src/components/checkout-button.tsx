@@ -112,6 +112,11 @@ export function CheckoutButton({
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          const callbackUrl = `/pricing?plan=${planId}&interval=${interval}`;
+          window.location.href = `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+          return;
+        }
         throw new Error(data.error ?? "Checkout unavailable");
       }
 
@@ -148,16 +153,13 @@ export function CheckoutButton({
     const annualMissing = interval === "year" && planStatus?.checkoutReady;
     return (
       <div className={className}>
-        <Link href="/dashboard/billing" className="inst-btn inst-btn-primary w-full justify-center">
-          Open billing unblock
+        <Link href="/pilot" className="inst-btn inst-btn-primary w-full justify-center">
+          Book a call audit
         </Link>
         <p className="mt-3 font-sans text-sm text-ash">
           {annualMissing
-            ? "Annual billing isn’t configured yet for this plan. Switch to monthly or finish Stripe setup."
-            : "Self-serve checkout is not live yet. Founders: finish Stripe on Billing. Shops: apply for the pilot."}{" "}
-          <Link href="/pilot" className="underline underline-offset-2">
-            Pilot apply
-          </Link>
+            ? "Annual checkout is not available for this plan yet. Choose monthly or confirm the annual option during your audit."
+            : "Self-serve checkout is not available for this plan yet. We’ll confirm pricing and setup during the audit."}
         </p>
       </div>
     );
@@ -205,7 +207,7 @@ export function CheckoutButton({
         <p className="mt-3 font-sans text-sm text-flare-dim">
           {error}{" "}
           <Link href="/pilot" className="underline underline-offset-2">
-            Apply for pilot
+            Book a call audit
           </Link>
         </p>
       ) : null}

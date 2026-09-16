@@ -3,20 +3,20 @@ import type { Metadata } from "next";
 import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
-import { isAnyPlanCheckoutReady } from "@/lib/billing-readiness";
 import { demoLineHref } from "@/lib/demo-line";
 import { getFeaturedPlan, getLowestPaidPrice } from "@/lib/company";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 const featured = getFeaturedPlan();
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Orvius plans from $124/mo (annual) — Line, Pro, Fleet, and Multi-shop. Monthly or annual billing.",
+    "Orvius plans from $124/mo (annual) — Line, Pro, and Fleet. Monthly or annual billing.",
 };
 
 export default function PricingPage() {
-  const checkoutReady = isAnyPlanCheckoutReady();
+  const selfServeReady = getPublicLaunchReadiness().ready;
 
   return (
     <MarketingShell>
@@ -26,17 +26,17 @@ export default function PricingPage() {
             label="Pricing"
             title={`From $${getLowestPaidPrice("year")} per month. Flat.`}
             subline="Monthly or annual — pick the plan that matches your shop."
-            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks. Multi-shop for 2+ locations."
+            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks."
           />
-          {!checkoutReady ? (
+          {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
-              Self-serve checkout unlocks when Stripe is live. Until then, start
-              as a{" "}
+              Public self-serve opens only when signup, billing, telephony and
+              support gates are verified. Until then, book a{" "}
               <Link href="/pilot" className="underline underline-offset-2">
-                design partner pilot
+                call audit
               </Link>{" "}
-              — we set the line up with you. Subscribe buttons route to the pilot
-              until billing is green.
+              and we&apos;ll verify the setup with you. We do not advertise a
+              free trial or collect payment outside verified Stripe checkout.
             </p>
           ) : null}
           <div className="tier1-hero-call">
@@ -53,19 +53,19 @@ export default function PricingPage() {
         <div className="editorial-wrap tier1-close-inner">
           <p className="tier1-eyebrow type-eyebrow">Economics</p>
           <h2 className="tier1-section-title type-headline">
-            One booked job covers the month.
+            Built to pay back with one additional job.
           </h2>
           <p className="tier1-section-lead font-sans">
-            A single after-hours repair often clears ${featured.price}. Orvius
-            exists so that call hits a live line — not voicemail — when it
-            reaches your Orvius number or forward.
+            If your gross profit on an additional booked job exceeds ${featured.price},
+            that job can cover a month of the featured plan. Your ticket,
+            close rate, and margin determine the actual payback.
           </p>
           <div className="tier1-actions tier1-close-actions">
             <a href={demoLineHref()} className="inst-btn inst-btn-primary">
-              Call live demo
+              Call the live AI
             </a>
             <Link href="/pilot" className="inst-btn inst-btn-ghost">
-              Design partner program
+              Book a call audit
             </Link>
           </div>
         </div>

@@ -1,4 +1,9 @@
-const protectedPrefixes = ["/dashboard", "/admin"];
+/*
+  /domains is the DNS setup wizard. It renders the deployment's record table and
+  webhook URLs, so it belongs behind the same door as /admin rather than sitting
+  on the public site, which is where it was.
+*/
+const protectedPrefixes = ["/dashboard", "/admin", "/domains"];
 
 export function isProtectedPath(pathname: string) {
   return protectedPrefixes.some(
@@ -8,7 +13,7 @@ export function isProtectedPath(pathname: string) {
 
 export const authConfig = {
   pages: {
-    signIn: "/login",
+    signIn: "/signin",
   },
   providers: [],
   session: {

@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { createHash, randomBytes, timingSafeEqual } from "crypto";
 
 const REQUIRED = [
   "TWILIO_ACCOUNT_SID",
@@ -25,6 +25,7 @@ export function getConfigStatus() {
   const optional = [
     "VAPI_WEBHOOK_SECRET",
     "ORVIUS_ADMIN_KEY",
+    "ORVIUS_FOUNDER_EMAILS",
     "OPENAI_API_KEY",
     "RESEND_API_KEY",
     "RESEND_FROM",
@@ -69,19 +70,42 @@ export function generateAdminKey() {
   return randomBytes(24).toString("hex");
 }
 
-import { isProduction } from "@/lib/runtime";
+import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
+
+/**
+ * Compare a presented secret against the configured one in constant time.
+ *
+ * Hashed first because timingSafeEqual needs equal lengths, and comparing raw
+ * buffers would otherwise give away the length of the key before anything else.
+ */
+export function secretsMatch(
+  presented: string | null | undefined,
+  configured: string | null | undefined,
+) {
+  if (!presented || !configured) return false;
+  return timingSafeEqual(
+    createHash("sha256").update(presented).digest(),
+    createHash("sha256").update(configured).digest(),
+  );
+}
+
+export function getBearerToken(request: Request) {
+  const header = request.headers.get("authorization");
+  return header?.startsWith("Bearer ")
+    ? header.slice("Bearer ".length).trim()
+    : null;
+}
 
 export function verifyAdminRequest(request: Request) {
   const configured = getAdminKey();
   if (!configured) {
-    return !isProduction();
+    /* No key set is a local convenience, not a production posture — and a dev
+       build pointed at the live database is not local. */
+    return isUnauthenticatedAccessAllowed();
   }
 
-  const header = request.headers.get("authorization");
-  const bearer = header?.startsWith("Bearer ")
-    ? header.slice("Bearer ".length)
-    : null;
-  const apiKey = request.headers.get("x-orvius-admin-key");
-
-  return bearer === configured || apiKey === configured;
+  return (
+    secretsMatch(getBearerToken(request), configured) ||
+    secretsMatch(request.headers.get("x-orvius-admin-key"), configured)
+  );
 }

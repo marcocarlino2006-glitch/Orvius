@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import { getAttentionQueue } from "@/lib/attention-queue";
 import { isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
-import { getShopLineForBusiness } from "@/lib/demo-business";
+import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
+import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { getDispatchBoard, listCrew } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
+import { getShiftTimeline } from "@/lib/shift-timeline";
 import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
@@ -40,6 +43,7 @@ export async function GET() {
     crew,
     outcomes,
     attention,
+    shiftTimeline,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -82,9 +86,15 @@ export async function GET() {
     listCrew(business.id),
     getShopOutcomes(business.id, 7),
     getAttentionQueue(business.id, 12),
+    getShiftTimeline(business.id),
   ]);
 
   const wedge = await getWedgeReadiness(business.id, health);
+  if (health.stuckPendingAlerts > 0) {
+    after(() =>
+      drainOwnerAlerts({ at: "ring1.health", businessId: business.id }),
+    );
+  }
 
   const priorityLeads = priorityLeadsRaw
     .sort((a, b) => {
@@ -141,6 +151,8 @@ export async function GET() {
       ownerPhone: business.ownerPhone,
       billingStatus: business.billingStatus,
       pilotEndsAt: business.pilotEndsAt?.toISOString() ?? null,
+      depositEnabled: business.depositEnabled,
+      referenceImplementation: isDemoBusiness(business),
     },
     coverage: {
       afterHoursNow: isAfterHours(
@@ -166,12 +178,13 @@ export async function GET() {
       newLeads,
       totalCalls,
       totalLeads,
-      answerRate: outcomes.bookingRate,
+      leadBookingRate: outcomes.bookingRate,
       lastCallAt: lastCall?.createdAt.toISOString() ?? null,
       lastCaller: lastCall?.callerPhone ?? null,
     },
     outcomes,
     attention,
+    shiftTimeline,
     lastWeeklyProofAt: business.lastWeeklyProofAt?.toISOString() ?? null,
     recentLeads: recentLeads.map((lead) => ({
       id: lead.id,

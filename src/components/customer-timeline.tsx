@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
 import type { TimelineEvent } from "@/lib/customer";
+import { isEmergency, notableUrgency } from "@/lib/urgency";
 
+/*
+  Colour on this timeline means urgency, not what kind of record it is.
+
+  It used to mean both, and the fallback arm of this switch was `flare` — so
+  every lead on a customer's history wore the colour the product reserves for a
+  burst pipe. One record had twenty-three emergency-red pills on it and two of
+  them were emergencies. A payment stays green because money arriving is the
+  one event type that is itself good news.
+*/
 function badgeTone(type: TimelineEvent["type"]) {
-  switch (type) {
-    case "job":
-    case "call":
-    case "payment":
-      return "live" as const;
-    case "estimate":
-    case "invoice":
-      return "neutral" as const;
-    default:
-      return "flare" as const;
-  }
+  return type === "payment" ? ("live" as const) : ("muted" as const);
 }
 
 export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
@@ -44,21 +44,28 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
                     hour: "numeric",
                     minute: "2-digit",
                   })}
-                  {event.source ? ` · ${event.source}` : ""}
+                  {/*
+                    The source is only worth printing when it is not the type
+                    said again. It is hardcoded to the type for calls, jobs,
+                    estimates, invoices and payments, so this line read
+                    "Sep 11, 7:43 AM · call · completed" beside a CALL pill
+                    above a "View call →" link — the same word three times.
+                    A lead is the exception: its source is the channel it came
+                    in on, so an SMS lead still says so.
+                  */}
+                  {event.source && event.source !== event.type
+                    ? ` · ${event.source}`
+                    : ""}
                   {event.status ? ` · ${event.status}` : ""}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <ShellBadge tone={badgeTone(event.type)}>{event.type}</ShellBadge>
-                {event.urgency ? (
-                  <ShellBadge
-                    tone={
-                      event.urgency.toLowerCase() === "emergency"
-                        ? "flare"
-                        : "neutral"
-                    }
-                  >
-                    {event.urgency.replace(/-/g, " ")}
+                {isEmergency(event.urgency) ? (
+                  <ShellBadge tone="flare">Emergency</ShellBadge>
+                ) : notableUrgency(event.urgency) ? (
+                  <ShellBadge tone="neutral">
+                    {notableUrgency(event.urgency)}
                   </ShellBadge>
                 ) : null}
               </div>

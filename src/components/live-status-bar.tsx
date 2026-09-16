@@ -11,7 +11,8 @@ type HealthData = {
   ownerPhoneIsTwilioLine?: boolean;
   ownerSmsReachable?: boolean;
   webhookUrl: string;
-  stats: { businessCount: number; leadCount: number; callCount: number };
+  /* Absent unless the caller is privileged — health stops counting for the public. */
+  stats?: { businessCount: number; leadCount: number; callCount: number };
 };
 
 type DashboardPulse = {
@@ -85,9 +86,13 @@ export function LiveStatusBar() {
               {pulse.newLeadCount} new lead{pulse.newLeadCount === 1 ? "" : "s"}
             </Link>
           ) : null}
-          <span>{health.stats.callCount} calls</span>
-          <span>{health.stats.leadCount} leads</span>
-          <span>{health.stats.businessCount} shops</span>
+          {health.stats ? (
+            <>
+              <span>{health.stats.callCount} calls</span>
+              <span>{health.stats.leadCount} leads</span>
+              <span>{health.stats.businessCount} shops</span>
+            </>
+          ) : null}
         </div>
       </div>
 

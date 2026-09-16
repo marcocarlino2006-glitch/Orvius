@@ -2,8 +2,10 @@
 
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
+import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
+import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
 import { OsShell } from "@/components/os-shell";
-import { ShellPanel } from "@/components/shell-primitives";
+import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { company, getPaidPlans, pricing } from "@/lib/company";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -18,6 +20,7 @@ type BillingReadiness = {
 
 type BillingAccount = {
   user: { email: string | null };
+  founder?: boolean;
   business: {
     name: string;
     billingStatus: string;
@@ -42,7 +45,7 @@ type BillingAccount = {
 
 function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | null) {
   if (!entitled && (status === "pilot" || status === "none")) {
-    return "Pilot ended — subscribe to reopen your shop.";
+    return "Design-partner access ended — subscribe to reopen your shop.";
   }
   switch (status) {
     case "active":
@@ -51,10 +54,10 @@ function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | nul
       if (pilotEndsAt) {
         const ends = new Date(pilotEndsAt);
         if (!Number.isNaN(ends.getTime())) {
-          return `Design partner access through ${ends.toLocaleDateString()}. Then subscribe to keep the line.`;
+          return `Design partner access is active through ${ends.toLocaleDateString()}.`;
         }
       }
-      return "You are on the design partner program (30-day pilot).";
+      return "Your design-partner access is active.";
     }
     case "past_due":
       return "Payment failed — update billing to keep your line live.";
@@ -84,16 +87,19 @@ export default function DashboardBillingPage() {
   const email = session?.user?.email ?? account?.user.email ?? "";
   const paidPlans = getPaidPlans();
   const checkoutReady = account?.billing.configured ?? false;
+  const founder = account?.founder ?? false;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
   const locked = !entitled && status !== "past_due";
-  const needsPay = locked || status === "past_due" || status === "pilot" || status === "none";
 
   return (
-    <OsShell title="Billing">
-      <div className="account-grid">
+    <OsShell
+      title="Billing"
+      subtitle="Plans, payouts, and customer payment controls."
+    >
+      <div className="billing-settings">
         <ShellPanel title="Current plan" dense>
           {loading ? (
-            <p className="font-sans text-sm text-ash">Loading…</p>
+            <ShellLoading />
           ) : (
             <>
               <div className="account-plan-badge font-sans">
@@ -119,15 +125,9 @@ export default function DashboardBillingPage() {
               <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
                 {statusCopy(status, entitled, pilotEndsAt)}
               </p>
-              {pilotEndsAt && status === "pilot" && entitled ? (
-                <p className="mt-2 font-sans text-xs text-ash">
-                  Pilot ends {new Date(pilotEndsAt).toLocaleString()}
-                </p>
-              ) : null}
               {account?.business ? (
                 <p className="mt-2 font-sans text-xs text-ash">
                   Billed to {account.business.name}
-                  {email ? ` · ${email}` : ""}
                 </p>
               ) : null}
               {(status === "active" || status === "past_due") && hasStripeCustomer ? (
@@ -139,9 +139,9 @@ export default function DashboardBillingPage() {
           )}
         </ShellPanel>
 
-        <ShellPanel title={needsPay && !loading ? "Subscribe" : "Subscribe"} dense>
+        <ShellPanel title="Subscription" dense>
           {loading ? (
-            <p className="font-sans text-sm text-ash">Loading…</p>
+            <ShellLoading />
           ) : status === "active" ? (
             <p className="font-sans text-sm text-live">
               Subscription active. Receipts are sent to your email from Stripe.
@@ -190,75 +190,79 @@ export default function DashboardBillingPage() {
             </>
           ) : (
             <>
+              {/*
+                What an owner needs to know here is whether they owe anything
+                and what happens next. The setup instrument below says neither
+                — it names env vars and an npm script — so it is shown only to
+                whoever owns the Stripe account.
+              */}
               <p className="font-sans text-sm leading-relaxed text-ash">
-                Self-serve checkout stays dark until Stripe is configured. Do not claim
-                paid checkout until these gates are green.
+                No payment is due today. Your design-partner access remains
+                active, and we will notify you before billing begins.
               </p>
-              <div className="billing-unblock billing-unblock--instrument mt-4 font-sans">
-                <p className="billing-unblock-kicker">Stripe gates</p>
-                <p className="billing-unblock-title">Checkout stays dark until these are green</p>
-                <ol className="billing-unblock-steps">
-                  {(account?.billing.readiness?.nextSteps?.length
-                    ? account.billing.readiness.nextSteps
-                    : [
-                        "Add STRIPE_SECRET_KEY on Vercel",
-                        "Run stripe:setup · paste price IDs",
-                        "Webhook + STRIPE_WEBHOOK_SECRET",
-                        "Redeploy · then Subscribe",
-                      ]
-                  ).map((step) => (
-                    <li key={step}>{step}</li>
-                  ))}
-                </ol>
-                {account?.billing.readiness?.missing?.length ? (
-                  <p className="billing-unblock-missing">
-                    Missing ·{" "}
-                    {account.billing.readiness.missing.map((m) => (
-                      <code key={m}>{m}</code>
+              {founder ? (
+                <div className="billing-unblock billing-unblock--instrument mt-4 font-sans">
+                  <p className="billing-unblock-kicker">Stripe gates</p>
+                  <p className="billing-unblock-title">Checkout stays dark until these are green</p>
+                  <ol className="billing-unblock-steps">
+                    {(account?.billing.readiness?.nextSteps?.length
+                      ? account.billing.readiness.nextSteps
+                      : [
+                          "Add STRIPE_SECRET_KEY on Vercel",
+                          "Run stripe:setup · paste price IDs",
+                          "Webhook + STRIPE_WEBHOOK_SECRET",
+                          "Redeploy · then Subscribe",
+                        ]
+                    ).map((step) => (
+                      <li key={step}>{step}</li>
                     ))}
+                  </ol>
+                  {account?.billing.readiness?.missing?.length ? (
+                    <p className="billing-unblock-missing">
+                      Missing ·{" "}
+                      {account.billing.readiness.missing.map((m) => (
+                        <code key={m}>{m}</code>
+                      ))}
+                    </p>
+                  ) : null}
+                  <p className="billing-unblock-foot">
+                    Runbook · <code>docs/BILLING-SETUP.md</code>
+                    {" · "}
+                    <Link href="/pilot" className="pro-section-link">
+                      Design partner
+                    </Link>
                   </p>
-                ) : null}
-                <p className="billing-unblock-foot">
-                  Runbook · <code>docs/BILLING-SETUP.md</code>
-                  {" · "}
-                  <Link href="/pilot" className="pro-section-link">
-                    Design partner
-                  </Link>
-                </p>
-              </div>
+                </div>
+              ) : null}
             </>
           )}
         </ShellPanel>
-      </div>
 
-      <div className="mt-3">
-        <ShellPanel title="Estimate card pay" dense>
-          <p className="font-sans text-sm leading-relaxed text-ash">
-            Public estimate card checkout runs on the Orvius Stripe account today.
-            Money does not land in the shop&apos;s bank until Stripe Connect ships —
-            say that on every money demo. Subscriptions above fund Orvius, not job
-            payouts.
-          </p>
-        </ShellPanel>
-      </div>
+      <ConnectPayoutsPanel />
 
-      <div className="mt-3">
-        <ShellPanel title="Legal" dense>
-          <ul className="account-legal-links font-sans">
-            <li>
-              <Link href="/terms">Terms of Service</Link>
-            </li>
-            <li>
-              <Link href="/refunds">Refunds & cancellation</Link>
-            </li>
-            <li>
-              <Link href="/privacy">Privacy Policy</Link>
-            </li>
-            <li>
-              <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
-            </li>
-          </ul>
-        </ShellPanel>
+      {/*
+        Deposits sit under payouts because they are the same decision in two
+        steps: connect an account, then say what to ask for. Splitting them
+        across two screens is how an owner ends up with one half done.
+      */}
+      <DepositSettingsPanel />
+
+      <ShellPanel title="Legal" dense>
+        <ul className="account-legal-links font-sans">
+          <li>
+            <Link href="/terms">Terms of Service</Link>
+          </li>
+          <li>
+            <Link href="/refunds">Refunds & cancellation</Link>
+          </li>
+          <li>
+            <Link href="/privacy">Privacy Policy</Link>
+          </li>
+          <li>
+            <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
+          </li>
+        </ul>
+      </ShellPanel>
       </div>
     </OsShell>
   );

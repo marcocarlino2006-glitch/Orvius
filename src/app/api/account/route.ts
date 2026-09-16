@@ -4,6 +4,7 @@ import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
 import { isEmailConfigured } from "@/lib/email";
+import { isFounderEmail } from "@/lib/founder";
 import { prisma } from "@/lib/prisma";
 import {
   getShopLines,
@@ -18,6 +19,17 @@ import {
 } from "@/lib/billing-entitlement";
 import { getShopHealth } from "@/lib/shop-health";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
+import {
+  MAX_DEPOSIT_CENTS,
+  getDepositReadiness,
+  resolveDepositAmountCents,
+  validateDepositSettingsChange,
+} from "@/lib/booking-deposit";
+import {
+  STRIPE_MIN_CHARGE_CENTS,
+  formatPlatformFeeRate,
+  shopNetCents,
+} from "@/lib/platform-fee";
 import { z } from "zod";
 
 const patchSchema = z.object({
@@ -29,7 +41,38 @@ const patchSchema = z.object({
   baselineJobsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   founderCertJson: z.string().max(500).nullable().optional(),
   overflowForwardConfirmedAt: z.boolean().optional(),
+  depositEnabled: z.boolean().optional(),
+  depositAmountCents: z
+    .number()
+    .int()
+    .min(STRIPE_MIN_CHARGE_CENTS)
+    .max(MAX_DEPOSIT_CENTS)
+    .nullable()
+    .optional(),
 });
+
+/*
+  Settings needs the reason deposits are unavailable, not just a boolean. "Off"
+  and "your payout account is not finished" send an owner to two different
+  places, and only one of them is this screen.
+*/
+function depositsPayload(
+  business: Parameters<typeof getDepositReadiness>[0] & {
+    depositAmountCents: number | null;
+  },
+) {
+  const amountCents = resolveDepositAmountCents(business);
+  return {
+    enabled: business.depositEnabled,
+    amountCents,
+    /* The take rate made concrete at the moment the amount is chosen. */
+    netCents: amountCents == null ? null : shopNetCents(amountCents),
+    feeRate: formatPlatformFeeRate(),
+    readiness: getDepositReadiness(business),
+    minCents: STRIPE_MIN_CHARGE_CENTS,
+    maxCents: MAX_DEPOSIT_CENTS,
+  };
+}
 
 export async function GET() {
   const session = await auth();
@@ -64,6 +107,8 @@ export async function GET() {
         lastWeeklyProofAt: businessRecord.lastWeeklyProofAt,
         founderCertJson: businessRecord.founderCertJson,
         overflowForwardConfirmedAt: businessRecord.overflowForwardConfirmedAt,
+        depositEnabled: businessRecord.depositEnabled,
+        depositAmountCents: businessRecord.depositAmountCents,
       }
     : null;
 
@@ -87,6 +132,14 @@ export async function GET() {
   const entitled = billingFields ? isBillingEntitled(billingFields) : false;
   const pilotEnds = billingFields ? resolvePilotEndsAt(billingFields) : null;
 
+  /*
+    Readiness names the env vars Stripe is still waiting on and the npm script
+    that creates the price IDs. That is a runbook for whoever owns the Stripe
+    account, and it was going out to every owner who opened Billing.
+  */
+  const founder = isFounderEmail(email);
+  const readiness = getBillingReadiness();
+
   return NextResponse.json({
     user: {
       name: session.user.name ?? null,
@@ -101,10 +154,13 @@ export async function GET() {
       smsEnabled: process.env.ENABLE_OWNER_SMS === "true",
       emailConfigured: isEmailConfigured(),
     },
+    founder,
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),
-      readiness: getBillingReadiness(),
+      readiness: founder
+        ? readiness
+        : { ...readiness, missing: [], nextSteps: [] },
       status: business?.billingStatus ?? "none",
       planId: currentPlanId,
       plan: currentPlan ?? pricing.pro,
@@ -115,6 +171,7 @@ export async function GET() {
       entitled,
       pilotEndsAt: pilotEnds?.toISOString() ?? null,
     },
+    deposits: businessRecord ? depositsPayload(businessRecord) : null,
   });
 }
 
@@ -159,6 +216,17 @@ export async function PATCH(request: Request) {
       );
     }
 
+    const depositCheck = validateDepositSettingsChange({
+      current: existing,
+      next: {
+        depositEnabled: body.depositEnabled,
+        depositAmountCents: body.depositAmountCents,
+      },
+    });
+    if (!depositCheck.ok) {
+      return NextResponse.json({ error: depositCheck.error }, { status: 400 });
+    }
+
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {
@@ -186,6 +254,12 @@ export async function PATCH(request: Request) {
           : body.overflowForwardConfirmedAt === false
             ? { overflowForwardConfirmedAt: null }
             : {}),
+        ...(body.depositEnabled !== undefined
+          ? { depositEnabled: body.depositEnabled }
+          : {}),
+        ...(body.depositAmountCents !== undefined
+          ? { depositAmountCents: body.depositAmountCents }
+          : {}),
       },
     });
 
@@ -229,7 +303,10 @@ export async function PATCH(request: Request) {
         overflowForwardConfirmedAt: saved.overflowForwardConfirmedAt,
         twilioPhone: saved.twilioPhone,
         vapiPhoneNumber: saved.vapiPhoneNumber,
+        depositEnabled: saved.depositEnabled,
+        depositAmountCents: saved.depositAmountCents,
       },
+      deposits: depositsPayload(saved),
       assistantSynced,
       syncError,
       syncWarning,

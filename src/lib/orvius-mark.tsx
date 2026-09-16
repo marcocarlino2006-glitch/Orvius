@@ -1,11 +1,9 @@
 /**
- * Orvius mark — the signal O.
+ * Orvius mark — the signal bridge.
  *
- * Outer ring: the shop's coverage, broken where the night gap is.
- * Inner sweep: the line answering into that gap.
- * Core: the one record every call, job, and dollar compounds into.
- *
- * Monochrome via currentColor, so it holds on charcoal and on warm light.
+ * Two opposing orbital brackets are joined by one live signal. The silhouette
+ * preserves horizontal, infrastructure-grade simplicity without reproducing a
+ * closed nested visor.
  */
 
 export type OrviusMarkSvgProps = {
@@ -25,20 +23,19 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       aria-hidden
     >
       <path
-        className="orvius-mark-coverage"
-        d="M27.93 13.46 A12.2 12.2 0 1 1 18.54 4.07"
+        className="orvius-mark-brackets"
+        d="M11 7H9c-4.5 0-7 3.5-7 9s2.5 9 7 9h2M21 7h2c4.5 0 7 3.5 7 9s-2.5 9-7 9h-2"
         stroke="currentColor"
-        strokeWidth="2.9"
-        strokeLinecap="round"
+        strokeWidth="4.5"
+        strokeLinecap="square"
       />
       <path
-        className="orvius-mark-sweep"
-        d="M20.99 21.99 A7.8 7.8 0 0 1 9.09 12.16"
+        className="orvius-mark-beam"
+        d="M9.5 16h13"
         stroke="currentColor"
-        strokeWidth="2.6"
+        strokeWidth="3"
         strokeLinecap="round"
       />
-      <circle className="orvius-mark-core" cx="16" cy="16" r="3.4" fill="currentColor" />
     </svg>
   );
 }

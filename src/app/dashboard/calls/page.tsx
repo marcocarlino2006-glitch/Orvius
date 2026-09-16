@@ -1,14 +1,14 @@
 "use client";
 
 import { CallRecordCard } from "@/components/call-record-card";
-import { ProPageStrip } from "@/components/pro-page-strip";
-import { ProEmptyState } from "@/components/pro-page-chrome";
+import { ProLead } from "@/components/pro-lead";
+import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CallRow = {
   id: string;
@@ -18,6 +18,8 @@ type CallRow = {
   durationSec: number | null;
   booked: boolean;
   createdAt: string;
+  /** Set by the API against the shop's own hours, not the viewer's clock. */
+  afterHours: boolean;
   business: { name: string } | null;
   customer: { id: string; name: string | null; interactionCount: number } | null;
   lead: {
@@ -46,6 +48,17 @@ export default function CallsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const tally = useMemo(
+    () => ({
+      afterHours: calls.filter((call) => call.afterHours).length,
+      booked: calls.filter((call) => call.booked).length,
+      returning: calls.filter(
+        (call) => (call.customer?.interactionCount ?? 0) > 1,
+      ).length,
+    }),
+    [calls],
+  );
+
   return (
     <OsShell
       title="Calls"
@@ -55,7 +68,22 @@ export default function CallsPage() {
         </Link>
       }
     >
-      <ProPageStrip />
+      <ProLead
+        loading={loading}
+        figure={String(calls.length)}
+        caption={calls.length === 1 ? "call answered" : "calls answered"}
+        detail="Every one transcribed, qualified, and filed against a customer."
+        facts={[
+          {
+            label: "after hours",
+            value: tally.afterHours,
+            live: tally.afterHours > 0,
+          },
+          { label: "booked", value: tally.booked, live: tally.booked > 0 },
+          { label: "returning", value: tally.returning },
+        ]}
+        action={<ProShopLineCta label="Test call" showNumber={false} />}
+      />
 
       {loading ? (
         <DashboardSkeleton />
@@ -85,7 +113,6 @@ export default function CallsPage() {
                     durationSec={call.durationSec}
                     booked={call.booked}
                     createdAt={call.createdAt}
-                    businessName={call.business?.name}
                     leadName={call.lead?.name}
                     serviceType={call.lead?.serviceType}
                     urgency={call.lead?.urgency}
@@ -95,6 +122,9 @@ export default function CallsPage() {
               ))}
             </ul>
           )}
+          {calls.length ? (
+            <ProListEnd count={calls.length} noun="call" />
+          ) : null}
         </>
       )}
     </OsShell>

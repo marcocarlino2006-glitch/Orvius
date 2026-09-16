@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  getOwnerSetupStatus,
+  ownerSetupHref,
+} from "@/lib/owner-setup-state";
 
 type SetupBusiness = {
   ownerPhone?: string | null;
@@ -26,34 +30,16 @@ export function OwnerSetupBanner() {
         if (!res.ok) return;
         const data = (await res.json()) as { business?: SetupBusiness | null };
         if (cancelled || !data.business) return;
-        const business = data.business;
-
-        const line =
-          business.vapiPhoneNumber?.trim() ||
-          business.twilioPhone?.trim() ||
-          null;
-        if (!line) {
-          setHref("/dashboard/onboarding");
-          setLabel("Finish setup — get your shop line");
-          return;
-        }
-        if (!business.ownerPhone?.trim()) {
-          setHref("/dashboard/settings");
-          setLabel("Add your mobile so alerts reach you");
-          return;
-        }
-        if (!business.lineVerifiedAt) {
-          setHref("/dashboard/settings#overflow-forward");
-          setLabel("Prove your line — place one test call");
-          return;
-        }
-        if (!business.overflowForwardConfirmedAt) {
-          setHref("/dashboard/settings#overflow-forward");
-          setLabel("Confirm call capture — forward or publish is live");
-          return;
-        }
-        setHref(null);
-        setLabel(null);
+        const setup = getOwnerSetupStatus(data.business);
+        const labels = {
+          line: "Finish setup — get your shop line",
+          owner_phone: "Add your mobile so alerts reach you",
+          verify: "Prove your line — place one test call",
+          capture: "Confirm call capture — forward or publish is live",
+          done: null,
+        } as const;
+        setHref(setup.ready ? null : ownerSetupHref(setup.nextStep));
+        setLabel(labels[setup.nextStep]);
       } catch {
         /* ignore */
       }

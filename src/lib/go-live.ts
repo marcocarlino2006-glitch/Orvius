@@ -57,7 +57,7 @@ export function buildGoLiveReport(input: {
       detail: input.overflowForwardConfirmed
         ? "Owner confirmed carrier forward / after-hours routing to Orvius."
         : "Without forward, you only catch calls to the Orvius number — say that on the sale.",
-      href: "/dashboard/settings#overflow-forward",
+      href: "/dashboard/onboarding",
     },
     {
       id: "owner_phone",

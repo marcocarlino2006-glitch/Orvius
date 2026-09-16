@@ -12,9 +12,8 @@ const groups = [
   {
     heading: "Get started",
     links: [
-      { href: "/demo", label: "Run a demo call" },
-      { href: "/pilot", label: "Prove it on your line" },
-      { href: "/product", label: "What ships today" },
+      { href: "tel:+18446439170", label: "Call the live AI" },
+      { href: "/pilot", label: "Book a call audit" },
       { href: "/pricing", label: "Pricing & plans" },
     ],
   },
@@ -31,8 +30,8 @@ const groups = [
     heading: "Company",
     links: [
       { href: "/about", label: "About Orvius" },
-      { href: "/enterprise", label: "Multi-shop (design partner)" },
-      { href: `mailto:${company.contactEmail}`, label: "Contact us" },
+      { href: "/enterprise", label: "Enterprise & multi-shop" },
+      { href: "mailto:hello@orvius.im", label: "Contact us" },
     ],
   },
 ] as const;
@@ -44,9 +43,9 @@ export default function ResourcesPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Resources"
-            title="Prove the line. Then expand."
-            subline="Demo, pilot, trust docs, and the company behind Orvius."
-            description="Start with a demo call or your own number. Read how we handle shop data. Reach us when you are ready for multi-shop."
+            title="Everything to run the night shift."
+            subline="Guides, trust, and the company behind the line."
+            description="Start a demo, read how we handle your data, or reach the team."
           />
         </div>
       </section>
@@ -59,7 +58,7 @@ export default function ResourcesPage() {
               <ul className="mkt-resources-list font-sans">
                 {group.links.map((link) => (
                   <li key={link.href}>
-                    {link.href.startsWith("mailto:") ? (
+                    {link.href.startsWith("mailto:") || link.href.startsWith("tel:") ? (
                       <a href={link.href} className="mkt-resources-link">
                         {link.label}
                         <span aria-hidden> →</span>
