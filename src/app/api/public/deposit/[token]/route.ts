@@ -6,7 +6,7 @@ import {
   fulfillDepositCheckoutSession,
   getDepositByToken,
 } from "@/lib/booking-deposit";
-import { formatCents } from "@/lib/money";
+import { formatCentsExact } from "@/lib/money";
 import { getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
 
@@ -21,7 +21,12 @@ function serializePublic(deposit: LoadedDeposit) {
     token: deposit.publicToken,
     status: deposit.status,
     amountCents: deposit.amountCents,
-    amountLabel: formatCents(deposit.amountCents),
+    /*
+      To the cent. This label is on the button the customer presses, so it has
+      to be the figure their card is actually charged — formatCents rounds, and
+      would offer to charge "$50" for $49.50.
+    */
+    amountLabel: formatCentsExact(deposit.amountCents),
     shopName: deposit.business.name,
     shopPhone: deposit.business.phone,
     paid: deposit.status === "paid",

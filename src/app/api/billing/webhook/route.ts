@@ -4,6 +4,7 @@ import { fulfillDepositCheckoutSession } from "@/lib/booking-deposit";
 import { fulfillEstimateCheckoutSession } from "@/lib/estimate-pay";
 import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
+import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import type Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -52,6 +53,30 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid signature";
     return NextResponse.json({ error: message }, { status: 400 });
+  }
+
+  /*
+    Every handler below is individually idempotent — deposits and invoices both
+    check their own paid state first — so this is a second line of defence
+    rather than a fix for a live double-charge.
+
+    What it does buy: Stripe retries for days on any non-2xx, and each retry
+    re-ran the whole handler, including its Stripe API calls. It also leaves
+    this route with the same audit row every other webhook in the app already
+    writes, and it means the next handler added here inherits replay
+    protection instead of having to remember it.
+
+    Claimed only after the signature check, so a forged payload cannot burn an
+    event id and suppress the real delivery that follows it.
+  */
+  const claim = await claimWebhookEvent({
+    source: "stripe",
+    externalId: event.id,
+    eventType: event.type,
+    payload: { account: event.account ?? null },
+  });
+  if (!claim.claimed) {
+    return NextResponse.json({ received: true, duplicate: true });
   }
 
   try {
@@ -164,10 +189,29 @@ export async function POST(request: Request) {
         break;
     }
 
+    await completeWebhookEvent({
+      source: "stripe",
+      externalId: event.id,
+      eventType: event.type,
+      status: "processed",
+    });
+
     return NextResponse.json({ received: true });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Webhook handler failed";
+    /*
+      "failed", so claimWebhookEvent reclaims it — this answers 500 to ask
+      Stripe for the retry, and a row left in "processing" would make that
+      retry a no-op.
+    */
+    await completeWebhookEvent({
+      source: "stripe",
+      externalId: event.id,
+      eventType: event.type,
+      status: "failed",
+      error: message,
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -79,7 +79,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
               <p className="mkt-footer-heading font-sans">Company</p>
               <Link href="/about">About</Link>
               <Link href="/security">Security</Link>
-              <Link href="/pilot">Design partners</Link>
+              <Link href="/pilot">Call audit</Link>
               <a href="mailto:hello@orvius.im">Contact</a>
             </nav>
             <nav className="mkt-footer-col" aria-label="Legal">

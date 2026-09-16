@@ -112,6 +112,11 @@ export function CheckoutButton({
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          const callbackUrl = `/pricing?plan=${planId}&interval=${interval}`;
+          window.location.href = `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+          return;
+        }
         throw new Error(data.error ?? "Checkout unavailable");
       }
 
@@ -202,7 +207,7 @@ export function CheckoutButton({
         <p className="mt-3 font-sans text-sm text-flare-dim">
           {error}{" "}
           <Link href="/pilot" className="underline underline-offset-2">
-            Apply for pilot
+            Book a call audit
           </Link>
         </p>
       ) : null}

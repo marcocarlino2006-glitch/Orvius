@@ -167,8 +167,9 @@ gate(
   there imported by nothing. A file-exists check cannot tell a shipped surface
   from an abandoned one, which is the only thing this gate was ever for.
 
-  Settings now shows the cert through ProSetupHub, so that is what gets checked:
-  the surface an owner reaches, plus the column the progress is stored in.
+  Certification stays founder-only inside the quiet Settings instrument. Check
+  the complete product contract rather than requiring a duplicate setup hub:
+  founder surface, API persistence, and database storage.
 */
 gate(
   "launch_gates_ui",
@@ -176,13 +177,21 @@ gate(
   (() => {
     try {
       const settings = readFileSync(join(root, "src/app/dashboard/settings/page.tsx"), "utf8");
+      const account = readFileSync(join(root, "src/app/api/account/route.ts"), "utf8");
       const schema = readFileSync(join(root, "prisma/schema.prisma"), "utf8");
-      return /ProSetupHub/.test(settings) && schema.includes("founderCertJson");
+      return (
+        /Founder phone certification/.test(settings) &&
+        /account\?\.founder/.test(settings) &&
+        settings.includes("founderCertJson") &&
+        account.includes("founderCertJson") &&
+        schema.includes("founderCertJson") &&
+        !/<ProSetupHub/.test(settings)
+      );
     } catch {
       return false;
     }
   })(),
-  "Settings renders ProSetupHub and Business.founderCertJson persists it",
+  "founder-only Settings disclosure persists through the account API to Business.founderCertJson",
 );
 
 gate(

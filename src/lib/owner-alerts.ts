@@ -53,3 +53,35 @@ export function validateOwnerPhoneForAlerts(params: {
 
   return { ok: true };
 }
+
+/** Turn provider-facing alert failures into one safe owner action. */
+export function alertFailureRecoveryHint(
+  error: string | null | undefined,
+  channel: string,
+): string {
+  const detail = error?.toLowerCase() ?? "";
+
+  if (
+    /21610|opted out|unsubscribed|stop/.test(detail)
+  ) {
+    return "Text START to the shop alert number, then send a test alert.";
+  }
+
+  if (
+    /21614|30003|30005|30006|landline|not a mobile|invalid phone/.test(
+      detail,
+    )
+  ) {
+    return "Use a reachable mobile number in Settings, then send a test alert.";
+  }
+
+  if (channel.toLowerCase() === "email" || /resend|email/.test(detail)) {
+    return "Verify the owner email and email backup, then send a test alert.";
+  }
+
+  if (/twilio|authenticate|credential|not configured/.test(detail)) {
+    return "Check the alert service configuration, then send a test alert.";
+  }
+
+  return "Confirm the owner contact details, then send a test alert.";
+}

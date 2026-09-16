@@ -133,26 +133,20 @@ body {
 
 .ov-public .orvius-logo-word {
   color: inherit !important;
-  font-family: var(--ov-mono) !important;
-  font-weight: 700 !important;
-  letter-spacing: var(--logo-word-tracking, 0.18em) !important;
-  text-transform: uppercase !important;
-  /* Open tracking adds space after the last glyph; pull it back so the word
-     sits flush with whatever it is aligned against. */
-  margin-right: -0.18em;
+  font-family: var(--ov-font) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.075em !important;
+  text-transform: lowercase !important;
+  margin-right: -0.075em;
 }
 
 /*
-  In the header the name stands alone, with no mark to share the weight and no
-  status pill to trail it, so it is set larger and tracked tighter than the
-  label-sized lockup it replaced — at 0.9375rem and 0.18em it read as a caption
-  rather than as the thing the page is named after.
+  In the header the name stands alone, so it carries enough size to read as the
+  product identity rather than another navigation label.
 */
 .ov-public .mkt-nav-brand .orvius-logo-word,
 .ov-signin .mkt-nav-brand .orvius-logo-word {
-  font-size: 1.0625rem !important;
-  letter-spacing: 0.13em !important;
-  margin-right: -0.13em;
+  font-size: 1.65rem !important;
 }
 
 /* Live system status, set beside the wordmark. */

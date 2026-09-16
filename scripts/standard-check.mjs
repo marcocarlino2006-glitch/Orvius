@@ -403,6 +403,7 @@ if (uncapturedWrites.length) {
 // two customer-facing surfaces must use the shop-scoped STOP-aware wrapper.
 const customerSmsSurfaces = [
   "src/lib/customer-confirm.ts",
+  "src/lib/booking-deposit.ts",
   "src/app/api/copilot/route.ts",
 ];
 const unsafeCustomerSms = [];

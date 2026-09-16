@@ -5,6 +5,7 @@ import {
   DEFAULT_JOB_DURATION_MIN,
   findAvailableSchedule,
 } from "@/lib/availability";
+import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jobTitle } from "@/lib/job-schedule";
@@ -26,6 +27,28 @@ function isUniqueConstraintError(error: unknown) {
     "code" in error &&
     (error as { code?: string }).code === "P2002"
   );
+}
+
+async function closeBookingMoneyLoop(params: {
+  businessId: string;
+  leadId: string;
+  jobId: string;
+}) {
+  try {
+    const result = await ensureBookingDepositForJob(params);
+    if (!result.ok) {
+      logWarn("job.booking_deposit_skipped", {
+        ...params,
+        error: result.error,
+      });
+    }
+  } catch (error) {
+    // A payment-side outage must never erase a valid booking.
+    logWarn("job.booking_deposit_error", {
+      ...params,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+  }
 }
 
 export const JOB_INCLUDE = {
@@ -128,8 +151,21 @@ export async function createJobFromLead(params: {
           address: lead.address,
         });
       }
-      return prisma.job.findUniqueOrThrow({ where: { id: lead.job.id } });
+      const healed = await prisma.job.findUniqueOrThrow({
+        where: { id: lead.job.id },
+      });
+      await closeBookingMoneyLoop({
+        businessId: lead.businessId,
+        leadId: lead.id,
+        jobId: healed.id,
+      });
+      return healed;
     }
+    await closeBookingMoneyLoop({
+      businessId: lead.businessId,
+      leadId: lead.id,
+      jobId: lead.job.id,
+    });
     return lead.job;
   }
 
@@ -267,8 +303,14 @@ export async function createJobFromLead(params: {
     createdNow = false;
   }
 
-  // Proposed window until the customer confirms — keep appointments honest.
   if (createdNow) {
+    await closeBookingMoneyLoop({
+      businessId: lead.businessId,
+      leadId: lead.id,
+      jobId: job.id,
+    });
+
+    // Proposed window until the customer confirms — keep appointments honest.
     try {
       await sendCustomerConfirmSms(job.id);
     } catch (error) {

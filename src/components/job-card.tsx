@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
+import { displayPhone, normalizePhone } from "@/lib/customer";
 import { jobStatusLabel } from "@/lib/job-status";
 import { isEmergency } from "@/lib/urgency";
 
@@ -37,6 +38,9 @@ export function JobCard({
   technicianName,
 }: JobCardProps) {
   const emergency = isEmergency(urgency);
+  const phoneLabel = phone
+    ? displayPhone(normalizePhone(phone) ?? phone)
+    : null;
   const when = scheduledAt
     ? new Date(scheduledAt).toLocaleString(undefined, {
         weekday: "short",
@@ -73,7 +77,7 @@ export function JobCard({
         </div>
         <p className="lead-rail-sub">
           {customerName ?? "Customer"}
-          {phone ? ` · ${phone}` : ""}
+          {phoneLabel ? ` · ${phoneLabel}` : ""}
           {technicianName ? ` · ${technicianName}` : ""}
           {address ? ` · ${address}` : ""}
         </p>

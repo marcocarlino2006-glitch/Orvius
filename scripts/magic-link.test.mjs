@@ -6,6 +6,7 @@ import {
   buildMagicLinkEmail,
   buildMagicLinkUrl,
   consumeMagicLink,
+  isMagicLinkEmailAuthorized,
   issueMagicLink,
   normalizeEmail,
 } from "../src/lib/magic-link.ts";
@@ -83,7 +84,9 @@ test("a burst of requests for one address is rate limited", async () => {
 
 test("the allowlist is enforced at issue and again at redemption", async () => {
   const previous = process.env.ORVIUS_AUTH_ALLOWED_EMAILS;
+  const previousSelfServe = process.env.ORVIUS_SELF_SERVE_SIGNUP;
   try {
+    delete process.env.ORVIUS_SELF_SERVE_SIGNUP;
     process.env.ORVIUS_AUTH_ALLOWED_EMAILS = EMAIL;
     const allowed = await issueMagicLink(EMAIL);
     assert.equal(allowed.ok, true);
@@ -98,6 +101,26 @@ test("the allowlist is enforced at issue and again at redemption", async () => {
   } finally {
     if (previous === undefined) delete process.env.ORVIUS_AUTH_ALLOWED_EMAILS;
     else process.env.ORVIUS_AUTH_ALLOWED_EMAILS = previous;
+    if (previousSelfServe === undefined) delete process.env.ORVIUS_SELF_SERVE_SIGNUP;
+    else process.env.ORVIUS_SELF_SERVE_SIGNUP = previousSelfServe;
+  }
+});
+
+test("a green public launch admits a new email even with an operator allowlist", async () => {
+  const previousAllowlist = process.env.ORVIUS_AUTH_ALLOWED_EMAILS;
+  try {
+    process.env.ORVIUS_AUTH_ALLOWED_EMAILS = "operator@orvius.test";
+    assert.equal(
+      isMagicLinkEmailAuthorized("new-owner@magic-link-test.invalid", true),
+      true,
+    );
+    assert.equal(
+      isMagicLinkEmailAuthorized("new-owner@magic-link-test.invalid", false),
+      false,
+    );
+  } finally {
+    if (previousAllowlist === undefined) delete process.env.ORVIUS_AUTH_ALLOWED_EMAILS;
+    else process.env.ORVIUS_AUTH_ALLOWED_EMAILS = previousAllowlist;
   }
 });
 

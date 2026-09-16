@@ -3,11 +3,11 @@
 import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
 import { OnboardingCaptureStep } from "@/components/onboarding-capture-step";
 import { OrviusLogo } from "@/components/orvius-logo";
-import { company, pricing } from "@/lib/company";
+import { company } from "@/lib/company";
 import { TRADES, type Trade } from "@/lib/trades";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 const STEPS = [
   { id: "welcome", label: "Welcome" },
@@ -18,9 +18,20 @@ const STEPS = [
 
 type StepId = (typeof STEPS)[number]["id"];
 type PostProvision = "capture" | "prove" | null;
+type ResumePayload = {
+  provisioned?: boolean;
+  ready?: boolean;
+  setup?: { line?: string | null; nextStep?: string };
+  business?: {
+    name?: string;
+    ownerPhone?: string | null;
+  } | null;
+};
 
 export function OnboardingWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const checkoutSessionId = searchParams.get("session_id")?.trim() ?? "";
   const [step, setStep] = useState<StepId>("welcome");
   const [name, setName] = useState("");
   const [trade, setTrade] = useState<Trade>("HVAC");
@@ -32,6 +43,42 @@ export function OnboardingWizard() {
   const [postProvision, setPostProvision] = useState<PostProvision>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedSms, setAcceptedSms] = useState(false);
+  const [resuming, setResuming] = useState(true);
+
+  const resumeExisting = useCallback(async () => {
+    const res = await fetch("/api/onboarding");
+    if (!res.ok) return false;
+    const json = (await res.json()) as ResumePayload;
+    if (!json.provisioned || !json.business) return false;
+
+    if (json.ready) {
+      router.replace("/dashboard");
+      return true;
+    }
+
+    setName(json.business.name?.trim() ?? "");
+    setOwnerPhone(json.business.ownerPhone?.trim() ?? "");
+    const line = json.setup?.line?.trim() ?? null;
+    if (line) {
+      setProvisionedLine(line);
+      setPostProvision("prove");
+      setError(null);
+    } else {
+      setStep("live");
+      setError(
+        "Your shop exists, but its line is still provisioning. Open Settings or try again shortly.",
+      );
+    }
+    return true;
+  }, [router]);
+
+  useEffect(() => {
+    void resumeExisting()
+      .catch(() => {
+        /* New shops continue with the normal wizard. */
+      })
+      .finally(() => setResuming(false));
+  }, [resumeExisting]);
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
   const defaultGreeting = name.trim()
@@ -65,11 +112,13 @@ export function OnboardingWizard() {
           trade,
           ownerPhone: ownerPhone.trim(),
           greeting: greeting.trim() || undefined,
+          checkoutSessionId,
         }),
       });
 
       const json = (await res.json()) as { error?: string; line?: string | null };
       if (!res.ok) {
+        if (res.status === 409 && (await resumeExisting())) return;
         setError(json.error ?? "Setup failed. Try again.");
         return;
       }
@@ -90,6 +139,53 @@ export function OnboardingWizard() {
   }
 
   const inPostFlow = Boolean(provisionedLine && postProvision);
+
+  if (resuming) {
+    return (
+      <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
+        <div className="onboarding-glow" aria-hidden />
+        <div className="onboarding-frame">
+          <header className="onboarding-header">
+            <OrviusLogo size="md" variant="void" />
+            <p className="onboarding-eyebrow font-sans">
+              {company.productName} setup
+            </p>
+          </header>
+          <div className="onboarding-panel" aria-busy="true">
+            <p className="onboarding-lead font-sans">Restoring your setup…</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!checkoutSessionId && !provisionedLine) {
+    return (
+      <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
+        <div className="onboarding-glow" aria-hidden />
+        <div className="onboarding-frame">
+          <header className="onboarding-header">
+            <OrviusLogo size="md" variant="void" />
+            <p className="onboarding-eyebrow font-sans">
+              {company.productName} setup
+            </p>
+          </header>
+          <div className="onboarding-panel">
+            <h1 className="onboarding-title font-sans">Choose your plan first.</h1>
+            <p className="onboarding-lead font-sans">
+              Paid checkout happens before we provision your dedicated number.
+              There is no automatic trial or surprise phone charge.
+            </p>
+            <div className="onboarding-actions">
+              <Link href="/pricing" className="btn btn-void font-sans">
+                View paid plans
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
@@ -145,7 +241,7 @@ export function OnboardingWizard() {
                 <li>
                   <span className="onboarding-ring-num">03</span>
                   <span>
-                    <strong>Prove it once</strong> · Call the line, get the SMS, work from Today
+                    <strong>Prove it once</strong> · Call the line, get the SMS, work from Command
                   </span>
                 </li>
               </ul>
@@ -282,7 +378,7 @@ export function OnboardingWizard() {
                 </div>
                 <div>
                   <dt>Plan</dt>
-                  <dd>Design partner · {pricing.pilot.period}</dd>
+                  <dd>Paid subscription · verified</dd>
                 </div>
               </dl>
               <label className="onboarding-field font-sans">

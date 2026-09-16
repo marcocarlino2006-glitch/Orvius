@@ -19,18 +19,26 @@ function percentile(values: number[], p: number) {
 }
 
 export async function getAlertMetrics(businessId: string): Promise<AlertMetrics> {
+  const now = new Date();
   const fiveMinAgo = new Date(Date.now() - 5 * 60_000);
   const since7d = new Date(Date.now() - 7 * 24 * 60 * 60_000);
 
   const [pendingAlerts, stuckPendingAlerts, recentDeliveries] = await Promise.all([
     prisma.ownerNotification.count({
-      where: { businessId, status: "pending" },
+      where: { businessId, status: { in: ["pending", "sending"] } },
     }),
     prisma.ownerNotification.count({
       where: {
         businessId,
-        status: "pending",
-        createdAt: { lt: fiveMinAgo },
+        OR: [
+          { status: "pending", createdAt: { lt: fiveMinAgo } },
+          { status: "sending", nextRetryAt: { lte: now } },
+          {
+            status: "sending",
+            nextRetryAt: null,
+            createdAt: { lt: fiveMinAgo },
+          },
+        ],
       },
     }),
     prisma.ownerNotification.findMany({

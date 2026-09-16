@@ -1,6 +1,6 @@
-/** Brand typography — Archivo speaks, Plex Mono reports, and the wordmark reports. */
+/** Brand typography — Archivo speaks, Plex Mono reports. */
 
-export const brandWordmark = "ORVIUS";
+export const brandWordmark = "orvius";
 
 export const typeScale = {
   caption: "0.75rem",
@@ -14,14 +14,12 @@ export const typeScale = {
 
 /**
  * Logo lockups:
- * 1) Signal aperture alone (favicon / chrome)
- * 2) Aperture + ORVIUS set in Plex Mono bold with open tracking — the wordmark
- *    belongs to the reporting voice, like every other machine label on the
- *    surface, so the lockup reads as instrumentation rather than as a logotype.
+ * 1) Signal bridge alone (favicon / chrome)
+ * 2) Signal bridge + a large, heavy lowercase wordmark.
  */
 export const logoSizes = {
-  sm: { mark: 18, word: "0.8125rem", tracking: "0.16em" },
-  md: { mark: 22, word: "0.875rem", tracking: "0.17em" },
-  lg: { mark: 24, word: "0.9375rem", tracking: "0.18em" },
-  xl: { mark: 38, word: "1.65rem", tracking: "0.16em" },
+  sm: { mark: 22, word: "1.2rem", tracking: "-0.065em" },
+  md: { mark: 28, word: "1.5rem", tracking: "-0.07em" },
+  lg: { mark: 34, word: "1.75rem", tracking: "-0.075em" },
+  xl: { mark: 52, word: "2.75rem", tracking: "-0.08em" },
 } as const;

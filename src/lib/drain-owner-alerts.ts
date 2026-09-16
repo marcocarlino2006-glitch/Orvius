@@ -21,19 +21,30 @@ import { processNotificationQueue } from "@/lib/notifications";
  * overlapping drains are already safe. The in-flight guard only stops a burst
  * of webhooks from opening a dozen redundant ones.
  */
-let inFlight: Promise<unknown> | null = null;
+let inFlight: Promise<void> | null = null;
+let followUpRequested = false;
 
 export async function drainOwnerAlerts(context: Record<string, unknown> = {}) {
-  if (inFlight) return;
-  inFlight = processNotificationQueue(10)
-    .catch((error) => {
-      logError("notifications.request_drain_failed", {
-        ...context,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-    })
-    .finally(() => {
-      inFlight = null;
-    });
+  if (inFlight) {
+    followUpRequested = true;
+    return inFlight;
+  }
+
+  inFlight = (async () => {
+    do {
+      followUpRequested = false;
+      try {
+        await processNotificationQueue(10);
+      } catch (error) {
+        logError("notifications.request_drain_failed", {
+          ...context,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      }
+    } while (followUpRequested);
+  })().finally(() => {
+    inFlight = null;
+  });
+
   await inFlight;
 }

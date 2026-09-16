@@ -31,19 +31,19 @@ export const pricingPlans: readonly PricingPlan[] = [
   {
     id: "pilot",
     name: "Design partner",
-    tagline: "Free onboarding with the Orvius team",
+    tagline: "Founder-assisted onboarding for selected shops",
     price: 0,
-    period: "30 days free",
+    period: "Invitation only",
     limit: "Limited availability",
     cta: "Apply for design partner",
     href: "/pilot",
-    idealFor: "Shops validating Orvius before committing",
+    idealFor: "Selected shops helping verify the operating workflow",
     highlights: [
       "Dedicated local line assigned at onboarding",
       "Full After-hours answer on your shop number",
       "Lead inbox + owner SMS alerts",
-      "Pro workspace during trial",
-      "Personal onboarding — no credit card",
+      "Pro workspace during the design-partner program",
+      "Founder-assisted setup and verification",
     ],
   },
   {
@@ -116,10 +116,10 @@ export const pricingPlans: readonly PricingPlan[] = [
   {
     id: "multi",
     name: "Multi-shop",
-    tagline: "2+ locations or franchise groups",
+    tagline: "Not generally available",
     price: 0,
-    period: "Custom",
-    cta: "Contact us",
+    period: "Waitlist",
+    cta: "Join waitlist",
     href: "mailto:hello@orvius.im?subject=Orvius%20Multi-shop",
     contactSales: true,
     idealFor: "Owners running multiple brands or locations",
@@ -132,8 +132,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     highlights: [
       "Dedicated lines per location",
       "Central billing & admin",
-      "Custom onboarding playbook",
-      "Volume pricing on 3+ shops",
+      "Per-location onboarding plan",
+      "Consolidated commercial terms when available",
     ],
   },
 ] as const;
@@ -159,7 +159,7 @@ export function getPaidPlans(): Array<PricingPlan & { id: PaidPlanId }> {
 }
 
 export function getSelfServePlans(): readonly PricingPlan[] {
-  return pricingPlans.filter((p) => p.id !== "multi");
+  return getPaidPlans();
 }
 
 export function getFeaturedPlan(): PricingPlan {

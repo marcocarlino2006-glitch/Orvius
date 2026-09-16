@@ -8,7 +8,6 @@ import {
 import { AssignTechButton, type TechOption } from "@/components/assign-tech-button";
 import { JobStatusAdvance } from "@/components/job-status-advance";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
-import { ProLead } from "@/components/pro-lead";
 import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
@@ -186,6 +185,8 @@ export function AttentionQueue({
   technicians = [],
   onAction,
 }: AttentionQueueProps) {
+  const [expanded, setExpanded] = useState(false);
+
   if (loading && !items.length) {
     return (
       <section
@@ -232,6 +233,7 @@ export function AttentionQueue({
   */
   const stakeCents = items.reduce((sum, item) => sum + (item.estimatedRevenueCents ?? 0), 0);
   const stake = formatCents(stakeCents);
+  const visibleItems = expanded ? items : items.slice(0, 5);
 
   return (
     <section
@@ -239,30 +241,30 @@ export function AttentionQueue({
       className="attention-queue"
       aria-label="Needs attention"
     >
-      {/*
-        The same opening as every list page, for the screen the owner lands on.
-        It used to be the odd one out: its queue length was 22px where /calls
-        and /inbox lead at 44px, so the home screen had the weakest hierarchy in
-        the product. It also said "on the board" twice — once as a kicker above
-        the count and once as the label under the money.
-      */}
-      <ProLead
-        figure={String(items.length)}
-        caption={items.length === 1 ? "row needs you" : "rows need you"}
-        detail={
-          criticalCount > 0
-            ? `${criticalCount} critical, ranked first. Act top down.`
-            : "Nothing critical. Ranked by urgency — act top down."
-        }
-        facts={
-          stake
-            ? [{ label: "on the board, estimated", value: stake, live: true }]
-            : undefined
-        }
-      />
+      <header className="attention-queue-head font-sans">
+        <div>
+          <p className="attention-queue-kicker">Priority queue</p>
+          <h2 className="attention-queue-title">
+            {items.length} {items.length === 1 ? "exception" : "exceptions"}
+          </h2>
+        </div>
+        <div className="attention-queue-summary" aria-label="Queue summary">
+          {criticalCount > 0 ? (
+            <span className="attention-queue-critical">
+              {criticalCount} critical
+            </span>
+          ) : (
+            <span>Nothing critical</span>
+          )}
+          {stake ? <strong>{stake} estimated</strong> : null}
+        </div>
+      </header>
+      <p className="attention-queue-guidance font-sans">
+        Ranked by urgency and customer impact.
+      </p>
 
       <ul className="attention-queue-list">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const showCall = canCall(item);
           const showBook = canBook(item);
           const showAssign = canAssign(item);
@@ -383,6 +385,23 @@ export function AttentionQueue({
           );
         })}
       </ul>
+      {items.length > visibleItems.length ? (
+        <button
+          type="button"
+          className="attention-queue-more font-sans"
+          onClick={() => setExpanded(true)}
+        >
+          Show {items.length - visibleItems.length} more exceptions
+        </button>
+      ) : expanded && items.length > 5 ? (
+        <button
+          type="button"
+          className="attention-queue-more font-sans"
+          onClick={() => setExpanded(false)}
+        >
+          Show only highest priority
+        </button>
+      ) : null}
     </section>
   );
 }

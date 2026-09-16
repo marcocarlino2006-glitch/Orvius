@@ -71,14 +71,12 @@ export function PremiumNav() {
       >
         <div className="mkt-nav-inner">
           <div className="mkt-nav-brandline">
-            {/* The name carries the header on its own — no mark beside it and
-                no status pill trailing it. */}
             <Link
               href="/"
               className="mkt-nav-brand"
               onClick={() => setMenuOpen(false)}
             >
-              <OrviusLogo variant="void" size="lg" wordmarkOnly />
+              <OrviusLogo variant="void" size="lg" />
             </Link>
           </div>
 
@@ -137,7 +135,7 @@ export function PremiumNav() {
                 className="mkt-nav-brand"
                 onClick={() => setMenuOpen(false)}
               >
-                <OrviusLogo variant="void" size="lg" wordmarkOnly />
+                <OrviusLogo variant="void" size="lg" />
               </Link>
             </div>
             <button

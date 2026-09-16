@@ -29,18 +29,29 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
   const [captureConfirmed, setCaptureConfirmed] = useState(false);
   const [captureSaving, setCaptureSaving] = useState(false);
   const [captureError, setCaptureError] = useState<string | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
   const check = useCallback(async () => {
     try {
       const res = await fetch("/api/onboarding/verify");
-      if (!res.ok) return;
+      if (!res.ok) {
+        setVerifyError(
+          res.status === 401
+            ? "Your session expired. Sign in again, then return to setup."
+            : "We couldn't verify the line right now.",
+        );
+        setPolling(false);
+        return;
+      }
       const json = (await res.json()) as VerifyState;
       setState(json);
+      setVerifyError(null);
       if (json.verified) {
         setPolling(false);
       }
     } catch {
-      /* keep polling */
+      setVerifyError("Connection lost while checking the line.");
+      setPolling(false);
     }
   }, []);
 
@@ -116,8 +127,8 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
           <p className="onboarding-lead font-sans">
             {verified
               ? leadName
-                ? `${shopName} received a lead from ${leadName}. Confirm how callers reach Orvius, then open Today.`
-                : `${shopName} is receiving calls. Confirm capture is live, then work from Today.`
+                ? `${shopName} received a lead from ${leadName}. Confirm how callers reach Orvius, then open Command.`
+                : `${shopName} is receiving calls. Confirm capture is live, then work from Command.`
               : `Tap Call — Orvius answers as ${shopName}, qualifies, and texts you. We watch for the lead.`}
           </p>
         </div>
@@ -131,8 +142,22 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
 
       {!verified ? (
         <p className="onboarding-verify-waiting font-sans">
-          Waiting for your test call…
+          {verifyError ?? "Waiting for your test call…"}
         </p>
+      ) : null}
+
+      {verifyError ? (
+        <button
+          type="button"
+          className="onboarding-verify-link font-sans"
+          onClick={() => {
+            setVerifyError(null);
+            setPolling(true);
+            void check();
+          }}
+        >
+          Try verification again
+        </button>
       ) : null}
 
       <div className="onboarding-actions onboarding-actions-split">
@@ -231,7 +256,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
             Open dashboard anyway
           </button>
           {" — "}
-          we&apos;ll remind you to finish prove-it on Today.
+          we&apos;ll remind you to finish prove-it in Command.
         </p>
       ) : null}
 

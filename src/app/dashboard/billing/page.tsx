@@ -3,6 +3,7 @@
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
 import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
+import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { company, getPaidPlans, pricing } from "@/lib/company";
@@ -44,7 +45,7 @@ type BillingAccount = {
 
 function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | null) {
   if (!entitled && (status === "pilot" || status === "none")) {
-    return "Pilot ended — subscribe to reopen your shop.";
+    return "Design-partner access ended — subscribe to reopen your shop.";
   }
   switch (status) {
     case "active":
@@ -53,10 +54,10 @@ function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | nul
       if (pilotEndsAt) {
         const ends = new Date(pilotEndsAt);
         if (!Number.isNaN(ends.getTime())) {
-          return `Design partner access through ${ends.toLocaleDateString()}. Then subscribe to keep the line.`;
+          return `Design partner access is active through ${ends.toLocaleDateString()}.`;
         }
       }
-      return "You are on the design partner program (30-day pilot).";
+      return "Your design-partner access is active.";
     }
     case "past_due":
       return "Payment failed — update billing to keep your line live.";
@@ -89,11 +90,13 @@ export default function DashboardBillingPage() {
   const founder = account?.founder ?? false;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
   const locked = !entitled && status !== "past_due";
-  const needsPay = locked || status === "past_due" || status === "pilot" || status === "none";
 
   return (
-    <OsShell title="Billing">
-      <div className="account-grid">
+    <OsShell
+      title="Billing"
+      subtitle="Plans, payouts, and customer payment controls."
+    >
+      <div className="billing-settings">
         <ShellPanel title="Current plan" dense>
           {loading ? (
             <ShellLoading />
@@ -122,15 +125,9 @@ export default function DashboardBillingPage() {
               <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
                 {statusCopy(status, entitled, pilotEndsAt)}
               </p>
-              {pilotEndsAt && status === "pilot" && entitled ? (
-                <p className="mt-2 font-sans text-xs text-ash">
-                  Pilot ends {new Date(pilotEndsAt).toLocaleString()}
-                </p>
-              ) : null}
               {account?.business ? (
                 <p className="mt-2 font-sans text-xs text-ash">
                   Billed to {account.business.name}
-                  {email ? ` · ${email}` : ""}
                 </p>
               ) : null}
               {(status === "active" || status === "past_due") && hasStripeCustomer ? (
@@ -142,7 +139,7 @@ export default function DashboardBillingPage() {
           )}
         </ShellPanel>
 
-        <ShellPanel title={needsPay && !loading ? "Subscribe" : "Subscribe"} dense>
+        <ShellPanel title="Subscription" dense>
           {loading ? (
             <ShellLoading />
           ) : status === "active" ? (
@@ -200,9 +197,8 @@ export default function DashboardBillingPage() {
                 whoever owns the Stripe account.
               */}
               <p className="font-sans text-sm leading-relaxed text-ash">
-                Card payment isn&apos;t open yet, so there is nothing to pay today. Your
-                line keeps answering on design partner access, and we will write to you
-                before that changes.
+                No payment is due today. Your design-partner access remains
+                active, and we will notify you before billing begins.
               </p>
               {founder ? (
                 <div className="billing-unblock billing-unblock--instrument mt-4 font-sans">
@@ -241,29 +237,32 @@ export default function DashboardBillingPage() {
             </>
           )}
         </ShellPanel>
-      </div>
 
-      <div className="mt-3">
-        <ConnectPayoutsPanel />
-      </div>
+      <ConnectPayoutsPanel />
 
-      <div className="mt-3">
-        <ShellPanel title="Legal" dense>
-          <ul className="account-legal-links font-sans">
-            <li>
-              <Link href="/terms">Terms of Service</Link>
-            </li>
-            <li>
-              <Link href="/refunds">Refunds & cancellation</Link>
-            </li>
-            <li>
-              <Link href="/privacy">Privacy Policy</Link>
-            </li>
-            <li>
-              <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
-            </li>
-          </ul>
-        </ShellPanel>
+      {/*
+        Deposits sit under payouts because they are the same decision in two
+        steps: connect an account, then say what to ask for. Splitting them
+        across two screens is how an owner ends up with one half done.
+      */}
+      <DepositSettingsPanel />
+
+      <ShellPanel title="Legal" dense>
+        <ul className="account-legal-links font-sans">
+          <li>
+            <Link href="/terms">Terms of Service</Link>
+          </li>
+          <li>
+            <Link href="/refunds">Refunds & cancellation</Link>
+          </li>
+          <li>
+            <Link href="/privacy">Privacy Policy</Link>
+          </li>
+          <li>
+            <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
+          </li>
+        </ul>
+      </ShellPanel>
       </div>
     </OsShell>
   );

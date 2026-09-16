@@ -7,6 +7,7 @@ import { SignInPanel } from "@/components/signin-panel";
 import { SystemStatusPill } from "@/components/system-status-pill";
 import { company } from "@/lib/company";
 import { getDevAuthEmail, isDevAuthBypassEnabled } from "@/lib/dev-auth";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -38,6 +39,7 @@ export default async function SignInPage({
   const error = params.error ? (ERRORS[params.error] ?? ERRORS.CredentialsSignin) : null;
   const showDevChrome =
     isDevAuthBypassEnabled() && (params.dev === "1" || params.dev === "true");
+  const selfServeEnabled = getPublicLaunchReadiness().ready;
 
   return (
     <main className="ov-signin">
@@ -79,7 +81,10 @@ export default async function SignInPage({
             </p>
           ) : null}
 
-          <SignInPanel callbackUrl={callbackUrl} />
+          <SignInPanel
+            callbackUrl={callbackUrl}
+            selfServeEnabled={selfServeEnabled}
+          />
 
           {showDevChrome ? (
             <details className="ov-signin-dev" open>

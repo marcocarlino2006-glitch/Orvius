@@ -4,6 +4,7 @@ import { BookJobForm } from "@/components/book-job-form";
 import { AssignTechButton } from "@/components/assign-tech-button";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
+import { LeadQualificationForm } from "@/components/lead-qualification-form";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
@@ -14,7 +15,7 @@ import {
 } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type LeadDetail = {
   id: string;
@@ -60,24 +61,38 @@ export default function LeadDetailPage() {
   const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [manualBookingAvailable, setManualBookingAvailable] = useState(false);
+  const [showBookedLeadRepair, setShowBookedLeadRepair] = useState(false);
 
-  useEffect(() => {
+  const loadLead = useCallback(async () => {
     if (!leadId) return;
 
-    Promise.all([
-      fetch(`/api/leads/${leadId}`).then(async (res) => {
+    try {
+      const [data, techData] = await Promise.all([
+        fetch(`/api/leads/${leadId}`).then(async (res) => {
         if (!res.ok) throw new Error("Lead not found");
         return res.json();
       }),
-      fetch("/api/technicians").then((res) => res.json()),
-    ])
-      .then(([data, techData]) => {
-        setLead(data.lead);
-        setCrew((techData.technicians ?? []).map((t: Tech) => ({ id: t.id, name: t.name })));
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+        fetch("/api/technicians").then((res) => res.json()),
+      ]);
+      setLead(data.lead);
+      setCrew(
+        (techData.technicians ?? []).map((t: Tech) => ({
+          id: t.id,
+          name: t.name,
+        })),
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lead not found");
+    } finally {
+      setLoading(false);
+    }
   }, [leadId]);
+
+  useEffect(() => {
+    void loadLead();
+  }, [loadLead]);
 
   if (loading) {
     return (
@@ -102,7 +117,19 @@ export default function LeadDetailPage() {
     lead.source === "sms"
       ? "SMS inquiry"
       : `Inbound call · ${lead.business?.name ?? "Orvius"}`;
-
+  const updateDraft = (values: {
+    name: string;
+    phone: string;
+    serviceType: string;
+    urgency: string;
+    address: string;
+    notes: string;
+  }) =>
+    setLead((current) => (current ? { ...current, ...values } : current));
+  const finishRepair = (booked: boolean) => {
+    setManualBookingAvailable(!booked);
+    void loadLead();
+  };
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
@@ -132,28 +159,21 @@ export default function LeadDetailPage() {
 
       <div className="os-detail-grid">
         <div className="os-detail-primary">
-          <OwnerAlertCard
-            variant="void"
-            lead={{
-              name: lead.name ?? undefined,
-              phone: lead.phone ?? undefined,
-              service: lead.serviceType ?? undefined,
-              urgency: formatUrgency(lead.urgency),
-              address: lead.address ?? undefined,
-              channel,
-            }}
-          />
-
-          {lead.call?.transcript ? (
-            <TranscriptCinema
-              transcript={lead.call.transcript}
-              variant="void"
-              className="mt-3"
-            />
+          {!lead.job ? (
+            <ShellPanel title="Complete lead" dense>
+              <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
+                Correct anything the call missed. Saving retries qualification
+                and books automatically when the lead is ready.
+              </p>
+              <LeadQualificationForm
+                leadId={lead.id}
+                lead={lead}
+                onDraftChange={updateDraft}
+                onSaved={finishRepair}
+              />
+            </ShellPanel>
           ) : null}
-        </div>
 
-        <div className="os-detail-side">
           {lead.job ? (
             <ShellPanel title="Job on dispatch" dense>
               <p className="font-sans text-sm text-ash">
@@ -168,7 +188,7 @@ export default function LeadDetailPage() {
                   <AssignTechButton
                     jobId={lead.job.id}
                     technicians={crew}
-                    onAssigned={() => window.location.reload()}
+                    onAssigned={() => void loadLead()}
                   />
                 </div>
               ) : null}
@@ -179,14 +199,72 @@ export default function LeadDetailPage() {
                 Open job →
               </Link>
             </ShellPanel>
-          ) : (
+          ) : null}
+
+          <OwnerAlertCard
+            variant="void"
+            lead={{
+              name: lead.name ?? undefined,
+              phone: lead.phone ?? undefined,
+              service: lead.serviceType ?? undefined,
+              urgency: formatUrgency(lead.urgency),
+              address: lead.address ?? undefined,
+              channel,
+            }}
+          />
+
+          {lead.job ? (
+            <ShellPanel title="Captured details" dense>
+              <p className="font-sans text-sm leading-relaxed text-ash">
+                Fix anything the call missed. Saving also retries an unsent
+                booking deposit when payments are enabled.
+              </p>
+              <button
+                type="button"
+                className="btn btn-secondary mt-4 text-sm"
+                aria-expanded={showBookedLeadRepair}
+                onClick={() => setShowBookedLeadRepair((open) => !open)}
+              >
+                {showBookedLeadRepair ? "Close details" : "Correct call details"}
+              </button>
+              {showBookedLeadRepair ? (
+                <div className="mt-4">
+                  <LeadQualificationForm
+                    leadId={lead.id}
+                    lead={lead}
+                    onDraftChange={updateDraft}
+                    onSaved={finishRepair}
+                  />
+                </div>
+              ) : null}
+            </ShellPanel>
+          ) : null}
+
+          {lead.call?.transcript ? (
+            <TranscriptCinema
+              transcript={lead.call.transcript}
+              variant="void"
+              className="mt-3"
+            />
+          ) : null}
+        </div>
+
+        <div className="os-detail-side">
+          {!lead.job && !manualBookingAvailable ? (
+            <ShellPanel title="Automation" dense>
+              <p className="font-sans text-sm leading-relaxed text-ash">
+                Complete the missing call details. Orvius will qualify the lead
+                and choose the next available appointment automatically.
+              </p>
+            </ShellPanel>
+          ) : !lead.job ? (
             <ShellPanel title="Book this lead" dense>
               <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
                 Schedule this lead on your calendar and assign crew on dispatch.
               </p>
               <BookJobForm leadId={lead.id} urgency={lead.urgency} />
             </ShellPanel>
-          )}
+          ) : null}
 
           {lead.customer ? (
             <ShellPanel title="Customer" dense>

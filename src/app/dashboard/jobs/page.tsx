@@ -79,12 +79,13 @@ export default function JobsPage() {
         if (!res.ok) throw new Error("Failed to load jobs");
         return res.json();
       }),
-      fetch("/api/leads").then(async (res) => (res.ok ? res.json() : { leads: [] })),
+      fetch("/api/leads?limit=1").then(async (res) =>
+        res.ok ? res.json() : { counts: { new: 0 } },
+      ),
     ])
       .then(([jobData, leadData]) => {
         setJobs(jobData.jobs ?? []);
-        const leads = (leadData.leads ?? []) as Array<{ status: string }>;
-        setNewLeadCount(leads.filter((l) => l.status === "new").length);
+        setNewLeadCount(leadData.counts?.new ?? 0);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));

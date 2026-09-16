@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCents } from "@/lib/money";
+import { formatCents, formatCentsExact } from "@/lib/money";
 import { useState } from "react";
 
 type EstimateState = {
@@ -16,10 +16,27 @@ type EstimateState = {
   } | null;
 } | null;
 
+type DepositState = {
+  id: string;
+  amountCents: number;
+  status: string;
+  payUrl: string | null;
+  sentAt: string | null;
+  paidAt: string | null;
+} | null;
+
+type DepositReadiness =
+  | { ready: true; amountCents: number }
+  | { ready: false; reason: "connect_incomplete" | "deposits_off" };
+
 type JobMoneyPanelProps = {
   jobId: string;
   avgTicketCents: number | null;
   estimate: EstimateState;
+  leadId: string | null;
+  customerPhone: string | null;
+  deposit: DepositState;
+  depositReadiness: DepositReadiness | null;
   onRefresh: () => void;
 };
 
@@ -27,15 +44,68 @@ export function JobMoneyPanel({
   jobId,
   avgTicketCents,
   estimate,
+  leadId,
+  customerPhone,
+  deposit,
+  depositReadiness,
   onRefresh,
 }: JobMoneyPanelProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [depositBusy, setDepositBusy] = useState(false);
+  const [depositCopied, setDepositCopied] = useState(false);
+  const [depositNote, setDepositNote] = useState<string | null>(null);
   const [amountDollars, setAmountDollars] = useState(
     avgTicketCents ? String(Math.round(avgTicketCents / 100)) : "",
   );
+
+  async function requestDeposit() {
+    if (!leadId) return;
+    setDepositBusy(true);
+    setError(null);
+    setDepositNote(null);
+    try {
+      const res = await fetch("/api/deposits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId, send: Boolean(customerPhone) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not request deposit");
+      /*
+        Whether the text actually left is the shop's problem to know about —
+        reporting "texted" on a carrier rejection is how an owner ends up
+        waiting on a deposit the customer was never asked for.
+      */
+      if (!customerPhone) {
+        setDepositNote("Link created. Read it to the customer or copy it below.");
+      } else if (data.sms?.sent) {
+        setDepositNote("Deposit link texted to the customer.");
+      } else {
+        setDepositNote(
+          "Link created, but the text did not send. Copy it below and pass it on.",
+        );
+      }
+      onRefresh();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not request deposit",
+      );
+    } finally {
+      setDepositBusy(false);
+    }
+  }
+
+  async function copyDepositLink(url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      setDepositCopied(true);
+    } catch {
+      setError("Could not copy — select the link manually");
+    }
+  }
 
   async function createEstimate() {
     setBusy(true);
@@ -136,14 +206,106 @@ export function JobMoneyPanel({
 
   return (
     <div className="job-money font-sans">
-      {error ? <p className="job-money-error">{error}</p> : null}
+      {error ? (
+        <p className="os-own-color job-money-error">{error}</p>
+      ) : null}
+
+      {/*
+        Booking deposit first, because chronologically it is first: it is asked
+        for when the appointment is made, while the estimate below belongs to
+        the visit itself.
+      */}
+      <div className="job-money-share">
+        <p className="job-money-share-label">Booking deposit</p>
+
+        {deposit ? (
+          <>
+            <p className="job-money-lead">
+              {deposit.status === "paid"
+                ? `${formatCentsExact(deposit.amountCents)} paid${
+                    deposit.paidAt
+                      ? ` on ${new Date(deposit.paidAt).toLocaleDateString()}`
+                      : ""
+                  }.`
+                : `${formatCentsExact(deposit.amountCents)} requested${
+                    deposit.sentAt ? " and texted" : ""
+                  } — not paid yet.`}
+            </p>
+            {deposit.status !== "paid" && deposit.payUrl ? (
+              <>
+                <code className="job-money-share-url">{deposit.payUrl}</code>
+                <button
+                  type="button"
+                  className="btn btn-secondary text-sm"
+                  disabled={depositBusy}
+                  onClick={() => void copyDepositLink(deposit.payUrl!)}
+                >
+                  {depositCopied ? "Copied" : "Copy deposit link"}
+                </button>
+              </>
+            ) : null}
+          </>
+        ) : !depositReadiness ? (
+          <p className="job-money-lead">Checking deposit settings…</p>
+        ) : depositReadiness.ready && leadId ? (
+          <>
+            <p className="job-money-lead">
+              {customerPhone
+                ? `Text this customer a link to pay ${formatCentsExact(depositReadiness.amountCents)} and hold the slot.`
+                : `Create a link for ${formatCentsExact(depositReadiness.amountCents)} to hold the slot. No phone on file, so it will not send itself.`}
+            </p>
+            <button
+              type="button"
+              className="btn btn-void text-sm"
+              disabled={depositBusy}
+              onClick={() => void requestDeposit()}
+            >
+              {depositBusy
+                ? "Requesting…"
+                : customerPhone
+                  ? `Text ${formatCentsExact(depositReadiness.amountCents)} deposit link`
+                  : `Create ${formatCentsExact(depositReadiness.amountCents)} deposit link`}
+            </button>
+          </>
+        ) : (
+          /*
+            Two different unmet conditions, and the owner can only fix one of
+            them per trip to Billing, so each says which one it is.
+          */
+          <p className="job-money-lead">
+            {!depositReadiness.ready &&
+            depositReadiness.reason === "connect_incomplete"
+              ? "Connect a payout account on Billing to take deposits by card."
+              : !depositReadiness.ready
+                ? "Booking deposits are off. Turn them on under Billing to ask for one."
+                : "Deposits attach to the call this job came from."}
+          </p>
+        )}
+
+        {/*
+          Held back until the deposit itself is on screen. Every wording of
+          this note points at the link ("copy it below"), and the refresh that
+          brings the link lands a beat after the request resolves — so shown
+          eagerly it spends that beat pointing at nothing.
+        */}
+        {depositNote && deposit ? (
+          <p className="job-money-lead">{depositNote}</p>
+        ) : null}
+      </div>
 
       {!estimate ? (
         <>
+          {/*
+            This used to say card payments settle on Orvius "until Connect".
+            Connect shipped: estimate checkout is a direct charge on the shop's
+            own account, so the money never touches ours. Telling an owner
+            otherwise is the fastest way to lose them.
+          */}
           <p className="job-money-lead">
-            Draft an estimate, send a customer link to accept, then record payment
-            manually. Public card checkout (if Stripe keys are live) settles on
-            Orvius until Connect — not the shop bank.
+            Draft an estimate, send a customer link to accept, then record
+            payment manually. If the customer pays by card, the funds settle to
+            your bank on Stripe&rsquo;s payout schedule — Orvius only takes its
+            fee and never holds your money.
           </p>
           <label className="mt-4 block">
             <span className="label">Amount ($)</span>

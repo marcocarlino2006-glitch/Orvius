@@ -25,6 +25,8 @@ import {
   getNotificationRetryAt,
   processNotificationQueue,
 } from "../src/lib/notification-queue.ts";
+import { getAlertMetrics } from "../src/lib/alert-metrics.ts";
+import { getShopHealth } from "../src/lib/shop-health.ts";
 
 const prisma = new PrismaClient();
 
@@ -124,6 +126,40 @@ test("the same call cannot alert the owner twice", async () => {
   }
 });
 
+test("a shop with no reachable owner creates a visible failed alert", async () => {
+  const shop = await makeShop({ ownerPhone: null, ownerEmail: null });
+  try {
+    const key = `no-channel:${shop.id}`;
+    const first = await enqueueOwnerAlert({
+      businessId: shop.id,
+      dedupeKey: key,
+      businessName: shop.name,
+      message: "Emergency call captured",
+    });
+    const second = await enqueueOwnerAlert({
+      businessId: shop.id,
+      dedupeKey: key,
+      businessName: shop.name,
+      message: "Emergency call captured",
+    });
+
+    assert.deepEqual(first, { queued: [], duplicate: false });
+    assert.deepEqual(second, { queued: [], duplicate: true });
+
+    const rows = await prisma.ownerNotification.findMany({
+      where: { businessId: shop.id },
+    });
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].status, "failed");
+    assert.match(rows[0].error, /No owner alert channel/);
+
+    const health = await getShopHealth(shop.id);
+    assert.equal(health.failedAlerts24h, 1);
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
 test("an owner who replied STOP still gets the email", async () => {
   const shop = await makeShop({ ownerSmsOptOutAt: new Date() });
   try {
@@ -140,6 +176,84 @@ test("an owner who replied STOP still gets the email", async () => {
     const rows = await prisma.ownerNotification.findMany({ where: { businessId: shop.id } });
     assert.equal(rows.length, 1);
     assert.equal(rows[0].channel, "email");
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
+test("an unavailable alert channel fails visibly instead of going quiet", async () => {
+  const shop = await makeShop({ ownerEmail: null });
+  try {
+    await withEnv(
+      {
+        ENABLE_OWNER_SMS: undefined,
+        TWILIO_PHONE_NUMBER: undefined,
+        RESEND_API_KEY: undefined,
+      },
+      async () => {
+        await enqueueOwnerAlert({
+          businessId: shop.id,
+          dedupeKey: `unavailable:${shop.id}`,
+          businessName: shop.name,
+          message: "No cooling after hours",
+          ownerPhone: shop.ownerPhone,
+        });
+
+        const result = await drainAll();
+        assert.equal(result.failed, 1);
+      },
+    );
+
+    const row = await prisma.ownerNotification.findFirst({
+      where: { businessId: shop.id },
+    });
+    assert.equal(row.status, "failed");
+    assert.equal(row.attempts, MAX_ATTEMPTS);
+    assert.equal(row.nextRetryAt, null);
+    assert.ok(row.processedAt);
+
+    const health = await getShopHealth(shop.id);
+    assert.equal(
+      health.failedAlerts24h,
+      1,
+      "Command health must expose an owner alert that could not be attempted",
+    );
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
+test("unavailable SMS immediately creates one email failover", async () => {
+  const shop = await makeShop();
+  try {
+    await withEnv(
+      {
+        ENABLE_OWNER_SMS: undefined,
+        TWILIO_PHONE_NUMBER: undefined,
+        RESEND_API_KEY: "test-key",
+      },
+      async () => {
+        const key = `unavailable-failover:${shop.id}`;
+        await enqueueOwnerAlert({
+          businessId: shop.id,
+          dedupeKey: key,
+          businessName: shop.name,
+          message: "Burst pipe",
+          ownerPhone: shop.ownerPhone,
+        });
+        await drainAll();
+
+        const failovers = await prisma.ownerNotification.findMany({
+          where: {
+            businessId: shop.id,
+            channel: "email",
+            dedupeKey: `${key}:sms-failover`,
+          },
+        });
+        assert.equal(failovers.length, 1);
+        assert.equal(failovers[0].status, "pending");
+      },
+    );
   } finally {
     await dropShop(shop.id);
   }
@@ -326,7 +440,7 @@ test("SMS that exhausts its attempts fails over to email rather than going quiet
   still read the row as delivered, the failover never fired, and the shop's
   failed-alert count stayed at zero while the owner heard nothing at all.
 */
-async function sentSms(shop, tag) {
+async function sentSms(shop, tag, leadId = null) {
   const deliveryId = `SM${tag}${Date.now()}${Math.random().toString(16).slice(2, 6)}`;
   const row = await prisma.ownerNotification.create({
     data: {
@@ -341,6 +455,7 @@ async function sentSms(shop, tag) {
       deliveryId,
       deliveryStatus: "sent",
       processedAt: new Date(),
+      leadId,
     },
   });
   return { row, deliveryId };
@@ -369,7 +484,28 @@ test("a carrier rejection puts the alert back on the retry ladder", async () => 
 test("a delivered receipt leaves the alert alone", async () => {
   const shop = await makeShop();
   try {
-    const { row, deliveryId } = await sentSms(shop, "delivered");
+    const call = await prisma.call.create({
+      data: {
+        businessId: shop.id,
+        vapiCallId: `delivered-${shop.id}`,
+        status: "completed",
+      },
+    });
+    const lead = await prisma.lead.create({
+      data: {
+        businessId: shop.id,
+        callId: call.id,
+        serviceType: "No heat",
+        source: "call",
+      },
+    });
+    const { row, deliveryId } = await sentSms(shop, "delivered", lead.id);
+
+    assert.equal(
+      (await prisma.call.findUnique({ where: { id: call.id } })).ownerNotifiedAt,
+      null,
+      "carrier acceptance alone is not delivery",
+    );
 
     const result = await applySmsDeliveryReceipt({
       messageSid: deliveryId,
@@ -380,6 +516,34 @@ test("a delivered receipt leaves the alert alone", async () => {
     const after = await prisma.ownerNotification.findUnique({ where: { id: row.id } });
     assert.equal(after.status, "sent");
     assert.equal(after.attempts, 1, "success does not spend a rung");
+    assert.ok(
+      (await prisma.call.findUnique({ where: { id: call.id } })).ownerNotifiedAt,
+      "the call is marked notified only after the delivered receipt",
+    );
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
+test("expired sending leases are visible as stuck before recovery", async () => {
+  const shop = await makeShop();
+  try {
+    await prisma.ownerNotification.create({
+      data: {
+        businessId: shop.id,
+        businessName: shop.name,
+        channel: "email",
+        dedupeKey: `stuck-sending:${shop.id}`,
+        message: "No heat",
+        ownerEmail: shop.ownerEmail,
+        status: "sending",
+        nextRetryAt: new Date(Date.now() - 1000),
+      },
+    });
+
+    const metrics = await getAlertMetrics(shop.id);
+    assert.equal(metrics.pendingAlerts, 1);
+    assert.equal(metrics.stuckPendingAlerts, 1);
   } finally {
     await dropShop(shop.id);
   }
