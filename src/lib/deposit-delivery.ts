@@ -36,7 +36,7 @@ export async function applyDepositDeliveryReceipt(params: {
         eventType: EVENT_TYPE,
       },
     },
-    select: { payloadJson: true },
+    select: { payloadJson: true, status: true },
   });
 
   if (!delivery) return { matched: false, reopened: false };
@@ -45,6 +45,9 @@ export async function applyDepositDeliveryReceipt(params: {
   const status = params.messageStatus.toLowerCase();
   const failed = FAILED_STATUSES.has(status);
   const delivered = DELIVERED_STATUSES.has(status);
+  if (failed && delivery.status === "processed") {
+    return { matched: true, reopened: false };
+  }
   const error = params.errorCode
     ? `Twilio error ${params.errorCode}`
     : failed
@@ -65,6 +68,12 @@ export async function applyDepositDeliveryReceipt(params: {
   });
 
   if (!failed || !depositId) {
+    if (delivered && depositId) {
+      await prisma.deposit.updateMany({
+        where: { id: depositId, status: "pending" },
+        data: { sentAt: new Date() },
+      });
+    }
     return { matched: true, reopened: false };
   }
 
