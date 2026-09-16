@@ -4,9 +4,8 @@ import test from "node:test";
 
 process.env.STRIPE_PRICE_ID_PRO = "price_activation_pro";
 
-const { resolvePaidCheckoutActivation } = await import(
-  "../src/lib/billing-sync.ts"
-);
+const { resolvePaidCheckoutActivation } =
+  await import("../src/lib/billing-sync.ts");
 
 function subscription(status = "active") {
   return {
@@ -154,4 +153,16 @@ test("a rejected deposit delivery has an executable recovery action", () => {
   assert.match(moneyPanel, /Copy deposit link/);
   assert.match(deposits, /createDepositForLead/);
   assert.match(deposits, /sendDepositLink/);
+  /*
+    Retrying an existing request must not re-derive the amount from current
+    settings: a shop that changed or switched off its default would otherwise
+    be unable to resend a link the customer was already quoted.
+  */
+  assert.match(deposits, /active\?\.amountCents/);
+  /* A retry that reused an existing request must not claim it created one. */
+  assert.match(
+    moneyPanel,
+    /data\.created \? "Link created" : "Same link kept"/,
+  );
+  assert.doesNotMatch(moneyPanel, /copy it below/);
 });
