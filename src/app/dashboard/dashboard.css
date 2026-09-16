@@ -735,6 +735,53 @@ a.pro-shift-event:hover .pro-shift-event-title {
   }
 }
 
+.lead-qualification-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.lead-qualification-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.lead-qualification-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #aaa8a3;
+  font-size: 0.75rem;
+}
+
+.lead-qualification-form .input {
+  width: 100%;
+}
+
+.lead-qualification-form textarea {
+  resize: vertical;
+}
+
+.lead-qualification-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.lead-qualification-actions p {
+  margin: 0;
+  color: #aaa8a3 !important;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .lead-qualification-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ── Settings: the same quiet instrument used by Billing ── */
 .pro-settings-page {
   width: 100%;

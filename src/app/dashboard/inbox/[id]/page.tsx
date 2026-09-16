@@ -4,6 +4,7 @@ import { BookJobForm } from "@/components/book-job-form";
 import { AssignTechButton } from "@/components/assign-tech-button";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
+import { LeadQualificationForm } from "@/components/lead-qualification-form";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
@@ -132,6 +133,26 @@ export default function LeadDetailPage() {
 
       <div className="os-detail-grid">
         <div className="os-detail-primary">
+          {!lead.job ? (
+            <ShellPanel title="Complete lead" dense>
+              <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
+                Correct anything the call missed. Saving retries qualification
+                and books automatically when the lead is ready.
+              </p>
+              <LeadQualificationForm
+                leadId={lead.id}
+                lead={lead}
+                onSaved={(values, booked) => {
+                  if (booked) {
+                    window.location.reload();
+                    return;
+                  }
+                  setLead({ ...lead, ...values });
+                }}
+              />
+            </ShellPanel>
+          ) : null}
+
           <OwnerAlertCard
             variant="void"
             lead={{
