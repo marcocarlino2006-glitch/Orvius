@@ -186,7 +186,43 @@ export async function enqueueOwnerAlert(params: {
     if (created) queued.push("email");
   }
 
-  return { queued, duplicate: queued.length === 0 };
+  if (queued.length > 0) return { queued, duplicate: false };
+
+  const existing = await prisma.ownerNotification.findFirst({
+    where: {
+      businessId: params.businessId,
+      dedupeKey: params.dedupeKey,
+    },
+    select: { id: true },
+  });
+  if (existing) return { queued, duplicate: true };
+
+  try {
+    await prisma.ownerNotification.create({
+      data: {
+        businessId: params.businessId,
+        leadId: params.leadId ?? null,
+        channel: "email",
+        dedupeKey: params.dedupeKey,
+        status: "failed",
+        businessName: params.businessName,
+        message: params.message,
+        error: "No owner alert channel configured",
+        attempts: MAX_ATTEMPTS,
+        processedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) return { queued, duplicate: true };
+    throw error;
+  }
+
+  logError("notification.no_owner_channel", {
+    businessId: params.businessId,
+    leadId: params.leadId ?? null,
+    dedupeKey: params.dedupeKey,
+  });
+  return { queued, duplicate: false };
 }
 
 async function deliverQueuedRow(row: {
@@ -216,16 +252,13 @@ async function deliverQueuedRow(row: {
       !row.ownerPhone ||
       !process.env.TWILIO_PHONE_NUMBER
     ) {
-      await prisma.ownerNotification.update({
-        where: { id: row.id },
-        data: {
-          status: "skipped",
-          error: "SMS not enabled or owner phone missing",
-          processedAt: new Date(),
-        },
-      });
+      await markDeliveryFailure(
+        row,
+        "SMS not enabled or owner phone missing",
+        { exhaust: true },
+      );
       return {
-        status: "skipped",
+        status: "failed",
         error: "SMS not enabled or owner phone missing",
       };
     }
@@ -235,15 +268,8 @@ async function deliverQueuedRow(row: {
       select: { ownerSmsOptOutAt: true },
     });
     if (shop?.ownerSmsOptOutAt) {
-      await prisma.ownerNotification.update({
-        where: { id: row.id },
-        data: {
-          status: "skipped",
-          error: "Owner SMS opted out",
-          processedAt: new Date(),
-        },
-      });
-      return { status: "skipped", error: "Owner SMS opted out" };
+      await markDeliveryFailure(row, "Owner SMS opted out", { exhaust: true });
+      return { status: "failed", error: "Owner SMS opted out" };
     }
 
     const client = getTwilioClient();
@@ -279,15 +305,10 @@ async function deliverQueuedRow(row: {
 
   if (row.channel === "email") {
     if (!row.ownerEmail || !isEmailConfigured()) {
-      await prisma.ownerNotification.update({
-        where: { id: row.id },
-        data: {
-          status: "skipped",
-          error: "Email not configured",
-          processedAt: new Date(),
-        },
+      await markDeliveryFailure(row, "Email not configured", {
+        exhaust: true,
       });
-      return { status: "skipped", error: "Email not configured" };
+      return { status: "failed", error: "Email not configured" };
     }
 
     const id = await sendOwnerEmail({
@@ -319,15 +340,10 @@ async function deliverQueuedRow(row: {
     return { status: "sent", id };
   }
 
-  await prisma.ownerNotification.update({
-    where: { id: row.id },
-    data: {
-      status: "skipped",
-      error: `Unknown channel: ${row.channel}`,
-      processedAt: new Date(),
-    },
+  await markDeliveryFailure(row, `Unknown channel: ${row.channel}`, {
+    exhaust: true,
   });
-  return { status: "skipped", error: `Unknown channel: ${row.channel}` };
+  return { status: "failed", error: `Unknown channel: ${row.channel}` };
 }
 
 async function escalateSmsFailureToEmail(row: {
@@ -361,9 +377,10 @@ async function escalateSmsFailureToEmail(row: {
   const alreadyEmailed = await prisma.ownerNotification.findFirst({
     where: {
       businessId: row.businessId,
-      dedupeKey: row.dedupeKey,
       channel: "email",
-      status: "sent",
+      dedupeKey: {
+        in: [row.dedupeKey, `${row.dedupeKey}:sms-failover`],
+      },
     },
     select: { id: true },
   });
@@ -583,6 +600,7 @@ export async function processNotificationQueue(limit = 20) {
     try {
       const result = await deliverQueuedRow(row);
       if (result.status === "sent") sent += 1;
+      else if (result.status === "failed") failed += 1;
       else if (result.status === "skipped") skipped += 1;
     } catch (error) {
       failed += 1;
