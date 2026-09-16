@@ -199,6 +199,29 @@ test("a carrier-rejected deposit text reopens delivery and alerts the owner", as
   });
   assert.equal(reopened.sentAt, null);
 
+  const delivered = await applyDepositDeliveryReceipt({
+    messageSid,
+    messageStatus: "delivered",
+  });
+  assert.deepEqual(delivered, { matched: true, reopened: false });
+  const deliveredDeposit = await prisma.deposit.findUniqueOrThrow({
+    where: { id: deposit.id },
+  });
+  assert.ok(deliveredDeposit.sentAt);
+
+  await applyDepositDeliveryReceipt({
+    messageSid,
+    messageStatus: "undelivered",
+    errorCode: "30005",
+  });
+  const afterLateFailure = await prisma.deposit.findUniqueOrThrow({
+    where: { id: deposit.id },
+  });
+  assert.ok(
+    afterLateFailure.sentAt,
+    "positive delivery proof must be monotonic",
+  );
+
   const attention = readFileSync(
     new URL("../src/lib/attention-queue.ts", import.meta.url),
     "utf8",
