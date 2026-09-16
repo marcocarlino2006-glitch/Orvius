@@ -137,6 +137,16 @@ export function OsSidebarFooter() {
     setOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!open) return;
+    const frame = requestAnimationFrame(() => {
+      rootRef.current
+        ?.querySelector<HTMLElement>('[role="menuitem"]')
+        ?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
+
   if (!session?.user) return null;
 
   const name = session.user.name ?? "User";
@@ -173,6 +183,7 @@ export function OsSidebarFooter() {
                 href={item.href}
                 role="menuitem"
                 className="os-profile-menu-link"
+                aria-current={pathname === item.href ? "page" : undefined}
                 onClick={() => setOpen(false)}
               >
                 <OsIcon name={item.icon} />

@@ -67,8 +67,17 @@ test("the corner account menu is a complete keyboard-accessible control", () => 
   assert.match(menu, /event\.key === "ArrowDown"/);
   assert.match(menu, /event\.key === "ArrowUp"/);
   assert.match(menu, /event\.key === "Escape"/);
+  assert.match(menu, /requestAnimationFrame/);
   assert.match(menu, /role="menuitem"/);
   assert.match(css, /width: min\(17\.5rem, calc\(100vw - 1rem\)\)/);
   assert.match(css, /@keyframes os-account-menu-in/);
   assert.match(css, /\.os-profile-menu-link:focus-visible/);
+});
+
+test("Inbox distinguishes a contact from a booked customer", () => {
+  const card = read("src/components/lead-inbox-card.tsx");
+  const detail = read("src/app/dashboard/inbox/[id]/page.tsx");
+
+  assert.match(card, /booked \? "Customer record" : "Contact history"/);
+  assert.match(detail, /lead\.job \? "Customer" : "Contact"/);
 });
