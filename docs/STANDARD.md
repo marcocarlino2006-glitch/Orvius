@@ -2,7 +2,8 @@
 
 We are building toward institutional quality — not claiming we are there yet. This doc tracks what we actually hold ourselves to today.
 
-**Ceiling:** `docs/BEYOND-BAR.md` — multi-billion operator discipline plus the Orvius monopoly moves. Run `npm run beyond:check` before claiming craft.
+**Ceiling:** `docs/BEYOND-BAR.md` — multi-billion operator discipline plus the Orvius monopoly moves. Run `npm run beyond:check` before claiming craft.  
+**Strict checklist (no corners):** `docs/MULTI-B-STRICT.md` — every item required; unchecked means not multi-b yet.
 
 ## Principles
 

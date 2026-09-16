@@ -2,7 +2,8 @@
 
 Rule: if it is below standard, it is listed. No vanity green.
 
-**Ceiling:** `docs/BEYOND-BAR.md` + `npm run beyond:check` — multi-b floor plus monopoly laws.
+**Ceiling:** `docs/BEYOND-BAR.md` + `npm run beyond:check` — multi-b floor plus monopoly laws.  
+**Strict no-corners list:** `docs/MULTI-B-STRICT.md`
 
 Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 

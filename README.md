@@ -21,7 +21,7 @@ npm run multi-b:check
 npm run beyond:check
 ```
 
-See `docs/WEDGE-MASTERY.md`, `docs/PERFECT-STANDARDS.md`, and `docs/BEYOND-BAR.md`.
+See `docs/WEDGE-MASTERY.md`, `docs/PERFECT-STANDARDS.md`, `docs/BEYOND-BAR.md`, and `docs/MULTI-B-STRICT.md`.
 
 ## Stack
 

@@ -42,6 +42,21 @@ if (fileOk("docs/BEYOND-BAR.md") && fileOk("src/lib/beyond-bar.ts")) {
   fail("Beyond doctrine", "beyond-bar doc or module missing");
 }
 
+if (fileOk("docs/MULTI-B-STRICT.md")) {
+  const strict = read("docs/MULTI-B-STRICT.md");
+  if (
+    /no corners/i.test(strict) &&
+    /Definition of multi-b standard/i.test(strict) &&
+    /Ordered close sequence/i.test(strict)
+  ) {
+    pass("Strict checklist", "docs/MULTI-B-STRICT.md — full no-corners list present");
+  } else {
+    fail("Strict checklist", "MULTI-B-STRICT.md missing required sections");
+  }
+} else {
+  fail("Strict checklist", "docs/MULTI-B-STRICT.md missing");
+}
+
 try {
   const bar = read("src/lib/beyond-bar.ts");
   const hasLaws = /beyondLaws/.test(bar) && /L10/.test(bar);
