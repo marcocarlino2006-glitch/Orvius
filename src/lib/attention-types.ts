@@ -5,6 +5,7 @@ export type AttentionKind =
   | "needs_booking"
   | "needs_customer_confirm"
   | "alert_failed"
+  | "deposit_delivery_failed"
   | "overdue_followup"
   | "unassigned_job"
   | "appointment_at_risk"
@@ -75,6 +76,8 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Confirm";
     case "alert_failed":
       return "Alert failed";
+    case "deposit_delivery_failed":
+      return "Deposit failed";
     case "overdue_followup":
       return "Follow up";
     case "unassigned_job":
@@ -172,6 +175,7 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
       return "advance_status";
     case "not_a_job":
       return "dismiss";
+    case "deposit_delivery_failed":
     case "concurrent_calls":
     case "available_tech":
     case "needs_capture":
@@ -192,6 +196,7 @@ export const ATTENTION_KINDS: AttentionKind[] = [
   "needs_booking",
   "needs_customer_confirm",
   "alert_failed",
+  "deposit_delivery_failed",
   "overdue_followup",
   "unassigned_job",
   "appointment_at_risk",

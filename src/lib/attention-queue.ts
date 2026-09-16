@@ -62,6 +62,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "customer_no_show",
   "tech_no_show",
   "deposit_failed",
+  "deposit_delivery_failed",
   "estimate_failed",
   "alerts_muted",
   "money_path_broken",
@@ -111,6 +112,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 9;
     case "deposit_failed":
       return 10;
+    case "deposit_delivery_failed":
+      return 7;
     case "estimate_failed":
       return 13;
     case "alerts_muted":
@@ -177,8 +180,17 @@ export async function getAttentionQueue(
 
   const weekAgo = new Date(now.getTime() - WEEK_MS);
 
-  const [newLeads, activeJobs, crew, business, failedAlerts, deliveredAlerts, liveCalls, weekTraffic] =
-    await Promise.all([
+  const [
+    newLeads,
+    activeJobs,
+    crew,
+    business,
+    failedAlerts,
+    deliveredAlerts,
+    liveCalls,
+    weekTraffic,
+    failedDepositDeliveries,
+  ] = await Promise.all([
       prisma.lead.findMany({
         where: { businessId, status: { in: ["new", "contacted"] } },
         take: 40,
@@ -271,7 +283,26 @@ export async function getAttentionQueue(
         prisma.call.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
         prisma.lead.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
       ]).then(([calls, leads]) => calls + leads),
+      prisma.webhookEvent.findMany({
+        where: { businessId, source: "deposit-sms", status: "failed" },
+        take: 12,
+        orderBy: { createdAt: "desc" },
+        select: { id: true, payloadJson: true, error: true, createdAt: true },
+      }),
     ]);
+
+  const failedDepositDeliveryIds = new Set(
+    failedDepositDeliveries.flatMap((delivery) => {
+      try {
+        const payload = JSON.parse(delivery.payloadJson ?? "{}") as {
+          depositId?: unknown;
+        };
+        return typeof payload.depositId === "string" ? [payload.depositId] : [];
+      } catch {
+        return [];
+      }
+    }),
+  );
 
   const ticket = business?.avgTicketCents ?? null;
 
@@ -639,6 +670,7 @@ export async function getAttentionQueue(
   }
 
   for (const deposit of openMoney[2]) {
+    if (failedDepositDeliveryIds.has(deposit.id)) continue;
     if (
       !depositNeedsOwnerFollowUp({
         status: deposit.status,

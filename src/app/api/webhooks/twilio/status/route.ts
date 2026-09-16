@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
+import { applyDepositDeliveryReceipt } from "@/lib/deposit-delivery";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import { logInfo } from "@/lib/logger";
@@ -27,7 +28,10 @@ export async function POST(request: NextRequest) {
       formEntries,
     })
   ) {
-    return NextResponse.json({ error: "Invalid Twilio signature" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Invalid Twilio signature" },
+      { status: 403 },
+    );
   }
 
   if (!messageSid) {
@@ -52,6 +56,11 @@ export async function POST(request: NextRequest) {
     messageStatus,
     errorCode,
   });
+  const depositReceipt = await applyDepositDeliveryReceipt({
+    messageSid,
+    messageStatus,
+    errorCode,
+  });
 
   await recordWebhookEvent({
     source: "twilio-status",
@@ -63,6 +72,8 @@ export async function POST(request: NextRequest) {
       errorCode,
       matched: updated.count,
       reopened: receipt.reopened,
+      depositMatched: depositReceipt.matched,
+      depositReopened: depositReceipt.reopened,
     },
   });
 
@@ -78,12 +89,16 @@ export async function POST(request: NextRequest) {
     Reopened rows are due immediately on the first rung, so draining here means
     the next attempt is already in flight by the time this returns.
   */
-  after(() => drainOwnerAlerts({ at: "twilio.status", messageSid, messageStatus }));
+  after(() =>
+    drainOwnerAlerts({ at: "twilio.status", messageSid, messageStatus }),
+  );
 
   return NextResponse.json({
     ok: true,
     matched: updated.count,
     reopened: receipt.reopened,
+    depositMatched: depositReceipt.matched,
+    depositReopened: depositReceipt.reopened,
   });
 }
 
