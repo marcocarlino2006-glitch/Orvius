@@ -2,6 +2,8 @@
 
 We are building toward institutional quality — not claiming we are there yet. This doc tracks what we actually hold ourselves to today.
 
+**Ceiling:** `docs/BEYOND-BAR.md` — multi-billion operator discipline plus the Orvius monopoly moves. Run `npm run beyond:check` before claiming craft.
+
 ## Principles
 
 1. **The wedge is sacred** — Call → qualify → alert → inbox → action. Nothing ships that weakens this loop.
@@ -10,6 +12,7 @@ We are building toward institutional quality — not claiming we are there yet. 
 4. **Honest product** — Every marketing claim must be true in production today. No Subscribe button until Stripe is configured.
 5. **Word of mouth** — Build so well that one owner tells another. No blitz outbound to hide product gaps.
 6. **Expand when pulled** — Jobs, dispatch, Ask deepen the record. They do not replace front-door mastery.
+7. **Beyond the floor** — Institutional checks are the floor. Beyond-bar laws (honest money, demand capture, exception audit, brand-swap) are the ceiling.
 
 ## Prerequisites (not optional for paid launch)
 
@@ -45,6 +48,7 @@ Run `npm run standard:check` before every deploy and public post.
 - `npm run ops:check` (institutional ops — trust, billing, standard, playbook)
 - `npm run billing:check` (before enabling Subscribe)
 - `npm run standard:check`
+- `npm run beyond:check` (ceiling — monopoly laws + craft ladder)
 - `npm run ci` (build + trust tests + live standard check — run before deploy)
 - `npm run ci:quick` (build + trust tests + standard check without starting server)
 - `npm run wedge:ready` (when validating a design partner shop)
@@ -68,5 +72,7 @@ For each design partner shop:
 - Cold outbound volume
 - Per-minute billing complexity
 - Claiming "institutional" or "multi-billion" bar before billing, retention, and ops proof exist
+- Calling beyond-bar green while founder gates (Stripe, cell cert, formation, named proof) are still red
 
-When in doubt: **make the loop bulletproof for one shop, then the next.**
+When in doubt: **make the loop bulletproof for one shop, then the next.**  
+When raising the bar: **`npm run beyond:check` — then close founder gates in order.**

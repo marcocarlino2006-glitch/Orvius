@@ -2,6 +2,8 @@
 
 Rule: if it is below standard, it is listed. No vanity green.
 
+**Ceiling:** `docs/BEYOND-BAR.md` + `npm run beyond:check` — multi-b floor plus monopoly laws.
+
 Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 
 ## Blockers
@@ -68,4 +70,4 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 7. Optional: `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN`  
 8. Staff support or keep best-effort copy  
 
-Run: `npm run multi-b:check`
+Run: `npm run multi-b:check` · `npm run beyond:check`

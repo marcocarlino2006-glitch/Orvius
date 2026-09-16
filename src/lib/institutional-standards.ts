@@ -53,6 +53,18 @@ export const institutionalPractices = [
     practice: "Implementation milestones before go-live",
     orvius: "Go-live checklist until line, alerts, and first lead are proven",
   },
+  {
+    id: "toast-money-rail",
+    source: "Toast",
+    practice: "Own the money path, not just the job record",
+    orvius: "Estimates and invoices in-product; Connect payouts before integration rings",
+  },
+  {
+    id: "agent-proof",
+    source: "Harvey / Sierra",
+    practice: "Prove every agent action; escalate exceptions",
+    orvius: "ApproveQueue + audit trail — high-risk waits for the owner",
+  },
 ] as const;
 
 export type OwnerStandardItem = {

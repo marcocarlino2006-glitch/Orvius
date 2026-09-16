@@ -55,4 +55,4 @@ Still do **not** claim self-serve paid checkout until cash gates are green.
 - Card pay lands in the shop bank (Connect not live)
 - Fake case studies or invented ARR
 
-See also: `docs/PRE-POST-GATE.md`, `docs/MULTI-BILLION-BATTLES.md`, `npm run multi-b:check`.
+See also: `docs/PRE-POST-GATE.md`, `docs/MULTI-BILLION-BATTLES.md`, `docs/BEYOND-BAR.md`, `npm run multi-b:check`, `npm run beyond:check`.

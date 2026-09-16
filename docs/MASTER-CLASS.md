@@ -38,6 +38,7 @@ could belong to a generic AI answering service, we failed.
 
 ```bash
 npm run master:class           # static honesty + craft gates
+npm run beyond:check           # ceiling — monopoly laws + craft ladder
 npm run bulletproof:product    # product bar (skip cash)
 npm run standard:check         # institutional scorecard
 npm run multi-b:check          # full multi-b (Stripe/formation still founder)
@@ -50,4 +51,4 @@ npm run multi-b:check          # full multi-b (Stripe/formation still founder)
 - Real outreach (no example emails as contacts)
 - Live cell cert if Summit not stamped
 
-See also: `docs/WEDGE-MASTERY.md`, `docs/MANUS-BAR.md`, `docs/STANDARD.md`.
+See also: `docs/BEYOND-BAR.md`, `docs/WEDGE-MASTERY.md`, `docs/MANUS-BAR.md`, `docs/STANDARD.md`.
