@@ -234,14 +234,26 @@ export function JobMoneyPanel({
             {deposit.status !== "paid" && deposit.payUrl ? (
               <>
                 <code className="job-money-share-url">{deposit.payUrl}</code>
-                <button
-                  type="button"
-                  className="btn btn-secondary text-sm"
-                  disabled={depositBusy}
-                  onClick={() => void copyDepositLink(deposit.payUrl!)}
-                >
-                  {depositCopied ? "Copied" : "Copy deposit link"}
-                </button>
+                <div className="job-money-actions">
+                  {!deposit.sentAt && customerPhone ? (
+                    <button
+                      type="button"
+                      className="btn btn-void text-sm"
+                      disabled={depositBusy}
+                      onClick={() => void requestDeposit()}
+                    >
+                      {depositBusy ? "Retrying…" : "Retry deposit text"}
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="btn btn-secondary text-sm"
+                    disabled={depositBusy}
+                    onClick={() => void copyDepositLink(deposit.payUrl!)}
+                  >
+                    {depositCopied ? "Copied" : "Copy deposit link"}
+                  </button>
+                </div>
               </>
             ) : null}
           </>

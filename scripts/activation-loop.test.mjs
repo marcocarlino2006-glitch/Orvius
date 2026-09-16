@@ -137,3 +137,21 @@ test("manual quick-book cannot bypass qualification or fail silently", () => {
   assert.match(quickBook, /role="alert"/);
   assert.doesNotMatch(quickBook, /detail page fallback/);
 });
+
+test("a rejected deposit delivery has an executable recovery action", () => {
+  const moneyPanel = readFileSync(
+    new URL("../src/components/job-money-panel.tsx", import.meta.url),
+    "utf8",
+  );
+  const deposits = readFileSync(
+    new URL("../src/app/api/deposits/route.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(moneyPanel, /!deposit\.sentAt && customerPhone/);
+  assert.match(moneyPanel, /Retry deposit text/);
+  assert.match(moneyPanel, /requestDeposit\(\)/);
+  assert.match(moneyPanel, /Copy deposit link/);
+  assert.match(deposits, /createDepositForLead/);
+  assert.match(deposits, /sendDepositLink/);
+});
