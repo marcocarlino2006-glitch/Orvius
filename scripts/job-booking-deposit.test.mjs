@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test, { after } from "node:test";
 import { PrismaClient } from "@prisma/client";
 
@@ -6,6 +7,7 @@ import {
   createDepositForLead,
   ensureBookingDepositForJob,
 } from "../src/lib/booking-deposit.ts";
+import { applyDepositDeliveryReceipt } from "../src/lib/deposit-delivery.ts";
 import { createJobFromLead } from "../src/lib/job.ts";
 
 const prisma = new PrismaClient();
@@ -154,4 +156,55 @@ test("corrected details recover the money loop for an existing job", async () =>
   });
   assert.equal(deposits.length, 1);
   assert.equal(deposits[0].jobId, job.id);
+});
+
+test("a carrier-rejected deposit text reopens delivery and alerts the owner", async () => {
+  const shop = await makeShop();
+  const lead = await makeLead(shop.id);
+  const job = await createJobFromLead({
+    leadId: lead.id,
+    scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  });
+  const deposit = await prisma.deposit.findFirstOrThrow({
+    where: { businessId: shop.id, leadId: lead.id },
+  });
+  const messageSid = unique("SM");
+
+  await Promise.all([
+    prisma.deposit.update({
+      where: { id: deposit.id },
+      data: { sentAt: new Date() },
+    }),
+    prisma.webhookEvent.create({
+      data: {
+        source: "deposit-sms",
+        externalId: messageSid,
+        eventType: "delivery",
+        businessId: shop.id,
+        status: "pending",
+        payloadJson: JSON.stringify({ depositId: deposit.id }),
+      },
+    }),
+  ]);
+
+  const receipt = await applyDepositDeliveryReceipt({
+    messageSid,
+    messageStatus: "undelivered",
+    errorCode: "30005",
+  });
+  assert.deepEqual(receipt, { matched: true, reopened: true });
+
+  const reopened = await prisma.deposit.findUniqueOrThrow({
+    where: { id: deposit.id },
+  });
+  assert.equal(reopened.sentAt, null);
+
+  const attention = readFileSync(
+    new URL("../src/lib/attention-queue.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(attention, /deposit_delivery_failed/);
+  assert.match(attention, /Retry deposit link/);
+  assert.match(attention, /\/dashboard\/jobs\/\$\{deposit\.jobId\}/);
+  assert.ok(job.id);
 });

@@ -76,6 +76,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 5;
     case "alert_failed":
       return 6;
+    case "deposit_delivery_failed":
+      return 7;
     case "needs_capture":
       return 11;
     case "founder_cert":
@@ -118,7 +120,9 @@ export async function getAttentionQueue(
   limit = 12,
 ): Promise<AttentionItem[]> {
   const now = new Date();
-  const followupCutoff = new Date(now.getTime() - FOLLOWUP_HOURS * 60 * 60 * 1000);
+  const followupCutoff = new Date(
+    now.getTime() - FOLLOWUP_HOURS * 60 * 60 * 1000,
+  );
   const dayStart = new Date(now);
   dayStart.setHours(0, 0, 0, 0);
   const dayEnd = new Date(dayStart);
@@ -126,13 +130,28 @@ export async function getAttentionQueue(
 
   const weekAgo = new Date(now.getTime() - WEEK_MS);
 
-  const [newLeads, activeJobs, crew, business, failedAlerts, weekTraffic] = await Promise.all([
+  const [
+    newLeads,
+    activeJobs,
+    crew,
+    business,
+    failedAlerts,
+    weekTraffic,
+    failedDepositDeliveries,
+  ] = await Promise.all([
     prisma.lead.findMany({
       where: { businessId, status: { in: ["new", "contacted"] } },
       take: 40,
       orderBy: { createdAt: "desc" },
       include: {
-        job: { select: { id: true, technicianId: true, status: true, scheduledAt: true } },
+        job: {
+          select: {
+            id: true,
+            technicianId: true,
+            status: true,
+            scheduledAt: true,
+          },
+        },
       },
     }),
     prisma.job.findMany({
@@ -188,6 +207,12 @@ export async function getAttentionQueue(
       prisma.call.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
       prisma.lead.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
     ]).then(([calls, leads]) => calls + leads),
+    prisma.webhookEvent.findMany({
+      where: { businessId, source: "deposit-sms", status: "failed" },
+      take: 12,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, payloadJson: true, error: true, createdAt: true },
+    }),
   ]);
 
   const ticket = business?.avgTicketCents ?? null;
@@ -224,7 +249,9 @@ export async function getAttentionQueue(
     const ends = business?.pilotEndsAt
       ? new Date(business.pilotEndsAt)
       : business?.createdAt
-        ? new Date(new Date(business.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000)
+        ? new Date(
+            new Date(business.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000,
+          )
         : null;
     const daysLeft =
       ends != null
@@ -325,7 +352,8 @@ export async function getAttentionQueue(
       rank: kindRank("missing_baseline", null, afterHours),
       impact: "med",
       title: "Baseline economics missing",
-      detail: "Set avg ticket + before-Orvius weekly numbers when you have a minute.",
+      detail:
+        "Set avg ticket + before-Orvius weekly numbers when you have a minute.",
       recommendedAction: "Set baseline",
       href: "/dashboard/settings#economics-baseline",
       entityType: "shop",
@@ -368,7 +396,13 @@ export async function getAttentionQueue(
       },
       take: 8,
       orderBy: { createdAt: "desc" },
-      select: { id: true, amountCents: true, status: true, jobId: true, createdAt: true },
+      select: {
+        id: true,
+        amountCents: true,
+        status: true,
+        jobId: true,
+        createdAt: true,
+      },
     }),
     prisma.estimate.findMany({
       where: {
@@ -398,7 +432,9 @@ export async function getAttentionQueue(
       title: `Open invoice · $${Math.round(invoice.amountCents / 100)}`,
       detail: `Status ${invoice.status} — close money in the CRM.`,
       recommendedAction: "Review job",
-      href: invoice.jobId ? `/dashboard/jobs/${invoice.jobId}` : "/dashboard#shop-economics",
+      href: invoice.jobId
+        ? `/dashboard/jobs/${invoice.jobId}`
+        : "/dashboard#shop-economics",
       entityType: "shop",
       entityId: businessId,
       createdAt: invoice.createdAt.toISOString(),
@@ -448,6 +484,74 @@ export async function getAttentionQueue(
     });
   }
 
+  const failedDepositIds = [
+    ...new Set(
+      failedDepositDeliveries.flatMap((delivery) => {
+        try {
+          const payload = JSON.parse(delivery.payloadJson ?? "{}") as {
+            depositId?: unknown;
+          };
+          return typeof payload.depositId === "string"
+            ? [payload.depositId]
+            : [];
+        } catch {
+          return [];
+        }
+      }),
+    ),
+  ];
+  const failedDeposits = failedDepositIds.length
+    ? await prisma.deposit.findMany({
+        where: {
+          businessId,
+          id: { in: failedDepositIds },
+          status: "pending",
+          sentAt: null,
+        },
+        select: {
+          id: true,
+          amountCents: true,
+          leadId: true,
+          jobId: true,
+          createdAt: true,
+        },
+      })
+    : [];
+
+  for (const deposit of failedDeposits) {
+    const failure = failedDepositDeliveries.find((delivery) => {
+      try {
+        const payload = JSON.parse(delivery.payloadJson ?? "{}") as {
+          depositId?: unknown;
+        };
+        return payload.depositId === deposit.id;
+      } catch {
+        return false;
+      }
+    });
+    items.push({
+      id: `deposit_delivery_failed:${deposit.id}`,
+      kind: "deposit_delivery_failed",
+      rank: kindRank("deposit_delivery_failed", null, afterHours),
+      impact: "critical",
+      title: "Deposit link not delivered",
+      detail: `${failure?.error ?? "Carrier rejected the text"} · $${(
+        deposit.amountCents / 100
+      ).toFixed(2)} still pending`,
+      recommendedAction: "Retry deposit link",
+      href: deposit.jobId
+        ? `/dashboard/jobs/${deposit.jobId}`
+        : deposit.leadId
+          ? `/dashboard/inbox/${deposit.leadId}`
+          : "/dashboard",
+      entityType: deposit.jobId ? "job" : deposit.leadId ? "lead" : "shop",
+      entityId: deposit.jobId ?? deposit.leadId ?? businessId,
+      createdAt:
+        failure?.createdAt.toISOString() ?? deposit.createdAt.toISOString(),
+      estimatedRevenueCents: deposit.amountCents,
+    });
+  }
+
   for (const lead of newLeads) {
     const urgent = isPriorityUrgency(lead.urgency);
     const overdue = lead.createdAt < followupCutoff;
@@ -478,14 +582,22 @@ export async function getAttentionQueue(
       if (urgent) {
         kind = "urgent_lead";
         impact = "critical";
-        detail = ["Emergency / same-day — not booked yet", lead.serviceType, lead.address]
+        detail = [
+          "Emergency / same-day — not booked yet",
+          lead.serviceType,
+          lead.address,
+        ]
           .filter(Boolean)
           .join(" · ");
         recommendedAction = "Call back & book";
       } else if (overdue) {
         kind = "overdue_followup";
         impact = "high";
-        detail = [`Qualified · unworked ${ageHrs}h`, lead.serviceType, lead.address]
+        detail = [
+          `Qualified · unworked ${ageHrs}h`,
+          lead.serviceType,
+          lead.address,
+        ]
           .filter(Boolean)
           .join(" · ");
         recommendedAction = "Book job";
@@ -541,10 +653,7 @@ export async function getAttentionQueue(
 
   for (const job of activeJobs) {
     const who =
-      job.customer?.name ??
-      job.lead?.name ??
-      job.customer?.phone ??
-      job.title;
+      job.customer?.name ?? job.lead?.name ?? job.customer?.phone ?? job.title;
     const urgency = job.urgency ?? job.lead?.urgency;
     const scheduled = job.scheduledAt;
     const pastDue =
@@ -570,7 +679,9 @@ export async function getAttentionQueue(
       items.push({
         id: `needs_customer_confirm:${job.id}`,
         kind: "needs_customer_confirm",
-        rank: kindRank("needs_customer_confirm", urgency, afterHours) + (dueToday ? 0 : 4),
+        rank:
+          kindRank("needs_customer_confirm", urgency, afterHours) +
+          (dueToday ? 0 : 4),
         impact: isPriorityUrgency(urgency) || dueToday ? "critical" : "high",
         title: who,
         detail: [
@@ -607,7 +718,8 @@ export async function getAttentionQueue(
       items.push({
         id: `unassigned_job:${job.id}`,
         kind: "unassigned_job",
-        rank: kindRank("unassigned_job", urgency, afterHours) + (dueToday ? 0 : 5),
+        rank:
+          kindRank("unassigned_job", urgency, afterHours) + (dueToday ? 0 : 5),
         impact: isPriorityUrgency(urgency) || dueToday ? "critical" : "high",
         title: who,
         detail: [
@@ -702,5 +814,8 @@ export async function getAttentionQueue(
     ? items.filter((i) => i.kind !== "available_tech")
     : items;
 
-  return rollUpByPerson(filtered.sort((a, b) => a.rank - b.rank)).slice(0, limit);
+  return rollUpByPerson(filtered.sort((a, b) => a.rank - b.rank)).slice(
+    0,
+    limit,
+  );
 }

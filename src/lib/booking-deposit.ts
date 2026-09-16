@@ -64,7 +64,10 @@ export function validateDepositSettingsChange(params: {
   next: { depositEnabled?: boolean; depositAmountCents?: number | null };
 }): { ok: true } | { ok: false; error: string } {
   const { current, next } = params;
-  if (next.depositEnabled === undefined && next.depositAmountCents === undefined) {
+  if (
+    next.depositEnabled === undefined &&
+    next.depositAmountCents === undefined
+  ) {
     return { ok: true };
   }
 
@@ -95,8 +98,7 @@ export function validateDepositSettingsChange(params: {
 
 /** Whether this shop could take a deposit right now, and why not if it can't. */
 export function getDepositReadiness(
-  business: DepositSettings &
-    Parameters<typeof getConnectStatus>[0],
+  business: DepositSettings & Parameters<typeof getConnectStatus>[0],
 ):
   | { ready: true; amountCents: number }
   | { ready: false; reason: "connect_incomplete" | "deposits_off" } {
@@ -185,16 +187,28 @@ export async function sendDepositLink(params: {
     to: params.toPhone,
     body: withSmsOptOutFooter(
       `${params.business.name}: to lock in your appointment, ` +
-      `please pay your $${dollars} deposit here: ` +
-      depositPayUrl(params.deposit.publicToken),
+        `please pay your $${dollars} deposit here: ` +
+        depositPayUrl(params.deposit.publicToken),
     ),
   });
 
   if (result.sent) {
-    await prisma.deposit.update({
-      where: { id: params.deposit.id },
-      data: { sentAt: new Date() },
-    });
+    await prisma.$transaction([
+      prisma.deposit.update({
+        where: { id: params.deposit.id },
+        data: { sentAt: new Date() },
+      }),
+      prisma.webhookEvent.create({
+        data: {
+          source: "deposit-sms",
+          externalId: result.sid,
+          eventType: "delivery",
+          businessId: params.business.id,
+          status: "pending",
+          payloadJson: JSON.stringify({ depositId: params.deposit.id }),
+        },
+      }),
+    ]);
   }
 
   return result;
@@ -223,7 +237,8 @@ export type EnsureBookingDepositResult =
  *
  * The readiness check is both the consent boundary and the payment-safety
  * boundary. A retry reuses the same active deposit, links it to the booked job,
- * and never texts again after a successful delivery.
+ * and never texts again while a carrier delivery is still valid. A terminal
+ * Twilio failure clears `sentAt`, making the same deposit eligible for retry.
  */
 export async function ensureBookingDepositForJob(params: {
   businessId: string;
@@ -273,11 +288,7 @@ export async function ensureBookingDepositForJob(params: {
   });
 
   let sms: Awaited<ReturnType<typeof sendDepositLink>> | null = null;
-  if (
-    params.sendSms !== false &&
-    lead.phone?.trim() &&
-    !deposit.sentAt
-  ) {
+  if (params.sendSms !== false && lead.phone?.trim() && !deposit.sentAt) {
     sms = await sendDepositLink({
       business,
       deposit,
@@ -309,7 +320,9 @@ export async function createDepositCheckoutSession(params: {
     throw new Error("Deposit has no public token");
   }
   if (!isChargeableAmount(params.deposit.amountCents)) {
-    throw new Error(`Deposit below Stripe minimum: ${params.deposit.amountCents}`);
+    throw new Error(
+      `Deposit below Stripe minimum: ${params.deposit.amountCents}`,
+    );
   }
 
   const stripe = getStripe();
@@ -396,7 +409,7 @@ export async function fulfillDepositCheckoutSession(
   const paymentIntentId =
     typeof session.payment_intent === "string"
       ? session.payment_intent
-      : session.payment_intent?.id ?? null;
+      : (session.payment_intent?.id ?? null);
 
   await prisma.deposit.update({
     where: { id: deposit.id },
