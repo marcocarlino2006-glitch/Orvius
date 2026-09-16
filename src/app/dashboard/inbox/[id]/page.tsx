@@ -61,6 +61,7 @@ export default function LeadDetailPage() {
   const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [manualBookingAvailable, setManualBookingAvailable] = useState(false);
 
   const loadLead = useCallback(async () => {
     if (!leadId) return;
@@ -115,10 +116,6 @@ export default function LeadDetailPage() {
     lead.source === "sms"
       ? "SMS inquiry"
       : `Inbound call · ${lead.business?.name ?? "Orvius"}`;
-  const needsQualification =
-    !lead.phone?.trim() ||
-    (!lead.serviceType?.trim() && !lead.address?.trim());
-
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
@@ -162,7 +159,10 @@ export default function LeadDetailPage() {
                     current ? { ...current, ...values } : current,
                   )
                 }
-                onSaved={() => void loadLead()}
+                onSaved={(booked) => {
+                  setManualBookingAvailable(!booked);
+                  void loadLead();
+                }}
               />
             </ShellPanel>
           ) : null}
@@ -214,7 +214,7 @@ export default function LeadDetailPage() {
                 Open job →
               </Link>
             </ShellPanel>
-          ) : needsQualification ? (
+          ) : !manualBookingAvailable ? (
             <ShellPanel title="Automation" dense>
               <p className="font-sans text-sm leading-relaxed text-ash">
                 Complete the missing call details. Orvius will qualify the lead
