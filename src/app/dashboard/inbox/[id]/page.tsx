@@ -167,28 +167,6 @@ export default function LeadDetailPage() {
             </ShellPanel>
           ) : null}
 
-          <OwnerAlertCard
-            variant="void"
-            lead={{
-              name: lead.name ?? undefined,
-              phone: lead.phone ?? undefined,
-              service: lead.serviceType ?? undefined,
-              urgency: formatUrgency(lead.urgency),
-              address: lead.address ?? undefined,
-              channel,
-            }}
-          />
-
-          {lead.call?.transcript ? (
-            <TranscriptCinema
-              transcript={lead.call.transcript}
-              variant="void"
-              className="mt-3"
-            />
-          ) : null}
-        </div>
-
-        <div className="os-detail-side">
           {lead.job ? (
             <ShellPanel title="Job on dispatch" dense>
               <p className="font-sans text-sm text-ash">
@@ -214,21 +192,45 @@ export default function LeadDetailPage() {
                 Open job →
               </Link>
             </ShellPanel>
-          ) : !manualBookingAvailable ? (
+          ) : null}
+
+          <OwnerAlertCard
+            variant="void"
+            lead={{
+              name: lead.name ?? undefined,
+              phone: lead.phone ?? undefined,
+              service: lead.serviceType ?? undefined,
+              urgency: formatUrgency(lead.urgency),
+              address: lead.address ?? undefined,
+              channel,
+            }}
+          />
+
+          {lead.call?.transcript ? (
+            <TranscriptCinema
+              transcript={lead.call.transcript}
+              variant="void"
+              className="mt-3"
+            />
+          ) : null}
+        </div>
+
+        <div className="os-detail-side">
+          {!lead.job && !manualBookingAvailable ? (
             <ShellPanel title="Automation" dense>
               <p className="font-sans text-sm leading-relaxed text-ash">
                 Complete the missing call details. Orvius will qualify the lead
                 and choose the next available appointment automatically.
               </p>
             </ShellPanel>
-          ) : (
+          ) : !lead.job ? (
             <ShellPanel title="Book this lead" dense>
               <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
                 Schedule this lead on your calendar and assign crew on dispatch.
               </p>
               <BookJobForm leadId={lead.id} urgency={lead.urgency} />
             </ShellPanel>
-          )}
+          ) : null}
 
           {lead.customer ? (
             <ShellPanel title="Customer" dense>
