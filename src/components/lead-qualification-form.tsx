@@ -20,7 +20,14 @@ export function LeadQualificationForm({
   leadId: string;
   lead: EditableLead;
   onSaved: (booked: boolean) => void;
-  onDraftChange?: (lead: EditableLead) => void;
+  onDraftChange?: (lead: {
+    name: string;
+    phone: string;
+    serviceType: string;
+    urgency: string;
+    address: string;
+    notes: string;
+  }) => void;
 }) {
   const [values, setValues] = useState({
     name: lead.name ?? "",
