@@ -128,7 +128,6 @@ export default function LeadDetailPage() {
     setLead((current) => (current ? { ...current, ...values } : current));
   const finishRepair = (booked: boolean) => {
     setManualBookingAvailable(!booked);
-    setShowBookedLeadRepair(false);
     void loadLead();
   };
   return (
