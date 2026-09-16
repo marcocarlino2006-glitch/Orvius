@@ -103,6 +103,9 @@ export default function LeadDetailPage() {
     lead.source === "sms"
       ? "SMS inquiry"
       : `Inbound call · ${lead.business?.name ?? "Orvius"}`;
+  const needsQualification =
+    !lead.phone?.trim() ||
+    (!lead.serviceType?.trim() && !lead.address?.trim());
 
   return (
     <OsShell
@@ -199,6 +202,13 @@ export default function LeadDetailPage() {
               >
                 Open job →
               </Link>
+            </ShellPanel>
+          ) : needsQualification ? (
+            <ShellPanel title="Automation" dense>
+              <p className="font-sans text-sm leading-relaxed text-ash">
+                Complete the missing call details. Orvius will qualify the lead
+                and choose the next available appointment automatically.
+              </p>
             </ShellPanel>
           ) : (
             <ShellPanel title="Book this lead" dense>
