@@ -3023,6 +3023,21 @@ a.pro-shift-event:hover .pro-shift-event-title {
   gap: 0.5rem;
 }
 
+.today-priority-book {
+  display: inline-flex;
+  max-width: 17rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.today-priority-book-error {
+  color: var(--signal-hot);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .today-priority-btn {
   display: inline-flex;
   align-items: center;
