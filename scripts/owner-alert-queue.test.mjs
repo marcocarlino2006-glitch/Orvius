@@ -26,6 +26,7 @@ import {
   processNotificationQueue,
 } from "../src/lib/notification-queue.ts";
 import { getAlertMetrics } from "../src/lib/alert-metrics.ts";
+import { getShopHealth } from "../src/lib/shop-health.ts";
 
 const prisma = new PrismaClient();
 
@@ -152,8 +153,8 @@ test("a shop with no reachable owner creates a visible failed alert", async () =
     assert.equal(rows[0].status, "failed");
     assert.match(rows[0].error, /No owner alert channel/);
 
-    const metrics = await getAlertMetrics(shop.id);
-    assert.equal(metrics.failedAlerts24h, 1);
+    const health = await getShopHealth(shop.id);
+    assert.equal(health.failedAlerts24h, 1);
   } finally {
     await dropShop(shop.id);
   }
@@ -211,9 +212,9 @@ test("an unavailable alert channel fails visibly instead of going quiet", async 
     assert.equal(row.nextRetryAt, null);
     assert.ok(row.processedAt);
 
-    const metrics = await getAlertMetrics(shop.id);
+    const health = await getShopHealth(shop.id);
     assert.equal(
-      metrics.failedAlerts24h,
+      health.failedAlerts24h,
       1,
       "Command health must expose an owner alert that could not be attempted",
     );
