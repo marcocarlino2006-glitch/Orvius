@@ -10,7 +10,8 @@ that make a night-shift trades OS harder to displace than a generic AI
 receptionist.
 
 **Full strict checklist (every item, no corners):** `docs/MULTI-B-STRICT.md`  
-**Honest have-vs-need analysis:** `docs/STANDINGS.md`
+**Honest have-vs-need analysis:** `docs/STANDINGS.md`  
+**First principles (what raises Look/Operate):** `docs/FIRST-PRINCIPLES-LOOK-OPERATE.md`
 
 Run:
 

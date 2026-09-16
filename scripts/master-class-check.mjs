@@ -208,6 +208,41 @@ try {
   fail("Presence craft", e instanceof Error ? e.message : String(e));
 }
 
+// LOOK first principles — hero diet (no stats / showcase in first company beats)
+try {
+  const home = read("src/app/page.tsx");
+  if (/HomeStatsBanner|HomeToolShowcase/.test(home)) {
+    fail(
+      "Look hero diet",
+      "Homepage must not mount stats strip or Cursor-style showcase",
+    );
+  } else if (
+    /HomeLineHero/.test(home) &&
+    /HomeStatement/.test(home) &&
+    /HomeCallStory/.test(home)
+  ) {
+    pass("Look hero diet", "Hero → night rules → call story — no stats/showcase");
+  } else {
+    fail("Look hero diet", "Homepage missing core beats");
+  }
+  const hero = read("src/components/home-line-hero.tsx");
+  if (/ov-hero-brand/.test(hero) && /Orvius/.test(hero)) {
+    pass("Look brand signal", "Hero carries Orvius as a brand-level signal");
+  } else {
+    fail("Look brand signal", "Hero must include ov-hero-brand Orvius");
+  }
+  const nav = read("src/components/premium-nav.tsx");
+  if (/Enterprise|nav\.enterprise|\/resources/.test(nav) && /href: "\/product"/.test(nav)) {
+    fail("Look nav", "Primary nav still mirrors Cursor mega-nav");
+  } else if (/\/pricing/.test(nav) && /\/pilot/.test(nav) && /\/about/.test(nav)) {
+    pass("Look nav", "Primary nav is Pricing · Audit · About");
+  } else {
+    fail("Look nav", "Primary nav must be trades-native (Pricing · Audit · About)");
+  }
+} catch (e) {
+  fail("Look craft", e instanceof Error ? e.message : String(e));
+}
+
 const failed = checks.filter((c) => !c.ok).length;
 console.log("\n─────────────────────────────────────");
 console.log(

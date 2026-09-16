@@ -17,15 +17,17 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.enterprise": { en: "Enterprise", es: "Empresas", fr: "Entreprise", de: "Unternehmen" },
   "nav.pricing": { en: "Pricing", es: "Precios", fr: "Tarifs", de: "Preise" },
   "nav.resources": { en: "Resources", es: "Recursos", fr: "Ressources", de: "Ressourcen" },
+  "nav.audit": { en: "Audit", es: "Auditoría", fr: "Audit", de: "Audit" },
+  "nav.about": { en: "About", es: "Nosotros", fr: "À propos", de: "Über uns" },
   "nav.signin": { en: "Sign in", es: "Iniciar sesión", fr: "Se connecter", de: "Anmelden" },
   "nav.bookdemo": { en: "Book an audit", es: "Reservar una auditoría", fr: "Réserver un audit", de: "Audit buchen" },
   "nav.proveit": { en: "Call live AI", es: "Llamar a la IA en vivo", fr: "Appeler l'IA en direct", de: "Live-KI anrufen" },
 
   "hero.eyebrow": {
-    en: "For HVAC, plumbing & electrical shops",
-    es: "Para talleres de HVAC, plomería y electricidad",
-    fr: "Pour les entreprises de CVC, plomberie et électricité",
-    de: "Für HLK-, Klempner- und Elektrobetriebe",
+    en: "The night-shift OS for HVAC, plumbing & electrical",
+    es: "El OS de turno nocturno para HVAC, plomería y electricidad",
+    fr: "L'OS de nuit pour le CVC, la plomberie et l'électricité",
+    de: "Das Nachtschicht-OS für HLK, Sanitär und Elektro",
   },
   "hero.title": {
     en: "Missed calls become booked jobs.",

@@ -44,8 +44,11 @@ export function HomeLineHero() {
     <section className="ov-hero" aria-labelledby="home-hero-heading">
       <div className="ov-hero-inner">
         <div className="ov-hero-copy">
+          <p className="ov-hero-brand" aria-label="Orvius">
+            Orvius
+          </p>
           <p className="ov-hero-eyebrow" data-i18n="hero.eyebrow">
-            For HVAC, plumbing &amp; electrical shops
+            The night-shift OS for HVAC, plumbing &amp; electrical
           </p>
 
           {/* Copy is owned by the i18n dictionary; keep these in sync with it so

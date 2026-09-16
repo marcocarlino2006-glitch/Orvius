@@ -5,10 +5,9 @@ import { useEffect, useId, useRef, useState } from "react";
 import { OrviusLogo } from "@/components/orvius-logo";
 
 const NAV = [
-  { href: "/product", label: "Product", i18n: "nav.product" },
-  { href: "/enterprise", label: "Enterprise", i18n: "nav.enterprise" },
   { href: "/pricing", label: "Pricing", i18n: "nav.pricing" },
-  { href: "/resources", label: "Resources", i18n: "nav.resources" },
+  { href: "/pilot", label: "Audit", i18n: "nav.audit" },
+  { href: "/about", label: "About", i18n: "nav.about" },
 ] as const;
 
 /** Compact company chrome with one primary action and an accessible mobile sheet. */

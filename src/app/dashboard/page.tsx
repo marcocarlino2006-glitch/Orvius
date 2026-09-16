@@ -1,6 +1,7 @@
 "use client";
 
 import { OwnerSetupBanner } from "@/components/owner-setup-banner";
+import { FounderNextGate } from "@/components/founder-next-gate";
 import { Ring1CommandCenter } from "@/components/ring1-command-center";
 import { OsShell } from "@/components/os-shell";
 import Link from "next/link";
@@ -15,6 +16,7 @@ export default function DashboardPage() {
         </Link>
       }
     >
+      <FounderNextGate />
       <Ring1CommandCenter />
       <OwnerSetupBanner />
     </OsShell>

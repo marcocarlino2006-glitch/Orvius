@@ -74,6 +74,12 @@ if (fileOk("scripts/master-all.mjs") && fileOk("src/lib/multi-b-mastery.ts")) {
   fail("Master-all path", "scripts/master-all.mjs or src/lib/multi-b-mastery.ts missing");
 }
 
+if (fileOk("docs/FIRST-PRINCIPLES-LOOK-OPERATE.md")) {
+  pass("Look/Operate principles", "docs/FIRST-PRINCIPLES-LOOK-OPERATE.md present");
+} else {
+  fail("Look/Operate principles", "FIRST-PRINCIPLES-LOOK-OPERATE.md missing");
+}
+
 try {
   const bar = read("src/lib/beyond-bar.ts");
   const hasLaws = /beyondLaws/.test(bar) && /L10/.test(bar);
