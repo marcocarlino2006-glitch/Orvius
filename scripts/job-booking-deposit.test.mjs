@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test, { after } from "node:test";
 import { PrismaClient } from "@prisma/client";
 
-import { createDepositForLead } from "../src/lib/booking-deposit.ts";
+import {
+  createDepositForLead,
+  ensureBookingDepositForJob,
+} from "../src/lib/booking-deposit.ts";
 import { createJobFromLead } from "../src/lib/job.ts";
 
 const prisma = new PrismaClient();
@@ -107,5 +110,48 @@ test("a deposit requested before booking is linked instead of duplicated", async
   });
   assert.equal(deposits.length, 1);
   assert.equal(deposits[0].id, existing.deposit.id);
+  assert.equal(deposits[0].jobId, job.id);
+});
+
+test("corrected details recover the money loop for an existing job", async () => {
+  const shop = await makeShop({
+    depositEnabled: false,
+    depositAmountCents: null,
+  });
+  const lead = await makeLead(shop.id);
+  const job = await createJobFromLead({
+    leadId: lead.id,
+    scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  });
+  assert.equal(
+    await prisma.deposit.count({ where: { businessId: shop.id } }),
+    0,
+  );
+
+  await Promise.all([
+    prisma.business.update({
+      where: { id: shop.id },
+      data: { depositEnabled: true, depositAmountCents: 9900 },
+    }),
+    prisma.lead.update({
+      where: { id: lead.id },
+      data: { phone: "+15555550123", address: "12 Recovery Street" },
+    }),
+  ]);
+
+  const recovery = await ensureBookingDepositForJob({
+    businessId: shop.id,
+    leadId: lead.id,
+    jobId: job.id,
+    sendSms: false,
+  });
+  assert.equal(recovery.ok, true);
+  assert.equal(recovery.skipped, false);
+  assert.equal(recovery.created, true);
+
+  const deposits = await prisma.deposit.findMany({
+    where: { businessId: shop.id, leadId: lead.id },
+  });
+  assert.equal(deposits.length, 1);
   assert.equal(deposits[0].jobId, job.id);
 });

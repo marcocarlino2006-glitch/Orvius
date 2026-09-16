@@ -62,6 +62,7 @@ export default function LeadDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [manualBookingAvailable, setManualBookingAvailable] = useState(false);
+  const [showBookedLeadRepair, setShowBookedLeadRepair] = useState(false);
 
   const loadLead = useCallback(async () => {
     if (!leadId) return;
@@ -116,6 +117,20 @@ export default function LeadDetailPage() {
     lead.source === "sms"
       ? "SMS inquiry"
       : `Inbound call · ${lead.business?.name ?? "Orvius"}`;
+  const updateDraft = (values: {
+    name: string;
+    phone: string;
+    serviceType: string;
+    urgency: string;
+    address: string;
+    notes: string;
+  }) =>
+    setLead((current) => (current ? { ...current, ...values } : current));
+  const finishRepair = (booked: boolean) => {
+    setManualBookingAvailable(!booked);
+    setShowBookedLeadRepair(false);
+    void loadLead();
+  };
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
@@ -154,15 +169,8 @@ export default function LeadDetailPage() {
               <LeadQualificationForm
                 leadId={lead.id}
                 lead={lead}
-                onDraftChange={(values) =>
-                  setLead((current) =>
-                    current ? { ...current, ...values } : current,
-                  )
-                }
-                onSaved={(booked) => {
-                  setManualBookingAvailable(!booked);
-                  void loadLead();
-                }}
+                onDraftChange={updateDraft}
+                onSaved={finishRepair}
               />
             </ShellPanel>
           ) : null}
@@ -205,6 +213,33 @@ export default function LeadDetailPage() {
               channel,
             }}
           />
+
+          {lead.job ? (
+            <ShellPanel title="Captured details" dense>
+              <p className="font-sans text-sm leading-relaxed text-ash">
+                Fix anything the call missed. Saving also retries an unsent
+                booking deposit when payments are enabled.
+              </p>
+              <button
+                type="button"
+                className="btn btn-secondary mt-4 text-sm"
+                aria-expanded={showBookedLeadRepair}
+                onClick={() => setShowBookedLeadRepair((open) => !open)}
+              >
+                {showBookedLeadRepair ? "Close details" : "Correct call details"}
+              </button>
+              {showBookedLeadRepair ? (
+                <div className="mt-4">
+                  <LeadQualificationForm
+                    leadId={lead.id}
+                    lead={lead}
+                    onDraftChange={updateDraft}
+                    onSaved={finishRepair}
+                  />
+                </div>
+              ) : null}
+            </ShellPanel>
+          ) : null}
 
           {lead.call?.transcript ? (
             <TranscriptCinema

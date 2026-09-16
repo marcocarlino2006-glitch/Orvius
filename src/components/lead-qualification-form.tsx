@@ -54,12 +54,20 @@ export function LeadQualificationForm({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save lead");
-      const booked = Boolean(data.autoBook?.created || data.lead?.job);
+      const newlyBooked = Boolean(data.autoBook?.created);
+      const booked = Boolean(newlyBooked || data.lead?.job);
+      const depositRetried = Boolean(
+        data.depositRecovery?.ok && !data.depositRecovery?.skipped,
+      );
       onSaved(booked);
       setMessage(
-        booked
+        newlyBooked
           ? "Lead completed and booked automatically."
-          : "Lead details saved. Orvius will book when the lead qualifies.",
+          : depositRetried
+            ? "Lead updated and deposit delivery retried."
+            : booked
+              ? "Lead details updated."
+              : "Lead details saved. Orvius will book when the lead qualifies.",
       );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not save lead");

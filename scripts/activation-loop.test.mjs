@@ -95,13 +95,27 @@ test("owners can repair incomplete qualification and retry automation", () => {
     new URL("../src/components/lead-qualification-form.tsx", import.meta.url),
     "utf8",
   );
+  const detail = readFileSync(
+    new URL("../src/app/dashboard/inbox/[id]/page.tsx", import.meta.url),
+    "utf8",
+  );
 
   for (const field of ["phone", "serviceType", "urgency", "address", "notes"]) {
     assert.match(route, new RegExp(`${field}:`));
   }
   assert.match(route, /await maybeAutoBookLead\(id\)/);
+  assert.equal(
+    (route.match(/maybeAutoBookLead\(/g) ?? []).length,
+    1,
+    "opening a lead must not book it as a read side effect",
+  );
+  assert.match(route, /ensureBookingDepositForJob/);
+  assert.match(route, /depositRecovery/);
   assert.match(route, /!existing\.customerId \|\| phoneChanged/);
   assert.match(form, /Save and continue automation/);
   assert.match(form, /Lead completed and booked automatically/);
+  assert.match(form, /Lead updated and deposit delivery retried/);
   assert.doesNotMatch(form, /location\.reload/);
+  assert.match(detail, /Correct call details/);
+  assert.match(detail, /retries an unsent\s+booking deposit/);
 });

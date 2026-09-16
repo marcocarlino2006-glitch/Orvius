@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { maybeAutoBookLead } from "@/lib/auto-job";
+import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
@@ -109,18 +110,6 @@ export async function GET(_request: Request, { params }: Params) {
     });
   }
 
-  if (!lead.job) {
-    await maybeAutoBookLead(lead.id);
-    lead = await prisma.lead.findFirst({
-      where: { id, businessId: business.id },
-      include: LEAD_INCLUDE,
-    });
-  }
-
-  if (!lead) {
-    return NextResponse.json({ error: "Lead not found" }, { status: 404 });
-  }
-
   return NextResponse.json({ lead: serializeLead(lead) });
 }
 
@@ -146,6 +135,7 @@ export async function PATCH(request: Request, { params }: Params) {
       callId: true,
       customerId: true,
       phone: true,
+      job: { select: { id: true } },
       firstContactedAt: true,
     },
   });
@@ -178,8 +168,9 @@ export async function PATCH(request: Request, { params }: Params) {
   const phoneChanged =
     body.phone &&
     normalizePhone(body.phone) !== normalizePhone(existing.phone);
+  let linkedCustomerId = existing.customerId;
   if (body.phone && (!existing.customerId || phoneChanged)) {
-    await linkTouchToCustomer({
+    const customer = await linkTouchToCustomer({
       businessId: business.id,
       leadId: id,
       callId: existing.callId ?? undefined,
@@ -188,6 +179,7 @@ export async function PATCH(request: Request, { params }: Params) {
       address: body.address,
       notes: body.notes,
     });
+    linkedCustomerId = customer?.id ?? linkedCustomerId;
   } else if (existing.customerId) {
     await prisma.customer.update({
       where: { id: existing.customerId },
@@ -199,6 +191,13 @@ export async function PATCH(request: Request, { params }: Params) {
     });
   }
 
+  if (phoneChanged && linkedCustomerId && existing.job) {
+    await prisma.job.update({
+      where: { id: existing.job.id },
+      data: { customerId: linkedCustomerId },
+    });
+  }
+
   const qualificationChanged = Boolean(
     body.phone ||
       body.serviceType ||
@@ -206,8 +205,16 @@ export async function PATCH(request: Request, { params }: Params) {
       body.urgency,
   );
   const autoBook =
-    qualificationChanged && !terminal
+    qualificationChanged && !terminal && !existing.job
       ? await maybeAutoBookLead(id)
+      : null;
+  const depositRecovery =
+    qualificationChanged && !terminal && existing.job
+      ? await ensureBookingDepositForJob({
+          businessId: business.id,
+          leadId: id,
+          jobId: existing.job.id,
+        })
       : null;
   const lead = await prisma.lead.findFirst({
     where: { id, businessId: business.id },
@@ -217,5 +224,6 @@ export async function PATCH(request: Request, { params }: Params) {
   return NextResponse.json({
     lead: lead ? serializeLead(lead) : null,
     autoBook,
+    depositRecovery,
   });
 }
