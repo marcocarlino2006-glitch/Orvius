@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
+import { OsIcon, type OsIconName } from "@/components/os-icons";
 import { pricing } from "@/lib/company";
 import { supportEmail, supportMailto } from "@/lib/support";
 
@@ -23,6 +24,7 @@ type AccountData = {
 type MenuItem = {
   href: string;
   label: string;
+  icon: OsIconName;
   hint?: string;
 };
 
@@ -32,8 +34,18 @@ type MenuItem = {
   fourth copy of itself in the sidebar.
 */
 const accountLinks: MenuItem[] = [
-  { href: "/dashboard/profile", label: "Profile", hint: "You & your shop" },
-  { href: "/dashboard/settings", label: "Settings", hint: "Line, alerts & plan" },
+  {
+    href: "/dashboard/profile",
+    label: "Profile",
+    icon: "profile",
+    hint: "You and your shop",
+  },
+  {
+    href: "/dashboard/settings",
+    label: "Settings",
+    icon: "settings",
+    hint: "Line, alerts and plan",
+  },
 ];
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
@@ -64,6 +76,7 @@ export function OsSidebarFooter() {
   const [open, setOpen] = useState(false);
   const [account, setAccount] = useState<AccountData | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
 
   useEffect(() => {
@@ -85,7 +98,31 @@ export function OsSidebarFooter() {
     }
 
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
+      const panel = rootRef.current?.querySelector<HTMLElement>('[role="menu"]');
+      const items = panel
+        ? Array.from(panel.querySelectorAll<HTMLElement>('[role="menuitem"]'))
+        : [];
+      const current = items.indexOf(document.activeElement as HTMLElement);
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        triggerRef.current?.focus();
+      } else if (event.key === "Tab") {
+        setOpen(false);
+      } else if (event.key === "ArrowDown" && items.length) {
+        event.preventDefault();
+        items[(current + 1 + items.length) % items.length]?.focus();
+      } else if (event.key === "ArrowUp" && items.length) {
+        event.preventDefault();
+        items[(current - 1 + items.length) % items.length]?.focus();
+      } else if (event.key === "Home" && items.length) {
+        event.preventDefault();
+        items[0]?.focus();
+      } else if (event.key === "End" && items.length) {
+        event.preventDefault();
+        items[items.length - 1]?.focus();
+      }
     }
 
     document.addEventListener("pointerdown", onPointerDown);
@@ -95,6 +132,10 @@ export function OsSidebarFooter() {
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   if (!session?.user) return null;
 
@@ -114,14 +155,16 @@ export function OsSidebarFooter() {
           role="menu"
           aria-label="Account menu"
         >
-          {/*
-            The button below already carries the avatar, the name and the
-            plan, and the shop name is at the top of the sidebar. Repeating
-            all four here made the popover look like a second account panel
-            rather than a menu, so the header says only the one thing the
-            button has no room for.
-          */}
-          <p className="os-profile-menu-email">{email}</p>
+          <div className="os-profile-menu-account">
+            <span className="os-profile-menu-account-avatar" aria-hidden>
+              {initials(session.user.name, session.user.email)}
+            </span>
+            <span className="os-profile-menu-account-copy">
+              <span className="os-profile-menu-account-name">{name}</span>
+              <span className="os-profile-menu-email">{email}</span>
+            </span>
+            <span className="os-profile-menu-plan">{planLabel}</span>
+          </div>
 
           <div className="os-profile-menu-links">
             {accountLinks.map((item) => (
@@ -132,8 +175,13 @@ export function OsSidebarFooter() {
                 className="os-profile-menu-link"
                 onClick={() => setOpen(false)}
               >
-                <span>{item.label}</span>
-                {item.hint ? <span className="os-profile-menu-hint">{item.hint}</span> : null}
+                <OsIcon name={item.icon} />
+                <span className="os-profile-menu-link-copy">
+                  <span>{item.label}</span>
+                  {item.hint ? (
+                    <span className="os-profile-menu-hint">{item.hint}</span>
+                  ) : null}
+                </span>
               </Link>
             ))}
 
@@ -153,8 +201,20 @@ export function OsSidebarFooter() {
               className="os-profile-menu-link"
               onClick={() => setOpen(false)}
             >
-              <span>Get help</span>
-              <span className="os-profile-menu-hint">{supportEmail}</span>
+              <svg
+                className="os-profile-menu-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M9.8 9a2.35 2.35 0 1 1 3.35 2.12c-.85.42-1.15.96-1.15 1.88" />
+                <path d="M12 16.7h.01" />
+              </svg>
+              <span className="os-profile-menu-link-copy">
+                <span>Help and support</span>
+                <span className="os-profile-menu-hint">{supportEmail}</span>
+              </span>
             </a>
           </div>
 
@@ -162,9 +222,19 @@ export function OsSidebarFooter() {
             <button
               type="button"
               className="os-profile-menu-signout"
+              role="menuitem"
               onClick={() => signOut({ callbackUrl: "/" })}
             >
-              Sign out
+              <svg
+                className="os-profile-menu-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden
+              >
+                <path d="M14 8V5.5A1.5 1.5 0 0 0 12.5 4h-7A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h7a1.5 1.5 0 0 0 1.5-1.5V16" />
+                <path d="M10 12h10M17 9l3 3-3 3" />
+              </svg>
+              <span>Sign out</span>
             </button>
           </div>
         </div>
@@ -172,6 +242,7 @@ export function OsSidebarFooter() {
 
       <button
         type="button"
+        ref={triggerRef}
         className="os-sidebar-user"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -187,7 +258,9 @@ export function OsSidebarFooter() {
           <span className="os-sidebar-user-plan">{planLabel}</span>
         </span>
         <span className="os-profile-menu-chevron" aria-hidden>
-          {open ? "▴" : "▾"}
+          <svg viewBox="0 0 12 12" fill="none">
+            <path d="m3 4.5 3 3 3-3" />
+          </svg>
         </span>
       </button>
     </div>

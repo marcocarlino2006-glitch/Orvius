@@ -57,3 +57,18 @@ test("Settings and loading states use the same owner-system language", () => {
   assert.match(css, /Settings: the same quiet instrument used by Billing/);
   assert.match(css, /\.pro-settings-form > \.pro-panel/);
 });
+
+test("the corner account menu is a complete keyboard-accessible control", () => {
+  const menu = read("src/components/os-sidebar-footer.tsx");
+  const css = read("src/app/globals.css");
+
+  assert.match(menu, /os-profile-menu-account/);
+  assert.match(menu, /<OsIcon name=\{item\.icon\}/);
+  assert.match(menu, /event\.key === "ArrowDown"/);
+  assert.match(menu, /event\.key === "ArrowUp"/);
+  assert.match(menu, /event\.key === "Escape"/);
+  assert.match(menu, /role="menuitem"/);
+  assert.match(css, /width: min\(17\.5rem, calc\(100vw - 1rem\)\)/);
+  assert.match(css, /@keyframes os-account-menu-in/);
+  assert.match(css, /\.os-profile-menu-link:focus-visible/);
+});
