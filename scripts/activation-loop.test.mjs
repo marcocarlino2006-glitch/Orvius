@@ -119,3 +119,21 @@ test("owners can repair incomplete qualification and retry automation", () => {
   assert.match(detail, /Correct call details/);
   assert.match(detail, /retries an unsent\s+booking deposit/);
 });
+
+test("manual quick-book cannot bypass qualification or fail silently", () => {
+  const jobs = readFileSync(
+    new URL("../src/app/api/jobs/route.ts", import.meta.url),
+    "utf8",
+  );
+  const quickBook = readFileSync(
+    new URL("../src/components/today-priority-leads.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(jobs, /isLeadQualifiedForBooking\(lead\)/);
+  assert.match(jobs, /lead_needs_details/);
+  assert.match(jobs, /status: 422/);
+  assert.match(quickBook, /setError\(/);
+  assert.match(quickBook, /role="alert"/);
+  assert.doesNotMatch(quickBook, /detail page fallback/);
+});
