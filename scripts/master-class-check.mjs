@@ -80,12 +80,17 @@ try {
   if (/Multi-b launch gates|LaunchGatesStrip|GoLiveChecklist/.test(settings)) {
     fail(
       "Settings ritual",
-      "Settings still stacks Multi-b / go-live cockpit — collapse to ProSetupHub",
+      "Settings still stacks a second Multi-b / go-live cockpit",
     );
-  } else if (/ProSetupHub/.test(settings)) {
-    pass("Settings ritual", "Single setup hub — no Multi-b cockpit stack");
+  } else if (
+    /Founder phone certification/.test(settings) &&
+    /account\?\.founder/.test(settings) &&
+    /founderCertJson/.test(settings) &&
+    !/<ProSetupHub/.test(settings)
+  ) {
+    pass("Settings ritual", "Quiet founder-only certification — no duplicate setup cockpit");
   } else {
-    fail("Settings ritual", "ProSetupHub missing from Settings");
+    fail("Settings ritual", "Founder certification is not wired through quiet Settings");
   }
 } catch {
   fail("Settings ritual", "settings page missing");

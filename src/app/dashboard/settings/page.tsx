@@ -395,7 +395,10 @@ export default function DashboardSettingsPage() {
           dogfood checklist"), and it was sitting in every owner's Settings.
         */}
         {account?.founder ? (
-          <details className="pro-settings-secondary font-sans">
+          <details
+            id="founder-cert"
+            className="pro-settings-secondary font-sans"
+          >
             <summary>
               Founder phone certification ({certDone}/{FOUNDER_CERT.length})
               {certSaving ? " · saving…" : ""}
