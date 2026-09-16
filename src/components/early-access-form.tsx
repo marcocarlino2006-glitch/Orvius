@@ -35,7 +35,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
           phone: phone || undefined,
           trade: trade || undefined,
           city: city || undefined,
-          plan: "pilot",
+          plan: "pro",
           website,
         }),
       });
@@ -54,10 +54,10 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
     return (
       <div className="success-pop rounded-md border border-live/30 bg-live/10 p-6 text-center">
         <p className="font-sans text-lg font-medium text-live">
-          You&apos;re on the list.
+          Audit request received.
         </p>
         <p className="mt-2 font-sans text-sm text-ash-soft">
-          We&apos;ll email you to schedule the call audit.
+          Next, we&apos;ll email you to schedule the call audit.
         </p>
       </div>
     );

@@ -34,19 +34,33 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const url = query.trim()
-      ? `/api/customers?q=${encodeURIComponent(query.trim())}`
-      : "/api/customers";
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      const url = query.trim()
+        ? `/api/customers?q=${encodeURIComponent(query.trim())}`
+        : "/api/customers";
 
-    setLoading(true);
-    fetch(url)
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to load customers");
-        return res.json();
-      })
-      .then((data) => setCustomers(data.customers ?? []))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+      setLoading(true);
+      setError(null);
+      fetch(url, { signal: controller.signal })
+        .then(async (res) => {
+          if (!res.ok) throw new Error("Failed to load customers");
+          return res.json();
+        })
+        .then((data) => setCustomers(data.customers ?? []))
+        .catch((err) => {
+          if (err instanceof DOMException && err.name === "AbortError") return;
+          setError(err instanceof Error ? err.message : "Failed to load customers");
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoading(false);
+        });
+    }, query ? 250 : 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [query]);
 
   const tally = useMemo(() => {

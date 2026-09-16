@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import type { CarrierId } from "@/lib/carrier-forward";
-import { getShopLine, sendOwnerForwardGuide } from "@/lib/owner-setup";
+import { sendOwnerForwardGuide } from "@/lib/owner-setup";
+import { getShopLine } from "@/lib/owner-setup-state";
 import { requireEntitledSession } from "@/lib/tenant";
 
 const bodySchema = z.object({
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    message: "Setup steps texted to your mobile. Reply DONE when finished.",
+    message:
+      "Setup steps texted. After forwarding, call your Orvius line once; then reply DONE.",
   });
 }

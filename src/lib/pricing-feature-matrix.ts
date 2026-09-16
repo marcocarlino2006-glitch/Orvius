@@ -146,7 +146,7 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
       line: "—",
       pro: "15",
       fleet: "Unlimited",
-      multi: "Custom",
+      multi: "Per location",
     },
   },
   {
@@ -175,7 +175,7 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
       line: "Self-serve",
       pro: "Self-serve",
       fleet: "Self-serve",
-      multi: "Custom playbook",
+      multi: "Guided",
     },
   },
   {
@@ -206,13 +206,12 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
       line: true,
       pro: true,
       fleet: true,
-      multi: "Custom",
+      multi: false,
     },
   },
 ] as const;
 
 export const pricingCompareColumns: readonly PlanId[] = [
-  "pilot",
   "line",
   "pro",
   "fleet",

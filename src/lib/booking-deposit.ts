@@ -9,6 +9,7 @@ import {
 } from "@/lib/platform-fee";
 import { prisma } from "@/lib/prisma";
 import { mintPublicToken } from "@/lib/public-tokens";
+import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
 
@@ -48,6 +49,48 @@ export function resolveDepositAmountCents(
   const amount = business.depositAmountCents;
   if (amount == null || !isDepositAmountValid(amount)) return null;
   return amount;
+}
+
+/**
+ * Whether a change to a shop's deposit settings leaves them coherent.
+ *
+ * Deposits on with no amount resolves to null and collects nothing, so the
+ * settings screen reads as working while every request fails later — at the
+ * point where an owner is already on the phone with a customer. The
+ * combination is refused when it is saved instead.
+ */
+export function validateDepositSettingsChange(params: {
+  current: DepositSettings;
+  next: { depositEnabled?: boolean; depositAmountCents?: number | null };
+}): { ok: true } | { ok: false; error: string } {
+  const { current, next } = params;
+  if (next.depositEnabled === undefined && next.depositAmountCents === undefined) {
+    return { ok: true };
+  }
+
+  const enabled = next.depositEnabled ?? current.depositEnabled;
+  const amountCents =
+    next.depositAmountCents !== undefined
+      ? next.depositAmountCents
+      : current.depositAmountCents;
+
+  if (!enabled) return { ok: true };
+
+  if (amountCents == null) {
+    return {
+      ok: false,
+      error: "Set a deposit amount before turning deposits on.",
+    };
+  }
+
+  if (!isDepositAmountValid(amountCents)) {
+    return {
+      ok: false,
+      error: `Deposit must be between $${(STRIPE_MIN_CHARGE_CENTS / 100).toFixed(2)} and $${MAX_DEPOSIT_CENTS / 100}.`,
+    };
+  }
+
+  return { ok: true };
 }
 
 /** Whether this shop could take a deposit right now, and why not if it can't. */
@@ -95,7 +138,16 @@ export async function createDepositForLead(params: {
       },
       orderBy: { createdAt: "desc" },
     });
-    if (existing) return { deposit: existing, created: false };
+    if (existing) {
+      if (params.jobId && !existing.jobId) {
+        const linked = await prisma.deposit.update({
+          where: { id: existing.id },
+          data: { jobId: params.jobId },
+        });
+        return { deposit: linked, created: false };
+      }
+      return { deposit: existing, created: false };
+    }
   }
 
   const deposit = await prisma.deposit.create({
@@ -131,10 +183,11 @@ export async function sendDepositLink(params: {
   const result = await sendCustomerSms({
     businessId: params.business.id,
     to: params.toPhone,
-    body:
+    body: withSmsOptOutFooter(
       `${params.business.name}: to lock in your appointment, ` +
       `please pay your $${dollars} deposit here: ` +
       depositPayUrl(params.deposit.publicToken),
+    ),
   });
 
   if (result.sent) {
@@ -145,6 +198,94 @@ export async function sendDepositLink(params: {
   }
 
   return result;
+}
+
+export type EnsureBookingDepositResult =
+  | {
+      ok: true;
+      skipped: true;
+      reason: "deposits_off" | "connect_incomplete";
+    }
+  | {
+      ok: true;
+      skipped: false;
+      deposit: Deposit;
+      created: boolean;
+      sms: Awaited<ReturnType<typeof sendDepositLink>> | null;
+    }
+  | {
+      ok: false;
+      error: "business_not_found" | "lead_not_found" | "job_mismatch";
+    };
+
+/**
+ * Close booking → money when the shop explicitly opted in.
+ *
+ * The readiness check is both the consent boundary and the payment-safety
+ * boundary. A retry reuses the same active deposit, links it to the booked job,
+ * and never texts again after a successful delivery.
+ */
+export async function ensureBookingDepositForJob(params: {
+  businessId: string;
+  leadId: string;
+  jobId: string;
+  sendSms?: boolean;
+}): Promise<EnsureBookingDepositResult> {
+  const [business, lead] = await Promise.all([
+    prisma.business.findUnique({
+      where: { id: params.businessId },
+      select: {
+        id: true,
+        name: true,
+        depositEnabled: true,
+        depositAmountCents: true,
+        stripeConnectAccountId: true,
+        stripeConnectChargesEnabled: true,
+        stripeConnectPayoutsEnabled: true,
+        stripeConnectDetailsSubmitted: true,
+      },
+    }),
+    prisma.lead.findFirst({
+      where: { id: params.leadId, businessId: params.businessId },
+      select: {
+        phone: true,
+        job: { select: { id: true } },
+      },
+    }),
+  ]);
+
+  if (!business) return { ok: false, error: "business_not_found" };
+  if (!lead) return { ok: false, error: "lead_not_found" };
+  if (lead.job?.id !== params.jobId) {
+    return { ok: false, error: "job_mismatch" };
+  }
+
+  const readiness = getDepositReadiness(business);
+  if (!readiness.ready) {
+    return { ok: true, skipped: true, reason: readiness.reason };
+  }
+
+  const { deposit, created } = await createDepositForLead({
+    businessId: params.businessId,
+    leadId: params.leadId,
+    jobId: params.jobId,
+    amountCents: readiness.amountCents,
+  });
+
+  let sms: Awaited<ReturnType<typeof sendDepositLink>> | null = null;
+  if (
+    params.sendSms !== false &&
+    lead.phone?.trim() &&
+    !deposit.sentAt
+  ) {
+    sms = await sendDepositLink({
+      business,
+      deposit,
+      toPhone: lead.phone,
+    });
+  }
+
+  return { ok: true, skipped: false, deposit, created, sms };
 }
 
 /**

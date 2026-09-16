@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
 import { LeadQuickActions } from "@/components/lead-quick-actions";
 import { LeadStatusBadge } from "@/components/lead-status-actions";
+import { displayPhone, normalizePhone } from "@/lib/customer";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 
 type LeadInboxCardProps = {
@@ -48,6 +49,9 @@ export function LeadInboxCard({
   */
   const kicker = emergency ? "Emergency" : returning ? "Returning" : null;
   const notable = notableUrgency(urgency);
+  const phoneLabel = phone
+    ? displayPhone(normalizePhone(phone) ?? phone)
+    : null;
   const when = new Date(createdAt).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
@@ -99,7 +103,7 @@ export function LeadInboxCard({
         <p className="lead-rail-sub">
           <b className="lead-rail-need">{service ?? "General inquiry"}</b>
           {channel !== "Call" ? ` · ${channel}` : ""}
-          {phone ? ` · ${phone}` : ""}
+          {phoneLabel ? ` · ${phoneLabel}` : ""}
           {address ? ` · ${address}` : ""}
         </p>
 

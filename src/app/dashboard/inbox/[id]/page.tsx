@@ -4,6 +4,7 @@ import { BookJobForm } from "@/components/book-job-form";
 import { AssignTechButton } from "@/components/assign-tech-button";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
+import { LeadQualificationForm } from "@/components/lead-qualification-form";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
@@ -102,6 +103,9 @@ export default function LeadDetailPage() {
     lead.source === "sms"
       ? "SMS inquiry"
       : `Inbound call · ${lead.business?.name ?? "Orvius"}`;
+  const needsQualification =
+    !lead.phone?.trim() ||
+    (!lead.serviceType?.trim() && !lead.address?.trim());
 
   return (
     <OsShell
@@ -132,6 +136,26 @@ export default function LeadDetailPage() {
 
       <div className="os-detail-grid">
         <div className="os-detail-primary">
+          {!lead.job ? (
+            <ShellPanel title="Complete lead" dense>
+              <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
+                Correct anything the call missed. Saving retries qualification
+                and books automatically when the lead is ready.
+              </p>
+              <LeadQualificationForm
+                leadId={lead.id}
+                lead={lead}
+                onSaved={(values, booked) => {
+                  if (booked) {
+                    window.location.reload();
+                    return;
+                  }
+                  setLead({ ...lead, ...values });
+                }}
+              />
+            </ShellPanel>
+          ) : null}
+
           <OwnerAlertCard
             variant="void"
             lead={{
@@ -178,6 +202,13 @@ export default function LeadDetailPage() {
               >
                 Open job →
               </Link>
+            </ShellPanel>
+          ) : needsQualification ? (
+            <ShellPanel title="Automation" dense>
+              <p className="font-sans text-sm leading-relaxed text-ash">
+                Complete the missing call details. Orvius will qualify the lead
+                and choose the next available appointment automatically.
+              </p>
             </ShellPanel>
           ) : (
             <ShellPanel title="Book this lead" dense>

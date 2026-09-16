@@ -45,7 +45,7 @@ export const institutionalPractices = [
     id: "datadog-slos",
     source: "Datadog",
     practice: "SLOs visible, not hidden in engineering",
-    orvius: "P95 alert latency and shop health on Today — owners see what we see",
+    orvius: "P95 alert latency and shop health in Command — owners see what we see",
   },
   {
     id: "salesforce-onboarding",

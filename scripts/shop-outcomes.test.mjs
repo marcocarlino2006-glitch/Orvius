@@ -105,7 +105,9 @@ test("economics attributes only jobs linked to captured call/SMS demand", async 
 
     const proof = formatWeeklyProof(outcomes, business.name);
     assert.match(proof, /Booked from captured demand: 2/);
-    assert.match(proof, /Estimated value at owner avg ticket: \$1000/);
+    assert.match(proof, /Estimated value at owner avg ticket: \$1,000\.00/);
+    assert.match(proof, /Collected \(recorded payments\): \$0\.00/);
+    assert.match(proof, /Completed-week trend:/);
     assert.match(proof, /context, not attribution/);
     assert.doesNotMatch(proof, /Recovered revenue/);
     assert.doesNotMatch(proof, /via baseline_jobs/);

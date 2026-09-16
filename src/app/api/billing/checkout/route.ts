@@ -4,6 +4,10 @@ import { isPrivilegedRequest } from "@/lib/admin-access";
 import { company } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
 import {
+  canOfferCheckout,
+  getPublicLaunchReadiness,
+} from "@/lib/public-launch-readiness";
+import {
   getAppBaseUrl,
   getBillingReadiness,
   getStripe,
@@ -41,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Billing is not configured yet for this plan. Apply for the pilot and we will send a checkout link after your trial.",
+            "Verified Stripe checkout is not live for this plan yet. Book a call audit and we will confirm availability without collecting payment.",
           ...((await isPrivilegedRequest(request))
             ? { billing: getBillingReadiness() }
             : {}),
@@ -126,6 +130,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  const publicLaunch = getPublicLaunchReadiness();
+  const checkoutVisible = canOfferCheckout(
+    session?.user?.email,
+    publicLaunch.ready,
+  );
   const plans = getPaidPlans().map((plan) => ({
     id: plan.id,
     name: plan.name,
@@ -133,8 +143,12 @@ export async function GET(request: NextRequest) {
     annualPrice: plan.annualPrice ?? null,
     tagline: plan.tagline,
     featured: plan.featured ?? false,
-    checkoutReady: isPlanCheckoutReady(plan.id as PaidPlanId, "month"),
-    checkoutReadyAnnual: isPlanCheckoutReady(plan.id as PaidPlanId, "year"),
+    checkoutReady:
+      checkoutVisible &&
+      isPlanCheckoutReady(plan.id as PaidPlanId, "month"),
+    checkoutReadyAnnual:
+      checkoutVisible &&
+      isPlanCheckoutReady(plan.id as PaidPlanId, "year"),
     configured: isStripePlanConfigured(plan.id as PaidPlanId),
   }));
 
@@ -146,6 +160,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     configured: isStripeConfigured(),
     checkoutReady: isStripeCheckoutConfigured(),
+    selfServeAvailable: publicLaunch.ready,
     plans,
     currency: "usd",
     legalEntity: company.legalName,

@@ -6,9 +6,14 @@ import { PricingFAQ } from "@/components/pricing-faq";
 import { PricingFeatureMatrix } from "@/components/pricing-feature-matrix";
 import { PricingNeedsPicker } from "@/components/pricing-needs-picker";
 import { PricingPlanCard } from "@/components/pricing-plan-card";
-import { pricingPlans, type BillingInterval, type PaidPlanId } from "@/lib/pricing-plans";
+import {
+  getPaidPlans,
+  type BillingInterval,
+  type PaidPlanId,
+} from "@/lib/pricing-plans";
 
 export function PricingPagePlans() {
+  const paidPlans = getPaidPlans();
   const [interval, setInterval] = useState<BillingInterval>("month");
   const [recommendedPlanId, setRecommendedPlanId] = useState<
     PaidPlanId | "multi" | null
@@ -31,7 +36,7 @@ export function PricingPagePlans() {
       </div>
 
       <div className="editorial-wrap tier1-pricing-plans">
-        {pricingPlans.map((plan) => (
+        {paidPlans.map((plan) => (
           <PricingPlanCard
             key={plan.id}
             plan={plan}

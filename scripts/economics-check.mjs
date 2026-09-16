@@ -26,6 +26,9 @@ console.log("\n💰 Orvius economics mastery check\n");
 const requiredFiles = [
   "src/lib/money.ts",
   "src/lib/shop-outcomes.ts",
+  "src/lib/shift-timeline.ts",
+  "src/components/pro-command-outcomes.tsx",
+  "src/components/pro-shift-timeline.tsx",
   "src/components/pro-economics-panel.tsx",
   "src/app/api/shop/weekly-proof/route.ts",
   "src/app/api/account/export/route.ts",
@@ -75,6 +78,17 @@ results.push(
     : fail(`Command shows ${economicsSections} economics sections — the owner reads it twice`),
 );
 
+const outcomeLead = commandSrc.indexOf("<ProCommandOutcomes");
+const shiftTimeline = commandSrc.indexOf("<ProShiftTimeline");
+const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
+results.push(
+  outcomeLead >= 0 &&
+    exceptionBoard > outcomeLead &&
+    shiftTimeline > exceptionBoard
+    ? pass("Command moves from measured outcomes to exceptions to audit trail")
+    : fail("Command must show outcomes, then exceptions, then shift evidence"),
+);
+
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");
 for (const token of [
   /*
@@ -119,4 +133,4 @@ if (blockers > 0) {
   process.exit(1);
 }
 console.log("✅ ECONOMICS: mastery surfaces ready\n");
-console.log("Owner next: set avg ticket + baseline in Settings, then Copy weekly proof on Today.\n");
+console.log("Owner next: set avg ticket + baseline in Settings, then copy weekly proof in Command.\n");

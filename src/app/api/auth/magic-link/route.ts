@@ -7,6 +7,7 @@ import {
   issueMagicLink,
 } from "@/lib/magic-link";
 import { isDevAuthBypassEnabled } from "@/lib/dev-auth";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,24 @@ export type MagicLinkResponse = {
  * "check your inbox" when nothing was sent would strand the operator.
  */
 export async function POST(request: NextRequest) {
+  const limit = rateLimit({
+    key: `magic-link:${clientIp(request)}`,
+    limit: 10,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        sent: false,
+        message: "Too many sign-in requests. Try again later.",
+      } satisfies MagicLinkResponse,
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSec) },
+      },
+    );
+  }
+
   let email = "";
   try {
     const body = (await request.json()) as { email?: unknown };

@@ -95,11 +95,9 @@ function BillingSuccessInner() {
                 Check your email for the Stripe receipt from {company.legalName}.
               </li>
               <li>
-                Confirm leads still flow in{" "}
-                <Link href="/dashboard" className="home-platform-link">
-                  your dashboard
-                </Link>
-                .
+                {state.status === "ok"
+                  ? "Your paid workspace is active."
+                  : "Finish shop setup to provision your dedicated number."}
               </li>
               <li>
                 Need help? Email{" "}
@@ -114,8 +112,15 @@ function BillingSuccessInner() {
             </ol>
 
             <div className="mt-8 tier1-actions">
-              <Link href="/dashboard" className="inst-btn inst-btn-primary">
-                Open dashboard
+              <Link
+                href={
+                  state.status === "ok"
+                    ? "/dashboard"
+                    : `/dashboard/onboarding?session_id=${encodeURIComponent(sessionId ?? "")}`
+                }
+                className="inst-btn inst-btn-primary"
+              >
+                {state.status === "ok" ? "Open dashboard" : "Set up your shop"}
               </Link>
               <Link href="/dashboard/billing" className="inst-btn inst-btn-ghost">
                 Billing details

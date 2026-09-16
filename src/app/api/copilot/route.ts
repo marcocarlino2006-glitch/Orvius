@@ -22,7 +22,7 @@ const cancelSchema = z.object({
   proposalId: z.string().min(1),
 });
 
-/** List open approve-first proposals for Command. */
+/** List open approvals and the recent audit trail for Command. */
 export async function GET() {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
@@ -31,11 +31,21 @@ export async function GET() {
   const planGate = requirePlanModule(business, "ask");
   if ("error" in planGate) return planGate.error;
 
-  const proposals = await prisma.copilotAction.findMany({
-    where: { businessId: business.id, status: "proposed" },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
+  const [proposals, activity] = await Promise.all([
+    prisma.copilotAction.findMany({
+      where: { businessId: business.id, status: "proposed" },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.copilotAction.findMany({
+      where: {
+        businessId: business.id,
+        status: { in: ["executed", "cancelled"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+    }),
+  ]);
 
   return NextResponse.json({
     proposals: proposals.map((p) => ({
@@ -43,6 +53,14 @@ export async function GET() {
       action: p.action,
       preview: p.preview,
       createdAt: p.createdAt.toISOString(),
+    })),
+    activity: activity.map((item) => ({
+      id: item.id,
+      action: item.action,
+      preview: item.preview,
+      status: item.status,
+      createdAt: item.createdAt.toISOString(),
+      executedAt: item.executedAt?.toISOString() ?? null,
     })),
   });
 }

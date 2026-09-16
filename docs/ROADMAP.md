@@ -12,8 +12,8 @@
 | Gate | Product | Live reality |
 |------|---------|--------------|
 | Wedge (Summit) | ✅ 8/8 | Line live |
-| Hard paywall | ✅ | Pilot ends; lock screen |
-| Launch gates UI | ✅ | Settings cockpit + Today banners |
+| Paid activation | ✅ code | Paid checkout verified before a self-serve shop line is provisioned |
+| Launch gates UI | ✅ | Command Control center; Settings holds configuration only |
 | Sales machine | ✅ code | Pipeline **empty** — 0 touches |
 | Economics ritual | ✅ surfaces | Baseline + proof **unset** |
 | Ops cron | ✅ vercel.json | Daily 09:00 UTC sweep; webhooks drain the retry ladder in between (Hobby cron limit) |

@@ -5,6 +5,8 @@ import { useEffect, useState, type ReactNode } from "react";
 
 type OnboardingStatus = {
   complete: boolean;
+  provisioned: boolean;
+  ready: boolean;
 };
 
 export function OnboardingGuard({ children }: { children: ReactNode }) {
@@ -27,12 +29,12 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
         const json = (await res.json()) as OnboardingStatus;
         if (cancelled) return;
 
-        if (!json.complete && !onOnboarding) {
+        if (!json.provisioned && !onOnboarding) {
           router.replace("/dashboard/onboarding");
           return;
         }
 
-        if (json.complete && onOnboarding) {
+        if (json.ready && onOnboarding) {
           router.replace("/dashboard");
           return;
         }

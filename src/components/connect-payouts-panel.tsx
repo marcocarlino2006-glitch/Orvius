@@ -93,9 +93,18 @@ export function ConnectPayoutsPanel() {
   if (!data?.configured) {
     return (
       <ShellPanel title="Payouts" dense>
-        <p className="font-sans text-sm leading-relaxed text-ash">
-          Card payments are not configured on this deployment yet.
-        </p>
+        <div className="payment-locked-state font-sans">
+          <span className="payment-state-step" aria-hidden>
+            1
+          </span>
+          <div>
+            <p className="payment-state-title">Payments setup pending</p>
+            <p className="payment-state-copy">
+              Card payments remain off until Orvius finishes the secure payout
+              connection. Your phone service and workspace continue normally.
+            </p>
+          </div>
+        </div>
       </ShellPanel>
     );
   }
@@ -110,7 +119,9 @@ export function ConnectPayoutsPanel() {
       </p>
 
       {error ? (
-        <p className="mt-4 font-sans text-sm text-alarm">{error}</p>
+        <p className="os-own-color panel-action-error mt-4 font-sans text-sm">
+          {error}
+        </p>
       ) : null}
 
       <div className="mt-5">

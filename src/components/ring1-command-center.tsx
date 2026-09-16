@@ -7,22 +7,29 @@ import { AttentionQueue } from "@/components/attention-queue";
 import { ProEmptyState, ProSectionHead } from "@/components/pro-page-chrome";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
-import { ProLineWatch } from "@/components/pro-line-watch";
-import { ProNightWatch, type CoverageState } from "@/components/pro-night-watch";
-import { ProSetupScore } from "@/components/pro-setup-score";
+import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
+import { ProLaunchControl } from "@/components/pro-launch-control";
+import type { CoverageState } from "@/components/pro-night-watch";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
-import { ProTodayAlerts } from "@/components/pro-today-status";
+import { ProShiftTimeline } from "@/components/pro-shift-timeline";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import type { AttentionItem } from "@/lib/attention-types";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
+import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 
 type Ring1Data = {
+  business?: {
+    billingStatus?: string | null;
+    depositEnabled?: boolean;
+    referenceImplementation?: boolean;
+  };
   metrics: {
     newLeads: number;
   };
   outcomes?: ShopOutcomes;
+  shiftTimeline?: ShiftEvent[];
   attention?: AttentionItem[];
   dispatchToday: {
     jobCount: number;
@@ -61,17 +68,28 @@ const REFRESH_MS = 30_000;
 export function Ring1CommandCenter() {
   const [data, setData] = useState<Ring1Data | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { access } = usePlanAccess();
   const canDispatch = access?.canAccess("dispatch") ?? false;
 
   const load = useCallback(async () => {
     try {
       const res = await fetch("/api/ring1");
-      if (!res.ok) return;
+      if (!res.ok) {
+        throw new Error(
+          res.status === 401
+            ? "Your session expired. Sign in again to refresh Command."
+            : "Command could not refresh.",
+        );
+      }
       const json = await res.json();
       setData(json);
+      setLoadError(null);
     } catch {
-      /* keep last good data */
+      setLoadError(
+        "Live refresh is temporarily unavailable. Existing information remains visible.",
+      );
     } finally {
       setLoading(false);
     }
@@ -83,19 +101,12 @@ export function Ring1CommandCenter() {
     return () => clearInterval(interval);
   }, [load]);
 
-  const newLeads = data?.metrics.newLeads ?? 0;
   const attention = data?.attention ?? [];
   const hasDispatchWork =
     canDispatch &&
     Boolean(data?.dispatchToday) &&
     ((data?.dispatchToday.unassigned ?? 0) > 0 ||
       (data?.dispatchToday.jobCount ?? 0) > 0);
-
-  const attentionCoversGates = attention.some((item) =>
-    ["billing_action", "founder_cert", "missing_baseline", "stale_weekly_proof", "alert_failed", "needs_capture"].includes(
-      item.kind,
-    ),
-  );
 
   const empty =
     !loading &&
@@ -105,17 +116,35 @@ export function Ring1CommandCenter() {
     !(data?.health?.stuckPendingAlerts) &&
     !(data?.wedge && !data.wedge.ready);
 
-  /*
-    The board opens the page. A four-tile "Right now" strip used to sit above
-    it restating the rail beside it almost line for line — its alert-speed and
-    last-call tiles were the same sentences as Line watch — and on a quiet
-    shop three of its four tiles were zeros. Four boxes of restated status is
-    not what a command centre should show first.
-  */
   return (
     <section className="ring1-command ring1-cockpit" aria-label="Command">
       <div className="ring1-cockpit-main">
-        <ApproveQueue onChange={load} />
+        {loadError ? (
+          <div className="pro-command-recovery font-sans" role="alert">
+            <div>
+              <strong>Connection needs attention</strong>
+              <span>{loadError}</span>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary text-sm"
+              disabled={refreshing}
+              onClick={async () => {
+                setRefreshing(true);
+                await load();
+                setRefreshing(false);
+              }}
+            >
+              {refreshing ? "Retrying…" : "Try again"}
+            </button>
+          </div>
+        ) : null}
+
+        <ProCommandOutcomes
+          outcomes={data?.outcomes}
+          attentionCount={attention.length}
+          loading={loading}
+        />
 
         <AttentionQueue
           items={attention}
@@ -123,6 +152,16 @@ export function Ring1CommandCenter() {
           technicians={data?.technicians ?? []}
           onAction={load}
         />
+
+        {loading || (data?.shiftTimeline?.length ?? 0) > 0 ? (
+          <ProShiftTimeline
+            events={data?.shiftTimeline ?? []}
+            loading={loading}
+            moneyEnabled={data?.business?.depositEnabled ?? false}
+          />
+        ) : null}
+
+        <ApproveQueue onChange={load} hideWhenEmpty />
 
         {!loading && data?.outcomes ? (
           <ProEconomicsPanel
@@ -162,22 +201,17 @@ export function Ring1CommandCenter() {
       </div>
 
       <aside className="ring1-cockpit-rail" aria-label="Shop status">
-        <ProNightWatch coverage={data?.coverage ?? null} outcomes={data?.outcomes ?? null} />
-        <ProLineWatch health={data?.health ?? null} />
-        <ProSetupScore wedge={data?.wedge ?? null} />
-
-        {!attentionCoversGates ? (
-          <ProTodayAlerts
-            health={data?.health ?? null}
-            wedge={data?.wedge ?? null}
-            newLeads={newLeads}
-            economicsReady={data?.gates?.economicsReady ?? true}
-            proofStale={data?.gates?.proofStale ?? false}
-            certIncomplete={data?.gates?.certIncomplete ?? false}
-            pilotDaysLeft={data?.gates?.pilotDaysLeft ?? null}
-            checkoutReady={data?.gates?.checkoutReady ?? true}
-          />
-        ) : null}
+        <ProLaunchControl
+          wedge={data?.wedge}
+          events={data?.shiftTimeline ?? []}
+          moneyEnabled={data?.business?.depositEnabled ?? false}
+          checkoutReady={data?.gates?.checkoutReady ?? false}
+          billingStatus={data?.business?.billingStatus}
+          referenceImplementation={data?.business?.referenceImplementation}
+          coverage={data?.coverage}
+          health={data?.health}
+          outcomes={data?.outcomes}
+        />
       </aside>
     </section>
   );

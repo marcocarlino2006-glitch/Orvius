@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyOwner } from "@/lib/notifications";
 import { verifyAdminRequest } from "@/lib/env";
+import { isFounderEmail } from "@/lib/founder";
 import { logWarn } from "@/lib/logger";
 import { z } from "zod";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -34,23 +35,12 @@ const patchSchema = z.object({
   lastContactedAt: z.string().datetime().nullable().optional(),
 });
 
-function allowedEmails(): Set<string> {
-  return new Set(
-    (process.env.ORVIUS_AUTH_ALLOWED_EMAILS?.split(",") ?? [])
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean),
-  );
-}
-
-/** Admin key OR signed-in founder (allowed-email list). */
+/** Admin key OR explicitly configured founder. Never every signed-in shop. */
 async function canManageProspects(request: Request) {
   if (verifyAdminRequest(request)) return true;
   const session = await auth();
   const email = session?.user?.email?.toLowerCase();
-  if (!email) return false;
-  const allowed = allowedEmails();
-  if (allowed.size === 0) return true;
-  return allowed.has(email);
+  return isFounderEmail(email);
 }
 
 export async function GET(request: NextRequest) {
@@ -186,15 +176,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, id: "accepted" }, { status: 201 });
     }
 
+    const normalizedEmail = body.email.toLowerCase();
+    const existing = await prisma.waitlistEntry.findUnique({
+      where: { email: normalizedEmail },
+      select: { status: true },
+    });
     const entry = await prisma.waitlistEntry.upsert({
-      where: { email: body.email.toLowerCase() },
+      where: { email: normalizedEmail },
       create: {
-        email: body.email.toLowerCase(),
+        email: normalizedEmail,
         businessName: body.businessName ?? null,
         phone: body.phone ?? null,
         trade: body.trade ?? null,
         city: body.city ?? null,
-        plan: body.plan ?? "pilot",
+        plan: body.plan ?? "pro",
       },
       update: {
         businessName: body.businessName ?? undefined,
@@ -202,6 +197,13 @@ export async function POST(request: NextRequest) {
         trade: body.trade ?? undefined,
         city: body.city ?? undefined,
         plan: body.plan ?? undefined,
+        /*
+          A previously closed owner asking again is a new sales signal. Routine
+          duplicate submissions keep their current pipeline position.
+        */
+        ...(existing?.status === "closed"
+          ? { status: "new", nextActionAt: null }
+          : {}),
       },
     });
 

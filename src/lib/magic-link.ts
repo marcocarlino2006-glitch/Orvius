@@ -3,6 +3,7 @@ import { isEmailAllowed } from "@/lib/auth-allowlist";
 import { company } from "@/lib/company";
 import { getAppUrl } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 /**
  * Passwordless sign-in links.
@@ -29,6 +30,13 @@ export function normalizeEmail(raw: string) {
   return raw.trim().toLowerCase();
 }
 
+export function isMagicLinkEmailAuthorized(
+  email: string,
+  publicSignupReady = getPublicLaunchReadiness().ready,
+) {
+  return publicSignupReady || isEmailAllowed(email);
+}
+
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -44,7 +52,7 @@ export async function issueMagicLink(rawEmail: string): Promise<IssueResult> {
   if (!EMAIL_PATTERN.test(email) || email.length > 254) {
     return { ok: false, reason: "invalid-email" };
   }
-  if (!isEmailAllowed(email)) {
+  if (!isMagicLinkEmailAuthorized(email)) {
     return { ok: false, reason: "not-allowed" };
   }
 
@@ -94,7 +102,9 @@ export async function consumeMagicLink(token: string): Promise<string | null> {
   }
 
   if (record.usedAt || record.expiresAt.getTime() < Date.now()) return null;
-  if (!isEmailAllowed(record.email)) return null;
+  if (!isMagicLinkEmailAuthorized(record.email)) {
+    return null;
+  }
 
   // Conditional update: whoever flips usedAt first wins, so a link replayed in
   // two tabs authenticates exactly once.

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WeeklyTrend } from "@/components/weekly-trend";
-import { formatCents } from "@/lib/money";
+import { formatCents, formatCentsExact } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
 
@@ -70,7 +70,7 @@ export function ProEconomicsPanel({
   const capturedValue = formatCents(
     outcomes.capturedDemandEstimatedValueCents,
   );
-  const collected = formatCents(outcomes.collectedCents);
+  const collected = formatCentsExact(outcomes.collectedCents);
   const pipeline = formatCents(outcomes.estimatedPipelineCents);
 
   const funnel = [
@@ -150,7 +150,7 @@ export function ProEconomicsPanel({
         </div>
         <div>
           <dt>Collected</dt>
-          <dd>{collected ?? "$0"}</dd>
+          <dd>{collected}</dd>
           <p className="pro-economics-hint">Recorded payments in the window</p>
         </div>
         <div>
@@ -161,12 +161,13 @@ export function ProEconomicsPanel({
         <div>
           <dt>Open money</dt>
           <dd>
-            {formatCents(outcomes.openEstimateCents + outcomes.openInvoiceCents) ??
-              "$0"}
+            {formatCentsExact(
+              outcomes.openEstimateCents + outcomes.openInvoiceCents,
+            )}
           </dd>
           <p className="pro-economics-hint">
-            Estimates {formatCents(outcomes.openEstimateCents) ?? "$0"} · invoices{" "}
-            {formatCents(outcomes.openInvoiceCents) ?? "$0"}
+            Estimates {formatCentsExact(outcomes.openEstimateCents)} · invoices{" "}
+            {formatCentsExact(outcomes.openInvoiceCents)}
           </p>
         </div>
       </dl>

@@ -16,15 +16,11 @@ import "./theme-tokens.css";
 const sans = Archivo({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-/*
-  600 and 700 are loaded because the wordmark asks for bold. Without them the
-  browser synthesises it, and a smeared faux-bold is the one place on the page
-  where that is unmissable.
-*/
+/* Machine labels and operational evidence use the monospaced reporting voice. */
 const mono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],

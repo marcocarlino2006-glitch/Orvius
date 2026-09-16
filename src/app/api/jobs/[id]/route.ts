@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
 import { JOB_INCLUDE, isJobStatus, serializeJob, updateJobStatus } from "@/lib/job";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
@@ -26,7 +27,40 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ job: serializeJob(job) });
+  /*
+    Matched on the lead as well as the job, because a deposit asked for during
+    booking is stamped with whichever of the two existed at the time. Keyed on
+    the job alone, an already-paid deposit would look unrequested and the panel
+    would offer to ask the customer for a second one.
+  */
+  const deposit = await prisma.deposit.findFirst({
+    where: {
+      businessId: business.id,
+      OR: [
+        { jobId: job.id },
+        ...(job.leadId ? [{ leadId: job.leadId }] : []),
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json({
+    job: serializeJob(job),
+    deposit: deposit
+      ? {
+          id: deposit.id,
+          amountCents: deposit.amountCents,
+          status: deposit.status,
+          /* The same link the customer is texted, not a rebuilt one. */
+          payUrl: deposit.publicToken
+            ? depositPayUrl(deposit.publicToken)
+            : null,
+          sentAt: deposit.sentAt?.toISOString() ?? null,
+          paidAt: deposit.paidAt?.toISOString() ?? null,
+        }
+      : null,
+    depositReadiness: getDepositReadiness(business),
+  });
 }
 
 export async function PATCH(request: Request, { params }: Params) {

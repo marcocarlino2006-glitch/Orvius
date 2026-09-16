@@ -3,11 +3,9 @@
  * Product never looks “fully live” when cash or counsel gates are red.
  */
 
-import {
-  getBillingReadiness,
-  isAnyPlanCheckoutReady,
-} from "@/lib/billing-readiness";
+import { getBillingReadiness } from "@/lib/billing-readiness";
 import { company } from "@/lib/company";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 export type BulletproofGate = {
   id: string;
@@ -24,6 +22,8 @@ export type BulletproofStatus = {
   fullyReady: boolean;
   /** Safe to claim self-serve paid checkout publicly. */
   checkoutPublicReady: boolean;
+  /** Safe for a stranger to sign up, provision, pay, and receive support mail. */
+  publicSelfServeReady: boolean;
   /** Safe to make formation/legal claims. */
   legalReady: boolean;
   openGates: BulletproofGate[];
@@ -32,10 +32,11 @@ export type BulletproofStatus = {
 
 export function getBulletproofStatus(): BulletproofStatus {
   const billing = getBillingReadiness();
-  const checkoutReady = isAnyPlanCheckoutReady();
+  const launch = getPublicLaunchReadiness();
+  const requirements = launch.requirements;
   const formationReady = Boolean(company.formationStateConfirmed?.trim());
-  const stripeKey = Boolean(process.env.STRIPE_SECRET_KEY?.trim());
-  const webhook = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
+  const stripeKey = billing.config.secretKey;
+  const webhook = billing.config.webhookSecret;
 
   const gates: BulletproofGate[] = [
     {
@@ -50,9 +51,9 @@ export function getBulletproofStatus(): BulletproofStatus {
     {
       id: "stripe_prices",
       label: "Stripe price IDs",
-      ok: checkoutReady,
-      detail: checkoutReady
-        ? "At least one plan can checkout"
+      ok: billing.fullyReady,
+      detail: billing.fullyReady
+        ? "Every paid plan can checkout"
         : "Run npm run stripe:setup after key is set",
       founderOnly: true,
     },
@@ -63,6 +64,55 @@ export function getBulletproofStatus(): BulletproofStatus {
       detail: webhook
         ? "STRIPE_WEBHOOK_SECRET present"
         : "Add webhook at api.orvius.im/api/billing/webhook",
+      founderOnly: true,
+    },
+    {
+      id: "self_serve_signup",
+      label: "Public signup switch",
+      ok: requirements.selfServeEnabled,
+      detail: requirements.selfServeEnabled
+        ? "New owners may enter onboarding"
+        : "Set ORVIUS_SELF_SERVE_SIGNUP=1 only after every launch gate is green",
+      founderOnly: true,
+    },
+    {
+      id: "auth",
+      label: "Production authentication",
+      ok: requirements.authReady,
+      detail: requirements.authReady
+        ? "Google authentication configured"
+        : "AUTH_SECRET and Google OAuth credentials are required",
+      founderOnly: true,
+    },
+    {
+      id: "telephony",
+      label: "Telephony stack",
+      ok:
+        requirements.telephonyReady &&
+        requirements.lineProvisioningReady,
+      detail:
+        requirements.telephonyReady &&
+        requirements.lineProvisioningReady
+          ? "Twilio and Vapi can provision and answer"
+          : "Twilio and Vapi must be complete before public onboarding",
+      founderOnly: true,
+    },
+    {
+      id: "vapi_webhook",
+      label: "Voice webhook authentication",
+      ok: requirements.voiceWebhookReady,
+      detail: requirements.voiceWebhookReady
+        ? "VAPI_WEBHOOK_SECRET present"
+        : "Set VAPI_WEBHOOK_SECRET before accepting public calls",
+      founderOnly: true,
+    },
+    {
+      id: "transactional_email",
+      label: "Transactional email",
+      ok: requirements.emailReady,
+      detail: requirements.emailReady
+        ? "Email sign-in and failover delivery configured"
+        : "Set RESEND_API_KEY for sign-in links and alert failover",
       founderOnly: true,
     },
     {
@@ -88,14 +138,16 @@ export function getBulletproofStatus(): BulletproofStatus {
   ];
 
   const openGates = gates.filter((g) => !g.ok);
-  const checkoutPublicReady = stripeKey && checkoutReady && webhook;
+  const checkoutPublicReady = billing.fullyReady;
   const legalReady = formationReady;
-  const fullyReady = checkoutPublicReady && legalReady;
+  const publicSelfServeReady = launch.ready;
+  const fullyReady = publicSelfServeReady;
 
   return {
     productReady: true,
     fullyReady,
     checkoutPublicReady,
+    publicSelfServeReady,
     legalReady,
     openGates,
     gates,

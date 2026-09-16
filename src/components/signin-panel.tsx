@@ -16,7 +16,13 @@ type Status =
  * vendor we have not integrated — a control that cannot complete a sign-in is
  * worse than an absent one.
  */
-export function SignInPanel({ callbackUrl }: { callbackUrl: string }) {
+export function SignInPanel({
+  callbackUrl,
+  selfServeEnabled = false,
+}: {
+  callbackUrl: string;
+  selfServeEnabled?: boolean;
+}) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
@@ -49,8 +55,11 @@ export function SignInPanel({ callbackUrl }: { callbackUrl: string }) {
       <p className="ov-signin-eyebrow">Shop workspace</p>
       <h1 className="ov-signin-title">Sign in to Orvius.</h1>
       <p className="ov-signin-sub">
-        Use the account connected to your shop. New here?{" "}
-        <a href="/pilot">Book a call audit</a>.
+        {selfServeEnabled
+          ? "New shop or returning owner? Continue to your workspace."
+          : "Use the account connected to your shop. "}
+        {!selfServeEnabled ? <a href="/pilot">Book a call audit</a> : null}
+        {!selfServeEnabled ? "." : null}
       </p>
 
       <button

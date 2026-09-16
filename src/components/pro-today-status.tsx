@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { telHref } from "@/lib/demo-line";
+import { alertFailureRecoveryHint } from "@/lib/owner-alerts";
 import { useBusiness } from "@/lib/use-business";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -126,6 +127,10 @@ export function ProTodayAlerts({
 }: ProTodayAlertsProps) {
   const hasFailures = (health?.failedAlerts24h ?? 0) > 0;
   const hasStuck = (health?.stuckPendingAlerts ?? 0) > 0;
+  const latestFailure = health?.recentFailures?.[0];
+  const recoveryHint = latestFailure
+    ? alertFailureRecoveryHint(latestFailure.error, latestFailure.channel)
+    : null;
   const wedgeIncomplete = wedge && !wedge.ready;
   const showLeads = newLeads > 0;
   const pilotUrgent = pilotDaysLeft != null && pilotDaysLeft <= 7;
@@ -167,8 +172,8 @@ export function ProTodayAlerts({
               {!checkoutReady
                 ? "Stripe not live — cannot collect money"
                 : pilotDaysLeft != null && pilotDaysLeft <= 0
-                  ? "Pilot ended — subscribe to keep the line"
-                  : `Pilot ends in ${pilotDaysLeft} day${pilotDaysLeft === 1 ? "" : "s"}`}
+                  ? "Design-partner access ended — subscribe to keep the line"
+                  : `Design-partner access review in ${pilotDaysLeft} day${pilotDaysLeft === 1 ? "" : "s"}`}
             </p>
             <p className="pro-today-alert-detail">
               Category leaders collect cash. Open billing and close the founder unblock.
@@ -236,9 +241,10 @@ export function ProTodayAlerts({
                 : `${health!.failedAlerts24h} alert${health!.failedAlerts24h === 1 ? "" : "s"} failed`}
             </p>
             <p className="pro-today-alert-detail">
-              {hasStuck
+              {recoveryHint ??
+                (hasStuck
                 ? `${health!.stuckPendingAlerts} alert(s) stuck over 5 minutes.`
-                : "Owner may not have been notified."}
+                : "Owner may not have been notified.")}
             </p>
           </div>
           <Link href="/dashboard/settings" className="btn btn-secondary text-sm">

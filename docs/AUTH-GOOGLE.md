@@ -74,13 +74,15 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 ```
 
-Optional — restrict who can sign in:
+Optional — grant operator/support access to accounts that do not own a shop:
 
 ```bash
 ORVIUS_AUTH_ALLOWED_EMAILS=marco@gmail.com,hello@orvius.im
 ```
 
-Leave empty to allow any Google account (pilot mode).
+An active shop's normalized `Business.ownerEmail` is always authorized. Unknown
+Google accounts are denied even when this variable is empty; the allowlist is an
+explicit override, not the only source of shop-owner access.
 
 ## 3. Flow
 

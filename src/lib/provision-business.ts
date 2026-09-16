@@ -90,6 +90,11 @@ export type ProvisionInput = {
   ownerPhone: string;
   greeting?: string;
   timezone?: string;
+  billing: {
+    customerId: string;
+    subscriptionId: string;
+    planId: string;
+  };
 };
 
 export type ProvisionResult = {
@@ -224,6 +229,12 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
     (shopMustNotUseDemoLine(business) && isDemoPlatformLine(currentLine));
 
   if (!needsLine && currentLine) {
+    /*
+      Existing numbers predate some webhook hardening. Twilio updates are
+      idempotent, so every repair also backfills SMS delivery receipts and the
+      Vapi-outage voice fallback instead of assuming the number is already safe.
+    */
+    await configureSmsWebhook(currentLine);
     await attachAssistantToShopLine({
       phone: currentLine,
       assistantId: business.vapiAssistantId,
@@ -409,12 +420,11 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         twilioPhone: shopLine,
         vapiPhoneNumber: shopLine,
         vapiAssistantId,
-        billingStatus: "pilot",
-        pilotEndsAt: (() => {
-          const d = new Date();
-          d.setDate(d.getDate() + 30);
-          return d;
-        })(),
+        billingStatus: "active",
+        billingPlan: input.billing.planId,
+        stripeCustomerId: input.billing.customerId,
+        stripeSubscriptionId: input.billing.subscriptionId,
+        pilotEndsAt: null,
       },
     });
 
