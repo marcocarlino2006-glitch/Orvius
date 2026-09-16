@@ -15,7 +15,7 @@ import {
 } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type LeadDetail = {
   id: string;
@@ -62,23 +62,35 @@ export default function LeadDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadLead = useCallback(async () => {
     if (!leadId) return;
 
-    Promise.all([
-      fetch(`/api/leads/${leadId}`).then(async (res) => {
+    try {
+      const [data, techData] = await Promise.all([
+        fetch(`/api/leads/${leadId}`).then(async (res) => {
         if (!res.ok) throw new Error("Lead not found");
         return res.json();
       }),
-      fetch("/api/technicians").then((res) => res.json()),
-    ])
-      .then(([data, techData]) => {
-        setLead(data.lead);
-        setCrew((techData.technicians ?? []).map((t: Tech) => ({ id: t.id, name: t.name })));
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+        fetch("/api/technicians").then((res) => res.json()),
+      ]);
+      setLead(data.lead);
+      setCrew(
+        (techData.technicians ?? []).map((t: Tech) => ({
+          id: t.id,
+          name: t.name,
+        })),
+      );
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lead not found");
+    } finally {
+      setLoading(false);
+    }
   }, [leadId]);
+
+  useEffect(() => {
+    void loadLead();
+  }, [loadLead]);
 
   if (loading) {
     return (
@@ -145,13 +157,12 @@ export default function LeadDetailPage() {
               <LeadQualificationForm
                 leadId={lead.id}
                 lead={lead}
-                onSaved={(values, booked) => {
-                  if (booked) {
-                    window.location.reload();
-                    return;
-                  }
-                  setLead({ ...lead, ...values });
-                }}
+                onDraftChange={(values) =>
+                  setLead((current) =>
+                    current ? { ...current, ...values } : current,
+                  )
+                }
+                onSaved={() => void loadLead()}
               />
             </ShellPanel>
           ) : null}
@@ -192,7 +203,7 @@ export default function LeadDetailPage() {
                   <AssignTechButton
                     jobId={lead.job.id}
                     technicians={crew}
-                    onAssigned={() => window.location.reload()}
+                    onAssigned={() => void loadLead()}
                   />
                 </div>
               ) : null}

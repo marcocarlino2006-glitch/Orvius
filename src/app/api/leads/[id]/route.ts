@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { maybeAutoBookLead } from "@/lib/auto-job";
-import { linkTouchToCustomer } from "@/lib/customer";
+import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 import { z } from "zod";
@@ -141,7 +141,13 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const existing = await prisma.lead.findFirst({
     where: { id, businessId: business.id },
-    select: { id: true, callId: true, firstContactedAt: true },
+    select: {
+      id: true,
+      callId: true,
+      customerId: true,
+      phone: true,
+      firstContactedAt: true,
+    },
   });
   if (!existing) {
     return forbiddenResponse();
@@ -169,7 +175,10 @@ export async function PATCH(request: Request, { params }: Params) {
     },
   });
 
-  if (body.phone) {
+  const phoneChanged =
+    body.phone &&
+    normalizePhone(body.phone) !== normalizePhone(existing.phone);
+  if (body.phone && (!existing.customerId || phoneChanged)) {
     await linkTouchToCustomer({
       businessId: business.id,
       leadId: id,
@@ -178,6 +187,15 @@ export async function PATCH(request: Request, { params }: Params) {
       name: body.name,
       address: body.address,
       notes: body.notes,
+    });
+  } else if (existing.customerId) {
+    await prisma.customer.update({
+      where: { id: existing.customerId },
+      data: {
+        name: body.name?.trim(),
+        address: body.address?.trim(),
+        notes: body.notes?.trim(),
+      },
     });
   }
 

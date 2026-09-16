@@ -15,10 +15,12 @@ export function LeadQualificationForm({
   leadId,
   lead,
   onSaved,
+  onDraftChange,
 }: {
   leadId: string;
   lead: EditableLead;
-  onSaved: (lead: EditableLead, booked: boolean) => void;
+  onSaved: (booked: boolean) => void;
+  onDraftChange?: (lead: EditableLead) => void;
 }) {
   const [values, setValues] = useState({
     name: lead.name ?? "",
@@ -30,6 +32,15 @@ export function LeadQualificationForm({
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  function update<K extends keyof typeof values>(
+    key: K,
+    value: (typeof values)[K],
+  ) {
+    const next = { ...values, [key]: value };
+    setValues(next);
+    onDraftChange?.(next);
+  }
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -44,7 +55,7 @@ export function LeadQualificationForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save lead");
       const booked = Boolean(data.autoBook?.created || data.lead?.job);
-      onSaved(values, booked);
+      onSaved(booked);
       setMessage(
         booked
           ? "Lead completed and booked automatically."
@@ -65,9 +76,7 @@ export function LeadQualificationForm({
           <input
             className="input"
             value={values.name}
-            onChange={(event) =>
-              setValues({ ...values, name: event.target.value })
-            }
+            onChange={(event) => update("name", event.target.value)}
           />
         </label>
         <label>
@@ -77,9 +86,7 @@ export function LeadQualificationForm({
             type="tel"
             required
             value={values.phone}
-            onChange={(event) =>
-              setValues({ ...values, phone: event.target.value })
-            }
+            onChange={(event) => update("phone", event.target.value)}
           />
         </label>
         <label>
@@ -88,9 +95,7 @@ export function LeadQualificationForm({
             className="input"
             required
             value={values.serviceType}
-            onChange={(event) =>
-              setValues({ ...values, serviceType: event.target.value })
-            }
+            onChange={(event) => update("serviceType", event.target.value)}
           />
         </label>
         <label>
@@ -98,9 +103,7 @@ export function LeadQualificationForm({
           <select
             className="input"
             value={values.urgency}
-            onChange={(event) =>
-              setValues({ ...values, urgency: event.target.value })
-            }
+            onChange={(event) => update("urgency", event.target.value)}
           >
             <option value="emergency">Emergency</option>
             <option value="same-day">Same day</option>
@@ -115,9 +118,7 @@ export function LeadQualificationForm({
           className="input"
           required
           value={values.address}
-          onChange={(event) =>
-            setValues({ ...values, address: event.target.value })
-          }
+          onChange={(event) => update("address", event.target.value)}
         />
       </label>
       <label>
@@ -126,9 +127,7 @@ export function LeadQualificationForm({
           className="input"
           rows={3}
           value={values.notes}
-          onChange={(event) =>
-            setValues({ ...values, notes: event.target.value })
-          }
+          onChange={(event) => update("notes", event.target.value)}
         />
       </label>
       <div className="lead-qualification-actions">

@@ -100,6 +100,8 @@ test("owners can repair incomplete qualification and retry automation", () => {
     assert.match(route, new RegExp(`${field}:`));
   }
   assert.match(route, /await maybeAutoBookLead\(id\)/);
+  assert.match(route, /!existing\.customerId \|\| phoneChanged/);
   assert.match(form, /Save and continue automation/);
   assert.match(form, /Lead completed and booked automatically/);
+  assert.doesNotMatch(form, /location\.reload/);
 });
