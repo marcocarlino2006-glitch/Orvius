@@ -142,8 +142,8 @@ as a serious early product, not as Toast / Stripe / Linear inevitability.
 |-----|------------------|--------------|-------|
 | Brand-swap test | Unmistakable without the nav | Night-shift claim + live line + **Orvius** brand in hero; Cursor mega-nav removed | **B+** |
 | First viewport budget | Brand + one claim + one CTA group + one dominant artifact | Hero only in first beats — **stats + showcase removed from `/`** | **A−** |
-| Visual system | One era, one letterset, ruthless cohesion | Archivo + Plex Mono is right. **~15k CSS lines** across eras remain | **C+** |
-| Real atmosphere | Product/place/context as the visual idea | Live-call stage is the artifact; night/bay plane still thin | **B−** |
+| Visual system | One era, one letterset, ruthless cohesion | Archivo + Plex Mono. Dead showcase/stats CSS pruned (~19kb); ~14.7k lines remain | **B−** |
+| Real atmosphere | Product/place/context as the visual idea | Full-bleed night hero: copper bloom, board grid, horizon + live console | **A−** |
 | Confidence | Quiet authority (Anthropic/Stripe) | Direct claim + live line; less funnel noise | **B+** |
 | Product shell | Calm utility (Claude/Linear) | OsShell + Command + Ask dock + founder next-gate | **A−** |
 
@@ -167,17 +167,17 @@ requires founder to close cash, cert, outreach, and formation — UI cannot inve
 ### Combined scorecard
 
 ```text
-LOOK     ██████████░░  ~78%  — hero diet + brand signal + trades nav (was ~65%)
-OPERATE  ████████░░░░  ~68%  — next-gate on Command + mastery cockpit (was ~55%)
-MULTI-B  needs both above ~90% with cash + density
+LOOK     ███████████░  ~85%  — night atmosphere + CSS prune + hero diet (was ~78%)
+OPERATE  ████████░░░░  ~68%  — next-gate on Command (founder live gates still open)
+MULTI-B  needs Operate founder gates + density; Look polish remaining is era merge
 ```
 
 Raised by first principles in `docs/FIRST-PRINCIPLES-LOOK-OPERATE.md`:
-- P1–P4 Look: removed stats/showcase from `/`, Orvius brand in hero, Pricing·Audit·About nav
+- P1–P5 Look: stats/showcase removed, brand in hero, trades nav, night sky atmosphere, ~19kb dead CSS pruned
 - O1 Operate: `FounderNextGate` on Command + `/admin/daily`
 
-Still required for ~90%:
-- Look: one CSS era (&lt;8k), night/bay atmosphere pass
+Still required for ~90%+:
+- Look: keep consolidating leftover `mkt-`/`inst-` eras into `ov-`/`os-`
 - Operate: founder closes Stripe · cert · Resend · outreach · formation · Connect · 10 shops
 
 ---

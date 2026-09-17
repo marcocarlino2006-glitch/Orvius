@@ -149,9 +149,9 @@ try {
 // Presence — fail the brand-swap test
 try {
   const hero = read("src/components/home-line-hero.tsx");
+  const liveCall = read("src/components/home-live-call.tsx");
   const statement = read("src/components/home-statement.tsx");
   const company = read("src/lib/company.ts");
-  const preview = read("src/components/home-product-preview.tsx");
   /*
     The hero moved from the mkt-* skin to the ov-* one, so match either prefix.
     What is being asserted is unchanged and is about substance, not selectors:
@@ -163,7 +163,7 @@ try {
     /night shift/i.test(hero) &&
     /DEMO_LINE_DISPLAY/.test(hero) &&
     /(mkt|ov)-hero-live-?line-digit|mkt-hero-live-digit/.test(hero) &&
-    (/(mkt|ov)-hero-stage/.test(hero) || /atmosphere/.test(hero))
+    (/(mkt|ov)-hero-stage/.test(hero) || /atmosphere/.test(hero) || /HomeLiveCall/.test(hero))
   ) {
     pass(
       "Presence hero",
@@ -176,14 +176,14 @@ try {
     );
   }
   if (
-    !/Assigning…/.test(preview) &&
-    (/atmosphere/.test(preview) || /stage/.test(preview))
+    !/Assigning…/.test(liveCall) &&
+    (/ov-console/.test(liveCall) || /atmosphere/.test(liveCall))
   ) {
-    pass("Presence marketing", "Hero product preview never shows Assigning…");
-  } else if (/Assigning…/.test(preview)) {
-    fail("Presence marketing", "home-product-preview still contains Assigning…");
+    pass("Presence marketing", "Live-call console never shows Assigning…");
+  } else if (/Assigning…/.test(liveCall)) {
+    fail("Presence marketing", "home-live-call still contains Assigning…");
   } else {
-    fail("Presence marketing", "stage/atmosphere mode missing from product preview");
+    fail("Presence marketing", "live-call console / atmosphere missing");
   }
   if (
     /Night rules/.test(statement) &&
@@ -230,6 +230,15 @@ try {
     pass("Look brand signal", "Hero carries Orvius as a brand-level signal");
   } else {
     fail("Look brand signal", "Hero must include ov-hero-brand Orvius");
+  }
+  if (
+    /ov-hero--atmosphere/.test(hero) &&
+    /ov-hero-sky/.test(hero) &&
+    /ov-hero-sky-horizon/.test(hero)
+  ) {
+    pass("Look atmosphere", "Hero is a full-bleed night plane with sky layers");
+  } else {
+    fail("Look atmosphere", "Hero must include ov-hero--atmosphere sky layers");
   }
   const nav = read("src/components/premium-nav.tsx");
   if (/Enterprise|nav\.enterprise|\/resources/.test(nav) && /href: "\/product"/.test(nav)) {
