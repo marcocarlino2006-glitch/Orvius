@@ -4,6 +4,7 @@ import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
+import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
 import type {
@@ -40,6 +41,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "urgent_lead",
   "needs_booking",
   "new_lead",
+  "wants_human",
 ]);
 
 /**
@@ -76,6 +78,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 5;
     case "alert_failed":
       return 6;
+    case "wants_human":
+      return emergency ? 7 : 12;
     case "needs_capture":
       return 11;
     case "founder_cert":
@@ -463,7 +467,18 @@ export async function getAttentionQueue(
     let recommendedAction: string;
     let impact: AttentionImpact;
 
-    if (!qualified) {
+    if (leadWantsHuman(lead) && lead.phone?.trim()) {
+      kind = "wants_human";
+      impact = urgent || afterHours ? "critical" : "high";
+      detail = [
+        "Caller asked for a person — call them back now",
+        lead.serviceType,
+        lead.notes,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Call them now";
+    } else if (!qualified) {
       kind = "needs_qualify";
       impact = urgent ? "critical" : "high";
       detail = [

@@ -352,6 +352,16 @@ try {
   } else {
     fail("Cursor tunnel one CTA", "ProLaunchControl must not compete with the banner");
   }
+  const wantsHuman = read("src/lib/lead-wants-human.ts");
+  if (
+    /leadWantsHuman/.test(wantsHuman) &&
+    /wants_human/.test(kinds) &&
+    /Wants you/.test(kinds)
+  ) {
+    pass("Wants-human outcome", "Caller-asked-for-person is a board kind with Call");
+  } else {
+    fail("Wants-human outcome", "wants_human kind + leadWantsHuman detector required");
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }

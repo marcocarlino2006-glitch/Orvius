@@ -15,7 +15,8 @@ export type AttentionKind =
   | "founder_cert"
   | "needs_capture"
   | "open_invoice"
-  | "open_estimate";
+  | "open_estimate"
+  | "wants_human";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -84,6 +85,8 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Invoice";
     case "open_estimate":
       return "Estimate";
+    case "wants_human":
+      return "Wants you";
   }
 }
 
@@ -107,6 +110,7 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
     case "new_lead":
     case "needs_qualify":
     case "overdue_followup":
+    case "wants_human":
       return "call";
     case "needs_booking":
       return "book";
@@ -149,5 +153,6 @@ export const ATTENTION_KINDS: AttentionKind[] = [
   "needs_capture",
   "open_invoice",
   "open_estimate",
+  "wants_human",
 ];
 
