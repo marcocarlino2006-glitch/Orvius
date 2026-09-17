@@ -86,3 +86,68 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Estimate";
   }
 }
+
+/**
+ * Every board kind must resolve to a one-tap strategy.
+ * Craft gates fail if a new kind ships without an owner action.
+ */
+export type AttentionActionStrategy =
+  | "call"
+  | "book"
+  | "assign"
+  | "proof"
+  | "test_alert"
+  | "text_confirm"
+  | "advance_status"
+  | "open";
+
+export function attentionActionStrategy(kind: AttentionKind): AttentionActionStrategy {
+  switch (kind) {
+    case "urgent_lead":
+    case "new_lead":
+    case "needs_qualify":
+    case "overdue_followup":
+      return "call";
+    case "needs_booking":
+      return "book";
+    case "unassigned_job":
+      return "assign";
+    case "stale_weekly_proof":
+      return "proof";
+    case "alert_failed":
+      return "test_alert";
+    case "needs_customer_confirm":
+      return "text_confirm";
+    case "appointment_at_risk":
+      return "advance_status";
+    case "available_tech":
+    case "needs_capture":
+    case "missing_baseline":
+    case "billing_action":
+    case "founder_cert":
+    case "open_invoice":
+    case "open_estimate":
+      return "open";
+  }
+}
+
+export const ATTENTION_KINDS: AttentionKind[] = [
+  "urgent_lead",
+  "new_lead",
+  "needs_qualify",
+  "needs_booking",
+  "needs_customer_confirm",
+  "alert_failed",
+  "overdue_followup",
+  "unassigned_job",
+  "appointment_at_risk",
+  "available_tech",
+  "missing_baseline",
+  "stale_weekly_proof",
+  "billing_action",
+  "founder_cert",
+  "needs_capture",
+  "open_invoice",
+  "open_estimate",
+];
+

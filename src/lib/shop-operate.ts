@@ -69,7 +69,7 @@ export function resolveShopOperateNext(
           ? `${input.failedAlerts} alert${input.failedAlerts === 1 ? "" : "s"} failed in the last day.`
           : `${n} alert${n === 1 ? "" : "s"} stuck in the send queue.`,
       href: "/dashboard/settings",
-      cta: "Fix alerts",
+      cta: "Send test alert",
       tone: "critical",
     };
   }
@@ -118,7 +118,7 @@ export function resolveShopOperateNext(
       title: "Stamp this week’s proof",
       detail: "Copy the weekly proof so recovered demand stays an honest artifact.",
       href: "/dashboard#shop-economics",
-      cta: "Go to proof",
+      cta: "Copy proof",
       tone: "ritual",
     };
   }

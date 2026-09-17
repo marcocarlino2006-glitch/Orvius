@@ -35,8 +35,8 @@ A multi-billion operation is not more dashboards. It is **the next truth is unav
 | **O5 · Measured honesty** | Are we displaying theater or stamps? | Pipeline ≠ collected; cert before claims |
 
 **What raises Operate 55 → ~70 (code):** next-gate on Command, mastery cockpit, honest empty states.  
-**What raises Operate 70 → ~90 (founder):** Stripe $ · Resend · live cert · real outreach · formation · Connect.  
-**What raises Operate 90 → multi-b:** 10 proving shops + weekly proof habit + same-day failure culture.
+**What raises Operate 70 → ~94 (code craft):** shop pulse with inline proof/test-alert, board language, every kind → one-tap strategy, mobile sticky pulse.  
+**What raises Operate ~94 → multi-b:** founder live habit (clear pulse, stamp proof) + Stripe $ · Resend · live cert · outreach · formation · Connect · 10 shops.
 
 ---
 

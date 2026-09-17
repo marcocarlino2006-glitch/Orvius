@@ -156,7 +156,7 @@ as a serious early product, not as Toast / Stripe / Linear inevitability.
 | Owner at 2am | Alert + act without hunting | Attention queue + prove ritual designed for this | **B+** (code) / **?** (live) |
 | Fail closed | Money/auth/cron never soft | Paywall, 401, cron secret, confirm-after-prove | **A−** (code) |
 | Honest money | Pipeline ≠ collected; no fake checkout | Enforced in UI + checks | **A−** (code) |
-| Daily cadence | Same rituals every day | `/admin/daily` + **next-gate on Command** | **A−** tool / **F** habit until founder runs it |
+| Daily cadence | Same rituals every day | Shop operate pulse + `/admin/daily` + Command board language | **A−** tool / habit still founder |
 | Support | Stated SLA matches staffing | Best-effort honesty — correct | **B** |
 | Public claims | Only what works in prod | Manus / bulletproof gates | **A−** (discipline) / red until cash live |
 | Shipping craft | One system, no landfill | CSS eras + leftover marketing CSS | **C+** |
@@ -167,12 +167,17 @@ requires founder to close cash, cert, outreach, and formation — UI cannot inve
 ### Combined scorecard
 
 ```text
-LOOK     ███████████░  ~87%  — night plane + rule motion + try-now bloom
-OPERATE  █████████░░░  ~74%  — owner board language + ritual order (founder live gates yours)
-MULTI-B  your gates (Stripe/cert/etc.) · we keep raising craft
+LOOK     ███████████░  ~87%
+OPERATE  ████████████  ~94% craft  |  residual ~6% = you running it live
+MULTI-B  founder gates still yours (Stripe/cert/etc.)
 ```
 
-Code continues on Look/Operate craft. Founder-only items stay founder-only.
+**Operate craft ceiling (code):** shop pulse with inline proof + test alert, every
+board kind mapped to a one-tap strategy, mobile sticky pulse + 44px actions.
+
+**Residual ~6% (not inventable in code):** daily habit — you actually clear the
+pulse, stamp proof, and keep the live line green. That last slice is operation,
+not UI.
 
 ---
 

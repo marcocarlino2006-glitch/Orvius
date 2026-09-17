@@ -112,7 +112,11 @@ try {
       "needs_capture must be critical with prove + confirm copy",
     );
   }
-  if (/canTestAlert|TestAlertButton/.test(ui) && /alert_failed/.test(ui)) {
+  if (
+    /TestAlertButton/.test(ui) &&
+    (/alert_failed/.test(ui) ||
+      (/attentionActionStrategy/.test(ui) && /canTestAlert/.test(ui)))
+  ) {
     pass("Attention alert action", "Failed alerts expose Send test alert");
   } else {
     fail(
@@ -283,7 +287,6 @@ try {
   }
   const board = read("src/components/attention-queue.tsx");
   if (/exception|exceptions/.test(board) && /attention-queue-title/.test(board)) {
-    // title line must not say exceptions
     const titleBlock = board.match(/attention-queue-title[\s\S]{0,120}/)?.[0] ?? "";
     if (/exception/i.test(titleBlock)) {
       fail("Operate board language", "Attention title still says exceptions");
@@ -294,6 +297,22 @@ try {
     pass("Operate board language", "Board title uses items / need you");
   } else {
     fail("Operate board language", "Attention board must speak owner language");
+  }
+  const banner = read("src/components/shop-operate-banner.tsx");
+  if (
+    /copyWeeklyProofRitual/.test(banner) &&
+    /test-alert/.test(banner) &&
+    /runInline/.test(banner)
+  ) {
+    pass("Operate one-tap rituals", "Proof + test alert finish in the shop pulse");
+  } else {
+    fail("Operate one-tap rituals", "ShopOperateBanner must inline proof and test alert");
+  }
+  const kinds = read("src/lib/attention-types.ts");
+  if (/ATTENTION_KINDS/.test(kinds) && /attentionActionStrategy/.test(kinds)) {
+    pass("Operate action map", "Every attention kind maps to a one-tap strategy");
+  } else {
+    fail("Operate action map", "attention-types missing ATTENTION_KINDS / strategy map");
   }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));

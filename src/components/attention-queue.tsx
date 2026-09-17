@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  attentionActionStrategy,
   attentionKindLabel,
   type AttentionItem,
 } from "@/lib/attention-types";
@@ -21,49 +22,51 @@ type AttentionQueueProps = {
 };
 
 function canCall(item: AttentionItem) {
+  const strategy = attentionActionStrategy(item.kind);
   return Boolean(
     item.meta?.phone &&
-      (item.kind === "urgent_lead" ||
-        item.kind === "new_lead" ||
-        item.kind === "needs_qualify" ||
-        item.kind === "needs_booking" ||
-        item.kind === "overdue_followup" ||
-        item.kind === "needs_customer_confirm" ||
-        item.kind === "appointment_at_risk"),
+      (strategy === "call" ||
+        strategy === "book" ||
+        strategy === "text_confirm" ||
+        strategy === "advance_status"),
   );
 }
 
 function canBook(item: AttentionItem) {
+  const strategy = attentionActionStrategy(item.kind);
   return (
-    (item.kind === "needs_booking" ||
-      item.kind === "urgent_lead" ||
-      item.kind === "overdue_followup") &&
+    (strategy === "book" || item.kind === "urgent_lead" || item.kind === "overdue_followup") &&
     item.entityType === "lead"
   );
 }
 
 function canAssign(item: AttentionItem) {
-  return item.kind === "unassigned_job" && item.entityType === "job";
+  return (
+    attentionActionStrategy(item.kind) === "assign" && item.entityType === "job"
+  );
 }
 
 function canTextConfirm(item: AttentionItem) {
-  return item.kind === "needs_customer_confirm" && item.entityType === "job";
+  return (
+    attentionActionStrategy(item.kind) === "text_confirm" &&
+    item.entityType === "job"
+  );
 }
 
 function canAdvanceStatus(item: AttentionItem) {
   return (
-    item.kind === "appointment_at_risk" &&
+    attentionActionStrategy(item.kind) === "advance_status" &&
     item.entityType === "job" &&
     Boolean(item.meta?.status)
   );
 }
 
 function canCopyProof(item: AttentionItem) {
-  return item.kind === "stale_weekly_proof";
+  return attentionActionStrategy(item.kind) === "proof";
 }
 
 function canTestAlert(item: AttentionItem) {
-  return item.kind === "alert_failed";
+  return attentionActionStrategy(item.kind) === "test_alert";
 }
 
 function TestAlertButton({ onDone }: { onDone?: () => void }) {
@@ -375,7 +378,10 @@ export function AttentionQueue({
                     />
                   ) : null}
                   {hasPrimary ? null : (
-                    <Link href={item.href} className="attention-item-btn attention-item-btn-primary">
+                    <Link
+                      href={item.href}
+                      className="attention-item-btn attention-item-btn-primary"
+                    >
                       {item.recommendedAction}
                     </Link>
                   )}
@@ -391,7 +397,7 @@ export function AttentionQueue({
           className="attention-queue-more font-sans"
           onClick={() => setExpanded(true)}
         >
-          Show {items.length - visibleItems.length} more exceptions
+          Show {items.length - visibleItems.length} more on the board
         </button>
       ) : expanded && items.length > 5 ? (
         <button

@@ -12279,3 +12279,27 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   line-height: 1.45;
   color: var(--ash, #888);
 }
+
+.shop-operate-banner-note {
+  margin: 0.45rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--live-text, #1a9b6e);
+}
+@media (max-width: 720px) {
+  .shop-operate-banner {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin-bottom: 0.85rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+  .shop-operate-banner .btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+}
