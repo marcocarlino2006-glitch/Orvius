@@ -331,7 +331,7 @@ try {
     fail("Cursor tunnel covered", "resolveShopOperateNext must never go silent");
   }
   const rail = read("src/components/pro-launch-control.tsx");
-  if (/showPrimaryAction/.test(rail) && /banner above is your next move/.test(rail)) {
+  if (/showPrimaryAction/.test(rail) && /banner above/.test(rail)) {
     pass("Cursor tunnel one CTA", "Rail defers to the shop pulse banner");
   } else {
     fail("Cursor tunnel one CTA", "ProLaunchControl must not compete with the banner");

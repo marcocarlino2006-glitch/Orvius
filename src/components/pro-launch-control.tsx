@@ -54,7 +54,8 @@ export function ProLaunchControl({
       : "Design partner";
   const caught = outcomes?.afterHoursLeads ?? 0;
   const booked = outcomes?.afterHoursBooked ?? 0;
-  const showPrimaryAction = atRisk || Boolean(nextSetup);
+  // Banner owns alerts + board next; rail only acts for unfinished setup.
+  const showPrimaryAction = !atRisk && Boolean(nextSetup);
   const actionHref = atRisk
     ? "/dashboard/settings"
     : nextSetup?.actionHref ?? "/dashboard#attention-board";
