@@ -25,4 +25,5 @@ test("critical night paths resolve to direct actions not only open", () => {
   assert.equal(attentionActionStrategy("wants_human"), "call");
   assert.equal(attentionActionStrategy("partial_capture"), "call");
   assert.equal(attentionActionStrategy("alert_unacked"), "call");
+  assert.equal(attentionActionStrategy("concurrent_calls"), "open");
 });

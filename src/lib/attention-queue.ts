@@ -4,6 +4,10 @@ import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
+import {
+  concurrentCallsImpact,
+  concurrentCallsRecommendedAction,
+} from "@/lib/concurrent-calls";
 import { isOwnerAlertUnacked } from "@/lib/owner-alert-unacked";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
@@ -47,6 +51,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "wants_human",
   "partial_capture",
   "alert_unacked",
+  "concurrent_calls",
 ]);
 
 /**
@@ -89,6 +94,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return emergency ? 8 : 15;
     case "alert_unacked":
       return emergency ? 7 : 13;
+    case "concurrent_calls":
+      return 4;
     case "not_a_job":
       return 55;
     case "needs_capture":
@@ -141,7 +148,7 @@ export async function getAttentionQueue(
 
   const weekAgo = new Date(now.getTime() - WEEK_MS);
 
-  const [newLeads, activeJobs, crew, business, failedAlerts, deliveredAlerts, weekTraffic] =
+  const [newLeads, activeJobs, crew, business, failedAlerts, deliveredAlerts, liveCalls, weekTraffic] =
     await Promise.all([
       prisma.lead.findMany({
         where: { businessId, status: { in: ["new", "contacted"] } },
@@ -212,6 +219,16 @@ export async function getAttentionQueue(
           leadId: true,
           createdAt: true,
           channel: true,
+        },
+      }),
+      prisma.call.findMany({
+        where: { businessId, status: "in-progress" },
+        take: 8,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          callerPhone: true,
+          createdAt: true,
         },
       }),
       // Whether there is anything to prove this week at all.
@@ -485,6 +502,48 @@ export async function getAttentionQueue(
       entityType: alert.leadId ? "lead" : "shop",
       entityId: alert.leadId ?? businessId,
       createdAt: alert.createdAt.toISOString(),
+    });
+  }
+
+  if (liveCalls.length >= 2) {
+    const overflowOk = Boolean(business?.overflowForwardConfirmedAt);
+    items.push({
+      id: `concurrent_calls:${businessId}`,
+      kind: "concurrent_calls",
+      rank: kindRank("concurrent_calls", null, afterHours),
+      impact: concurrentCallsImpact(liveCalls.length, afterHours) ?? "critical",
+      title: `${liveCalls.length} calls live`,
+      detail: overflowOk
+        ? "Line is handling more than one caller — watch the board for every capture."
+        : "Line is busy with more than one caller — confirm overflow forward so second callers don’t hit voicemail.",
+      recommendedAction: concurrentCallsRecommendedAction(
+        liveCalls.length,
+        overflowOk,
+      ),
+      href: overflowOk ? "/dashboard/calls" : "/dashboard/onboarding",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: liveCalls[0]?.createdAt.toISOString() ?? now.toISOString(),
+      meta: {
+        phone: liveCalls[0]?.callerPhone ?? null,
+      },
+    });
+  } else if (liveCalls.length === 1) {
+    items.push({
+      id: `concurrent_calls:${liveCalls[0].id}`,
+      kind: "concurrent_calls",
+      rank: kindRank("concurrent_calls", null, afterHours) + 2,
+      impact: concurrentCallsImpact(1, afterHours) ?? "med",
+      title: "Call in progress",
+      detail: liveCalls[0].callerPhone
+        ? `Live now · ${liveCalls[0].callerPhone}`
+        : "A caller is on the line right now.",
+      recommendedAction: concurrentCallsRecommendedAction(1, true),
+      href: `/dashboard/calls/${liveCalls[0].id}`,
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: liveCalls[0].createdAt.toISOString(),
+      meta: { phone: liveCalls[0].callerPhone },
     });
   }
 

@@ -19,7 +19,8 @@ export type AttentionKind =
   | "wants_human"
   | "not_a_job"
   | "partial_capture"
-  | "alert_unacked";
+  | "alert_unacked"
+  | "concurrent_calls";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -96,6 +97,8 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Partial";
     case "alert_unacked":
       return "Unacked";
+    case "concurrent_calls":
+      return "Line busy";
   }
 }
 
@@ -138,6 +141,7 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
       return "advance_status";
     case "not_a_job":
       return "dismiss";
+    case "concurrent_calls":
     case "available_tech":
     case "needs_capture":
     case "missing_baseline":
@@ -171,5 +175,6 @@ export const ATTENTION_KINDS: AttentionKind[] = [
   "not_a_job",
   "partial_capture",
   "alert_unacked",
+  "concurrent_calls",
 ];
 

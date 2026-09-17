@@ -388,6 +388,22 @@ try {
   } else {
     fail("Alert-unacked outcome", "alert_unacked kind + detector required");
   }
+  const concurrent = read("src/lib/concurrent-calls.ts");
+  const queue = read("src/lib/attention-queue.ts");
+  if (
+    /concurrentCallsImpact/.test(concurrent) &&
+    /concurrent_calls/.test(kinds) &&
+    /Line busy/.test(kinds) &&
+    /status: "in-progress"/.test(queue) &&
+    /liveCalls/.test(queue)
+  ) {
+    pass("Concurrent-calls outcome", "Live line density surfaces as Line busy");
+  } else {
+    fail(
+      "Concurrent-calls outcome",
+      "concurrent_calls kind + liveCalls query + helpers required",
+    );
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }
