@@ -69,6 +69,57 @@ function canTestAlert(item: AttentionItem) {
   return attentionActionStrategy(item.kind) === "test_alert";
 }
 
+function canDismissNotAJob(item: AttentionItem) {
+  return (
+    attentionActionStrategy(item.kind) === "dismiss" && item.entityType === "lead"
+  );
+}
+
+function MarkNotAJobButton({
+  leadId,
+  onDone,
+}: {
+  leadId: string;
+  onDone?: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function run() {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "spam" }),
+      });
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(data?.error ?? "Could not clear lead");
+      onDone?.();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not clear");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="attention-item-btn attention-item-btn-primary"
+        disabled={busy}
+        onClick={() => void run()}
+      >
+        {busy ? "Clearing…" : "Not a job"}
+      </button>
+      {err ? <span className="attention-item-detail">{err}</span> : null}
+    </>
+  );
+}
+
 function TestAlertButton({ onDone }: { onDone?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -275,6 +326,7 @@ export function AttentionQueue({
           const showTextConfirm = canTextConfirm(item);
           const showAdvance = canAdvanceStatus(item);
           const showTestAlert = canTestAlert(item);
+          const showDismiss = canDismissNotAJob(item);
           const hasPrimary =
             showCall ||
             showBook ||
@@ -282,7 +334,8 @@ export function AttentionQueue({
             showProof ||
             showTextConfirm ||
             showAdvance ||
-            showTestAlert;
+            showTestAlert ||
+            showDismiss;
 
           return (
             <li key={item.id}>
@@ -361,6 +414,12 @@ export function AttentionQueue({
                   {showProof ? <CopyProofButton onDone={() => onAction?.()} /> : null}
                   {showTestAlert ? (
                     <TestAlertButton onDone={() => onAction?.()} />
+                  ) : null}
+                  {showDismiss ? (
+                    <MarkNotAJobButton
+                      leadId={item.entityId}
+                      onDone={() => onAction?.()}
+                    />
                   ) : null}
                   {showTextConfirm ? (
                     <TextConfirmButton

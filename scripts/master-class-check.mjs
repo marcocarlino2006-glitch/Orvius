@@ -353,6 +353,7 @@ try {
     fail("Cursor tunnel one CTA", "ProLaunchControl must not compete with the banner");
   }
   const wantsHuman = read("src/lib/lead-wants-human.ts");
+  const notAJob = read("src/lib/lead-not-a-job.ts");
   if (
     /leadWantsHuman/.test(wantsHuman) &&
     /wants_human/.test(kinds) &&
@@ -361,6 +362,15 @@ try {
     pass("Wants-human outcome", "Caller-asked-for-person is a board kind with Call");
   } else {
     fail("Wants-human outcome", "wants_human kind + leadWantsHuman detector required");
+  }
+  if (
+    /leadIsNotAJob/.test(notAJob) &&
+    /not_a_job/.test(kinds) &&
+    /MarkNotAJobButton/.test(board)
+  ) {
+    pass("Not-a-job outcome", "Spam/OOA/wrong-trade clears with one tap");
+  } else {
+    fail("Not-a-job outcome", "not_a_job kind + MarkNotAJobButton required");
   }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));

@@ -4,6 +4,7 @@ import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
+import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
@@ -80,6 +81,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 6;
     case "wants_human":
       return emergency ? 7 : 12;
+    case "not_a_job":
+      return 55;
     case "needs_capture":
       return 11;
     case "founder_cert":
@@ -467,7 +470,18 @@ export async function getAttentionQueue(
     let recommendedAction: string;
     let impact: AttentionImpact;
 
-    if (leadWantsHuman(lead) && lead.phone?.trim()) {
+    if (leadIsNotAJob(lead)) {
+      kind = "not_a_job";
+      impact = "med";
+      detail = [
+        "Spam, sales, wrong trade, or out of area — clear it off the board",
+        lead.serviceType,
+        lead.notes,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Not a job";
+    } else if (leadWantsHuman(lead) && lead.phone?.trim()) {
       kind = "wants_human";
       impact = urgent || afterHours ? "critical" : "high";
       detail = [
