@@ -567,11 +567,11 @@ h3 {
   opacity: 0.88;
 }
 
-/* Orvius logo — horizontal signal bridge + heavy lowercase wordmark. */
+/* Orvius brand — word alone (Stripe way). Mark is favicon chrome only. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.55em;
+  gap: 0;
   color: var(--void);
   line-height: 1;
 }
@@ -10103,7 +10103,7 @@ body:has(.mkt-page) .shell-header {
   letter-spacing: -0.006em !important;
 }
 
-/* Trademark lockup — original signal bridge + heavy lowercase wordmark. */
+/* Trademark lockup — word alone until a mark earns its place. */
 .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {

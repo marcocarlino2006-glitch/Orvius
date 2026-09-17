@@ -13,13 +13,15 @@ export const typeScale = {
 } as const;
 
 /**
- * Logo lockups:
- * 1) Signal bridge alone (favicon / chrome)
- * 2) Signal bridge + a large, heavy lowercase wordmark.
+ * Brand lockups (Stripe way until a mark earns its place):
+ * 1) Word alone — every product + marketing surface
+ * 2) Signal bridge alone — favicon / OS chrome only
+ *
+ * Sizes are tuned for the word carrying the whole identity (no mark beside it).
  */
 export const logoSizes = {
-  sm: { mark: 22, word: "1.2rem", tracking: "-0.065em" },
-  md: { mark: 28, word: "1.5rem", tracking: "-0.07em" },
-  lg: { mark: 34, word: "1.75rem", tracking: "-0.075em" },
-  xl: { mark: 52, word: "2.75rem", tracking: "-0.08em" },
+  sm: { mark: 22, word: "1.35rem", tracking: "-0.07em" },
+  md: { mark: 28, word: "1.65rem", tracking: "-0.075em" },
+  lg: { mark: 34, word: "1.9rem", tracking: "-0.08em" },
+  xl: { mark: 52, word: "3rem", tracking: "-0.085em" },
 } as const;

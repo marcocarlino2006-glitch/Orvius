@@ -11,12 +11,13 @@ const read = (path) => readFileSync(join(root, path), "utf8");
 
 test("the primary wordmark stays large, heavy, and lowercase", () => {
   assert.equal(brandWordmark, "orvius");
-  assert.equal(logoSizes.lg.word, "1.75rem");
+  assert.equal(logoSizes.lg.word, "1.9rem");
   const logo = read("src/components/orvius-logo.tsx");
   assert.match(logo, /className="orvius-logo-word">\{brandWordmark\}/);
+  assert.match(logo, /wordmarkOnly = true/);
   const publicCss = read("src/app/public-v2.css");
   assert.match(publicCss, /font-weight: 800 !important/);
-  assert.match(publicCss, /font-size: 1\.65rem !important/);
+  assert.match(publicCss, /font-size: 1\.9rem !important/);
 });
 
 test("the split signal bridge stays simple at favicon scale", () => {
@@ -30,12 +31,16 @@ test("the split signal bridge stays simple at favicon scale", () => {
   assert.doesNotMatch(mark, /\bBARS\b|\.map\(/);
 });
 
-test("the public navigation uses the complete trademark lockup", () => {
+test("public surfaces use the word alone — no mark lockup", () => {
+  const logo = read("src/components/orvius-logo.tsx");
+  assert.match(logo, /wordmarkOnly = true/);
+  assert.match(logo, /Stripe-style|the name is/i);
   const nav = read("src/components/premium-nav.tsx");
   assert.equal(
     (nav.match(/<OrviusLogo variant="void" size="lg" \/>/g) ?? []).length,
     2,
   );
-  assert.doesNotMatch(nav, /wordmarkOnly/);
+  const og = read("src/app/opengraph-image.tsx");
+  assert.match(og, /brandWordmark/);
+  assert.doesNotMatch(og, /OrviusMarkGraphic/);
 });
-

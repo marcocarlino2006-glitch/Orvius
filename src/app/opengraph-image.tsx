@@ -1,4 +1,4 @@
-import { OrviusMarkGraphic } from "@/lib/orvius-mark-graphic";
+import { brandWordmark } from "@/lib/brand-typography";
 import { company } from "@/lib/company";
 import { DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { ImageResponse } from "next/og";
@@ -21,19 +21,18 @@ export default function OpenGraphImage() {
           padding: "72px 80px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <OrviusMarkGraphic size={56} variant="dark" />
-          <div
-            style={{
-              display: "flex",
-              fontSize: 28,
-              fontWeight: 600,
-              color: "#f4f6f9",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {company.productName}
-          </div>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 42,
+            fontWeight: 800,
+            color: "#f4f6f9",
+            letterSpacing: "-0.08em",
+            textTransform: "lowercase",
+            lineHeight: 0.9,
+          }}
+        >
+          {brandWordmark}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
