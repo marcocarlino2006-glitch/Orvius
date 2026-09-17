@@ -54,6 +54,7 @@ export function ProLaunchControl({
       : "Design partner";
   const caught = outcomes?.afterHoursLeads ?? 0;
   const booked = outcomes?.afterHoursBooked ?? 0;
+  const showPrimaryAction = atRisk || Boolean(nextSetup);
   const actionHref = atRisk
     ? "/dashboard/settings"
     : nextSetup?.actionHref ?? "/dashboard#attention-board";
@@ -78,7 +79,7 @@ export function ProLaunchControl({
           : coverage?.afterHoursNow
             ? "After hours — the line is watching for you."
             : setupReady
-              ? "Front door is covered. Work the board when something lands."
+              ? "Front door is covered. The banner above is your next move."
               : "Finish front-door setup so night calls have somewhere to go."}
       </p>
 
@@ -154,9 +155,16 @@ export function ProLaunchControl({
         </li>
       </ul>
 
-      <Link href={actionHref} className="btn btn-void pro-control-action">
-        {actionLabel}
-      </Link>
+      {/* One CTA truth: banner owns the red gate; rail only acts when setup/alerts need it. */}
+      {showPrimaryAction ? (
+        <Link href={actionHref} className="btn btn-void pro-control-action">
+          {actionLabel}
+        </Link>
+      ) : (
+        <Link href="/dashboard/ask" className="btn btn-secondary pro-control-action">
+          What should I do?
+        </Link>
+      )}
 
       {referenceImplementation ? (
         <p className="pro-launch-disclosure font-sans">

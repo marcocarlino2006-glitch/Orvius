@@ -60,6 +60,9 @@ test("weekly proof surfaces when the board is clear", () => {
   assert.equal(next?.tone, "ritual");
 });
 
-test("clear shop returns null", () => {
-  assert.equal(resolveShopOperateNext(base), null);
+test("clear shop returns covered — never leave the owner without a next move", () => {
+  const next = resolveShopOperateNext(base);
+  assert.equal(next.id, "covered");
+  assert.equal(next.tone, "ritual");
+  assert.match(next.cta, /Ask/);
 });

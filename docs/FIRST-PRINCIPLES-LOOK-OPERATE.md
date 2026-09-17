@@ -36,6 +36,7 @@ A multi-billion operation is not more dashboards. It is **the next truth is unav
 
 **What raises Operate 55 → ~70 (code):** next-gate on Command, mastery cockpit, honest empty states.  
 **What raises Operate 70 → ~94 (code craft):** shop pulse with inline proof/test-alert, board language, every kind → one-tap strategy, mobile sticky pulse.  
+**What raises Operate toward Cursor-level tunnel:** Ask answers “what should I do now?” from the same next gate; never-null covered state; one CTA truth (banner owns the red gate).  
 **What raises Operate ~94 → multi-b:** founder live habit (clear pulse, stamp proof) + Stripe $ · Resend · live cert · outreach · formation · Connect · 10 shops.
 
 ---

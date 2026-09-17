@@ -53,7 +53,7 @@ const STOP = new Set([
 ]);
 
 export type MemoryHit = {
-  type: "customer" | "job" | "lead" | "call";
+  type: "customer" | "job" | "lead" | "call" | "operate";
   id: string;
   href: string;
   title: string;
@@ -393,7 +393,16 @@ export function composeMemoryAnswer(memory: ShopMemory): string {
   }
 
   const lines = memory.hits.slice(0, 5).map((hit) => {
-    const kind = hit.type === "job" ? "Job" : hit.type === "customer" ? "Customer" : hit.type === "lead" ? "Lead" : "Call";
+    const kind =
+      hit.type === "job"
+        ? "Job"
+        : hit.type === "customer"
+          ? "Customer"
+          : hit.type === "lead"
+            ? "Lead"
+            : hit.type === "operate"
+              ? "Next"
+              : "Call";
     return `${kind}: ${hit.title} — ${hit.summary}`;
   });
 

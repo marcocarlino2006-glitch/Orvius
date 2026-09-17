@@ -314,6 +314,28 @@ try {
   } else {
     fail("Operate action map", "attention-types missing ATTENTION_KINDS / strategy map");
   }
+  const brain = read("src/lib/shop-brain.ts");
+  const askDock = read("src/components/os-ask-dock.tsx");
+  if (
+    (/isNextActionQuestion/.test(brain) || /isNextActionQuestion/.test(operate)) &&
+    /source: "operate"/.test(brain) &&
+    /What should I do now/.test(askDock)
+  ) {
+    pass("Cursor tunnel Ask", "Ask answers what-to-do from the same next gate");
+  } else {
+    fail("Cursor tunnel Ask", "Ask must lead with What should I do now + operate source");
+  }
+  if (/id: "covered"/.test(operate) && /Ask Orvius/.test(operate)) {
+    pass("Cursor tunnel covered", "Clear shop still returns a next move");
+  } else {
+    fail("Cursor tunnel covered", "resolveShopOperateNext must never go silent");
+  }
+  const rail = read("src/components/pro-launch-control.tsx");
+  if (/showPrimaryAction/.test(rail) && /banner above is your next move/.test(rail)) {
+    pass("Cursor tunnel one CTA", "Rail defers to the shop pulse banner");
+  } else {
+    fail("Cursor tunnel one CTA", "ProLaunchControl must not compete with the banner");
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }

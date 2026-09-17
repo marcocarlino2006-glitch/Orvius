@@ -1,6 +1,8 @@
 /**
  * Owner operate next-action — one truth for Command.
  * Founder multi-b gates stay on /admin/daily. This is the shop owner at 6am.
+ *
+ * Cursor tunnel rule: never leave the owner without a next move.
  */
 
 export type ShopOperateTone = "critical" | "attention" | "ritual";
@@ -52,13 +54,43 @@ const SETUP_COPY: Record<
   },
 };
 
+const COVERED: ShopOperateNext = {
+  id: "covered",
+  title: "You’re covered",
+  detail:
+    "Nothing needs you right now. The line is watching — Ask if you’re unsure what to do next.",
+  href: "/dashboard/ask",
+  cta: "Ask Orvius",
+  tone: "ritual",
+};
+
+/** Cursor tunnel — owner asks what to do; same next gate as Command. */
+export function isNextActionQuestion(question: string): boolean {
+  const q = question.toLowerCase().trim();
+  if (!q) return false;
+  return (
+    q.includes("what should i") ||
+    q.includes("what do i") ||
+    q.includes("what next") ||
+    q.includes("what's next") ||
+    q.includes("whats next") ||
+    q.includes("do now") ||
+    q.includes("need me") ||
+    q.includes("next on the shop") ||
+    q === "help" ||
+    q === "what now" ||
+    q.includes("what needs")
+  );
+}
+
 /**
  * Resolve the single next owner action. Order is load-bearing:
- * coverage faults → setup → critical board → weekly proof ritual.
+ * coverage faults → setup → critical board → weekly proof → covered.
+ * Always returns a move (Cursor tunnel).
  */
 export function resolveShopOperateNext(
   input: ShopOperateInput,
-): ShopOperateNext | null {
+): ShopOperateNext {
   if (input.failedAlerts > 0 || input.stuckAlerts > 0) {
     const n = input.failedAlerts || input.stuckAlerts;
     return {
@@ -123,5 +155,5 @@ export function resolveShopOperateNext(
     };
   }
 
-  return null;
+  return COVERED;
 }
