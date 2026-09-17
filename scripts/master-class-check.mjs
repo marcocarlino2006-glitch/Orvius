@@ -261,12 +261,39 @@ try {
   }
   const dash = read("src/app/dashboard/page.tsx");
   if (
-    dash.indexOf("<OwnerSetupBanner") < dash.indexOf("<Ring1CommandCenter") &&
-    dash.indexOf("<FounderNextGate") < dash.indexOf("<OwnerSetupBanner")
+    dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
+    dash.indexOf("<FounderNextGate") < dash.indexOf("<ShopOperateBanner")
   ) {
-    pass("Operate ritual order", "Next-gate → setup → Command");
+    pass("Operate ritual order", "Next-gate → shop operate → Command");
   } else {
-    fail("Operate ritual order", "Dashboard must order FounderNextGate → OwnerSetup → Command");
+    fail(
+      "Operate ritual order",
+      "Dashboard must order FounderNextGate → ShopOperateBanner → Command",
+    );
+  }
+  const operate = read("src/lib/shop-operate.ts");
+  if (
+    /resolveShopOperateNext/.test(operate) &&
+    /failedAlerts/.test(operate) &&
+    /weekly-proof/.test(operate)
+  ) {
+    pass("Operate next resolver", "shop-operate resolves alerts → setup → board → proof");
+  } else {
+    fail("Operate next resolver", "src/lib/shop-operate.ts missing load-bearing next logic");
+  }
+  const board = read("src/components/attention-queue.tsx");
+  if (/exception|exceptions/.test(board) && /attention-queue-title/.test(board)) {
+    // title line must not say exceptions
+    const titleBlock = board.match(/attention-queue-title[\s\S]{0,120}/)?.[0] ?? "";
+    if (/exception/i.test(titleBlock)) {
+      fail("Operate board language", "Attention title still says exceptions");
+    } else {
+      pass("Operate board language", "Board title uses items / need you");
+    }
+  } else if (/items need you|Board is clear/.test(board)) {
+    pass("Operate board language", "Board title uses items / need you");
+  } else {
+    fail("Operate board language", "Attention board must speak owner language");
   }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));

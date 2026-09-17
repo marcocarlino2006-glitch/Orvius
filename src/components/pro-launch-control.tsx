@@ -56,17 +56,17 @@ export function ProLaunchControl({
   const booked = outcomes?.afterHoursBooked ?? 0;
   const actionHref = atRisk
     ? "/dashboard/settings"
-    : nextSetup?.actionHref ?? "/dashboard/calls";
+    : nextSetup?.actionHref ?? "/dashboard#attention-board";
   const actionLabel = atRisk
-    ? "Fix coverage"
+    ? "Fix owner alerts"
     : nextSetup
       ? nextSetup.label
-      : "Review calls";
+      : "Open the board";
 
   return (
     <section className="pro-rail-card pro-launch-control pro-control-center">
       <div className="pro-rail-card-head">
-        <p className="pro-rail-card-title font-sans">Control center</p>
+        <p className="pro-rail-card-title font-sans">Shop pulse</p>
         <span className={`pro-rail-status pro-rail-status-${status}`}>
           {statusLabel}
         </span>
@@ -74,10 +74,12 @@ export function ProLaunchControl({
 
       <p className="pro-control-lead font-sans">
         {atRisk
-          ? "Owner coverage needs attention."
+          ? "Owner alerts need a fix before the night shift is trustworthy."
           : coverage?.afterHoursNow
-            ? "The line is watching the shop now."
-            : "The front desk is monitored and ready."}
+            ? "After hours — the line is watching for you."
+            : setupReady
+              ? "Front door is covered. Work the board when something lands."
+              : "Finish front-door setup so night calls have somewhere to go."}
       </p>
 
       <dl className="pro-control-pulse">
@@ -121,7 +123,7 @@ export function ProLaunchControl({
             }`}
             aria-hidden
           />
-          <span className="pro-rail-row-label font-sans">Front-door proof</span>
+          <span className="pro-rail-row-label font-sans">Line proof</span>
           <span className="pro-rail-row-value font-sans">
             {setupTotal ? `${setupDone}/${setupTotal}` : "Loading"}
           </span>

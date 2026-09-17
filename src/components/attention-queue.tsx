@@ -217,7 +217,7 @@ export function AttentionQueue({
         <p className="attention-queue-kicker type-eyebrow font-sans">On the board</p>
         <h2 className="attention-queue-title font-sans">Board is clear</h2>
         <p className="attention-queue-empty font-sans">
-          No urgent leads, open jobs, or overdue follow-ups. Outcomes below track the week.
+          No urgent leads, open jobs, or overdue follow-ups right now.
         </p>
       </section>
     );
@@ -243,9 +243,9 @@ export function AttentionQueue({
     >
       <header className="attention-queue-head font-sans">
         <div>
-          <p className="attention-queue-kicker">Priority queue</p>
+          <p className="attention-queue-kicker">On the board</p>
           <h2 className="attention-queue-title">
-            {items.length} {items.length === 1 ? "exception" : "exceptions"}
+            {items.length} {items.length === 1 ? "item" : "items"} need you
           </h2>
         </div>
         <div className="attention-queue-summary" aria-label="Queue summary">
@@ -260,7 +260,7 @@ export function AttentionQueue({
         </div>
       </header>
       <p className="attention-queue-guidance font-sans">
-        Ranked by urgency and customer impact.
+        Ranked for a shop owner in the middle of a shift — urgency first.
       </p>
 
       <ul className="attention-queue-list">

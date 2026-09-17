@@ -116,8 +116,7 @@ export function ProEconomicsPanel({
 
       {stale && !proofOnBoard ? (
         <p className="pro-economics-stale font-sans" role="status">
-          Weekly proof is stale or missing — copy a fresh proof for this week&apos;s
-          design-partner ritual.
+          This week&apos;s proof is due — copy it so you have an honest stamp for the partner.
         </p>
       ) : copiedAt ? (
         <p className="pro-economics-proof-meta font-sans">

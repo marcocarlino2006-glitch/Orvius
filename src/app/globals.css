@@ -12223,3 +12223,59 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* Shop operate banner — owner next action above Command */
+.shop-operate-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.25rem;
+  margin: 0 0 1.15rem;
+  padding: 1rem 1.15rem;
+  border-radius: 10px;
+  border: 1px solid var(--rule, rgba(255, 255, 255, 0.1));
+  background: color-mix(in srgb, var(--panel, #191611) 92%, transparent);
+}
+.shop-operate-banner--critical {
+  border-color: color-mix(in srgb, var(--flare, #ef4444) 40%, var(--rule, #333));
+  background: color-mix(in srgb, var(--flare, #ef4444) 10%, var(--panel, #191611));
+}
+.shop-operate-banner--attention {
+  border-color: color-mix(in srgb, var(--signal, #b8562c) 40%, var(--rule, #333));
+  background: color-mix(in srgb, var(--signal, #b8562c) 10%, var(--panel, #191611));
+}
+.shop-operate-banner--ritual {
+  border-color: color-mix(in srgb, var(--live, #1a9b6e) 35%, var(--rule, #333));
+  background: color-mix(in srgb, var(--live, #1a9b6e) 8%, var(--panel, #191611));
+}
+.shop-operate-banner-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ash, #888);
+}
+.shop-operate-banner--critical .shop-operate-banner-kicker {
+  color: var(--flare-text, #ef4444);
+}
+.shop-operate-banner--attention .shop-operate-banner-kicker {
+  color: var(--signal-text, #b8562c);
+}
+.shop-operate-banner--ritual .shop-operate-banner-kicker {
+  color: var(--live-text, #1a9b6e);
+}
+.shop-operate-banner-title {
+  margin: 0.3rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--chalk, #f3f3f3);
+}
+.shop-operate-banner-detail {
+  margin: 0.3rem 0 0;
+  max-width: 52ch;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ash, #888);
+}
