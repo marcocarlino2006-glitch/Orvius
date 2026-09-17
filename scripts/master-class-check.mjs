@@ -378,6 +378,16 @@ try {
   } else {
     fail("Partial-capture outcome", "partial_capture kind + detector required");
   }
+  const unacked = read("src/lib/owner-alert-unacked.ts");
+  if (
+    /isOwnerAlertUnacked/.test(unacked) &&
+    /alert_unacked/.test(kinds) &&
+    /alertedAtByLead/.test(read("src/lib/attention-queue.ts"))
+  ) {
+    pass("Alert-unacked outcome", "Delivered-but-ignored alerts escalate on the board");
+  } else {
+    fail("Alert-unacked outcome", "alert_unacked kind + detector required");
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }

@@ -4,6 +4,7 @@ import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
+import { isOwnerAlertUnacked } from "@/lib/owner-alert-unacked";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
@@ -45,6 +46,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "new_lead",
   "wants_human",
   "partial_capture",
+  "alert_unacked",
 ]);
 
 /**
@@ -85,6 +87,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return emergency ? 7 : 12;
     case "partial_capture":
       return emergency ? 8 : 15;
+    case "alert_unacked":
+      return emergency ? 7 : 13;
     case "not_a_job":
       return 55;
     case "needs_capture":
@@ -137,69 +141,85 @@ export async function getAttentionQueue(
 
   const weekAgo = new Date(now.getTime() - WEEK_MS);
 
-  const [newLeads, activeJobs, crew, business, failedAlerts, weekTraffic] = await Promise.all([
-    prisma.lead.findMany({
-      where: { businessId, status: { in: ["new", "contacted"] } },
-      take: 40,
-      orderBy: { createdAt: "desc" },
-      include: {
-        job: { select: { id: true, technicianId: true, status: true, scheduledAt: true } },
-      },
-    }),
-    prisma.job.findMany({
-      where: {
-        businessId,
-        status: { in: ["scheduled", "confirmed", "en_route", "on_site"] },
-      },
-      take: 60,
-      orderBy: { scheduledAt: "asc" },
-      include: {
-        customer: { select: { id: true, name: true, phone: true } },
-        lead: { select: { id: true, name: true, phone: true, urgency: true } },
-        technician: { select: { id: true, name: true } },
-      },
-    }),
-    listCrew(businessId),
-    prisma.business.findUnique({
-      where: { id: businessId },
-      select: {
-        avgTicketCents: true,
-        baselineMissedCallsPerWeek: true,
-        baselineJobsPerWeek: true,
-        lastWeeklyProofAt: true,
-        founderCertJson: true,
-        billingStatus: true,
-        pilotEndsAt: true,
-        createdAt: true,
-        overflowForwardConfirmedAt: true,
-        lineVerifiedAt: true,
-        vapiPhoneNumber: true,
-        twilioPhone: true,
-        ownerPhone: true,
-        /* Read to rank: what matters at 2am is not what matters at 2pm. */
-        hoursJson: true,
-        timezone: true,
-      },
-    }),
-    prisma.ownerNotification.findMany({
-      where: { businessId, status: "failed" },
-      take: 12,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        leadId: true,
-        channel: true,
-        error: true,
-        createdAt: true,
-        message: true,
-      },
-    }),
-    // Whether there is anything to prove this week at all.
-    Promise.all([
-      prisma.call.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
-      prisma.lead.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
-    ]).then(([calls, leads]) => calls + leads),
-  ]);
+  const [newLeads, activeJobs, crew, business, failedAlerts, deliveredAlerts, weekTraffic] =
+    await Promise.all([
+      prisma.lead.findMany({
+        where: { businessId, status: { in: ["new", "contacted"] } },
+        take: 40,
+        orderBy: { createdAt: "desc" },
+        include: {
+          job: { select: { id: true, technicianId: true, status: true, scheduledAt: true } },
+        },
+      }),
+      prisma.job.findMany({
+        where: {
+          businessId,
+          status: { in: ["scheduled", "confirmed", "en_route", "on_site"] },
+        },
+        take: 60,
+        orderBy: { scheduledAt: "asc" },
+        include: {
+          customer: { select: { id: true, name: true, phone: true } },
+          lead: { select: { id: true, name: true, phone: true, urgency: true } },
+          technician: { select: { id: true, name: true } },
+        },
+      }),
+      listCrew(businessId),
+      prisma.business.findUnique({
+        where: { id: businessId },
+        select: {
+          avgTicketCents: true,
+          baselineMissedCallsPerWeek: true,
+          baselineJobsPerWeek: true,
+          lastWeeklyProofAt: true,
+          founderCertJson: true,
+          billingStatus: true,
+          pilotEndsAt: true,
+          createdAt: true,
+          overflowForwardConfirmedAt: true,
+          lineVerifiedAt: true,
+          vapiPhoneNumber: true,
+          twilioPhone: true,
+          ownerPhone: true,
+          /* Read to rank: what matters at 2am is not what matters at 2pm. */
+          hoursJson: true,
+          timezone: true,
+        },
+      }),
+      prisma.ownerNotification.findMany({
+        where: { businessId, status: "failed" },
+        take: 12,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          leadId: true,
+          channel: true,
+          error: true,
+          createdAt: true,
+          message: true,
+        },
+      }),
+      prisma.ownerNotification.findMany({
+        where: {
+          businessId,
+          status: "sent",
+          leadId: { not: null },
+          createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        },
+        take: 40,
+        orderBy: { createdAt: "asc" },
+        select: {
+          leadId: true,
+          createdAt: true,
+          channel: true,
+        },
+      }),
+      // Whether there is anything to prove this week at all.
+      Promise.all([
+        prisma.call.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
+        prisma.lead.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
+      ]).then(([calls, leads]) => calls + leads),
+    ]);
 
   const ticket = business?.avgTicketCents ?? null;
 
@@ -213,6 +233,15 @@ export async function getAttentionQueue(
     business?.hoursJson ?? "{}",
     business?.timezone ?? undefined,
   );
+
+  /** Earliest delivered alert per lead — silence after this is the failure. */
+  const alertedAtByLead = new Map<string, Date>();
+  for (const row of deliveredAlerts) {
+    if (!row.leadId) continue;
+    if (!alertedAtByLead.has(row.leadId)) {
+      alertedAtByLead.set(row.leadId, row.createdAt);
+    }
+  }
 
   const items: AttentionItem[] = [];
 
@@ -508,6 +537,26 @@ export async function getAttentionQueue(
         .filter(Boolean)
         .join(" · ");
       recommendedAction = "Call back";
+    } else if (
+      lead.phone?.trim() &&
+      isOwnerAlertUnacked({
+        alertedAt: alertedAtByLead.get(lead.id) ?? new Date(0),
+        firstContactedAt: lead.firstContactedAt,
+        now,
+        afterHours,
+      }) &&
+      alertedAtByLead.has(lead.id)
+    ) {
+      kind = "alert_unacked";
+      impact = urgent || afterHours ? "critical" : "high";
+      detail = [
+        "You were alerted — lead still open. Call them now.",
+        lead.serviceType,
+        lead.address,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Call now";
     } else if (!qualified) {
       kind = "needs_qualify";
       impact = urgent ? "critical" : "high";
