@@ -17,8 +17,8 @@ export default function DashboardPage() {
       }
     >
       <FounderNextGate />
-      <Ring1CommandCenter />
       <OwnerSetupBanner />
+      <Ring1CommandCenter />
     </OsShell>
   );
 }

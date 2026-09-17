@@ -248,6 +248,26 @@ try {
   } else {
     fail("Look nav", "Primary nav must be trades-native (Pricing · Audit · About)");
   }
+  const outcomes = read("src/components/pro-command-outcomes.tsx");
+  if (/exception requires|exceptions require/i.test(outcomes)) {
+    fail(
+      "Operate owner language",
+      "Command outcomes still uses exception jargon for owners",
+    );
+  } else if (/needs you on the board|Board is clear/.test(outcomes)) {
+    pass("Operate owner language", "Command pulse speaks owner language");
+  } else {
+    fail("Operate owner language", "Outcomes footer must use board / needs-you language");
+  }
+  const dash = read("src/app/dashboard/page.tsx");
+  if (
+    dash.indexOf("<OwnerSetupBanner") < dash.indexOf("<Ring1CommandCenter") &&
+    dash.indexOf("<FounderNextGate") < dash.indexOf("<OwnerSetupBanner")
+  ) {
+    pass("Operate ritual order", "Next-gate → setup → Command");
+  } else {
+    fail("Operate ritual order", "Dashboard must order FounderNextGate → OwnerSetup → Command");
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }

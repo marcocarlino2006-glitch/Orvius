@@ -35,7 +35,7 @@ export function ProCommandOutcomes({
 
   return (
     <section
-      className="pro-command-outcomes"
+      className={`pro-command-outcomes${attentionCount > 0 ? " pro-command-outcomes--needs-you" : ""}`}
       aria-label="Work completed by Orvius"
     >
       <header className="pro-command-outcomes-head font-sans">
@@ -82,13 +82,13 @@ export function ProCommandOutcomes({
           <p>
             {attentionCount > 0
               ? `${attentionCount} ${
-                  attentionCount === 1 ? "exception requires" : "exceptions require"
-                } review`
-              : "No exceptions require review"}
+                  attentionCount === 1 ? "item needs" : "items need"
+                } you on the board`
+              : "Board is clear — nothing waiting"}
           </p>
           {attentionCount > 0 ? (
             <a href="#attention-board" className="btn btn-void text-sm">
-              Review {attentionCount} exceptions
+              Open the board
             </a>
           ) : (
             <Link href="/dashboard/calls">Review calls</Link>

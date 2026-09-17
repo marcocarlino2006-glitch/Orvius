@@ -167,18 +167,12 @@ requires founder to close cash, cert, outreach, and formation — UI cannot inve
 ### Combined scorecard
 
 ```text
-LOOK     ███████████░  ~85%  — night atmosphere + CSS prune + hero diet (was ~78%)
-OPERATE  ████████░░░░  ~68%  — next-gate on Command (founder live gates still open)
-MULTI-B  needs Operate founder gates + density; Look polish remaining is era merge
+LOOK     ███████████░  ~87%  — night plane + rule motion + try-now bloom
+OPERATE  █████████░░░  ~74%  — owner board language + ritual order (founder live gates yours)
+MULTI-B  your gates (Stripe/cert/etc.) · we keep raising craft
 ```
 
-Raised by first principles in `docs/FIRST-PRINCIPLES-LOOK-OPERATE.md`:
-- P1–P5 Look: stats/showcase removed, brand in hero, trades nav, night sky atmosphere, ~19kb dead CSS pruned
-- O1 Operate: `FounderNextGate` on Command + `/admin/daily`
-
-Still required for ~90%+:
-- Look: keep consolidating leftover `mkt-`/`inst-` eras into `ov-`/`os-`
-- Operate: founder closes Stripe · cert · Resend · outreach · formation · Connect · 10 shops
+Code continues on Look/Operate craft. Founder-only items stay founder-only.
 
 ---
 

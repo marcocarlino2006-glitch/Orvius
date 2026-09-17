@@ -4316,6 +4316,21 @@ a.pro-shift-event:hover .pro-shift-event-title {
     0 20px 55px -42px rgba(0, 0, 0, 0.95);
 }
 
+/* Operate O1 — when the board needs the owner, make the pulse impossible to miss */
+.pro-command-outcomes--needs-you {
+  border-color: color-mix(in srgb, var(--signal, #b8562c) 45%, rgba(255, 255, 255, 0.08));
+  background:
+    radial-gradient(circle at 8% 0%, rgba(184, 86, 44, 0.18), transparent 42%),
+    radial-gradient(circle at 92% -20%, rgba(224, 133, 90, 0.12), transparent 34%),
+    linear-gradient(145deg, #292722 0%, #24221e 100%);
+}
+
+.pro-command-outcomes--needs-you .pro-command-outcomes-foot {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid color-mix(in srgb, var(--signal, #b8562c) 28%, transparent);
+}
+
 .pro-command-outcomes-head,
 .pro-command-outcomes-foot {
   display: flex;
