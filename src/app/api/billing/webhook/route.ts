@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
 import { fulfillDepositCheckoutSession, failDepositCheckoutSession } from "@/lib/booking-deposit";
-import { fulfillEstimateCheckoutSession } from "@/lib/estimate-pay";
+import { fulfillEstimateCheckoutSession, failEstimateCheckoutSession } from "@/lib/estimate-pay";
 import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
@@ -189,6 +189,8 @@ export async function POST(request: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.metadata?.kind === "booking_deposit") {
           await failDepositCheckoutSession(session);
+        } else if (session.metadata?.kind === "estimate_pay") {
+          await failEstimateCheckoutSession(session);
         }
         break;
       }

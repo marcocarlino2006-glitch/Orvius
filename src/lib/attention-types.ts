@@ -24,7 +24,9 @@ export type AttentionKind =
   | "transcript_dispute"
   | "customer_no_show"
   | "tech_no_show"
-  | "deposit_failed";
+  | "deposit_failed"
+  | "estimate_failed"
+  | "tech_needs_phone";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -111,6 +113,10 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Tech late";
     case "deposit_failed":
       return "Deposit";
+    case "estimate_failed":
+      return "Estimate due";
+    case "tech_needs_phone":
+      return "Tech phone";
   }
 }
 
@@ -142,6 +148,7 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
     case "customer_no_show":
     case "tech_no_show":
     case "deposit_failed":
+    case "estimate_failed":
       return "call";
     case "needs_booking":
       return "book";
@@ -165,6 +172,7 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
     case "founder_cert":
     case "open_invoice":
     case "open_estimate":
+    case "tech_needs_phone":
       return "open";
   }
 }
@@ -196,5 +204,7 @@ export const ATTENTION_KINDS: AttentionKind[] = [
   "customer_no_show",
   "tech_no_show",
   "deposit_failed",
+  "estimate_failed",
+  "tech_needs_phone",
 ];
 

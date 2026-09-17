@@ -49,6 +49,17 @@ test("stale pending deposit escalates; fresh pending does not", () => {
     depositNeedsOwnerFollowUp({
       status: "pending",
       sentAt: null,
+      createdAt: new Date("2026-09-17T11:30:00.000Z"),
+      now,
+      afterHours: true,
+    }),
+    true,
+  );
+  assert.equal(
+    depositNeedsOwnerFollowUp({
+      status: "pending",
+      sentAt: null,
+      createdAt: new Date("2026-09-17T11:50:00.000Z"),
       now,
       afterHours: true,
     }),

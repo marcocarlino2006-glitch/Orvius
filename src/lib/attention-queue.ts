@@ -14,6 +14,7 @@ import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
 import { leadHasTranscriptDispute } from "@/lib/lead-transcript-dispute";
 import { jobIsCustomerNoShow, jobIsTechNoShow } from "@/lib/job-no-show";
 import { depositNeedsOwnerFollowUp } from "@/lib/deposit-fail";
+import { estimateNeedsOwnerFollowUp } from "@/lib/estimate-fail";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
@@ -59,6 +60,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "customer_no_show",
   "tech_no_show",
   "deposit_failed",
+  "estimate_failed",
 ]);
 
 /**
@@ -105,6 +107,10 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 9;
     case "deposit_failed":
       return 10;
+    case "estimate_failed":
+      return 13;
+    case "tech_needs_phone":
+      return 48;
     case "partial_capture":
       return emergency ? 8 : 15;
     case "alert_unacked":
@@ -445,17 +451,25 @@ export async function getAttentionQueue(
     prisma.estimate.findMany({
       where: {
         businessId,
-        status: { in: ["draft", "sent", "accepted"] },
-        invoice: null,
+        OR: [
+          {
+            status: { in: ["draft", "sent", "accepted"] },
+            invoice: null,
+          },
+          { status: "payment_failed" },
+        ],
       },
-      take: 8,
+      take: 12,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
         amountCents: true,
         status: true,
         jobId: true,
+        leadId: true,
+        sentAt: true,
         createdAt: true,
+        lead: { select: { phone: true, name: true } },
       },
     }),
     prisma.deposit.findMany({
@@ -498,6 +512,42 @@ export async function getAttentionQueue(
   }
 
   for (const estimate of openMoney[1]) {
+    if (
+      estimateNeedsOwnerFollowUp({
+        status: estimate.status,
+        sentAt: estimate.sentAt,
+        createdAt: estimate.createdAt,
+        now,
+        afterHours,
+      })
+    ) {
+      items.push({
+        id: `estimate_failed:${estimate.id}`,
+        kind: "estimate_failed",
+        rank: kindRank("estimate_failed", null, afterHours),
+        impact: "critical",
+        title: estimate.lead?.name
+          ? `${estimate.lead.name} · $${Math.round(estimate.amountCents / 100)}`
+          : `Estimate · $${Math.round(estimate.amountCents / 100)}`,
+        detail:
+          estimate.status === "payment_failed"
+            ? "Card checkout failed or expired — call to collect or resend."
+            : "Estimate still unpaid — call the customer before the work cools.",
+        recommendedAction: "Call to collect",
+        href: estimate.jobId
+          ? `/dashboard/jobs/${estimate.jobId}`
+          : estimate.leadId
+            ? `/dashboard/inbox/${estimate.leadId}`
+            : "/dashboard#shop-economics",
+        entityType: estimate.leadId ? "lead" : "shop",
+        entityId: estimate.leadId ?? businessId,
+        createdAt: (estimate.sentAt ?? estimate.createdAt).toISOString(),
+        estimatedRevenueCents: estimate.amountCents,
+        meta: { phone: estimate.lead?.phone ?? null, status: estimate.status },
+      });
+      continue;
+    }
+    if (estimate.status === "payment_failed") continue;
     items.push({
       id: `open_estimate:${estimate.id}`,
       kind: "open_estimate",
@@ -522,6 +572,7 @@ export async function getAttentionQueue(
         status: deposit.status,
         sentAt: deposit.sentAt,
         paidAt: deposit.paidAt,
+        createdAt: deposit.createdAt,
         now,
         afterHours,
       })
@@ -530,6 +581,7 @@ export async function getAttentionQueue(
     }
     const who = deposit.lead?.name ?? "Customer";
     const failed = deposit.status === "failed";
+    const unsent = !deposit.sentAt && deposit.status === "pending";
     items.push({
       id: `deposit_failed:${deposit.id}`,
       kind: "deposit_failed",
@@ -538,8 +590,10 @@ export async function getAttentionQueue(
       title: `${who} · $${Math.round(deposit.amountCents / 100)} deposit`,
       detail: failed
         ? "Card checkout failed or expired — call to collect or resend the pay link."
-        : "Deposit still unpaid after the hold window — call to collect.",
-      recommendedAction: "Call to collect",
+        : unsent
+          ? "Deposit hold never sent — call or text the pay link before the slot softens."
+          : "Deposit still unpaid after the hold window — call to collect.",
+      recommendedAction: unsent ? "Send pay link" : "Call to collect",
       href: deposit.jobId
         ? `/dashboard/jobs/${deposit.jobId}`
         : deposit.leadId
@@ -994,6 +1048,22 @@ export async function getAttentionQueue(
 
   for (const tech of crew) {
     if (!tech.isActive) continue;
+    if (!tech.phone?.trim()) {
+      items.push({
+        id: `tech_needs_phone:${tech.id}`,
+        kind: "tech_needs_phone",
+        rank: kindRank("tech_needs_phone", null, afterHours),
+        impact: "med",
+        title: tech.name,
+        detail: "No mobile on file — SMS assign and field links will not reach them.",
+        recommendedAction: "Add phone",
+        href: "/dashboard/dispatch",
+        entityType: "technician",
+        entityId: tech.id,
+        createdAt: now.toISOString(),
+      });
+      continue;
+    }
     if (busyTechIds.has(tech.id)) continue;
     items.push({
       id: `available_tech:${tech.id}`,
@@ -1001,9 +1071,7 @@ export async function getAttentionQueue(
       rank: kindRank("available_tech", null, afterHours),
       impact: "med",
       title: tech.name,
-      detail: tech.phone
-        ? `Available · ${tech.phone}`
-        : "Available — add mobile for SMS assign",
+      detail: `Available · ${tech.phone}`,
       recommendedAction: "Open dispatch",
       href: "/dashboard/dispatch",
       entityType: "technician",

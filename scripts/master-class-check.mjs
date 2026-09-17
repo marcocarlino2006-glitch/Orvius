@@ -452,6 +452,25 @@ try {
       "deposit_failed kind + detector + expired Checkout fail path required",
     );
   }
+  const estimateFail = read("src/lib/estimate-fail.ts");
+  const estimatePay = read("src/lib/estimate-pay.ts");
+  if (
+    /estimateNeedsOwnerFollowUp/.test(estimateFail) &&
+    /estimate_failed/.test(kinds) &&
+    /failEstimateCheckoutSession/.test(estimatePay) &&
+    /failEstimateCheckoutSession/.test(billingHook) &&
+    /tech_needs_phone/.test(kinds)
+  ) {
+    pass(
+      "Estimate-fail + tech phone",
+      "Expired estimate card + phoneless tech surface on the board",
+    );
+  } else {
+    fail(
+      "Estimate-fail + tech phone",
+      "estimate_failed + tech_needs_phone + failEstimateCheckoutSession required",
+    );
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }
