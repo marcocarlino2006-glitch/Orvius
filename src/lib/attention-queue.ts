@@ -14,7 +14,9 @@ import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
 import { leadHasTranscriptDispute } from "@/lib/lead-transcript-dispute";
 import { jobIsCustomerNoShow, jobIsTechNoShow } from "@/lib/job-no-show";
 import { depositNeedsOwnerFollowUp } from "@/lib/deposit-fail";
+import { depositMoneyPathBroken } from "@/lib/deposit-money-path";
 import { estimateNeedsOwnerFollowUp } from "@/lib/estimate-fail";
+import { ownerAlertsAreMuted } from "@/lib/owner-alerts-muted";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
@@ -61,6 +63,8 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "tech_no_show",
   "deposit_failed",
   "estimate_failed",
+  "alerts_muted",
+  "money_path_broken",
 ]);
 
 /**
@@ -109,6 +113,10 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 10;
     case "estimate_failed":
       return 13;
+    case "alerts_muted":
+      return 3;
+    case "money_path_broken":
+      return 7;
     case "tech_needs_phone":
       return 48;
     case "partial_capture":
@@ -209,6 +217,12 @@ export async function getAttentionQueue(
           vapiPhoneNumber: true,
           twilioPhone: true,
           ownerPhone: true,
+          ownerSmsOptOutAt: true,
+          depositEnabled: true,
+          stripeConnectAccountId: true,
+          stripeConnectChargesEnabled: true,
+          stripeConnectPayoutsEnabled: true,
+          stripeConnectDetailsSubmitted: true,
           /* Read to rank: what matters at 2am is not what matters at 2pm. */
           hoursJson: true,
           timezone: true,
@@ -326,6 +340,40 @@ export async function getAttentionQueue(
         createdAt: now.toISOString(),
       });
     }
+  }
+
+  if (business && ownerAlertsAreMuted(business)) {
+    items.push({
+      id: `alerts_muted:${businessId}`,
+      kind: "alerts_muted",
+      rank: kindRank("alerts_muted", null, afterHours),
+      impact: "critical",
+      title: "Owner SMS alerts are off",
+      detail:
+        "This number texted STOP — night leads will not reach you until you text START or update the owner phone.",
+      recommendedAction: "Fix alerts",
+      href: "/dashboard/settings#owner-alerts",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  }
+
+  if (business && depositMoneyPathBroken(business)) {
+    items.push({
+      id: `money_path_broken:${businessId}`,
+      kind: "money_path_broken",
+      rank: kindRank("money_path_broken", null, afterHours),
+      impact: "critical",
+      title: "Deposits on — cards cannot charge",
+      detail:
+        "Deposit holds are enabled but Stripe Connect is not cleared to take cards. Finish payouts setup or turn deposits off.",
+      recommendedAction: "Open payouts",
+      href: "/dashboard/settings#payouts",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
   }
 
   const hasLine = Boolean(

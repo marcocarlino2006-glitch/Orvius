@@ -471,6 +471,25 @@ try {
       "estimate_failed + tech_needs_phone + failEstimateCheckoutSession required",
     );
   }
+  const alertsMuted = read("src/lib/owner-alerts-muted.ts");
+  const moneyPath = read("src/lib/deposit-money-path.ts");
+  if (
+    /ownerAlertsAreMuted/.test(alertsMuted) &&
+    /depositMoneyPathBroken/.test(moneyPath) &&
+    /alerts_muted/.test(kinds) &&
+    /money_path_broken/.test(kinds) &&
+    /Alerts off/.test(kinds)
+  ) {
+    pass(
+      "Alerts-muted + money-path",
+      "STOP opt-out and deposits-without-Connect surface critical",
+    );
+  } else {
+    fail(
+      "Alerts-muted + money-path",
+      "alerts_muted + money_path_broken kinds + detectors required",
+    );
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }
