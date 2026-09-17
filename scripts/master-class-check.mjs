@@ -404,6 +404,19 @@ try {
       "concurrent_calls kind + liveCalls query + helpers required",
     );
   }
+  const dispute = read("src/lib/lead-transcript-dispute.ts");
+  if (
+    /leadHasTranscriptDispute/.test(dispute) &&
+    /transcript_dispute/.test(kinds) &&
+    /Dispute/.test(kinds)
+  ) {
+    pass("Transcript-dispute outcome", "Caller-disputed capture surfaces as Call to correct");
+  } else {
+    fail(
+      "Transcript-dispute outcome",
+      "transcript_dispute kind + leadHasTranscriptDispute required",
+    );
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }

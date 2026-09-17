@@ -11,6 +11,7 @@ import {
 import { isOwnerAlertUnacked } from "@/lib/owner-alert-unacked";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
+import { leadHasTranscriptDispute } from "@/lib/lead-transcript-dispute";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
@@ -52,6 +53,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "partial_capture",
   "alert_unacked",
   "concurrent_calls",
+  "transcript_dispute",
 ]);
 
 /**
@@ -90,6 +92,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 6;
     case "wants_human":
       return emergency ? 7 : 12;
+    case "transcript_dispute":
+      return emergency ? 7 : 11;
     case "partial_capture":
       return emergency ? 8 : 15;
     case "alert_unacked":
@@ -584,6 +588,18 @@ export async function getAttentionQueue(
         .filter(Boolean)
         .join(" · ");
       recommendedAction = "Call them now";
+    } else if (leadHasTranscriptDispute(lead) && lead.phone?.trim()) {
+      kind = "transcript_dispute";
+      impact = urgent || afterHours ? "critical" : "high";
+      detail = [
+        "Caller disputes what was captured — call to correct",
+        lead.serviceType,
+        lead.address,
+        lead.notes,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Call to correct";
     } else if (leadIsPartialCapture(lead)) {
       kind = "partial_capture";
       impact = urgent || afterHours ? "critical" : "high";

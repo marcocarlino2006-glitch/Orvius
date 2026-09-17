@@ -20,7 +20,8 @@ export type AttentionKind =
   | "not_a_job"
   | "partial_capture"
   | "alert_unacked"
-  | "concurrent_calls";
+  | "concurrent_calls"
+  | "transcript_dispute";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -99,6 +100,8 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Unacked";
     case "concurrent_calls":
       return "Line busy";
+    case "transcript_dispute":
+      return "Dispute";
   }
 }
 
@@ -126,6 +129,7 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
     case "wants_human":
     case "partial_capture":
     case "alert_unacked":
+    case "transcript_dispute":
       return "call";
     case "needs_booking":
       return "book";
@@ -176,5 +180,6 @@ export const ATTENTION_KINDS: AttentionKind[] = [
   "partial_capture",
   "alert_unacked",
   "concurrent_calls",
+  "transcript_dispute",
 ];
 
