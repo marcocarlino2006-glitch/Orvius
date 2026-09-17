@@ -417,6 +417,21 @@ try {
       "transcript_dispute kind + leadHasTranscriptDispute required",
     );
   }
+  const noShow = read("src/lib/job-no-show.ts");
+  if (
+    /jobIsCustomerNoShow/.test(noShow) &&
+    /jobIsTechNoShow/.test(noShow) &&
+    /customer_no_show/.test(kinds) &&
+    /tech_no_show/.test(kinds) &&
+    /No-show/.test(kinds)
+  ) {
+    pass("No-show outcome", "Customer/tech misses surface as Call customer / Call tech");
+  } else {
+    fail(
+      "No-show outcome",
+      "customer_no_show + tech_no_show kinds + detectors required",
+    );
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }

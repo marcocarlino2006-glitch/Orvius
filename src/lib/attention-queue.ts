@@ -12,6 +12,7 @@ import { isOwnerAlertUnacked } from "@/lib/owner-alert-unacked";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
 import { leadHasTranscriptDispute } from "@/lib/lead-transcript-dispute";
+import { jobIsCustomerNoShow, jobIsTechNoShow } from "@/lib/job-no-show";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
@@ -54,6 +55,8 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "alert_unacked",
   "concurrent_calls",
   "transcript_dispute",
+  "customer_no_show",
+  "tech_no_show",
 ]);
 
 /**
@@ -94,6 +97,10 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return emergency ? 7 : 12;
     case "transcript_dispute":
       return emergency ? 7 : 11;
+    case "customer_no_show":
+      return 8;
+    case "tech_no_show":
+      return 9;
     case "partial_capture":
       return emergency ? 8 : 15;
     case "alert_unacked":
@@ -172,7 +179,7 @@ export async function getAttentionQueue(
         include: {
           customer: { select: { id: true, name: true, phone: true } },
           lead: { select: { id: true, name: true, phone: true, urgency: true } },
-          technician: { select: { id: true, name: true } },
+          technician: { select: { id: true, name: true, phone: true } },
         },
       }),
       listCrew(businessId),
@@ -804,6 +811,84 @@ export async function getAttentionQueue(
           address: job.address,
           phone: job.customer?.phone ?? job.lead?.phone,
           scheduledAt: scheduled?.toISOString() ?? null,
+        },
+      });
+    } else if (
+      jobIsCustomerNoShow({
+        scheduledAt: job.scheduledAt,
+        status: job.status,
+        customerConfirmedAt: job.customerConfirmedAt,
+        onSiteAt: job.onSiteAt,
+        completedAt: job.completedAt,
+        now,
+      })
+    ) {
+      items.push({
+        id: `customer_no_show:${job.id}`,
+        kind: "customer_no_show",
+        rank: kindRank("customer_no_show", urgency, afterHours),
+        impact: "critical",
+        title: who,
+        detail: [
+          "Customer no-show — call to reschedule",
+          job.title,
+          job.technician?.name ? `Tech: ${job.technician.name}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        recommendedAction: "Call customer",
+        href: `/dashboard/jobs/${job.id}`,
+        entityType: "job",
+        entityId: job.id,
+        createdAt: job.createdAt.toISOString(),
+        estimatedRevenueCents: ticket,
+        group,
+        meta: {
+          urgency,
+          address: job.address,
+          phone: job.customer?.phone ?? job.lead?.phone,
+          scheduledAt: scheduled?.toISOString() ?? null,
+          status: job.status,
+        },
+      });
+    } else if (
+      jobIsTechNoShow({
+        scheduledAt: job.scheduledAt,
+        status: job.status,
+        technicianId: job.technicianId,
+        customerConfirmedAt: job.customerConfirmedAt,
+        dispatchedAt: job.dispatchedAt,
+        onSiteAt: job.onSiteAt,
+        completedAt: job.completedAt,
+        now,
+      })
+    ) {
+      items.push({
+        id: `tech_no_show:${job.id}`,
+        kind: "tech_no_show",
+        rank: kindRank("tech_no_show", urgency, afterHours),
+        impact: "critical",
+        title: job.technician?.name ?? who,
+        detail: [
+          "Tech late / never rolled — call them",
+          job.title,
+          who !== job.technician?.name ? who : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        recommendedAction: "Call tech",
+        href: `/dashboard/jobs/${job.id}`,
+        entityType: "job",
+        entityId: job.id,
+        createdAt: job.createdAt.toISOString(),
+        estimatedRevenueCents: ticket,
+        group,
+        meta: {
+          urgency,
+          address: job.address,
+          phone: job.technician?.phone ?? job.customer?.phone ?? job.lead?.phone,
+          scheduledAt: scheduled?.toISOString() ?? null,
+          status: job.status,
         },
       });
     } else if (pastDue) {
