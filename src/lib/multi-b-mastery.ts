@@ -8,6 +8,7 @@
  * - Code-green is not live-green.
  */
 
+import { beyondLaws, beyondOwnerTest } from "@/lib/beyond-bar";
 import { getBillingReadiness } from "@/lib/billing-readiness";
 import { getBulletproofStatus } from "@/lib/bulletproof-status";
 import { company } from "@/lib/company";
@@ -225,7 +226,7 @@ export function buildMasteryReport(
       doneWhen: "npm run beyond:check passes on every ship",
       action: "Run npm run beyond:check before deploy — fix any red law",
       ok: true, // Static presence; CLI re-verifies. Never claim mastered from UI alone.
-      detail: "Enforced by beyond:check + MULTI-B-STRICT — re-run on every ship",
+      detail: `${beyondLaws.length} laws · ${beyondOwnerTest}`,
     },
   ];
 

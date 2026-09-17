@@ -3337,27 +3337,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: #a09f9e;
 }
 
-.owner-setup-banner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem 1rem;
-  margin-bottom: 1.25rem;
-  padding: 0.9rem 1.1rem;
-  border: 1px solid color-mix(in srgb, var(--void) 14%, var(--rule));
-  border-left: 3px solid var(--signal);
-  background: var(--white);
-  border-radius: var(--radius-sm);
-}
-
-.owner-setup-banner-copy {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: var(--void);
-  font-weight: 600;
-}
-
 .capture-setup-modes,
 .onboarding-capture-modes {
   display: grid;

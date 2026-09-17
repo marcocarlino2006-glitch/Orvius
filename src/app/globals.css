@@ -4535,20 +4535,6 @@ h3 {
   transform: none;
 }
 
-.mkt-btn-ink {
-  background: #000;
-  color: var(--spectral) !important;
-  border-color: #000;
-  box-shadow: none;
-}
-
-.mkt-btn-ink:hover {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
-  color: var(--spectral) !important;
-  box-shadow: none;
-}
-
 .mkt-btn:focus-visible,
 .mkt-nav-login:focus-visible,
 .mkt-nav-links a:focus-visible,
@@ -4582,22 +4568,6 @@ h3 {
   50% {
     opacity: 0.55;
   }
-}
-
-.mkt-text-link {
-  display: inline-block;
-  margin-top: 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--void);
-  text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--void) 22%, transparent);
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-
-.mkt-text-link:hover {
-  color: var(--signal);
-  border-bottom-color: color-mix(in srgb, var(--signal) 45%, transparent);
 }
 
 /* ── Hero — full-bleed command plane (SpaceX void × Cursor product) ── */
@@ -5402,7 +5372,6 @@ button.btn {
 
 /* ── BUTTON FONT LOCK — SpaceX DIN + Cursor gothic ── */
 .mkt-btn,
-.mkt-btn-ink,
 .mkt-nav-cta,
 .mkt-nav-links a,
 .mkt-nav-login {
@@ -6236,7 +6205,6 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .job-card,
 .os-shell-pro .customer-record-card,
 .os-shell-pro .pro-signal-bar,
-.os-shell-pro .owner-setup-banner,
 .os-shell-pro .post-lock-strip,
 .os-shell-pro .post-lock-banner,
 .os-shell-pro .billing-unblock,
@@ -6374,8 +6342,7 @@ label:has(> input[type="radio"]) {
 
 /* Shop line / follow-up banners — institutional strip, not peach promo */
 .os-shell-pro .pro-signal-bar,
-.os-shell-pro .live-status-bar,
-.os-shell-pro .owner-setup-banner {
+.os-shell-pro .live-status-bar {
   border-left: 3px solid var(--signal) !important;
   background: #fff !important;
 }
@@ -7399,7 +7366,6 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .customer-record-card,
 .os-shell-night .call-record-card,
 .os-shell-night .pro-signal-bar,
-.os-shell-night .owner-setup-banner,
 .os-shell-night .post-lock-strip,
 .os-shell-night .post-lock-banner,
 .os-shell-night .billing-unblock,
@@ -7688,7 +7654,6 @@ body:has(.mkt-page) .shell-header {
   border-radius: 0.25rem !important;
 }
 
-.os-shell-night .owner-setup-banner,
 .os-shell-night .pro-setup-alert,
 .os-shell-night .post-lock-banner {
   background: #14120c !important;
@@ -7915,7 +7880,6 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-stat,
 .os-shell-night .pro-panel,
 .os-shell-night .pro-page-strip,
-.os-shell-night .owner-setup-banner,
 .os-shell-night .dispatch-col,
 .os-shell-night .approve-queue,
 .os-shell-night .pro-dispatch-today,
@@ -8058,25 +8022,6 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .pro-stat {
   border-top-color: #4b4945 !important;
   background-image: none !important;
-}
-
-.os-shell-night .owner-setup-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.55rem 0.75rem !important;
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
-  border-left: 2px solid #e9e9e9 !important;
-  border-radius: 0.25rem !important;
-  margin-bottom: 0.65rem !important;
-}
-
-.os-shell-night .owner-setup-banner-copy {
-  margin: 0 !important;
-  font-size: 0.8125rem !important;
-  color: #e9e9e9 !important;
 }
 
 .os-shell-night .dispatch-col {
@@ -10003,10 +9948,6 @@ body:has(.mkt-page) .shell-header {
 
 /* Close-section chalk CTA → charcoal pill; secondary → ink */
 
-.mkt-page .mkt-text-link {
-  color: var(--ov-headline) !important;
-}
-
 /* Proof/story section (inset) → paper + ink; transcript panel white */
 .mkt-page .mkt-proof-section,
 .mkt-page .mkt-proof-section--company {
@@ -10025,13 +9966,6 @@ body:has(.mkt-page) .shell-header {
 .mkt-page .mkt-proof-lead,
 .mkt-page .mkt-proof-note {
   color: var(--ov-muted) !important;
-}
-
-.mkt-page .mkt-btn-ink {
-  
-  
-  border: 1px solid #26251e !important;
-  border-radius: 999px !important;
 }
 
 .mkt-page .mkt-call-panel,
@@ -10082,8 +10016,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 /* Primary pill CTA — exact cursor.com button */
-.mkt-page .inst-btn-primary,
-.mkt-page .mkt-btn-ink {
+.mkt-page .inst-btn-primary {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
@@ -10397,7 +10330,6 @@ html[data-theme="night"] .mkt-page .input {
 
 /* Primary pills invert to light on dark */
 html[data-theme="night"] .mkt-page .inst-btn-primary,
-html[data-theme="night"] .mkt-page .mkt-btn-ink,
 html[data-theme="night"] .mkt-page .mkt-trynow-cta {
   background: #edecec !important;
   color: #14120b !important;

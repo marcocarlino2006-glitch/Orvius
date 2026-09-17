@@ -626,17 +626,6 @@ body {
   font-family: var(--ov-font) !important;
 }
 
-.ov-public .mkt-btn-ink {
-  border: 1px solid var(--ov-night-text) !important;
-  border-radius: 4px !important;
-  background: var(--ov-night-text) !important;
-  color: var(--ov-charcoal) !important;
-}
-
-.ov-public .mkt-text-link {
-  color: var(--ov-night-text) !important;
-}
-
 .ov-public .mkt-call-panel {
   border: 1px solid #444a51 !important;
   border-radius: 6px !important;
@@ -835,8 +824,7 @@ body {
 
 /* Shared secondary marketing pages */
 
-/* The showcase grid is both a wrap and its own inset panel, so it keeps its inline padding. */
-.ov-public .editorial-wrap:not(.mkt-showcase-grid) {
+.ov-public .editorial-wrap {
   width: min(100%, 1240px);
   max-width: 1240px;
   padding-left: 0 !important;
@@ -1582,7 +1570,7 @@ body {
     padding: 120px 20px 72px !important;
   }
 
-  .ov-public .editorial-wrap:not(.mkt-showcase-grid) {
+  .ov-public .editorial-wrap {
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
