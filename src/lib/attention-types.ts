@@ -17,7 +17,8 @@ export type AttentionKind =
   | "open_invoice"
   | "open_estimate"
   | "wants_human"
-  | "not_a_job";
+  | "not_a_job"
+  | "partial_capture";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -90,6 +91,8 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Wants you";
     case "not_a_job":
       return "Not a job";
+    case "partial_capture":
+      return "Partial";
   }
 }
 
@@ -115,6 +118,7 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
     case "needs_qualify":
     case "overdue_followup":
     case "wants_human":
+    case "partial_capture":
       return "call";
     case "needs_booking":
       return "book";
@@ -161,5 +165,6 @@ export const ATTENTION_KINDS: AttentionKind[] = [
   "open_estimate",
   "wants_human",
   "not_a_job",
+  "partial_capture",
 ];
 

@@ -5,6 +5,7 @@ import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
+import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
@@ -43,6 +44,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "needs_booking",
   "new_lead",
   "wants_human",
+  "partial_capture",
 ]);
 
 /**
@@ -81,6 +83,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 6;
     case "wants_human":
       return emergency ? 7 : 12;
+    case "partial_capture":
+      return emergency ? 8 : 15;
     case "not_a_job":
       return 55;
     case "needs_capture":
@@ -492,6 +496,18 @@ export async function getAttentionQueue(
         .filter(Boolean)
         .join(" · ");
       recommendedAction = "Call them now";
+    } else if (leadIsPartialCapture(lead)) {
+      kind = "partial_capture";
+      impact = urgent || afterHours ? "critical" : "high";
+      detail = [
+        "Hung up mid-call — call back to finish intake",
+        lead.serviceType,
+        lead.address,
+        lead.notes,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Call back";
     } else if (!qualified) {
       kind = "needs_qualify";
       impact = urgent ? "critical" : "high";

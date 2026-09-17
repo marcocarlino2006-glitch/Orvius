@@ -372,6 +372,12 @@ try {
   } else {
     fail("Not-a-job outcome", "not_a_job kind + MarkNotAJobButton required");
   }
+  const partial = read("src/lib/lead-partial-capture.ts");
+  if (/leadIsPartialCapture/.test(partial) && /partial_capture/.test(kinds)) {
+    pass("Partial-capture outcome", "Hang-up stubs surface as Call back");
+  } else {
+    fail("Partial-capture outcome", "partial_capture kind + detector required");
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }
