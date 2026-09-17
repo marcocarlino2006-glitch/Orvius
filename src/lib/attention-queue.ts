@@ -13,6 +13,7 @@ import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
 import { leadHasTranscriptDispute } from "@/lib/lead-transcript-dispute";
 import { jobIsCustomerNoShow, jobIsTechNoShow } from "@/lib/job-no-show";
+import { depositNeedsOwnerFollowUp } from "@/lib/deposit-fail";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
@@ -57,6 +58,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "transcript_dispute",
   "customer_no_show",
   "tech_no_show",
+  "deposit_failed",
 ]);
 
 /**
@@ -101,6 +103,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 8;
     case "tech_no_show":
       return 9;
+    case "deposit_failed":
+      return 10;
     case "partial_capture":
       return emergency ? 8 : 15;
     case "alert_unacked":
@@ -454,6 +458,25 @@ export async function getAttentionQueue(
         createdAt: true,
       },
     }),
+    prisma.deposit.findMany({
+      where: {
+        businessId,
+        status: { in: ["pending", "failed"] },
+      },
+      take: 12,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        amountCents: true,
+        status: true,
+        sentAt: true,
+        paidAt: true,
+        jobId: true,
+        leadId: true,
+        createdAt: true,
+        lead: { select: { phone: true, name: true } },
+      },
+    }),
   ]);
 
   for (const invoice of openMoney[0]) {
@@ -490,6 +513,46 @@ export async function getAttentionQueue(
       entityId: businessId,
       createdAt: estimate.createdAt.toISOString(),
       estimatedRevenueCents: estimate.amountCents,
+    });
+  }
+
+  for (const deposit of openMoney[2]) {
+    if (
+      !depositNeedsOwnerFollowUp({
+        status: deposit.status,
+        sentAt: deposit.sentAt,
+        paidAt: deposit.paidAt,
+        now,
+        afterHours,
+      })
+    ) {
+      continue;
+    }
+    const who = deposit.lead?.name ?? "Customer";
+    const failed = deposit.status === "failed";
+    items.push({
+      id: `deposit_failed:${deposit.id}`,
+      kind: "deposit_failed",
+      rank: kindRank("deposit_failed", null, afterHours),
+      impact: "critical",
+      title: `${who} · $${Math.round(deposit.amountCents / 100)} deposit`,
+      detail: failed
+        ? "Card checkout failed or expired — call to collect or resend the pay link."
+        : "Deposit still unpaid after the hold window — call to collect.",
+      recommendedAction: "Call to collect",
+      href: deposit.jobId
+        ? `/dashboard/jobs/${deposit.jobId}`
+        : deposit.leadId
+          ? `/dashboard/inbox/${deposit.leadId}`
+          : "/dashboard#shop-economics",
+      entityType: deposit.leadId ? "lead" : "shop",
+      entityId: deposit.leadId ?? businessId,
+      createdAt: (deposit.sentAt ?? deposit.createdAt).toISOString(),
+      estimatedRevenueCents: deposit.amountCents,
+      meta: {
+        phone: deposit.lead?.phone ?? null,
+        status: deposit.status,
+      },
     });
   }
 

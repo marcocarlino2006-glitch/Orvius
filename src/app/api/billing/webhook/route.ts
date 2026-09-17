@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
-import { fulfillDepositCheckoutSession } from "@/lib/booking-deposit";
+import { fulfillDepositCheckoutSession, failDepositCheckoutSession } from "@/lib/booking-deposit";
 import { fulfillEstimateCheckoutSession } from "@/lib/estimate-pay";
 import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
@@ -183,6 +183,13 @@ export async function POST(request: Request) {
           subscription,
           invoice.customer_email,
         );
+        break;
+      }
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.kind === "booking_deposit") {
+          await failDepositCheckoutSession(session);
+        }
         break;
       }
       default:

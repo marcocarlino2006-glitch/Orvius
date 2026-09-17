@@ -23,7 +23,8 @@ export type AttentionKind =
   | "concurrent_calls"
   | "transcript_dispute"
   | "customer_no_show"
-  | "tech_no_show";
+  | "tech_no_show"
+  | "deposit_failed";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -108,6 +109,8 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "No-show";
     case "tech_no_show":
       return "Tech late";
+    case "deposit_failed":
+      return "Deposit";
   }
 }
 
@@ -138,6 +141,7 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
     case "transcript_dispute":
     case "customer_no_show":
     case "tech_no_show":
+    case "deposit_failed":
       return "call";
     case "needs_booking":
       return "book";
@@ -191,5 +195,6 @@ export const ATTENTION_KINDS: AttentionKind[] = [
   "transcript_dispute",
   "customer_no_show",
   "tech_no_show",
+  "deposit_failed",
 ];
 

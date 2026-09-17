@@ -414,6 +414,63 @@ export async function fulfillDepositCheckoutSession(
   return { ok: true, depositId: deposit.id };
 }
 
+/**
+ * Mark a booking deposit failed when Checkout expires or the card path dies.
+ * Idempotent: paid/canceled/refunded rows stay put; already-failed is a no-op.
+ */
+export async function markDepositFailed(params: {
+  depositId: string;
+  businessId: string;
+  stripeSessionId?: string | null;
+}): Promise<{ ok: boolean; reason?: string; depositId?: string }> {
+  const deposit = await prisma.deposit.findFirst({
+    where: { id: params.depositId, businessId: params.businessId },
+  });
+  if (!deposit) return { ok: false, reason: "deposit_not_found" };
+  if (deposit.status === "paid") {
+    return { ok: true, reason: "already_paid", depositId: deposit.id };
+  }
+  if (deposit.status === "canceled" || deposit.status === "refunded") {
+    return { ok: true, reason: "closed", depositId: deposit.id };
+  }
+  if (deposit.status === "failed") {
+    return { ok: true, reason: "already_failed", depositId: deposit.id };
+  }
+
+  await prisma.deposit.update({
+    where: { id: deposit.id },
+    data: {
+      status: "failed",
+      ...(params.stripeSessionId
+        ? { stripeSessionId: params.stripeSessionId }
+        : {}),
+    },
+  });
+
+  return { ok: true, depositId: deposit.id };
+}
+
+/**
+ * Fail a booking deposit from an expired Checkout session (card never cleared).
+ */
+export async function failDepositCheckoutSession(
+  session: Stripe.Checkout.Session,
+): Promise<{ ok: boolean; reason?: string; depositId?: string }> {
+  if (session.metadata?.kind !== "booking_deposit") {
+    return { ok: false, reason: "not_booking_deposit" };
+  }
+  const depositId = session.metadata.depositId;
+  const businessId = session.metadata.businessId;
+  if (!depositId || !businessId) {
+    return { ok: false, reason: "missing_metadata" };
+  }
+  return markDepositFailed({
+    depositId,
+    businessId,
+    stripeSessionId: session.id,
+  });
+}
+
 /** Look up a deposit for its public pay page. */
 export async function getDepositByToken(token: string) {
   if (!token.trim()) return null;

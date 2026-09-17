@@ -340,7 +340,7 @@ model Deposit {
   jobId                 String?
   job                   Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   amountCents           Int
-  /** pending | paid | canceled | refunded */
+  /** pending | paid | canceled | refunded | failed */
   status                String    @default("pending")
   /** Public magic-link token for the customer pay page (/d/[token]). */
   publicToken           String?   @unique

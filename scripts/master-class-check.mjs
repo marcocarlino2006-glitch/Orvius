@@ -432,6 +432,26 @@ try {
       "customer_no_show + tech_no_show kinds + detectors required",
     );
   }
+  const depositFail = read("src/lib/deposit-fail.ts");
+  const bookingDeposit = read("src/lib/booking-deposit.ts");
+  const billingHook = read("src/app/api/billing/webhook/route.ts");
+  if (
+    /depositNeedsOwnerFollowUp/.test(depositFail) &&
+    /deposit_failed/.test(kinds) &&
+    /markDepositFailed/.test(bookingDeposit) &&
+    /checkout\.session\.expired/.test(billingHook) &&
+    /failDepositCheckoutSession/.test(billingHook)
+  ) {
+    pass(
+      "Deposit-fail outcome",
+      "Failed/stale deposits surface as Call to collect",
+    );
+  } else {
+    fail(
+      "Deposit-fail outcome",
+      "deposit_failed kind + detector + expired Checkout fail path required",
+    );
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }
