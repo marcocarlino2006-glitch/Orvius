@@ -52,7 +52,7 @@ export function OnboardingWizard() {
     if (!json.provisioned || !json.business) return false;
 
     if (json.ready) {
-      router.replace("/dashboard");
+      router.replace("/dashboard?live=1");
       return true;
     }
 

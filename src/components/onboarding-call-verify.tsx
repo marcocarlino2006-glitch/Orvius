@@ -1,6 +1,7 @@
 "use client";
 
 import { telHref } from "@/lib/demo-line";
+import { markFirstNightPending } from "@/components/first-night-handoff";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -94,7 +95,8 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error ?? "Could not confirm capture");
-      router.replace("/dashboard");
+      markFirstNightPending();
+      router.replace("/dashboard?live=1");
       router.refresh();
     } catch (err) {
       setCaptureError(
@@ -233,7 +235,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
             disabled={!captureConfirmed || captureSaving}
             onClick={() => void confirmCaptureAndOpen()}
           >
-            {captureSaving ? "Saving…" : "Open your dashboard"}
+                {captureSaving ? "Saving…" : "Enter your first night"}
           </button>
         ) : (
           <button type="button" className="btn btn-void font-sans" disabled>
@@ -249,14 +251,15 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
             type="button"
             className="onboarding-verify-link"
             onClick={() => {
-              router.replace("/dashboard");
+              markFirstNightPending();
+              router.replace("/dashboard?live=1");
               router.refresh();
             }}
           >
             Open dashboard anyway
           </button>
           {" — "}
-          we&apos;ll remind you to finish prove-it in Command.
+          we&apos;ll hand you the first-night job in Command.
         </p>
       ) : null}
 

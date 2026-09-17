@@ -76,7 +76,7 @@ export function ProLaunchControl({
 
       <p className="pro-control-lead font-sans">
         {atRisk
-          ? "Owner alerts need a fix before the night shift is trustworthy."
+          ? "Owner alerts need a fix — use the banner above (Send test alert)."
           : coverage?.afterHoursNow
             ? "After hours — the line is watching for you."
             : setupReady

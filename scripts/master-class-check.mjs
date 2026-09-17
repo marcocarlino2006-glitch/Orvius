@@ -266,13 +266,29 @@ try {
   const dash = read("src/app/dashboard/page.tsx");
   if (
     dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
-    dash.indexOf("<FounderNextGate") < dash.indexOf("<ShopOperateBanner")
+    dash.indexOf("<FounderNextGate") < dash.indexOf("<ShopOperateBanner") &&
+    /FirstNightHandoff/.test(dash)
   ) {
-    pass("Operate ritual order", "Next-gate → shop operate → Command");
+    pass("Operate ritual order", "First-night → next-gate → shop operate → Command");
   } else {
     fail(
       "Operate ritual order",
-      "Dashboard must order FounderNextGate → ShopOperateBanner → Command",
+      "Dashboard must order FirstNightHandoff → FounderNextGate → ShopOperateBanner → Command",
+    );
+  }
+  const guard = read("src/components/onboarding-guard.tsx");
+  const handoff = read("src/components/first-night-handoff.tsx");
+  if (
+    /!json\.ready/.test(guard) &&
+    /owner_phone/.test(guard) &&
+    /Tonight has one job/.test(handoff) &&
+    /markFirstNightPending/.test(handoff)
+  ) {
+    pass("First-night handoff", "Setup cliff closed — unfinished shops stay in tunnel");
+  } else {
+    fail(
+      "First-night handoff",
+      "OnboardingGuard must hold unfinished setup; FirstNightHandoff must exist",
     );
   }
   const operate = read("src/lib/shop-operate.ts");

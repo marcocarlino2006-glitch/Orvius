@@ -12218,6 +12218,50 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   line-height: 1.4;
   color: var(--live-text, #1a9b6e);
 }
+
+/* P1 — onboarding → Command cliff closed */
+.first-night-handoff {
+  margin: 0 0 1rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--signal, #c45c26) 45%, transparent);
+  background: color-mix(in srgb, var(--void, #12141a) 92%, #c45c26);
+  color: #f4f6f9;
+}
+.first-night-handoff-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #f4f6f9 70%, transparent);
+}
+.first-night-handoff-title {
+  margin: 0.35rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.first-night-handoff-detail {
+  margin: 0.55rem 0 0;
+  max-width: 36rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, #f4f6f9 78%, transparent);
+}
+.first-night-handoff-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+@media (max-width: 720px) {
+  .first-night-handoff-actions .btn {
+    flex: 1 1 auto;
+    min-height: 44px;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 720px) {
   .shop-operate-banner {
     position: sticky;
