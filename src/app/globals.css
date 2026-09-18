@@ -396,13 +396,6 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
-.home-statement {
-  font-size: clamp(1.875rem, 4vw, 3rem);
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-  max-width: 14ch;
-}
-
 .product-float-none {
   animation: none;
 }
