@@ -961,29 +961,12 @@ h3 {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
 }
-.call-demo-light {
-  border-color: var(--rule);
-  background: var(--white);
-  box-shadow: var(--shadow-soft);
-}
-.call-demo-hero {
-  padding: var(--space-6);
-  border-color: var(--rule);
-  background: var(--white);
-  box-shadow: var(--shadow-soft);
-}
 .call-demo-section { max-width: 28rem; }
-.call-demo-compact { padding: var(--space-4) var(--space-5); gap: var(--space-3); }
 .call-demo-live {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   color: var(--live-soft);
-}
-.call-demo-pulse {
-  width: 0.45rem; height: 0.45rem; border-radius: 50%;
-  background: var(--live-soft);
-  animation: cinema-ring 1.4s ease-out infinite;
 }
 .call-demo-number {
   text-decoration: none;
@@ -992,18 +975,9 @@ h3 {
 .call-demo-number:hover {
   color: var(--signal-dim);
 }
-
-.call-demo-light .call-demo-number {
-  color: var(--void);
-}
-
-.call-demo-light .call-demo-number:hover {
-  color: var(--signal-dim);
-}
 .call-demo-actions {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem;
 }
-.call-demo-call { padding: 0.75rem 1.25rem; font-size: 0.875rem; }
 .call-demo-copy {
   font-size: var(--text-caption);
   font-weight: 600;
@@ -1021,16 +995,8 @@ h3 {
   color: var(--chalk);
   background: rgba(255, 255, 255, 0.06);
 }
-.call-demo-light .call-demo-copy:hover {
-  color: var(--void);
-  background: var(--fog);
-}
 .call-demo-hint {
   max-width: 36ch;
-}
-
-.call-demo-light .call-demo-hint {
-  color: var(--ash-soft);
 }
 
 /* Platform rings */
@@ -4501,18 +4467,6 @@ label:has(> input[type="radio"]) {
 
 .mkt-page .border-rule {
   border-color: color-mix(in srgb, #fff 10%, transparent) !important;
-}
-
-/* Call demo — force void reading on marketing */
-.mkt-page .call-demo-light {
-  background: #13100a !important;
-  border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
-  color: #f1f1f1 !important;
-}
-
-.mkt-page .call-demo-light .call-demo-number,
-.mkt-page .call-demo-light .call-demo-label {
-  color: #f7f7f7 !important;
 }
 
 /* —— Login: full industrial void —— */

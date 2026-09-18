@@ -21,7 +21,7 @@ $0 ARR            →   First $ → retention → density
 
 | Layer | Have | Need | Gap |
 |-------|------|------|-----|
-| **A. Code laws / craft** | `beyond:check` **16/16** | Stay green forever | Small — keep enforcing |
+| **A. Code laws / craft** | `beyond:check` **17/17** | Stay green forever | Small — keep enforcing |
 | **B. Automated live gates** | Red in this agent (no `node_modules` / no app / no prod DB) | `test:trust` + `wedge:ready` + `standard:check` green on prod | **Env + live verify** |
 | **C. SaaS money** | Paywall code done | Stripe keys + first Checkout $ | **FOUNDER — $0 ARR** |
 | **D. Shop money rail** | Connect + estimate/deposit charge paths **in code** | Shop onboarded, charges+payouts enabled, real card $ | **FOUNDER + first shop** |
@@ -39,7 +39,7 @@ $0 ARR            →   First $ → retention → density
 ## 1. What we HAVE (earned in product)
 
 ### Laws & craft (green)
-- Beyond-bar doctrine + ten laws enforced (`npm run beyond:check` 16/16)
+- Beyond-bar doctrine + ten laws enforced (`npm run beyond:check` 17/17)
 - Prove-before-confirm on overflow
 - Webhook alert drains + SMS→email failover path
 - Honest money labeling (pipeline ≠ collected)
@@ -141,7 +141,7 @@ as a serious early product, not as Toast / Stripe / Linear inevitability.
 | Bar | Multi-b standard | Orvius today | Grade |
 |-----|------------------|--------------|-------|
 | Brand-swap test | Unmistakable without the nav | Night-shift claim + live line + **Orvius** brand in hero; Cursor mega-nav removed | **B+** |
-| First viewport budget | Brand + one claim + one CTA group + one dominant artifact | Hero only in first beats — **stats + showcase removed from `/`** | **A−** |
+| First viewport budget | Brand + one claim + one CTA group + one dominant artifact | Hero only — brand + claim + live line + CTA; eyebrow removed | **A** |
 | Visual system | One era, one letterset, ruthless cohesion | Archivo + Plex Mono. `globals.css` ~7.45k; cursor/marketing-page era classes dropped from public shell | **B+** |
 | Real atmosphere | Product/place/context as the visual idea | Full-bleed night hero: copper bay bloom, board grid, horizon + live console | **A−** |
 | Confidence | Quiet authority (Anthropic/Stripe) | Direct claim + live line; less funnel noise | **B+** |

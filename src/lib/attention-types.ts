@@ -155,6 +155,8 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
     case "tech_no_show":
     case "deposit_failed":
     case "estimate_failed":
+    case "open_invoice":
+    case "open_estimate":
       return "call";
     case "needs_booking":
       return "book";
@@ -176,8 +178,6 @@ export function attentionActionStrategy(kind: AttentionKind): AttentionActionStr
     case "missing_baseline":
     case "billing_action":
     case "founder_cert":
-    case "open_invoice":
-    case "open_estimate":
     case "tech_needs_phone":
     case "alerts_muted":
     case "money_path_broken":

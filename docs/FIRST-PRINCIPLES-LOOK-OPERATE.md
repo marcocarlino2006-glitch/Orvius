@@ -17,7 +17,7 @@ A multi-billion presence is not more sections. It is **inevitability**.
 | **P5 · Atmosphere** | Is the visual idea the trade at night — or abstract SaaS? | Live-call stage is the artifact; deepen night, don’t decorate |
 
 **What raises Look 65 → ~80 (code):** hero diet, kill first-viewport noise, trades-native nav, brand as hero signal.  
-**What raises Look 80 → ~90 (craft):** one CSS era (&lt;8k) — **done on line ceiling**; deepen night/bay atmosphere + motion — **bay bloom + hero motions locked**.  
+**What raises Look 80 → ~90 (craft):** one CSS era (&lt;8k) — **done on line ceiling**; deepen night/bay atmosphere + motion — **bay bloom + hero motions locked**; P1 hero diet — **eyebrow removed**.  
 **What raises Look 90 → multi-b:** density of live shops using it — presence follows proof.
 
 ---

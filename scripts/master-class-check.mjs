@@ -240,6 +240,23 @@ try {
   } else {
     fail("Look brand signal", "Hero must include ov-hero-brand Orvius");
   }
+  if (/ov-hero-eyebrow/.test(hero)) {
+    fail(
+      "Look hero diet",
+      "Hero eyebrow competes with brand — P1 is brand + one claim + live line + CTA",
+    );
+  } else if (
+    /ov-hero-brand/.test(hero) &&
+    /ov-hero-title/.test(hero) &&
+    /ov-hero-liveline/.test(hero)
+  ) {
+    pass(
+      "Look hero P1",
+      "Brand + claim + live line — no competing eyebrow category chrome",
+    );
+  } else {
+    fail("Look hero P1", "Hero must keep brand, title, and live line without eyebrow");
+  }
   if (
     /ov-hero--atmosphere/.test(hero) &&
     /ov-hero-sky/.test(hero) &&

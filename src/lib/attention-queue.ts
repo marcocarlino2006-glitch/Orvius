@@ -494,7 +494,19 @@ export async function getAttentionQueue(
       },
       take: 8,
       orderBy: { createdAt: "desc" },
-      select: { id: true, amountCents: true, status: true, jobId: true, createdAt: true },
+      select: {
+        id: true,
+        amountCents: true,
+        status: true,
+        jobId: true,
+        createdAt: true,
+        job: {
+          select: {
+            lead: { select: { phone: true, name: true } },
+            customer: { select: { phone: true, name: true } },
+          },
+        },
+      },
     }),
     prisma.estimate.findMany({
       where: {
@@ -543,19 +555,26 @@ export async function getAttentionQueue(
 
   for (const invoice of openMoney[0]) {
     if (invoice.status === "paid" || invoice.status === "void") continue;
+    const phone =
+      invoice.job?.customer?.phone ?? invoice.job?.lead?.phone ?? null;
+    const who =
+      invoice.job?.customer?.name ?? invoice.job?.lead?.name ?? null;
     items.push({
       id: `open_invoice:${invoice.id}`,
       kind: "open_invoice",
       rank: kindRank("open_invoice", null, afterHours),
       impact: "high",
-      title: `Open invoice · $${Math.round(invoice.amountCents / 100)}`,
-      detail: `Status ${invoice.status} — close money in the CRM.`,
-      recommendedAction: "Review job",
+      title: who
+        ? `${who} · $${Math.round(invoice.amountCents / 100)}`
+        : `Open invoice · $${Math.round(invoice.amountCents / 100)}`,
+      detail: `Status ${invoice.status} — collect before the work cools.`,
+      recommendedAction: phone ? "Call to collect" : "Review invoice",
       href: invoice.jobId ? `/dashboard/jobs/${invoice.jobId}` : "/dashboard#shop-economics",
       entityType: "shop",
       entityId: businessId,
       createdAt: invoice.createdAt.toISOString(),
       estimatedRevenueCents: invoice.amountCents,
+      meta: { phone, status: invoice.status },
     });
   }
 
@@ -601,16 +620,21 @@ export async function getAttentionQueue(
       kind: "open_estimate",
       rank: kindRank("open_estimate", null, afterHours),
       impact: "med",
-      title: `Open estimate · $${Math.round(estimate.amountCents / 100)}`,
-      detail: `Status ${estimate.status} — convert or close.`,
-      recommendedAction: "Review job",
+      title: estimate.lead?.name
+        ? `${estimate.lead.name} · $${Math.round(estimate.amountCents / 100)}`
+        : `Open estimate · $${Math.round(estimate.amountCents / 100)}`,
+      detail: `Status ${estimate.status} — convert or close before it goes cold.`,
+      recommendedAction: estimate.lead?.phone ? "Call to close" : "Review estimate",
       href: estimate.jobId
         ? `/dashboard/jobs/${estimate.jobId}`
-        : "/dashboard#shop-economics",
-      entityType: "shop",
-      entityId: businessId,
+        : estimate.leadId
+          ? `/dashboard/inbox/${estimate.leadId}`
+          : "/dashboard#shop-economics",
+      entityType: estimate.leadId ? "lead" : "shop",
+      entityId: estimate.leadId ?? businessId,
       createdAt: estimate.createdAt.toISOString(),
       estimatedRevenueCents: estimate.amountCents,
+      meta: { phone: estimate.lead?.phone ?? null, status: estimate.status },
     });
   }
 

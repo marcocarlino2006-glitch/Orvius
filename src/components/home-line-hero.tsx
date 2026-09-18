@@ -53,9 +53,6 @@ export function HomeLineHero() {
           <p className="ov-hero-brand" aria-label="Orvius">
             Orvius
           </p>
-          <p className="ov-hero-eyebrow" data-i18n="hero.eyebrow">
-            The night-shift OS for HVAC, plumbing &amp; electrical
-          </p>
 
           {/* Copy is owned by the i18n dictionary; keep these in sync with it so
               the translator never swaps the text out from under the render. */}

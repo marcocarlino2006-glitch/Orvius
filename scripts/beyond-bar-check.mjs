@@ -59,8 +59,17 @@ if (fileOk("docs/MULTI-B-STRICT.md")) {
 
 if (fileOk("docs/STANDINGS.md")) {
   const standings = read("docs/STANDINGS.md");
-  if (/have vs need/i.test(standings) && /Gap map/i.test(standings)) {
-    pass("Standings analysis", "docs/STANDINGS.md — have vs need present");
+  if (
+    /have vs need/i.test(standings) &&
+    /Gap map/i.test(standings) &&
+    /beyond:check`?\s*\*?\*?17\/17/i.test(standings)
+  ) {
+    pass("Standings analysis", "docs/STANDINGS.md — have vs need + 17/17 honesty");
+  } else if (/have vs need/i.test(standings) && /Gap map/i.test(standings)) {
+    fail(
+      "Standings analysis",
+      "STANDINGS.md must report beyond:check 17/17 (not a stale count)",
+    );
   } else {
     fail("Standings analysis", "STANDINGS.md missing required sections");
   }

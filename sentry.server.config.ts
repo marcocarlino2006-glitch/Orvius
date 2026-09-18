@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { sentryRuntimeOptions } from "./src/lib/sentry-options";
 
 /**
  * Fail-soft observability — no-ops until SENTRY_DSN / NEXT_PUBLIC_SENTRY_DSN is set.
@@ -14,5 +15,6 @@ if (dsn) {
     dsn,
     tracesSampleRate: 0.1,
     enabled: true,
+    ...sentryRuntimeOptions(),
   });
 }

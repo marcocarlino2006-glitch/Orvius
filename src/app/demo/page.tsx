@@ -104,7 +104,7 @@ export default function DemoPage() {
             description="Start with the live line if you want the real thing. Or run a preset scenario below."
           />
           <div className="tier1-hero-call">
-            <HomeCallDemo variant="void" size="section" />
+            <HomeCallDemo />
           </div>
         </div>
       </section>

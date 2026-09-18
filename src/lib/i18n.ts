@@ -23,12 +23,6 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.bookdemo": { en: "Book an audit", es: "Reservar una auditoría", fr: "Réserver un audit", de: "Audit buchen" },
   "nav.proveit": { en: "Call live AI", es: "Llamar a la IA en vivo", fr: "Appeler l'IA en direct", de: "Live-KI anrufen" },
 
-  "hero.eyebrow": {
-    en: "The night-shift OS for HVAC, plumbing & electrical",
-    es: "El OS de turno nocturno para HVAC, plomería y electricidad",
-    fr: "L'OS de nuit pour le CVC, la plomberie et l'électricité",
-    de: "Das Nachtschicht-OS für HLK, Sanitär und Elektro",
-  },
   "hero.title": {
     en: "Missed calls become booked jobs.",
     es: "Las llamadas perdidas se vuelven trabajos agendados.",
