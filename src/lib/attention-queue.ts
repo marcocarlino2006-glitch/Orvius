@@ -369,7 +369,7 @@ export async function getAttentionQueue(
       detail:
         "Deposit holds are enabled but Stripe Connect is not cleared to take cards. Finish payouts setup or turn deposits off.",
       recommendedAction: "Open payouts",
-      href: "/dashboard/settings#payouts",
+      href: "/dashboard/billing#payouts",
       entityType: "shop",
       entityId: businessId,
       createdAt: now.toISOString(),
@@ -720,7 +720,7 @@ export async function getAttentionQueue(
         liveCalls.length,
         overflowOk,
       ),
-      href: overflowOk ? "/dashboard/calls" : "/dashboard/onboarding",
+      href: overflowOk ? "/dashboard/calls" : "/dashboard/settings#overflow-forward",
       entityType: "shop",
       entityId: businessId,
       createdAt: liveCalls[0]?.createdAt.toISOString() ?? now.toISOString(),

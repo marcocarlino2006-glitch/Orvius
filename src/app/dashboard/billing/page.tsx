@@ -238,7 +238,9 @@ export default function DashboardBillingPage() {
           )}
         </ShellPanel>
 
-      <ConnectPayoutsPanel />
+      <div id="payouts">
+        <ConnectPayoutsPanel />
+      </div>
 
       {/*
         Deposits sit under payouts because they are the same decision in two

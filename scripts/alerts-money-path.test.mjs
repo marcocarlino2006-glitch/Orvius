@@ -50,3 +50,15 @@ test("alerts_muted and money_path_broken are board kinds", () => {
   assert.equal(attentionActionStrategy("alerts_muted"), "open");
   assert.equal(attentionActionStrategy("money_path_broken"), "open");
 });
+
+test("board deep-links land on Settings owner-alerts and Billing payouts", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const { dirname, join } = await import("node:path");
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const queue = readFileSync(join(root, "src/lib/attention-queue.ts"), "utf8");
+  assert.match(queue, /settings#owner-alerts/);
+  assert.match(queue, /billing#payouts/);
+  assert.match(queue, /settings#overflow-forward/);
+  assert.doesNotMatch(queue, /settings#payouts/);
+});

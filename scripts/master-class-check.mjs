@@ -508,21 +508,31 @@ try {
   }
   const alertsMuted = read("src/lib/owner-alerts-muted.ts");
   const moneyPath = read("src/lib/deposit-money-path.ts");
+  const queueHrefs = read("src/lib/attention-queue.ts");
+  const settingsIds = read("src/app/dashboard/settings/page.tsx");
+  const billingIds = read("src/app/dashboard/billing/page.tsx");
   if (
     /ownerAlertsAreMuted/.test(alertsMuted) &&
     /depositMoneyPathBroken/.test(moneyPath) &&
     /alerts_muted/.test(kinds) &&
     /money_path_broken/.test(kinds) &&
-    /Alerts off/.test(kinds)
+    /Alerts off/.test(kinds) &&
+    /settings#owner-alerts/.test(queueHrefs) &&
+    /billing#payouts/.test(queueHrefs) &&
+    /settings#overflow-forward/.test(queueHrefs) &&
+    /id="owner-alerts"/.test(settingsIds) &&
+    /id="overflow-forward"/.test(settingsIds) &&
+    /id="payouts"/.test(billingIds) &&
+    /ownerSmsOptedOut/.test(settingsIds)
   ) {
     pass(
       "Alerts-muted + money-path",
-      "STOP opt-out and deposits-without-Connect surface critical",
+      "STOP opt-out + Connect path + board deep-links land on real anchors",
     );
   } else {
     fail(
       "Alerts-muted + money-path",
-      "alerts_muted + money_path_broken kinds + detectors required",
+      "alerts_muted + money_path_broken + matching Settings/Billing anchors required",
     );
   }
   const manus = read("src/lib/manus-post.ts");

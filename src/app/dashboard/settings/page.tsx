@@ -41,6 +41,7 @@ type AccountResponse = {
   alerts: {
     smsEnabled: boolean;
     emailConfigured: boolean;
+    ownerSmsOptedOut?: boolean;
   };
 };
 
@@ -305,7 +306,17 @@ export default function DashboardSettingsPage() {
           </ShellPanel>
         </div>
 
+        <div id="owner-alerts">
         <ShellPanel title="Owner alerts" dense>
+          {account?.alerts.ownerSmsOptedOut ? (
+            <div className="mb-4">
+              <ShellAlert tone="error">
+                This number texted STOP — night leads will not reach you. Text{" "}
+                <strong>START</strong> to the shop alert number from your cell,
+                then send a test alert below.
+              </ShellAlert>
+            </div>
+          ) : null}
           <label className="onboarding-field font-sans">
             <span className="onboarding-label">Your mobile</span>
             <input
@@ -346,11 +357,17 @@ export default function DashboardSettingsPage() {
               {testing ? "Sending test…" : "Send test alert"}
             </button>
             <span className="pro-settings-test-meta font-sans">
-              SMS {account?.alerts.smsEnabled ? "enabled" : "off"} · Email{" "}
-              {account?.alerts.emailConfigured ? "ready" : "not configured"}
+              SMS{" "}
+              {account?.alerts.ownerSmsOptedOut
+                ? "opted out"
+                : account?.alerts.smsEnabled
+                  ? "enabled"
+                  : "off"}{" "}
+              · Email {account?.alerts.emailConfigured ? "ready" : "not configured"}
             </span>
           </div>
         </ShellPanel>
+        </div>
 
         <details className="pro-settings-secondary font-sans">
           <summary>Opening line + baseline</summary>
