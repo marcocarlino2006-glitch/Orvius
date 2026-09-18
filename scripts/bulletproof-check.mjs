@@ -237,6 +237,7 @@ console.log(`❌ BULLETPROOF: ${failed.length} open gate(s) — DO NOT POST\n`);
 for (const f of failed) {
   console.log(`   • ${f.label}${f.detail ? ` — ${f.detail}` : ""}`);
 }
-console.log("\nManus bar: fix every red before the public post.");
+console.log("\n▶ Ordered close: npm run manus:post");
+console.log("Manus bar: fix every red before the public post.");
 console.log("Product-only: BULLETPROOF_SKIP_CASH=1 npm run bulletproof\n");
 process.exit(1);

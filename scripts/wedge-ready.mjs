@@ -21,6 +21,20 @@ function phonesEqual(a, b) {
   return Boolean(left && right && left === right);
 }
 
+/** Theater phones that look set but are not a real cell. */
+function isPlaceholderOwnerPhone(phone) {
+  if (!phone?.trim()) return true;
+  const upper = phone.trim().toUpperCase();
+  if (/YOUR[_-]?CELL|PLACEHOLDER|CHANGEME|EXAMPLE|XXX+|TODO/.test(upper)) {
+    return true;
+  }
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 10) return true;
+  if (/^(\d)\1{9,}$/.test(digits)) return true;
+  if (/^1?555555/.test(digits)) return true;
+  return false;
+}
+
 async function main() {
   const nameFilter = process.argv[2]?.trim();
   const business = nameFilter
@@ -71,6 +85,7 @@ async function main() {
   });
   const ownerPhoneOk =
     Boolean(business.ownerPhone?.trim()) &&
+    !isPlaceholderOwnerPhone(business.ownerPhone) &&
     !shopLines.some((line) => phonesEqual(business.ownerPhone, line));
 
   const items = [
@@ -100,7 +115,9 @@ async function main() {
     {
       label: "Owner mobile configured",
       ok: ownerPhoneOk,
-      detail: business.ownerPhone ?? "missing",
+      detail: isPlaceholderOwnerPhone(business.ownerPhone)
+        ? "placeholder — set a real cell"
+        : (business.ownerPhone ?? "missing"),
     },
     {
       label: "Owner SMS not opted out",

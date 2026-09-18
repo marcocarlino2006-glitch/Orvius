@@ -503,6 +503,22 @@ try {
       "alerts_muted + money_path_broken kinds + detectors required",
     );
   }
+  const manus = read("src/lib/manus-post.ts");
+  const manusScript = read("scripts/manus-post.mjs");
+  const pkg = read("package.json");
+  if (
+    /MANUS_POST_STEPS/.test(manus) &&
+    /isPlaceholderOwnerPhone/.test(manus) &&
+    /manus:post/.test(pkg) &&
+    /NEXT:/.test(manusScript)
+  ) {
+    pass("Manus post cockpit", "Ordered manus:post runbook + placeholder phone reject");
+  } else {
+    fail(
+      "Manus post cockpit",
+      "manus-post.ts + npm run manus:post + placeholder detector required",
+    );
+  }
 } catch (e) {
   fail("Look craft", e instanceof Error ? e.message : String(e));
 }
