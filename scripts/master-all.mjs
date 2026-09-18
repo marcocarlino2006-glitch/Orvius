@@ -71,6 +71,21 @@ function gate(step, title, ok, detail, owner) {
 const beyond = run("beyond:check");
 gate(0, "Beyond-bar laws", beyond.ok, beyond.ok ? "beyond:check green" : "Fix beyond:check reds first", "code");
 
+const globalsCss = join(root, "src/app/globals.css");
+const globalsLines = existsSync(globalsCss)
+  ? readFileSync(globalsCss, "utf8").split(/\r?\n/).length
+  : 99999;
+const cssCeiling = globalsLines < 8000;
+gate(
+  0.25,
+  "CSS era under 8k (B6)",
+  cssCeiling,
+  cssCeiling
+    ? `globals.css ${globalsLines} lines — under landfill ceiling`
+    : `globals.css ${globalsLines} lines — cut toward <8k`,
+  "code",
+);
+
 const trust = run("test:trust");
 gate(0.5, "Trust tests", trust.ok, trust.ok ? "test:trust green" : "Fix trust failures (need DATABASE_URL)", "code");
 

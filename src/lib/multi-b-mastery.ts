@@ -28,7 +28,6 @@ export type MasteryGateId =
   | "external_proof"
   | "connect_live"
   | "ten_shops"
-  | "css_craft"
   | "beyond_laws";
 
 export type MasteryGate = {
