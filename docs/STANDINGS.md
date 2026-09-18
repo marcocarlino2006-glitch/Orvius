@@ -30,7 +30,7 @@ $0 ARR            →   First $ → retention → density
 | **G. Legal** | Placeholder language | Counsel formation state | **FOUNDER + counsel** |
 | **H. Proof** | Summit self-reference possible | External named proof | **FOUNDER** |
 | **I. OS monopoly** | Demand capture + taxonomy live in writers | Multi-shop compounding data | Needs paying density |
-| **J. Polish debt** | CSS ~12.7k lines | &lt;8k landfill cut | Code — B6 open |
+| **J. Polish debt** | `globals.css` **~7.6k** (was ~12.7k) | Keep under 8k; dashboard sheet owns product densify | **B6 closed on line ceiling** |
 
 **Bottom line:** We are a **strong product with multi-b discipline encoded**, standing at roughly **code-ready / cash-zero / distribution-zero**. Multi-b standard requires closing layers C–H in order — not building more UI.
 
@@ -89,7 +89,7 @@ $0 ARR            →   First $ → retention → density
 | External proof | **None** | Strict list |
 | Connect live shop | Code ready; **no claim of live payouts** until a shop is onboarded + charged | Connect `canAcceptPayments` requires live account |
 | Agent trust/wedge | Cannot certify here until `npm install` + prod DB + running app | Missing `@prisma/client` |
-| CSS landfill | **IN_PROGRESS** (~12.7k lines, target &lt;8k) | `globals.css` |
+| CSS landfill | **DONE ceiling** — `globals.css` ~7.6k (&lt;8k); product densify lives in `dashboard.css` | `globals.css` + `dashboard.css` |
 | Public post bar | **DO NOT POST** until bulletproof full green | Manus bar |
 
 ### Failure-log nuance (don’t lie either way)
@@ -142,7 +142,7 @@ as a serious early product, not as Toast / Stripe / Linear inevitability.
 |-----|------------------|--------------|-------|
 | Brand-swap test | Unmistakable without the nav | Night-shift claim + live line + **Orvius** brand in hero; Cursor mega-nav removed | **B+** |
 | First viewport budget | Brand + one claim + one CTA group + one dominant artifact | Hero only in first beats — **stats + showcase removed from `/`** | **A−** |
-| Visual system | One era, one letterset, ruthless cohesion | Archivo + Plex Mono. Dead showcase/stats CSS pruned (~19kb); ~14.7k lines remain | **B−** |
+| Visual system | One era, one letterset, ruthless cohesion | Archivo + Plex Mono. `globals.css` under 8k; product densify split to dashboard sheet | **B** |
 | Real atmosphere | Product/place/context as the visual idea | Full-bleed night hero: copper bloom, board grid, horizon + live console | **A−** |
 | Confidence | Quiet authority (Anthropic/Stripe) | Direct claim + live line; less funnel noise | **B+** |
 | Product shell | Calm utility (Claude/Linear) | OsShell + Command + Ask dock + founder next-gate | **A−** |
@@ -167,7 +167,7 @@ requires founder to close cash, cert, outreach, and formation — UI cannot inve
 ### Combined scorecard
 
 ```text
-LOOK     ███████████░  ~87%
+LOOK     ████████████  ~90% craft (B6 line ceiling clear; density still live shops)
 OPERATE  ████████████  ~94% craft  |  residual ~6% = you running it live
 MULTI-B  founder gates still yours (Stripe/cert/etc.)
 ```
@@ -197,7 +197,7 @@ not UI.
 
 ### Agent/code (does not print ARR alone)
 9. Ensure CI envs always `npm ci` so trust tests can’t false-fail
-10. Cut CSS landfill (B6) toward &lt;8k when eras are safe to delete
+10. Keep `globals.css` under 8k — product densify belongs in `dashboard.css`
 11. Keep beyond/multi-b/bulletproof/master:all honest — never vanity-green
 12. Only after 1–8: deepen money rail ops, then plugs when a paying shop asks
 

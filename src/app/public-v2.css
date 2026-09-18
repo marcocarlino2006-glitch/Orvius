@@ -1702,6 +1702,22 @@ body {
   animation: ov-sky-breathe 9s ease-in-out infinite;
 }
 
+/* Secondary bay light — opposite corner, slower, so the plane feels occupied. */
+.ov-public .ov-hero-sky-bloom-bay {
+  position: absolute;
+  left: -12%;
+  bottom: -20%;
+  width: 55%;
+  height: 70%;
+  background: radial-gradient(
+    circle at 40% 60%,
+    color-mix(in srgb, var(--ov-copper) 10%, transparent),
+    transparent 68%
+  );
+  animation: ov-sky-breathe 14s ease-in-out infinite reverse;
+  opacity: 0.7;
+}
+
 /* Soft board grid — shop floor instrument, not decoration noise. */
 .ov-public .ov-hero-sky-grid {
   position: absolute;
@@ -1721,11 +1737,17 @@ body {
   right: 0;
   bottom: 0;
   height: 42%;
-  background: linear-gradient(
-    to top,
-    color-mix(in srgb, #000 55%, transparent),
-    transparent 70%
-  );
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #000 55%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--ov-copper) 8%, transparent) 0%,
+      transparent 28%
+    );
 }
 
 @keyframes ov-sky-breathe {
@@ -1741,7 +1763,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ov-public .ov-hero-sky-bloom {
+  .ov-public .ov-hero-sky-bloom,
+  .ov-public .ov-hero-sky-bloom-bay {
     animation: none;
   }
 }

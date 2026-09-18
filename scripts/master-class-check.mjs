@@ -238,11 +238,24 @@ try {
   if (
     /ov-hero--atmosphere/.test(hero) &&
     /ov-hero-sky/.test(hero) &&
-    /ov-hero-sky-horizon/.test(hero)
+    /ov-hero-sky-horizon/.test(hero) &&
+    /ov-hero-sky-bloom-bay/.test(hero)
   ) {
     pass("Look atmosphere", "Hero is a full-bleed night plane with sky layers");
   } else {
     fail("Look atmosphere", "Hero must include ov-hero--atmosphere sky layers");
+  }
+  const globalsLines = read("src/app/globals.css").split(/\r?\n/).length;
+  if (globalsLines < 8000) {
+    pass(
+      "Look CSS era (B6)",
+      `globals.css is ${globalsLines} lines — under the 8k landfill ceiling`,
+    );
+  } else {
+    fail(
+      "Look CSS era (B6)",
+      `globals.css is ${globalsLines} lines — cut toward <8k`,
+    );
   }
   const nav = read("src/components/premium-nav.tsx");
   if (/Enterprise|nav\.enterprise|\/resources/.test(nav) && /href: "\/product"/.test(nav)) {

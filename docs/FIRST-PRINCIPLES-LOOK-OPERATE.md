@@ -17,7 +17,7 @@ A multi-billion presence is not more sections. It is **inevitability**.
 | **P5 · Atmosphere** | Is the visual idea the trade at night — or abstract SaaS? | Live-call stage is the artifact; deepen night, don’t decorate |
 
 **What raises Look 65 → ~80 (code):** hero diet, kill first-viewport noise, trades-native nav, brand as hero signal.  
-**What raises Look 80 → ~90 (craft):** one CSS era (&lt;8k), real night/bay atmosphere, motion with purpose.  
+**What raises Look 80 → ~90 (craft):** one CSS era (&lt;8k) — **done on line ceiling**; deepen night/bay atmosphere + motion.  
 **What raises Look 90 → multi-b:** density of live shops using it — presence follows proof.
 
 ---
@@ -48,8 +48,8 @@ A multi-billion operation is not more dashboards. It is **the next truth is unav
 3. Nav = Orvius (Pricing · Audit · About), not Cursor mega-nav  
 4. Command shows founder **next gate** when red  
 5. Founder closes master:all gates 1→9  
-6. CSS era consolidation (B6)  
-7. Atmosphere pass (night plane)
+6. CSS era consolidation (B6) — **globals under 8k**  
+7. Atmosphere pass (night plane) — deepen, don’t decorate
 
 ---
 

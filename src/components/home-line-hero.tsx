@@ -44,6 +44,7 @@ export function HomeLineHero() {
     <section className="ov-hero ov-hero--atmosphere" aria-labelledby="home-hero-heading">
       <div className="ov-hero-sky" aria-hidden>
         <span className="ov-hero-sky-bloom" />
+        <span className="ov-hero-sky-bloom-bay" />
         <span className="ov-hero-sky-grid" />
         <span className="ov-hero-sky-horizon" />
       </div>

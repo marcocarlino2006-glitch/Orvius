@@ -240,6 +240,22 @@ console.log(
 
 if (WRITE) {
   writeFileSync(`${repoRoot}/${SOURCE}`, source.toString());
-  writeFileSync(`${repoRoot}/${TARGET}`, header + target.toString() + "\n");
+  /*
+    Preserve an existing dashboard sheet. An earlier run already owns most of
+    the product CSS; a split that rewrites the target from only the newly moved
+    rules would delete thousands of lines and paint the dashboard broken.
+  */
+  let existingBody = "";
+  try {
+    const existing = readFileSync(`${repoRoot}/${TARGET}`, "utf8");
+    existingBody = existing.replace(/^\/\*[\s\S]*?\*\/\s*/, "");
+  } catch {
+    /* First split — no prior sheet. */
+  }
+  const movedBody = target.toString().trim();
+  const combined = [header.trimEnd(), existingBody.trim(), movedBody]
+    .filter(Boolean)
+    .join("\n\n");
+  writeFileSync(`${repoRoot}/${TARGET}`, `${combined}\n`);
   console.log(`wrote ${TARGET}`);
 }
