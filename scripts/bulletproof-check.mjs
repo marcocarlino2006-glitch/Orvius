@@ -12,6 +12,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  MANUS_ALLOWED_FIRST_POST,
+  claimsViolateManusPost,
+} from "../src/lib/manus-post.ts";
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const skipCash = process.env.BULLETPROOF_SKIP_CASH === "1";
 const appUrl = (process.env.APP_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "");
@@ -143,16 +148,19 @@ if (demoHonesty) {
 
 const prePost = readFileSync(join(root, "docs/PRE-POST-GATE.md"), "utf8");
 const allowedPost = (prePost.split("## Allowed first post")[1] ?? "").split("## Forbidden")[0];
-const softClaim =
-  /answers every call/i.test(allowedPost) ||
-  /never miss/i.test(allowedPost) ||
-  /guaranteed/i.test(allowedPost);
+const docHits = claimsViolateManusPost(allowedPost);
+const canonHits = claimsViolateManusPost(MANUS_ALLOWED_FIRST_POST);
+const softClaim = docHits.length > 0 || canonHits.length > 0;
 if (!softClaim && /Orvius answers after-hours/i.test(allowedPost)) {
   ok("post_copy", "Pre-post copy honest", "allowed first post is wedge-true");
 } else if (!softClaim) {
   ok("post_copy", "Pre-post copy honest", "no overclaim in allowed first post");
 } else {
-  bad("post_copy", "Pre-post copy overclaims", "edit Allowed first post in docs/PRE-POST-GATE.md");
+  bad(
+    "post_copy",
+    "Pre-post copy overclaims",
+    `forbidden: ${[...new Set([...docHits, ...canonHits])].join(", ")}`,
+  );
 }
 
 

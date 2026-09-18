@@ -1,14 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { OsShell } from "@/components/os-shell";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import type { ManusPostStep } from "@/lib/manus-post";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type AccountResponse = {
   founder?: boolean;
@@ -88,6 +89,7 @@ export default function DashboardSettingsPage() {
   const [certSaving, setCertSaving] = useState(false);
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
+  const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
 
   async function loadAccount() {
     const res = await fetch("/api/account");
@@ -119,6 +121,26 @@ export default function DashboardSettingsPage() {
   useEffect(() => {
     loadAccount().catch(() => null);
   }, []);
+
+  useEffect(() => {
+    if (!account?.founder) {
+      setManusNext(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/admin/mastery")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { manusPost?: { next?: ManusPostStep | null } } | null) => {
+        if (cancelled) return;
+        setManusNext(data?.manusPost?.next ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setManusNext(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [account?.founder]);
 
   async function persistCert(next: boolean[]) {
     setCertChecks(next);
@@ -433,7 +455,7 @@ export default function DashboardSettingsPage() {
             open
           >
             <summary>Manus post · next</summary>
-            <FounderManusNext tone="quiet" />
+            <FounderManusNext tone="quiet" next={manusNext} />
           </details>
         ) : null}
 

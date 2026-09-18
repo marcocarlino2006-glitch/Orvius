@@ -378,7 +378,7 @@ export function AttentionQueue({
                   */}
                   {hasPrimary ? (
                     <Link href={item.href} className="attention-item-btn attention-item-btn-quiet">
-                      Open
+                      Details
                     </Link>
                   ) : null}
                   {showCall ? (

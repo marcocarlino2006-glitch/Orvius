@@ -514,24 +514,27 @@ try {
   const publicCss = read("src/app/public-v2.css");
   const heroMotion = read("src/components/home-line-hero.tsx");
   const daily = read("src/app/admin/daily/page.tsx");
+  const settingsManus = read("src/app/dashboard/settings/page.tsx");
   if (
     /MANUS_POST_STEPS/.test(manus) &&
     /isPlaceholderOwnerPhone/.test(manus) &&
     /resolveManusPostNext/.test(manus) &&
     /MANUS_FORBIDDEN_CLAIMS/.test(manus) &&
     /from ["']\.\.\/src\/lib\/manus-post\.ts["']/.test(manusScript) &&
+    /claimsViolateManusPost/.test(read("scripts/bulletproof-check.mjs")) &&
     /manus:post/.test(pkg) &&
     /NEXT:/.test(manusScript) &&
-    /FounderManusNext/.test(daily)
+    /FounderManusNext/.test(daily) &&
+    /manusPost\?\.next/.test(settingsManus)
   ) {
     pass(
       "Manus post cockpit",
-      "Ordered manus:post (DRY from manus-post.ts) + Settings/admin next + forbidden claims",
+      "Ordered manus:post (DRY) + live Settings next + bulletproof forbidden claims",
     );
   } else {
     fail(
       "Manus post cockpit",
-      "manus-post.ts + DRY npm run manus:post + FounderManusNext required",
+      "manus-post.ts + DRY manus:post + Settings live next + bulletproof claims required",
     );
   }
   if (

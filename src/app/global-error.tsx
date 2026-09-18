@@ -1,8 +1,8 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { company } from "@/lib/company";
+import { captureClientException } from "@/lib/sentry-report";
 
 /*
   The last resort: the root layout itself failed, so there is no app shell to
@@ -26,9 +26,7 @@ export default function GlobalError({
     nowhere. The DSN check keeps local and preview builds from reporting.
   */
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) {
-      Sentry.captureException(error);
-    }
+    captureClientException(error, { surface: "global" }, { digest: error.digest });
   }, [error]);
 
   return (
