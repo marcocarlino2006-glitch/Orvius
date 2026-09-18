@@ -131,6 +131,35 @@ try {
   fail("L2 Nothing fails silent", e instanceof Error ? e.message : String(e));
 }
 
+// ── L3 Owner language — no Ring/Vapi jargon on owner-rendered modules ──
+try {
+  const bar = read("src/lib/beyond-bar.ts");
+  const standard = read("scripts/standard-check.mjs");
+  const hasLaw =
+    /id:\s*"L3"/.test(bar) && /Owner language/.test(bar);
+  const hasClarityGate =
+    /OWNER_JARGON/.test(standard) &&
+    /\\bVapi\\b/.test(standard) &&
+    /\\bTwilio\\b/.test(standard) &&
+    /Clarity scan/.test(standard) &&
+    /surfaceModules\s*\(\s*"dashboard"\s*\)/.test(standard);
+  if (hasLaw && hasClarityGate) {
+    pass(
+      "L3 Owner language",
+      "Clarity scan — no Ring/Vapi/Twilio jargon on owner UI modules",
+    );
+  } else if (!hasLaw) {
+    fail("L3 Owner language", "beyond-bar.ts must encode L3 Owner language");
+  } else {
+    fail(
+      "L3 Owner language",
+      "standard:check must enforce OWNER_JARGON clarity on dashboard surfaces",
+    );
+  }
+} catch (e) {
+  fail("L3 Owner language", e instanceof Error ? e.message : String(e));
+}
+
 // ── L4 Honest money — pipeline ≠ collected ──
 try {
   const panel = read("src/components/pro-economics-panel.tsx");

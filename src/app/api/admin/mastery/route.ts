@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { company } from "@/lib/company";
 import { isFounderEmail } from "@/lib/founder";
+import {
+  buildManusPostStatus,
+  MANUS_POST_STEPS,
+  probeManusEnvSecrets,
+  resolveManusPostNext,
+} from "@/lib/manus-post";
 import { prisma } from "@/lib/prisma";
 import {
   buildMasteryReport,
@@ -46,10 +53,12 @@ export async function GET() {
   );
 
   let wedgeReady = false;
+  let wedgeItems: Awaited<ReturnType<typeof getWedgeReadiness>>["items"] = [];
   if (business?.id) {
     try {
       const wedge = await getWedgeReadiness(business.id);
       wedgeReady = Boolean(wedge?.ready);
+      wedgeItems = wedge?.items ?? [];
     } catch {
       wedgeReady = false;
     }
@@ -109,9 +118,32 @@ export async function GET() {
     externalProof: false,
   });
 
+  const itemOk = (id: string) =>
+    wedgeItems.find((i) => i.id === id)?.ok ?? null;
+
+  const manusStatus = buildManusPostStatus({
+    secrets: probeManusEnvSecrets(),
+    wedgeLine: itemOk("line"),
+    wedgeVerify: itemOk("verified"),
+    wedgeAlert: itemOk("alert-test"),
+    phoneCertDone: certDone >= 5,
+    proofVideo: null,
+    formation: Boolean(company.formationStateConfirmed),
+    bulletproof: null,
+  });
+  const manusNext = resolveManusPostNext(manusStatus);
+
   return NextResponse.json({
     ...report,
     founder: isFounderEmail(email),
     shopName: business?.name ?? null,
+    manusPost: {
+      steps: MANUS_POST_STEPS.map((step) => ({
+        ...step,
+        ok: manusStatus[step.id] ?? null,
+      })),
+      next: manusNext,
+      cli: "npm run manus:post",
+    },
   });
 }

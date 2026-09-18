@@ -1,5 +1,6 @@
 import { getShopHealth, type ShopHealth } from "@/lib/shop-health";
 import { ownerPhoneConflictsWithShopLine, getShopLines } from "@/lib/owner-alerts";
+import { isPlaceholderOwnerPhone } from "@/lib/manus-post";
 import { prisma } from "@/lib/prisma";
 
 export type WedgeReadinessItem = {
@@ -57,6 +58,7 @@ export async function getWedgeReadiness(
   const shopLines = getShopLines(business);
   const ownerPhoneOk =
     Boolean(business.ownerPhone?.trim()) &&
+    !isPlaceholderOwnerPhone(business.ownerPhone) &&
     !ownerPhoneConflictsWithShopLine({
       ownerPhone: business.ownerPhone,
       shopLines,
@@ -85,7 +87,9 @@ export async function getWedgeReadiness(
       ok: ownerPhoneOk,
       detail: ownerPhoneOk
         ? business.ownerPhone!
-        : "Add your cell — not your shop line",
+        : isPlaceholderOwnerPhone(business.ownerPhone)
+          ? "Placeholder — set a real cell"
+          : "Add your cell — not your shop line",
       actionHref: "/dashboard/settings",
     },
     {

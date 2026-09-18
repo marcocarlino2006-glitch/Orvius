@@ -1702,20 +1702,22 @@ body {
   animation: ov-sky-breathe 9s ease-in-out infinite;
 }
 
-/* Secondary bay light — opposite corner, slower, so the plane feels occupied. */
+/* Secondary bay light — opposite corner, slower, so the plane feels occupied.
+   Trade bay at night, not a faint tint: copper reads as warm shop worklight. */
 .ov-public .ov-hero-sky-bloom-bay {
   position: absolute;
-  left: -12%;
-  bottom: -20%;
-  width: 55%;
-  height: 70%;
+  left: -14%;
+  bottom: -22%;
+  width: 62%;
+  height: 78%;
   background: radial-gradient(
-    circle at 40% 60%,
-    color-mix(in srgb, var(--ov-copper) 10%, transparent),
-    transparent 68%
+    circle at 38% 58%,
+    color-mix(in srgb, var(--ov-copper) 22%, transparent),
+    color-mix(in srgb, var(--ov-copper) 8%, transparent) 42%,
+    transparent 72%
   );
   animation: ov-sky-breathe 14s ease-in-out infinite reverse;
-  opacity: 0.7;
+  opacity: 0.92;
 }
 
 /* Soft board grid — shop floor instrument, not decoration noise. */

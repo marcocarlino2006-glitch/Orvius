@@ -6,6 +6,12 @@ import {
   ownerMobileConfigured,
   MANUS_POST_STEPS,
   MANUS_ALLOWED_FIRST_POST,
+  MANUS_FORBIDDEN_CLAIMS,
+  claimsViolateManusPost,
+  resolveManusPostNext,
+  probeManusEnvSecrets,
+  hasRealSecret,
+  buildManusPostStatus,
 } from "../src/lib/manus-post.ts";
 
 test("placeholder owner phones fail the Manus mobile gate", () => {
@@ -43,4 +49,50 @@ test("Manus post sequence is ordered and includes the allowed first post", () =>
   }
   assert.match(MANUS_ALLOWED_FIRST_POST, /after-hours and overflow/i);
   assert.doesNotMatch(MANUS_ALLOWED_FIRST_POST, /never miss|guaranteed|every call/i);
+  assert.equal(claimsViolateManusPost(MANUS_ALLOWED_FIRST_POST).length, 0);
+  assert.ok(MANUS_FORBIDDEN_CLAIMS.length >= 5);
+  assert.ok(claimsViolateManusPost("we never miss a call").includes("never miss"));
+});
+
+test("resolveManusPostNext returns the first red gate", () => {
+  const next = resolveManusPostNext({
+    telephony: true,
+    wedge_line: true,
+    wedge_verify: false,
+  });
+  assert.equal(next?.id, "wedge_verify");
+  assert.equal(resolveManusPostNext({
+    telephony: true,
+    wedge_line: true,
+    wedge_verify: true,
+    wedge_alert: true,
+    phone_cert: true,
+    proof_video: true,
+    stripe_key: true,
+    stripe_setup: true,
+    stripe_webhook: true,
+    formation: true,
+    bulletproof_green: true,
+  }), null);
+});
+
+test("probeManusEnvSecrets rejects theater values", () => {
+  assert.equal(hasRealSecret("YOUR_KEY"), false);
+  assert.equal(hasRealSecret("sk_live_abc"), true);
+  const probed = probeManusEnvSecrets({
+    TWILIO_ACCOUNT_SID: "ACxxxxxxxx",
+    TWILIO_AUTH_TOKEN: "token",
+    TWILIO_PHONE_NUMBER: "+15551234567",
+    VAPI_API_KEY: "vapi",
+    STRIPE_SECRET_KEY: "",
+  });
+  assert.equal(probed.telephony, true);
+  assert.equal(probed.stripe_key, false);
+  const status = buildManusPostStatus({
+    secrets: probed,
+    formation: false,
+  });
+  assert.equal(status.telephony, true);
+  assert.equal(status.formation, false);
+  assert.equal(resolveManusPostNext(status)?.id, "wedge_line");
 });

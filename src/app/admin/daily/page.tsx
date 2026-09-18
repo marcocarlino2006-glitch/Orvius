@@ -1,11 +1,13 @@
 "use client";
 
+import { FounderManusNext } from "@/components/founder-manus-next";
 import { OsShell } from "@/components/os-shell";
 import { ShellBadge, ShellPanel } from "@/components/shell-primitives";
 import {
   fillOutreachTemplate,
   outreachTemplates,
 } from "@/lib/outreach-templates";
+import type { ManusPostStep } from "@/lib/manus-post";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -28,6 +30,10 @@ type MasteryReport = {
   next: MasteryGate | null;
   mastered: boolean;
   shopName: string | null;
+  manusPost?: {
+    next: ManusPostStep | null;
+    cli: string;
+  };
 };
 
 type Prospect = {
@@ -136,6 +142,13 @@ export default function AdminDailyPage() {
           </p>
         ) : (
           <>
+            {mastery.manusPost ? (
+              <FounderManusNext
+                tone="cockpit"
+                next={mastery.manusPost.next}
+              />
+            ) : null}
+
             {next ? (
               <div className="mb-4 rounded-md border border-flare/40 bg-flare/5 p-3">
                 <p className="font-sans text-xs uppercase tracking-wide text-flare">

@@ -21,7 +21,7 @@ $0 ARR            →   First $ → retention → density
 
 | Layer | Have | Need | Gap |
 |-------|------|------|-----|
-| **A. Code laws / craft** | `beyond:check` **13/13** | Stay green forever | Small — keep enforcing |
+| **A. Code laws / craft** | `beyond:check` **16/16** | Stay green forever | Small — keep enforcing |
 | **B. Automated live gates** | Red in this agent (no `node_modules` / no app / no prod DB) | `test:trust` + `wedge:ready` + `standard:check` green on prod | **Env + live verify** |
 | **C. SaaS money** | Paywall code done | Stripe keys + first Checkout $ | **FOUNDER — $0 ARR** |
 | **D. Shop money rail** | Connect + estimate/deposit charge paths **in code** | Shop onboarded, charges+payouts enabled, real card $ | **FOUNDER + first shop** |
@@ -39,7 +39,7 @@ $0 ARR            →   First $ → retention → density
 ## 1. What we HAVE (earned in product)
 
 ### Laws & craft (green)
-- Beyond-bar doctrine + ten laws enforced (`npm run beyond:check` 13/13)
+- Beyond-bar doctrine + ten laws enforced (`npm run beyond:check` 16/16)
 - Prove-before-confirm on overflow
 - Webhook alert drains + SMS→email failover path
 - Honest money labeling (pipeline ≠ collected)
@@ -143,11 +143,11 @@ as a serious early product, not as Toast / Stripe / Linear inevitability.
 | Brand-swap test | Unmistakable without the nav | Night-shift claim + live line + **Orvius** brand in hero; Cursor mega-nav removed | **B+** |
 | First viewport budget | Brand + one claim + one CTA group + one dominant artifact | Hero only in first beats — **stats + showcase removed from `/`** | **A−** |
 | Visual system | One era, one letterset, ruthless cohesion | Archivo + Plex Mono. `globals.css` under 8k; product densify split to dashboard sheet | **B** |
-| Real atmosphere | Product/place/context as the visual idea | Full-bleed night hero: copper bloom, board grid, horizon + live console | **A−** |
+| Real atmosphere | Product/place/context as the visual idea | Full-bleed night hero: copper bay bloom, board grid, horizon + live console | **A−** |
 | Confidence | Quiet authority (Anthropic/Stripe) | Direct claim + live line; less funnel noise | **B+** |
 | Product shell | Calm utility (Claude/Linear) | OsShell + Command + Ask dock + founder next-gate | **A−** |
 
-**Look verdict:** Moved from “sharp SaaS site” toward “night OS presence.” Still not multi-b finish until one CSS era and deeper atmosphere.
+**Look verdict:** Night OS presence with intentional hero motion (bay breathe, liveline, pulse). Density still needs live shops; keep `globals.css` under 8k.
 
 ### Operate (how the company and product run)
 
@@ -159,7 +159,7 @@ as a serious early product, not as Toast / Stripe / Linear inevitability.
 | Daily cadence | Same rituals every day | Shop operate pulse + `/admin/daily` + Command board language | **A−** tool / habit still founder |
 | Support | Stated SLA matches staffing | Best-effort honesty — correct | **B** |
 | Public claims | Only what works in prod | Manus / bulletproof gates | **A−** (discipline) / red until cash live |
-| Shipping craft | One system, no landfill | CSS eras + leftover marketing CSS | **C+** |
+| Shipping craft | One system, no landfill | `globals.css` under 8k; product densify in dashboard sheet | **B+** |
 
 **Operate verdict:** Tools now force the next gate into view. Live multi-b operate still
 requires founder to close cash, cert, outreach, and formation — UI cannot invent those.

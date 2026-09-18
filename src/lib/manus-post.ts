@@ -25,6 +25,11 @@ export type ManusPostStep = {
   founderOnly: boolean;
 };
 
+/** true = green, false = red, null/undefined = unknown (not probed yet). */
+export type ManusPostStatusMap = Partial<
+  Record<ManusPostStepId, boolean | null>
+>;
+
 /** Owner phones that look provisioned but are still theater. */
 export function isPlaceholderOwnerPhone(phone: string | null | undefined): boolean {
   if (!phone?.trim()) return true;
@@ -55,6 +60,12 @@ export function ownerMobileConfigured(input: {
     }
   }
   return true;
+}
+
+/** Reject theater env values that look set but are not. */
+export function hasRealSecret(value: string | null | undefined): boolean {
+  const v = String(value ?? "").trim();
+  return Boolean(v) && !/YOUR_|changeme|placeholder/i.test(v);
 }
 
 /**
@@ -165,3 +176,70 @@ export const MANUS_FORBIDDEN_CLAIMS = [
   "card pay lands in the shop bank",
   "invented ARR",
 ] as const;
+
+/** First red/unknown step — the only one to work on. */
+export function resolveManusPostNext(
+  status: ManusPostStatusMap,
+): ManusPostStep | null {
+  for (const step of MANUS_POST_STEPS) {
+    if (status[step.id] !== true) return step;
+  }
+  return null;
+}
+
+/** Env-probeable Manus gates (never invent values). */
+export function probeManusEnvSecrets(
+  env: Record<string, string | undefined> = process.env,
+): Pick<
+  ManusPostStatusMap,
+  "telephony" | "stripe_key" | "stripe_setup" | "stripe_webhook"
+> {
+  return {
+    telephony:
+      hasRealSecret(env.TWILIO_ACCOUNT_SID) &&
+      hasRealSecret(env.TWILIO_AUTH_TOKEN) &&
+      hasRealSecret(env.TWILIO_PHONE_NUMBER) &&
+      hasRealSecret(env.VAPI_API_KEY),
+    stripe_key: hasRealSecret(env.STRIPE_SECRET_KEY),
+    stripe_setup:
+      hasRealSecret(env.STRIPE_PRICE_ID_PRO) ||
+      hasRealSecret(env.STRIPE_PRICE_ID_LINE) ||
+      hasRealSecret(env.STRIPE_PRICE_ID),
+    stripe_webhook: hasRealSecret(env.STRIPE_WEBHOOK_SECRET),
+  };
+}
+
+/** Forbidden claim hits in candidate post copy. */
+export function claimsViolateManusPost(text: string): string[] {
+  const lower = text.toLowerCase();
+  return MANUS_FORBIDDEN_CLAIMS.filter((claim) =>
+    lower.includes(claim.toLowerCase()),
+  );
+}
+
+/** Assemble a status map from env + live probes (null = unknown). */
+export function buildManusPostStatus(input: {
+  secrets?: ReturnType<typeof probeManusEnvSecrets>;
+  wedgeLine?: boolean | null;
+  wedgeVerify?: boolean | null;
+  wedgeAlert?: boolean | null;
+  phoneCertDone?: boolean | null;
+  proofVideo?: boolean | null;
+  formation?: boolean | null;
+  bulletproof?: boolean | null;
+}): ManusPostStatusMap {
+  const secrets = input.secrets ?? probeManusEnvSecrets();
+  return {
+    telephony: secrets.telephony,
+    wedge_line: input.wedgeLine ?? null,
+    wedge_verify: input.wedgeVerify ?? null,
+    wedge_alert: input.wedgeAlert ?? null,
+    phone_cert: input.phoneCertDone ?? null,
+    proof_video: input.proofVideo ?? null,
+    stripe_key: secrets.stripe_key,
+    stripe_setup: secrets.stripe_setup,
+    stripe_webhook: secrets.stripe_webhook,
+    formation: input.formation ?? null,
+    bulletproof_green: input.bulletproof ?? null,
+  };
+}

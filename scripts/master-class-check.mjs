@@ -86,9 +86,14 @@ try {
     /Founder phone certification/.test(settings) &&
     /account\?\.founder/.test(settings) &&
     /founderCertJson/.test(settings) &&
+    /Manus post · next/.test(settings) &&
+    /FounderManusNext/.test(settings) &&
     !/<ProSetupHub/.test(settings)
   ) {
-    pass("Settings ritual", "Quiet founder-only certification — no duplicate setup cockpit");
+    pass(
+      "Settings ritual",
+      "Quiet founder-only certification + Manus next — no duplicate setup cockpit",
+    );
   } else {
     fail("Settings ritual", "Founder certification is not wired through quiet Settings");
   }
@@ -506,17 +511,44 @@ try {
   const manus = read("src/lib/manus-post.ts");
   const manusScript = read("scripts/manus-post.mjs");
   const pkg = read("package.json");
+  const publicCss = read("src/app/public-v2.css");
+  const heroMotion = read("src/components/home-line-hero.tsx");
+  const daily = read("src/app/admin/daily/page.tsx");
   if (
     /MANUS_POST_STEPS/.test(manus) &&
     /isPlaceholderOwnerPhone/.test(manus) &&
+    /resolveManusPostNext/.test(manus) &&
+    /MANUS_FORBIDDEN_CLAIMS/.test(manus) &&
+    /from ["']\.\.\/src\/lib\/manus-post\.ts["']/.test(manusScript) &&
     /manus:post/.test(pkg) &&
-    /NEXT:/.test(manusScript)
+    /NEXT:/.test(manusScript) &&
+    /FounderManusNext/.test(daily)
   ) {
-    pass("Manus post cockpit", "Ordered manus:post runbook + placeholder phone reject");
+    pass(
+      "Manus post cockpit",
+      "Ordered manus:post (DRY from manus-post.ts) + Settings/admin next + forbidden claims",
+    );
   } else {
     fail(
       "Manus post cockpit",
-      "manus-post.ts + npm run manus:post + placeholder detector required",
+      "manus-post.ts + DRY npm run manus:post + FounderManusNext required",
+    );
+  }
+  if (
+    /ov-hero-sky-bloom-bay/.test(publicCss) &&
+    /ov-sky-breathe/.test(publicCss) &&
+    /ov-liveline-digit/.test(publicCss) &&
+    /ov-hero-pulse/.test(publicCss) &&
+    /ov-hero-sky-bloom-bay/.test(heroMotion)
+  ) {
+    pass(
+      "Look hero motion",
+      "Bay bloom + sky breathe + liveline digits + pulse — intentional night presence",
+    );
+  } else {
+    fail(
+      "Look hero motion",
+      "Hero must keep bay bloom + ov-sky-breathe + liveline + pulse motions",
     );
   }
 } catch (e) {

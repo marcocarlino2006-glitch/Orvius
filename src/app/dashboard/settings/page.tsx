@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
+import { FounderManusNext } from "@/components/founder-manus-next";
 import { OsShell } from "@/components/os-shell";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
@@ -422,6 +423,17 @@ export default function DashboardSettingsPage() {
                 ))}
               </ul>
             </div>
+          </details>
+        ) : null}
+
+        {account?.founder ? (
+          <details
+            id="manus-post-next"
+            className="pro-settings-secondary font-sans"
+            open
+          >
+            <summary>Manus post · next</summary>
+            <FounderManusNext tone="quiet" />
           </details>
         ) : null}
 
