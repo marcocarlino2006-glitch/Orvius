@@ -417,16 +417,6 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
-@keyframes product-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
 
   .transcript-line,
@@ -938,12 +928,6 @@ h3 {
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
 .shell-header-void .shell-nav-link-void { font-size: 0.8125rem; font-weight: 500; }
-
-/* Cursor-grade — flat dark, sans-first, product-forward */
-.cursor-page { background: var(--void); color: var(--chalk); padding-bottom: env(safe-area-inset-bottom, 0px); }
-@media (max-width: 767px) {
-  .cursor-page { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)); }
-}
 
 /* Scroll reveal */
 .reveal-on-scroll {
@@ -1559,16 +1543,6 @@ h3 {
    Unified marketing system — one light language sitewide
    ═══════════════════════════════════════════════════════ */
 
-.marketing-page {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-@media (max-width: 767px) {
-  .marketing-page {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-  }
-}
-
 .brand-intro-subline {
   margin-top: 0.75rem;
   color: var(--void);
@@ -1584,15 +1558,6 @@ h3 {
   border-top: 1px solid var(--rule);
   background: var(--white);
   color: var(--void);
-}
-
-.marketing-page .pro-section-title {
-  font-family: var(--font-sans), system-ui, sans-serif;
-  color: var(--void);
-}
-
-.marketing-page .pro-section-kicker {
-  color: var(--signal-dim);
 }
 
 .brand-intro-center .brand-intro-description,
@@ -2879,16 +2844,6 @@ h3 {
   color: var(--mkt-dark-muted);
 }
 
-@keyframes mkt-live-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
-
 /* ── Hero — full-bleed command plane (SpaceX void × Cursor product) ── */
 
 /* Live line as product artifact — not a SaaS phone CTA */
@@ -3407,8 +3362,7 @@ h3 {
   border-color: color-mix(in srgb, var(--void) 10%, transparent);
 }
 
-.mkt-kicker,
-.mkt-section-kicker {
+.mkt-kicker {
   font-size: 0.6875rem !important;
   font-weight: 600 !important;
   letter-spacing: var(--tracking-mission) !important;
@@ -4405,39 +4359,9 @@ label:has(> input[type="radio"]) {
 /* Dense product inside desktop plane */
 
 /* —— Cursor-grade footer columns —— */
-.mkt-footer--cursor {
-  padding-top: clamp(3.25rem, 7vh, 4.5rem);
-}
-
-.mkt-footer-grid--cursor {
-  grid-template-columns: minmax(0, 1.35fr) repeat(4, minmax(0, 1fr));
-  gap: 2rem 2.25rem;
-}
 
 .mkt-footer-bottom--cursor {
   margin-top: 2.5rem;
-}
-
-@media (max-width: 900px) {
-  .mkt-footer-grid--cursor {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 560px) {
-  .mkt-footer-grid--cursor {
-    grid-template-columns: 1fr;
-  }
-
-  .mkt-footer--cursor .mkt-footer-col {
-    gap: 0.55rem;
-    padding-bottom: 0.35rem;
-    border-bottom: 1px solid color-mix(in srgb, #fff 6%, transparent);
-  }
-
-  .mkt-footer--cursor .mkt-footer-col:last-child {
-    border-bottom: none;
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -5244,8 +5168,7 @@ body:has(.mkt-page) .shell-header {
   background: #27241f !important;
 }
 
-.mkt-footer--institution,
-.mkt-footer--cursor {
+.mkt-footer--institution {
   background: #27241f !important;
   border-top-color: #4b4945 !important;
 }
@@ -6604,45 +6527,9 @@ body:has(.mkt-page) .shell-header {
 }
 
 /* ============================================================
-   Try Orvius now — centered CTA (cursor.com "Try Cursor now.")
+   Try Orvius now — skins live in public-v2.css (.ov-public .mkt-trynow*)
    ============================================================ */
-.mkt-page .mkt-trynow {
-  background: var(--ov-paper) !important;
-  padding: clamp(6rem, 16vh, 10rem) 1.5rem clamp(6rem, 16vh, 10rem) !important;
-  text-align: center;
-}
 
-.mkt-page .mkt-trynow-inner {
-  max-width: 60rem;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.mkt-page .mkt-trynow-title {
-  margin: 0;
-  color: var(--ov-headline) !important;
-  font-weight: 400 !important;
-  letter-spacing: -0.035em !important;
-  font-size: clamp(2.75rem, 6vw, 4.5rem);
-  line-height: 1.02;
-}
-
-.mkt-page .mkt-trynow-actions {
-  margin-top: 2rem;
-}
-
-.mkt-page .mkt-trynow-call {
-  margin-top: 1.4rem;
-  color: var(--ov-muted) !important;
-  font-size: 0.9rem;
-  text-decoration: none;
-}
-
-.mkt-page .mkt-trynow-call:hover {
-  color: var(--ov-accent-text) !important;
-}
 
 .mkt-footer-bottom--cursor {
   align-items: center;

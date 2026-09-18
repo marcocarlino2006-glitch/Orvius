@@ -18,7 +18,7 @@ export default function HomePage() {
       <HomeStatement />
       <HomeCallStory />
 
-      <section className="mkt-trynow ov-trynow" aria-labelledby="home-trynow-heading">
+      <section className="mkt-trynow" aria-labelledby="home-trynow-heading">
         <div className="ov-trynow-sky" aria-hidden>
           <span className="ov-trynow-sky-bloom" />
         </div>
