@@ -57,9 +57,9 @@ export function HomeStatement() {
             How the shop runs when you&apos;re not on the floor.
           </h2>
           <p className="mkt-manifesto-aside font-sans" data-i18n="rules.aside">
-            Orvius starts as the AI night shift and keeps the operational
-            record. The board connects every call, job, confirmation, and
-            recorded dollar.
+            Orvius starts as the night shift and keeps the operational record.
+            The board connects every call, job, and confirmation the line
+            captures.
           </p>
         </div>
 

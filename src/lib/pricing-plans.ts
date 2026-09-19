@@ -57,7 +57,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     stripePriceEnvKey: "STRIPE_PRICE_ID_LINE",
     stripePriceEnvKeyAnnual: "STRIPE_PRICE_ID_LINE_ANNUAL",
     stripeProductKey: "orvius-line",
-    idealFor: "Owner-operators who need every call answered and alerted",
+    idealFor: "Owner-operators who need after-hours and overflow answered and alerted",
     highlights: [
       "Dedicated shop line + After-hours answer",
       "Qualified leads — urgency, service, address",

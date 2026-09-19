@@ -4147,15 +4147,6 @@ label:has(> input[type="radio"]) {
   border-left: 3px solid var(--signal) !important;
 }
 
-.os-shell-pro .pro-line-cta-skel {
-  display: inline-block;
-  min-width: 7.5rem;
-  min-height: 2.25rem;
-  border-radius: var(--os-radius, 0.3125rem);
-  border: 1px solid var(--os-line, color-mix(in srgb, #120f09 12%, transparent));
-  background: color-mix(in srgb, #120f09 6%, transparent);
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════
    Mobile marketing craft — Grok precision on Orvius night void
    Circular menu. Full-bleed sheet. No cream drawer / sausage Try CTA.

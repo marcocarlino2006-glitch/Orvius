@@ -71,10 +71,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Wie der Betrieb läuft, wenn Sie nicht da sind.",
   },
   "rules.aside": {
-    en: "Orvius starts as the AI night shift and keeps the operational record. The board connects every call, job, confirmation, and recorded dollar.",
-    es: "Orvius comienza como el turno nocturno de IA y conserva el registro operativo. El tablero conecta cada llamada, trabajo, confirmación y dólar registrado.",
-    fr: "Orvius commence comme l'équipe de nuit IA et conserve le dossier opérationnel. Le tableau relie chaque appel, intervention, confirmation et euro enregistré.",
-    de: "Orvius beginnt als KI-Nachtschicht und führt den Betriebsdatensatz. Das Board verbindet jeden Anruf, Auftrag, jede Bestätigung und jeden erfassten Euro.",
+    en: "Orvius starts as the night shift and keeps the operational record. The board connects every call, job, and confirmation the line captures.",
+    es: "Orvius comienza como el turno nocturno y conserva el registro operativo. El tablero conecta cada llamada, trabajo y confirmación que captura la línea.",
+    fr: "Orvius commence comme l'équipe de nuit et conserve le dossier opérationnel. Le tableau relie chaque appel, intervention et confirmation capturés par la ligne.",
+    de: "Orvius beginnt als Nachtschicht und führt den Betriebsdatensatz. Das Board verbindet jeden Anruf, Auftrag und jede Bestätigung, die die Leitung erfasst.",
   },
   "rule1.title": { en: "The bay never goes dark.", es: "El taller nunca se apaga.", fr: "L'atelier ne s'éteint jamais.", de: "Die Werkstatt steht nie still." },
   "rule1.body": {

@@ -278,7 +278,7 @@ export default function DashboardSettingsPage() {
       if (!data.ok) {
         throw new Error(
           data.error ??
-            "Alert queued but not delivered. Check owner mobile/email and Twilio.",
+            "Alert queued but not delivered. Check owner mobile/email and Settings.",
         );
       }
       setTestResult(data.message ?? "Test alert sent");
