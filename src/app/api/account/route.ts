@@ -220,6 +220,14 @@ export async function PATCH(request: Request) {
       );
     }
 
+    // Founder cell cert is internal dogfood — never writable by a shop owner.
+    if (body.founderCertJson !== undefined && !isFounderEmail(email)) {
+      return NextResponse.json(
+        { error: "Founder certification is internal only." },
+        { status: 403 },
+      );
+    }
+
     const depositCheck = validateDepositSettingsChange({
       current: existing,
       next: {

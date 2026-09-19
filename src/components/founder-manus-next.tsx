@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  MANUS_POST_STEPS,
   type ManusPostStep,
 } from "@/lib/manus-post";
 
@@ -20,8 +19,39 @@ export function FounderManusNext({
   next,
   tone = "quiet",
 }: FounderManusNextProps) {
-  const step = next ?? MANUS_POST_STEPS[0];
   const isCockpit = tone === "cockpit";
+
+  /*
+    Never invent MANUS_POST_STEPS[0] while mastery is still loading or failed —
+    that paints "telephony" as the gate when we do not know the next gate yet.
+  */
+  if (!next) {
+    return (
+      <div
+        className={
+          isCockpit
+            ? "mb-4 rounded-md border border-flare/40 bg-flare/5 p-3"
+            : "pro-settings-secondary-body"
+        }
+      >
+        <p
+          className={
+            isCockpit
+              ? "font-sans text-xs uppercase tracking-wide text-flare"
+              : "account-settings-hint font-sans mb-2"
+          }
+        >
+          {isCockpit ? "Manus post · next" : "Single next Manus gate — do not skip."}
+        </p>
+        <p className="font-sans text-sm text-ash">
+          Resolving the next gate… If this stays empty, run{" "}
+          <code className="text-void">npm run manus:post</code> from the CLI.
+        </p>
+      </div>
+    );
+  }
+
+  const step = next;
 
   return (
     <div

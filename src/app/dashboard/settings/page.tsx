@@ -159,21 +159,28 @@ export default function DashboardSettingsPage() {
   }, [account?.founder]);
 
   async function persistCert(next: boolean[]) {
+    const previous = certChecks;
     setCertChecks(next);
     setCertSaving(true);
+    setError(null);
     try {
-      await fetch("/api/account", {
+      const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ founderCertJson: JSON.stringify(next) }),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setCertChecks(previous);
+        throw new Error(data.error ?? "Could not save certification");
+      }
       try {
         localStorage.setItem("orvius-founder-cert", JSON.stringify(next));
       } catch {
         /* ignore */
       }
-    } catch {
-      /* keep UI state */
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save certification");
     } finally {
       setCertSaving(false);
     }
@@ -492,7 +499,7 @@ export default function DashboardSettingsPage() {
           <details
             id="manus-post-next"
             className="pro-settings-secondary font-sans"
-            open
+            open={Boolean(manusNext)}
           >
             <summary>Manus post · next</summary>
             <FounderManusNext tone="quiet" next={manusNext} />

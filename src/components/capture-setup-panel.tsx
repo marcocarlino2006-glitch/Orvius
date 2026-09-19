@@ -37,6 +37,18 @@ export function CaptureSetupPanel({
 
   const canConfirm = Boolean(line) && lineVerified;
 
+  function chooseMode(next: CaptureMode) {
+    if (next === mode) return;
+    setMode(next);
+    /*
+      Confirm stamps one capture path. Switching paths without clearing the
+      stamp would leave the checkbox describing a ritual the shop did not do.
+    */
+    if (overflowConfirmed) {
+      void onConfirmOverflow(false);
+    }
+  }
+
   async function copyLine() {
     if (!line) return;
     try {
@@ -92,7 +104,7 @@ export function CaptureSetupPanel({
         <button
           type="button"
           className={`capture-setup-mode ${mode === "forward" ? "capture-setup-mode-active" : ""}`}
-          onClick={() => setMode("forward")}
+          onClick={() => chooseMode("forward")}
         >
           <strong>Forward my public number</strong>
           <span>Keep Google / trucks. Missed &amp; after-hours → Orvius.</span>
@@ -100,7 +112,7 @@ export function CaptureSetupPanel({
         <button
           type="button"
           className={`capture-setup-mode ${mode === "publish" ? "capture-setup-mode-active" : ""}`}
-          onClick={() => setMode("publish")}
+          onClick={() => chooseMode("publish")}
         >
           <strong>Make Orvius my main number</strong>
           <span>Put this number on Google, trucks, and ads.</span>

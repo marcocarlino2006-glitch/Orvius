@@ -3441,6 +3441,49 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: var(--white);
 }
 
+.os-shell-night .capture-setup-mode,
+.os-shell-night .onboarding-capture-mode {
+  border: 1px solid #4b4945 !important;
+  border-radius: 0.25rem !important;
+  background: #2f2d28 !important;
+  color: #e9e9e9 !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .capture-setup-mode strong,
+.os-shell-night .onboarding-capture-mode strong {
+  color: #f4f4f4 !important;
+}
+
+.os-shell-night .capture-setup-mode span,
+.os-shell-night .onboarding-capture-mode span {
+  color: #a09f9e !important;
+}
+
+.os-shell-night .capture-setup-mode-active,
+.os-shell-night .onboarding-capture-mode-active {
+  border-color: #d9784b !important;
+  background: color-mix(in srgb, #d9784b 12%, #2f2d28) !important;
+}
+
+.os-shell-night .capture-setup-carrier {
+  border: 1px solid #4b4945 !important;
+  border-radius: 0.25rem !important;
+  background: #23201b !important;
+  color: #c7c7c7 !important;
+}
+
+.os-shell-night .capture-setup-carrier-active {
+  border-color: #f7f9f9 !important;
+  background: #f7f9f9 !important;
+  color: #000 !important;
+}
+
+.os-shell-night .capture-setup-steps,
+.os-shell-night .onboarding-capture-steps {
+  color: #a09f9e !important;
+}
+
 .capture-setup-steps,
 .onboarding-capture-steps {
   margin: 0;

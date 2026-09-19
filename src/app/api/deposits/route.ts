@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     if (amountCents == null) {
       return NextResponse.json(
         {
-          error: "Set a deposit amount in Settings, or pass amountCents.",
+          error: "Set a deposit amount in Billing, or pass amountCents.",
           reason: "deposits_off",
         },
         { status: 400 },
