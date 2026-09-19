@@ -21,9 +21,9 @@ type AskTurn = {
 };
 
 const QUICK_ASK = [
+  "What should I do now?",
   "Who called today?",
   "Any new leads?",
-  "Who is scheduled today?",
 ];
 
 function AskIcon() {
@@ -165,7 +165,7 @@ export function OsAskDock() {
             </div>
           ) : (
             <p className="os-ask-dock-hint">
-              Ask about the board, then approve an action before it runs.
+              Start with “What should I do now?” — same next move as Command.
             </p>
           )}
 

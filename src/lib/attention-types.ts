@@ -15,7 +15,20 @@ export type AttentionKind =
   | "founder_cert"
   | "needs_capture"
   | "open_invoice"
-  | "open_estimate";
+  | "open_estimate"
+  | "wants_human"
+  | "not_a_job"
+  | "partial_capture"
+  | "alert_unacked"
+  | "concurrent_calls"
+  | "transcript_dispute"
+  | "customer_no_show"
+  | "tech_no_show"
+  | "deposit_failed"
+  | "estimate_failed"
+  | "tech_needs_phone"
+  | "alerts_muted"
+  | "money_path_broken";
 
 export type AttentionImpact = "critical" | "high" | "med";
 
@@ -84,5 +97,124 @@ export function attentionKindLabel(kind: AttentionKind): string {
       return "Invoice";
     case "open_estimate":
       return "Estimate";
+    case "wants_human":
+      return "Wants you";
+    case "not_a_job":
+      return "Not a job";
+    case "partial_capture":
+      return "Partial";
+    case "alert_unacked":
+      return "Unacked";
+    case "concurrent_calls":
+      return "Line busy";
+    case "transcript_dispute":
+      return "Dispute";
+    case "customer_no_show":
+      return "No-show";
+    case "tech_no_show":
+      return "Tech late";
+    case "deposit_failed":
+      return "Deposit";
+    case "estimate_failed":
+      return "Estimate due";
+    case "tech_needs_phone":
+      return "Tech phone";
+    case "alerts_muted":
+      return "Alerts off";
+    case "money_path_broken":
+      return "Money path";
   }
 }
+
+/**
+ * Every board kind must resolve to a one-tap strategy.
+ * Craft gates fail if a new kind ships without an owner action.
+ */
+export type AttentionActionStrategy =
+  | "call"
+  | "book"
+  | "assign"
+  | "proof"
+  | "test_alert"
+  | "text_confirm"
+  | "advance_status"
+  | "open"
+  | "dismiss";
+
+export function attentionActionStrategy(kind: AttentionKind): AttentionActionStrategy {
+  switch (kind) {
+    case "urgent_lead":
+    case "new_lead":
+    case "needs_qualify":
+    case "overdue_followup":
+    case "wants_human":
+    case "partial_capture":
+    case "alert_unacked":
+    case "transcript_dispute":
+    case "customer_no_show":
+    case "tech_no_show":
+    case "deposit_failed":
+    case "estimate_failed":
+    case "open_invoice":
+    case "open_estimate":
+      return "call";
+    case "needs_booking":
+      return "book";
+    case "unassigned_job":
+      return "assign";
+    case "stale_weekly_proof":
+      return "proof";
+    case "alert_failed":
+      return "test_alert";
+    case "needs_customer_confirm":
+      return "text_confirm";
+    case "appointment_at_risk":
+      return "advance_status";
+    case "not_a_job":
+      return "dismiss";
+    case "concurrent_calls":
+    case "available_tech":
+    case "needs_capture":
+    case "missing_baseline":
+    case "billing_action":
+    case "founder_cert":
+    case "tech_needs_phone":
+    case "alerts_muted":
+    case "money_path_broken":
+      return "open";
+  }
+}
+
+export const ATTENTION_KINDS: AttentionKind[] = [
+  "urgent_lead",
+  "new_lead",
+  "needs_qualify",
+  "needs_booking",
+  "needs_customer_confirm",
+  "alert_failed",
+  "overdue_followup",
+  "unassigned_job",
+  "appointment_at_risk",
+  "available_tech",
+  "missing_baseline",
+  "stale_weekly_proof",
+  "billing_action",
+  "founder_cert",
+  "needs_capture",
+  "open_invoice",
+  "open_estimate",
+  "wants_human",
+  "not_a_job",
+  "partial_capture",
+  "alert_unacked",
+  "concurrent_calls",
+  "transcript_dispute",
+  "customer_no_show",
+  "tech_no_show",
+  "deposit_failed",
+  "estimate_failed",
+  "tech_needs_phone",
+  "alerts_muted",
+  "money_path_broken",
+];
+

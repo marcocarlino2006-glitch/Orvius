@@ -40,7 +40,7 @@ export default function PricingPage() {
             </p>
           ) : null}
           <div className="tier1-hero-call">
-            <HomeCallDemo variant="void" size="section" />
+            <HomeCallDemo />
           </div>
         </div>
       </section>

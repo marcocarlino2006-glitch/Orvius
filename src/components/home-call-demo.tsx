@@ -9,16 +9,11 @@ import {
 } from "@/lib/demo-line";
 
 type HomeCallDemoProps = {
-  variant?: "void" | "light";
-  size?: "hero" | "section" | "compact";
+  /** Always night void — light/hero/compact skins were dead era stacking. */
   showHint?: boolean;
 };
 
-export function HomeCallDemo({
-  variant = "void",
-  size = "hero",
-  showHint = true,
-}: HomeCallDemoProps) {
+export function HomeCallDemo({ showHint = true }: HomeCallDemoProps) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -31,14 +26,8 @@ export function HomeCallDemo({
     }
   }
 
-  const rootClass = [
-    "call-demo",
-    `call-demo-${variant}`,
-    `call-demo-${size}`,
-  ].join(" ");
-
   return (
-    <div className={rootClass}>
+    <div className="call-demo call-demo-void call-demo-section">
       <div className="call-demo-live type-eyebrow" aria-hidden>
         <span className="live-dot live-dot-green" />
         Live now

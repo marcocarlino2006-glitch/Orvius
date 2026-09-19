@@ -1,13 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
+import { FounderManusNext } from "@/components/founder-manus-next";
 import { OsShell } from "@/components/os-shell";
 import { ProPageStrip } from "@/components/pro-page-strip";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import type { ManusPostStep } from "@/lib/manus-post";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type AccountResponse = {
   founder?: boolean;
@@ -39,6 +41,7 @@ type AccountResponse = {
   alerts: {
     smsEnabled: boolean;
     emailConfigured: boolean;
+    ownerSmsOptedOut?: boolean;
   };
 };
 
@@ -87,6 +90,7 @@ export default function DashboardSettingsPage() {
   const [certSaving, setCertSaving] = useState(false);
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
+  const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
 
   async function loadAccount() {
     const res = await fetch("/api/account");
@@ -118,6 +122,26 @@ export default function DashboardSettingsPage() {
   useEffect(() => {
     loadAccount().catch(() => null);
   }, []);
+
+  useEffect(() => {
+    if (!account?.founder) {
+      setManusNext(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/admin/mastery")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { manusPost?: { next?: ManusPostStep | null } } | null) => {
+        if (cancelled) return;
+        setManusNext(data?.manusPost?.next ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setManusNext(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [account?.founder]);
 
   async function persistCert(next: boolean[]) {
     setCertChecks(next);
@@ -282,7 +306,17 @@ export default function DashboardSettingsPage() {
           </ShellPanel>
         </div>
 
+        <div id="owner-alerts">
         <ShellPanel title="Owner alerts" dense>
+          {account?.alerts.ownerSmsOptedOut ? (
+            <div className="mb-4">
+              <ShellAlert tone="error">
+                This number texted STOP — night leads will not reach you. Text{" "}
+                <strong>START</strong> to the shop alert number from your cell,
+                then send a test alert below.
+              </ShellAlert>
+            </div>
+          ) : null}
           <label className="onboarding-field font-sans">
             <span className="onboarding-label">Your mobile</span>
             <input
@@ -323,11 +357,17 @@ export default function DashboardSettingsPage() {
               {testing ? "Sending test…" : "Send test alert"}
             </button>
             <span className="pro-settings-test-meta font-sans">
-              SMS {account?.alerts.smsEnabled ? "enabled" : "off"} · Email{" "}
-              {account?.alerts.emailConfigured ? "ready" : "not configured"}
+              SMS{" "}
+              {account?.alerts.ownerSmsOptedOut
+                ? "opted out"
+                : account?.alerts.smsEnabled
+                  ? "enabled"
+                  : "off"}{" "}
+              · Email {account?.alerts.emailConfigured ? "ready" : "not configured"}
             </span>
           </div>
         </ShellPanel>
+        </div>
 
         <details className="pro-settings-secondary font-sans">
           <summary>Opening line + baseline</summary>
@@ -422,6 +462,17 @@ export default function DashboardSettingsPage() {
                 ))}
               </ul>
             </div>
+          </details>
+        ) : null}
+
+        {account?.founder ? (
+          <details
+            id="manus-post-next"
+            className="pro-settings-secondary font-sans"
+            open
+          >
+            <summary>Manus post · next</summary>
+            <FounderManusNext tone="quiet" next={manusNext} />
           </details>
         ) : null}
 

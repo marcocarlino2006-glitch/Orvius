@@ -304,7 +304,7 @@ export default function AdminPage() {
       statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
       actions={
         <Link href="/admin/daily" className="btn btn-void text-sm">
-          Daily run
+          Master all
         </Link>
       }
     >
@@ -372,7 +372,7 @@ export default function AdminPage() {
             />
           </label>
           <Link href="/admin/daily" className="btn btn-secondary text-xs">
-            Daily run
+            Master all
           </Link>
           <Link href="/pilot" className="btn btn-secondary text-xs">
             Pilot page

@@ -4,6 +4,20 @@ import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
+import {
+  concurrentCallsImpact,
+  concurrentCallsRecommendedAction,
+} from "@/lib/concurrent-calls";
+import { isOwnerAlertUnacked } from "@/lib/owner-alert-unacked";
+import { leadIsNotAJob } from "@/lib/lead-not-a-job";
+import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
+import { leadHasTranscriptDispute } from "@/lib/lead-transcript-dispute";
+import { jobIsCustomerNoShow, jobIsTechNoShow } from "@/lib/job-no-show";
+import { depositNeedsOwnerFollowUp } from "@/lib/deposit-fail";
+import { depositMoneyPathBroken } from "@/lib/deposit-money-path";
+import { estimateNeedsOwnerFollowUp } from "@/lib/estimate-fail";
+import { ownerAlertsAreMuted } from "@/lib/owner-alerts-muted";
+import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
 import type {
@@ -40,6 +54,17 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "urgent_lead",
   "needs_booking",
   "new_lead",
+  "wants_human",
+  "partial_capture",
+  "alert_unacked",
+  "concurrent_calls",
+  "transcript_dispute",
+  "customer_no_show",
+  "tech_no_show",
+  "deposit_failed",
+  "estimate_failed",
+  "alerts_muted",
+  "money_path_broken",
 ]);
 
 /**
@@ -76,6 +101,32 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 5;
     case "alert_failed":
       return 6;
+    case "wants_human":
+      return emergency ? 7 : 12;
+    case "transcript_dispute":
+      return emergency ? 7 : 11;
+    case "customer_no_show":
+      return 8;
+    case "tech_no_show":
+      return 9;
+    case "deposit_failed":
+      return 10;
+    case "estimate_failed":
+      return 13;
+    case "alerts_muted":
+      return 3;
+    case "money_path_broken":
+      return 7;
+    case "tech_needs_phone":
+      return 48;
+    case "partial_capture":
+      return emergency ? 8 : 15;
+    case "alert_unacked":
+      return emergency ? 7 : 13;
+    case "concurrent_calls":
+      return 4;
+    case "not_a_job":
+      return 55;
     case "needs_capture":
       return 11;
     case "founder_cert":
@@ -126,69 +177,101 @@ export async function getAttentionQueue(
 
   const weekAgo = new Date(now.getTime() - WEEK_MS);
 
-  const [newLeads, activeJobs, crew, business, failedAlerts, weekTraffic] = await Promise.all([
-    prisma.lead.findMany({
-      where: { businessId, status: { in: ["new", "contacted"] } },
-      take: 40,
-      orderBy: { createdAt: "desc" },
-      include: {
-        job: { select: { id: true, technicianId: true, status: true, scheduledAt: true } },
-      },
-    }),
-    prisma.job.findMany({
-      where: {
-        businessId,
-        status: { in: ["scheduled", "confirmed", "en_route", "on_site"] },
-      },
-      take: 60,
-      orderBy: { scheduledAt: "asc" },
-      include: {
-        customer: { select: { id: true, name: true, phone: true } },
-        lead: { select: { id: true, name: true, phone: true, urgency: true } },
-        technician: { select: { id: true, name: true } },
-      },
-    }),
-    listCrew(businessId),
-    prisma.business.findUnique({
-      where: { id: businessId },
-      select: {
-        avgTicketCents: true,
-        baselineMissedCallsPerWeek: true,
-        baselineJobsPerWeek: true,
-        lastWeeklyProofAt: true,
-        founderCertJson: true,
-        billingStatus: true,
-        pilotEndsAt: true,
-        createdAt: true,
-        overflowForwardConfirmedAt: true,
-        lineVerifiedAt: true,
-        vapiPhoneNumber: true,
-        twilioPhone: true,
-        ownerPhone: true,
-        /* Read to rank: what matters at 2am is not what matters at 2pm. */
-        hoursJson: true,
-        timezone: true,
-      },
-    }),
-    prisma.ownerNotification.findMany({
-      where: { businessId, status: "failed" },
-      take: 12,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        leadId: true,
-        channel: true,
-        error: true,
-        createdAt: true,
-        message: true,
-      },
-    }),
-    // Whether there is anything to prove this week at all.
-    Promise.all([
-      prisma.call.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
-      prisma.lead.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
-    ]).then(([calls, leads]) => calls + leads),
-  ]);
+  const [newLeads, activeJobs, crew, business, failedAlerts, deliveredAlerts, liveCalls, weekTraffic] =
+    await Promise.all([
+      prisma.lead.findMany({
+        where: { businessId, status: { in: ["new", "contacted"] } },
+        take: 40,
+        orderBy: { createdAt: "desc" },
+        include: {
+          job: { select: { id: true, technicianId: true, status: true, scheduledAt: true } },
+        },
+      }),
+      prisma.job.findMany({
+        where: {
+          businessId,
+          status: { in: ["scheduled", "confirmed", "en_route", "on_site"] },
+        },
+        take: 60,
+        orderBy: { scheduledAt: "asc" },
+        include: {
+          customer: { select: { id: true, name: true, phone: true } },
+          lead: { select: { id: true, name: true, phone: true, urgency: true } },
+          technician: { select: { id: true, name: true, phone: true } },
+        },
+      }),
+      listCrew(businessId),
+      prisma.business.findUnique({
+        where: { id: businessId },
+        select: {
+          avgTicketCents: true,
+          baselineMissedCallsPerWeek: true,
+          baselineJobsPerWeek: true,
+          lastWeeklyProofAt: true,
+          founderCertJson: true,
+          billingStatus: true,
+          pilotEndsAt: true,
+          createdAt: true,
+          overflowForwardConfirmedAt: true,
+          lineVerifiedAt: true,
+          vapiPhoneNumber: true,
+          twilioPhone: true,
+          ownerPhone: true,
+          ownerSmsOptOutAt: true,
+          depositEnabled: true,
+          stripeConnectAccountId: true,
+          stripeConnectChargesEnabled: true,
+          stripeConnectPayoutsEnabled: true,
+          stripeConnectDetailsSubmitted: true,
+          /* Read to rank: what matters at 2am is not what matters at 2pm. */
+          hoursJson: true,
+          timezone: true,
+        },
+      }),
+      prisma.ownerNotification.findMany({
+        where: { businessId, status: "failed" },
+        take: 12,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          leadId: true,
+          channel: true,
+          error: true,
+          createdAt: true,
+          message: true,
+        },
+      }),
+      prisma.ownerNotification.findMany({
+        where: {
+          businessId,
+          status: "sent",
+          leadId: { not: null },
+          createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        },
+        take: 40,
+        orderBy: { createdAt: "asc" },
+        select: {
+          leadId: true,
+          createdAt: true,
+          channel: true,
+        },
+      }),
+      prisma.call.findMany({
+        where: { businessId, status: "in-progress" },
+        take: 8,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          callerPhone: true,
+          createdAt: true,
+        },
+      }),
+      // Whether there is anything to prove this week at all.
+      Promise.all([
+        prisma.call.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
+        prisma.lead.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
+      ]).then(([calls, leads]) => calls + leads),
+    ]);
 
   const ticket = business?.avgTicketCents ?? null;
 
@@ -202,6 +285,15 @@ export async function getAttentionQueue(
     business?.hoursJson ?? "{}",
     business?.timezone ?? undefined,
   );
+
+  /** Earliest delivered alert per lead — silence after this is the failure. */
+  const alertedAtByLead = new Map<string, Date>();
+  for (const row of deliveredAlerts) {
+    if (!row.leadId) continue;
+    if (!alertedAtByLead.has(row.leadId)) {
+      alertedAtByLead.set(row.leadId, row.createdAt);
+    }
+  }
 
   const items: AttentionItem[] = [];
 
@@ -248,6 +340,40 @@ export async function getAttentionQueue(
         createdAt: now.toISOString(),
       });
     }
+  }
+
+  if (business && ownerAlertsAreMuted(business)) {
+    items.push({
+      id: `alerts_muted:${businessId}`,
+      kind: "alerts_muted",
+      rank: kindRank("alerts_muted", null, afterHours),
+      impact: "critical",
+      title: "Owner SMS alerts are off",
+      detail:
+        "This number texted STOP — night leads will not reach you until you text START or update the owner phone.",
+      recommendedAction: "Fix alerts",
+      href: "/dashboard/settings#owner-alerts",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
+  }
+
+  if (business && depositMoneyPathBroken(business)) {
+    items.push({
+      id: `money_path_broken:${businessId}`,
+      kind: "money_path_broken",
+      rank: kindRank("money_path_broken", null, afterHours),
+      impact: "critical",
+      title: "Deposits on — cards cannot charge",
+      detail:
+        "Deposit holds are enabled but Stripe Connect is not cleared to take cards. Finish payouts setup or turn deposits off.",
+      recommendedAction: "Open payouts",
+      href: "/dashboard/billing#payouts",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: now.toISOString(),
+    });
   }
 
   const hasLine = Boolean(
@@ -368,60 +494,191 @@ export async function getAttentionQueue(
       },
       take: 8,
       orderBy: { createdAt: "desc" },
-      select: { id: true, amountCents: true, status: true, jobId: true, createdAt: true },
-    }),
-    prisma.estimate.findMany({
-      where: {
-        businessId,
-        status: { in: ["draft", "sent", "accepted"] },
-        invoice: null,
-      },
-      take: 8,
-      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         amountCents: true,
         status: true,
         jobId: true,
         createdAt: true,
+        job: {
+          select: {
+            lead: { select: { phone: true, name: true } },
+            customer: { select: { phone: true, name: true } },
+          },
+        },
+      },
+    }),
+    prisma.estimate.findMany({
+      where: {
+        businessId,
+        OR: [
+          {
+            status: { in: ["draft", "sent", "accepted"] },
+            invoice: null,
+          },
+          { status: "payment_failed" },
+        ],
+      },
+      take: 12,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        amountCents: true,
+        status: true,
+        jobId: true,
+        leadId: true,
+        sentAt: true,
+        createdAt: true,
+        lead: { select: { phone: true, name: true } },
+      },
+    }),
+    prisma.deposit.findMany({
+      where: {
+        businessId,
+        status: { in: ["pending", "failed"] },
+      },
+      take: 12,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        amountCents: true,
+        status: true,
+        sentAt: true,
+        paidAt: true,
+        jobId: true,
+        leadId: true,
+        createdAt: true,
+        lead: { select: { phone: true, name: true } },
       },
     }),
   ]);
 
   for (const invoice of openMoney[0]) {
     if (invoice.status === "paid" || invoice.status === "void") continue;
+    const phone =
+      invoice.job?.customer?.phone ?? invoice.job?.lead?.phone ?? null;
+    const who =
+      invoice.job?.customer?.name ?? invoice.job?.lead?.name ?? null;
     items.push({
       id: `open_invoice:${invoice.id}`,
       kind: "open_invoice",
       rank: kindRank("open_invoice", null, afterHours),
       impact: "high",
-      title: `Open invoice · $${Math.round(invoice.amountCents / 100)}`,
-      detail: `Status ${invoice.status} — close money in the CRM.`,
-      recommendedAction: "Review job",
+      title: who
+        ? `${who} · $${Math.round(invoice.amountCents / 100)}`
+        : `Open invoice · $${Math.round(invoice.amountCents / 100)}`,
+      detail: `Status ${invoice.status} — collect before the work cools.`,
+      recommendedAction: phone ? "Call to collect" : "Review invoice",
       href: invoice.jobId ? `/dashboard/jobs/${invoice.jobId}` : "/dashboard#shop-economics",
       entityType: "shop",
       entityId: businessId,
       createdAt: invoice.createdAt.toISOString(),
       estimatedRevenueCents: invoice.amountCents,
+      meta: { phone, status: invoice.status },
     });
   }
 
   for (const estimate of openMoney[1]) {
+    if (
+      estimateNeedsOwnerFollowUp({
+        status: estimate.status,
+        sentAt: estimate.sentAt,
+        createdAt: estimate.createdAt,
+        now,
+        afterHours,
+      })
+    ) {
+      items.push({
+        id: `estimate_failed:${estimate.id}`,
+        kind: "estimate_failed",
+        rank: kindRank("estimate_failed", null, afterHours),
+        impact: "critical",
+        title: estimate.lead?.name
+          ? `${estimate.lead.name} · $${Math.round(estimate.amountCents / 100)}`
+          : `Estimate · $${Math.round(estimate.amountCents / 100)}`,
+        detail:
+          estimate.status === "payment_failed"
+            ? "Card checkout failed or expired — call to collect or resend."
+            : "Estimate still unpaid — call the customer before the work cools.",
+        recommendedAction: "Call to collect",
+        href: estimate.jobId
+          ? `/dashboard/jobs/${estimate.jobId}`
+          : estimate.leadId
+            ? `/dashboard/inbox/${estimate.leadId}`
+            : "/dashboard#shop-economics",
+        entityType: estimate.leadId ? "lead" : "shop",
+        entityId: estimate.leadId ?? businessId,
+        createdAt: (estimate.sentAt ?? estimate.createdAt).toISOString(),
+        estimatedRevenueCents: estimate.amountCents,
+        meta: { phone: estimate.lead?.phone ?? null, status: estimate.status },
+      });
+      continue;
+    }
+    if (estimate.status === "payment_failed") continue;
     items.push({
       id: `open_estimate:${estimate.id}`,
       kind: "open_estimate",
       rank: kindRank("open_estimate", null, afterHours),
       impact: "med",
-      title: `Open estimate · $${Math.round(estimate.amountCents / 100)}`,
-      detail: `Status ${estimate.status} — convert or close.`,
-      recommendedAction: "Review job",
+      title: estimate.lead?.name
+        ? `${estimate.lead.name} · $${Math.round(estimate.amountCents / 100)}`
+        : `Open estimate · $${Math.round(estimate.amountCents / 100)}`,
+      detail: `Status ${estimate.status} — convert or close before it goes cold.`,
+      recommendedAction: estimate.lead?.phone ? "Call to close" : "Review estimate",
       href: estimate.jobId
         ? `/dashboard/jobs/${estimate.jobId}`
-        : "/dashboard#shop-economics",
-      entityType: "shop",
-      entityId: businessId,
+        : estimate.leadId
+          ? `/dashboard/inbox/${estimate.leadId}`
+          : "/dashboard#shop-economics",
+      entityType: estimate.leadId ? "lead" : "shop",
+      entityId: estimate.leadId ?? businessId,
       createdAt: estimate.createdAt.toISOString(),
       estimatedRevenueCents: estimate.amountCents,
+      meta: { phone: estimate.lead?.phone ?? null, status: estimate.status },
+    });
+  }
+
+  for (const deposit of openMoney[2]) {
+    if (
+      !depositNeedsOwnerFollowUp({
+        status: deposit.status,
+        sentAt: deposit.sentAt,
+        paidAt: deposit.paidAt,
+        createdAt: deposit.createdAt,
+        now,
+        afterHours,
+      })
+    ) {
+      continue;
+    }
+    const who = deposit.lead?.name ?? "Customer";
+    const failed = deposit.status === "failed";
+    const unsent = !deposit.sentAt && deposit.status === "pending";
+    items.push({
+      id: `deposit_failed:${deposit.id}`,
+      kind: "deposit_failed",
+      rank: kindRank("deposit_failed", null, afterHours),
+      impact: "critical",
+      title: `${who} · $${Math.round(deposit.amountCents / 100)} deposit`,
+      detail: failed
+        ? "Card checkout failed or expired — call to collect or resend the pay link."
+        : unsent
+          ? "Deposit hold never sent — call or text the pay link before the slot softens."
+          : "Deposit still unpaid after the hold window — call to collect.",
+      recommendedAction: unsent ? "Send pay link" : "Call to collect",
+      href: deposit.jobId
+        ? `/dashboard/jobs/${deposit.jobId}`
+        : deposit.leadId
+          ? `/dashboard/inbox/${deposit.leadId}`
+          : "/dashboard#shop-economics",
+      entityType: deposit.leadId ? "lead" : "shop",
+      entityId: deposit.leadId ?? businessId,
+      createdAt: (deposit.sentAt ?? deposit.createdAt).toISOString(),
+      estimatedRevenueCents: deposit.amountCents,
+      meta: {
+        phone: deposit.lead?.phone ?? null,
+        status: deposit.status,
+      },
     });
   }
 
@@ -448,6 +705,48 @@ export async function getAttentionQueue(
     });
   }
 
+  if (liveCalls.length >= 2) {
+    const overflowOk = Boolean(business?.overflowForwardConfirmedAt);
+    items.push({
+      id: `concurrent_calls:${businessId}`,
+      kind: "concurrent_calls",
+      rank: kindRank("concurrent_calls", null, afterHours),
+      impact: concurrentCallsImpact(liveCalls.length, afterHours) ?? "critical",
+      title: `${liveCalls.length} calls live`,
+      detail: overflowOk
+        ? "Line is handling more than one caller — watch the board for every capture."
+        : "Line is busy with more than one caller — confirm overflow forward so second callers don’t hit voicemail.",
+      recommendedAction: concurrentCallsRecommendedAction(
+        liveCalls.length,
+        overflowOk,
+      ),
+      href: overflowOk ? "/dashboard/calls" : "/dashboard/settings#overflow-forward",
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: liveCalls[0]?.createdAt.toISOString() ?? now.toISOString(),
+      meta: {
+        phone: liveCalls[0]?.callerPhone ?? null,
+      },
+    });
+  } else if (liveCalls.length === 1) {
+    items.push({
+      id: `concurrent_calls:${liveCalls[0].id}`,
+      kind: "concurrent_calls",
+      rank: kindRank("concurrent_calls", null, afterHours) + 2,
+      impact: concurrentCallsImpact(1, afterHours) ?? "med",
+      title: "Call in progress",
+      detail: liveCalls[0].callerPhone
+        ? `Live now · ${liveCalls[0].callerPhone}`
+        : "A caller is on the line right now.",
+      recommendedAction: concurrentCallsRecommendedAction(1, true),
+      href: `/dashboard/calls/${liveCalls[0].id}`,
+      entityType: "shop",
+      entityId: businessId,
+      createdAt: liveCalls[0].createdAt.toISOString(),
+      meta: { phone: liveCalls[0].callerPhone },
+    });
+  }
+
   for (const lead of newLeads) {
     const urgent = isPriorityUrgency(lead.urgency);
     const overdue = lead.createdAt < followupCutoff;
@@ -463,7 +762,73 @@ export async function getAttentionQueue(
     let recommendedAction: string;
     let impact: AttentionImpact;
 
-    if (!qualified) {
+    if (leadIsNotAJob(lead)) {
+      kind = "not_a_job";
+      impact = "med";
+      detail = [
+        "Spam, sales, wrong trade, or out of area — clear it off the board",
+        lead.serviceType,
+        lead.notes,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Not a job";
+    } else if (leadWantsHuman(lead) && lead.phone?.trim()) {
+      kind = "wants_human";
+      impact = urgent || afterHours ? "critical" : "high";
+      detail = [
+        "Caller asked for a person — call them back now",
+        lead.serviceType,
+        lead.notes,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Call them now";
+    } else if (leadHasTranscriptDispute(lead) && lead.phone?.trim()) {
+      kind = "transcript_dispute";
+      impact = urgent || afterHours ? "critical" : "high";
+      detail = [
+        "Caller disputes what was captured — call to correct",
+        lead.serviceType,
+        lead.address,
+        lead.notes,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Call to correct";
+    } else if (leadIsPartialCapture(lead)) {
+      kind = "partial_capture";
+      impact = urgent || afterHours ? "critical" : "high";
+      detail = [
+        "Hung up mid-call — call back to finish intake",
+        lead.serviceType,
+        lead.address,
+        lead.notes,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Call back";
+    } else if (
+      lead.phone?.trim() &&
+      isOwnerAlertUnacked({
+        alertedAt: alertedAtByLead.get(lead.id) ?? new Date(0),
+        firstContactedAt: lead.firstContactedAt,
+        now,
+        afterHours,
+      }) &&
+      alertedAtByLead.has(lead.id)
+    ) {
+      kind = "alert_unacked";
+      impact = urgent || afterHours ? "critical" : "high";
+      detail = [
+        "You were alerted — lead still open. Call them now.",
+        lead.serviceType,
+        lead.address,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Call now";
+    } else if (!qualified) {
       kind = "needs_qualify";
       impact = urgent ? "critical" : "high";
       detail = [
@@ -637,6 +1002,84 @@ export async function getAttentionQueue(
           scheduledAt: scheduled?.toISOString() ?? null,
         },
       });
+    } else if (
+      jobIsCustomerNoShow({
+        scheduledAt: job.scheduledAt,
+        status: job.status,
+        customerConfirmedAt: job.customerConfirmedAt,
+        onSiteAt: job.onSiteAt,
+        completedAt: job.completedAt,
+        now,
+      })
+    ) {
+      items.push({
+        id: `customer_no_show:${job.id}`,
+        kind: "customer_no_show",
+        rank: kindRank("customer_no_show", urgency, afterHours),
+        impact: "critical",
+        title: who,
+        detail: [
+          "Customer no-show — call to reschedule",
+          job.title,
+          job.technician?.name ? `Tech: ${job.technician.name}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        recommendedAction: "Call customer",
+        href: `/dashboard/jobs/${job.id}`,
+        entityType: "job",
+        entityId: job.id,
+        createdAt: job.createdAt.toISOString(),
+        estimatedRevenueCents: ticket,
+        group,
+        meta: {
+          urgency,
+          address: job.address,
+          phone: job.customer?.phone ?? job.lead?.phone,
+          scheduledAt: scheduled?.toISOString() ?? null,
+          status: job.status,
+        },
+      });
+    } else if (
+      jobIsTechNoShow({
+        scheduledAt: job.scheduledAt,
+        status: job.status,
+        technicianId: job.technicianId,
+        customerConfirmedAt: job.customerConfirmedAt,
+        dispatchedAt: job.dispatchedAt,
+        onSiteAt: job.onSiteAt,
+        completedAt: job.completedAt,
+        now,
+      })
+    ) {
+      items.push({
+        id: `tech_no_show:${job.id}`,
+        kind: "tech_no_show",
+        rank: kindRank("tech_no_show", urgency, afterHours),
+        impact: "critical",
+        title: job.technician?.name ?? who,
+        detail: [
+          "Tech late / never rolled — call them",
+          job.title,
+          who !== job.technician?.name ? who : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        recommendedAction: "Call tech",
+        href: `/dashboard/jobs/${job.id}`,
+        entityType: "job",
+        entityId: job.id,
+        createdAt: job.createdAt.toISOString(),
+        estimatedRevenueCents: ticket,
+        group,
+        meta: {
+          urgency,
+          address: job.address,
+          phone: job.technician?.phone ?? job.customer?.phone ?? job.lead?.phone,
+          scheduledAt: scheduled?.toISOString() ?? null,
+          status: job.status,
+        },
+      });
     } else if (pastDue) {
       items.push({
         id: `appointment_at_risk:${job.id}`,
@@ -677,6 +1120,22 @@ export async function getAttentionQueue(
 
   for (const tech of crew) {
     if (!tech.isActive) continue;
+    if (!tech.phone?.trim()) {
+      items.push({
+        id: `tech_needs_phone:${tech.id}`,
+        kind: "tech_needs_phone",
+        rank: kindRank("tech_needs_phone", null, afterHours),
+        impact: "med",
+        title: tech.name,
+        detail: "No mobile on file — SMS assign and field links will not reach them.",
+        recommendedAction: "Add phone",
+        href: "/dashboard/dispatch",
+        entityType: "technician",
+        entityId: tech.id,
+        createdAt: now.toISOString(),
+      });
+      continue;
+    }
     if (busyTechIds.has(tech.id)) continue;
     items.push({
       id: `available_tech:${tech.id}`,
@@ -684,9 +1143,7 @@ export async function getAttentionQueue(
       rank: kindRank("available_tech", null, afterHours),
       impact: "med",
       title: tech.name,
-      detail: tech.phone
-        ? `Available · ${tech.phone}`
-        : "Available — add mobile for SMS assign",
+      detail: `Available · ${tech.phone}`,
       recommendedAction: "Open dispatch",
       href: "/dashboard/dispatch",
       entityType: "technician",

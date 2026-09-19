@@ -12,6 +12,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  MANUS_ALLOWED_FIRST_POST,
+  claimsViolateManusPost,
+} from "../src/lib/manus-post.ts";
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const skipCash = process.env.BULLETPROOF_SKIP_CASH === "1";
 const appUrl = (process.env.APP_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "");
@@ -114,15 +119,18 @@ if (overflowUi && overflowPage && overflowSheet) {
   );
 }
 
-const attentionConfirm = fileHas(
-  "src/components/attention-queue.tsx",
-  "needs_customer_confirm",
+const attentionUi = readFileSync(
+  join(root, "src/components/attention-queue.tsx"),
+  "utf8",
 );
-const attentionAtRisk = fileHas(
-  "src/components/attention-queue.tsx",
-  "appointment_at_risk",
-);
-const attentionText = fileHas("src/components/attention-queue.tsx", "Text confirm");
+const attentionKinds = readFileSync(join(root, "src/lib/attention-types.ts"), "utf8");
+const attentionConfirm =
+  /needs_customer_confirm/.test(attentionKinds) &&
+  /TextConfirmButton|Text confirm/.test(attentionUi);
+const attentionAtRisk =
+  /appointment_at_risk/.test(attentionKinds) &&
+  /canAdvanceStatus|JobStatusAdvance/.test(attentionUi);
+const attentionText = /Text confirm/.test(attentionUi);
 if (attentionConfirm && attentionAtRisk && attentionText) {
   ok("attention", "Attention owner actions", "confirm + at-risk + Text confirm");
 } else {
@@ -140,16 +148,19 @@ if (demoHonesty) {
 
 const prePost = readFileSync(join(root, "docs/PRE-POST-GATE.md"), "utf8");
 const allowedPost = (prePost.split("## Allowed first post")[1] ?? "").split("## Forbidden")[0];
-const softClaim =
-  /answers every call/i.test(allowedPost) ||
-  /never miss/i.test(allowedPost) ||
-  /guaranteed/i.test(allowedPost);
+const docHits = claimsViolateManusPost(allowedPost);
+const canonHits = claimsViolateManusPost(MANUS_ALLOWED_FIRST_POST);
+const softClaim = docHits.length > 0 || canonHits.length > 0;
 if (!softClaim && /Orvius answers after-hours/i.test(allowedPost)) {
   ok("post_copy", "Pre-post copy honest", "allowed first post is wedge-true");
 } else if (!softClaim) {
   ok("post_copy", "Pre-post copy honest", "no overclaim in allowed first post");
 } else {
-  bad("post_copy", "Pre-post copy overclaims", "edit Allowed first post in docs/PRE-POST-GATE.md");
+  bad(
+    "post_copy",
+    "Pre-post copy overclaims",
+    `forbidden: ${[...new Set([...docHits, ...canonHits])].join(", ")}`,
+  );
 }
 
 
@@ -234,6 +245,7 @@ console.log(`❌ BULLETPROOF: ${failed.length} open gate(s) — DO NOT POST\n`);
 for (const f of failed) {
   console.log(`   • ${f.label}${f.detail ? ` — ${f.detail}` : ""}`);
 }
-console.log("\nManus bar: fix every red before the public post.");
+console.log("\n▶ Ordered close: npm run manus:post");
+console.log("Manus bar: fix every red before the public post.");
 console.log("Product-only: BULLETPROOF_SKIP_CASH=1 npm run bulletproof\n");
 process.exit(1);

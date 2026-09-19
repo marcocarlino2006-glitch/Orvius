@@ -9,7 +9,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** Signal-bridge insignia alone — favicon / avatar. */
+/** Signal-bridge insignia alone — favicon / avatar chrome only. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -22,9 +22,12 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
 type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
-  /** Text wordmark only (no mark). */
+  /**
+   * Text wordmark only (no mark). Default true — Stripe-style: the name is
+   * the brand until a mark earns its place.
+   */
   wordmarkOnly?: boolean;
-  /** Signal-bridge insignia alone. */
+  /** Signal-bridge insignia alone — prefer OrviusMark for favicons. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -32,12 +35,12 @@ type OrviusLogoProps = {
 };
 
 /**
- * One lockup: a horizontal signal bridge and a large lowercase wordmark.
+ * Brand lockup = the word. No mark on product or marketing surfaces by default.
  */
 export function OrviusLogo({
   size = "md",
   variant = "chalk",
-  wordmarkOnly = false,
+  wordmarkOnly = true,
   markOnly = false,
   className = "",
 }: OrviusLogoProps) {
@@ -67,9 +70,9 @@ export function OrviusLogo({
       className={[
         "orvius-logo",
         "orvius-logo--wordmark",
+        wordmarkOnly ? "orvius-logo--text" : "",
         `orvius-logo-${size}`,
         `orvius-logo-${variant}`,
-        wordmarkOnly ? "orvius-logo--text" : "",
         className,
       ]
         .filter(Boolean)

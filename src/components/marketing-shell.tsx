@@ -38,7 +38,7 @@ export function PublicLayout({
         ]}
       />
       {showStickyCall ? <HomeStickyCall /> : null}
-      <main className="cursor-page marketing-page mkt-page mkt-page--craft">{children}</main>
+      <main className="mkt-page mkt-page--craft">{children}</main>
       {showFooter ? <SiteFooter /> : null}
       <UtilityDock />
     </>
@@ -59,8 +59,8 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
       <div className="ov-public mkt-page mkt-page--craft">
         <PremiumNav />
         <main>{children}</main>
-        <footer className="mkt-footer mkt-footer--institution mkt-footer--cursor">
-          <div className="mkt-footer-grid mkt-footer-grid--cursor">
+        <footer className="mkt-footer mkt-footer--institution">
+          <div className="mkt-footer-grid">
             <div className="mkt-footer-brand">
               <OrviusLogo variant="void" size="sm" />
               <p className="mkt-footer-entity font-sans">Solution Development LLC</p>

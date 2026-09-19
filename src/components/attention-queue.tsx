@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  attentionActionStrategy,
   attentionKindLabel,
   type AttentionItem,
 } from "@/lib/attention-types";
@@ -21,49 +22,102 @@ type AttentionQueueProps = {
 };
 
 function canCall(item: AttentionItem) {
+  const strategy = attentionActionStrategy(item.kind);
   return Boolean(
     item.meta?.phone &&
-      (item.kind === "urgent_lead" ||
-        item.kind === "new_lead" ||
-        item.kind === "needs_qualify" ||
-        item.kind === "needs_booking" ||
-        item.kind === "overdue_followup" ||
-        item.kind === "needs_customer_confirm" ||
-        item.kind === "appointment_at_risk"),
+      (strategy === "call" ||
+        strategy === "book" ||
+        strategy === "text_confirm" ||
+        strategy === "advance_status"),
   );
 }
 
 function canBook(item: AttentionItem) {
+  const strategy = attentionActionStrategy(item.kind);
   return (
-    (item.kind === "needs_booking" ||
-      item.kind === "urgent_lead" ||
-      item.kind === "overdue_followup") &&
+    (strategy === "book" || item.kind === "urgent_lead" || item.kind === "overdue_followup") &&
     item.entityType === "lead"
   );
 }
 
 function canAssign(item: AttentionItem) {
-  return item.kind === "unassigned_job" && item.entityType === "job";
+  return (
+    attentionActionStrategy(item.kind) === "assign" && item.entityType === "job"
+  );
 }
 
 function canTextConfirm(item: AttentionItem) {
-  return item.kind === "needs_customer_confirm" && item.entityType === "job";
+  return (
+    attentionActionStrategy(item.kind) === "text_confirm" &&
+    item.entityType === "job"
+  );
 }
 
 function canAdvanceStatus(item: AttentionItem) {
   return (
-    item.kind === "appointment_at_risk" &&
+    attentionActionStrategy(item.kind) === "advance_status" &&
     item.entityType === "job" &&
     Boolean(item.meta?.status)
   );
 }
 
 function canCopyProof(item: AttentionItem) {
-  return item.kind === "stale_weekly_proof";
+  return attentionActionStrategy(item.kind) === "proof";
 }
 
 function canTestAlert(item: AttentionItem) {
-  return item.kind === "alert_failed";
+  return attentionActionStrategy(item.kind) === "test_alert";
+}
+
+function canDismissNotAJob(item: AttentionItem) {
+  return (
+    attentionActionStrategy(item.kind) === "dismiss" && item.entityType === "lead"
+  );
+}
+
+function MarkNotAJobButton({
+  leadId,
+  onDone,
+}: {
+  leadId: string;
+  onDone?: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function run() {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "spam" }),
+      });
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(data?.error ?? "Could not clear lead");
+      onDone?.();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not clear");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="attention-item-btn attention-item-btn-primary"
+        disabled={busy}
+        onClick={() => void run()}
+      >
+        {busy ? "Clearing…" : "Not a job"}
+      </button>
+      {err ? <span className="attention-item-detail">{err}</span> : null}
+    </>
+  );
 }
 
 function TestAlertButton({ onDone }: { onDone?: () => void }) {
@@ -217,7 +271,7 @@ export function AttentionQueue({
         <p className="attention-queue-kicker type-eyebrow font-sans">On the board</p>
         <h2 className="attention-queue-title font-sans">Board is clear</h2>
         <p className="attention-queue-empty font-sans">
-          No urgent leads, open jobs, or overdue follow-ups. Outcomes below track the week.
+          No urgent leads, open jobs, or overdue follow-ups right now.
         </p>
       </section>
     );
@@ -243,9 +297,9 @@ export function AttentionQueue({
     >
       <header className="attention-queue-head font-sans">
         <div>
-          <p className="attention-queue-kicker">Priority queue</p>
+          <p className="attention-queue-kicker">On the board</p>
           <h2 className="attention-queue-title">
-            {items.length} {items.length === 1 ? "exception" : "exceptions"}
+            {items.length} {items.length === 1 ? "item" : "items"} need you
           </h2>
         </div>
         <div className="attention-queue-summary" aria-label="Queue summary">
@@ -260,7 +314,7 @@ export function AttentionQueue({
         </div>
       </header>
       <p className="attention-queue-guidance font-sans">
-        Ranked by urgency and customer impact.
+        Ranked for a shop owner in the middle of a shift — urgency first.
       </p>
 
       <ul className="attention-queue-list">
@@ -272,6 +326,7 @@ export function AttentionQueue({
           const showTextConfirm = canTextConfirm(item);
           const showAdvance = canAdvanceStatus(item);
           const showTestAlert = canTestAlert(item);
+          const showDismiss = canDismissNotAJob(item);
           const hasPrimary =
             showCall ||
             showBook ||
@@ -279,7 +334,8 @@ export function AttentionQueue({
             showProof ||
             showTextConfirm ||
             showAdvance ||
-            showTestAlert;
+            showTestAlert ||
+            showDismiss;
 
           return (
             <li key={item.id}>
@@ -322,7 +378,7 @@ export function AttentionQueue({
                   */}
                   {hasPrimary ? (
                     <Link href={item.href} className="attention-item-btn attention-item-btn-quiet">
-                      Open
+                      Details
                     </Link>
                   ) : null}
                   {showCall ? (
@@ -359,6 +415,12 @@ export function AttentionQueue({
                   {showTestAlert ? (
                     <TestAlertButton onDone={() => onAction?.()} />
                   ) : null}
+                  {showDismiss ? (
+                    <MarkNotAJobButton
+                      leadId={item.entityId}
+                      onDone={() => onAction?.()}
+                    />
+                  ) : null}
                   {showTextConfirm ? (
                     <TextConfirmButton
                       jobId={item.entityId}
@@ -375,7 +437,10 @@ export function AttentionQueue({
                     />
                   ) : null}
                   {hasPrimary ? null : (
-                    <Link href={item.href} className="attention-item-btn attention-item-btn-primary">
+                    <Link
+                      href={item.href}
+                      className="attention-item-btn attention-item-btn-primary"
+                    >
                       {item.recommendedAction}
                     </Link>
                   )}
@@ -391,7 +456,7 @@ export function AttentionQueue({
           className="attention-queue-more font-sans"
           onClick={() => setExpanded(true)}
         >
-          Show {items.length - visibleItems.length} more exceptions
+          Show {items.length - visibleItems.length} more on the board
         </button>
       ) : expanded && items.length > 5 ? (
         <button

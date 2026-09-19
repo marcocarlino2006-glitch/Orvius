@@ -41,11 +41,17 @@ function LiveLineDigits({ display }: { display: string }) {
  */
 export function HomeLineHero() {
   return (
-    <section className="ov-hero" aria-labelledby="home-hero-heading">
+    <section className="ov-hero ov-hero--atmosphere" aria-labelledby="home-hero-heading">
+      <div className="ov-hero-sky" aria-hidden>
+        <span className="ov-hero-sky-bloom" />
+        <span className="ov-hero-sky-bloom-bay" />
+        <span className="ov-hero-sky-grid" />
+        <span className="ov-hero-sky-horizon" />
+      </div>
       <div className="ov-hero-inner">
         <div className="ov-hero-copy">
-          <p className="ov-hero-eyebrow" data-i18n="hero.eyebrow">
-            For HVAC, plumbing &amp; electrical shops
+          <p className="ov-hero-brand" aria-label="Orvius">
+            Orvius
           </p>
 
           {/* Copy is owned by the i18n dictionary; keep these in sync with it so

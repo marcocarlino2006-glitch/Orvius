@@ -183,3 +183,46 @@ export async function fulfillEstimateCheckoutSession(
 
   return { ok: true };
 }
+
+/**
+ * Mark an estimate payment_failed when Checkout expires without a charge.
+ * Idempotent against paid invoices.
+ */
+export async function failEstimateCheckoutSession(
+  session: Stripe.Checkout.Session,
+): Promise<{ ok: boolean; reason?: string }> {
+  if (session.metadata?.kind !== "estimate_pay") {
+    return { ok: false, reason: "not_estimate_pay" };
+  }
+  const estimateId = session.metadata.estimateId;
+  const invoiceId = session.metadata.invoiceId;
+  const businessId = session.metadata.businessId;
+  if (!estimateId || !businessId) {
+    return { ok: false, reason: "missing_metadata" };
+  }
+
+  if (invoiceId) {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: invoiceId, businessId },
+      select: { status: true },
+    });
+    if (invoice?.status === "paid") {
+      return { ok: true, reason: "already_paid" };
+    }
+  }
+
+  const estimate = await prisma.estimate.findFirst({
+    where: { id: estimateId, businessId },
+  });
+  if (!estimate) return { ok: false, reason: "estimate_not_found" };
+  if (estimate.status === "payment_failed") {
+    return { ok: true, reason: "already_failed" };
+  }
+
+  await prisma.estimate.update({
+    where: { id: estimate.id },
+    data: { status: "payment_failed" },
+  });
+
+  return { ok: true };
+}

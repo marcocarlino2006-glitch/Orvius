@@ -1,22 +1,39 @@
 "use client";
 
+import { FounderManusNext } from "@/components/founder-manus-next";
 import { OsShell } from "@/components/os-shell";
 import { ShellBadge, ShellPanel } from "@/components/shell-primitives";
 import {
   fillOutreachTemplate,
   outreachTemplates,
 } from "@/lib/outreach-templates";
+import type { ManusPostStep } from "@/lib/manus-post";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type GateSnapshot = {
-  checkoutReady: boolean;
-  entitled: boolean;
-  billingStatus: string;
-  certDone: number;
-  baselineReady: boolean;
-  proofFresh: boolean;
-  wedgeReady: boolean;
+type MasteryGate = {
+  id: string;
+  step: number;
+  title: string;
+  owner: string;
+  doneWhen: string;
+  action: string;
+  href?: string;
+  ok: boolean;
+  detail: string;
+};
+
+type MasteryReport = {
+  gates: MasteryGate[];
+  passed: number;
+  total: number;
+  next: MasteryGate | null;
+  mastered: boolean;
+  shopName: string | null;
+  manusPost?: {
+    next: ManusPostStep | null;
+    cli: string;
+  };
 };
 
 type Prospect = {
@@ -29,10 +46,11 @@ type Prospect = {
 };
 
 /**
- * Founder morning run — one URL for domination execution.
+ * Founder mastery cockpit — close every multi-b gate in order.
+ * Distribution run sits below the scorecard; never skip a red gate above.
  */
 export default function AdminDailyPage() {
-  const [gates, setGates] = useState<GateSnapshot | null>(null);
+  const [mastery, setMastery] = useState<MasteryReport | null>(null);
   const [due, setDue] = useState<Prospect[]>([]);
   const [touchesToday, setTouchesToday] = useState(0);
   const [dailyTarget, setDailyTarget] = useState(20);
@@ -43,39 +61,15 @@ export default function AdminDailyPage() {
   async function load() {
     setLoading(true);
     try {
-      const [accountRes, waitRes] = await Promise.all([
-        fetch("/api/account"),
+      const [masteryRes, waitRes] = await Promise.all([
+        fetch("/api/admin/mastery"),
         fetch("/api/waitlist"),
       ]);
 
-      if (accountRes.ok) {
-        const data = await accountRes.json();
-        let certDone = 0;
-        try {
-          const parsed = data.business?.founderCertJson
-            ? (JSON.parse(data.business.founderCertJson) as boolean[])
-            : [];
-          if (Array.isArray(parsed)) certDone = parsed.filter(Boolean).length;
-        } catch {
-          certDone = 0;
-        }
-        const proofAt = data.business?.lastWeeklyProofAt
-          ? new Date(data.business.lastWeeklyProofAt).getTime()
-          : 0;
-        setGates({
-          checkoutReady: Boolean(data.billing?.configured),
-          entitled: Boolean(data.billing?.entitled),
-          billingStatus: data.billing?.status ?? "none",
-          certDone,
-          baselineReady: Boolean(
-            data.business?.avgTicketCents &&
-              data.business?.baselineMissedCallsPerWeek != null &&
-              data.business?.baselineJobsPerWeek != null,
-          ),
-          proofFresh:
-            proofAt > 0 && Date.now() - proofAt <= 7 * 24 * 60 * 60 * 1000,
-          wedgeReady: Boolean(data.wedge?.ready),
-        });
+      if (masteryRes.ok) {
+        setMastery(await masteryRes.json());
+      } else {
+        setMastery(null);
       }
 
       if (waitRes.ok) {
@@ -83,8 +77,6 @@ export default function AdminDailyPage() {
         setTouchesToday(data.touchesTodayCount ?? 0);
         setDailyTarget(data.dailyTarget ?? 20);
         setOverdueCount(data.overdueCount ?? 0);
-        const start = new Date();
-        start.setHours(0, 0, 0, 0);
         const entries = (data.entries ?? []) as Prospect[];
         setDue(
           entries
@@ -123,64 +115,103 @@ export default function AdminDailyPage() {
   }
 
   const underTarget = touchesToday < dailyTarget;
+  const next = mastery?.next ?? null;
 
   return (
     <OsShell
-      title="Daily run"
-      subtitle="Multi-b execution — gates, cash, then 20 touches."
+      title="Master all"
+      subtitle="Multi-b close sequence — one red gate at a time. No skipping."
       actions={
         <Link href="/admin" className="btn btn-secondary text-sm">
           Full admin
         </Link>
       }
     >
-      <ShellPanel title="1 · Launch gates">
-        {loading || !gates ? (
+      <ShellPanel
+        title={
+          mastery
+            ? `Mastery ${mastery.passed}/${mastery.total}${mastery.shopName ? ` · ${mastery.shopName}` : ""}`
+            : "Mastery scorecard"
+        }
+      >
+        {loading ? (
           <p className="font-sans text-sm text-ash">Loading…</p>
+        ) : !mastery ? (
+          <p className="font-sans text-sm text-ash">
+            Sign in as founder/owner to load the mastery scorecard.
+          </p>
         ) : (
-          <ul className="space-y-2 font-sans text-sm">
-            <li className="flex flex-wrap items-center justify-between gap-2">
-              <span>
-                Phone cert {gates.certDone}/5{" "}
-                {gates.certDone >= 5 ? "✓" : "— blocking outreach claims"}
-              </span>
-              <Link href="/dashboard/settings#founder-cert" className="btn btn-secondary text-xs">
-                Certify
-              </Link>
-            </li>
-            <li className="flex flex-wrap items-center justify-between gap-2">
-              <span>
-                Stripe checkout {gates.checkoutReady ? "ready" : "blocked"} · status{" "}
-                {gates.billingStatus}
-              </span>
-              <Link href="/dashboard/billing" className="btn btn-void text-xs">
-                Unblock / pay
-              </Link>
-            </li>
-            <li className="flex flex-wrap items-center justify-between gap-2">
-              <span>
-                Baseline {gates.baselineReady ? "set" : "missing"} · proof{" "}
-                {gates.proofFresh ? "fresh" : "due"}
-              </span>
-              <Link href="/dashboard" className="btn btn-secondary text-xs">
-                Economics
-              </Link>
-            </li>
-            <li className="flex flex-wrap items-center justify-between gap-2">
-              <span>Wedge {gates.wedgeReady ? "ready" : "not ready"}</span>
-              <Link href="/dashboard/settings" className="btn btn-secondary text-xs">
-                Settings
-              </Link>
-            </li>
-          </ul>
+          <>
+            {mastery.manusPost ? (
+              <FounderManusNext
+                tone="cockpit"
+                next={mastery.manusPost.next}
+              />
+            ) : null}
+
+            {next ? (
+              <div className="mb-4 rounded-md border border-flare/40 bg-flare/5 p-3">
+                <p className="font-sans text-xs uppercase tracking-wide text-flare">
+                  Next — do not skip
+                </p>
+                <p className="mt-1 font-sans text-sm font-semibold text-void">
+                  {next.step}. {next.title}
+                </p>
+                <p className="mt-1 font-sans text-sm text-ash">{next.action}</p>
+                {next.href ? (
+                  <Link href={next.href} className="btn btn-void mt-3 text-xs">
+                    Open
+                  </Link>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mb-4 font-sans text-sm text-live">
+                Ordered shop gates clear on this snapshot — keep beyond:check green and run live
+                cell re-verify before public claims.
+              </p>
+            )}
+
+            <ul className="space-y-2 font-sans text-sm">
+              {mastery.gates.map((g) => (
+                <li
+                  key={g.id}
+                  className="flex flex-wrap items-center justify-between gap-2 border-b border-rule/60 py-2 last:border-0"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-void">
+                      {g.ok ? "✓" : "○"} {g.step}. {g.title}
+                    </p>
+                    <p className="text-xs text-ash">
+                      {g.detail}
+                      {g.owner === "founder" ? " · founder" : ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ShellBadge tone={g.ok ? "live" : "flare"}>
+                      {g.ok ? "done" : "open"}
+                    </ShellBadge>
+                    {g.href && !g.ok ? (
+                      <Link href={g.href} className="btn btn-secondary text-xs">
+                        Fix
+                      </Link>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 font-sans text-xs text-ash">
+              CLI: <code className="text-void">npm run master:all</code> · Strict list:{" "}
+              <code className="text-void">docs/MULTI-B-STRICT.md</code>
+            </p>
+          </>
         )}
       </ShellPanel>
 
       <div className="mt-6">
-        <ShellPanel title="2 · Distribution (20 touches)">
+        <ShellPanel title="Distribution run (only after gates above allow)">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="font-sans text-sm text-ash">
-              Overdue {overdueCount} · due queue below. Hit the number before building features.
+              Overdue {overdueCount} · hit {dailyTarget}/day after cert + cash gates, not before.
             </p>
             <ShellBadge tone={underTarget || overdueCount > 0 ? "flare" : "live"}>
               {touchesToday}/{dailyTarget}
@@ -207,7 +238,7 @@ export default function AdminDailyPage() {
           {note ? <p className="mt-2 font-sans text-xs text-live">{note}</p> : null}
           {due.length === 0 ? (
             <p className="mt-4 font-sans text-sm text-ash">
-              No due prospects. Import a CSV on Admin or add owners via /pilot.
+              No due prospects. Import a real CSV on Admin — replace seeds before live outreach.
             </p>
           ) : (
             <ul className="mt-4 space-y-3">
@@ -258,22 +289,6 @@ export default function AdminDailyPage() {
               ))}
             </ul>
           )}
-        </ShellPanel>
-      </div>
-
-      <div className="mt-6">
-        <ShellPanel title="3 · Shop truth">
-          <p className="font-sans text-sm text-ash">
-            After touches: verify Summit line, copy weekly proof, close open money on Today.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link href="/dashboard" className="btn btn-void text-sm">
-              Open Today
-            </Link>
-            <Link href="/dashboard/billing" className="btn btn-secondary text-sm">
-              Billing
-            </Link>
-          </div>
         </ShellPanel>
       </div>
     </OsShell>

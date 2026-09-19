@@ -8,8 +8,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 const SUGGESTIONS = [
+  "What should I do now?",
   "How many jobs did we book this week?",
-  "Which calls from yesterday were not booked?",
   "What's unassigned on dispatch?",
   "Any emergencies in the inbox?",
 ];
@@ -89,7 +89,7 @@ export default function AskPage() {
               className="input ask-input"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Who called today? What's on the board?"
+              placeholder="What should I do now?"
               autoComplete="off"
             />
             <button type="submit" disabled={loading} className="btn btn-void ask-submit">

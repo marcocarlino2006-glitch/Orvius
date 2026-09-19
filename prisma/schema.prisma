@@ -176,6 +176,7 @@ model Lead {
 
   job      Job?
   deposits Deposit[]
+  estimates Estimate[]
 
   @@unique([businessId, externalId])
   @@index([businessId, createdAt])
@@ -274,6 +275,7 @@ model Estimate {
   jobId         String?   @unique
   job           Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   leadId        String?
+  lead          Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
   amountCents   Int
   status        String    @default("draft")
   lineItemsJson String    @default("[]")
@@ -340,7 +342,7 @@ model Deposit {
   jobId                 String?
   job                   Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   amountCents           Int
-  /** pending | paid | canceled | refunded */
+  /** pending | paid | canceled | refunded | failed */
   status                String    @default("pending")
   /** Public magic-link token for the customer pay page (/d/[token]). */
   publicToken           String?   @unique

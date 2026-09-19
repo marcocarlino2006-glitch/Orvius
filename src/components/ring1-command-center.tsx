@@ -185,8 +185,8 @@ export function Ring1CommandCenter() {
           <div className="ring1-recent">
             <ProSectionHead kicker="Field" title="Nothing waiting on the board" />
             <ProEmptyState
-              title="Run a test call"
-              body="Orvius ranks urgent leads, unassigned jobs, and overdue follow-ups here when they land."
+              title="Board is clear"
+              body="When a night call lands, Orvius puts the lead here so you can book, assign, or call back without hunting."
               action={
                 <div className="flex flex-wrap gap-2">
                   <Link href="/dashboard/inbox" className="btn btn-void text-sm">

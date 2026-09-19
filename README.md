@@ -18,9 +18,12 @@ Orvius answers after-hours and overflow calls, qualifies the job, alerts the own
 ```bash
 npm run wedge:ready
 npm run multi-b:check
+npm run beyond:check
 ```
 
-See `docs/WEDGE-MASTERY.md` and `docs/PERFECT-STANDARDS.md`.
+See `docs/WEDGE-MASTERY.md`, `docs/PERFECT-STANDARDS.md`, `docs/BEYOND-BAR.md`, `docs/MULTI-B-STRICT.md`, and `docs/STANDINGS.md`.
+
+Master the close sequence: `npm run master:all` · `/admin/daily`
 
 ## Stack
 

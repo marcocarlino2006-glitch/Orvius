@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
@@ -10,6 +9,7 @@ import {
   buildLeadAlertDedupeKey,
   enqueueOwnerAlert,
 } from "@/lib/notifications";
+import { captureServerMessage } from "@/lib/sentry-report";
 import { escapeXml, twimlResponse } from "@/lib/twiml";
 import { getWebhookUrl } from "@/lib/env";
 import { validateTwilioRequest } from "@/lib/webhook-auth";
@@ -172,12 +172,14 @@ export async function POST(request: NextRequest) {
     two, and inside `after` so the caller's greeting is never waiting on it.
   */
   after(() => {
-    if (!process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) return;
-    Sentry.captureMessage("Voice fallback answered a call — primary line failed", {
-      level: "error",
-      tags: { surface: "voice", reason: "vapi_unreachable" },
-      extra: { callSid, businessId: business.id },
-    });
+    captureServerMessage(
+      "Voice fallback answered a call — primary line failed",
+      { surface: "voice", reason: "vapi_unreachable" },
+      {
+        level: "error",
+        extra: { callSid, businessId: business.id },
+      },
+    );
   });
 
   try {

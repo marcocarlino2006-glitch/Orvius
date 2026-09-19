@@ -1,27 +1,27 @@
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-shell";
 import { HomeLineHero } from "@/components/home-line-hero";
-import { HomeStatsBanner } from "@/components/home-stats-banner";
-import { HomeToolShowcase } from "@/components/home-tool-showcase";
 import { HomeStatement } from "@/components/home-statement";
 import { HomeCallStory } from "@/components/home-call-story";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Company page — not a SaaS landing stack.
- * Four beats: live line → night rules → proof → ask.
+ * Company page — first principles (LOOK P1–P4):
+ * Hero → night rules → call story → try now.
+ * No stats strip. No Cursor-style showcase. One job per beat.
  */
 export default function HomePage() {
   return (
     <MarketingShell premium>
       <HomeLineHero />
-      <HomeStatsBanner />
-      <HomeToolShowcase />
       <HomeStatement />
       <HomeCallStory />
 
       <section className="mkt-trynow" aria-labelledby="home-trynow-heading">
+        <div className="ov-trynow-sky" aria-hidden>
+          <span className="ov-trynow-sky-bloom" />
+        </div>
         <div className="mkt-trynow-inner">
           <p className="mkt-trynow-eyebrow">Hear it yourself</p>
           <h2
@@ -40,7 +40,7 @@ export default function HomePage() {
           <div className="mkt-trynow-actions font-sans">
             <a
               href="tel:+18446439170"
-              className="inst-btn inst-btn-primary mkt-trynow-cta"
+              className="ov-btn ov-btn--solid mkt-trynow-cta"
               data-i18n="trynow.cta"
             >
               Call the live AI →

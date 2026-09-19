@@ -18,9 +18,11 @@
 | Economics ritual | ✅ surfaces | Baseline + proof **unset** |
 | Ops cron | ✅ vercel.json | Daily 09:00 UTC sweep; webhooks drain the retry ladder in between (Hobby cron limit) |
 | Stripe / ARR | ❌ | **$0** — founder keys |
-| Phone cert | ❌ | Persistable, not completed |
+| Phone cert | ⚠️ | Stamped historically — **re-verify** before outreach claims |
 | Formation | ❌ | Counsel |
+| Shop Connect payouts | ⚠️ code | Direct-charge Connect + estimate/deposit paths built — **not live multi-b until a shop is onboarded and paid** |
 
+**Honest standings analysis:** `docs/STANDINGS.md`  
 **Dominate = close red gates in order. More features will not print ARR.**
 
 ---
@@ -43,7 +45,7 @@ things make software the OS of a trade, and only the first is done.
 | Lock | Meaning | Where we are |
 |------|---------|--------------|
 | Record | Every customer, call, and job lives here first | ✅ rings 2–4 live |
-| Money | Cash for the job moves through us, not beside us | ⚠️ ring 5 drafts estimates and invoices; card rails and shop payouts are not built |
+| Money | Cash for the job moves through us, not beside us | ⚠️ Connect Express + estimate/deposit direct charges **in code**; live onboarded shop payouts still the gate |
 | Plug | Their other tools integrate into us | ❌ ring 7 not started |
 
 Money is the lock, not the API. A shop can leave a record-keeper over a

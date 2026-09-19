@@ -98,4 +98,6 @@ Never claim “never miss,” “100%,” or “guaranteed” — `npm run stand
 
 ---
 
-*Last updated: 2026-09-04*
+*Last updated: 2026-09-16*
+
+Ceiling above these battles: `docs/BEYOND-BAR.md` · `npm run beyond:check`

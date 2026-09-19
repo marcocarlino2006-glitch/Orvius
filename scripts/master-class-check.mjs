@@ -86,9 +86,14 @@ try {
     /Founder phone certification/.test(settings) &&
     /account\?\.founder/.test(settings) &&
     /founderCertJson/.test(settings) &&
+    /Manus post · next/.test(settings) &&
+    /FounderManusNext/.test(settings) &&
     !/<ProSetupHub/.test(settings)
   ) {
-    pass("Settings ritual", "Quiet founder-only certification — no duplicate setup cockpit");
+    pass(
+      "Settings ritual",
+      "Quiet founder-only certification + Manus next — no duplicate setup cockpit",
+    );
   } else {
     fail("Settings ritual", "Founder certification is not wired through quiet Settings");
   }
@@ -112,7 +117,11 @@ try {
       "needs_capture must be critical with prove + confirm copy",
     );
   }
-  if (/canTestAlert|TestAlertButton/.test(ui) && /alert_failed/.test(ui)) {
+  if (
+    /TestAlertButton/.test(ui) &&
+    (/alert_failed/.test(ui) ||
+      (/attentionActionStrategy/.test(ui) && /canTestAlert/.test(ui)))
+  ) {
     pass("Attention alert action", "Failed alerts expose Send test alert");
   } else {
     fail(
@@ -149,9 +158,9 @@ try {
 // Presence — fail the brand-swap test
 try {
   const hero = read("src/components/home-line-hero.tsx");
+  const liveCall = read("src/components/home-live-call.tsx");
   const statement = read("src/components/home-statement.tsx");
   const company = read("src/lib/company.ts");
-  const preview = read("src/components/home-product-preview.tsx");
   /*
     The hero moved from the mkt-* skin to the ov-* one, so match either prefix.
     What is being asserted is unchanged and is about substance, not selectors:
@@ -163,7 +172,7 @@ try {
     /night shift/i.test(hero) &&
     /DEMO_LINE_DISPLAY/.test(hero) &&
     /(mkt|ov)-hero-live-?line-digit|mkt-hero-live-digit/.test(hero) &&
-    (/(mkt|ov)-hero-stage/.test(hero) || /atmosphere/.test(hero))
+    (/(mkt|ov)-hero-stage/.test(hero) || /atmosphere/.test(hero) || /HomeLiveCall/.test(hero))
   ) {
     pass(
       "Presence hero",
@@ -176,14 +185,14 @@ try {
     );
   }
   if (
-    !/Assigning…/.test(preview) &&
-    (/atmosphere/.test(preview) || /stage/.test(preview))
+    !/Assigning…/.test(liveCall) &&
+    (/ov-console/.test(liveCall) || /atmosphere/.test(liveCall))
   ) {
-    pass("Presence marketing", "Hero product preview never shows Assigning…");
-  } else if (/Assigning…/.test(preview)) {
-    fail("Presence marketing", "home-product-preview still contains Assigning…");
+    pass("Presence marketing", "Live-call console never shows Assigning…");
+  } else if (/Assigning…/.test(liveCall)) {
+    fail("Presence marketing", "home-live-call still contains Assigning…");
   } else {
-    fail("Presence marketing", "stage/atmosphere mode missing from product preview");
+    fail("Presence marketing", "live-call console / atmosphere missing");
   }
   if (
     /Night rules/.test(statement) &&
@@ -206,6 +215,374 @@ try {
   }
 } catch (e) {
   fail("Presence craft", e instanceof Error ? e.message : String(e));
+}
+
+// LOOK first principles — hero diet (no stats / showcase in first company beats)
+try {
+  const home = read("src/app/page.tsx");
+  if (/HomeStatsBanner|HomeToolShowcase/.test(home)) {
+    fail(
+      "Look hero diet",
+      "Homepage must not mount stats strip or Cursor-style showcase",
+    );
+  } else if (
+    /HomeLineHero/.test(home) &&
+    /HomeStatement/.test(home) &&
+    /HomeCallStory/.test(home)
+  ) {
+    pass("Look hero diet", "Hero → night rules → call story — no stats/showcase");
+  } else {
+    fail("Look hero diet", "Homepage missing core beats");
+  }
+  const hero = read("src/components/home-line-hero.tsx");
+  if (/ov-hero-brand/.test(hero) && /Orvius/.test(hero)) {
+    pass("Look brand signal", "Hero carries Orvius as a brand-level signal");
+  } else {
+    fail("Look brand signal", "Hero must include ov-hero-brand Orvius");
+  }
+  if (/ov-hero-eyebrow/.test(hero)) {
+    fail(
+      "Look hero diet",
+      "Hero eyebrow competes with brand — P1 is brand + one claim + live line + CTA",
+    );
+  } else if (
+    /ov-hero-brand/.test(hero) &&
+    /ov-hero-title/.test(hero) &&
+    /ov-hero-liveline/.test(hero)
+  ) {
+    pass(
+      "Look hero P1",
+      "Brand + claim + live line — no competing eyebrow category chrome",
+    );
+  } else {
+    fail("Look hero P1", "Hero must keep brand, title, and live line without eyebrow");
+  }
+  if (
+    /ov-hero--atmosphere/.test(hero) &&
+    /ov-hero-sky/.test(hero) &&
+    /ov-hero-sky-horizon/.test(hero) &&
+    /ov-hero-sky-bloom-bay/.test(hero)
+  ) {
+    pass("Look atmosphere", "Hero is a full-bleed night plane with sky layers");
+  } else {
+    fail("Look atmosphere", "Hero must include ov-hero--atmosphere sky layers");
+  }
+  const globalsLines = read("src/app/globals.css").split(/\r?\n/).length;
+  if (globalsLines < 8000) {
+    pass(
+      "Look CSS era (B6)",
+      `globals.css is ${globalsLines} lines — under the 8k landfill ceiling`,
+    );
+  } else {
+    fail(
+      "Look CSS era (B6)",
+      `globals.css is ${globalsLines} lines — cut toward <8k`,
+    );
+  }
+  const nav = read("src/components/premium-nav.tsx");
+  if (/Enterprise|nav\.enterprise|\/resources/.test(nav) && /href: "\/product"/.test(nav)) {
+    fail("Look nav", "Primary nav still mirrors Cursor mega-nav");
+  } else if (/\/pricing/.test(nav) && /\/pilot/.test(nav) && /\/about/.test(nav)) {
+    pass("Look nav", "Primary nav is Pricing · Audit · About");
+  } else {
+    fail("Look nav", "Primary nav must be trades-native (Pricing · Audit · About)");
+  }
+  const outcomes = read("src/components/pro-command-outcomes.tsx");
+  if (/exception requires|exceptions require/i.test(outcomes)) {
+    fail(
+      "Operate owner language",
+      "Command outcomes still uses exception jargon for owners",
+    );
+  } else if (/needs you on the board|Board is clear/.test(outcomes)) {
+    pass("Operate owner language", "Command pulse speaks owner language");
+  } else {
+    fail("Operate owner language", "Outcomes footer must use board / needs-you language");
+  }
+  const dash = read("src/app/dashboard/page.tsx");
+  if (
+    dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
+    dash.indexOf("<FounderNextGate") < dash.indexOf("<ShopOperateBanner") &&
+    /FirstNightHandoff/.test(dash)
+  ) {
+    pass("Operate ritual order", "First-night → next-gate → shop operate → Command");
+  } else {
+    fail(
+      "Operate ritual order",
+      "Dashboard must order FirstNightHandoff → FounderNextGate → ShopOperateBanner → Command",
+    );
+  }
+  const guard = read("src/components/onboarding-guard.tsx");
+  const handoff = read("src/components/first-night-handoff.tsx");
+  if (
+    /!json\.ready/.test(guard) &&
+    /owner_phone/.test(guard) &&
+    /Tonight has one job/.test(handoff) &&
+    /markFirstNightPending/.test(handoff)
+  ) {
+    pass("First-night handoff", "Setup cliff closed — unfinished shops stay in tunnel");
+  } else {
+    fail(
+      "First-night handoff",
+      "OnboardingGuard must hold unfinished setup; FirstNightHandoff must exist",
+    );
+  }
+  const operate = read("src/lib/shop-operate.ts");
+  if (
+    /resolveShopOperateNext/.test(operate) &&
+    /failedAlerts/.test(operate) &&
+    /weekly-proof/.test(operate)
+  ) {
+    pass("Operate next resolver", "shop-operate resolves alerts → setup → board → proof");
+  } else {
+    fail("Operate next resolver", "src/lib/shop-operate.ts missing load-bearing next logic");
+  }
+  const board = read("src/components/attention-queue.tsx");
+  if (/exception|exceptions/.test(board) && /attention-queue-title/.test(board)) {
+    const titleBlock = board.match(/attention-queue-title[\s\S]{0,120}/)?.[0] ?? "";
+    if (/exception/i.test(titleBlock)) {
+      fail("Operate board language", "Attention title still says exceptions");
+    } else {
+      pass("Operate board language", "Board title uses items / need you");
+    }
+  } else if (/items need you|Board is clear/.test(board)) {
+    pass("Operate board language", "Board title uses items / need you");
+  } else {
+    fail("Operate board language", "Attention board must speak owner language");
+  }
+  const banner = read("src/components/shop-operate-banner.tsx");
+  if (
+    /copyWeeklyProofRitual/.test(banner) &&
+    /test-alert/.test(banner) &&
+    /runInline/.test(banner)
+  ) {
+    pass("Operate one-tap rituals", "Proof + test alert finish in the shop pulse");
+  } else {
+    fail("Operate one-tap rituals", "ShopOperateBanner must inline proof and test alert");
+  }
+  const kinds = read("src/lib/attention-types.ts");
+  if (/ATTENTION_KINDS/.test(kinds) && /attentionActionStrategy/.test(kinds)) {
+    pass("Operate action map", "Every attention kind maps to a one-tap strategy");
+  } else {
+    fail("Operate action map", "attention-types missing ATTENTION_KINDS / strategy map");
+  }
+  const brain = read("src/lib/shop-brain.ts");
+  const askDock = read("src/components/os-ask-dock.tsx");
+  if (
+    (/isNextActionQuestion/.test(brain) || /isNextActionQuestion/.test(operate)) &&
+    /source: "operate"/.test(brain) &&
+    /What should I do now/.test(askDock)
+  ) {
+    pass("Cursor tunnel Ask", "Ask answers what-to-do from the same next gate");
+  } else {
+    fail("Cursor tunnel Ask", "Ask must lead with What should I do now + operate source");
+  }
+  if (/id: "covered"/.test(operate) && /Ask Orvius/.test(operate)) {
+    pass("Cursor tunnel covered", "Clear shop still returns a next move");
+  } else {
+    fail("Cursor tunnel covered", "resolveShopOperateNext must never go silent");
+  }
+  const rail = read("src/components/pro-launch-control.tsx");
+  if (/showPrimaryAction/.test(rail) && /banner above/.test(rail)) {
+    pass("Cursor tunnel one CTA", "Rail defers to the shop pulse banner");
+  } else {
+    fail("Cursor tunnel one CTA", "ProLaunchControl must not compete with the banner");
+  }
+  const wantsHuman = read("src/lib/lead-wants-human.ts");
+  const notAJob = read("src/lib/lead-not-a-job.ts");
+  if (
+    /leadWantsHuman/.test(wantsHuman) &&
+    /wants_human/.test(kinds) &&
+    /Wants you/.test(kinds)
+  ) {
+    pass("Wants-human outcome", "Caller-asked-for-person is a board kind with Call");
+  } else {
+    fail("Wants-human outcome", "wants_human kind + leadWantsHuman detector required");
+  }
+  if (
+    /leadIsNotAJob/.test(notAJob) &&
+    /not_a_job/.test(kinds) &&
+    /MarkNotAJobButton/.test(board)
+  ) {
+    pass("Not-a-job outcome", "Spam/OOA/wrong-trade clears with one tap");
+  } else {
+    fail("Not-a-job outcome", "not_a_job kind + MarkNotAJobButton required");
+  }
+  const partial = read("src/lib/lead-partial-capture.ts");
+  if (/leadIsPartialCapture/.test(partial) && /partial_capture/.test(kinds)) {
+    pass("Partial-capture outcome", "Hang-up stubs surface as Call back");
+  } else {
+    fail("Partial-capture outcome", "partial_capture kind + detector required");
+  }
+  const unacked = read("src/lib/owner-alert-unacked.ts");
+  if (
+    /isOwnerAlertUnacked/.test(unacked) &&
+    /alert_unacked/.test(kinds) &&
+    /alertedAtByLead/.test(read("src/lib/attention-queue.ts"))
+  ) {
+    pass("Alert-unacked outcome", "Delivered-but-ignored alerts escalate on the board");
+  } else {
+    fail("Alert-unacked outcome", "alert_unacked kind + detector required");
+  }
+  const concurrent = read("src/lib/concurrent-calls.ts");
+  const queue = read("src/lib/attention-queue.ts");
+  if (
+    /concurrentCallsImpact/.test(concurrent) &&
+    /concurrent_calls/.test(kinds) &&
+    /Line busy/.test(kinds) &&
+    /status: "in-progress"/.test(queue) &&
+    /liveCalls/.test(queue)
+  ) {
+    pass("Concurrent-calls outcome", "Live line density surfaces as Line busy");
+  } else {
+    fail(
+      "Concurrent-calls outcome",
+      "concurrent_calls kind + liveCalls query + helpers required",
+    );
+  }
+  const dispute = read("src/lib/lead-transcript-dispute.ts");
+  if (
+    /leadHasTranscriptDispute/.test(dispute) &&
+    /transcript_dispute/.test(kinds) &&
+    /Dispute/.test(kinds)
+  ) {
+    pass("Transcript-dispute outcome", "Caller-disputed capture surfaces as Call to correct");
+  } else {
+    fail(
+      "Transcript-dispute outcome",
+      "transcript_dispute kind + leadHasTranscriptDispute required",
+    );
+  }
+  const noShow = read("src/lib/job-no-show.ts");
+  if (
+    /jobIsCustomerNoShow/.test(noShow) &&
+    /jobIsTechNoShow/.test(noShow) &&
+    /customer_no_show/.test(kinds) &&
+    /tech_no_show/.test(kinds) &&
+    /No-show/.test(kinds)
+  ) {
+    pass("No-show outcome", "Customer/tech misses surface as Call customer / Call tech");
+  } else {
+    fail(
+      "No-show outcome",
+      "customer_no_show + tech_no_show kinds + detectors required",
+    );
+  }
+  const depositFail = read("src/lib/deposit-fail.ts");
+  const bookingDeposit = read("src/lib/booking-deposit.ts");
+  const billingHook = read("src/app/api/billing/webhook/route.ts");
+  if (
+    /depositNeedsOwnerFollowUp/.test(depositFail) &&
+    /deposit_failed/.test(kinds) &&
+    /markDepositFailed/.test(bookingDeposit) &&
+    /checkout\.session\.expired/.test(billingHook) &&
+    /failDepositCheckoutSession/.test(billingHook)
+  ) {
+    pass(
+      "Deposit-fail outcome",
+      "Failed/stale deposits surface as Call to collect",
+    );
+  } else {
+    fail(
+      "Deposit-fail outcome",
+      "deposit_failed kind + detector + expired Checkout fail path required",
+    );
+  }
+  const estimateFail = read("src/lib/estimate-fail.ts");
+  const estimatePay = read("src/lib/estimate-pay.ts");
+  if (
+    /estimateNeedsOwnerFollowUp/.test(estimateFail) &&
+    /estimate_failed/.test(kinds) &&
+    /failEstimateCheckoutSession/.test(estimatePay) &&
+    /failEstimateCheckoutSession/.test(billingHook) &&
+    /tech_needs_phone/.test(kinds)
+  ) {
+    pass(
+      "Estimate-fail + tech phone",
+      "Expired estimate card + phoneless tech surface on the board",
+    );
+  } else {
+    fail(
+      "Estimate-fail + tech phone",
+      "estimate_failed + tech_needs_phone + failEstimateCheckoutSession required",
+    );
+  }
+  const alertsMuted = read("src/lib/owner-alerts-muted.ts");
+  const moneyPath = read("src/lib/deposit-money-path.ts");
+  const queueHrefs = read("src/lib/attention-queue.ts");
+  const settingsIds = read("src/app/dashboard/settings/page.tsx");
+  const billingIds = read("src/app/dashboard/billing/page.tsx");
+  if (
+    /ownerAlertsAreMuted/.test(alertsMuted) &&
+    /depositMoneyPathBroken/.test(moneyPath) &&
+    /alerts_muted/.test(kinds) &&
+    /money_path_broken/.test(kinds) &&
+    /Alerts off/.test(kinds) &&
+    /settings#owner-alerts/.test(queueHrefs) &&
+    /billing#payouts/.test(queueHrefs) &&
+    /settings#overflow-forward/.test(queueHrefs) &&
+    /id="owner-alerts"/.test(settingsIds) &&
+    /id="overflow-forward"/.test(settingsIds) &&
+    /id="payouts"/.test(billingIds) &&
+    /ownerSmsOptedOut/.test(settingsIds)
+  ) {
+    pass(
+      "Alerts-muted + money-path",
+      "STOP opt-out + Connect path + board deep-links land on real anchors",
+    );
+  } else {
+    fail(
+      "Alerts-muted + money-path",
+      "alerts_muted + money_path_broken + matching Settings/Billing anchors required",
+    );
+  }
+  const manus = read("src/lib/manus-post.ts");
+  const manusScript = read("scripts/manus-post.mjs");
+  const pkg = read("package.json");
+  const publicCss = read("src/app/public-v2.css");
+  const heroMotion = read("src/components/home-line-hero.tsx");
+  const daily = read("src/app/admin/daily/page.tsx");
+  const settingsManus = read("src/app/dashboard/settings/page.tsx");
+  if (
+    /MANUS_POST_STEPS/.test(manus) &&
+    /isPlaceholderOwnerPhone/.test(manus) &&
+    /resolveManusPostNext/.test(manus) &&
+    /MANUS_FORBIDDEN_CLAIMS/.test(manus) &&
+    /from ["']\.\.\/src\/lib\/manus-post\.ts["']/.test(manusScript) &&
+    /claimsViolateManusPost/.test(read("scripts/bulletproof-check.mjs")) &&
+    /manus:post/.test(pkg) &&
+    /NEXT:/.test(manusScript) &&
+    /FounderManusNext/.test(daily) &&
+    /manusPost\?\.next/.test(settingsManus)
+  ) {
+    pass(
+      "Manus post cockpit",
+      "Ordered manus:post (DRY) + live Settings next + bulletproof forbidden claims",
+    );
+  } else {
+    fail(
+      "Manus post cockpit",
+      "manus-post.ts + DRY manus:post + Settings live next + bulletproof claims required",
+    );
+  }
+  if (
+    /ov-hero-sky-bloom-bay/.test(publicCss) &&
+    /ov-sky-breathe/.test(publicCss) &&
+    /ov-liveline-digit/.test(publicCss) &&
+    /ov-hero-pulse/.test(publicCss) &&
+    /ov-hero-sky-bloom-bay/.test(heroMotion)
+  ) {
+    pass(
+      "Look hero motion",
+      "Bay bloom + sky breathe + liveline digits + pulse — intentional night presence",
+    );
+  } else {
+    fail(
+      "Look hero motion",
+      "Hero must keep bay bloom + ov-sky-breathe + liveline + pulse motions",
+    );
+  }
+} catch (e) {
+  fail("Look craft", e instanceof Error ? e.message : String(e));
 }
 
 const failed = checks.filter((c) => !c.ok).length;

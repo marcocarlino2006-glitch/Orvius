@@ -14,6 +14,8 @@ Multi-billion-dollar service and software companies win on:
 
 Orvius is a wedge product for owner-operators. We adopt the **discipline**, not the headcount.
 
+**Beyond this floor:** `docs/BEYOND-BAR.md` — Toast/Shopify money-rail thinking, Harvey-style agent proof, and the Orvius demand-moment monopoly. Enforce with `npm run beyond:check`.
+
 ---
 
 ## What we borrow
@@ -27,7 +29,7 @@ Orvius is a wedge product for owner-operators. We adopt the **discipline**, not 
 | **Datadog** | SLOs visible to stakeholders | P95 alert latency + shop health on Today |
 | **Salesforce** | Implementation milestones | Go-live checklist (6 items) before design partner is "done" |
 
-Code reference: `src/lib/institutional-standards.ts`
+Code reference: `src/lib/institutional-standards.ts` · ceiling: `src/lib/beyond-bar.ts`
 
 ---
 

@@ -7,13 +7,21 @@ type OnboardingStatus = {
   complete: boolean;
   provisioned: boolean;
   ready: boolean;
+  setup?: {
+    nextStep?: "line" | "owner_phone" | "capture" | "verify" | "done";
+  } | null;
 };
 
+/**
+ * Keep unfinished shops in the setup tunnel.
+ * owner_phone is the only step that belongs in Settings.
+ */
 export function OnboardingGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "ready">("loading");
   const onOnboarding = pathname === "/dashboard/onboarding";
+  const onSettings = pathname.startsWith("/dashboard/settings");
 
   useEffect(() => {
     let cancelled = false;
@@ -34,8 +42,21 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
           return;
         }
 
+        if (json.provisioned && !json.ready && !onOnboarding) {
+          const next = json.setup?.nextStep ?? "line";
+          if (next === "owner_phone") {
+            if (!onSettings) {
+              router.replace("/dashboard/settings");
+              return;
+            }
+          } else if (next !== "done") {
+            router.replace("/dashboard/onboarding");
+            return;
+          }
+        }
+
         if (json.ready && onOnboarding) {
-          router.replace("/dashboard");
+          router.replace("/dashboard?live=1");
           return;
         }
 
@@ -49,7 +70,7 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [onOnboarding, pathname, router]);
+  }, [onOnboarding, onSettings, pathname, router]);
 
   if (status === "loading") {
     return (

@@ -36,11 +36,22 @@ Still do **not** claim self-serve paid checkout until cash gates are green.
 
 ## What you still must do (founder)
 
-1. Paste Stripe secrets → `npm run stripe:setup` → webhook
-2. Reply with LLC formation state for counsel (one word)
-3. Re-run live phone cert from **your** cell
+Run the ordered cockpit after every paste:
+
+```bash
+npm run manus:post
+```
+
+It prints ✅ / ❌ / ⬜ and the single **NEXT** step.
+
+1. Paste Twilio + Vapi secrets → `npm run standard:check`
+2. Dedicated line + verify + owner alert → `npm run wedge:ready` **8/8**
+3. Re-run live phone cert 5/5 from **your** cell → stamp Settings
 4. Record 60–90s proof: call → SMS → dashboard → confirm
-5. Only then post — wedge claim only
+5. Paste Stripe → `npm run stripe:setup` → webhook
+6. Reply with LLC formation state for counsel (one word)
+7. `npm run bulletproof` exits **0**
+8. Only then post — wedge claim only
 
 ## Allowed first post
 
@@ -55,4 +66,4 @@ Still do **not** claim self-serve paid checkout until cash gates are green.
 - Card pay lands in the shop bank (Connect not live)
 - Fake case studies or invented ARR
 
-See also: `docs/PRE-POST-GATE.md`, `docs/MULTI-BILLION-BATTLES.md`, `npm run multi-b:check`.
+See also: `docs/PRE-POST-GATE.md`, `docs/MULTI-BILLION-BATTLES.md`, `docs/BEYOND-BAR.md`, `npm run multi-b:check`, `npm run beyond:check`.

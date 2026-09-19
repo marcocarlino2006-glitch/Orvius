@@ -3,6 +3,7 @@
  * Wedge definition-of-done — verifies a shop is production-grade.
  * Uses Turso-aware Prisma (same as app runtime).
  */
+import { isPlaceholderOwnerPhone } from "../src/lib/manus-post.ts";
 import { createScriptPrisma } from "./lib/db.mjs";
 
 const prisma = createScriptPrisma();
@@ -71,6 +72,7 @@ async function main() {
   });
   const ownerPhoneOk =
     Boolean(business.ownerPhone?.trim()) &&
+    !isPlaceholderOwnerPhone(business.ownerPhone) &&
     !shopLines.some((line) => phonesEqual(business.ownerPhone, line));
 
   const items = [
@@ -100,7 +102,9 @@ async function main() {
     {
       label: "Owner mobile configured",
       ok: ownerPhoneOk,
-      detail: business.ownerPhone ?? "missing",
+      detail: isPlaceholderOwnerPhone(business.ownerPhone)
+        ? "placeholder — set a real cell"
+        : (business.ownerPhone ?? "missing"),
     },
     {
       label: "Owner SMS not opted out",

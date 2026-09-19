@@ -48,10 +48,10 @@ export function HomeCallStory() {
             flow a shop receives.
           </p>
           <div className="mkt-proof-actions font-sans">
-            <a href={demoLineHref()} className="mkt-btn mkt-btn-ink">
+            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
               Call {DEMO_LINE_DISPLAY}
             </a>
-            <Link href="/pilot" className="mkt-text-link">
+            <Link href="/pilot" className="ov-btn ov-btn--quiet">
               Book a call audit
             </Link>
           </div>

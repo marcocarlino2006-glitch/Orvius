@@ -2,6 +2,9 @@
 
 Rule: if it is below standard, it is listed. No vanity green.
 
+**Ceiling:** `docs/BEYOND-BAR.md` + `npm run beyond:check` — multi-b floor plus monopoly laws.  
+**Strict no-corners list:** `docs/MULTI-B-STRICT.md`
+
 Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 
 ## Blockers
@@ -13,7 +16,7 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 | B3 | Resend live failover | FOUNDER_GATE |
 | B4 | Alert cron cadence (night product) | CODE_DONE |
 | B5 | Cron auth fail-closed | CODE_DONE |
-| B6 | CSS landfill / eras | IN_PROGRESS |
+| B6 | CSS landfill / eras | CODE_DONE (`globals.css` &lt;8k; densify in dashboard.css) |
 | B7 | CI honesty (no skip-as-green) | CODE_DONE |
 | B8 | Gap tracker honesty | CODE_DONE |
 
@@ -54,7 +57,7 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 ## Notes
 
 - **Multi-b path:** Under `MULTI_B_CI=1` score stays **9/11** by design (wedge + institutional skipped, not vanity-green). CI exits **0** when only those intentional skips remain — skips stay printed red, never counted green. Closing the last two requires founder Twilio/Vapi on the install + Summit `wedge:ready` 8/8 against prod DB. Code side: Clarity gate fixed (`profile-menu` → `os-sidebar-footer`); reliability now honors env credentials so a stale local server cannot fake-fail a credentialed install.
-- **B6:** globals.css ~13.9k after landfill cuts (was 26.9k). Target <8k open. Institution wave locks currently sit at file end — next cut is duplicate night-OS rules + superseded marketing eras, not more appends.
+- **B6:** `globals.css` under 8k (product densify moved to `dashboard.css`). Keep the ceiling; do not append new eras into globals.
 
 
 ## Founder paste list (cannot code alone)
@@ -68,4 +71,4 @@ Legend: `OPEN` · `IN_PROGRESS` · `CODE_DONE` · `FOUNDER_GATE` · `DONE`
 7. Optional: `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN`  
 8. Staff support or keep best-effort copy  
 
-Run: `npm run multi-b:check`
+Run: `npm run multi-b:check` · `npm run beyond:check`

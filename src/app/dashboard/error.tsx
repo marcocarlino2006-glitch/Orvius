@@ -1,9 +1,9 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { captureClientException } from "@/lib/sentry-report";
 import { supportEmail, supportMailto } from "@/lib/support";
 
 /*
@@ -42,12 +42,11 @@ export default function DashboardError({
       question we will actually ask is "which screen", and a tag is what you
       can group by. No DSN in local and preview builds, so nothing is sent.
     */
-    if (process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) {
-      Sentry.captureException(error, {
-        tags: { surface: "dashboard", route: pathname },
-        extra: { digest: error.digest },
-      });
-    }
+    captureClientException(
+      error,
+      { surface: "dashboard", route: pathname },
+      { digest: error.digest },
+    );
     console.error("dashboard.render_error", {
       digest: error.digest,
       message: error.message,

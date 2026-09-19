@@ -109,6 +109,9 @@ export async function GET() {
         overflowForwardConfirmedAt: businessRecord.overflowForwardConfirmedAt,
         depositEnabled: businessRecord.depositEnabled,
         depositAmountCents: businessRecord.depositAmountCents,
+        ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
+          ? businessRecord.ownerSmsOptOutAt.toISOString()
+          : null,
       }
     : null;
 
@@ -153,6 +156,7 @@ export async function GET() {
     alerts: {
       smsEnabled: process.env.ENABLE_OWNER_SMS === "true",
       emailConfigured: isEmailConfigured(),
+      ownerSmsOptedOut: Boolean(businessRecord?.ownerSmsOptOutAt),
     },
     founder,
     billing: {
