@@ -5035,20 +5035,19 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell {
   display: grid;
   min-height: 100vh;
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.os-shell {
+@media (min-width: 1024px) {
+  .os-shell {
     grid-template-columns: 16.5rem minmax(0, 1fr);
   }
+}
 
 .os-shell-pro {
   background: #efefef !important;
   color: var(--void);
 }
-
-.os-shell-pro {
-    grid-template-columns: 1fr;
-  }
 
 .os-shell-night
   :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]) {
@@ -5422,9 +5421,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding: 0.85rem 1rem 5rem !important;
 }
 
-.os-shell-night .os-content-pro {
+@media (min-width: 1024px) {
+  .os-shell-night .os-content-pro {
     padding: 1rem 1.35rem 5rem !important;
   }
+}
 
 .os-shell-night .attention-queue {
   padding: 0.75rem !important;
@@ -6514,22 +6515,26 @@ a.pro-shift-event:hover .pro-shift-event-title {
   min-width: 0;
 }
 
-.os-shell-night .ring1-cockpit-rail {
+@media (max-width: 1279px) {
+  .os-shell-night .ring1-cockpit-rail {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
     align-items: start;
     gap: 0.7rem;
   }
+}
 
-.os-shell-night .ring1-cockpit {
+@media (min-width: 1280px) {
+  .os-shell-night .ring1-cockpit {
     grid-template-columns: minmax(0, 1fr) 17.5rem;
     align-items: start;
   }
 
-.os-shell-night .ring1-cockpit-rail {
+  .os-shell-night .ring1-cockpit-rail {
     position: sticky;
     top: 5.4rem;
   }
+}
 
 .os-shell-night .os-topbar-search {
   display: inline-flex;
@@ -6644,13 +6649,15 @@ a.pro-shift-event:hover .pro-shift-event-title {
   background: color-mix(in srgb, var(--fog) 28%, var(--white));
 }
 
-.os-sidebar {
+@media (min-width: 1024px) {
+  .os-sidebar {
     position: sticky;
     top: 0;
     height: 100vh;
     border-bottom: none;
     border-right: 1px solid var(--rule);
   }
+}
 
 .os-sidebar-inner {
   display: flex;
@@ -6660,9 +6667,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
   height: 100%;
 }
 
-.os-sidebar-inner {
+@media (min-width: 1024px) {
+  .os-sidebar-inner {
     padding: 1.5rem 1.125rem 2rem;
   }
+}
 
 .os-sidebar-brand {
   display: flex;
@@ -6757,9 +6766,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding: 1.25rem 1.25rem 0;
 }
 
-.os-topbar {
+@media (min-width: 1024px) {
+  .os-topbar {
     padding: 1.5rem 2rem 0;
   }
+}
 
 .os-topbar-live {
   display: inline-flex;
@@ -6791,9 +6802,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding: 1.25rem 1.25rem 6rem;
 }
 
-.os-content {
+@media (min-width: 1024px) {
+  .os-content {
     padding: 1.5rem 2rem 6rem;
   }
+}
 
 .os-rings {
   list-style: none;
@@ -6977,9 +6990,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
   backdrop-filter: blur(12px);
 }
 
-.os-topbar-pro {
+@media (min-width: 1024px) {
+  .os-topbar-pro {
     padding: 1.75rem 2.25rem 1.35rem;
   }
+}
 
 .os-topbar-pro .os-topbar-title {
   font-size: clamp(1.625rem, 2.8vw, 2.25rem);
@@ -6991,9 +7006,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding: 1.5rem 1.5rem 7.5rem;
 }
 
-.os-content-pro {
+@media (min-width: 1024px) {
+  .os-content-pro {
     padding: 1.75rem 2.25rem 7.5rem;
   }
+}
 
 .pay-prompt {
   position: fixed;
@@ -7132,9 +7149,11 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: var(--void);
 }
 
-.pay-prompt-plans {
+@media (max-width: 480px) {
+  .pay-prompt-plans {
     grid-template-columns: 1fr;
   }
+}
 
 .billing-lock {
   position: fixed;
@@ -7393,21 +7412,25 @@ a.pro-shift-event:hover .pro-shift-event-title {
   gap: 0.625rem;
 }
 
-.os-ask-dock {
+@media (max-width: 1023px) {
+  .os-ask-dock {
     left: auto;
     right: 1rem;
     align-items: flex-end;
   }
 
-.os-sidebar-footer {
+  .os-sidebar-footer {
     position: relative;
     z-index: 55;
   }
+}
 
-.os-ask-dock {
+@media (min-width: 1024px) {
+  .os-ask-dock {
     left: calc(16.5rem + 1.25rem);
     width: min(24rem, calc(100vw - 18rem));
   }
+}
 
 .os-ask-dock-panel {
   width: 100%;
@@ -7943,7 +7966,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 /* Desktop: permanent sidebar, hamburger stays off. */
-@media (min-width: 901px) {
+@media (min-width: 1024px) {
   .os-mobile-nav-btn {
     display: none;
   }
@@ -7954,7 +7977,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 /* Mobile: drawer sidebar opened by the hamburger. */
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .os-sidebar-pro {
     position: fixed;
     top: 0;
