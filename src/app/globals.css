@@ -3018,6 +3018,21 @@ h3 {
   }
 }
 
+/* Dashboard shell: clear the left sidebar on desktop. */
+@media (min-width: 1024px) {
+  body:has(.os-shell) .cookie-bar {
+    left: calc(16.5rem + 1rem);
+    max-width: min(20rem, calc(100vw - 18.5rem));
+  }
+}
+
+@media (max-width: 1023px) {
+  body:has(.os-shell) .cookie-bar {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
 .cookie-bar-text {
   margin: 0;
   font-size: 0.75rem;
