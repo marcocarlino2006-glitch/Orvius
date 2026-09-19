@@ -3,7 +3,6 @@
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { OsShell } from "@/components/os-shell";
-import { ProPageStrip } from "@/components/pro-page-strip";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import type { ManusPostStep } from "@/lib/manus-post";
 import type { ShopHealth } from "@/lib/shop-health";
@@ -317,8 +316,6 @@ export default function DashboardSettingsPage() {
   return (
     <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
       <div className="pro-settings-page">
-        <ProPageStrip line={account?.line ?? null} />
-
         <form className="account-stack pro-settings-form" onSubmit={save}>
         <div id="overflow-forward">
           <ShellPanel title="Call capture" dense>

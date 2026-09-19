@@ -10,6 +10,7 @@ export type OsIconName =
   | "customers"
   | "jobs"
   | "dispatch"
+  | "ask"
   | "copilot"
   | "settings"
   | "profile"
@@ -54,6 +55,13 @@ const PATHS: Record<OsIconName, React.ReactNode> = {
       <circle cx="12" cy="10.1" r="2.6" />
     </>
   ),
+  ask: (
+    <>
+      <path d="M12 3.2l1.75 4.3 4.3 1.75-4.3 1.75L12 15.3l-1.75-4.3L5.95 9.25l4.3-1.75L12 3.2Z" />
+      <path d="M18.4 15.6l.7 1.75 1.75.7-1.75.7-.7 1.75-.7-1.75-1.75-.7 1.75-.7.7-1.75Z" />
+    </>
+  ),
+  /* Alias kept so older refs keep rendering while Ask is the product name. */
   copilot: (
     <>
       <path d="M12 3.2l1.75 4.3 4.3 1.75-4.3 1.75L12 15.3l-1.75-4.3L5.95 9.25l4.3-1.75L12 3.2Z" />

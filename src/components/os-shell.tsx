@@ -221,7 +221,9 @@ export function OsShell({
                   ? offHours
                     ? "Answering — after hours"
                     : "Answering"
-                  : "Finish setup in Settings"}
+                  : pathname.startsWith("/dashboard/settings")
+                    ? "Set your line below"
+                    : "Finish setup in Settings"}
               </p>
               <h1 className="os-topbar-title font-sans">{title}</h1>
               {subtitle ? (

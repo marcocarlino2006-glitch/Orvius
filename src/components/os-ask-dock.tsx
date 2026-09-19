@@ -76,7 +76,14 @@ export function OsAskDock() {
   const [turn, setTurn] = useState<AskTurn | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const hidden = pathname === "/dashboard/ask" || pathname.startsWith("/dashboard/ask/");
+  /*
+    Full Ask page owns the conversation. Settings owns the sticky save
+    instrument — a floating Ask pill on that floor is landfill.
+  */
+  const hidden =
+    pathname === "/dashboard/ask" ||
+    pathname.startsWith("/dashboard/ask/") ||
+    pathname.startsWith("/dashboard/settings");
 
   useEffect(() => {
     if (!open) return;
