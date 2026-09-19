@@ -62,7 +62,7 @@ export default function PricingPage() {
           </p>
           <div className="tier1-actions tier1-close-actions">
             <a href={demoLineHref()} className="inst-btn inst-btn-primary">
-              Call the live AI
+              Call the live line
             </a>
             <Link href="/pilot" className="inst-btn inst-btn-ghost">
               Book a call audit

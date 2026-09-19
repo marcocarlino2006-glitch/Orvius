@@ -266,3 +266,7 @@ CREATE INDEX IF NOT EXISTS "Deposit_businessId_createdAt_idx" ON "Deposit"("busi
 -- payment status can be reported on another shop's dashboard.
 CREATE UNIQUE INDEX IF NOT EXISTS "Business_stripeConnectAccountId_key"
   ON "Business"("stripeConnectAccountId");
+
+-- Capture path persistence — confirm stamp must match the ritual the UI shows.
+ALTER TABLE "Business" ADD COLUMN "captureMode" TEXT DEFAULT 'forward';
+ALTER TABLE "Business" ADD COLUMN "forwardCarrier" TEXT;

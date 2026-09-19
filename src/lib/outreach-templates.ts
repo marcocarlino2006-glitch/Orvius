@@ -20,7 +20,7 @@ export const outreachTemplates: readonly OutreachTemplate[] = [
 
 (Let them talk.)
 
-We built a receptionist for HVAC and plumbing shops that answers missed and after-hours calls on a dedicated line (or anything you forward to it), qualifies the job, proposes a window, and texts you the summary. Looking for 10 shops on a free 30-day pilot — I do the setup. Open to a 10-minute walkthrough this week?`,
+We built the night-shift line for HVAC and plumbing shops — answers missed and after-hours calls on a dedicated number (or anything you forward to it), qualifies the job, proposes a window, and texts you the summary. Looking for 10 shops on a free 30-day pilot — I do the setup. Open to a 10-minute walkthrough this week?`,
   },
   {
     id: "cold_dm",

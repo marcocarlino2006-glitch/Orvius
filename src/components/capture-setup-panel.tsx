@@ -6,14 +6,20 @@ import {
   type CarrierId,
 } from "@/lib/carrier-forward";
 import { telHref } from "@/lib/demo-line";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CaptureSetupPanelProps = {
   line: string | null;
   overflowConfirmed: boolean;
   lineVerified: boolean;
   saving?: boolean;
+  initialMode?: CaptureMode | null;
+  initialCarrier?: CarrierId | null;
   onConfirmOverflow: (next: boolean) => Promise<void> | void;
+  onCapturePathChange?: (next: {
+    mode: CaptureMode;
+    carrier: CarrierId | null;
+  }) => Promise<void> | void;
 };
 
 /** Owner capture setup: forward vs publish, carrier steps, text-me, confirm. */
@@ -22,13 +28,26 @@ export function CaptureSetupPanel({
   overflowConfirmed,
   lineVerified,
   saving = false,
+  initialMode = "forward",
+  initialCarrier = "verizon",
   onConfirmOverflow,
+  onCapturePathChange,
 }: CaptureSetupPanelProps) {
-  const [mode, setMode] = useState<CaptureMode>("forward");
-  const [carrier, setCarrier] = useState<CarrierId>("verizon");
+  const [mode, setMode] = useState<CaptureMode>(initialMode ?? "forward");
+  const [carrier, setCarrier] = useState<CarrierId>(
+    initialCarrier ?? "verizon",
+  );
   const [texting, setTexting] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialMode) setMode(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (initialCarrier) setCarrier(initialCarrier);
+  }, [initialCarrier]);
 
   const guide = useMemo(
     () => CARRIERS.find((c) => c.id === carrier) ?? CARRIERS[0]!,
@@ -37,9 +56,22 @@ export function CaptureSetupPanel({
 
   const canConfirm = Boolean(line) && lineVerified;
 
+  async function persistPath(nextMode: CaptureMode, nextCarrier: CarrierId) {
+    if (!onCapturePathChange) return;
+    try {
+      await onCapturePathChange({
+        mode: nextMode,
+        carrier: nextMode === "forward" ? nextCarrier : null,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save capture path");
+    }
+  }
+
   function chooseMode(next: CaptureMode) {
     if (next === mode) return;
     setMode(next);
+    setError(null);
     /*
       Confirm stamps one capture path. Switching paths without clearing the
       stamp would leave the checkbox describing a ritual the shop did not do.
@@ -47,6 +79,14 @@ export function CaptureSetupPanel({
     if (overflowConfirmed) {
       void onConfirmOverflow(false);
     }
+    void persistPath(next, carrier);
+  }
+
+  function chooseCarrier(next: CarrierId) {
+    if (next === carrier) return;
+    setCarrier(next);
+    setError(null);
+    void persistPath(mode, next);
   }
 
   async function copyLine() {
@@ -127,7 +167,7 @@ export function CaptureSetupPanel({
                 key={item.id}
                 type="button"
                 className={`capture-setup-carrier ${carrier === item.id ? "capture-setup-carrier-active" : ""}`}
-                onClick={() => setCarrier(item.id)}
+                onClick={() => chooseCarrier(item.id)}
               >
                 {item.label}
               </button>

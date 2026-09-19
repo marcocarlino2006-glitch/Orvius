@@ -245,7 +245,7 @@ export default function DemoPage() {
                         href={demoLineHref()}
                         className="inst-btn inst-btn-ghost inst-btn-sm w-full sm:w-auto"
                       >
-                        Call the live AI
+                        Call the live line
                       </a>
                     </div>
                   </ShellPanel>

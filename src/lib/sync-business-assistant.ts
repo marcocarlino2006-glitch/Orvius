@@ -26,7 +26,7 @@ export async function syncBusinessAssistant(
       assistantUpdated: false,
       lineAttached: false,
       line: null,
-      warning: "No AI receptionist linked to this shop",
+      warning: "No night line linked to this shop",
     };
   }
 

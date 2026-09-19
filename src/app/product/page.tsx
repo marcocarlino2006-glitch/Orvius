@@ -65,12 +65,12 @@ export default function ProductPage() {
               See it on a real line.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Call the live AI, or audit what happens to your own unanswered traffic.
+              Call the live line, or audit what happens to your own unanswered traffic.
             </p>
           </div>
           <div className="tier1-actions">
             <a href="tel:+18446439170" className="inst-btn inst-btn-ghost">
-              Call the live AI
+              Call the live line
             </a>
             <Link href="/pilot" className="inst-btn inst-btn-primary">
               Book a call audit

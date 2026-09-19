@@ -41,6 +41,11 @@ const patchSchema = z.object({
   baselineJobsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   founderCertJson: z.string().max(500).nullable().optional(),
   overflowForwardConfirmedAt: z.boolean().optional(),
+  captureMode: z.enum(["forward", "publish"]).optional(),
+  forwardCarrier: z
+    .enum(["verizon", "att", "tmobile", "other", "voip"])
+    .nullable()
+    .optional(),
   depositEnabled: z.boolean().optional(),
   depositAmountCents: z
     .number()
@@ -107,6 +112,8 @@ export async function GET() {
         lastWeeklyProofAt: businessRecord.lastWeeklyProofAt,
         founderCertJson: businessRecord.founderCertJson,
         overflowForwardConfirmedAt: businessRecord.overflowForwardConfirmedAt,
+        captureMode: businessRecord.captureMode ?? "forward",
+        forwardCarrier: businessRecord.forwardCarrier ?? null,
         depositEnabled: businessRecord.depositEnabled,
         depositAmountCents: businessRecord.depositAmountCents,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
@@ -266,6 +273,12 @@ export async function PATCH(request: Request) {
           : body.overflowForwardConfirmedAt === false
             ? { overflowForwardConfirmedAt: null }
             : {}),
+        ...(body.captureMode !== undefined
+          ? { captureMode: body.captureMode }
+          : {}),
+        ...(body.forwardCarrier !== undefined
+          ? { forwardCarrier: body.forwardCarrier }
+          : {}),
         ...(body.depositEnabled !== undefined
           ? { depositEnabled: body.depositEnabled }
           : {}),

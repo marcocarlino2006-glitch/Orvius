@@ -4,6 +4,7 @@ import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import type { ManusPostStep } from "@/lib/manus-post";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -25,6 +26,8 @@ type AccountResponse = {
     lastWeeklyProofAt?: string | null;
     founderCertJson?: string | null;
     overflowForwardConfirmedAt?: string | null;
+    captureMode?: CaptureMode | null;
+    forwardCarrier?: CarrierId | null;
     lineVerifiedAt?: string | null;
     billingStatus?: string;
     pilotEndsAt?: string | null;
@@ -198,6 +201,34 @@ export default function DashboardSettingsPage() {
     null;
 
   
+  async function saveCapturePath(next: {
+    mode: CaptureMode;
+    carrier: CarrierId | null;
+  }) {
+    const res = await fetch("/api/account", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        captureMode: next.mode,
+        forwardCarrier: next.carrier,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "Could not save capture path");
+    setAccount((prev) =>
+      prev && prev.business
+        ? {
+            ...prev,
+            business: {
+              ...prev.business,
+              captureMode: next.mode,
+              forwardCarrier: next.carrier,
+            },
+          }
+        : prev,
+    );
+  }
+
   async function saveOverflow(next: boolean) {
     setOverflowSaving(true);
     setError(null);
@@ -331,7 +362,10 @@ export default function DashboardSettingsPage() {
               overflowConfirmed={overflowForward}
               lineVerified={Boolean(account?.business?.lineVerifiedAt)}
               saving={overflowSaving}
+              initialMode={account?.business?.captureMode ?? "forward"}
+              initialCarrier={account?.business?.forwardCarrier ?? "verizon"}
               onConfirmOverflow={(next) => saveOverflow(next)}
+              onCapturePathChange={(next) => saveCapturePath(next)}
             />
           </ShellPanel>
         </div>
@@ -507,21 +541,21 @@ export default function DashboardSettingsPage() {
         ) : null}
 
         {/*
-          Billing's home. It used to sit in the sidebar's account list and
-          again in the profile menu, and in neither place was it near the
-          plan it governs. Settings is the one setup hub, so it lives here.
+          Billing's home is /dashboard/billing. Settings only points there —
+          a second money panel on the setup hub is theater.
         */}
-        <ShellPanel title="Plan & billing" dense>
-          <div className="pro-settings-billing-row">
+        <details className="pro-settings-secondary font-sans">
+          <summary>Plan & billing</summary>
+          <div className="pro-settings-secondary-body">
             <p className="account-settings-hint font-sans">
-              Your plan, payment method and invoices. The plan you are on is
-              named once, on the profile button in the corner.
+              Plan, payment method, payouts, and deposits live on Billing. The
+              plan name also sits on the profile button in the corner.
             </p>
-            <Link href="/dashboard/billing" className="btn btn-secondary text-sm">
+            <Link href="/dashboard/billing" className="btn btn-secondary text-sm mt-4">
               Open billing
             </Link>
           </div>
-        </ShellPanel>
+        </details>
 
         <details className="pro-settings-secondary font-sans">
           <summary>Your data</summary>
@@ -543,7 +577,7 @@ export default function DashboardSettingsPage() {
         {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
         {syncWarning ? <ShellAlert tone="error">{syncWarning}</ShellAlert> : null}
         {saved ? (
-          <ShellAlert tone="success">Saved. Your receptionist is updated.</ShellAlert>
+          <ShellAlert tone="success">Saved. Your night line is updated.</ShellAlert>
         ) : null}
         {testResult ? <ShellAlert tone="success">{testResult}</ShellAlert> : null}
 
@@ -553,7 +587,7 @@ export default function DashboardSettingsPage() {
               ? "Saving your changes…"
               : saved
                 ? "All changes saved."
-                : "Changes apply to your live receptionist."}
+                : "Changes apply to your live night line."}
           </p>
           <button type="submit" className="btn btn-void" disabled={saving}>
             {saving ? "Saving…" : "Save settings"}

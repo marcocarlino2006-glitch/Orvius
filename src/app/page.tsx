@@ -43,7 +43,7 @@ export default function HomePage() {
               className="ov-btn ov-btn--solid mkt-trynow-cta"
               data-i18n="trynow.cta"
             >
-              Call the live AI →
+              Call the live line →
             </a>
             <Link
               href="/pilot"

@@ -39,7 +39,7 @@ export function HomeCallDemo({ showHint = true }: HomeCallDemoProps) {
 
       <div className="call-demo-actions font-sans">
         <a href={demoLineHref()} className="inst-btn inst-btn-primary inst-btn-sm">
-          Call the live AI
+          Call the live line
         </a>
         <button type="button" className="call-demo-copy" onClick={copy}>
           {copied ? "Copied" : "Copy number"}

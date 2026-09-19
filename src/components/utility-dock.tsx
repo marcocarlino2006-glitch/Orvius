@@ -28,7 +28,7 @@ const THEMES: { choice: ThemeChoice; label: string; icon: React.ReactNode }[] = 
  * "orvius-lang" event that <I18nRuntime /> listens for.
  */
 export function UtilityDock() {
-  const [themeChoice, setThemeChoice] = useState<ThemeChoice>("day");
+  const [themeChoice, setThemeChoice] = useState<ThemeChoice>("night");
   const [lang, setLang] = useState<Lang>("en");
   const [langOpen, setLangOpen] = useState(false);
   const dockRef = useRef<HTMLDivElement>(null);
