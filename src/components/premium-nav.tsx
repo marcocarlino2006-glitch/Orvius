@@ -174,7 +174,7 @@ export function PremiumNav() {
               className="mkt-nav-sheet-cta"
               onClick={() => setMenuOpen(false)}
             >
-              Call the live AI
+              Call the live line
             </a>
             <p className="mkt-nav-sheet-meta font-sans">
               <Link href="/legal" onClick={() => setMenuOpen(false)}>

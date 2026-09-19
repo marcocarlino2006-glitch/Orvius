@@ -43,7 +43,7 @@ Code reference: `src/lib/institutional-standards.ts` · ceiling: `src/lib/beyond
 | Tenant isolation | Shop A never sees Shop B | API 401 without session; standard check |
 | Support | Best-effort · founder-staffed (no timed SLA) | hello@orvius.im — flip to a timed SLA only when staffed |
 
-Owners see this on **Today** and **Settings** via "Your service level."
+Owners see this on **Today** via "Your service level."
 
 ---
 

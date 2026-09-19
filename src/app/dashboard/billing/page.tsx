@@ -80,6 +80,17 @@ export default function DashboardBillingPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (loading || !account) return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [loading, account]);
+
   const status = account?.billing.status ?? "none";
   const entitled = account?.billing.entitled ?? status === "active";
   const pilotEndsAt =

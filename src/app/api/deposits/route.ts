@@ -41,7 +41,9 @@ export async function GET() {
     take: 80,
     orderBy: { createdAt: "desc" },
     include: {
-      lead: { select: { id: true, name: true, phone: true, serviceType: true } },
+      lead: {
+        select: { id: true, name: true, phone: true, serviceType: true },
+      },
     },
   });
 
@@ -84,8 +86,27 @@ export async function POST(request: Request) {
       charge itself is impossible without one. Only the shop's default amount
       falls back to the deposit settings.
     */
+    /*
+      An already-requested deposit keeps its own amount. Re-deriving it from
+      current settings means a shop that has since changed or switched off its
+      default cannot resend a link the customer has already been quoted — and
+      worse, could resend a different number than the one they saw.
+    */
+    const active = await prisma.deposit.findFirst({
+      where: {
+        businessId: business.id,
+        leadId: lead.id,
+        status: { in: ["pending", "paid"] },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { amountCents: true },
+    });
+
     const readiness = getDepositReadiness(business);
-    const amountCents = body.amountCents ?? resolveDepositAmountCents(business);
+    const amountCents =
+      body.amountCents ??
+      active?.amountCents ??
+      resolveDepositAmountCents(business);
 
     if (!readiness.ready && readiness.reason === "connect_incomplete") {
       return NextResponse.json(
@@ -100,7 +121,7 @@ export async function POST(request: Request) {
     if (amountCents == null) {
       return NextResponse.json(
         {
-          error: "Set a deposit amount in Settings, or pass amountCents.",
+          error: "Set a deposit amount in Billing, or pass amountCents.",
           reason: "deposits_off",
         },
         { status: 400 },

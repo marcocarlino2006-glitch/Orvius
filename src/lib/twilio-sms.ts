@@ -1,11 +1,12 @@
 import { getTwilioClient } from "@/lib/twilio-client";
 import { normalizePhone } from "@/lib/customer";
+import { getWebhookUrl } from "@/lib/env";
 
 export function isSmsReady(): boolean {
   return Boolean(
     process.env.TWILIO_ACCOUNT_SID?.trim() &&
-      process.env.TWILIO_AUTH_TOKEN?.trim() &&
-      process.env.TWILIO_PHONE_NUMBER?.trim(),
+    process.env.TWILIO_AUTH_TOKEN?.trim() &&
+    process.env.TWILIO_PHONE_NUMBER?.trim(),
   );
 }
 
@@ -25,6 +26,9 @@ export async function sendSms(params: {
     body: params.body.trim(),
     from,
     to,
+    statusCallback:
+      process.env.TWILIO_STATUS_CALLBACK_URL?.trim() ||
+      getWebhookUrl("/api/webhooks/twilio/status"),
   });
 
   return { sid: sms.sid };

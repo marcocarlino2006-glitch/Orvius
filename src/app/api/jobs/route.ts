@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isLeadQualifiedForBooking } from "@/lib/auto-job";
 import { JOB_INCLUDE, createJobFromLead, serializeJob } from "@/lib/job";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -44,10 +45,27 @@ export async function POST(request: Request) {
 
   const lead = await prisma.lead.findFirst({
     where: { id: body.leadId.trim(), businessId: business.id },
-    select: { id: true },
+    select: {
+      id: true,
+      phone: true,
+      name: true,
+      serviceType: true,
+      address: true,
+      categoryCode: true,
+    },
   });
   if (!lead) {
     return forbiddenResponse();
+  }
+  if (!isLeadQualifiedForBooking(lead)) {
+    return NextResponse.json(
+      {
+        error:
+          "Complete the caller phone and service details before booking.",
+        code: "lead_needs_details",
+      },
+      { status: 422 },
+    );
   }
 
   try {

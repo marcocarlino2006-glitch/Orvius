@@ -12,5 +12,10 @@ export function depositMoneyPathBroken(business: {
   stripeConnectDetailsSubmitted?: boolean | null;
 }): boolean {
   if (!business.depositEnabled) return false;
-  return !getConnectStatus(business).canAcceptPayments;
+  return !getConnectStatus({
+    stripeConnectAccountId: business.stripeConnectAccountId ?? null,
+    stripeConnectChargesEnabled: Boolean(business.stripeConnectChargesEnabled),
+    stripeConnectPayoutsEnabled: Boolean(business.stripeConnectPayoutsEnabled),
+    stripeConnectDetailsSubmitted: Boolean(business.stripeConnectDetailsSubmitted),
+  }).canAcceptPayments;
 }

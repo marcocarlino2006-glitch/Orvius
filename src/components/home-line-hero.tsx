@@ -72,7 +72,7 @@ export function HomeLineHero() {
               className="ov-btn ov-btn--solid"
               data-i18n="hero.cta"
             >
-              Call the live AI
+              Call the live line
             </a>
             <Link href="/pilot" className="ov-btn ov-btn--quiet">
               Book a call audit

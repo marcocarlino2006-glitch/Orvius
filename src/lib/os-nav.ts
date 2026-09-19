@@ -17,7 +17,7 @@ export const osProductNav: OsNavItem[] = [
   { href: "/dashboard/customers", label: "Customers", icon: "customers", ring: 2 },
   { href: "/dashboard/jobs", label: "Jobs", icon: "jobs", ring: 3 },
   { href: "/dashboard/dispatch", label: "Dispatch", icon: "dispatch", ring: 4 },
-  { href: "/dashboard/ask", label: "Ask", icon: "copilot" },
+  { href: "/dashboard/ask", label: "Ask", icon: "ask" },
 ];
 
 export const osWorkspaceNav: OsNavItem[] = [

@@ -3,7 +3,7 @@ import { company } from "@/lib/company";
 import { DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { ImageResponse } from "next/og";
 
-export const alt = "Orvius — The AI night shift for the trades";
+export const alt = `Orvius — ${company.tagline.replace(/\.$/, "")}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -47,7 +47,7 @@ export default function OpenGraphImage() {
               maxWidth: 900,
             }}
           >
-            The AI night shift for the trades.
+            {company.tagline}
           </div>
           <div
             style={{

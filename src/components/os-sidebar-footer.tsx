@@ -27,13 +27,13 @@ type MenuItem = {
 };
 
 /*
-  Two links, and the corner holds nothing else. Billing lives on Settings,
-  which is the single setup hub, rather than being a third row here and a
-  fourth copy of itself in the sidebar.
+  Profile + Settings for setup, Billing for payouts when Attention says
+  "Open payouts" — three links so money recovery is not buried.
 */
 const accountLinks: MenuItem[] = [
   { href: "/dashboard/profile", label: "Profile", hint: "You & your shop" },
-  { href: "/dashboard/settings", label: "Settings", hint: "Line, alerts & plan" },
+  { href: "/dashboard/settings", label: "Settings", hint: "Line, alerts & capture" },
+  { href: "/dashboard/billing", label: "Billing", hint: "Plan & payouts" },
 ];
 
 function initials(name: string | null | undefined, email: string | null | undefined) {

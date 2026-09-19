@@ -220,7 +220,7 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
   dedicatedLine: boolean;
 }> {
   if (!business.vapiAssistantId) {
-    throw new Error("AI receptionist is not provisioned for this shop");
+    throw new Error("Night line is not provisioned for this shop");
   }
 
   const currentLine = business.vapiPhoneNumber ?? business.twilioPhone;

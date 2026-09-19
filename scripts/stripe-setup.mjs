@@ -19,7 +19,7 @@ const PLANS = [
     envKey: "STRIPE_PRICE_ID_LINE",
     envKeyAnnual: "STRIPE_PRICE_ID_LINE_ANNUAL",
     metadata: { orvius: "line" },
-    description: "AI receptionist, lead inbox, and owner SMS alerts.",
+    description: "Night-shift line, lead inbox, and owner SMS alerts.",
   },
   {
     id: "pro",

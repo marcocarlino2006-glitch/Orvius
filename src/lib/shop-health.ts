@@ -124,9 +124,9 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     },
     {
       id: "assistant",
-      label: "AI receptionist",
+      label: "Night line",
       ok: assistantOk,
-      detail: assistantOk ? "Connected" : "Assistant not provisioned",
+      detail: assistantOk ? "Connected" : "Voice line not provisioned",
     },
     {
       id: "verified",

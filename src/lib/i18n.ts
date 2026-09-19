@@ -21,7 +21,7 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.about": { en: "About", es: "Nosotros", fr: "À propos", de: "Über uns" },
   "nav.signin": { en: "Sign in", es: "Iniciar sesión", fr: "Se connecter", de: "Anmelden" },
   "nav.bookdemo": { en: "Book an audit", es: "Reservar una auditoría", fr: "Réserver un audit", de: "Audit buchen" },
-  "nav.proveit": { en: "Call live AI", es: "Llamar a la IA en vivo", fr: "Appeler l'IA en direct", de: "Live-KI anrufen" },
+  "nav.proveit": { en: "Call the live line", es: "Llamar a la línea en vivo", fr: "Appeler la ligne en direct", de: "Live-Leitung anrufen" },
 
   "hero.title": {
     en: "Missed calls become booked jobs.",
@@ -36,10 +36,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Orvius nimmt Anrufe außerhalb der Geschäftszeiten und bei Überlauf an, erfasst die Anfrage, schlägt ein freies Zeitfenster vor und informiert den Inhaber — ohne Preise oder Ankunftszeiten zu erfinden.",
   },
   "hero.cta": {
-    en: "Call the live AI",
-    es: "Llama a la IA en vivo",
-    fr: "Appelez l'IA en direct",
-    de: "Live-KI anrufen",
+    en: "Call the live line",
+    es: "Llama a la línea en vivo",
+    fr: "Appelez la ligne en direct",
+    de: "Live-Leitung anrufen",
   },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
   "hero.nightshift": {
@@ -71,10 +71,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Wie der Betrieb läuft, wenn Sie nicht da sind.",
   },
   "rules.aside": {
-    en: "Orvius starts as the AI night shift and keeps the operational record. The board connects every call, job, confirmation, and recorded dollar.",
-    es: "Orvius comienza como el turno nocturno de IA y conserva el registro operativo. El tablero conecta cada llamada, trabajo, confirmación y dólar registrado.",
-    fr: "Orvius commence comme l'équipe de nuit IA et conserve le dossier opérationnel. Le tableau relie chaque appel, intervention, confirmation et euro enregistré.",
-    de: "Orvius beginnt als KI-Nachtschicht und führt den Betriebsdatensatz. Das Board verbindet jeden Anruf, Auftrag, jede Bestätigung und jeden erfassten Euro.",
+    en: "Orvius starts as the night shift and keeps the operational record. The board connects every call, job, and confirmation the line captures.",
+    es: "Orvius comienza como el turno nocturno y conserva el registro operativo. El tablero conecta cada llamada, trabajo y confirmación que captura la línea.",
+    fr: "Orvius commence comme l'équipe de nuit et conserve le dossier opérationnel. Le tableau relie chaque appel, intervention et confirmation capturés par la ligne.",
+    de: "Orvius beginnt als Nachtschicht und führt den Betriebsdatensatz. Das Board verbindet jeden Anruf, Auftrag und jede Bestätigung, die die Leitung erfasst.",
   },
   "rule1.title": { en: "The bay never goes dark.", es: "El taller nunca se apaga.", fr: "L'atelier ne s'éteint jamais.", de: "Die Werkstatt steht nie still." },
   "rule1.body": {
@@ -99,7 +99,7 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
 
   "trynow.title": { en: "Try Orvius now.", es: "Prueba Orvius ahora.", fr: "Essayez Orvius maintenant.", de: "Testen Sie Orvius jetzt." },
-  "trynow.cta": { en: "Call the live AI →", es: "Llama a la IA en vivo →", fr: "Appelez l'IA en direct →", de: "Live-KI anrufen →" },
+  "trynow.cta": { en: "Call the live line →", es: "Llama a la línea en vivo →", fr: "Appelez la ligne en direct →", de: "Live-Leitung anrufen →" },
   "trynow.call": {
     en: "or book a live call audit",
     es: "o reserva una auditoría de llamadas en vivo",

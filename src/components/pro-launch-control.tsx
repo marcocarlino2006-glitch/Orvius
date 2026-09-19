@@ -25,8 +25,8 @@ export function ProLaunchControl({
   wedge,
   events,
   moneyEnabled,
-  checkoutReady,
-  billingStatus,
+  checkoutReady: _checkoutReady,
+  billingStatus: _billingStatus,
   referenceImplementation = false,
   coverage,
   health,
@@ -48,10 +48,6 @@ export function ProLaunchControl({
     : setupReady
       ? "Covered"
       : "Setup";
-  const access =
-    billingStatus === "active" || billingStatus === "past_due"
-      ? "Paid"
-      : "Design partner";
   const caught = outcomes?.afterHoursLeads ?? 0;
   const booked = outcomes?.afterHoursBooked ?? 0;
   // Banner owns alerts + board next; rail only acts for unfinished setup.
@@ -127,7 +123,7 @@ export function ProLaunchControl({
           />
           <span className="pro-rail-row-label font-sans">Line proof</span>
           <span className="pro-rail-row-value font-sans">
-            {setupTotal ? `${setupDone}/${setupTotal}` : "Loading"}
+            {wedge ? `${setupDone}/${setupTotal}` : "—"}
           </span>
         </li>
         <li>
@@ -142,21 +138,9 @@ export function ProLaunchControl({
             {proven}/5 stages
           </span>
         </li>
-        <li>
-          <span
-            className={`pro-rail-pip ${
-              checkoutReady ? "pro-rail-pip-ok" : "pro-rail-pip-warn"
-            }`}
-            aria-hidden
-          />
-          <span className="pro-rail-row-label font-sans">Billing</span>
-          <span className="pro-rail-row-value font-sans">
-            {checkoutReady ? `${access} · ready` : `${access} · setup`}
-          </span>
-        </li>
       </ul>
 
-      {/* One CTA truth: banner owns the red gate; rail only acts when setup/alerts need it. */}
+      {/* One CTA truth: banner owns the red gate; rail only acts when setup needs it. */}
       {showPrimaryAction ? (
         <Link href={actionHref} className="btn btn-void pro-control-action">
           {actionLabel}

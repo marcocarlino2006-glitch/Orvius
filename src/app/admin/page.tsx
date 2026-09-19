@@ -595,7 +595,7 @@ export default function AdminPage() {
           </FormField>
 
           <p className="font-sans text-sm text-ash">
-            Each shop gets its own dedicated Twilio number and AI receptionist —
+            Each shop gets its own dedicated Twilio number and night line —
             never the marketing demo line.
           </p>
 

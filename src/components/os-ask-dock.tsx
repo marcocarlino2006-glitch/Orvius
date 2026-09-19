@@ -76,7 +76,14 @@ export function OsAskDock() {
   const [turn, setTurn] = useState<AskTurn | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const hidden = pathname === "/dashboard/ask" || pathname.startsWith("/dashboard/ask/");
+  /*
+    Full Ask page owns the conversation. Settings owns the sticky save
+    instrument — a floating Ask pill on that floor is landfill.
+  */
+  const hidden =
+    pathname === "/dashboard/ask" ||
+    pathname.startsWith("/dashboard/ask/") ||
+    pathname.startsWith("/dashboard/settings");
 
   useEffect(() => {
     if (!open) return;
@@ -125,10 +132,10 @@ export function OsAskDock() {
   return (
     <div className={`os-ask-dock font-sans ${open ? "os-ask-dock-open" : ""}`}>
       {open ? (
-        <div className="os-ask-dock-panel" role="dialog" aria-label="Ops copilot">
+        <div className="os-ask-dock-panel" role="dialog" aria-label="Ask Orvius">
           <div className="os-ask-dock-head">
             <div>
-              <p className="os-ask-dock-kicker">Ops copilot</p>
+              <p className="os-ask-dock-kicker">Ask</p>
               <p className="os-ask-dock-title">Your shop memory</p>
             </div>
             <div className="os-ask-dock-head-actions">
@@ -222,7 +229,7 @@ export function OsAskDock() {
         <span className="os-ask-dock-trigger-mark" aria-hidden>
           <AskIcon />
         </span>
-        <span className="os-ask-dock-trigger-label">Copilot</span>
+        <span className="os-ask-dock-trigger-label">Ask</span>
       </button>
     </div>
   );

@@ -97,7 +97,7 @@ export default function PrivacyPage() {
       <LegalSection title="4. How we use information">
         <p>We use information to:</p>
         <ul>
-          <li>Operate the AI receptionist, workspace, owner alerts, and related product features</li>
+          <li>Operate the night-shift line, workspace, owner alerts, and related product features</li>
           <li>Display calls, customers, jobs, money tools, and history in your dashboard</li>
           <li>Authenticate users, secure accounts, prevent abuse, and debug reliability issues</li>
           <li>Onboard, support, and communicate about the Service (transactional email/SMS)</li>

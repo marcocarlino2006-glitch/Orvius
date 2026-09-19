@@ -197,8 +197,8 @@ export function buildMasteryReport(
       title: "Connect — card $ into shop bank",
       owner: "founder",
       doneWhen: "Shop Connect onboarded; charges+payouts enabled; real card settled",
-      action: "Onboard shop in Settings payouts → take one estimate/deposit card payment",
-      href: "/dashboard/settings",
+      action: "Onboard shop in Billing → payouts, then take one estimate/deposit card payment",
+      href: "/dashboard/billing#payouts",
       ok: connectPlatform && s.connectReady,
       detail: !connectPlatform
         ? "STRIPE_SECRET_KEY required for Connect"

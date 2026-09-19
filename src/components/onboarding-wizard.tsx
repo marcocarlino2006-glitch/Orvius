@@ -360,7 +360,7 @@ export function OnboardingWizard() {
             <>
               <h1 className="onboarding-title font-sans">Create your line.</h1>
               <p className="onboarding-lead font-sans">
-                Orvius provisions a dedicated number and receptionist for{" "}
+                Orvius provisions a dedicated night line for{" "}
                 <strong>{name.trim()}</strong> — callers hear your shop name.
               </p>
               <dl className="onboarding-review font-sans">

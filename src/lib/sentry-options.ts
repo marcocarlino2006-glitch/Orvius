@@ -4,6 +4,8 @@
  * beforeSend scrubs phones/emails so a pasted DSN does not leak shop PII.
  */
 
+import type { ErrorEvent } from "@sentry/core";
+
 const PHONE_RE = /\+?\d[\d\s().-]{8,}\d/g;
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 
@@ -38,67 +40,64 @@ function scrubUnknown(value: unknown, depth = 0): unknown {
   return value;
 }
 
-export function sentryBeforeSend<T extends { message?: string; extra?: unknown }>(
-  event: T,
-): T | null {
-  const next = { ...event } as T & {
-    message?: string;
-    extra?: unknown;
-    exception?: { values?: Array<{ value?: string }> };
-    request?: { headers?: Record<string, string>; data?: unknown; query_string?: unknown };
-    breadcrumbs?: { values?: Array<{ message?: string; data?: unknown }> };
-  };
-
-  if (typeof next.message === "string") {
-    next.message = scrubString(next.message);
+export function sentryBeforeSend(event: ErrorEvent): ErrorEvent | null {
+  if (typeof event.message === "string") {
+    event.message = scrubString(event.message);
   }
 
-  if (next.extra) next.extra = scrubUnknown(next.extra);
-
-  if (next.exception?.values) {
-    next.exception = {
-      ...next.exception,
-      values: next.exception.values.map((v) =>
-        v?.value
-          ? { ...v, value: scrubString(v.value) }
-          : v,
-      ),
-    };
+  if (event.extra) {
+    event.extra = scrubUnknown(event.extra) as typeof event.extra;
   }
 
-  if (next.request) {
-    const headers = next.request.headers
-      ? Object.fromEntries(
-          Object.entries(next.request.headers).map(([k, v]) =>
-            /authorization|cookie|x-api/i.test(k)
-              ? [k, "[redacted]"]
-              : [k, typeof v === "string" ? scrubString(v) : v],
-          ),
-        )
-      : next.request.headers;
-    next.request = {
-      ...next.request,
-      headers,
-      data: scrubUnknown(next.request.data),
-      query_string: scrubUnknown(next.request.query_string),
-    };
+  if (event.exception?.values) {
+    for (const value of event.exception.values) {
+      if (value && typeof value.value === "string") {
+        value.value = scrubString(value.value);
+      }
+    }
   }
 
-  if (next.breadcrumbs?.values) {
-    next.breadcrumbs = {
-      ...next.breadcrumbs,
-      values: next.breadcrumbs.values.map((b) => ({
-        ...b,
-        message: typeof b.message === "string" ? scrubString(b.message) : b.message,
-        data: scrubUnknown(b.data),
-      })),
-    };
+  if (event.request) {
+    if (event.request.headers) {
+      const headers = { ...event.request.headers };
+      for (const [k, v] of Object.entries(headers)) {
+        if (/authorization|cookie|x-api/i.test(k)) {
+          headers[k] = "[redacted]";
+        } else if (typeof v === "string") {
+          headers[k] = scrubString(v);
+        }
+      }
+      event.request.headers = headers;
+    }
+    if (event.request.data !== undefined) {
+      event.request.data = scrubUnknown(event.request.data);
+    }
+    if (event.request.query_string !== undefined) {
+      event.request.query_string = scrubUnknown(
+        event.request.query_string,
+      ) as typeof event.request.query_string;
+    }
   }
 
-  return next as T;
+  if (Array.isArray(event.breadcrumbs)) {
+    for (const crumb of event.breadcrumbs) {
+      if (typeof crumb.message === "string") {
+        crumb.message = scrubString(crumb.message);
+      }
+      if (crumb.data) {
+        crumb.data = scrubUnknown(crumb.data) as typeof crumb.data;
+      }
+    }
+  }
+
+  return event;
 }
 
-export function sentryRuntimeOptions() {
+export function sentryRuntimeOptions(): {
+  environment: string;
+  release?: string;
+  beforeSend: (event: ErrorEvent) => ErrorEvent | null;
+} {
   const environment =
     process.env.SENTRY_ENVIRONMENT?.trim() ||
     process.env.VERCEL_ENV?.trim() ||
@@ -112,7 +111,7 @@ export function sentryRuntimeOptions() {
   return {
     environment,
     ...(release ? { release } : {}),
-    beforeSend(event: Parameters<typeof sentryBeforeSend>[0]) {
+    beforeSend(event: ErrorEvent) {
       return sentryBeforeSend(event);
     },
   };
