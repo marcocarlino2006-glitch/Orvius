@@ -5,6 +5,7 @@ import { sentryBeforeSend, sentryRuntimeOptions } from "../src/lib/sentry-option
 
 test("sentryBeforeSend scrubs phones and emails from messages", () => {
   const scrubbed = sentryBeforeSend({
+    type: undefined,
     message: "Failed SMS to +1 (347) 258-4837 from owner@shop.com",
     extra: {
       phone: "+13472584837",

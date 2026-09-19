@@ -232,6 +232,7 @@ model Job {
 
   estimate Estimate?
   deposits Deposit[]
+  invoices Invoice[]
 
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
@@ -300,6 +301,7 @@ model Invoice {
   estimateId  String?   @unique
   estimate    Estimate? @relation(fields: [estimateId], references: [id], onDelete: SetNull)
   jobId       String?
+  job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   amountCents Int
   status      String    @default("draft")
   createdAt   DateTime  @default(now())
