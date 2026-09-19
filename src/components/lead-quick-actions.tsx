@@ -22,6 +22,7 @@ export function LeadQuickActions({
   onBooked,
 }: LeadQuickActionsProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function markContacted(event: React.MouseEvent) {
     event.preventDefault();
@@ -29,6 +30,7 @@ export function LeadQuickActions({
     if (status !== "new" || loading) return;
 
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/leads/${leadId}`, {
         method: "PATCH",
@@ -38,8 +40,10 @@ export function LeadQuickActions({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Update failed");
       onStatusChange?.("contacted");
-    } catch {
-      /* silent — owner can update on detail */
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Could not mark contacted",
+      );
     } finally {
       setLoading(false);
     }
@@ -69,6 +73,7 @@ export function LeadQuickActions({
           type="button"
           className="lead-quick-btn lead-quick-btn-signal"
           disabled={loading}
+          aria-describedby={error ? `contacted-error-${leadId}` : undefined}
           onClick={markContacted}
         >
           {loading ? "…" : "Contacted"}
@@ -77,6 +82,15 @@ export function LeadQuickActions({
       <Link href={`/dashboard/inbox/${leadId}`} className="lead-quick-btn">
         Open
       </Link>
+      {error ? (
+        <span
+          id={`contacted-error-${leadId}`}
+          className="today-priority-book-error"
+          role="alert"
+        >
+          {error}
+        </span>
+      ) : null}
     </div>
   );
 }

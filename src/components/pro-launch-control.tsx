@@ -127,7 +127,7 @@ export function ProLaunchControl({
           />
           <span className="pro-rail-row-label font-sans">Line proof</span>
           <span className="pro-rail-row-value font-sans">
-            {setupTotal ? `${setupDone}/${setupTotal}` : "Loading"}
+            {wedge ? `${setupDone}/${setupTotal}` : "—"}
           </span>
         </li>
         <li>

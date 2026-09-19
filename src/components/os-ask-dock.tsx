@@ -222,7 +222,7 @@ export function OsAskDock() {
         <span className="os-ask-dock-trigger-mark" aria-hidden>
           <AskIcon />
         </span>
-        <span className="os-ask-dock-trigger-label">Copilot</span>
+        <span className="os-ask-dock-trigger-label">Ask</span>
       </button>
     </div>
   );

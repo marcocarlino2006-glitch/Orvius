@@ -25,10 +25,12 @@ export function ProShopLineCta({
   if (loading && !line) {
     return (
       <span
-        className={`pro-line-cta-skel ${className}`}
-        aria-hidden
+        className={`${btnClass} ${className}`.trim()}
         aria-busy="true"
-      />
+        aria-label="Loading shop line"
+      >
+        …
+      </span>
     );
   }
 

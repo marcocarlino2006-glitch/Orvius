@@ -317,7 +317,7 @@ export default function DashboardSettingsPage() {
   return (
     <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
       <div className="pro-settings-page">
-        <ProPageStrip />
+        <ProPageStrip line={account?.line ?? null} />
 
         <form className="account-stack pro-settings-form" onSubmit={save}>
         <div id="overflow-forward">
