@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
 import { demoLineHref } from "@/lib/demo-line";
@@ -39,9 +38,6 @@ export default function PricingPage() {
               free trial or collect payment outside verified Stripe checkout.
             </p>
           ) : null}
-          <div className="tier1-hero-call">
-            <HomeCallDemo />
-          </div>
         </div>
       </section>
 
@@ -51,7 +47,6 @@ export default function PricingPage() {
 
       <section className="tier1-close">
         <div className="editorial-wrap tier1-close-inner">
-          <p className="tier1-eyebrow type-eyebrow">Economics</p>
           <h2 className="tier1-section-title type-headline">
             Built to pay back with one additional job.
           </h2>

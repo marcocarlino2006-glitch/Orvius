@@ -23,7 +23,6 @@ export default function HomePage() {
           <span className="ov-trynow-sky-bloom" />
         </div>
         <div className="mkt-trynow-inner">
-          <p className="mkt-trynow-eyebrow">Hear it yourself</p>
           <h2
             id="home-trynow-heading"
             className="mkt-trynow-title"

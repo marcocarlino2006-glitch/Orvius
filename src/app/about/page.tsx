@@ -26,7 +26,6 @@ export default function AboutPage() {
 
       <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
-          <p className="tier1-eyebrow type-eyebrow">What we do tonight</p>
           <h2 className="tier1-section-title type-headline">
             Missed and after-hours calls become booked work.
           </h2>
@@ -41,7 +40,6 @@ export default function AboutPage() {
 
       <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap max-w-3xl">
-          <p className="tier1-eyebrow type-eyebrow">Built for the floor</p>
           <h2 className="tier1-section-title type-headline">
             For {company.trades.join(", ")}.
           </h2>
@@ -56,8 +54,7 @@ export default function AboutPage() {
           <p className="tier1-section-lead font-sans">
             {company.vision}
           </p>
-          <p className="tier1-eyebrow type-eyebrow mt-10">What&apos;s live</p>
-          <h2 className="tier1-section-title type-headline">
+          <h2 className="tier1-section-title type-headline mt-10">
             Labelled honestly.
           </h2>
           <p className="tier1-section-lead font-sans max-w-2xl">

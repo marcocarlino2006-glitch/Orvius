@@ -20,7 +20,7 @@ const THEMES: { choice: ThemeChoice; label: string; icon: React.ReactNode }[] = 
 ];
 
 /**
- * Floating utility dock — language selector plus a three-state theme pill,
+ * Floating utility dock — language + theme as a square industrial instrument,
  * anchored bottom-right above every public surface.
  *
  * Both controls drive real state: the theme writes the resolved colorway onto
@@ -95,12 +95,12 @@ export function UtilityDock() {
     <div className="fixed right-6 bottom-4 z-50 print:hidden">
       <div
         ref={dockRef}
-        className="relative inline-flex items-center gap-2 rounded-full border border-ui-border bg-[var(--ui-dock-glass)] p-1.5 shadow-[var(--ui-dock-shadow)] backdrop-blur-md"
+        className="relative inline-flex items-center gap-2 rounded-[0.25rem] border border-ui-border bg-ui-surface p-1.5 shadow-[var(--ui-dock-shadow)]"
       >
         <button
           ref={langButtonRef}
           type="button"
-          className="ui-pill inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-ui-muted transition-colors hover:bg-ui-surface-hover hover:text-ui-text focus-visible:ring-2 focus-visible:ring-ui-muted focus-visible:outline-none"
+          className="ui-pill inline-flex items-center gap-1.5 rounded-[0.25rem] px-2.5 py-1 text-xs font-medium text-ui-muted transition-colors hover:bg-ui-surface-hover hover:text-ui-text focus-visible:ring-2 focus-visible:ring-ui-muted focus-visible:outline-none"
           aria-haspopup="listbox"
           aria-expanded={langOpen}
           aria-label={`Language: ${current.label}`}
@@ -121,7 +121,7 @@ export function UtilityDock() {
                 key={entry.choice}
                 type="button"
                 className={[
-                  "ui-pill p-1 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-ui-muted focus-visible:outline-none",
+                  "ui-pill rounded-[0.25rem] p-1 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-ui-muted focus-visible:outline-none",
                   active
                     ? "bg-ui-selected text-ui-on-selected"
                     : "text-ui-muted hover:text-ui-text",
@@ -139,7 +139,7 @@ export function UtilityDock() {
 
         {langOpen ? (
           <ul
-            className="absolute right-0 bottom-full mb-2 w-36 rounded-xl border border-ui-border bg-ui-surface p-1 shadow-[var(--ui-dock-shadow)]"
+            className="absolute right-0 bottom-full mb-2 w-36 rounded-[0.25rem] border border-ui-border bg-ui-surface p-1 shadow-[var(--ui-dock-shadow)]"
             role="listbox"
             aria-label="Language"
           >
@@ -150,7 +150,7 @@ export function UtilityDock() {
                   role="option"
                   aria-selected={entry.code === lang}
                   className={[
-                    "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors",
+                    "flex w-full items-center justify-between rounded-[0.25rem] px-2.5 py-1.5 text-left text-xs transition-colors",
                     entry.code === lang
                       ? "bg-ui-selected text-ui-on-selected"
                       : "text-ui-muted hover:bg-ui-surface-hover hover:text-ui-text",

@@ -39,7 +39,7 @@ export function ProCommandOutcomes({
       aria-label="Work completed by Orvius"
     >
       <header className="pro-command-outcomes-head font-sans">
-        <p className="pro-command-outcomes-kicker">Front desk performance</p>
+        <p className="pro-command-outcomes-kicker">What the line closed</p>
         <span>
           Last {outcomes?.windowDays ?? 7} days
         </span>

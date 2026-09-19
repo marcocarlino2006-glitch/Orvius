@@ -2351,14 +2351,14 @@ h3 {
   display: inline-flex;
   align-items: center;
   padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-sm);
+  border-radius: 0.25rem;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: -0.002em;
+  text-transform: none;
   white-space: nowrap;
   border: 1px solid color-mix(in srgb, var(--void) 12%, var(--rule));
-  background: var(--white);
+  background: var(--os-panel, var(--white));
   color: var(--ash);
 }
 
@@ -4139,11 +4139,11 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .pro-signal-bar,
 .os-shell-pro .live-status-bar {
   border-left: 3px solid var(--signal) !important;
-  background: #fff !important;
+  background: var(--os-panel) !important;
 }
 
 .os-shell-pro .pro-today-pulse {
-  background: #fff !important;
+  background: var(--os-panel) !important;
   border-left: 3px solid var(--signal) !important;
 }
 
@@ -4690,7 +4690,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-pro .pro-stat.is-active {
   border-color: color-mix(in srgb, var(--os-ink) 28%, transparent) !important;
-  background: #fff !important;
+  background: var(--os-panel) !important;
   box-shadow: none !important;
 }
 
@@ -4700,11 +4700,11 @@ body:has(.mkt-page) .shell-header {
 .os-shell-pro .lead-inbox-card,
 .os-shell-pro .job-card,
 .os-shell-pro .call-record-card {
-  background: #fff !important;
+  background: var(--os-panel) !important;
 }
 
 .os-shell-pro .pro-page-strip {
-  background: #fff !important;
+  background: var(--os-panel) !important;
   padding: 0.65rem 0.85rem !important;
 }
 

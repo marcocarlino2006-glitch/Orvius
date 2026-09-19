@@ -5,7 +5,7 @@ export default function DashboardLoading() {
     <OsShell title="Command" subtitle="Loading the latest shop state…">
       <section className="dashboard-route-loading" aria-busy="true">
         <div className="dashboard-route-loading-main">
-          <p className="type-eyebrow font-sans">Front desk performance</p>
+          <p className="type-eyebrow font-sans">What the line closed</p>
           <span className="skeleton dashboard-route-loading-value" />
           <div className="dashboard-route-loading-metrics">
             <span className="skeleton" />

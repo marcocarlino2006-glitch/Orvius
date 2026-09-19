@@ -3215,7 +3215,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding: 1.25rem 1.25rem 1.1rem;
   border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
   border-radius: 0.5rem;
-  background: #fff;
+  background: var(--os-panel, var(--white));
 }
 
 .approve-queue-kicker {
@@ -5122,7 +5122,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-pro {
-  background: #efefef !important;
+  background: var(--os-paper, #27241f) !important;
   color: var(--void);
 }
 
@@ -5247,13 +5247,13 @@ a.pro-shift-event:hover .pro-shift-event-title {
   border-radius: var(--os-radius) !important;
   box-shadow: none !important;
   border: 1px solid var(--os-line) !important;
-  background: #fff !important;
+  background: var(--os-panel) !important;
 }
 
 .os-shell-pro .attention-item {
   padding: 0.7rem 0.85rem !important;
   gap: 0.55rem 0.85rem !important;
-  background: #fff !important;
+  background: var(--os-panel) !important;
   border-radius: var(--os-radius) !important;
 }
 
@@ -5373,7 +5373,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-pro .os-ask-dock-chip {
-  background: #fff !important;
+  background: var(--os-panel) !important;
   border: 1px solid var(--os-line) !important;
   box-shadow: none !important;
   padding: 0.35rem 0.55rem !important;
@@ -7744,9 +7744,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-ask-dock-chip {
   padding: 0.35rem 0.625rem;
-  border-radius: 999px;
+  border-radius: 0.25rem;
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
-  background: var(--white);
+  background: var(--os-panel, var(--white));
   font-size: 0.6875rem;
   font-weight: 500;
   color: var(--ash);
@@ -7858,9 +7858,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .pro-panel {
   border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
-  border-radius: 0.5rem;
-  background: var(--white);
-  box-shadow: var(--shadow-soft);
+  border-radius: 0.25rem;
+  background: var(--os-panel, var(--white));
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -8485,7 +8485,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-pro .approve-queue-item {
   padding: 0.7rem 0.85rem !important;
-  background: #fff !important;
+  background: var(--os-panel) !important;
 }
 
 .os-shell-night .attention-item,

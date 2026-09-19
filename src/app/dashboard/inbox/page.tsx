@@ -98,15 +98,6 @@ export default function InboxPage() {
             ? "Captured while you were on a job. Newest first."
             : "Everyone who called has been answered."
         }
-        facts={
-          counts
-            ? [
-                { label: "captured", value: counts.total },
-                { label: "contacted", value: counts.contacted },
-                { label: "booked", value: counts.booked, live: counts.booked > 0 },
-              ]
-            : undefined
-        }
       />
 
       <ProFilterBar

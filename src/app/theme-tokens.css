@@ -102,7 +102,7 @@ body {
 .ui-pill,
 .mkt-page .ui-pill,
 .mkt-page button.ui-pill {
-  border-radius: 9999px !important;
+  border-radius: 0.25rem !important;
 }
 
 /*
