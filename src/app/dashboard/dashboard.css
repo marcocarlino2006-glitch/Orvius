@@ -888,7 +888,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .pro-settings-form .pro-settings-savebar,
 .os-shell-night .pro-settings-form .pro-settings-savebar {
   margin: 0 !important;
-  padding: 0.9rem 0 !important;
+  /* Keep horizontal padding for Ask-dock clearance — do not zero it here. */
+  padding-top: 0.9rem !important;
+  padding-bottom: 0.9rem !important;
   border: 0 !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 0 !important;
@@ -9226,10 +9228,12 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding-right: 10rem;
 }
 
-.os-shell-night .pro-settings-savebar {
+@media (max-width: 520px) {
+  .os-shell-night .pro-settings-savebar {
     padding-right: 0.9rem;
     padding-bottom: 4.25rem;
   }
+}
 
 .os-sidebar-pro .os-nav-link-active {
   background: color-mix(in srgb, var(--signal) 22%, transparent);

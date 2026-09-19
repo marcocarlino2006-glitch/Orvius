@@ -69,7 +69,7 @@ export default function AskPage() {
 
   return (
     <OsShell
-      title="Ops copilot"
+      title="Ask"
       subtitle="Ask about the shop — then approve actions. Grounded in your calls, jobs, and dispatch."
     >
       <PlanUpgradeGate module="ask">

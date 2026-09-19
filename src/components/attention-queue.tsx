@@ -132,8 +132,15 @@ function TestAlertButton({ onDone }: { onDone?: () => void }) {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
       const data = (await res.json().catch(() => null)) as {
         error?: string;
+        ok?: boolean;
       } | null;
       if (!res.ok) throw new Error(data?.error ?? "Could not send test alert");
+      if (!data?.ok) {
+        throw new Error(
+          data?.error ??
+            "Alert queued but not delivered. Check Settings.",
+        );
+      }
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not send");

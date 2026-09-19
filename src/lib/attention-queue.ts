@@ -737,6 +737,59 @@ export async function getAttentionQueue(
     });
   }
 
+  const failedDepositIds = [...failedDepositDeliveryIds];
+  const failedDeposits = failedDepositIds.length
+    ? await prisma.deposit.findMany({
+        where: {
+          businessId,
+          id: { in: failedDepositIds },
+          status: "pending",
+          sentAt: null,
+        },
+        select: {
+          id: true,
+          amountCents: true,
+          leadId: true,
+          jobId: true,
+          createdAt: true,
+        },
+      })
+    : [];
+
+  for (const deposit of failedDeposits) {
+    const failure = failedDepositDeliveries.find((delivery) => {
+      try {
+        const payload = JSON.parse(delivery.payloadJson ?? "{}") as {
+          depositId?: unknown;
+        };
+        return payload.depositId === deposit.id;
+      } catch {
+        return false;
+      }
+    });
+    items.push({
+      id: `deposit_delivery_failed:${deposit.id}`,
+      kind: "deposit_delivery_failed",
+      rank: kindRank("deposit_delivery_failed", null, afterHours),
+      impact: "critical",
+      title: "Deposit link not delivered",
+      detail: `${failure?.error ?? "Carrier rejected the text"} · $${(
+        deposit.amountCents / 100
+      ).toFixed(2)} still pending`,
+      recommendedAction: "Retry deposit link",
+      href: deposit.jobId
+        ? `/dashboard/jobs/${deposit.jobId}`
+        : deposit.leadId
+          ? `/dashboard/inbox/${deposit.leadId}`
+          : "/dashboard",
+      entityType: deposit.jobId ? "job" : deposit.leadId ? "lead" : "shop",
+      entityId: deposit.jobId ?? deposit.leadId ?? businessId,
+      createdAt:
+        failure?.createdAt.toISOString() ?? deposit.createdAt.toISOString(),
+      estimatedRevenueCents: deposit.amountCents,
+    });
+  }
+
   if (liveCalls.length >= 2) {
     const overflowOk = Boolean(business?.overflowForwardConfirmedAt);
     items.push({

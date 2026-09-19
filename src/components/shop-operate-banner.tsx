@@ -128,9 +128,18 @@ export function ShopOperateBanner() {
       }
       if (next.id === "alerts") {
         const res = await fetch("/api/account/test-alert", { method: "POST" });
+        const data = (await res.json().catch(() => null)) as {
+          error?: string;
+          ok?: boolean;
+        } | null;
         if (!res.ok) {
-          const data = (await res.json().catch(() => null)) as { error?: string } | null;
           throw new Error(data?.error ?? "Could not send test alert");
+        }
+        if (!data?.ok) {
+          throw new Error(
+            data?.error ??
+              "Alert queued but not delivered. Check Settings.",
+          );
         }
         setNote("Test alert sent — check your phone");
         await refresh();

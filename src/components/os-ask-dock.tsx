@@ -125,10 +125,10 @@ export function OsAskDock() {
   return (
     <div className={`os-ask-dock font-sans ${open ? "os-ask-dock-open" : ""}`}>
       {open ? (
-        <div className="os-ask-dock-panel" role="dialog" aria-label="Ops copilot">
+        <div className="os-ask-dock-panel" role="dialog" aria-label="Ask Orvius">
           <div className="os-ask-dock-head">
             <div>
-              <p className="os-ask-dock-kicker">Ops copilot</p>
+              <p className="os-ask-dock-kicker">Ask</p>
               <p className="os-ask-dock-title">Your shop memory</p>
             </div>
             <div className="os-ask-dock-head-actions">

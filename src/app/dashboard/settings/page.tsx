@@ -94,7 +94,10 @@ export default function DashboardSettingsPage() {
 
   async function loadAccount() {
     const res = await fetch("/api/account");
-    if (!res.ok) return;
+    if (!res.ok) {
+      setError("Could not load settings. Refresh and try again.");
+      return;
+    }
     const data = (await res.json()) as AccountResponse;
     setAccount(data);
     setOwnerPhone(data.business?.ownerPhone ?? "");
@@ -120,8 +123,21 @@ export default function DashboardSettingsPage() {
   }
 
   useEffect(() => {
-    loadAccount().catch(() => null);
+    loadAccount().catch(() => {
+      setError("Could not load settings. Refresh and try again.");
+    });
   }, []);
+
+  useEffect(() => {
+    if (!account) return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [account]);
 
   useEffect(() => {
     if (!account?.founder) {
@@ -253,8 +269,18 @@ export default function DashboardSettingsPage() {
     setError(null);
     try {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
-      const data = await res.json();
+      const data = (await res.json()) as {
+        error?: string;
+        ok?: boolean;
+        message?: string;
+      };
       if (!res.ok) throw new Error(data.error ?? "Test failed");
+      if (!data.ok) {
+        throw new Error(
+          data.error ??
+            "Alert queued but not delivered. Check owner mobile/email and Twilio.",
+        );
+      }
       setTestResult(data.message ?? "Test alert sent");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Test failed");
