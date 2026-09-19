@@ -6012,8 +6012,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-sidebar {
-    width: 15.75rem !important;
-  }
+  width: 15.75rem !important;
+}
 
 .os-shell-night .os-sidebar-inner {
   padding: 0.9rem 0.7rem 0.7rem !important;
@@ -7895,10 +7895,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
   background: color-mix(in srgb, var(--signal) 4%, var(--white));
 }
 
-.os-mobile-nav-btn {
-    display: none;
-  }
-
 .os-mobile-nav-icon {
   position: relative;
   display: block;
@@ -7946,11 +7942,20 @@ a.pro-shift-event:hover .pro-shift-event-title {
   cursor: pointer;
 }
 
-.os-mobile-nav-backdrop {
+/* Desktop: permanent sidebar, hamburger stays off. */
+@media (min-width: 901px) {
+  .os-mobile-nav-btn {
     display: none;
   }
 
-.os-sidebar-pro {
+  .os-mobile-nav-backdrop {
+    display: none;
+  }
+}
+
+/* Mobile: drawer sidebar opened by the hamburger. */
+@media (max-width: 900px) {
+  .os-sidebar-pro {
     position: fixed;
     top: 0;
     left: 0;
@@ -7965,9 +7970,10 @@ a.pro-shift-event:hover .pro-shift-event-title {
     box-shadow: 8px 0 40px rgba(26, 25, 23, 0.2);
   }
 
-.os-sidebar-pro.os-sidebar-open {
+  .os-sidebar-pro.os-sidebar-open {
     transform: translateX(0);
   }
+}
 
 .os-ask-dock-trigger {
   background: linear-gradient(135deg, var(--void-deep) 0%, var(--panel) 100%);
