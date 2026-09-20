@@ -89,41 +89,6 @@ export default function DomainsPage() {
         </a>
       }
     >
-      {/*
-        The checklist is runbook, not product — it names our hosting provider,
-        our registrar and an env var to set. It sat above the gate, so a shop
-        owner who wandered here read "Remove Manus DNS" on the way to being
-        told the rest was not for them.
-      */}
-      {denied ? null : (
-        <RevealOnScroll>
-          <ShellPanel title="Go-live checklist">
-            <ol className="list-decimal space-y-3 pl-5 font-sans text-sm leading-relaxed text-ash">
-              <li>
-                <strong className="text-void">Remove Manus DNS</strong> — delete
-                the <code className="text-flare-dim">cname.manus.space</code> record
-              </li>
-              <li>
-                <strong className="text-void">Deploy to Vercel</strong> — add{" "}
-                <code className="text-flare-dim">orvius.im</code>,{" "}
-                <code className="text-flare-dim">app.orvius.im</code>,{" "}
-                <code className="text-flare-dim">api.orvius.im</code>
-              </li>
-              <li>
-                <strong className="text-void">Paste DNS records</strong> from Vercel
-                into Namecheap
-              </li>
-              <li>
-                <strong className="text-void">Set env</strong>{" "}
-                <code className="text-flare-dim">
-                  NEXT_PUBLIC_APP_URL=https://api.orvius.im
-                </code>
-              </li>
-            </ol>
-          </ShellPanel>
-        </RevealOnScroll>
-      )}
-
       {loading ? (
         <div className="mt-8">
           <DomainsSkeleton />
@@ -131,8 +96,11 @@ export default function DomainsPage() {
       ) : denied ? (
         <div className="mt-8">
           <ShellEmpty>
-            The DNS plan is founder-only — it carries the deployment&rsquo;s
-            webhook URLs. Nothing here affects your shop.
+            This page isn&apos;t part of your shop.{" "}
+            <a href="/dashboard" className="underline underline-offset-2">
+              Head back to your dashboard
+            </a>
+            .
           </ShellEmpty>
         </div>
       ) : !plan ? (
@@ -141,6 +109,33 @@ export default function DomainsPage() {
         </div>
       ) : (
         <div className="mt-8 space-y-8">
+          <RevealOnScroll>
+            <ShellPanel title="Go-live checklist">
+              <ol className="list-decimal space-y-3 pl-5 font-sans text-sm leading-relaxed text-ash">
+                <li>
+                  <strong className="text-void">Remove Manus DNS</strong> — delete
+                  the <code className="text-flare-dim">cname.manus.space</code> record
+                </li>
+                <li>
+                  <strong className="text-void">Deploy to Vercel</strong> — add{" "}
+                  <code className="text-flare-dim">orvius.im</code>,{" "}
+                  <code className="text-flare-dim">app.orvius.im</code>,{" "}
+                  <code className="text-flare-dim">api.orvius.im</code>
+                </li>
+                <li>
+                  <strong className="text-void">Paste DNS records</strong> from Vercel
+                  into Namecheap
+                </li>
+                <li>
+                  <strong className="text-void">Set env</strong>{" "}
+                  <code className="text-flare-dim">
+                    NEXT_PUBLIC_APP_URL=https://api.orvius.im
+                  </code>
+                </li>
+              </ol>
+            </ShellPanel>
+          </RevealOnScroll>
+
           <RevealOnScroll>
             <ShellPanel title="Domain candidates">
               <ul className="space-y-3">

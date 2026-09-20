@@ -42,9 +42,8 @@ export function HomeCallStory() {
             Call the product. Hear the night shift.
           </h2>
           <p className="mkt-proof-lead font-sans">
-            {summitCaseStudy.name} is the labeled reference implementation, not
-            a customer case study. Dial the live line and test the same intake
-            flow a shop receives.
+            Demo shop on the live line — dial it and hear the same intake a
+            shop receives.
           </p>
           <div className="mkt-proof-actions font-sans">
             <a href={demoLineHref()} className="ov-btn ov-btn--solid">

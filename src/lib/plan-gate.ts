@@ -32,7 +32,7 @@ export function billingRequiredResponse(business: BusinessBillingFields) {
     {
       error:
         reason === "trial_ended"
-          ? "Your pilot ended. Subscribe to keep using Orvius."
+          ? "Your access ended. Subscribe to keep using Orvius."
           : reason === "canceled"
             ? "Subscription canceled. Subscribe to reopen your shop."
             : reason === "past_due"

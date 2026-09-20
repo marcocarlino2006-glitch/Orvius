@@ -68,7 +68,7 @@ export function getPayPromptDecision(
       headline:
         status === "canceled"
           ? "Subscribe to reopen your shop"
-          : "Pilot ended — subscribe to continue",
+          : "Access ended — subscribe to continue",
       body: "Orvius is locked until you choose a plan. Your line and workspace reopen after checkout.",
       primaryCta: "Subscribe to unlock",
       snoozeMs: 15 * MINUTE,
@@ -88,10 +88,10 @@ export function getPayPromptDecision(
     show: true,
     tone: endingSoon || status === "none" ? "required" : "trial",
     headline: endingSoon
-      ? `Pilot ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — subscribe`
+      ? `Access ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — subscribe`
       : status === "none"
         ? "Subscribe to run Orvius for your shop"
-        : "Keep Orvius after the pilot",
+        : "Keep Orvius for your shop",
     body: endingSoon
       ? "Subscribe now so after-hours calls keep becoming booked jobs without interruption."
       : "Shop access is temporary. Line starts at $149/mo. We'll ask again soon.",

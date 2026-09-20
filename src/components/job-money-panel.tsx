@@ -443,7 +443,7 @@ export function JobMoneyPanel({
                 disabled={busy}
                 onClick={() => void createInvoice()}
               >
-                {busy ? "Working…" : "Create invoice (internal)"}
+                {busy ? "Working…" : "Create invoice"}
               </button>
             ) : estimate.invoice.status !== "paid" ? (
               <button

@@ -90,12 +90,12 @@ export const translations: Record<string, Record<Lang, string>> = {
     fr: "Chaque appel, SMS, intervention et résultat enregistré reste dans un seul dossier client. Planifiez et affectez depuis Command, sans fouiller le CRM.",
     de: "Jeder Anruf, jede SMS, jeder Auftrag und jedes erfasste Ergebnis bleibt in einem Kundendatensatz. Buchen und zuweisen aus Command — ohne CRM-Suche.",
   },
-  "rule3.title": { en: "Proof you can hand a partner.", es: "Pruebas que puedes entregar a un socio.", fr: "Des preuves à remettre à un partenaire.", de: "Belege, die Sie einem Partner geben können." },
+  "rule3.title": { en: "A clear weekly summary.", es: "Un resumen semanal claro.", fr: "Un résumé hebdomadaire clair.", de: "Eine klare Wochenübersicht." },
   "rule3.body": {
-    en: "Weekly captured-demand bookings and estimated value copy as a stamped artifact. No vanity dashboards. No invented numbers.",
-    es: "Las reservas de demanda capturada y su valor estimado se copian cada semana como un comprobante fechado. Sin paneles de vanidad ni números inventados.",
-    fr: "Les réservations issues de la demande captée et leur valeur estimée se copient chaque semaine sous forme de preuve horodatée. Pas de tableaux de vanité ni de chiffres inventés.",
-    de: "Wöchentliche Buchungen aus erfasster Nachfrage und ihr geschätzter Wert lassen sich als datierter Nachweis kopieren. Keine Schaufenster-Dashboards und keine erfundenen Zahlen.",
+    en: "See what the line booked this week — jobs and estimated value you can check against your own books.",
+    es: "Mira lo que la línea reservó esta semana — trabajos y valor estimado que puedes contrastar con tus propios números.",
+    fr: "Voyez ce que la ligne a réservé cette semaine — interventions et valeur estimée à vérifier dans vos propres livres.",
+    de: "Sehen Sie, was die Leitung diese Woche gebucht hat — Aufträge und geschätzter Wert zum Abgleich mit Ihren eigenen Zahlen.",
   },
 
   "trynow.title": { en: "Try Orvius now.", es: "Prueba Orvius ahora.", fr: "Essayez Orvius maintenant.", de: "Testen Sie Orvius jetzt." },

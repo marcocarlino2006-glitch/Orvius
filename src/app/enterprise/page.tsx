@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const pillars = [
   {
     id: "01",
-    title: "Map the operating standard.",
+    title: "Align hours, services, and escalation.",
     body: "Document each location's services, hours, escalation rules, call flow, and capacity before software starts making proposals.",
   },
   {
@@ -21,7 +21,7 @@ const pillars = [
   },
   {
     id: "03",
-    title: "Design the control plane together.",
+    title: "Build multi-location admin with us.",
     body: "Portfolio roles, consolidated billing, and cross-location reporting ship per deal — not as generally available product claims today.",
   },
 ] as const;
@@ -35,7 +35,7 @@ export default function EnterprisePage() {
             label="Enterprise"
             title="Build one standard before scaling every location."
             subline="For franchises and multi-shop operators ready to run one after-hours standard."
-            description="Orvius proves the autonomous front desk one live location at a time. The multi-location control plane is not generally available yet."
+            description="Orvius proves the autonomous front desk one live location at a time. Multi-location admin isn’t self-serve yet — we set it up per footprint."
           />
         </div>
       </section>

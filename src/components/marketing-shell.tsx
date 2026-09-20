@@ -60,7 +60,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
               <p className="mkt-footer-heading font-sans">Connect</p>
               <a href="tel:+18446439170">+1 844 643 9170</a>
               <a href="mailto:hello@orvius.im">hello@orvius.im</a>
-              <Link href="/domains">Domains</Link>
+              <Link href="/security">Security</Link>
             </nav>
           </div>
           <div className="mkt-footer-bottom mkt-footer-bottom--legal">

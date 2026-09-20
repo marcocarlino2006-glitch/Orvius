@@ -488,7 +488,7 @@ export default function DashboardSettingsPage() {
                 : account.alerts.smsEnabled
                   ? "enabled"
                   : "off"}{" "}
-              · Email {account.alerts.emailConfigured ? "ready" : "not configured"}
+              · Email {account.alerts.emailConfigured ? "ready" : "backup off"}
             </span>
           </div>
 

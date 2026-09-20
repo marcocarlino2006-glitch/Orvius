@@ -31,8 +31,8 @@ const nightRules: {
     key: "rule3",
     icon: "shield",
     badge: "PROOF",
-    title: "Proof you can hand a partner.",
-    body: "Weekly captured-demand bookings and estimated value copy as a stamped artifact. No vanity dashboards. No invented numbers.",
+    title: "A clear weekly summary.",
+    body: "See what the line booked this week — jobs and estimated value you can check against your own books.",
   },
 ];
 

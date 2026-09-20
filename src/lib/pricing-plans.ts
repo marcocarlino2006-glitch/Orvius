@@ -33,7 +33,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     name: "Pilot",
     tagline: "Guided onboarding for shops ready to go live",
     price: 0,
-    period: "Invitation only",
+    period: "Included while we set you up",
     limit: "Limited availability",
     cta: "Request a call audit",
     href: "/pilot",

@@ -53,7 +53,7 @@ export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
             <Link href="/dashboard/billing" className="btn btn-void text-sm">
               Open billing
             </Link>
-            <Link href="/dashboard/pricing" className="btn btn-secondary text-sm">
+            <Link href="/pricing" className="btn btn-secondary text-sm">
               Compare plans
             </Link>
           </div>
@@ -78,7 +78,7 @@ export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
           {moduleLabel(module).toLowerCase()}, jobs, dispatch, and Ask.
         </p>
         <div className="plan-upgrade-gate-actions">
-          <Link href="/dashboard/pricing" className="btn btn-void text-sm">
+          <Link href="/pricing" className="btn btn-void text-sm">
             Compare plans
           </Link>
           <Link href="/dashboard/billing" className="btn btn-secondary text-sm">

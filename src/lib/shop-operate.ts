@@ -147,10 +147,10 @@ export function resolveShopOperateNext(
   if (input.economicsReady && input.proofStale) {
     return {
       id: "weekly-proof",
-      title: "Stamp this week’s proof",
-      detail: "Copy the weekly proof so recovered demand stays an honest artifact.",
+      title: "Copy this week’s results",
+      detail: "Copy booked jobs and estimated value for your notes.",
       href: "/dashboard#shop-economics",
-      cta: "Copy proof",
+      cta: "Copy results",
       tone: "ritual",
     };
   }

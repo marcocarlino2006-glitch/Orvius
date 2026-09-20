@@ -69,7 +69,7 @@ export function BillingLockScreen({
         <div className="billing-lock-links font-sans">
           {checkoutReady ? (
             <>
-              <Link href="/dashboard/pricing">Compare plans</Link>
+              <Link href="/pricing">Compare plans</Link>
               <Link href="/dashboard/billing">Billing details</Link>
             </>
           ) : (

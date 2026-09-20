@@ -207,7 +207,7 @@ export function PayPromptModal() {
           <div className="pay-prompt-secondary">
             {checkoutReady ? (
               <Link
-                href="/dashboard/pricing"
+                href="/pricing"
                 className="btn btn-secondary text-sm"
                 onClick={snooze}
               >

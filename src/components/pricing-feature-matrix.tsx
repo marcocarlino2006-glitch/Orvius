@@ -84,7 +84,7 @@ export function PricingFeatureMatrix() {
       </div>
 
       <p className="pricing-matrix-footnote font-sans">
-        Pilot includes full Pro access during the 30-day program.
+        Call-audit shops get full Pro during setup (30 days).
       </p>
     </section>
   );
