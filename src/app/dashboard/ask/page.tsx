@@ -70,7 +70,7 @@ export default function AskPage() {
   return (
     <OsShell
       title="Ask"
-      subtitle="Ask about the shop — then approve actions. Grounded in your calls, jobs, and dispatch."
+      subtitle="Grounded in your calls, jobs, and dispatch — then approve before anything runs."
     >
       <PlanUpgradeGate module="ask">
       <div className="ask-hero pro-panel pro-panel--dense">

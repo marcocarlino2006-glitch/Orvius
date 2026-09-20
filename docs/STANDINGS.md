@@ -30,7 +30,7 @@ $0 ARR            →   First $ → retention → density
 | **G. Legal** | Placeholder language | Counsel formation state | **FOUNDER + counsel** |
 | **H. Proof** | Summit self-reference possible | External named proof | **FOUNDER** |
 | **I. OS monopoly** | Demand capture + taxonomy live in writers | Multi-shop compounding data | Needs paying density |
-| **J. Polish debt** | Night plane densified; Settings blank-save closed; billing honesty when checkout dark | Keep era stacking dead; founder live gates | **Founder C–H** |
+| **J. Polish debt** | Night plane densified; Settings blank-save + dirty gate; billing/pay honesty when checkout dark; founder Resend panel on Settings; cookie skip dashboard | Keep era stacking dead; founder live gates | **Founder C–H** |
 
 **Bottom line:** We are a **strong product with multi-b discipline encoded**, standing at roughly **code-ready / cash-zero / distribution-zero**. Multi-b standard requires closing layers C–H in order — not building more UI.
 
@@ -199,9 +199,10 @@ Only after 1–8: density (10 proving shops), then deepen rings. More Settings U
 
 ### Agent/code (this PR closes Settings honesty debt)
 9. Settings night capture + cert/Manus honesty + Billing money copy — **shipped on this branch**
-10. Keep `beyond:check` / `master:class` / `multi-b:check` green — never vanity-green
-11. Keep `globals.css` under 8k — product densify belongs in `dashboard.css`
-12. Only after founder 1–8: money-rail ops polish when a paying shop asks
+10. Settings load/dirty integrity + billing dead-end honesty + founder Resend paste panel — **shipped**
+11. Keep `beyond:check` / `master:class` / `multi-b:check` green — never vanity-green
+12. Keep `globals.css` under 8k — product densify belongs in `dashboard.css`
+13. Only after founder 1–8: money-rail ops polish when a paying shop asks
 
 ---
 

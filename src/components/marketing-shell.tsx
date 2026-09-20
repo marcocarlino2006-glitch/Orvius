@@ -34,7 +34,7 @@ export function PublicLayout({
         nav={[
           { href: "/pricing", label: "Pricing" },
           { href: "/pilot", label: "Audit" },
-          { href: "/security", label: "Security" },
+          { href: "/about", label: "About" },
         ]}
       />
       {showStickyCall ? <HomeStickyCall /> : null}
@@ -97,7 +97,7 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
               <Link href="/domains">Domains</Link>
             </nav>
           </div>
-          <div className="mkt-footer-bottom mkt-footer-bottom--cursor">
+          <div className="mkt-footer-bottom mkt-footer-bottom--legal">
             <p className="mkt-footer-copy">
               © {year} Solution Development LLC. All rights reserved.
             </p>

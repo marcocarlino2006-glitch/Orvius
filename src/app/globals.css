@@ -4330,9 +4330,9 @@ label:has(> input[type="radio"]) {
 
 /* Dense product inside desktop plane */
 
-/* —— Cursor-grade footer columns —— */
+/* —— Legal footer row —— */
 
-.mkt-footer-bottom--cursor {
+.mkt-footer-bottom--legal {
   margin-top: 2.5rem;
 }
 
@@ -6446,7 +6446,7 @@ body:has(.mkt-page) .shell-header {
    ============================================================ */
 
 
-.mkt-footer-bottom--cursor {
+.mkt-footer-bottom--legal {
   align-items: center;
   justify-content: flex-start !important;
   /* Clear the fixed cookie notice and the utility dock so neither can sit on
@@ -6454,7 +6454,7 @@ body:has(.mkt-page) .shell-header {
   padding-bottom: 4rem;
 }
 
-.mkt-footer-bottom--cursor .mkt-footer-mark {
+.mkt-footer-bottom--legal .mkt-footer-mark {
   margin-left: auto !important;
 }
 

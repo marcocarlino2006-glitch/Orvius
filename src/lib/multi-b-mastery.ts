@@ -136,7 +136,7 @@ export function buildMasteryReport(
       owner: "founder",
       doneWhen: "RESEND_API_KEY live for magic links + SMS→email backup",
       action: "Paste RESEND_API_KEY (and RESEND_FROM) on Vercel",
-      href: "/dashboard/settings",
+      href: "/dashboard/settings#email-failover",
       ok: resend,
       detail: resend ? "Transactional email configured" : "RESEND_API_KEY missing",
     },

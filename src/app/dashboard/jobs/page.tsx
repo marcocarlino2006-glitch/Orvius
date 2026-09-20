@@ -31,7 +31,6 @@ type PipelineStage = {
   id: string;
   label: string;
   hint?: string;
-  coming?: boolean;
   match: (job: JobRow) => boolean;
 };
 

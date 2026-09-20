@@ -149,7 +149,7 @@ export default function DashboardSettingsPage() {
   }, [dirty]);
 
   useEffect(() => {
-    if (!account) return;
+    if (loadState !== "ready" || !account) return;
     const hash = window.location.hash.replace(/^#/, "");
     if (!hash) return;
     const el = document.getElementById(hash);
@@ -157,7 +157,7 @@ export default function DashboardSettingsPage() {
     requestAnimationFrame(() => {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-  }, [account]);
+  }, [loadState, account]);
 
   useEffect(() => {
     if (!account?.founder) {
@@ -466,7 +466,9 @@ export default function DashboardSettingsPage() {
             <span className="onboarding-hint">
               {account.alerts.emailConfigured
                 ? "Email failover is live — used when SMS fails or is unavailable."
-                : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
+                : account.founder
+                  ? "Alerts are text-only until Resend is live — paste keys below."
+                  : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
             </span>
           </label>
 
@@ -489,6 +491,29 @@ export default function DashboardSettingsPage() {
               · Email {account.alerts.emailConfigured ? "ready" : "not configured"}
             </span>
           </div>
+
+          {!account.alerts.emailConfigured && account.founder ? (
+            <div
+              id="email-failover"
+              className="billing-unblock billing-unblock--instrument mt-4 font-sans"
+            >
+              <p className="billing-unblock-kicker">Resend gates</p>
+              <p className="billing-unblock-title">
+                SMS→email failover stays dark until these are green
+              </p>
+              <ol className="billing-unblock-steps">
+                <li>Add RESEND_API_KEY on Vercel</li>
+                <li>
+                  Set RESEND_FROM to a verified sender (e.g. Orvius
+                  &lt;alerts@orvius.im&gt;)
+                </li>
+                <li>Redeploy · then Send test alert</li>
+              </ol>
+              <p className="billing-unblock-foot">
+                Owners never see this panel — only the founder paste path.
+              </p>
+            </div>
+          ) : null}
         </ShellPanel>
         </div>
 

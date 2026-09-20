@@ -91,8 +91,19 @@ Dashboard shell:
 | **past_due** | Full `BillingLockScreen` + portal CTA | Not dismissible |
 | **expired pilot / canceled** | Full `BillingLockScreen` + Checkout | Not dismissible |
 
-When Stripe checkout is configured, lock/modal starts Checkout for Pro (or Customer Portal for past_due). Otherwise routes to Billing / design partner.
+When Stripe checkout is configured, lock/modal starts Checkout for Pro (or Customer Portal for past_due). Otherwise routes to mailto / design partner — never a dead Checkout button.
 
 ## Customer portal
 
 Active subscribers can open **Manage subscription** on Dashboard → Billing. Requires Customer Portal enabled in Stripe Dashboard → Settings → Billing → Customer portal.
+
+## Email failover (Resend)
+
+Required for magic-link sign-in and SMS→email alert backup:
+
+```
+RESEND_API_KEY=re_...
+RESEND_FROM=Orvius <alerts@orvius.im>
+```
+
+Paste both on Vercel, redeploy, then Settings → Send test alert. Founders see the Resend gate panel on Settings when email is dark; owners never see env-var theater.
