@@ -183,7 +183,7 @@
   --color-border: var(--border);
   --color-success: var(--success);
   --font-sans: var(--font-sans);
-  /* One letterset — logo, UI, display all ride Sora */
+  /* One letterset — logo, UI, display all ride Archivo */
   --font-brand: var(--font-sans);
   --font-display: var(--font-sans);
 }
@@ -2536,7 +2536,7 @@ h3 {
   justify-content: center;
   gap: 0.1rem;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  /* Exact SpaceX nav: D-DIN caps */
+  /* Nav labels — Archivo, tracked quiet */
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -2751,22 +2751,21 @@ h3 {
   }
 }
 
-/* ── Buttons — Cursor filled + SpaceX ghost ── */
+/* ── Buttons — filled + ghost instrument controls ── */
 
 .mkt-btn {
-  /* SpaceX button voice — D-DIN via Barlow Condensed */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
   min-height: 3rem;
   padding: 0.9rem 1.75rem;
-  border-radius: 2rem;
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  border-radius: 0.25rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.8125rem; /* 13px */
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.09em; /* ~1.17px */
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   text-decoration: none;
   border: 1px solid transparent;
@@ -3357,20 +3356,20 @@ button.btn {
   transform: none !important;
 }
 
-/* ── BUTTON FONT LOCK — SpaceX DIN + Cursor gothic ── */
+/* ── BUTTON FONT LOCK — Archivo only, same voice as the rest of Look ── */
 .mkt-btn,
 .mkt-nav-cta,
 .mkt-nav-links a,
 .mkt-nav-login {
-  font-family: var(--font-brand), "Arial Narrow", "Helvetica Neue", Arial, sans-serif !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.09em !important;
-  font-weight: 700 !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  font-weight: 600 !important;
 }
 
 .mkt-btn,
 .mkt-nav-cta {
-  border-radius: 2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .btn,
@@ -3895,8 +3894,8 @@ label:has(> input[type="radio"]) {
 .mkt-proof-title,
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.035em !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.028em !important;
   text-transform: none !important;
 }
 
@@ -3936,7 +3935,7 @@ label:has(> input[type="radio"]) {
 /* Template / surface boxes — identical material language */
 
 
-/* Login craft — same Sora + same box language as marketing */
+/* Login craft — same Archivo + same box language as marketing */
 
 .tier1-login-dev-btn {
   border-radius: var(--radius-box, var(--radius-lg)) !important;
@@ -3970,7 +3969,7 @@ label:has(> input[type="radio"]) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Dashboard craft — same Sora + box language as marketing
+   Dashboard craft — same Archivo + box language as marketing
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-sidebar-brand .orvius-logo {
@@ -5980,10 +5979,10 @@ body:has(.mkt-page) .shell-header {
   color: var(--ov-muted) !important;
 }
 
-/* CTAs → Cursor pills: charcoal primary, hairline ghost */
+/* CTAs → hard instrument radius (night OS, not Cursor pills) */
 .mkt-page .inst-btn,
 .mkt-page .mkt-btn {
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-page .inst-btn-primary,
@@ -5991,7 +5990,7 @@ body:has(.mkt-page) .shell-header {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-page .inst-btn-primary:hover {
@@ -6060,7 +6059,7 @@ body:has(.mkt-page) .shell-header {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-nav .mkt-nav-cta:hover {
@@ -6096,7 +6095,7 @@ body:has(.mkt-page) .shell-header {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-nav--institution .mkt-nav-cta:hover {

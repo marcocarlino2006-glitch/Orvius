@@ -551,7 +551,7 @@ body {
   gap: 0.35rem !important;
   padding: 0.15rem 0.6rem !important;
   border: 1px solid var(--ov-hairline) !important;
-  border-radius: 9999px !important;
+  border-radius: 0.25rem !important;
   background: rgb(255 255 255 / 0.04) !important;
   color: #aaa8a0 !important;
   font-family: var(--ov-mono) !important;
@@ -839,7 +839,7 @@ body {
 }
 
 .ov-public .tier1-hero-compact {
-  min-height: 500px !important;
+  min-height: 0 !important;
 }
 
 .ov-public .tier1-eyebrow {
@@ -880,7 +880,8 @@ body {
 
 .ov-public .inst-btn,
 .ov-public .mkt-btn,
-.ov-public .btn {
+.ov-public .btn,
+.ov-public .ov-btn {
   border-radius: 4px !important;
   box-shadow: none !important;
   font-family: var(--ov-font) !important;
@@ -1238,7 +1239,7 @@ body {
   gap: 0.6rem;
   padding: 0 1rem;
   border: 1px solid rgb(255 255 255 / 0.2);
-  border-radius: 9999px;
+  border-radius: 0.25rem;
   background: transparent;
   color: #ffffff;
   font-family: var(--ov-font);
@@ -1298,7 +1299,7 @@ body {
   min-height: 46px;
   padding: 0 1.1rem;
   border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 9999px;
+  border-radius: 0.25rem;
   background: #171717;
   color: #ffffff;
   font-family: var(--ov-font);
@@ -1328,7 +1329,7 @@ body {
   justify-content: center;
   padding: 0 1.1rem;
   border: 1px solid #ffffff;
-  border-radius: 9999px;
+  border-radius: 0.25rem;
   background: #ffffff;
   color: #14120b;
   font-family: var(--ov-font);
@@ -1524,7 +1525,7 @@ body {
 .ov-public .tier1-page-title {
   font-family: var(--ov-font) !important;
   font-weight: 600 !important;
-  letter-spacing: -0.035em !important;
+  letter-spacing: -0.028em !important;
 }
 
 .ov-public .mkt-law-title,
@@ -1853,7 +1854,7 @@ body {
   justify-content: center;
   min-height: 48px;
   padding: 0.75rem 1.5rem;
-  border-radius: 9999px;
+  border-radius: 0.25rem;
   font-family: var(--ov-font);
   font-size: 0.9375rem;
   font-weight: 600;

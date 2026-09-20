@@ -465,7 +465,7 @@ export default function DashboardSettingsPage() {
             />
             <span className="onboarding-hint">
               {account.alerts.emailConfigured
-                ? "Email failover is live — used when SMS fails or is unavailable."
+                ? "Email backup is on — used when a text alert can’t deliver."
                 : account.founder
                   ? "Alerts are text-only until Resend is live — paste keys below."
                   : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
@@ -488,7 +488,7 @@ export default function DashboardSettingsPage() {
                 : account.alerts.smsEnabled
                   ? "enabled"
                   : "off"}{" "}
-              · Email {account.alerts.emailConfigured ? "ready" : "backup off"}
+              · Email {account.alerts.emailConfigured ? "on" : "off"}
             </span>
           </div>
 
@@ -551,7 +551,7 @@ export default function DashboardSettingsPage() {
                 placeholder="285"
               />
               <span className="onboarding-hint">
-                Estimates pipeline value on Command — not collected revenue.
+                Used to estimate booked value on Command — not money collected.
               </span>
             </label>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
