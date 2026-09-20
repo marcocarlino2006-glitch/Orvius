@@ -240,7 +240,7 @@ export function ProEconomicsPanel({
           Edit ticket &amp; baseline →
         </Link>
         {copyState === "ok" ? (
-          <span className="pro-economics-status">Copied — paste into notes / Slack</span>
+          <span className="pro-economics-status">Copied — paste into your notes</span>
         ) : null}
         {copyState === "err" ? (
           <span className="pro-economics-status pro-economics-status--err">

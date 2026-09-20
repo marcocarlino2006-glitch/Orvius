@@ -1,5 +1,4 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
-import { OsRings } from "@/components/os-rings";
 import { company } from "@/lib/company";
 import { workspaceAccessPublicClaim } from "@/lib/seats";
 import type { Metadata } from "next";
@@ -29,11 +28,17 @@ export default function AboutPage() {
           <h2 className="tier1-section-title type-headline">
             Missed and after-hours calls become booked work.
           </h2>
-          <p className="tier1-section-lead font-sans">{company.mission}</p>
+          <p className="tier1-section-lead font-sans">
+            Orvius answers when your crew cannot — after hours and overflow —
+            captures the request, proposes an open service window, texts the
+            customer to confirm, and alerts you. One shop record for the call,
+            the lead, and the job.
+          </p>
           <ul className="tier1-strategy-list font-sans">
-            {company.strategy.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
+            <li>Answers after-hours and overflow on your Orvius line</li>
+            <li>Captures name, phone, service, urgency, and address</li>
+            <li>Proposes a window and texts for confirmation</li>
+            <li>Alerts the owner and keeps one operational record</li>
           </ul>
         </div>
       </section>
@@ -51,19 +56,6 @@ export default function AboutPage() {
           <p className="tier1-section-lead font-sans">
             {workspaceAccessPublicClaim()}
           </p>
-          <p className="tier1-section-lead font-sans">
-            {company.vision}
-          </p>
-          <h2 className="tier1-section-title type-headline mt-10">
-            Labelled honestly.
-          </h2>
-          <p className="tier1-section-lead font-sans max-w-2xl">
-            Live means production paths. Beta means limited. Planned stays off
-            the claim until the loop is airtight.
-          </p>
-          <div className="tier1-rings">
-            <OsRings liveOnly />
-          </div>
         </div>
       </section>
 

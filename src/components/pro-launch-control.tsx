@@ -133,9 +133,9 @@ export function ProLaunchControl({
             }`}
             aria-hidden
           />
-          <span className="pro-rail-row-label font-sans">Current shift</span>
+          <span className="pro-rail-row-label font-sans">Tonight&apos;s loop</span>
           <span className="pro-rail-row-value font-sans">
-            {proven}/5 stages
+            {proven}/5 proven
           </span>
         </li>
       </ul>

@@ -94,7 +94,7 @@ export function getPayPromptDecision(
         : "Keep Orvius after the pilot",
     body: endingSoon
       ? "Subscribe now so after-hours calls keep becoming booked jobs without interruption."
-      : "Design partner access is temporary. Line starts at $149/mo. We'll ask again soon.",
+      : "Shop access is temporary. Line starts at $149/mo. We'll ask again soon.",
     primaryCta: "Choose a plan",
     snoozeMs: endingSoon || status === "none" ? 2 * HOUR : 4 * HOUR,
     hard: false,

@@ -1,60 +1,26 @@
 import Link from "next/link";
 import { BrandIntro } from "@/components/brand-intro";
-import { HomeStickyCall } from "@/components/home-sticky-call";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { I18nRuntime } from "@/components/i18n-runtime";
 import { PremiumNav } from "@/components/premium-nav";
-import { ShellHeader } from "@/components/shell-header";
-import { SiteFooter } from "@/components/site-footer";
 import { UtilityDock } from "@/components/utility-dock";
 
-const DEFAULT_CTA = { href: "tel:+18446439170", label: "Call demo" } as const;
-
-type PublicLayoutProps = {
+type MarketingShellProps = {
   children: React.ReactNode;
+  /** @deprecated Always premium — kept so call sites do not break. */
+  premium?: boolean;
   showFooter?: boolean;
   showStickyCall?: boolean;
   cta?: { href: string; label: string } | false;
 };
 
-/** Shared chrome — institutional tier, one visual system. */
-export function PublicLayout({
-  children,
-  showFooter = true,
-  showStickyCall = false,
-  cta = DEFAULT_CTA,
-}: PublicLayoutProps) {
-  return (
-    <>
-      <ShellHeader
-        plane="void"
-        surface="glass"
-        position="fixed"
-        cta={cta}
-        nav={[
-          { href: "/pricing", label: "Pricing" },
-          { href: "/pilot", label: "Audit" },
-          { href: "/about", label: "About" },
-        ]}
-      />
-      {showStickyCall ? <HomeStickyCall /> : null}
-      <main className="mkt-page mkt-page--craft">{children}</main>
-      {showFooter ? <SiteFooter /> : null}
-      <UtilityDock />
-    </>
-  );
-}
-
-type MarketingShellProps = PublicLayoutProps & {
-  /** Claude/Anthropic-style shell for the homepage. */
-  premium?: boolean;
-};
-
-function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
+/**
+ * One public shell. Nav CTA and footer live here — page-level cta props
+ * are ignored so every marketing surface shares the same chrome.
+ */
+export function MarketingShell({ children }: MarketingShellProps) {
   const year = new Date().getFullYear();
   return (
-    // The dock sits outside .mkt-page on purpose: legacy marketing CSS squares
-    // off and restyles anything inside that scope.
     <>
       <div className="ov-public mkt-page mkt-page--craft">
         <PremiumNav />
@@ -111,17 +77,6 @@ function PremiumMarketingShell({ children }: { children: React.ReactNode }) {
       <UtilityDock />
     </>
   );
-}
-
-export function MarketingShell({
-  premium = true,
-  children,
-  ...rest
-}: MarketingShellProps) {
-  if (premium) {
-    return <PremiumMarketingShell>{children}</PremiumMarketingShell>;
-  }
-  return <PublicLayout {...rest}>{children}</PublicLayout>;
 }
 
 export function ShellPageIntro({

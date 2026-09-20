@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { MktSection } from "@/components/mkt-section";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { summitCaseStudy } from "@/lib/trust";
@@ -51,9 +50,6 @@ export function HomeCallStory() {
             <a href={demoLineHref()} className="ov-btn ov-btn--solid">
               Call {DEMO_LINE_DISPLAY}
             </a>
-            <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Book a call audit
-            </Link>
           </div>
           <p className="mkt-proof-note font-sans">
             {summitCaseStudy.attribution}

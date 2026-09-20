@@ -46,7 +46,7 @@ export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
           <p className="plan-upgrade-gate-kicker">{moduleLabel(module)}</p>
           <h2 className="plan-upgrade-gate-title">Subscribe to continue</h2>
           <p className="plan-upgrade-gate-detail">
-            Your design-partner access ended or subscription is inactive. Choose a plan to reopen{" "}
+            Your shop access ended or subscription is inactive. Choose a plan to reopen{" "}
             {moduleLabel(module).toLowerCase()} and the rest of your shop.
           </p>
           <div className="plan-upgrade-gate-actions">

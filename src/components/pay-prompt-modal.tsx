@@ -160,7 +160,7 @@ export function PayPromptModal() {
         <p className="pay-prompt-kicker font-sans">
           {decision.tone === "required"
             ? "Subscribe to continue"
-            : "Design partner"}
+            : "Shop access"}
         </p>
         <h2 id={titleId} className="pay-prompt-title font-sans">
           {decision.headline}

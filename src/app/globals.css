@@ -5344,20 +5344,23 @@ body:has(.mkt-page) .shell-header {
    MASTERY WAVE — SpaceX / Grok / Cursor craft across remaining soft chrome
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Filter bar → Cursor segment instrument */
+/* Filter bar → single-row instrument (scroll on narrow) */
 .os-shell-night .pro-filter-bar,
 .os-shell-night .pro-page-filters {
-  display: inline-flex !important;
-  flex-wrap: wrap;
+  display: flex !important;
+  flex-wrap: nowrap;
   gap: 0 !important;
   margin-bottom: 0.65rem !important;
   padding: 0 !important;
   border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   background: #23201b !important;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   width: fit-content;
   max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .os-shell-night .pro-filter-tab {

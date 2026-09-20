@@ -29,12 +29,12 @@ export default function PricingPage() {
           />
           {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
-              Public self-serve opens only when signup, billing, telephony and
-              support gates are verified. Until then, book a{" "}
+              Public self-serve opens only when signup, billing, and the live
+              line are verified with you. Until then, book a{" "}
               <Link href="/pilot" className="underline underline-offset-2">
                 call audit
               </Link>{" "}
-              and we&apos;ll verify the setup with you. We do not advertise a
+              and we&apos;ll set the shop up together. We do not advertise a
               free trial or collect payment outside verified Stripe checkout.
             </p>
           ) : null}

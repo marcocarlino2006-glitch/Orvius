@@ -45,7 +45,7 @@ type BillingAccount = {
 
 function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | null) {
   if (!entitled && (status === "pilot" || status === "none")) {
-    return "Design-partner access ended — subscribe to reopen your shop.";
+    return "Your shop access ended — subscribe to reopen.";
   }
   switch (status) {
     case "active":
@@ -54,10 +54,10 @@ function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | nul
       if (pilotEndsAt) {
         const ends = new Date(pilotEndsAt);
         if (!Number.isNaN(ends.getTime())) {
-          return `Design partner access is active through ${ends.toLocaleDateString()}.`;
+          return `Your shop access is active through ${ends.toLocaleDateString()}.`;
         }
       }
-      return "Your design-partner access is active.";
+      return "Your shop access is active.";
     }
     case "past_due":
       return "Payment failed — update billing to keep your line live.";
@@ -244,9 +244,9 @@ export default function DashboardBillingPage() {
                 whoever owns the Stripe account.
               */}
               <p className="font-sans text-sm leading-relaxed text-ash">
-                Self-serve checkout isn&apos;t open yet. Your design-partner
-                access stays active — we&apos;ll notify you before billing
-                begins. Need to subscribe now?{" "}
+                Self-serve checkout isn&apos;t open yet. Your shop access stays
+                active — we&apos;ll notify you before billing begins. Need to
+                subscribe now?{" "}
                 <a
                   href={`mailto:${company.contactEmail}?subject=Orvius%20billing`}
                   className="underline underline-offset-2"
@@ -284,7 +284,7 @@ export default function DashboardBillingPage() {
                     Runbook · <code>docs/BILLING-SETUP.md</code>
                     {" · "}
                     <Link href="/pilot" className="pro-section-link">
-                      Design partner
+                      Call audit
                     </Link>
                   </p>
                 </div>

@@ -93,7 +93,7 @@ export function PremiumNav() {
             </Link>
             <Link
               href="/pilot"
-              className="mkt-btn mkt-nav-cta"
+              className="ov-btn ov-btn--solid mkt-nav-cta"
               data-i18n="nav.bookdemo"
             >
               Book an audit

@@ -107,7 +107,7 @@ export function ShopOperateBanner() {
     try {
       if (next.id === "weekly-proof") {
         await copyWeeklyProofRitual();
-        setNote("Proof copied — paste into notes / Slack");
+        setNote("Proof copied — paste into your notes");
         await refreshRing();
         await refresh();
         return;
