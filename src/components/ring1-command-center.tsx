@@ -9,7 +9,7 @@ import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
 import { ProLaunchControl } from "@/components/pro-launch-control";
-import type { CoverageState } from "@/components/pro-night-watch";
+import type { CoverageState } from "@/lib/coverage-state";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { ProShiftTimeline } from "@/components/pro-shift-timeline";
 import { usePlanAccess } from "@/lib/use-plan-access";

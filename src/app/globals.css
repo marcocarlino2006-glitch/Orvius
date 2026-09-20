@@ -3018,20 +3018,7 @@ h3 {
   }
 }
 
-/* Dashboard shell: clear the left sidebar on desktop. */
-@media (min-width: 1024px) {
-  body:has(.os-shell) .cookie-bar {
-    left: calc(16.5rem + 1rem);
-    max-width: min(20rem, calc(100vw - 18.5rem));
-  }
-}
-
-@media (max-width: 1023px) {
-  body:has(.os-shell) .cookie-bar {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-}
+/* Dashboard skips the cookie bar in JS — no os-shell offset needed. */
 
 .cookie-bar-text {
   margin: 0;
@@ -6144,8 +6131,9 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .pricing-needs-option-active {
-  background: #fde8dc !important;
-  border-color: #b8562c !important;
+  background: color-mix(in srgb, var(--ov-accent, #c4a484) 18%, transparent) !important;
+  border-color: var(--ov-line, rgba(255, 255, 255, 0.22)) !important;
+  color: var(--ov-headline, #f4f4f4) !important;
 }
 
 /* ============================================================

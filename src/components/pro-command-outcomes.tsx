@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { formatCents } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 
@@ -86,13 +85,6 @@ export function ProCommandOutcomes({
                 } you on the board`
               : "Board is clear — nothing waiting"}
           </p>
-          {attentionCount > 0 ? (
-            <a href="#attention-board" className="btn btn-void text-sm">
-              Open the board
-            </a>
-          ) : (
-            <Link href="/dashboard/calls">Review calls</Link>
-          )}
         </footer>
       ) : null}
     </section>

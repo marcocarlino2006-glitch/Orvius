@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { company } from "@/lib/company";
 import { buildPipelineProof } from "@/lib/pipeline-proof";
-import type { CoverageState } from "@/components/pro-night-watch";
+import type { CoverageState } from "@/lib/coverage-state";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
@@ -145,21 +145,13 @@ export function ProLaunchControl({
         <Link href={actionHref} className="btn btn-void pro-control-action">
           {actionLabel}
         </Link>
-      ) : (
-        <Link href="/dashboard/ask" className="btn btn-secondary pro-control-action">
-          What should I do?
-        </Link>
-      )}
+      ) : null}
 
       {referenceImplementation ? (
         <p className="pro-launch-disclosure font-sans">
           Reference environment. Activity is illustrative, not customer results.
         </p>
-      ) : (
-        <p className="pro-launch-disclosure font-sans">
-          Founder-assisted operations while automation is being proven.
-        </p>
-      )}
+      ) : null}
 
       <div className="pro-rail-card-foot font-sans">
         <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
@@ -168,14 +160,3 @@ export function ProLaunchControl({
     </section>
   );
 }
-
-// Legacy cards stay available to secondary surfaces while Command uses the
-// consolidated control center above.
-export { ProLineWatch } from "@/components/pro-line-watch";
-export { ProNightWatch } from "@/components/pro-night-watch";
-export { ProSetupScore } from "@/components/pro-setup-score";
-export { ProSetupHub } from "@/components/pro-setup-hub";
-export {
-  ProTodayAlerts,
-  ProTodayPulse,
-} from "@/components/pro-today-status";

@@ -77,9 +77,6 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="tier1-actions">
-            <Link href="/legal" className="inst-btn inst-btn-ghost">
-              Legal center
-            </Link>
             <Link href="/pricing" className="inst-btn inst-btn-primary">
               View pricing
             </Link>

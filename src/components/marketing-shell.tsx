@@ -158,6 +158,3 @@ export function ShellChalkPanel({
 }) {
   return <div className={`panel-chalk ${className}`}>{children}</div>;
 }
-
-/** @deprecated Use ShellChalkPanel — kept for gradual migration */
-export const ShellVoidPanel = ShellChalkPanel;

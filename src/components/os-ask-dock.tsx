@@ -1,6 +1,7 @@
 "use client";
 
 import { CopilotActions } from "@/components/copilot-actions";
+import { ASK_DOCK_SUGGESTIONS } from "@/lib/ask-suggestions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,12 +20,6 @@ type AskTurn = {
   source: string;
   hits: AskHit[];
 };
-
-const QUICK_ASK = [
-  "What should I do now?",
-  "Who called today?",
-  "Any new leads?",
-];
 
 function AskIcon() {
   return (
@@ -179,7 +174,7 @@ export function OsAskDock() {
           {error ? <p className="os-ask-dock-error">{error}</p> : null}
 
           <div className="os-ask-dock-chips">
-            {QUICK_ASK.map((item) => (
+            {ASK_DOCK_SUGGESTIONS.map((item) => (
               <button
                 key={item}
                 type="button"

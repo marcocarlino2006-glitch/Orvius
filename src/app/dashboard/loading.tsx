@@ -2,7 +2,7 @@ import { OsShell } from "@/components/os-shell";
 
 export default function DashboardLoading() {
   return (
-    <OsShell title="Command" subtitle="Loading the latest shop state…">
+    <OsShell title="Loading" subtitle="Loading the latest shop state…">
       <section className="dashboard-route-loading" aria-busy="true">
         <div className="dashboard-route-loading-main">
           <span className="skeleton dashboard-route-loading-value" />

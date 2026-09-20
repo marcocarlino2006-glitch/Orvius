@@ -8,10 +8,10 @@ export default function NotFound() {
       <section className="tier1-hero tier1-hero-compact min-h-[70svh] flex flex-col justify-center">
         <div className="editorial-wrap max-w-md mx-auto text-center">
           <BrandIntro
-            kicker="404"
+            brand
             title="Page not found."
-            subline="This route doesn't exist in the OS."
-            description="Head back to Orvius — every call, every customer, every job."
+            subline="This route doesn't exist in Orvius."
+            description="Head back — every call, every customer, every job."
             align="center"
           />
           <div className="tier1-actions justify-center font-sans mt-8">
@@ -19,7 +19,7 @@ export default function NotFound() {
               Back to home
             </Link>
             <Link href="/pilot" className="inst-btn inst-btn-ghost">
-              Apply for pilot
+              Book a call audit
             </Link>
           </div>
         </div>
