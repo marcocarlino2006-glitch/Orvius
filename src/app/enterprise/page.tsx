@@ -72,11 +72,11 @@ export default function EnterprisePage() {
           <div className="tier1-actions">
             <a
               href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop"
-              className="inst-btn inst-btn-ghost"
+              className="ov-btn ov-btn--quiet"
             >
               Contact sales
             </a>
-            <Link href="/pricing" className="inst-btn inst-btn-primary">
+            <Link href="/pricing" className="ov-btn ov-btn--solid">
               View pricing
             </Link>
           </div>

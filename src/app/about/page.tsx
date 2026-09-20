@@ -77,10 +77,10 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="tier1-actions">
-            <Link href="/pricing" className="inst-btn inst-btn-primary">
+            <Link href="/pricing" className="ov-btn ov-btn--solid">
               View pricing
             </Link>
-            <Link href="/pilot" className="inst-btn inst-btn-ghost">
+            <Link href="/pilot" className="ov-btn ov-btn--quiet">
               Book a live audit
             </Link>
           </div>

@@ -6,6 +6,7 @@ import {
   getOwnerSetupStatus,
   ownerSetupHref,
 } from "@/lib/owner-setup-state";
+import { useRing1 } from "@/lib/ring1-context";
 import {
   resolveShopOperateNext,
   type ShopOperateNext,
@@ -26,40 +27,24 @@ type AccountPayload = {
   } | null;
 };
 
-type Ring1Payload = {
-  attention?: Array<{ impact?: string }>;
-  health?: {
-    failedAlerts24h?: number;
-    stuckPendingAlerts?: number;
-  };
-  outcomes?: {
-    economicsReady?: boolean;
-    calls?: number;
-    leads?: number;
-  };
-  lastWeeklyProofAt?: string | null;
-};
-
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Operate O1 for owners — the next shop action sits above Command.
  * Rituals that can finish in one tap (proof, test alert) run in place.
+ * Ring1 pulse is shared with Command — no second fetch.
  */
 export function ShopOperateBanner() {
+  const { data: ring, refresh: refreshRing } = useRing1();
   const [next, setNext] = useState<ShopOperateNext | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    const [accountRes, ringRes] = await Promise.all([
-      fetch("/api/account"),
-      fetch("/api/ring1"),
-    ]);
+    const accountRes = await fetch("/api/account");
     if (!accountRes.ok) return;
     const account = (await accountRes.json()) as AccountPayload;
-    const ring = ringRes.ok ? ((await ringRes.json()) as Ring1Payload) : null;
     if (!account.business) {
       setNext(null);
       return;
@@ -97,7 +82,7 @@ export function ShopOperateBanner() {
         economicsReady,
       }),
     );
-  }, []);
+  }, [ring]);
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +108,7 @@ export function ShopOperateBanner() {
       if (next.id === "weekly-proof") {
         await copyWeeklyProofRitual();
         setNote("Proof copied — paste into notes / Slack");
+        await refreshRing();
         await refresh();
         return;
       }
@@ -142,6 +128,7 @@ export function ShopOperateBanner() {
           );
         }
         setNote("Test alert sent — check your phone");
+        await refreshRing();
         await refresh();
       }
     } catch (error) {

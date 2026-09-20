@@ -3831,6 +3831,35 @@ a.pro-shift-event:hover .pro-shift-event-title {
   --os-display: 2.75rem;
   --os-figure: 1.625rem;
   --os-lede: 1.0625rem;
+  /* Charcoal surface stack — one token source for the night plane. */
+  --os-paper: #27241f;
+  --os-panel: #2f2d28;
+  --os-panel-raised: #34322d;
+  --os-ink: #f4f4f4;
+  --os-mute: #a09f9e;
+  --os-line: #4b4945;
+  --os-flare: #f4212e;
+  --os-live: #00ba7c;
+  --void: #f4f4f4;
+  --ash: #a09f9e;
+  --ash-soft: #adadac;
+  --white: #2f2d28;
+  --fog: #23201b;
+  --chalk: #27241f;
+  --canvas: #27241f;
+  --rule: #4b4945;
+  --signal: #d9784b;
+  --signal-text: #d9784b;
+  --flare-text: #ff6b74;
+  --live-text: #00ba7c;
+  --os-agent: #e0855a;
+  --os-danger: #f97066;
+  --os-success: #6ee7b7;
+  --os-attention: #ecc79a;
+  --os-info: #8fb8e8;
+  background: #27241f !important;
+  color: #e9e9e9 !important;
+  font-feature-settings: "zero" 1;
 }
 
 @media (max-width: 900px) {
@@ -3839,6 +3868,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
     --os-figure: 1.375rem;
   }
 }
+
 
 /*
   Replaces two things that opened almost every page: a banner restating the
@@ -5370,39 +5400,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: color-mix(in srgb, #d1d1d1 55%, transparent) !important;
 }
 
-.os-shell-night {
-  --os-paper: #27241f;
-  --os-panel: #2f2d28;
-  --os-ink: #f4f4f4;
-  --os-mute: color-mix(in srgb, #d1d1d1 62%, transparent);
-  --os-line: color-mix(in srgb, #fff 10%, transparent);
-  --os-flare: #e5484d;
-  --os-live: #3dd68c;
-  --void: #f4f4f4;
-  --ash: color-mix(in srgb, #d1d1d1 62%, transparent);
-  --ash-soft: color-mix(in srgb, #d1d1d1 45%, transparent);
-  --white: #2f2d28;
-  --fog: #23201b;
-  --chalk: #27241f;
-  --canvas: #27241f;
-  --rule: color-mix(in srgb, #fff 10%, transparent);
-  --signal: #d9784b;
-  --signal-text: #d9784b;
-  --flare-text: #ff6b74;
-  --live-text: #00ba7c;
-  /*
-    Semantic accents. Copper means work Orvius performed, never generic
-    decoration. Red is reserved for intervention, green for verified outcomes,
-    amber for pending decisions, and blue for neutral system evidence.
-  */
-  --os-agent: #e0855a;
-  --os-danger: #f97066;
-  --os-success: #6ee7b7;
-  --os-attention: #ecc79a;
-  --os-info: #8fb8e8;
-  background: #27241f !important;
-  color: #ececec !important;
-}
+/* Night tokens: single source at .os-shell-night above. */
 
 .os-shell-night .os-main-pro,
 .os-shell-night .os-content-pro,
@@ -5590,33 +5588,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   gap: 0.75rem;
 }
 
-.os-shell-night {
-  /* Charcoal surface stack: canvas, panel, raised panel, hairline. */
-  --os-paper: #27241f;
-  --os-panel: #2f2d28;
-  --os-panel-raised: #34322d;
-  --os-ink: #f4f4f4;
-  --os-mute: #a09f9e;
-  --os-line: #4b4945;
-  --os-flare: #f4212e;
-  --os-live: #00ba7c;
-  --void: #f4f4f4;
-  --ash: #a09f9e;
-  --ash-soft: #adadac;
-  --white: #2f2d28;
-  --fog: #23201b;
-  --chalk: #27241f;
-  --canvas: #27241f;
-  --rule: #4b4945;
-  /* Copper lifted for legibility on the charcoal shell, still the brand accent. */
-  --signal: #d9784b;
-  --signal-text: #d9784b;
-  --flare-text: #ff6b74;
-  --live-text: #00ba7c;
-  background: #27241f !important;
-  color: #e9e9e9 !important;
-  font-feature-settings: "zero" 1;
-}
+/* Night tokens already declared once — component densify continues. */
 
 .os-shell-night .os-main-pro,
 .os-shell-night .os-content-pro,

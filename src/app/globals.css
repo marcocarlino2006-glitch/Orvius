@@ -4381,22 +4381,34 @@ label:has(> input[type="radio"]) {
   text-decoration-color: color-mix(in srgb, var(--ov-ink) 35%, transparent);
 }
 
-/* Buttons on night marketing */
+/* Buttons on night marketing — same language as .ov-btn */
 .mkt-page .inst-btn,
 .mkt-page .mkt-btn {
   border-radius: 0.25rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
 }
 
 .mkt-page .inst-btn-primary {
-  
-  
+  background: #f6f6f6 !important;
+  color: #0a0701 !important;
   border: 1px solid #f6f6f6 !important;
 }
 
+.mkt-page .inst-btn-primary:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
 .mkt-page .inst-btn-ghost {
-  
-  
+  background: transparent !important;
+  color: #f1f1f1 !important;
   border: 1px solid color-mix(in srgb, #f1f1f1 35%, transparent) !important;
+}
+
+.mkt-page .inst-btn-ghost:hover {
+  border-color: color-mix(in srgb, #f1f1f1 55%, transparent) !important;
+  background: color-mix(in srgb, #fff 6%, transparent) !important;
 }
 
 /* Pricing / plan cards — dense tool tiles on void */
@@ -6136,312 +6148,13 @@ body:has(.mkt-page) .shell-header {
   color: var(--ov-headline, #f4f4f4) !important;
 }
 
-/* ============================================================
-   Cursor-craft home — calm, centered, light. Kill the dark
-   hero + bands so the site reads like cursor.com.
-   ============================================================ */
 
-/* Clean centered hero */
-
-/* Airy light sections (night rules + close), ink type */
-.mkt-page .mkt-manifesto,
-.mkt-page .mkt-manifesto--meta {
-  background: var(--ov-paper) !important;
-  border: 0 !important;
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-section-inner {
-  padding-top: clamp(4rem, 10vh, 7rem) !important;
-  padding-bottom: clamp(4rem, 10vh, 7rem) !important;
-}
-
-.mkt-page .mkt-manifesto-title,
-.mkt-page .mkt-law-title {
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-manifesto-kicker {
-  color: var(--ov-accent-text) !important;
-}
-
-.mkt-page .mkt-manifesto-aside,
-.mkt-page .mkt-law-body {
-  color: var(--ov-muted) !important;
-}
-
-.mkt-page .mkt-law-id {
-  color: var(--ov-accent-text) !important;
-}
-
-.mkt-page .mkt-law {
-  border-color: var(--ov-line) !important;
-}
-
-/* Close-section chalk CTA → charcoal pill; secondary → ink */
-
-/* Proof/story section (inset) → paper + ink; transcript panel white */
-.mkt-page .mkt-proof-section,
-.mkt-page .mkt-proof-section--company {
-  background: var(--ov-paper-raised) !important;
-  border: 0 !important;
-}
-
-.mkt-page .mkt-proof-title {
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-proof-kicker {
-  color: var(--ov-accent-text) !important;
-}
-
-.mkt-page .mkt-proof-lead,
-.mkt-page .mkt-proof-note {
-  color: var(--ov-muted) !important;
-}
-
-.mkt-page .mkt-call-panel,
-.mkt-page .mkt-call-panel--company {
-  background: var(--ov-paper-raised) !important;
-  border: 1px solid var(--ov-line) !important;
-  border-radius: 0.5rem !important;
-  box-shadow: none !important;
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-call-panel-kicker {
-  color: var(--ov-accent-text, var(--ov-accent-text)) !important;
-}
-
-.mkt-page .mkt-call-panel-title {
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-transcript-line {
-  color: var(--ov-ink) !important;
-}
-
-.mkt-page .mkt-transcript-line span {
-  color: var(--ov-muted) !important;
-}
-
-.mkt-page .mkt-transcript-line-muted {
-  color: var(--ov-muted) !important;
-}
-
-/* ============================================================
-   Marketing surface spec.
-   Paper #f5f3ee · ink #1c1e1a · accent #b8562c · secondary #dcdad2.
-   Type inherits the brand letterset from <body>; marketing pages
-   deliberately do not pin their own font stack, so Archivo and Plex
-   Mono reach every surface without a specificity fight.
-   ============================================================ */
-
-/* Display headings render at regular weight */
-.mkt-page .mkt-manifesto-title,
-.mkt-page .mkt-proof-title,
-.mkt-page .tier1-page-title,
-.mkt-page .tier1-section-title,
-.mkt-page .type-headline {
-  font-weight: 400 !important;
-  letter-spacing: -0.03em !important;
-}
-
-/* Primary pill CTA — exact cursor.com button */
-.mkt-page .inst-btn-primary {
-  background: #26251e !important;
-  color: #f7f7f4 !important;
-  border: 1px solid #26251e !important;
-  border-radius: 999px !important;
-  padding: 0.78rem 1.35rem 0.8rem !important;
-  font-size: 1rem !important;
-  font-weight: 400 !important;
-  letter-spacing: -0.01em !important;
-  box-shadow: none !important;
-}
-
-.mkt-page .inst-btn-primary:hover {
-  background: #27241f !important;
-  border-color: #27241f !important;
-}
-
-/* Secondary pill — cursor.com "Request a demo" style */
-.mkt-page .inst-btn-ghost {
-  background: #e6e5e0 !important;
-  color: var(--ov-headline) !important;
-  border: 1px solid transparent !important;
-  border-radius: 999px !important;
-}
-
-.mkt-page .inst-btn-ghost:hover {
-  background: #dbdad3 !important;
-  color: var(--ov-headline) !important;
-}
-
-/* Nav CTA pill (smaller, like cursor.com "Download") */
-.mkt-nav--institution .mkt-nav-cta,
-.mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta,
-.mkt-nav .mkt-nav-cta {
-  background: #26251e !important;
-  color: #f7f7f4 !important;
-  border: 1px solid #26251e !important;
-  border-radius: 999px !important;
-  padding: 0.4rem 0.75rem !important;
-  font-size: 0.875rem !important;
-  font-weight: 400 !important;
-  letter-spacing: 0 !important;
-}
-
-/* Nav links normal-case (Models/Product…), regular weight, like cursor.com */
-.mkt-nav-links a,
-.mkt-nav--institution .mkt-nav-links a,
-.mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
-.mkt-nav-login,
-.mkt-nav--institution .mkt-nav-login {
-  text-transform: none !important;
-  letter-spacing: -0.006em !important;
-  font-weight: 400 !important;
-  font-size: 0.9375rem !important;
-  color: #26251e !important;
-  font-family: var(--font-sans), system-ui, sans-serif !important;
-}
-
-/* Force the whole nav (brand, links, secondary, cta) off the Sora brand font */
-.mkt-nav-links,
-.mkt-nav--institution .mkt-nav-links,
-.mkt-nav-brand .orvius-logo-word {
-  font-family: var(--font-sans), system-ui, sans-serif !important;
-}
-
-/* Sign in — plain text link like cursor.com */
-.mkt-nav-login,
-.mkt-nav--institution .mkt-nav-login,
-.mkt-nav--institution.mkt-nav--elevated .mkt-nav-login {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 0.35rem !important;
-  min-height: auto !important;
-}
-
-.mkt-nav-login:hover {
-  color: #000000 !important;
-}
-
-/* Secondary nav pill — cursor.com "Contact sales" (light gray, hairline) */
-
-.mkt-nav--institution .mkt-nav-cta {
-  padding: 0.4rem 0.95rem !important;
-  text-transform: none !important;
-  letter-spacing: -0.006em !important;
-}
-
-/* Trademark lockup — word alone until a mark earns its place. */
-.mkt-nav-brand .orvius-logo,
-.mkt-nav--institution .mkt-nav-brand .orvius-logo,
-.mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
-  color: #26251e !important;
-  gap: 0.5rem !important;
-}
-
-.mkt-page .orvius-logo-word,
-.mkt-nav-brand .orvius-logo-word,
-.mkt-footer .orvius-logo-word {
-  color: var(--ov-headline) !important;
-  font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.075em !important;
-  text-transform: lowercase !important;
-}
-
-.mkt-nav-brand .orvius-logo-word {
-  font-size: 1.65rem !important;
-}
-
-.mkt-nav-brand .orvius-logo-mark {
-  color: #26251e !important;
-}
-
-/* Resources hub grid */
-.mkt-page .mkt-resources-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 2.5rem 3rem;
-}
-
-.mkt-page .mkt-resources-col .tier1-eyebrow {
-  color: var(--ov-accent-text) !important;
-  margin-bottom: 1rem;
-}
-
-.mkt-page .mkt-resources-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.mkt-page .mkt-resources-link {
-  color: var(--ov-headline) !important;
-  text-decoration: none;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
-  transition: color 120ms ease;
-}
-
-.mkt-page .mkt-resources-link:hover {
-  color: var(--ov-accent-text) !important;
-}
-
-/* Product showcase — cursor.com "In every tool, at every step" */
-
-/* Footer → Cursor light (was true-black) */
-.mkt-footer,
-.mkt-footer--institution {
-  background: #efeee9 !important;
-  border-top: 1px solid #e6e5e0 !important;
-}
-
-.mkt-footer-entity,
-.mkt-footer-heading {
-  color: #26251e !important;
-}
-
-.mkt-footer-tagline,
-.mkt-footer-col a,
-.mkt-footer--institution .mkt-footer-copy,
-.mkt-footer--institution .mkt-footer-mark {
-  color: #6b6a63 !important;
-}
-
-.mkt-footer-col a:hover {
-  color: #b8562c !important;
-}
-
-.mkt-footer-bottom {
-  border-top-color: #e6e5e0 !important;
-}
-
-.mkt-footer .orvius-logo,
-.mkt-footer .orvius-logo-word,
-.mkt-footer .orvius-logo-mark {
-  color: #26251e !important;
-}
-
-/* ============================================================
-   Try Orvius now — skins live in public-v2.css (.ov-public .mkt-trynow*)
-   ============================================================ */
-
-
+/* Legal footer clearance (utility dock + cookie) */
 .mkt-footer-bottom--legal {
   align-items: center;
   justify-content: flex-start !important;
-  /* Clear the fixed cookie notice and the utility dock so neither can sit on
-     the last row. */
   padding-bottom: 4rem;
 }
-
 .mkt-footer-bottom--legal .mkt-footer-mark {
   margin-left: auto !important;
 }

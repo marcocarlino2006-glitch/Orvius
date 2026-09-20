@@ -56,10 +56,10 @@ export default function PricingPage() {
             close rate, and margin determine the actual payback.
           </p>
           <div className="tier1-actions tier1-close-actions">
-            <a href={demoLineHref()} className="inst-btn inst-btn-primary">
+            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
               Call the live line
             </a>
-            <Link href="/pilot" className="inst-btn inst-btn-ghost">
+            <Link href="/pilot" className="ov-btn ov-btn--quiet">
               Book a call audit
             </Link>
           </div>

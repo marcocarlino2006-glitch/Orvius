@@ -88,13 +88,10 @@ export default function PilotForwardPage() {
           </ul>
 
           <div className="tier1-actions" style={{ marginTop: "2.5rem" }}>
-            <Link href="/pilot" className="inst-btn inst-btn-primary">
+            <Link href="/pilot" className="ov-btn ov-btn--solid">
               Book a call audit
             </Link>
-            <Link href="/demo" className="inst-btn inst-btn-ghost">
-              Run the browser demo
-            </Link>
-            <Link href="/signin" className="inst-btn inst-btn-ghost">
+            <Link href="/signin" className="ov-btn ov-btn--quiet">
               Sign in to get your line
             </Link>
           </div>

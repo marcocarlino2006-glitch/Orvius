@@ -15,10 +15,10 @@ export default function NotFound() {
             align="center"
           />
           <div className="tier1-actions justify-center font-sans mt-8">
-            <Link href="/" className="inst-btn inst-btn-primary">
+            <Link href="/" className="ov-btn ov-btn--solid">
               Back to home
             </Link>
-            <Link href="/pilot" className="inst-btn inst-btn-ghost">
+            <Link href="/pilot" className="ov-btn ov-btn--quiet">
               Book a call audit
             </Link>
           </div>

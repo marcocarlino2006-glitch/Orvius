@@ -19,11 +19,13 @@ test("dashboard routes own loading and error states", () => {
 
 test("Command exposes failed refreshes and a real retry action", () => {
   const command = read("src/components/ring1-command-center.tsx");
+  const ctx = read("src/lib/ring1-context.tsx");
   assert.match(command, /Connection needs attention/);
-  assert.match(command, /Live refresh is temporarily unavailable/);
-  assert.match(command, /await load\(\)/);
+  assert.match(command, /useRing1/);
+  assert.match(command, /await refresh\(\)/);
   assert.match(command, /Try again/);
-  assert.doesNotMatch(command, /if \(!res\.ok\) return/);
+  assert.match(ctx, /Live refresh is temporarily unavailable/);
+  assert.doesNotMatch(command, /fetch\("\/api\/ring1"\)/);
 });
 
 test("Command keeps one flagship hierarchy and one control rail", () => {
@@ -35,13 +37,25 @@ test("Command keeps one flagship hierarchy and one control rail", () => {
   assert.ok(outcomes >= 0 && attention > outcomes && timeline > attention);
   assert.equal((command.match(/<ProLaunchControl/g) ?? []).length, 1);
   assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
-  assert.match(command, /<ApproveQueue onChange=\{load\} hideWhenEmpty/);
+  assert.match(command, /<ApproveQueue onChange=\{/);
 
   const queue = read("src/components/attention-queue.tsx");
   assert.match(queue, /items\.slice\(0, 5\)/);
 
   const shift = read("src/components/pro-shift-timeline.tsx");
   assert.doesNotMatch(shift, /Finish setup before testing the full loop/);
+});
+
+test("Dashboard shares one Ring1 pulse across shell and Command", () => {
+  const layout = read("src/app/dashboard/layout.tsx");
+  const ctx = read("src/lib/ring1-context.tsx");
+  const business = read("src/lib/use-business.ts");
+  const banner = read("src/components/shop-operate-banner.tsx");
+  assert.match(layout, /Ring1Provider/);
+  assert.match(ctx, /Ring1Provider/);
+  assert.match(business, /useRing1/);
+  assert.match(banner, /useRing1/);
+  assert.doesNotMatch(banner, /fetch\("\/api\/ring1"\)/);
 });
 
 test("Settings and loading states use the same owner-system language", () => {

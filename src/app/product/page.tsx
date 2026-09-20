@@ -69,10 +69,10 @@ export default function ProductPage() {
             </p>
           </div>
           <div className="tier1-actions">
-            <a href="tel:+18446439170" className="inst-btn inst-btn-ghost">
+            <a href="tel:+18446439170" className="ov-btn ov-btn--quiet">
               Call the live line
             </a>
-            <Link href="/pilot" className="inst-btn inst-btn-primary">
+            <Link href="/pilot" className="ov-btn ov-btn--solid">
               Book a call audit
             </Link>
           </div>

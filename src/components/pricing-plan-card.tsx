@@ -62,7 +62,7 @@ export function PricingPlanCard({
       className={
         layout === "dashboard"
           ? "btn btn-secondary text-sm"
-          : `inst-btn ${featured || recommended ? "inst-btn-primary" : "inst-btn-ghost"}`
+          : `ov-btn ${featured || recommended ? "ov-btn--solid" : "ov-btn--quiet"}`
       }
     >
       {plan.cta}
