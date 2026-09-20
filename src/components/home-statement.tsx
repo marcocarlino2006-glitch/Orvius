@@ -24,7 +24,7 @@ const nightRules: {
     icon: "board",
     badge: "BOARD",
     title: "One board. Not twelve tabs.",
-    body: "Every call, text, job, and recorded outcome stays on one customer record. Book and assign from Attention — no CRM scavenger hunt.",
+    body: "Every call, text, job, and recorded outcome stays on one customer record. Book and assign from Command — no CRM scavenger hunt.",
   },
   {
     id: "03",
@@ -32,7 +32,7 @@ const nightRules: {
     icon: "shield",
     badge: "PROOF",
     title: "Proof you can hand a partner.",
-    body: "Weekly captured-demand bookings and estimated value copy as a stamped artifact. No vanity dashboards. No invented ARR.",
+    body: "Weekly captured-demand bookings and estimated value copy as a stamped artifact. No vanity dashboards. No invented numbers.",
   },
 ];
 

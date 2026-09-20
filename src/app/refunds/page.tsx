@@ -19,9 +19,9 @@ export default function RefundsPage() {
       description={`How billing, pilots, and cancellations work for ${company.productName} operated by ${company.legalName}.`}
       updated={company.legalUpdated}
     >
-      <LegalSection title="1. Pilot / design partner">
+      <LegalSection title="1. Pilot program">
         <p>
-          Design-partner pilots are free for thirty (30) days unless otherwise agreed in writing.
+          Pilot access is free for thirty (30) days unless otherwise agreed in writing.
           No credit card is required to start a pilot when offered. At the end of the pilot, you
           may subscribe to a paid plan or discontinue use. Pilot credits (if any) are governed by
           the applicable pilot agreement or order form.

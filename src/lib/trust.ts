@@ -10,7 +10,7 @@ export const summitCaseStudy = {
   name: "Summit HVAC",
   trade: "HVAC",
   location: "Reference shop",
-  crew: "Design partner profile",
+  crew: "Reference implementation",
   partnerSince: "2026",
   headline: "After-hours emergencies handled without stopping work.",
   summary:

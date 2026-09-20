@@ -19,7 +19,7 @@ export function LegalDocument({
   children,
 }: LegalDocumentProps) {
   return (
-    <MarketingShell cta={{ href: "/pilot", label: "Apply for pilot" }}>
+    <MarketingShell cta={{ href: "/pilot", label: "Book a call audit" }}>
       <section className="tier1-hero tier1-hero-compact mkt-doc-hero">
         <div className="editorial-wrap max-w-3xl">
           <ShellPageIntro label={label} title={title} description={description} />

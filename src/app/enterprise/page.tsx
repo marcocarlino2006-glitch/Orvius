@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Enterprise",
-  description: `${company.productName} design-partner access for multi-shop and franchise operators evaluating one after-hours operating standard.`,
+  description: `${company.productName} for multi-shop and franchise operators evaluating one after-hours operating standard.`,
 };
 
 const pillars = [
@@ -22,7 +22,7 @@ const pillars = [
   {
     id: "03",
     title: "Design the control plane together.",
-    body: "Portfolio roles, consolidated billing, and cross-location reporting are design-partner requirements, not generally available product claims.",
+    body: "Portfolio roles, consolidated billing, and cross-location reporting ship per deal — not as generally available product claims today.",
   },
 ] as const;
 
@@ -34,8 +34,8 @@ export default function EnterprisePage() {
           <ShellPageIntro
             label="Enterprise"
             title="Build one standard before scaling every location."
-            subline="A design-partner brief for franchises and multi-shop operators."
-            description="Orvius is proving the autonomous front desk one live location at a time. The multi-location control plane is not generally available yet."
+            subline="For franchises and multi-shop operators ready to run one after-hours standard."
+            description="Orvius proves the autonomous front desk one live location at a time. The multi-location control plane is not generally available yet."
           />
         </div>
       </section>

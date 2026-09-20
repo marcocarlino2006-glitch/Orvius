@@ -17,7 +17,7 @@ const capabilities = [
   {
     id: "02",
     title: "One board. One record.",
-    body: "Every call, text, job, confirmation, and recorded outcome stays on one customer record. Book and assign from Attention.",
+    body: "Every call, text, job, confirmation, and recorded outcome stays on one customer record. Book and assign from Command.",
   },
   {
     id: "03",

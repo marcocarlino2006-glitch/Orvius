@@ -39,6 +39,6 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "launch",
     question: "What happens before my line goes live?",
     answer:
-      "We verify your shop name, services, hours, escalation number, and one real test call. Early accounts receive founder-assisted onboarding while these checks are automated. Your selected paid plan begins through Stripe checkout; there is no advertised free-trial period.",
+      "We verify your shop name, services, hours, escalation number, and one real test call. Early accounts get guided setup while these checks are automated. Your selected paid plan begins through Stripe checkout; there is no advertised free-trial period.",
   },
 ] as const;
