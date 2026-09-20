@@ -30,7 +30,7 @@ $0 ARR            →   First $ → retention → density
 | **G. Legal** | Placeholder language | Counsel formation state | **FOUNDER + counsel** |
 | **H. Proof** | Summit self-reference possible | External named proof | **FOUNDER** |
 | **I. OS monopoly** | Demand capture + taxonomy live in writers | Multi-shop compounding data | Needs paying density |
-| **J. Polish debt** | `globals.css` **~7.45k** (was ~12.7k) | Keep under 8k; drop era stacking; dashboard sheet owns product densify | **B6 closed on line ceiling** |
+| **J. Polish debt** | Night plane densified; Settings blank-save closed; billing honesty when checkout dark | Keep era stacking dead; founder live gates | **Founder C–H** |
 
 **Bottom line:** We are a **strong product with multi-b discipline encoded**, standing at roughly **code-ready / cash-zero / distribution-zero**. Multi-b standard requires closing layers C–H in order — not building more UI.
 

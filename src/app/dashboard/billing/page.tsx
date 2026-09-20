@@ -208,8 +208,16 @@ export default function DashboardBillingPage() {
                 whoever owns the Stripe account.
               */}
               <p className="font-sans text-sm leading-relaxed text-ash">
-                No payment is due today. Your design-partner access remains
-                active, and we will notify you before billing begins.
+                Self-serve checkout isn&apos;t open yet. Your design-partner
+                access stays active — we&apos;ll notify you before billing
+                begins. Need to subscribe now?{" "}
+                <a
+                  href={`mailto:${company.contactEmail}?subject=Orvius%20billing`}
+                  className="underline underline-offset-2"
+                >
+                  {company.contactEmail}
+                </a>
+                .
               </p>
               {founder ? (
                 <div className="billing-unblock billing-unblock--instrument mt-4 font-sans">

@@ -125,7 +125,7 @@ export function MarketingShell({
 }
 
 export function ShellPageIntro({
-  label,
+  label: _label,
   title,
   subline,
   description,
@@ -141,7 +141,6 @@ export function ShellPageIntro({
     <BrandIntro
       className={className}
       brand
-      kicker={label}
       title={title}
       subline={subline}
       description={description}

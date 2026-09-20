@@ -789,17 +789,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
   gap: 0 !important;
 }
 
-.pro-settings-page > .pro-page-strip,
-.os-shell-night .pro-settings-page > .pro-page-strip {
-  margin: 0 !important;
-  padding: 0 0 1.15rem !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
 .pro-settings-form,
 .os-shell-night .pro-settings-form {
   gap: 0 !important;
@@ -946,9 +935,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
     gap: 0.85rem;
   }
 
-  .pro-settings-page > .pro-page-strip {
-    padding-bottom: 0.9rem !important;
-  }
 }
 
 .attention-queue {
@@ -2697,60 +2683,12 @@ a.pro-shift-event:hover .pro-shift-event-title {
   text-decoration: underline;
 }
 
-.pro-page-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.875rem 1.25rem;
-  margin-bottom: 1.25rem;
-  padding: 0.875rem 1.125rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
-  background: var(--white);
-  box-shadow: var(--shadow-soft);
-}
 
-.pro-page-strip-main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-  min-width: 0;
-}
 
-.pro-page-strip-line {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--void);
-  text-decoration: none;
-}
 
-.pro-page-strip-line:hover {
-  color: var(--signal);
-}
 
-.pro-page-strip-meta,
-.pro-page-strip-empty {
-  font-size: 0.75rem;
-  color: var(--ash);
-}
 
-.pro-page-strip-link {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--signal);
-  text-decoration: none;
-}
 
-.pro-page-strip-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-}
 
 .pro-page-filters {
   margin-bottom: 1.25rem;
@@ -9453,4 +9391,18 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .shop-operate-banner--ritual .shop-operate-banner-kicker {
   color: var(--live-text, #1a9b6e);
+}
+
+.pro-settings-load-skel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+.pro-settings-load-skel .skeleton {
+  display: block;
+  height: 3.5rem;
+  border-radius: 0.25rem;
+}
+.pro-settings-load-error {
+  padding: 1rem 0;
 }

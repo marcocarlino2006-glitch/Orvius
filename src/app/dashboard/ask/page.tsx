@@ -107,7 +107,6 @@ export default function AskPage() {
                 onClick={() => void ask(item)}
                 disabled={loading}
               >
-                <span className="ask-rail-kind">Ask</span>
                 <span className="ask-rail-q">{item}</span>
                 <span className="ask-rail-go">Run</span>
               </button>

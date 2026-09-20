@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
+import { company } from "@/lib/company";
 import { pricing } from "@/lib/pricing-plans";
 import type { PayPromptTone } from "@/lib/pay-prompt";
 
@@ -57,14 +58,23 @@ export function BillingLockScreen({
             className="billing-lock-checkout"
           />
         ) : (
-          <Link href="/dashboard/billing" className="btn btn-void billing-lock-cta">
-            Open billing
+          <Link
+            href={`mailto:${company.contactEmail}?subject=Orvius%20billing`}
+            className="btn btn-void billing-lock-cta"
+          >
+            Contact us to subscribe
           </Link>
         )}
 
         <div className="billing-lock-links font-sans">
-          <Link href="/dashboard/pricing">Compare plans</Link>
-          <Link href="/dashboard/billing">Billing details</Link>
+          {checkoutReady ? (
+            <>
+              <Link href="/dashboard/pricing">Compare plans</Link>
+              <Link href="/dashboard/billing">Billing details</Link>
+            </>
+          ) : (
+            <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
+          )}
         </div>
       </div>
     </div>

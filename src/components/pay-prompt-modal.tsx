@@ -196,22 +196,24 @@ export function PayPromptModal() {
               className="pay-prompt-checkout"
             />
           ) : (
-            <Link
-              href="/dashboard/billing"
+            <a
+              href={`mailto:hello@orvius.im?subject=Orvius%20billing`}
               className="btn btn-void pay-prompt-primary"
               onClick={snooze}
             >
-              {decision.primaryCta} · Billing
-            </Link>
+              Contact us to subscribe
+            </a>
           )}
           <div className="pay-prompt-secondary">
-            <Link
-              href="/dashboard/pricing"
-              className="btn btn-secondary text-sm"
-              onClick={snooze}
-            >
-              Compare plans
-            </Link>
+            {checkoutReady ? (
+              <Link
+                href="/dashboard/pricing"
+                className="btn btn-secondary text-sm"
+                onClick={snooze}
+              >
+                Compare plans
+              </Link>
+            ) : null}
             <button type="button" className="pay-prompt-later font-sans" onClick={snooze}>
               Not now — remind me later
             </button>

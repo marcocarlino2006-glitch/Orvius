@@ -55,8 +55,6 @@ const FOUNDER_CERT = [
   "Inbound SMS — lead + auto-reply",
 ] as const;
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-
 function parseCert(raw: string | null | undefined): boolean[] {
   const empty = FOUNDER_CERT.map(() => false);
   if (!raw) return empty;
@@ -72,6 +70,9 @@ function parseCert(raw: string | null | undefined): boolean[] {
 }
 
 export default function DashboardSettingsPage() {
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [account, setAccount] = useState<AccountResponse | null>(null);
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
@@ -93,10 +94,14 @@ export default function DashboardSettingsPage() {
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
   const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
+  const [dirty, setDirty] = useState(false);
 
   async function loadAccount() {
+    setLoadState("loading");
+    setError(null);
     const res = await fetch("/api/account");
     if (!res.ok) {
+      setLoadState("error");
       setError("Could not load settings. Refresh and try again.");
       return;
     }
@@ -122,13 +127,26 @@ export default function DashboardSettingsPage() {
     );
     setCertChecks(parseCert(data.business?.founderCertJson));
     setOverflowForward(Boolean(data.business?.overflowForwardConfirmedAt));
+    setDirty(false);
+    setLoadState("ready");
   }
 
   useEffect(() => {
     loadAccount().catch(() => {
+      setLoadState("error");
       setError("Could not load settings. Refresh and try again.");
     });
   }, []);
+
+  useEffect(() => {
+    if (!dirty) return;
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
 
   useEffect(() => {
     if (!account) return;
@@ -285,14 +303,18 @@ export default function DashboardSettingsPage() {
           baselineJobsPerWeek: baselineJobs.trim()
             ? Math.round(Number(baselineJobs.replace(/[^0-9.]/g, "")))
             : null,
-          founderCertJson: JSON.stringify(certChecks),
+          ...(account?.founder
+            ? { founderCertJson: JSON.stringify(certChecks) }
+            : {}),
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Save failed");
       setSaved(true);
+      setDirty(false);
       setSyncWarning(data.syncWarning ?? null);
       await loadAccount();
+      setSaved(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -351,6 +373,35 @@ export default function DashboardSettingsPage() {
 
   const certDone = certChecks.filter(Boolean).length;
 
+  if (loadState !== "ready" || !account) {
+    return (
+      <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
+        <div className="pro-settings-page">
+          {loadState === "error" ? (
+            <div className="pro-settings-load-error">
+              <ShellAlert tone="error">
+                {error ?? "Could not load settings."}
+              </ShellAlert>
+              <button
+                type="button"
+                className="btn btn-void text-sm mt-4"
+                onClick={() => void loadAccount()}
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div className="pro-settings-load-skel" aria-busy="true">
+              <span className="skeleton" />
+              <span className="skeleton" />
+              <span className="skeleton" />
+            </div>
+          )}
+        </div>
+      </OsShell>
+    );
+  }
+
   return (
     <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
       <div className="pro-settings-page">
@@ -360,10 +411,10 @@ export default function DashboardSettingsPage() {
             <CaptureSetupPanel
               line={line}
               overflowConfirmed={overflowForward}
-              lineVerified={Boolean(account?.business?.lineVerifiedAt)}
+              lineVerified={Boolean(account.business?.lineVerifiedAt)}
               saving={overflowSaving}
-              initialMode={account?.business?.captureMode ?? "forward"}
-              initialCarrier={account?.business?.forwardCarrier ?? "verizon"}
+              initialMode={account.business?.captureMode ?? "forward"}
+              initialCarrier={account.business?.forwardCarrier ?? "verizon"}
               onConfirmOverflow={(next) => saveOverflow(next)}
               onCapturePathChange={(next) => saveCapturePath(next)}
             />
@@ -372,7 +423,7 @@ export default function DashboardSettingsPage() {
 
         <div id="owner-alerts">
         <ShellPanel title="Owner alerts" dense>
-          {account?.alerts.ownerSmsOptedOut ? (
+          {account.alerts.ownerSmsOptedOut ? (
             <div className="mb-4">
               <ShellAlert tone="error">
                 This number texted STOP — night leads will not reach you. Text{" "}
@@ -386,7 +437,11 @@ export default function DashboardSettingsPage() {
             <input
               type="tel"
               value={ownerPhone}
-              onChange={(e) => setOwnerPhone(e.target.value)}
+              onChange={(e) => {
+                setOwnerPhone(e.target.value);
+                setDirty(true);
+                setSaved(false);
+              }}
               className="onboarding-input"
               placeholder="+1 555 123 4567"
             />
@@ -400,12 +455,16 @@ export default function DashboardSettingsPage() {
             <input
               type="email"
               value={ownerEmail}
-              onChange={(e) => setOwnerEmail(e.target.value)}
+              onChange={(e) => {
+                setOwnerEmail(e.target.value);
+                setDirty(true);
+                setSaved(false);
+              }}
               className="onboarding-input"
               placeholder="you@yourshop.com"
             />
             <span className="onboarding-hint">
-              {account?.alerts.emailConfigured
+              {account.alerts.emailConfigured
                 ? "Email failover is live — used when SMS fails or is unavailable."
                 : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
             </span>
@@ -422,12 +481,12 @@ export default function DashboardSettingsPage() {
             </button>
             <span className="pro-settings-test-meta font-sans">
               SMS{" "}
-              {account?.alerts.ownerSmsOptedOut
+              {account.alerts.ownerSmsOptedOut
                 ? "opted out"
-                : account?.alerts.smsEnabled
+                : account.alerts.smsEnabled
                   ? "enabled"
                   : "off"}{" "}
-              · Email {account?.alerts.emailConfigured ? "ready" : "not configured"}
+              · Email {account.alerts.emailConfigured ? "ready" : "not configured"}
             </span>
           </div>
         </ShellPanel>
@@ -440,10 +499,14 @@ export default function DashboardSettingsPage() {
               <span className="onboarding-label">Opening line</span>
               <textarea
                 value={greeting}
-                onChange={(e) => setGreeting(e.target.value)}
+                onChange={(e) => {
+                  setGreeting(e.target.value);
+                  setDirty(true);
+                  setSaved(false);
+                }}
                 className="onboarding-textarea"
                 rows={3}
-                placeholder={`Thank you for calling ${account?.business?.name ?? "your shop"}. How can I help you today?`}
+                placeholder={`Thank you for calling ${account.business?.name ?? "your shop"}. How can I help you today?`}
               />
             </label>
             <label className="onboarding-field font-sans mt-4">
@@ -454,7 +517,11 @@ export default function DashboardSettingsPage() {
                 max={50000}
                 step={1}
                 value={avgTicket}
-                onChange={(e) => setAvgTicket(e.target.value)}
+                onChange={(e) => {
+                  setAvgTicket(e.target.value);
+                  setDirty(true);
+                  setSaved(false);
+                }}
                 className="onboarding-input"
                 placeholder="285"
               />
@@ -471,7 +538,11 @@ export default function DashboardSettingsPage() {
                   max={500}
                   step={1}
                   value={baselineMissed}
-                  onChange={(e) => setBaselineMissed(e.target.value)}
+                  onChange={(e) => {
+                    setBaselineMissed(e.target.value);
+                    setDirty(true);
+                    setSaved(false);
+                  }}
                   className="onboarding-input"
                   placeholder="12"
                 />
@@ -484,7 +555,11 @@ export default function DashboardSettingsPage() {
                   max={500}
                   step={1}
                   value={baselineJobs}
-                  onChange={(e) => setBaselineJobs(e.target.value)}
+                  onChange={(e) => {
+                    setBaselineJobs(e.target.value);
+                    setDirty(true);
+                    setSaved(false);
+                  }}
                   className="onboarding-input"
                   placeholder="8"
                 />
@@ -498,7 +573,7 @@ export default function DashboardSettingsPage() {
           before we trust the line overnight. It says so itself ("internal
           dogfood checklist"), and it was sitting in every owner's Settings.
         */}
-        {account?.founder ? (
+        {account.founder ? (
           <details
             id="founder-cert"
             className="pro-settings-secondary font-sans"
@@ -529,7 +604,7 @@ export default function DashboardSettingsPage() {
           </details>
         ) : null}
 
-        {account?.founder ? (
+        {account.founder ? (
           <details
             id="manus-post-next"
             className="pro-settings-secondary font-sans"
@@ -587,9 +662,15 @@ export default function DashboardSettingsPage() {
               ? "Saving your changes…"
               : saved
                 ? "All changes saved."
-                : "Changes apply to your live night line."}
+                : dirty
+                  ? "Unsaved — applies to your live night line."
+                  : "No changes."}
           </p>
-          <button type="submit" className="btn btn-void" disabled={saving}>
+          <button
+            type="submit"
+            className="btn btn-void"
+            disabled={saving || !dirty}
+          >
             {saving ? "Saving…" : "Save settings"}
           </button>
         </div>
