@@ -33,11 +33,12 @@ Copy everything from your `.env` into Vercel → Settings → Environment Variab
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `RESEND_API_KEY` | Resend API key — magic links + SMS→email failover |
 | `RESEND_FROM` | Verified sender, e.g. `Orvius <alerts@orvius.im>` |
+| `ORVIUS_FOUNDER_EMAILS` | Comma-separated emails that unlock founder instruments (Stripe/Resend gate panels, cert, Manus next). Fail closed if unset. |
 
 **Stripe webhook (after deploy):** `https://api.orvius.im/api/billing/webhook`  
 Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 
-**Founder money + failover order:** Stripe keys → `npm run stripe:setup` → webhook → first Checkout $ → Resend paste → redeploy. Product surfaces the same order on Billing (Stripe) and Settings → Owner alerts (Resend) when you are signed in as founder.
+**Founder money + failover order:** Set `ORVIUS_FOUNDER_EMAILS` to your login email → Stripe keys → `npm run stripe:setup` → webhook → first Checkout $ → Resend paste → redeploy. Product surfaces the same order on Billing (Stripe) and Settings → Owner alerts (Resend) when you are signed in as founder.
 
 **Important:** Change `prisma/schema.prisma` provider to `postgresql` and run migrations before production scale. For first deploy testing, Turso SQLite-compatible works.
 
