@@ -47,8 +47,8 @@ export function FirstNightHandoff() {
       <p className="first-night-handoff-kicker">You’re live</p>
       <h2 className="first-night-handoff-title">Tonight has one job.</h2>
       <p className="first-night-handoff-detail">
-        When a call lands, clear the board. The pulse at the top is always your
-        next move. Unsure? Ask Orvius “What should I do now?”
+        When a call lands, clear the board. The banner at the top of Command is
+        always your next move. Unsure? Ask Orvius “What should I do now?”
       </p>
       <div className="first-night-handoff-actions">
         <button

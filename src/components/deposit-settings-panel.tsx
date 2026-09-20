@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { formatCentsExact } from "@/lib/money";
@@ -123,6 +124,12 @@ export function DepositSettingsPanel() {
               Connect payouts first. Then choose the deposit amount Orvius
               requests when a customer books.
             </p>
+            <Link
+              href="/dashboard/billing#payouts"
+              className="btn btn-secondary text-sm mt-4"
+            >
+              Open payouts
+            </Link>
           </div>
         </div>
       </ShellPanel>

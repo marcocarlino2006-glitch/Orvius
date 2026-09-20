@@ -86,10 +86,17 @@ export function Ring1CommandCenter() {
       const json = await res.json();
       setData(json);
       setLoadError(null);
-    } catch {
-      setLoadError(
-        "Live refresh is temporarily unavailable. Existing information remains visible.",
-      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Command could not refresh.";
+      setData((current) => {
+        setLoadError(
+          current
+            ? "Live refresh is temporarily unavailable. Existing information remains visible."
+            : message,
+        );
+        return current;
+      });
     } finally {
       setLoading(false);
     }

@@ -226,8 +226,8 @@ export function CaptureSetupPanel({
 
       {!lineVerified && line ? (
         <p className="mt-3 text-sm text-ash" role="status">
-          Ritual order: call your Orvius line once so we know it answers — then
-          finish carrier steps and confirm below.
+          Call your Orvius line once so we know it answers — then finish carrier
+          steps and confirm below.
         </p>
       ) : null}
 

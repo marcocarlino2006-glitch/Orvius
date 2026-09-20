@@ -47,7 +47,11 @@ export default function PilotForwardPage() {
               link
             </li>
             <li>
-              Pay estimate card money into your shop bank (Stripe Connect later)
+              Take card money into your shop bank until you finish{" "}
+              <Link href="/dashboard/billing#payouts" className="underline underline-offset-2">
+                Billing → payouts
+              </Link>{" "}
+              (Stripe Connect)
             </li>
             <li>Sync Jobber / ServiceTitan</li>
             <li>Guarantee “zero missed jobs” or 100% answer rate</li>
@@ -59,8 +63,9 @@ export default function PilotForwardPage() {
           <ol className="mt-4 list-decimal space-y-2 pl-5 font-sans text-sm leading-relaxed text-ash">
             <li>Keep your public number on Google, trucks, and ads.</li>
             <li>
-              Set missed / busy / no-answer / after-hours forward to your Orvius
-              line (carrier CFNA / CFB / after-hours routing).
+              Set missed, busy, and after-hours forward to your Orvius line in
+              your carrier app (Verizon, AT&amp;T, T-Mobile, or your business
+              phone system).
             </li>
             <li>Or publish the Orvius line as your main number.</li>
             <li>Place a live test call from your cell → confirm owner SMS.</li>
@@ -76,7 +81,10 @@ export default function PilotForwardPage() {
               or publish this number.”
             </li>
             <li>“Booked means proposed until the customer confirms.”</li>
-            <li>“Card pay on estimates is Orvius checkout until Connect.”</li>
+            <li>
+              “Card pay on estimates goes to your shop bank after you finish
+              payouts in Billing.”
+            </li>
           </ul>
 
           <div className="tier1-actions" style={{ marginTop: "2.5rem" }}>

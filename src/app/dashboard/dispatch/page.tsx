@@ -5,7 +5,8 @@ import { JobStatusAdvance } from "@/components/job-status-advance";
 import { ProLead } from "@/components/pro-lead";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
-import { ShellAlert, ShellBadge, ShellEmpty } from "@/components/shell-primitives";
+import { ShellAlert, ShellBadge } from "@/components/shell-primitives";
+import { ProEmptyState } from "@/components/pro-page-chrome";
 import { jobStatusLabel } from "@/lib/job-status";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -194,6 +195,7 @@ export default function DispatchPage() {
 
   const load = useCallback(() => {
     setLoading(true);
+    setError(null);
     fetch(`/api/dispatch?day=${day}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to load dispatch");
@@ -356,12 +358,15 @@ export default function DispatchPage() {
           the thing to do about it, and keep the crew reachable underneath.
         */
         <>
-          <ShellEmpty>
-            No jobs scheduled for this day.{" "}
-            <Link href="/dashboard/inbox" className="pro-section-link">
-              Book from inbox
-            </Link>
-          </ShellEmpty>
+          <ProEmptyState
+            title="No jobs on this day"
+            body="Book from the inbox, then assign a tech here."
+            action={
+              <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+                Book from inbox
+              </Link>
+            }
+          />
           {technicians.length ? (
             <ul className="dispatch-crew-roster font-sans">
               {technicians.map((tech) => (

@@ -238,28 +238,25 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
                 {captureSaving ? "Saving…" : "Enter your first night"}
           </button>
         ) : (
-          <button type="button" className="btn btn-void font-sans" disabled>
-            Open your dashboard
-          </button>
-        )}
-      </div>
-
-      {!verified ? (
-        <p className="onboarding-footnote font-sans">
-          Can&apos;t call right now?{" "}
           <button
             type="button"
-            className="onboarding-verify-link"
+            className="btn btn-secondary font-sans"
             onClick={() => {
               markFirstNightPending();
               router.replace("/dashboard?live=1");
               router.refresh();
             }}
           >
-            Open dashboard anyway
+            Skip prove for now — open Command
           </button>
-          {" — "}
-          we&apos;ll hand you the first-night job in Command.
+        )}
+      </div>
+
+      {!verified ? (
+        <p className="onboarding-footnote font-sans">
+          Best path: call your Orvius line once from your cell, then enter.
+          Skipping leaves capture confirm locked until you prove the line in
+          Settings.
         </p>
       ) : null}
 

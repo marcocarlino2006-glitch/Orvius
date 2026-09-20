@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCents, formatCentsExact } from "@/lib/money";
+import Link from "next/link";
 import { useState } from "react";
 
 type EstimateState = {
@@ -289,11 +290,31 @@ export function JobMoneyPanel({
           */
           <p className="job-money-lead">
             {!depositReadiness.ready &&
-            depositReadiness.reason === "connect_incomplete"
-              ? "Connect a payout account on Billing to take deposits by card."
-              : !depositReadiness.ready
-                ? "Booking deposits are off. Turn them on under Billing to ask for one."
-                : "Deposits attach to the call this job came from."}
+            depositReadiness.reason === "connect_incomplete" ? (
+              <>
+                Connect a payout account on{" "}
+                <Link
+                  href="/dashboard/billing#payouts"
+                  className="underline underline-offset-2"
+                >
+                  Billing → payouts
+                </Link>{" "}
+                to take deposits by card.
+              </>
+            ) : !depositReadiness.ready ? (
+              <>
+                Booking deposits are off. Turn them on under{" "}
+                <Link
+                  href="/dashboard/billing"
+                  className="underline underline-offset-2"
+                >
+                  Billing
+                </Link>{" "}
+                to ask for one.
+              </>
+            ) : (
+              "Deposits attach to the call this job came from."
+            )}
           </p>
         )}
 

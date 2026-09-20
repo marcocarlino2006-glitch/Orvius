@@ -71,17 +71,36 @@ function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | nul
 export default function DashboardBillingPage() {
   const { data: session } = useSession();
   const [account, setAccount] = useState<BillingAccount | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  async function loadAccount() {
+    setLoadState("loading");
+    setLoadError(null);
+    try {
+      const res = await fetch("/api/account");
+      if (!res.ok) {
+        setLoadState("error");
+        setLoadError("Could not load billing. Refresh and try again.");
+        return;
+      }
+      const data = (await res.json()) as BillingAccount;
+      setAccount(data);
+      setLoadState("ready");
+    } catch {
+      setLoadState("error");
+      setLoadError("Could not load billing. Refresh and try again.");
+    }
+  }
 
   useEffect(() => {
-    fetch("/api/account")
-      .then((res) => res.json())
-      .then(setAccount)
-      .finally(() => setLoading(false));
+    void loadAccount();
   }, []);
 
   useEffect(() => {
-    if (loading || !account) return;
+    if (loadState !== "ready" || !account) return;
     const hash = window.location.hash.replace(/^#/, "");
     if (!hash) return;
     const el = document.getElementById(hash);
@@ -89,7 +108,7 @@ export default function DashboardBillingPage() {
     requestAnimationFrame(() => {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-  }, [loading, account]);
+  }, [loadState, account]);
 
   const status = account?.billing.status ?? "none";
   const entitled = account?.billing.entitled ?? status === "active";
@@ -101,12 +120,29 @@ export default function DashboardBillingPage() {
   const founder = account?.founder ?? false;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
   const locked = !entitled && status !== "past_due";
+  const loading = loadState === "loading";
 
   return (
     <OsShell
       title="Billing"
       subtitle="Plans, payouts, and customer payment controls."
     >
+      {loadState === "error" ? (
+        <div className="billing-settings">
+          <ShellPanel title="Current plan" dense>
+            <p className="font-sans text-sm text-ash">
+              {loadError ?? "Could not load billing."}
+            </p>
+            <button
+              type="button"
+              className="btn btn-void text-sm mt-4"
+              onClick={() => void loadAccount()}
+            >
+              Retry
+            </button>
+          </ShellPanel>
+        </div>
+      ) : (
       <div className="billing-settings">
         <ShellPanel title="Current plan" dense>
           {loading ? (
@@ -285,6 +321,7 @@ export default function DashboardBillingPage() {
         </ul>
       </ShellPanel>
       </div>
+      )}
     </OsShell>
   );
 }
