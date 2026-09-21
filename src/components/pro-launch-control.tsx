@@ -41,7 +41,6 @@ export function ProLaunchControl({
   const atRisk =
     health?.status === "critical" || failedAlerts > 0 || stuckAlerts > 0;
   const setupReady = wedge?.ready ?? false;
-  const nextSetup = wedge?.items.find((item) => !item.ok);
   const status = atRisk ? "critical" : setupReady ? "healthy" : "attention";
   const statusLabel = atRisk
     ? "Coverage risk"
@@ -57,18 +56,10 @@ export function ProLaunchControl({
       billing === "canceled" ||
       billing === "pilot" ||
       billing === "none");
-  // Banner owns alerts + board next; rail only acts for unfinished setup —
-  // except Pay when the shop still needs a card on file.
+  // Banner above owns the red gate and setup next — rail never competes.
+  // Pay is the only rail CTA (card not on file).
   const showPayAction = needsPay && !atRisk;
-  const showPrimaryAction = !showPayAction && !atRisk && Boolean(nextSetup);
-  const actionHref = atRisk
-    ? "/dashboard/settings"
-    : nextSetup?.actionHref ?? "/dashboard#attention-board";
-  const actionLabel = atRisk
-    ? "Fix owner alerts"
-    : nextSetup
-      ? nextSetup.label
-      : "Open the board";
+  const showPrimaryAction = false;
   const payLabel =
     billing === "past_due"
       ? "Fix payment"
@@ -96,7 +87,7 @@ export function ProLaunchControl({
               ? "After hours — the line is watching for you."
               : setupReady
                 ? "Front door is covered. The banner above is your next move."
-                : "Finish front-door setup so night calls have somewhere to go."}
+                : "The banner above is your next move — finish setup there."}
       </p>
 
       <dl className="pro-control-pulse">
@@ -159,14 +150,14 @@ export function ProLaunchControl({
         </li>
       </ul>
 
-      {/* One CTA truth: Pay when unpaid; banner owns the red gate; rail acts for setup. */}
+      {/* Banner above owns setup; rail only shows Pay when unpaid. */}
       {showPayAction ? (
         <Link href="/dashboard/billing" className="btn btn-void pro-control-action">
           {payLabel}
         </Link>
       ) : showPrimaryAction ? (
-        <Link href={actionHref} className="btn btn-void pro-control-action">
-          {actionLabel}
+        <Link href="/dashboard" className="btn btn-void pro-control-action">
+          Open Command
         </Link>
       ) : null}
 

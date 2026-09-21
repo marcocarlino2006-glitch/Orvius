@@ -7,7 +7,7 @@ export const FIRST_NIGHT_PARAM = "live";
 export const FIRST_NIGHT_STORAGE_KEY = "orvius-first-night-pending";
 
 /**
- * Problem 1 — close the onboarding → Command cliff.
+ * Close the onboarding → Command cliff.
  * One screen, one job, then the normal pulse takes over.
  */
 export function FirstNightHandoff() {
@@ -26,14 +26,14 @@ export function FirstNightHandoff() {
     setOpen(fromQuery || pending);
   }, [searchParams]);
 
-  function enterCommand(href = "/dashboard") {
+  function enterCommand() {
     try {
       sessionStorage.removeItem(FIRST_NIGHT_STORAGE_KEY);
     } catch {
       /* ignore */
     }
     setOpen(false);
-    router.replace(href);
+    router.replace("/dashboard#attention-board");
   }
 
   if (!open) return null;
@@ -48,22 +48,15 @@ export function FirstNightHandoff() {
       <h2 className="first-night-handoff-title">Tonight has one job.</h2>
       <p className="first-night-handoff-detail">
         When a call lands, clear the board. The banner at the top of Command is
-        always your next move. Unsure? Ask Orvius “What should I do now?”
+        always your next move.
       </p>
       <div className="first-night-handoff-actions">
         <button
           type="button"
           className="btn btn-void text-sm"
-          onClick={() => enterCommand("/dashboard#attention-board")}
+          onClick={enterCommand}
         >
           Open the board
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost text-sm"
-          onClick={() => enterCommand("/dashboard")}
-        >
-          Enter Command
         </button>
       </div>
     </aside>

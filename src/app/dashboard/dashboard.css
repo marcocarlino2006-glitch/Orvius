@@ -1415,6 +1415,14 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: var(--ash);
 }
 
+.settings-hub-count {
+  margin: 0.65rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ash);
+}
+
 .settings-hub-actions {
   flex-shrink: 0;
 }

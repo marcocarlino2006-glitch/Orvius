@@ -154,36 +154,36 @@ export function buildSettingsHub(input: SettingsHubInput): {
   if (!captureOk) {
     next = {
       id: "capture",
-      title: "Finish call capture",
-      body: "Forward missed calls to Orvius — or publish the Orvius number — then prove one real call.",
-      cta: "Open call capture",
+      title: "Catch missed calls",
+      body: "Forward your shop number — or publish the Orvius line. One real call proves it.",
+      cta: "Set call capture",
       href: "#overflow-forward",
     };
   } else if (!alertsOk) {
     next = {
       id: "alerts",
       title: input.ownerSmsOptedOut
-        ? "Turn owner SMS back on"
-        : "Add your owner mobile",
+        ? "Turn owner texts back on"
+        : "Add your mobile",
       body: input.ownerSmsOptedOut
-        ? "Text START from your cell to the shop alert number, then send a test alert."
-        : "Night leads text this number. It must be your cell — not the shop line.",
-      cta: "Open owner alerts",
+        ? "Text START from your cell, then send a test alert."
+        : "Job alerts go here — your cell, not the shop line.",
+      cta: "Add mobile",
       href: "#owner-alerts",
     };
   } else if (input.founder && !moneyOk) {
     next = {
       id: "money",
       title: "Finish money setup",
-      body: "Billing shows the green checklist — secret key, prices, webhook. Then one test Pay with card.",
-      cta: "Open money setup",
+      body: "Green checklist on Billing, then one test Pay with card.",
+      cta: "Open Billing",
       href: "/dashboard/billing",
     };
   } else if (input.founder && !resendOk) {
     next = {
       id: "resend",
       title: "Turn on email backup",
-      body: "Paste RESEND_API_KEY and RESEND_FROM on Vercel so SMS→email failover works.",
+      body: "Paste RESEND_API_KEY and RESEND_FROM on Vercel.",
       cta: "Open email backup",
       href: "#email-failover",
     };
@@ -191,8 +191,8 @@ export function buildSettingsHub(input: SettingsHubInput): {
     next = {
       id: "baseline",
       title: "Set average ticket",
-      body: "One number unlocks estimated booked value on Command — not collected revenue.",
-      cta: "Open baseline",
+      body: "One number unlocks estimated booked value on Command.",
+      cta: "Set ticket",
       href: "#economics-baseline",
     };
   } else if (input.founder && !certOk) {
@@ -207,8 +207,8 @@ export function buildSettingsHub(input: SettingsHubInput): {
     next = {
       id: "billing",
       title: "Open billing",
-      body: "Plan, Pay with card, and payouts live on Billing — one tap from here.",
-      cta: "Open billing",
+      body: "Plan, Pay with card, and payouts — one tap.",
+      cta: "Open Billing",
       href: "/dashboard/billing",
     };
   }
