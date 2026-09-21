@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
+import { MarketingShell } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
-import { demoLineHref } from "@/lib/demo-line";
+import { demoLineHref, DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { getFeaturedPlan, getLowestPaidPrice } from "@/lib/company";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
@@ -19,45 +19,47 @@ export default function PricingPage() {
 
   return (
     <MarketingShell>
-      <section className="tier1-hero tier1-hero-compact">
-        <div className="editorial-wrap">
-          <ShellPageIntro
-            label="Pricing"
-            title={`From $${getLowestPaidPrice("year")} per month. Flat.`}
-            subline="Monthly or annual — pick the plan that matches your shop."
-            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks."
-          />
+      <section className="mkt-inner-hero" aria-labelledby="pricing-heading">
+        <div className="mkt-inner-hero-copy">
+          <p className="mkt-inner-brand">Pricing</p>
+          <h1 id="pricing-heading" className="mkt-inner-title">
+            From ${getLowestPaidPrice("year")} per month. Flat.
+          </h1>
+          <p className="mkt-inner-lead font-sans">
+            Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks.
+          </p>
           {!selfServeReady ? (
-            <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
-              Public self-serve opens only when signup, billing, and the live
-              line are verified with you. Until then, book a{" "}
+            <p className="mkt-inner-note font-sans">
+              Public self-serve opens when signup, billing, and the live line are
+              verified. Until then,{" "}
               <Link href="/pilot" className="underline underline-offset-2">
-                call audit
-              </Link>{" "}
-              and we&apos;ll set the shop up together. We do not advertise a
-              free trial or collect payment outside verified Stripe checkout.
+                book a call audit
+              </Link>
+              .
             </p>
           ) : null}
         </div>
       </section>
 
-      <section className="tier1-story">
+      <section className="mkt-pricing-body" aria-label="Plans">
         <PricingPagePlans />
       </section>
 
-      <section className="tier1-close">
-        <div className="editorial-wrap tier1-close-inner">
-          <h2 className="tier1-section-title type-headline">
+      <section
+        className="mkt-section mkt-section-inset mkt-proof-section--quiet"
+        aria-labelledby="pricing-close-heading"
+      >
+        <div className="mkt-close-block">
+          <h2 id="pricing-close-heading" className="mkt-proof-title">
             Built to pay back with one additional job.
           </h2>
-          <p className="tier1-section-lead font-sans">
-            If your gross profit on an additional booked job exceeds ${featured.price},
-            that job can cover a month of the featured plan. Your ticket,
-            close rate, and margin determine the actual payback.
+          <p className="mkt-proof-lead font-sans">
+            If gross profit on an additional booked job exceeds $
+            {featured.price}, that job can cover a month of the featured plan.
           </p>
-          <div className="tier1-actions tier1-close-actions">
+          <div className="mkt-close-actions">
             <a href={demoLineHref()} className="ov-btn ov-btn--solid">
-              Call the live line
+              Call {DEMO_LINE_DISPLAY}
             </a>
             <Link href="/pilot" className="ov-btn ov-btn--quiet">
               Book a call audit

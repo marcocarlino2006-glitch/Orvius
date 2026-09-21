@@ -2721,6 +2721,121 @@ body {
   gap: 2rem;
 }
 
+/* Inner marketing pages — same rhythm as home, not tier1 piles */
+.ov-public .mkt-inner-hero {
+  padding: clamp(5.5rem, 12vw, 7.5rem) clamp(1.25rem, 4vw, 2.5rem)
+    clamp(2.5rem, 5vw, 3.5rem);
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+.ov-public .mkt-inner-brand {
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  letter-spacing: 0.08em;
+  font-weight: 750;
+  margin: 0 0 1rem;
+}
+
+.ov-public .mkt-inner-title {
+  font-size: clamp(1.75rem, 3vw, 2.45rem);
+  font-weight: 550;
+  letter-spacing: -0.022em;
+  max-width: 18ch;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.ov-public .mkt-inner-lead {
+  margin: 1rem 0 0;
+  font-size: 1.02rem;
+  max-width: 42ch;
+  opacity: 0.88;
+  line-height: 1.55;
+}
+
+.ov-public .mkt-inner-note {
+  margin: 1.1rem 0 0;
+  font-size: 0.9rem;
+  max-width: 48ch;
+  opacity: 0.72;
+  line-height: 1.5;
+}
+
+.ov-public .mkt-inner-block {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.ov-public .mkt-inner-block--form {
+  max-width: 36rem;
+}
+
+.ov-public .mkt-inner-section-title {
+  font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+  margin: 0 0 0.85rem;
+  line-height: 1.2;
+}
+
+.ov-public .mkt-inner-body {
+  margin: 0 0 1.75rem;
+  font-size: 1rem;
+  max-width: 52ch;
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.ov-public .mkt-form-slot {
+  margin: 1.25rem 0 1.1rem;
+}
+
+.ov-public .mkt-close-block {
+  max-width: 36rem;
+  margin-inline: auto;
+  text-align: left;
+}
+
+.ov-public .mkt-proof-section--close .mkt-close-block {
+  text-align: center;
+}
+
+.ov-public .mkt-proof-section--close .mkt-proof-title,
+.ov-public .mkt-proof-section--close .mkt-proof-lead {
+  margin-inline: auto;
+}
+
+.ov-public .mkt-close-line {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  padding-bottom: 0.15rem;
+  transition: border-color 180ms ease, opacity 180ms ease;
+}
+
+.ov-public .mkt-close-line:hover {
+  border-bottom-color: currentColor;
+  opacity: 0.92;
+}
+
+.ov-public .mkt-close-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 1.5rem;
+  align-items: center;
+}
+
+.ov-public .mkt-pricing-body {
+  padding-block: 0.5rem 2rem;
+}
+
 @media (max-width: 800px) {
   .ov-public .mkt-footer--lean .mkt-footer-grid--lean {
     grid-template-columns: 1fr;
@@ -2728,5 +2843,10 @@ body {
 
   .ov-public .mkt-law--ruled {
     grid-template-columns: 2rem minmax(0, 1fr);
+  }
+
+  .ov-public .mkt-close-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

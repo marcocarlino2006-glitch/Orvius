@@ -1,8 +1,8 @@
-import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
+import { MarketingShell } from "@/components/marketing-shell";
+import { MktSection } from "@/components/mkt-section";
 import { EarlyAccessForm } from "@/components/early-access-form";
-import { HomeCallDemo } from "@/components/home-call-demo";
 import { company } from "@/lib/company";
-import { demoLineHref } from "@/lib/demo-line";
+import { demoLineHref, DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -14,50 +14,48 @@ export const metadata: Metadata = {
 
 export default function PilotPage() {
   return (
-    <MarketingShell cta={{ href: demoLineHref(), label: "Try the live line" }}>
-      <section className="tier1-hero tier1-hero-compact">
-        <div className="editorial-wrap">
-          <ShellPageIntro
-            label="Live call audit"
-            title="See what your missed calls are costing."
-            subline="We walk your after-hours and overflow pattern — then go live if it is a fit"
-            description={`No slide deck. A real look at what Orvius would capture for your ${company.trades.join(" / ")} shop. If it fits, choose a paid plan through verified Stripe checkout.`}
-          />
-          <div className="tier1-hero-call">
-            <HomeCallDemo />
-          </div>
-          <div className="tier1-actions" style={{ marginTop: "1.5rem" }}>
+    <MarketingShell>
+      <section className="mkt-inner-hero" aria-labelledby="pilot-heading">
+        <div className="mkt-inner-hero-copy">
+          <p className="mkt-inner-brand">Live call audit</p>
+          <h1 id="pilot-heading" className="mkt-inner-title">
+            See what your missed calls are costing.
+          </h1>
+          <p className="mkt-inner-lead font-sans">
+            We walk your after-hours and overflow pattern — then go live if it
+            is a fit. No slide deck.
+          </p>
+          <div className="mkt-close-actions">
             <a href="#waitlist" className="ov-btn ov-btn--solid">
               Request a call audit
             </a>
             <a href={demoLineHref()} className="ov-btn ov-btn--quiet">
-              Try the live line
+              Call {DEMO_LINE_DISPLAY}
             </a>
           </div>
         </div>
       </section>
 
-      <section className="tier1-story tier1-story-muted" id="waitlist">
-        <div className="editorial-wrap" style={{ maxWidth: "36rem" }}>
-          <p className="tier1-eyebrow type-eyebrow">Request</p>
-          <h2 className="tier1-section-title type-headline">
+      <MktSection tone="light" aria-labelledby="waitlist-heading" id="waitlist">
+        <div className="mkt-inner-block mkt-inner-block--form">
+          <h2 id="waitlist-heading" className="mkt-inner-section-title">
             Book the audit. We&apos;ll email to schedule.
           </h2>
-          <p className="tier1-section-lead font-sans">
-            Leave shop details. We schedule a short call, review after-hours
-            traffic, and configure the line if you want to proceed.
+          <p className="mkt-inner-body font-sans">
+            Leave shop details for a short call on your{" "}
+            {company.trades.join(" / ")} after-hours traffic.
           </p>
-          <div className="tier1-form-slot" style={{ marginTop: "1.25rem" }}>
+          <div className="mkt-form-slot">
             <EarlyAccessForm variant="full" />
           </div>
-          <p className="tier1-section-lead font-sans" style={{ marginTop: "1.5rem" }}>
-            Already invited to onboard?{" "}
-            <Link href="/signin" className="customer-timeline-link">
-              Sign in and get a dedicated number →
+          <p className="mkt-inner-note font-sans">
+            Already invited?{" "}
+            <Link href="/signin" className="underline underline-offset-2">
+              Sign in and get a dedicated number
             </Link>
           </p>
         </div>
-      </section>
+      </MktSection>
     </MarketingShell>
   );
 }

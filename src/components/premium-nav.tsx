@@ -163,12 +163,6 @@ export function PremiumNav() {
             <Link href="/signin" onClick={() => setMenuOpen(false)}>
               Sign in
             </Link>
-            <a href="tel:+18446439170" onClick={() => setMenuOpen(false)}>
-              Call the live line
-            </a>
-            <Link href="/pilot" onClick={() => setMenuOpen(false)}>
-              Book a call audit
-            </Link>
           </nav>
 
           <div className="mkt-nav-sheet-foot">
@@ -187,8 +181,6 @@ export function PremiumNav() {
               <Link href="/security" onClick={() => setMenuOpen(false)}>
                 Security
               </Link>
-              <span aria-hidden>·</span>
-              <a href="mailto:hello@orvius.im">Contact</a>
             </p>
           </div>
         </div>
