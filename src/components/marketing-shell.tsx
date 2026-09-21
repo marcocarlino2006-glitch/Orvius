@@ -25,8 +25,8 @@ export function MarketingShell({ children }: MarketingShellProps) {
       <div className="ov-public mkt-page mkt-page--craft">
         <PremiumNav />
         <main>{children}</main>
-        <footer className="mkt-footer mkt-footer--institution">
-          <div className="mkt-footer-grid">
+        <footer className="mkt-footer mkt-footer--institution mkt-footer--lean">
+          <div className="mkt-footer-grid mkt-footer-grid--lean">
             <div className="mkt-footer-brand">
               <OrviusLogo variant="void" size="sm" />
               <p className="mkt-footer-entity font-sans">Solution Development LLC</p>
@@ -34,32 +34,18 @@ export function MarketingShell({ children }: MarketingShellProps) {
                 The night-shift OS for HVAC, plumbing, and electrical.
               </p>
             </div>
-            <nav className="mkt-footer-col" aria-label="Product">
-              <p className="mkt-footer-heading font-sans">Product</p>
-              <Link href="/">Home</Link>
+            <nav className="mkt-footer-col" aria-label="Navigate">
+              <p className="mkt-footer-heading font-sans">Navigate</p>
               <Link href="/pricing">Pricing</Link>
-              <Link href="/pilot">Call audit</Link>
-              <Link href="/signin">Log in</Link>
-            </nav>
-            <nav className="mkt-footer-col" aria-label="Company">
-              <p className="mkt-footer-heading font-sans">Company</p>
+              <Link href="/pilot">Audit</Link>
               <Link href="/about">About</Link>
-              <Link href="/security">Security</Link>
-              <Link href="/pilot">Call audit</Link>
-              <a href="mailto:hello@orvius.im">Contact</a>
-            </nav>
-            <nav className="mkt-footer-col" aria-label="Legal">
-              <p className="mkt-footer-heading font-sans">Legal</p>
-              <Link href="/legal">Legal hub</Link>
-              <Link href="/terms">Terms</Link>
-              <Link href="/privacy">Privacy</Link>
-              <Link href="/sms-terms">SMS terms</Link>
-              <Link href="/refunds">Refunds</Link>
+              <Link href="/signin">Sign in</Link>
             </nav>
             <nav className="mkt-footer-col" aria-label="Connect">
               <p className="mkt-footer-heading font-sans">Connect</p>
               <a href="tel:+18446439170">+1 844 643 9170</a>
               <a href="mailto:hello@orvius.im">hello@orvius.im</a>
+              <Link href="/legal">Legal</Link>
               <Link href="/security">Security</Link>
             </nav>
           </div>

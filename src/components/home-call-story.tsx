@@ -25,33 +25,28 @@ const transcript = [
 ] as const;
 
 /**
- * One evidence object — live line + transcript.
- * No waveform / timeline / status-pill theater.
+ * Quiet proof — transcript only. Dial path lives in the hero liveline.
  */
 export function HomeCallStory() {
   return (
     <MktSection
       tone="inset"
       aria-labelledby="home-proof-heading"
-      className="mkt-proof-section mkt-proof-section--company"
+      className="mkt-proof-section mkt-proof-section--company mkt-proof-section--quiet"
     >
       <div className="mkt-proof-layout mkt-proof-layout--company">
         <div className="mkt-proof-copy">
           <p className="mkt-proof-kicker font-sans">On the wire</p>
           <h2 id="home-proof-heading" className="mkt-proof-title">
-            Call the product. Hear the night shift.
+            What the night shift sounds like.
           </h2>
           <p className="mkt-proof-lead font-sans">
-            Demo shop on the live line — dial it and hear the same intake a
-            shop receives.
+            Same intake the live line runs — propose a window, alert the owner,
+            confirm by text.
           </p>
-          <div className="mkt-proof-actions font-sans">
-            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
-              Call {DEMO_LINE_DISPLAY}
-            </a>
-          </div>
-          <p className="mkt-proof-note font-sans">
-            {summitCaseStudy.attribution}
+          <p className="mkt-proof-dial font-sans">
+            <a href={demoLineHref()}>{DEMO_LINE_DISPLAY}</a>
+            <span> · {summitCaseStudy.attribution}</span>
           </p>
         </div>
 
@@ -60,9 +55,7 @@ export function HomeCallStory() {
           role="log"
           aria-label="Representative call transcript"
         >
-          <p className="mkt-call-panel-kicker">
-            Representative call · after hours
-          </p>
+          <p className="mkt-call-panel-kicker">Representative call · after hours</p>
           <p className="mkt-call-panel-title">Emergency AC · Summit HVAC</p>
 
           <div className="mkt-transcript">

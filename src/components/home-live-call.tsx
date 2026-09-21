@@ -27,7 +27,7 @@ const FIELDS: Array<{ key: FieldKey; label: string }> = [
   { key: "window", label: "Window" },
 ];
 
-const STAGES = ["Answered", "Qualified", "Booked", "Owner alerted"] as const;
+const STAGES = ["Answered", "Qualified", "Proposed", "Owner alerted"] as const;
 
 /**
  * The same representative after-hours call the /pilot audit walks through, and
@@ -247,177 +247,80 @@ export function HomeLiveCall() {
   const live = playing && !reduced;
 
   return (
-    <figure className="ov-console">
-      {/*
-        The console is shown as a window on a machine rather than as a floating
-        card, because what is being demonstrated is software running somewhere
-        while the shop is closed. The desk supplies the screen: a bezel, a
-        drifting wallpaper, and a menubar the window is docked under.
-      */}
-      <div className="ov-console-desk">
-        <div className="ov-console-wallpaper" aria-hidden>
-          <span className="ov-console-aurora ov-console-aurora--a" />
-          <span className="ov-console-aurora ov-console-aurora--b" />
-          <span className="ov-console-aurora ov-console-aurora--c" />
-        </div>
-
-        <div className="ov-console-menubar" aria-hidden>
-          <span className="ov-console-lights">
-            <i />
-            <i />
-            <i />
+    <figure className="ov-console ov-console--lean">
+      <div className="ov-console-frame">
+        <header className="ov-console-head">
+          <span className="ov-console-shop">Summit HVAC</span>
+          <span className="ov-console-sep" aria-hidden>
+            ·
           </span>
-          <span className="ov-console-menutitle">Orvius</span>
-          <span className="ov-console-menuclock">2:14 AM</span>
-        </div>
+          <span className="ov-console-context">after-hours line</span>
+          <span className="ov-console-live" data-live={live}>
+            <i />
+            Live
+          </span>
+          <time className="ov-console-clock">{clock(time)}</time>
+        </header>
 
-        <div className="ov-console-frame">
-          <header className="ov-console-head">
-            <span className="ov-console-shop">Summit HVAC</span>
-            <span className="ov-console-sep" aria-hidden>
-              ·
-            </span>
-            <span className="ov-console-context">after-hours line</span>
-            <span className="ov-console-live" data-live={live}>
-              <i />
-              Live
-            </span>
-            <time className="ov-console-clock">{clock(time)}</time>
-          </header>
-
-          <div className="ov-console-body">
-            <div className="ov-console-wire" ref={wireRef}>
-              {TIMELINE.slice(0, Math.max(1, view.spokenCount)).map((entry, i) => {
-                const active = i === view.activeIndex;
-                const shown = active
-                  ? entry.beat.text.slice(
-                      0,
-                      Math.ceil(
-                        ((time - entry.start) / entry.beat.duration) *
-                          entry.beat.text.length,
-                      ),
-                    )
-                  : entry.beat.text;
-                return (
-                  <p
-                    key={entry.start}
-                    className={[
-                      "ov-wire-line",
-                      `ov-wire-line--${entry.beat.who}`,
-                      active ? "is-active" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    <span className="ov-wire-who">
-                      {entry.beat.who === "orvius" ? "Orvius" : "Caller"}
-                    </span>
-                    <span className="ov-wire-text">
-                      {shown}
-                      {active && live ? <i className="ov-wire-caret" /> : null}
-                    </span>
-                  </p>
-                );
-              })}
-            </div>
-
-            <aside className="ov-console-capture">
-              <p className="ov-capture-label">Captured</p>
-              <dl className="ov-capture-list">
-                {FIELDS.map((field) => {
-                  const value = view.captured[field.key];
-                  return (
-                    // Keying on the value remounts the row the moment intake fills
-                    // it, which replays the capture animation exactly once.
-                    <div
-                      key={`${field.key}-${value ?? "empty"}`}
-                      className={["ov-capture-row", value ? "is-set" : ""]
-                        .filter(Boolean)
-                        .join(" ")}
-                    >
-                      <dt>{field.label}</dt>
-                      <dd>{value ?? "—"}</dd>
-                    </div>
-                  );
-                })}
-              </dl>
-            </aside>
-          </div>
-
-          <div className="ov-console-player">
-            <button
-              type="button"
-              className="ov-player-toggle"
-              aria-label={playing ? "Pause the call timeline" : "Play the call timeline"}
-              onClick={() => setPlaying((on) => !on)}
-            >
-              {playing ? <PauseIcon /> : <PlayIcon />}
-            </button>
-
-            <div
-              ref={trackRef}
-              className="ov-player-track"
-              role="slider"
-              tabIndex={0}
-              aria-label="Call timeline"
-              aria-valuemin={0}
-              aria-valuemax={Math.round(DURATION)}
-              aria-valuenow={Math.round(time)}
-              aria-valuetext={`${clock(time)} of ${clock(DURATION)}`}
-              onKeyDown={onTrackKeyDown}
-              onPointerDown={(event) => {
-                event.preventDefault();
-                setScrubbing(true);
-                seekFromPointer(event.clientX);
-              }}
-            >
-              {BARS.map((bar, i) => (
-                <span
-                  key={bar.t}
+        <div className="ov-console-body ov-console-body--wire">
+          <div className="ov-console-wire" ref={wireRef}>
+            {TIMELINE.slice(0, Math.max(1, view.spokenCount)).map((entry, i) => {
+              const active = i === view.activeIndex;
+              const shown = active
+                ? entry.beat.text.slice(
+                    0,
+                    Math.ceil(
+                      ((time - entry.start) / entry.beat.duration) *
+                        entry.beat.text.length,
+                    ),
+                  )
+                : entry.beat.text;
+              return (
+                <p
+                  key={entry.start}
                   className={[
-                    "ov-player-bar",
-                    bar.who ? `ov-player-bar--${bar.who}` : "",
-                    i / BARS.length <= progress ? "is-played" : "",
+                    "ov-wire-line",
+                    `ov-wire-line--${entry.beat.who}`,
+                    active ? "is-active" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
-                  style={{ height: `${Math.round(bar.amplitude * 100)}%` }}
-                />
-              ))}
-              <span className="ov-player-head" style={{ left: `${progress * 100}%` }} />
-            </div>
-
-            <span className="ov-player-time">
-              {clock(time)} / {clock(DURATION)}
-            </span>
+                >
+                  <span className="ov-wire-who">
+                    {entry.beat.who === "orvius" ? "Orvius" : "Caller"}
+                  </span>
+                  <span className="ov-wire-text">
+                    {shown}
+                    {active && live ? <i className="ov-wire-caret" /> : null}
+                  </span>
+                </p>
+              );
+            })}
           </div>
-
-          <footer className="ov-console-rail">
-            {STAGES.map((stage, i) => (
-              <span
-                key={stage}
-                className={[
-                  "ov-rail-step",
-                  view.stage > i ? "is-done" : "",
-                  view.stage === i ? "is-active" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                <i aria-hidden />
-                {stage}
-              </span>
-            ))}
-          </footer>
         </div>
+
+        <footer className="ov-console-rail">
+          {STAGES.map((stage, i) => (
+            <span
+              key={stage}
+              className={[
+                "ov-rail-step",
+                view.stage > i ? "is-done" : "",
+                view.stage === i ? "is-active" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <i aria-hidden />
+              {stage}
+            </span>
+          ))}
+        </footer>
       </div>
 
-      {/* The player is a visual timeline; this is the whole call in prose. */}
       <p className="sr-only">{TEXT_ALTERNATIVE}</p>
-
       <figcaption className="ov-console-caption">
-        Representative call, transcript playback — no audio. Summit HVAC ·
-        Orvius demo line.
+        Representative call — proposed window, owner alerted. Summit HVAC demo line.
       </figcaption>
     </figure>
   );

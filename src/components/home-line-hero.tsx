@@ -35,8 +35,8 @@ function LiveLineDigits({ display }: { display: string }) {
 }
 
 /**
- * The product carries the hero. One claim on the left, an after-hours call
- * running itself on the right — the thing a shop owner is actually buying.
+ * First viewport: brand → claim → liveline CTA → night call artifact.
+ * One primary action (the number). No second solid button competing.
  */
 export function HomeLineHero() {
   return (
@@ -53,27 +53,14 @@ export function HomeLineHero() {
             Orvius
           </p>
 
-          {/* Copy is owned by the i18n dictionary; keep these in sync with it so
-              the translator never swaps the text out from under the render. */}
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
             After-hours calls become qualified jobs.
           </h1>
 
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            Orvius answers after-hours and overflow calls, captures the request,
-            proposes an open service window, and alerts the owner — without
-            inventing prices or arrival times.
+            Answers the night shift, proposes a window, texts the owner — no
+            invented prices or arrival times.
           </p>
-
-          <div className="ov-hero-actions">
-            <a
-              href={demoLineHref()}
-              className="ov-btn ov-btn--solid"
-              data-i18n="hero.cta"
-            >
-              Call the live line
-            </a>
-          </div>
 
           <a
             href={demoLineHref()}
@@ -82,7 +69,7 @@ export function HomeLineHero() {
           >
             <span className="ov-hero-liveline-label">
               <span className="ov-hero-pulse" aria-hidden />
-              <span data-i18n="hero.nightshift">Orvius answers the night shift</span>
+              <span data-i18n="hero.nightshift">Call the live line</span>
             </span>
             <LiveLineDigits display={DEMO_LINE_DISPLAY} />
           </a>
