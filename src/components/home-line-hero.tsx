@@ -36,7 +36,7 @@ function LiveLineDigits({ display }: { display: string }) {
 
 /**
  * Cursor multi-b standard: the product is the canvas.
- * Claim + live line sit over a dominant console — not a side SaaS column.
+ * Claim + live line float over a dominant console — copy on the product, not beside it.
  */
 export function HomeLineHero() {
   return (
@@ -51,34 +51,34 @@ export function HomeLineHero() {
         <span className="ov-hero-sky-horizon" />
       </div>
       <div className="ov-hero-inner ov-hero-inner--cursor">
-        <div className="ov-hero-copy ov-hero-copy--over">
-          <p className="ov-hero-brand" aria-label="Orvius">
-            Orvius
-          </p>
-
-          <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
-            After-hours calls become qualified jobs.
-          </h1>
-
-          <p className="ov-hero-lead" data-i18n="hero.lead">
-            Answers the night shift, proposes a window, texts the owner — no
-            invented prices or arrival times.
-          </p>
-
-          <a
-            href={demoLineHref()}
-            className="ov-hero-liveline"
-            aria-label={`Call the Orvius night shift line at ${DEMO_LINE_DISPLAY}`}
-          >
-            <span className="ov-hero-liveline-label">
-              <span className="ov-hero-pulse" aria-hidden />
-              <span data-i18n="hero.nightshift">Call the live line</span>
-            </span>
-            <LiveLineDigits display={DEMO_LINE_DISPLAY} />
-          </a>
-        </div>
-
         <div className="ov-hero-stage ov-hero-stage--canvas">
+          <div className="ov-hero-copy ov-hero-copy--over">
+            <p className="ov-hero-brand" aria-label="Orvius">
+              Orvius
+            </p>
+
+            <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
+              After-hours calls become qualified jobs.
+            </h1>
+
+            <p className="ov-hero-lead" data-i18n="hero.lead">
+              Answers the night shift, proposes a window, texts the owner — no
+              invented prices or arrival times.
+            </p>
+
+            <a
+              href={demoLineHref()}
+              className="ov-hero-liveline"
+              aria-label={`Call the Orvius night shift line at ${DEMO_LINE_DISPLAY}`}
+            >
+              <span className="ov-hero-liveline-label">
+                <span className="ov-hero-pulse" aria-hidden />
+                <span data-i18n="hero.nightshift">Call the live line</span>
+              </span>
+              <LiveLineDigits display={DEMO_LINE_DISPLAY} />
+            </a>
+          </div>
+
           <HomeLiveCall />
         </div>
       </div>
