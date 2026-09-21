@@ -294,7 +294,7 @@ export function formatWeeklyProof(outcomes: ShopOutcomes, shopName: string): str
   const lines = [
     `Orvius weekly proof — ${shopName}`,
     `Window: last ${outcomes.windowDays} days (since ${outcomes.since.slice(0, 10)})`,
-    `Calls: ${outcomes.calls} · Leads: ${outcomes.leads} · Jobs booked: ${outcomes.jobsBooked}`,
+    `Calls: ${outcomes.calls} · Leads: ${outcomes.leads} · Jobs proposed: ${outcomes.jobsBooked}`,
     outcomes.bookingRate != null ? `Booking rate: ${outcomes.bookingRate}%` : null,
     `After-hours leads: ${outcomes.afterHoursLeads} (booked ${outcomes.afterHoursBooked})`,
     `Booked from captured demand: ${outcomes.capturedDemandJobs} (call/SMS leads → jobs)`,

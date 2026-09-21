@@ -362,7 +362,7 @@ export async function getAttentionQueue(
           daysLeft <= 0
             ? "Your access ended — pay to keep the line live"
             : `Shop access ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — pay with card`,
-        detail: "Pay with card so missed calls keep becoming booked jobs.",
+        detail: "Pay with card so after-hours calls keep becoming qualified jobs.",
         recommendedAction: "Pay with card",
         href: "/dashboard/billing",
         entityType: "shop",

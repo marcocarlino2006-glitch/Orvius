@@ -711,16 +711,6 @@ body {
   text-align: center !important;
 }
 
-.ov-public .mkt-trynow-eyebrow {
-  margin: 0 0 1.1rem !important;
-  color: var(--ov-accent-text) !important;
-  font-family: var(--ov-mono) !important;
-  font-size: 0.6875rem !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-}
-
 .ov-public .mkt-trynow-title {
   max-width: 700px !important;
   margin: 0 !important;
@@ -879,7 +869,6 @@ body {
 }
 
 .ov-public .inst-btn,
-.ov-public .mkt-btn,
 .ov-public .btn,
 .ov-public .ov-btn {
   border-radius: 4px !important;

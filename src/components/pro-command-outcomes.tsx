@@ -69,7 +69,7 @@ export function ProCommandOutcomes({
             <dd>{outcomes.leads}</dd>
           </div>
           <div>
-            <dt>Jobs booked</dt>
+            <dt>Jobs proposed</dt>
             <dd>{outcomes.jobsBooked}</dd>
           </div>
           <div>

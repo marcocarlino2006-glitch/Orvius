@@ -34,7 +34,6 @@ if (existsSync(join(root, "docs/MASTER-CLASS.md"))) {
 
 const theaterFiles = [
   "src/components/capture-setup-panel.tsx",
-  "src/components/onboarding-capture-step.tsx",
   "src/components/onboarding-call-verify.tsx",
 ];
 const theaterPattern = /or I will before go-live|or will be my published/i;

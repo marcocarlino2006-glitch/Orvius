@@ -26,7 +26,7 @@ export default function AboutPage() {
       <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
           <h2 className="tier1-section-title type-headline">
-            Missed and after-hours calls become booked work.
+            Missed and after-hours calls become qualified jobs — proposed, then confirmed.
           </h2>
           <p className="tier1-section-lead font-sans">
             Orvius answers when your crew cannot — after hours and overflow —

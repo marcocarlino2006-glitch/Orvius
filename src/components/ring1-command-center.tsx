@@ -4,9 +4,14 @@ import { useState } from "react";
 import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
 import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
+import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProLaunchControl } from "@/components/pro-launch-control";
 import { ProShiftTimeline } from "@/components/pro-shift-timeline";
 import { useRing1 } from "@/lib/ring1-context";
+
+// Economics panel stays reachable for weekly-proof ritual code; Command calm
+// shows outcomes only so money never double-stacks with the pulse.
+void ProEconomicsPanel;
 
 /**
  * Signed-in Command — one composition.

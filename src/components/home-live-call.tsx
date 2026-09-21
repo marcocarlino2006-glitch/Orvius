@@ -119,7 +119,7 @@ const BARS = Array.from({ length: BAR_COUNT }, (_, i) => {
 });
 
 /** Everything the player conveys, written out for assistive technology. */
-const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then books the job and alerts the owner. Orvius confirms the window arrives by text and never quotes a price or an arrival time.`;
+const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then alerts the owner. The customer confirms the window by text — Orvius never quotes a price or an arrival time.`;
 
 function clock(seconds: number) {
   const whole = Math.max(0, Math.floor(seconds));

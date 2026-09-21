@@ -52,7 +52,7 @@ export const exponentialLoops = [
   {
     id: 1,
     name: "Capture",
-    claim: "Missed and after-hours demand becomes a qualified, alerted lead — priority books.",
+    claim: "Missed and after-hours demand becomes a qualified, alerted lead — window proposed.",
   },
   {
     id: 2,
@@ -62,7 +62,7 @@ export const exponentialLoops = [
   {
     id: 3,
     name: "Command",
-    claim: "Attention is the cockpit — book and assign without hunting dashboards.",
+    claim: "Attention is the cockpit — act without hunting dashboards.",
   },
   {
     id: 4,
@@ -99,7 +99,7 @@ export const osRings = [
     name: "Jobs",
     module: "Book · confirm · schedule",
     status: "live" as const,
-    body: "Leads become booked appointments — not sticky notes.",
+    body: "Leads become proposed windows — customer confirms by text.",
   },
   {
     ring: 4,
