@@ -3868,6 +3868,32 @@ a.pro-shift-event:hover .pro-shift-event-title {
   line-height: 1.45;
 }
 
+.capture-setup-more {
+  border-top: 1px solid var(--rule);
+  padding-top: 0.75rem;
+}
+
+.capture-setup-more summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ash);
+}
+
+.capture-setup-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.capture-setup-more summary::after {
+  content: " ▾";
+  font-weight: 400;
+}
+
+.capture-setup-more[open] summary::after {
+  content: " ▴";
+}
+
 .capture-setup-steps li + li,
 .onboarding-capture-steps li + li {
   margin-top: 0.35rem;
