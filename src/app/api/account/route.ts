@@ -171,7 +171,7 @@ export async function GET() {
       fullyReady: isStripeConfigured(),
       readiness: founder
         ? readiness
-        : { ...readiness, missing: [], nextSteps: [] },
+        : { checkoutReady: readiness.checkoutReady, fullyReady: readiness.fullyReady, missing: [], nextSteps: [], checklist: [] },
       status: business?.billingStatus ?? "none",
       planId: currentPlanId,
       plan: currentPlan ?? pricing.pro,

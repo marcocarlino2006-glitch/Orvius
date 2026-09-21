@@ -13,6 +13,13 @@ export type BillingConfig = {
   planPriceIds: Record<PaidPlanId, boolean>;
 };
 
+export type BillingChecklistItem = {
+  id: string;
+  label: string;
+  detail: string;
+  ok: boolean;
+};
+
 export type BillingReadiness = {
   checkoutReady: boolean;
   fullyReady: boolean;
@@ -20,6 +27,7 @@ export type BillingReadiness = {
   configuredPlans: PaidPlanId[];
   missing: string[];
   nextSteps: string[];
+  checklist: BillingChecklistItem[];
 };
 
 export function getBillingConfig(): BillingConfig {
@@ -42,10 +50,46 @@ export function getBillingReadiness(): BillingReadiness {
   const nextSteps: string[] = [];
   const paidPlans = getPaidPlans();
   const configuredPlans = getConfiguredPaidPlans();
+  const pricesReady = configuredPlans.length === paidPlans.length;
+
+  const checklist: BillingChecklistItem[] = [
+    {
+      id: "secret",
+      label: "Stripe secret key",
+      detail: "Paste STRIPE_SECRET_KEY from Stripe → Developers → API keys",
+      ok: config.secretKey,
+    },
+    {
+      id: "publishable",
+      label: "Publishable key",
+      detail: "Paste NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (pk_…)",
+      ok: config.publishableKey,
+    },
+    {
+      id: "prices",
+      label: "Plan prices",
+      detail: pricesReady
+        ? "Line, Pro, and Fleet monthly prices are live"
+        : `Add price IDs for ${
+            paidPlans
+              .filter((plan) => !config.planPriceIds[plan.id])
+              .map((plan) => plan.name)
+              .join(", ") || "each plan"
+          }`,
+      ok: pricesReady,
+    },
+    {
+      id: "webhook",
+      label: "Webhook",
+      detail:
+        "Endpoint https://api.orvius.im/api/billing/webhook + STRIPE_WEBHOOK_SECRET",
+      ok: config.webhookSecret,
+    },
+  ];
 
   if (!config.secretKey) {
     missing.push("STRIPE_SECRET_KEY");
-    nextSteps.push("Add STRIPE_SECRET_KEY from Stripe Dashboard → Developers → API keys");
+    nextSteps.push("Add STRIPE_SECRET_KEY from Stripe → Developers → API keys");
   }
 
   for (const plan of paidPlans) {
@@ -59,24 +103,24 @@ export function getBillingReadiness(): BillingReadiness {
   );
   if (missingAnnual.length > 0 && config.secretKey) {
     nextSteps.push(
-      "Run npm run stripe:setup to create annual prices (STRIPE_PRICE_ID_*_ANNUAL)",
+      "Optional: add annual price IDs (STRIPE_PRICE_ID_*_ANNUAL) when you’re ready",
     );
   }
 
   if (missing.some((key) => key.startsWith("STRIPE_PRICE_ID"))) {
-    nextSteps.push("Run npm run stripe:setup to create Line, Pro, and Fleet prices");
+    nextSteps.push("Add Line, Pro, and Fleet monthly price IDs on Vercel");
   }
 
   if (!config.webhookSecret) {
     missing.push("STRIPE_WEBHOOK_SECRET");
     nextSteps.push(
-      "Create webhook at Stripe → Developers → Webhooks → api.orvius.im/api/billing/webhook",
+      "Create webhook → https://api.orvius.im/api/billing/webhook → paste STRIPE_WEBHOOK_SECRET",
     );
   }
 
   if (!config.publishableKey) {
     missing.push("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY");
-    nextSteps.push("Add publishable key from Stripe Dashboard (optional for Checkout redirect)");
+    nextSteps.push("Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY from Stripe API keys");
   }
 
   const checkoutReady = config.secretKey && configuredPlans.length > 0;
@@ -85,6 +129,17 @@ export function getBillingReadiness(): BillingReadiness {
     config.webhookSecret &&
     configuredPlans.length === paidPlans.length;
 
+  if (checkoutReady && !fullyReady) {
+    nextSteps.unshift(
+      "Checkout can run — finish the open checklist items, then redeploy",
+    );
+  }
+
+  if (fullyReady) {
+    nextSteps.length = 0;
+    nextSteps.push("Money path is live — run one test Subscribe on Billing");
+  }
+
   return {
     checkoutReady,
     fullyReady,
@@ -92,6 +147,7 @@ export function getBillingReadiness(): BillingReadiness {
     configuredPlans,
     missing,
     nextSteps,
+    checklist,
   };
 }
 
