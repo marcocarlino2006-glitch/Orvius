@@ -20,7 +20,7 @@ const POLL_MS = 3_000;
 
 /**
  * One job after the line exists: Call → Enter Command.
- * Capture confirm stamps on enter — no second mode grid, no skip trap.
+ * Capture (forward/publish) stays on Settings — never stamp overflow here.
  */
 export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyProps) {
   const router = useRouter();
@@ -66,13 +66,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
     setEntering(true);
     setError(null);
     try {
-      const res = await fetch("/api/account", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ overflowForwardConfirmedAt: true }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Could not finish setup");
+      // Line is proved. Do not invent overflow/forward confirm — Settings owns that.
       markFirstNightPending();
       router.replace("/dashboard?live=1");
       router.refresh();

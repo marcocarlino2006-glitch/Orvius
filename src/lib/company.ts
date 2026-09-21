@@ -14,8 +14,8 @@ export const company = {
   /** Category we are creating — not “AI receptionist.” */
   categoryClaim:
     "The night-shift OS for HVAC, plumbing, and electrical.",
-  /** Wedge proof — measurable today. */
-  proofLine: "Missed calls become booked jobs.",
+  /** Wedge proof — honest: answer + qualify + propose + alert (confirm is separate). */
+  proofLine: "After-hours calls become qualified jobs.",
   vision:
     "Make missed night jobs obsolete. Orvius runs the after-hours front door — captures demand, qualifies, books when ready, and alerts the owner — then compounds one shop record as that loop proves itself.",
   /** Product goal — not a warranty of a perfect answer rate. */

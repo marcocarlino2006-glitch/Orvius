@@ -56,7 +56,7 @@ export function HomeLineHero() {
           {/* Copy is owned by the i18n dictionary; keep these in sync with it so
               the translator never swaps the text out from under the render. */}
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
-            Missed calls become booked jobs.
+            After-hours calls become qualified jobs.
           </h1>
 
           <p className="ov-hero-lead" data-i18n="hero.lead">

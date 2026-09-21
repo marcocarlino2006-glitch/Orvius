@@ -24,10 +24,10 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.proveit": { en: "Call the live line", es: "Llamar a la línea en vivo", fr: "Appeler la ligne en direct", de: "Live-Leitung anrufen" },
 
   "hero.title": {
-    en: "Missed calls become booked jobs.",
-    es: "Las llamadas perdidas se vuelven trabajos agendados.",
-    fr: "Les appels manqués deviennent des interventions planifiées.",
-    de: "Verpasste Anrufe werden zu gebuchten Aufträgen.",
+    en: "After-hours calls become qualified jobs.",
+    es: "Las llamadas fuera de horario se vuelven trabajos calificados.",
+    fr: "Les appels hors horaires deviennent des interventions qualifiées.",
+    de: "Anrufe außerhalb der Geschäftszeiten werden zu qualifizierten Aufträgen.",
   },
   "hero.lead": {
     en: "Orvius answers after-hours and overflow calls, captures the request, proposes an open service window, and alerts the owner — without inventing prices or arrival times.",

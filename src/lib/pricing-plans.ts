@@ -40,7 +40,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     idealFor: "Shops verifying the after-hours workflow before a paid plan",
     highlights: [
       "Dedicated local line assigned at onboarding",
-      "Full After-hours answer on your shop number",
+      "After-hours answer on your Orvius line — or forward overflow from your shop number",
       "Lead inbox + owner SMS alerts",
       "Pro workspace during the 30-day pilot",
       "Guided setup and verification",
