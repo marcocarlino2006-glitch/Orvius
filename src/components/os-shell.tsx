@@ -167,7 +167,7 @@ export function OsShell({
                   <Link
                     href="/dashboard/billing"
                     className="os-nav-link os-nav-link-locked font-sans"
-                    title="Subscribe to continue"
+                    title="Pay to continue"
                   >
                     <OsIcon name={item.icon} />
                     <span className="os-nav-label">{item.label}</span>

@@ -73,8 +73,8 @@ export function PricingPlanCard({
       interval={interval}
       label={
         interval === "year"
-          ? `Subscribe · $${displayPrice}/mo billed annually`
-          : `Subscribe · $${displayPrice}/mo`
+          ? `Pay with card · $${displayPrice}/mo billed annually`
+          : `Pay with card · $${displayPrice}/mo`
       }
       variant={featured || recommended ? "primary" : "secondary"}
       email={email}

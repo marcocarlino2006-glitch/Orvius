@@ -40,7 +40,7 @@ export function CheckoutButton({
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
 
-  const buttonLabel = label ?? "Subscribe";
+  const buttonLabel = label ?? "Pay with card";
 
   useEffect(() => {
     if (emailProp) {
@@ -151,15 +151,23 @@ export function CheckoutButton({
 
   if (!planReady) {
     const annualMissing = interval === "year" && planStatus?.checkoutReady;
+    const anyReady = Boolean(billing?.checkoutReady);
     return (
       <div className={className}>
-        <Link href="/pilot" className="inst-btn inst-btn-primary w-full justify-center">
-          Book a call audit
+        <Link
+          href={anyReady ? "/dashboard/billing" : "/pricing"}
+          className={`inst-btn w-full justify-center ${
+            variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
+          }`}
+        >
+          {anyReady ? "Open billing to pay" : "See plans"}
         </Link>
         <p className="mt-3 font-sans text-sm text-ash">
           {annualMissing
-            ? "Annual checkout is not available for this plan yet. Choose monthly or confirm the annual option during your audit."
-            : "Self-serve checkout is not available for this plan yet. We’ll confirm pricing and setup during the audit."}
+            ? "Annual checkout isn’t open for this plan yet — pay monthly on Billing."
+            : anyReady
+              ? "This plan isn’t on card checkout yet. Open Billing and pay with the plan that’s ready."
+              : "Card checkout isn’t open yet. Plans are listed on Pricing — Billing unlocks Pay when Stripe is live."}
         </p>
       </div>
     );
@@ -187,7 +195,7 @@ export function CheckoutButton({
               variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
             } ${loading ? "opacity-70" : ""}`}
           >
-            {loading ? "Redirecting..." : buttonLabel}
+            {loading ? "Opening checkout…" : buttonLabel}
           </button>
         </div>
       ) : (
@@ -199,15 +207,15 @@ export function CheckoutButton({
             variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
           } ${loading ? "opacity-70" : ""}`}
         >
-          {loading ? "Redirecting..." : buttonLabel}
+          {loading ? "Opening checkout…" : buttonLabel}
         </button>
       )}
 
       {error ? (
         <p className="mt-3 font-sans text-sm text-flare-dim">
           {error}{" "}
-          <Link href="/pilot" className="underline underline-offset-2">
-            Book a call audit
+          <Link href="/dashboard/billing" className="underline underline-offset-2">
+            Open billing
           </Link>
         </p>
       ) : null}

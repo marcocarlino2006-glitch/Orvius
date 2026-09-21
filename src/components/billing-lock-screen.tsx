@@ -35,7 +35,7 @@ export function BillingLockScreen({
     <div className={`billing-lock billing-lock--${tone} billing-lock--instrument`} role="alertdialog" aria-modal="true">
       <div className="billing-lock-card">
         <p className="billing-lock-kicker font-sans">
-          {tone === "past_due" ? "Payment required" : "Subscribe to continue"}
+          {tone === "past_due" ? "Payment required" : "Pay to continue"}
         </p>
         <h1 className="billing-lock-title font-sans">{headline}</h1>
         <p className="billing-lock-body font-sans">{body}</p>
@@ -53,24 +53,24 @@ export function BillingLockScreen({
           <CheckoutButton
             planId="pro"
             email={email}
-            label={`Subscribe · $${featured.price}/mo`}
+            label={`Pay with card · $${featured.price}/mo`}
             variant="primary"
             className="billing-lock-checkout"
           />
         ) : (
           <Link
-            href={`mailto:${company.contactEmail}?subject=Orvius%20billing`}
+            href="/dashboard/billing"
             className="btn btn-void billing-lock-cta"
           >
-            Contact us to subscribe
+            Open billing
           </Link>
         )}
 
         <div className="billing-lock-links font-sans">
           {checkoutReady ? (
             <>
-              <Link href="/pricing">Compare plans</Link>
-              <Link href="/dashboard/billing">Billing details</Link>
+              <Link href="/dashboard/billing">Other plans</Link>
+              <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
             </>
           ) : (
             <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>

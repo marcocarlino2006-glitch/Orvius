@@ -137,7 +137,7 @@ export function getBillingReadiness(): BillingReadiness {
 
   if (fullyReady) {
     nextSteps.length = 0;
-    nextSteps.push("Money path is live — run one test Subscribe on Billing");
+    nextSteps.push("Money path is live — run one test Pay with card on Billing");
   }
 
   return {

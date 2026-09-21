@@ -102,7 +102,7 @@ export function buildSettingsHub(input: SettingsHubInput): {
       label: "Plan & billing",
       detail: billingOk
         ? "Checkout can open"
-        : "Subscribe and payouts live here",
+        : "Pay and payouts live here",
       href: "/dashboard/billing",
       ok: billingOk,
     },
@@ -175,7 +175,7 @@ export function buildSettingsHub(input: SettingsHubInput): {
     next = {
       id: "money",
       title: "Finish money setup",
-      body: "Billing shows the green checklist — secret key, prices, webhook. Then one test Subscribe.",
+      body: "Billing shows the green checklist — secret key, prices, webhook. Then one test Pay with card.",
       cta: "Open money setup",
       href: "/dashboard/billing",
     };
@@ -207,7 +207,7 @@ export function buildSettingsHub(input: SettingsHubInput): {
     next = {
       id: "billing",
       title: "Open billing",
-      body: "Plan, Subscribe, and payouts live on Billing — one tap from here.",
+      body: "Plan, Pay with card, and payouts live on Billing — one tap from here.",
       cta: "Open billing",
       href: "/dashboard/billing",
     };

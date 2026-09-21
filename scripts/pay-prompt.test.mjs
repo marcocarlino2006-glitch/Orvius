@@ -148,13 +148,14 @@ describe("pay prompt loop", () => {
     assert.equal(d.tone, "locked");
     assert.equal(d.hard, true);
     assert.match(d.headline, /Access ended/);
-    assert.match(d.primaryCta, /Subscribe/);
+    assert.match(d.primaryCta, /Pay with card/);
   });
 
   it("tells a canceled shop something different from a lapsed one", () => {
     const canceled = getPayPromptDecision({ billingStatus: "canceled" });
     assert.equal(canceled.tone, "locked");
     assert.match(canceled.headline, /reopen your shop/);
+    assert.match(canceled.primaryCta, /Pay with card/);
   });
 
   it("urgent lock for past_due", () => {

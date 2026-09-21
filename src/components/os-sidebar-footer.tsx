@@ -17,6 +17,8 @@ type AccountData = {
     status: string;
     planId: string | null;
     plan: { name: string; price: number };
+    configured?: boolean;
+    entitled?: boolean;
   };
 };
 
@@ -56,6 +58,19 @@ function planDisplayLabel(account: AccountData | null): string {
   }
   if (status === "canceled") return "Canceled";
   return "No plan";
+}
+
+function needsPayCta(account: AccountData | null): boolean {
+  const status = (
+    account?.billing?.status ??
+    account?.business?.billingStatus ??
+    "none"
+  ).toLowerCase();
+  if (status === "active") return false;
+  if (status === "past_due" || status === "canceled") return true;
+  if (account?.billing?.entitled === false) return true;
+  if (status === "pilot" || status === "none") return true;
+  return false;
 }
 
 export function OsSidebarFooter() {
@@ -101,12 +116,27 @@ export function OsSidebarFooter() {
   const name = session.user.name ?? "User";
   const email = session.user.email ?? "";
   const planLabel = planDisplayLabel(account);
+  const showPay = needsPayCta(account);
+  const payLabel =
+    (account?.billing?.status ?? "").toLowerCase() === "past_due"
+      ? "Fix payment"
+      : "Pay with card";
 
   return (
     <div
       ref={rootRef}
       className={`os-profile-menu os-sidebar-footer font-sans ${open ? "os-profile-menu-open" : ""}`}
     >
+      {showPay && pathname !== "/dashboard/billing" ? (
+        <Link
+          href="/dashboard/billing"
+          className="os-sidebar-pay"
+          title="Open Billing to pay with card"
+        >
+          {payLabel}
+        </Link>
+      ) : null}
+
       {open ? (
         <div
           id={menuId}
@@ -114,13 +144,6 @@ export function OsSidebarFooter() {
           role="menu"
           aria-label="Account menu"
         >
-          {/*
-            The button below already carries the avatar, the name and the
-            plan, and the shop name is at the top of the sidebar. Repeating
-            all four here made the popover look like a second account panel
-            rather than a menu, so the header says only the one thing the
-            button has no room for.
-          */}
           <p className="os-profile-menu-email">{email}</p>
 
           <div className="os-profile-menu-links">
@@ -137,16 +160,6 @@ export function OsSidebarFooter() {
               </Link>
             ))}
 
-            {/*
-              The only way to reach a person from inside the product. It used to
-              be a mailto in the marketing footer and a line in a Legal panel on
-              the billing page — findable by someone browsing the site, and not
-              by the owner at 3am with a shop to run, which is the only person
-              who ever needs it.
-
-              An <a> rather than a Link because it leaves the app, and it
-              arrives carrying the screen they were on.
-            */}
             <a
               href={supportMailto({ subject: "Help", path: pathname })}
               role="menuitem"

@@ -25,8 +25,8 @@ export function ProLaunchControl({
   wedge,
   events,
   moneyEnabled,
-  checkoutReady: _checkoutReady,
-  billingStatus: _billingStatus,
+  checkoutReady,
+  billingStatus,
   referenceImplementation = false,
   coverage,
   health,
@@ -50,8 +50,17 @@ export function ProLaunchControl({
       : "Setup";
   const caught = outcomes?.afterHoursLeads ?? 0;
   const booked = outcomes?.afterHoursBooked ?? 0;
-  // Banner owns alerts + board next; rail only acts for unfinished setup.
-  const showPrimaryAction = !atRisk && Boolean(nextSetup);
+  const billing = (billingStatus ?? "none").toLowerCase();
+  const needsPay =
+    billing !== "active" &&
+    (billing === "past_due" ||
+      billing === "canceled" ||
+      billing === "pilot" ||
+      billing === "none");
+  // Banner owns alerts + board next; rail only acts for unfinished setup —
+  // except Pay when the shop still needs a card on file.
+  const showPayAction = needsPay && !atRisk;
+  const showPrimaryAction = !showPayAction && !atRisk && Boolean(nextSetup);
   const actionHref = atRisk
     ? "/dashboard/settings"
     : nextSetup?.actionHref ?? "/dashboard#attention-board";
@@ -60,6 +69,12 @@ export function ProLaunchControl({
     : nextSetup
       ? nextSetup.label
       : "Open the board";
+  const payLabel =
+    billing === "past_due"
+      ? "Fix payment"
+      : checkoutReady
+        ? "Pay with card"
+        : "Open billing";
 
   return (
     <section className="pro-rail-card pro-launch-control pro-control-center">
@@ -73,11 +88,15 @@ export function ProLaunchControl({
       <p className="pro-control-lead font-sans">
         {atRisk
           ? "Owner alerts need a fix — use the banner above (Send test alert)."
-          : coverage?.afterHoursNow
-            ? "After hours — the line is watching for you."
-            : setupReady
-              ? "Front door is covered. The banner above is your next move."
-              : "Finish front-door setup so night calls have somewhere to go."}
+          : showPayAction
+            ? billing === "past_due"
+              ? "Payment failed — fix the card so the line stays live."
+              : "Pay with card when you’re ready — one tap on Billing opens Stripe Checkout."
+            : coverage?.afterHoursNow
+              ? "After hours — the line is watching for you."
+              : setupReady
+                ? "Front door is covered. The banner above is your next move."
+                : "Finish front-door setup so night calls have somewhere to go."}
       </p>
 
       <dl className="pro-control-pulse">
@@ -140,8 +159,12 @@ export function ProLaunchControl({
         </li>
       </ul>
 
-      {/* One CTA truth: banner owns the red gate; rail only acts when setup needs it. */}
-      {showPrimaryAction ? (
+      {/* One CTA truth: Pay when unpaid; banner owns the red gate; rail acts for setup. */}
+      {showPayAction ? (
+        <Link href="/dashboard/billing" className="btn btn-void pro-control-action">
+          {payLabel}
+        </Link>
+      ) : showPrimaryAction ? (
         <Link href={actionHref} className="btn btn-void pro-control-action">
           {actionLabel}
         </Link>

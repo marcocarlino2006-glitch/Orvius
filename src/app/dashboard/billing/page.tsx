@@ -6,7 +6,13 @@ import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
 import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
-import { company, getPaidPlans, pricing } from "@/lib/company";
+import {
+  company,
+  getFeaturedPlan,
+  getPaidPlans,
+  pricing,
+  type PaidPlanId,
+} from "@/lib/company";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -53,7 +59,7 @@ type BillingAccount = {
 
 function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | null) {
   if (!entitled && (status === "pilot" || status === "none")) {
-    return "Your shop access ended — subscribe to reopen.";
+    return "Your shop access ended — pay with card to reopen.";
   }
   switch (status) {
     case "active":
@@ -70,9 +76,9 @@ function statusCopy(status: string, entitled: boolean, pilotEndsAt: string | nul
     case "past_due":
       return "Payment failed — update billing to keep your line live.";
     case "canceled":
-      return "Subscription canceled. Subscribe again to reopen.";
+      return "Subscription canceled. Pay with card to reopen.";
     default:
-      return "No active subscription yet.";
+      return "No active subscription yet — pay with card below.";
   }
 }
 
@@ -124,6 +130,11 @@ export default function DashboardBillingPage() {
     account?.billing.pilotEndsAt ?? account?.business?.pilotEndsAt ?? null;
   const email = session?.user?.email ?? account?.user.email ?? "";
   const paidPlans = getPaidPlans();
+  const featuredPlan = getFeaturedPlan();
+  const featuredId = (featuredPlan.id === "line" || featuredPlan.id === "pro" || featuredPlan.id === "fleet"
+    ? featuredPlan.id
+    : "pro") as PaidPlanId;
+  const otherPlans = paidPlans.filter((plan) => plan.id !== featuredId);
   const checkoutReady = account?.billing.configured ?? false;
   const founder = account?.founder ?? false;
   const fullyReady = account?.billing.fullyReady ?? false;
@@ -163,10 +174,10 @@ export default function DashboardBillingPage() {
                 <div className="billing-money-setup font-sans">
                   <p className="billing-money-setup-lead">
                     {fullyReady
-                      ? "Checkout is live. Run one test Subscribe below, then flip to live keys when you’re ready for real cards."
+                      ? "Checkout is live. Run one test Pay with card below, then flip to live keys when you’re ready for real cards."
                       : checkoutReady
-                        ? "Subscribe can open — finish the open items so webhooks and every plan stay honest."
-                        : "One checklist. Paste on Vercel, redeploy, then Subscribe appears for shops."}
+                        ? "Pay can open — finish the open items so webhooks and every plan stay honest."
+                        : "One checklist. Paste on Vercel, redeploy, then Pay with card appears for shops."}
                   </p>
                   <ul className="billing-money-checklist" aria-label="Money setup checklist">
                     {(checklist.length
@@ -220,7 +231,7 @@ export default function DashboardBillingPage() {
                   ) : null}
                   {fullyReady ? (
                     <p className="billing-money-setup-foot billing-money-setup-foot--live">
-                      All green · Owners see Subscribe · You can take a test card now
+                      All green · Owners see Pay with card · You can take a test card now
                     </p>
                   ) : null}
                 </div>
@@ -249,7 +260,7 @@ export default function DashboardBillingPage() {
                       : status === "pilot" && entitled
                         ? pricing.pilot.period
                         : locked
-                          ? "Subscribe required"
+                          ? "Pay required"
                           : "—"}
                   </p>
                 </div>
@@ -270,7 +281,7 @@ export default function DashboardBillingPage() {
             )}
           </ShellPanel>
 
-          <ShellPanel title="Subscription" dense>
+          <ShellPanel title={status === "active" ? "Subscription" : "Pay"} dense>
             {loading ? (
               <ShellLoading />
             ) : status === "active" ? (
@@ -293,43 +304,57 @@ export default function DashboardBillingPage() {
               </>
             ) : checkoutReady ? (
               <>
-                <p className="font-sans text-sm leading-relaxed text-ash">
-                  {locked
-                    ? "Pick a plan to reopen your shop. One tap opens Stripe Checkout — cancel anytime."
-                    : "Pick a plan. One tap opens Stripe Checkout — flat monthly, cancel anytime."}
-                </p>
-                <ul className="account-billing-plans mt-5 space-y-4">
-                  {paidPlans.map((plan) => (
-                    <li
-                      key={plan.id}
-                      className={`account-billing-plan${plan.featured ? " account-billing-plan--featured" : ""}`}
-                    >
-                      <div className="account-billing-plan-copy font-sans">
-                        {plan.featured ? (
-                          <p className="account-billing-plan-badge">Recommended</p>
-                        ) : null}
-                        <p className="account-billing-plan-name">{plan.name}</p>
-                        <p className="account-billing-plan-price">
-                          ${plan.price}/mo
-                        </p>
-                        <p className="account-billing-plan-detail">{plan.tagline}</p>
-                      </div>
-                      <CheckoutButton
-                        planId={plan.id}
-                        label={`Subscribe · $${plan.price}/mo`}
-                        variant={plan.featured ? "primary" : "secondary"}
-                        email={email}
-                      />
-                    </li>
-                  ))}
-                </ul>
+                <div className="account-billing-pay-hero font-sans">
+                  <p className="account-billing-pay-kicker">
+                    {locked ? "Pay to reopen" : "Pay with card"}
+                  </p>
+                  <p className="account-billing-plan-name">{featuredPlan.name}</p>
+                  <p className="account-billing-pay-price">
+                    ${featuredPlan.price}
+                    <span>/mo</span>
+                  </p>
+                  <p className="account-billing-plan-detail">
+                    {featuredPlan.tagline}. One tap opens Stripe Checkout — cancel anytime.
+                  </p>
+                  <CheckoutButton
+                    planId={featuredId}
+                    label={`Pay with card · $${featuredPlan.price}/mo`}
+                    variant="primary"
+                    email={email}
+                    className="account-billing-pay-cta"
+                  />
+                </div>
+                {otherPlans.length > 0 ? (
+                  <details className="account-billing-other mt-5 font-sans">
+                    <summary>Other plans</summary>
+                    <ul className="account-billing-plans mt-4 space-y-4">
+                      {otherPlans.map((plan) => (
+                        <li key={plan.id} className="account-billing-plan">
+                          <div className="account-billing-plan-copy">
+                            <p className="account-billing-plan-name">{plan.name}</p>
+                            <p className="account-billing-plan-price">
+                              ${plan.price}/mo
+                            </p>
+                            <p className="account-billing-plan-detail">{plan.tagline}</p>
+                          </div>
+                          <CheckoutButton
+                            planId={plan.id}
+                            label={`Pay · $${plan.price}/mo`}
+                            variant="secondary"
+                            email={email}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : null}
               </>
             ) : (
               <>
                 <p className="font-sans text-sm leading-relaxed text-ash">
                   {founder
-                    ? "Subscribe buttons unlock when the Money setup checklist is green. Finish the open items above, redeploy, then refresh."
-                    : "Self-serve checkout isn’t open yet. Your shop access stays active — we’ll notify you before billing begins. Need to subscribe now?"}{" "}
+                    ? "Pay with card unlocks when the Money setup checklist is green. Finish the open items above, redeploy, then refresh."
+                    : "Card checkout isn’t open yet. Your shop access stays active — we’ll notify you before billing begins. Need to pay now?"}{" "}
                   {!founder ? (
                     <a
                       href={`mailto:${company.contactEmail}?subject=Orvius%20billing`}

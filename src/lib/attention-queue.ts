@@ -362,10 +362,10 @@ export async function getAttentionQueue(
         impact: "critical",
         title:
           daysLeft <= 0
-            ? "Your access ended — subscribe to keep the line live"
-            : `Shop access ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — choose a plan`,
-        detail: "Subscribe so missed calls keep becoming booked jobs.",
-        recommendedAction: "Choose a plan",
+            ? "Your access ended — pay to keep the line live"
+            : `Shop access ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — pay with card`,
+        detail: "Pay with card so missed calls keep becoming booked jobs.",
+        recommendedAction: "Pay with card",
         href: "/dashboard/billing",
         entityType: "shop",
         entityId: businessId,

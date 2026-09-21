@@ -2140,6 +2140,67 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding-top: 0;
 }
 
+.account-billing-pay-hero {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.account-billing-pay-kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.account-billing-pay-price {
+  margin: 0.15rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--void);
+  line-height: 1.1;
+}
+
+.account-billing-pay-price span {
+  margin-left: 0.2rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ash);
+}
+
+.account-billing-pay-cta {
+  margin-top: 1rem;
+}
+
+.account-billing-other {
+  border-top: 1px solid var(--rule);
+  padding-top: 0.85rem;
+}
+
+.account-billing-other summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ash);
+}
+
+.account-billing-other summary::-webkit-details-marker {
+  display: none;
+}
+
+.account-billing-other summary::after {
+  content: " ▾";
+  font-weight: 400;
+}
+
+.account-billing-other[open] summary::after {
+  content: " ▴";
+}
+
 .account-billing-plan-name {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -7542,51 +7603,30 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: color-mix(in srgb, var(--void) 72%, transparent);
 }
 
-.pay-prompt-plans {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
+.pay-prompt-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
   margin-top: 1.1rem;
 }
 
-.pay-prompt-plan {
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--rule);
-  background: color-mix(in srgb, var(--fog) 70%, transparent);
-}
-
-.pay-prompt-plan--featured {
-  border-color: color-mix(in srgb, var(--void) 35%, var(--rule));
-  background: color-mix(in srgb, var(--void) 4%, var(--chalk, #fff));
-}
-
-.pay-prompt-plan-name {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 650;
-  color: var(--void);
-}
-
-.pay-prompt-plan-price {
-  margin: 0.2rem 0 0;
-  font-size: 1.25rem;
+.pay-prompt-price-amt {
+  font-size: 1.75rem;
   font-weight: 750;
   letter-spacing: -0.03em;
   color: var(--void);
+  line-height: 1;
 }
 
-.pay-prompt-plan-price span {
-  font-size: 0.75rem;
+.pay-prompt-price-per {
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--ash);
 }
 
-.pay-prompt-plan-tag {
-  margin: 0.35rem 0 0;
-  font-size: 0.7rem;
-  line-height: 1.35;
-  color: var(--ash);
+.pay-prompt-plans,
+.pay-prompt-plan {
+  display: none;
 }
 
 .pay-prompt-actions {
@@ -7620,8 +7660,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 @media (max-width: 480px) {
-  .pay-prompt-plans {
-    grid-template-columns: 1fr;
+  .pay-prompt-card {
+    max-width: 100%;
   }
 }
 
@@ -7711,6 +7751,28 @@ a.pro-shift-event:hover .pro-shift-event-title {
   margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid color-mix(in srgb, var(--chalk) 10%, transparent);
+}
+
+.os-sidebar-pay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 4px;
+  background: var(--chalk);
+  color: var(--void);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.os-sidebar-pay:hover {
+  background: #fff;
+  color: var(--void);
 }
 
 .os-profile-menu {
@@ -8992,35 +9054,22 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: #a09f9e !important;
 }
 
-.pay-prompt-plans {
-  gap: 0.45rem !important;
+.pay-prompt-price {
   margin-top: 0.75rem !important;
 }
 
-.pay-prompt-plan {
-  padding: 0.55rem 0.6rem !important;
-  border-radius: 0.25rem !important;
-  border: 1px solid #4b4945 !important;
-  background: #2f2d28 !important;
-}
-
-.pay-prompt-plan--featured {
-  border-color: #e9e9e9 !important;
-  background: #2f2d28 !important;
-}
-
-.pay-prompt-plan-name,
-.pay-prompt-plan-price {
+.pay-prompt-price-amt {
   color: #e9e9e9 !important;
+  font-size: 1.5rem !important;
 }
 
-.pay-prompt-plan-price {
-  font-size: 1.05rem !important;
-}
-
-.pay-prompt-plan-tag {
+.pay-prompt-price-per {
   color: #a09f9e !important;
-  font-size: 0.6875rem !important;
+}
+
+.pay-prompt-plans,
+.pay-prompt-plan {
+  display: none !important;
 }
 
 .pay-prompt-actions {

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Verified Stripe checkout is not live for this plan yet. Book a call audit and we will confirm availability without collecting payment.",
+            "Card checkout isn’t open for this plan yet. Open Billing and pay with a plan that’s ready, or email hello@orvius.im.",
           ...((await isPrivilegedRequest(request))
             ? { billing: getBillingReadiness() }
             : {}),

@@ -22,7 +22,7 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "No Stripe customer on file yet. Subscribe to a plan first, or contact support.",
+            "No Stripe customer on file yet. Pay with card on Billing first, or contact support.",
         },
         { status: 404 },
       );
