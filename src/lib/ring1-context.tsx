@@ -164,8 +164,12 @@ export function Ring1Provider({
   );
 }
 
+export function useOptionalRing1() {
+  return useContext(Ring1Context);
+}
+
 export function useRing1() {
-  const ctx = useContext(Ring1Context);
+  const ctx = useOptionalRing1();
   if (!ctx) {
     throw new Error("useRing1 must be used inside Ring1Provider");
   }
