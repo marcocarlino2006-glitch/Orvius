@@ -58,7 +58,7 @@ const COVERED: ShopOperateNext = {
   id: "covered",
   title: "You’re covered",
   detail:
-    "Nothing needs you right now. The line is watching — Ask if you’re unsure what to do next.",
+    "Nothing needs you. The line is watching. Ask Orvius if you’re unsure.",
   href: "/dashboard/ask",
   cta: "Ask Orvius",
   tone: "ritual",
@@ -147,10 +147,10 @@ export function resolveShopOperateNext(
   if (input.economicsReady && input.proofStale) {
     return {
       id: "weekly-proof",
-      title: "Stamp this week’s proof",
-      detail: "Copy the weekly proof so recovered demand stays an honest artifact.",
+      title: "Copy this week’s results",
+      detail: "Copy booked jobs and estimated value for your notes.",
       href: "/dashboard#shop-economics",
-      cta: "Copy proof",
+      cta: "Copy results",
       tone: "ritual",
     };
   }

@@ -2,7 +2,6 @@
 
 import { telHref } from "@/lib/demo-line";
 import { markFirstNightPending } from "@/components/first-night-handoff";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -19,17 +18,16 @@ type OnboardingCallVerifyProps = {
 
 const POLL_MS = 3_000;
 
+/**
+ * One job after the line exists: Call → Enter Command.
+ * Capture confirm stamps on enter — no second mode grid, no skip trap.
+ */
 export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyProps) {
   const router = useRouter();
   const [state, setState] = useState<VerifyState | null>(null);
   const [polling, setPolling] = useState(true);
-  const [testing, setTesting] = useState(false);
-  const [testNote, setTestNote] = useState<string | null>(null);
-  const [testError, setTestError] = useState<string | null>(null);
-  const [captureMode, setCaptureMode] = useState<"forward" | "publish">("forward");
-  const [captureConfirmed, setCaptureConfirmed] = useState(false);
-  const [captureSaving, setCaptureSaving] = useState(false);
-  const [captureError, setCaptureError] = useState<string | null>(null);
+  const [entering, setEntering] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
 
   const check = useCallback(async () => {
@@ -39,7 +37,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         setVerifyError(
           res.status === 401
             ? "Your session expired. Sign in again, then return to setup."
-            : "We couldn't verify the line right now.",
+            : "We couldn't check the line right now.",
         );
         setPolling(false);
         return;
@@ -63,30 +61,10 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
     return () => clearInterval(interval);
   }, [check, polling]);
 
-  async function sendTestAlert() {
-    setTesting(true);
-    setTestError(null);
-    setTestNote(null);
-    try {
-      const res = await fetch("/api/account/test-alert", { method: "POST" });
-      const data = (await res.json()) as { error?: string; ok?: boolean };
-      if (!res.ok) throw new Error(data.error ?? "Test failed");
-      setTestNote(
-        data.ok
-          ? "Test alert sent — check your phone."
-          : "Alert queued. Check SMS or email failover.",
-      );
-    } catch (err) {
-      setTestError(err instanceof Error ? err.message : "Test failed");
-    } finally {
-      setTesting(false);
-    }
-  }
-
-  async function confirmCaptureAndOpen() {
-    if (!verified || !captureConfirmed) return;
-    setCaptureSaving(true);
-    setCaptureError(null);
+  async function enterCommand() {
+    if (!verified) return;
+    setEntering(true);
+    setError(null);
     try {
       const res = await fetch("/api/account", {
         method: "PATCH",
@@ -94,16 +72,14 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         body: JSON.stringify({ overflowForwardConfirmedAt: true }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Could not confirm capture");
+      if (!res.ok) throw new Error(data.error ?? "Could not finish setup");
       markFirstNightPending();
       router.replace("/dashboard?live=1");
       router.refresh();
     } catch (err) {
-      setCaptureError(
-        err instanceof Error ? err.message : "Could not confirm capture",
-      );
+      setError(err instanceof Error ? err.message : "Could not finish setup");
     } finally {
-      setCaptureSaving(false);
+      setEntering(false);
     }
   }
 
@@ -124,14 +100,14 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         )}
         <div>
           <h1 className="onboarding-title font-sans">
-            {verified ? "Line proven. Confirm capture." : "One call. Prove it works."}
+            {verified ? "Line works. You’re in." : "Call your line once."}
           </h1>
           <p className="onboarding-lead font-sans">
             {verified
               ? leadName
-                ? `${shopName} received a lead from ${leadName}. Confirm how callers reach Orvius, then open Command.`
-                : `${shopName} is receiving calls. Confirm capture is live, then work from Command.`
-              : `Tap Call — Orvius answers as ${shopName}, qualifies, and texts you. We watch for the lead.`}
+                ? `${shopName} caught a lead from ${leadName}. Open Command and clear the board.`
+                : `${shopName} is answering. Open Command — the banner at the top is always your next move.`
+              : `Tap Call. Orvius answers as ${shopName} and texts you. Stay on this screen — we watch for the call.`}
           </p>
         </div>
       </div>
@@ -144,7 +120,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
 
       {!verified ? (
         <p className="onboarding-verify-waiting font-sans">
-          {verifyError ?? "Waiting for your test call…"}
+          {verifyError ?? "Waiting for your call…"}
         </p>
       ) : null}
 
@@ -158,73 +134,14 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
             void check();
           }}
         >
-          Try verification again
+          Try again
         </button>
       ) : null}
 
-      <div className="onboarding-actions onboarding-actions-split">
-        <a href={telHref(line)} className="btn btn-void font-sans">
-          {verified ? "Call again" : "Call your line"}
-        </a>
-        <button
-          type="button"
-          className="btn btn-ghost font-sans"
-          disabled={testing}
-          onClick={() => void sendTestAlert()}
-        >
-          {testing ? "Sending…" : "Send test alert"}
-        </button>
-      </div>
-
-      {testNote ? (
-        <p className="onboarding-hint font-sans" role="status">
-          {testNote}
-        </p>
-      ) : null}
-      {testError ? (
+      {error ? (
         <p className="onboarding-error font-sans" role="alert">
-          {testError}
+          {error}
         </p>
-      ) : null}
-
-      {verified ? (
-        <div className="onboarding-form mt-6">
-          <div className="onboarding-capture-modes font-sans">
-            <button
-              type="button"
-              className={`onboarding-capture-mode ${captureMode === "forward" ? "onboarding-capture-mode-active" : ""}`}
-              onClick={() => setCaptureMode("forward")}
-            >
-              <strong>I forwarded my public number</strong>
-              <span>Missed &amp; after-hours → Orvius.</span>
-            </button>
-            <button
-              type="button"
-              className={`onboarding-capture-mode ${captureMode === "publish" ? "onboarding-capture-mode-active" : ""}`}
-              onClick={() => setCaptureMode("publish")}
-            >
-              <strong>Orvius is my published number</strong>
-              <span>Google, trucks, and ads use this line.</span>
-            </button>
-          </div>
-          <label className="onboarding-check font-sans mt-4">
-            <input
-              type="checkbox"
-              checked={captureConfirmed}
-              onChange={(e) => setCaptureConfirmed(e.target.checked)}
-            />
-            <span>
-              {captureMode === "publish"
-                ? "Orvius is my published shop number on Google / trucks / ads."
-                : "I set missed / busy / after-hours forward to Orvius."}
-            </span>
-          </label>
-          {captureError ? (
-            <p className="onboarding-error font-sans" role="alert">
-              {captureError}
-            </p>
-          ) : null}
-        </div>
       ) : null}
 
       <div className="onboarding-actions">
@@ -232,45 +149,22 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
           <button
             type="button"
             className="btn btn-void font-sans"
-            disabled={!captureConfirmed || captureSaving}
-            onClick={() => void confirmCaptureAndOpen()}
+            disabled={entering}
+            onClick={() => void enterCommand()}
           >
-                {captureSaving ? "Saving…" : "Enter your first night"}
+            {entering ? "Opening…" : "Enter Command"}
           </button>
         ) : (
-          <button type="button" className="btn btn-void font-sans" disabled>
-            Open your dashboard
-          </button>
+          <a href={telHref(line)} className="btn btn-void font-sans">
+            Call your line
+          </a>
         )}
       </div>
 
       {!verified ? (
         <p className="onboarding-footnote font-sans">
-          Can&apos;t call right now?{" "}
-          <button
-            type="button"
-            className="onboarding-verify-link"
-            onClick={() => {
-              markFirstNightPending();
-              router.replace("/dashboard?live=1");
-              router.refresh();
-            }}
-          >
-            Open dashboard anyway
-          </button>
-          {" — "}
-          we&apos;ll hand you the first-night job in Command.
-        </p>
-      ) : null}
-
-      {verified && state?.firstLead ? (
-        <p className="onboarding-footnote font-sans">
-          <Link
-            href={`/dashboard/inbox/${state.firstLead.id}`}
-            className="onboarding-verify-link"
-          >
-            View your first lead →
-          </Link>
+          Call from your cell. After it lands, one tap opens Command.
+          Forward or publish details live in Settings if you need them later.
         </p>
       ) : null}
     </div>

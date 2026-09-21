@@ -136,7 +136,7 @@ export function buildMasteryReport(
       owner: "founder",
       doneWhen: "RESEND_API_KEY live for magic links + SMS→email backup",
       action: "Paste RESEND_API_KEY (and RESEND_FROM) on Vercel",
-      href: "/dashboard/settings",
+      href: "/dashboard/settings#email-failover",
       ok: resend,
       detail: resend ? "Transactional email configured" : "RESEND_API_KEY missing",
     },
@@ -197,8 +197,8 @@ export function buildMasteryReport(
       title: "Connect — card $ into shop bank",
       owner: "founder",
       doneWhen: "Shop Connect onboarded; charges+payouts enabled; real card settled",
-      action: "Onboard shop in Settings payouts → take one estimate/deposit card payment",
-      href: "/dashboard/settings",
+      action: "Onboard shop in Billing → payouts, then take one estimate/deposit card payment",
+      href: "/dashboard/billing#payouts",
       ok: connectPlatform && s.connectReady,
       detail: !connectPlatform
         ? "STRIPE_SECRET_KEY required for Connect"

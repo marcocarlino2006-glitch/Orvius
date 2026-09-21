@@ -23,7 +23,6 @@ export default function HomePage() {
           <span className="ov-trynow-sky-bloom" />
         </div>
         <div className="mkt-trynow-inner">
-          <p className="mkt-trynow-eyebrow">Hear it yourself</p>
           <h2
             id="home-trynow-heading"
             className="mkt-trynow-title"
@@ -43,7 +42,7 @@ export default function HomePage() {
               className="ov-btn ov-btn--solid mkt-trynow-cta"
               data-i18n="trynow.cta"
             >
-              Call the live AI →
+              Call the live line →
             </a>
             <Link
               href="/pilot"

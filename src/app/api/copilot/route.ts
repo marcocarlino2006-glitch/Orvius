@@ -286,7 +286,7 @@ export async function POST(request: Request) {
         ? error.errors.map((e) => e.message).join(", ")
         : error instanceof Error
           ? error.message
-          : "Copilot action failed";
+          : "Ask action failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

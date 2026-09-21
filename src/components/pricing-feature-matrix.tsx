@@ -34,7 +34,7 @@ export function PricingFeatureMatrix() {
         <p className="pricing-matrix-kicker type-eyebrow">Compare plans</p>
         <h2 className="pricing-matrix-title type-headline">Everything included.</h2>
         <p className="pricing-matrix-lead type-lead">
-          Pick the ring you need today. Upgrade when the shop grows.
+          Pick the plan you need today. Upgrade when the shop grows.
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export function PricingFeatureMatrix() {
       </div>
 
       <p className="pricing-matrix-footnote font-sans">
-        Design partner includes full Pro access during the 30-day program.
+        Call-audit shops get full Pro during setup (30 days).
       </p>
     </section>
   );

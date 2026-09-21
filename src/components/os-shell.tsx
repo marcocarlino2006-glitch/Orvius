@@ -39,7 +39,7 @@ export function OsShell({
   actions,
 }: OsShellProps) {
   const pathname = usePathname();
-  const { business } = useBusiness();
+  const { business, loading: businessLoading } = useBusiness();
   const { access } = usePlanAccess();
   const businessName = businessNameProp ?? business?.name ?? "Your business";
   const newLeads = business?.metrics.newLeads ?? 0;
@@ -54,6 +54,16 @@ export function OsShell({
     shop that answers until eight that it is after hours at six.
   */
   const offHours = business?.signals.afterHoursNow ?? false;
+  const onSettings = pathname.startsWith("/dashboard/settings");
+  const liveLabel = businessLoading
+    ? null
+    : business?.line
+      ? offHours
+        ? "Answering — after hours"
+        : "Answering"
+      : onSettings
+        ? "Set your line below"
+        : "Finish setup in Settings";
 
   useEffect(() => {
     setNavOpen(false);
@@ -87,11 +97,15 @@ export function OsShell({
         <p className="os-sidebar-label font-sans">Shop</p>
         <p className="os-ring-status-title font-sans">{businessName}</p>
         <p className="os-ring-status-module font-sans">
-          {business?.line ? (
+          {businessLoading ? (
+            "Checking line…"
+          ) : business?.line ? (
             <>
               <span className="os-ring-status-dot" aria-hidden />
               {business.line}
             </>
+          ) : onSettings ? (
+            "Set your line below"
           ) : (
             <>
               Line not set ·{" "}
@@ -153,7 +167,7 @@ export function OsShell({
                   <Link
                     href="/dashboard/billing"
                     className="os-nav-link os-nav-link-locked font-sans"
-                    title="Subscribe to continue"
+                    title="Pay to continue"
                   >
                     <OsIcon name={item.icon} />
                     <span className="os-nav-label">{item.label}</span>
@@ -217,11 +231,7 @@ export function OsShell({
               */}
               <p className="os-topbar-live font-sans">
                 <span className="pro-live-dot" />
-                {business?.line
-                  ? offHours
-                    ? "Answering — after hours"
-                    : "Answering"
-                  : "Finish setup in Settings"}
+                {liveLabel ?? "Checking line…"}
               </p>
               <h1 className="os-topbar-title font-sans">{title}</h1>
               {subtitle ? (

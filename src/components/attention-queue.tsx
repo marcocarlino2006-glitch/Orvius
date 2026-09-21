@@ -132,8 +132,15 @@ function TestAlertButton({ onDone }: { onDone?: () => void }) {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
       const data = (await res.json().catch(() => null)) as {
         error?: string;
+        ok?: boolean;
       } | null;
       if (!res.ok) throw new Error(data?.error ?? "Could not send test alert");
+      if (!data?.ok) {
+        throw new Error(
+          data?.error ??
+            "Alert queued but not delivered. Check Settings.",
+        );
+      }
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not send");
@@ -248,7 +255,7 @@ export function AttentionQueue({
         aria-label="Needs attention"
         aria-busy="true"
       >
-        <p className="attention-queue-kicker type-eyebrow font-sans">On the board</p>
+        <p className="attention-queue-kicker font-sans">On the board</p>
         <div className="attention-queue-skel" aria-hidden>
           <div className="attention-skel-card">
             <span className="skeleton attention-skel-line attention-skel-line-sm" />
@@ -268,7 +275,7 @@ export function AttentionQueue({
   if (!items.length) {
     return (
       <section className="attention-queue attention-queue-clear" aria-label="Needs attention">
-        <p className="attention-queue-kicker type-eyebrow font-sans">On the board</p>
+        <p className="attention-queue-kicker font-sans">On the board</p>
         <h2 className="attention-queue-title font-sans">Board is clear</h2>
         <p className="attention-queue-empty font-sans">
           No urgent leads, open jobs, or overdue follow-ups right now.
@@ -313,9 +320,6 @@ export function AttentionQueue({
           {stake ? <strong>{stake} estimated</strong> : null}
         </div>
       </header>
-      <p className="attention-queue-guidance font-sans">
-        Ranked for a shop owner in the middle of a shift — urgency first.
-      </p>
 
       <ul className="attention-queue-list">
         {visibleItems.map((item) => {
@@ -371,14 +375,12 @@ export function AttentionQueue({
                 </div>
                 <div className="attention-item-actions">
                   {/*
-                    The escape hatch leads, so the recommended action always
-                    lands on the trailing edge of the row. Rows whose only
-                    action is to open the record get one button, not two links
-                    to the same place.
+                    One primary action. Details only when there is no one-tap
+                    move — never Details + Call competing on the same row.
                   */}
-                  {hasPrimary ? (
-                    <Link href={item.href} className="attention-item-btn attention-item-btn-quiet">
-                      Details
+                  {!hasPrimary && item.href ? (
+                    <Link href={item.href} className="attention-item-btn attention-item-btn-primary">
+                      Open
                     </Link>
                   ) : null}
                   {showCall ? (

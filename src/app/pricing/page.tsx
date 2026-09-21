@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { HomeCallDemo } from "@/components/home-call-demo";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
 import { demoLineHref } from "@/lib/demo-line";
@@ -30,18 +29,15 @@ export default function PricingPage() {
           />
           {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
-              Public self-serve opens only when signup, billing, telephony and
-              support gates are verified. Until then, book a{" "}
+              Public self-serve opens only when signup, billing, and the live
+              line are verified with you. Until then, book a{" "}
               <Link href="/pilot" className="underline underline-offset-2">
                 call audit
               </Link>{" "}
-              and we&apos;ll verify the setup with you. We do not advertise a
+              and we&apos;ll set the shop up together. We do not advertise a
               free trial or collect payment outside verified Stripe checkout.
             </p>
           ) : null}
-          <div className="tier1-hero-call">
-            <HomeCallDemo />
-          </div>
         </div>
       </section>
 
@@ -51,7 +47,6 @@ export default function PricingPage() {
 
       <section className="tier1-close">
         <div className="editorial-wrap tier1-close-inner">
-          <p className="tier1-eyebrow type-eyebrow">Economics</p>
           <h2 className="tier1-section-title type-headline">
             Built to pay back with one additional job.
           </h2>
@@ -61,10 +56,10 @@ export default function PricingPage() {
             close rate, and margin determine the actual payback.
           </p>
           <div className="tier1-actions tier1-close-actions">
-            <a href={demoLineHref()} className="inst-btn inst-btn-primary">
-              Call the live AI
+            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
+              Call the live line
             </a>
-            <Link href="/pilot" className="inst-btn inst-btn-ghost">
+            <Link href="/pilot" className="ov-btn ov-btn--quiet">
               Book a call audit
             </Link>
           </div>

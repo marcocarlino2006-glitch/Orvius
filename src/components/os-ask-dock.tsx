@@ -1,6 +1,7 @@
 "use client";
 
 import { CopilotActions } from "@/components/copilot-actions";
+import { ASK_DOCK_SUGGESTIONS } from "@/lib/ask-suggestions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,12 +20,6 @@ type AskTurn = {
   source: string;
   hits: AskHit[];
 };
-
-const QUICK_ASK = [
-  "What should I do now?",
-  "Who called today?",
-  "Any new leads?",
-];
 
 function AskIcon() {
   return (
@@ -76,7 +71,14 @@ export function OsAskDock() {
   const [turn, setTurn] = useState<AskTurn | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const hidden = pathname === "/dashboard/ask" || pathname.startsWith("/dashboard/ask/");
+  /*
+    Full Ask page owns the conversation. Settings owns the sticky save
+    instrument — a floating Ask pill on that floor is landfill.
+  */
+  const hidden =
+    pathname === "/dashboard/ask" ||
+    pathname.startsWith("/dashboard/ask/") ||
+    pathname.startsWith("/dashboard/settings");
 
   useEffect(() => {
     if (!open) return;
@@ -125,10 +127,10 @@ export function OsAskDock() {
   return (
     <div className={`os-ask-dock font-sans ${open ? "os-ask-dock-open" : ""}`}>
       {open ? (
-        <div className="os-ask-dock-panel" role="dialog" aria-label="Ops copilot">
+        <div className="os-ask-dock-panel" role="dialog" aria-label="Ask Orvius">
           <div className="os-ask-dock-head">
             <div>
-              <p className="os-ask-dock-kicker">Ops copilot</p>
+              <p className="os-ask-dock-kicker">Ask</p>
               <p className="os-ask-dock-title">Your shop memory</p>
             </div>
             <div className="os-ask-dock-head-actions">
@@ -172,7 +174,7 @@ export function OsAskDock() {
           {error ? <p className="os-ask-dock-error">{error}</p> : null}
 
           <div className="os-ask-dock-chips">
-            {QUICK_ASK.map((item) => (
+            {ASK_DOCK_SUGGESTIONS.map((item) => (
               <button
                 key={item}
                 type="button"
@@ -222,7 +224,7 @@ export function OsAskDock() {
         <span className="os-ask-dock-trigger-mark" aria-hidden>
           <AskIcon />
         </span>
-        <span className="os-ask-dock-trigger-label">Copilot</span>
+        <span className="os-ask-dock-trigger-label">Ask</span>
       </button>
     </div>
   );

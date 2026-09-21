@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCents, formatCentsExact } from "@/lib/money";
+import Link from "next/link";
 import { useState } from "react";
 
 type EstimateState = {
@@ -79,13 +80,14 @@ export function JobMoneyPanel({
         reporting "texted" on a carrier rejection is how an owner ends up
         waiting on a deposit the customer was never asked for.
       */
+      const link = data.created ? "Link created" : "Same link kept";
       if (!customerPhone) {
-        setDepositNote("Link created. Read it to the customer or copy it below.");
+        setDepositNote(`${link}. Read it to the customer or copy it above.`);
       } else if (data.sms?.sent) {
         setDepositNote("Deposit link texted to the customer.");
       } else {
         setDepositNote(
-          "Link created, but the text did not send. Copy it below and pass it on.",
+          `${link}, but the text did not send. Copy it above and pass it on.`,
         );
       }
       onRefresh();
@@ -119,14 +121,18 @@ export function JobMoneyPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jobId,
-          ...(amountCents && Number.isFinite(amountCents) ? { amountCents } : {}),
+          ...(amountCents && Number.isFinite(amountCents)
+            ? { amountCents }
+            : {}),
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not create estimate");
       onRefresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create estimate");
+      setError(
+        err instanceof Error ? err.message : "Could not create estimate",
+      );
     } finally {
       setBusy(false);
     }
@@ -206,9 +212,7 @@ export function JobMoneyPanel({
 
   return (
     <div className="job-money font-sans">
-      {error ? (
-        <p className="os-own-color job-money-error">{error}</p>
-      ) : null}
+      {error ? <p className="os-own-color job-money-error">{error}</p> : null}
 
       {/*
         Booking deposit first, because chronologically it is first: it is asked
@@ -234,14 +238,26 @@ export function JobMoneyPanel({
             {deposit.status !== "paid" && deposit.payUrl ? (
               <>
                 <code className="job-money-share-url">{deposit.payUrl}</code>
-                <button
-                  type="button"
-                  className="btn btn-secondary text-sm"
-                  disabled={depositBusy}
-                  onClick={() => void copyDepositLink(deposit.payUrl!)}
-                >
-                  {depositCopied ? "Copied" : "Copy deposit link"}
-                </button>
+                <div className="job-money-actions">
+                  {!deposit.sentAt && customerPhone ? (
+                    <button
+                      type="button"
+                      className="btn btn-void text-sm"
+                      disabled={depositBusy}
+                      onClick={() => void requestDeposit()}
+                    >
+                      {depositBusy ? "Retrying…" : "Retry deposit text"}
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="btn btn-secondary text-sm"
+                    disabled={depositBusy}
+                    onClick={() => void copyDepositLink(deposit.payUrl!)}
+                  >
+                    {depositCopied ? "Copied" : "Copy deposit link"}
+                  </button>
+                </div>
               </>
             ) : null}
           </>
@@ -274,19 +290,39 @@ export function JobMoneyPanel({
           */
           <p className="job-money-lead">
             {!depositReadiness.ready &&
-            depositReadiness.reason === "connect_incomplete"
-              ? "Connect a payout account on Billing to take deposits by card."
-              : !depositReadiness.ready
-                ? "Booking deposits are off. Turn them on under Billing to ask for one."
-                : "Deposits attach to the call this job came from."}
+            depositReadiness.reason === "connect_incomplete" ? (
+              <>
+                Connect a payout account on{" "}
+                <Link
+                  href="/dashboard/billing#payouts"
+                  className="underline underline-offset-2"
+                >
+                  Billing → payouts
+                </Link>{" "}
+                to take deposits by card.
+              </>
+            ) : !depositReadiness.ready ? (
+              <>
+                Booking deposits are off. Turn them on under{" "}
+                <Link
+                  href="/dashboard/billing"
+                  className="underline underline-offset-2"
+                >
+                  Billing
+                </Link>{" "}
+                to ask for one.
+              </>
+            ) : (
+              "Deposits attach to the call this job came from."
+            )}
           </p>
         )}
 
         {/*
           Held back until the deposit itself is on screen. Every wording of
-          this note points at the link ("copy it below"), and the refresh that
-          brings the link lands a beat after the request resolves — so shown
-          eagerly it spends that beat pointing at nothing.
+          this note points at the link above it, and the refresh that brings
+          the link lands a beat after the request resolves — so shown eagerly
+          it spends that beat pointing at nothing.
         */}
         {depositNote && deposit ? (
           <p className="job-money-lead">{depositNote}</p>
@@ -345,7 +381,8 @@ export function JobMoneyPanel({
               <div>
                 <dt>Invoice</dt>
                 <dd>
-                  {formatCents(estimate.invoice.amountCents)} · {estimate.invoice.status}
+                  {formatCents(estimate.invoice.amountCents)} ·{" "}
+                  {estimate.invoice.status}
                 </dd>
               </div>
             ) : null}
@@ -359,7 +396,11 @@ export function JobMoneyPanel({
                 disabled={busy}
                 onClick={() => void sendEstimate()}
               >
-                {busy ? "Working…" : estimate.publicToken ? "Refresh send link" : "Send to customer"}
+                {busy
+                  ? "Working…"
+                  : estimate.publicToken
+                    ? "Refresh send link"
+                    : "Send to customer"}
               </button>
             ) : null}
 
@@ -384,7 +425,8 @@ export function JobMoneyPanel({
                       setShareUrl(url);
                       void navigator.clipboard.writeText(url).then(
                         () => setCopied(true),
-                        () => setError("Could not copy — select the link manually"),
+                        () =>
+                          setError("Could not copy — select the link manually"),
                       );
                     }
                   }}
@@ -401,7 +443,7 @@ export function JobMoneyPanel({
                 disabled={busy}
                 onClick={() => void createInvoice()}
               >
-                {busy ? "Working…" : "Create invoice (internal)"}
+                {busy ? "Working…" : "Create invoice"}
               </button>
             ) : estimate.invoice.status !== "paid" ? (
               <button

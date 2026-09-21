@@ -24,15 +24,15 @@ const nightRules: {
     icon: "board",
     badge: "BOARD",
     title: "One board. Not twelve tabs.",
-    body: "Every call, text, job, and recorded outcome stays on one customer record. Book and assign from Attention — no CRM scavenger hunt.",
+    body: "Every call, text, job, and recorded outcome stays on one customer record. Book and assign from Command — no CRM scavenger hunt.",
   },
   {
     id: "03",
     key: "rule3",
     icon: "shield",
     badge: "PROOF",
-    title: "Proof you can hand a partner.",
-    body: "Weekly captured-demand bookings and estimated value copy as a stamped artifact. No vanity dashboards. No invented ARR.",
+    title: "A clear weekly summary.",
+    body: "See what the line booked this week — jobs and estimated value you can check against your own books.",
   },
 ];
 
@@ -57,9 +57,9 @@ export function HomeStatement() {
             How the shop runs when you&apos;re not on the floor.
           </h2>
           <p className="mkt-manifesto-aside font-sans" data-i18n="rules.aside">
-            Orvius starts as the AI night shift and keeps the operational
-            record. The board connects every call, job, confirmation, and
-            recorded dollar.
+            Orvius starts as the night shift and keeps the operational record.
+            The board connects every call, job, and confirmation the line
+            captures.
           </p>
         </div>
 

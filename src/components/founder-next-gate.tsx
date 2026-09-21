@@ -67,10 +67,11 @@ export function FounderNextGate() {
           <Link href={next.href} className="btn btn-void text-sm">
             Close it
           </Link>
-        ) : null}
-        <Link href="/admin/daily" className="btn btn-secondary text-sm">
-          Master all
-        </Link>
+        ) : (
+          <Link href="/admin/daily" className="btn btn-void text-sm">
+            Open daily
+          </Link>
+        )}
       </div>
     </aside>
   );

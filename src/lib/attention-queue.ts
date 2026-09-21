@@ -62,6 +62,7 @@ const NIGHT_WORK: ReadonlySet<AttentionKind> = new Set([
   "customer_no_show",
   "tech_no_show",
   "deposit_failed",
+  "deposit_delivery_failed",
   "estimate_failed",
   "alerts_muted",
   "money_path_broken",
@@ -111,6 +112,8 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
       return 9;
     case "deposit_failed":
       return 10;
+    case "deposit_delivery_failed":
+      return 7;
     case "estimate_failed":
       return 13;
     case "alerts_muted":
@@ -167,6 +170,7 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
 export async function getAttentionQueue(
   businessId: string,
   limit = 12,
+  opts?: { founder?: boolean },
 ): Promise<AttentionItem[]> {
   const now = new Date();
   const followupCutoff = new Date(now.getTime() - FOLLOWUP_HOURS * 60 * 60 * 1000);
@@ -177,8 +181,17 @@ export async function getAttentionQueue(
 
   const weekAgo = new Date(now.getTime() - WEEK_MS);
 
-  const [newLeads, activeJobs, crew, business, failedAlerts, deliveredAlerts, liveCalls, weekTraffic] =
-    await Promise.all([
+  const [
+    newLeads,
+    activeJobs,
+    crew,
+    business,
+    failedAlerts,
+    deliveredAlerts,
+    liveCalls,
+    weekTraffic,
+    failedDepositDeliveries,
+  ] = await Promise.all([
       prisma.lead.findMany({
         where: { businessId, status: { in: ["new", "contacted"] } },
         take: 40,
@@ -271,7 +284,26 @@ export async function getAttentionQueue(
         prisma.call.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
         prisma.lead.count({ where: { businessId, createdAt: { gte: weekAgo } } }),
       ]).then(([calls, leads]) => calls + leads),
+      prisma.webhookEvent.findMany({
+        where: { businessId, source: "deposit-sms", status: "failed" },
+        take: 12,
+        orderBy: { createdAt: "desc" },
+        select: { id: true, payloadJson: true, error: true, createdAt: true },
+      }),
     ]);
+
+  const failedDepositDeliveryIds = new Set(
+    failedDepositDeliveries.flatMap((delivery) => {
+      try {
+        const payload = JSON.parse(delivery.payloadJson ?? "{}") as {
+          depositId?: unknown;
+        };
+        return typeof payload.depositId === "string" ? [payload.depositId] : [];
+      } catch {
+        return [];
+      }
+    }),
+  );
 
   const ticket = business?.avgTicketCents ?? null;
 
@@ -330,10 +362,10 @@ export async function getAttentionQueue(
         impact: "critical",
         title:
           daysLeft <= 0
-            ? "Design-partner access ended — subscribe"
-            : `Access review in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
-        detail: "Subscribe so missed calls keep becoming booked jobs.",
-        recommendedAction: "Choose a plan",
+            ? "Your access ended — pay to keep the line live"
+            : `Shop access ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — pay with card`,
+        detail: "Pay with card so missed calls keep becoming booked jobs.",
+        recommendedAction: "Pay with card",
         href: "/dashboard/billing",
         entityType: "shop",
         entityId: businessId,
@@ -423,7 +455,7 @@ export async function getAttentionQueue(
   } catch {
     certDone = 0;
   }
-  if (certDone < 5) {
+  if (opts?.founder && certDone < 5) {
     items.push({
       id: `founder_cert:${businessId}`,
       kind: "founder_cert",
@@ -639,6 +671,7 @@ export async function getAttentionQueue(
   }
 
   for (const deposit of openMoney[2]) {
+    if (failedDepositDeliveryIds.has(deposit.id)) continue;
     if (
       !depositNeedsOwnerFollowUp({
         status: deposit.status,
@@ -702,6 +735,59 @@ export async function getAttentionQueue(
       entityType: alert.leadId ? "lead" : "shop",
       entityId: alert.leadId ?? businessId,
       createdAt: alert.createdAt.toISOString(),
+    });
+  }
+
+  const failedDepositIds = [...failedDepositDeliveryIds];
+  const failedDeposits = failedDepositIds.length
+    ? await prisma.deposit.findMany({
+        where: {
+          businessId,
+          id: { in: failedDepositIds },
+          status: "pending",
+          sentAt: null,
+        },
+        select: {
+          id: true,
+          amountCents: true,
+          leadId: true,
+          jobId: true,
+          createdAt: true,
+        },
+      })
+    : [];
+
+  for (const deposit of failedDeposits) {
+    const failure = failedDepositDeliveries.find((delivery) => {
+      try {
+        const payload = JSON.parse(delivery.payloadJson ?? "{}") as {
+          depositId?: unknown;
+        };
+        return payload.depositId === deposit.id;
+      } catch {
+        return false;
+      }
+    });
+    items.push({
+      id: `deposit_delivery_failed:${deposit.id}`,
+      kind: "deposit_delivery_failed",
+      rank: kindRank("deposit_delivery_failed", null, afterHours),
+      impact: "critical",
+      title: "Deposit link not delivered",
+      detail: `${failure?.error ?? "Carrier rejected the text"} · $${(
+        deposit.amountCents / 100
+      ).toFixed(2)} still pending`,
+      recommendedAction: "Retry deposit link",
+      href: deposit.jobId
+        ? `/dashboard/jobs/${deposit.jobId}`
+        : deposit.leadId
+          ? `/dashboard/inbox/${deposit.leadId}`
+          : "/dashboard",
+      entityType: deposit.jobId ? "job" : deposit.leadId ? "lead" : "shop",
+      entityId: deposit.jobId ?? deposit.leadId ?? businessId,
+      createdAt:
+        failure?.createdAt.toISOString() ?? deposit.createdAt.toISOString(),
+      estimatedRevenueCents: deposit.amountCents,
     });
   }
 

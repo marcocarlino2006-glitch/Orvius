@@ -1,5 +1,4 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
-import { OsRings } from "@/components/os-rings";
 import { company } from "@/lib/company";
 import { workspaceAccessPublicClaim } from "@/lib/seats";
 import type { Metadata } from "next";
@@ -7,7 +6,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `${company.productName} — ${company.vision}`,
+  description: `${company.productName} — ${company.categoryClaim} ${company.proofLine}`,
 };
 
 export default function AboutPage() {
@@ -16,49 +15,47 @@ export default function AboutPage() {
       <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap">
           <ShellPageIntro
-            label="Company"
+            label={company.productName}
             title={company.tagline}
-            subline="Start at the front door — expand into the shop OS when the wedge is proven."
-            description={company.mission}
+            subline={company.proofLine}
+            description={company.categoryClaim}
           />
         </div>
       </section>
 
       <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
-          <p className="tier1-eyebrow type-eyebrow">Best possible outcome</p>
-          <h2 className="tier1-section-title type-headline">Where we&apos;re going.</h2>
-          <p className="tier1-section-lead font-sans">{company.vision}</p>
+          <h2 className="tier1-section-title type-headline">
+            Missed and after-hours calls become booked work.
+          </h2>
+          <p className="tier1-section-lead font-sans">
+            Orvius answers when your crew cannot — after hours and overflow —
+            captures the request, proposes an open service window, texts the
+            customer to confirm, and alerts you. One shop record for the call,
+            the lead, and the job.
+          </p>
           <ul className="tier1-strategy-list font-sans">
-            {company.strategy.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
+            <li>Answers after-hours and overflow on your Orvius line</li>
+            <li>Captures name, phone, service, urgency, and address</li>
+            <li>Proposes a window and texts for confirmation</li>
+            <li>Alerts the owner and keeps one operational record</li>
           </ul>
         </div>
       </section>
 
       <section className="tier1-story tier1-story-muted">
-        <div className="editorial-wrap">
-          <p className="tier1-eyebrow type-eyebrow">Available now</p>
-          <h2 className="tier1-section-title type-headline">One ring at a time.</h2>
-          <p className="tier1-section-lead font-sans max-w-2xl">
-            Built by {company.legalName} for {company.trades.join(", ")}. We
-            label production paths Live and limited paths Beta — then expand
-            when the loop is airtight.
+        <div className="editorial-wrap max-w-3xl">
+          <h2 className="tier1-section-title type-headline">
+            For {company.trades.join(", ")}.
+          </h2>
+          <p className="tier1-section-lead font-sans">
+            Built by {company.legalName}. We claim only what the line closes
+            today — capture, qualify, alert, book — and expand the shop record
+            when that loop is airtight.
           </p>
-          {/*
-            Read from lib/seats rather than written here, because it is a claim
-            about what the product does and the next person to add an invite
-            screen needs the sentence to move with the code. Saying it out loud
-            also prevents the reasonable assumption that a shop can buy one
-            plan and give the office and the dispatcher their own logins.
-          */}
-          <p className="tier1-section-lead font-sans max-w-2xl">
+          <p className="tier1-section-lead font-sans">
             {workspaceAccessPublicClaim()}
           </p>
-          <div className="tier1-rings">
-            <OsRings liveOnly />
-          </div>
         </div>
       </section>
 
@@ -72,11 +69,11 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="tier1-actions">
-            <Link href="/legal" className="inst-btn inst-btn-ghost">
-              Legal center
-            </Link>
-            <Link href="/pricing" className="inst-btn inst-btn-primary">
+            <Link href="/pricing" className="ov-btn ov-btn--solid">
               View pricing
+            </Link>
+            <Link href="/pilot" className="ov-btn ov-btn--quiet">
+              Book a live audit
             </Link>
           </div>
         </div>

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { formatCents } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 
@@ -22,6 +21,9 @@ export function ProCommandOutcomes({
   attentionCount,
   loading = false,
 }: ProCommandOutcomesProps) {
+  // Board owns action when work is waiting — outcomes are calm retrospect only.
+  if (!loading && attentionCount > 0) return null;
+
   const capturedJobs = outcomes?.capturedDemandJobs ?? 0;
   const capturedValue = formatCents(
     outcomes?.capturedDemandEstimatedValueCents,
@@ -35,11 +37,11 @@ export function ProCommandOutcomes({
 
   return (
     <section
-      className={`pro-command-outcomes${attentionCount > 0 ? " pro-command-outcomes--needs-you" : ""}`}
+      className="pro-command-outcomes"
       aria-label="Work completed by Orvius"
     >
       <header className="pro-command-outcomes-head font-sans">
-        <p className="pro-command-outcomes-kicker">Front desk performance</p>
+        <p className="pro-command-outcomes-kicker">What the line closed</p>
         <span>
           Last {outcomes?.windowDays ?? 7} days
         </span>
@@ -79,20 +81,7 @@ export function ProCommandOutcomes({
 
       {!loading ? (
         <footer className="pro-command-outcomes-foot font-sans">
-          <p>
-            {attentionCount > 0
-              ? `${attentionCount} ${
-                  attentionCount === 1 ? "item needs" : "items need"
-                } you on the board`
-              : "Board is clear — nothing waiting"}
-          </p>
-          {attentionCount > 0 ? (
-            <a href="#attention-board" className="btn btn-void text-sm">
-              Open the board
-            </a>
-          ) : (
-            <Link href="/dashboard/calls">Review calls</Link>
-          )}
+          <p>Board is clear — nothing waiting</p>
         </footer>
       ) : null}
     </section>

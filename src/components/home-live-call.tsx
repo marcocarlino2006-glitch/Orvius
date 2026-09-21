@@ -416,8 +416,8 @@ export function HomeLiveCall() {
       <p className="sr-only">{TEXT_ALTERNATIVE}</p>
 
       <figcaption className="ov-console-caption">
-        Representative call, transcript playback — no audio. Summit HVAC is
-        Orvius&rsquo;s labeled reference implementation, not a customer case study.
+        Representative call, transcript playback — no audio. Summit HVAC ·
+        Orvius demo line.
       </figcaption>
     </figure>
   );

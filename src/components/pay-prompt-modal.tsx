@@ -32,7 +32,7 @@ type AccountBillingPayload = {
 
 /**
  * Pay loop: soft modal mid-trial; hard lock screen when trial ended / canceled.
- * Active subscribers never see it.
+ * Active subscribers never see it. One path — Pro, Pay with card.
  */
 export function PayPromptModal() {
   const titleId = useId();
@@ -141,7 +141,6 @@ export function PayPromptModal() {
   }
 
   const featured = pricing.pro;
-  const line = pricing.line;
 
   return (
     <div
@@ -157,33 +156,15 @@ export function PayPromptModal() {
         onClick={snooze}
       />
       <div className={`pay-prompt-card pay-prompt-card--${decision.tone} pay-prompt-card--instrument`}>
-        <p className="pay-prompt-kicker font-sans">
-          {decision.tone === "required"
-            ? "Subscribe to continue"
-            : "Design partner"}
-        </p>
+        <p className="pay-prompt-kicker font-sans">Pay</p>
         <h2 id={titleId} className="pay-prompt-title font-sans">
           {decision.headline}
         </h2>
         <p className="pay-prompt-body font-sans">{decision.body}</p>
 
-        <div className="pay-prompt-plans font-sans">
-          <div className="pay-prompt-plan">
-            <p className="pay-prompt-plan-name">{line.name}</p>
-            <p className="pay-prompt-plan-price">
-              ${line.price}
-              <span>/mo</span>
-            </p>
-            <p className="pay-prompt-plan-tag">{line.tagline}</p>
-          </div>
-          <div className="pay-prompt-plan pay-prompt-plan--featured">
-            <p className="pay-prompt-plan-name">{featured.name}</p>
-            <p className="pay-prompt-plan-price">
-              ${featured.price}
-              <span>/mo</span>
-            </p>
-            <p className="pay-prompt-plan-tag">{featured.tagline}</p>
-          </div>
+        <div className="pay-prompt-price font-sans">
+          <span className="pay-prompt-price-amt">${featured.price}</span>
+          <span className="pay-prompt-price-per">/mo · {featured.name}</span>
         </div>
 
         <div className="pay-prompt-actions">
@@ -191,7 +172,7 @@ export function PayPromptModal() {
             <CheckoutButton
               planId="pro"
               email={email}
-              label={`${decision.primaryCta} · Pro $${featured.price}/mo`}
+              label={`${decision.primaryCta} · $${featured.price}/mo`}
               variant="primary"
               className="pay-prompt-checkout"
             />
@@ -201,16 +182,16 @@ export function PayPromptModal() {
               className="btn btn-void pay-prompt-primary"
               onClick={snooze}
             >
-              {decision.primaryCta} · Billing
+              Open billing
             </Link>
           )}
           <div className="pay-prompt-secondary">
             <Link
-              href="/dashboard/pricing"
+              href="/dashboard/billing"
               className="btn btn-secondary text-sm"
               onClick={snooze}
             >
-              Compare plans
+              {checkoutReady ? "Other plans on Billing" : "Billing"}
             </Link>
             <button type="button" className="pay-prompt-later font-sans" onClick={snooze}>
               Not now — remind me later

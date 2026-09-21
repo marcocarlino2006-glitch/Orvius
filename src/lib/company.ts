@@ -17,14 +17,14 @@ export const company = {
   /** Wedge proof — measurable today. */
   proofLine: "Missed calls become booked jobs.",
   vision:
-    "Make missed night jobs obsolete. Orvius is the shop OS that runs after hours — captures demand, books the work, alerts the owner, and compounds one record across every call, job, and dollar. Humans keep high-risk overrides.",
+    "Make missed night jobs obsolete. Orvius runs the after-hours front door — captures demand, qualifies, books when ready, and alerts the owner — then compounds one shop record as that loop proves itself.",
   /** Product goal — not a warranty of a perfect answer rate. */
   mission:
-    "Night rule: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Then expand into customers, scheduling, dispatch, estimates, invoicing, payments, and shop intelligence — one record, one OS.",
+    "Night rule: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Expand into customers, scheduling, dispatch, and money only after the wedge holds.",
   strategy: [
-    "Close Capture→Record→Command→Proof on the line before platform vapor — then expand rings.",
+    "Win Capture→Record→Command→Proof on the line before platform vapor.",
     "Dominate one trade and geography with trade-specific intelligence and reliable workflow execution.",
-    "Earn the right to run the full shop: security, support, measurable ROI — then expand trades, regions, and shop sizes.",
+    "Earn the right to run more of the shop — security, support, measurable ROI — then expand trades, regions, and shop sizes.",
   ] as const,
   /**
    * Confirm with counsel against formation docs and update before relying on
@@ -113,7 +113,7 @@ export const osRings = [
     name: "Money",
     module: "Estimate · invoice · pay",
     status: "beta" as const,
-    body: "Draft estimates and invoices on jobs; record payments manually. Card rails next.",
+    body: "Draft estimates and invoices on jobs; take booking deposits and card pay when Connect is ready. Manual payment recording stays available.",
   },
   {
     ring: 6,

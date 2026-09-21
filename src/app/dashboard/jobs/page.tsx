@@ -31,7 +31,6 @@ type PipelineStage = {
   id: string;
   label: string;
   hint?: string;
-  coming?: boolean;
   match: (job: JobRow) => boolean;
 };
 
@@ -122,7 +121,7 @@ export default function JobsPage() {
   return (
     <OsShell
       title="Jobs"
-      subtitle="Revenue pipeline — first contact through completed work."
+      subtitle="Open work — first contact through completed jobs."
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch
@@ -140,7 +139,11 @@ export default function JobsPage() {
             : "Every open job has a tech on it."
         }
         facts={[
-          { label: "new leads", value: newLeadCount, live: newLeadCount > 0 },
+          {
+            label: newLeadCount === 1 ? "new lead" : "new leads",
+            value: newLeadCount,
+            live: newLeadCount > 0,
+          },
           { label: "completed", value: stageCounts.completed ?? 0 },
         ]}
         action={
@@ -199,7 +202,19 @@ export default function JobsPage() {
             />
           ) : !filtered.length ? (
             <ProEmptyState
-              title={`No ${STAGES.find((s) => s.id === stageId)?.label.toLowerCase() ?? "jobs"} right now`}
+              title={
+                stageId === "booked"
+                  ? "No booked jobs right now"
+                  : stageId === "in_progress"
+                    ? "No jobs in progress right now"
+                    : stageId === "completed"
+                      ? "No completed jobs right now"
+                      : stageId === "estimates"
+                        ? "No estimates right now"
+                        : stageId === "invoices"
+                          ? "No invoices right now"
+                          : `No ${STAGES.find((s) => s.id === stageId)?.label.toLowerCase() ?? "jobs"} right now`
+              }
               body="Switch stages or book from the inbox."
               action={
                 <Link href="/dashboard/inbox" className="btn btn-void text-sm">

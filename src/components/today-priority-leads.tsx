@@ -58,6 +58,7 @@ function BookJobQuickButton({
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function book(event: React.MouseEvent) {
     event.preventDefault();
@@ -65,6 +66,7 @@ function BookJobQuickButton({
     if (loading) return;
 
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/jobs", {
         method: "POST",
@@ -75,22 +77,36 @@ function BookJobQuickButton({
       if (!res.ok) throw new Error(data.error ?? "Could not book job");
       onBooked?.(data.job.id);
       router.refresh();
-    } catch {
-      /* detail page fallback */
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Could not book job",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <button
-      type="button"
-      className={className}
-      disabled={loading}
-      onClick={book}
-    >
-      {loading ? "Booking…" : "Book job"}
-    </button>
+    <span className="today-priority-book">
+      <button
+        type="button"
+        className={className}
+        disabled={loading}
+        aria-describedby={error ? `book-error-${leadId}` : undefined}
+        onClick={book}
+      >
+        {loading ? "Booking…" : "Book job"}
+      </button>
+      {error ? (
+        <span
+          id={`book-error-${leadId}`}
+          className="today-priority-book-error"
+          role="alert"
+        >
+          {error}
+        </span>
+      ) : null}
+    </span>
   );
 }
 

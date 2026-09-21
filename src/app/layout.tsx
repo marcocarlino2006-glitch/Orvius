@@ -30,7 +30,7 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Orvius — The AI night shift for the trades",
+    default: `Orvius — ${company.tagline.replace(/\.$/, "")}`,
     template: "%s · Orvius",
   },
   description:
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(`https://${company.domain}`),
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Orvius — The AI night shift for the trades",
+    title: `Orvius — ${company.tagline.replace(/\.$/, "")}`,
     description:
       "Call the live product. Orvius captures after-hours demand, proposes an open service window, and alerts the owner.",
     type: "website",
@@ -49,13 +49,13 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Orvius — The AI night shift for the trades",
+        alt: `Orvius — ${company.tagline.replace(/\.$/, "")}`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Orvius — The AI night shift for the trades",
+    title: `Orvius — ${company.tagline.replace(/\.$/, "")}`,
     description:
       "Call the live product. After-hours intake, capacity-aware scheduling, confirmation, and owner alerts.",
     images: ["/opengraph-image"],

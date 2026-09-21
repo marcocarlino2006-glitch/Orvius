@@ -128,7 +128,7 @@ export function moduleLabel(module: PlanModule): string {
     case "dispatch":
       return "Dispatch";
     case "ask":
-      return "Copilot";
+      return "Ask";
   }
 }
 

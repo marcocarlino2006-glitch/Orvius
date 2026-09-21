@@ -67,10 +67,10 @@ export function getPayPromptDecision(
       tone: "locked",
       headline:
         status === "canceled"
-          ? "Subscribe to reopen your shop"
-          : "Pilot ended — subscribe to continue",
-      body: "Orvius is locked until you choose a plan. Your line and workspace reopen after checkout.",
-      primaryCta: "Subscribe to unlock",
+          ? "Pay to reopen your shop"
+          : "Access ended — pay to continue",
+      body: "Orvius is locked until you pay. One tap opens Stripe Checkout for Pro — your line and workspace reopen after.",
+      primaryCta: "Pay with card",
       snoozeMs: 15 * MINUTE,
       hard: true,
     };
@@ -88,14 +88,14 @@ export function getPayPromptDecision(
     show: true,
     tone: endingSoon || status === "none" ? "required" : "trial",
     headline: endingSoon
-      ? `Pilot ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — subscribe`
+      ? `Access ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"} — pay to keep the line`
       : status === "none"
-        ? "Subscribe to run Orvius for your shop"
-        : "Keep Orvius after the pilot",
+        ? "Pay to run Orvius for your shop"
+        : "Keep Orvius for your shop",
     body: endingSoon
-      ? "Subscribe now so after-hours calls keep becoming booked jobs without interruption."
-      : "Design partner access is temporary. Line starts at $149/mo. We'll ask again soon.",
-    primaryCta: "Choose a plan",
+      ? "Pay with card now so after-hours calls keep becoming booked jobs without interruption. Pro is $299/mo — cancel anytime."
+      : "Shop access is temporary. Pro is $299/mo — one tap opens Stripe Checkout. We’ll ask again soon.",
+    primaryCta: "Pay with card",
     snoozeMs: endingSoon || status === "none" ? 2 * HOUR : 4 * HOUR,
     hard: false,
   };

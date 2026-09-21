@@ -105,7 +105,7 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
-  --radius-pill: 9999px;
+  --radius-pill: 0.25rem;
   --radius-cta: 0.625rem;
   --radius-ghost: 0.625rem;
   --radius-box: 0.75rem;
@@ -183,7 +183,7 @@
   --color-border: var(--border);
   --color-success: var(--success);
   --font-sans: var(--font-sans);
-  /* One letterset — logo, UI, display all ride Sora */
+  /* One letterset — logo, UI, display all ride Archivo */
   --font-brand: var(--font-sans);
   --font-display: var(--font-sans);
 }
@@ -2351,14 +2351,14 @@ h3 {
   display: inline-flex;
   align-items: center;
   padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-sm);
+  border-radius: 0.25rem;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: -0.002em;
+  text-transform: none;
   white-space: nowrap;
   border: 1px solid color-mix(in srgb, var(--void) 12%, var(--rule));
-  background: var(--white);
+  background: var(--os-panel, var(--white));
   color: var(--ash);
 }
 
@@ -2536,7 +2536,7 @@ h3 {
   justify-content: center;
   gap: 0.1rem;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  /* Exact SpaceX nav: D-DIN caps */
+  /* Nav labels — Archivo, tracked quiet */
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -2751,22 +2751,21 @@ h3 {
   }
 }
 
-/* ── Buttons — Cursor filled + SpaceX ghost ── */
+/* ── Buttons — filled + ghost instrument controls ── */
 
 .mkt-btn {
-  /* SpaceX button voice — D-DIN via Barlow Condensed */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
   min-height: 3rem;
   padding: 0.9rem 1.75rem;
-  border-radius: 2rem;
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  border-radius: 0.25rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.8125rem; /* 13px */
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.09em; /* ~1.17px */
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   text-decoration: none;
   border: 1px solid transparent;
@@ -3002,7 +3001,7 @@ h3 {
   gap: 0.65rem;
   max-width: min(20rem, calc(100vw - 2rem));
   padding: 0.4rem 0.45rem 0.4rem 0.75rem;
-  border-radius: 999px;
+  border-radius: 0.25rem;
   background: #141310;
   color: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3017,6 +3016,8 @@ h3 {
     bottom: 0.75rem;
   }
 }
+
+/* Dashboard skips the cookie bar in JS — no os-shell offset needed. */
 
 .cookie-bar-text {
   margin: 0;
@@ -3034,7 +3035,7 @@ h3 {
   flex-shrink: 0;
   border: none;
   cursor: pointer;
-  border-radius: 999px;
+  border-radius: 0.25rem;
   padding: 0.4rem 0.85rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -3355,20 +3356,20 @@ button.btn {
   transform: none !important;
 }
 
-/* ── BUTTON FONT LOCK — SpaceX DIN + Cursor gothic ── */
+/* ── BUTTON FONT LOCK — Archivo only, same voice as the rest of Look ── */
 .mkt-btn,
 .mkt-nav-cta,
 .mkt-nav-links a,
 .mkt-nav-login {
-  font-family: var(--font-brand), "Arial Narrow", "Helvetica Neue", Arial, sans-serif !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.09em !important;
-  font-weight: 700 !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  font-weight: 600 !important;
 }
 
 .mkt-btn,
 .mkt-nav-cta {
-  border-radius: 2rem !important;
+  border-radius: 0.25rem !important;
 }
 
 .btn,
@@ -3893,8 +3894,8 @@ label:has(> input[type="radio"]) {
 .mkt-proof-title,
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.035em !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.028em !important;
   text-transform: none !important;
 }
 
@@ -3934,7 +3935,7 @@ label:has(> input[type="radio"]) {
 /* Template / surface boxes — identical material language */
 
 
-/* Login craft — same Sora + same box language as marketing */
+/* Login craft — same Archivo + same box language as marketing */
 
 .tier1-login-dev-btn {
   border-radius: var(--radius-box, var(--radius-lg)) !important;
@@ -3968,7 +3969,7 @@ label:has(> input[type="radio"]) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Dashboard craft — same Sora + box language as marketing
+   Dashboard craft — same Archivo + box language as marketing
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-sidebar-brand .orvius-logo {
@@ -4124,21 +4125,12 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .pro-signal-bar,
 .os-shell-pro .live-status-bar {
   border-left: 3px solid var(--signal) !important;
-  background: #fff !important;
+  background: var(--os-panel) !important;
 }
 
 .os-shell-pro .pro-today-pulse {
-  background: #fff !important;
+  background: var(--os-panel) !important;
   border-left: 3px solid var(--signal) !important;
-}
-
-.os-shell-pro .pro-line-cta-skel {
-  display: inline-block;
-  min-width: 7.5rem;
-  min-height: 2.25rem;
-  border-radius: var(--os-radius, 0.3125rem);
-  border: 1px solid var(--os-line, color-mix(in srgb, #120f09 12%, transparent));
-  background: color-mix(in srgb, #120f09 6%, transparent);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4324,9 +4316,9 @@ label:has(> input[type="radio"]) {
 
 /* Dense product inside desktop plane */
 
-/* —— Cursor-grade footer columns —— */
+/* —— Legal footer row —— */
 
-.mkt-footer-bottom--cursor {
+.mkt-footer-bottom--legal {
   margin-top: 2.5rem;
 }
 
@@ -4388,22 +4380,34 @@ label:has(> input[type="radio"]) {
   text-decoration-color: color-mix(in srgb, var(--ov-ink) 35%, transparent);
 }
 
-/* Buttons on night marketing */
+/* Buttons on night marketing — same language as .ov-btn */
 .mkt-page .inst-btn,
 .mkt-page .mkt-btn {
   border-radius: 0.25rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
 }
 
 .mkt-page .inst-btn-primary {
-  
-  
+  background: #f6f6f6 !important;
+  color: #0a0701 !important;
   border: 1px solid #f6f6f6 !important;
 }
 
+.mkt-page .inst-btn-primary:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
 .mkt-page .inst-btn-ghost {
-  
-  
+  background: transparent !important;
+  color: #f1f1f1 !important;
   border: 1px solid color-mix(in srgb, #f1f1f1 35%, transparent) !important;
+}
+
+.mkt-page .inst-btn-ghost:hover {
+  border-color: color-mix(in srgb, #f1f1f1 55%, transparent) !important;
+  background: color-mix(in srgb, #fff 6%, transparent) !important;
 }
 
 /* Pricing / plan cards — dense tool tiles on void */
@@ -4525,8 +4529,7 @@ body:has(.mkt-page) .shell-header {
 
 /* —— OS spine density pass 2 —— */
 
-.os-shell-pro .pro-page-strip,
-.os-shell-pro .pro-signal-bar,
+.os-shell-pro .os-shell-pro .pro-signal-bar,
 .os-shell-pro .live-status-bar {
   border-radius: var(--os-radius) !important;
   box-shadow: none !important;
@@ -4684,7 +4687,7 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-pro .pro-stat.is-active {
   border-color: color-mix(in srgb, var(--os-ink) 28%, transparent) !important;
-  background: #fff !important;
+  background: var(--os-panel) !important;
   box-shadow: none !important;
 }
 
@@ -4694,12 +4697,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-pro .lead-inbox-card,
 .os-shell-pro .job-card,
 .os-shell-pro .call-record-card {
-  background: #fff !important;
-}
-
-.os-shell-pro .pro-page-strip {
-  background: #fff !important;
-  padding: 0.65rem 0.85rem !important;
+  background: var(--os-panel) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4718,8 +4716,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-pro .owner-alert-card,
 .os-shell-pro .transcript-cinema,
 .os-shell-pro .capture-setup-panel,
-.os-shell-pro .pro-page-strip,
-.os-shell-pro .os-ask-dock-panel {
+.os-shell-pro .os-shell-pro .os-ask-dock-panel {
   border-radius: var(--os-radius) !important;
   border: 1px solid var(--os-line) !important;
   box-shadow: none !important;
@@ -4735,21 +4732,6 @@ body:has(.mkt-page) .shell-header {
   border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
 }
 
-.pro-page-strip-badge,
-.os-shell-pro .pro-page-strip-badge {
-  display: inline-flex !important;
-  align-items: center;
-  padding: 0.3rem 0.55rem !important;
-  border-radius: 0.25rem !important;
-  font-size: 0.625rem !important;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--os-ink) !important;
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
-}
 
 .os-shell-pro .pro-setup-alert {
   background: var(--os-panel) !important;
@@ -4781,9 +4763,8 @@ body:has(.mkt-page) .shell-header {
 
 .os-shell-pro .lead-inbox-card,
 .os-shell-pro .job-card,
-.os-shell-pro .call-record-card,
-.os-shell-pro .pro-page-strip {
-  background: #fff !important;
+.os-shell-pro .call-record-card {
+  background: var(--os-panel) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4817,8 +4798,7 @@ body:has(.mkt-page) .shell-header {
 .os-shell-night .account-billing-plan,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .owner-alert-card,
-.os-shell-night .pro-page-strip,
-.os-shell-night .os-ask-dock-panel,
+.os-shell-night .os-shell-night .os-ask-dock-panel,
 .os-shell-night .pro-empty-state,
 .os-shell-night .capture-setup-panel {
   background: #14120c !important;
@@ -4917,20 +4897,8 @@ body:has(.mkt-page) .shell-header {
   color: #f87171 !important;
 }
 
-.os-shell-night .pro-page-strip {
-  background: #292722 !important;
-  padding: 0.5rem 0.7rem !important;
-}
 
-.os-shell-night .pro-page-strip-line,
-.os-shell-night .pro-page-strip-meta {
-  color: #ececec !important;
-}
 
-.os-shell-night .pro-page-strip-badge {
-  color: #f7f7f7 !important;
-  border-color: color-mix(in srgb, #fff 22%, transparent) !important;
-}
 
 .os-shell-night .status-pill,
 .os-shell-night .os-nav-badge,
@@ -5043,8 +5011,7 @@ body:has(.mkt-page) .shell-header {
 /* Panels / stats — Grok surfaces */
 .os-shell-night .pro-stat,
 .os-shell-night .pro-panel,
-.os-shell-night .pro-page-strip,
-.os-shell-night .dispatch-col,
+.os-shell-night .os-shell-night .dispatch-col,
 .os-shell-night .approve-queue,
 .os-shell-night .pro-dispatch-today,
 .os-shell-night .pro-economics-panel,
@@ -5112,10 +5079,6 @@ body:has(.mkt-page) .shell-header {
   margin-bottom: 0.65rem !important;
 }
 
-.os-shell-night .pro-page-strip {
-  margin-bottom: 0.65rem !important;
-  padding: 0.45rem 0.65rem !important;
-}
 
 /* Marketing void → Grok true black */
 .mkt-page {
@@ -5215,9 +5178,6 @@ body:has(.mkt-page) .shell-header {
   border-left: 2px solid #e9e9e9 !important;
 }
 
-.os-shell-night .pro-page-strip {
-  margin-bottom: 0.5rem !important;
-}
 
 /* Detail pages: denser panel stacks */
 
@@ -5383,20 +5343,23 @@ body:has(.mkt-page) .shell-header {
    MASTERY WAVE — SpaceX / Grok / Cursor craft across remaining soft chrome
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Filter bar → Cursor segment instrument */
+/* Filter bar → single-row instrument (scroll on narrow) */
 .os-shell-night .pro-filter-bar,
 .os-shell-night .pro-page-filters {
-  display: inline-flex !important;
-  flex-wrap: wrap;
+  display: flex !important;
+  flex-wrap: nowrap;
   gap: 0 !important;
   margin-bottom: 0.65rem !important;
   padding: 0 !important;
   border: 1px solid #4b4945 !important;
   border-radius: 0.25rem !important;
   background: #23201b !important;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   width: fit-content;
   max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .os-shell-night .pro-filter-tab {
@@ -5626,8 +5589,7 @@ body:has(.mkt-page) .shell-header {
 }
 
 /* Signal / shop line strip */
-.os-shell-night .pro-page-strip,
-.os-shell-night .pro-signal-bar {
+.os-shell-night .os-shell-night .pro-signal-bar {
   border-radius: 0.25rem !important;
 }
 
@@ -6017,10 +5979,10 @@ body:has(.mkt-page) .shell-header {
   color: var(--ov-muted) !important;
 }
 
-/* CTAs → Cursor pills: charcoal primary, hairline ghost */
+/* CTAs → hard instrument radius (night OS, not Cursor pills) */
 .mkt-page .inst-btn,
 .mkt-page .mkt-btn {
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-page .inst-btn-primary,
@@ -6028,7 +5990,7 @@ body:has(.mkt-page) .shell-header {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-page .inst-btn-primary:hover {
@@ -6097,7 +6059,7 @@ body:has(.mkt-page) .shell-header {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-nav .mkt-nav-cta:hover {
@@ -6133,7 +6095,7 @@ body:has(.mkt-page) .shell-header {
   background: #26251e !important;
   color: #f7f7f4 !important;
   border: 1px solid #26251e !important;
-  border-radius: 999px !important;
+  border-radius: 0.25rem !important;
 }
 
 .mkt-nav--institution .mkt-nav-cta:hover {
@@ -6183,317 +6145,19 @@ body:has(.mkt-page) .shell-header {
 }
 
 .mkt-page .pricing-needs-option-active {
-  background: #fde8dc !important;
-  border-color: #b8562c !important;
+  background: color-mix(in srgb, var(--ov-accent, #c4a484) 18%, transparent) !important;
+  border-color: var(--ov-line, rgba(255, 255, 255, 0.22)) !important;
+  color: var(--ov-headline, #f4f4f4) !important;
 }
 
-/* ============================================================
-   Cursor-craft home — calm, centered, light. Kill the dark
-   hero + bands so the site reads like cursor.com.
-   ============================================================ */
 
-/* Clean centered hero */
-
-/* Airy light sections (night rules + close), ink type */
-.mkt-page .mkt-manifesto,
-.mkt-page .mkt-manifesto--meta {
-  background: var(--ov-paper) !important;
-  border: 0 !important;
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-section-inner {
-  padding-top: clamp(4rem, 10vh, 7rem) !important;
-  padding-bottom: clamp(4rem, 10vh, 7rem) !important;
-}
-
-.mkt-page .mkt-manifesto-title,
-.mkt-page .mkt-law-title {
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-manifesto-kicker {
-  color: var(--ov-accent-text) !important;
-}
-
-.mkt-page .mkt-manifesto-aside,
-.mkt-page .mkt-law-body {
-  color: var(--ov-muted) !important;
-}
-
-.mkt-page .mkt-law-id {
-  color: var(--ov-accent-text) !important;
-}
-
-.mkt-page .mkt-law {
-  border-color: var(--ov-line) !important;
-}
-
-/* Close-section chalk CTA → charcoal pill; secondary → ink */
-
-/* Proof/story section (inset) → paper + ink; transcript panel white */
-.mkt-page .mkt-proof-section,
-.mkt-page .mkt-proof-section--company {
-  background: var(--ov-paper-raised) !important;
-  border: 0 !important;
-}
-
-.mkt-page .mkt-proof-title {
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-proof-kicker {
-  color: var(--ov-accent-text) !important;
-}
-
-.mkt-page .mkt-proof-lead,
-.mkt-page .mkt-proof-note {
-  color: var(--ov-muted) !important;
-}
-
-.mkt-page .mkt-call-panel,
-.mkt-page .mkt-call-panel--company {
-  background: var(--ov-paper-raised) !important;
-  border: 1px solid var(--ov-line) !important;
-  border-radius: 0.5rem !important;
-  box-shadow: none !important;
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-call-panel-kicker {
-  color: var(--ov-accent-text, var(--ov-accent-text)) !important;
-}
-
-.mkt-page .mkt-call-panel-title {
-  color: var(--ov-headline) !important;
-}
-
-.mkt-page .mkt-transcript-line {
-  color: var(--ov-ink) !important;
-}
-
-.mkt-page .mkt-transcript-line span {
-  color: var(--ov-muted) !important;
-}
-
-.mkt-page .mkt-transcript-line-muted {
-  color: var(--ov-muted) !important;
-}
-
-/* ============================================================
-   Marketing surface spec.
-   Paper #f5f3ee · ink #1c1e1a · accent #b8562c · secondary #dcdad2.
-   Type inherits the brand letterset from <body>; marketing pages
-   deliberately do not pin their own font stack, so Archivo and Plex
-   Mono reach every surface without a specificity fight.
-   ============================================================ */
-
-/* Display headings render at regular weight */
-.mkt-page .mkt-manifesto-title,
-.mkt-page .mkt-proof-title,
-.mkt-page .tier1-page-title,
-.mkt-page .tier1-section-title,
-.mkt-page .type-headline {
-  font-weight: 400 !important;
-  letter-spacing: -0.03em !important;
-}
-
-/* Primary pill CTA — exact cursor.com button */
-.mkt-page .inst-btn-primary {
-  background: #26251e !important;
-  color: #f7f7f4 !important;
-  border: 1px solid #26251e !important;
-  border-radius: 999px !important;
-  padding: 0.78rem 1.35rem 0.8rem !important;
-  font-size: 1rem !important;
-  font-weight: 400 !important;
-  letter-spacing: -0.01em !important;
-  box-shadow: none !important;
-}
-
-.mkt-page .inst-btn-primary:hover {
-  background: #27241f !important;
-  border-color: #27241f !important;
-}
-
-/* Secondary pill — cursor.com "Request a demo" style */
-.mkt-page .inst-btn-ghost {
-  background: #e6e5e0 !important;
-  color: var(--ov-headline) !important;
-  border: 1px solid transparent !important;
-  border-radius: 999px !important;
-}
-
-.mkt-page .inst-btn-ghost:hover {
-  background: #dbdad3 !important;
-  color: var(--ov-headline) !important;
-}
-
-/* Nav CTA pill (smaller, like cursor.com "Download") */
-.mkt-nav--institution .mkt-nav-cta,
-.mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta,
-.mkt-nav .mkt-nav-cta {
-  background: #26251e !important;
-  color: #f7f7f4 !important;
-  border: 1px solid #26251e !important;
-  border-radius: 999px !important;
-  padding: 0.4rem 0.75rem !important;
-  font-size: 0.875rem !important;
-  font-weight: 400 !important;
-  letter-spacing: 0 !important;
-}
-
-/* Nav links normal-case (Models/Product…), regular weight, like cursor.com */
-.mkt-nav-links a,
-.mkt-nav--institution .mkt-nav-links a,
-.mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
-.mkt-nav-login,
-.mkt-nav--institution .mkt-nav-login {
-  text-transform: none !important;
-  letter-spacing: -0.006em !important;
-  font-weight: 400 !important;
-  font-size: 0.9375rem !important;
-  color: #26251e !important;
-  font-family: var(--font-sans), system-ui, sans-serif !important;
-}
-
-/* Force the whole nav (brand, links, secondary, cta) off the Sora brand font */
-.mkt-nav-links,
-.mkt-nav--institution .mkt-nav-links,
-.mkt-nav-brand .orvius-logo-word {
-  font-family: var(--font-sans), system-ui, sans-serif !important;
-}
-
-/* Sign in — plain text link like cursor.com */
-.mkt-nav-login,
-.mkt-nav--institution .mkt-nav-login,
-.mkt-nav--institution.mkt-nav--elevated .mkt-nav-login {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 0.35rem !important;
-  min-height: auto !important;
-}
-
-.mkt-nav-login:hover {
-  color: #000000 !important;
-}
-
-/* Secondary nav pill — cursor.com "Contact sales" (light gray, hairline) */
-
-.mkt-nav--institution .mkt-nav-cta {
-  padding: 0.4rem 0.95rem !important;
-  text-transform: none !important;
-  letter-spacing: -0.006em !important;
-}
-
-/* Trademark lockup — word alone until a mark earns its place. */
-.mkt-nav-brand .orvius-logo,
-.mkt-nav--institution .mkt-nav-brand .orvius-logo,
-.mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
-  color: #26251e !important;
-  gap: 0.5rem !important;
-}
-
-.mkt-page .orvius-logo-word,
-.mkt-nav-brand .orvius-logo-word,
-.mkt-footer .orvius-logo-word {
-  color: var(--ov-headline) !important;
-  font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.075em !important;
-  text-transform: lowercase !important;
-}
-
-.mkt-nav-brand .orvius-logo-word {
-  font-size: 1.65rem !important;
-}
-
-.mkt-nav-brand .orvius-logo-mark {
-  color: #26251e !important;
-}
-
-/* Resources hub grid */
-.mkt-page .mkt-resources-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 2.5rem 3rem;
-}
-
-.mkt-page .mkt-resources-col .tier1-eyebrow {
-  color: var(--ov-accent-text) !important;
-  margin-bottom: 1rem;
-}
-
-.mkt-page .mkt-resources-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.mkt-page .mkt-resources-link {
-  color: var(--ov-headline) !important;
-  text-decoration: none;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
-  transition: color 120ms ease;
-}
-
-.mkt-page .mkt-resources-link:hover {
-  color: var(--ov-accent-text) !important;
-}
-
-/* Product showcase — cursor.com "In every tool, at every step" */
-
-/* Footer → Cursor light (was true-black) */
-.mkt-footer,
-.mkt-footer--institution {
-  background: #efeee9 !important;
-  border-top: 1px solid #e6e5e0 !important;
-}
-
-.mkt-footer-entity,
-.mkt-footer-heading {
-  color: #26251e !important;
-}
-
-.mkt-footer-tagline,
-.mkt-footer-col a,
-.mkt-footer--institution .mkt-footer-copy,
-.mkt-footer--institution .mkt-footer-mark {
-  color: #6b6a63 !important;
-}
-
-.mkt-footer-col a:hover {
-  color: #b8562c !important;
-}
-
-.mkt-footer-bottom {
-  border-top-color: #e6e5e0 !important;
-}
-
-.mkt-footer .orvius-logo,
-.mkt-footer .orvius-logo-word,
-.mkt-footer .orvius-logo-mark {
-  color: #26251e !important;
-}
-
-/* ============================================================
-   Try Orvius now — skins live in public-v2.css (.ov-public .mkt-trynow*)
-   ============================================================ */
-
-
-.mkt-footer-bottom--cursor {
+/* Legal footer clearance (utility dock + cookie) */
+.mkt-footer-bottom--legal {
   align-items: center;
   justify-content: flex-start !important;
-  /* Clear the fixed cookie notice and the utility dock so neither can sit on
-     the last row. */
   padding-bottom: 4rem;
 }
-
-.mkt-footer-bottom--cursor .mkt-footer-mark {
+.mkt-footer-bottom--legal .mkt-footer-mark {
   margin-left: auto !important;
 }
 

@@ -185,7 +185,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         type="submit"
         className="btn btn-void whitespace-nowrap"
       >
-        {loading ? "..." : "Join waitlist"}
+        {loading ? "..." : "Request call audit"}
       </button>
       {error ? (
         <p className="w-full font-sans text-sm text-flare-dim sm:order-3">

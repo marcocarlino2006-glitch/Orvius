@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { formatCentsExact } from "@/lib/money";
-import { buildPipelineProof } from "@/lib/pipeline-proof";
 import type { ShiftEvent } from "@/lib/shift-timeline";
 
 const LABELS: Record<ShiftEvent["kind"], string> = {
@@ -28,47 +27,25 @@ function eventTime(iso: string) {
 export function ProShiftTimeline({
   events,
   loading = false,
-  moneyEnabled = false,
+  moneyEnabled: _moneyEnabled = false,
 }: {
   events: ShiftEvent[];
   loading?: boolean;
   moneyEnabled?: boolean;
 }) {
   const visible = events.slice(0, 6);
-  const proof = buildPipelineProof(events, moneyEnabled);
-  const provenCount = proof.filter((stage) => stage.state === "proven").length;
 
   return (
     <section className="pro-shift" aria-labelledby="pro-shift-title">
       <header className="pro-shift-head">
         <div>
-          <p className="pro-shift-kicker font-sans">Live operating record</p>
+          <p className="pro-shift-kicker font-sans">Tonight</p>
           <h2 id="pro-shift-title" className="pro-shift-title font-sans">
-            Orvius shift timeline
+            Shift timeline
           </h2>
         </div>
         <span className="pro-shift-window font-sans">Last 24 hours</span>
       </header>
-
-      {!loading ? (
-        <div className="pro-shift-proof font-sans" aria-label="Core loop proof">
-          <div className="pro-shift-proof-head">
-            <p>
-              Core loop <strong>{provenCount}/5 measured</strong>
-            </p>
-            <span>No simulated wins</span>
-          </div>
-          <ol>
-            {proof.map((stage) => (
-              <li key={stage.id} data-state={stage.state}>
-                <span aria-hidden />
-                {stage.label}
-                {stage.state === "optional" ? <small>Optional</small> : null}
-              </li>
-            ))}
-          </ol>
-        </div>
-      ) : null}
 
       {loading ? (
         <div className="pro-shift-loading" aria-label="Loading shift activity">

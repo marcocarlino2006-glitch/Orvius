@@ -1,6 +1,6 @@
 import { getShopHealth, type ShopHealth } from "@/lib/shop-health";
 import { ownerPhoneConflictsWithShopLine, getShopLines } from "@/lib/owner-alerts";
-import { isPlaceholderOwnerPhone } from "@/lib/manus-post";
+import { isPlaceholderOwnerPhone } from "@/lib/placeholder-phone";
 import { prisma } from "@/lib/prisma";
 
 export type WedgeReadinessItem = {

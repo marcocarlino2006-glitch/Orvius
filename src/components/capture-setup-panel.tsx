@@ -6,29 +6,48 @@ import {
   type CarrierId,
 } from "@/lib/carrier-forward";
 import { telHref } from "@/lib/demo-line";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CaptureSetupPanelProps = {
   line: string | null;
   overflowConfirmed: boolean;
   lineVerified: boolean;
   saving?: boolean;
+  initialMode?: CaptureMode | null;
+  initialCarrier?: CarrierId | null;
   onConfirmOverflow: (next: boolean) => Promise<void> | void;
+  onCapturePathChange?: (next: {
+    mode: CaptureMode;
+    carrier: CarrierId | null;
+  }) => Promise<void> | void;
 };
 
-/** Owner capture setup: forward vs publish, carrier steps, text-me, confirm. */
+/** Owner capture recovery — one primary by state, helpers under More. */
 export function CaptureSetupPanel({
   line,
   overflowConfirmed,
   lineVerified,
   saving = false,
+  initialMode = "forward",
+  initialCarrier = "verizon",
   onConfirmOverflow,
+  onCapturePathChange,
 }: CaptureSetupPanelProps) {
-  const [mode, setMode] = useState<CaptureMode>("forward");
-  const [carrier, setCarrier] = useState<CarrierId>("verizon");
+  const [mode, setMode] = useState<CaptureMode>(initialMode ?? "forward");
+  const [carrier, setCarrier] = useState<CarrierId>(
+    initialCarrier ?? "verizon",
+  );
   const [texting, setTexting] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialMode) setMode(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (initialCarrier) setCarrier(initialCarrier);
+  }, [initialCarrier]);
 
   const guide = useMemo(
     () => CARRIERS.find((c) => c.id === carrier) ?? CARRIERS[0]!,
@@ -36,6 +55,35 @@ export function CaptureSetupPanel({
   );
 
   const canConfirm = Boolean(line) && lineVerified;
+
+  async function persistPath(nextMode: CaptureMode, nextCarrier: CarrierId) {
+    if (!onCapturePathChange) return;
+    try {
+      await onCapturePathChange({
+        mode: nextMode,
+        carrier: nextMode === "forward" ? nextCarrier : null,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save capture path");
+    }
+  }
+
+  function chooseMode(next: CaptureMode) {
+    if (next === mode) return;
+    setMode(next);
+    setError(null);
+    if (overflowConfirmed) {
+      void onConfirmOverflow(false);
+    }
+    void persistPath(next, carrier);
+  }
+
+  function chooseCarrier(next: CarrierId) {
+    if (next === carrier) return;
+    setCarrier(next);
+    setError(null);
+    void persistPath(mode, next);
+  }
 
   async function copyLine() {
     if (!line) return;
@@ -77,8 +125,8 @@ export function CaptureSetupPanel({
   return (
     <div className="capture-setup font-sans">
       <p className="account-settings-hint">
-        Orvius answers this number. Catch missed and after-hours by forwarding —
-        or publish it as your main shop line.
+        Orvius answers this number. Forward missed calls — or publish it as your
+        main shop line.
       </p>
 
       <p className="account-settings-value mt-3">
@@ -92,18 +140,18 @@ export function CaptureSetupPanel({
         <button
           type="button"
           className={`capture-setup-mode ${mode === "forward" ? "capture-setup-mode-active" : ""}`}
-          onClick={() => setMode("forward")}
+          onClick={() => chooseMode("forward")}
         >
           <strong>Forward my public number</strong>
-          <span>Keep Google / trucks. Missed &amp; after-hours → Orvius.</span>
+          <span>Missed &amp; after-hours → Orvius.</span>
         </button>
         <button
           type="button"
           className={`capture-setup-mode ${mode === "publish" ? "capture-setup-mode-active" : ""}`}
-          onClick={() => setMode("publish")}
+          onClick={() => chooseMode("publish")}
         >
           <strong>Make Orvius my main number</strong>
-          <span>Put this number on Google, trucks, and ads.</span>
+          <span>Google, trucks, and ads use this line.</span>
         </button>
       </div>
 
@@ -115,7 +163,7 @@ export function CaptureSetupPanel({
                 key={item.id}
                 type="button"
                 className={`capture-setup-carrier ${carrier === item.id ? "capture-setup-carrier-active" : ""}`}
-                onClick={() => setCarrier(item.id)}
+                onClick={() => chooseCarrier(item.id)}
               >
                 {item.label}
               </button>
@@ -142,42 +190,72 @@ export function CaptureSetupPanel({
         </ol>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="btn btn-secondary text-sm"
-          disabled={!line}
-          onClick={() => void copyLine()}
-        >
-          Copy forward-to number
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost text-sm"
-          disabled={!line || texting}
-          onClick={() => void textSteps()}
-        >
-          {texting ? "Texting…" : "Text me the steps"}
-        </button>
-        {line ? (
-          <a
-            href={telHref(line)}
-            className={`btn text-sm ${lineVerified ? "btn-ghost" : "btn-void"}`}
-          >
-            {lineVerified ? "Call again" : "Call to prove it"}
+      <div className="mt-4">
+        {!lineVerified && line ? (
+          <a href={telHref(line)} className="btn btn-void text-sm">
+            Call to prove it
           </a>
+        ) : canConfirm && !overflowConfirmed ? (
+          <button
+            type="button"
+            className="btn btn-void text-sm"
+            disabled={saving}
+            onClick={() => void onConfirmOverflow(true)}
+          >
+            {saving ? "Saving…" : "Confirm capture"}
+          </button>
+        ) : overflowConfirmed ? (
+          <p className="text-sm text-live" role="status">
+            Capture confirmed{lineVerified ? " · line verified" : ""}.
+          </p>
         ) : null}
-        <a href="/pilot/forward" className="btn btn-ghost text-sm">
-          One-pager
-        </a>
       </div>
 
-      {!lineVerified && line ? (
-        <p className="mt-3 text-sm text-ash" role="status">
-          Ritual order: call your Orvius line once so we know it answers — then
-          finish carrier steps and confirm below.
-        </p>
-      ) : null}
+      <details className="capture-setup-more mt-4 font-sans">
+        <summary>More</summary>
+        <div className="capture-setup-more-body mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn btn-secondary text-sm"
+            disabled={!line}
+            onClick={() => void copyLine()}
+          >
+            Copy number
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost text-sm"
+            disabled={!line || texting}
+            onClick={() => void textSteps()}
+          >
+            {texting ? "Texting…" : "Text me the steps"}
+          </button>
+          {line && lineVerified ? (
+            <a href={telHref(line)} className="btn btn-ghost text-sm">
+              Call again
+            </a>
+          ) : null}
+          <a href="/pilot/forward" className="btn btn-ghost text-sm">
+            One-pager
+          </a>
+        </div>
+        {canConfirm ? (
+          <label className="mt-4 flex items-start gap-3 text-sm text-void">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={overflowConfirmed}
+              disabled={saving}
+              onChange={(e) => void onConfirmOverflow(e.target.checked)}
+            />
+            <span>
+              {mode === "publish"
+                ? "Orvius is my published shop number."
+                : "I set missed / busy / after-hours forward to Orvius."}
+            </span>
+          </label>
+        ) : null}
+      </details>
 
       {note ? (
         <p className="mt-3 text-sm text-ash" role="status">
@@ -189,25 +267,6 @@ export function CaptureSetupPanel({
           {error}
         </p>
       ) : null}
-
-      <label className="mt-4 flex items-start gap-3 text-sm text-void">
-        <input
-          type="checkbox"
-          className="mt-1"
-          checked={overflowConfirmed}
-          disabled={saving || !canConfirm}
-          onChange={(e) => void onConfirmOverflow(e.target.checked)}
-        />
-        <span>
-          {mode === "publish"
-            ? "Orvius is my published shop number on Google / trucks / ads."
-            : "I set missed / busy / after-hours forward to Orvius."}
-          {lineVerified ? " · Line verified with a real call." : ""}
-          {!lineVerified
-            ? " · Locked until you prove the line with one call."
-            : ""}
-        </span>
-      </label>
     </div>
   );
 }

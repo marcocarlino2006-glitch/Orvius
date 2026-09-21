@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { company } from "@/lib/company";
-import { buildPipelineProof } from "@/lib/pipeline-proof";
-import type { CoverageState } from "@/components/pro-night-watch";
+import type { CoverageState } from "@/lib/coverage-state";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
@@ -21,10 +20,14 @@ type ProLaunchControlProps = {
   outcomes?: ShopOutcomes | null;
 };
 
+/**
+ * Quiet shop pulse. Banner above owns the red gate — this rail never coaches
+ * the owner to look elsewhere, never scoreboards the loop.
+ */
 export function ProLaunchControl({
-  wedge,
-  events,
-  moneyEnabled,
+  wedge: _wedge,
+  events: _events,
+  moneyEnabled: _moneyEnabled,
   checkoutReady,
   billingStatus,
   referenceImplementation = false,
@@ -32,38 +35,34 @@ export function ProLaunchControl({
   health,
   outcomes,
 }: ProLaunchControlProps) {
-  const proof = buildPipelineProof(events, moneyEnabled);
-  const proven = proof.filter((stage) => stage.state === "proven").length;
-  const setupDone = wedge?.score ?? 0;
-  const setupTotal = wedge?.total ?? 0;
   const failedAlerts = health?.failedAlerts24h ?? 0;
   const stuckAlerts = health?.stuckPendingAlerts ?? 0;
   const atRisk =
     health?.status === "critical" || failedAlerts > 0 || stuckAlerts > 0;
-  const setupReady = wedge?.ready ?? false;
-  const nextSetup = wedge?.items.find((item) => !item.ok);
+  const setupReady = _wedge?.ready ?? false;
   const status = atRisk ? "critical" : setupReady ? "healthy" : "attention";
   const statusLabel = atRisk
     ? "Coverage risk"
     : setupReady
       ? "Covered"
       : "Setup";
-  const access =
-    billingStatus === "active" || billingStatus === "past_due"
-      ? "Paid"
-      : "Design partner";
   const caught = outcomes?.afterHoursLeads ?? 0;
   const booked = outcomes?.afterHoursBooked ?? 0;
-  // Banner owns alerts + board next; rail only acts for unfinished setup.
-  const showPrimaryAction = !atRisk && Boolean(nextSetup);
-  const actionHref = atRisk
-    ? "/dashboard/settings"
-    : nextSetup?.actionHref ?? "/dashboard#attention-board";
-  const actionLabel = atRisk
-    ? "Fix owner alerts"
-    : nextSetup
-      ? nextSetup.label
-      : "Open the board";
+  const billing = (billingStatus ?? "none").toLowerCase();
+  const needsPay =
+    billing !== "active" &&
+    (billing === "past_due" ||
+      billing === "canceled" ||
+      billing === "pilot" ||
+      billing === "none");
+  const showPayAction = needsPay && !atRisk;
+  const showPrimaryAction = false;
+  const payLabel =
+    billing === "past_due"
+      ? "Fix payment"
+      : checkoutReady
+        ? "Pay with card"
+        : "Open billing";
 
   return (
     <section className="pro-rail-card pro-launch-control pro-control-center">
@@ -77,11 +76,15 @@ export function ProLaunchControl({
       <p className="pro-control-lead font-sans">
         {atRisk
           ? "Owner alerts need a fix — use the banner above (Send test alert)."
-          : coverage?.afterHoursNow
-            ? "After hours — the line is watching for you."
-            : setupReady
-              ? "Front door is covered. The banner above is your next move."
-              : "Finish front-door setup so night calls have somewhere to go."}
+          : showPayAction
+            ? billing === "past_due"
+              ? "Payment failed — fix the card so the line stays live."
+              : "Card not on file yet."
+            : coverage?.afterHoursNow
+              ? "After hours — the line is watching."
+              : setupReady
+                ? "Front door is covered. The banner above is your next move."
+                : "The banner above is your next move."}
       </p>
 
       <dl className="pro-control-pulse">
@@ -99,83 +102,21 @@ export function ProLaunchControl({
         </div>
       </dl>
 
-      <ul className="pro-rail-rows">
-        <li>
-          <span
-            className={`pro-rail-pip ${
-              failedAlerts || stuckAlerts
-                ? "pro-rail-pip-warn"
-                : "pro-rail-pip-ok"
-            }`}
-            aria-hidden
-          />
-          <span className="pro-rail-row-label font-sans">Owner alerts</span>
-          <span className="pro-rail-row-value font-sans">
-            {failedAlerts
-              ? `${failedAlerts} failed`
-              : stuckAlerts
-                ? `${stuckAlerts} stuck`
-                : "Delivering"}
-          </span>
-        </li>
-        <li>
-          <span
-            className={`pro-rail-pip ${
-              setupReady ? "pro-rail-pip-ok" : "pro-rail-pip-warn"
-            }`}
-            aria-hidden
-          />
-          <span className="pro-rail-row-label font-sans">Line proof</span>
-          <span className="pro-rail-row-value font-sans">
-            {setupTotal ? `${setupDone}/${setupTotal}` : "Loading"}
-          </span>
-        </li>
-        <li>
-          <span
-            className={`pro-rail-pip ${
-              proven > 0 ? "pro-rail-pip-ok" : "pro-rail-pip-warn"
-            }`}
-            aria-hidden
-          />
-          <span className="pro-rail-row-label font-sans">Current shift</span>
-          <span className="pro-rail-row-value font-sans">
-            {proven}/5 stages
-          </span>
-        </li>
-        <li>
-          <span
-            className={`pro-rail-pip ${
-              checkoutReady ? "pro-rail-pip-ok" : "pro-rail-pip-warn"
-            }`}
-            aria-hidden
-          />
-          <span className="pro-rail-row-label font-sans">Billing</span>
-          <span className="pro-rail-row-value font-sans">
-            {checkoutReady ? `${access} · ready` : `${access} · setup`}
-          </span>
-        </li>
-      </ul>
-
-      {/* One CTA truth: banner owns the red gate; rail only acts when setup/alerts need it. */}
-      {showPrimaryAction ? (
-        <Link href={actionHref} className="btn btn-void pro-control-action">
-          {actionLabel}
+      {showPayAction ? (
+        <Link href="/dashboard/billing" className="btn btn-void pro-control-action">
+          {payLabel}
         </Link>
-      ) : (
-        <Link href="/dashboard/ask" className="btn btn-secondary pro-control-action">
-          What should I do?
+      ) : showPrimaryAction ? (
+        <Link href="/dashboard" className="btn btn-void pro-control-action">
+          Open Command
         </Link>
-      )}
+      ) : null}
 
       {referenceImplementation ? (
         <p className="pro-launch-disclosure font-sans">
           Reference environment. Activity is illustrative, not customer results.
         </p>
-      ) : (
-        <p className="pro-launch-disclosure font-sans">
-          Founder-assisted operations while automation is being proven.
-        </p>
-      )}
+      ) : null}
 
       <div className="pro-rail-card-foot font-sans">
         <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
@@ -184,14 +125,3 @@ export function ProLaunchControl({
     </section>
   );
 }
-
-// Legacy cards stay available to secondary surfaces while Command uses the
-// consolidated control center above.
-export { ProLineWatch } from "@/components/pro-line-watch";
-export { ProNightWatch } from "@/components/pro-night-watch";
-export { ProSetupScore } from "@/components/pro-setup-score";
-export { ProSetupHub } from "@/components/pro-setup-hub";
-export {
-  ProTodayAlerts,
-  ProTodayPulse,
-} from "@/components/pro-today-status";

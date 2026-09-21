@@ -1,11 +1,40 @@
+"use client";
+
 import { OsShell } from "@/components/os-shell";
+import { usePathname } from "next/navigation";
+
+const TITLES: Record<string, string> = {
+  "/dashboard": "Command",
+  "/dashboard/inbox": "Inbox",
+  "/dashboard/calls": "Calls",
+  "/dashboard/customers": "Customers",
+  "/dashboard/jobs": "Jobs",
+  "/dashboard/dispatch": "Dispatch",
+  "/dashboard/ask": "Ask",
+  "/dashboard/settings": "Settings",
+  "/dashboard/billing": "Billing",
+  "/dashboard/profile": "Profile",
+  "/dashboard/pricing": "Pricing",
+  "/dashboard/onboarding": "Setup",
+};
+
+function titleForPath(pathname: string) {
+  if (TITLES[pathname]) return TITLES[pathname];
+  const match = Object.keys(TITLES)
+    .filter((key) => key !== "/dashboard" && pathname.startsWith(`${key}/`))
+    .sort((a, b) => b.length - a.length)[0];
+  return match ? TITLES[match] : "Orvius";
+}
 
 export default function DashboardLoading() {
+  const pathname = usePathname() ?? "/dashboard";
   return (
-    <OsShell title="Command" subtitle="Loading the latest shop state…">
+    <OsShell
+      title={titleForPath(pathname)}
+      subtitle="Loading the latest shop state…"
+    >
       <section className="dashboard-route-loading" aria-busy="true">
         <div className="dashboard-route-loading-main">
-          <p className="type-eyebrow font-sans">Front desk performance</p>
           <span className="skeleton dashboard-route-loading-value" />
           <div className="dashboard-route-loading-metrics">
             <span className="skeleton" />

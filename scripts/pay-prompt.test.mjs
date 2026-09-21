@@ -137,7 +137,7 @@ describe("pay prompt loop", () => {
     assert.equal(d.tone, "required");
     assert.equal(d.hard, false, "a shop still inside its pilot is never blocked");
     assert.equal(d.snoozeMs, 2 * HOUR);
-    assert.match(d.headline, /Pilot ends in 3 days/);
+    assert.match(d.headline, /Access ends in 3 days/);
   });
 
   it("locks when pilot ended", () => {
@@ -147,14 +147,15 @@ describe("pay prompt loop", () => {
     });
     assert.equal(d.tone, "locked");
     assert.equal(d.hard, true);
-    assert.match(d.headline, /Pilot ended/);
-    assert.match(d.primaryCta, /Subscribe/);
+    assert.match(d.headline, /Access ended/);
+    assert.match(d.primaryCta, /Pay with card/);
   });
 
   it("tells a canceled shop something different from a lapsed one", () => {
     const canceled = getPayPromptDecision({ billingStatus: "canceled" });
     assert.equal(canceled.tone, "locked");
     assert.match(canceled.headline, /reopen your shop/);
+    assert.match(canceled.primaryCta, /Pay with card/);
   });
 
   it("urgent lock for past_due", () => {

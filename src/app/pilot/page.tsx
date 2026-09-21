@@ -27,10 +27,10 @@ export default function PilotPage() {
             <HomeCallDemo />
           </div>
           <div className="tier1-actions" style={{ marginTop: "1.5rem" }}>
-            <a href="#waitlist" className="inst-btn inst-btn-primary">
+            <a href="#waitlist" className="ov-btn ov-btn--solid">
               Request a call audit
             </a>
-            <a href={demoLineHref()} className="inst-btn inst-btn-ghost">
+            <a href={demoLineHref()} className="ov-btn ov-btn--quiet">
               Try the live line
             </a>
           </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
-import { OnboardingCaptureStep } from "@/components/onboarding-capture-step";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { company } from "@/lib/company";
 import { TRADES, type Trade } from "@/lib/trades";
@@ -9,15 +8,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-const STEPS = [
-  { id: "welcome", label: "Welcome" },
-  { id: "shop", label: "Shop" },
-  { id: "alerts", label: "Alerts" },
-  { id: "live", label: "Line" },
-] as const;
-
-type StepId = (typeof STEPS)[number]["id"];
-type PostProvision = "capture" | "prove" | null;
 type ResumePayload = {
   provisioned?: boolean;
   ready?: boolean;
@@ -28,19 +18,20 @@ type ResumePayload = {
   } | null;
 };
 
+/**
+ * Frictionless tunnel: one form → create line → one call → Command.
+ * No welcome rings, no separate alerts/live screens, no capture teach-before-prove.
+ */
 export function OnboardingWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const checkoutSessionId = searchParams.get("session_id")?.trim() ?? "";
-  const [step, setStep] = useState<StepId>("welcome");
   const [name, setName] = useState("");
   const [trade, setTrade] = useState<Trade>("HVAC");
   const [ownerPhone, setOwnerPhone] = useState("");
-  const [greeting, setGreeting] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [provisionedLine, setProvisionedLine] = useState<string | null>(null);
-  const [postProvision, setPostProvision] = useState<PostProvision>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedSms, setAcceptedSms] = useState(false);
   const [resuming, setResuming] = useState(true);
@@ -61,12 +52,10 @@ export function OnboardingWizard() {
     const line = json.setup?.line?.trim() ?? null;
     if (line) {
       setProvisionedLine(line);
-      setPostProvision("prove");
       setError(null);
     } else {
-      setStep("live");
       setError(
-        "Your shop exists, but its line is still provisioning. Open Settings or try again shortly.",
+        "Your shop exists, but its line is still provisioning. Try again in a moment.",
       );
     }
     return true;
@@ -75,29 +64,10 @@ export function OnboardingWizard() {
   useEffect(() => {
     void resumeExisting()
       .catch(() => {
-        /* New shops continue with the normal wizard. */
+        /* New shops continue with the normal form. */
       })
       .finally(() => setResuming(false));
   }, [resumeExisting]);
-
-  const stepIndex = STEPS.findIndex((s) => s.id === step);
-  const defaultGreeting = name.trim()
-    ? `Thank you for calling ${name.trim()}. How can I help you today?`
-    : "";
-
-  function next() {
-    const idx = STEPS.findIndex((s) => s.id === step);
-    if (idx < STEPS.length - 1) {
-      setStep(STEPS[idx + 1].id);
-    }
-  }
-
-  function back() {
-    const idx = STEPS.findIndex((s) => s.id === step);
-    if (idx > 0) {
-      setStep(STEPS[idx - 1].id);
-    }
-  }
 
   async function finish() {
     setSubmitting(true);
@@ -111,7 +81,6 @@ export function OnboardingWizard() {
           name: name.trim(),
           trade,
           ownerPhone: ownerPhone.trim(),
-          greeting: greeting.trim() || undefined,
           checkoutSessionId,
         }),
       });
@@ -125,7 +94,6 @@ export function OnboardingWizard() {
 
       if (json.line) {
         setProvisionedLine(json.line);
-        setPostProvision("capture");
         return;
       }
 
@@ -138,7 +106,12 @@ export function OnboardingWizard() {
     }
   }
 
-  const inPostFlow = Boolean(provisionedLine && postProvision);
+  const canCreate =
+    name.trim().length >= 2 &&
+    ownerPhone.trim().length >= 10 &&
+    acceptedTerms &&
+    acceptedSms &&
+    !submitting;
 
   if (resuming) {
     return (
@@ -152,7 +125,7 @@ export function OnboardingWizard() {
             </p>
           </header>
           <div className="onboarding-panel" aria-busy="true">
-            <p className="onboarding-lead font-sans">Restoring your setup…</p>
+            <p className="onboarding-lead font-sans">Opening setup…</p>
           </div>
         </div>
       </main>
@@ -171,14 +144,13 @@ export function OnboardingWizard() {
             </p>
           </header>
           <div className="onboarding-panel">
-            <h1 className="onboarding-title font-sans">Choose your plan first.</h1>
+            <h1 className="onboarding-title font-sans">Pay first, then your line.</h1>
             <p className="onboarding-lead font-sans">
-              Paid checkout happens before we provision your dedicated number.
-              There is no automatic trial or surprise phone charge.
+              One paid plan unlocks a dedicated number. No surprise phone charge.
             </p>
             <div className="onboarding-actions">
               <Link href="/pricing" className="btn btn-void font-sans">
-                View paid plans
+                Pay with card
               </Link>
             </div>
           </div>
@@ -197,72 +169,16 @@ export function OnboardingWizard() {
           <p className="onboarding-eyebrow font-sans">{company.productName} setup</p>
         </header>
 
-        {!inPostFlow ? (
-          <nav className="onboarding-steps font-sans" aria-label="Setup progress">
-            {STEPS.map((item, index) => {
-              const active = item.id === step;
-              const done = index < stepIndex;
-              return (
-                <div
-                  key={item.id}
-                  className={`onboarding-step ${active ? "onboarding-step-active" : ""} ${done ? "onboarding-step-done" : ""}`}
-                >
-                  <span className="onboarding-step-num">{index + 1}</span>
-                  <span className="onboarding-step-label">{item.label}</span>
-                </div>
-              );
-            })}
-          </nav>
-        ) : null}
-
         <div className="onboarding-panel">
-          {step === "welcome" && !inPostFlow ? (
+          {provisionedLine ? (
+            <OnboardingCallVerify line={provisionedLine} shopName={name.trim() || "your shop"} />
+          ) : (
             <>
-              <h1 className="onboarding-title font-sans">
-                Your shop line in minutes.
-              </h1>
+              <h1 className="onboarding-title font-sans">Get your shop line.</h1>
               <p className="onboarding-lead font-sans">
-                We create a dedicated number, text you when a job calls, and put
-                every lead in one inbox. No second CRM.
+                Name, mobile, create. Then one call proves it — you work from Command.
               </p>
-              <ul className="onboarding-rings font-sans">
-                <li>
-                  <span className="onboarding-ring-num">01</span>
-                  <span>
-                    <strong>Get your Orvius number</strong> · Auto-assigned for your shop
-                  </span>
-                </li>
-                <li>
-                  <span className="onboarding-ring-num">02</span>
-                  <span>
-                    <strong>Forward or publish</strong> · Catch missed and after-hours
-                  </span>
-                </li>
-                <li>
-                  <span className="onboarding-ring-num">03</span>
-                  <span>
-                    <strong>Prove it once</strong> · Call the line, get the SMS, work from Command
-                  </span>
-                </li>
-              </ul>
-              <div className="onboarding-actions">
-                <button
-                  type="button"
-                  className="btn btn-void onboarding-btn-primary font-sans"
-                  onClick={next}
-                >
-                  Get started
-                </button>
-              </div>
-            </>
-          ) : null}
 
-          {step === "shop" && !inPostFlow ? (
-            <>
-              <h1 className="onboarding-title font-sans">Tell us about your shop.</h1>
-              <p className="onboarding-lead font-sans">
-                This is how Orvius greets callers and labels your workspace.
-              </p>
               <div className="onboarding-form">
                 <label className="onboarding-field font-sans">
                   <span className="onboarding-label">Shop name</span>
@@ -273,10 +189,12 @@ export function OnboardingWizard() {
                     placeholder="Summit HVAC & Cooling"
                     className="onboarding-input"
                     autoFocus
+                    autoComplete="organization"
                   />
                 </label>
+
                 <fieldset className="onboarding-field font-sans">
-                  <legend className="onboarding-label">Primary trade</legend>
+                  <legend className="onboarding-label">Trade</legend>
                   <div className="onboarding-trade-grid">
                     {TRADES.map((item) => (
                       <button
@@ -290,114 +208,30 @@ export function OnboardingWizard() {
                     ))}
                   </div>
                 </fieldset>
-              </div>
-              <div className="onboarding-actions onboarding-actions-split">
-                <button
-                  type="button"
-                  className="btn btn-ghost font-sans"
-                  onClick={back}
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-void font-sans"
-                  disabled={name.trim().length < 2}
-                  onClick={next}
-                >
-                  Continue
-                </button>
-              </div>
-            </>
-          ) : null}
 
-          {step === "alerts" && !inPostFlow ? (
-            <>
-              <h1 className="onboarding-title font-sans">Where should we text you?</h1>
-              <p className="onboarding-lead font-sans">
-                When a qualified lead comes in, Orvius texts a clean summary to
-                the phone you check on the job.
-              </p>
-              <div className="onboarding-form">
                 <label className="onboarding-field font-sans">
-                  <span className="onboarding-label">Your mobile number</span>
+                  <span className="onboarding-label">Your mobile</span>
                   <input
                     type="tel"
                     value={ownerPhone}
                     onChange={(e) => setOwnerPhone(e.target.value)}
                     placeholder="+1 555 123 4567"
                     className="onboarding-input"
-                    autoFocus
+                    autoComplete="tel"
+                    inputMode="tel"
                   />
                   <span className="onboarding-hint">
-                    By continuing you consent to transactional SMS from {company.smsProgramName}.
-                    Msg &amp; data rates may apply. Reply STOP to opt out · HELP for help. See{" "}
+                    Orvius texts job alerts here. Reply STOP to opt out ·{" "}
                     <Link href="/sms-terms">SMS Terms</Link>.
                   </span>
                 </label>
               </div>
-              <div className="onboarding-actions onboarding-actions-split">
-                <button
-                  type="button"
-                  className="btn btn-ghost font-sans"
-                  onClick={back}
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-void font-sans"
-                  disabled={ownerPhone.trim().length < 10}
-                  onClick={next}
-                >
-                  Continue
-                </button>
-              </div>
-            </>
-          ) : null}
 
-          {step === "live" && !inPostFlow ? (
-            <>
-              <h1 className="onboarding-title font-sans">Create your line.</h1>
-              <p className="onboarding-lead font-sans">
-                Orvius provisions a dedicated number and receptionist for{" "}
-                <strong>{name.trim()}</strong> — callers hear your shop name.
-              </p>
-              <dl className="onboarding-review font-sans">
-                <div>
-                  <dt>Shop</dt>
-                  <dd>{name.trim()}</dd>
-                </div>
-                <div>
-                  <dt>Trade</dt>
-                  <dd>{trade}</dd>
-                </div>
-                <div>
-                  <dt>Owner alerts</dt>
-                  <dd>{ownerPhone.trim()}</dd>
-                </div>
-                <div>
-                  <dt>Plan</dt>
-                  <dd>Paid subscription · verified</dd>
-                </div>
-              </dl>
-              <label className="onboarding-field font-sans">
-                <span className="onboarding-label">
-                  Opening greeting <span className="onboarding-optional">optional</span>
-                </span>
-                <textarea
-                  value={greeting}
-                  onChange={(e) => setGreeting(e.target.value)}
-                  placeholder={defaultGreeting}
-                  className="onboarding-textarea"
-                  rows={3}
-                />
-              </label>
               <p className="onboarding-footnote font-sans">
-                We auto-assign a dedicated local number — no phone-console setup, no
-                shared demo line. Callers may hear a short recording/AI disclosure
-                required by law in some jurisdictions.
+                Paid subscription · verified. We assign a dedicated local number —
+                callers hear your shop name.
               </p>
+
               <div className="onboarding-consent font-sans">
                 <label className="onboarding-check">
                   <input
@@ -407,9 +241,9 @@ export function OnboardingWizard() {
                   />
                   <span>
                     I agree to the{" "}
-                    <Link href="/terms">Terms of Service</Link>,{" "}
-                    <Link href="/privacy">Privacy Policy</Link>, and{" "}
-                    <Link href="/refunds">Refunds &amp; Cancellation</Link> policy.
+                    <Link href="/terms">Terms</Link>,{" "}
+                    <Link href="/privacy">Privacy</Link>, and{" "}
+                    <Link href="/refunds">Refunds</Link>.
                   </span>
                 </label>
                 <label className="onboarding-check">
@@ -419,50 +253,31 @@ export function OnboardingWizard() {
                     onChange={(e) => setAcceptedSms(e.target.checked)}
                   />
                   <span>
-                    I consent to receive transactional SMS owner alerts at the number above
-                    from {company.smsProgramName}. Consent is not a condition of purchase
-                    except for receiving those alerts. Reply STOP to cancel.{" "}
+                    I consent to transactional SMS alerts from {company.smsProgramName}{" "}
+                    at this number.{" "}
                     <Link href="/sms-terms">SMS Terms</Link>.
                   </span>
                 </label>
               </div>
+
               {error ? (
                 <p className="onboarding-error font-sans" role="alert">
                   {error}
                 </p>
               ) : null}
-              <div className="onboarding-actions onboarding-actions-split">
+
+              <div className="onboarding-actions">
                 <button
                   type="button"
-                  className="btn btn-ghost font-sans"
-                  onClick={back}
-                  disabled={submitting}
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-void font-sans"
-                  disabled={submitting || !acceptedTerms || !acceptedSms}
-                  onClick={finish}
+                  className="btn btn-void onboarding-btn-primary font-sans"
+                  disabled={!canCreate}
+                  onClick={() => void finish()}
                 >
                   {submitting ? "Creating your line…" : "Create my shop line"}
                 </button>
               </div>
             </>
-          ) : null}
-
-          {provisionedLine && postProvision === "capture" ? (
-            <OnboardingCaptureStep
-              line={provisionedLine}
-              shopName={name.trim()}
-              onContinue={() => setPostProvision("prove")}
-            />
-          ) : null}
-
-          {provisionedLine && postProvision === "prove" ? (
-            <OnboardingCallVerify line={provisionedLine} shopName={name.trim()} />
-          ) : null}
+          )}
         </div>
       </div>
     </main>

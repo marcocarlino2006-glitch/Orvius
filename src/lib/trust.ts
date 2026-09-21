@@ -10,7 +10,7 @@ export const summitCaseStudy = {
   name: "Summit HVAC",
   trade: "HVAC",
   location: "Reference shop",
-  crew: "Design partner profile",
+  crew: "Reference implementation",
   partnerSince: "2026",
   headline: "After-hours emergencies handled without stopping work.",
   summary:
@@ -34,7 +34,7 @@ export const summitCaseStudy = {
   ],
   quote:
     "I get the lead on my phone before I finish the job I'm on. After-hours AC calls don't wait in voicemail anymore.",
-  attribution: "Summit HVAC · labeled reference implementation — not a third-party case study",
+  attribution: "Summit HVAC · Orvius demo line",
 } as const;
 
 export const trustBadges = [

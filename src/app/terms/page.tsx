@@ -67,7 +67,7 @@ export default function TermsPage() {
 
       <LegalSection title="4. Pilot program">
         <p>
-          Eligible businesses may join a limited design-partner pilot at no charge for thirty (30)
+          Eligible businesses may join a limited pilot program at no charge for thirty (30)
           days, subject to availability. Pilot features are described on our{" "}
           <Link href="/pricing">pricing page</Link> and may differ from paid plans.
         </p>

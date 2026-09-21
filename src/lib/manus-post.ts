@@ -1,3 +1,5 @@
+import { isPlaceholderOwnerPhone } from "@/lib/placeholder-phone";
+
 /**
  * Manus post bar — ordered founder close sequence.
  * Code cannot invent secrets; this names the single next red gate.
@@ -31,20 +33,7 @@ export type ManusPostStatusMap = Partial<
 >;
 
 /** Owner phones that look provisioned but are still theater. */
-export function isPlaceholderOwnerPhone(phone: string | null | undefined): boolean {
-  if (!phone?.trim()) return true;
-  const raw = phone.trim();
-  const upper = raw.toUpperCase();
-  if (/YOUR[_-]?CELL|PLACEHOLDER|CHANGEME|EXAMPLE|XXX+|TODO/i.test(upper)) {
-    return true;
-  }
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length < 10) return true;
-  // All same digit / obvious fake
-  if (/^(\d)\1{9,}$/.test(digits)) return true;
-  if (/^1?555555/.test(digits)) return true;
-  return false;
-}
+export { isPlaceholderOwnerPhone } from "@/lib/placeholder-phone";
 
 export function ownerMobileConfigured(input: {
   ownerPhone?: string | null;

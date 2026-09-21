@@ -2,9 +2,10 @@
 
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
+import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
 import { OsShell } from "@/components/os-shell";
-import { ProPageStrip } from "@/components/pro-page-strip";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import type { ManusPostStep } from "@/lib/manus-post";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -26,6 +27,8 @@ type AccountResponse = {
     lastWeeklyProofAt?: string | null;
     founderCertJson?: string | null;
     overflowForwardConfirmedAt?: string | null;
+    captureMode?: CaptureMode | null;
+    forwardCarrier?: CarrierId | null;
     lineVerifiedAt?: string | null;
     billingStatus?: string;
     pilotEndsAt?: string | null;
@@ -35,6 +38,7 @@ type AccountResponse = {
   wedge: WedgeReadiness | null;
   billing?: {
     configured?: boolean;
+    fullyReady?: boolean;
     entitled?: boolean;
     status?: string;
   };
@@ -53,8 +57,6 @@ const FOUNDER_CERT = [
   "Inbound SMS — lead + auto-reply",
 ] as const;
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-
 function parseCert(raw: string | null | undefined): boolean[] {
   const empty = FOUNDER_CERT.map(() => false);
   if (!raw) return empty;
@@ -70,6 +72,9 @@ function parseCert(raw: string | null | undefined): boolean[] {
 }
 
 export default function DashboardSettingsPage() {
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [account, setAccount] = useState<AccountResponse | null>(null);
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
@@ -91,10 +96,17 @@ export default function DashboardSettingsPage() {
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
   const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
+  const [dirty, setDirty] = useState(false);
 
   async function loadAccount() {
+    setLoadState("loading");
+    setError(null);
     const res = await fetch("/api/account");
-    if (!res.ok) return;
+    if (!res.ok) {
+      setLoadState("error");
+      setError("Could not load settings. Refresh and try again.");
+      return;
+    }
     const data = (await res.json()) as AccountResponse;
     setAccount(data);
     setOwnerPhone(data.business?.ownerPhone ?? "");
@@ -117,11 +129,37 @@ export default function DashboardSettingsPage() {
     );
     setCertChecks(parseCert(data.business?.founderCertJson));
     setOverflowForward(Boolean(data.business?.overflowForwardConfirmedAt));
+    setDirty(false);
+    setLoadState("ready");
   }
 
   useEffect(() => {
-    loadAccount().catch(() => null);
+    loadAccount().catch(() => {
+      setLoadState("error");
+      setError("Could not load settings. Refresh and try again.");
+    });
   }, []);
+
+  useEffect(() => {
+    if (!dirty) return;
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
+
+  useEffect(() => {
+    if (loadState !== "ready" || !account) return;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [loadState, account]);
 
   useEffect(() => {
     if (!account?.founder) {
@@ -144,21 +182,28 @@ export default function DashboardSettingsPage() {
   }, [account?.founder]);
 
   async function persistCert(next: boolean[]) {
+    const previous = certChecks;
     setCertChecks(next);
     setCertSaving(true);
+    setError(null);
     try {
-      await fetch("/api/account", {
+      const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ founderCertJson: JSON.stringify(next) }),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setCertChecks(previous);
+        throw new Error(data.error ?? "Could not save certification");
+      }
       try {
         localStorage.setItem("orvius-founder-cert", JSON.stringify(next));
       } catch {
         /* ignore */
       }
-    } catch {
-      /* keep UI state */
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save certification");
     } finally {
       setCertSaving(false);
     }
@@ -176,6 +221,34 @@ export default function DashboardSettingsPage() {
     null;
 
   
+  async function saveCapturePath(next: {
+    mode: CaptureMode;
+    carrier: CarrierId | null;
+  }) {
+    const res = await fetch("/api/account", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        captureMode: next.mode,
+        forwardCarrier: next.carrier,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "Could not save capture path");
+    setAccount((prev) =>
+      prev && prev.business
+        ? {
+            ...prev,
+            business: {
+              ...prev.business,
+              captureMode: next.mode,
+              forwardCarrier: next.carrier,
+            },
+          }
+        : prev,
+    );
+  }
+
   async function saveOverflow(next: boolean) {
     setOverflowSaving(true);
     setError(null);
@@ -232,14 +305,18 @@ export default function DashboardSettingsPage() {
           baselineJobsPerWeek: baselineJobs.trim()
             ? Math.round(Number(baselineJobs.replace(/[^0-9.]/g, "")))
             : null,
-          founderCertJson: JSON.stringify(certChecks),
+          ...(account?.founder
+            ? { founderCertJson: JSON.stringify(certChecks) }
+            : {}),
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Save failed");
       setSaved(true);
+      setDirty(false);
       setSyncWarning(data.syncWarning ?? null);
       await loadAccount();
+      setSaved(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -253,8 +330,18 @@ export default function DashboardSettingsPage() {
     setError(null);
     try {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
-      const data = await res.json();
+      const data = (await res.json()) as {
+        error?: string;
+        ok?: boolean;
+        message?: string;
+      };
       if (!res.ok) throw new Error(data.error ?? "Test failed");
+      if (!data.ok) {
+        throw new Error(
+          data.error ??
+            "Alert queued but not delivered. Check owner mobile/email and Settings.",
+        );
+      }
       setTestResult(data.message ?? "Test alert sent");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Test failed");
@@ -288,27 +375,73 @@ export default function DashboardSettingsPage() {
 
   const certDone = certChecks.filter(Boolean).length;
 
-  return (
-    <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
-      <div className="pro-settings-page">
-        <ProPageStrip />
+  if (loadState !== "ready" || !account) {
+    return (
+      <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+        <div className="pro-settings-page">
+          {loadState === "error" ? (
+            <div className="pro-settings-load-error">
+              <ShellAlert tone="error">
+                {error ?? "Could not load settings."}
+              </ShellAlert>
+              <button
+                type="button"
+                className="btn btn-void text-sm mt-4"
+                onClick={() => void loadAccount()}
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div className="pro-settings-load-skel" aria-busy="true">
+              <span className="skeleton" />
+              <span className="skeleton" />
+              <span className="skeleton" />
+            </div>
+          )}
+        </div>
+      </OsShell>
+    );
+  }
 
+  return (
+    <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+      <div className="pro-settings-page">
+        <SettingsLaunchGuide
+          input={{
+            founder: account.founder,
+            lineVerified: Boolean(account.business?.lineVerifiedAt),
+            overflowConfirmed: overflowForward,
+            ownerPhone,
+            ownerEmail,
+            avgTicketCents: account.business?.avgTicketCents,
+            emailConfigured: account.alerts.emailConfigured,
+            ownerSmsOptedOut: account.alerts.ownerSmsOptedOut,
+            billingConfigured: account.billing?.configured,
+            billingFullyReady: account.billing?.fullyReady,
+            certDone,
+            certTotal: FOUNDER_CERT.length,
+          }}
+        />
         <form className="account-stack pro-settings-form" onSubmit={save}>
         <div id="overflow-forward">
           <ShellPanel title="Call capture" dense>
             <CaptureSetupPanel
               line={line}
               overflowConfirmed={overflowForward}
-              lineVerified={Boolean(account?.business?.lineVerifiedAt)}
+              lineVerified={Boolean(account.business?.lineVerifiedAt)}
               saving={overflowSaving}
+              initialMode={account.business?.captureMode ?? "forward"}
+              initialCarrier={account.business?.forwardCarrier ?? "verizon"}
               onConfirmOverflow={(next) => saveOverflow(next)}
+              onCapturePathChange={(next) => saveCapturePath(next)}
             />
           </ShellPanel>
         </div>
 
         <div id="owner-alerts">
         <ShellPanel title="Owner alerts" dense>
-          {account?.alerts.ownerSmsOptedOut ? (
+          {account.alerts.ownerSmsOptedOut ? (
             <div className="mb-4">
               <ShellAlert tone="error">
                 This number texted STOP — night leads will not reach you. Text{" "}
@@ -322,7 +455,11 @@ export default function DashboardSettingsPage() {
             <input
               type="tel"
               value={ownerPhone}
-              onChange={(e) => setOwnerPhone(e.target.value)}
+              onChange={(e) => {
+                setOwnerPhone(e.target.value);
+                setDirty(true);
+                setSaved(false);
+              }}
               className="onboarding-input"
               placeholder="+1 555 123 4567"
             />
@@ -336,14 +473,20 @@ export default function DashboardSettingsPage() {
             <input
               type="email"
               value={ownerEmail}
-              onChange={(e) => setOwnerEmail(e.target.value)}
+              onChange={(e) => {
+                setOwnerEmail(e.target.value);
+                setDirty(true);
+                setSaved(false);
+              }}
               className="onboarding-input"
               placeholder="you@yourshop.com"
             />
             <span className="onboarding-hint">
-              {account?.alerts.emailConfigured
-                ? "Email failover is live — used when SMS fails or is unavailable."
-                : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
+              {account.alerts.emailConfigured
+                ? "Email backup is on — used when a text alert can’t deliver."
+                : account.founder
+                  ? "Alerts are text-only until Resend is live — paste keys below."
+                  : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
             </span>
           </label>
 
@@ -358,14 +501,37 @@ export default function DashboardSettingsPage() {
             </button>
             <span className="pro-settings-test-meta font-sans">
               SMS{" "}
-              {account?.alerts.ownerSmsOptedOut
+              {account.alerts.ownerSmsOptedOut
                 ? "opted out"
-                : account?.alerts.smsEnabled
+                : account.alerts.smsEnabled
                   ? "enabled"
                   : "off"}{" "}
-              · Email {account?.alerts.emailConfigured ? "ready" : "not configured"}
+              · Email {account.alerts.emailConfigured ? "on" : "off"}
             </span>
           </div>
+
+          {!account.alerts.emailConfigured && account.founder ? (
+            <div
+              id="email-failover"
+              className="billing-unblock billing-unblock--instrument mt-4 font-sans"
+            >
+              <p className="billing-unblock-kicker">Resend gates</p>
+              <p className="billing-unblock-title">
+                SMS→email failover stays dark until these are green
+              </p>
+              <ol className="billing-unblock-steps">
+                <li>Add RESEND_API_KEY on Vercel</li>
+                <li>
+                  Set RESEND_FROM to a verified sender (e.g. Orvius
+                  &lt;alerts@orvius.im&gt;)
+                </li>
+                <li>Redeploy · then Send test alert</li>
+              </ol>
+              <p className="billing-unblock-foot">
+                Owners never see this panel — only the founder paste path.
+              </p>
+            </div>
+          ) : null}
         </ShellPanel>
         </div>
 
@@ -376,10 +542,14 @@ export default function DashboardSettingsPage() {
               <span className="onboarding-label">Opening line</span>
               <textarea
                 value={greeting}
-                onChange={(e) => setGreeting(e.target.value)}
+                onChange={(e) => {
+                  setGreeting(e.target.value);
+                  setDirty(true);
+                  setSaved(false);
+                }}
                 className="onboarding-textarea"
                 rows={3}
-                placeholder={`Thank you for calling ${account?.business?.name ?? "your shop"}. How can I help you today?`}
+                placeholder={`Thank you for calling ${account.business?.name ?? "your shop"}. How can I help you today?`}
               />
             </label>
             <label className="onboarding-field font-sans mt-4">
@@ -390,12 +560,16 @@ export default function DashboardSettingsPage() {
                 max={50000}
                 step={1}
                 value={avgTicket}
-                onChange={(e) => setAvgTicket(e.target.value)}
+                onChange={(e) => {
+                  setAvgTicket(e.target.value);
+                  setDirty(true);
+                  setSaved(false);
+                }}
                 className="onboarding-input"
                 placeholder="285"
               />
               <span className="onboarding-hint">
-                Estimates pipeline value on Command — not collected revenue.
+                Used to estimate booked value on Command — not money collected.
               </span>
             </label>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -407,7 +581,11 @@ export default function DashboardSettingsPage() {
                   max={500}
                   step={1}
                   value={baselineMissed}
-                  onChange={(e) => setBaselineMissed(e.target.value)}
+                  onChange={(e) => {
+                    setBaselineMissed(e.target.value);
+                    setDirty(true);
+                    setSaved(false);
+                  }}
                   className="onboarding-input"
                   placeholder="12"
                 />
@@ -420,7 +598,11 @@ export default function DashboardSettingsPage() {
                   max={500}
                   step={1}
                   value={baselineJobs}
-                  onChange={(e) => setBaselineJobs(e.target.value)}
+                  onChange={(e) => {
+                    setBaselineJobs(e.target.value);
+                    setDirty(true);
+                    setSaved(false);
+                  }}
                   className="onboarding-input"
                   placeholder="8"
                 />
@@ -434,7 +616,7 @@ export default function DashboardSettingsPage() {
           before we trust the line overnight. It says so itself ("internal
           dogfood checklist"), and it was sitting in every owner's Settings.
         */}
-        {account?.founder ? (
+        {account.founder ? (
           <details
             id="founder-cert"
             className="pro-settings-secondary font-sans"
@@ -465,11 +647,11 @@ export default function DashboardSettingsPage() {
           </details>
         ) : null}
 
-        {account?.founder ? (
+        {account.founder ? (
           <details
             id="manus-post-next"
             className="pro-settings-secondary font-sans"
-            open
+            open={Boolean(manusNext)}
           >
             <summary>Manus post · next</summary>
             <FounderManusNext tone="quiet" next={manusNext} />
@@ -477,23 +659,23 @@ export default function DashboardSettingsPage() {
         ) : null}
 
         {/*
-          Billing's home. It used to sit in the sidebar's account list and
-          again in the profile menu, and in neither place was it near the
-          plan it governs. Settings is the one setup hub, so it lives here.
+          Billing's home is /dashboard/billing. Settings only points there —
+          a second money panel on the setup hub is theater.
         */}
-        <ShellPanel title="Plan & billing" dense>
-          <div className="pro-settings-billing-row">
+        <details className="pro-settings-secondary font-sans">
+          <summary>Plan & billing</summary>
+          <div className="pro-settings-secondary-body">
             <p className="account-settings-hint font-sans">
-              Your plan, payment method and invoices. The plan you are on is
-              named once, on the profile button in the corner.
+              Plan, payment method, payouts, and deposits live on Billing. The
+              plan name also sits on the profile button in the corner.
             </p>
-            <Link href="/dashboard/billing" className="btn btn-secondary text-sm">
+            <Link href="/dashboard/billing" className="btn btn-secondary text-sm mt-4">
               Open billing
             </Link>
           </div>
-        </ShellPanel>
+        </details>
 
-        <details className="pro-settings-secondary font-sans">
+        <details id="shop-data" className="pro-settings-secondary font-sans">
           <summary>Your data</summary>
           <div className="pro-settings-secondary-body">
             <p className="account-settings-hint font-sans">
@@ -513,7 +695,7 @@ export default function DashboardSettingsPage() {
         {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
         {syncWarning ? <ShellAlert tone="error">{syncWarning}</ShellAlert> : null}
         {saved ? (
-          <ShellAlert tone="success">Saved. Your receptionist is updated.</ShellAlert>
+          <ShellAlert tone="success">Saved. Your night line is updated.</ShellAlert>
         ) : null}
         {testResult ? <ShellAlert tone="success">{testResult}</ShellAlert> : null}
 
@@ -523,9 +705,15 @@ export default function DashboardSettingsPage() {
               ? "Saving your changes…"
               : saved
                 ? "All changes saved."
-                : "Changes apply to your live receptionist."}
+                : dirty
+                  ? "Unsaved — applies to your live night line."
+                  : "No changes."}
           </p>
-          <button type="submit" className="btn btn-void" disabled={saving}>
+          <button
+            type="submit"
+            className="btn btn-void"
+            disabled={saving || !dirty}
+          >
             {saving ? "Saving…" : "Save settings"}
           </button>
         </div>

@@ -113,19 +113,17 @@ function BillingSuccessInner() {
 
             <div className="mt-8 tier1-actions">
               <Link
-                href={
-                  state.status === "ok"
-                    ? "/dashboard"
-                    : `/dashboard/onboarding?session_id=${encodeURIComponent(sessionId ?? "")}`
-                }
+                href={`/dashboard/onboarding?session_id=${encodeURIComponent(sessionId ?? "")}`}
                 className="inst-btn inst-btn-primary"
               >
-                {state.status === "ok" ? "Open dashboard" : "Set up your shop"}
-              </Link>
-              <Link href="/dashboard/billing" className="inst-btn inst-btn-ghost">
-                Billing details
+                Set up your shop
               </Link>
             </div>
+            <p className="mt-4 font-sans text-sm text-ash">
+              <Link href="/dashboard/billing" className="underline underline-offset-2">
+                Billing details
+              </Link>
+            </p>
           </div>
         </div>
       </section>

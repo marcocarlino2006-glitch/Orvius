@@ -95,14 +95,13 @@ body {
 }
 
 /*
-  Legacy marketing CSS squares off every button inside .mkt-page with
-  `border-radius: 0.2rem !important`. Pill primitives opt out of that rule
-  explicitly rather than each caller fighting it with its own !important.
+  Legacy marketing CSS used soft pill CTAs. Instrument controls opt into a
+  hard 0.25rem radius explicitly rather than fighting !important cascades.
 */
 .ui-pill,
 .mkt-page .ui-pill,
 .mkt-page button.ui-pill {
-  border-radius: 9999px !important;
+  border-radius: 0.25rem !important;
 }
 
 /*

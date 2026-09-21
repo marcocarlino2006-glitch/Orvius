@@ -6,7 +6,7 @@ const productLinks = [
   { href: "/demo", label: "Live demo" },
   { href: "/signin", label: "Sign in" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/pilot", label: "Design partner" },
+  { href: "/pilot", label: "Call audit" },
 ];
 
 const companyLinks = [

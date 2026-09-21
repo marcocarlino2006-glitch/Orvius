@@ -4,9 +4,8 @@ import test from "node:test";
 
 process.env.STRIPE_PRICE_ID_PRO = "price_activation_pro";
 
-const { resolvePaidCheckoutActivation } = await import(
-  "../src/lib/billing-sync.ts"
-);
+const { resolvePaidCheckoutActivation } =
+  await import("../src/lib/billing-sync.ts");
 
 function subscription(status = "active") {
   return {
@@ -118,4 +117,52 @@ test("owners can repair incomplete qualification and retry automation", () => {
   assert.doesNotMatch(form, /location\.reload/);
   assert.match(detail, /Correct call details/);
   assert.match(detail, /retries an unsent\s+booking deposit/);
+});
+
+test("manual quick-book cannot bypass qualification or fail silently", () => {
+  const jobs = readFileSync(
+    new URL("../src/app/api/jobs/route.ts", import.meta.url),
+    "utf8",
+  );
+  const quickBook = readFileSync(
+    new URL("../src/components/today-priority-leads.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(jobs, /isLeadQualifiedForBooking\(lead\)/);
+  assert.match(jobs, /lead_needs_details/);
+  assert.match(jobs, /status: 422/);
+  assert.match(quickBook, /setError\(/);
+  assert.match(quickBook, /role="alert"/);
+  assert.doesNotMatch(quickBook, /detail page fallback/);
+});
+
+test("a rejected deposit delivery has an executable recovery action", () => {
+  const moneyPanel = readFileSync(
+    new URL("../src/components/job-money-panel.tsx", import.meta.url),
+    "utf8",
+  );
+  const deposits = readFileSync(
+    new URL("../src/app/api/deposits/route.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(moneyPanel, /!deposit\.sentAt && customerPhone/);
+  assert.match(moneyPanel, /Retry deposit text/);
+  assert.match(moneyPanel, /requestDeposit\(\)/);
+  assert.match(moneyPanel, /Copy deposit link/);
+  assert.match(deposits, /createDepositForLead/);
+  assert.match(deposits, /sendDepositLink/);
+  /*
+    Retrying an existing request must not re-derive the amount from current
+    settings: a shop that changed or switched off its default would otherwise
+    be unable to resend a link the customer was already quoted.
+  */
+  assert.match(deposits, /active\?\.amountCents/);
+  /* A retry that reused an existing request must not claim it created one. */
+  assert.match(
+    moneyPanel,
+    /data\.created \? "Link created" : "Same link kept"/,
+  );
+  assert.doesNotMatch(moneyPanel, /copy it below/);
 });

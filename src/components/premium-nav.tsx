@@ -93,7 +93,7 @@ export function PremiumNav() {
             </Link>
             <Link
               href="/pilot"
-              className="mkt-btn mkt-nav-cta"
+              className="ov-btn ov-btn--solid mkt-nav-cta"
               data-i18n="nav.bookdemo"
             >
               Book an audit
@@ -174,7 +174,7 @@ export function PremiumNav() {
               className="mkt-nav-sheet-cta"
               onClick={() => setMenuOpen(false)}
             >
-              Call the live AI
+              Call the live line
             </a>
             <p className="mkt-nav-sheet-meta font-sans">
               <Link href="/legal" onClick={() => setMenuOpen(false)}>

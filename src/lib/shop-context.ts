@@ -4,7 +4,7 @@ import type { ShopMemory } from "@/lib/shop-memory";
 export const DEFAULT_CONTEXT_BUDGET_CHARS = 6_000;
 
 export type ShopContextRecord = {
-  source: "customer" | "job" | "lead" | "call";
+  source: "customer" | "job" | "lead" | "call" | "operate";
   recordId: string;
   href: string;
   observedAt: string;

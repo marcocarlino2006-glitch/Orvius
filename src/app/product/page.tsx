@@ -17,7 +17,7 @@ const capabilities = [
   {
     id: "02",
     title: "One board. One record.",
-    body: "Every call, text, job, confirmation, and recorded outcome stays on one customer record. Book and assign from Attention.",
+    body: "Every call, text, job, confirmation, and recorded outcome stays on one customer record. Book and assign from Command.",
   },
   {
     id: "03",
@@ -65,14 +65,14 @@ export default function ProductPage() {
               See it on a real line.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Call the live AI, or audit what happens to your own unanswered traffic.
+              Call the live line, or audit what happens to your own unanswered traffic.
             </p>
           </div>
           <div className="tier1-actions">
-            <a href="tel:+18446439170" className="inst-btn inst-btn-ghost">
-              Call the live AI
+            <a href="tel:+18446439170" className="ov-btn ov-btn--quiet">
+              Call the live line
             </a>
-            <Link href="/pilot" className="inst-btn inst-btn-primary">
+            <Link href="/pilot" className="ov-btn ov-btn--solid">
               Book a call audit
             </Link>
           </div>

@@ -116,7 +116,7 @@ export function ProEconomicsPanel({
 
       {stale && !proofOnBoard ? (
         <p className="pro-economics-stale font-sans" role="status">
-          This week&apos;s proof is due — copy it so you have an honest stamp for the partner.
+          This week&apos;s results are due — copy them so you have a clean weekly summary on hand.
         </p>
       ) : copiedAt ? (
         <p className="pro-economics-proof-meta font-sans">
@@ -240,7 +240,7 @@ export function ProEconomicsPanel({
           Edit ticket &amp; baseline →
         </Link>
         {copyState === "ok" ? (
-          <span className="pro-economics-status">Copied — paste into notes / Slack</span>
+          <span className="pro-economics-status">Copied — paste into your notes</span>
         ) : null}
         {copyState === "err" ? (
           <span className="pro-economics-status pro-economics-status--err">

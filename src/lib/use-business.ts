@@ -1,89 +1,86 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import {
+  useOptionalRing1,
+  type Ring1Data,
+} from "@/lib/ring1-context";
+import type {
+  BusinessMetrics,
+  BusinessSignals,
+  BusinessSnapshot,
+} from "@/lib/business-snapshot";
 
-export type BusinessMetrics = {
-  callsToday: number;
-  leadsToday: number;
-  newLeads: number;
-  totalCalls: number;
-  totalLeads: number;
-  leadBookingRate: number | null;
-  lastCallAt: string | null;
-  lastCaller: string | null;
-};
+export type {
+  BusinessMetrics,
+  BusinessSignals,
+  BusinessSnapshot,
+} from "@/lib/business-snapshot";
 
-/** Counts the shell shows on the rail so an owner never has to open a screen to look. */
-export type BusinessSignals = {
-  unassignedJobs: number;
-  jobsToday: number;
-  lineVerified: boolean;
-  alertsFailed24h: number;
-  /*
-    Whether the clock is currently outside the shop's own configured hours —
-    decided on the server against hoursJson and the shop's timezone, because a
-    shop that answers until eight should not be told it is after hours at six.
-  */
-  afterHoursNow: boolean;
-};
+function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
+  if (!data?.business?.name) return null;
+  return {
+    name: data.business.name,
+    line: data.business.line ?? null,
+    ownerPhone: data.business.ownerPhone ?? null,
+    metrics: data.metrics,
+    signals: {
+      unassignedJobs: data.dispatchToday?.unassigned ?? 0,
+      jobsToday: data.dispatchToday?.jobCount ?? 0,
+      lineVerified: Boolean(data.health?.lineVerified),
+      alertsFailed24h: data.health?.failedAlerts24h ?? 0,
+      afterHoursNow: Boolean(data.coverage?.afterHoursNow),
+    } satisfies BusinessSignals,
+  };
+}
 
-export type BusinessSnapshot = {
-  name: string;
-  line: string | null;
-  ownerPhone: string | null;
-  metrics: BusinessMetrics;
-  signals: BusinessSignals;
-};
-
-type Ring1Response = {
-  business: {
-    name: string;
-    line: string | null;
-    ownerPhone: string | null;
-  } | null;
-  metrics: BusinessMetrics;
-  dispatchToday?: { jobCount: number; unassigned: number };
-  health?: { lineVerified: boolean; failedAlerts24h: number };
-  coverage?: { afterHoursNow: boolean };
-};
-
-export function useBusiness(refreshMs?: number) {
+/**
+ * Shop snapshot for shell chrome.
+ * Inside the dashboard Ring1Provider — shared pulse.
+ * Outside (admin, domains) — own fetch so OsShell never crashes prerender.
+ */
+export function useBusiness(_refreshMs?: number) {
+  const ring = useOptionalRing1();
   const [business, setBusiness] = useState<BusinessSnapshot | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!ring);
+  const [tick, setTick] = useState(0);
 
-  const refresh = useCallback(async () => {
+  const refreshFallback = useCallback(async () => {
     try {
       const res = await fetch("/api/ring1");
-      if (!res.ok) return;
-      const json = (await res.json()) as Ring1Response;
-      if (json.business) {
-        setBusiness({
-          name: json.business.name,
-          line: json.business.line,
-          ownerPhone: json.business.ownerPhone,
-          metrics: json.metrics,
-          signals: {
-            unassignedJobs: json.dispatchToday?.unassigned ?? 0,
-            jobsToday: json.dispatchToday?.jobCount ?? 0,
-            lineVerified: Boolean(json.health?.lineVerified),
-            alertsFailed24h: json.health?.failedAlerts24h ?? 0,
-            afterHoursNow: Boolean(json.coverage?.afterHoursNow),
-          },
-        });
+      if (!res.ok) {
+        setBusiness(null);
+        return;
       }
+      const json = (await res.json()) as Ring1Data;
+      setBusiness(toBusiness(json));
     } catch {
-      /* keep last good snapshot */
+      setBusiness(null);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    refresh();
-    if (!refreshMs) return;
-    const interval = setInterval(refresh, refreshMs);
-    return () => clearInterval(interval);
-  }, [refresh, refreshMs]);
+    if (ring) return;
+    void refreshFallback();
+  }, [ring, refreshFallback, tick]);
 
-  return { business, loading, refresh };
+  if (ring) {
+    return {
+      business: ring.business,
+      loading: ring.loading,
+      refresh: ring.refresh,
+    };
+  }
+
+  return {
+    business,
+    loading,
+    refresh: async () => {
+      setLoading(true);
+      setTick((n) => n + 1);
+      await refreshFallback();
+    },
+  };
 }

@@ -62,7 +62,7 @@ export function PricingPlanCard({
       className={
         layout === "dashboard"
           ? "btn btn-secondary text-sm"
-          : `inst-btn ${featured || recommended ? "inst-btn-primary" : "inst-btn-ghost"}`
+          : `ov-btn ${featured || recommended ? "ov-btn--solid" : "ov-btn--quiet"}`
       }
     >
       {plan.cta}
@@ -73,8 +73,8 @@ export function PricingPlanCard({
       interval={interval}
       label={
         interval === "year"
-          ? `Subscribe · $${displayPrice}/mo billed annually`
-          : `Subscribe · $${displayPrice}/mo`
+          ? `Pay with card · $${displayPrice}/mo billed annually`
+          : `Pay with card · $${displayPrice}/mo`
       }
       variant={featured || recommended ? "primary" : "secondary"}
       email={email}
@@ -99,7 +99,7 @@ export function PricingPlanCard({
       {recommended ? (
         <p className="tier1-plan-badge type-caption">Recommended</p>
       ) : featured ? (
-        <p className="tier1-plan-badge type-caption">Complete workflow</p>
+        <p className="tier1-plan-badge type-caption">Lead to job</p>
       ) : null}
       <p className="tier1-eyebrow type-eyebrow">{plan.name}</p>
       {isPilot ? (

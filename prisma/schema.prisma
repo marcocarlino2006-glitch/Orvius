@@ -51,6 +51,13 @@ model Business {
   founderCertJson      String?
   /** Owner confirmed missed/busy/after-hours forward to Orvius line. */
   overflowForwardConfirmedAt DateTime?
+  /**
+   * Capture path the owner is running: forward overflow, or publish Orvius
+   * as the main shop number. Survives reload so the confirm stamp matches UI.
+   */
+  captureMode          String?  @default("forward")
+  /** Carrier guide last used when captureMode is forward. */
+  forwardCarrier       String?
   lineVerifiedAt       DateTime?
   /** When set, owner SMS alerts are suppressed until START / cleared. */
   ownerSmsOptOutAt     DateTime?
@@ -232,6 +239,7 @@ model Job {
 
   estimate Estimate?
   deposits Deposit[]
+  invoices Invoice[]
 
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
@@ -300,6 +308,7 @@ model Invoice {
   estimateId  String?   @unique
   estimate    Estimate? @relation(fields: [estimateId], references: [id], onDelete: SetNull)
   jobId       String?
+  job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   amountCents Int
   status      String    @default("draft")
   createdAt   DateTime  @default(now())

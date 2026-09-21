@@ -44,16 +44,16 @@ export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
       <div className="plan-upgrade-gate">
         <div className="plan-upgrade-gate-inner font-sans">
           <p className="plan-upgrade-gate-kicker">{moduleLabel(module)}</p>
-          <h2 className="plan-upgrade-gate-title">Subscribe to continue</h2>
+          <h2 className="plan-upgrade-gate-title">Pay to continue</h2>
           <p className="plan-upgrade-gate-detail">
-            Your design-partner access ended or subscription is inactive. Choose a plan to reopen{" "}
+            Your shop access ended or subscription is inactive. Pay with card to reopen{" "}
             {moduleLabel(module).toLowerCase()} and the rest of your shop.
           </p>
           <div className="plan-upgrade-gate-actions">
             <Link href="/dashboard/billing" className="btn btn-void text-sm">
-              Open billing
+              Pay with card
             </Link>
-            <Link href="/dashboard/pricing" className="btn btn-secondary text-sm">
+            <Link href="/pricing" className="btn btn-secondary text-sm">
               Compare plans
             </Link>
           </div>
@@ -78,7 +78,7 @@ export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
           {moduleLabel(module).toLowerCase()}, jobs, dispatch, and Ask.
         </p>
         <div className="plan-upgrade-gate-actions">
-          <Link href="/dashboard/pricing" className="btn btn-void text-sm">
+          <Link href="/pricing" className="btn btn-void text-sm">
             Compare plans
           </Link>
           <Link href="/dashboard/billing" className="btn btn-secondary text-sm">

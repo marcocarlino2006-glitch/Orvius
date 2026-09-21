@@ -9,7 +9,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "line-vs-pro",
     question: "What's the difference between Line and Pro?",
     answer:
-      "Line is the front door — every call answered, qualified, and alerted. Pro adds the full shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
+      "Line is the front door — after-hours and overflow calls answered, qualified, and alerted on a configured line. Pro adds the shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
   },
   {
     id: "annual",
@@ -39,6 +39,6 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "launch",
     question: "What happens before my line goes live?",
     answer:
-      "We verify your shop name, services, hours, escalation number, and one real test call. Early accounts receive founder-assisted onboarding while these checks are automated. Your selected paid plan begins through Stripe checkout; there is no advertised free-trial period.",
+      "We verify your shop name, services, hours, escalation number, and one real test call. Early accounts get guided setup while these checks are automated. Your selected paid plan begins through Stripe checkout; there is no advertised free-trial period.",
   },
 ] as const;

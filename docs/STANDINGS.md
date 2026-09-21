@@ -30,7 +30,7 @@ $0 ARR            →   First $ → retention → density
 | **G. Legal** | Placeholder language | Counsel formation state | **FOUNDER + counsel** |
 | **H. Proof** | Summit self-reference possible | External named proof | **FOUNDER** |
 | **I. OS monopoly** | Demand capture + taxonomy live in writers | Multi-shop compounding data | Needs paying density |
-| **J. Polish debt** | `globals.css` **~7.45k** (was ~12.7k) | Keep under 8k; drop era stacking; dashboard sheet owns product densify | **B6 closed on line ceiling** |
+| **J. Polish debt** | Night plane densified; Settings blank-save + dirty gate; billing/pay honesty when checkout dark; founder Resend panel on Settings; cookie skip dashboard | Keep era stacking dead; founder live gates | **Founder C–H** |
 
 **Bottom line:** We are a **strong product with multi-b discipline encoded**, standing at roughly **code-ready / cash-zero / distribution-zero**. Multi-b standard requires closing layers C–H in order — not building more UI.
 
@@ -185,21 +185,24 @@ not UI.
 
 **Cockpit:** `/admin/daily` (Master all) · **CLI:** `npm run master:all`
 
-### Founder-critical (blocks multi-b)
-1. Paste Stripe → `npm run stripe:setup` → webhook → **first paid Checkout**
-2. Paste `RESEND_API_KEY` on Vercel
-3. Re-run live cell cert + `wedge:ready` 8/8 on **prod**
-4. Confirm Summit weekly proof still current (or re-stamp)
-5. Replace seed prospects → run `/admin/daily` for real
-6. Counsel: formation state → set `formationStateConfirmed`
-7. Land one **external** named proof
-8. Onboard first shop to **Connect** → take a real card payment to their bank
+### Founder-critical (blocks multi-b) — do in this order
+1. Paste Stripe keys → `npm run stripe:setup` → webhook → **first paid Checkout** ($0 → ARR)
+2. Paste `RESEND_API_KEY` on Vercel (SMS→email failover live)
+3. Re-run live cell cert 5/5 + `wedge:ready` 8/8 on **prod** (historical stamps do not count)
+4. Confirm Summit weekly proof still current (or re-stamp on Command)
+5. Onboard first shop to **Connect** in Billing → payouts → take one real card $ to their bank
+6. Replace seed prospects → run `/admin/daily` for real outreach
+7. Counsel: formation state → set `formationStateConfirmed`
+8. Land one **external** named proof (not Summit self-reference)
 
-### Agent/code (does not print ARR alone)
-9. Ensure CI envs always `npm ci` so trust tests can’t false-fail
-10. Keep `globals.css` under 8k — product densify belongs in `dashboard.css`
-11. Keep beyond/multi-b/bulletproof/master:all honest — never vanity-green
-12. Only after 1–8: deepen money rail ops, then plugs when a paying shop asks
+Only after 1–8: density (10 proving shops), then deepen rings. More Settings UI will not skip this list.
+
+### Agent/code (this PR closes Settings honesty debt)
+9. Settings night capture + cert/Manus honesty + Billing money copy — **shipped on this branch**
+10. Settings load/dirty integrity + billing dead-end honesty + founder Resend paste panel — **shipped**
+11. Keep `beyond:check` / `master:class` / `multi-b:check` green — never vanity-green
+12. Keep `globals.css` under 8k — product densify belongs in `dashboard.css`
+13. Only after founder 1–8: money-rail ops polish when a paying shop asks
 
 ---
 

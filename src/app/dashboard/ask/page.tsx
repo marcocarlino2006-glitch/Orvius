@@ -4,15 +4,9 @@ import { CopilotActions } from "@/components/copilot-actions";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
+import { ASK_SUGGESTIONS } from "@/lib/ask-suggestions";
 import Link from "next/link";
 import { useState } from "react";
-
-const SUGGESTIONS = [
-  "What should I do now?",
-  "How many jobs did we book this week?",
-  "What's unassigned on dispatch?",
-  "Any emergencies in the inbox?",
-];
 
 type Hit = {
   type: string;
@@ -69,8 +63,8 @@ export default function AskPage() {
 
   return (
     <OsShell
-      title="Ops copilot"
-      subtitle="Ask about the shop — then approve actions. Grounded in your calls, jobs, and dispatch."
+      title="Ask"
+      subtitle="Grounded in your calls, jobs, and dispatch — then approve before anything runs."
     >
       <PlanUpgradeGate module="ask">
       <div className="ask-hero pro-panel pro-panel--dense">
@@ -98,7 +92,7 @@ export default function AskPage() {
           </form>
 
           <div className="ask-suggestions" role="list">
-            {SUGGESTIONS.map((item) => (
+            {ASK_SUGGESTIONS.map((item) => (
               <button
                 key={item}
                 type="button"
@@ -107,7 +101,6 @@ export default function AskPage() {
                 onClick={() => void ask(item)}
                 disabled={loading}
               >
-                <span className="ask-rail-kind">Ask</span>
                 <span className="ask-rail-q">{item}</span>
                 <span className="ask-rail-go">Run</span>
               </button>
