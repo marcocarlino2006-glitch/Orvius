@@ -2,6 +2,7 @@
 
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
+import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
@@ -37,6 +38,7 @@ type AccountResponse = {
   wedge: WedgeReadiness | null;
   billing?: {
     configured?: boolean;
+    fullyReady?: boolean;
     entitled?: boolean;
     status?: string;
   };
@@ -375,7 +377,7 @@ export default function DashboardSettingsPage() {
 
   if (loadState !== "ready" || !account) {
     return (
-      <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
+      <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
         <div className="pro-settings-page">
           {loadState === "error" ? (
             <div className="pro-settings-load-error">
@@ -403,8 +405,24 @@ export default function DashboardSettingsPage() {
   }
 
   return (
-    <OsShell title="Settings" subtitle="Capture, alerts, then the rest.">
+    <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
       <div className="pro-settings-page">
+        <SettingsLaunchGuide
+          input={{
+            founder: account.founder,
+            lineVerified: Boolean(account.business?.lineVerifiedAt),
+            overflowConfirmed: overflowForward,
+            ownerPhone,
+            ownerEmail,
+            avgTicketCents: account.business?.avgTicketCents,
+            emailConfigured: account.alerts.emailConfigured,
+            ownerSmsOptedOut: account.alerts.ownerSmsOptedOut,
+            billingConfigured: account.billing?.configured,
+            billingFullyReady: account.billing?.fullyReady,
+            certDone,
+            certTotal: FOUNDER_CERT.length,
+          }}
+        />
         <form className="account-stack pro-settings-form" onSubmit={save}>
         <div id="overflow-forward">
           <ShellPanel title="Call capture" dense>
@@ -657,7 +675,7 @@ export default function DashboardSettingsPage() {
           </div>
         </details>
 
-        <details className="pro-settings-secondary font-sans">
+        <details id="shop-data" className="pro-settings-secondary font-sans">
           <summary>Your data</summary>
           <div className="pro-settings-secondary-body">
             <p className="account-settings-hint font-sans">
