@@ -1,33 +1,84 @@
 import { MktSection } from "@/components/mkt-section";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
+import { summitCaseStudy } from "@/lib/trust";
+
+const transcript = [
+  { who: "Orvius", line: "Thanks for calling Summit HVAC. How can I help?" },
+  {
+    who: "Caller",
+    line: "My AC stopped cooling. Can someone come today?",
+    muted: true,
+  },
+  {
+    who: "Orvius",
+    line: "I can help. What's the address and a callback number?",
+  },
+  { who: "Caller", line: "1842 Oak Street. 512-555-0123.", muted: true },
+  {
+    who: "Orvius",
+    line: "Got it. I'll mark this same-day and check the next open window.",
+  },
+  {
+    who: "Orvius",
+    line: "Your proposed window will arrive by text for confirmation. The owner has your request.",
+  },
+] as const;
 
 /**
- * Close the company page — one path back to the live line.
- * No second transcript. The hero console already carries the proof.
+ * One evidence object — live line + transcript.
+ * No waveform / timeline / status-pill theater.
  */
 export function HomeCallStory() {
   return (
     <MktSection
       tone="inset"
       aria-labelledby="home-proof-heading"
-      className="mkt-proof-section mkt-proof-section--company mkt-proof-section--quiet mkt-proof-section--close"
+      className="mkt-proof-section mkt-proof-section--company"
     >
-      <div className="mkt-close-block">
-        <p className="mkt-proof-kicker font-sans">Live line</p>
-        <h2 id="home-proof-heading" className="mkt-proof-title">
-          Call it. Hear the night shift.
-        </h2>
-        <p className="mkt-proof-lead font-sans">
-          Same intake the console shows — propose a window, alert the owner,
-          confirm by text.
-        </p>
-        <a
-          href={demoLineHref()}
-          className="mkt-close-line font-sans"
-          aria-label={`Call the Orvius night shift line at ${DEMO_LINE_DISPLAY}`}
+      <div className="mkt-proof-layout mkt-proof-layout--company">
+        <div className="mkt-proof-copy">
+          <p className="mkt-proof-kicker font-sans">On the wire</p>
+          <h2 id="home-proof-heading" className="mkt-proof-title">
+            Call the product. Hear the night shift.
+          </h2>
+          <p className="mkt-proof-lead font-sans">
+            Demo shop on the live line — dial it and hear the same intake a
+            shop receives.
+          </p>
+          <div className="mkt-proof-actions font-sans">
+            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
+              Call {DEMO_LINE_DISPLAY}
+            </a>
+          </div>
+          <p className="mkt-proof-note font-sans">
+            {summitCaseStudy.attribution}
+          </p>
+        </div>
+
+        <div
+          className="mkt-call-panel mkt-call-panel--company font-sans"
+          role="log"
+          aria-label="Representative call transcript"
         >
-          {DEMO_LINE_DISPLAY}
-        </a>
+          <p className="mkt-call-panel-kicker">
+            Representative call · after hours
+          </p>
+          <p className="mkt-call-panel-title">Emergency AC · Summit HVAC</p>
+
+          <div className="mkt-transcript">
+            {transcript.map((row, index) => (
+              <p
+                key={index}
+                className={`mkt-transcript-line ${
+                  "muted" in row && row.muted ? "mkt-transcript-line-muted" : ""
+                }`}
+              >
+                <span>{row.who}</span>
+                {row.line}
+              </p>
+            ))}
+          </div>
+        </div>
       </div>
     </MktSection>
   );

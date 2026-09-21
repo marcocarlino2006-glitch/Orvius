@@ -91,13 +91,13 @@ export function PremiumNav() {
             <Link href="/signin" className="mkt-nav-login" data-i18n="nav.signin">
               Sign in
             </Link>
-            <a
-              href="tel:+18446439170"
+            <Link
+              href="/pilot"
               className="ov-btn ov-btn--solid mkt-nav-cta"
-              data-i18n="nav.proveit"
+              data-i18n="nav.bookdemo"
             >
-              Call the live line
-            </a>
+              Book an audit
+            </Link>
             <button
               type="button"
               className="mkt-nav-menu-toggle"
@@ -163,6 +163,9 @@ export function PremiumNav() {
             <Link href="/signin" onClick={() => setMenuOpen(false)}>
               Sign in
             </Link>
+            <Link href="/pilot" onClick={() => setMenuOpen(false)}>
+              Book a call audit
+            </Link>
           </nav>
 
           <div className="mkt-nav-sheet-foot">
@@ -181,6 +184,8 @@ export function PremiumNav() {
               <Link href="/security" onClick={() => setMenuOpen(false)}>
                 Security
               </Link>
+              <span aria-hidden>·</span>
+              <a href="mailto:hello@orvius.im">Contact</a>
             </p>
           </div>
         </div>

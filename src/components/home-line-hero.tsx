@@ -1,5 +1,4 @@
 import { HomeLiveCall } from "@/components/home-live-call";
-import { OrviusLogo } from "@/components/orvius-logo";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /*
@@ -36,8 +35,8 @@ function LiveLineDigits({ display }: { display: string }) {
 }
 
 /**
- * Format lock: OrviusLogo owns brand, claim beside the live product.
- * Side-by-side console — build off this, don’t reinvent the composition.
+ * The product carries the hero. One claim on the left, an after-hours call
+ * running itself on the right — the thing a shop owner is actually buying.
  */
 export function HomeLineHero() {
   return (
@@ -50,18 +49,31 @@ export function HomeLineHero() {
       </div>
       <div className="ov-hero-inner">
         <div className="ov-hero-copy">
-          <div className="ov-hero-brand" aria-label="Orvius">
-            <OrviusLogo variant="void" size="xl" className="ov-hero-brand-logo" />
-          </div>
+          <p className="ov-hero-brand" aria-label="Orvius">
+            Orvius
+          </p>
 
+          {/* Copy is owned by the i18n dictionary; keep these in sync with it so
+              the translator never swaps the text out from under the render. */}
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
             After-hours calls become qualified jobs.
           </h1>
 
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            Answers the night shift, proposes a window, texts the owner — no
-            invented prices or arrival times.
+            Orvius answers after-hours and overflow calls, captures the request,
+            proposes an open service window, and alerts the owner — without
+            inventing prices or arrival times.
           </p>
+
+          <div className="ov-hero-actions">
+            <a
+              href={demoLineHref()}
+              className="ov-btn ov-btn--solid"
+              data-i18n="hero.cta"
+            >
+              Call the live line
+            </a>
+          </div>
 
           <a
             href={demoLineHref()}
@@ -70,7 +82,7 @@ export function HomeLineHero() {
           >
             <span className="ov-hero-liveline-label">
               <span className="ov-hero-pulse" aria-hidden />
-              <span data-i18n="hero.nightshift">Call the live line</span>
+              <span data-i18n="hero.nightshift">Orvius answers the night shift</span>
             </span>
             <LiveLineDigits display={DEMO_LINE_DISPLAY} />
           </a>
