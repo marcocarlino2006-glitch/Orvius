@@ -58,7 +58,7 @@ const COVERED: ShopOperateNext = {
   id: "covered",
   title: "You’re covered",
   detail:
-    "Nothing needs you right now. The line is watching — Ask if you’re unsure what to do next.",
+    "Nothing needs you. The line is watching. Ask Orvius if you’re unsure.",
   href: "/dashboard/ask",
   cta: "Ask Orvius",
   tone: "ritual",

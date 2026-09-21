@@ -320,9 +320,6 @@ export function AttentionQueue({
           {stake ? <strong>{stake} estimated</strong> : null}
         </div>
       </header>
-      <p className="attention-queue-guidance font-sans">
-        Ranked for a shop owner in the middle of a shift — urgency first.
-      </p>
 
       <ul className="attention-queue-list">
         {visibleItems.map((item) => {
@@ -378,14 +375,12 @@ export function AttentionQueue({
                 </div>
                 <div className="attention-item-actions">
                   {/*
-                    The escape hatch leads, so the recommended action always
-                    lands on the trailing edge of the row. Rows whose only
-                    action is to open the record get one button, not two links
-                    to the same place.
+                    One primary action. Details only when there is no one-tap
+                    move — never Details + Call competing on the same row.
                   */}
-                  {hasPrimary ? (
-                    <Link href={item.href} className="attention-item-btn attention-item-btn-quiet">
-                      Details
+                  {!hasPrimary && item.href ? (
+                    <Link href={item.href} className="attention-item-btn attention-item-btn-primary">
+                      Open
                     </Link>
                   ) : null}
                   {showCall ? (

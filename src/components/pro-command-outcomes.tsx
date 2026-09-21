@@ -21,6 +21,9 @@ export function ProCommandOutcomes({
   attentionCount,
   loading = false,
 }: ProCommandOutcomesProps) {
+  // Board owns action when work is waiting — outcomes are calm retrospect only.
+  if (!loading && attentionCount > 0) return null;
+
   const capturedJobs = outcomes?.capturedDemandJobs ?? 0;
   const capturedValue = formatCents(
     outcomes?.capturedDemandEstimatedValueCents,
@@ -34,7 +37,7 @@ export function ProCommandOutcomes({
 
   return (
     <section
-      className={`pro-command-outcomes${attentionCount > 0 ? " pro-command-outcomes--needs-you" : ""}`}
+      className="pro-command-outcomes"
       aria-label="Work completed by Orvius"
     >
       <header className="pro-command-outcomes-head font-sans">
@@ -78,13 +81,7 @@ export function ProCommandOutcomes({
 
       {!loading ? (
         <footer className="pro-command-outcomes-foot font-sans">
-          <p>
-            {attentionCount > 0
-              ? `${attentionCount} ${
-                  attentionCount === 1 ? "item needs" : "items need"
-                } you on the board`
-              : "Board is clear — nothing waiting"}
-          </p>
+          <p>Board is clear — nothing waiting</p>
         </footer>
       ) : null}
     </section>

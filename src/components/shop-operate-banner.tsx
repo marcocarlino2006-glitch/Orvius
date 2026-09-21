@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import {
+  FIRST_NIGHT_PARAM,
+  FIRST_NIGHT_STORAGE_KEY,
+} from "@/components/first-night-handoff";
 import {
   getOwnerSetupStatus,
   ownerSetupHref,
@@ -30,16 +35,28 @@ type AccountPayload = {
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Operate O1 for owners — the next shop action sits above Command.
- * Rituals that can finish in one tap (proof, test alert) run in place.
- * Ring1 pulse is shared with Command — no second fetch.
+ * Operate O1 — the single next shop action above Command.
+ * Yields while FirstNightHandoff is open so two “next” surfaces never stack.
  */
 export function ShopOperateBanner() {
+  const searchParams = useSearchParams();
   const { data: ring, refresh: refreshRing } = useRing1();
   const [next, setNext] = useState<ShopOperateNext | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [handoffOpen, setHandoffOpen] = useState(false);
+
+  useEffect(() => {
+    const fromQuery = searchParams.get(FIRST_NIGHT_PARAM) === "1";
+    let pending = false;
+    try {
+      pending = sessionStorage.getItem(FIRST_NIGHT_STORAGE_KEY) === "1";
+    } catch {
+      /* private mode */
+    }
+    setHandoffOpen(fromQuery || pending);
+  }, [searchParams]);
 
   const refresh = useCallback(async () => {
     const accountRes = await fetch("/api/account");
@@ -138,9 +155,11 @@ export function ShopOperateBanner() {
     }
   }
 
+  if (handoffOpen) return null;
   if (!loaded || !next) return null;
 
   const inline = next.id === "weekly-proof" || next.id === "alerts";
+  const covered = next.id === "covered";
 
   return (
     <aside
@@ -149,12 +168,12 @@ export function ShopOperateBanner() {
       aria-label="Next shop action"
     >
       <div className="shop-operate-banner-copy">
-        <p className="shop-operate-banner-kicker">Next on the shop</p>
+        <p className="shop-operate-banner-kicker">Next</p>
         <p className="shop-operate-banner-title">{next.title}</p>
         <p className="shop-operate-banner-detail">{next.detail}</p>
         {note ? <p className="shop-operate-banner-note">{note}</p> : null}
       </div>
-      {inline ? (
+      {covered ? null : inline ? (
         <button
           type="button"
           className="btn btn-void text-sm"

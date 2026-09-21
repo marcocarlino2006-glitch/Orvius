@@ -22,7 +22,7 @@ type CaptureSetupPanelProps = {
   }) => Promise<void> | void;
 };
 
-/** Owner capture setup: forward vs publish, carrier steps, text-me, confirm. */
+/** Owner capture recovery — one primary by state, helpers under More. */
 export function CaptureSetupPanel({
   line,
   overflowConfirmed,
@@ -72,10 +72,6 @@ export function CaptureSetupPanel({
     if (next === mode) return;
     setMode(next);
     setError(null);
-    /*
-      Confirm stamps one capture path. Switching paths without clearing the
-      stamp would leave the checkbox describing a ritual the shop did not do.
-    */
     if (overflowConfirmed) {
       void onConfirmOverflow(false);
     }
@@ -129,8 +125,8 @@ export function CaptureSetupPanel({
   return (
     <div className="capture-setup font-sans">
       <p className="account-settings-hint">
-        Orvius answers this number. Catch missed and after-hours by forwarding —
-        or publish it as your main shop line.
+        Orvius answers this number. Forward missed calls — or publish it as your
+        main shop line.
       </p>
 
       <p className="account-settings-value mt-3">
@@ -147,7 +143,7 @@ export function CaptureSetupPanel({
           onClick={() => chooseMode("forward")}
         >
           <strong>Forward my public number</strong>
-          <span>Keep Google / trucks. Missed &amp; after-hours → Orvius.</span>
+          <span>Missed &amp; after-hours → Orvius.</span>
         </button>
         <button
           type="button"
@@ -155,7 +151,7 @@ export function CaptureSetupPanel({
           onClick={() => chooseMode("publish")}
         >
           <strong>Make Orvius my main number</strong>
-          <span>Put this number on Google, trucks, and ads.</span>
+          <span>Google, trucks, and ads use this line.</span>
         </button>
       </div>
 
@@ -194,42 +190,72 @@ export function CaptureSetupPanel({
         </ol>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="btn btn-secondary text-sm"
-          disabled={!line}
-          onClick={() => void copyLine()}
-        >
-          Copy forward-to number
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost text-sm"
-          disabled={!line || texting}
-          onClick={() => void textSteps()}
-        >
-          {texting ? "Texting…" : "Text me the steps"}
-        </button>
-        {line ? (
-          <a
-            href={telHref(line)}
-            className={`btn text-sm ${lineVerified ? "btn-ghost" : "btn-void"}`}
-          >
-            {lineVerified ? "Call again" : "Call to prove it"}
+      <div className="mt-4">
+        {!lineVerified && line ? (
+          <a href={telHref(line)} className="btn btn-void text-sm">
+            Call to prove it
           </a>
+        ) : canConfirm && !overflowConfirmed ? (
+          <button
+            type="button"
+            className="btn btn-void text-sm"
+            disabled={saving}
+            onClick={() => void onConfirmOverflow(true)}
+          >
+            {saving ? "Saving…" : "Confirm capture"}
+          </button>
+        ) : overflowConfirmed ? (
+          <p className="text-sm text-live" role="status">
+            Capture confirmed{lineVerified ? " · line verified" : ""}.
+          </p>
         ) : null}
-        <a href="/pilot/forward" className="btn btn-ghost text-sm">
-          One-pager
-        </a>
       </div>
 
-      {!lineVerified && line ? (
-        <p className="mt-3 text-sm text-ash" role="status">
-          Call your Orvius line once so we know it answers — then finish carrier
-          steps and confirm below.
-        </p>
-      ) : null}
+      <details className="capture-setup-more mt-4 font-sans">
+        <summary>More</summary>
+        <div className="capture-setup-more-body mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn btn-secondary text-sm"
+            disabled={!line}
+            onClick={() => void copyLine()}
+          >
+            Copy number
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost text-sm"
+            disabled={!line || texting}
+            onClick={() => void textSteps()}
+          >
+            {texting ? "Texting…" : "Text me the steps"}
+          </button>
+          {line && lineVerified ? (
+            <a href={telHref(line)} className="btn btn-ghost text-sm">
+              Call again
+            </a>
+          ) : null}
+          <a href="/pilot/forward" className="btn btn-ghost text-sm">
+            One-pager
+          </a>
+        </div>
+        {canConfirm ? (
+          <label className="mt-4 flex items-start gap-3 text-sm text-void">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={overflowConfirmed}
+              disabled={saving}
+              onChange={(e) => void onConfirmOverflow(e.target.checked)}
+            />
+            <span>
+              {mode === "publish"
+                ? "Orvius is my published shop number."
+                : "I set missed / busy / after-hours forward to Orvius."}
+            </span>
+          </label>
+        ) : null}
+      </details>
 
       {note ? (
         <p className="mt-3 text-sm text-ash" role="status">
@@ -241,25 +267,6 @@ export function CaptureSetupPanel({
           {error}
         </p>
       ) : null}
-
-      <label className="mt-4 flex items-start gap-3 text-sm text-void">
-        <input
-          type="checkbox"
-          className="mt-1"
-          checked={overflowConfirmed}
-          disabled={saving || !canConfirm}
-          onChange={(e) => void onConfirmOverflow(e.target.checked)}
-        />
-        <span>
-          {mode === "publish"
-            ? "Orvius is my published shop number on Google / trucks / ads."
-            : "I set missed / busy / after-hours forward to Orvius."}
-          {lineVerified ? " · Line verified with a real call." : ""}
-          {!lineVerified
-            ? " · Locked until you prove the line with one call."
-            : ""}
-        </span>
-      </label>
     </div>
   );
 }

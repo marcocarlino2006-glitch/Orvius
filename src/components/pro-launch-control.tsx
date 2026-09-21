@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { company } from "@/lib/company";
-import { buildPipelineProof } from "@/lib/pipeline-proof";
 import type { CoverageState } from "@/lib/coverage-state";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
@@ -21,10 +20,14 @@ type ProLaunchControlProps = {
   outcomes?: ShopOutcomes | null;
 };
 
+/**
+ * Quiet shop pulse. Banner above owns the red gate — this rail never coaches
+ * the owner to look elsewhere, never scoreboards the loop.
+ */
 export function ProLaunchControl({
-  wedge,
-  events,
-  moneyEnabled,
+  wedge: _wedge,
+  events: _events,
+  moneyEnabled: _moneyEnabled,
   checkoutReady,
   billingStatus,
   referenceImplementation = false,
@@ -32,15 +35,11 @@ export function ProLaunchControl({
   health,
   outcomes,
 }: ProLaunchControlProps) {
-  const proof = buildPipelineProof(events, moneyEnabled);
-  const proven = proof.filter((stage) => stage.state === "proven").length;
-  const setupDone = wedge?.score ?? 0;
-  const setupTotal = wedge?.total ?? 0;
   const failedAlerts = health?.failedAlerts24h ?? 0;
   const stuckAlerts = health?.stuckPendingAlerts ?? 0;
   const atRisk =
     health?.status === "critical" || failedAlerts > 0 || stuckAlerts > 0;
-  const setupReady = wedge?.ready ?? false;
+  const setupReady = _wedge?.ready ?? false;
   const status = atRisk ? "critical" : setupReady ? "healthy" : "attention";
   const statusLabel = atRisk
     ? "Coverage risk"
@@ -56,8 +55,6 @@ export function ProLaunchControl({
       billing === "canceled" ||
       billing === "pilot" ||
       billing === "none");
-  // Banner above owns the red gate and setup next — rail never competes.
-  // Pay is the only rail CTA (card not on file).
   const showPayAction = needsPay && !atRisk;
   const showPrimaryAction = false;
   const payLabel =
@@ -82,12 +79,12 @@ export function ProLaunchControl({
           : showPayAction
             ? billing === "past_due"
               ? "Payment failed — fix the card so the line stays live."
-              : "Pay with card when you’re ready — one tap on Billing opens Stripe Checkout."
+              : "Card not on file yet."
             : coverage?.afterHoursNow
-              ? "After hours — the line is watching for you."
+              ? "After hours — the line is watching."
               : setupReady
                 ? "Front door is covered. The banner above is your next move."
-                : "The banner above is your next move — finish setup there."}
+                : "The banner above is your next move."}
       </p>
 
       <dl className="pro-control-pulse">
@@ -105,52 +102,6 @@ export function ProLaunchControl({
         </div>
       </dl>
 
-      <ul className="pro-rail-rows">
-        <li>
-          <span
-            className={`pro-rail-pip ${
-              failedAlerts || stuckAlerts
-                ? "pro-rail-pip-warn"
-                : "pro-rail-pip-ok"
-            }`}
-            aria-hidden
-          />
-          <span className="pro-rail-row-label font-sans">Owner alerts</span>
-          <span className="pro-rail-row-value font-sans">
-            {failedAlerts
-              ? `${failedAlerts} failed`
-              : stuckAlerts
-                ? `${stuckAlerts} stuck`
-                : "Delivering"}
-          </span>
-        </li>
-        <li>
-          <span
-            className={`pro-rail-pip ${
-              setupReady ? "pro-rail-pip-ok" : "pro-rail-pip-warn"
-            }`}
-            aria-hidden
-          />
-          <span className="pro-rail-row-label font-sans">Line proof</span>
-          <span className="pro-rail-row-value font-sans">
-            {wedge ? `${setupDone}/${setupTotal}` : "—"}
-          </span>
-        </li>
-        <li>
-          <span
-            className={`pro-rail-pip ${
-              proven > 0 ? "pro-rail-pip-ok" : "pro-rail-pip-warn"
-            }`}
-            aria-hidden
-          />
-          <span className="pro-rail-row-label font-sans">Tonight&apos;s loop</span>
-          <span className="pro-rail-row-value font-sans">
-            {proven}/5 proven
-          </span>
-        </li>
-      </ul>
-
-      {/* Banner above owns setup; rail only shows Pay when unpaid. */}
       {showPayAction ? (
         <Link href="/dashboard/billing" className="btn btn-void pro-control-action">
           {payLabel}
