@@ -78,15 +78,17 @@ results.push(
     : fail(`Command shows ${economicsSections} economics sections — the owner reads it twice`),
 );
 
+const workMode = /workMode/.test(commandSrc);
 const outcomeLead = commandSrc.indexOf("<ProCommandOutcomes");
 const shiftTimeline = commandSrc.indexOf("<ProShiftTimeline");
 const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
 results.push(
-  outcomeLead >= 0 &&
-    exceptionBoard > outcomeLead &&
-    shiftTimeline > exceptionBoard
-    ? pass("Command moves from measured outcomes to exceptions to audit trail")
-    : fail("Command must show outcomes, then exceptions, then shift evidence"),
+  workMode &&
+    outcomeLead >= 0 &&
+    exceptionBoard >= 0 &&
+    shiftTimeline > outcomeLead
+    ? pass("Command workMode: board when busy, outcomes then trail when calm")
+    : fail("Command must use workMode — board vs outcomes+trail, never both stacks"),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");

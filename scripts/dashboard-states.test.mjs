@@ -30,11 +30,11 @@ test("Command exposes failed refreshes and a real retry action", () => {
 
 test("Command keeps one flagship hierarchy and one control rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
-  const outcomes = command.indexOf("<ProCommandOutcomes");
-  const attention = command.indexOf("<AttentionQueue");
-  const timeline = command.indexOf("<ProShiftTimeline");
 
-  assert.ok(outcomes >= 0 && attention > outcomes && timeline > attention);
+  // Work mode: board only. Calm mode: outcomes + trail. Never both stacks.
+  assert.match(command, /workMode/);
+  assert.match(command, /<AttentionQueue/);
+  assert.match(command, /<ProCommandOutcomes/);
   assert.equal((command.match(/<ProLaunchControl/g) ?? []).length, 1);
   assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
   assert.match(command, /<ApproveQueue onChange=\{/);

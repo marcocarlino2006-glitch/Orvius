@@ -81,7 +81,7 @@ export function ProCommandOutcomes({
 
       {!loading ? (
         <footer className="pro-command-outcomes-foot font-sans">
-          <p>Board is clear — nothing waiting</p>
+          <p>Line watched the window above.</p>
         </footer>
       ) : null}
     </section>

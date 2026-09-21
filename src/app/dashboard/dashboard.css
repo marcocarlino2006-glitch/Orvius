@@ -4350,6 +4350,30 @@ a.pro-shift-event:hover .pro-shift-event-title {
   border-bottom: 1px solid #2e2c26;
 }
 
+.pro-lead--floor {
+  align-items: flex-start;
+}
+
+.pro-lead--floor .pro-lead-main {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
+}
+
+.pro-lead--floor .pro-lead-figure {
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  line-height: 1;
+  opacity: 0.92;
+}
+
+.pro-lead--floor .pro-lead-caption {
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
 .pro-lead-main {
   display: flex;
   align-items: baseline;

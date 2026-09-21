@@ -377,7 +377,7 @@ export default function DashboardSettingsPage() {
 
   if (loadState !== "ready" || !account) {
     return (
-      <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+      <OsShell title="Settings" subtitle="One next move — then back to Command.">
         <div className="pro-settings-page">
           {loadState === "error" ? (
             <div className="pro-settings-load-error">
@@ -405,7 +405,7 @@ export default function DashboardSettingsPage() {
   }
 
   return (
-    <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+    <OsShell title="Settings" subtitle="One next move — then back to Command.">
       <div className="pro-settings-page">
         <SettingsLaunchGuide
           input={{

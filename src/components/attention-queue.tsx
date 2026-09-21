@@ -273,15 +273,8 @@ export function AttentionQueue({
   }
 
   if (!items.length) {
-    return (
-      <section className="attention-queue attention-queue-clear" aria-label="Needs attention">
-        <p className="attention-queue-kicker font-sans">On the board</p>
-        <h2 className="attention-queue-title font-sans">Board is clear</h2>
-        <p className="attention-queue-empty font-sans">
-          No urgent leads, open jobs, or overdue follow-ups right now.
-        </p>
-      </section>
-    );
+    // Board is clear — banner owns “covered”; don’t stamp a second empty instrument.
+    return null;
   }
 
   const criticalCount = items.filter((i) => i.impact === "critical").length;

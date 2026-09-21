@@ -293,22 +293,27 @@ try {
       "Operate owner language",
       "Command outcomes still uses exception jargon for owners",
     );
-  } else if (/needs you on the board|Board is clear/.test(outcomes)) {
+  } else if (
+    /needs you on the board|Board is clear|Line watched the window/.test(outcomes)
+  ) {
     pass("Operate owner language", "Command pulse speaks owner language");
   } else {
     fail("Operate owner language", "Outcomes footer must use board / needs-you language");
   }
   const dash = read("src/app/dashboard/page.tsx");
   if (
+    /FirstNightHandoff/.test(dash) &&
     dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
-    dash.indexOf("<FounderNextGate") < dash.indexOf("<ShopOperateBanner") &&
-    /FirstNightHandoff/.test(dash)
+    !/<FounderNextGate/.test(dash)
   ) {
-    pass("Operate ritual order", "First-night → next-gate → shop operate → Command");
+    pass(
+      "Operate ritual order",
+      "First-night → shop operate → Command (founder gates stay on /admin)",
+    );
   } else {
     fail(
       "Operate ritual order",
-      "Dashboard must order FirstNightHandoff → FounderNextGate → ShopOperateBanner → Command",
+      "Dashboard must order FirstNightHandoff → ShopOperateBanner → Command with no FounderNextGate",
     );
   }
   const guard = read("src/components/onboarding-guard.tsx");

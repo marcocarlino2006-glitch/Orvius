@@ -270,7 +270,6 @@ export default function DispatchPage() {
   return (
     <OsShell
       title="Dispatch"
-      subtitle="Every job has an owner, a live status, and a next move."
       actions={
         <Link href="/dashboard/jobs" className="btn btn-void text-sm">
           All jobs
