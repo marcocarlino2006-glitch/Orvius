@@ -2541,6 +2541,10 @@ body {
     gap: 44px;
   }
 
+  .ov-public .ov-hero-inner--cursor {
+    gap: 1.75rem;
+  }
+
   .ov-public .ov-hero-sky-grid {
     opacity: 0.08;
   }
@@ -2549,11 +2553,24 @@ body {
 @media (max-width: 720px) {
   .ov-public .ov-hero {
     min-height: 0;
-    padding: 96px 20px 68px;
+    padding: 96px 20px 52px;
+  }
+
+  .ov-public .ov-hero--cursor {
+    min-height: 0;
+    padding: 88px 20px 48px;
   }
 
   .ov-public .ov-hero-title {
-    font-size: clamp(2.35rem, 11vw, 2.9rem);
+    font-size: clamp(2.1rem, 9.5vw, 2.75rem);
+  }
+
+  .ov-public .ov-hero-stage--canvas {
+    min-height: 320px;
+  }
+
+  .ov-public .ov-hero-stage--canvas .ov-console-frame {
+    min-height: 300px;
   }
 
   .ov-public .ov-console-body {
@@ -2584,29 +2601,76 @@ body {
   }
 }
 
-/* ── Look polish: Cursor composition, claim-first, product stage heavy ── */
+/* ── Cursor multi-b standard: product is the canvas ── */
+
+.ov-public .ov-hero--cursor {
+  min-height: min(96vh, 980px);
+  align-items: stretch;
+  padding: 96px 5vw 56px;
+}
+
+.ov-public .ov-hero-inner--cursor {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: clamp(1.75rem, 3.5vw, 2.5rem);
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  grid-template-columns: none;
+  align-items: stretch;
+}
+
+.ov-public .ov-hero-copy--over {
+  max-width: 34rem;
+  position: relative;
+  z-index: 2;
+}
+
+.ov-public .ov-hero-stage--canvas {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: min(52vh, 520px);
+}
+
+.ov-public .ov-hero-stage--canvas .ov-console,
+.ov-public .ov-hero-stage--canvas .ov-console--lean {
+  max-width: none;
+  height: 100%;
+}
+
+.ov-public .ov-hero-stage--canvas .ov-console-frame {
+  min-height: min(48vh, 480px);
+  border-radius: 0.5rem;
+}
+
+.ov-public .ov-hero-stage--canvas .ov-console-body--wire,
+.ov-public .ov-hero-stage--canvas .ov-console-wire {
+  max-height: none;
+  min-height: min(34vh, 340px);
+}
 
 .ov-public .ov-hero-brand {
-  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
-  letter-spacing: 0.2em;
-  font-weight: 700;
-  margin-bottom: 1.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  font-weight: 600;
+  margin-bottom: 1.1rem;
   text-transform: uppercase;
+  opacity: 0.72;
 }
 
 .ov-public .ov-hero-title {
-  font-size: clamp(2.45rem, 4.4vw, 3.65rem);
+  font-size: clamp(2.35rem, 4.6vw, 3.55rem);
   font-weight: 600;
-  letter-spacing: -0.03em;
-  max-width: 13ch;
+  letter-spacing: -0.035em;
+  max-width: 14ch;
   line-height: 1.02;
 }
 
 .ov-public .ov-hero-lead {
-  margin-top: 1.15rem;
+  margin-top: 1rem;
   font-size: 1.05rem;
   max-width: 36ch;
-  opacity: 0.88;
+  opacity: 0.82;
   line-height: 1.55;
 }
 
@@ -2615,7 +2679,53 @@ body {
 }
 
 .ov-public .ov-hero-liveline {
-  margin-top: 1.85rem;
+  margin-top: 1.5rem;
+}
+
+.ov-public .mkt-cursor-feature {
+  max-width: 40rem;
+  margin-inline: auto;
+  text-align: left;
+}
+
+.ov-public .mkt-cursor-feature-title {
+  margin: 0;
+  font-size: clamp(1.65rem, 3vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.15;
+  max-width: 16ch;
+}
+
+.ov-public .mkt-cursor-feature-lead {
+  margin: 1rem 0 0;
+  font-size: 1.02rem;
+  max-width: 42ch;
+  opacity: 0.82;
+  line-height: 1.55;
+}
+
+.ov-public .mkt-cursor-feature-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1.35rem;
+  font-family: var(--ov-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  padding-bottom: 0.12rem;
+}
+
+.ov-public .mkt-cursor-feature-link:hover {
+  border-bottom-color: currentColor;
+}
+
+.ov-public .mkt-proof-section--cursor {
+  padding-block: clamp(4rem, 8vw, 6rem);
 }
 
 .ov-public .mkt-manifesto--rules {

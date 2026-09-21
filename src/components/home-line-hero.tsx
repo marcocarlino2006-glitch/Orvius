@@ -35,20 +35,23 @@ function LiveLineDigits({ display }: { display: string }) {
 }
 
 /**
- * First viewport: brand → claim → liveline CTA → night call artifact.
- * One primary action (the number). No second solid button competing.
+ * Cursor multi-b standard: the product is the canvas.
+ * Claim + live line sit over a dominant console — not a side SaaS column.
  */
 export function HomeLineHero() {
   return (
-    <section className="ov-hero ov-hero--atmosphere" aria-labelledby="home-hero-heading">
+    <section
+      className="ov-hero ov-hero--atmosphere ov-hero--cursor"
+      aria-labelledby="home-hero-heading"
+    >
       <div className="ov-hero-sky" aria-hidden>
         <span className="ov-hero-sky-bloom" />
         <span className="ov-hero-sky-bloom-bay" />
         <span className="ov-hero-sky-grid" />
         <span className="ov-hero-sky-horizon" />
       </div>
-      <div className="ov-hero-inner">
-        <div className="ov-hero-copy">
+      <div className="ov-hero-inner ov-hero-inner--cursor">
+        <div className="ov-hero-copy ov-hero-copy--over">
           <p className="ov-hero-brand" aria-label="Orvius">
             Orvius
           </p>
@@ -75,7 +78,7 @@ export function HomeLineHero() {
           </a>
         </div>
 
-        <div className="ov-hero-stage">
+        <div className="ov-hero-stage ov-hero-stage--canvas">
           <HomeLiveCall />
         </div>
       </div>
