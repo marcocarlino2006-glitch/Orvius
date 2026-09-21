@@ -53,7 +53,10 @@ test("Dashboard shares one Ring1 pulse across shell and Command", () => {
   const banner = read("src/components/shop-operate-banner.tsx");
   assert.match(layout, /Ring1Provider/);
   assert.match(ctx, /Ring1Provider/);
-  assert.match(business, /useRing1/);
+  assert.match(ctx, /useOptionalRing1/);
+  // Shell chrome prefers the provider pulse; standalone fetch is only the
+  // admin/domains fallback when no Ring1Provider wraps OsShell.
+  assert.match(business, /useOptionalRing1/);
   assert.match(banner, /useRing1/);
   assert.doesNotMatch(banner, /fetch\("\/api\/ring1"\)/);
 });
