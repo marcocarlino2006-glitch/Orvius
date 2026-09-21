@@ -1792,9 +1792,8 @@ body {
   width: min(100%, 1240px);
   margin: 0 auto;
   display: grid;
-  /* Product stage takes the Cursor share of the plane. */
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-  gap: clamp(36px, 4.5vw, 64px);
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  gap: clamp(40px, 5vw, 72px);
   align-items: center;
 }
 
@@ -2541,10 +2540,6 @@ body {
     gap: 44px;
   }
 
-  .ov-public .ov-hero-inner--cursor {
-    gap: 1.75rem;
-  }
-
   .ov-public .ov-hero-sky-grid {
     opacity: 0.08;
   }
@@ -2553,38 +2548,11 @@ body {
 @media (max-width: 720px) {
   .ov-public .ov-hero {
     min-height: 0;
-    padding: 96px 20px 52px;
-  }
-
-  .ov-public .ov-hero--cursor {
-    min-height: 0;
-    padding: 88px 16px 36px;
-  }
-
-  .ov-public .ov-hero-inner--cursor,
-  .ov-public .ov-hero-stage--canvas,
-  .ov-public .ov-hero-stage--canvas .ov-console,
-  .ov-public .ov-hero-stage--canvas .ov-console--lean {
-    min-height: 0;
-  }
-
-  .ov-public .ov-hero-copy--over {
-    position: relative;
-    max-width: none;
-    padding: 0 0 1.25rem;
-    background: none;
+    padding: 96px 20px 68px;
   }
 
   .ov-public .ov-hero-title {
-    font-size: clamp(2.1rem, 9.5vw, 2.75rem);
-  }
-
-  .ov-public .ov-hero-stage--canvas .ov-console-frame {
-    min-height: 320px;
-  }
-
-  .ov-public .ov-hero-stage--canvas .ov-console-wire {
-    min-height: 220px;
+    font-size: clamp(2.35rem, 11vw, 2.9rem);
   }
 
   .ov-public .ov-console-body {
@@ -2615,112 +2583,42 @@ body {
   }
 }
 
-/* ── Cursor multi-b standard: product is the canvas ── */
-
-.ov-public .ov-hero--cursor {
-  min-height: min(100vh, 980px);
-  align-items: stretch;
-  padding: 72px 4vw 40px;
-}
-
-.ov-public .ov-hero-inner--cursor {
-  display: block;
-  width: min(100%, 1240px);
-  margin: 0 auto;
-  grid-template-columns: none;
-  height: 100%;
-  min-height: min(82vh, 820px);
-}
-
-.ov-public .ov-hero-stage--canvas {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: min(82vh, 820px);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.ov-public .ov-hero-copy--over {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  max-width: min(34rem, 92%);
-  padding: 0.25rem 0.5rem 1.5rem;
-  /* Keep claim readable over the live wire without boxing it like SaaS chrome. */
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--ov-paper) 88%, transparent) 0%,
-    color-mix(in srgb, var(--ov-paper) 55%, transparent) 62%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-.ov-public .ov-hero-copy--over a,
-.ov-public .ov-hero-copy--over .ov-hero-liveline {
-  pointer-events: auto;
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console,
-.ov-public .ov-hero-stage--canvas .ov-console--lean {
-  max-width: none;
-  width: 100%;
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  min-height: min(82vh, 820px);
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console-frame {
-  flex: 1 1 auto;
-  min-height: min(72vh, 700px);
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console-body--wire {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console-wire {
-  max-height: none;
-  height: 100%;
-  min-height: min(48vh, 420px);
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console-caption {
-  position: relative;
-  z-index: 2;
-}
+/* ── Look organization pass: one composition, ruled doctrine, lean console ── */
 
 .ov-public .ov-hero-brand {
-  font-size: 0.78rem;
-  letter-spacing: 0.22em;
-  font-weight: 600;
-  margin-bottom: 1.1rem;
-  text-transform: uppercase;
-  opacity: 0.72;
+  display: flex;
+  align-items: center;
+  margin: 0 0 1.25rem;
+  font-size: inherit;
+  letter-spacing: normal;
+  font-weight: inherit;
+  text-transform: none;
+}
+
+.ov-public .ov-hero-brand-logo,
+.ov-public .ov-hero-brand .orvius-logo {
+  display: inline-flex;
+}
+
+.ov-public .ov-hero-brand .orvius-logo-word {
+  font-size: clamp(2.35rem, 4.8vw, 3.35rem);
+  letter-spacing: -0.085em;
+  line-height: 1;
+  color: var(--ov-headline);
 }
 
 .ov-public .ov-hero-title {
-  font-size: clamp(2.35rem, 4.6vw, 3.55rem);
-  font-weight: 600;
-  letter-spacing: -0.035em;
-  max-width: 14ch;
-  line-height: 1.02;
+  font-size: clamp(1.85rem, 3.2vw, 2.65rem);
+  font-weight: 550;
+  letter-spacing: -0.022em;
+  max-width: 16ch;
 }
 
 .ov-public .ov-hero-lead {
-  margin-top: 1rem;
-  font-size: 1.05rem;
-  max-width: 36ch;
-  opacity: 0.82;
-  line-height: 1.55;
+  margin-top: 1.05rem;
+  font-size: 1.02rem;
+  max-width: 38ch;
+  opacity: 0.88;
 }
 
 .ov-public .ov-hero-actions {
@@ -2728,53 +2626,7 @@ body {
 }
 
 .ov-public .ov-hero-liveline {
-  margin-top: 1.5rem;
-}
-
-.ov-public .mkt-cursor-feature {
-  max-width: 40rem;
-  margin-inline: auto;
-  text-align: left;
-}
-
-.ov-public .mkt-cursor-feature-title {
-  margin: 0;
-  font-size: clamp(1.65rem, 3vw, 2.25rem);
-  font-weight: 600;
-  letter-spacing: -0.028em;
-  line-height: 1.15;
-  max-width: 16ch;
-}
-
-.ov-public .mkt-cursor-feature-lead {
-  margin: 1rem 0 0;
-  font-size: 1.02rem;
-  max-width: 42ch;
-  opacity: 0.82;
-  line-height: 1.55;
-}
-
-.ov-public .mkt-cursor-feature-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 1.35rem;
-  font-family: var(--ov-mono);
-  font-size: 1.05rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: inherit;
-  text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 40%, transparent);
-  padding-bottom: 0.12rem;
-}
-
-.ov-public .mkt-cursor-feature-link:hover {
-  border-bottom-color: currentColor;
-}
-
-.ov-public .mkt-proof-section--cursor {
-  padding-block: clamp(4rem, 8vw, 6rem);
+  margin-top: 1.75rem;
 }
 
 .ov-public .mkt-manifesto--rules {
@@ -2877,127 +2729,6 @@ body {
 .ov-public .ov-console--lean .ov-console-rail {
   gap: 0.65rem;
   flex-wrap: wrap;
-}
-
-/* Canvas hero must win over lean wire caps — product fills the plane. */
-.ov-public .ov-hero--cursor {
-  min-height: 100svh;
-  max-height: 100svh;
-  height: 100svh;
-  align-items: stretch;
-  padding: 64px 4vw 28px;
-  overflow: clip;
-  box-sizing: border-box;
-}
-
-.ov-public .ov-hero-inner--cursor {
-  display: block !important;
-  grid-template-columns: none !important;
-  width: min(100%, 1240px);
-  margin: 0 auto;
-  height: 100%;
-  min-height: 0;
-}
-
-.ov-public .ov-hero-stage--canvas {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.ov-public .ov-hero-copy--over {
-  position: absolute;
-  top: 0.85rem;
-  left: 1rem;
-  z-index: 4;
-  max-width: min(32rem, calc(100% - 2rem));
-  padding: 0.85rem 1rem 2.5rem;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, #0c0b09 92%, transparent) 0%,
-    color-mix(in srgb, #0c0b09 70%, transparent) 55%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-.ov-public .ov-hero-copy--over a,
-.ov-public .ov-hero-copy--over .ov-hero-liveline {
-  pointer-events: auto;
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console,
-.ov-public .ov-hero-stage--canvas .ov-console--lean {
-  max-width: none !important;
-  width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console-frame {
-  flex: 1 1 auto;
-  min-height: 0 !important;
-  height: 100%;
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console-body,
-.ov-public .ov-hero-stage--canvas .ov-console-body--wire {
-  flex: 1 1 auto;
-  min-height: 0 !important;
-  /* Leave headroom under the floating claim so the wire is readable. */
-  padding-top: clamp(10.5rem, 28vh, 16rem);
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console-wire {
-  max-height: none !important;
-  height: 100%;
-  min-height: 0 !important;
-}
-
-.ov-public .ov-hero-stage--canvas .ov-console-caption {
-  display: none;
-}
-
-@media (max-width: 720px) {
-  .ov-public .ov-hero--cursor {
-    height: auto;
-    max-height: none;
-    min-height: 0;
-    padding: 88px 16px 36px;
-  }
-
-  .ov-public .ov-hero-copy--over {
-    position: relative;
-    top: 0;
-    left: 0;
-    max-width: none;
-    padding: 0 0 1.1rem;
-    background: none;
-  }
-
-  .ov-public .ov-hero-stage--canvas .ov-console-body,
-  .ov-public .ov-hero-stage--canvas .ov-console-body--wire {
-    padding-top: 0.75rem;
-    min-height: 16rem !important;
-  }
-
-  .ov-public .ov-hero-stage--canvas .ov-console-frame {
-    min-height: 280px !important;
-  }
-
-  .ov-public .ov-hero-stage--canvas .ov-console-caption {
-    display: block;
-  }
 }
 
 .ov-public .mkt-footer--lean .mkt-footer-grid--lean {
