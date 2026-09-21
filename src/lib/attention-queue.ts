@@ -170,7 +170,6 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
 export async function getAttentionQueue(
   businessId: string,
   limit = 12,
-  opts?: { founder?: boolean },
 ): Promise<AttentionItem[]> {
   const now = new Date();
   const followupCutoff = new Date(now.getTime() - FOLLOWUP_HOURS * 60 * 60 * 1000);
@@ -221,7 +220,6 @@ export async function getAttentionQueue(
           baselineMissedCallsPerWeek: true,
           baselineJobsPerWeek: true,
           lastWeeklyProofAt: true,
-          founderCertJson: true,
           billingStatus: true,
           pilotEndsAt: true,
           createdAt: true,
@@ -446,30 +444,7 @@ export async function getAttentionQueue(
     });
   }
 
-  let certDone = 0;
-  try {
-    const parsed = business?.founderCertJson
-      ? (JSON.parse(business.founderCertJson) as boolean[])
-      : [];
-    if (Array.isArray(parsed)) certDone = parsed.filter(Boolean).length;
-  } catch {
-    certDone = 0;
-  }
-  if (opts?.founder && certDone < 5) {
-    items.push({
-      id: `founder_cert:${businessId}`,
-      kind: "founder_cert",
-      rank: kindRank("founder_cert", null, afterHours),
-      impact: "med",
-      title: `Phone cert ${certDone}/5`,
-      detail: "Five real-phone drills before you trust after-hours alone.",
-      recommendedAction: "Run phone cert",
-      href: "/dashboard/settings#founder-cert",
-      entityType: "shop",
-      entityId: businessId,
-      createdAt: now.toISOString(),
-    });
-  }
+  // Founder phone cert stays on Settings /admin — never on the owner Command board.
 
   const baselineReady =
     ticket != null &&

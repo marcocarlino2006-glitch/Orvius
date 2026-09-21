@@ -88,11 +88,13 @@ try {
     /founderCertJson/.test(settings) &&
     /Manus post · next/.test(settings) &&
     /FounderManusNext/.test(settings) &&
+    /hubFocus/.test(settings) &&
+    /pro-settings-secondary/.test(settings) &&
     !/<ProSetupHub/.test(settings)
   ) {
     pass(
       "Settings ritual",
-      "Quiet founder-only certification + Manus next — no duplicate setup cockpit",
+      "One hub focus panel open — quiet founder cert, no duplicate cockpit",
     );
   } else {
     fail("Settings ritual", "Founder certification is not wired through quiet Settings");

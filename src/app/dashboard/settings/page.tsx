@@ -4,9 +4,10 @@ import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import { ShellAlert } from "@/components/shell-primitives";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import type { ManusPostStep } from "@/lib/manus-post";
+import { buildSettingsHub } from "@/lib/settings-hub";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
@@ -404,28 +405,34 @@ export default function DashboardSettingsPage() {
     );
   }
 
+  const hubInput = {
+    founder: account.founder,
+    lineVerified: Boolean(account.business?.lineVerifiedAt),
+    overflowConfirmed: overflowForward,
+    ownerPhone,
+    ownerEmail,
+    avgTicketCents: account.business?.avgTicketCents,
+    emailConfigured: account.alerts.emailConfigured,
+    ownerSmsOptedOut: account.alerts.ownerSmsOptedOut,
+    billingConfigured: account.billing?.configured,
+    billingFullyReady: account.billing?.fullyReady,
+    certDone,
+    certTotal: FOUNDER_CERT.length,
+  };
+  const hubFocus = buildSettingsHub(hubInput).next?.id ?? null;
+
   return (
     <OsShell title="Settings" subtitle="One next move — then back to Command.">
       <div className="pro-settings-page">
-        <SettingsLaunchGuide
-          input={{
-            founder: account.founder,
-            lineVerified: Boolean(account.business?.lineVerifiedAt),
-            overflowConfirmed: overflowForward,
-            ownerPhone,
-            ownerEmail,
-            avgTicketCents: account.business?.avgTicketCents,
-            emailConfigured: account.alerts.emailConfigured,
-            ownerSmsOptedOut: account.alerts.ownerSmsOptedOut,
-            billingConfigured: account.billing?.configured,
-            billingFullyReady: account.billing?.fullyReady,
-            certDone,
-            certTotal: FOUNDER_CERT.length,
-          }}
-        />
+        <SettingsLaunchGuide input={hubInput} />
         <form className="account-stack pro-settings-form" onSubmit={save}>
-        <div id="overflow-forward">
-          <ShellPanel title="Call capture" dense>
+        <details
+          id="overflow-forward"
+          className="pro-settings-secondary font-sans"
+          open={hubFocus === "capture"}
+        >
+          <summary>Call capture</summary>
+          <div className="pro-settings-secondary-body">
             <CaptureSetupPanel
               line={line}
               overflowConfirmed={overflowForward}
@@ -436,11 +443,16 @@ export default function DashboardSettingsPage() {
               onConfirmOverflow={(next) => saveOverflow(next)}
               onCapturePathChange={(next) => saveCapturePath(next)}
             />
-          </ShellPanel>
-        </div>
+          </div>
+        </details>
 
-        <div id="owner-alerts">
-        <ShellPanel title="Owner alerts" dense>
+        <details
+          id="owner-alerts"
+          className="pro-settings-secondary font-sans"
+          open={hubFocus === "alerts" || hubFocus === "resend"}
+        >
+          <summary>Owner alerts</summary>
+          <div className="pro-settings-secondary-body">
           {account.alerts.ownerSmsOptedOut ? (
             <div className="mb-4">
               <ShellAlert tone="error">
@@ -532,12 +544,16 @@ export default function DashboardSettingsPage() {
               </p>
             </div>
           ) : null}
-        </ShellPanel>
-        </div>
+          </div>
+        </details>
 
-        <details className="pro-settings-secondary font-sans">
+        <details
+          id="economics-baseline"
+          className="pro-settings-secondary font-sans"
+          open={hubFocus === "baseline"}
+        >
           <summary>Opening line + baseline</summary>
-          <div id="economics-baseline" className="pro-settings-secondary-body">
+          <div className="pro-settings-secondary-body">
             <label className="onboarding-field font-sans">
               <span className="onboarding-label">Opening line</span>
               <textarea
@@ -620,6 +636,7 @@ export default function DashboardSettingsPage() {
           <details
             id="founder-cert"
             className="pro-settings-secondary font-sans"
+            open={hubFocus === "cert"}
           >
             <summary>
               Founder phone certification ({certDone}/{FOUNDER_CERT.length})
@@ -651,7 +668,7 @@ export default function DashboardSettingsPage() {
           <details
             id="manus-post-next"
             className="pro-settings-secondary font-sans"
-            open={Boolean(manusNext)}
+            open={Boolean(manusNext) && hubFocus == null}
           >
             <summary>Manus post · next</summary>
             <FounderManusNext tone="quiet" next={manusNext} />

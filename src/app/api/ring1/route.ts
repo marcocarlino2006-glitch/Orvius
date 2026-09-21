@@ -87,7 +87,7 @@ export async function GET() {
     getShopHealth(business.id),
     listCrew(business.id),
     getShopOutcomes(business.id, 7),
-    getAttentionQueue(business.id, 12, { founder }),
+    getAttentionQueue(business.id, 12),
     getShiftTimeline(business.id),
   ]);
 
