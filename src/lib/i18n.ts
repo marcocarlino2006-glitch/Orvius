@@ -30,10 +30,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Anrufe außerhalb der Geschäftszeiten werden zu qualifizierten Aufträgen.",
   },
   "hero.lead": {
-    en: "Orvius answers after-hours and overflow calls, captures the request, proposes an open service window, and alerts the owner — without inventing prices or arrival times.",
-    es: "Orvius contesta llamadas fuera de horario y desbordadas, registra la solicitud, propone una franja disponible y avisa al dueño, sin inventar precios ni horas de llegada.",
-    fr: "Orvius répond aux appels hors horaires et en débordement, enregistre la demande, propose un créneau disponible et alerte le patron, sans inventer de prix ni d'heure d'arrivée.",
-    de: "Orvius nimmt Anrufe außerhalb der Geschäftszeiten und bei Überlauf an, erfasst die Anfrage, schlägt ein freies Zeitfenster vor und informiert den Inhaber — ohne Preise oder Ankunftszeiten zu erfinden.",
+    en: "Answers the night shift, proposes a window, texts the owner — no invented prices or arrival times.",
+    es: "Contesta el turno de noche, propone una franja, avisa al dueño — sin inventar precios ni horas de llegada.",
+    fr: "Répond au service de nuit, propose un créneau, alerte le patron — sans inventer de prix ni d’heure d’arrivée.",
+    de: "Beantwortet die Nachtschicht, schlägt ein Fenster vor, informiert den Inhaber — ohne Preise oder Ankunftszeiten zu erfinden.",
   },
   "hero.cta": {
     en: "Call the live line",
@@ -43,10 +43,10 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
   "hero.nightshift": {
-    en: "Orvius answers the night shift",
-    es: "Orvius contesta el turno de noche",
-    fr: "Orvius répond pendant la nuit",
-    de: "Orvius übernimmt die Nachtschicht",
+    en: "Call the live line",
+    es: "Llama a la línea en vivo",
+    fr: "Appelez la ligne en direct",
+    de: "Live-Leitung anrufen",
   },
 
   "showcase.eyebrow": { en: "On the line", es: "En la línea", fr: "En ligne", de: "Am Telefon" },

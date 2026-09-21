@@ -2582,3 +2582,140 @@ body {
     transform: none;
   }
 }
+
+/* ── Build off baseline: Cursor restraint on the same format ── */
+
+.ov-public .ov-hero-inner--product {
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(32px, 4vw, 56px);
+}
+
+.ov-public .ov-hero-brand {
+  display: flex;
+  align-items: center;
+  margin: 0 0 1.2rem;
+  font-size: inherit;
+  letter-spacing: normal;
+  font-weight: inherit;
+  text-transform: none;
+}
+
+.ov-public .ov-hero-brand .orvius-logo-word {
+  font-size: clamp(2.2rem, 4.4vw, 3.1rem);
+  letter-spacing: -0.085em;
+  line-height: 1;
+  color: var(--ov-headline);
+}
+
+.ov-public .ov-hero-actions {
+  display: none;
+}
+
+.ov-public .ov-hero-liveline {
+  margin-top: 1.65rem;
+}
+
+.ov-public .mkt-manifesto--rules {
+  padding-block: clamp(4rem, 8vw, 6.5rem);
+}
+
+.ov-public .mkt-manifesto-rules {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.ov-public .mkt-manifesto-rules-head {
+  margin-bottom: 2.25rem;
+}
+
+.ov-public .mkt-manifesto--rules .mkt-manifesto-title {
+  font-size: clamp(1.55rem, 2.6vw, 2.05rem);
+  max-width: 18ch;
+  margin-top: 0.55rem;
+}
+
+.ov-public .mkt-laws--ruled {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
+}
+
+.ov-public .mkt-law--ruled {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.ov-public .mkt-law-index {
+  font-family: var(--ov-mono, ui-monospace, monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+  padding-top: 0.2rem;
+}
+
+.ov-public .mkt-law--ruled .mkt-law-title {
+  font-size: 1.12rem;
+  margin: 0 0 0.35rem;
+}
+
+.ov-public .mkt-law--ruled .mkt-law-body {
+  margin: 0;
+  max-width: 48ch;
+  opacity: 0.82;
+}
+
+.ov-public .mkt-proof-section--quiet {
+  padding-block: clamp(3.5rem, 7vw, 5.5rem);
+}
+
+.ov-public .mkt-proof-section--quiet .mkt-proof-title {
+  font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+}
+
+.ov-public .mkt-close-block {
+  max-width: 36rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.ov-public .mkt-close-block .mkt-proof-title,
+.ov-public .mkt-close-block .mkt-proof-lead {
+  margin-inline: auto;
+}
+
+.ov-public .mkt-close-line {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-family: var(--ov-mono);
+  font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  padding-bottom: 0.15rem;
+}
+
+.ov-public .mkt-close-line:hover {
+  border-bottom-color: currentColor;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-hero-inner--product {
+    grid-template-columns: 1fr;
+  }
+
+  .ov-public .mkt-law--ruled {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+}
