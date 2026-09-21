@@ -10,7 +10,7 @@ test("next-action questions route to the operate tunnel", () => {
   assert.equal(isNextActionQuestion("Who called today?"), false);
 });
 
-test("covered next always points at Ask", () => {
+test("covered next always points at Ask — banner stays dark", () => {
   const next = resolveShopOperateNext({
     setupReady: true,
     setupNext: "done",

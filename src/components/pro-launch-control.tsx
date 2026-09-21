@@ -82,7 +82,9 @@ export function ProLaunchControl({
               : "Card not on file yet."
             : coverage?.afterHoursNow
               ? "After hours — the line is watching."
-              : "The banner above is your next move."}
+              : setupReady
+                ? "Line is watching."
+                : "Setup still open — banner above owns the next move."}
       </p>
 
       <dl className="pro-control-pulse">

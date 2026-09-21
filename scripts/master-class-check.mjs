@@ -302,33 +302,39 @@ try {
   }
   const dash = read("src/app/dashboard/page.tsx");
   if (
-    /FirstNightHandoff/.test(dash) &&
+    /ShopOperateBanner/.test(dash) &&
     dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
-    !/<FounderNextGate/.test(dash)
+    !/<FounderNextGate/.test(dash) &&
+    !/<FirstNightHandoff/.test(dash)
   ) {
     pass(
       "Operate ritual order",
-      "First-night → shop operate → Command (founder gates stay on /admin)",
+      "Shop operate → Command — no founder gate, no first-night click gate",
     );
   } else {
     fail(
       "Operate ritual order",
-      "Dashboard must order FirstNightHandoff → ShopOperateBanner → Command with no FounderNextGate",
+      "Dashboard must be ShopOperateBanner → Command with no FounderNextGate / FirstNightHandoff",
     );
   }
   const guard = read("src/components/onboarding-guard.tsx");
   const handoff = read("src/components/first-night-handoff.tsx");
+  const operateBanner = read("src/components/shop-operate-banner.tsx");
   if (
     /!json\.ready/.test(guard) &&
     /owner_phone/.test(guard) &&
-    /Tonight has one job/.test(handoff) &&
-    /markFirstNightPending/.test(handoff)
+    /markFirstNightPending/.test(handoff) &&
+    /FIRST_NIGHT_STORAGE_KEY/.test(operateBanner) &&
+    /shopOperateBannerVisible/.test(operateBanner)
   ) {
-    pass("First-night handoff", "Setup cliff closed — unfinished shops stay in tunnel");
+    pass(
+      "First-night handoff",
+      "Setup cliff closed — first night clears silently into the pulse",
+    );
   } else {
     fail(
       "First-night handoff",
-      "OnboardingGuard must hold unfinished setup; FirstNightHandoff must exist",
+      "OnboardingGuard must hold unfinished setup; banner must clear first-night pending",
     );
   }
   const operate = read("src/lib/shop-operate.ts");

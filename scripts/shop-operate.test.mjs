@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { resolveShopOperateNext } from "../src/lib/shop-operate.ts";
+import {
+  resolveShopOperateNext,
+  shopOperateBannerVisible,
+} from "../src/lib/shop-operate.ts";
 
 const base = {
   setupReady: true,
@@ -25,6 +28,7 @@ test("alerts beat everything else", () => {
   });
   assert.equal(next?.id, "alerts");
   assert.equal(next?.tone, "critical");
+  assert.equal(shopOperateBannerVisible(next), true);
 });
 
 test("setup precedes board work when the front door is open", () => {
@@ -48,6 +52,16 @@ test("critical board items beat weekly proof", () => {
     economicsReady: true,
   });
   assert.equal(next?.id, "board-critical");
+  assert.equal(shopOperateBannerVisible(next), false);
+});
+
+test("board work does not paint a second Open-the-board banner", () => {
+  const next = resolveShopOperateNext({
+    ...base,
+    attentionCount: 3,
+  });
+  assert.equal(next.id, "board");
+  assert.equal(shopOperateBannerVisible(next), false);
 });
 
 test("weekly proof surfaces when the board is clear", () => {
@@ -58,11 +72,13 @@ test("weekly proof surfaces when the board is clear", () => {
   });
   assert.equal(next?.id, "weekly-proof");
   assert.equal(next?.tone, "ritual");
+  assert.equal(shopOperateBannerVisible(next), true);
 });
 
-test("clear shop returns covered — never leave the owner without a next move", () => {
+test("clear shop returns covered for Ask — Command banner stays dark", () => {
   const next = resolveShopOperateNext(base);
   assert.equal(next.id, "covered");
   assert.equal(next.tone, "ritual");
   assert.match(next.cta, /Ask/);
+  assert.equal(shopOperateBannerVisible(next), false);
 });

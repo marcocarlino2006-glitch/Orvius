@@ -86,7 +86,8 @@ export function isNextActionQuestion(question: string): boolean {
 /**
  * Resolve the single next owner action. Order is load-bearing:
  * coverage faults → setup → critical board → weekly proof → covered.
- * Always returns a move (Cursor tunnel).
+ * Always returns a move for Ask. Command UI may hide board/covered banners
+ * when the board or pulse already owns that state.
  */
 export function resolveShopOperateNext(
   input: ShopOperateInput,
@@ -149,11 +150,18 @@ export function resolveShopOperateNext(
       id: "weekly-proof",
       title: "Copy this week’s results",
       detail: "Copy booked jobs and estimated value for your notes.",
-      href: "/dashboard#shop-economics",
+      href: "/dashboard",
       cta: "Copy results",
       tone: "ritual",
     };
   }
 
   return COVERED;
+}
+
+/** Command already owns this state — painting a second CTA is ceremony. */
+export function shopOperateBannerVisible(next: ShopOperateNext): boolean {
+  if (next.id === "covered") return false;
+  if (next.id === "board" || next.id === "board-critical") return false;
+  return true;
 }

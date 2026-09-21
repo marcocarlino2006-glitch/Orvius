@@ -105,7 +105,9 @@ export function ApproveQueue({
   const hasActivity = activity.length > 0;
   const isEmpty = !loading && !hasApprovals && !hasActivity;
 
-  if (hideWhenEmpty && !hasApprovals && !hasActivity) return null;
+  // When Command is in work mode, only pending approvals belong under the board —
+  // activity history is audit landfill next to live CTAs.
+  if (hideWhenEmpty && !hasApprovals) return null;
 
   return (
     <section

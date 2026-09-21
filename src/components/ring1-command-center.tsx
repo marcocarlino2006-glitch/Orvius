@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
-import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
 import { ProLaunchControl } from "@/components/pro-launch-control";
 import { ProShiftTimeline } from "@/components/pro-shift-timeline";
@@ -11,8 +10,8 @@ import { useRing1 } from "@/lib/ring1-context";
 
 /**
  * Signed-in Command — one composition.
- * Work waiting: board (+ approvals). Calm: outcomes + trail + one money panel.
- * Dispatch lives on Operate. Rail is quiet status; banner owns the next move.
+ * Work waiting: board (+ pending approvals only). Calm: one retrospect + trail.
+ * Proof copy lives on the operate banner when due. Rail is quiet status.
  */
 export function Ring1CommandCenter() {
   const { data, loading, loadError, refresh } = useRing1();
@@ -70,14 +69,6 @@ export function Ring1CommandCenter() {
                 events={data?.shiftTimeline ?? []}
                 loading={false}
                 moneyEnabled={data?.business?.depositEnabled ?? false}
-              />
-            ) : null}
-
-            {data?.outcomes ? (
-              <ProEconomicsPanel
-                outcomes={data.outcomes}
-                lastWeeklyProofAt={data.lastWeeklyProofAt}
-                proofOnBoard={false}
               />
             ) : null}
           </>
