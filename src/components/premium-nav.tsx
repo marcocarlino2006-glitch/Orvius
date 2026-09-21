@@ -91,6 +91,13 @@ export function PremiumNav() {
             <Link href="/signin" className="mkt-nav-login" data-i18n="nav.signin">
               Sign in
             </Link>
+            <a
+              href="tel:+18446439170"
+              className="ov-btn ov-btn--solid mkt-nav-cta"
+              data-i18n="nav.proveit"
+            >
+              Call the live line
+            </a>
             <button
               type="button"
               className="mkt-nav-menu-toggle"

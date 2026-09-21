@@ -35,9 +35,8 @@ function LiveLineDigits({ display }: { display: string }) {
 }
 
 /**
- * First viewport as institution plane — brand owns the claim, the live line is
- * the only action, the console is the full-bleed product (Linear/Cursor), not a
- * side card next to marketing copy.
+ * First viewport: brand → claim → liveline CTA → night call artifact.
+ * One primary action (the number). No second solid button competing.
  */
 export function HomeLineHero() {
   return (
@@ -48,7 +47,7 @@ export function HomeLineHero() {
         <span className="ov-hero-sky-grid" />
         <span className="ov-hero-sky-horizon" />
       </div>
-      <div className="ov-hero-inner ov-hero-inner--plane">
+      <div className="ov-hero-inner">
         <div className="ov-hero-copy">
           <p className="ov-hero-brand" aria-label="Orvius">
             Orvius
@@ -59,8 +58,8 @@ export function HomeLineHero() {
           </h1>
 
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            The night-shift OS for HVAC, plumbing, and electrical — propose a
-            window, alert the owner, confirm by text.
+            Answers the night shift, proposes a window, texts the owner — no
+            invented prices or arrival times.
           </p>
 
           <a
@@ -70,7 +69,7 @@ export function HomeLineHero() {
           >
             <span className="ov-hero-liveline-label">
               <span className="ov-hero-pulse" aria-hidden />
-              <span data-i18n="hero.nightshift">Live line</span>
+              <span data-i18n="hero.nightshift">Call the live line</span>
             </span>
             <LiveLineDigits display={DEMO_LINE_DISPLAY} />
           </a>

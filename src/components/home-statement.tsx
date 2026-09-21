@@ -21,7 +21,7 @@ const nightRules = [
   },
 ] as const;
 
-/** Night doctrine as a ruled list — one column, Stripe restraint, no cards. */
+/** Night doctrine as a ruled list — one column, no card grid. */
 export function HomeStatement() {
   return (
     <MktSection
@@ -36,7 +36,7 @@ export function HomeStatement() {
           </p>
           <h2
             id="home-manifesto-heading"
-            className="mkt-manifesto-title mkt-manifesto-title--display"
+            className="mkt-manifesto-title"
             data-i18n="rules.title"
           >
             How the shop runs when you&apos;re not on the floor.
