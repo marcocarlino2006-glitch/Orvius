@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, Fraunces, IBM_Plex_Mono } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
@@ -9,10 +9,17 @@ import "./public-v2.css";
 import "./theme-tokens.css";
 
 /**
- * Two voices, no more. Archivo speaks in prose and headlines; Plex Mono speaks
- * whenever the interface is reporting machine truth — times, numbers, statuses,
- * phone lines. Mixing a third letterset is what made the old surfaces read cheap.
+ * Three voices, locked. Fraunces carries brand and claims (institution).
+ * Archivo carries UI prose. Plex Mono reports machine truth — times, numbers,
+ * statuses, phone lines. A fourth letterset is what makes surfaces read cheap.
  */
+const display = Fraunces({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
+
 const sans = Archivo({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -20,7 +27,6 @@ const sans = Archivo({
   display: "swap",
 });
 
-/* Machine labels and operational evidence use the monospaced reporting voice. */
 const mono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
@@ -75,7 +81,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className={`${sans.variable} ${mono.variable} antialiased`}>
+      <body
+        className={`${display.variable} ${sans.variable} ${mono.variable} antialiased`}
+      >
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

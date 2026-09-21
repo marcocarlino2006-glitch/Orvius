@@ -30,10 +30,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Anrufe außerhalb der Geschäftszeiten werden zu qualifizierten Aufträgen.",
   },
   "hero.lead": {
-    en: "Answers the night shift, proposes a window, texts the owner — no invented prices or arrival times.",
-    es: "Contesta el turno de noche, propone una franja, avisa al dueño — sin inventar precios ni horas de llegada.",
-    fr: "Répond au service de nuit, propose un créneau, alerte le patron — sans inventer de prix ni d’heure d’arrivée.",
-    de: "Beantwortet die Nachtschicht, schlägt ein Fenster vor, informiert den Inhaber — ohne Preise oder Ankunftszeiten zu erfinden.",
+    en: "The night-shift OS for HVAC, plumbing, and electrical — propose a window, alert the owner, confirm by text.",
+    es: "El sistema operativo del turno de noche para HVAC, plomería y electricidad — propone una franja, avisa al dueño, confirma por texto.",
+    fr: "Le système d’exploitation de nuit pour CVC, plomberie et électricité — propose un créneau, alerte le patron, confirme par texto.",
+    de: "Das Nachtschicht-Betriebssystem für HVAC, Sanitär und Elektro — schlägt ein Fenster vor, alarmiert den Inhaber, bestätigt per Text.",
   },
   "hero.cta": {
     en: "Call the live line",
@@ -43,10 +43,10 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
   "hero.nightshift": {
-    en: "Call the live line",
-    es: "Llama a la línea en vivo",
-    fr: "Appelez la ligne en direct",
-    de: "Live-Leitung anrufen",
+    en: "Live line",
+    es: "Línea en vivo",
+    fr: "Ligne en direct",
+    de: "Live-Leitung",
   },
 
   "showcase.eyebrow": { en: "On the line", es: "En la línea", fr: "En ligne", de: "Am Telefon" },

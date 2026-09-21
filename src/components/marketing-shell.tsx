@@ -3,7 +3,6 @@ import { BrandIntro } from "@/components/brand-intro";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { I18nRuntime } from "@/components/i18n-runtime";
 import { PremiumNav } from "@/components/premium-nav";
-import { UtilityDock } from "@/components/utility-dock";
 
 type MarketingShellProps = {
   children: React.ReactNode;
@@ -15,8 +14,8 @@ type MarketingShellProps = {
 };
 
 /**
- * One public shell. Nav CTA and footer live here — page-level cta props
- * are ignored so every marketing surface shares the same chrome.
+ * One public shell. No floating utility dock — Stripe/Cursor chrome is quiet.
+ * Theme defaults to night; language stays English unless a surface sets it.
  */
 export function MarketingShell({ children }: MarketingShellProps) {
   const year = new Date().getFullYear();
@@ -60,7 +59,6 @@ export function MarketingShell({ children }: MarketingShellProps) {
         </footer>
         <I18nRuntime />
       </div>
-      <UtilityDock />
     </>
   );
 }

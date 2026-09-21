@@ -97,6 +97,7 @@ html[data-theme="day"] {
 body {
   --ov-font: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
   --ov-mono: var(--font-mono), ui-monospace, monospace;
+  --ov-display: var(--font-display), "Times New Roman", serif;
   font-family: var(--ov-font);
 }
 
@@ -1702,7 +1703,7 @@ body {
   z-index: 0;
 }
 
-/* Copper bloom — the warm worklight over the console. */
+/* Copper bloom — soft shop worklight, quieter than SaaS orange flare. */
 .ov-public .ov-hero-sky-bloom {
   position: absolute;
   top: -18%;
@@ -1711,14 +1712,13 @@ body {
   height: 130%;
   background: radial-gradient(
     circle at 58% 40%,
-    color-mix(in srgb, var(--ov-copper) 22%, transparent),
+    color-mix(in srgb, #c4a574 14%, transparent),
     transparent 64%
   );
   animation: ov-sky-breathe 9s ease-in-out infinite;
 }
 
-/* Secondary bay light — opposite corner, slower, so the plane feels occupied.
-   Trade bay at night, not a faint tint: copper reads as warm shop worklight. */
+/* Secondary bay light — cooler floor wash so the plane feels occupied, not flared. */
 .ov-public .ov-hero-sky-bloom-bay {
   position: absolute;
   left: -14%;
@@ -1727,8 +1727,8 @@ body {
   height: 78%;
   background: radial-gradient(
     circle at 38% 58%,
-    color-mix(in srgb, var(--ov-copper) 22%, transparent),
-    color-mix(in srgb, var(--ov-copper) 8%, transparent) 42%,
+    color-mix(in srgb, #8a9bb0 12%, transparent),
+    color-mix(in srgb, #c4a574 6%, transparent) 42%,
     transparent 72%
   );
   animation: ov-sky-breathe 14s ease-in-out infinite reverse;
@@ -1797,36 +1797,55 @@ body {
   align-items: center;
 }
 
+/* Institution plane — copy leads, product owns the width (Cursor/Linear). */
+.ov-public .ov-hero-inner--plane {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(2.5rem, 5vw, 3.75rem);
+}
+
+.ov-public .ov-hero-inner--plane .ov-hero-copy {
+  max-width: 38rem;
+}
+
+.ov-public .ov-hero-inner--plane .ov-hero-stage {
+  width: 100%;
+}
+
 .ov-public .ov-hero-brand {
-  margin: 0 0 0.85rem;
+  margin: 0 0 1.15rem;
   color: var(--ov-headline);
-  font-family: var(--ov-font);
-  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  line-height: 1;
+  font-family: var(--ov-display);
+  font-size: clamp(2.65rem, 5.4vw, 4.25rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-transform: none;
+  line-height: 0.95;
 }
 
 .ov-public .ov-hero-title {
   margin: 0;
   color: var(--ov-headline);
-  font-family: var(--ov-font);
-  font-size: clamp(2.6rem, 4.6vw, 4rem);
-  font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.028em;
+  font-family: var(--ov-display);
+  font-size: clamp(1.65rem, 2.8vw, 2.15rem);
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.022em;
   text-wrap: balance;
+  max-width: 18ch;
+  opacity: 0.96;
 }
 
 .ov-public .ov-hero-lead {
-  max-width: 44ch;
-  margin: 1.5rem 0 0;
+  max-width: 40ch;
+  margin: 1.15rem 0 0;
   color: var(--ov-muted);
   font-family: var(--ov-font);
-  font-size: 1.0625rem;
+  font-size: 1.02rem;
   line-height: 1.55;
   letter-spacing: -0.012em;
+  opacity: 0.88;
 }
 
 .ov-public .ov-hero-actions {
@@ -2551,8 +2570,12 @@ body {
     padding: 96px 20px 68px;
   }
 
+  .ov-public .ov-hero-brand {
+    font-size: clamp(2.35rem, 12vw, 3.1rem);
+  }
+
   .ov-public .ov-hero-title {
-    font-size: clamp(2.35rem, 11vw, 2.9rem);
+    font-size: clamp(1.45rem, 6.5vw, 1.85rem);
   }
 
   .ov-public .ov-console-body {
@@ -2583,39 +2606,26 @@ body {
   }
 }
 
-/* ── Look organization pass: one composition, ruled doctrine, lean console ── */
-
-.ov-public .ov-hero-brand {
-  font-size: clamp(2rem, 4.2vw, 3.1rem);
-  letter-spacing: 0.08em;
-  font-weight: 750;
-  margin-bottom: 1.1rem;
-}
-
-.ov-public .ov-hero-title {
-  font-size: clamp(1.85rem, 3.2vw, 2.65rem);
-  font-weight: 550;
-  letter-spacing: -0.022em;
-  max-width: 16ch;
-}
-
-.ov-public .ov-hero-lead {
-  margin-top: 1.05rem;
-  font-size: 1.02rem;
-  max-width: 38ch;
-  opacity: 0.88;
-}
+/* ── Institution craft pass: Stripe/Cursor plane, not SaaS column layout ── */
 
 .ov-public .ov-hero-actions {
   display: none;
 }
 
 .ov-public .ov-hero-liveline {
-  margin-top: 1.75rem;
+  margin-top: 1.65rem;
+}
+
+.ov-public .ov-hero-liveline-number::after {
+  background: color-mix(in srgb, var(--ov-headline) 55%, transparent);
+}
+
+.ov-public .ov-hero-liveline:hover .ov-hero-liveline-number {
+  color: var(--ov-headline);
 }
 
 .ov-public .mkt-manifesto--rules {
-  padding-block: clamp(4rem, 8vw, 6.5rem);
+  padding-block: clamp(4.5rem, 9vw, 7rem);
 }
 
 .ov-public .mkt-manifesto-rules {
@@ -2624,13 +2634,28 @@ body {
 }
 
 .ov-public .mkt-manifesto-rules-head {
-  margin-bottom: 2.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.ov-public .mkt-manifesto-kicker {
+  color: var(--ov-muted) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-size: 0.72rem !important;
+}
+
+.ov-public .mkt-manifesto-title--display,
+.ov-public .mkt-proof-title--display {
+  font-family: var(--ov-display) !important;
+  font-weight: 550;
+  letter-spacing: -0.028em;
 }
 
 .ov-public .mkt-manifesto--rules .mkt-manifesto-title {
-  font-size: clamp(1.55rem, 2.6vw, 2.05rem);
-  max-width: 18ch;
-  margin-top: 0.55rem;
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  max-width: 16ch;
+  margin-top: 0.65rem;
+  line-height: 1.12;
 }
 
 .ov-public .mkt-laws--ruled {
@@ -2647,7 +2672,7 @@ body {
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
   gap: 1rem;
-  padding: 1.35rem 0;
+  padding: 1.45rem 0;
   border-bottom: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
   background: transparent;
   box-shadow: none;
@@ -2659,12 +2684,15 @@ body {
   font-size: 0.78rem;
   letter-spacing: 0.08em;
   opacity: 0.55;
-  padding-top: 0.2rem;
+  padding-top: 0.35rem;
 }
 
 .ov-public .mkt-law--ruled .mkt-law-title {
-  font-size: 1.12rem;
+  font-family: var(--ov-display);
+  font-size: 1.2rem;
+  font-weight: 550;
   margin: 0 0 0.35rem;
+  letter-spacing: -0.018em;
 }
 
 .ov-public .mkt-law--ruled .mkt-law-body {
@@ -2674,23 +2702,15 @@ body {
 }
 
 .ov-public .mkt-proof-section--quiet {
-  padding-block: clamp(3.5rem, 7vw, 5.5rem);
+  padding-block: clamp(4rem, 8vw, 6rem);
 }
 
 .ov-public .mkt-proof-section--quiet .mkt-proof-title {
-  font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+  font-size: clamp(1.85rem, 3.2vw, 2.55rem);
 }
 
-.ov-public .mkt-proof-dial {
-  margin: 1.25rem 0 0;
-  font-size: 0.95rem;
-  opacity: 0.85;
-}
-
-.ov-public .mkt-proof-dial a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
+.ov-public .mkt-proof-kicker {
+  color: var(--ov-muted) !important;
 }
 
 .ov-public .ov-console--lean {
@@ -2698,22 +2718,31 @@ body {
 }
 
 .ov-public .ov-console--lean .ov-console-frame {
-  border-radius: 0.65rem;
+  border-radius: 0.35rem;
   overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ov-hairline-strong, #2b2923) 90%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 28px 80px -40px rgb(0 0 0 / 0.85);
 }
 
 .ov-public .ov-console-body--wire {
   display: block;
-  min-height: 14rem;
+  min-height: 16rem;
 }
 
 .ov-public .ov-console--lean .ov-console-wire {
-  max-height: 16rem;
+  max-height: 18rem;
 }
 
 .ov-public .ov-console--lean .ov-console-rail {
   gap: 0.65rem;
   flex-wrap: wrap;
+}
+
+.ov-public .ov-rail-step.is-active i {
+  background: var(--ov-emerald);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-emerald) 22%, transparent);
 }
 
 .ov-public .mkt-footer--lean .mkt-footer-grid--lean {
@@ -2730,19 +2759,21 @@ body {
 }
 
 .ov-public .mkt-inner-brand {
-  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
-  letter-spacing: 0.08em;
-  font-weight: 750;
+  font-family: var(--ov-display);
+  font-size: clamp(1.55rem, 2.8vw, 2rem);
+  letter-spacing: -0.02em;
+  font-weight: 600;
   margin: 0 0 1rem;
 }
 
 .ov-public .mkt-inner-title {
-  font-size: clamp(1.75rem, 3vw, 2.45rem);
+  font-family: var(--ov-display);
+  font-size: clamp(1.85rem, 3.2vw, 2.65rem);
   font-weight: 550;
-  letter-spacing: -0.022em;
-  max-width: 18ch;
+  letter-spacing: -0.028em;
+  max-width: 16ch;
   margin: 0;
-  line-height: 1.15;
+  line-height: 1.12;
 }
 
 .ov-public .mkt-inner-lead {
@@ -2771,12 +2802,13 @@ body {
 }
 
 .ov-public .mkt-inner-section-title {
-  font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+  font-family: var(--ov-display);
+  font-size: clamp(1.55rem, 2.6vw, 2.05rem);
   font-weight: 550;
-  letter-spacing: -0.02em;
-  max-width: 22ch;
+  letter-spacing: -0.024em;
+  max-width: 18ch;
   margin: 0 0 0.85rem;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .ov-public .mkt-inner-body {
@@ -2809,6 +2841,7 @@ body {
 .ov-public .mkt-close-line {
   display: inline-block;
   margin-top: 1.5rem;
+  font-family: var(--ov-mono);
   font-size: clamp(1.35rem, 2.8vw, 1.85rem);
   font-weight: 600;
   letter-spacing: 0.04em;
