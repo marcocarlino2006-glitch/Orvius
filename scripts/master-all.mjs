@@ -123,6 +123,10 @@ const docs =
   existsSync(join(root, "docs/BEYOND-BAR.md"));
 gate(10, "Doctrine present", docs, docs ? "STRICT + STANDINGS + BEYOND-BAR" : "Missing mastery docs", "code");
 
+console.log(
+  "\n   Also run: npm run life:check  — full life-changing / multi-b hard scoreboard\n",
+);
+
 /* Live shop gates — cannot fake from secrets alone */
 console.log("\n⚠️  Live shop gates (must verify on prod / signed-in Admin Daily):\n");
 console.log("   1. Wedge cert 5/5 + wedge:ready 8/8");

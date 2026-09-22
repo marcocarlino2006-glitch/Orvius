@@ -255,4 +255,4 @@ More features before step 8 is a corner cut.
 
 *Canonical strict list. Companion docs: `BEYOND-BAR.md`, `STANDARD.md`, `MULTI-BILLION-BATTLES.md`, `MONOPOLY.md`, `MANUS-BAR.md`, `WEDGE-MASTERY.md`, `ROADMAP.md`.*
 
-Commands: `npm run beyond:check` · `npm run multi-b:check` · `npm run bulletproof`
+Commands: `npm run life:check` · `npm run beyond:check` · `npm run multi-b:check` · `npm run bulletproof`

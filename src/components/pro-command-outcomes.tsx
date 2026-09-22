@@ -23,7 +23,7 @@ export function ProCommandOutcomes({
   const calls = loading ? "…" : String(outcomes?.calls ?? 0);
   const leads = loading ? "…" : String(outcomes?.leads ?? 0);
   const booked = loading ? "…" : String(outcomes?.jobsBooked ?? 0);
-  const afterHours = loading ? "…" : String(outcomes?.afterHoursBooked ?? 0);
+  const completed = loading ? "…" : String(outcomes?.jobsCompleted ?? 0);
   const collected = formatCents(outcomes?.collectedCents);
   const influenced =
     formatCents(outcomes?.capturedDemandEstimatedValueCents) ?? collected;
@@ -45,7 +45,7 @@ export function ProCommandOutcomes({
     { label: "Calls", value: calls },
     { label: "Leads", value: leads },
     { label: "Booked", value: booked },
-    { label: "After-hours", value: afterHours },
+    { label: "Completed", value: completed },
     { label: moneyLabel, value: moneyValue, hint: moneyHint },
   ] as const;
 

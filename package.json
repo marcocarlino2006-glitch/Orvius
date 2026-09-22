@@ -45,6 +45,7 @@
     "billing:check": "node scripts/billing-check.mjs",
     "economics:check": "node scripts/economics-check.mjs",
     "multi-b:check": "node scripts/multi-b-check.mjs",
+    "life:check": "node scripts/life-changing-check.mjs",
     "war:repair": "node scripts/war-ready-repair.mjs",
     "stripe:setup": "node scripts/stripe-setup.mjs",
     "repair:lines": "node scripts/repair-customer-lines.mjs",

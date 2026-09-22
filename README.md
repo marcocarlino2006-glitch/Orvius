@@ -18,6 +18,7 @@ See `docs/WEDGE-MISSION.md`.
 8. Founder phone cert (dogfood)
 
 ```bash
+npm run life:check
 npm run wedge:ready
 npm run multi-b:check
 npm run beyond:check

@@ -53,6 +53,8 @@ export type ShopOutcomes = {
   jobsPerWeekVsBaseline: number | null;
   /** Measured jobs whose originating lead was captured by Orvius call/SMS. */
   capturedDemandJobs: number;
+  /** Jobs marked completed in the window — call→cash requires this step. */
+  jobsCompleted: number;
   /** Estimated value only: measured captured jobs × owner-entered avg ticket. */
   capturedDemandEstimatedValueCents: number | null;
   /** CRM money ring — recorded payments / open estimates / open invoices. */
@@ -98,6 +100,7 @@ export async function getShopOutcomes(
     calls,
     leads,
     jobsBooked,
+    jobsCompleted,
     capturedDemandJobs,
     unassignedJobs,
     activeTechnicians,
@@ -121,6 +124,16 @@ export async function getShopOutcomes(
     }),
     prisma.job.count({
       where: { businessId, createdAt: { gte: since } },
+    }),
+    prisma.job.count({
+      where: {
+        businessId,
+        status: "completed",
+        OR: [
+          { completedAt: { gte: since } },
+          { completedAt: null, updatedAt: { gte: since } },
+        ],
+      },
     }),
     prisma.job.count({
       where: {
@@ -256,6 +269,7 @@ export async function getShopOutcomes(
     calls,
     leads: leadCount,
     jobsBooked,
+    jobsCompleted,
     bookingRate,
     afterHoursLeads,
     afterHoursBooked,
