@@ -2719,3 +2719,116 @@ body {
     grid-template-columns: 2rem minmax(0, 1fr);
   }
 }
+
+/* ── Detail craft: beyond Cursor on the same format ──
+   Cursor demos a mock. Orvius ships a dialable night instrument. */
+
+.ov-public .ov-hero-title {
+  letter-spacing: -0.032em;
+  max-width: 13ch;
+}
+
+.ov-public .ov-hero-lead {
+  margin-top: 1.15rem;
+  font-size: 1.02rem;
+  max-width: 34ch;
+  line-height: 1.55;
+  opacity: 0.78;
+}
+
+.ov-public .ov-hero-liveline {
+  margin-top: 1.85rem;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+}
+
+.ov-public .ov-hero-liveline-label {
+  color: var(--ov-emerald-text, #6ee7a8);
+  letter-spacing: 0.14em;
+  opacity: 0.9;
+}
+
+.ov-public .ov-hero-liveline-number {
+  font-size: clamp(1.7rem, 3vw, 2.15rem);
+  letter-spacing: 0.04em;
+}
+
+.ov-public .ov-hero-liveline-number::after {
+  background: var(--ov-emerald, #10b981);
+  height: 1.5px;
+}
+
+.ov-public .ov-hero-liveline:hover .ov-hero-liveline-number {
+  color: var(--ov-headline);
+}
+
+/* Night bay — cooler floor wash + warm worklight (trades night, not SaaS flare) */
+.ov-public .ov-hero-sky-bloom {
+  background: radial-gradient(
+    circle at 58% 40%,
+    color-mix(in srgb, #c4a574 12%, transparent),
+    transparent 64%
+  );
+}
+
+.ov-public .ov-hero-sky-bloom-bay {
+  background: radial-gradient(
+    circle at 38% 58%,
+    color-mix(in srgb, #7a8fa8 14%, transparent),
+    color-mix(in srgb, #c4a574 6%, transparent) 42%,
+    transparent 72%
+  );
+}
+
+/* Console instrument: slightly taller wire, quieter caption */
+.ov-public .ov-console-body {
+  min-height: 300px;
+}
+
+.ov-public .ov-console-wire {
+  max-height: 300px;
+}
+
+.ov-public .ov-console-caption {
+  margin-top: 0.95rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  opacity: 0.72;
+}
+
+.ov-public .ov-console-frame {
+  border-radius: 0.55rem;
+}
+
+.ov-public .ov-console-desk {
+  border-radius: 14px;
+}
+
+/* Nav: one Call truth, quieter elevate */
+.ov-public .mkt-nav--elevated {
+  background: color-mix(in srgb, var(--ov-paper) 96%, transparent) !important;
+}
+
+.ov-public .mkt-nav-cta {
+  border-radius: 5px !important;
+  letter-spacing: -0.01em !important;
+}
+
+.ov-public .mkt-nav-links a {
+  opacity: 0.78;
+  transition: opacity 140ms ease;
+}
+
+.ov-public .mkt-nav-links a:hover {
+  opacity: 1;
+}
+
+/* Capture panel: instrument plate, not marketing card */
+.ov-public .ov-capture-label {
+  letter-spacing: 0.14em;
+  opacity: 0.7;
+}
+
+.ov-public .ov-capture-row.is-set dd {
+  color: #f2f1ed;
+}

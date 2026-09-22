@@ -36,8 +36,8 @@ function LiveLineDigits({ display }: { display: string }) {
 }
 
 /**
- * Same side-by-side format — Cursor standard deltas only:
- * real logo, one CTA (the live line), product stage takes more of the plane.
+ * Same side-by-side format. Detail craft only — live line is the product CTA
+ * Cursor can’t ship (a real night number), console is the instrument.
  */
 export function HomeLineHero() {
   return (

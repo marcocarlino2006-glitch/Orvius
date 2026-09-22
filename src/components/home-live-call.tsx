@@ -416,8 +416,8 @@ export function HomeLiveCall() {
       <p className="sr-only">{TEXT_ALTERNATIVE}</p>
 
       <figcaption className="ov-console-caption">
-        Representative call, transcript playback — no audio. Summit HVAC ·
-        Orvius demo line.
+        Live product — dial the number. Same intake Summit HVAC hears on the
+        night shift.
       </figcaption>
     </figure>
   );
