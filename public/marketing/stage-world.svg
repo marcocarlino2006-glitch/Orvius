@@ -1,43 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#7ea8c8"/>
-      <stop offset="28%" stop-color="#b7cfe0"/>
-      <stop offset="52%" stop-color="#e6dcc8"/>
-      <stop offset="72%" stop-color="#d4c4a0"/>
-      <stop offset="100%" stop-color="#b8a888"/>
+      <stop offset="0%" stop-color="#6b9bc0"/>
+      <stop offset="24%" stop-color="#a8c5da"/>
+      <stop offset="48%" stop-color="#dccfb8"/>
+      <stop offset="68%" stop-color="#c9b48a"/>
+      <stop offset="100%" stop-color="#9a8868"/>
     </linearGradient>
-    <linearGradient id="ridgeFar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#8a9e8c" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#5a6e5c" stop-opacity="0.85"/>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8fa88f"/>
+      <stop offset="100%" stop-color="#5d735f"/>
     </linearGradient>
-    <linearGradient id="ridgeNear" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#4a5c4e"/>
-      <stop offset="100%" stop-color="#2f3d34"/>
+    <linearGradient id="mid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a705c"/>
+      <stop offset="100%" stop-color="#3a4a3c"/>
     </linearGradient>
-    <radialGradient id="sun" cx="78%" cy="22%" r="28%">
-      <stop offset="0%" stop-color="#ffe0a8" stop-opacity="0.85"/>
-      <stop offset="45%" stop-color="#f0c080" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#f0c080" stop-opacity="0"/>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2f3f32"/>
+      <stop offset="100%" stop-color="#1a2420"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="82%" cy="18%" r="26%">
+      <stop offset="0%" stop-color="#ffe6b0" stop-opacity="0.95"/>
+      <stop offset="40%" stop-color="#f0b870" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#f0b870" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="bay" cx="22%" cy="30%" r="32%">
-      <stop offset="0%" stop-color="#d8eaf6" stop-opacity="0.75"/>
-      <stop offset="55%" stop-color="#a8c8dc" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#a8c8dc" stop-opacity="0"/>
+    <radialGradient id="bay" cx="18%" cy="28%" r="30%">
+      <stop offset="0%" stop-color="#e8f4fc" stop-opacity="0.85"/>
+      <stop offset="50%" stop-color="#b0d0e4" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#b0d0e4" stop-opacity="0"/>
     </radialGradient>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="14"/>
-    </filter>
-    <filter id="softer" x="-25%" y="-25%" width="150%" height="150%">
-      <feGaussianBlur stdDeviation="28"/>
+    <filter id="edge" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur stdDeviation="4"/>
     </filter>
   </defs>
   <rect width="1600" height="1000" fill="url(#sky)"/>
-  <ellipse cx="1280" cy="220" rx="420" ry="260" fill="url(#sun)"/>
-  <ellipse cx="280" cy="300" rx="480" ry="260" fill="url(#bay)"/>
-  <ellipse cx="720" cy="480" rx="520" ry="200" fill="#c5d4b8" opacity="0.35" filter="url(#softer)"/>
-  <path d="M-60 640 C 220 520, 460 580, 700 620 C 980 670, 1200 540, 1680 600 L 1680 1040 L -60 1040 Z" fill="#9aaf98" opacity="0.45" filter="url(#soft)"/>
-  <path d="M-60 720 C 260 580, 500 650, 820 700 C 1120 760, 1360 640, 1680 700 L 1680 1040 L -60 1040 Z" fill="url(#ridgeFar)" filter="url(#soft)"/>
-  <path d="M-60 820 C 340 700, 680 780, 980 810 C 1280 840, 1480 760, 1680 820 L 1680 1040 L -60 1040 Z" fill="url(#ridgeNear)" opacity="0.92" filter="url(#soft)"/>
-  <ellipse cx="900" cy="900" rx="700" ry="180" fill="#1e2a22" opacity="0.35" filter="url(#softer)"/>
+  <ellipse cx="1310" cy="180" rx="360" ry="220" fill="url(#sun)"/>
+  <ellipse cx="240" cy="280" rx="420" ry="220" fill="url(#bay)"/>
+  <!-- Distinct cloud bands so ken-burns reads -->
+  <ellipse cx="520" cy="210" rx="220" ry="54" fill="#f4f8fc" opacity="0.55"/>
+  <ellipse cx="980" cy="160" rx="180" ry="42" fill="#fff8ee" opacity="0.45"/>
+  <ellipse cx="1180" cy="320" rx="150" ry="36" fill="#f0e6d4" opacity="0.4"/>
+  <!-- Layered ridges with readable silhouettes -->
+  <path d="M-80 580 C 180 480, 360 520, 560 560 C 820 620, 1040 500, 1280 540 C 1460 570, 1580 530, 1680 550 L 1680 1040 L -80 1040 Z" fill="#b7c9a8" opacity="0.55" filter="url(#edge)"/>
+  <path d="M-80 660 C 200 560, 420 610, 680 650 C 980 700, 1180 590, 1680 640 L 1680 1040 L -80 1040 Z" fill="url(#far)" filter="url(#edge)"/>
+  <path d="M-80 760 C 280 660, 520 720, 820 760 C 1120 800, 1360 700, 1680 760 L 1680 1040 L -80 1040 Z" fill="url(#mid)"/>
+  <path d="M-80 860 C 320 780, 640 840, 960 870 C 1240 900, 1460 820, 1680 870 L 1680 1040 L -80 1040 Z" fill="url(#near)"/>
 </svg>
