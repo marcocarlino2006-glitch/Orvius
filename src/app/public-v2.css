@@ -3163,3 +3163,111 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
 .ov-public .ov-console-shop {
   letter-spacing: -0.02em;
 }
+
+/* ── Fast pass: denser canvas + softer product float (Cursor closer) ── */
+.ov-public .ov-hero-inner--poster {
+  width: min(100%, 1280px);
+  gap: clamp(1.35rem, 2.8vh, 2.1rem);
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-brand {
+  margin: 0 0 0.45rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-title {
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  max-width: 28ch;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-lead {
+  margin-top: 0.55rem;
+  font-size: 0.9rem;
+  opacity: 0.62;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline {
+  margin-top: 1rem;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.85rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline-label {
+  font-size: 0.625rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline-number {
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-desk {
+  padding: 0 clamp(10px, 1.4vw, 18px) clamp(10px, 1.4vw, 18px);
+  border-radius: 16px;
+  border-color: color-mix(in srgb, var(--ov-hairline-strong) 55%, transparent);
+  box-shadow:
+    0 36px 90px -32px rgb(0 0 0 / 0.78),
+    0 0 0 1px color-mix(in srgb, #7a8fa8 8%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-wallpaper {
+  background: linear-gradient(168deg, #1a2430 0%, #14120b 52%, #0c0b08 100%);
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-aurora--a {
+  filter: blur(58px);
+  opacity: 0.85;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-aurora--b {
+  filter: blur(64px);
+  opacity: 0.7;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-body {
+  min-height: 460px;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-wire {
+  max-height: 460px;
+  font-size: 0.78rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-wire-line {
+  font-size: 0.78rem;
+  gap: 0.75rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-capture-row {
+  padding: 0.48rem 0.65rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-caption {
+  opacity: 0.5;
+  font-size: 0.65rem;
+}
+
+.ov-public .ov-hero-sky-bloom {
+  opacity: 0.9;
+  width: 90%;
+  right: -6%;
+  top: -8%;
+}
+
+.ov-public .ov-hero-sky-bloom-bay {
+  opacity: 0.55;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-hero-inner--poster .ov-hero-liveline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .ov-public .ov-hero-inner--poster .ov-console-body,
+  .ov-public .ov-hero-inner--poster .ov-console-wire {
+    min-height: 300px;
+    max-height: 300px;
+  }
+}
