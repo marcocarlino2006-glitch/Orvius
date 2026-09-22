@@ -3835,7 +3835,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   background:
     url("/marketing/stage-world.svg") center / cover no-repeat,
     linear-gradient(180deg, #9eb8d0, #e8dfd0 55%, #b7c4a8);
-  animation: ov-world-sky 14s ease-in-out infinite;
+  animation: ov-world-sky 7s ease-in-out infinite;
   will-change: transform;
 }
 
@@ -3846,7 +3846,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     radial-gradient(ellipse 80% 50% at 18% 28%, rgba(220, 235, 245, 0.6), transparent 70%),
     radial-gradient(ellipse 65% 45% at 84% 22%, rgba(255, 215, 160, 0.45), transparent 65%);
   filter: blur(22px);
-  animation: ov-world-haze 10s ease-in-out infinite;
+  animation: ov-world-haze 5.5s ease-in-out infinite;
   will-change: transform, opacity;
 }
 
@@ -3858,7 +3858,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   height: 40%;
   background: linear-gradient(180deg, transparent, rgba(45, 58, 50, 0.35));
   filter: blur(8px);
-  animation: ov-world-land 16s ease-in-out infinite;
+  animation: ov-world-land 8s ease-in-out infinite;
   will-change: transform;
 }
 
@@ -3892,8 +3892,8 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     0 48px 110px -32px rgb(0 0 0 / 0.48),
     0 20px 44px -18px rgb(0 0 0 / 0.28),
     0 0 0 1px rgba(255, 255, 255, 0.18) !important;
-  animation: ov-world-float 9s ease-in-out infinite;
-  animation-delay: 900ms;
+  animation: ov-world-float 4.5s ease-in-out infinite;
+  animation-delay: 0.2s;
   will-change: transform;
 }
 
@@ -3905,18 +3905,18 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 }
 
 @keyframes ov-world-sky {
-  0%, 100% { transform: scale(1.04) translate3d(0, 0, 0); }
-  50% { transform: scale(1.12) translate3d(-3%, 2%, 0); }
+  0%, 100% { transform: scale(1.05) translate3d(0, 0, 0); }
+  50% { transform: scale(1.16) translate3d(-4%, 3%, 0); }
 }
 
 @keyframes ov-world-haze {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.8; }
-  50% { transform: translate3d(5%, -4%, 0) scale(1.12); opacity: 1; }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.75; }
+  50% { transform: translate3d(6%, -5%, 0) scale(1.15); opacity: 1; }
 }
 
 @keyframes ov-world-land {
   0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(-4%, 3%, 0); }
+  50% { transform: translate3d(-5%, 4%, 0); }
 }
 
 @keyframes ov-world-grain {
@@ -3926,7 +3926,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 @keyframes ov-world-float {
   0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -12px, 0); }
+  50% { transform: translate3d(0, -14px, 0); }
 }
 
 @keyframes ov-world-product-in {
@@ -3938,6 +3938,11 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
   }
+}
+
+@keyframes ov-world-grain {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-4%, 3%, 0); }
 }
 
 @keyframes ov-world-float {
