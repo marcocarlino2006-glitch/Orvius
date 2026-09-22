@@ -69,13 +69,11 @@ export function Ring1CommandCenter() {
               loading={false}
             />
 
-            {(data?.shiftTimeline?.length ?? 0) > 0 ? (
-              <ProShiftTimeline
-                events={data?.shiftTimeline ?? []}
-                loading={false}
-                moneyEnabled={data?.business?.depositEnabled ?? false}
-              />
-            ) : null}
+            <ProShiftTimeline
+              events={data?.shiftTimeline ?? []}
+              loading={false}
+              moneyEnabled={data?.business?.depositEnabled ?? false}
+            />
           </>
         )}
       </div>
