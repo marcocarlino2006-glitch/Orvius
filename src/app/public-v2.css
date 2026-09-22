@@ -3557,3 +3557,88 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     font-size: 0.8125rem !important;
   }
 }
+
+/* Multi-B interior pages — Cursor claim + two CTAs, no redundant brand */
+.ov-public .shell-page-intro {
+  max-width: 42rem;
+}
+
+.ov-public .shell-page-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.ov-public .shell-page-actions .ov-btn {
+  min-height: 44px !important;
+  padding: 0 1.25rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.ov-public .shell-page-actions .ov-btn--solid {
+  background: #edecec !important;
+  color: #14120b !important;
+  border: 1px solid #edecec !important;
+}
+
+.ov-public .shell-page-actions .ov-btn--quiet {
+  background: transparent !important;
+  color: #edecec !important;
+  border: 1px solid color-mix(in srgb, #edecec 32%, transparent) !important;
+}
+
+.ov-public .tier1-page-title {
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.04em !important;
+  font-weight: 600 !important;
+  max-width: 18ch;
+}
+
+.ov-public .tier1-hero-compact {
+  padding-bottom: 64px !important;
+}
+
+.ov-public .mkt-resources-grid {
+  gap: 0 !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  border-top: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
+}
+
+.ov-public .mkt-resources-col {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 1.75rem 1.5rem 1.75rem 0 !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.ov-public .mkt-resources-col + .mkt-resources-col {
+  padding-left: 1.5rem;
+  border-left: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 55%, transparent);
+}
+
+.ov-public .mkt-resources-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  padding: 0.2rem 0;
+}
+
+@media (max-width: 900px) {
+  .ov-public .mkt-resources-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ov-public .mkt-resources-col + .mkt-resources-col {
+    padding-left: 0;
+    border-left: 0;
+  }
+}

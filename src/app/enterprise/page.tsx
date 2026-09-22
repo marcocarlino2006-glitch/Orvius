@@ -36,16 +36,29 @@ export default function EnterprisePage() {
             title="Build one standard before scaling every location."
             subline="For franchises and multi-shop operators ready to run one after-hours standard."
             description="Orvius proves the autonomous front desk one live location at a time. Multi-location admin isn’t self-serve yet — we set it up per footprint."
+            actions={
+              <>
+                <a
+                  href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop"
+                  className="ov-btn ov-btn--solid"
+                >
+                  Contact sales
+                </a>
+                <Link href="/pricing" className="ov-btn ov-btn--quiet">
+                  View pricing
+                </Link>
+              </>
+            }
           />
         </div>
       </section>
 
       <section className="tier1-story">
         <div className="editorial-wrap">
-          <ol className="mkt-laws mkt-laws--meta font-sans">
+          <ol className="mkt-laws mkt-laws--ruled font-sans">
             {pillars.map((c) => (
-              <li key={c.id} className="mkt-law">
-                <span className="mkt-law-id" aria-hidden>
+              <li key={c.id} className="mkt-law mkt-law--ruled">
+                <span className="mkt-law-index" aria-hidden>
                   {c.id}
                 </span>
                 <div className="mkt-law-copy">
@@ -72,11 +85,11 @@ export default function EnterprisePage() {
           <div className="tier1-actions">
             <a
               href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop"
-              className="ov-btn ov-btn--quiet"
+              className="ov-btn ov-btn--solid"
             >
               Contact sales
             </a>
-            <Link href="/pricing" className="ov-btn ov-btn--solid">
+            <Link href="/pricing" className="ov-btn ov-btn--quiet">
               View pricing
             </Link>
           </div>

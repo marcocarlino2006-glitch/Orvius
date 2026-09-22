@@ -80,27 +80,32 @@ export function MarketingShell({ children }: MarketingShellProps) {
 }
 
 export function ShellPageIntro({
-  label: _label,
+  label,
   title,
   subline,
   description,
   className = "",
+  actions,
 }: {
   label: string;
   title: string;
   subline?: string;
   description?: string;
   className?: string;
+  actions?: React.ReactNode;
 }) {
   return (
-    <BrandIntro
-      className={className}
-      brand
-      title={title}
-      subline={subline}
-      description={description}
-      align="left"
-    />
+    <div className={`shell-page-intro ${className}`.trim()}>
+      <BrandIntro
+        kicker={label}
+        title={title}
+        subline={subline}
+        description={description}
+        align="left"
+        brand={false}
+      />
+      {actions ? <div className="tier1-actions shell-page-actions">{actions}</div> : null}
+    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { company } from "@/lib/company";
+import { demoLineHref } from "@/lib/demo-line";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -36,16 +37,26 @@ export default function ProductPage() {
             title="One system for every call, customer, and job."
             subline="The front desk and the operational record stay connected."
             description="Orvius answers after-hours calls, captures the request, proposes an open window, alerts the owner, and keeps the resulting work on one record."
+            actions={
+              <>
+                <a href={demoLineHref()} className="ov-btn ov-btn--solid">
+                  Call the live line
+                </a>
+                <Link href="/pilot" className="ov-btn ov-btn--quiet">
+                  Request a demo
+                </Link>
+              </>
+            }
           />
         </div>
       </section>
 
       <section className="tier1-story">
         <div className="editorial-wrap">
-          <ol className="mkt-laws mkt-laws--meta font-sans">
+          <ol className="mkt-laws mkt-laws--ruled font-sans">
             {capabilities.map((c) => (
-              <li key={c.id} className="mkt-law">
-                <span className="mkt-law-id" aria-hidden>
+              <li key={c.id} className="mkt-law mkt-law--ruled">
+                <span className="mkt-law-index" aria-hidden>
                   {c.id}
                 </span>
                 <div className="mkt-law-copy">
@@ -69,10 +80,10 @@ export default function ProductPage() {
             </p>
           </div>
           <div className="tier1-actions">
-            <a href="tel:+18446439170" className="ov-btn ov-btn--quiet">
+            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
               Call the live line
             </a>
-            <Link href="/pilot" className="ov-btn ov-btn--solid">
+            <Link href="/pilot" className="ov-btn ov-btn--quiet">
               Book a call audit
             </Link>
           </div>

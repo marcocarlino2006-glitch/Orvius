@@ -26,6 +26,16 @@ export default function PricingPage() {
             title={`From $${getLowestPaidPrice("year")} per month. Flat.`}
             subline="Monthly or annual — pick the plan that matches your shop."
             description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks."
+            actions={
+              <>
+                <a href={demoLineHref()} className="ov-btn ov-btn--solid">
+                  Call the live line
+                </a>
+                <Link href="/pilot" className="ov-btn ov-btn--quiet">
+                  Request a demo
+                </Link>
+              </>
+            }
           />
           {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
