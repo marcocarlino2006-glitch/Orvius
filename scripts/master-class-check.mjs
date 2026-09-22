@@ -207,12 +207,19 @@ try {
     );
   }
   if (
-    /night.?shift OS for HVAC/i.test(company) ||
-    /night-shift OS for HVAC/i.test(company)
+    /focused AI receptionist for HVAC/i.test(company) &&
+    /HVAC company will pay/i.test(company) &&
+    /completed and paid job/i.test(company)
   ) {
-    pass("Presence category", "Company copy owns night-shift OS category");
+    pass(
+      "Presence category",
+      "Company copy owns HVAC receptionist wedge — call→cash before OS",
+    );
   } else {
-    fail("Presence category", "company.ts must claim night-shift OS, not AI receptionist");
+    fail(
+      "Presence category",
+      "company.ts must lock HVAC AI receptionist wedge + one-shop call→cash proof",
+    );
   }
 } catch (e) {
   fail("Presence craft", e instanceof Error ? e.message : String(e));

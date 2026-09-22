@@ -1,8 +1,10 @@
 # Orvius
 
-**The night-shift OS for HVAC, plumbing, and electrical.**
+**Focused AI receptionist for HVAC — missed calls become booked, paid jobs.**
 
-Orvius answers after-hours and overflow calls, qualifies the job, alerts the owner, and compounds one shop record — Capture → Record → Command → Proof. Not an AI receptionist bolted onto a CRM.
+Beginning: answer · qualify · book · confirm · alert · escalate — for **one local HVAC shop** on overflow/after-hours. Prove call → cash before the OS.
+
+See `docs/WEDGE-MISSION.md`.
 
 ## Product wedge (master this before marketing)
 

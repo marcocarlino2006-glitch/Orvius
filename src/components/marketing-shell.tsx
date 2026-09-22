@@ -31,7 +31,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
               <OrviusLogo variant="void" size="sm" />
               <p className="mkt-footer-entity font-sans">Solution Development LLC</p>
               <p className="mkt-footer-tagline font-sans" data-i18n="footer.tagline">
-                The night-shift OS for HVAC, plumbing, and electrical.
+                Focused AI receptionist for HVAC — missed calls to paid jobs.
               </p>
             </div>
             <nav className="mkt-footer-col" aria-label="Product">

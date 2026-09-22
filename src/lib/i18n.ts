@@ -115,9 +115,9 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
 
   "footer.tagline": {
-    en: "The night-shift OS for HVAC, plumbing, and electrical.",
-    es: "El sistema del turno de noche para HVAC, plomería y electricidad.",
-    fr: "Le système d'exploitation de nuit pour le CVC, la plomberie et l'électricité.",
-    de: "Das Nachtschicht-Betriebssystem für HLK, Klempnerei und Elektrik.",
+    en: "Focused AI receptionist for HVAC — missed calls to paid jobs.",
+    es: "Recepcionista de IA para HVAC — de llamadas perdidas a trabajos pagados.",
+    fr: "Réceptionniste IA pour le CVC — des appels manqués aux travaux payés.",
+    de: "KI-Rezeption für HVAC — von verpassten Anrufen zu bezahlten Jobs.",
   },
 };
