@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9eb8d0"/>
+      <stop offset="35%" stop-color="#c5d3df"/>
+      <stop offset="62%" stop-color="#e8dfd0"/>
+      <stop offset="100%" stop-color="#cbb89a"/>
+    </linearGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dceaf4" stop-opacity="0.7"/>
+      <stop offset="50%" stop-color="#f0d9b0" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#a8c4b0" stop-opacity="0.45"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <ellipse cx="320" cy="280" rx="420" ry="220" fill="#cfe0ec" opacity="0.55" filter="url(#soft)"/>
+  <ellipse cx="1280" cy="240" rx="380" ry="200" fill="#f2d2a8" opacity="0.45" filter="url(#soft)"/>
+  <ellipse cx="800" cy="520" rx="560" ry="260" fill="#b7cbb8" opacity="0.4" filter="url(#soft)"/>
+  <path d="M-40 720 C 280 560, 520 640, 820 700 C 1120 760, 1380 620, 1680 700 L 1680 1040 L -40 1040 Z" fill="#5a6e5c" opacity="0.55" filter="url(#soft)"/>
+  <path d="M-40 820 C 360 700, 700 780, 1000 800 C 1300 820, 1500 740, 1680 800 L 1680 1040 L -40 1040 Z" fill="#3d4f42" opacity="0.7" filter="url(#soft)"/>
+  <rect width="1600" height="1000" fill="url(#haze)"/>
+</svg>
