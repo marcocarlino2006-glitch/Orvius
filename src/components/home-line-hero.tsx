@@ -87,6 +87,11 @@ export function HomeLineHero() {
         </div>
 
         <div className="ov-hero-stage">
+          <div className="ov-stage-world" aria-hidden>
+            <span className="ov-stage-world-sky" />
+            <span className="ov-stage-world-haze" />
+            <span className="ov-stage-world-land" />
+          </div>
           <HomeLiveCall />
         </div>
       </div>

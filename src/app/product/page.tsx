@@ -55,6 +55,11 @@ export default function ProductPage() {
             }
           />
           <div className="ov-product-stage">
+            <div className="ov-stage-world" aria-hidden>
+              <span className="ov-stage-world-sky" />
+              <span className="ov-stage-world-haze" />
+              <span className="ov-stage-world-land" />
+            </div>
             <HomeLiveCall />
           </div>
         </div>
