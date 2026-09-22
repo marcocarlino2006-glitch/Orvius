@@ -267,7 +267,7 @@ export function HomeLiveCall() {
             <i />
             <i />
           </span>
-          <span className="ov-console-menutitle">Orvius</span>
+          <span className="ov-console-menutitle">Orvius Night</span>
           <span className="ov-console-menuclock">2:14 AM</span>
         </div>
 
