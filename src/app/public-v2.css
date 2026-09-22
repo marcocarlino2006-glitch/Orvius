@@ -2586,14 +2586,15 @@ body {
 /* ── Build off baseline: Cursor restraint on the same format ── */
 
 .ov-public .ov-hero-inner--product {
-  grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr);
-  gap: clamp(24px, 3.2vw, 44px);
-  align-items: start;
+  grid-template-columns: minmax(0, 0.38fr) minmax(0, 1.62fr);
+  gap: clamp(20px, 2.6vw, 36px);
+  align-items: center;
+  width: min(100%, 1380px);
 }
 
 .ov-public .ov-hero--atmosphere {
-  min-height: min(86vh, 860px);
-  padding-block: clamp(92px, 10vh, 112px) clamp(72px, 7vh, 96px);
+  min-height: min(92vh, 920px);
+  padding: clamp(88px, 9vh, 108px) 4vw clamp(56px, 6vh, 80px);
 }
 
 .ov-public .ov-hero-brand {
@@ -2607,7 +2608,7 @@ body {
 }
 
 .ov-public .ov-hero-brand .orvius-logo-word {
-  font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
   letter-spacing: -0.085em;
   line-height: 1;
   color: var(--ov-headline);
@@ -2730,37 +2731,29 @@ body {
    Cursor demos a mock. Orvius ships a dialable night instrument. */
 
 .ov-public .ov-hero-title {
-  letter-spacing: -0.032em;
-  max-width: 13ch;
+  letter-spacing: -0.038em;
+  max-width: 11ch;
+  font-size: clamp(1.65rem, 2.8vw, 2.35rem);
+  line-height: 1.08;
 }
 
 .ov-public .ov-hero-lead {
-  margin-top: 0.85rem;
-  font-size: 0.94rem;
-  max-width: 26ch;
-  line-height: 1.45;
-  opacity: 0.72;
+  margin-top: 0.7rem;
+  font-size: 0.88rem;
+  max-width: 22ch;
+  line-height: 1.4;
+  opacity: 0.64;
 }
 
 .ov-public .ov-hero-liveline {
-  margin-top: 1.35rem;
-  gap: 0.5rem;
-  padding: 0.35rem 0;
-}
-
-.ov-public .ov-hero-liveline-label {
-  color: var(--ov-emerald-text, #6ee7a8) !important;
-  letter-spacing: 0.14em;
-  opacity: 1;
-}
-
-.ov-public .ov-hero-liveline-label [data-i18n] {
-  color: inherit;
+  margin-top: 1.15rem;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
 }
 
 .ov-public .ov-hero-liveline-number {
-  font-size: clamp(1.7rem, 3vw, 2.15rem);
-  letter-spacing: 0.04em;
+  font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  letter-spacing: 0.03em;
 }
 
 .ov-public .ov-hero-liveline-number::after {
@@ -2790,20 +2783,20 @@ body {
   );
 }
 
-/* Console instrument: slightly taller wire, quieter caption */
+/* Console instrument: product owns the fold — taller wire like Cursor canvas */
 .ov-public .ov-console-body {
-  min-height: 300px;
+  min-height: 380px;
 }
 
 .ov-public .ov-console-wire {
-  max-height: 300px;
+  max-height: 380px;
 }
 
 .ov-public .ov-console-caption {
-  margin-top: 0.95rem;
-  font-size: 0.72rem;
+  margin-top: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 0.02em;
-  opacity: 0.72;
+  opacity: 0.58;
 }
 
 .ov-public .ov-console-frame {
@@ -2955,21 +2948,22 @@ body {
 
 /* Brand → claim spacing: wordmark owns the first read */
 .ov-public .ov-hero-brand {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.55rem;
 }
 
 .ov-public .ov-hero-brand .orvius-logo-word {
   letter-spacing: -0.09em;
 }
 
-/* Cursor poster weight: copy column tight, stage owns width */
+/* Cursor poster weight: copy column thin, stage owns width */
 .ov-public .ov-hero-copy {
-  max-width: 22rem;
+  max-width: 17rem;
 }
 
 .ov-public .ov-hero-stage {
   width: 100%;
   justify-self: stretch;
+  min-width: 0;
 }
 
 .ov-public .ov-hero-inner--product .ov-console {
@@ -2977,12 +2971,23 @@ body {
 }
 
 .ov-public .ov-hero-sky-grid {
-  mask-image: radial-gradient(ellipse 82% 72% at 78% 44%, #000 22%, transparent 82%);
+  mask-image: radial-gradient(ellipse 88% 78% at 82% 46%, #000 24%, transparent 86%);
 }
 
 .ov-public .ov-hero-sky-bloom {
-  width: 78%;
-  right: -4%;
+  width: 82%;
+  right: -2%;
+}
+
+/* Restore liveline emerald after poster-weight rewrite */
+.ov-public .ov-hero-liveline-label {
+  color: var(--ov-emerald-text, #6ee7a8) !important;
+  letter-spacing: 0.14em;
+  opacity: 1;
+}
+
+.ov-public .ov-hero-liveline-label [data-i18n] {
+  color: inherit;
 }
 
 /* Ruled night rules: tighter index, quieter body */
