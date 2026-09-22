@@ -42,10 +42,12 @@ export function HomeLineHero() {
   return (
     <section className="ov-hero ov-hero--atmosphere" aria-labelledby="home-hero-heading">
       <div className="ov-hero-sky" aria-hidden>
+        <span className="ov-hero-sky-plane" />
         <span className="ov-hero-sky-bloom" />
         <span className="ov-hero-sky-bloom-bay" />
         <span className="ov-hero-sky-grid" />
         <span className="ov-hero-sky-horizon" />
+        <span className="ov-hero-sky-grain" />
       </div>
       <div className="ov-hero-inner ov-hero-inner--product ov-hero-inner--poster">
         <div className="ov-hero-copy">

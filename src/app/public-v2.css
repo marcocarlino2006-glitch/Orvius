@@ -3642,3 +3642,132 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     border-left: 0;
   }
 }
+
+/* ── Night bay depth: product sits IN a world, not a void ──
+   Cursor uses a landscape plane. Orvius uses a cool night bay
+   field + floor horizon so the console floats with measurable depth. */
+
+.ov-public .ov-hero--atmosphere {
+  background:
+    radial-gradient(ellipse 90% 70% at 72% 42%, #161410 0%, transparent 58%),
+    radial-gradient(ellipse 70% 50% at 18% 20%, #12151a 0%, transparent 55%),
+    linear-gradient(180deg, #0c0e12 0%, #14120b 48%, #0a0907 100%) !important;
+}
+
+.ov-public .ov-hero-sky-plane {
+  position: absolute;
+  left: 8%;
+  right: -4%;
+  top: 12%;
+  bottom: 8%;
+  border-radius: 40% 28% 36% 22% / 32% 40% 28% 44%;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 62% 48%,
+      color-mix(in srgb, #5a6f88 18%, transparent) 0%,
+      color-mix(in srgb, #2a3340 10%, transparent) 42%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 40% 60%,
+      color-mix(in srgb, #c4a574 8%, transparent),
+      transparent 70%
+    );
+  filter: blur(2px);
+  opacity: 0.95;
+  animation: ov-sky-breathe 18s ease-in-out infinite;
+}
+
+.ov-public .ov-hero-sky-bloom {
+  top: -10%;
+  right: -2%;
+  width: 58%;
+  height: 110%;
+  background: radial-gradient(
+    circle at 55% 42%,
+    color-mix(in srgb, #c4a574 16%, transparent),
+    color-mix(in srgb, #7a8fa8 6%, transparent) 48%,
+    transparent 70%
+  ) !important;
+  opacity: 0.9;
+}
+
+.ov-public .ov-hero-sky-bloom-bay {
+  left: -10%;
+  bottom: -18%;
+  width: 55%;
+  height: 70%;
+  background: radial-gradient(
+    circle at 42% 55%,
+    color-mix(in srgb, #4a5f78 20%, transparent),
+    color-mix(in srgb, #c4a574 5%, transparent) 45%,
+    transparent 74%
+  ) !important;
+  opacity: 0.7 !important;
+}
+
+.ov-public .ov-hero-sky-grid {
+  opacity: 0.06 !important;
+  background-size: 80px 80px !important;
+  mask-image: radial-gradient(ellipse 55% 50% at 75% 48%, #000 10%, transparent 70%) !important;
+}
+
+.ov-public .ov-hero-sky-horizon {
+  height: 52% !important;
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #050608 78%, transparent) 0%,
+      color-mix(in srgb, #0a1018 35%, transparent) 28%,
+      transparent 72%
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #7a8fa8 9%, transparent) 0%,
+      transparent 38%
+    ) !important;
+}
+
+.ov-public .ov-hero-sky-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Console floats off the bay plane — measurable shadow like Cursor's product */
+.ov-public .ov-hero-inner--poster .ov-console-desk {
+  box-shadow:
+    0 48px 100px -36px rgb(0 0 0 / 0.88),
+    0 18px 40px -20px rgb(0 0 0 / 0.55),
+    0 0 0 1px color-mix(in srgb, #8aa0b8 10%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.06) !important;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-hero-sky-plane {
+    animation: none;
+  }
+}
+
+/* Interior marketing pages — same night depth, quieter */
+.ov-public.mkt-page--craft {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, #161410 0%, transparent 55%),
+    #14120b;
+}
+
+.ov-public .tier1-hero {
+  background:
+    radial-gradient(ellipse 70% 60% at 70% 30%, color-mix(in srgb, #5a6f88 8%, transparent), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 15% 80%, color-mix(in srgb, #c4a574 5%, transparent), transparent 55%),
+    var(--ov-paper) !important;
+}
