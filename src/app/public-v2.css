@@ -2996,16 +2996,24 @@ body {
   margin-inline: auto;
 }
 
-/* Nav: Call CTA — charcoal plate with emerald edge (ink is light on night paper) */
-.ov-public .mkt-nav-cta {
+/* Nav: Call CTA — charcoal plate with emerald edge (beats globals night invert) */
+.ov-public .mkt-nav--institution .mkt-nav-cta,
+.ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta,
+html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta,
+html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
   background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 18%, var(--ov-charcoal, #1b1913)) !important;
   border-color: color-mix(in srgb, var(--ov-emerald, #1f8a65) 42%, transparent) !important;
   color: var(--ov-night-text, #edecec) !important;
+  box-shadow: none !important;
 }
 
-.ov-public .mkt-nav-cta:hover {
+.ov-public .mkt-nav--institution .mkt-nav-cta:hover,
+.ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta:hover,
+html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
+html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta:hover {
   background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 28%, var(--ov-charcoal, #1b1913)) !important;
   border-color: color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 55%, transparent) !important;
+  color: var(--ov-night-text, #edecec) !important;
 }
 
 .ov-public .mkt-nav--elevated {
