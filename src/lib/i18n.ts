@@ -30,7 +30,7 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Anrufe außerhalb der Geschäftszeiten werden zu qualifizierten Aufträgen.",
   },
   "hero.lead": {
-    en: "Answers the night shift, proposes a window, texts the owner — no invented prices or arrival times.",
+    en: "Proposes a window and alerts the owner — no invented prices.",
     es: "Contesta el turno de noche, propone una franja, avisa al dueño — sin inventar precios ni horas de llegada.",
     fr: "Répond au service de nuit, propose un créneau, alerte le patron — sans inventer de prix ni d’heure d’arrivée.",
     de: "Beantwortet die Nachtschicht, schlägt ein Fenster vor, informiert den Inhaber — ohne Preise oder Ankunftszeiten zu erfinden.",

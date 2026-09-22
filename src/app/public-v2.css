@@ -2586,8 +2586,8 @@ body {
 /* ── Build off baseline: Cursor restraint on the same format ── */
 
 .ov-public .ov-hero-inner--product {
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
-  gap: clamp(32px, 4vw, 56px);
+  grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr);
+  gap: clamp(24px, 3.2vw, 44px);
 }
 
 .ov-public .ov-hero-brand {
@@ -2601,7 +2601,7 @@ body {
 }
 
 .ov-public .ov-hero-brand .orvius-logo-word {
-  font-size: clamp(2.2rem, 4.4vw, 3.1rem);
+  font-size: clamp(1.65rem, 3.2vw, 2.35rem);
   letter-spacing: -0.085em;
   line-height: 1;
   color: var(--ov-headline);
@@ -2729,15 +2729,15 @@ body {
 }
 
 .ov-public .ov-hero-lead {
-  margin-top: 1.15rem;
-  font-size: 1.02rem;
-  max-width: 34ch;
-  line-height: 1.55;
-  opacity: 0.78;
+  margin-top: 0.85rem;
+  font-size: 0.94rem;
+  max-width: 26ch;
+  line-height: 1.45;
+  opacity: 0.72;
 }
 
 .ov-public .ov-hero-liveline {
-  margin-top: 1.85rem;
+  margin-top: 1.35rem;
   gap: 0.5rem;
   padding: 0.35rem 0;
 }
@@ -2949,11 +2949,34 @@ body {
 
 /* Brand → claim spacing: wordmark owns the first read */
 .ov-public .ov-hero-brand {
-  margin: 0 0 1.05rem;
+  margin: 0 0 0.75rem;
 }
 
 .ov-public .ov-hero-brand .orvius-logo-word {
   letter-spacing: -0.09em;
+}
+
+/* Cursor poster weight: copy column tight, stage owns width */
+.ov-public .ov-hero-copy {
+  max-width: 22rem;
+}
+
+.ov-public .ov-hero-stage {
+  width: 100%;
+  justify-self: stretch;
+}
+
+.ov-public .ov-hero-inner--product .ov-console {
+  width: 100%;
+}
+
+.ov-public .ov-hero-sky-grid {
+  mask-image: radial-gradient(ellipse 82% 72% at 78% 44%, #000 22%, transparent 82%);
+}
+
+.ov-public .ov-hero-sky-bloom {
+  width: 78%;
+  right: -4%;
 }
 
 /* Ruled night rules: tighter index, quieter body */

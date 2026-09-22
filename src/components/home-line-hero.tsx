@@ -51,7 +51,7 @@ export function HomeLineHero() {
       <div className="ov-hero-inner ov-hero-inner--product">
         <div className="ov-hero-copy">
           <div className="ov-hero-brand" aria-label="Orvius">
-            <OrviusLogo variant="void" size="xl" className="ov-hero-brand-logo" />
+            <OrviusLogo variant="void" size="lg" className="ov-hero-brand-logo" />
           </div>
 
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
@@ -59,8 +59,7 @@ export function HomeLineHero() {
           </h1>
 
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            Answers the night shift, proposes a window, texts the owner — no
-            invented prices or arrival times.
+            Proposes a window and alerts the owner — no invented prices.
           </p>
 
           <a
