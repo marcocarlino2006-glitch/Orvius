@@ -31,7 +31,7 @@ export const company = {
   strategy: [
     "One HVAC shop first — overflow/after-hours pilot that pays.",
     "Prove call → cash: demand captured, completed work, money produced.",
-    "Repeat across HVAC, then add recovery/follow-up/estimates/memberships/analytics — only then dispatch, tech workflows, equipment, payments, OS.",
+    "Own context/workflow/data/transactions — use replaceable models; expand OS and trades only after the wedge compounds.",
   ] as const,
   /**
    * Confirm with counsel against formation docs and update before relying on
