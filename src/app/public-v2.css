@@ -3855,12 +3855,13 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   position: absolute;
   inset: -30% -22% 8%;
   background:
-    radial-gradient(ellipse 42% 28% at 22% 24%, rgba(255, 255, 255, 0.72), transparent 70%),
-    radial-gradient(ellipse 36% 24% at 78% 18%, rgba(255, 220, 150, 0.7), transparent 68%),
-    radial-gradient(ellipse 50% 34% at 55% 55%, rgba(180, 210, 160, 0.28), transparent 72%);
-  filter: blur(12px);
+    radial-gradient(ellipse 42% 28% at 22% 24%, rgba(255, 255, 255, 0.35), transparent 70%),
+    radial-gradient(ellipse 36% 24% at 78% 18%, rgba(255, 220, 150, 0.32), transparent 68%);
+  filter: blur(14px);
   animation: ov-world-haze 4s ease-in-out infinite;
   will-change: transform, opacity;
+  opacity: 0.55;
+  mix-blend-mode: soft-light;
 }
 
 .ov-public .ov-stage-world-land {
@@ -3868,12 +3869,13 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   left: -16%;
   right: -16%;
   bottom: -24%;
-  height: 46%;
+  height: 38%;
   background:
-    linear-gradient(180deg, transparent 0%, rgba(70, 95, 72, 0.22) 30%, rgba(28, 40, 32, 0.5) 100%);
-  filter: blur(3px);
+    linear-gradient(180deg, transparent 0%, rgba(28, 40, 32, 0.28) 100%);
+  filter: blur(2px);
   animation: ov-world-land 5.5s ease-in-out infinite;
   will-change: transform;
+  opacity: 0.7;
 }
 
 .ov-public .ov-stage-world::before {
