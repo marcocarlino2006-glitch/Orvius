@@ -36,9 +36,11 @@ export function MarketingShell({ children }: MarketingShellProps) {
             </div>
             <nav className="mkt-footer-col" aria-label="Product">
               <p className="mkt-footer-heading font-sans">Product</p>
-              <Link href="/">Home</Link>
+              <Link href="/product">Product</Link>
               <Link href="/pricing">Pricing</Link>
+              <Link href="/enterprise">Enterprise</Link>
               <Link href="/pilot">Call audit</Link>
+              <Link href="/resources">Resources</Link>
               <Link href="/signin">Log in</Link>
             </nav>
             <nav className="mkt-footer-col" aria-label="Company">
