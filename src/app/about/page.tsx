@@ -1,5 +1,6 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { company } from "@/lib/company";
+import { demoLineHref } from "@/lib/demo-line";
 import { workspaceAccessPublicClaim } from "@/lib/seats";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -15,10 +16,20 @@ export default function AboutPage() {
       <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap">
           <ShellPageIntro
-            label={company.productName}
+            label="About"
             title={company.tagline}
             subline={company.proofLine}
-            description={company.categoryClaim}
+            description={company.mission}
+            actions={
+              <>
+                <a href={demoLineHref()} className="ov-btn ov-btn--solid">
+                  Call the live line
+                </a>
+                <Link href="/pilot" className="ov-btn ov-btn--quiet">
+                  Request a demo
+                </Link>
+              </>
+            }
           />
         </div>
       </section>
@@ -26,19 +37,20 @@ export default function AboutPage() {
       <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
           <h2 className="tier1-section-title type-headline">
-            Missed and after-hours calls become qualified jobs — proposed, then confirmed.
+            Beginning: one HVAC shop, overflow and after-hours.
           </h2>
           <p className="tier1-section-lead font-sans">
-            Orvius answers when your crew cannot — after hours and overflow —
-            captures the request, proposes an open service window, texts the
-            customer to confirm, and alerts you. One shop record for the call,
-            the lead, and the job.
+            Orvius answers inbound calls, understands the problem, captures
+            address and contact, identifies urgency, checks the service area,
+            books, confirms, notifies the shop, and escalates when unsure. The
+            goal is a controlled pilot that turns missed calls into completed,
+            paid jobs — not the full OS on day one.
           </p>
           <ul className="tier1-strategy-list font-sans">
-            <li>Answers after-hours and overflow on your Orvius line</li>
-            <li>Captures name, phone, service, urgency, and address</li>
-            <li>Proposes a window and texts for confirmation</li>
-            <li>Alerts the owner and keeps one operational record</li>
+            <li>Answer · qualify · book · confirm · alert · escalate</li>
+            <li>Deploy first on overflow or after-hours for one local HVAC company</li>
+            <li>Charge a pilot and measure demand → completed work → money</li>
+            <li>Expand recovery, estimates, dispatch, and payments only after the wedge pays</li>
           </ul>
         </div>
       </section>
@@ -46,14 +58,11 @@ export default function AboutPage() {
       <section className="tier1-story tier1-story-muted">
         <div className="editorial-wrap max-w-3xl">
           <h2 className="tier1-section-title type-headline">
-            For {company.trades.join(", ")}.
+            For HVAC first. Then the trades.
           </h2>
           <p className="tier1-section-lead font-sans">
-            Built by {company.legalName}. We claim only what the line closes
-            today — capture, qualify, alert, book — and expand the shop record
-            when that loop is airtight.
-          </p>
-          <p className="tier1-section-lead font-sans">
+            Built by {company.legalName}. We use replaceable AI models and own
+            the workflow, data, and actions around them.{" "}
             {workspaceAccessPublicClaim()}
           </p>
         </div>
@@ -69,11 +78,11 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="tier1-actions">
-            <Link href="/pricing" className="ov-btn ov-btn--solid">
-              View pricing
-            </Link>
+            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
+              Call the live line
+            </a>
             <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Book a live audit
+              Request a demo
             </Link>
           </div>
         </div>
