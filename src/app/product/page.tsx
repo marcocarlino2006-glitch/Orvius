@@ -56,21 +56,7 @@ export default function ProductPage() {
             }
           />
           <div className="ov-product-stage">
-            <div className="ov-stage-world" aria-hidden>
-              <video
-                className="ov-stage-world-video"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                poster="/marketing/stage-world.svg"
-              >
-                <source src="/marketing/stage-world.mp4" type="video/mp4" />
-              </video>
-              <span className="ov-stage-world-haze" />
-              <span className="ov-stage-world-land" />
-            </div>
+            <StageWorld />
             <HomeLiveCall />
           </div>
         </div>

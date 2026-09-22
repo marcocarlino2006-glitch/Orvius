@@ -2434,31 +2434,37 @@ body {
   position: relative;
   flex: 1;
   display: flex;
-  align-items: center;
-  gap: 1.5px;
-  height: 34px;
+  align-items: flex-end;
+  gap: 1px;
+  height: 40px;
+  padding-block: 2px;
   cursor: pointer;
   touch-action: none;
 }
 
 .ov-public .ov-player-bar {
   flex: 1;
-  min-width: 1px;
-  border-radius: 9999px;
+  min-width: 1.5px;
+  max-width: 3px;
+  border-radius: 1px;
   background: #2b2923;
-  transition: background 120ms ease;
+  opacity: 0.55;
+  transition: background 120ms ease, opacity 120ms ease;
 }
 
 .ov-public .ov-player-bar.is-played.ov-player-bar--orvius {
   background: var(--ov-copper);
+  opacity: 1;
 }
 
 .ov-public .ov-player-bar.is-played.ov-player-bar--caller {
   background: #d7d6d5;
+  opacity: 0.92;
 }
 
 .ov-public .ov-player-bar.is-played {
   background: #4a4a4a;
+  opacity: 0.75;
 }
 
 .ov-public .ov-player-head {
@@ -3915,7 +3921,10 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   box-shadow:
     0 48px 110px -32px rgb(0 0 0 / 0.48),
     0 20px 44px -18px rgb(0 0 0 / 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.22) !important;
+    0 0 0 1px rgba(255, 255, 255, 0.22),
+    /* Warm spill into the world — console lives in the plate, not on a postcard */
+    0 0 80px -20px rgba(255, 210, 140, 0.28),
+    0 40px 90px -40px rgba(20, 28, 36, 0.55) !important;
   animation: ov-world-float 3.4s ease-in-out infinite;
   animation-delay: 0.1s;
   will-change: transform;
