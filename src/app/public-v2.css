@@ -2832,3 +2832,217 @@ body {
 .ov-public .ov-capture-row.is-set dd {
   color: #f2f1ed;
 }
+
+/* ── Detail craft II: beat Cursor in the instrument ──
+   Cursor ships a polished mock. Orvius ships night-truth chrome:
+   speaker color, capture settle, Live chip, bay floor, quiet close. */
+
+/* Wire: who owns the line is readable without reading the text */
+.ov-public .ov-wire-line--orvius .ov-wire-who {
+  color: color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 72%, #918f87);
+}
+
+.ov-public .ov-wire-line--caller .ov-wire-who {
+  color: #7a7870;
+}
+
+.ov-public .ov-wire-line.is-active .ov-wire-who {
+  color: #c8c6be;
+}
+
+.ov-public .ov-wire-line--orvius.is-active .ov-wire-who {
+  color: var(--ov-emerald-text, #6ee7a8);
+}
+
+/* Capture settle: emerald flash = truth landed (not copper marketing glow) */
+.ov-public .ov-capture-row {
+  border-radius: 5px;
+}
+
+.ov-public .ov-capture-row.is-set {
+  border-color: color-mix(in srgb, var(--ov-emerald, #10b981) 38%, transparent);
+  background: color-mix(in srgb, var(--ov-emerald, #10b981) 8%, #201e18);
+  animation: ov-capture-truth 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes ov-capture-truth {
+  0% {
+    border-color: var(--ov-emerald, #10b981);
+    background: color-mix(in srgb, var(--ov-emerald, #10b981) 22%, #201e18);
+    transform: translateX(3px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-capture-row.is-set {
+    animation: none;
+  }
+}
+
+/* Live chip: instrument plate, not SaaS pill */
+.ov-public .ov-console-live {
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.ov-public .ov-console-live i {
+  width: 6px;
+  height: 6px;
+}
+
+/* Rail: quieter pending, crisper active — stages as machine state */
+.ov-public .ov-rail-step {
+  opacity: 0.55;
+  letter-spacing: 0.1em;
+}
+
+.ov-public .ov-rail-step.is-active,
+.ov-public .ov-rail-step.is-done {
+  opacity: 1;
+}
+
+.ov-public .ov-rail-step.is-active i {
+  background: var(--ov-emerald, #10b981);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-emerald, #10b981) 22%, transparent);
+}
+
+/* Player toggle: hard instrument control */
+.ov-public .ov-player-toggle {
+  border-radius: 5px !important;
+  width: 26px;
+  height: 26px;
+}
+
+.ov-public .ov-player-bar {
+  border-radius: 1px;
+}
+
+/* Bay floor — cooler night under the stage, less SaaS wash */
+.ov-public .ov-hero-sky-horizon {
+  height: 46%;
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #0a1218 62%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #7a8fa8 7%, transparent) 0%,
+      transparent 32%
+    );
+}
+
+.ov-public .ov-hero-sky-grid {
+  opacity: 0.11;
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 68% 62% at 72% 42%, #000 18%, transparent 78%);
+}
+
+/* Brand → claim spacing: wordmark owns the first read */
+.ov-public .ov-hero-brand {
+  margin: 0 0 1.05rem;
+}
+
+.ov-public .ov-hero-brand .orvius-logo-word {
+  letter-spacing: -0.09em;
+}
+
+/* Ruled night rules: tighter index, quieter body */
+.ov-public .mkt-law-index {
+  opacity: 0.42;
+  font-size: 0.72rem;
+}
+
+.ov-public .mkt-law--ruled {
+  padding: 1.25rem 0;
+}
+
+.ov-public .mkt-law--ruled .mkt-law-body {
+  opacity: 0.74;
+  line-height: 1.55;
+}
+
+.ov-public .mkt-manifesto-kicker {
+  letter-spacing: 0.16em;
+  opacity: 0.62;
+}
+
+/* Close: dial path matches hero liveline emerald truth */
+.ov-public .mkt-close-line {
+  color: var(--ov-headline);
+  border-bottom-color: color-mix(in srgb, var(--ov-emerald, #10b981) 45%, transparent);
+  transition:
+    border-bottom-color 160ms ease,
+    color 160ms ease;
+}
+
+.ov-public .mkt-close-line:hover {
+  color: var(--ov-headline);
+  border-bottom-color: var(--ov-emerald, #10b981);
+}
+
+.ov-public .mkt-proof-section--quiet .mkt-proof-lead {
+  opacity: 0.76;
+  max-width: 38ch;
+  margin-inline: auto;
+}
+
+/* Nav: Call CTA whispers the same emerald as the liveline */
+.ov-public .mkt-nav-cta {
+  background: color-mix(in srgb, var(--ov-emerald, #10b981) 14%, var(--ov-ink, #14120b)) !important;
+  border-color: color-mix(in srgb, var(--ov-emerald, #10b981) 28%, transparent) !important;
+}
+
+.ov-public .mkt-nav-cta:hover {
+  background: color-mix(in srgb, var(--ov-emerald, #10b981) 22%, var(--ov-ink, #14120b)) !important;
+}
+
+.ov-public .mkt-nav--elevated {
+  border-bottom-color: color-mix(in srgb, var(--ov-rule, #2e2c26) 55%, transparent) !important;
+  backdrop-filter: blur(10px);
+}
+
+.ov-public .mkt-nav-login {
+  opacity: 0.72;
+  transition: opacity 140ms ease;
+}
+
+.ov-public .mkt-nav-login:hover {
+  opacity: 1;
+}
+
+/* Footer: recede — product already proved above */
+.ov-public .mkt-footer {
+  opacity: 0.92;
+}
+
+.ov-public .mkt-footer-tagline,
+.ov-public .mkt-footer-copy,
+.ov-public .mkt-footer-mark {
+  opacity: 0.78;
+}
+
+.ov-public .mkt-footer a {
+  opacity: 0.7;
+  transition: opacity 140ms ease;
+}
+
+.ov-public .mkt-footer a:hover {
+  opacity: 1;
+}
+
+/* Console desk: slightly deeper night plate behind the window */
+.ov-public .ov-console-desk {
+  box-shadow:
+    0 28px 64px -28px rgb(0 0 0 / 0.72),
+    inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.ov-public .ov-console-frame {
+  border-color: color-mix(in srgb, var(--ov-hairline) 80%, #5a6a78);
+}
