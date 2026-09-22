@@ -3515,3 +3515,45 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .ov-public .mkt-nav-contact {
   white-space: nowrap;
 }
+
+/* Multi-B header density — Cursor weight, five center links */
+.ov-public .mkt-nav-inner {
+  grid-template-columns: minmax(140px, auto) minmax(0, 1fr) minmax(280px, auto) !important;
+  gap: 1.25rem !important;
+  max-width: 1280px !important;
+  padding: 0 24px !important;
+}
+
+.ov-public .mkt-nav-links {
+  justify-content: center !important;
+  gap: 1.35rem !important;
+  flex-wrap: nowrap !important;
+}
+
+.ov-public .mkt-nav-links a {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  white-space: nowrap !important;
+  opacity: 0.9 !important;
+}
+
+.ov-public .mkt-nav-actions {
+  gap: 0.85rem !important;
+}
+
+.ov-public .mkt-nav-login,
+.ov-public .mkt-nav-contact {
+  font-size: 0.875rem !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1100px) {
+  .ov-public .mkt-nav-links {
+    gap: 1rem !important;
+  }
+
+  .ov-public .mkt-nav-links a {
+    font-size: 0.8125rem !important;
+  }
+}

@@ -296,12 +296,29 @@ try {
     );
   }
   const nav = read("src/components/premium-nav.tsx");
-  if (/Enterprise|nav\.enterprise|\/resources/.test(nav) && /href: "\/product"/.test(nav)) {
-    fail("Look nav", "Primary nav still mirrors Cursor mega-nav");
-  } else if (/\/pricing/.test(nav) && /\/pilot/.test(nav) && /\/about/.test(nav)) {
-    pass("Look nav", "Primary nav is Pricing · Audit · About");
+  const hasMultiB =
+    /href: "\/product"/.test(nav) &&
+    /href: "\/enterprise"/.test(nav) &&
+    /href: "\/pricing"/.test(nav) &&
+    /href: "\/pilot"/.test(nav) &&
+    /href: "\/resources"/.test(nav);
+  const isCursorClone =
+    /Models|nav\.models/.test(nav) &&
+    /href: "\/product"/.test(nav) &&
+    /nav\.enterprise/.test(nav) &&
+    /nav\.resources/.test(nav);
+  if (isCursorClone) {
+    fail("Look nav", "Primary nav mirrors Cursor labels verbatim (Models…)");
+  } else if (hasMultiB && /Audit|nav\.audit/.test(nav)) {
+    pass(
+      "Look nav",
+      "Multi-B header: Product · Enterprise · Pricing · Audit · Resources",
+    );
   } else {
-    fail("Look nav", "Primary nav must be trades-native (Pricing · Audit · About)");
+    fail(
+      "Look nav",
+      "Primary nav must be multi-B trades set (Product · Enterprise · Pricing · Audit · Resources)",
+    );
   }
   const outcomes = read("src/components/pro-command-outcomes.tsx");
   if (/exception requires|exceptions require/i.test(outcomes)) {

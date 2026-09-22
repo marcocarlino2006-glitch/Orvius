@@ -45,7 +45,7 @@ A multi-billion operation is not more dashboards. It is **the next truth is unav
 
 1. Hero diet on `/` — remove stats + showcase from the company page  
 2. Brand-level signal in the hero  
-3. Nav = Orvius (Pricing · Audit · About), not Cursor mega-nav  
+3. Nav = multi-B trades header (Product · Enterprise · Pricing · Audit · Resources) — Cursor weight, Orvius labels (Audit ≠ Models)  
 4. Command shows founder **next gate** when red  
 5. Founder closes master:all gates 1→9  
 6. CSS era consolidation (B6) — **globals under 8k**  
