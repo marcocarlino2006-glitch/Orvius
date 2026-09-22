@@ -429,7 +429,7 @@ export default function DashboardSettingsPage() {
         <details
           id="overflow-forward"
           className="pro-settings-secondary font-sans"
-          open={hubFocus === "capture"}
+          open
         >
           <summary>Call capture</summary>
           <div className="pro-settings-secondary-body">
@@ -449,7 +449,7 @@ export default function DashboardSettingsPage() {
         <details
           id="owner-alerts"
           className="pro-settings-secondary font-sans"
-          open={hubFocus === "alerts" || hubFocus === "resend"}
+          open
         >
           <summary>Owner alerts</summary>
           <div className="pro-settings-secondary-body">
@@ -550,7 +550,7 @@ export default function DashboardSettingsPage() {
         <details
           id="economics-baseline"
           className="pro-settings-secondary font-sans"
-          open={hubFocus === "baseline"}
+          open
         >
           <summary>Opening line + baseline</summary>
           <div className="pro-settings-secondary-body">
@@ -670,7 +670,7 @@ export default function DashboardSettingsPage() {
             className="pro-settings-secondary font-sans"
             open={Boolean(manusNext) && hubFocus == null}
           >
-            <summary>Manus post · next</summary>
+            <summary>Launch checklist · next</summary>
             <FounderManusNext tone="quiet" next={manusNext} />
           </details>
         ) : null}
@@ -679,7 +679,7 @@ export default function DashboardSettingsPage() {
           Billing's home is /dashboard/billing. Settings only points there —
           a second money panel on the setup hub is theater.
         */}
-        <details className="pro-settings-secondary font-sans">
+        <details className="pro-settings-secondary font-sans" open={hubFocus === "billing"}>
           <summary>Plan & billing</summary>
           <div className="pro-settings-secondary-body">
             <p className="account-settings-hint font-sans">

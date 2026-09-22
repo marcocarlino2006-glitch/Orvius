@@ -85,7 +85,7 @@ try {
     /Founder phone certification/.test(settings) &&
     /account\?\.founder/.test(settings) &&
     /founderCertJson/.test(settings) &&
-    /Manus post · next/.test(settings) &&
+    /(Manus post · next|Launch checklist · next)/.test(settings) &&
     /FounderManusNext/.test(settings) &&
     /hubFocus/.test(settings) &&
     /pro-settings-secondary/.test(settings) &&

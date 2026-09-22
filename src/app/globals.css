@@ -6387,44 +6387,50 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   }
 }
 
-/* Call → cash — instrument rows, not marketing cards */
+/* Call → cash — one pulse chain (Stripe-quiet), not a card grid */
 .pro-command-outcomes-question {
-  margin: 0 0 1.1rem;
-  max-width: 48ch;
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: -0.01em;
-  opacity: 0.78;
+  display: none;
 }
 
-.pro-command-cash-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  margin-bottom: 1.25rem;
+.pro-command-cash-grid,
+.pro-command-cash-card,
+.pro-command-cash-label,
+.pro-command-cash-value,
+.pro-command-cash-hint,
+.pro-command-flow {
+  display: none !important;
+}
+
+.pro-command-pulse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.35rem 0;
+  margin: 0 0 1rem;
+  padding: 0.85rem 0 0;
+  list-style: none;
   border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.pro-command-cash-card {
-  padding: 0.9rem 1rem 0.95rem 0;
-  border: 0;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
-  border-radius: 0;
-  background: transparent;
+.pro-command-pulse-step {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
 }
 
-.pro-command-cash-card:nth-child(3n + 2),
-.pro-command-cash-card:nth-child(3n) {
-  padding-left: 1rem;
-  border-left: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+.pro-command-pulse-sep {
+  display: inline-flex;
+  align-items: center;
+  margin: 1.55rem 0.55rem 0;
+  opacity: 0.4;
+  font-size: 0.75rem;
 }
 
-.pro-command-cash-card:nth-child(3n) {
-  padding-right: 0;
+.pro-command-pulse-body {
+  min-width: 4.5rem;
 }
 
-.pro-command-cash-label {
+.pro-command-pulse-label {
   margin: 0;
   font-size: 0.6875rem;
   letter-spacing: 0.04em;
@@ -6433,24 +6439,48 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   opacity: 0.62;
 }
 
-.pro-command-cash-value {
-  margin: 0.35rem 0 0;
+.pro-command-pulse-value {
+  margin: 0.3rem 0 0;
   font-size: 1.5rem;
   font-weight: 400;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
+  line-height: 1.1;
 }
 
-.pro-command-cash-hint {
-  margin: 0.3rem 0 0;
-  font-size: 0.6875rem;
+.pro-command-pulse-hint {
+  margin: 0.25rem 0 0;
+  max-width: 12rem;
+  font-size: 0.625rem;
   line-height: 1.35;
   font-weight: 400;
   opacity: 0.55;
 }
 
+.pro-command-pulse-meta {
+  margin: 0 0 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  opacity: 0.72;
+}
+
+.pro-command-pulse-meta strong {
+  font-weight: 500;
+  opacity: 1;
+}
+
 @media (max-width: 900px) {
-  .pro-command-cash-grid {
+  .pro-command-pulse {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem 1rem;
+  }
+
+  .pro-command-pulse-step {
+    display: block;
+  }
+
+  .pro-command-pulse-sep {
+    display: none;
   }
 }

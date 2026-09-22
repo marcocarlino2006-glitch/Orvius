@@ -10,9 +10,8 @@ type ProCommandOutcomesProps = {
 };
 
 /**
- * Call → cash pulse for the owner.
- * Main question: demand captured → completed work → money produced.
- * Dollars only when measured (avg ticket / payments) — never invented GP.
+ * Call → cash pulse — one story when the board is clear.
+ * Stripe-quiet: a single chain, not a marketing metric grid.
  */
 export function ProCommandOutcomes({
   outcomes,
@@ -21,43 +20,39 @@ export function ProCommandOutcomes({
 }: ProCommandOutcomesProps) {
   if (!loading && attentionCount > 0) return null;
 
-  const revenueInfluenced =
-    formatCents(outcomes?.capturedDemandEstimatedValueCents) ??
-    formatCents(outcomes?.collectedCents);
-  const unpaid = formatCents(outcomes?.openInvoiceCents) ?? "—";
+  const calls = loading ? "…" : String(outcomes?.calls ?? 0);
+  const leads = loading ? "…" : String(outcomes?.leads ?? 0);
+  const booked = loading ? "…" : String(outcomes?.jobsBooked ?? 0);
+  const afterHours = loading ? "…" : String(outcomes?.afterHoursBooked ?? 0);
   const collected = formatCents(outcomes?.collectedCents);
+  const influenced =
+    formatCents(outcomes?.capturedDemandEstimatedValueCents) ?? collected;
+  const moneyLabel = collected
+    ? "Collected"
+    : influenced
+      ? "Influenced"
+      : "Money";
+  const moneyValue = loading ? "…" : (collected ?? influenced ?? "—");
+  const moneyHint = loading
+    ? null
+    : collected
+      ? null
+      : influenced
+        ? "Estimated from avg ticket × captured jobs"
+        : "Set average ticket in Settings to estimate";
 
-  const cards = [
-    {
-      label: "Calls captured",
-      value: loading ? "…" : String(outcomes?.calls ?? 0),
-    },
-    {
-      label: "Qualified leads",
-      value: loading ? "…" : String(outcomes?.leads ?? 0),
-    },
-    {
-      label: "Appointments booked",
-      value: loading ? "…" : String(outcomes?.jobsBooked ?? 0),
-    },
-    {
-      label: "Jobs from captured demand",
-      value: loading ? "…" : String(outcomes?.capturedDemandJobs ?? 0),
-    },
-    {
-      label: "Revenue influenced",
-      value: loading ? "…" : (revenueInfluenced ?? "—"),
-      hint: !revenueInfluenced
-        ? "Set average ticket in Settings to estimate"
-        : collected
-          ? `Collected ${collected}`
-          : "Estimated from avg ticket × captured jobs",
-    },
-    {
-      label: "Unpaid invoices",
-      value: loading ? "…" : unpaid,
-    },
+  const steps = [
+    { label: "Calls", value: calls },
+    { label: "Leads", value: leads },
+    { label: "Booked", value: booked },
+    { label: "After-hours", value: afterHours },
+    { label: moneyLabel, value: moneyValue, hint: moneyHint },
   ] as const;
+
+  const bookingRate =
+    outcomes?.bookingRate != null
+      ? `${Math.round(outcomes.bookingRate * 100)}%`
+      : null;
 
   return (
     <section
@@ -69,46 +64,39 @@ export function ProCommandOutcomes({
         <span>Last {outcomes?.windowDays ?? 7} days</span>
       </header>
 
-      <p className="pro-command-outcomes-question font-sans">
-        How much demand did Orvius capture, how much became completed work, and
-        how much money did that work produce?
-      </p>
-
-      <div className="pro-command-cash-grid font-sans">
-        {cards.map((card) => (
-          <div key={card.label} className="pro-command-cash-card">
-            <p className="pro-command-cash-label">{card.label}</p>
-            <p className="pro-command-cash-value">{card.value}</p>
-            {"hint" in card && card.hint ? (
-              <p className="pro-command-cash-hint">{card.hint}</p>
+      <ol className="pro-command-pulse font-sans">
+        {steps.map((step, i) => (
+          <li key={step.label} className="pro-command-pulse-step">
+            {i > 0 ? (
+              <span className="pro-command-pulse-sep" aria-hidden>
+                →
+              </span>
             ) : null}
-          </div>
+            <div className="pro-command-pulse-body">
+              <p className="pro-command-pulse-label">{step.label}</p>
+              <p className="pro-command-pulse-value">{step.value}</p>
+              {"hint" in step && step.hint ? (
+                <p className="pro-command-pulse-hint">{step.hint}</p>
+              ) : null}
+            </div>
+          </li>
         ))}
-      </div>
+      </ol>
 
       {!loading && outcomes ? (
-        <dl className="pro-command-flow font-sans">
-          <div>
-            <dt>After-hours booked</dt>
-            <dd>{outcomes.afterHoursBooked}</dd>
-          </div>
-          <div>
-            <dt>Lead → book</dt>
-            <dd>
-              {outcomes.bookingRate != null
-                ? `${Math.round(outcomes.bookingRate * 100)}%`
-                : "—"}
-            </dd>
-          </div>
-          <div>
-            <dt>Open estimates</dt>
-            <dd>{formatCents(outcomes.openEstimateCents) ?? "—"}</dd>
-          </div>
-          <div>
-            <dt>Collected</dt>
-            <dd>{formatCents(outcomes.collectedCents) ?? "—"}</dd>
-          </div>
-        </dl>
+        <p className="pro-command-pulse-meta font-sans">
+          {bookingRate ? (
+            <>
+              Lead → book <strong>{bookingRate}</strong>
+              <span aria-hidden> · </span>
+            </>
+          ) : null}
+          Open invoices{" "}
+          <strong>{formatCents(outcomes.openInvoiceCents) ?? "—"}</strong>
+          <span aria-hidden> · </span>
+          Open estimates{" "}
+          <strong>{formatCents(outcomes.openEstimateCents) ?? "—"}</strong>
+        </p>
       ) : null}
 
       {!loading ? (
