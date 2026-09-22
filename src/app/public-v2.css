@@ -2597,6 +2597,55 @@ body {
   padding: clamp(88px, 9vh, 108px) 4vw clamp(56px, 6vh, 80px);
 }
 
+/* Cursor poster: claim band top, product canvas full-width below */
+.ov-public .ov-hero-inner--poster {
+  grid-template-columns: 1fr;
+  gap: clamp(1.75rem, 3.5vh, 2.75rem);
+  width: min(100%, 1180px);
+  align-items: start;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-copy {
+  max-width: 34rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-title {
+  max-width: 22ch;
+  font-size: clamp(1.85rem, 3.4vw, 2.75rem);
+  line-height: 1.06;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-lead {
+  max-width: 40ch;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline {
+  margin-top: 1.25rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-body {
+  min-height: 420px;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-wire {
+  max-height: 420px;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-caption {
+  text-align: center;
+  margin-top: 0.85rem;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-hero-inner--poster .ov-console-body {
+    min-height: 280px;
+  }
+
+  .ov-public .ov-hero-inner--poster .ov-console-wire {
+    max-height: 280px;
+  }
+}
+
 .ov-public .ov-hero-brand {
   display: flex;
   align-items: center;

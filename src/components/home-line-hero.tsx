@@ -36,8 +36,8 @@ function LiveLineDigits({ display }: { display: string }) {
 }
 
 /**
- * Same side-by-side format. Detail craft only — live line is the product CTA
- * Cursor can’t ship (a real night number), console is the instrument.
+ * Cursor silhouette on Orvius night: claim band top-left, product canvas
+ * full-width below. Brand + one claim + dialable line — console owns the fold.
  */
 export function HomeLineHero() {
   return (
@@ -48,7 +48,7 @@ export function HomeLineHero() {
         <span className="ov-hero-sky-grid" />
         <span className="ov-hero-sky-horizon" />
       </div>
-      <div className="ov-hero-inner ov-hero-inner--product">
+      <div className="ov-hero-inner ov-hero-inner--product ov-hero-inner--poster">
         <div className="ov-hero-copy">
           <div className="ov-hero-brand" aria-label="Orvius">
             <OrviusLogo variant="void" size="lg" className="ov-hero-brand-logo" />
