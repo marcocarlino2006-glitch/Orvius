@@ -2743,9 +2743,13 @@ body {
 }
 
 .ov-public .ov-hero-liveline-label {
-  color: var(--ov-emerald-text, #6ee7a8);
+  color: var(--ov-emerald-text, #6ee7a8) !important;
   letter-spacing: 0.14em;
-  opacity: 0.9;
+  opacity: 1;
+}
+
+.ov-public .ov-hero-liveline-label [data-i18n] {
+  color: inherit;
 }
 
 .ov-public .ov-hero-liveline-number {
@@ -2992,14 +2996,16 @@ body {
   margin-inline: auto;
 }
 
-/* Nav: Call CTA whispers the same emerald as the liveline */
+/* Nav: Call CTA — charcoal plate with emerald edge (ink is light on night paper) */
 .ov-public .mkt-nav-cta {
-  background: color-mix(in srgb, var(--ov-emerald, #10b981) 14%, var(--ov-ink, #14120b)) !important;
-  border-color: color-mix(in srgb, var(--ov-emerald, #10b981) 28%, transparent) !important;
+  background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 18%, var(--ov-charcoal, #1b1913)) !important;
+  border-color: color-mix(in srgb, var(--ov-emerald, #1f8a65) 42%, transparent) !important;
+  color: var(--ov-night-text, #edecec) !important;
 }
 
 .ov-public .mkt-nav-cta:hover {
-  background: color-mix(in srgb, var(--ov-emerald, #10b981) 22%, var(--ov-ink, #14120b)) !important;
+  background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 28%, var(--ov-charcoal, #1b1913)) !important;
+  border-color: color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 55%, transparent) !important;
 }
 
 .ov-public .mkt-nav--elevated {
