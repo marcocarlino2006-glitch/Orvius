@@ -2588,6 +2588,12 @@ body {
 .ov-public .ov-hero-inner--product {
   grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr);
   gap: clamp(24px, 3.2vw, 44px);
+  align-items: start;
+}
+
+.ov-public .ov-hero--atmosphere {
+  min-height: min(86vh, 860px);
+  padding-block: clamp(92px, 10vh, 112px) clamp(72px, 7vh, 96px);
 }
 
 .ov-public .ov-hero-brand {
