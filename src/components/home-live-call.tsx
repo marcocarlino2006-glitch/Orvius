@@ -91,6 +91,12 @@ const TIMELINE = SCRIPT.reduce<
 
 const DURATION = TIMELINE[TIMELINE.length - 1].end + SCRIPT[SCRIPT.length - 1].gap;
 
+/*
+  First paint must look used — Cursor never shows an empty product.
+  Open mid-call: service + urgency already captured, address line live.
+*/
+const START_AT = TIMELINE[3]?.start ?? 0;
+
 const BAR_SECONDS = 0.16;
 const BAR_COUNT = Math.round(DURATION / BAR_SECONDS);
 const SEEK_STEP = 2;
@@ -146,7 +152,7 @@ function stateAt(time: number) {
 
 export function HomeLiveCall() {
   const [reduced, setReduced] = useState(false);
-  const [time, setTime] = useState(0);
+  const [time, setTime] = useState(START_AT);
   const [playing, setPlaying] = useState(true);
   const [scrubbing, setScrubbing] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -175,7 +181,8 @@ export function HomeLiveCall() {
     const tick = () => {
       const next = from + (performance.now() - started) / 1000;
       if (next >= DURATION) {
-        setTime(0);
+        // Replay from the dense mid-call beat — never flash empty captures.
+        setTime(START_AT);
       } else {
         setTime(next);
       }
@@ -416,8 +423,7 @@ export function HomeLiveCall() {
       <p className="sr-only">{TEXT_ALTERNATIVE}</p>
 
       <figcaption className="ov-console-caption">
-        Live product — dial the number. Same intake Summit HVAC hears on the
-        night shift.
+        Same intake Summit HVAC hears after hours — dial the live line.
       </figcaption>
     </figure>
   );

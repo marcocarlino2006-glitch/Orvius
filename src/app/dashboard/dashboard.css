@@ -8725,50 +8725,70 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding: 1rem 0;
 }
 
-/* Call → cash owner cards */
+/* Call → cash — instrument rows, not marketing cards */
 .pro-command-outcomes-question {
-  margin: 0 0 1.25rem;
-  max-width: 44ch;
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  margin: 0 0 1.1rem;
+  max-width: 48ch;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
   color: var(--ov-muted, #9c9a92);
 }
 
 .pro-command-cash-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0;
   margin: 0 0 1.25rem;
+  border-top: 1px solid var(--ov-hairline, #2e2c26);
 }
 
 .pro-command-cash-card {
-  padding: 0.85rem 0.95rem;
-  border: 1px solid var(--ov-hairline, #2e2c26);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--ov-paper-raised, #1b1913) 80%, transparent);
+  padding: 0.9rem 1rem 0.95rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--ov-hairline, #2e2c26);
+  border-radius: 0;
+  background: transparent;
+}
+
+.pro-command-cash-card:nth-child(3n + 2),
+.pro-command-cash-card:nth-child(3n) {
+  padding-left: 1rem;
+}
+
+.pro-command-cash-card:nth-child(3n + 2) {
+  border-left: 1px solid var(--ov-hairline, #2e2c26);
+}
+
+.pro-command-cash-card:nth-child(3n) {
+  border-left: 1px solid var(--ov-hairline, #2e2c26);
+  padding-right: 0;
 }
 
 .pro-command-cash-label {
   margin: 0;
   font-size: 0.6875rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-weight: 400;
   color: var(--ov-muted, #9c9a92);
 }
 
 .pro-command-cash-value {
-  margin: 0.4rem 0 0;
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  margin: 0.35rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--ov-ink, #edecec);
 }
 
 .pro-command-cash-hint {
-  margin: 0.35rem 0 0;
+  margin: 0.3rem 0 0;
   font-size: 0.6875rem;
   line-height: 1.35;
+  font-weight: 400;
   color: var(--ov-muted, #9c9a92);
 }
 
