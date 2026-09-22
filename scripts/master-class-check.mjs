@@ -236,27 +236,42 @@ try {
     fail("Look hero diet", "Homepage missing core beats");
   }
   const hero = read("src/components/home-line-hero.tsx");
-  if (/ov-hero-brand/.test(hero) && /Orvius/.test(hero)) {
-    pass("Look brand signal", "Hero carries Orvius as a brand-level signal");
+  const premiumNav = read("src/components/premium-nav.tsx");
+  if (
+    /OrviusLogo/.test(premiumNav) &&
+    /ov-hero-title/.test(hero) &&
+    (/Call the live line/.test(hero) || /ov-hero-cta-primary/.test(hero))
+  ) {
+    pass(
+      "Look brand signal",
+      "Brand in nav · claim + dial CTA in hero (Cursor pattern)",
+    );
   } else {
-    fail("Look brand signal", "Hero must include ov-hero-brand Orvius");
+    fail(
+      "Look brand signal",
+      "Nav must carry OrviusLogo; hero must carry claim + Call CTA",
+    );
   }
   if (/ov-hero-eyebrow/.test(hero)) {
     fail(
       "Look hero diet",
-      "Hero eyebrow competes with brand — P1 is brand + one claim + live line + CTA",
+      "Hero eyebrow competes with claim — P1 is claim + two CTAs + product",
     );
   } else if (
-    /ov-hero-brand/.test(hero) &&
     /ov-hero-title/.test(hero) &&
-    /ov-hero-liveline/.test(hero)
+    /ov-hero-actions/.test(hero) &&
+    /ov-hero-liveline/.test(hero) &&
+    /Request a demo/.test(hero)
   ) {
     pass(
       "Look hero P1",
-      "Brand + claim + live line — no competing eyebrow category chrome",
+      "Claim + Call + Request a demo — Cursor two-link pattern, dialable proof",
     );
   } else {
-    fail("Look hero P1", "Hero must keep brand, title, and live line without eyebrow");
+    fail(
+      "Look hero P1",
+      "Hero must keep title, two CTAs (Call + Request a demo), and live line",
+    );
   }
   if (
     /ov-hero--atmosphere/.test(hero) &&

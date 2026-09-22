@@ -2664,7 +2664,7 @@ body {
 }
 
 .ov-public .ov-hero-actions {
-  display: none;
+  display: flex;
 }
 
 .ov-public .ov-hero-liveline {
@@ -3447,4 +3447,71 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public .ov-hero--atmosphere {
   padding-top: clamp(96px, 11vh, 120px);
+}
+
+
+/* Cursor two-link CTAs — solid Call + quiet Request a demo */
+.ov-public .ov-hero-inner--poster .ov-hero-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-primary,
+.ov-public .ov-hero-inner--poster .ov-hero-cta-secondary {
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border-radius: 9999px !important;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-primary {
+  background: #edecec !important;
+  color: #14120b !important;
+  border: 1px solid #edecec !important;
+  box-shadow: none !important;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-primary:hover {
+  background: #fff !important;
+  border-color: #fff !important;
+  transform: none;
+  box-shadow: none !important;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-secondary {
+  background: transparent !important;
+  color: #edecec !important;
+  border: 1px solid color-mix(in srgb, #edecec 32%, transparent) !important;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-secondary:hover {
+  border-color: color-mix(in srgb, #edecec 62%, transparent) !important;
+  background: color-mix(in srgb, #edecec 8%, transparent) !important;
+  transform: none;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline {
+  margin-top: 1.1rem;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.65rem;
+  opacity: 0.85;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline-number {
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-lead {
+  display: none;
+}
+
+.ov-public .mkt-nav-contact {
+  white-space: nowrap;
 }
