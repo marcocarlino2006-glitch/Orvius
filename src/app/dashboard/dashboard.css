@@ -8724,3 +8724,56 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .pro-settings-load-error {
   padding: 1rem 0;
 }
+
+/* Call → cash owner cards */
+.pro-command-outcomes-question {
+  margin: 0 0 1.25rem;
+  max-width: 44ch;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--ov-muted, #9c9a92);
+}
+
+.pro-command-cash-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+}
+
+.pro-command-cash-card {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--ov-hairline, #2e2c26);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ov-paper-raised, #1b1913) 80%, transparent);
+}
+
+.pro-command-cash-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ov-muted, #9c9a92);
+}
+
+.pro-command-cash-value {
+  margin: 0.4rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ov-ink, #edecec);
+}
+
+.pro-command-cash-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--ov-muted, #9c9a92);
+}
+
+@media (max-width: 900px) {
+  .pro-command-cash-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
