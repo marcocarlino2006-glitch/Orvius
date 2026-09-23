@@ -537,7 +537,7 @@ export default function DashboardSettingsPage() {
 
         <details className="pro-settings-secondary font-sans">
           <summary>Opening line + baseline</summary>
-          <div id="economics-baseline" className="pro-settings-secondary-body">
+          <div id="ai-receptionist" className="pro-settings-secondary-body">
             <label className="onboarding-field font-sans">
               <span className="onboarding-label">Opening line</span>
               <textarea
@@ -552,6 +552,7 @@ export default function DashboardSettingsPage() {
                 placeholder={`Thank you for calling ${account.business?.name ?? "your shop"}. How can I help you today?`}
               />
             </label>
+            <div id="economics-baseline">
             <label className="onboarding-field font-sans mt-4">
               <span className="onboarding-label">Average ticket ($)</span>
               <input
@@ -607,6 +608,7 @@ export default function DashboardSettingsPage() {
                   placeholder="8"
                 />
               </label>
+            </div>
             </div>
           </div>
         </details>
