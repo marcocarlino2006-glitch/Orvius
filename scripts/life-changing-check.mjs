@@ -18,6 +18,8 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { probeProdTelephonySync } from "./lib/prod-telephony.mjs";
+import { probeProdBillingSync } from "./lib/prod-billing.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -47,6 +49,9 @@ const env = { ...loadEnv(), ...process.env };
 for (const [k, v] of Object.entries(env)) {
   if (process.env[k] === undefined && typeof v === "string") process.env[k] = v;
 }
+
+const prodTelephony = probeProdTelephonySync();
+const prodBilling = probeProdBillingSync();
 
 function has(key) {
   return Boolean(String(process.env[key] ?? "").trim());
@@ -317,8 +322,13 @@ gate(
   "C",
   "twilio_or_vapi",
   "Live telephony secrets",
-  has("TWILIO_ACCOUNT_SID") || has("VAPI_API_KEY") || has("VAPI_PRIVATE_KEY"),
-  "Twilio or Vapi credentials present",
+  has("TWILIO_ACCOUNT_SID") ||
+    has("VAPI_API_KEY") ||
+    has("VAPI_PRIVATE_KEY") ||
+    prodTelephony.ok,
+  prodTelephony.ok && !(has("TWILIO_ACCOUNT_SID") || has("VAPI_API_KEY"))
+    ? `prod live${prodTelephony.phone ? ` on ${prodTelephony.phone}` : ""} (local .env empty)`
+    : "Twilio or Vapi credentials present",
   "founder",
 );
 
@@ -348,15 +358,20 @@ printLayer("C");
 section("D · Multi-b scale");
 
 const stripeOk =
-  has("STRIPE_SECRET_KEY") &&
-  (has("STRIPE_PRICE_ID_PRO") || has("STRIPE_PRICE_ID_LINE")) &&
-  has("STRIPE_WEBHOOK_SECRET");
+  (has("STRIPE_SECRET_KEY") &&
+    (has("STRIPE_PRICE_ID_PRO") || has("STRIPE_PRICE_ID_LINE")) &&
+    has("STRIPE_WEBHOOK_SECRET")) ||
+  prodBilling.ok;
 gate(
   "D",
   "stripe",
   "Stripe SaaS live (secret + price + webhook)",
   stripeOk,
-  stripeOk ? "billing keys present" : "billing:check blockers",
+  prodBilling.ok && !has("STRIPE_SECRET_KEY")
+    ? "prod configured (local .env empty)"
+    : stripeOk
+      ? "billing keys present"
+      : "billing:check blockers",
   "founder",
 );
 

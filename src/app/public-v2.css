@@ -347,8 +347,7 @@ body {
 /* Every public section shares one 1240px rail inside a 5vw gutter, so section
    content and the showcase panel's outer edge start on the same vertical line. */
 
-.ov-public .mkt-manifesto-kicker,
-.ov-public .mkt-proof-kicker {
+.ov-public .mkt-manifesto-kicker {
   margin: 0 0 1.25rem !important;
   color: var(--ov-accent-text) !important;
   font-family: var(--ov-font) !important;
@@ -358,7 +357,6 @@ body {
   text-transform: none !important;
 }
 
-.ov-public .mkt-trynow-cta,
 .ov-public .inst-btn-primary {
   min-height: 42px !important;
   padding: 0 1rem !important;
@@ -374,7 +372,6 @@ body {
   text-transform: none !important;
 }
 
-.ov-public .mkt-trynow-cta:hover,
 .ov-public .inst-btn-primary:hover {
   border-color: #111315 !important;
   background: #111315 !important;
@@ -387,7 +384,6 @@ body {
  * the page does. They re-declare the token set locally, so every rule inside
  * can keep reading --ov-* instead of branching on [data-theme].
  */
-.ov-public .mkt-laws--grid .mkt-law,
 .ov-public .ov-console-frame,
 .ov-public .mkt-proof-section,
 .ov-signin {
@@ -418,22 +414,12 @@ body {
 
 /* Editorial sections */
 
-.ov-public .mkt-manifesto,
-.ov-public .mkt-manifesto--meta {
+.ov-public .mkt-manifesto {
   padding: 118px 5vw !important;
   border: 0 !important;
   border-top: 1px solid var(--ov-line) !important;
   background: var(--ov-paper) !important;
   color: var(--ov-ink) !important;
-}
-
-.ov-public .mkt-manifesto-meta {
-  width: min(100%, 1240px) !important;
-  max-width: 1240px !important;
-  margin: 0 auto !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
-  gap: clamp(40px, 5vw, 64px) !important;
 }
 
 /*
@@ -442,10 +428,6 @@ body {
   column, where pinning has nothing to scroll against and instead lets the
   headline drift down over the cards. Unpin it.
 */
-.ov-public .mkt-manifesto-meta-lead {
-  position: static !important;
-  top: auto !important;
-}
 
 .ov-public .mkt-manifesto-title {
   max-width: 620px !important;
@@ -458,53 +440,8 @@ body {
   letter-spacing: -0.028em !important;
 }
 
-.ov-public .mkt-manifesto-aside {
-  max-width: 500px !important;
-  margin-top: 1.5rem !important;
-  color: var(--ov-muted) !important;
-  font-size: 0.9375rem !important;
-  line-height: 1.6 !important;
-}
-
 /* Night rules — three elevated surfaces rather than a ruled list. The grid sits
    under the lead copy at full width so the cards get room to be read as cards. */
-
-.ov-public .mkt-laws--grid {
-  margin: 0 !important;
-  padding: 0 !important;
-  list-style: none !important;
-  border: 0 !important;
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 1rem !important;
-}
-
-.ov-public .mkt-laws--grid .mkt-law {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 1.35rem !important;
-  padding: 1.5rem !important;
-  border: 1px solid var(--ov-hairline) !important;
-  border-radius: 16px !important;
-  background: #1c1a14 !important;
-  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.05) !important;
-  opacity: 0;
-  transform: translateY(12px);
-  animation: ov-law-rise 640ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  transition:
-    border-color 200ms ease,
-    background 200ms ease !important;
-}
-
-.ov-public .mkt-laws--grid .mkt-law:nth-child(1) {
-  animation-delay: 40ms;
-}
-.ov-public .mkt-laws--grid .mkt-law:nth-child(2) {
-  animation-delay: 140ms;
-}
-.ov-public .mkt-laws--grid .mkt-law:nth-child(3) {
-  animation-delay: 240ms;
-}
 
 @keyframes ov-law-rise {
   to {
@@ -513,59 +450,9 @@ body {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ov-public .mkt-laws--grid .mkt-law {
-    opacity: 1;
-    transform: none;
-    animation: none;
-  }
-}
-
-.ov-public .mkt-laws--grid .mkt-law:hover {
-  border-color: var(--ov-hairline-strong) !important;
-  background: #171717 !important;
-}
-
-.ov-public .mkt-law-head {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 0.75rem !important;
-}
-
-.ov-public .mkt-law-icon {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 34px !important;
-  height: 34px !important;
-  border: 1px solid var(--ov-hairline) !important;
-  border-radius: 10px !important;
-  background: rgb(255 255 255 / 0.04) !important;
-  color: var(--ov-copper) !important;
-}
-
-.ov-public .mkt-law-badge {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 0.35rem !important;
-  padding: 0.15rem 0.6rem !important;
-  border: 1px solid var(--ov-hairline) !important;
-  border-radius: 0.25rem !important;
-  background: rgb(255 255 255 / 0.04) !important;
-  color: #aaa8a0 !important;
-  font-family: var(--ov-mono) !important;
-  font-size: 0.625rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.14em !important;
-}
-
 /* The slash is decoration, but it is still read as structure between the two
    terms, and at #5e5c55 it sat at 2.51:1. One step up the dim ladder clears AA
    and stays plainly quieter than the #aaa8a0 terms it separates. */
-.ov-public .mkt-law-badge-sep {
-  color: #918f87 !important;
-}
 
 .ov-public .mkt-law-title {
   margin: 0 !important;
@@ -584,12 +471,6 @@ body {
   line-height: 1.6 !important;
 }
 
-@media (max-width: 900px) {
-  .ov-public .mkt-laws--grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
 /* Call proof: charcoal, never pure black. */
 
 .ov-public .mkt-proof-section {
@@ -597,18 +478,6 @@ body {
   border: 0 !important;
   background: var(--ov-charcoal) !important;
   color: var(--ov-night-text) !important;
-}
-
-.ov-public .mkt-proof-layout {
-  width: min(100%, 1240px) !important;
-  max-width: 1240px !important;
-  margin: 0 auto !important;
-  gap: clamp(48px, 8vw, 120px) !important;
-}
-
-.ov-public .mkt-proof-kicker,
-.ov-public .mkt-call-panel-kicker {
-  color: #e2a07b !important;
 }
 
 .ov-public .mkt-proof-title {
@@ -620,148 +489,19 @@ body {
   letter-spacing: -0.04em !important;
 }
 
-.ov-public .mkt-proof-lead,
-.ov-public .mkt-proof-note {
+.ov-public .mkt-proof-lead {
   color: #b8bcc0 !important;
   font-family: var(--ov-font) !important;
 }
 
-.ov-public .mkt-call-panel {
-  border: 1px solid #444a51 !important;
-  border-radius: 6px !important;
-  background: var(--ov-charcoal-raised) !important;
-  box-shadow: none !important;
-}
-
-.ov-public .mkt-call-panel-title,
-.ov-public .mkt-transcript-line {
-  color: var(--ov-night-text) !important;
-}
-
 /* The transcript inherits a white surface from the legacy skin, which leaves the
    Orvius lines invisible against it. It belongs on the panel's dark field. */
-.ov-public .mkt-transcript {
-  border: 1px solid #3b4147 !important;
-  border-radius: 5px !important;
-  background: #1b1f23 !important;
-}
-
-.ov-public .mkt-transcript-line {
-  border-color: #3b4147 !important;
-  font-size: 0.8125rem !important;
-}
-
-.ov-public .mkt-transcript-line span {
-  color: #8d9298 !important;
-  font-family: var(--ov-mono) !important;
-  font-size: 0.6875rem !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-}
-
-.ov-public .mkt-transcript-line-muted {
-  color: #aeb2b6 !important;
-}
 
 /* ── Operating standards banner ──
    Full-bleed rule-to-rule strip between the hero and the product proof. It sits
    a shade below the page canvas so it reads as a plate set into the page. */
 
 /* Close and footer */
-
-.ov-public .mkt-trynow {
-  position: relative !important;
-  padding: 126px 5vw 150px !important;
-  border: 0 !important;
-  border-top: 1px solid var(--ov-line) !important;
-  background: var(--ov-paper) !important;
-  overflow: clip !important;
-}
-
-.ov-public .ov-trynow-sky {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.ov-public .ov-trynow-sky-bloom {
-  position: absolute;
-  left: 50%;
-  top: 10%;
-  width: min(900px, 90vw);
-  height: 70%;
-  transform: translateX(-50%);
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--ov-copper) 14%, transparent),
-    transparent 68%
-  );
-}
-
-.ov-public .mkt-trynow-inner {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 1240px) !important;
-  max-width: 1240px !important;
-  margin: 0 auto !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
-}
-
-.ov-public .mkt-trynow-title {
-  max-width: 700px !important;
-  margin: 0 !important;
-  color: var(--ov-headline) !important;
-  font-family: var(--ov-font) !important;
-  font-size: clamp(2.5rem, 5vw, 4.2rem) !important;
-  font-weight: 600 !important;
-  line-height: 1.02 !important;
-  letter-spacing: -0.032em !important;
-}
-
-.ov-public .mkt-trynow-sub {
-  max-width: 56ch !important;
-  margin: 1.25rem 0 0 !important;
-  color: var(--ov-muted) !important;
-  font-family: var(--ov-font) !important;
-  font-size: 1rem !important;
-  line-height: 1.6 !important;
-}
-
-.ov-public .mkt-trynow-actions {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 1.25rem !important;
-  margin-top: 2.1rem !important;
-}
-
-.ov-public .mkt-trynow-call {
-  display: inline-block !important;
-  margin-top: 0 !important;
-  color: var(--ov-muted) !important;
-  font-size: 0.875rem !important;
-}
-
-.ov-public .mkt-trynow-call:hover {
-  color: var(--ov-headline) !important;
-}
-
-.ov-public .mkt-trynow-meta {
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.45rem !important;
-  margin: 1.6rem 0 0 !important;
-  color: var(--ov-muted) !important;
-  font-family: var(--ov-mono) !important;
-  font-size: 0.6875rem !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-}
 
 /* The bottom padding clears the fixed utility dock — see --ui-dock-reserve. */
 .ov-public .mkt-footer {
@@ -1493,9 +1233,6 @@ body {
  */
 
 .ov-public .mkt-manifesto-kicker,
-.ov-public .mkt-proof-kicker,
-.ov-public .mkt-law-id,
-.ov-public .mkt-trynow-call,
 .ov-public .mkt-footer-heading,
 .ov-public .tier1-eyebrow {
   font-family: var(--ov-mono) !important;
@@ -1509,7 +1246,6 @@ body {
 
 .ov-public .mkt-manifesto-title,
 .ov-public .mkt-proof-title,
-.ov-public .mkt-trynow-title,
 .ov-public .tier1-section-title,
 .ov-public .tier1-page-title {
   font-family: var(--ov-font) !important;
@@ -1518,7 +1254,6 @@ body {
 }
 
 .ov-public .mkt-law-title,
-.ov-public .mkt-call-panel-title,
 .ov-public .pro-panel-title {
   font-family: var(--ov-font) !important;
   font-weight: 600 !important;
@@ -1526,7 +1261,6 @@ body {
 
 /* Numbers, timestamps, and phone lines read as data, not prose. */
 
-.ov-public .mkt-transcript-line,
 .ov-public .tier1-plan-price,
 .ov-public .mkt-footer-entity {
   font-family: var(--ov-mono) !important;
@@ -1551,15 +1285,6 @@ body {
   .ov-public .mkt-nav-menu-toggle {
     display: grid !important;
   }
-
-  .ov-public .mkt-manifesto-meta,
-  .ov-public .mkt-proof-layout {
-    grid-template-columns: 1fr !important;
-  }
-
-  .ov-public .mkt-manifesto-meta {
-    gap: 60px !important;
-  }
 }
 
 @media (max-width: 720px) {
@@ -1574,7 +1299,6 @@ body {
 
   .ov-public .mkt-manifesto,
   .ov-public .mkt-proof-section,
-  .ov-public .mkt-trynow,
   .ov-public .tier1-story,
   .ov-public .tier1-close {
     padding: 76px 20px !important;
@@ -1797,17 +1521,6 @@ body {
   align-items: center;
 }
 
-.ov-public .ov-hero-brand {
-  margin: 0 0 0.85rem;
-  color: var(--ov-headline);
-  font-family: var(--ov-font);
-  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  line-height: 1;
-}
-
 .ov-public .ov-hero-title {
   margin: 0;
   color: var(--ov-headline);
@@ -1817,17 +1530,6 @@ body {
   line-height: 1.02;
   letter-spacing: -0.032em;
   text-wrap: balance;
-}
-
-.ov-public .ov-hero-lead {
-  max-width: 44ch;
-  margin: 1.5rem 0 0;
-  color: var(--ov-muted);
-  font-family: var(--ov-font);
-  font-size: 1.0625rem;
-  line-height: 1.55;
-  letter-spacing: -0.012em;
-  font-weight: 400;
 }
 
 .ov-public .ov-hero-actions {
@@ -2663,23 +2365,6 @@ body {
   }
 }
 
-.ov-public .ov-hero-brand {
-  display: flex;
-  align-items: center;
-  margin: 0 0 1.2rem;
-  font-size: inherit;
-  letter-spacing: normal;
-  font-weight: inherit;
-  text-transform: none;
-}
-
-.ov-public .ov-hero-brand .orvius-logo-word {
-  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
-  letter-spacing: -0.085em;
-  line-height: 1;
-  color: var(--ov-headline);
-}
-
 .ov-public .ov-hero-actions {
   display: flex;
 }
@@ -2801,14 +2486,6 @@ body {
   max-width: 11ch;
   font-size: clamp(1.65rem, 2.8vw, 2.35rem);
   line-height: 1.08;
-}
-
-.ov-public .ov-hero-lead {
-  margin-top: 0.7rem;
-  font-size: 0.88rem;
-  max-width: 22ch;
-  line-height: 1.4;
-  opacity: 0.64;
 }
 
 .ov-public .ov-hero-liveline {
@@ -3013,13 +2690,6 @@ body {
 }
 
 /* Brand → claim spacing: wordmark owns the first read */
-.ov-public .ov-hero-brand {
-  margin: 0 0 0.55rem;
-}
-
-.ov-public .ov-hero-brand .orvius-logo-word {
-  letter-spacing: -0.09em;
-}
 
 /* Cursor poster weight: copy column thin, stage owns width */
 .ov-public .ov-hero-copy {
@@ -3187,19 +2857,9 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
   gap: clamp(1.35rem, 2.8vh, 2.1rem);
 }
 
-.ov-public .ov-hero-inner--poster .ov-hero-brand {
-  margin: 0 0 0.45rem;
-}
-
 .ov-public .ov-hero-inner--poster .ov-hero-title {
   font-size: clamp(1.7rem, 3vw, 2.45rem);
   max-width: 28ch;
-}
-
-.ov-public .ov-hero-inner--poster .ov-hero-lead {
-  margin-top: 0.55rem;
-  font-size: 0.9rem;
-  opacity: 0.62;
 }
 
 .ov-public .ov-hero-inner--poster .ov-hero-liveline {
@@ -3433,9 +3093,6 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 }
 
 /* Hero claim sizing — Cursor-weight headline */
-.ov-public .ov-hero-inner--poster .ov-hero-brand .orvius-logo-word {
-  font-size: clamp(1.5rem, 2.6vw, 1.95rem);
-}
 
 .ov-public .ov-hero-inner--poster .ov-hero-title {
   font-size: clamp(2.15rem, 4.2vw, 3.25rem);
@@ -3443,13 +3100,6 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1.02;
-}
-
-.ov-public .ov-hero-inner--poster .ov-hero-lead {
-  margin-top: 0.85rem;
-  font-size: 1.02rem;
-  max-width: 42ch;
-  opacity: 0.7;
 }
 
 .ov-public .ov-hero-inner--poster .ov-hero-liveline {
@@ -3524,10 +3174,6 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public .ov-hero-inner--poster .ov-hero-liveline-number {
   font-size: clamp(1.15rem, 1.8vw, 1.35rem);
-}
-
-.ov-public .ov-hero-inner--poster .ov-hero-lead {
-  display: none;
 }
 
 .ov-public .mkt-nav-contact {
@@ -3849,15 +3495,6 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 }
 
 /* Fallback sky plate if video fails / reduced data */
-.ov-public .ov-stage-world-sky {
-  position: absolute;
-  inset: -22%;
-  background:
-    url("/marketing/stage-world.svg") center / cover no-repeat,
-    linear-gradient(180deg, #6b9bc0 0%, #c5d6e4 38%, #e8dfc8 62%, #8fa88f 100%);
-  animation: ov-world-sky 5.2s ease-in-out infinite;
-  will-change: transform;
-}
 
 .ov-public .ov-stage-world-haze {
   position: absolute;
@@ -3986,7 +3623,6 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ov-public .ov-stage-world-sky,
   .ov-public .ov-stage-world-haze,
   .ov-public .ov-stage-world-land,
   .ov-public .ov-stage-world::before,

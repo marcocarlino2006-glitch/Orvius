@@ -4077,84 +4077,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
   text-transform: none;
 }
 
-.pro-command-outcomes-summary {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.55rem;
-  margin-top: clamp(1.3rem, 3vw, 2.15rem);
-}
-
-.pro-command-outcomes-figure {
-  margin: 0;
-  color: #f6f5f2;
-  font-size: clamp(3rem, 7vw, 5.75rem);
-  font-weight: 560;
-  letter-spacing: -0.07em;
-  line-height: 0.88;
-  font-variant-numeric: tabular-nums;
-}
-
-.pro-command-outcomes-summary h2 {
-  order: -1;
-  max-width: none;
-  margin: 0;
-  color: #bbb8b2;
-  font-size: 0.8125rem;
-  font-weight: 520;
-  letter-spacing: 0.01em;
-  line-height: 1.25;
-}
-
-.pro-command-outcomes-wait {
-  display: block;
-  width: min(22rem, 60vw);
-  height: 4.75rem;
-  border-radius: 0.45rem;
-  background: linear-gradient(90deg, #302e29, #3a3731, #302e29);
-  background-size: 200% 100%;
-  animation: pro-lead-wait 1.4s ease-in-out infinite;
-}
-
-.pro-command-flow {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: clamp(1.5rem, 3vw, 2.25rem) 0 0;
-  padding: 1rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.065);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
-}
-
-.pro-command-flow > div {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 0.28rem;
-  min-width: 0;
-  padding: 0 1rem;
-  border-left: 1px solid rgba(255, 255, 255, 0.065);
-}
-
-.pro-command-flow > div:first-child {
-  padding-left: 0;
-  border-left: 0;
-}
-
-.pro-command-flow dt {
-  overflow: hidden;
-  color: #a7a49f;
-  font-size: 0.75rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pro-command-flow dd {
-  margin: 0;
-  color: #e9e8e4;
-  font-size: 1.25rem;
-  font-weight: 620;
-  font-variant-numeric: tabular-nums;
-}
-
 .pro-command-outcomes-foot {
   margin-top: 1rem;
 }
@@ -4336,13 +4258,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 @media (max-width: 640px) {
-  .pro-command-outcomes-summary {
-    display: block;
-  }
-
-  .pro-command-outcomes-summary h2 {
-    margin-bottom: 0.55rem;
-  }
 
   .pro-command-outcomes-foot {
     align-items: stretch;
@@ -4352,25 +4267,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
   .pro-command-outcomes-foot a.btn {
     width: 100%;
     justify-content: center;
-  }
-
-  .pro-command-flow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem 0;
-  }
-
-  .pro-command-flow > div:nth-child(3) {
-    padding-left: 0;
-    border-left: 0;
-  }
-
-  .pro-command-flow dt {
-    font-size: 0.8125rem;
-  }
-
-  .pro-command-flow > div {
-    padding-top: 0.2rem;
-    padding-bottom: 0.2rem;
   }
 
   .attention-queue-head {
@@ -8780,18 +8676,6 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 /* Call → cash — one pulse chain (Stripe-quiet), not a card grid */
-.pro-command-outcomes-question {
-  display: none;
-}
-
-.pro-command-cash-grid,
-.pro-command-cash-card,
-.pro-command-cash-label,
-.pro-command-cash-value,
-.pro-command-cash-hint,
-.pro-command-flow {
-  display: none !important;
-}
 
 .pro-command-pulse {
   display: flex;

@@ -601,10 +601,34 @@ const RELIABILITY_ENV = [
   "VAPI_API_KEY",
 ];
 const missingEnv = RELIABILITY_ENV.filter((name) => !process.env[name]?.trim());
-if (missingEnv.length) {
-  fail("Reliability config", `Missing ${missingEnv.join(", ")}`);
-} else {
+if (missingEnv.length === 0) {
   pass("Reliability config", "Twilio + Vapi credentials present");
+} else {
+  /*
+    Local agent .env is often empty while Vercel already answers. Fail closed on
+    local-only evidence would paint a false founder NEXT. Ask production health
+    before failing this gate.
+  */
+  let prodOk = false;
+  let prodDetail = "";
+  try {
+    const { probeProdTelephony } = await import("./lib/prod-telephony.mjs");
+    const prod = await probeProdTelephony();
+    prodOk = prod.ok;
+    prodDetail = prod.ok
+      ? `prod configured${prod.phone ? ` on ${prod.phone}` : ""} (local missing ${missingEnv.join(", ")})`
+      : prod.error || "prod not configured";
+  } catch (error) {
+    prodDetail = error instanceof Error ? error.message : "prod probe failed";
+  }
+  if (prodOk) {
+    pass("Reliability config", prodDetail);
+  } else {
+    fail(
+      "Reliability config",
+      `Missing ${missingEnv.join(", ")}; prod probe: ${prodDetail}`,
+    );
+  }
 }
 
 // The rest genuinely needs the app, since it is about runtime reachability.
