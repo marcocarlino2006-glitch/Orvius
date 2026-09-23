@@ -1,6 +1,7 @@
 import { createJobFromLead } from "@/lib/job";
-import { canAccessModule, getEffectivePlanId } from "@/lib/plan-features";
+import { getEffectivePlanId } from "@/lib/plan-features";
 import { prisma } from "@/lib/prisma";
+import { isInServiceArea } from "@/lib/service-area";
 
 /** Sort / capture priority — emergency and same-day surface first. */
 export function isPriorityUrgency(urgency?: string | null): boolean {
@@ -91,9 +92,9 @@ export function isLeadQualifiedForBooking(lead: {
 /**
  * Loop 1 capture book:
  * - Qualify first (phone + service/address)
- * - Pro/pilot/fleet: auto-book qualified leads
- * - Line: auto-book ONLY priority urgency (emergency/same-day) so the
- *   front door still closes the loop without full Jobs module upsell theater
+ * - Optional service-ZIP allowlist can reject out-of-area
+ * - Every entitled shop (Line / Pro / Fleet / pilot) auto-books qualified leads
+ * - Expired / locked billing → plan_blocked
  */
 export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult> {
   const lead = await prisma.lead.findUnique({
@@ -106,6 +107,7 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
           billingPlan: true,
           pilotEndsAt: true,
           createdAt: true,
+          serviceZipsJson: true,
         },
       },
     },
@@ -147,11 +149,9 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
   }
 
   const plan = getEffectivePlanId(lead.business);
-  const hasJobs = canAccessModule(plan, "jobs");
-  const priority = isPriorityUrgency(lead.urgency);
-
-  // Line closes capture for emergencies only; Pro+ books all qualified.
-  if (!hasJobs && !priority) {
+  // Life-changing wedge: Line books every qualified lead. Jobs module still
+  // gates Dispatch UI — not the front-door book.
+  if (plan === "expired") {
     return {
       jobId: null,
       created: false,
@@ -160,13 +160,20 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     };
   }
 
+  if (isInServiceArea(lead.address, lead.business.serviceZipsJson) === false) {
+    return {
+      jobId: null,
+      created: false,
+      qualified: false,
+      skipReason: "unqualified",
+    };
+  }
+
   let job;
   try {
     job = await createJobFromLead({
       leadId,
-      notes: hasJobs
-        ? "Auto-booked from inbound lead"
-        : "Auto-booked priority capture (Line)",
+      notes: "Auto-booked from inbound lead",
     });
   } catch (error) {
     if (

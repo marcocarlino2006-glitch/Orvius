@@ -9,6 +9,17 @@ import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { buildSettingsHub } from "@/lib/settings-hub";
 import type { ShopHealth } from "@/lib/shop-health";
+import {
+  parseHoursForm,
+  parseServicesForm,
+  parseZipsForm,
+  serializeHoursForm,
+  serializeServicesForm,
+  serializeZipsForm,
+  WEEKDAYS,
+  weekdayLabel,
+  type HoursForm,
+} from "@/lib/shop-hours-form";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -28,9 +39,14 @@ type AccountResponse = {
     lastWeeklyProofAt?: string | null;
     founderCertJson?: string | null;
     overflowForwardConfirmedAt?: string | null;
+    overflowProvedAt?: string | null;
+    forwardGuideSentAt?: string | null;
     captureMode?: CaptureMode | null;
     forwardCarrier?: CarrierId | null;
     lineVerifiedAt?: string | null;
+    hoursJson?: string | null;
+    servicesJson?: string | null;
+    serviceZipsJson?: string | null;
     billingStatus?: string;
     pilotEndsAt?: string | null;
   } | null;
@@ -96,6 +112,13 @@ export default function DashboardSettingsPage() {
   const [certSaving, setCertSaving] = useState(false);
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
+  const [forwardGuideSent, setForwardGuideSent] = useState(false);
+  const [overflowProved, setOverflowProved] = useState(false);
+  const [hoursForm, setHoursForm] = useState<HoursForm>(() =>
+    parseHoursForm(null),
+  );
+  const [servicesText, setServicesText] = useState("");
+  const [zipsText, setZipsText] = useState("");
   const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
   const [dirty, setDirty] = useState(false);
 
@@ -130,6 +153,11 @@ export default function DashboardSettingsPage() {
     );
     setCertChecks(parseCert(data.business?.founderCertJson));
     setOverflowForward(Boolean(data.business?.overflowForwardConfirmedAt));
+    setForwardGuideSent(Boolean(data.business?.forwardGuideSentAt));
+    setOverflowProved(Boolean(data.business?.overflowProvedAt));
+    setHoursForm(parseHoursForm(data.business?.hoursJson));
+    setServicesText(parseServicesForm(data.business?.servicesJson));
+    setZipsText(parseZipsForm(data.business?.serviceZipsJson));
     setDirty(false);
     setLoadState("ready");
   }
@@ -262,6 +290,7 @@ export default function DashboardSettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save");
       setOverflowForward(next);
+      setOverflowProved(next);
       setAccount((prev) =>
         prev && prev.business
           ? {
@@ -271,6 +300,7 @@ export default function DashboardSettingsPage() {
                 overflowForwardConfirmedAt: next
                   ? new Date().toISOString()
                   : null,
+                overflowProvedAt: next ? new Date().toISOString() : null,
               },
             }
           : prev,
@@ -280,6 +310,22 @@ export default function DashboardSettingsPage() {
     } finally {
       setOverflowSaving(false);
     }
+  }
+
+  function markHoursDirty() {
+    setDirty(true);
+    setSaved(false);
+  }
+
+  function updateDay(
+    day: (typeof WEEKDAYS)[number],
+    patch: Partial<HoursForm[(typeof WEEKDAYS)[number]]>,
+  ) {
+    setHoursForm((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], ...patch },
+    }));
+    markHoursDirty();
   }
 
   async function save(event: React.FormEvent) {
@@ -297,6 +343,9 @@ export default function DashboardSettingsPage() {
           ownerPhone: ownerPhone.trim(),
           ownerEmail: ownerEmail.trim() || undefined,
           greeting: greeting.trim(),
+          hoursJson: serializeHoursForm(hoursForm),
+          servicesJson: serializeServicesForm(servicesText),
+          serviceZipsJson: serializeZipsForm(zipsText),
           avgTicketCents: avgTicket.trim()
             ? Math.round(Number(avgTicket.replace(/[^0-9.]/g, "")) * 100)
             : null,
@@ -436,13 +485,109 @@ export default function DashboardSettingsPage() {
             <CaptureSetupPanel
               line={line}
               overflowConfirmed={overflowForward}
+              overflowProvedAt={overflowProved}
+              forwardGuideSent={forwardGuideSent}
               lineVerified={Boolean(account.business?.lineVerifiedAt)}
               saving={overflowSaving}
               initialMode={account.business?.captureMode ?? "forward"}
               initialCarrier={account.business?.forwardCarrier ?? "verizon"}
               onConfirmOverflow={(next) => saveOverflow(next)}
               onCapturePathChange={(next) => saveCapturePath(next)}
+              onForwardGuideSent={() => setForwardGuideSent(true)}
             />
+          </div>
+        </details>
+
+        <details
+          id="hours-services"
+          className="pro-settings-secondary font-sans"
+          open
+        >
+          <summary>Hours, services &amp; area</summary>
+          <div className="pro-settings-secondary-body">
+            <p className="account-settings-hint font-sans mb-4">
+              The night line uses these to know when you&apos;re open, what you
+              take, and which ZIPs to book. Empty ZIPs = no area filter.
+            </p>
+
+            <div className="shop-hours-grid">
+              {WEEKDAYS.map((day) => {
+                const entry = hoursForm[day];
+                return (
+                  <div key={day} className="shop-hours-row">
+                    <label className="shop-hours-day">
+                      <input
+                        type="checkbox"
+                        checked={!entry.closed}
+                        onChange={(e) =>
+                          updateDay(day, { closed: !e.target.checked })
+                        }
+                      />
+                      <span>{weekdayLabel(day)}</span>
+                    </label>
+                    <input
+                      type="time"
+                      className="onboarding-input shop-hours-time"
+                      value={entry.open}
+                      disabled={entry.closed}
+                      onChange={(e) => updateDay(day, { open: e.target.value })}
+                      aria-label={`${weekdayLabel(day)} open`}
+                    />
+                    <span className="shop-hours-sep" aria-hidden>
+                      –
+                    </span>
+                    <input
+                      type="time"
+                      className="onboarding-input shop-hours-time"
+                      value={entry.close}
+                      disabled={entry.closed}
+                      onChange={(e) =>
+                        updateDay(day, { close: e.target.value })
+                      }
+                      aria-label={`${weekdayLabel(day)} close`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            <label className="onboarding-field font-sans mt-5">
+              <span className="onboarding-label">Services (one per line)</span>
+              <textarea
+                value={servicesText}
+                onChange={(e) => {
+                  setServicesText(e.target.value);
+                  markHoursDirty();
+                }}
+                className="onboarding-textarea"
+                rows={4}
+                placeholder={"AC repair\nHeating repair\nMaintenance"}
+              />
+              <span className="onboarding-hint">
+                Written into the receptionist&apos;s service list — keep names
+                short.
+              </span>
+            </label>
+
+            <label className="onboarding-field font-sans mt-4">
+              <span className="onboarding-label">Service ZIPs</span>
+              <input
+                type="text"
+                value={zipsText}
+                onChange={(e) => {
+                  setZipsText(e.target.value);
+                  markHoursDirty();
+                }}
+                className="onboarding-input"
+                placeholder="33101, 33109, 33139"
+                inputMode="numeric"
+                autoComplete="off"
+              />
+              <span className="onboarding-hint">
+                Comma-separated. When set, out-of-area leads stay on the board
+                — not auto-booked.
+              </span>
+            </label>
           </div>
         </details>
 

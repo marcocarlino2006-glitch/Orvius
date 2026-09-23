@@ -46,6 +46,9 @@ const patchSchema = z.object({
     .enum(["verizon", "att", "tmobile", "other", "voip"])
     .nullable()
     .optional(),
+  hoursJson: z.string().max(4000).optional(),
+  servicesJson: z.string().max(4000).optional(),
+  serviceZipsJson: z.string().max(2000).optional(),
   depositEnabled: z.boolean().optional(),
   depositAmountCents: z
     .number()
@@ -112,8 +115,13 @@ export async function GET() {
         lastWeeklyProofAt: businessRecord.lastWeeklyProofAt,
         founderCertJson: businessRecord.founderCertJson,
         overflowForwardConfirmedAt: businessRecord.overflowForwardConfirmedAt,
+        overflowProvedAt: businessRecord.overflowProvedAt,
+        forwardGuideSentAt: businessRecord.forwardGuideSentAt,
         captureMode: businessRecord.captureMode ?? "forward",
         forwardCarrier: businessRecord.forwardCarrier ?? null,
+        hoursJson: businessRecord.hoursJson ?? "{}",
+        servicesJson: businessRecord.servicesJson ?? "[]",
+        serviceZipsJson: businessRecord.serviceZipsJson ?? "[]",
         depositEnabled: businessRecord.depositEnabled,
         depositAmountCents: businessRecord.depositAmountCents,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
@@ -217,6 +225,7 @@ export async function PATCH(request: Request) {
     }
 
     // Capture confirm is earned — never theater. Prove the line answers first.
+    // Forward mode also requires the setup guide was texted (overflowProvedAt trail).
     if (body.overflowForwardConfirmedAt === true && !existing.lineVerifiedAt) {
       return NextResponse.json(
         {
@@ -225,6 +234,18 @@ export async function PATCH(request: Request) {
         },
         { status: 400 },
       );
+    }
+    if (body.overflowForwardConfirmedAt === true) {
+      const mode = body.captureMode ?? existing.captureMode ?? "forward";
+      if (mode === "forward" && !existing.forwardGuideSentAt) {
+        return NextResponse.json(
+          {
+            error:
+              "Text yourself the forward steps first, then confirm capture.",
+          },
+          { status: 400 },
+        );
+      }
     }
 
     // Founder cell cert is internal dogfood — never writable by a shop owner.
@@ -269,15 +290,28 @@ export async function PATCH(request: Request) {
           ? { founderCertJson: body.founderCertJson }
           : {}),
         ...(body.overflowForwardConfirmedAt === true
-          ? { overflowForwardConfirmedAt: new Date() }
+          ? {
+              overflowForwardConfirmedAt: new Date(),
+              overflowProvedAt: new Date(),
+            }
           : body.overflowForwardConfirmedAt === false
-            ? { overflowForwardConfirmedAt: null }
+            ? {
+                overflowForwardConfirmedAt: null,
+                overflowProvedAt: null,
+              }
             : {}),
         ...(body.captureMode !== undefined
           ? { captureMode: body.captureMode }
           : {}),
         ...(body.forwardCarrier !== undefined
           ? { forwardCarrier: body.forwardCarrier }
+          : {}),
+        ...(body.hoursJson !== undefined ? { hoursJson: body.hoursJson } : {}),
+        ...(body.servicesJson !== undefined
+          ? { servicesJson: body.servicesJson }
+          : {}),
+        ...(body.serviceZipsJson !== undefined
+          ? { serviceZipsJson: body.serviceZipsJson }
           : {}),
         ...(body.depositEnabled !== undefined
           ? { depositEnabled: body.depositEnabled }
@@ -326,6 +360,11 @@ export async function PATCH(request: Request) {
         baselineJobsPerWeek: saved.baselineJobsPerWeek,
         founderCertJson: saved.founderCertJson,
         overflowForwardConfirmedAt: saved.overflowForwardConfirmedAt,
+        overflowProvedAt: saved.overflowProvedAt,
+        forwardGuideSentAt: saved.forwardGuideSentAt,
+        hoursJson: saved.hoursJson,
+        servicesJson: saved.servicesJson,
+        serviceZipsJson: saved.serviceZipsJson,
         twilioPhone: saved.twilioPhone,
         vapiPhoneNumber: saved.vapiPhoneNumber,
         depositEnabled: saved.depositEnabled,

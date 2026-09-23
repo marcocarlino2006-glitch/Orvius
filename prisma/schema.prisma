@@ -58,7 +58,16 @@ model Business {
   captureMode          String?  @default("forward")
   /** Carrier guide last used when captureMode is forward. */
   forwardCarrier       String?
+  /** When forward/publish steps were texted to the owner (overflow proof trail). */
+  forwardGuideSentAt   DateTime?
+  /**
+   * Overflow capture proved — line verified + owner confirmed after guide.
+   * Stronger than the self-attest checkbox alone.
+   */
+  overflowProvedAt     DateTime?
   lineVerifiedAt       DateTime?
+  /** ZIP allowlist JSON string[] — empty means not configured (no hard reject). */
+  serviceZipsJson      String   @default("[]")
   /** When set, owner SMS alerts are suppressed until START / cleared. */
   ownerSmsOptOutAt     DateTime?
   /** Shop avg ticket in cents — used for estimated pipeline value. */

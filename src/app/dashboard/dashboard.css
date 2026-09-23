@@ -786,6 +786,56 @@ a.pro-shift-event:hover .pro-shift-event-title {
   border: 0 !important;
 }
 
+.shop-hours-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.shop-hours-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) auto auto auto;
+  align-items: center;
+  gap: 0.45rem 0.55rem;
+}
+
+.shop-hours-day {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: inherit;
+}
+
+.shop-hours-time {
+  width: 7.5rem;
+  min-width: 0;
+  padding-block: 0.4rem;
+}
+
+.shop-hours-sep {
+  color: #a09f9e;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 520px) {
+  .shop-hours-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .shop-hours-day {
+    grid-column: 1 / -1;
+  }
+
+  .shop-hours-sep {
+    display: none;
+  }
+
+  .shop-hours-time {
+    width: 100%;
+  }
+}
+
 .pro-settings-form .pro-settings-savebar,
 .os-shell-night .pro-settings-form .pro-settings-savebar {
   position: sticky;

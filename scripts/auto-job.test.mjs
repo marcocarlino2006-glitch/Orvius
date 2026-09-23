@@ -123,20 +123,17 @@ test("a Pro shop books a qualified lead whatever the hurry", async () => {
   }
 });
 
-test("Line books the emergency and holds the rest", async () => {
-  /* Line buys the night shift, so it closes capture on a priority call and
-     stops short of the dispatch board on anything that can wait. */
+test("Line books every qualified lead — urgency does not gate the front door", async () => {
+  /* Life-changing wedge: Line answers + books. Dispatch UI stays Pro. */
   const shop = await makeShop({ billingStatus: "active", billingPlan: "line" });
   try {
     const urgent = await makeLead(shop.id, { urgency: "emergency" });
-    const urgentResult = await maybeAutoBookLead(urgent.id);
-    assert.equal(urgentResult.created, true);
+    assert.equal((await maybeAutoBookLead(urgent.id)).created, true);
 
     const later = await makeLead(shop.id, { urgency: "this-week" });
     const laterResult = await maybeAutoBookLead(later.id);
-    assert.equal(laterResult.created, false);
-    assert.equal(laterResult.qualified, true, "held, not rejected");
-    assert.equal(laterResult.skipReason, "plan_blocked");
+    assert.equal(laterResult.created, true);
+    assert.equal(laterResult.qualified, true);
   } finally {
     await dropShop(shop.id);
   }
@@ -204,6 +201,33 @@ test("booking the same lead twice returns the first job", async () => {
     assert.equal(second.created, false);
     assert.equal(second.skipReason, "already_booked");
     assert.equal(second.jobId, first.jobId, "one call, one job on the board");
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
+test("out-of-area ZIPs stay on the board when the owner set an allowlist", async () => {
+  const shop = await makeShop({
+    billingStatus: "active",
+    billingPlan: "pro",
+    serviceZipsJson: JSON.stringify(["33101", "33109"]),
+  });
+  try {
+    const outside = await makeLead(shop.id, {
+      urgency: "emergency",
+      address: "500 Brickell Ave, Miami FL 33131",
+    });
+    const blocked = await maybeAutoBookLead(outside.id);
+    assert.equal(blocked.created, false);
+    assert.equal(blocked.skipReason, "unqualified");
+
+    const inside = await makeLead(shop.id, {
+      urgency: "this-week",
+      address: "100 Biscayne Blvd, Miami FL 33101",
+    });
+    const booked = await maybeAutoBookLead(inside.id);
+    assert.equal(booked.created, true);
+    assert.ok(booked.jobId);
   } finally {
     await dropShop(shop.id);
   }
