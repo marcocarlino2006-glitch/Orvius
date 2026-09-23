@@ -3490,8 +3490,19 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   height: 112%;
   object-fit: cover;
   object-position: center;
-  transform: scale(1.04);
+  transform-origin: 50% 55%;
+  animation: ov-world-kenburns 18s ease-in-out infinite alternate;
   filter: saturate(1.08) contrast(1.04);
+  will-change: transform;
+}
+
+@keyframes ov-world-kenburns {
+  from {
+    transform: scale(1.06) translate3d(-1.2%, -0.6%, 0);
+  }
+  to {
+    transform: scale(1.14) translate3d(1.4%, 0.8%, 0);
+  }
 }
 
 /* Fallback sky plate if video fails / reduced data */
