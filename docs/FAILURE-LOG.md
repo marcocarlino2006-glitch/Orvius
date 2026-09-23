@@ -37,7 +37,7 @@ See also `docs/MULTI-BILLION-BATTLES.md` and `docs/WEDGE-MASTERY.md`.
 | 2026-09-04 | Proof ritual | Weekly proof not stamped / no stale UI | High | **Fixed** — `lastWeeklyProofAt` + Today stale banner |
 | 2026-09-04 | Sales cadence | Pipeline had no next-action dates | High | **Fixed** — Admin due today / overdue / 20-touch target |
 | 2026-09-04 | Multi-b status | No single failing scorecard / soft founder gates | Blocker | **Fixed in product** — `multi-b:check`, launch gates, cert persist, Stripe unblock |
-| 2026-09-04 | Legal | `governingLawState` placeholder | Medium | **Open — founder + counsel** set `ORVIUS_FORMATION_STATE` after counsel (never invent) |
+| 2026-09-04 | Legal | `governingLawState` placeholder | Medium | **Closed 2026-09-23** — counsel/founder: New York (`formation-state.ts`) |
 | 2026-09-23 | Founder close path | Remaining multi-b gates had no single ordered CLI | Medium | **Fixed** — `npm run founder:next` + formation env path + Admin purge-seeds |
 
 ## Severity

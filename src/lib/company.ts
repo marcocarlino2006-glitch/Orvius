@@ -43,13 +43,13 @@ export const company = {
   ] as const,
   /**
    * Confirm with counsel against formation docs before relying on arbitration
-   * / venue language. FOUNDATION GATE: set ORVIUS_FORMATION_STATE on Vercel
-   * (e.g. Delaware) after counsel — never invent it in git.
+   * / venue language. Counsel-confirmed 2026-09-23: New York.
+   * Override with ORVIUS_FORMATION_STATE on Vercel only if counsel revises.
    * See docs/MULTI-BILLION-BATTLES.md Battle 6.
    */
   governingLawState,
   jurisdictionNote: governingLawState,
-  /** null until counsel confirms via ORVIUS_FORMATION_STATE — do not invent. */
+  /** Counsel-confirmed via formation-state.ts — New York (2026-09-23). */
   formationStateConfirmed,
   trademarkNotice:
     "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",

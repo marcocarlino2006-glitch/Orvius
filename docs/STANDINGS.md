@@ -191,10 +191,12 @@ not UI.
 3. Confirm Summit weekly proof still current (or re-stamp on Command)
 4. Onboard first shop to **Connect** in Billing → payouts → take one real card $ to their bank
 5. Replace seed prospects → run `/admin/daily` for real outreach
-6. Counsel: formation state → set `ORVIUS_FORMATION_STATE` on Vercel (never invent in git)
+6. ~~Counsel: formation state~~ → **New York** (2026-09-23)
 7. Land one **external** named proof (not Summit self-reference)
 
-**Already closed on prod (do not re-work as NEXT):** Twilio+Vapi live, Stripe SaaS `configured:true` (self-serve still intentionally off), DNS/deploy, owner SMS flag. Agent-local empty `.env` is not a founder paste task — run `npm run prod:verify` · `npm run founder:next`.
+**Already closed on prod (do not re-work as NEXT):** Twilio+Vapi live, Stripe SaaS `configured:true` (self-serve still intentionally off), DNS/deploy, owner SMS flag, **formation New York**. Agent-local empty `.env` is not a founder paste task — run `npm run prod:verify` · `npm run founder:next`.
+
+**Also set on Vercel:** `ORVIUS_FORMATION_STATE=New York` so prod legal copy matches (or rely on the shipped default after this deploy).
 
 Only after 1–7: density (10 proving shops), then deepen rings. More Settings UI will not skip this list.
 
