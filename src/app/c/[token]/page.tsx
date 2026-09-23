@@ -147,37 +147,37 @@ export default function CustomerConfirmPage() {
       : null;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-6 py-16 font-sans">
+    <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-6 py-16 font-sans text-[color:var(--ui-text,#f4f1ea)]">
       {state.status === "loading" ? (
-        <p className="text-ash">Loading your appointment…</p>
+        <p className="text-[color:var(--ui-muted,#9a958c)]">
+          Loading your appointment…
+        </p>
       ) : null}
 
       {state.status === "error" ? (
         <>
-          <h1 className="text-2xl font-semibold text-void">Link not valid</h1>
-          <p className="text-ash">{state.message}</p>
+          <h1 className="text-2xl font-semibold">Link not valid</h1>
+          <p className="text-[color:var(--ui-muted,#9a958c)]">{state.message}</p>
         </>
       ) : null}
 
       {state.status === "choice" ? (
         <>
-          <p className="text-xs uppercase tracking-[0.14em] text-ash">
+          <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--ui-muted,#9a958c)]">
             {state.job.businessName}
           </p>
-          <h1 className="text-2xl font-semibold text-void">
-            Confirm your service window?
-          </h1>
-          <p className="text-ash">
+          <h1 className="text-2xl font-semibold">Confirm your service window?</h1>
+          <p className="text-[color:var(--ui-muted,#9a958c)]">
             {state.job.title}
             {when ? ` · ${when}` : null}
           </p>
-          <p className="text-sm text-ash">
+          <p className="text-sm text-[color:var(--ui-muted,#9a958c)]">
             This is a proposed window — not locked until you confirm.
           </p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <button
               type="button"
-              className="ov-btn ov-btn--solid"
+              className="rounded-md bg-[color:var(--ui-text,#f4f1ea)] px-4 py-2.5 text-sm font-medium text-[color:var(--ui-bg,#12110f)] disabled:opacity-50"
               disabled={busy}
               onClick={() => void act("confirm")}
             >
@@ -185,7 +185,7 @@ export default function CustomerConfirmPage() {
             </button>
             <button
               type="button"
-              className="ov-btn ov-btn--quiet"
+              className="rounded-md border border-[color:var(--ui-border,#3a3832)] px-4 py-2.5 text-sm font-medium disabled:opacity-50"
               disabled={busy}
               onClick={() => void act("reschedule_request")}
             >
@@ -193,7 +193,7 @@ export default function CustomerConfirmPage() {
             </button>
             <button
               type="button"
-              className="ov-btn ov-btn--quiet"
+              className="rounded-md border border-[color:var(--ui-border,#3a3832)] px-4 py-2.5 text-sm font-medium disabled:opacity-50"
               disabled={busy}
               onClick={() => void act("decline")}
             >
@@ -205,17 +205,17 @@ export default function CustomerConfirmPage() {
 
       {state.status === "done" && state.action === "confirm" ? (
         <>
-          <p className="text-xs uppercase tracking-[0.14em] text-ash">
+          <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--ui-muted,#9a958c)]">
             {state.job.businessName}
           </p>
-          <h1 className="text-2xl font-semibold text-void">
+          <h1 className="text-2xl font-semibold">
             {state.already ? "Already confirmed" : "You're confirmed"}
           </h1>
-          <p className="text-ash">
+          <p className="text-[color:var(--ui-muted,#9a958c)]">
             {state.job.title}
             {when ? ` · ${when}` : null}
           </p>
-          <p className="text-sm text-ash">
+          <p className="text-sm text-[color:var(--ui-muted,#9a958c)]">
             The shop has your confirmation. Keep this number handy if plans
             change.
           </p>
@@ -224,17 +224,17 @@ export default function CustomerConfirmPage() {
 
       {state.status === "done" && state.action === "decline" ? (
         <>
-          <p className="text-xs uppercase tracking-[0.14em] text-ash">
+          <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--ui-muted,#9a958c)]">
             {state.job.businessName}
           </p>
-          <h1 className="text-2xl font-semibold text-void">
+          <h1 className="text-2xl font-semibold">
             {state.already ? "Already declined" : "Window declined"}
           </h1>
-          <p className="text-ash">
+          <p className="text-[color:var(--ui-muted,#9a958c)]">
             {state.job.title}
             {when ? ` · ${when}` : null}
           </p>
-          <p className="text-sm text-ash">
+          <p className="text-sm text-[color:var(--ui-muted,#9a958c)]">
             We told the shop. Call them if you still need service.
           </p>
         </>
@@ -242,17 +242,17 @@ export default function CustomerConfirmPage() {
 
       {state.status === "done" && state.action === "reschedule_request" ? (
         <>
-          <p className="text-xs uppercase tracking-[0.14em] text-ash">
+          <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--ui-muted,#9a958c)]">
             {state.job.businessName}
           </p>
-          <h1 className="text-2xl font-semibold text-void">
+          <h1 className="text-2xl font-semibold">
             {state.already ? "Reschedule already requested" : "Shop will call you"}
           </h1>
-          <p className="text-ash">
+          <p className="text-[color:var(--ui-muted,#9a958c)]">
             {state.job.title}
             {when ? ` · was ${when}` : null}
           </p>
-          <p className="text-sm text-ash">
+          <p className="text-sm text-[color:var(--ui-muted,#9a958c)]">
             No new window was locked. The shop will call to pick a time that
             works.
           </p>
