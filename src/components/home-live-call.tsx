@@ -125,7 +125,7 @@ const BARS = Array.from({ length: BAR_COUNT }, (_, i) => {
 });
 
 /** Everything the player conveys, written out for assistive technology. */
-const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then alerts the owner. The customer confirms the window by text — Orvius never quotes a price or an arrival time.`;
+const TEXT_ALTERNATIVE = `Example HVAC workflow for Summit HVAC. Orvius answers an after-hours call, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then alerts the owner. The customer confirms the window by text — Orvius never quotes a price or an arrival time.`;
 
 function clock(seconds: number) {
   const whole = Math.max(0, Math.floor(seconds));
@@ -280,6 +280,10 @@ export function HomeLiveCall() {
 
         <div className="ov-console-frame">
           <header className="ov-console-head">
+            <span className="ov-console-example">Example · HVAC</span>
+            <span className="ov-console-sep" aria-hidden>
+              ·
+            </span>
             <span className="ov-console-shop">Summit HVAC</span>
             <span className="ov-console-sep" aria-hidden>
               ·
@@ -423,7 +427,7 @@ export function HomeLiveCall() {
       <p className="sr-only">{TEXT_ALTERNATIVE}</p>
 
       <figcaption className="ov-console-caption">
-        Same intake Summit HVAC hears after hours — dial the live line.
+        Example HVAC workflow — dial the live line to hear the same intake.
       </figcaption>
     </figure>
   );

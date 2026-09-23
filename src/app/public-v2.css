@@ -3653,3 +3653,156 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     animation: none !important;
   }
 }
+
+/* ── Trades operating-layer homepage ─────────────────────── */
+
+.ov-public .ov-hero-inner--poster .ov-hero-copy {
+  max-width: min(42rem, 100%);
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-title {
+  max-width: 22ch;
+}
+
+.ov-public .ov-hero-lead {
+  margin: 1rem 0 0;
+  max-width: 40rem;
+  color: color-mix(in srgb, #edecec 78%, transparent);
+  font-size: clamp(0.98rem, 1.35vw, 1.125rem);
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: -0.015em;
+  animation: ov-world-copy-in 780ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-primary {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 28px -16px rgba(0, 0, 0, 0.7) !important;
+}
+
+.ov-public .ov-console-example {
+  color: #d4a574;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.625rem;
+}
+
+.ov-public .mkt-operating-layer .mkt-manifesto-title {
+  max-width: 18ch;
+}
+
+.ov-public .mkt-service-loop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0;
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0.85rem 0 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.ov-public .mkt-service-loop-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ov-public .mkt-service-loop-rail {
+  width: 0.7rem;
+  height: 1px;
+  margin: 0 0.15rem 0 0.35rem;
+  background: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.ov-public .mkt-service-loop-label {
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  background: color-mix(in srgb, currentColor 4%, transparent);
+  color: inherit;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.ov-public .mkt-mission-bridge {
+  margin: 1.35rem 0 0;
+  max-width: 38rem;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: 1.0625rem;
+  font-weight: 450;
+  line-height: 1.5;
+  letter-spacing: -0.018em;
+}
+
+.ov-public .mkt-trade-examples {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+}
+
+.ov-public .mkt-trade-example {
+  padding: 1.15rem 1.15rem 1.25rem;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 3%, transparent);
+}
+
+.ov-public .mkt-trade-example-badge {
+  margin: 0 0 0.55rem;
+  color: color-mix(in srgb, currentColor 55%, transparent);
+  font-family: var(--ov-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  font-weight: 550;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ov-public .mkt-trade-example-trade {
+  color: inherit;
+  font-weight: 650;
+}
+
+.ov-public .mkt-trade-example-sep {
+  margin: 0 0.35rem;
+  opacity: 0.55;
+}
+
+.ov-public .mkt-trade-example-title {
+  margin: 0 0 0.4rem;
+  color: inherit;
+  font-size: 1.05rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.ov-public .mkt-trade-example-body {
+  margin: 0;
+  color: color-mix(in srgb, currentColor 68%, transparent);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .ov-public .mkt-trade-examples {
+    grid-template-columns: 1fr;
+  }
+
+  .ov-public .mkt-service-loop-label {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-hero-lead {
+    animation: none !important;
+  }
+}
+

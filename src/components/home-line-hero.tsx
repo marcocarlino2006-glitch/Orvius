@@ -35,9 +35,8 @@ function LiveLineDigits({ display }: { display: string }) {
 }
 
 /**
- * Cursor silhouette: claim + two CTAs, then full-width product canvas.
- * Brand lives in the nav — not restated above the headline.
- * Dialable live line stays as the proof Cursor can’t ship.
+ * Product canvas hero: one claim, one lead, two clear actions, live night-shift
+ * call as the HVAC example workflow — StageWorld stays behind the console.
  */
 export function HomeLineHero() {
   return (
@@ -53,8 +52,16 @@ export function HomeLineHero() {
       <div className="ov-hero-inner ov-hero-inner--product ov-hero-inner--poster">
         <div className="ov-hero-copy">
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
-            After-hours calls become qualified jobs.
+            After-hours service calls become qualified jobs.
           </h1>
+
+          <p className="ov-hero-lead font-sans" data-i18n="hero.lead">
+            Orvius answers missed and after-hours calls for HVAC, plumbing,
+            electrical, and other trades. It understands the request, captures
+            the customer&apos;s details, checks urgency and service area, books
+            or escalates the job, alerts the team, and tracks the opportunity
+            toward completed and paid work.
+          </p>
 
           <div className="ov-hero-actions">
             <a
@@ -70,18 +77,18 @@ export function HomeLineHero() {
               className="ov-btn ov-btn--quiet ov-hero-cta-secondary"
               data-i18n="hero.demo"
             >
-              Request a demo
+              Book a live call audit
             </Link>
           </div>
 
           <a
             href={demoLineHref()}
             className="ov-hero-liveline"
-            aria-label={`Dial ${DEMO_LINE_DISPLAY}`}
+            aria-label={`Dial the night shift live line ${DEMO_LINE_DISPLAY}`}
           >
             <span className="ov-hero-liveline-label">
               <span className="ov-hero-pulse" aria-hidden />
-              <span>Live line</span>
+              <span data-i18n="hero.liveline">Night shift · live line</span>
             </span>
             <LiveLineDigits display={DEMO_LINE_DISPLAY} />
           </a>

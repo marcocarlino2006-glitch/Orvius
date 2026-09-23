@@ -6,8 +6,8 @@ import { HomeCallStory } from "@/components/home-call-story";
 export const dynamic = "force-dynamic";
 
 /**
- * Same beats as baseline — try-now pile removed (Cursor: one proof path).
- * Hero → night rules → call story.
+ * Company page — Hero (claim + live HVAC example) → shared loop / trades →
+ * call story. Live line + call audit stay the only primary actions.
  */
 export default function HomePage() {
   return (

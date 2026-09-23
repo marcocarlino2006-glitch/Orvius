@@ -196,14 +196,21 @@ try {
     fail("Presence marketing", "live-call console / atmosphere missing");
   }
   if (
-    /Night rules/.test(statement) &&
-    /How the shop runs when you/.test(statement)
+    /How Orvius works/.test(statement) &&
+    /One loop for every essential service call/.test(statement) &&
+    /operating layer[\s\S]*trades that keep the world running/.test(statement) &&
+    /Booked or Escalated/.test(statement) &&
+    /Plumbing/.test(statement) &&
+    /Electrical/.test(statement)
   ) {
-    pass("Presence doctrine", "Shop-floor night rules — not first-principles cosplay");
+    pass(
+      "Presence doctrine",
+      "Shared service loop + trades operating-layer mission — not first-principles cosplay",
+    );
   } else {
     fail(
       "Presence doctrine",
-      "Statement must use night rules, not first-principles theater",
+      "Statement must show shared loop, trade examples, and operating-layer mission",
     );
   }
   if (
@@ -268,16 +275,18 @@ try {
     /ov-hero-title/.test(hero) &&
     /ov-hero-actions/.test(hero) &&
     /ov-hero-liveline/.test(hero) &&
-    /Request a demo/.test(hero)
+    /Call the live line/.test(hero) &&
+    (/Book a live call audit/.test(hero) || /Request a demo/.test(hero)) &&
+    /\/pilot/.test(hero)
   ) {
     pass(
       "Look hero P1",
-      "Claim + Call + Request a demo — Cursor two-link pattern, dialable proof",
+      "Claim + Call live line + call audit — dialable proof, obvious first action",
     );
   } else {
     fail(
       "Look hero P1",
-      "Hero must keep title, two CTAs (Call + Request a demo), and live line",
+      "Hero must keep title, Call the live line, call-audit CTA, and live line",
     );
   }
   if (
