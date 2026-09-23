@@ -3,11 +3,13 @@
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
+import { ShopSetupChecklistPanel } from "@/components/shop-setup-checklist-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { buildSettingsHub } from "@/lib/settings-hub";
+import { buildShopSetupChecklist } from "@/lib/shop-setup-checklist";
 import type { ShopHealth } from "@/lib/shop-health";
 import {
   parseHoursForm,
@@ -21,13 +23,16 @@ import {
   type HoursForm,
 } from "@/lib/shop-hours-form";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
-import { useEffect, useState } from "react";
+import { TRADES, type Trade } from "@/lib/trades";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type AccountResponse = {
   founder?: boolean;
   business: {
     name: string;
+    trade?: string | null;
+    address?: string | null;
     ownerPhone: string | null;
     ownerEmail: string | null;
     greeting: string | null;
@@ -93,6 +98,9 @@ export default function DashboardSettingsPage() {
     "loading",
   );
   const [account, setAccount] = useState<AccountResponse | null>(null);
+  const [shopName, setShopName] = useState("");
+  const [trade, setTrade] = useState<Trade>("HVAC");
+  const [shopAddress, setShopAddress] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const [greeting, setGreeting] = useState("");
@@ -133,6 +141,14 @@ export default function DashboardSettingsPage() {
     }
     const data = (await res.json()) as AccountResponse;
     setAccount(data);
+    setShopName(data.business?.name ?? "");
+    setTrade(
+      data.business?.trade === "Plumbing" ||
+        data.business?.trade === "Electrical"
+        ? data.business.trade
+        : "HVAC",
+    );
+    setShopAddress(data.business?.address ?? "");
     setOwnerPhone(data.business?.ownerPhone ?? "");
     setOwnerEmail(data.business?.ownerEmail ?? "");
     setGreeting(data.business?.greeting ?? "");
@@ -340,6 +356,9 @@ export default function DashboardSettingsPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: shopName.trim(),
+          trade,
+          address: shopAddress.trim() || null,
           ownerPhone: ownerPhone.trim(),
           ownerEmail: ownerEmail.trim() || undefined,
           greeting: greeting.trim(),
@@ -469,12 +488,102 @@ export default function DashboardSettingsPage() {
     certTotal: FOUNDER_CERT.length,
   };
   const hubFocus = buildSettingsHub(hubInput).next?.id ?? null;
+  const setupChecklist = useMemo(
+    () =>
+      buildShopSetupChecklist({
+        name: shopName,
+        trade,
+        address: shopAddress,
+        ownerPhone,
+        ownerEmail,
+        line: account.line ?? null,
+        lineVerified: Boolean(account.business?.lineVerifiedAt),
+        captureConfirmed: overflowForward,
+        hoursJson: serializeHoursForm(hoursForm),
+        servicesJson: serializeServicesForm(servicesText),
+        serviceZipsJson: serializeZipsForm(zipsText),
+      }),
+    [
+      shopName,
+      trade,
+      shopAddress,
+      ownerPhone,
+      ownerEmail,
+      account.line,
+      account.business?.lineVerifiedAt,
+      overflowForward,
+      hoursForm,
+      servicesText,
+      zipsText,
+    ],
+  );
 
   return (
-    <OsShell title="Settings" subtitle="One next move — then back to Command.">
+    <OsShell
+      title="Settings"
+      subtitle="One next move — then back to Command."
+    >
       <div className="pro-settings-page">
+        <ShopSetupChecklistPanel checklist={setupChecklist} />
         <SettingsLaunchGuide input={hubInput} />
         <form className="account-stack pro-settings-form" onSubmit={save}>
+        <details
+          id="shop-profile"
+          className="pro-settings-secondary font-sans"
+          open={!setupChecklist.steps.find((s) => s.id === "identity")?.done}
+        >
+          <summary>Shop profile</summary>
+          <div className="pro-settings-secondary-body">
+            <p className="account-settings-hint font-sans mb-4">
+              Trade drives receptionist language and emergency rules. Address
+              and name are what callers hear on the night line.
+            </p>
+            <label className="block mb-4">
+              <span className="label mb-2 block">Business name</span>
+              <input
+                className="onboarding-input"
+                value={shopName}
+                onChange={(e) => {
+                  setShopName(e.target.value);
+                  setDirty(true);
+                }}
+                required
+              />
+            </label>
+            <fieldset className="mb-4">
+              <legend className="label mb-2 block">Trade</legend>
+              <div className="onboarding-trade-grid">
+                {TRADES.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`onboarding-trade ${trade === item ? "is-active" : ""}`}
+                    onClick={() => {
+                      setTrade(item);
+                      setDirty(true);
+                    }}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <label className="block mb-2">
+              <span className="label mb-2 block">Shop address</span>
+              <input
+                className="onboarding-input"
+                value={shopAddress}
+                onChange={(e) => {
+                  setShopAddress(e.target.value);
+                  setDirty(true);
+                }}
+                placeholder="1842 Oak Street, Austin TX"
+                autoComplete="street-address"
+              />
+            </label>
+          </div>
+        </details>
+
         <details
           id="overflow-forward"
           className="pro-settings-secondary font-sans"

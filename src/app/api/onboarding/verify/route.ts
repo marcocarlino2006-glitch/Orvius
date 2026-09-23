@@ -3,11 +3,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
 
+/**
+ * Poll after the owner dials their new line.
+ * A completed call is proof — stamp lineVerifiedAt so setup and UI agree.
+ */
 export async function GET() {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
 
-  const business = authResult.business;
+  let business = authResult.business;
   const line = getShopLineForBusiness(business);
 
   const [completedCall, recentLead] = await Promise.all([
@@ -26,7 +30,19 @@ export async function GET() {
     }),
   ]);
 
-  const verified = Boolean(business.lineVerifiedAt || completedCall);
+  /*
+    Verify UI and getOwnerSetupStatus must share one predicate. If a completed
+    call exists but the stamp was never written (webhook race / partial path),
+    write it here so Command unlocks and “Line works” is not a lie.
+  */
+  if (completedCall && !business.lineVerifiedAt) {
+    business = await prisma.business.update({
+      where: { id: business.id },
+      data: { lineVerifiedAt: completedCall.createdAt },
+    });
+  }
+
+  const verified = Boolean(business.lineVerifiedAt);
 
   return NextResponse.json({
     verified,

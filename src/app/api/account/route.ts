@@ -33,6 +33,9 @@ import {
 import { z } from "zod";
 
 const patchSchema = z.object({
+  name: z.string().min(2).max(120).optional(),
+  trade: z.enum(["HVAC", "Plumbing", "Electrical"]).nullable().optional(),
+  address: z.string().max(280).nullable().optional(),
   ownerPhone: z.string().min(10).optional(),
   ownerEmail: z.string().email().optional(),
   greeting: z.string().max(280).optional(),
@@ -97,6 +100,8 @@ export async function GET() {
         id: businessRecord.id,
         name: businessRecord.name,
         slug: businessRecord.slug,
+        trade: businessRecord.trade,
+        address: businessRecord.address,
         ownerPhone: businessRecord.ownerPhone,
         ownerEmail: businessRecord.ownerEmail,
         twilioPhone: businessRecord.twilioPhone,
@@ -270,6 +275,11 @@ export async function PATCH(request: Request) {
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {
+        ...(body.name !== undefined ? { name: body.name.trim() } : {}),
+        ...(body.trade !== undefined ? { trade: body.trade } : {}),
+        ...(body.address !== undefined
+          ? { address: body.address?.trim() || null }
+          : {}),
         ...(body.ownerPhone !== undefined
           ? { ownerPhone: body.ownerPhone.trim() }
           : {}),
@@ -352,6 +362,8 @@ export async function PATCH(request: Request) {
       business: {
         id: saved.id,
         name: saved.name,
+        trade: saved.trade,
+        address: saved.address,
         ownerPhone: saved.ownerPhone,
         ownerEmail: saved.ownerEmail,
         greeting: saved.greeting,

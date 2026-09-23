@@ -59,8 +59,13 @@ export function deriveDemandSignal(input: {
 
 /** Trade prior for a shop, so its own vocabulary resolves inside its trade. */
 export function tradeForCapture(business: {
+  trade?: string | null;
   servicesJson?: string | null;
   name?: string | null;
 }) {
+  const stored = business.trade?.trim();
+  if (stored === "HVAC" || stored === "Plumbing" || stored === "Electrical") {
+    return stored;
+  }
   return inferTradeFromBusiness(business);
 }

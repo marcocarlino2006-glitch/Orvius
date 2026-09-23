@@ -63,7 +63,7 @@ export function OsShell({
         : "Answering"
       : onSettings
         ? "Set your line below"
-        : "Line not set";
+        : "Line not set — finish setup";
 
   useEffect(() => {
     setNavOpen(false);
@@ -109,8 +109,8 @@ export function OsShell({
           ) : (
             <>
               Line not set ·{" "}
-              <Link href="/dashboard/settings" className="os-sidebar-inline-link">
-                Settings
+              <Link href="/dashboard/onboarding" className="os-sidebar-inline-link">
+                Finish setup
               </Link>
             </>
           )}

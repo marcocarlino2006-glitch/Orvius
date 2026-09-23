@@ -29,7 +29,14 @@ export type PlanFeatureSet = {
   */
 };
 
-const LINE_MODULES: PlanModule[] = ["today", "inbox", "calls"];
+const LINE_MODULES: PlanModule[] = [
+  "today",
+  "inbox",
+  "calls",
+  "customers",
+  "jobs",
+  "ask",
+];
 const PRO_MODULES: PlanModule[] = [
   "today",
   "inbox",
@@ -42,8 +49,12 @@ const PRO_MODULES: PlanModule[] = [
 
 export const planFeatures: Record<PaidPlanId, PlanFeatureSet> = {
   line: {
+    /*
+      Wedge reliability: Line must book, assign the owner-tech, and Ask what
+      happened. Dispatch board stays Pro; Jobs still carries assign.
+    */
     modules: LINE_MODULES,
-    maxTechnicians: 0,
+    maxTechnicians: 1,
   },
   pro: {
     modules: PRO_MODULES,
