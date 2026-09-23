@@ -6672,8 +6672,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .pro-rail-status-critical {
-  background: color-mix(in srgb, #f4212e 20%, transparent);
-  color: #ff8a90;
+  background: color-mix(in srgb, #c4895a 22%, transparent);
+  color: #e8c49a;
 }
 
 .os-shell-night .pro-rail-rows {
