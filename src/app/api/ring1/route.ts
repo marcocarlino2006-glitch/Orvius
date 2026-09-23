@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { getAttentionQueue } from "@/lib/attention-queue";
 import { isPriorityUrgency } from "@/lib/auto-job";
 import { isAfterHours } from "@/lib/business";
+import { getCommandToday } from "@/lib/command-today";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { getDispatchBoard, listCrew } from "@/lib/field";
@@ -27,7 +28,7 @@ export async function GET() {
   const { business, email } = authResult;
   const founder = isFounderEmail(email);
 
-  const today = startOfToday();
+  const dayStart = startOfToday();
   const businessFilter = { businessId: business.id };
 
   const [
@@ -47,8 +48,8 @@ export async function GET() {
     attention,
     shiftTimeline,
   ] = await Promise.all([
-    prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
-    prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
+    prisma.call.count({ where: { ...businessFilter, createdAt: { gte: dayStart } } }),
+    prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: dayStart } } }),
     prisma.lead.count({ where: { ...businessFilter, status: "new" } }),
     prisma.call.count({ where: businessFilter }),
     prisma.lead.count({ where: businessFilter }),
@@ -97,6 +98,14 @@ export async function GET() {
       drainOwnerAlerts({ at: "ring1.health", businessId: business.id }),
     );
   }
+
+  const today = await getCommandToday({
+    businessId: business.id,
+    unresolvedCount: attention.length,
+  });
+  const alertsProven = shiftTimeline.some((event) =>
+    event.proves?.includes("alert"),
+  );
 
   const priorityLeads = priorityLeadsRaw
     .sort((a, b) => {
@@ -183,6 +192,10 @@ export async function GET() {
       leadBookingRate: outcomes.bookingRate,
       lastCallAt: lastCall?.createdAt.toISOString() ?? null,
       lastCaller: lastCall?.callerPhone ?? null,
+    },
+    today,
+    workflow: {
+      alertsProven,
     },
     outcomes,
     attention,

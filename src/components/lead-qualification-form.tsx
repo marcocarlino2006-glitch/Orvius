@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { DEMAND_CATEGORIES } from "@/lib/job-taxonomy";
+import type { Trade } from "@/lib/trades";
 
 type EditableLead = {
   name: string | null;
@@ -11,14 +13,21 @@ type EditableLead = {
   notes: string | null;
 };
 
+const HVAC_CATEGORIES = DEMAND_CATEGORIES.filter(
+  (c) => c.trade === "HVAC",
+);
+
 export function LeadQualificationForm({
   leadId,
   lead,
+  trade = "HVAC",
   onSaved,
   onDraftChange,
 }: {
   leadId: string;
   lead: EditableLead;
+  /** Wedge default is HVAC — taxonomy select when trade matches. */
+  trade?: Trade | null;
   onSaved: (booked: boolean) => void;
   onDraftChange?: (lead: {
     name: string;
@@ -39,6 +48,20 @@ export function LeadQualificationForm({
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const hvacMode = trade === "HVAC";
+  const matchedHvac = useMemo(() => {
+    if (!hvacMode) return null;
+    const current = values.serviceType.trim().toLowerCase();
+    return (
+      HVAC_CATEGORIES.find(
+        (c) =>
+          c.label.toLowerCase() === current ||
+          c.code === current ||
+          c.patterns.some((p) => current.includes(p.trim())),
+      ) ?? null
+    );
+  }, [hvacMode, values.serviceType]);
 
   function update<K extends keyof typeof values>(
     key: K,
@@ -104,15 +127,44 @@ export function LeadQualificationForm({
             onChange={(event) => update("phone", event.target.value)}
           />
         </label>
-        <label>
-          <span>Service needed</span>
-          <input
-            className="input"
-            required
-            value={values.serviceType}
-            onChange={(event) => update("serviceType", event.target.value)}
-          />
-        </label>
+        {hvacMode ? (
+          <label>
+            <span>HVAC problem</span>
+            <select
+              className="input"
+              required
+              value={matchedHvac?.label ?? ""}
+              onChange={(event) => {
+                const selected = HVAC_CATEGORIES.find(
+                  (c) => c.label === event.target.value,
+                );
+                update("serviceType", selected?.label ?? event.target.value);
+              }}
+            >
+              <option value="" disabled>
+                Select HVAC category
+              </option>
+              {HVAC_CATEGORIES.map((c) => (
+                <option key={c.code} value={c.label}>
+                  {c.label}
+                </option>
+              ))}
+              {!matchedHvac && values.serviceType ? (
+                <option value={values.serviceType}>{values.serviceType}</option>
+              ) : null}
+            </select>
+          </label>
+        ) : (
+          <label>
+            <span>Service needed</span>
+            <input
+              className="input"
+              required
+              value={values.serviceType}
+              onChange={(event) => update("serviceType", event.target.value)}
+            />
+          </label>
+        )}
         <label>
           <span>Urgency</span>
           <select
@@ -136,15 +188,28 @@ export function LeadQualificationForm({
           onChange={(event) => update("address", event.target.value)}
         />
       </label>
-      <label>
-        <span>Notes</span>
-        <textarea
-          className="input"
-          rows={3}
-          value={values.notes}
-          onChange={(event) => update("notes", event.target.value)}
-        />
-      </label>
+      {hvacMode ? (
+        <label>
+          <span>HVAC notes</span>
+          <textarea
+            className="input"
+            rows={3}
+            placeholder="System type, floor/room, is it running, how long…"
+            value={values.notes}
+            onChange={(event) => update("notes", event.target.value)}
+          />
+        </label>
+      ) : (
+        <label>
+          <span>Notes</span>
+          <textarea
+            className="input"
+            rows={3}
+            value={values.notes}
+            onChange={(event) => update("notes", event.target.value)}
+          />
+        </label>
+      )}
       <div className="lead-qualification-actions">
         <button type="submit" className="btn btn-void" disabled={saving}>
           {saving ? "Saving…" : "Save and continue automation"}

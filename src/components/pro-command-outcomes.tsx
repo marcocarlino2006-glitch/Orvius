@@ -1,50 +1,68 @@
 "use client";
 
-import { formatCents } from "@/lib/money";
+import { formatCents, formatCentsExact } from "@/lib/money";
+import type { CommandToday } from "@/lib/command-today";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 
 type ProCommandOutcomesProps = {
+  today: CommandToday | null | undefined;
   outcomes: ShopOutcomes | null | undefined;
   attentionCount: number;
   loading?: boolean;
 };
 
 /**
- * The answer to "what did Orvius do for me?" before the owner sees a queue.
- *
- * Every figure is measured from shop records. Captured-demand value only
- * appears when the owner supplied an average ticket; otherwise the measured
- * job count leads rather than inventing a dollar claim.
+ * High-signal Command home — what Orvius did TODAY.
+ * Never hides when the board is busy; the queue sits under this strip.
  */
 export function ProCommandOutcomes({
+  today,
   outcomes,
   attentionCount,
   loading = false,
 }: ProCommandOutcomesProps) {
-  // Board owns action when work is waiting — outcomes are calm retrospect only.
-  if (!loading && attentionCount > 0) return null;
+  const estimated = formatCents(today?.estimatedJobValueCents);
+  const collected =
+    today && today.collectedCents > 0
+      ? formatCentsExact(today.collectedCents)
+      : null;
 
-  const capturedJobs = outcomes?.capturedDemandJobs ?? 0;
-  const capturedValue = formatCents(
-    outcomes?.capturedDemandEstimatedValueCents,
-  );
-  const figure = capturedValue ?? String(capturedJobs);
-  const metricLabel = capturedValue
-    ? "Estimated booked value"
-    : capturedJobs === 1
-      ? "Job booked from captured demand"
-      : "Jobs booked from captured demand";
+  const cells = [
+    {
+      label: "Calls answered",
+      value: String(today?.callsAnswered ?? 0),
+    },
+    {
+      label: "Missed recovered",
+      value: String(today?.missedRecovered ?? 0),
+      hint: "After-hours leads booked today",
+    },
+    {
+      label: "Qualified leads",
+      value: String(today?.qualifiedLeads ?? 0),
+    },
+    {
+      label: "Appointments booked",
+      value: String(today?.appointmentsBooked ?? 0),
+    },
+    {
+      label: "Urgent open",
+      value: String(today?.urgentOpen ?? 0),
+    },
+    {
+      label: "Unresolved",
+      value: String(today?.unresolved ?? attentionCount),
+    },
+  ];
 
   return (
     <section
-      className="pro-command-outcomes"
-      aria-label="Work completed by Orvius"
+      className="pro-command-outcomes pro-command-outcomes--today"
+      aria-label="What Orvius did today"
     >
       <header className="pro-command-outcomes-head font-sans">
-        <p className="pro-command-outcomes-kicker">What the line closed</p>
-        <span>
-          Last {outcomes?.windowDays ?? 7} days
-        </span>
+        <p className="pro-command-outcomes-kicker">Today</p>
+        <span>Since midnight · measured shop records</span>
       </header>
 
       <div className="pro-command-outcomes-summary font-sans">
@@ -52,36 +70,48 @@ export function ProCommandOutcomes({
           <span className="pro-command-outcomes-wait" aria-hidden />
         ) : (
           <>
-            <p className="pro-command-outcomes-figure">{figure}</p>
-            <h2>{metricLabel}</h2>
+            <p className="pro-command-outcomes-figure">
+              {estimated ?? collected ?? String(today?.appointmentsBooked ?? 0)}
+            </p>
+            <h2>
+              {estimated
+                ? "Estimated job value booked today"
+                : collected
+                  ? "Collected today (recorded payments)"
+                  : (today?.appointmentsBooked ?? 0) === 1
+                    ? "Appointment booked today"
+                    : "Appointments booked today"}
+            </h2>
+            {!estimated && !today?.avgTicketCents ? (
+              <p className="pro-command-outcomes-hint">
+                Set average ticket in Settings to estimate booked value.
+              </p>
+            ) : null}
           </>
         )}
       </div>
 
-      {!loading && outcomes ? (
-        <dl className="pro-command-flow font-sans">
-          <div>
-            <dt>Calls captured</dt>
-            <dd>{outcomes.calls}</dd>
-          </div>
-          <div>
-            <dt>Qualified leads</dt>
-            <dd>{outcomes.leads}</dd>
-          </div>
-          <div>
-            <dt>Jobs booked</dt>
-            <dd>{outcomes.jobsBooked}</dd>
-          </div>
-          <div>
-            <dt>After hours</dt>
-            <dd>{outcomes.afterHoursBooked}</dd>
-          </div>
+      {!loading ? (
+        <dl className="pro-command-flow pro-command-flow--today font-sans">
+          {cells.map((cell) => (
+            <div key={cell.label} title={cell.hint}>
+              <dt>{cell.label}</dt>
+              <dd>{cell.value}</dd>
+            </div>
+          ))}
         </dl>
       ) : null}
 
       {!loading ? (
         <footer className="pro-command-outcomes-foot font-sans">
-          <p>Board is clear — nothing waiting</p>
+          <p>
+            {attentionCount > 0
+              ? `${attentionCount} item${attentionCount === 1 ? "" : "s"} need you below`
+              : "Board is clear — nothing waiting"}
+            {outcomes
+              ? ` · Last ${outcomes.windowDays}d: ${outcomes.jobsBooked} booked`
+              : ""}
+          </p>
         </footer>
       ) : null}
     </section>

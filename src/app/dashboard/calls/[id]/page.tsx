@@ -1,5 +1,6 @@
 "use client";
 
+import { AiSituationPanel, type AiSituation } from "@/components/ai-situation-panel";
 import { CallPlayer } from "@/components/call-player";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { TranscriptCinema } from "@/components/transcript-cinema";
@@ -51,10 +52,7 @@ type CallDetail = {
   } | null;
 };
 
-type Situation = {
-  actionsTaken: string[];
-  needsReview: boolean;
-  reviewReasons: string[];
+type Situation = AiSituation & {
   priorJobs: Array<{
     id: string;
     title: string;
@@ -209,45 +207,12 @@ export default function CallDetailPage() {
         </div>
 
         <div className="os-detail-side">
-          <ShellPanel title="What Orvius did" dense>
-            {call.successEvaluation ? (
-              <p className="call-ai-confidence font-sans">
-                AI confidence{" "}
-                <strong>{call.successEvaluation}</strong>
-                <span className="text-ash"> / 10 (VAPI)</span>
-              </p>
-            ) : (
-              <p className="call-ai-confidence call-ai-confidence-muted font-sans">
-                AI confidence not captured on this call yet.
-              </p>
-            )}
-            {situation?.actionsTaken?.length ? (
-              <ul className="call-situation-list font-sans">
-                {situation.actionsTaken.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="font-sans text-sm text-ash">No actions recorded yet.</p>
-            )}
-            {situation?.needsReview ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {call.lead ? (
-                  <Link
-                    href={`/dashboard/inbox/${call.lead.id}`}
-                    className="btn btn-void text-sm"
-                  >
-                    Take over lead
-                  </Link>
-                ) : null}
-                {call.callerPhone ? (
-                  <a href={`tel:${call.callerPhone}`} className="btn btn-secondary text-sm">
-                    Human callback
-                  </a>
-                ) : null}
-              </div>
-            ) : null}
-          </ShellPanel>
+          {situation ? (
+            <AiSituationPanel
+              situation={situation}
+              takeoverPhone={call.callerPhone ?? call.lead?.phone}
+            />
+          ) : null}
 
           {call.customer ? (
             <ShellPanel title="Customer" dense>

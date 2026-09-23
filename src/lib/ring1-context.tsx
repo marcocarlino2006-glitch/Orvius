@@ -15,6 +15,7 @@ import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
+import type { CommandToday } from "@/lib/command-today";
 import type {
   BusinessMetrics,
   BusinessSignals,
@@ -31,6 +32,8 @@ export type Ring1Data = {
     referenceImplementation?: boolean;
   } | null;
   metrics: BusinessMetrics;
+  today?: CommandToday;
+  workflow?: { alertsProven?: boolean };
   outcomes?: ShopOutcomes;
   shiftTimeline?: ShiftEvent[];
   attention?: AttentionItem[];

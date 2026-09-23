@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
+import { CommandWorkflowStrip } from "@/components/command-workflow-strip";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
@@ -46,8 +47,15 @@ export function Ring1CommandCenter() {
         ) : null}
 
         <ProCommandOutcomes
+          today={data?.today}
           outcomes={data?.outcomes}
           attentionCount={attention.length}
+          loading={loading}
+        />
+
+        <CommandWorkflowStrip
+          today={data?.today}
+          alertsProven={data?.workflow?.alertsProven}
           loading={loading}
         />
 

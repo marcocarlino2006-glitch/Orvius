@@ -74,11 +74,13 @@ export function inferTradeFromBusiness(input: {
 export function tradePromptPack(trade: Trade): string {
   switch (trade) {
     case "HVAC":
-      return `TRADE — HVAC
+      return `TRADE — HVAC (primary wedge)
 - Common calls: no AC in summer, no heat in winter, weird noises, weak airflow, thermostat issues, maintenance/tune-ups, new system quotes.
-- Emergency signals: no cooling when it's hot, no heat when it's cold, burning smell from unit, water leaking from indoor unit.
-- Ask: system type if they know (central AC, heat pump, furnace), whether system is running at all, and floor/room affected.
-- Never quote equipment prices or promise same-day install.`;
+- Emergency signals: no cooling when it's hot, no heat when it's cold, burning smell from unit, water leaking from indoor unit, carbon monoxide alarm near furnace.
+- Ask in order: (1) cooling or heating problem, (2) is the system running at all, (3) which floor/room, (4) system type if known (central AC, heat pump, furnace), (5) service address, (6) urgency / same-day need.
+- Qualify before booking: name, callback number, address, HVAC problem, urgency.
+- Never quote equipment prices or promise same-day install.
+- If uncertain or caller asks for a person — offer human callback and mark for owner takeover.`;
     case "Plumbing":
       return `TRADE — PLUMBING
 - Common calls: active leaks, clogged drains, water heater failure, running toilets, low pressure, sewer smell, burst pipe.

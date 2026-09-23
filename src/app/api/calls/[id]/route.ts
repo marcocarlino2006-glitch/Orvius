@@ -107,6 +107,16 @@ export async function GET(_request: Request, { params }: Params) {
   }
   if (call.customer) actionsTaken.push("Customer record linked");
 
+  const why: string[] = [];
+  if (call.lead?.job) {
+    why.push("Lead qualified with enough detail to book against capacity");
+  } else if (call.lead) {
+    why.push("Capturing enough HVAC detail to qualify or escalate");
+  }
+  if (call.ownerNotifiedAt) {
+    why.push("Owner notified so a human can follow through");
+  }
+
   const review = needsHumanReview({
     summary: call.summary,
     transcript: call.transcript,
@@ -148,9 +158,22 @@ export async function GET(_request: Request, { params }: Params) {
         : null,
     },
     situation: {
+      understood: {
+        customer: call.lead?.name ?? call.customer?.name ?? null,
+        phone: call.lead?.phone ?? call.callerPhone ?? call.customer?.phone ?? null,
+        address: call.lead?.address ?? call.customer?.address ?? null,
+        problem: call.lead?.serviceType ?? null,
+        categoryCode: call.lead?.categoryCode ?? null,
+        urgency: call.lead?.urgency ?? null,
+      },
       actionsTaken,
+      why,
+      confidence: call.successEvaluation,
       needsReview: review.needsReview,
       reviewReasons: review.reasons,
+      leadId: call.lead?.id ?? null,
+      jobId: call.lead?.job?.id ?? null,
+      customerId: call.customer?.id ?? null,
       priorJobs: priorJobs.map((job) => ({
         ...job,
         scheduledAt: job.scheduledAt?.toISOString() ?? null,
