@@ -14,6 +14,7 @@ import {
 import { useRing1 } from "@/lib/ring1-context";
 import {
   resolveShopOperateNext,
+  shopOperateBannerVisible,
   type ShopOperateNext,
 } from "@/lib/shop-operate";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
@@ -36,7 +37,8 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Operate O1 — the single next shop action above Command.
- * Yields while FirstNightHandoff is open so two “next” surfaces never stack.
+ * Hidden when the board already owns the work, or when covered (Ask still gets a next).
+ * Clears first-night pending silently — no click gate before the pulse.
  */
 export function ShopOperateBanner() {
   const searchParams = useSearchParams();
@@ -45,17 +47,21 @@ export function ShopOperateBanner() {
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const [handoffOpen, setHandoffOpen] = useState(false);
 
   useEffect(() => {
     const fromQuery = searchParams.get(FIRST_NIGHT_PARAM) === "1";
-    let pending = false;
     try {
-      pending = sessionStorage.getItem(FIRST_NIGHT_STORAGE_KEY) === "1";
+      if (fromQuery || sessionStorage.getItem(FIRST_NIGHT_STORAGE_KEY) === "1") {
+        sessionStorage.removeItem(FIRST_NIGHT_STORAGE_KEY);
+      }
     } catch {
       /* private mode */
     }
-    setHandoffOpen(fromQuery || pending);
+    if (fromQuery) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete(FIRST_NIGHT_PARAM);
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
   }, [searchParams]);
 
   const refresh = useCallback(async () => {
@@ -155,11 +161,9 @@ export function ShopOperateBanner() {
     }
   }
 
-  if (handoffOpen) return null;
-  if (!loaded || !next) return null;
+  if (!loaded || !next || !shopOperateBannerVisible(next)) return null;
 
   const inline = next.id === "weekly-proof" || next.id === "alerts";
-  const covered = next.id === "covered";
 
   return (
     <aside
@@ -173,7 +177,7 @@ export function ShopOperateBanner() {
         <p className="shop-operate-banner-detail">{next.detail}</p>
         {note ? <p className="shop-operate-banner-note">{note}</p> : null}
       </div>
-      {covered ? null : inline ? (
+      {inline ? (
         <button
           type="button"
           className="btn btn-void text-sm"

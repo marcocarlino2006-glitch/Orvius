@@ -248,13 +248,13 @@ try {
   const company = read("src/lib/company.ts");
   const hero = read("src/components/home-line-hero.tsx");
   if (
-    /night-shift OS for HVAC/i.test(company) &&
-    /night shift/i.test(hero) &&
+    /focused AI receptionist for HVAC/i.test(company) &&
+    /HVAC company will pay/i.test(company) &&
     /DEMO_LINE_DISPLAY/.test(hero)
   ) {
-    pass("L8 Presence", "Company + hero own night-shift OS with live line");
+    pass("L8 Presence", "Company + hero own HVAC receptionist wedge with live line");
   } else {
-    fail("L8 Presence", "Must claim night-shift OS and lead with live line");
+    fail("L8 Presence", "Must claim HVAC AI receptionist wedge and lead with live line");
   }
 } catch (e) {
   fail("L8 Presence", e instanceof Error ? e.message : String(e));

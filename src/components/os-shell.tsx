@@ -63,7 +63,7 @@ export function OsShell({
         : "Answering"
       : onSettings
         ? "Set your line below"
-        : "Finish setup in Settings";
+        : "Line not set";
 
   useEffect(() => {
     setNavOpen(false);

@@ -67,8 +67,8 @@ export const MANUS_POST_STEPS: ManusPostStep[] = [
     order: 1,
     title: "Telephony secrets on prod",
     action:
-      "Paste TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER, VAPI_API_KEY on Vercel + .env",
-    command: "npm run standard:check",
+      "Confirm Twilio+Vapi live on Vercel (api.orvius.im/api/health configured) — paste into local .env only if agent gates need them",
+    command: "npm run prod:verify",
     founderOnly: true,
   },
   {
@@ -114,16 +114,18 @@ export const MANUS_POST_STEPS: ManusPostStep[] = [
     id: "stripe_key",
     order: 7,
     title: "Stripe secret key",
-    action: "Paste STRIPE_SECRET_KEY (+ publishable) on Vercel + .env",
-    command: "npm run billing:check",
+    action:
+      "Confirm Stripe live on Vercel (api.orvius.im/api/billing/checkout configured) — paste local .env only for agent gates",
+    command: "npm run prod:verify",
     founderOnly: true,
   },
   {
     id: "stripe_setup",
     order: 8,
     title: "Stripe price IDs",
-    action: "Run npm run stripe:setup — Line / Pro / Fleet monthly IDs present",
-    command: "npm run stripe:setup",
+    action:
+      "Confirm plan price IDs on prod (configured:true covers Line/Pro/Fleet) — or npm run stripe:setup locally",
+    command: "npm run prod:verify",
     founderOnly: true,
   },
   {
@@ -131,15 +133,16 @@ export const MANUS_POST_STEPS: ManusPostStep[] = [
     order: 9,
     title: "Stripe webhook",
     action:
-      "Point Stripe webhook at api.orvius.im/api/billing/webhook → paste STRIPE_WEBHOOK_SECRET",
-    command: "npm run billing:check",
+      "Confirm webhook secret on prod (billing checkout configured includes it) — point Stripe at api.orvius.im/api/billing/webhook if still open",
+    command: "npm run prod:verify",
     founderOnly: true,
   },
   {
     id: "formation",
     order: 10,
     title: "Formation state",
-    action: "Counsel confirms LLC state → set formationStateConfirmed (never invent)",
+    action:
+      "Counsel confirms LLC state → set ORVIUS_FORMATION_STATE on Vercel (never invent)",
     founderOnly: true,
   },
   {
@@ -169,9 +172,13 @@ export const MANUS_FORBIDDEN_CLAIMS = [
 /** First red/unknown step — the only one to work on. */
 export function resolveManusPostNext(
   status: ManusPostStatusMap,
+  options: { skipUnknown?: boolean } = {},
 ): ManusPostStep | null {
   for (const step of MANUS_POST_STEPS) {
-    if (status[step.id] !== true) return step;
+    const st = status[step.id];
+    if (st === true) continue;
+    if (st == null && options.skipUnknown) continue;
+    return step;
   }
   return null;
 }
@@ -179,22 +186,32 @@ export function resolveManusPostNext(
 /** Env-probeable Manus gates (never invent values). */
 export function probeManusEnvSecrets(
   env: Record<string, string | undefined> = process.env,
+  options: {
+    prodTelephonyOk?: boolean;
+    /** Prod /api/billing/checkout reports configured:true (fullyReady). */
+    prodBillingOk?: boolean;
+  } = {},
 ): Pick<
   ManusPostStatusMap,
   "telephony" | "stripe_key" | "stripe_setup" | "stripe_webhook"
 > {
+  const localTelephony =
+    hasRealSecret(env.TWILIO_ACCOUNT_SID) &&
+    hasRealSecret(env.TWILIO_AUTH_TOKEN) &&
+    hasRealSecret(env.TWILIO_PHONE_NUMBER) &&
+    hasRealSecret(env.VAPI_API_KEY);
+  const localStripeKey = hasRealSecret(env.STRIPE_SECRET_KEY);
+  const localStripeSetup =
+    hasRealSecret(env.STRIPE_PRICE_ID_PRO) ||
+    hasRealSecret(env.STRIPE_PRICE_ID_LINE) ||
+    hasRealSecret(env.STRIPE_PRICE_ID);
+  const localStripeWebhook = hasRealSecret(env.STRIPE_WEBHOOK_SECRET);
+  const prodBilling = options.prodBillingOk === true;
   return {
-    telephony:
-      hasRealSecret(env.TWILIO_ACCOUNT_SID) &&
-      hasRealSecret(env.TWILIO_AUTH_TOKEN) &&
-      hasRealSecret(env.TWILIO_PHONE_NUMBER) &&
-      hasRealSecret(env.VAPI_API_KEY),
-    stripe_key: hasRealSecret(env.STRIPE_SECRET_KEY),
-    stripe_setup:
-      hasRealSecret(env.STRIPE_PRICE_ID_PRO) ||
-      hasRealSecret(env.STRIPE_PRICE_ID_LINE) ||
-      hasRealSecret(env.STRIPE_PRICE_ID),
-    stripe_webhook: hasRealSecret(env.STRIPE_WEBHOOK_SECRET),
+    telephony: localTelephony || options.prodTelephonyOk === true,
+    stripe_key: localStripeKey || prodBilling,
+    stripe_setup: localStripeSetup || prodBilling,
+    stripe_webhook: localStripeWebhook || prodBilling,
   };
 }
 

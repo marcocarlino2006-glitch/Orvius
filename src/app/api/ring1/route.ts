@@ -13,7 +13,6 @@ import { getShiftTimeline } from "@/lib/shift-timeline";
 import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
-import { isFounderEmail } from "@/lib/founder";
 
 function startOfToday() {
   const d = new Date();
@@ -24,8 +23,7 @@ function startOfToday() {
 export async function GET() {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business, email } = authResult;
-  const founder = isFounderEmail(email);
+  const { business } = authResult;
 
   const today = startOfToday();
   const businessFilter = { businessId: business.id };
@@ -87,7 +85,7 @@ export async function GET() {
     getShopHealth(business.id),
     listCrew(business.id),
     getShopOutcomes(business.id, 7),
-    getAttentionQueue(business.id, 12, { founder }),
+    getAttentionQueue(business.id, 12),
     getShiftTimeline(business.id),
   ]);
 

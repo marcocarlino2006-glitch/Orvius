@@ -121,7 +121,6 @@ export default function JobsPage() {
   return (
     <OsShell
       title="Jobs"
-      subtitle="Open work — first contact through completed jobs."
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch

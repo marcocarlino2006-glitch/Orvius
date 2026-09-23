@@ -71,22 +71,27 @@ const commandSrc = readFileSync(
   resolve(root, "src/components/ring1-command-center.tsx"),
   "utf8",
 );
-const economicsSections = (commandSrc.match(/<ProEconomicsPanel|<ProShopOutcomes/g) ?? []).length;
+const economicsOnCommand = (commandSrc.match(/<ProEconomicsPanel/g) ?? []).length;
+const outcomesOnCommand = (commandSrc.match(/<ProCommandOutcomes/g) ?? []).length;
 results.push(
-  economicsSections === 1
-    ? pass("Command shows exactly one economics section")
-    : fail(`Command shows ${economicsSections} economics sections — the owner reads it twice`),
+  economicsOnCommand === 0 && outcomesOnCommand === 1
+    ? pass("Command calm uses one retrospect (outcomes) — proof via operate banner")
+    : fail(
+        `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand}`,
+      ),
 );
 
+const workMode = /workMode/.test(commandSrc);
 const outcomeLead = commandSrc.indexOf("<ProCommandOutcomes");
 const shiftTimeline = commandSrc.indexOf("<ProShiftTimeline");
 const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
 results.push(
-  outcomeLead >= 0 &&
-    exceptionBoard > outcomeLead &&
-    shiftTimeline > exceptionBoard
-    ? pass("Command moves from measured outcomes to exceptions to audit trail")
-    : fail("Command must show outcomes, then exceptions, then shift evidence"),
+  workMode &&
+    outcomeLead >= 0 &&
+    exceptionBoard >= 0 &&
+    shiftTimeline > outcomeLead
+    ? pass("Command workMode: board when busy, outcomes then trail when calm")
+    : fail("Command must use workMode — board vs outcomes+trail, never both stacks"),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");

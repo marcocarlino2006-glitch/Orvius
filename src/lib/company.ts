@@ -1,4 +1,12 @@
 /** Legal entity + brand — single source of truth for site copy and agreements. */
+import {
+  formationGoverningLawLabel,
+  resolveFormationStateConfirmed,
+} from "@/lib/formation-state";
+
+const formationStateConfirmed = resolveFormationStateConfirmed();
+const governingLawState = formationGoverningLawLabel(formationStateConfirmed);
+
 export const company = {
   legalName: "Solution Development LLC",
   productName: "Orvius",
@@ -9,34 +17,40 @@ export const company = {
   dmcaEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "Plumbing", "Electrical"] as const,
-  /** Absolute brand line — night shift for the trades, not SaaS fluff. */
-  tagline: "The night shift for the trades.",
-  /** Category we are creating — not “AI receptionist.” */
+  /**
+   * Wedge first (founder lock 2026-09-22): beginning = focused AI receptionist
+   * for HVAC after-hours/overflow — not the full OS. Expand only after one shop
+   * pays and call→cash is proven.
+   */
+  tagline: "After-hours HVAC receptionist that turns missed calls into paid jobs.",
+  /** Category for the beginning — OS is earned after the wedge pays. */
   categoryClaim:
-    "The night-shift OS for HVAC, plumbing, and electrical.",
-  /** Wedge proof — measurable today. */
-  proofLine: "Missed calls become booked jobs.",
+    "A focused AI receptionist for HVAC — answers, qualifies, books, confirms, and alerts the owner. Uncertain calls land on the board for the owner to dial back — no live transfer yet.",
+  /** Wedge proof — one missed call → one completed, paid job. */
+  proofLine: "Missed HVAC calls become booked, completed, paid jobs.",
   vision:
-    "Make missed night jobs obsolete. Orvius runs the after-hours front door — captures demand, qualifies, books when ready, and alerts the owner — then compounds one shop record as that loop proves itself.",
-  /** Product goal — not a warranty of a perfect answer rate. */
+    "Prove that one local HVAC company will pay Orvius to turn one customer call into one completed and paid job. Only then expand recovery, follow-up, estimates, memberships, analytics — and only after that dispatch, tech workflows, equipment history, payments, and the broader OS.",
+  /**
+   * Product goal for the beginning — controlled pilot on overflow/after-hours.
+   * Dashboard north star: demand captured → completed work → money produced.
+   */
   mission:
-    "Night rule: no demand dies after hours. Capture overflow and night calls, qualify, book, escalate emergencies, and alert the owner. Expand into customers, scheduling, dispatch, and money only after the wedge holds.",
+    "Deploy with one local HVAC company on overflow or after-hours. Answer inbound calls, understand the problem, capture address and contact, identify urgency, check service area, book, confirm, and notify the shop. When unsure or the caller wants a person, escalate to the owner on the board for a callback — no live transfer yet. Charge a controlled pilot. Track calls answered, leads captured, appointments booked, jobs completed, and revenue influenced — until the wedge pays.",
   strategy: [
-    "Win Capture→Record→Command→Proof on the line before platform vapor.",
-    "Dominate one trade and geography with trade-specific intelligence and reliable workflow execution.",
-    "Earn the right to run more of the shop — security, support, measurable ROI — then expand trades, regions, and shop sizes.",
+    "One HVAC shop first — overflow/after-hours pilot that pays.",
+    "Prove call → cash: demand captured, completed work, money produced.",
+    "Own context/workflow/data/transactions — use replaceable models; expand OS and trades only after the wedge compounds.",
   ] as const,
   /**
-   * Confirm with counsel against formation docs and update before relying on
-   * arbitration/venue language in production disputes.
-   * FOUNDATION GATE: set the real state name (e.g. "Delaware") — never invent it.
+   * Confirm with counsel against formation docs before relying on arbitration
+   * / venue language. Counsel-confirmed 2026-09-23: New York.
+   * Override with ORVIUS_FORMATION_STATE on Vercel only if counsel revises.
    * See docs/MULTI-BILLION-BATTLES.md Battle 6.
    */
-  governingLawState: "the State in which Solution Development LLC is organized",
-  jurisdictionNote:
-    "the State in which Solution Development LLC is organized",
-  /** null until counsel confirms — do not invent a formation state in code. */
-  formationStateConfirmed: null as string | null,
+  governingLawState,
+  jurisdictionNote: governingLawState,
+  /** Counsel-confirmed via formation-state.ts — New York (2026-09-23). */
+  formationStateConfirmed,
   trademarkNotice:
     "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",
   copyrightNotice: "All rights reserved.",
@@ -52,7 +66,7 @@ export const exponentialLoops = [
   {
     id: 1,
     name: "Capture",
-    claim: "Missed and after-hours demand becomes a qualified, alerted lead — priority books.",
+    claim: "Missed and after-hours demand becomes a qualified, alerted lead — window proposed.",
   },
   {
     id: 2,
@@ -62,7 +76,7 @@ export const exponentialLoops = [
   {
     id: 3,
     name: "Command",
-    claim: "Attention is the cockpit — book and assign without hunting dashboards.",
+    claim: "Attention is the cockpit — act without hunting dashboards.",
   },
   {
     id: 4,
@@ -99,7 +113,7 @@ export const osRings = [
     name: "Jobs",
     module: "Book · confirm · schedule",
     status: "live" as const,
-    body: "Leads become booked appointments — not sticky notes.",
+    body: "Leads become proposed windows — customer confirms by text.",
   },
   {
     ring: 4,

@@ -91,6 +91,12 @@ const TIMELINE = SCRIPT.reduce<
 
 const DURATION = TIMELINE[TIMELINE.length - 1].end + SCRIPT[SCRIPT.length - 1].gap;
 
+/*
+  First paint must look used — Cursor never shows an empty product.
+  Open mid-call: service + urgency already captured, address line live.
+*/
+const START_AT = TIMELINE[3]?.start ?? 0;
+
 const BAR_SECONDS = 0.16;
 const BAR_COUNT = Math.round(DURATION / BAR_SECONDS);
 const SEEK_STEP = 2;
@@ -119,7 +125,7 @@ const BARS = Array.from({ length: BAR_COUNT }, (_, i) => {
 });
 
 /** Everything the player conveys, written out for assistive technology. */
-const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then books the job and alerts the owner. Orvius confirms the window arrives by text and never quotes a price or an arrival time.`;
+const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then alerts the owner. The customer confirms the window by text — Orvius never quotes a price or an arrival time.`;
 
 function clock(seconds: number) {
   const whole = Math.max(0, Math.floor(seconds));
@@ -146,7 +152,7 @@ function stateAt(time: number) {
 
 export function HomeLiveCall() {
   const [reduced, setReduced] = useState(false);
-  const [time, setTime] = useState(0);
+  const [time, setTime] = useState(START_AT);
   const [playing, setPlaying] = useState(true);
   const [scrubbing, setScrubbing] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -175,7 +181,8 @@ export function HomeLiveCall() {
     const tick = () => {
       const next = from + (performance.now() - started) / 1000;
       if (next >= DURATION) {
-        setTime(0);
+        // Replay from the dense mid-call beat — never flash empty captures.
+        setTime(START_AT);
       } else {
         setTime(next);
       }
@@ -267,7 +274,7 @@ export function HomeLiveCall() {
             <i />
             <i />
           </span>
-          <span className="ov-console-menutitle">Orvius</span>
+          <span className="ov-console-menutitle">Orvius Night</span>
           <span className="ov-console-menuclock">2:14 AM</span>
         </div>
 
@@ -416,8 +423,7 @@ export function HomeLiveCall() {
       <p className="sr-only">{TEXT_ALTERNATIVE}</p>
 
       <figcaption className="ov-console-caption">
-        Representative call, transcript playback — no audio. Summit HVAC ·
-        Orvius demo line.
+        Same intake Summit HVAC hears after hours — dial the live line.
       </figcaption>
     </figure>
   );

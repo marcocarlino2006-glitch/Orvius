@@ -96,3 +96,33 @@ test("probeManusEnvSecrets rejects theater values", () => {
   assert.equal(status.formation, false);
   assert.equal(resolveManusPostNext(status)?.id, "wedge_line");
 });
+
+test("resolveManusPostNext can skip unknown when local wedge is unscored", () => {
+  const next = resolveManusPostNext(
+    {
+      telephony: true,
+      wedge_line: null,
+      wedge_verify: null,
+      wedge_alert: null,
+      phone_cert: null,
+      proof_video: null,
+      stripe_key: false,
+    },
+    { skipUnknown: true },
+  );
+  assert.equal(next?.id, "stripe_key");
+});
+
+test("probeManusEnvSecrets accepts prod telephony + billing when local env is empty", () => {
+  const localDark = probeManusEnvSecrets({});
+  assert.equal(localDark.telephony, false);
+  assert.equal(localDark.stripe_key, false);
+  const prodLive = probeManusEnvSecrets(
+    {},
+    { prodTelephonyOk: true, prodBillingOk: true },
+  );
+  assert.equal(prodLive.telephony, true);
+  assert.equal(prodLive.stripe_key, true);
+  assert.equal(prodLive.stripe_setup, true);
+  assert.equal(prodLive.stripe_webhook, true);
+});

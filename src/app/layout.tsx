@@ -16,7 +16,8 @@ import "./theme-tokens.css";
 const sans = Archivo({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  /* 300 = Cursor-gothic whisper for display; 400–600 for UI; keep 700 for rare emphasis */
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 

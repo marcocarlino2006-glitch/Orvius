@@ -97,7 +97,7 @@ function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
 
 /**
  * One Command fetch for the whole dashboard shell.
- * OsShell, operate banner, and Command center share this pulse.
+ * OsShell, operate banner, and Command pulse share this pulse.
  */
 export function Ring1Provider({
   children,

@@ -2,6 +2,7 @@
 
 import { AssignTechButton } from "@/components/assign-tech-button";
 import { JobStatusAdvance } from "@/components/job-status-advance";
+import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProLead } from "@/components/pro-lead";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
@@ -270,7 +271,6 @@ export default function DispatchPage() {
   return (
     <OsShell
       title="Dispatch"
-      subtitle="Every job has an owner, a live status, and a next move."
       actions={
         <Link href="/dashboard/jobs" className="btn btn-void text-sm">
           All jobs
@@ -292,6 +292,24 @@ export default function DispatchPage() {
           { label: "crew", value: technicians.length },
         ]}
       />
+
+      {board ? (
+        <ProDispatchToday
+          jobs={[
+            ...board.unassigned,
+            ...board.columns.flatMap((col) =>
+              col.jobs.map((job) => ({
+                ...job,
+                technician: { name: col.technician.name },
+              })),
+            ),
+          ]}
+          unassigned={board.unassigned.length}
+          jobCount={board.jobCount}
+          technicians={technicians}
+          onUpdate={() => void load()}
+        />
+      ) : null}
 
       <div className="pro-toolbar pro-page-toolbar">
         <label className="pro-toolbar-field font-sans">

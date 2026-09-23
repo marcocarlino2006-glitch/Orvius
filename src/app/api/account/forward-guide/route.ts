@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { CarrierId } from "@/lib/carrier-forward";
 import { sendOwnerForwardGuide } from "@/lib/owner-setup";
 import { getShopLine } from "@/lib/owner-setup-state";
+import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
 
 const bodySchema = z.object({
@@ -52,9 +53,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  await prisma.business.update({
+    where: { id: business.id },
+    data: { forwardGuideSentAt: new Date() },
+  });
+
   return NextResponse.json({
     ok: true,
     message:
-      "Setup steps texted. After forwarding, call your Orvius line once; then reply DONE.",
+      "Setup steps texted. Call your Orvius line once; then reply DONE.",
   });
 }

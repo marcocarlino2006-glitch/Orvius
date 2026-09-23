@@ -103,6 +103,7 @@ export default function AdminPage() {
   const [copyNote, setCopyNote] = useState<string | null>(null);
   const [importNote, setImportNote] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [purgingSeeds, setPurgingSeeds] = useState(false);
   const [form, setForm] = useState({
     name: "",
     ownerPhone: "",
@@ -201,6 +202,27 @@ export default function AdminPage() {
       setProspectError(err instanceof Error ? err.message : "Import failed");
     } finally {
       setImporting(false);
+    }
+  }
+
+  async function purgeSeedProspects() {
+    setPurgingSeeds(true);
+    setImportNote(null);
+    setProspectError(null);
+    try {
+      const res = await fetch("/api/admin/purge-seeds", { method: "POST" });
+      const data = (await res.json()) as {
+        error?: string;
+        message?: string;
+        deleted?: number;
+      };
+      if (!res.ok) throw new Error(data.error ?? "Purge failed");
+      setImportNote(data.message ?? `Removed ${data.deleted ?? 0} seed(s)`);
+      await loadProspects();
+    } catch (err) {
+      setProspectError(err instanceof Error ? err.message : "Purge failed");
+    } finally {
+      setPurgingSeeds(false);
     }
   }
 
@@ -371,6 +393,14 @@ export default function AdminPage() {
               }}
             />
           </label>
+          <button
+            type="button"
+            className="btn btn-secondary text-xs"
+            disabled={purgingSeeds}
+            onClick={() => void purgeSeedProspects()}
+          >
+            {purgingSeeds ? "Purging…" : "Purge seed prospects"}
+          </button>
           <Link href="/admin/daily" className="btn btn-secondary text-xs">
             Master all
           </Link>

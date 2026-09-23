@@ -26,19 +26,8 @@ type ProLeadProps = {
 };
 
 /**
- * How every list page opens.
- *
- * What it replaces was two components stacked. First a banner repeating the
- * shop's phone number with a "Test call" button — and the number was already
- * in the page header directly above it and in the sidebar to its left, so the
- * top of seven screens out of ten was spent saying a thing twice. Then a strip
- * of four to six identical bordered boxes, which is the house style of every
- * admin template ever shipped, and which on a shop with one lead rendered as
- * five framed zeros.
- *
- * So: one figure, at the only display size in the product, naming what the page
- * is about. The rest of the counts sit under it as a line of text. Anything
- * genuinely actionable goes in the action slot, once.
+ * How every list floor opens — title first, figure as support.
+ * Not a metric dashboard strip. One job for the floor.
  */
 export function ProLead({
   figure,
@@ -48,32 +37,11 @@ export function ProLead({
   action,
   loading = false,
 }: ProLeadProps) {
-  /*
-    The figure earns the brand colour only when it is not a standing start.
-    A rust-coloured 0 reads as an alarm about nothing.
-  */
   const hot = !loading && figure !== "0" && figure !== "$0" && figure !== "—";
 
   return (
-    <div className="pro-lead">
-      <div className="pro-lead-main font-sans">
-        {/*
-          The figure is hidden from assistive tech and folded into the heading
-          below it instead. Split across two elements it announced as "16" and
-          then, separately, "calls answered" — and the heading it replaced on
-          the Command board was the only h2 on that page, so dropping it left
-          the queue's h3 item titles jumping straight from the page h1.
-        */}
-        {loading ? (
-          <span className="pro-lead-figure-wait" aria-hidden />
-        ) : (
-          <p
-            aria-hidden
-            className={`pro-lead-figure os-own-color ${hot ? "pro-lead-figure-hot" : ""}`}
-          >
-            {figure}
-          </p>
-        )}
+    <div className="pro-lead pro-lead--floor font-sans">
+      <div className="pro-lead-main">
         <div className="pro-lead-copy">
           <h2
             className="pro-lead-caption os-own-color"
@@ -85,11 +53,21 @@ export function ProLead({
             <p className="pro-lead-detail">{detail}</p>
           ) : null}
         </div>
+        {loading ? (
+          <span className="pro-lead-figure-wait" aria-hidden />
+        ) : (
+          <p
+            aria-hidden
+            className={`pro-lead-figure os-own-color ${hot ? "pro-lead-figure-hot" : ""}`}
+          >
+            {figure}
+          </p>
+        )}
       </div>
 
       <div className="pro-lead-side">
         {facts?.length && !loading ? (
-          <ul className="pro-lead-facts font-sans">
+          <ul className="pro-lead-facts">
             {facts.map((fact) => (
               <li key={fact.label} className={fact.live ? "is-live" : ""}>
                 <b>{fact.value}</b>

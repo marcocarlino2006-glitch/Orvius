@@ -22,18 +22,19 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.signin": { en: "Sign in", es: "Iniciar sesión", fr: "Se connecter", de: "Anmelden" },
   "nav.bookdemo": { en: "Book an audit", es: "Reservar una auditoría", fr: "Réserver un audit", de: "Audit buchen" },
   "nav.proveit": { en: "Call the live line", es: "Llamar a la línea en vivo", fr: "Appeler la ligne en direct", de: "Live-Leitung anrufen" },
+  "nav.contact": { en: "Contact sales", es: "Hablar con ventas", fr: "Contacter les ventes", de: "Vertrieb kontaktieren" },
 
   "hero.title": {
-    en: "Missed calls become booked jobs.",
-    es: "Las llamadas perdidas se vuelven trabajos agendados.",
-    fr: "Les appels manqués deviennent des interventions planifiées.",
-    de: "Verpasste Anrufe werden zu gebuchten Aufträgen.",
+    en: "After-hours calls become qualified jobs.",
+    es: "Las llamadas fuera de horario se vuelven trabajos calificados.",
+    fr: "Les appels hors horaires deviennent des interventions qualifiées.",
+    de: "Anrufe außerhalb der Geschäftszeiten werden zu qualifizierten Aufträgen.",
   },
   "hero.lead": {
-    en: "Orvius answers after-hours and overflow calls, captures the request, proposes an open service window, and alerts the owner — without inventing prices or arrival times.",
-    es: "Orvius contesta llamadas fuera de horario y desbordadas, registra la solicitud, propone una franja disponible y avisa al dueño, sin inventar precios ni horas de llegada.",
-    fr: "Orvius répond aux appels hors horaires et en débordement, enregistre la demande, propose un créneau disponible et alerte le patron, sans inventer de prix ni d'heure d'arrivée.",
-    de: "Orvius nimmt Anrufe außerhalb der Geschäftszeiten und bei Überlauf an, erfasst die Anfrage, schlägt ein freies Zeitfenster vor und informiert den Inhaber — ohne Preise oder Ankunftszeiten zu erfinden.",
+    en: "Proposes a window and alerts the owner — no invented prices.",
+    es: "Contesta el turno de noche, propone una franja, avisa al dueño — sin inventar precios ni horas de llegada.",
+    fr: "Répond au service de nuit, propose un créneau, alerte le patron — sans inventer de prix ni d’heure d’arrivée.",
+    de: "Beantwortet die Nachtschicht, schlägt ein Fenster vor, informiert den Inhaber — ohne Preise oder Ankunftszeiten zu erfinden.",
   },
   "hero.cta": {
     en: "Call the live line",
@@ -41,12 +42,18 @@ export const translations: Record<string, Record<Lang, string>> = {
     fr: "Appelez la ligne en direct",
     de: "Live-Leitung anrufen",
   },
+  "hero.demo": {
+    en: "Request a demo",
+    es: "Solicitar una demo",
+    fr: "Demander une démo",
+    de: "Demo anfragen",
+  },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
   "hero.nightshift": {
-    en: "Orvius answers the night shift",
-    es: "Orvius contesta el turno de noche",
-    fr: "Orvius répond pendant la nuit",
-    de: "Orvius übernimmt die Nachtschicht",
+    en: "Call the live line",
+    es: "Llama a la línea en vivo",
+    fr: "Appelez la ligne en direct",
+    de: "Live-Leitung anrufen",
   },
 
   "showcase.eyebrow": { en: "On the line", es: "En la línea", fr: "En ligne", de: "Am Telefon" },
@@ -108,9 +115,9 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
 
   "footer.tagline": {
-    en: "The night-shift OS for HVAC, plumbing, and electrical.",
-    es: "El sistema del turno de noche para HVAC, plomería y electricidad.",
-    fr: "Le système d'exploitation de nuit pour le CVC, la plomberie et l'électricité.",
-    de: "Das Nachtschicht-Betriebssystem für HLK, Klempnerei und Elektrik.",
+    en: "Focused AI receptionist for HVAC — missed calls to paid jobs.",
+    es: "Recepcionista de IA para HVAC — de llamadas perdidas a trabajos pagados.",
+    fr: "Réceptionniste IA pour le CVC — des appels manqués aux travaux payés.",
+    de: "KI-Rezeption für HVAC — von verpassten Anrufen zu bezahlten Jobs.",
   },
 };

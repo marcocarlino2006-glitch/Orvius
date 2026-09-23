@@ -30,11 +30,11 @@ test("Command exposes failed refreshes and a real retry action", () => {
 
 test("Command keeps one flagship hierarchy and one control rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
-  const outcomes = command.indexOf("<ProCommandOutcomes");
-  const attention = command.indexOf("<AttentionQueue");
-  const timeline = command.indexOf("<ProShiftTimeline");
 
-  assert.ok(outcomes >= 0 && attention > outcomes && timeline > attention);
+  // Work mode: board only. Calm mode: outcomes + trail. Never both stacks.
+  assert.match(command, /workMode/);
+  assert.match(command, /<AttentionQueue/);
+  assert.match(command, /<ProCommandOutcomes/);
   assert.equal((command.match(/<ProLaunchControl/g) ?? []).length, 1);
   assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
   assert.match(command, /<ApproveQueue onChange=\{/);
@@ -53,7 +53,10 @@ test("Dashboard shares one Ring1 pulse across shell and Command", () => {
   const banner = read("src/components/shop-operate-banner.tsx");
   assert.match(layout, /Ring1Provider/);
   assert.match(ctx, /Ring1Provider/);
-  assert.match(business, /useRing1/);
+  assert.match(ctx, /useOptionalRing1/);
+  // Shell chrome prefers the provider pulse; standalone fetch is only the
+  // admin/domains fallback when no Ring1Provider wraps OsShell.
+  assert.match(business, /useOptionalRing1/);
   assert.match(banner, /useRing1/);
   assert.doesNotMatch(banner, /fetch\("\/api\/ring1"\)/);
 });

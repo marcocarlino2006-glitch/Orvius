@@ -14,6 +14,8 @@ import {
   connectReadyFromBusiness,
   looksLikeSeedProspect,
 } from "@/lib/multi-b-mastery";
+import { probeProdTelephony } from "@/lib/prod-telephony";
+import { probeProdBilling } from "@/lib/prod-billing";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
 
@@ -121,8 +123,13 @@ export async function GET() {
   const itemOk = (id: string) =>
     wedgeItems.find((i) => i.id === id)?.ok ?? null;
 
+  const prodTel = await probeProdTelephony();
+  const prodBilling = await probeProdBilling();
   const manusStatus = buildManusPostStatus({
-    secrets: probeManusEnvSecrets(),
+    secrets: probeManusEnvSecrets(process.env, {
+      prodTelephonyOk: prodTel.ok,
+      prodBillingOk: prodBilling.ok,
+    }),
     wedgeLine: itemOk("line"),
     wedgeVerify: itemOk("verified"),
     wedgeAlert: itemOk("alert-test"),

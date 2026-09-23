@@ -31,14 +31,16 @@ export function MarketingShell({ children }: MarketingShellProps) {
               <OrviusLogo variant="void" size="sm" />
               <p className="mkt-footer-entity font-sans">Solution Development LLC</p>
               <p className="mkt-footer-tagline font-sans" data-i18n="footer.tagline">
-                The night-shift OS for HVAC, plumbing, and electrical.
+                Focused AI receptionist for HVAC — missed calls to paid jobs.
               </p>
             </div>
             <nav className="mkt-footer-col" aria-label="Product">
               <p className="mkt-footer-heading font-sans">Product</p>
-              <Link href="/">Home</Link>
+              <Link href="/product">Product</Link>
               <Link href="/pricing">Pricing</Link>
+              <Link href="/enterprise">Enterprise</Link>
               <Link href="/pilot">Call audit</Link>
+              <Link href="/resources">Resources</Link>
               <Link href="/signin">Log in</Link>
             </nav>
             <nav className="mkt-footer-col" aria-label="Company">
@@ -80,27 +82,32 @@ export function MarketingShell({ children }: MarketingShellProps) {
 }
 
 export function ShellPageIntro({
-  label: _label,
+  label,
   title,
   subline,
   description,
   className = "",
+  actions,
 }: {
   label: string;
   title: string;
   subline?: string;
   description?: string;
   className?: string;
+  actions?: React.ReactNode;
 }) {
   return (
-    <BrandIntro
-      className={className}
-      brand
-      title={title}
-      subline={subline}
-      description={description}
-      align="left"
-    />
+    <div className={`shell-page-intro ${className}`.trim()}>
+      <BrandIntro
+        kicker={label}
+        title={title}
+        subline={subline}
+        description={description}
+        align="left"
+        brand={false}
+      />
+      {actions ? <div className="tier1-actions shell-page-actions">{actions}</div> : null}
+    </div>
   );
 }
 

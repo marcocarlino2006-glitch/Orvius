@@ -4,10 +4,22 @@ import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import { ShellAlert } from "@/components/shell-primitives";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import type { ManusPostStep } from "@/lib/manus-post";
+import { buildSettingsHub } from "@/lib/settings-hub";
 import type { ShopHealth } from "@/lib/shop-health";
+import {
+  parseHoursForm,
+  parseServicesForm,
+  parseZipsForm,
+  serializeHoursForm,
+  serializeServicesForm,
+  serializeZipsForm,
+  WEEKDAYS,
+  weekdayLabel,
+  type HoursForm,
+} from "@/lib/shop-hours-form";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -27,9 +39,14 @@ type AccountResponse = {
     lastWeeklyProofAt?: string | null;
     founderCertJson?: string | null;
     overflowForwardConfirmedAt?: string | null;
+    overflowProvedAt?: string | null;
+    forwardGuideSentAt?: string | null;
     captureMode?: CaptureMode | null;
     forwardCarrier?: CarrierId | null;
     lineVerifiedAt?: string | null;
+    hoursJson?: string | null;
+    servicesJson?: string | null;
+    serviceZipsJson?: string | null;
     billingStatus?: string;
     pilotEndsAt?: string | null;
   } | null;
@@ -95,6 +112,13 @@ export default function DashboardSettingsPage() {
   const [certSaving, setCertSaving] = useState(false);
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
+  const [forwardGuideSent, setForwardGuideSent] = useState(false);
+  const [overflowProved, setOverflowProved] = useState(false);
+  const [hoursForm, setHoursForm] = useState<HoursForm>(() =>
+    parseHoursForm(null),
+  );
+  const [servicesText, setServicesText] = useState("");
+  const [zipsText, setZipsText] = useState("");
   const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
   const [dirty, setDirty] = useState(false);
 
@@ -129,6 +153,11 @@ export default function DashboardSettingsPage() {
     );
     setCertChecks(parseCert(data.business?.founderCertJson));
     setOverflowForward(Boolean(data.business?.overflowForwardConfirmedAt));
+    setForwardGuideSent(Boolean(data.business?.forwardGuideSentAt));
+    setOverflowProved(Boolean(data.business?.overflowProvedAt));
+    setHoursForm(parseHoursForm(data.business?.hoursJson));
+    setServicesText(parseServicesForm(data.business?.servicesJson));
+    setZipsText(parseZipsForm(data.business?.serviceZipsJson));
     setDirty(false);
     setLoadState("ready");
   }
@@ -261,6 +290,7 @@ export default function DashboardSettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save");
       setOverflowForward(next);
+      setOverflowProved(next);
       setAccount((prev) =>
         prev && prev.business
           ? {
@@ -270,6 +300,7 @@ export default function DashboardSettingsPage() {
                 overflowForwardConfirmedAt: next
                   ? new Date().toISOString()
                   : null,
+                overflowProvedAt: next ? new Date().toISOString() : null,
               },
             }
           : prev,
@@ -279,6 +310,22 @@ export default function DashboardSettingsPage() {
     } finally {
       setOverflowSaving(false);
     }
+  }
+
+  function markHoursDirty() {
+    setDirty(true);
+    setSaved(false);
+  }
+
+  function updateDay(
+    day: (typeof WEEKDAYS)[number],
+    patch: Partial<HoursForm[(typeof WEEKDAYS)[number]]>,
+  ) {
+    setHoursForm((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], ...patch },
+    }));
+    markHoursDirty();
   }
 
   async function save(event: React.FormEvent) {
@@ -296,6 +343,9 @@ export default function DashboardSettingsPage() {
           ownerPhone: ownerPhone.trim(),
           ownerEmail: ownerEmail.trim() || undefined,
           greeting: greeting.trim(),
+          hoursJson: serializeHoursForm(hoursForm),
+          servicesJson: serializeServicesForm(servicesText),
+          serviceZipsJson: serializeZipsForm(zipsText),
           avgTicketCents: avgTicket.trim()
             ? Math.round(Number(avgTicket.replace(/[^0-9.]/g, "")) * 100)
             : null,
@@ -377,7 +427,7 @@ export default function DashboardSettingsPage() {
 
   if (loadState !== "ready" || !account) {
     return (
-      <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+      <OsShell title="Settings" subtitle="One next move — then back to Command.">
         <div className="pro-settings-page">
           {loadState === "error" ? (
             <div className="pro-settings-load-error">
@@ -404,43 +454,150 @@ export default function DashboardSettingsPage() {
     );
   }
 
+  const hubInput = {
+    founder: account.founder,
+    lineVerified: Boolean(account.business?.lineVerifiedAt),
+    overflowConfirmed: overflowForward,
+    ownerPhone,
+    ownerEmail,
+    avgTicketCents: account.business?.avgTicketCents,
+    emailConfigured: account.alerts.emailConfigured,
+    ownerSmsOptedOut: account.alerts.ownerSmsOptedOut,
+    billingConfigured: account.billing?.configured,
+    billingFullyReady: account.billing?.fullyReady,
+    certDone,
+    certTotal: FOUNDER_CERT.length,
+  };
+  const hubFocus = buildSettingsHub(hubInput).next?.id ?? null;
+
   return (
-    <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+    <OsShell title="Settings" subtitle="One next move — then back to Command.">
       <div className="pro-settings-page">
-        <SettingsLaunchGuide
-          input={{
-            founder: account.founder,
-            lineVerified: Boolean(account.business?.lineVerifiedAt),
-            overflowConfirmed: overflowForward,
-            ownerPhone,
-            ownerEmail,
-            avgTicketCents: account.business?.avgTicketCents,
-            emailConfigured: account.alerts.emailConfigured,
-            ownerSmsOptedOut: account.alerts.ownerSmsOptedOut,
-            billingConfigured: account.billing?.configured,
-            billingFullyReady: account.billing?.fullyReady,
-            certDone,
-            certTotal: FOUNDER_CERT.length,
-          }}
-        />
+        <SettingsLaunchGuide input={hubInput} />
         <form className="account-stack pro-settings-form" onSubmit={save}>
-        <div id="overflow-forward">
-          <ShellPanel title="Call capture" dense>
+        <details
+          id="overflow-forward"
+          className="pro-settings-secondary font-sans"
+          open
+        >
+          <summary>Call capture</summary>
+          <div className="pro-settings-secondary-body">
             <CaptureSetupPanel
               line={line}
               overflowConfirmed={overflowForward}
+              overflowProvedAt={overflowProved}
+              forwardGuideSent={forwardGuideSent}
               lineVerified={Boolean(account.business?.lineVerifiedAt)}
               saving={overflowSaving}
               initialMode={account.business?.captureMode ?? "forward"}
               initialCarrier={account.business?.forwardCarrier ?? "verizon"}
               onConfirmOverflow={(next) => saveOverflow(next)}
               onCapturePathChange={(next) => saveCapturePath(next)}
+              onForwardGuideSent={() => setForwardGuideSent(true)}
             />
-          </ShellPanel>
-        </div>
+          </div>
+        </details>
 
-        <div id="owner-alerts">
-        <ShellPanel title="Owner alerts" dense>
+        <details
+          id="hours-services"
+          className="pro-settings-secondary font-sans"
+          open
+        >
+          <summary>Hours, services &amp; area</summary>
+          <div className="pro-settings-secondary-body">
+            <p className="account-settings-hint font-sans mb-4">
+              The night line uses these to know when you&apos;re open, what you
+              take, and which ZIPs to book. Empty ZIPs = no area filter.
+            </p>
+
+            <div className="shop-hours-grid">
+              {WEEKDAYS.map((day) => {
+                const entry = hoursForm[day];
+                return (
+                  <div key={day} className="shop-hours-row">
+                    <label className="shop-hours-day">
+                      <input
+                        type="checkbox"
+                        checked={!entry.closed}
+                        onChange={(e) =>
+                          updateDay(day, { closed: !e.target.checked })
+                        }
+                      />
+                      <span>{weekdayLabel(day)}</span>
+                    </label>
+                    <input
+                      type="time"
+                      className="onboarding-input shop-hours-time"
+                      value={entry.open}
+                      disabled={entry.closed}
+                      onChange={(e) => updateDay(day, { open: e.target.value })}
+                      aria-label={`${weekdayLabel(day)} open`}
+                    />
+                    <span className="shop-hours-sep" aria-hidden>
+                      –
+                    </span>
+                    <input
+                      type="time"
+                      className="onboarding-input shop-hours-time"
+                      value={entry.close}
+                      disabled={entry.closed}
+                      onChange={(e) =>
+                        updateDay(day, { close: e.target.value })
+                      }
+                      aria-label={`${weekdayLabel(day)} close`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            <label className="onboarding-field font-sans mt-5">
+              <span className="onboarding-label">Services (one per line)</span>
+              <textarea
+                value={servicesText}
+                onChange={(e) => {
+                  setServicesText(e.target.value);
+                  markHoursDirty();
+                }}
+                className="onboarding-textarea"
+                rows={4}
+                placeholder={"AC repair\nHeating repair\nMaintenance"}
+              />
+              <span className="onboarding-hint">
+                Written into the receptionist&apos;s service list — keep names
+                short.
+              </span>
+            </label>
+
+            <label className="onboarding-field font-sans mt-4">
+              <span className="onboarding-label">Service ZIPs</span>
+              <input
+                type="text"
+                value={zipsText}
+                onChange={(e) => {
+                  setZipsText(e.target.value);
+                  markHoursDirty();
+                }}
+                className="onboarding-input"
+                placeholder="33101, 33109, 33139"
+                inputMode="numeric"
+                autoComplete="off"
+              />
+              <span className="onboarding-hint">
+                Comma-separated. When set, out-of-area leads stay on the board
+                — not auto-booked.
+              </span>
+            </label>
+          </div>
+        </details>
+
+        <details
+          id="owner-alerts"
+          className="pro-settings-secondary font-sans"
+          open
+        >
+          <summary>Owner alerts</summary>
+          <div className="pro-settings-secondary-body">
           {account.alerts.ownerSmsOptedOut ? (
             <div className="mb-4">
               <ShellAlert tone="error">
@@ -532,12 +689,16 @@ export default function DashboardSettingsPage() {
               </p>
             </div>
           ) : null}
-        </ShellPanel>
-        </div>
+          </div>
+        </details>
 
-        <details className="pro-settings-secondary font-sans">
+        <details
+          id="economics-baseline"
+          className="pro-settings-secondary font-sans"
+          open
+        >
           <summary>Opening line + baseline</summary>
-          <div id="economics-baseline" className="pro-settings-secondary-body">
+          <div className="pro-settings-secondary-body">
             <label className="onboarding-field font-sans">
               <span className="onboarding-label">Opening line</span>
               <textarea
@@ -620,6 +781,7 @@ export default function DashboardSettingsPage() {
           <details
             id="founder-cert"
             className="pro-settings-secondary font-sans"
+            open={hubFocus === "cert"}
           >
             <summary>
               Founder phone certification ({certDone}/{FOUNDER_CERT.length})
@@ -651,9 +813,9 @@ export default function DashboardSettingsPage() {
           <details
             id="manus-post-next"
             className="pro-settings-secondary font-sans"
-            open={Boolean(manusNext)}
+            open={Boolean(manusNext) && hubFocus == null}
           >
-            <summary>Manus post · next</summary>
+            <summary>Launch checklist · next</summary>
             <FounderManusNext tone="quiet" next={manusNext} />
           </details>
         ) : null}
@@ -662,7 +824,7 @@ export default function DashboardSettingsPage() {
           Billing's home is /dashboard/billing. Settings only points there —
           a second money panel on the setup hub is theater.
         */}
-        <details className="pro-settings-secondary font-sans">
+        <details className="pro-settings-secondary font-sans" open={hubFocus === "billing"}>
           <summary>Plan & billing</summary>
           <div className="pro-settings-secondary-body">
             <p className="account-settings-hint font-sans">

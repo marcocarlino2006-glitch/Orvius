@@ -186,16 +186,19 @@ not UI.
 **Cockpit:** `/admin/daily` (Master all) · **CLI:** `npm run master:all`
 
 ### Founder-critical (blocks multi-b) — do in this order
-1. Paste Stripe keys → `npm run stripe:setup` → webhook → **first paid Checkout** ($0 → ARR)
-2. Paste `RESEND_API_KEY` on Vercel (SMS→email failover live)
-3. Re-run live cell cert 5/5 + `wedge:ready` 8/8 on **prod** (historical stamps do not count)
-4. Confirm Summit weekly proof still current (or re-stamp on Command)
-5. Onboard first shop to **Connect** in Billing → payouts → take one real card $ to their bank
-6. Replace seed prospects → run `/admin/daily` for real outreach
-7. Counsel: formation state → set `formationStateConfirmed`
-8. Land one **external** named proof (not Summit self-reference)
+1. Paste `RESEND_API_KEY` on Vercel (SMS→email failover live) — still Partial in failure log
+2. Re-run live cell cert 5/5 + `wedge:ready` 8/8 on **prod DB** (historical 2026-09-05 stamps do not skip this)
+3. Confirm Summit weekly proof still current (or re-stamp on Command)
+4. Onboard first shop to **Connect** in Billing → payouts → take one real card $ to their bank
+5. Replace seed prospects → run `/admin/daily` for real outreach
+6. ~~Counsel: formation state~~ → **New York** (2026-09-23)
+7. Land one **external** named proof (not Summit self-reference)
 
-Only after 1–8: density (10 proving shops), then deepen rings. More Settings UI will not skip this list.
+**Already closed on prod (do not re-work as NEXT):** Twilio+Vapi live, Stripe SaaS `configured:true` (self-serve still intentionally off), DNS/deploy, owner SMS flag, **formation New York**. Agent-local empty `.env` is not a founder paste task — run `npm run prod:verify` · `npm run founder:next`.
+
+**Also set on Vercel:** `ORVIUS_FORMATION_STATE=New York` so prod legal copy matches (or rely on the shipped default after this deploy).
+
+Only after 1–7: density (10 proving shops), then deepen rings. More Settings UI will not skip this list.
 
 ### Agent/code (this PR closes Settings honesty debt)
 9. Settings night capture + cert/Manus honesty + Billing money copy — **shipped on this branch**

@@ -20,26 +20,29 @@ const base = {
   lineVerifiedAt: null,
 };
 
-test("setup requires real line proof before capture confirmation", () => {
+test("line proof unlocks Command — capture is next, not a fake door", () => {
   assert.equal(getOwnerSetupStatus(base).nextStep, "verify");
-  assert.equal(
-    getOwnerSetupStatus({ ...base, lineVerifiedAt: new Date() }).nextStep,
-    "capture",
-  );
+  const verified = getOwnerSetupStatus({
+    ...base,
+    lineVerifiedAt: new Date(),
+  });
+  assert.equal(verified.nextStep, "capture");
+  assert.equal(verified.ready, true);
+  assert.equal(verified.captureConfirmed, false);
   assert.equal(
     getOwnerSetupStatus({
       ...base,
       lineVerifiedAt: new Date(),
       overflowForwardConfirmedAt: new Date(),
-    }).ready,
-    true,
+    }).nextStep,
+    "done",
   );
 });
 
 test("recovery links resume the guided setup ritual", () => {
   assert.equal(ownerSetupHref("line"), "/dashboard/onboarding");
   assert.equal(ownerSetupHref("verify"), "/dashboard/onboarding");
-  assert.equal(ownerSetupHref("capture"), "/dashboard/onboarding");
+  assert.equal(ownerSetupHref("capture"), "/dashboard/settings#overflow-forward");
   assert.equal(ownerSetupHref("owner_phone"), "/dashboard/settings");
   assert.equal(ownerSetupHref("done"), "/dashboard");
 });
@@ -49,6 +52,7 @@ test("onboarding state survives refresh and existing-shop conflicts", () => {
   const guard = read("src/components/onboarding-guard.tsx");
   const wizard = read("src/components/onboarding-wizard.tsx");
   const forwardGuide = read("src/app/api/account/forward-guide/route.ts");
+  const verify = read("src/components/onboarding-call-verify.tsx");
 
   assert.match(api, /getOwnerSetupStatus\(business\)/);
   assert.match(api, /provisioned: Boolean\(business\)/);
@@ -58,4 +62,5 @@ test("onboarding state survives refresh and existing-shop conflicts", () => {
   assert.match(wizard, /OnboardingCallVerify/);
   assert.match(wizard, /setProvisionedLine/);
   assert.match(forwardGuide, /call your Orvius line once; then reply DONE/i);
+  assert.doesNotMatch(verify, /overflowForwardConfirmedAt:\s*true/);
 });

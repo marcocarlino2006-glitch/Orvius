@@ -5,24 +5,24 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Enterprise",
-  description: `${company.productName} for multi-shop and franchise operators evaluating one after-hours operating standard.`,
+  description: `${company.productName} for multi-shop HVAC operators — after one location proves call→cash.`,
 };
 
 const pillars = [
   {
     id: "01",
-    title: "Align hours, services, and escalation.",
-    body: "Document each location's services, hours, escalation rules, call flow, and capacity before software starts making proposals.",
+    title: "Prove one location first.",
+    body: "Start with one live overflow/after-hours line. Expand only after calls become booked, completed, paid work.",
   },
   {
     id: "02",
-    title: "Prove one location first.",
-    body: "Start with one live line and measured captured-demand bookings. Expand only after the call, confirmation, and owner-alert loop is reliable.",
+    title: "Align hours, services, escalation.",
+    body: "Document each shop’s services, hours, escalation rules, and capacity before software proposes windows across the footprint.",
   },
   {
     id: "03",
-    title: "Build multi-location admin with us.",
-    body: "Portfolio roles, consolidated billing, and cross-location reporting ship per deal — not as generally available product claims today.",
+    title: "Multi-location with us — not self-serve theater.",
+    body: "Portfolio roles, consolidated billing, and cross-location reporting ship per deal after the wedge holds.",
   },
 ] as const;
 
@@ -33,19 +33,32 @@ export default function EnterprisePage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Enterprise"
-            title="Build one standard before scaling every location."
-            subline="For franchises and multi-shop operators ready to run one after-hours standard."
-            description="Orvius proves the autonomous front desk one live location at a time. Multi-location admin isn’t self-serve yet — we set it up per footprint."
+            title="One standard after one shop pays."
+            subline="For franchises and multi-shop HVAC operators who want overflow covered without platform vapor."
+            description={`${company.productName} earns multi-location only after a single site proves demand → completed work → money. We set the footprint up with you.`}
+            actions={
+              <>
+                <a
+                  href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop%20HVAC"
+                  className="ov-btn ov-btn--solid"
+                >
+                  Contact sales
+                </a>
+                <Link href="/pricing" className="ov-btn ov-btn--quiet">
+                  View pricing
+                </Link>
+              </>
+            }
           />
         </div>
       </section>
 
       <section className="tier1-story">
         <div className="editorial-wrap">
-          <ol className="mkt-laws mkt-laws--meta font-sans">
+          <ol className="mkt-laws mkt-laws--ruled font-sans">
             {pillars.map((c) => (
-              <li key={c.id} className="mkt-law">
-                <span className="mkt-law-id" aria-hidden>
+              <li key={c.id} className="mkt-law mkt-law--ruled">
+                <span className="mkt-law-index" aria-hidden>
                   {c.id}
                 </span>
                 <div className="mkt-law-copy">
@@ -65,19 +78,19 @@ export default function EnterprisePage() {
               Talk through your footprint.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Multi-shop pricing is custom. Tell us how many locations you run
-              and we&apos;ll set the standard up with you.
+              Multi-shop pricing is custom. Tell us how many HVAC locations you
+              run and we&apos;ll set the standard up with you.
             </p>
           </div>
           <div className="tier1-actions">
             <a
-              href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop"
-              className="ov-btn ov-btn--quiet"
+              href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop%20HVAC"
+              className="ov-btn ov-btn--solid"
             >
               Contact sales
             </a>
-            <Link href="/pricing" className="ov-btn ov-btn--solid">
-              View pricing
+            <Link href="/pilot" className="ov-btn ov-btn--quiet">
+              Request a demo
             </Link>
           </div>
         </div>

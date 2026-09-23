@@ -29,7 +29,9 @@ export function getOwnerSetupStatus(business: {
   const hasOwnerPhone = Boolean(business.ownerPhone?.trim());
   const captureConfirmed = Boolean(business.overflowForwardConfirmedAt);
   const lineVerified = Boolean(business.lineVerifiedAt);
-  const ready = hasLine && hasOwnerPhone && captureConfirmed && lineVerified;
+  // Line proof unlocks Command. Capture (forward/publish) is the next shop
+  // move on the pulse — not a second door that forces a fake overflow stamp.
+  const ready = hasLine && hasOwnerPhone && lineVerified;
 
   let nextStep: OwnerSetupStatus["nextStep"] = "done";
   if (!hasLine) nextStep = "line";
@@ -52,6 +54,7 @@ export function ownerSetupHref(
   nextStep: OwnerSetupStatus["nextStep"],
 ): string {
   if (nextStep === "owner_phone") return "/dashboard/settings";
+  if (nextStep === "capture") return "/dashboard/settings#overflow-forward";
   if (nextStep === "done") return "/dashboard";
   return "/dashboard/onboarding";
 }

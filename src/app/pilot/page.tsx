@@ -22,17 +22,19 @@ export default function PilotPage() {
             title="See what your missed calls are costing."
             subline="We walk your after-hours and overflow pattern — then go live if it is a fit"
             description={`No slide deck. A real look at what Orvius would capture for your ${company.trades.join(" / ")} shop. If it fits, choose a paid plan through verified Stripe checkout.`}
+            actions={
+              <>
+                <a href="#waitlist" className="ov-btn ov-btn--solid">
+                  Request a demo
+                </a>
+                <a href={demoLineHref()} className="ov-btn ov-btn--quiet">
+                  Call the live line
+                </a>
+              </>
+            }
           />
           <div className="tier1-hero-call">
             <HomeCallDemo />
-          </div>
-          <div className="tier1-actions" style={{ marginTop: "1.5rem" }}>
-            <a href="#waitlist" className="ov-btn ov-btn--solid">
-              Request a call audit
-            </a>
-            <a href={demoLineHref()} className="ov-btn ov-btn--quiet">
-              Try the live line
-            </a>
           </div>
         </div>
       </section>

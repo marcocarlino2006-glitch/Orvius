@@ -30,7 +30,7 @@ export const beyondOperators = [
     id: "servicetitan",
     source: "ServiceTitan",
     mechanic: "Vertical depth beats horizontal CRM",
-    orvius: "HVAC, plumbing, electrical — night-shift OS, not generic receptionist",
+    orvius: "HVAC-first receptionist wedge — call→cash before OS expansion",
   },
   {
     id: "linear",
@@ -65,8 +65,9 @@ export const beyondMoves = [
   },
   {
     id: "night-shift-category",
-    title: "Night-shift category, not AI receptionist",
-    detail: "Fail the brand-swap test. Live line is the demo.",
+    title: "HVAC receptionist wedge before OS theater",
+    detail:
+      "One paying shop. Overflow/after-hours. Call→cash proven. Live line is the demo.",
   },
   {
     id: "outcome-honesty",

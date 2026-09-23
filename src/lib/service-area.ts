@@ -1,10 +1,9 @@
 /**
- * Service-area normalization.
+ * Service-area normalization + allowlist enforcement.
  *
- * Addresses arrive as whatever a caller said out loud, so "what does a water
- * heater cost around here" has no answer while geography is free text. A ZIP
- * is the coarsest unit that is still local, cheap to derive, and stable enough
- * to group on years from now.
+ * Addresses arrive as whatever a caller said out loud. A ZIP is the coarsest
+ * unit that is still local. When the owner sets serviceZipsJson, out-of-area
+ * leads are rejected at book time — not theater.
  */
 
 /** Lowest and highest allocated US ZIP codes — filters stray 5-digit runs. */
@@ -49,4 +48,42 @@ export function extractPostalCode(address: string | null | undefined) {
 export function postalSector(postalCode: string | null | undefined) {
   const zip = (postalCode ?? "").trim();
   return /^\d{5}$/.test(zip) ? zip.slice(0, 3) : null;
+}
+
+/** Parse owner allowlist JSON — invalid / empty → []. */
+export function parseServiceZips(raw: string | null | undefined): string[] {
+  if (!raw?.trim()) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return [
+      ...new Set(
+        parsed
+          .map((z) => String(z).replace(/\D/g, "").slice(0, 5))
+          .filter((z) => /^\d{5}$/.test(z)),
+      ),
+    ];
+  } catch {
+    return [];
+  }
+}
+
+export function serializeServiceZips(zips: string[]): string {
+  return JSON.stringify(parseServiceZips(JSON.stringify(zips)));
+}
+
+/**
+ * true  — address ZIP is in the allowlist
+ * false — allowlist set and address ZIP missing or outside
+ * null  — no allowlist configured (do not hard-reject)
+ */
+export function isInServiceArea(
+  address: string | null | undefined,
+  serviceZipsJson: string | null | undefined,
+): boolean | null {
+  const allowed = parseServiceZips(serviceZipsJson);
+  if (!allowed.length) return null;
+  const zip = extractPostalCode(address);
+  if (!zip) return false;
+  return allowed.includes(zip);
 }

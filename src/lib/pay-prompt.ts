@@ -54,7 +54,7 @@ export function getPayPromptDecision(
       show: true,
       tone: "past_due",
       headline: "Payment failed — keep your line live",
-      body: "Update billing now so missed calls keep converting into booked jobs. Access stays locked until payment succeeds.",
+      body: "Update billing now so after-hours calls keep converting into qualified jobs. Access stays locked until payment succeeds.",
       primaryCta: "Fix payment",
       snoozeMs: 0,
       hard: true,
@@ -93,7 +93,7 @@ export function getPayPromptDecision(
         ? "Pay to run Orvius for your shop"
         : "Keep Orvius for your shop",
     body: endingSoon
-      ? "Pay with card now so after-hours calls keep becoming booked jobs without interruption. Pro is $299/mo — cancel anytime."
+      ? "Pay with card now so after-hours calls keep becoming qualified jobs without interruption. Pro is $299/mo — cancel anytime."
       : "Shop access is temporary. Pro is $299/mo — one tap opens Stripe Checkout. We’ll ask again soon.",
     primaryCta: "Pay with card",
     snoozeMs: endingSoon || status === "none" ? 2 * HOUR : 4 * HOUR,

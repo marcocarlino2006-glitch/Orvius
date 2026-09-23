@@ -39,9 +39,9 @@ export function ProShiftTimeline({
     <section className="pro-shift" aria-labelledby="pro-shift-title">
       <header className="pro-shift-head">
         <div>
-          <p className="pro-shift-kicker font-sans">Tonight</p>
+          <p className="pro-shift-kicker font-sans">Activity</p>
           <h2 id="pro-shift-title" className="pro-shift-title font-sans">
-            Shift timeline
+            Call activity feed
           </h2>
         </div>
         <span className="pro-shift-window font-sans">Last 24 hours</span>

@@ -347,8 +347,7 @@ body {
 /* Every public section shares one 1240px rail inside a 5vw gutter, so section
    content and the showcase panel's outer edge start on the same vertical line. */
 
-.ov-public .mkt-manifesto-kicker,
-.ov-public .mkt-proof-kicker {
+.ov-public .mkt-manifesto-kicker {
   margin: 0 0 1.25rem !important;
   color: var(--ov-accent-text) !important;
   font-family: var(--ov-font) !important;
@@ -358,7 +357,6 @@ body {
   text-transform: none !important;
 }
 
-.ov-public .mkt-trynow-cta,
 .ov-public .inst-btn-primary {
   min-height: 42px !important;
   padding: 0 1rem !important;
@@ -374,7 +372,6 @@ body {
   text-transform: none !important;
 }
 
-.ov-public .mkt-trynow-cta:hover,
 .ov-public .inst-btn-primary:hover {
   border-color: #111315 !important;
   background: #111315 !important;
@@ -387,7 +384,6 @@ body {
  * the page does. They re-declare the token set locally, so every rule inside
  * can keep reading --ov-* instead of branching on [data-theme].
  */
-.ov-public .mkt-laws--grid .mkt-law,
 .ov-public .ov-console-frame,
 .ov-public .mkt-proof-section,
 .ov-signin {
@@ -418,22 +414,12 @@ body {
 
 /* Editorial sections */
 
-.ov-public .mkt-manifesto,
-.ov-public .mkt-manifesto--meta {
+.ov-public .mkt-manifesto {
   padding: 118px 5vw !important;
   border: 0 !important;
   border-top: 1px solid var(--ov-line) !important;
   background: var(--ov-paper) !important;
   color: var(--ov-ink) !important;
-}
-
-.ov-public .mkt-manifesto-meta {
-  width: min(100%, 1240px) !important;
-  max-width: 1240px !important;
-  margin: 0 auto !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
-  gap: clamp(40px, 5vw, 64px) !important;
 }
 
 /*
@@ -442,10 +428,6 @@ body {
   column, where pinning has nothing to scroll against and instead lets the
   headline drift down over the cards. Unpin it.
 */
-.ov-public .mkt-manifesto-meta-lead {
-  position: static !important;
-  top: auto !important;
-}
 
 .ov-public .mkt-manifesto-title {
   max-width: 620px !important;
@@ -458,53 +440,8 @@ body {
   letter-spacing: -0.028em !important;
 }
 
-.ov-public .mkt-manifesto-aside {
-  max-width: 500px !important;
-  margin-top: 1.5rem !important;
-  color: var(--ov-muted) !important;
-  font-size: 0.9375rem !important;
-  line-height: 1.6 !important;
-}
-
 /* Night rules — three elevated surfaces rather than a ruled list. The grid sits
    under the lead copy at full width so the cards get room to be read as cards. */
-
-.ov-public .mkt-laws--grid {
-  margin: 0 !important;
-  padding: 0 !important;
-  list-style: none !important;
-  border: 0 !important;
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 1rem !important;
-}
-
-.ov-public .mkt-laws--grid .mkt-law {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 1.35rem !important;
-  padding: 1.5rem !important;
-  border: 1px solid var(--ov-hairline) !important;
-  border-radius: 16px !important;
-  background: #1c1a14 !important;
-  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.05) !important;
-  opacity: 0;
-  transform: translateY(12px);
-  animation: ov-law-rise 640ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  transition:
-    border-color 200ms ease,
-    background 200ms ease !important;
-}
-
-.ov-public .mkt-laws--grid .mkt-law:nth-child(1) {
-  animation-delay: 40ms;
-}
-.ov-public .mkt-laws--grid .mkt-law:nth-child(2) {
-  animation-delay: 140ms;
-}
-.ov-public .mkt-laws--grid .mkt-law:nth-child(3) {
-  animation-delay: 240ms;
-}
 
 @keyframes ov-law-rise {
   to {
@@ -513,59 +450,9 @@ body {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ov-public .mkt-laws--grid .mkt-law {
-    opacity: 1;
-    transform: none;
-    animation: none;
-  }
-}
-
-.ov-public .mkt-laws--grid .mkt-law:hover {
-  border-color: var(--ov-hairline-strong) !important;
-  background: #171717 !important;
-}
-
-.ov-public .mkt-law-head {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 0.75rem !important;
-}
-
-.ov-public .mkt-law-icon {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 34px !important;
-  height: 34px !important;
-  border: 1px solid var(--ov-hairline) !important;
-  border-radius: 10px !important;
-  background: rgb(255 255 255 / 0.04) !important;
-  color: var(--ov-copper) !important;
-}
-
-.ov-public .mkt-law-badge {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 0.35rem !important;
-  padding: 0.15rem 0.6rem !important;
-  border: 1px solid var(--ov-hairline) !important;
-  border-radius: 0.25rem !important;
-  background: rgb(255 255 255 / 0.04) !important;
-  color: #aaa8a0 !important;
-  font-family: var(--ov-mono) !important;
-  font-size: 0.625rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.14em !important;
-}
-
 /* The slash is decoration, but it is still read as structure between the two
    terms, and at #5e5c55 it sat at 2.51:1. One step up the dim ladder clears AA
    and stays plainly quieter than the #aaa8a0 terms it separates. */
-.ov-public .mkt-law-badge-sep {
-  color: #918f87 !important;
-}
 
 .ov-public .mkt-law-title {
   margin: 0 !important;
@@ -584,12 +471,6 @@ body {
   line-height: 1.6 !important;
 }
 
-@media (max-width: 900px) {
-  .ov-public .mkt-laws--grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
 /* Call proof: charcoal, never pure black. */
 
 .ov-public .mkt-proof-section {
@@ -597,18 +478,6 @@ body {
   border: 0 !important;
   background: var(--ov-charcoal) !important;
   color: var(--ov-night-text) !important;
-}
-
-.ov-public .mkt-proof-layout {
-  width: min(100%, 1240px) !important;
-  max-width: 1240px !important;
-  margin: 0 auto !important;
-  gap: clamp(48px, 8vw, 120px) !important;
-}
-
-.ov-public .mkt-proof-kicker,
-.ov-public .mkt-call-panel-kicker {
-  color: #e2a07b !important;
 }
 
 .ov-public .mkt-proof-title {
@@ -620,158 +489,19 @@ body {
   letter-spacing: -0.04em !important;
 }
 
-.ov-public .mkt-proof-lead,
-.ov-public .mkt-proof-note {
+.ov-public .mkt-proof-lead {
   color: #b8bcc0 !important;
   font-family: var(--ov-font) !important;
 }
 
-.ov-public .mkt-call-panel {
-  border: 1px solid #444a51 !important;
-  border-radius: 6px !important;
-  background: var(--ov-charcoal-raised) !important;
-  box-shadow: none !important;
-}
-
-.ov-public .mkt-call-panel-title,
-.ov-public .mkt-transcript-line {
-  color: var(--ov-night-text) !important;
-}
-
 /* The transcript inherits a white surface from the legacy skin, which leaves the
    Orvius lines invisible against it. It belongs on the panel's dark field. */
-.ov-public .mkt-transcript {
-  border: 1px solid #3b4147 !important;
-  border-radius: 5px !important;
-  background: #1b1f23 !important;
-}
-
-.ov-public .mkt-transcript-line {
-  border-color: #3b4147 !important;
-  font-size: 0.8125rem !important;
-}
-
-.ov-public .mkt-transcript-line span {
-  color: #8d9298 !important;
-  font-family: var(--ov-mono) !important;
-  font-size: 0.6875rem !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-}
-
-.ov-public .mkt-transcript-line-muted {
-  color: #aeb2b6 !important;
-}
 
 /* ── Operating standards banner ──
    Full-bleed rule-to-rule strip between the hero and the product proof. It sits
    a shade below the page canvas so it reads as a plate set into the page. */
 
 /* Close and footer */
-
-.ov-public .mkt-trynow {
-  position: relative !important;
-  padding: 126px 5vw 150px !important;
-  border: 0 !important;
-  border-top: 1px solid var(--ov-line) !important;
-  background: var(--ov-paper) !important;
-  overflow: clip !important;
-}
-
-.ov-public .ov-trynow-sky {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.ov-public .ov-trynow-sky-bloom {
-  position: absolute;
-  left: 50%;
-  top: 10%;
-  width: min(900px, 90vw);
-  height: 70%;
-  transform: translateX(-50%);
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--ov-copper) 14%, transparent),
-    transparent 68%
-  );
-}
-
-.ov-public .mkt-trynow-inner {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 1240px) !important;
-  max-width: 1240px !important;
-  margin: 0 auto !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
-}
-
-.ov-public .mkt-trynow-eyebrow {
-  margin: 0 0 1.1rem !important;
-  color: var(--ov-accent-text) !important;
-  font-family: var(--ov-mono) !important;
-  font-size: 0.6875rem !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-}
-
-.ov-public .mkt-trynow-title {
-  max-width: 700px !important;
-  margin: 0 !important;
-  color: var(--ov-headline) !important;
-  font-family: var(--ov-font) !important;
-  font-size: clamp(2.5rem, 5vw, 4.2rem) !important;
-  font-weight: 600 !important;
-  line-height: 1.02 !important;
-  letter-spacing: -0.032em !important;
-}
-
-.ov-public .mkt-trynow-sub {
-  max-width: 56ch !important;
-  margin: 1.25rem 0 0 !important;
-  color: var(--ov-muted) !important;
-  font-family: var(--ov-font) !important;
-  font-size: 1rem !important;
-  line-height: 1.6 !important;
-}
-
-.ov-public .mkt-trynow-actions {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 1.25rem !important;
-  margin-top: 2.1rem !important;
-}
-
-.ov-public .mkt-trynow-call {
-  display: inline-block !important;
-  margin-top: 0 !important;
-  color: var(--ov-muted) !important;
-  font-size: 0.875rem !important;
-}
-
-.ov-public .mkt-trynow-call:hover {
-  color: var(--ov-headline) !important;
-}
-
-.ov-public .mkt-trynow-meta {
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.45rem !important;
-  margin: 1.6rem 0 0 !important;
-  color: var(--ov-muted) !important;
-  font-family: var(--ov-mono) !important;
-  font-size: 0.6875rem !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-}
 
 /* The bottom padding clears the fixed utility dock — see --ui-dock-reserve. */
 .ov-public .mkt-footer {
@@ -879,7 +609,6 @@ body {
 }
 
 .ov-public .inst-btn,
-.ov-public .mkt-btn,
 .ov-public .btn,
 .ov-public .ov-btn {
   border-radius: 4px !important;
@@ -1504,9 +1233,6 @@ body {
  */
 
 .ov-public .mkt-manifesto-kicker,
-.ov-public .mkt-proof-kicker,
-.ov-public .mkt-law-id,
-.ov-public .mkt-trynow-call,
 .ov-public .mkt-footer-heading,
 .ov-public .tier1-eyebrow {
   font-family: var(--ov-mono) !important;
@@ -1520,7 +1246,6 @@ body {
 
 .ov-public .mkt-manifesto-title,
 .ov-public .mkt-proof-title,
-.ov-public .mkt-trynow-title,
 .ov-public .tier1-section-title,
 .ov-public .tier1-page-title {
   font-family: var(--ov-font) !important;
@@ -1529,7 +1254,6 @@ body {
 }
 
 .ov-public .mkt-law-title,
-.ov-public .mkt-call-panel-title,
 .ov-public .pro-panel-title {
   font-family: var(--ov-font) !important;
   font-weight: 600 !important;
@@ -1537,7 +1261,6 @@ body {
 
 /* Numbers, timestamps, and phone lines read as data, not prose. */
 
-.ov-public .mkt-transcript-line,
 .ov-public .tier1-plan-price,
 .ov-public .mkt-footer-entity {
   font-family: var(--ov-mono) !important;
@@ -1562,15 +1285,6 @@ body {
   .ov-public .mkt-nav-menu-toggle {
     display: grid !important;
   }
-
-  .ov-public .mkt-manifesto-meta,
-  .ov-public .mkt-proof-layout {
-    grid-template-columns: 1fr !important;
-  }
-
-  .ov-public .mkt-manifesto-meta {
-    gap: 60px !important;
-  }
 }
 
 @media (max-width: 720px) {
@@ -1585,7 +1299,6 @@ body {
 
   .ov-public .mkt-manifesto,
   .ov-public .mkt-proof-section,
-  .ov-public .mkt-trynow,
   .ov-public .tier1-story,
   .ov-public .tier1-close {
     padding: 76px 20px !important;
@@ -1808,36 +1521,15 @@ body {
   align-items: center;
 }
 
-.ov-public .ov-hero-brand {
-  margin: 0 0 0.85rem;
-  color: var(--ov-headline);
-  font-family: var(--ov-font);
-  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  line-height: 1;
-}
-
 .ov-public .ov-hero-title {
   margin: 0;
   color: var(--ov-headline);
   font-family: var(--ov-font);
   font-size: clamp(2.6rem, 4.6vw, 4rem);
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.02;
-  letter-spacing: -0.028em;
+  letter-spacing: -0.032em;
   text-wrap: balance;
-}
-
-.ov-public .ov-hero-lead {
-  max-width: 44ch;
-  margin: 1.5rem 0 0;
-  color: var(--ov-muted);
-  font-family: var(--ov-font);
-  font-size: 1.0625rem;
-  line-height: 1.55;
-  letter-spacing: -0.012em;
 }
 
 .ov-public .ov-hero-actions {
@@ -1852,44 +1544,44 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 0.75rem 1.5rem;
+  min-height: 40px;
+  padding: 0.55rem 1.15rem;
   border-radius: 0.25rem;
   font-family: var(--ov-font);
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   letter-spacing: -0.014em;
   text-decoration: none;
   transition:
-    transform 130ms ease,
-    background 130ms ease,
-    border-color 130ms ease,
-    box-shadow 130ms ease;
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
 }
 
-/* The one CTA inverts against the canvas and carries a soft halo, so it reads
-   as the lit control on a dark board rather than another outlined chip. */
+/* Ink fill — Cursor primary. No lift, no glow. */
 .ov-public .ov-btn--solid {
   border: 1px solid var(--ov-headline);
   background: var(--ov-headline);
   color: var(--ov-paper);
-  box-shadow: 0 0 0 rgb(255 255 255 / 0);
+  box-shadow: none;
 }
 
 .ov-public .ov-btn--solid:hover {
-  box-shadow: 0 8px 28px -8px rgb(255 255 255 / 0.35);
-  transform: translateY(-1px);
+  box-shadow: none;
+  transform: none;
+  filter: brightness(0.94);
 }
 
 .ov-public .ov-btn--quiet {
   border: 1px solid var(--ov-hairline-strong);
-  background: transparent;
+  background: color-mix(in srgb, var(--ov-paper-raised) 70%, transparent);
   color: var(--ov-headline);
 }
 
 .ov-public .ov-btn--quiet:hover {
   border-color: var(--ov-hairline-hover);
-  transform: translateY(-1px);
+  background: var(--ov-paper-raised);
+  transform: none;
 }
 
 /* ── The live line ──
@@ -2444,31 +2136,37 @@ body {
   position: relative;
   flex: 1;
   display: flex;
-  align-items: center;
-  gap: 1.5px;
-  height: 34px;
+  align-items: flex-end;
+  gap: 1px;
+  height: 40px;
+  padding-block: 2px;
   cursor: pointer;
   touch-action: none;
 }
 
 .ov-public .ov-player-bar {
   flex: 1;
-  min-width: 1px;
-  border-radius: 9999px;
+  min-width: 1.5px;
+  max-width: 3px;
+  border-radius: 1px;
   background: #2b2923;
-  transition: background 120ms ease;
+  opacity: 0.55;
+  transition: background 120ms ease, opacity 120ms ease;
 }
 
 .ov-public .ov-player-bar.is-played.ov-player-bar--orvius {
   background: var(--ov-copper);
+  opacity: 1;
 }
 
 .ov-public .ov-player-bar.is-played.ov-player-bar--caller {
   background: #d7d6d5;
+  opacity: 0.92;
 }
 
 .ov-public .ov-player-bar.is-played {
   background: #4a4a4a;
+  opacity: 0.75;
 }
 
 .ov-public .ov-player-head {
@@ -2591,5 +2289,1367 @@ body {
 
   .ov-public .ov-player-toggle:hover {
     transform: none;
+  }
+}
+
+/* ── Build off baseline: Cursor restraint on the same format ── */
+
+.ov-public .ov-hero-inner--product {
+  grid-template-columns: minmax(0, 0.38fr) minmax(0, 1.62fr);
+  gap: clamp(20px, 2.6vw, 36px);
+  align-items: center;
+  width: min(100%, 1380px);
+}
+
+.ov-public .ov-hero--atmosphere {
+  min-height: min(96vh, 980px);
+  padding: clamp(76px, 8vh, 96px) 4vw clamp(40px, 5vh, 64px);
+}
+
+/* Cursor poster: claim band top, product canvas full-width below */
+.ov-public .ov-hero-inner--poster {
+  grid-template-columns: 1fr;
+  gap: clamp(1.5rem, 3vh, 2.25rem);
+  width: min(100%, 1120px);
+  align-items: start;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-copy {
+  max-width: 36rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-title {
+  max-width: 18ch;
+  /* Whisper authority — size + tracking, not weight (Cursor gothic 400) */
+  font-size: clamp(2.35rem, 4.8vw, 3.65rem);
+  font-weight: 300;
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+  animation: ov-world-copy-in 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-actions {
+  margin-top: 1.65rem;
+  gap: 0.55rem;
+  animation: ov-world-copy-in 780ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline {
+  margin-top: 1.1rem;
+  animation: ov-world-copy-in 780ms cubic-bezier(0.22, 1, 0.36, 1) 220ms both;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-body {
+  min-height: min(52vh, 520px);
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-wire {
+  max-height: min(52vh, 520px);
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-caption {
+  text-align: center;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  letter-spacing: -0.01em;
+  opacity: 0.85;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-hero-inner--poster .ov-console-body {
+    min-height: 300px;
+  }
+
+  .ov-public .ov-hero-inner--poster .ov-console-wire {
+    max-height: 300px;
+  }
+}
+
+.ov-public .ov-hero-actions {
+  display: flex;
+}
+
+.ov-public .ov-hero-liveline {
+  margin-top: 1.65rem;
+}
+
+.ov-public .mkt-manifesto--rules {
+  padding-block: clamp(4rem, 8vw, 6.5rem);
+}
+
+.ov-public .mkt-manifesto-rules {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.ov-public .mkt-manifesto-rules-head {
+  margin-bottom: 2.25rem;
+}
+
+.ov-public .mkt-manifesto--rules .mkt-manifesto-title {
+  font-size: clamp(1.55rem, 2.6vw, 2.05rem);
+  max-width: 18ch;
+  margin-top: 0.55rem;
+}
+
+.ov-public .mkt-laws--ruled {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
+}
+
+.ov-public .mkt-law--ruled {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.ov-public .mkt-law-index {
+  font-family: var(--ov-mono, ui-monospace, monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+  padding-top: 0.2rem;
+}
+
+.ov-public .mkt-law--ruled .mkt-law-title {
+  font-size: 1.12rem;
+  margin: 0 0 0.35rem;
+}
+
+.ov-public .mkt-law--ruled .mkt-law-body {
+  margin: 0;
+  max-width: 48ch;
+  opacity: 0.82;
+}
+
+.ov-public .mkt-proof-section--quiet {
+  padding-block: clamp(3.5rem, 7vw, 5.5rem);
+}
+
+.ov-public .mkt-proof-section--quiet .mkt-proof-title {
+  font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+}
+
+.ov-public .mkt-close-block {
+  max-width: 36rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.ov-public .mkt-close-block .mkt-proof-title,
+.ov-public .mkt-close-block .mkt-proof-lead {
+  margin-inline: auto;
+}
+
+.ov-public .mkt-close-line {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-family: var(--ov-mono);
+  font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  padding-bottom: 0.15rem;
+}
+
+.ov-public .mkt-close-line:hover {
+  border-bottom-color: currentColor;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-hero-inner--product {
+    grid-template-columns: 1fr;
+  }
+
+  .ov-public .mkt-law--ruled {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+}
+
+/* ── Detail craft: beyond Cursor on the same format ──
+   Cursor demos a mock. Orvius ships a dialable night instrument. */
+
+.ov-public .ov-hero-title {
+  letter-spacing: -0.038em;
+  max-width: 11ch;
+  font-size: clamp(1.65rem, 2.8vw, 2.35rem);
+  line-height: 1.08;
+}
+
+.ov-public .ov-hero-liveline {
+  margin-top: 1.15rem;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
+}
+
+.ov-public .ov-hero-liveline-number {
+  font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  letter-spacing: 0.03em;
+}
+
+.ov-public .ov-hero-liveline-number::after {
+  background: var(--ov-emerald, #10b981);
+  height: 1.5px;
+}
+
+.ov-public .ov-hero-liveline:hover .ov-hero-liveline-number {
+  color: var(--ov-headline);
+}
+
+/* Night bay — cooler floor wash + warm worklight (trades night, not SaaS flare) */
+.ov-public .ov-hero-sky-bloom {
+  background: radial-gradient(
+    circle at 58% 40%,
+    color-mix(in srgb, #c4a574 12%, transparent),
+    transparent 64%
+  );
+}
+
+.ov-public .ov-hero-sky-bloom-bay {
+  background: radial-gradient(
+    circle at 38% 58%,
+    color-mix(in srgb, #7a8fa8 14%, transparent),
+    color-mix(in srgb, #c4a574 6%, transparent) 42%,
+    transparent 72%
+  );
+}
+
+/* Console instrument: product owns the fold — taller wire like Cursor canvas */
+.ov-public .ov-console-body {
+  min-height: 380px;
+}
+
+.ov-public .ov-console-wire {
+  max-height: 380px;
+}
+
+.ov-public .ov-console-caption {
+  margin-top: 0.7rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  opacity: 0.58;
+}
+
+.ov-public .ov-console-frame {
+  border-radius: 0.55rem;
+}
+
+.ov-public .ov-console-desk {
+  border-radius: 14px;
+}
+
+/* Nav: one Call truth, quieter elevate */
+.ov-public .mkt-nav--elevated {
+  background: color-mix(in srgb, var(--ov-paper) 96%, transparent) !important;
+}
+
+.ov-public .mkt-nav-cta {
+  border-radius: 5px !important;
+  letter-spacing: -0.01em !important;
+}
+
+.ov-public .mkt-nav-links a {
+  opacity: 0.78;
+  transition: opacity 140ms ease;
+}
+
+.ov-public .mkt-nav-links a:hover {
+  opacity: 1;
+}
+
+/* Capture panel: instrument plate, not marketing card */
+.ov-public .ov-capture-label {
+  letter-spacing: 0.14em;
+  opacity: 0.7;
+}
+
+.ov-public .ov-capture-row.is-set dd {
+  color: #f2f1ed;
+}
+
+/* ── Detail craft II: beat Cursor in the instrument ──
+   Cursor ships a polished mock. Orvius ships night-truth chrome:
+   speaker color, capture settle, Live chip, bay floor, quiet close. */
+
+/* Wire: who owns the line is readable without reading the text */
+.ov-public .ov-wire-line--orvius .ov-wire-who {
+  color: color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 72%, #918f87);
+}
+
+.ov-public .ov-wire-line--caller .ov-wire-who {
+  color: #7a7870;
+}
+
+.ov-public .ov-wire-line.is-active .ov-wire-who {
+  color: #c8c6be;
+}
+
+.ov-public .ov-wire-line--orvius.is-active .ov-wire-who {
+  color: var(--ov-emerald-text, #6ee7a8);
+}
+
+/* Capture settle: emerald flash = truth landed (not copper marketing glow) */
+.ov-public .ov-capture-row {
+  border-radius: 5px;
+}
+
+.ov-public .ov-capture-row.is-set {
+  border-color: color-mix(in srgb, var(--ov-emerald, #10b981) 38%, transparent);
+  background: color-mix(in srgb, var(--ov-emerald, #10b981) 8%, #201e18);
+  animation: ov-capture-truth 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes ov-capture-truth {
+  0% {
+    border-color: var(--ov-emerald, #10b981);
+    background: color-mix(in srgb, var(--ov-emerald, #10b981) 22%, #201e18);
+    transform: translateX(3px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-capture-row.is-set {
+    animation: none;
+  }
+}
+
+/* Live chip: instrument plate, not SaaS pill */
+.ov-public .ov-console-live {
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.ov-public .ov-console-live i {
+  width: 6px;
+  height: 6px;
+}
+
+/* Rail: quieter pending, crisper active — stages as machine state */
+.ov-public .ov-rail-step {
+  opacity: 0.55;
+  letter-spacing: 0.1em;
+}
+
+.ov-public .ov-rail-step.is-active,
+.ov-public .ov-rail-step.is-done {
+  opacity: 1;
+}
+
+.ov-public .ov-rail-step.is-active i {
+  background: var(--ov-emerald, #10b981);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-emerald, #10b981) 22%, transparent);
+}
+
+/* Player toggle: hard instrument control */
+.ov-public .ov-player-toggle {
+  border-radius: 5px !important;
+  width: 26px;
+  height: 26px;
+}
+
+.ov-public .ov-player-bar {
+  border-radius: 1px;
+}
+
+/* Bay floor — cooler night under the stage, less SaaS wash */
+.ov-public .ov-hero-sky-horizon {
+  height: 46%;
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #0a1218 62%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #7a8fa8 7%, transparent) 0%,
+      transparent 32%
+    );
+}
+
+.ov-public .ov-hero-sky-grid {
+  opacity: 0.11;
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 68% 62% at 72% 42%, #000 18%, transparent 78%);
+}
+
+/* Brand → claim spacing: wordmark owns the first read */
+
+/* Cursor poster weight: copy column thin, stage owns width */
+.ov-public .ov-hero-copy {
+  max-width: 17rem;
+}
+
+.ov-public .ov-hero-stage {
+  width: 100%;
+  justify-self: stretch;
+  min-width: 0;
+}
+
+.ov-public .ov-hero-inner--product .ov-console {
+  width: 100%;
+}
+
+.ov-public .ov-hero-sky-grid {
+  mask-image: radial-gradient(ellipse 88% 78% at 82% 46%, #000 24%, transparent 86%);
+}
+
+.ov-public .ov-hero-sky-bloom {
+  width: 82%;
+  right: -2%;
+}
+
+/* Restore liveline emerald after poster-weight rewrite */
+.ov-public .ov-hero-liveline-label {
+  color: var(--ov-emerald-text, #6ee7a8) !important;
+  letter-spacing: 0.14em;
+  opacity: 1;
+}
+
+.ov-public .ov-hero-liveline-label [data-i18n] {
+  color: inherit;
+}
+
+/* Ruled night rules: tighter index, quieter body */
+.ov-public .mkt-law-index {
+  opacity: 0.42;
+  font-size: 0.72rem;
+}
+
+.ov-public .mkt-law--ruled {
+  padding: 1.25rem 0;
+}
+
+.ov-public .mkt-law--ruled .mkt-law-body {
+  opacity: 0.74;
+  line-height: 1.55;
+}
+
+.ov-public .mkt-manifesto-kicker {
+  letter-spacing: 0.16em;
+  opacity: 0.62;
+}
+
+/* Close: dial path matches hero liveline emerald truth */
+.ov-public .mkt-close-line {
+  color: var(--ov-headline);
+  border-bottom-color: color-mix(in srgb, var(--ov-emerald, #10b981) 45%, transparent);
+  transition:
+    border-bottom-color 160ms ease,
+    color 160ms ease;
+}
+
+.ov-public .mkt-close-line:hover {
+  color: var(--ov-headline);
+  border-bottom-color: var(--ov-emerald, #10b981);
+}
+
+.ov-public .mkt-proof-section--quiet .mkt-proof-lead {
+  opacity: 0.76;
+  max-width: 38ch;
+  margin-inline: auto;
+}
+
+/* Nav: Call CTA — charcoal plate with emerald edge (beats globals night invert) */
+.ov-public .mkt-nav--institution .mkt-nav-cta,
+.ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta,
+html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta,
+html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
+  background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 18%, var(--ov-charcoal, #1b1913)) !important;
+  border-color: color-mix(in srgb, var(--ov-emerald, #1f8a65) 42%, transparent) !important;
+  color: var(--ov-night-text, #edecec) !important;
+  box-shadow: none !important;
+}
+
+.ov-public .mkt-nav--institution .mkt-nav-cta:hover,
+.ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta:hover,
+html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
+html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta:hover {
+  background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 28%, var(--ov-charcoal, #1b1913)) !important;
+  border-color: color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 55%, transparent) !important;
+  color: var(--ov-night-text, #edecec) !important;
+}
+
+.ov-public .mkt-nav--elevated {
+  border-bottom-color: color-mix(in srgb, var(--ov-rule, #2e2c26) 55%, transparent) !important;
+  backdrop-filter: blur(10px);
+}
+
+.ov-public .mkt-nav-login {
+  opacity: 0.72;
+  transition: opacity 140ms ease;
+}
+
+.ov-public .mkt-nav-login:hover {
+  opacity: 1;
+}
+
+/* Footer: recede — product already proved above */
+.ov-public .mkt-footer {
+  opacity: 0.92;
+}
+
+.ov-public .mkt-footer-tagline,
+.ov-public .mkt-footer-copy,
+.ov-public .mkt-footer-mark {
+  opacity: 0.78;
+}
+
+.ov-public .mkt-footer a {
+  opacity: 0.7;
+  transition: opacity 140ms ease;
+}
+
+.ov-public .mkt-footer a:hover {
+  opacity: 1;
+}
+
+/* Console desk: slightly deeper night plate behind the window */
+.ov-public .ov-console-desk {
+  box-shadow:
+    0 28px 64px -28px rgb(0 0 0 / 0.72),
+    inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.ov-public .ov-console-frame {
+  border-color: color-mix(in srgb, var(--ov-hairline) 80%, #5a6a78);
+}
+
+/* Detail craft III — instrument numerics + live pulse truth */
+.ov-public .ov-hero-liveline-number,
+.ov-public .mkt-close-line {
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-hero-pulse {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-emerald, #1f8a65) 28%, transparent);
+}
+
+.ov-public .ov-wire-line.is-active {
+  border-left: 2px solid color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 55%, transparent);
+  padding-left: 0.45rem;
+  margin-left: -0.45rem;
+}
+
+.ov-public .ov-console-shop {
+  letter-spacing: -0.02em;
+}
+
+/* ── Fast pass: denser canvas + softer product float (Cursor closer) ── */
+.ov-public .ov-hero-inner--poster {
+  width: min(100%, 1280px);
+  gap: clamp(1.35rem, 2.8vh, 2.1rem);
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-title {
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  max-width: 28ch;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline {
+  margin-top: 1rem;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.85rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline-label {
+  font-size: 0.625rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline-number {
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-desk {
+  padding: 0 clamp(10px, 1.4vw, 18px) clamp(10px, 1.4vw, 18px);
+  border-radius: 16px;
+  border-color: color-mix(in srgb, var(--ov-hairline-strong) 55%, transparent);
+  box-shadow:
+    0 36px 90px -32px rgb(0 0 0 / 0.78),
+    0 0 0 1px color-mix(in srgb, #7a8fa8 8%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-wallpaper {
+  background: linear-gradient(168deg, #1a2430 0%, #14120b 52%, #0c0b08 100%);
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-aurora--a {
+  filter: blur(58px);
+  opacity: 0.85;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-aurora--b {
+  filter: blur(64px);
+  opacity: 0.7;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-body {
+  min-height: 460px;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-wire {
+  max-height: 460px;
+  font-size: 0.78rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-wire-line {
+  font-size: 0.78rem;
+  gap: 0.75rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-capture-row {
+  padding: 0.48rem 0.65rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console-caption {
+  opacity: 0.5;
+  font-size: 0.65rem;
+}
+
+.ov-public .ov-hero-sky-bloom {
+  opacity: 0.9;
+  width: 90%;
+  right: -6%;
+  top: -8%;
+}
+
+.ov-public .ov-hero-sky-bloom-bay {
+  opacity: 0.55;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-hero-inner--poster .ov-hero-liveline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .ov-public .ov-hero-inner--poster .ov-console-body,
+  .ov-public .ov-hero-inner--poster .ov-console-wire {
+    min-height: 300px;
+    max-height: 300px;
+  }
+}
+
+/* ── Header + sizing: Cursor-grade chrome weight ── */
+
+/* Site nav: taller bar, denser brand, solid Call CTA */
+.ov-public .mkt-nav,
+.ov-public .mkt-nav-inner {
+  height: 60px !important;
+  min-height: 60px !important;
+}
+
+.ov-public .mkt-nav-inner {
+  padding: 0 28px !important;
+  max-width: 1280px !important;
+}
+
+.ov-public .mkt-nav-brand .orvius-logo-word {
+  font-size: 1.35rem !important;
+  letter-spacing: -0.07em !important;
+  font-weight: 500 !important;
+}
+
+.ov-public .mkt-nav-links {
+  gap: 1.5rem !important;
+}
+
+.ov-public .mkt-nav-links a {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  opacity: 0.78 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.ov-public .mkt-nav-login {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  opacity: 0.78 !important;
+}
+
+.ov-public .mkt-nav-actions {
+  gap: 0.85rem !important;
+  justify-content: flex-end !important;
+}
+
+html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta,
+html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta,
+.ov-public .mkt-nav--institution .mkt-nav-cta {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 0 0.9rem !important;
+  border-radius: 4px !important;
+  background: #edecec !important;
+  color: #14120b !important;
+  border: 1px solid #edecec !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.012em !important;
+}
+
+html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
+.ov-public .mkt-nav--institution .mkt-nav-cta:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #14120b !important;
+}
+
+/* Console title bar = Cursor Desktop chrome */
+.ov-public .ov-console-menubar {
+  height: 38px;
+  padding: 0 0.75rem;
+  gap: 0.75rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: color-mix(in srgb, #edecec 78%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, #fff 6%, transparent);
+}
+
+.ov-public .ov-console-lights {
+  gap: 0.4rem;
+}
+
+.ov-public .ov-console-lights i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3a3a3a;
+}
+
+.ov-public .ov-console-lights i:nth-child(1) {
+  background: #ff5f57;
+}
+
+.ov-public .ov-console-lights i:nth-child(2) {
+  background: #febc2e;
+}
+
+.ov-public .ov-console-lights i:nth-child(3) {
+  background: #28c840;
+}
+
+.ov-public .ov-console-menutitle {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-size: 0.8125rem;
+  text-transform: none;
+  color: #f2f1ed;
+}
+
+.ov-public .ov-console-menuclock {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, #edecec 55%, transparent);
+}
+
+/* App header inside the window — shop + line status */
+.ov-public .ov-console-head {
+  min-height: 44px;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  gap: 0.55rem;
+}
+
+.ov-public .ov-console-shop {
+  font-size: 0.8125rem;
+  letter-spacing: -0.01em;
+}
+
+.ov-public .ov-console-context {
+  font-size: 0.75rem;
+}
+
+.ov-public .ov-console-live {
+  border-radius: 9999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.625rem;
+}
+
+.ov-public .ov-console-clock {
+  font-size: 0.75rem;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+/* Hero claim sizing — Cursor-weight headline */
+
+.ov-public .ov-hero-inner--poster .ov-hero-title {
+  font-size: clamp(2.15rem, 4.2vw, 3.25rem);
+  max-width: 16ch;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline {
+  margin-top: 1.35rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline-number {
+  font-size: clamp(1.65rem, 2.8vw, 2.1rem);
+}
+
+.ov-public .ov-hero--atmosphere {
+  padding-top: clamp(96px, 11vh, 120px);
+}
+
+
+/* Cursor two-link CTAs — solid Call + quiet Request a demo */
+.ov-public .ov-hero-inner--poster .ov-hero-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-primary,
+.ov-public .ov-hero-inner--poster .ov-hero-cta-secondary {
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border-radius: 9999px !important;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-primary {
+  background: #edecec !important;
+  color: #14120b !important;
+  border: 1px solid #edecec !important;
+  box-shadow: none !important;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-primary:hover {
+  background: #fff !important;
+  border-color: #fff !important;
+  transform: none;
+  box-shadow: none !important;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-secondary {
+  background: transparent !important;
+  color: #edecec !important;
+  border: 1px solid color-mix(in srgb, #edecec 32%, transparent) !important;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-cta-secondary:hover {
+  border-color: color-mix(in srgb, #edecec 62%, transparent) !important;
+  background: color-mix(in srgb, #edecec 8%, transparent) !important;
+  transform: none;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline {
+  margin-top: 1.1rem;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.65rem;
+  opacity: 0.85;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-liveline-number {
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+}
+
+.ov-public .mkt-nav-contact {
+  white-space: nowrap;
+}
+
+/* Multi-B header density — Cursor weight, five center links */
+.ov-public .mkt-nav-inner {
+  grid-template-columns: minmax(140px, auto) minmax(0, 1fr) minmax(280px, auto) !important;
+  gap: 1.25rem !important;
+  max-width: 1280px !important;
+  padding: 0 24px !important;
+}
+
+.ov-public .mkt-nav-links {
+  justify-content: center !important;
+  gap: 1.35rem !important;
+  flex-wrap: nowrap !important;
+}
+
+.ov-public .mkt-nav-links a {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  white-space: nowrap !important;
+  opacity: 0.9 !important;
+}
+
+.ov-public .mkt-nav-actions {
+  gap: 0.85rem !important;
+}
+
+.ov-public .mkt-nav-login,
+.ov-public .mkt-nav-contact {
+  font-size: 0.875rem !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1100px) {
+  .ov-public .mkt-nav-links {
+    gap: 1rem !important;
+  }
+
+  .ov-public .mkt-nav-links a {
+    font-size: 0.8125rem !important;
+  }
+}
+
+/* Multi-B interior pages — Cursor claim + two CTAs, no redundant brand */
+.ov-public .shell-page-intro {
+  max-width: 42rem;
+}
+
+.ov-public .shell-page-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.ov-public .shell-page-actions .ov-btn {
+  min-height: 44px !important;
+  padding: 0 1.25rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.ov-public .shell-page-actions .ov-btn--solid {
+  background: #edecec !important;
+  color: #14120b !important;
+  border: 1px solid #edecec !important;
+}
+
+.ov-public .shell-page-actions .ov-btn--quiet {
+  background: transparent !important;
+  color: #edecec !important;
+  border: 1px solid color-mix(in srgb, #edecec 32%, transparent) !important;
+}
+
+.ov-public .tier1-page-title {
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.04em !important;
+  font-weight: 600 !important;
+  max-width: 18ch;
+}
+
+.ov-public .tier1-hero-compact {
+  padding-bottom: 64px !important;
+}
+
+.ov-public .mkt-resources-grid {
+  gap: 0 !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  border-top: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
+}
+
+.ov-public .mkt-resources-col {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 1.75rem 1.5rem 1.75rem 0 !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 70%, transparent);
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.ov-public .mkt-resources-col + .mkt-resources-col {
+  padding-left: 1.5rem;
+  border-left: 1px solid color-mix(in srgb, var(--ov-rule, #2e2c26) 55%, transparent);
+}
+
+.ov-public .mkt-resources-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  padding: 0.2rem 0;
+}
+
+@media (max-width: 900px) {
+  .ov-public .mkt-resources-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ov-public .mkt-resources-col + .mkt-resources-col {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* ── Night bay depth: product sits IN a world, not a void ──
+   Cursor uses a landscape plane. Orvius uses a cool night bay
+   field + floor horizon so the console floats with measurable depth. */
+
+.ov-public .ov-hero--atmosphere {
+  background:
+    radial-gradient(ellipse 90% 70% at 72% 42%, #161410 0%, transparent 58%),
+    radial-gradient(ellipse 70% 50% at 18% 20%, #12151a 0%, transparent 55%),
+    linear-gradient(180deg, #0c0e12 0%, #14120b 48%, #0a0907 100%) !important;
+}
+
+.ov-public .ov-hero-sky-plane {
+  position: absolute;
+  left: 8%;
+  right: -4%;
+  top: 12%;
+  bottom: 8%;
+  border-radius: 40% 28% 36% 22% / 32% 40% 28% 44%;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 62% 48%,
+      color-mix(in srgb, #5a6f88 18%, transparent) 0%,
+      color-mix(in srgb, #2a3340 10%, transparent) 42%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 40% 60%,
+      color-mix(in srgb, #c4a574 8%, transparent),
+      transparent 70%
+    );
+  filter: blur(2px);
+  opacity: 0.95;
+  animation: ov-sky-breathe 18s ease-in-out infinite;
+}
+
+.ov-public .ov-hero-sky-grid {
+  opacity: 0.035 !important;
+  background-size: 80px 80px !important;
+  mask-image: radial-gradient(ellipse 55% 50% at 75% 48%, #000 10%, transparent 70%) !important;
+}
+
+.ov-public .ov-hero-sky-bloom {
+  top: -10%;
+  right: -2%;
+  width: 58%;
+  height: 110%;
+  background: radial-gradient(
+    circle at 55% 42%,
+    color-mix(in srgb, #c4a574 10%, transparent),
+    color-mix(in srgb, #7a8fa8 4%, transparent) 48%,
+    transparent 70%
+  ) !important;
+  opacity: 0.7;
+}
+
+.ov-public .ov-hero-sky-horizon {
+  height: 52% !important;
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #050608 78%, transparent) 0%,
+      color-mix(in srgb, #0a1018 35%, transparent) 28%,
+      transparent 72%
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in srgb, #7a8fa8 9%, transparent) 0%,
+      transparent 38%
+    ) !important;
+}
+
+.ov-public .ov-hero-sky-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Console floats off the bay plane — measurable shadow like Cursor's product */
+.ov-public .ov-hero-inner--poster .ov-console-desk {
+  box-shadow:
+    0 48px 100px -36px rgb(0 0 0 / 0.88),
+    0 18px 40px -20px rgb(0 0 0 / 0.55),
+    0 0 0 1px color-mix(in srgb, #8aa0b8 10%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.06) !important;
+}
+
+.ov-public .ov-hero-inner--poster .ov-console {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-hero-sky-plane {
+    animation: none;
+  }
+}
+
+/* Interior marketing pages — same night depth, quieter */
+.ov-public.mkt-page--craft {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, #161410 0%, transparent 55%),
+    #14120b;
+}
+
+.ov-public .tier1-hero {
+  background:
+    radial-gradient(ellipse 70% 60% at 70% 30%, color-mix(in srgb, #5a6f88 8%, transparent), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 15% 80%, color-mix(in srgb, #c4a574 5%, transparent), transparent 55%),
+    var(--ov-paper) !important;
+}
+
+/* Product page — claim + live console (Look density) */
+.ov-public .ov-product-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
+  gap: clamp(1.5rem, 3vw, 2.75rem);
+  align-items: start;
+}
+
+.ov-public .ov-product-hero .shell-page-intro {
+  max-width: 34rem;
+}
+
+.ov-public .ov-product-stage {
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .ov-public .ov-product-hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* ── Cursor-style world behind the product ──
+   Soft multi-tone landscape plate + clear ambient motion. */
+
+.ov-public .ov-hero-stage,
+.ov-public .ov-product-stage {
+  position: relative;
+  isolation: isolate;
+  /* Product owns the fold — landscape reads as environment, not a postcard rim */
+  padding: clamp(2.75rem, 5.5vw, 4.5rem) clamp(1.5rem, 4vw, 3.25rem)
+    clamp(2.5rem, 5vw, 4rem);
+  max-width: min(100%, 1080px);
+  margin-inline: auto;
+  min-height: min(70vh, 720px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ov-public .ov-hero-inner--poster .ov-hero-stage {
+  width: 100%;
+  max-width: none;
+}
+
+.ov-public .ov-stage-world {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: clamp(1.25rem, 2.6vw, 2rem);
+  pointer-events: none;
+  background: #6b9bc0;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 36px 80px -36px rgb(0 0 0 / 0.55);
+}
+
+/* Cursor-style: real looping landscape plate (ken-burns video) */
+.ov-public .ov-stage-world-video {
+  position: absolute;
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  object-fit: cover;
+  object-position: center;
+  transform-origin: 50% 55%;
+  animation: ov-world-kenburns 18s ease-in-out infinite alternate;
+  filter: saturate(1.08) contrast(1.04);
+  will-change: transform;
+}
+
+@keyframes ov-world-kenburns {
+  from {
+    transform: scale(1.06) translate3d(-1.2%, -0.6%, 0);
+  }
+  to {
+    transform: scale(1.14) translate3d(1.4%, 0.8%, 0);
+  }
+}
+
+/* Fallback sky plate if video fails / reduced data */
+
+.ov-public .ov-stage-world-haze {
+  position: absolute;
+  inset: -30% -22% 8%;
+  background:
+    radial-gradient(ellipse 42% 28% at 22% 24%, rgba(255, 255, 255, 0.35), transparent 70%),
+    radial-gradient(ellipse 36% 24% at 78% 18%, rgba(255, 220, 150, 0.32), transparent 68%);
+  filter: blur(14px);
+  animation: ov-world-haze 4s ease-in-out infinite;
+  will-change: transform, opacity;
+  opacity: 0.55;
+  mix-blend-mode: soft-light;
+}
+
+.ov-public .ov-stage-world-land {
+  position: absolute;
+  left: -16%;
+  right: -16%;
+  bottom: -24%;
+  height: 38%;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(28, 40, 32, 0.28) 100%);
+  filter: blur(2px);
+  animation: ov-world-land 5.5s ease-in-out infinite;
+  will-change: transform;
+  opacity: 0.7;
+}
+
+.ov-public .ov-stage-world::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  opacity: 0.12;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  animation: ov-world-grain 14s linear infinite;
+}
+
+/* Soft vignette keeps product readable without hiding the landscape rim */
+.ov-public .ov-stage-world::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 58% 62% at 50% 48%, transparent 42%, rgba(20, 28, 36, 0.18) 100%);
+  pointer-events: none;
+}
+
+.ov-public .ov-hero-stage .ov-console,
+.ov-public .ov-product-stage .ov-console {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 920px);
+  margin-inline: auto;
+  animation: ov-world-product-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ov-public .ov-hero-stage .ov-console-desk,
+.ov-public .ov-product-stage .ov-console-desk {
+  box-shadow:
+    0 48px 110px -32px rgb(0 0 0 / 0.48),
+    0 20px 44px -18px rgb(0 0 0 / 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.22),
+    /* Warm spill into the world — console lives in the plate, not on a postcard */
+    0 0 80px -20px rgba(255, 210, 140, 0.28),
+    0 40px 90px -40px rgba(20, 28, 36, 0.55) !important;
+  animation: ov-world-float 3.4s ease-in-out infinite;
+  animation-delay: 0.1s;
+  will-change: transform;
+}
+
+.ov-public .ov-hero-stage .ov-console-caption,
+.ov-public .ov-product-stage .ov-console-caption {
+  color: rgba(28, 30, 26, 0.78);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  animation: ov-world-caption-in 700ms ease 500ms both;
+}
+
+@keyframes ov-world-sky {
+  0%, 100% { transform: scale(1.1) translate3d(0, 0, 0); }
+  25% { transform: scale(1.22) translate3d(-7%, 3%, 0); }
+  50% { transform: scale(1.16) translate3d(2%, -2.5%, 0); }
+  75% { transform: scale(1.2) translate3d(6%, 2%, 0); }
+}
+
+@keyframes ov-world-haze {
+  0%, 100% { transform: translate3d(-4%, 2%, 0) scale(1); opacity: 0.65; }
+  50% { transform: translate3d(10%, -8%, 0) scale(1.25); opacity: 1; }
+}
+
+@keyframes ov-world-land {
+  0%, 100% { transform: translate3d(0, 0, 0) scaleX(1); }
+  50% { transform: translate3d(-8%, 6%, 0) scaleX(1.06); }
+}
+
+@keyframes ov-world-grain {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-5%, 4%, 0); }
+}
+
+@keyframes ov-world-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -22px, 0); }
+}
+
+@keyframes ov-world-product-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.982);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes ov-world-caption-in {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes ov-world-copy-in {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-stage-world-haze,
+  .ov-public .ov-stage-world-land,
+  .ov-public .ov-stage-world::before,
+  .ov-public .ov-hero-stage .ov-console,
+  .ov-public .ov-product-stage .ov-console,
+  .ov-public .ov-hero-stage .ov-console-desk,
+  .ov-public .ov-product-stage .ov-console-desk,
+  .ov-public .ov-hero-stage .ov-console-caption,
+  .ov-public .ov-product-stage .ov-console-caption,
+  .ov-public .ov-hero-inner--poster .ov-hero-title,
+  .ov-public .ov-hero-inner--poster .ov-hero-actions,
+  .ov-public .ov-hero-inner--poster .ov-hero-liveline {
+    animation: none !important;
+  }
+
+  .ov-public .ov-stage-world-video {
+    animation: none !important;
   }
 }

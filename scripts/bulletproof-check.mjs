@@ -16,6 +16,8 @@ import {
   MANUS_ALLOWED_FIRST_POST,
   claimsViolateManusPost,
 } from "../src/lib/manus-post.ts";
+import { resolveFormationStateConfirmed } from "./lib/formation-state.mjs";
+import { probeProdBilling } from "./lib/prod-billing.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const skipCash = process.env.BULLETPROOF_SKIP_CASH === "1";
@@ -105,7 +107,7 @@ if (confirmLib && confirmApi && confirmPage) {
 const overflowUi =
   fileHas("src/app/dashboard/settings/page.tsx", "CaptureSetupPanel") &&
   fileHas("src/app/dashboard/settings/page.tsx", "overflow-forward") &&
-  fileHas("src/components/capture-setup-panel.tsx", "Copy forward-to number") &&
+  fileHas("src/components/capture-setup-panel.tsx", "Copy number") &&
   fileHas("src/components/capture-setup-panel.tsx", "/pilot/forward");
 const overflowPage = existsSync(join(root, "src/app/pilot/forward/page.tsx"));
 const overflowSheet = existsSync(join(root, "docs/SHOP-FORWARD-ONEPAGER.md"));
@@ -165,10 +167,15 @@ if (!softClaim && /Orvius answers after-hours/i.test(allowedPost)) {
 
 
 const companySrc = readFileSync(join(root, "src/lib/company.ts"), "utf8");
+const formationEnv = resolveFormationStateConfirmed(env);
 const confirmed = /formationStateConfirmed:\s*"([A-Za-z ]+)"/.exec(companySrc);
 const isNull = /formationStateConfirmed:\s*null/.test(companySrc);
-if (confirmed && !skipCash) {
-  ok("formation", "Formation state set", confirmed[1]);
+if ((formationEnv || confirmed) && !skipCash) {
+  ok(
+    "formation",
+    "Formation state set",
+    formationEnv || confirmed?.[1] || "confirmed",
+  );
 } else if (isNull || !confirmed) {
   if (skipCash) {
     ok(
@@ -180,23 +187,48 @@ if (confirmed && !skipCash) {
     bad(
       "formation",
       "Formation state not counsel-confirmed",
-      "do not invent — reply with state",
+      "set ORVIUS_FORMATION_STATE after counsel — do not invent",
     );
   }
 }
 
 if (!skipCash) {
-  const stripe = Boolean(env.STRIPE_SECRET_KEY?.trim());
+  const prodBilling = await probeProdBilling();
+  const stripe =
+    Boolean(env.STRIPE_SECRET_KEY?.trim()) || prodBilling.ok;
   const price =
     Boolean(env.STRIPE_PRICE_ID_PRO?.trim()) ||
     Boolean(env.STRIPE_PRICE_ID_LINE?.trim()) ||
-    Boolean(env.STRIPE_PRICE_ID?.trim());
-  const wh = Boolean(env.STRIPE_WEBHOOK_SECRET?.trim());
-  if (stripe) ok("stripe_key", "Stripe secret key", "present");
+    Boolean(env.STRIPE_PRICE_ID?.trim()) ||
+    prodBilling.ok;
+  const wh =
+    Boolean(env.STRIPE_WEBHOOK_SECRET?.trim()) || prodBilling.ok;
+  if (stripe)
+    ok(
+      "stripe_key",
+      "Stripe secret key",
+      prodBilling.ok && !env.STRIPE_SECRET_KEY?.trim()
+        ? "prod configured"
+        : "present",
+    );
   else bad("stripe_key", "Stripe secret key missing", "paste on Vercel + .env");
-  if (price) ok("stripe_price", "Stripe price IDs", "Line/Pro present");
+  if (price)
+    ok(
+      "stripe_price",
+      "Stripe price IDs",
+      prodBilling.ok && !env.STRIPE_PRICE_ID_PRO?.trim()
+        ? "prod configured"
+        : "Line/Pro present",
+    );
   else bad("stripe_price", "Stripe price IDs missing", "npm run stripe:setup");
-  if (wh) ok("stripe_wh", "Stripe webhook secret", "present");
+  if (wh)
+    ok(
+      "stripe_wh",
+      "Stripe webhook secret",
+      prodBilling.ok && !env.STRIPE_WEBHOOK_SECRET?.trim()
+        ? "prod configured"
+        : "present",
+    );
   else bad("stripe_wh", "Stripe webhook secret missing", "billing webhook");
 } else {
   console.log(

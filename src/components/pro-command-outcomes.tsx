@@ -10,78 +10,98 @@ type ProCommandOutcomesProps = {
 };
 
 /**
- * The answer to "what did Orvius do for me?" before the owner sees a queue.
- *
- * Every figure is measured from shop records. Captured-demand value only
- * appears when the owner supplied an average ticket; otherwise the measured
- * job count leads rather than inventing a dollar claim.
+ * Call → cash pulse — one story when the board is clear.
+ * Stripe-quiet: a single chain, not a marketing metric grid.
  */
 export function ProCommandOutcomes({
   outcomes,
   attentionCount,
   loading = false,
 }: ProCommandOutcomesProps) {
-  // Board owns action when work is waiting — outcomes are calm retrospect only.
   if (!loading && attentionCount > 0) return null;
 
-  const capturedJobs = outcomes?.capturedDemandJobs ?? 0;
-  const capturedValue = formatCents(
-    outcomes?.capturedDemandEstimatedValueCents,
-  );
-  const figure = capturedValue ?? String(capturedJobs);
-  const metricLabel = capturedValue
-    ? "Estimated booked value"
-    : capturedJobs === 1
-      ? "Job booked from captured demand"
-      : "Jobs booked from captured demand";
+  const calls = loading ? "…" : String(outcomes?.calls ?? 0);
+  const leads = loading ? "…" : String(outcomes?.leads ?? 0);
+  const booked = loading ? "…" : String(outcomes?.jobsBooked ?? 0);
+  const completed = loading ? "…" : String(outcomes?.jobsCompleted ?? 0);
+  const collected = formatCents(outcomes?.collectedCents);
+  const influenced =
+    formatCents(outcomes?.capturedDemandEstimatedValueCents) ?? collected;
+  const moneyLabel = collected
+    ? "Collected"
+    : influenced
+      ? "Influenced"
+      : "Money";
+  const moneyValue = loading ? "…" : (collected ?? influenced ?? "—");
+  const moneyHint = loading
+    ? null
+    : collected
+      ? null
+      : influenced
+        ? "Estimated from avg ticket × captured jobs"
+        : "Set average ticket in Settings to estimate";
+
+  const steps = [
+    { label: "Calls", value: calls },
+    { label: "Leads", value: leads },
+    { label: "Booked", value: booked },
+    { label: "Completed", value: completed },
+    { label: moneyLabel, value: moneyValue, hint: moneyHint },
+  ] as const;
+
+  const bookingRate =
+    outcomes?.bookingRate != null
+      ? `${Math.round(outcomes.bookingRate * 100)}%`
+      : null;
 
   return (
     <section
       className="pro-command-outcomes"
-      aria-label="Work completed by Orvius"
+      aria-label="Call to cash outcomes"
     >
       <header className="pro-command-outcomes-head font-sans">
-        <p className="pro-command-outcomes-kicker">What the line closed</p>
-        <span>
-          Last {outcomes?.windowDays ?? 7} days
-        </span>
+        <p className="pro-command-outcomes-kicker">Call → cash</p>
+        <span>Last {outcomes?.windowDays ?? 7} days</span>
       </header>
 
-      <div className="pro-command-outcomes-summary font-sans">
-        {loading ? (
-          <span className="pro-command-outcomes-wait" aria-hidden />
-        ) : (
-          <>
-            <p className="pro-command-outcomes-figure">{figure}</p>
-            <h2>{metricLabel}</h2>
-          </>
-        )}
-      </div>
+      <ol className="pro-command-pulse font-sans">
+        {steps.map((step, i) => (
+          <li key={step.label} className="pro-command-pulse-step">
+            {i > 0 ? (
+              <span className="pro-command-pulse-sep" aria-hidden>
+                →
+              </span>
+            ) : null}
+            <div className="pro-command-pulse-body">
+              <p className="pro-command-pulse-label">{step.label}</p>
+              <p className="pro-command-pulse-value">{step.value}</p>
+              {"hint" in step && step.hint ? (
+                <p className="pro-command-pulse-hint">{step.hint}</p>
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ol>
 
       {!loading && outcomes ? (
-        <dl className="pro-command-flow font-sans">
-          <div>
-            <dt>Calls captured</dt>
-            <dd>{outcomes.calls}</dd>
-          </div>
-          <div>
-            <dt>Qualified leads</dt>
-            <dd>{outcomes.leads}</dd>
-          </div>
-          <div>
-            <dt>Jobs booked</dt>
-            <dd>{outcomes.jobsBooked}</dd>
-          </div>
-          <div>
-            <dt>After hours</dt>
-            <dd>{outcomes.afterHoursBooked}</dd>
-          </div>
-        </dl>
+        <p className="pro-command-pulse-meta font-sans">
+          {bookingRate ? (
+            <>
+              Lead → book <strong>{bookingRate}</strong>
+              <span aria-hidden> · </span>
+            </>
+          ) : null}
+          Open invoices{" "}
+          <strong>{formatCents(outcomes.openInvoiceCents) ?? "—"}</strong>
+          <span aria-hidden> · </span>
+          Open estimates{" "}
+          <strong>{formatCents(outcomes.openEstimateCents) ?? "—"}</strong>
+        </p>
       ) : null}
 
       {!loading ? (
         <footer className="pro-command-outcomes-foot font-sans">
-          <p>Board is clear — nothing waiting</p>
+          <p>Board is clear — line watched the window above.</p>
         </footer>
       ) : null}
     </section>

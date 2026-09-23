@@ -3,19 +3,24 @@
 import { useState } from "react";
 import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
-import { ProDispatchToday } from "@/components/pro-dispatch-today";
-import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
+import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { ProLaunchControl } from "@/components/pro-launch-control";
 import { ProShiftTimeline } from "@/components/pro-shift-timeline";
-import { usePlanAccess } from "@/lib/use-plan-access";
 import { useRing1 } from "@/lib/ring1-context";
 
+// Economics panel stays reachable for weekly-proof ritual code; Command calm
+// shows outcomes only so money never double-stacks with the pulse.
+void ProEconomicsPanel;
+
+/**
+ * Signed-in Command — one composition.
+ * Work waiting: board (+ pending approvals only). Calm: one retrospect + trail.
+ * Proof copy lives on the operate banner when due. Rail is quiet status.
+ */
 export function Ring1CommandCenter() {
   const { data, loading, loadError, refresh } = useRing1();
   const [refreshing, setRefreshing] = useState(false);
-  const { access } = usePlanAccess();
-  const canDispatch = access?.canAccess("dispatch") ?? false;
 
   async function load() {
     setRefreshing(true);
@@ -24,6 +29,7 @@ export function Ring1CommandCenter() {
   }
 
   const attention = data?.attention ?? [];
+  const workMode = loading || attention.length > 0;
 
   return (
     <section className="ring1-command ring1-cockpit" aria-label="Command">
@@ -45,46 +51,31 @@ export function Ring1CommandCenter() {
           </div>
         ) : null}
 
-        <ProCommandOutcomes
-          outcomes={data?.outcomes}
-          attentionCount={attention.length}
-          loading={loading}
-        />
+        {workMode ? (
+          <>
+            <AttentionQueue
+              items={attention}
+              loading={loading}
+              technicians={data?.technicians ?? []}
+              onAction={() => void refresh()}
+            />
+            <ApproveQueue onChange={() => void refresh()} hideWhenEmpty />
+          </>
+        ) : (
+          <>
+            <ProCommandOutcomes
+              outcomes={data?.outcomes}
+              attentionCount={0}
+              loading={false}
+            />
 
-        <AttentionQueue
-          items={attention}
-          loading={loading}
-          technicians={data?.technicians ?? []}
-          onAction={() => void refresh()}
-        />
-
-        {loading || (data?.shiftTimeline?.length ?? 0) > 0 ? (
-          <ProShiftTimeline
-            events={data?.shiftTimeline ?? []}
-            loading={loading}
-            moneyEnabled={data?.business?.depositEnabled ?? false}
-          />
-        ) : null}
-
-        <ApproveQueue onChange={() => void refresh()} hideWhenEmpty />
-
-        {!loading && data?.outcomes ? (
-          <ProEconomicsPanel
-            outcomes={data.outcomes}
-            lastWeeklyProofAt={data.lastWeeklyProofAt}
-            proofOnBoard={attention.some((i) => i.kind === "stale_weekly_proof")}
-          />
-        ) : null}
-
-        {canDispatch && data?.dispatchToday ? (
-          <ProDispatchToday
-            jobs={data.dispatchToday.jobs}
-            unassigned={data.dispatchToday.unassigned}
-            jobCount={data.dispatchToday.jobCount}
-            technicians={data.technicians ?? []}
-            onUpdate={() => void refresh()}
-          />
-        ) : null}
+            <ProShiftTimeline
+              events={data?.shiftTimeline ?? []}
+              loading={false}
+              moneyEnabled={data?.business?.depositEnabled ?? false}
+            />
+          </>
+        )}
       </div>
 
       <aside className="ring1-cockpit-rail" aria-label="Shop status">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { company } from "@/lib/company";
+import { ownerSlAs } from "@/lib/institutional-standards";
 import type { CoverageState } from "@/lib/coverage-state";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
@@ -55,7 +55,7 @@ export function ProLaunchControl({
       billing === "canceled" ||
       billing === "pilot" ||
       billing === "none");
-  const showPayAction = needsPay && !atRisk;
+  const showPayAction = needsPay && !atRisk && setupReady && billing === "past_due";
   const showPrimaryAction = false;
   const payLabel =
     billing === "past_due"
@@ -83,8 +83,8 @@ export function ProLaunchControl({
             : coverage?.afterHoursNow
               ? "After hours — the line is watching."
               : setupReady
-                ? "Front door is covered. The banner above is your next move."
-                : "The banner above is your next move."}
+                ? "Line is watching."
+                : "Setup still open — banner above owns the next move."}
       </p>
 
       <dl className="pro-control-pulse">
@@ -97,7 +97,7 @@ export function ProLaunchControl({
         <div>
           <dt className="font-sans">After hours</dt>
           <dd className="font-sans">
-            {caught} caught · {booked} booked
+            {caught} caught · {booked} proposed
           </dd>
         </div>
       </dl>
@@ -119,7 +119,8 @@ export function ProLaunchControl({
       ) : null}
 
       <div className="pro-rail-card-foot font-sans">
-        <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
+        <a href={`mailto:${ownerSlAs.supportEmail}`}>{ownerSlAs.supportEmail}</a>
+        <span>{ownerSlAs.supportResponseTarget}</span>
         <Link href="/dashboard/settings">Settings →</Link>
       </div>
     </section>

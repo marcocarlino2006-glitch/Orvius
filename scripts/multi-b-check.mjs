@@ -10,6 +10,8 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveFormationStateConfirmed } from "./lib/formation-state.mjs";
+import { probeProdBillingSync } from "./lib/prod-billing.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const skipCash = process.env.MULTI_B_SKIP_CASH === "1";
@@ -215,32 +217,54 @@ gate(
   "npm run war:repair",
 );
 
-const stripeKey = Boolean(env.STRIPE_SECRET_KEY?.trim());
+const prodBilling = probeProdBillingSync();
+const stripeKey =
+  Boolean(env.STRIPE_SECRET_KEY?.trim()) || prodBilling.ok;
 const stripePro =
-  Boolean(env.STRIPE_PRICE_ID_PRO?.trim()) || Boolean(env.STRIPE_PRICE_ID?.trim());
-const stripeWh = Boolean(env.STRIPE_WEBHOOK_SECRET?.trim());
+  Boolean(env.STRIPE_PRICE_ID_PRO?.trim()) ||
+  Boolean(env.STRIPE_PRICE_ID?.trim()) ||
+  prodBilling.ok;
+const stripeWh = Boolean(env.STRIPE_WEBHOOK_SECRET?.trim()) || prodBilling.ok;
 
 if (!skipCash && !ciMode) {
-  gate("stripe_secret", "Stripe secret key", stripeKey, "founder paste on Vercel");
-  gate("stripe_prices", "Stripe Pro price ID", stripePro, "npm run stripe:setup");
-  gate("stripe_webhook", "Stripe webhook secret", stripeWh, "api.orvius.im webhook");
+  gate(
+    "stripe_secret",
+    "Stripe secret key",
+    stripeKey,
+    prodBilling.ok && !env.STRIPE_SECRET_KEY?.trim()
+      ? "prod configured (local .env empty)"
+      : "founder paste on Vercel",
+  );
+  gate(
+    "stripe_prices",
+    "Stripe Pro price ID",
+    stripePro,
+    prodBilling.ok && !env.STRIPE_PRICE_ID_PRO?.trim()
+      ? "prod configured (local .env empty)"
+      : "npm run stripe:setup",
+  );
+  gate(
+    "stripe_webhook",
+    "Stripe webhook secret",
+    stripeWh,
+    prodBilling.ok && !env.STRIPE_WEBHOOK_SECRET?.trim()
+      ? "prod configured (local .env empty)"
+      : "api.orvius.im webhook",
+  );
 } else if (skipCash || ciMode) {
   console.log("⚠️  Cash gates skipped (secrets live on Vercel / founder)");
 }
 
 if (!ciMode) {
+  /* formationStateConfirmed resolves from ORVIUS_FORMATION_STATE — counsel-gated, never invent. */
+  const formation = Boolean(resolveFormationStateConfirmed(env));
   gate(
     "formation",
     "Legal formation state confirmed",
-    (() => {
-      try {
-        const src = readFileSync(join(root, "src/lib/company.ts"), "utf8");
-        return /formationStateConfirmed:\s*"/.test(src);
-      } catch {
-        return false;
-      }
-    })(),
-    "counsel gate — do not invent",
+    formation,
+    formation
+      ? `ORVIUS_FORMATION_STATE=${resolveFormationStateConfirmed(env)}`
+      : "counsel gate — set ORVIUS_FORMATION_STATE — do not invent",
   );
 }
 

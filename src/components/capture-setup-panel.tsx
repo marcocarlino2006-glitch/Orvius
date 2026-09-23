@@ -11,6 +11,9 @@ import { useEffect, useMemo, useState } from "react";
 type CaptureSetupPanelProps = {
   line: string | null;
   overflowConfirmed: boolean;
+  /** Stamped when confirm clears the forward-guide + line-verify gate. */
+  overflowProvedAt?: boolean;
+  forwardGuideSent?: boolean;
   lineVerified: boolean;
   saving?: boolean;
   initialMode?: CaptureMode | null;
@@ -20,24 +23,29 @@ type CaptureSetupPanelProps = {
     mode: CaptureMode;
     carrier: CarrierId | null;
   }) => Promise<void> | void;
+  onForwardGuideSent?: () => void;
 };
 
 /** Owner capture recovery — one primary by state, helpers under More. */
 export function CaptureSetupPanel({
   line,
   overflowConfirmed,
+  overflowProvedAt = false,
+  forwardGuideSent = false,
   lineVerified,
   saving = false,
   initialMode = "forward",
   initialCarrier = "verizon",
   onConfirmOverflow,
   onCapturePathChange,
+  onForwardGuideSent,
 }: CaptureSetupPanelProps) {
   const [mode, setMode] = useState<CaptureMode>(initialMode ?? "forward");
   const [carrier, setCarrier] = useState<CarrierId>(
     initialCarrier ?? "verizon",
   );
   const [texting, setTexting] = useState(false);
+  const [guideSent, setGuideSent] = useState(forwardGuideSent);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,12 +57,18 @@ export function CaptureSetupPanel({
     if (initialCarrier) setCarrier(initialCarrier);
   }, [initialCarrier]);
 
+  useEffect(() => {
+    setGuideSent(forwardGuideSent);
+  }, [forwardGuideSent]);
+
   const guide = useMemo(
     () => CARRIERS.find((c) => c.id === carrier) ?? CARRIERS[0]!,
     [carrier],
   );
 
-  const canConfirm = Boolean(line) && lineVerified;
+  const forwardNeedsGuide = mode === "forward" && !guideSent;
+  const canConfirm =
+    Boolean(line) && lineVerified && !forwardNeedsGuide;
 
   async function persistPath(nextMode: CaptureMode, nextCarrier: CarrierId) {
     if (!onCapturePathChange) return;
@@ -111,6 +125,8 @@ export function CaptureSetupPanel({
       });
       const data = (await res.json()) as { error?: string; message?: string };
       if (!res.ok) throw new Error(data.error ?? "Could not text steps");
+      setGuideSent(true);
+      onForwardGuideSent?.();
       setNote(
         data.message ??
           "Texted to your mobile. Call your Orvius line once, then reply DONE.",
@@ -195,6 +211,15 @@ export function CaptureSetupPanel({
           <a href={telHref(line)} className="btn btn-void text-sm">
             Call to prove it
           </a>
+        ) : forwardNeedsGuide ? (
+          <button
+            type="button"
+            className="btn btn-void text-sm"
+            disabled={!line || texting}
+            onClick={() => void textSteps()}
+          >
+            {texting ? "Texting…" : "Text me the steps"}
+          </button>
         ) : canConfirm && !overflowConfirmed ? (
           <button
             type="button"
@@ -206,7 +231,9 @@ export function CaptureSetupPanel({
           </button>
         ) : overflowConfirmed ? (
           <p className="text-sm text-live" role="status">
-            Capture confirmed{lineVerified ? " · line verified" : ""}.
+            Capture confirmed
+            {overflowProvedAt ? " · overflow proved" : ""}
+            {lineVerified ? " · line verified" : ""}.
           </p>
         ) : null}
       </div>

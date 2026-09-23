@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { isPrivilegedRequest } from "@/lib/admin-access";
 import { getAuthConfigStatus } from "@/lib/auth-env";
 import { getConfigStatus } from "@/lib/env";
+import { isEmailConfigured } from "@/lib/email";
+import { company } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
 import { isProduction } from "@/lib/runtime";
 
@@ -78,6 +80,9 @@ export async function GET(request: NextRequest) {
     ownerPhoneConfigured: Boolean(ownerPhone),
     ownerPhoneIsTwilioLine,
     ownerSmsReachable,
+    emailConfigured: isEmailConfigured(),
+    formationConfirmed: Boolean(company.formationStateConfirmed?.trim()),
+    formationState: company.formationStateConfirmed,
     stats,
     config: config.items,
     auth: {

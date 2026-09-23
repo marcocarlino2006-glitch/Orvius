@@ -1,5 +1,6 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { company } from "@/lib/company";
+import { demoLineHref } from "@/lib/demo-line";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -15,6 +16,7 @@ const groups = [
       { href: "tel:+18446439170", label: "Call the live line" },
       { href: "/pilot", label: "Book a call audit" },
       { href: "/pricing", label: "Pricing & plans" },
+      { href: "/product", label: "How the product works" },
     ],
   },
   {
@@ -46,6 +48,16 @@ export default function ResourcesPage() {
             title="Everything to run the night shift."
             subline="Guides, trust, and the company behind the line."
             description="Start a demo, read how we handle your data, or reach the team."
+            actions={
+              <>
+                <a href={demoLineHref()} className="ov-btn ov-btn--solid">
+                  Call the live line
+                </a>
+                <Link href="/pilot" className="ov-btn ov-btn--quiet">
+                  Request a demo
+                </Link>
+              </>
+            }
           />
         </div>
       </section>

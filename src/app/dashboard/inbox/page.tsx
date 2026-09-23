@@ -78,11 +78,6 @@ export default function InboxPage() {
   return (
     <OsShell
       title="Inbox"
-      subtitle={
-        newCount > 0
-          ? `${newCount} lead${newCount === 1 ? "" : "s"} need your follow-up`
-          : "Qualified leads from every call and text."
-      }
       actions={
         <ProShopLineCta label="Call your line" showNumber={false} />
       }

@@ -34,7 +34,6 @@ if (existsSync(join(root, "docs/MASTER-CLASS.md"))) {
 
 const theaterFiles = [
   "src/components/capture-setup-panel.tsx",
-  "src/components/onboarding-capture-step.tsx",
   "src/components/onboarding-call-verify.tsx",
 ];
 const theaterPattern = /or I will before go-live|or will be my published/i;
@@ -86,13 +85,15 @@ try {
     /Founder phone certification/.test(settings) &&
     /account\?\.founder/.test(settings) &&
     /founderCertJson/.test(settings) &&
-    /Manus post · next/.test(settings) &&
+    /(Manus post · next|Launch checklist · next)/.test(settings) &&
     /FounderManusNext/.test(settings) &&
+    /hubFocus/.test(settings) &&
+    /pro-settings-secondary/.test(settings) &&
     !/<ProSetupHub/.test(settings)
   ) {
     pass(
       "Settings ritual",
-      "Quiet founder-only certification + Manus next — no duplicate setup cockpit",
+      "One hub focus panel open — quiet founder cert, no duplicate cockpit",
     );
   } else {
     fail("Settings ritual", "Founder certification is not wired through quiet Settings");
@@ -206,12 +207,19 @@ try {
     );
   }
   if (
-    /night.?shift OS for HVAC/i.test(company) ||
-    /night-shift OS for HVAC/i.test(company)
+    /focused AI receptionist for HVAC/i.test(company) &&
+    /HVAC company will pay/i.test(company) &&
+    /completed and paid job/i.test(company)
   ) {
-    pass("Presence category", "Company copy owns night-shift OS category");
+    pass(
+      "Presence category",
+      "Company copy owns HVAC receptionist wedge — call→cash before OS",
+    );
   } else {
-    fail("Presence category", "company.ts must claim night-shift OS, not AI receptionist");
+    fail(
+      "Presence category",
+      "company.ts must lock HVAC AI receptionist wedge + one-shop call→cash proof",
+    );
   }
 } catch (e) {
   fail("Presence craft", e instanceof Error ? e.message : String(e));
@@ -235,27 +243,42 @@ try {
     fail("Look hero diet", "Homepage missing core beats");
   }
   const hero = read("src/components/home-line-hero.tsx");
-  if (/ov-hero-brand/.test(hero) && /Orvius/.test(hero)) {
-    pass("Look brand signal", "Hero carries Orvius as a brand-level signal");
+  const premiumNav = read("src/components/premium-nav.tsx");
+  if (
+    /OrviusLogo/.test(premiumNav) &&
+    /ov-hero-title/.test(hero) &&
+    (/Call the live line/.test(hero) || /ov-hero-cta-primary/.test(hero))
+  ) {
+    pass(
+      "Look brand signal",
+      "Brand in nav · claim + dial CTA in hero (Cursor pattern)",
+    );
   } else {
-    fail("Look brand signal", "Hero must include ov-hero-brand Orvius");
+    fail(
+      "Look brand signal",
+      "Nav must carry OrviusLogo; hero must carry claim + Call CTA",
+    );
   }
   if (/ov-hero-eyebrow/.test(hero)) {
     fail(
       "Look hero diet",
-      "Hero eyebrow competes with brand — P1 is brand + one claim + live line + CTA",
+      "Hero eyebrow competes with claim — P1 is claim + two CTAs + product",
     );
   } else if (
-    /ov-hero-brand/.test(hero) &&
     /ov-hero-title/.test(hero) &&
-    /ov-hero-liveline/.test(hero)
+    /ov-hero-actions/.test(hero) &&
+    /ov-hero-liveline/.test(hero) &&
+    /Request a demo/.test(hero)
   ) {
     pass(
       "Look hero P1",
-      "Brand + claim + live line — no competing eyebrow category chrome",
+      "Claim + Call + Request a demo — Cursor two-link pattern, dialable proof",
     );
   } else {
-    fail("Look hero P1", "Hero must keep brand, title, and live line without eyebrow");
+    fail(
+      "Look hero P1",
+      "Hero must keep title, two CTAs (Call + Request a demo), and live line",
+    );
   }
   if (
     /ov-hero--atmosphere/.test(hero) &&
@@ -280,12 +303,29 @@ try {
     );
   }
   const nav = read("src/components/premium-nav.tsx");
-  if (/Enterprise|nav\.enterprise|\/resources/.test(nav) && /href: "\/product"/.test(nav)) {
-    fail("Look nav", "Primary nav still mirrors Cursor mega-nav");
-  } else if (/\/pricing/.test(nav) && /\/pilot/.test(nav) && /\/about/.test(nav)) {
-    pass("Look nav", "Primary nav is Pricing · Audit · About");
+  const hasMultiB =
+    /href: "\/product"/.test(nav) &&
+    /href: "\/enterprise"/.test(nav) &&
+    /href: "\/pricing"/.test(nav) &&
+    /href: "\/pilot"/.test(nav) &&
+    /href: "\/resources"/.test(nav);
+  const isCursorClone =
+    /Models|nav\.models/.test(nav) &&
+    /href: "\/product"/.test(nav) &&
+    /nav\.enterprise/.test(nav) &&
+    /nav\.resources/.test(nav);
+  if (isCursorClone) {
+    fail("Look nav", "Primary nav mirrors Cursor labels verbatim (Models…)");
+  } else if (hasMultiB && /Audit|nav\.audit/.test(nav)) {
+    pass(
+      "Look nav",
+      "Multi-B header: Product · Enterprise · Pricing · Audit · Resources",
+    );
   } else {
-    fail("Look nav", "Primary nav must be trades-native (Pricing · Audit · About)");
+    fail(
+      "Look nav",
+      "Primary nav must be multi-B trades set (Product · Enterprise · Pricing · Audit · Resources)",
+    );
   }
   const outcomes = read("src/components/pro-command-outcomes.tsx");
   if (/exception requires|exceptions require/i.test(outcomes)) {
@@ -293,37 +333,48 @@ try {
       "Operate owner language",
       "Command outcomes still uses exception jargon for owners",
     );
-  } else if (/needs you on the board|Board is clear/.test(outcomes)) {
+  } else if (
+    /needs you on the board|Board is clear|Line watched the window/.test(outcomes)
+  ) {
     pass("Operate owner language", "Command pulse speaks owner language");
   } else {
     fail("Operate owner language", "Outcomes footer must use board / needs-you language");
   }
   const dash = read("src/app/dashboard/page.tsx");
   if (
+    /ShopOperateBanner/.test(dash) &&
     dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
-    dash.indexOf("<FounderNextGate") < dash.indexOf("<ShopOperateBanner") &&
-    /FirstNightHandoff/.test(dash)
+    !/<FounderNextGate/.test(dash) &&
+    !/<FirstNightHandoff/.test(dash)
   ) {
-    pass("Operate ritual order", "First-night → next-gate → shop operate → Command");
+    pass(
+      "Operate ritual order",
+      "Shop operate → Command — no founder gate, no first-night click gate",
+    );
   } else {
     fail(
       "Operate ritual order",
-      "Dashboard must order FirstNightHandoff → FounderNextGate → ShopOperateBanner → Command",
+      "Dashboard must be ShopOperateBanner → Command with no FounderNextGate / FirstNightHandoff",
     );
   }
   const guard = read("src/components/onboarding-guard.tsx");
   const handoff = read("src/components/first-night-handoff.tsx");
+  const operateBanner = read("src/components/shop-operate-banner.tsx");
   if (
     /!json\.ready/.test(guard) &&
     /owner_phone/.test(guard) &&
-    /Tonight has one job/.test(handoff) &&
-    /markFirstNightPending/.test(handoff)
+    /markFirstNightPending/.test(handoff) &&
+    /FIRST_NIGHT_STORAGE_KEY/.test(operateBanner) &&
+    /shopOperateBannerVisible/.test(operateBanner)
   ) {
-    pass("First-night handoff", "Setup cliff closed — unfinished shops stay in tunnel");
+    pass(
+      "First-night handoff",
+      "Setup cliff closed — first night clears silently into the pulse",
+    );
   } else {
     fail(
       "First-night handoff",
-      "OnboardingGuard must hold unfinished setup; FirstNightHandoff must exist",
+      "OnboardingGuard must hold unfinished setup; banner must clear first-night pending",
     );
   }
   const operate = read("src/lib/shop-operate.ts");
