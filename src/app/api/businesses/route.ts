@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       greeting,
       hoursJson,
       servicesJson,
+      ownerPhone: body.ownerPhone.trim(),
     });
 
     const assistant = await createAssistant(
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
         greeting,
         webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
         webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+        ownerPhone: body.ownerPhone.trim(),
       }),
     );
 
@@ -168,6 +170,8 @@ export async function PATCH(request: NextRequest) {
     const servicesJson = body.servicesJson ?? existing.servicesJson;
     const nextName = body.name ?? existing.name;
 
+    const nextOwnerPhone = body.ownerPhone ?? existing.ownerPhone;
+
     const systemPrompt = buildAssistantSystemPrompt({
       name: nextName,
       greeting:
@@ -175,6 +179,7 @@ export async function PATCH(request: NextRequest) {
         `Thank you for calling ${nextName}. How can I help you today?`,
       hoursJson,
       servicesJson,
+      ownerPhone: nextOwnerPhone,
     });
 
     if (existing.vapiAssistantId) {
@@ -188,6 +193,7 @@ export async function PATCH(request: NextRequest) {
           systemPrompt,
           webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
           webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+          ownerPhone: nextOwnerPhone,
         }),
       );
     }
@@ -197,7 +203,7 @@ export async function PATCH(request: NextRequest) {
       data: {
         name: nextName,
         phone: body.phone ?? existing.phone,
-        ownerPhone: body.ownerPhone ?? existing.ownerPhone,
+        ownerPhone: nextOwnerPhone,
         ownerEmail: body.ownerEmail ?? existing.ownerEmail,
         timezone: body.timezone ?? existing.timezone,
         greeting: greeting ?? existing.greeting,

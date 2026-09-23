@@ -1,3 +1,5 @@
+import { transferPromptRule } from "@/lib/call-transfer";
+
 export type BusinessHours = Record<
   string,
   { open: string; close: string; closed?: boolean }
@@ -146,6 +148,8 @@ export function buildAssistantSystemPrompt(business: {
   hoursJson: string;
   servicesJson: string;
   trade?: Trade | null;
+  /** When set, prompt offers live transfer instead of callback-only. */
+  ownerPhone?: string | null;
 }): string {
   const greeting =
     business.greeting ??
@@ -153,6 +157,7 @@ export function buildAssistantSystemPrompt(business: {
 
   const trade = business.trade ?? inferTradeFromBusiness(business);
   const tradeBlock = trade ? `\n\n${tradePromptPack(trade)}` : "";
+  const hasTransfer = Boolean(business.ownerPhone?.replace(/\D/g, "").length >= 10);
 
   return `You are the AI receptionist for ${business.name} ONLY. You represent this shop and no other company.
 
@@ -179,7 +184,7 @@ YOUR JOB (in order)
 RULES
 - NEVER invent pricing, arrival times, or technician names.
 - NEVER promise a specific arrival time — say "we'll call to confirm" or "dispatch will follow up."
-- If caller asks for a person: "I can have the owner call you back within 15 minutes. What's the best number?" Capture name + callback. Put exactly this in notes: "Caller asked for a person — callback". Do not invent a booking.
+${transferPromptRule(hasTransfer)}
 - If caller is vague: ask one clarifying question, not three at once.
 - If spam/sales/robo: politely end — "We're not interested, thank you." Put exactly this in notes: "Spam / sales — not a job".
 - If out of your service area or wrong trade for this shop: say you can't take it, capture the callback if they insist, and put in notes either "Out of service area — not a job" or "Wrong trade for this shop — not a job".

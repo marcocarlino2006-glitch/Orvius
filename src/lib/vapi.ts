@@ -3,6 +3,10 @@ import {
   getAiModelPolicy,
   getTranscriptionModel,
 } from "@/lib/ai-policy";
+import {
+  buildOwnerTransferTool,
+  type TransferCallTool,
+} from "@/lib/call-transfer";
 
 const VAPI_BASE = "https://api.vapi.ai";
 
@@ -13,6 +17,7 @@ type VapiAssistantPayload = {
     provider: string;
     model: string;
     messages: Array<{ role: string; content: string }>;
+    tools?: TransferCallTool[];
   };
   voice: {
     provider: string;
@@ -147,8 +152,11 @@ export function buildVapiAssistantConfig(params: {
   greeting: string;
   webhookUrl: string;
   webhookSecret?: string;
+  /** Owner cell — enables live transferCall when present. */
+  ownerPhone?: string | null;
 }): VapiAssistantPayload {
   const receptionist = getAiModelPolicy("receptionist");
+  const transferTool = buildOwnerTransferTool(params.ownerPhone);
   return {
     name: `${params.businessName} Receptionist`,
     firstMessage: params.greeting,
@@ -156,6 +164,7 @@ export function buildVapiAssistantConfig(params: {
       provider: receptionist.provider,
       model: receptionist.model,
       messages: [{ role: "system", content: params.systemPrompt }],
+      ...(transferTool ? { tools: [transferTool] } : {}),
     },
     voice: {
       provider: "11labs",

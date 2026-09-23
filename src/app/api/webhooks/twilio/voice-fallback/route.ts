@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { linkTouchToCustomer } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import { notifyFallbackCaller } from "@/lib/fallback-caller-sms";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import {
@@ -287,6 +288,13 @@ async function openMissedCall(params: {
     dedupeKey: buildLeadAlertDedupeKey({
       messageSid: externalId ?? lead.id,
     }),
+  });
+
+  await notifyFallbackCaller({
+    businessId: params.businessId,
+    businessName: params.businessName,
+    leadId: lead.id,
+    from: params.from,
   });
 
   await recordWebhookEvent({

@@ -363,6 +363,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
     greeting,
     hoursJson,
     servicesJson,
+    ownerPhone: input.ownerPhone,
   });
 
   let vapiAssistantId: string | null = null;
@@ -376,6 +377,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         greeting,
         webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
         webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+        ownerPhone: input.ownerPhone,
       }),
     );
     vapiAssistantId = assistant.id;

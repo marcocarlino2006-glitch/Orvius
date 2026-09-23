@@ -39,6 +39,7 @@ export async function syncBusinessAssistant(
     greeting,
     hoursJson: business.hoursJson,
     servicesJson: business.servicesJson,
+    ownerPhone: business.ownerPhone,
   });
   await updateAssistant(
     business.vapiAssistantId,
@@ -48,6 +49,7 @@ export async function syncBusinessAssistant(
       systemPrompt,
       webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
       webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+      ownerPhone: business.ownerPhone,
     }),
   );
 
