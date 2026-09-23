@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { inferExplicitUrgency, maybeAutoBookLead } from "@/lib/auto-job";
+import { notifyCapacityUnavailable } from "@/lib/capacity-followup";
 import { company } from "@/lib/company";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { demandCategoryLabel } from "@/lib/job-taxonomy";
@@ -195,6 +196,13 @@ export async function POST(request: NextRequest) {
       })
     : null;
 
+  if (!autoBook.created && autoBook.skipReason === "capacity_unavailable") {
+    await notifyCapacityUnavailable({
+      leadId: lead.id,
+      skipReason: autoBook.skipReason,
+    });
+  }
+
   logInfo("twilio.sms.auto_book", {
     messageSid,
     leadId: lead.id,
@@ -214,6 +222,7 @@ export async function POST(request: NextRequest) {
     },
     job: bookedJob,
     autoBooked: autoBook.created,
+    skipReason: autoBook.skipReason ?? null,
   });
 
   await enqueueOwnerAlert({

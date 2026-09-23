@@ -1,13 +1,20 @@
 /**
  * P4 — hang-up mid-capture.
  * Partial leads need a callback to finish intake, not a booking qualify CTA.
+ * Optionally SMS the caller once so they can finish by reply.
  */
 
+import { sendCustomerSms } from "@/lib/customer-sms";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
+import { logInfo, logWarn } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
+import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 
 const PARTIAL_STAMP =
   /hung up mid-call|hang[ -]?up mid|partial capture|incomplete capture|caller hung up/i;
+
+export const PARTIAL_FOLLOWUP_STAMP = "[partial-followup-sms]";
 
 function hasUsablePhone(phone?: string | null) {
   if (!phone) return false;
@@ -62,4 +69,72 @@ export function leadIsPartialCapture(lead: {
   }
 
   return false;
+}
+
+/**
+ * One SMS after a mid-call hang-up — asks the caller to finish intake by reply.
+ * Idempotent via notes stamp. Does not invent a booking link.
+ */
+export async function sendPartialCaptureFollowUpSms(leadId: string): Promise<{
+  sent: boolean;
+  reason?: string;
+}> {
+  const lead = await prisma.lead.findUnique({
+    where: { id: leadId },
+    include: {
+      business: { select: { id: true, name: true } },
+    },
+  });
+  if (!lead?.businessId || !lead.business) {
+    return { sent: false, reason: "not_found" };
+  }
+  if (!leadIsPartialCapture(lead)) {
+    return { sent: false, reason: "not_partial" };
+  }
+  // SMS threads are ongoing chat — "we got cut off" is call hang-up language only.
+  if (lead.source === "sms") {
+    return { sent: false, reason: "sms_channel" };
+  }
+  if ((lead.notes ?? "").includes(PARTIAL_FOLLOWUP_STAMP)) {
+    return { sent: false, reason: "already_sent" };
+  }
+  const to = lead.phone?.trim();
+  if (!to) return { sent: false, reason: "no_phone" };
+
+  const shop = lead.business.name;
+  const body = withSmsOptOutFooter(
+    `${shop}: we got cut off. Reply with the address and what you need, or call us back — we'll finish the request.`,
+  );
+
+  try {
+    const result = await sendCustomerSms({
+      businessId: lead.businessId,
+      to,
+      body,
+    });
+    if (!result.sent) return result;
+
+    const notes = [lead.notes?.trim(), PARTIAL_FOLLOWUP_STAMP]
+      .filter(Boolean)
+      .join("\n");
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: { notes },
+    });
+    logInfo("lead.partial_followup_sms_sent", {
+      leadId,
+      businessId: lead.businessId,
+      sid: result.sid,
+    });
+    return { sent: true };
+  } catch (error) {
+    logWarn("lead.partial_followup_sms_failed", {
+      leadId,
+      error: error instanceof Error ? error.message : "send failed",
+    });
+    return {
+      sent: false,
+      reason: error instanceof Error ? error.message : "send_failed",
+    };
+  }
 }

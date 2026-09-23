@@ -65,6 +65,19 @@ test("one reminder is the hard ceiling", () => {
   );
 });
 
+test("confirm SMS copy offers decline and reschedule, not confirm-only", async () => {
+  const src = await import("node:fs").then((fs) =>
+    fs.readFileSync(
+      new URL("../src/lib/customer-confirm.ts", import.meta.url),
+      "utf8",
+    ),
+  );
+  assert.match(src, /Confirm, decline, or request a new window/);
+  assert.match(src, /declineJobByCustomerToken/);
+  assert.match(src, /requestRescheduleByCustomerToken/);
+  assert.match(src, /previewJobByCustomerToken/);
+});
+
 test("does not nag inside twelve hours", () => {
   assert.equal(
     shouldSendConfirmationReminder(

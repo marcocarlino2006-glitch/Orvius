@@ -7,8 +7,10 @@ import {
   type VapiWebhookMessage,
 } from "@/lib/vapi";
 import { maybeAutoBookLead } from "@/lib/auto-job";
+import { notifyCapacityUnavailable } from "@/lib/capacity-followup";
 import { linkTouchToCustomer } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import { sendPartialCaptureFollowUpSms } from "@/lib/lead-partial-capture";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import {
   buildLeadAlertDedupeKey,
@@ -283,6 +285,15 @@ export async function POST(request: NextRequest) {
           })
         : null;
 
+      if (!autoBook.created && autoBook.skipReason === "capacity_unavailable") {
+        await notifyCapacityUnavailable({
+          leadId: txResult.lead.id,
+          skipReason: autoBook.skipReason,
+        });
+      } else if (!autoBook.created && !autoBook.qualified) {
+        await sendPartialCaptureFollowUpSms(txResult.lead.id);
+      }
+
       logInfo("vapi.webhook.auto_book", {
         vapiCallId,
         leadId: txResult.lead.id,
@@ -302,6 +313,7 @@ export async function POST(request: NextRequest) {
         },
         job: bookedJob,
         autoBooked: autoBook.created,
+        skipReason: autoBook.skipReason ?? null,
       });
 
       const dedupeKey = buildLeadAlertDedupeKey({ vapiCallId });

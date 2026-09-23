@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { getAppBaseUrl } from "@/lib/domains";
 import { logInfo, logWarn } from "@/lib/logger";
+import { enqueueOwnerAlert } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 
@@ -97,7 +98,7 @@ export async function sendCustomerConfirmSms(
         ? `${shop}: please confirm your proposed service window`
         : `${shop}: we have you down for service`,
       when ? `Proposed window: ${when}` : "We'll confirm timing shortly",
-      `Confirm here: ${customerConfirmUrl(token)}`,
+      `Confirm, decline, or request a new window: ${customerConfirmUrl(token)}`,
     ].join("\n"),
   );
 
@@ -203,29 +204,89 @@ export async function sendDueCustomerConfirmationReminders(
   return { checked: candidates.length, sent, skipped };
 }
 
+const CONFIRM_JOB_SELECT = {
+  business: {
+    select: {
+      id: true,
+      name: true,
+      ownerPhone: true,
+      ownerEmail: true,
+    },
+  },
+  customer: { select: { name: true, phone: true } },
+  lead: { select: { name: true, phone: true } },
+} as const;
+
+function jobPayload(job: {
+  id: string;
+  title: string;
+  scheduledAt: Date | null;
+  status: string;
+  customerConfirmedAt: Date | null;
+  business: { name: string };
+}) {
+  return {
+    id: job.id,
+    title: job.title,
+    scheduledAt: job.scheduledAt,
+    businessName: job.business.name,
+    status: job.status,
+    confirmed: Boolean(job.customerConfirmedAt),
+  };
+}
+
+/** Preview only — never stamps confirmation. */
+export async function previewJobByCustomerToken(token: string) {
+  const job = await prisma.job.findFirst({
+    where: { customerConfirmToken: token },
+    include: CONFIRM_JOB_SELECT,
+  });
+  if (!job) return { ok: false as const, error: "not_found" as const };
+  if (job.status === "cancelled") {
+    return {
+      ok: true as const,
+      state: "declined" as const,
+      job: jobPayload(job),
+    };
+  }
+  if (job.customerConfirmedAt) {
+    return {
+      ok: true as const,
+      state: "confirmed" as const,
+      job: jobPayload(job),
+    };
+  }
+  if (/Customer requested reschedule/i.test(job.notes ?? "")) {
+    return {
+      ok: true as const,
+      state: "reschedule_requested" as const,
+      job: jobPayload(job),
+    };
+  }
+  return {
+    ok: true as const,
+    state: "pending" as const,
+    job: jobPayload(job),
+  };
+}
+
 export async function confirmJobByCustomerToken(token: string) {
   const job = await prisma.job.findFirst({
     where: { customerConfirmToken: token },
-    include: {
-      business: { select: { id: true, name: true } },
-      customer: { select: { name: true, phone: true } },
-      lead: { select: { name: true, phone: true } },
-    },
+    include: CONFIRM_JOB_SELECT,
   });
 
   if (!job) return { ok: false as const, error: "not_found" as const };
+  if (job.status === "cancelled") {
+    return { ok: false as const, error: "already_declined" as const };
+  }
 
   if (job.customerConfirmedAt) {
     return {
       ok: true as const,
       already: true as const,
-      job: {
-        id: job.id,
-        title: job.title,
-        scheduledAt: job.scheduledAt,
-        businessName: job.business.name,
-        status: job.status,
-      },
+      action: "confirm" as const,
+      job: jobPayload(job),
     };
   }
 
@@ -246,12 +307,143 @@ export async function confirmJobByCustomerToken(token: string) {
   return {
     ok: true as const,
     already: false as const,
+    action: "confirm" as const,
     job: {
-      id: updated.id,
-      title: updated.title,
-      scheduledAt: updated.scheduledAt,
-      businessName: job.business.name,
+      ...jobPayload({ ...job, ...updated }),
       status: updated.status,
+      confirmed: true,
     },
+  };
+}
+
+/**
+ * Customer declines the proposed window — cancel the job and ping the owner.
+ * Uses job.status cancelled (pre-visit), not completion outcome customer_declined.
+ */
+export async function declineJobByCustomerToken(token: string) {
+  const job = await prisma.job.findFirst({
+    where: { customerConfirmToken: token },
+    include: CONFIRM_JOB_SELECT,
+  });
+  if (!job) return { ok: false as const, error: "not_found" as const };
+
+  if (job.status === "cancelled") {
+    return {
+      ok: true as const,
+      already: true as const,
+      action: "decline" as const,
+      job: jobPayload(job),
+    };
+  }
+  if (job.customerConfirmedAt) {
+    return { ok: false as const, error: "already_confirmed" as const };
+  }
+
+  const stamp = "Customer declined via confirm link";
+  const notes = job.notes?.includes(stamp)
+    ? job.notes
+    : [job.notes?.trim(), stamp].filter(Boolean).join("\n");
+
+  const updated = await prisma.job.update({
+    where: { id: job.id },
+    data: {
+      status: "cancelled",
+      notes,
+      customerConfirmedAt: null,
+    },
+  });
+
+  await enqueueOwnerAlert({
+    businessId: job.businessId,
+    leadId: job.leadId ?? undefined,
+    dedupeKey: `customer-decline:${job.id}`,
+    businessName: job.business.name,
+    ownerPhone: job.business.ownerPhone,
+    ownerEmail: job.business.ownerEmail,
+    message: [
+      "Customer declined the proposed window",
+      job.title,
+      formatWindow(job.scheduledAt) ?? "No window set",
+      "Call them if you want to offer another time.",
+    ].join("\n"),
+  });
+
+  logInfo("customer.confirm_declined", {
+    jobId: job.id,
+    businessId: job.businessId,
+  });
+
+  return {
+    ok: true as const,
+    already: false as const,
+    action: "decline" as const,
+    job: jobPayload({ ...job, ...updated, customerConfirmedAt: null }),
+  };
+}
+
+/**
+ * Customer wants a different window — keep job open, clear confirm, owner dials.
+ * Does not invent a new slot.
+ */
+export async function requestRescheduleByCustomerToken(token: string) {
+  const job = await prisma.job.findFirst({
+    where: { customerConfirmToken: token },
+    include: CONFIRM_JOB_SELECT,
+  });
+  if (!job) return { ok: false as const, error: "not_found" as const };
+  if (job.status === "cancelled") {
+    return { ok: false as const, error: "already_declined" as const };
+  }
+
+  const stamp = "Customer requested reschedule";
+  const already = /Customer requested reschedule/i.test(job.notes ?? "");
+  if (already && !job.customerConfirmedAt) {
+    return {
+      ok: true as const,
+      already: true as const,
+      action: "reschedule_request" as const,
+      job: jobPayload(job),
+    };
+  }
+
+  const notes = already
+    ? job.notes
+    : [job.notes?.trim(), stamp].filter(Boolean).join("\n");
+
+  const updated = await prisma.job.update({
+    where: { id: job.id },
+    data: {
+      notes,
+      customerConfirmedAt: null,
+      // Keep scheduled as proposed — owner picks the next window.
+      status: job.status === "confirmed" ? "scheduled" : job.status,
+    },
+  });
+
+  await enqueueOwnerAlert({
+    businessId: job.businessId,
+    leadId: job.leadId ?? undefined,
+    dedupeKey: `customer-reschedule:${job.id}`,
+    businessName: job.business.name,
+    ownerPhone: job.business.ownerPhone,
+    ownerEmail: job.business.ownerEmail,
+    message: [
+      "Customer requested a different window",
+      job.title,
+      formatWindow(job.scheduledAt) ?? "No window set",
+      "Call them to pick a new time — no new slot was locked.",
+    ].join("\n"),
+  });
+
+  logInfo("customer.confirm_reschedule_requested", {
+    jobId: job.id,
+    businessId: job.businessId,
+  });
+
+  return {
+    ok: true as const,
+    already: false as const,
+    action: "reschedule_request" as const,
+    job: jobPayload({ ...job, ...updated, customerConfirmedAt: null }),
   };
 }

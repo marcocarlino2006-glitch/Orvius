@@ -52,8 +52,10 @@ export function buildOwnerLeadAlertMessage(params: {
     customerConfirmedAt?: Date | string | null;
   } | null;
   autoBooked?: boolean;
+  /** When auto-book skipped — capacity is the one callers must hear honestly. */
+  skipReason?: string | null;
 }): string {
-  const { lead, job, autoBooked } = params;
+  const { lead, job, autoBooked, skipReason } = params;
   const urgency = formatUrgencyLabel(lead.urgency);
   const service = lead.serviceType?.trim();
   const name = lead.name?.trim();
@@ -74,6 +76,9 @@ export function buildOwnerLeadAlertMessage(params: {
     } else {
       bookingLine = "Job on board · awaiting customer confirm";
     }
+  } else if (skipReason === "capacity_unavailable") {
+    bookingLine =
+      "No open window in next 14 days — call to schedule (customer texted)";
   }
 
   const lines = [

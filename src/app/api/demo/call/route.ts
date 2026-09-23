@@ -155,6 +155,7 @@ export async function POST(request: NextRequest) {
           },
           job: bookedJob,
           autoBooked: autoBook.created,
+          skipReason: autoBook.skipReason ?? null,
         }),
         leadId: lead.id,
         dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),

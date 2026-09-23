@@ -908,6 +908,17 @@ export async function getAttentionQueue(
           .filter(Boolean)
           .join(" · ");
         recommendedAction = "Call back & book";
+      } else if (/\[capacity-followup-sms\]/i.test(lead.notes ?? "")) {
+        kind = "needs_booking";
+        impact = "high";
+        detail = [
+          "No open window — customer told shop will call",
+          lead.serviceType,
+          lead.address,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        recommendedAction = "Call to schedule";
       } else if (overdue) {
         kind = "overdue_followup";
         impact = "high";
@@ -993,6 +1004,9 @@ export async function getAttentionQueue(
       (job.status === "scheduled" || job.status === "confirmed") &&
       job.scheduledAt
     ) {
+      const rescheduleRequested = /Customer requested reschedule/i.test(
+        job.notes ?? "",
+      );
       items.push({
         id: `needs_customer_confirm:${job.id}`,
         kind: "needs_customer_confirm",
@@ -1000,7 +1014,9 @@ export async function getAttentionQueue(
         impact: isPriorityUrgency(urgency) || dueToday ? "critical" : "high",
         title: who,
         detail: [
-          "Awaiting customer confirm",
+          rescheduleRequested
+            ? "Customer asked for a different window"
+            : "Awaiting customer confirm",
           job.title,
           scheduled
             ? scheduled.toLocaleString(undefined, {
@@ -1012,7 +1028,7 @@ export async function getAttentionQueue(
         ]
           .filter(Boolean)
           .join(" · "),
-        recommendedAction: "Text confirm",
+        recommendedAction: rescheduleRequested ? "Call to reschedule" : "Text confirm",
         href: `/dashboard/jobs/${job.id}`,
         entityType: "job",
         entityId: job.id,
