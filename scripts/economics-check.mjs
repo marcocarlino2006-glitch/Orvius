@@ -73,25 +73,35 @@ const commandSrc = readFileSync(
 );
 const economicsOnCommand = (commandSrc.match(/<ProEconomicsPanel/g) ?? []).length;
 const outcomesOnCommand = (commandSrc.match(/<ProCommandOutcomes/g) ?? []).length;
+const briefingOnCommand = (commandSrc.match(/<OpsBriefing/g) ?? []).length;
 results.push(
-  economicsOnCommand === 0 && outcomesOnCommand === 1
-    ? pass("Command calm uses one retrospect (outcomes) — proof via operate banner")
+  economicsOnCommand === 0 &&
+    outcomesOnCommand === 0 &&
+    briefingOnCommand === 1
+    ? pass(
+        "Command uses one always-on OpsBriefing — money lane + operate banner, no XOR pulse",
+      )
     : fail(
-        `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand}`,
+        `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand} briefing=${briefingOnCommand}`,
       ),
 );
 
 const workMode = /workMode/.test(commandSrc);
-const outcomeLead = commandSrc.indexOf("<ProCommandOutcomes");
+const briefingLead = commandSrc.indexOf("<OpsBriefing");
 const shiftTimeline = commandSrc.indexOf("<ProShiftTimeline");
 const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
 results.push(
-  workMode &&
-    outcomeLead >= 0 &&
+  !workMode &&
+    briefingLead >= 0 &&
     exceptionBoard >= 0 &&
-    shiftTimeline > outcomeLead
-    ? pass("Command workMode: board when busy, outcomes then trail when calm")
-    : fail("Command must use workMode — board vs outcomes+trail, never both stacks"),
+    shiftTimeline > briefingLead &&
+    exceptionBoard > briefingLead
+    ? pass(
+        "Command always-on: OpsBriefing → attention board → trail (no workMode XOR)",
+      )
+    : fail(
+        "Command must keep OpsBriefing visible with board + trail — never XOR pulse away",
+      ),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");

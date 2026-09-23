@@ -3,20 +3,15 @@
 import { useState } from "react";
 import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
-import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
-import { ProEconomicsPanel } from "@/components/pro-economics-panel";
+import { OpsBriefing } from "@/components/ops-briefing";
 import { ProLaunchControl } from "@/components/pro-launch-control";
 import { ProShiftTimeline } from "@/components/pro-shift-timeline";
 import { useRing1 } from "@/lib/ring1-context";
 
-// Economics panel stays reachable for weekly-proof ritual code; Command calm
-// shows outcomes only so money never double-stacks with the pulse.
-void ProEconomicsPanel;
-
 /**
- * Signed-in Command — one composition.
- * Work waiting: board (+ pending approvals only). Calm: one retrospect + trail.
- * Proof copy lives on the operate banner when due. Rail is quiet status.
+ * Command = AI operating console for the shop.
+ * Briefing always visible; attention + approvals are the action layer;
+ * timeline is evidence. Never XOR the board away from the business pulse.
  */
 export function Ring1CommandCenter() {
   const { data, loading, loadError, refresh } = useRing1();
@@ -29,7 +24,10 @@ export function Ring1CommandCenter() {
   }
 
   const attention = data?.attention ?? [];
-  const workMode = loading || attention.length > 0;
+  const attentionRevenueCents = attention.reduce(
+    (sum, item) => sum + (item.estimatedRevenueCents ?? 0),
+    0,
+  );
 
   return (
     <section className="ring1-command ring1-cockpit" aria-label="Command">
@@ -38,7 +36,17 @@ export function Ring1CommandCenter() {
           <div className="pro-command-recovery font-sans" role="alert">
             <div>
               <strong>Connection needs attention</strong>
-              <span>{loadError}</span>
+              <span className="pro-command-recovery-row">
+                <span className="clarity-purpose-label">Cause</span> {loadError}
+              </span>
+              <span className="pro-command-recovery-row">
+                <span className="clarity-purpose-label">Impact</span> Tonight’s
+                queue and outcomes may be stale until this reconnects.
+              </span>
+              <span className="pro-command-recovery-row">
+                <span className="clarity-purpose-label">Recover</span> Retry now —
+                your shop line is still answering calls.
+              </span>
             </div>
             <button
               type="button"
@@ -51,31 +59,27 @@ export function Ring1CommandCenter() {
           </div>
         ) : null}
 
-        {workMode ? (
-          <>
-            <AttentionQueue
-              items={attention}
-              loading={loading}
-              technicians={data?.technicians ?? []}
-              onAction={() => void refresh()}
-            />
-            <ApproveQueue onChange={() => void refresh()} hideWhenEmpty />
-          </>
-        ) : (
-          <>
-            <ProCommandOutcomes
-              outcomes={data?.outcomes}
-              attentionCount={0}
-              loading={false}
-            />
+        <OpsBriefing
+          outcomes={data?.outcomes}
+          attentionCount={attention.length}
+          attentionRevenueCents={attentionRevenueCents}
+          loading={loading}
+        />
 
-            <ProShiftTimeline
-              events={data?.shiftTimeline ?? []}
-              loading={false}
-              moneyEnabled={data?.business?.depositEnabled ?? false}
-            />
-          </>
-        )}
+        <AttentionQueue
+          items={attention}
+          loading={loading}
+          technicians={data?.technicians ?? []}
+          onAction={() => void refresh()}
+        />
+
+        <ApproveQueue onChange={() => void refresh()} hideWhenEmpty />
+
+        <ProShiftTimeline
+          events={data?.shiftTimeline ?? []}
+          loading={loading}
+          moneyEnabled={data?.business?.depositEnabled ?? false}
+        />
       </div>
 
       <aside className="ring1-cockpit-rail" aria-label="Shop status">
