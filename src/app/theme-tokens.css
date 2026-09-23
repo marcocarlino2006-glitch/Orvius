@@ -24,30 +24,23 @@
 [data-theme="night"] {
   color-scheme: dark;
 
-  --ui-bg: #14120b;
-  --ui-surface: #201e18;
-  --ui-surface-hover: #2b2923;
-  --ui-text: #edecec;
-  --ui-text-muted: #8a8880;
-  --ui-border: #26241e;
+  /* Near-black graphite — mission-control canvas */
+  --ui-bg: #0e0f12;
+  --ui-surface: #15171b;
+  --ui-surface-hover: #1c1f24;
+  --ui-text: #f4f5f7;
+  --ui-text-muted: #8b8f98;
+  --ui-border: #2a2e35;
 
-  --ui-selected: #26241e;
+  --ui-selected: #1c1f24;
   --ui-on-selected: #ffffff;
   --ui-cta: #ffffff;
-  --ui-on-cta: #14120b;
+  --ui-on-cta: #0a0b0d;
 
   /* Metallic top edge — a lit 1px lip, not a soft SaaS elevation blur. */
-  --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
-  --ui-dock-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
-  /*
-    Dock glass. The dock is fixed, so it floats over every section of the page,
-    and the specified 80% is not survivable in either colorway: over the
-    full-bleed copper panel it drops the muted label to 4.09:1 on dark and
-    4.39:1 on light, both under AA. 90% keeps the frosted read and holds
-    >= 4.6:1 against every backdrop the page actually paints —
-    scripts/verify-dock.cjs scans the whole scroll range and asserts it.
-  */
-  --ui-dock-glass: rgb(32 30 24 / 0.9);
+  --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.055);
+  --ui-dock-shadow: 0 18px 40px rgb(0 0 0 / 0.55);
+  --ui-dock-glass: rgb(21 23 27 / 0.92);
 }
 
 [data-theme="day"] {

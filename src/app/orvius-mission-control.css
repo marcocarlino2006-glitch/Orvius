@@ -1,0 +1,562 @@
+/*
+  Orvius Mission Control — product visual language
+  ────────────────────────────────────────────────
+  Ambition without cosplay: SpaceX-level restraint, Meta-level polish,
+  Apple-level clarity, Orvius operational intelligence.
+
+  Near-black graphite · warm-gray materials · crisp white type ·
+  electric-green live signal · cool signal-blue focus ·
+  amber / red only for genuine operational risk.
+
+  No fake metrics, neon overload, soft SaaS cards, or decorative sci-fi.
+  Every surface earns trust by making the shop clearer and faster.
+*/
+
+.os-shell-night {
+  /* Canvas — near-black graphite with a whisper of warmth */
+  --mc-void: #0a0b0d;
+  --mc-paper: #0e0f12;
+  --mc-panel: #15171b;
+  --mc-raised: #1c1f24;
+  --mc-hover: #23262c;
+  --mc-ink: #f4f5f7;
+  --mc-ink-soft: #d5d7dc;
+  --mc-mute: #8b8f98;
+  --mc-mute-dim: #636872;
+  --mc-line: #2a2e35;
+  --mc-line-soft: rgba(244, 245, 247, 0.08);
+
+  /* Live / healthy — restrained electric green */
+  --mc-live: #2bd576;
+  --mc-live-dim: #1fa85c;
+  --mc-live-soft: rgba(43, 213, 118, 0.14);
+
+  /* Focus / AI / interactive — cool signal blue */
+  --mc-focus: #5b9cff;
+  --mc-focus-dim: #3d7fe0;
+  --mc-focus-soft: rgba(91, 156, 255, 0.14);
+
+  /* Risk — amber attention, red only for critical failure */
+  --mc-attention: #d4a574;
+  --mc-attention-soft: rgba(212, 165, 116, 0.16);
+  --mc-flare: #e5484d;
+  --mc-flare-soft: rgba(229, 72, 77, 0.16);
+
+  /* Instrument radii — precise, not bubbly */
+  --mc-radius: 0.375rem;
+  --mc-radius-sm: 0.25rem;
+  --mc-radius-lg: 0.5rem;
+
+  /* Depth — layered graphite, hairline lip, no soft SaaS blur stacks */
+  --mc-lip: inset 0 1px 0 0 rgba(255, 255, 255, 0.055);
+  --mc-depth: 0 18px 40px -28px rgba(0, 0, 0, 0.85);
+  --mc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mc-duration: 160ms;
+
+  /* Remap legacy OS tokens onto the mission-control ladder */
+  --os-display: clamp(1.75rem, 2.6vw, 2.35rem);
+  --os-figure: 1.5rem;
+  --os-lede: 1.0625rem;
+  --os-paper: var(--mc-paper);
+  --os-panel: var(--mc-panel);
+  --os-panel-raised: var(--mc-raised);
+  --os-ink: var(--mc-ink);
+  --os-mute: var(--mc-mute);
+  --os-line: var(--mc-line);
+  --os-flare: var(--mc-flare);
+  --os-live: var(--mc-live);
+  --os-agent: var(--mc-focus);
+  --os-danger: var(--mc-flare);
+  --os-success: var(--mc-live);
+  --os-attention: var(--mc-attention);
+  --os-info: var(--mc-focus);
+  --os-radius: var(--mc-radius);
+
+  --void: var(--mc-ink);
+  --ash: var(--mc-mute);
+  --ash-soft: var(--mc-mute-dim);
+  --white: var(--mc-panel);
+  --fog: var(--mc-void);
+  --chalk: var(--mc-paper);
+  --canvas: var(--mc-paper);
+  --rule: var(--mc-line);
+  --signal: var(--mc-focus);
+  --signal-text: #9ec0ff;
+  --flare-text: #ff8a90;
+  --live-text: var(--mc-live);
+
+  color: var(--mc-ink-soft) !important;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(91, 156, 255, 0.045), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(43, 213, 118, 0.03), transparent 45%),
+    var(--mc-paper) !important;
+  font-family: var(--font-ui, var(--font-sans)), system-ui, sans-serif !important;
+  font-feature-settings: "ss01" 1, "cv11" 1, "zero" 1;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display voice — titles and flagship briefing figures */
+.os-shell-night .os-topbar-title,
+.os-shell-night .pro-command-briefing,
+.os-shell-night .pro-command-empty-title,
+.os-shell-night .attention-queue-title,
+.os-shell-night .pro-lead-figure,
+.os-shell-night .pro-lead-caption {
+  font-family: var(--font-display, var(--font-ui, var(--font-sans))), system-ui, sans-serif !important;
+  letter-spacing: -0.035em;
+  font-weight: 560;
+}
+
+/* Machine voice — kickers, statuses, badges, timestamps, money */
+.os-shell-night .os-sidebar-label,
+.os-shell-night .attention-queue-kicker,
+.os-shell-night .attention-item-kindlabel,
+.os-shell-night .attention-item-impact-label,
+.os-shell-night .attention-item-time,
+.os-shell-night .pro-command-outcomes-kicker,
+.os-shell-night .command-workflow-kicker,
+.os-shell-night .pro-rail-status,
+.os-shell-night .pro-rail-card-title,
+.os-shell-night .os-nav-badge,
+.os-shell-night .pro-command-metric-value,
+.os-shell-night .pro-control-pulse dd {
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Shell chrome ─────────────────────────────────────────── */
+
+.os-shell-night .os-sidebar,
+.os-shell-night .os-sidebar-pro {
+  background: linear-gradient(180deg, #0c0d10 0%, var(--mc-void) 100%) !important;
+  border-right: 1px solid var(--mc-line) !important;
+}
+
+.os-shell-night .os-main,
+.os-shell-night .os-main-pro,
+.os-shell-night .os-content-pro {
+  background: transparent !important;
+}
+
+.os-shell-night .os-topbar,
+.os-shell-night .os-topbar-pro {
+  background: transparent !important;
+  border-bottom: 1px solid var(--mc-line-soft) !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .os-topbar-title {
+  color: var(--mc-ink) !important;
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem) !important;
+  font-weight: 600 !important;
+}
+
+.os-shell-night .os-ring-status {
+  border: 1px solid var(--mc-line) !important;
+  border-radius: var(--mc-radius) !important;
+  background: var(--mc-panel) !important;
+  box-shadow: var(--mc-lip) !important;
+}
+
+.os-shell-night .os-ring-status-title {
+  color: var(--mc-ink) !important;
+  font-weight: 560 !important;
+  letter-spacing: -0.02em;
+}
+
+.os-shell-night .os-ring-status-dot {
+  background: var(--mc-live) !important;
+  box-shadow: 0 0 0 3px var(--mc-live-soft);
+}
+
+.os-shell-night .os-nav-link {
+  border-radius: var(--mc-radius-sm) !important;
+  color: color-mix(in srgb, var(--mc-ink) 62%, transparent) !important;
+  transition:
+    background var(--mc-duration) var(--mc-ease),
+    color var(--mc-duration) var(--mc-ease) !important;
+}
+
+.os-shell-night .os-nav-link:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--mc-ink) !important;
+}
+
+.os-shell-night .os-nav-link-active,
+.os-shell-night .os-sidebar-pro .os-nav-link-active {
+  background: var(--mc-raised) !important;
+  color: var(--mc-ink) !important;
+  box-shadow: var(--mc-lip), inset 2px 0 0 var(--mc-live) !important;
+  font-weight: 560 !important;
+}
+
+.os-shell-night .os-nav-badge {
+  background: var(--mc-attention-soft) !important;
+  color: var(--mc-attention) !important;
+  border: 1px solid color-mix(in srgb, var(--mc-attention) 35%, transparent) !important;
+}
+
+.os-shell-night .os-nav-badge-warn {
+  background: var(--mc-flare-soft) !important;
+  color: #ff8a90 !important;
+  border-color: color-mix(in srgb, var(--mc-flare) 40%, transparent) !important;
+}
+
+/* ── Profile / settings corner ────────────────────────────── */
+
+.os-shell-night .os-sidebar-pay {
+  border-radius: var(--mc-radius-sm) !important;
+  border: 1px solid var(--mc-line) !important;
+  background: var(--mc-raised) !important;
+  color: var(--mc-ink) !important;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  transition:
+    border-color var(--mc-duration) var(--mc-ease),
+    background var(--mc-duration) var(--mc-ease);
+}
+
+.os-shell-night .os-sidebar-pay:hover {
+  border-color: color-mix(in srgb, var(--mc-focus) 45%, var(--mc-line)) !important;
+  background: var(--mc-hover) !important;
+}
+
+.os-shell-night .os-sidebar-user {
+  border-radius: var(--mc-radius) !important;
+  border: 1px solid transparent;
+  transition:
+    background var(--mc-duration) var(--mc-ease),
+    border-color var(--mc-duration) var(--mc-ease);
+}
+
+.os-shell-night .os-sidebar-user:hover,
+.os-shell-night .os-profile-menu-open .os-sidebar-user {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--mc-line) !important;
+}
+
+.os-shell-night .os-sidebar-avatar {
+  border-radius: var(--mc-radius-sm) !important;
+  background: linear-gradient(145deg, var(--mc-raised), var(--mc-panel)) !important;
+  border: 1px solid var(--mc-line) !important;
+  color: var(--mc-ink) !important;
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+  box-shadow: var(--mc-lip);
+}
+
+.os-shell-night .os-sidebar-user-name {
+  color: var(--mc-ink) !important;
+  font-weight: 560 !important;
+  letter-spacing: -0.015em;
+}
+
+.os-shell-night .os-sidebar-user-plan {
+  color: var(--mc-mute) !important;
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  font-size: 0.625rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase;
+}
+
+.os-shell-night .os-profile-menu-panel {
+  border-radius: var(--mc-radius-lg) !important;
+  border: 1px solid var(--mc-line) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 40%),
+    var(--mc-raised) !important;
+  box-shadow: var(--mc-lip), var(--mc-depth) !important;
+  animation: mc-panel-rise 0.22s var(--mc-ease) both;
+}
+
+.os-shell-night .os-profile-menu-email {
+  color: var(--mc-mute) !important;
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  letter-spacing: 0.02em;
+}
+
+.os-shell-night .os-profile-menu-link {
+  color: var(--mc-ink-soft) !important;
+  border-radius: 0;
+  transition:
+    background var(--mc-duration) var(--mc-ease),
+    color var(--mc-duration) var(--mc-ease);
+}
+
+.os-shell-night .os-profile-menu-link:hover {
+  background: rgba(91, 156, 255, 0.08) !important;
+  color: var(--mc-ink) !important;
+}
+
+.os-shell-night .os-profile-menu-hint {
+  color: var(--mc-mute-dim) !important;
+}
+
+.os-shell-night .os-profile-menu-signout:hover {
+  background: var(--mc-flare-soft) !important;
+  color: #ff8a90 !important;
+}
+
+@keyframes mc-panel-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-shell-night .os-profile-menu-panel {
+    animation: none !important;
+  }
+
+  .os-shell-night .os-nav-link,
+  .os-shell-night .pro-command-metric,
+  .os-shell-night .attention-item {
+    transition: none !important;
+  }
+}
+
+/* ── Shared instrument surfaces ───────────────────────────── */
+
+.os-shell-night .pro-command-outcomes,
+.os-shell-night .command-workflow,
+.os-shell-night .pro-control-center,
+.os-shell-night .pro-economics-panel,
+.os-shell-night .pro-shift-timeline,
+.os-shell-night .pro-empty-state,
+.os-shell-night .lead-inbox-card,
+.os-shell-night .job-card,
+.os-shell-night .customer-record-card,
+.os-shell-night .call-record-card,
+.os-shell-night .dispatch-col,
+.os-shell-night .pro-settings-form > .pro-panel,
+.os-shell-night .account-stack .pro-panel {
+  border-color: var(--mc-line) !important;
+  border-radius: var(--mc-radius-lg) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 42%),
+    var(--mc-panel) !important;
+  box-shadow: var(--mc-lip) !important;
+}
+
+.os-shell-night .attention-queue-list {
+  border-color: var(--mc-line) !important;
+  background: var(--mc-panel) !important;
+  box-shadow: var(--mc-lip) !important;
+}
+
+.os-shell-night .attention-item {
+  transition: background var(--mc-duration) var(--mc-ease) !important;
+}
+
+.os-shell-night .attention-item:hover {
+  background: var(--mc-hover) !important;
+}
+
+.os-shell-night .attention-item-critical {
+  box-shadow: inset 2px 0 0 var(--mc-attention) !important;
+}
+
+.os-shell-night .attention-chip-critical {
+  background: var(--mc-attention-soft) !important;
+  border: 1px solid color-mix(in srgb, var(--mc-attention) 40%, transparent) !important;
+  color: var(--mc-attention) !important;
+}
+
+.os-shell-night .attention-item-btn,
+.os-shell-night .attention-item-btn-primary,
+.os-shell-night .btn,
+.os-shell-night .btn-void,
+.os-shell-night .btn-secondary {
+  border-radius: var(--mc-radius-sm) !important;
+  transition:
+    background var(--mc-duration) var(--mc-ease),
+    border-color var(--mc-duration) var(--mc-ease),
+    color var(--mc-duration) var(--mc-ease),
+    transform var(--mc-duration) var(--mc-ease) !important;
+}
+
+.os-shell-night .attention-item-btn-primary,
+.os-shell-night .btn-void {
+  background: var(--mc-ink) !important;
+  border-color: var(--mc-ink) !important;
+  color: var(--mc-void) !important;
+  font-weight: 600 !important;
+}
+
+.os-shell-night .attention-item-btn-primary:hover,
+.os-shell-night .btn-void:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+.os-shell-night .attention-item-btn,
+.os-shell-night .btn-secondary {
+  border: 1px solid var(--mc-line) !important;
+  background: transparent !important;
+  color: var(--mc-ink-soft) !important;
+}
+
+.os-shell-night .attention-item-btn:hover,
+.os-shell-night .btn-secondary:hover {
+  border-color: color-mix(in srgb, var(--mc-focus) 40%, var(--mc-line)) !important;
+  color: var(--mc-ink) !important;
+  background: rgba(91, 156, 255, 0.06) !important;
+}
+
+/* ── Command mission surface ──────────────────────────────── */
+
+.os-shell-night .pro-command-outcomes--today {
+  border-color: var(--mc-line) !important;
+  background:
+    linear-gradient(180deg, rgba(91, 156, 255, 0.04), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 55%),
+    var(--mc-panel) !important;
+}
+
+.os-shell-night .pro-command-briefing {
+  color: var(--mc-ink) !important;
+  font-size: clamp(1.05rem, 1.85vw, 1.3rem) !important;
+  line-height: 1.4 !important;
+  max-width: 64ch;
+}
+
+.os-shell-night .pro-command-metric {
+  border-color: var(--mc-line) !important;
+  border-radius: var(--mc-radius) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  box-shadow: var(--mc-lip);
+  transition:
+    border-color var(--mc-duration) var(--mc-ease),
+    background var(--mc-duration) var(--mc-ease),
+    transform var(--mc-duration) var(--mc-ease);
+}
+
+.os-shell-night .pro-command-metric:hover {
+  border-color: color-mix(in srgb, var(--mc-focus) 45%, var(--mc-line)) !important;
+  background: var(--mc-focus-soft) !important;
+  transform: translateY(-1px);
+}
+
+.os-shell-night .pro-command-metric--attention {
+  border-color: color-mix(in srgb, var(--mc-attention) 40%, var(--mc-line)) !important;
+}
+
+.os-shell-night .pro-command-metric-value {
+  color: var(--mc-ink) !important;
+}
+
+.os-shell-night .pro-command-metric-label,
+.os-shell-night .pro-command-outcomes-head > span,
+.os-shell-night .pro-command-outcomes-foot p,
+.os-shell-night .pro-command-empty-body,
+.os-shell-night .pro-command-empty-meta {
+  color: var(--mc-mute) !important;
+}
+
+.os-shell-night .pro-command-empty-title {
+  color: var(--mc-ink) !important;
+}
+
+.os-shell-night .pro-command-empty-link {
+  color: var(--mc-focus) !important;
+}
+
+.os-shell-night .command-workflow-stage.is-measured .command-workflow-node {
+  border-color: color-mix(in srgb, var(--mc-live) 45%, transparent) !important;
+  color: #d8f8e8 !important;
+  background: var(--mc-live-soft) !important;
+}
+
+.os-shell-night .command-workflow-stage.is-waiting .command-workflow-node {
+  border-color: color-mix(in srgb, var(--mc-attention) 50%, transparent) !important;
+  color: #f4dcc0 !important;
+  background: var(--mc-attention-soft) !important;
+}
+
+.os-shell-night .pro-rail-status-healthy {
+  background: var(--mc-live-soft) !important;
+  color: var(--mc-live) !important;
+}
+
+.os-shell-night .pro-rail-status-attention {
+  background: var(--mc-attention-soft) !important;
+  color: var(--mc-attention) !important;
+}
+
+.os-shell-night .pro-rail-status-critical {
+  background: var(--mc-attention-soft) !important;
+  color: var(--mc-attention) !important;
+}
+
+.os-shell-night .pro-control-pulse--rich a:hover {
+  color: var(--mc-focus) !important;
+}
+
+/* ── Empty / loading / recovery ───────────────────────────── */
+
+.os-shell-night .pro-empty-state,
+.os-shell-night .attention-queue-clear {
+  border: 1px dashed var(--mc-line) !important;
+  background: rgba(255, 255, 255, 0.015) !important;
+  box-shadow: none !important;
+}
+
+.os-shell-night .pro-command-recovery {
+  border-color: color-mix(in srgb, var(--mc-attention) 45%, transparent) !important;
+  background: var(--mc-attention-soft) !important;
+  border-radius: var(--mc-radius) !important;
+}
+
+.os-shell-night .skeleton,
+.os-shell-night .pro-command-outcomes-wait,
+.os-shell-night .attention-skel-line {
+  background: linear-gradient(
+    90deg,
+    var(--mc-raised),
+    var(--mc-hover),
+    var(--mc-raised)
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: mc-shimmer 1.35s ease-in-out infinite !important;
+}
+
+@keyframes mc-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-shell-night .skeleton,
+  .os-shell-night .pro-command-outcomes-wait,
+  .os-shell-night .attention-skel-line {
+    animation: none !important;
+  }
+}
+
+/* ── Command palette ──────────────────────────────────────── */
+
+.os-shell-night .os-command-palette,
+.os-shell-night [data-os-palette] {
+  border-radius: var(--mc-radius-lg);
+  border-color: var(--mc-line);
+  background: var(--mc-raised);
+  box-shadow: var(--mc-lip), var(--mc-depth);
+}
+
+/* ── Ask dock — quiet instrument ──────────────────────────── */
+
+.os-shell-night .os-ask-dock-panel,
+.os-shell-night button[aria-label*="Ask"] {
+  border-radius: var(--mc-radius) !important;
+}

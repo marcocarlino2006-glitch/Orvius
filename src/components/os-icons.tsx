@@ -19,10 +19,10 @@ export type OsIconName =
 const PATHS: Record<OsIconName, React.ReactNode> = {
   command: (
     <>
-      <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
-      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
-      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" />
-      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
+      <circle cx="12" cy="12" r="2.2" />
+      <circle cx="12" cy="12" r="6.2" />
+      <path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4" />
+      <path d="m5.1 5.1 1.7 1.7M17.2 17.2l1.7 1.7M17.2 5.1l1.7-1.7M5.1 18.9l1.7-1.7" />
     </>
   ),
   inbox: (

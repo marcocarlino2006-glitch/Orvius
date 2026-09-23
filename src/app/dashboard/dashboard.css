@@ -291,16 +291,16 @@
   position: relative;
   overflow: hidden;
   padding: 1.2rem 1.25rem 1.1rem;
-  border: 1px solid #4d4942;
-  border-top: 3px solid var(--os-agent, #e0855a);
+  border: 1px solid #2a2e35;
+  border-top: 3px solid var(--os-agent, #5b9cff);
   border-radius: 0.5rem;
   background:
     radial-gradient(
       circle at 88% 0%,
-      color-mix(in srgb, var(--os-agent, #e0855a) 13%, transparent),
+      color-mix(in srgb, var(--os-agent, #5b9cff) 13%, transparent),
       transparent 32%
     ),
-    #2f2d28;
+    #15171b;
 }
 
 .pro-command-outcomes-kicker {
@@ -370,7 +370,7 @@
   padding: 1.25rem;
   border: 1px solid var(--os-line, #4b4945);
   border-radius: 0.5rem;
-  background: var(--os-panel, #2f2d28);
+  background: var(--os-panel);
 }
 
 .dashboard-route-loading-main p {
@@ -402,7 +402,7 @@
   padding: 1.15rem 1.25rem 1.2rem;
   border: 1px solid var(--os-line, #4b4945);
   border-radius: 0.5rem;
-  background: var(--os-panel, #2f2d28);
+  background: var(--os-panel);
 }
 
 .pro-shift-head {
@@ -414,7 +414,7 @@
 
 .pro-shift-kicker {
   margin: 0 0 0.25rem;
-  color: var(--os-agent, #e0855a);
+  color: var(--os-agent, #5b9cff);
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -511,7 +511,7 @@
 .pro-shift-proof > a {
   display: inline-block;
   margin-top: 0.75rem;
-  color: var(--os-agent, #e0855a);
+  color: var(--os-agent, #5b9cff);
   font-size: 0.6875rem;
   text-decoration: none;
 }
@@ -548,7 +548,7 @@
 }
 
 a.pro-shift-event:hover .pro-shift-event-title {
-  color: var(--os-agent, #e0855a);
+  color: var(--os-agent, #5b9cff);
 }
 
 .pro-shift-marker {
@@ -558,15 +558,15 @@ a.pro-shift-event:hover .pro-shift-event-title {
   width: 0.6rem;
   height: 0.6rem;
   margin-top: 0.25rem;
-  border: 2px solid var(--os-panel, #2f2d28);
+  border: 2px solid var(--os-panel);
   border-radius: 50%;
   background: var(--os-info, #8fb8e8);
   box-shadow: 0 0 0 1px currentColor;
 }
 
 .pro-shift-marker--agent {
-  color: var(--os-agent, #e0855a);
-  background: var(--os-agent, #e0855a);
+  color: var(--os-agent, #5b9cff);
+  background: var(--os-agent, #5b9cff);
 }
 
 .pro-shift-marker--success {
@@ -612,7 +612,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .pro-shift-label--agent {
-  color: var(--os-agent, #e0855a);
+  color: var(--os-agent, #5b9cff);
 }
 
 .pro-shift-label--success {
@@ -3848,9 +3848,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .capture-setup-mode,
 .os-shell-night .onboarding-capture-mode {
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   color: #e9e9e9 !important;
   box-shadow: none !important;
 }
@@ -3867,14 +3867,14 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .capture-setup-mode-active,
 .os-shell-night .onboarding-capture-mode-active {
-  border-color: #d9784b !important;
-  background: color-mix(in srgb, #d9784b 12%, #2f2d28) !important;
+  border-color: var(--os-agent) !important;
+  background: color-mix(in srgb, var(--os-agent) 12%, var(--os-panel)) !important;
 }
 
 .os-shell-night .capture-setup-carrier {
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
-  background: #23201b !important;
+  background: var(--os-paper) !important;
   color: #c7c7c7 !important;
 }
 
@@ -3982,10 +3982,10 @@ a.pro-shift-event:hover .pro-shift-event-title {
   display: flex;
   flex-direction: column;
   gap: 0;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
   overflow: hidden;
-  background: #2f2d28;
+  background: var(--os-panel);
 }
 
 .lead-rail-row {
@@ -3997,7 +3997,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   border-bottom: 1px solid #4b4945;
   text-decoration: none;
   color: inherit;
-  background: #2f2d28;
+  background: var(--os-panel);
   transition: background 120ms ease;
 }
 
@@ -4010,7 +4010,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .lead-rail-row-emergency {
-  box-shadow: inset 2px 0 0 #f4212e;
+  box-shadow: inset 2px 0 0 var(--os-attention, #d4a574);
 }
 
 .lead-rail-meta {
@@ -4209,7 +4209,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   color: #a09f9e;
 }
 .onboarding-shell--night {
-  background: #27241f !important;
+  background: var(--os-paper) !important;
   color: #e9e9e9 !important;
   min-height: 100svh;
 }
@@ -4324,34 +4324,34 @@ a.pro-shift-event:hover .pro-shift-event-title {
   --os-display: 2.75rem;
   --os-figure: 1.625rem;
   --os-lede: 1.0625rem;
-  /* Charcoal surface stack — one token source for the night plane. */
-  --os-paper: #27241f;
-  --os-panel: #2f2d28;
-  --os-panel-raised: #34322d;
-  --os-ink: #f4f4f4;
-  --os-mute: #a09f9e;
-  --os-line: #4b4945;
-  --os-flare: #f4212e;
-  --os-live: #00ba7c;
-  --void: #f4f4f4;
-  --ash: #a09f9e;
-  --ash-soft: #adadac;
-  --white: #2f2d28;
-  --fog: #23201b;
-  --chalk: #27241f;
-  --canvas: #27241f;
-  --rule: #4b4945;
-  --signal: #d9784b;
-  --signal-text: #d9784b;
-  --flare-text: #ff6b74;
-  --live-text: #00ba7c;
-  --os-agent: #e0855a;
-  --os-danger: #f97066;
-  --os-success: #6ee7b7;
-  --os-attention: #ecc79a;
-  --os-info: #8fb8e8;
-  background: #27241f !important;
-  color: #e9e9e9 !important;
+  /* Near-black graphite — remapped again in orvius-mission-control.css */
+  --os-paper: #0e0f12;
+  --os-panel: #15171b;
+  --os-panel-raised: #1c1f24;
+  --os-ink: #f4f5f7;
+  --os-mute: #8b8f98;
+  --os-line: #2a2e35;
+  --os-flare: #e5484d;
+  --os-live: #2bd576;
+  --void: #f4f5f7;
+  --ash: #8b8f98;
+  --ash-soft: #636872;
+  --white: #15171b;
+  --fog: #0a0b0d;
+  --chalk: #0e0f12;
+  --canvas: #0e0f12;
+  --rule: #2a2e35;
+  --signal: #5b9cff;
+  --signal-text: #9ec0ff;
+  --flare-text: #ff8a90;
+  --live-text: #2bd576;
+  --os-agent: #5b9cff;
+  --os-danger: #e5484d;
+  --os-success: #2bd576;
+  --os-attention: #d4a574;
+  --os-info: #5b9cff;
+  background: #0e0f12 !important;
+  color: #d5d7dc !important;
   font-feature-settings: "zero" 1;
 }
 
@@ -5912,7 +5912,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-pro {
-  background: var(--os-paper, #27241f) !important;
+  background: var(--os-paper) !important;
   color: var(--void);
 }
 
@@ -5922,9 +5922,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
   -webkit-appearance: none;
   min-height: 2.25rem;
   padding: 0.5rem 0.65rem;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
-  background-color: #27241f;
+  background-color: var(--os-paper);
   color: #f7f9f9;
   font-size: 0.8125rem;
   transition: border-color 110ms ease, box-shadow 110ms ease;
@@ -6216,7 +6216,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .os-content-pro,
 .os-shell-night .os-content,
 .os-shell-night .os-main {
-  background: #27241f !important;
+  background: var(--os-paper) !important;
   color: #ececec !important;
 }
 
@@ -6369,7 +6369,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ask-dock-trigger {
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   color: #e9e9e9 !important;
   border-radius: 0.25rem !important;
 }
@@ -6404,20 +6404,20 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .os-content-pro,
 .os-shell-night .os-content,
 .os-shell-night .os-main {
-  background: #27241f !important;
+  background: var(--os-paper) !important;
   color: #e9e9e9 !important;
 }
 
 .os-shell-night .os-sidebar-pro,
 .os-shell-night .os-sidebar {
-  background: #27241f !important;
+  background: var(--os-paper) !important;
   border-right: 1px solid #4b4945 !important;
 }
 
 .os-shell-night .os-topbar-pro,
 .os-shell-night .os-topbar-night {
-  background: #27241f !important;
-  border-bottom: 1px solid #4b4945 !important;
+  background: var(--os-paper) !important;
+  border-bottom: 1px solid var(--os-line) !important;
   padding: 0.65rem 1rem !important;
 }
 
@@ -6436,8 +6436,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .attention-queue {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   padding: 0.75rem !important;
 }
@@ -6445,16 +6445,16 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .attention-queue-list {
   gap: 0 !important;
   margin-top: 0.65rem !important;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
   overflow: hidden;
 }
 
 .os-shell-night .attention-item {
   border: none !important;
-  border-bottom: 1px solid #4b4945 !important;
+  border-bottom: 1px solid var(--os-line) !important;
   border-radius: 0 !important;
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   padding: 0.65rem 0.75rem !important;
   margin: 0 !important;
 }
@@ -6491,7 +6491,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   border-radius: 0.25rem !important;
   background: transparent !important;
   color: #e9e9e9 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
 }
 
 .os-shell-night .attention-item-btn-primary {
@@ -6513,15 +6513,15 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-nav-link-active {
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   color: #fff !important;
   box-shadow: inset 2px 0 0 #e9e9e9 !important;
 }
 
 .os-shell-night .os-ask-dock-trigger {
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   color: #e9e9e9 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
 }
 
@@ -6530,8 +6530,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .dispatch-col {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   padding: 0.5rem !important;
   display: flex;
@@ -6548,25 +6548,25 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .dispatch-job-chip.lead-rail-row {
   display: block;
   padding: 0.55rem 0.65rem;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
-  background: #23201b !important;
+  background: var(--os-paper) !important;
 }
 
 .os-shell-night .dispatch-col-unassigned {
-  border-left: 2px solid #f4212e !important;
+  border-left: 2px solid var(--os-attention, #d4a574) !important;
 }
 
 .os-shell-night .os-ask-dock-chip {
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   color: #e9e9e9 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
 }
 
 .os-shell-night .os-ask-dock-panel {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
 }
@@ -6577,8 +6577,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night input[type="search"] {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   color: #e9e9e9 !important;
 }
@@ -6625,7 +6625,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .lead-detail-sticky {
-  background: #27241f !important;
+  background: var(--os-paper) !important;
   border-top: 1px solid #4b4945 !important;
   backdrop-filter: none !important;
   padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom, 0px)) !important;
@@ -6651,8 +6651,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .lead-detail-sticky-btn,
 .os-shell-night .lead-detail-sticky-btn-muted {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   color: #e9e9e9 !important;
 }
 
@@ -6663,9 +6663,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ask-dock-trigger {
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   color: #e9e9e9 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   min-height: 2.25rem !important;
@@ -6674,8 +6674,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ask-dock-trigger-mark {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-paper) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.125rem !important;
   color: #e9e9e9 !important;
   width: 1.35rem !important;
@@ -6709,8 +6709,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .os-ask-dock-panel {
   width: min(22rem, calc(100vw - 2rem)) !important;
   padding: 0.9rem !important;
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -6735,8 +6735,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ask-dock-close {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-paper) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   color: #a09f9e !important;
 }
@@ -6751,8 +6751,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ask-dock-answer {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-paper) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
 }
 
@@ -6765,7 +6765,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ask-dock-hit {
-  color: #d9784b !important;
+  color: var(--os-agent) !important;
 }
 
 .os-shell-night .os-ask-dock-error {
@@ -6773,9 +6773,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ask-dock-chip {
-  background: #23201b !important;
+  background: var(--os-paper) !important;
   color: #c7c7c7 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
 }
 
@@ -6786,9 +6786,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ask-dock-form {
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
-  background: #23201b !important;
+  background: var(--os-paper) !important;
   box-shadow: none !important;
   padding: 0.3rem 0.3rem 0.3rem 0.75rem !important;
 }
@@ -6868,8 +6868,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .dispatch-job-chip {
   padding: 0.45rem 0.55rem !important;
   border-radius: 0.25rem !important;
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-paper) !important;
+  border: 1px solid var(--os-line) !important;
 }
 
 .os-shell-night .dispatch-col {
@@ -6888,7 +6888,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .os-content,
 .os-shell-night .os-sidebar,
 .os-shell-night .os-sidebar-inner {
-  background: #27241f !important;
+  background: var(--os-paper) !important;
 }
 
 .os-shell-night .os-sidebar [class*="shop"],
@@ -6898,9 +6898,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-ring-status {
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
-  background: #23201b !important;
+  background: var(--os-paper) !important;
   padding: 0.45rem 0.55rem !important;
   box-shadow: none !important;
 }
@@ -7101,7 +7101,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .os-nav-lock {
   padding: 0.05rem 0.35rem !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 999px !important;
   background: transparent !important;
   color: #a09f9e !important;
@@ -7137,7 +7137,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   z-index: 30;
   padding: 0.7rem 1.35rem !important;
   border-bottom: 1px solid #44423e !important;
-  background: #27241f !important;
+  background: var(--os-paper) !important;
 }
 
 .os-shell-night .os-topbar-live {
@@ -7196,7 +7196,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   gap: 1rem !important;
   padding: 0.7rem 0.9rem !important;
   border-bottom: 1px solid #44423e !important;
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   transition: background 110ms ease;
 }
 
@@ -7300,7 +7300,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .attention-item-btn {
   background: transparent !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   color: #c7c7c7 !important;
 }
 
@@ -7378,7 +7378,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   letter-spacing: -0.002em !important;
   text-transform: none !important;
   background: transparent !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   color: #c7c7c7 !important;
 }
 
@@ -7403,7 +7403,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .os-topbar-pro,
 .os-shell-night .os-topbar-night {
-  background: #27241f !important;
+  background: var(--os-paper) !important;
   backdrop-filter: none;
 }
 
@@ -7456,7 +7456,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding: 0 0.55rem;
   border: 1px solid #44423e;
   border-radius: 0.5rem;
-  background: #2f2d28;
+  background: var(--os-panel);
   color: #a09f9e;
   font-size: 0.75rem;
   cursor: pointer;
@@ -7480,7 +7480,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .os-topbar-search kbd {
   padding: 0.05rem 0.25rem;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
   font-family: inherit;
   font-size: 0.625rem;
@@ -7501,7 +7501,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
     count dropped to 4.00:1 — under AA on the one screen you reach it from.
   */
   background: #d8a15a !important;
-  color: #27241f !important;
+  color: #0a0b0d !important;
 }
 
 .os-shell-night .os-palette-note {
@@ -9244,8 +9244,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .pro-panel,
 .os-shell-night section.pro-panel {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
@@ -9270,7 +9270,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .pro-panel-head {
   padding: 0.55rem 0.75rem !important;
-  border-bottom: 1px solid #4b4945 !important;
+  border-bottom: 1px solid var(--os-line) !important;
 }
 
 .os-shell-night .pro-panel-body {
@@ -9322,16 +9322,16 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .onboarding-shell--night .onboarding-step {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   color: #a09f9e !important;
   box-shadow: none !important;
 }
 
 .onboarding-shell--night .onboarding-panel {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   color: #e9e9e9 !important;
@@ -9347,15 +9347,15 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .onboarding-shell--night input,
 .onboarding-shell--night select,
 .onboarding-shell--night textarea {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-paper) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   color: #e9e9e9 !important;
 }
 
 .onboarding-shell--night .onboarding-trade {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-paper) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   color: #e9e9e9 !important;
 }
@@ -9371,14 +9371,14 @@ a.pro-shift-event:hover .pro-shift-event-title {
   flex-direction: column;
   gap: 0.15rem;
   padding: 0.35rem 0.45rem;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
   background: #23201b;
 }
 
 .os-shell-night .pro-settings-secondary {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-panel) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   padding: 0 !important;
 }
@@ -9399,7 +9399,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .pay-prompt-backdrop,
 .pay-prompt-card--instrument ~ .pay-prompt-backdrop,
 .pay-prompt .pay-prompt-backdrop {
-  background: color-mix(in srgb, #27241f 78%, transparent) !important;
+  background: color-mix(in srgb, var(--os-paper) 78%, transparent) !important;
   backdrop-filter: none !important;
 }
 
@@ -9409,8 +9409,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
   width: min(30rem, 100%) !important;
   padding: 0.85rem 0.9rem 0.85rem !important;
   border-radius: 0.25rem !important;
-  border: 1px solid #4b4945 !important;
-  background: #23201b !important;
+  border: 1px solid var(--os-line) !important;
+  background: var(--os-paper) !important;
   box-shadow: none !important;
   color: #e9e9e9 !important;
 }
@@ -9479,8 +9479,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
   width: min(28rem, 100%) !important;
   padding: 0.9rem !important;
   border-radius: 0.25rem !important;
-  border: 1px solid #4b4945 !important;
-  background: #23201b !important;
+  border: 1px solid var(--os-line) !important;
+  background: var(--os-paper) !important;
   box-shadow: none !important;
 }
 
@@ -9521,7 +9521,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .ask-empty-state {
   margin-top: 0.75rem;
   padding: 0.65rem;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
   background: #23201b;
 }
@@ -9587,7 +9587,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   grid-template-columns: 4.5rem minmax(0, 1fr);
   gap: 0.35rem 0.55rem;
   padding: 0.4rem 0.5rem;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
   background: #23201b;
   text-decoration: none;
@@ -9618,7 +9618,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   flex-direction: column !important;
   gap: 0 !important;
   margin-top: 0.65rem !important;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
   background: #23201b;
   overflow: hidden;
@@ -9644,7 +9644,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .ask-rail-row:hover:not(:disabled) {
-  background: #2f2d28;
+  background: var(--os-panel);
 }
 
 .os-shell-night .ask-rail-row:disabled {
@@ -9672,7 +9672,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #a09f9e;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.125rem;
   padding: 0.2rem 0.4rem;
 }
@@ -9694,8 +9694,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .assign-tech-btn,
 .os-shell-night .assign-tech-empty {
   border-radius: 0.25rem !important;
-  border: 1px solid #4b4945 !important;
-  background: #23201b !important;
+  border: 1px solid var(--os-line) !important;
+  background: var(--os-paper) !important;
   color: #e9e9e9 !important;
   font-size: 0.6875rem !important;
   font-weight: 700 !important;
@@ -9731,8 +9731,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
   max-width: none !important;
   padding: 0.75rem !important;
   border-radius: 0.25rem !important;
-  border: 1px solid #4b4945 !important;
-  background: #2f2d28 !important;
+  border: 1px solid var(--os-line) !important;
+  background: var(--os-panel) !important;
 }
 
 .os-shell-night .plan-upgrade-gate-kicker {
@@ -9779,8 +9779,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .pro-toolbar {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: var(--os-paper) !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.6rem 0.7rem !important;
@@ -9793,7 +9793,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .pro-panel {
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   border: 1px solid #44423e !important;
   border-radius: 0.5rem !important;
   overflow: hidden;
@@ -9807,7 +9807,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   padding: 0.7rem 0.9rem !important;
   margin: 0 !important;
   border-bottom: 1px solid #44423e !important;
-  background: #34322d !important;
+  background: var(--os-panel-raised) !important;
 }
 
 .os-shell-night .pro-panel-title {
@@ -9843,9 +9843,9 @@ a.pro-shift-event:hover .pro-shift-event-title {
   width: 100%;
   max-width: 26rem;
   padding: 0.5rem 0.65rem !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid var(--os-line) !important;
   border-radius: 0.25rem !important;
-  background: #27241f !important;
+  background: var(--os-paper) !important;
   color: #f7f9f9 !important;
   font-size: 0.875rem !important;
   transition: border-color 110ms ease, box-shadow 110ms ease;
@@ -9889,7 +9889,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .pro-settings-secondary {
   border: 1px solid #44423e !important;
   border-radius: 0.5rem !important;
-  background: #2f2d28 !important;
+  background: var(--os-panel) !important;
   padding: 0 !important;
   overflow: hidden;
 }
@@ -9902,7 +9902,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   min-height: 2.75rem;
   padding: 0 0.9rem !important;
   margin: 0 !important;
-  background: #34322d !important;
+  background: var(--os-panel-raised) !important;
   color: #f7f9f9 !important;
   font-size: 0.8125rem !important;
   font-weight: 600 !important;
@@ -9972,8 +9972,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
   min-height: 1.85rem !important;
   padding: 0 0.6rem !important;
   border-radius: 0.25rem !important;
-  border: 1px solid #4b4945 !important;
-  background: #27241f !important;
+  border: 1px solid var(--os-line) !important;
+  background: var(--os-paper) !important;
   color: #c7c7c7 !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
@@ -10020,7 +10020,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
   max-height: 70vh;
   border: 1px solid #514f4b;
   border-radius: 0.5rem;
-  background: #2f2d28;
+  background: var(--os-panel);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
@@ -10050,7 +10050,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-palette-kbd,
 .os-palette-field kbd {
   padding: 0.1rem 0.3rem;
-  border: 1px solid #4b4945;
+  border: 1px solid var(--os-line);
   border-radius: 0.25rem;
   font-family: inherit;
   font-size: 0.625rem;

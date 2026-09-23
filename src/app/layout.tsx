@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
@@ -7,11 +7,14 @@ import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 import "./public-v2.css";
 import "./theme-tokens.css";
+/* Mission-control tokens load from dashboard/layout after dashboard.css */
 
 /**
- * Two voices, no more. Archivo speaks in prose and headlines; Plex Mono speaks
- * whenever the interface is reporting machine truth — times, numbers, statuses,
- * phone lines. Mixing a third letterset is what made the old surfaces read cheap.
+ * Four voices, each with a job.
+ * - Archivo: marketing / public site (unchanged brand prose)
+ * - Space Grotesk: product display (Command titles, briefing)
+ * - IBM Plex Sans: product UI body (mission-control clarity)
+ * - IBM Plex Mono: machine truth (times, counts, statuses, lines)
  */
 const sans = Archivo({
   variable: "--font-sans",
@@ -20,7 +23,20 @@ const sans = Archivo({
   display: "swap",
 });
 
-/* Machine labels and operational evidence use the monospaced reporting voice. */
+const ui = IBM_Plex_Sans({
+  variable: "--font-ui",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const display = Space_Grotesk({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
 const mono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
@@ -75,7 +91,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className={`${sans.variable} ${mono.variable} antialiased`}>
+      <body
+        className={`${sans.variable} ${ui.variable} ${display.variable} ${mono.variable} antialiased`}
+      >
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

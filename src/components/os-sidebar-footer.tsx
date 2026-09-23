@@ -200,7 +200,15 @@ export function OsSidebarFooter() {
           <span className="os-sidebar-user-plan">{planLabel}</span>
         </span>
         <span className="os-profile-menu-chevron" aria-hidden>
-          {open ? "▴" : "▾"}
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden>
+            <path
+              d={open ? "M1 5l4-4 4 4" : "M1 1l4 4 4-4"}
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </span>
       </button>
     </div>
