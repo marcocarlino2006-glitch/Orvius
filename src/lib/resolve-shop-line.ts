@@ -11,6 +11,7 @@ type ShopLineMatch = {
   vapiPhoneNumber: string | null;
   vapiAssistantId: string | null;
   lineVerifiedAt: Date | null;
+  overflowForwardConfirmedAt: Date | null;
   createdAt: Date;
 };
 
@@ -47,6 +48,7 @@ export async function resolveBusinessByInboundPhone(
       vapiPhoneNumber: true,
       vapiAssistantId: true,
       lineVerifiedAt: true,
+      overflowForwardConfirmedAt: true,
       createdAt: true,
     },
     orderBy: { createdAt: "asc" },

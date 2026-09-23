@@ -54,6 +54,8 @@ function voiceFallback() {
   return {
     voiceFallbackUrl: getWebhookUrl("/api/webhooks/twilio/voice-fallback"),
     voiceFallbackMethod: "POST" as const,
+    statusCallback: getWebhookUrl("/api/webhooks/twilio/voice-status"),
+    statusCallbackMethod: "POST" as const,
   };
 }
 

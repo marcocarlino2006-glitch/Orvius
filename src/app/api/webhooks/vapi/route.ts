@@ -12,6 +12,7 @@ import { linkTouchToCustomer } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { sendPartialCaptureFollowUpSms } from "@/lib/lead-partial-capture";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
+import { notifyTransferMiss } from "@/lib/transfer-miss";
 import {
   buildLeadAlertDedupeKey,
   enqueueOwnerAlert,
@@ -293,6 +294,11 @@ export async function POST(request: NextRequest) {
       } else if (!autoBook.created && !autoBook.qualified) {
         await sendPartialCaptureFollowUpSms(txResult.lead.id);
       }
+
+      await notifyTransferMiss({
+        leadId: txResult.lead.id,
+        endedReason: message.endedReason,
+      });
 
       logInfo("vapi.webhook.auto_book", {
         vapiCallId,

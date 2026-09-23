@@ -68,7 +68,7 @@ export function buildOwnerTransferTool(
 
 export function transferPromptRule(hasTransfer: boolean): string {
   if (hasTransfer) {
-    return `- If caller asks for a person: offer to connect them to the owner now. If they agree, use the transferCall tool immediately (do not invent a booking). If they prefer a callback, or transfer fails, capture name + callback and put exactly this in notes: "Caller asked for a person — callback".`;
+    return `- If caller asks for a person: offer to connect them to the owner now. If they agree, use the transferCall tool immediately (do not invent a booking). If they prefer a callback, or transfer fails / owner does not answer, capture name + callback and put exactly this in notes: "Owner missed transfer — callback" (or "Caller asked for a person — callback" if they declined the live connect).`;
   }
   return `- If caller asks for a person: "I can have the owner call you back within 15 minutes. What's the best number?" Capture name + callback. Put exactly this in notes: "Caller asked for a person — callback". Do not invent a booking.`;
 }

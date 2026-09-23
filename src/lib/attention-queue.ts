@@ -837,8 +837,13 @@ export async function getAttentionQueue(
     } else if (leadWantsHuman(lead) && lead.phone?.trim()) {
       kind = "wants_human";
       impact = urgent || afterHours ? "critical" : "high";
+      const transferMiss = /owner missed transfer/i.test(
+        `${lead.notes ?? ""} ${lead.serviceType ?? ""}`,
+      );
       detail = [
-        "Caller asked for a person — call them back now",
+        transferMiss
+          ? "Live transfer missed — owner didn't pick up; call them back"
+          : "Caller asked for a person — call them back now",
         lead.serviceType,
         lead.notes,
       ]
