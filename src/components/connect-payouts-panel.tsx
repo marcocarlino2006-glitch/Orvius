@@ -4,7 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 
-type ConnectState = "not_started" | "in_progress" | "verifying" | "ready";
+type ConnectState =
+  | "not_started"
+  | "in_progress"
+  | "verifying"
+  | "payouts_pending"
+  | "ready";
 
 type ConnectResponse = {
   configured: boolean;
@@ -23,6 +28,7 @@ const HEADLINE: Record<ConnectState, string> = {
   not_started: "Take card payments",
   in_progress: "Finish connecting your account",
   verifying: "Stripe is verifying your account",
+  payouts_pending: "Almost — turn on bank payouts",
   ready: "Card payments are live",
 };
 
@@ -32,7 +38,9 @@ const BODY: Record<ConnectState, string> = {
   in_progress:
     "Stripe still needs a few details before your shop can accept cards. Your progress was saved.",
   verifying:
-    "Stripe has your details and is checking them. This usually takes minutes, and we will switch cards on the moment it clears — nothing more for you to do.",
+    "Stripe has your details and is checking them. This usually takes minutes — nothing more for you to do until both charges and payouts clear.",
+  payouts_pending:
+    "Stripe can charge cards, but payouts to your bank are not enabled yet. Finish that in Stripe before Orvius asks a customer for a deposit — money must be able to reach your shop.",
   ready:
     "Customers can pay your deposits and estimates by card. Funds settle to your bank on Stripe's normal payout schedule.",
 };
@@ -142,6 +150,15 @@ export function ConnectPayoutsPanel() {
             onClick={() => void load()}
           >
             Check again
+          </button>
+        ) : state === "payouts_pending" ? (
+          <button
+            type="button"
+            className="btn btn-void"
+            disabled={busy}
+            onClick={() => void go("dashboard")}
+          >
+            {busy ? "Opening Stripe…" : "Finish payouts in Stripe"}
           </button>
         ) : (
           <button

@@ -153,8 +153,9 @@ export function DepositSettingsPanel() {
           : "Not asking for a deposit"}
       </p>
       <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
-        Require a deposit when a job is booked to reduce no-shows and secure
-        the appointment.
+        When deposits are on, Orvius automatically texts a deposit link on
+        emergency and same-day books. Flexible jobs stay quiet — you can still
+        send a deposit from the job when you want one.
       </p>
 
       <label className="onboarding-field font-sans mt-5">
@@ -168,7 +169,7 @@ export function DepositSettingsPanel() {
             }}
             disabled={saving}
           />
-          <span>Ask for a deposit when a job is booked</span>
+          <span>Ask for a deposit on emergency / same-day books</span>
         </span>
       </label>
 

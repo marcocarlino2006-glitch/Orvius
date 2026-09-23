@@ -6,6 +6,7 @@ import {
   findAvailableSchedule,
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
+import { sendJobReviewSms } from "@/lib/job-review-sms";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jobTitle } from "@/lib/job-schedule";
@@ -363,7 +364,7 @@ export async function completeJobWithOutcome(
     throw new Error("Final amount must be between $0 and $50,000");
   }
   const now = new Date();
-  return prisma.job.update({
+  const updated = await prisma.job.update({
     where: { id: jobId },
     data: {
       status: "completed",
@@ -374,4 +375,18 @@ export async function completeJobWithOutcome(
       outcomeCapturedAt: now,
     },
   });
+
+  try {
+    await sendJobReviewSms({
+      jobId,
+      resolutionCode: outcome.resolutionCode,
+    });
+  } catch (error) {
+    logWarn("job.review_sms_error", {
+      jobId,
+      error: error instanceof Error ? error.message : "review sms failed",
+    });
+  }
+
+  return updated;
 }

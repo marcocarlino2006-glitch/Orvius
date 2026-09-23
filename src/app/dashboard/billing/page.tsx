@@ -4,6 +4,7 @@ import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
 import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
 import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
+import { ReviewAskPanel } from "@/components/review-ask-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import {
@@ -374,6 +375,8 @@ export default function DashboardBillingPage() {
           </div>
 
           <DepositSettingsPanel />
+
+          <ReviewAskPanel />
 
           <ShellPanel title="Legal" dense>
             <ul className="account-legal-links font-sans">

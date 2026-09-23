@@ -25,6 +25,7 @@ import {
   resolveDepositAmountCents,
   validateDepositSettingsChange,
 } from "@/lib/booking-deposit";
+import { isValidPublicReviewUrl } from "@/lib/job-review-sms";
 import {
   STRIPE_MIN_CHARGE_CENTS,
   formatPlatformFeeRate,
@@ -54,6 +55,7 @@ const patchSchema = z.object({
     .max(MAX_DEPOSIT_CENTS)
     .nullable()
     .optional(),
+  googleReviewUrl: z.string().max(500).nullable().optional(),
 });
 
 /*
@@ -116,6 +118,7 @@ export async function GET() {
         forwardCarrier: businessRecord.forwardCarrier ?? null,
         depositEnabled: businessRecord.depositEnabled,
         depositAmountCents: businessRecord.depositAmountCents,
+        googleReviewUrl: businessRecord.googleReviewUrl,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
           ? businessRecord.ownerSmsOptOutAt.toISOString()
           : null,
@@ -246,6 +249,19 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: depositCheck.error }, { status: 400 });
     }
 
+    if (body.googleReviewUrl !== undefined && body.googleReviewUrl !== null) {
+      const trimmed = body.googleReviewUrl.trim();
+      if (trimmed && !isValidPublicReviewUrl(trimmed)) {
+        return NextResponse.json(
+          {
+            error:
+              "Review link must be a real http(s) URL — not a placeholder.",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {
@@ -284,6 +300,13 @@ export async function PATCH(request: Request) {
           : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
+          : {}),
+        ...(body.googleReviewUrl !== undefined
+          ? {
+              googleReviewUrl: body.googleReviewUrl?.trim()
+                ? body.googleReviewUrl.trim()
+                : null,
+            }
           : {}),
       },
     });
@@ -330,6 +353,7 @@ export async function PATCH(request: Request) {
         vapiPhoneNumber: saved.vapiPhoneNumber,
         depositEnabled: saved.depositEnabled,
         depositAmountCents: saved.depositAmountCents,
+        googleReviewUrl: saved.googleReviewUrl,
       },
       deposits: depositsPayload(saved),
       assistantSynced,

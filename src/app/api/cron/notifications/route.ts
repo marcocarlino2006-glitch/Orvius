@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  alertDueCustomerNoShows,
+  sendDueArrivalReminders,
+} from "@/lib/arrival-reminder";
 import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { logError } from "@/lib/logger";
@@ -51,14 +55,19 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const [notifications, customerConfirmations] = await Promise.all([
-    processNotificationQueue(50),
-    sendDueCustomerConfirmationReminders(new Date(), 25),
-  ]);
+  const [notifications, customerConfirmations, arrivalReminders, noShowAlerts] =
+    await Promise.all([
+      processNotificationQueue(50),
+      sendDueCustomerConfirmationReminders(new Date(), 25),
+      sendDueArrivalReminders(new Date(), 25),
+      alertDueCustomerNoShows(new Date(), 25),
+    ]);
   return NextResponse.json({
     ok: true,
     ...notifications,
     customerConfirmations,
+    arrivalReminders,
+    noShowAlerts,
   });
 }
 

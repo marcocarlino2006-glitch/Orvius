@@ -31,9 +31,9 @@ model Business {
    * shop directly and Orvius only ever takes an application fee, which is what
    * keeps us out of being a money transmitter.
    *
-   * `chargesEnabled` is Stripe's verdict after identity verification and is the
-   * only field allowed to gate card collection. An account can exist, and can
-   * have submitted every detail, while still not being cleared to charge.
+   * Both `chargesEnabled` and `payoutsEnabled` must clear before card collection.
+   * Charges without payouts is not a live money rail — money may never reach
+   * the shop bank.
    */
   stripeConnectAccountId        String?  @unique
   stripeConnectChargesEnabled   Boolean  @default(false)
@@ -43,6 +43,11 @@ model Business {
   /** Deposit asked for at booking. Null amount or false means deposits off. */
   depositEnabled                Boolean  @default(false)
   depositAmountCents            Int?
+  /**
+   * Public Google / review URL. When set, one SMS is sent after a successful
+   * job outcome — never without a real link.
+   */
+  googleReviewUrl               String?
   /** When the free design-partner window ends. After this, subscribe or lock. */
   pilotEndsAt          DateTime?
   /** Last time owner copied/exported weekly economics proof. */
@@ -220,6 +225,12 @@ model Job {
   customerConfirmReminderSentAt DateTime?
   /** When the customer confirmed the proposed window. */
   customerConfirmedAt DateTime?
+  /** One pre-arrival SMS for a confirmed window (within ~2h). */
+  arrivalReminderSentAt DateTime?
+  /** Owner alerted once that the customer no-showed the window. */
+  customerNoShowAlertedAt DateTime?
+  /** One review-ask SMS after a successful completion. */
+  reviewSmsSentAt DateTime?
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?

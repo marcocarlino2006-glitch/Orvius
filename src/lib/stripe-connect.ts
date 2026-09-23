@@ -27,6 +27,7 @@ export type ConnectOnboardingState =
   | "not_started"
   | "in_progress"
   | "verifying"
+  | "payouts_pending"
   | "ready";
 
 export type ConnectStatus = {
@@ -59,7 +60,8 @@ export function getConnectStatus(business: ConnectFields): ConnectStatus {
 
   let state: ConnectOnboardingState = "not_started";
   if (accountId) {
-    if (chargesEnabled) state = "ready";
+    if (chargesEnabled && payoutsEnabled) state = "ready";
+    else if (chargesEnabled && !payoutsEnabled) state = "payouts_pending";
     else if (detailsSubmitted) state = "verifying";
     else state = "in_progress";
   }
@@ -70,11 +72,11 @@ export function getConnectStatus(business: ConnectFields): ConnectStatus {
     payoutsEnabled,
     detailsSubmitted,
     /*
-      Only `charges_enabled` is allowed to open the card path. A shop that has
-      filled in every field is still not cleared until Stripe says so, and
-      charging before then fails at the customer rather than here.
+      Charges without payouts means the customer's card works but money may
+      never reach the shop bank — that is not "live" for a multi-b money rail.
+      Both Stripe verdicts must clear before we ask for a card.
     */
-    canAcceptPayments: Boolean(accountId) && chargesEnabled,
+    canAcceptPayments: Boolean(accountId) && chargesEnabled && payoutsEnabled,
     state,
   };
 }

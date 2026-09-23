@@ -1,6 +1,7 @@
 import type { Business, Deposit } from "@prisma/client";
 import type Stripe from "stripe";
 
+import { isPriorityUrgency } from "@/lib/auto-job";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import {
   STRIPE_MIN_CHARGE_CENTS,
@@ -218,7 +219,7 @@ export type EnsureBookingDepositResult =
   | {
       ok: true;
       skipped: true;
-      reason: "deposits_off" | "connect_incomplete";
+      reason: "deposits_off" | "connect_incomplete" | "not_priority";
     }
   | {
       ok: true;
@@ -246,7 +247,7 @@ export async function ensureBookingDepositForJob(params: {
   jobId: string;
   sendSms?: boolean;
 }): Promise<EnsureBookingDepositResult> {
-  const [business, lead] = await Promise.all([
+  const [business, lead, job] = await Promise.all([
     prisma.business.findUnique({
       where: { id: params.businessId },
       select: {
@@ -264,20 +265,34 @@ export async function ensureBookingDepositForJob(params: {
       where: { id: params.leadId, businessId: params.businessId },
       select: {
         phone: true,
+        urgency: true,
         job: { select: { id: true } },
       },
+    }),
+    prisma.job.findFirst({
+      where: { id: params.jobId, businessId: params.businessId },
+      select: { id: true, urgency: true },
     }),
   ]);
 
   if (!business) return { ok: false, error: "business_not_found" };
   if (!lead) return { ok: false, error: "lead_not_found" };
-  if (lead.job?.id !== params.jobId) {
+  if (!job || lead.job?.id !== params.jobId) {
     return { ok: false, error: "job_mismatch" };
   }
 
   const readiness = getDepositReadiness(business);
   if (!readiness.ready) {
     return { ok: true, skipped: true, reason: readiness.reason };
+  }
+
+  /*
+    Auto-ask only on emergency / same-day. Flexible books should not surprise
+    the customer with a card link — owner can still send a deposit manually.
+  */
+  const urgency = job.urgency ?? lead.urgency;
+  if (!isPriorityUrgency(urgency)) {
+    return { ok: true, skipped: true, reason: "not_priority" };
   }
 
   const { deposit, created } = await createDepositForLead({

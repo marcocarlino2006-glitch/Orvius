@@ -74,7 +74,7 @@ async function makeLead(businessId, overrides = {}) {
   });
 }
 
-test("only Stripe's charges verdict opens the card path", () => {
+test("charges and payouts must both clear before cards open", () => {
   assert.equal(
     getConnectStatus({
       stripeConnectAccountId: null,
@@ -85,7 +85,6 @@ test("only Stripe's charges verdict opens the card path", () => {
     "not_started",
   );
 
-  // Account exists, owner has not finished the form.
   assert.equal(
     getConnectStatus({
       stripeConnectAccountId: "acct_1",
@@ -96,10 +95,6 @@ test("only Stripe's charges verdict opens the card path", () => {
     "in_progress",
   );
 
-  /*
-    The case that matters: every detail submitted but Stripe has not cleared
-    the account. Treating this as ready is what bounces a customer's card.
-  */
   const submittedNotCleared = getConnectStatus({
     stripeConnectAccountId: "acct_1",
     stripeConnectChargesEnabled: false,
@@ -108,6 +103,19 @@ test("only Stripe's charges verdict opens the card path", () => {
   });
   assert.equal(submittedNotCleared.state, "verifying");
   assert.equal(submittedNotCleared.canAcceptPayments, false);
+
+  const chargesOnly = getConnectStatus({
+    stripeConnectAccountId: "acct_1",
+    stripeConnectChargesEnabled: true,
+    stripeConnectPayoutsEnabled: false,
+    stripeConnectDetailsSubmitted: true,
+  });
+  assert.equal(chargesOnly.state, "payouts_pending");
+  assert.equal(
+    chargesOnly.canAcceptPayments,
+    false,
+    "charges without payouts is not a live money rail",
+  );
 
   const cleared = getConnectStatus(CLEARED);
   assert.equal(cleared.state, "ready");
