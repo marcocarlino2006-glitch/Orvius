@@ -444,6 +444,36 @@ export default function DashboardSettingsPage() {
 
   const certDone = certChecks.filter(Boolean).length;
 
+  const setupChecklist = useMemo(
+    () =>
+      buildShopSetupChecklist({
+        name: shopName,
+        trade,
+        address: shopAddress,
+        ownerPhone,
+        ownerEmail,
+        line: account?.line ?? null,
+        lineVerified: Boolean(account?.business?.lineVerifiedAt),
+        captureConfirmed: overflowForward,
+        hoursJson: serializeHoursForm(hoursForm),
+        servicesJson: serializeServicesForm(servicesText),
+        serviceZipsJson: serializeZipsForm(zipsText),
+      }),
+    [
+      shopName,
+      trade,
+      shopAddress,
+      ownerPhone,
+      ownerEmail,
+      account?.line,
+      account?.business?.lineVerifiedAt,
+      overflowForward,
+      hoursForm,
+      servicesText,
+      zipsText,
+    ],
+  );
+
   if (loadState !== "ready" || !account) {
     return (
       <OsShell title="Settings" subtitle="One next move — then back to Command.">
@@ -488,35 +518,6 @@ export default function DashboardSettingsPage() {
     certTotal: FOUNDER_CERT.length,
   };
   const hubFocus = buildSettingsHub(hubInput).next?.id ?? null;
-  const setupChecklist = useMemo(
-    () =>
-      buildShopSetupChecklist({
-        name: shopName,
-        trade,
-        address: shopAddress,
-        ownerPhone,
-        ownerEmail,
-        line: account.line ?? null,
-        lineVerified: Boolean(account.business?.lineVerifiedAt),
-        captureConfirmed: overflowForward,
-        hoursJson: serializeHoursForm(hoursForm),
-        servicesJson: serializeServicesForm(servicesText),
-        serviceZipsJson: serializeZipsForm(zipsText),
-      }),
-    [
-      shopName,
-      trade,
-      shopAddress,
-      ownerPhone,
-      ownerEmail,
-      account.line,
-      account.business?.lineVerifiedAt,
-      overflowForward,
-      hoursForm,
-      servicesText,
-      zipsText,
-    ],
-  );
 
   return (
     <OsShell
