@@ -31,6 +31,8 @@ test("mastery report is ordered and points at the first red gate", () => {
 test("seed email heuristic catches example and seed aliases", () => {
   assert.equal(looksLikeSeedProspect("owner@example.com"), true);
   assert.equal(looksLikeSeedProspect("seed+hvac@orvius.im"), true);
+  assert.equal(looksLikeSeedProspect("test+lead@gmail.com"), true);
+  assert.equal(looksLikeSeedProspect("demo@anywhere.com"), true);
   assert.equal(looksLikeSeedProspect("mike@summithvac.com"), false);
 });
 

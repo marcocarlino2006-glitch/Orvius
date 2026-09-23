@@ -259,10 +259,14 @@ export function connectReadyFromBusiness(
 export function looksLikeSeedProspect(email: string) {
   const e = email.trim().toLowerCase();
   return (
-    /@(example\.com|test\.com|orvius\.(im|test))$/.test(e) ||
+    /@(example\.com|test\.com|orvius\.(im|test)|localhost)$/.test(e) ||
     e.startsWith("seed+") ||
     e.startsWith("demo+") ||
-    e.includes("example+")
+    e.startsWith("test+") ||
+    e.startsWith("fake+") ||
+    e.includes("example+") ||
+    e.includes("+seed@") ||
+    /^(seed|demo|test|fake|placeholder)@/.test(e)
   );
 }
 

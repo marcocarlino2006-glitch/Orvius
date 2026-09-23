@@ -103,6 +103,7 @@ export default function AdminPage() {
   const [copyNote, setCopyNote] = useState<string | null>(null);
   const [importNote, setImportNote] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [purgingSeeds, setPurgingSeeds] = useState(false);
   const [form, setForm] = useState({
     name: "",
     ownerPhone: "",
@@ -188,19 +189,51 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csv }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as {
+        error?: string;
+        created?: number;
+        updated?: number;
+        skipped?: number;
+        seedCount?: number;
+        warning?: string | null;
+      };
       if (!res.ok) {
         throw new Error(data.error ?? "Import failed");
       }
+      const base =
+        `Imported ${data.created ?? 0} new · updated ${data.updated ?? 0}` +
+        (data.skipped ? ` · skipped ${data.skipped}` : "");
       setImportNote(
-        `Imported ${data.created} new · updated ${data.updated}` +
-          (data.skipped ? ` · skipped ${data.skipped}` : ""),
+        data.warning
+          ? `${base}. ${data.warning}`
+          : base,
       );
       await loadProspects();
     } catch (err) {
       setProspectError(err instanceof Error ? err.message : "Import failed");
     } finally {
       setImporting(false);
+    }
+  }
+
+  async function purgeSeedProspects() {
+    setPurgingSeeds(true);
+    setImportNote(null);
+    setProspectError(null);
+    try {
+      const res = await fetch("/api/admin/purge-seeds", { method: "POST" });
+      const data = (await res.json()) as {
+        error?: string;
+        message?: string;
+        deleted?: number;
+      };
+      if (!res.ok) throw new Error(data.error ?? "Purge failed");
+      setImportNote(data.message ?? `Removed ${data.deleted ?? 0} seed(s)`);
+      await loadProspects();
+    } catch (err) {
+      setProspectError(err instanceof Error ? err.message : "Purge failed");
+    } finally {
+      setPurgingSeeds(false);
     }
   }
 
@@ -371,6 +404,14 @@ export default function AdminPage() {
               }}
             />
           </label>
+          <button
+            type="button"
+            className="btn btn-secondary text-xs"
+            disabled={purgingSeeds}
+            onClick={() => void purgeSeedProspects()}
+          >
+            {purgingSeeds ? "Purging…" : "Purge seed prospects"}
+          </button>
           <Link href="/admin/daily" className="btn btn-secondary text-xs">
             Master all
           </Link>
@@ -385,7 +426,9 @@ export default function AdminPage() {
           <p className="mt-2 font-sans text-xs text-live">{importNote}</p>
         ) : null}
         <p className="mt-2 font-sans text-xs text-ash">
-          CSV headers: email, businessName, phone, trade, city — imports as due today.
+          CSV headers: email, businessName, phone, trade, city — imports as due
+          today. Seed/example emails are flagged; purge them before counting
+          density.
         </p>
         {copyNote ? (
           <p className="mt-2 font-sans text-xs text-live">{copyNote}</p>

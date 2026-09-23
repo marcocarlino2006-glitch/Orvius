@@ -14,17 +14,21 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 
 - Catch calls on your public number **unless you forward**
 - Treat a proposed window as a locked appointment until the customer confirms
-- Pay estimate card money into your shop bank (Stripe Connect later)
+- Take card money into your shop bank until Stripe Connect charges **and** payouts are live
 - Sync Jobber / ServiceTitan
 - Guarantee “zero missed jobs” or 100% answer rate
 
 ## How to forward
 
 1. Keep your public number on Google, trucks, and ads.
-2. Set **missed / busy / no-answer / after-hours** forward to your Orvius line (carrier CFNA / CFB / after-hours routing).
+2. Set **missed / busy / no-answer / after-hours** forward to your Orvius line:
+   - Verizon: dial `*71` + Orvius digits, or account → Call forwarding
+   - AT&T: dial `*92` + Orvius digits, or myAT&T → Call forwarding
+   - T-Mobile: dial `**61*` + Orvius digits + `#`, or T-Life → Call forwarding
+   - VoIP / business line: after-hours / no-answer / busy routes → Orvius
 3. Or publish the Orvius line as your main number.
-4. Place a live test call from your cell → confirm owner SMS.
-5. In Orvius Settings, check **Missed-call overflow** only after forward is real (or Orvius is your published line).
+4. Place a live test call to the **Orvius** line → prove it answers.
+5. Reply **DONE** from your owner phone, or confirm capture in Settings — only after forward is real.
 
 ## Go-live check
 

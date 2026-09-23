@@ -63,14 +63,17 @@ export default function PilotForwardPage() {
           <ol className="mt-4 list-decimal space-y-2 pl-5 font-sans text-sm leading-relaxed text-ash">
             <li>Keep your public number on Google, trucks, and ads.</li>
             <li>
-              Set missed, busy, and after-hours forward to your Orvius line in
-              your carrier app (Verizon, AT&amp;T, T-Mobile, or your business
-              phone system).
+              Set missed, busy, and after-hours forward to your Orvius line —
+              Verizon <code>*71</code>, AT&amp;T <code>*92</code>, T-Mobile{" "}
+              <code>**61*</code>…#, or your business phone system.
             </li>
             <li>Or publish the Orvius line as your main number.</li>
-            <li>Place a live test call from your cell → confirm owner SMS.</li>
             <li>
-              In Settings, check Missed-call overflow only after forward is real.
+              Call the Orvius line once to prove it answers, then reply DONE from
+              your owner phone (or confirm in Settings).
+            </li>
+            <li>
+              Confirm capture in Settings only after forward (or publish) is real.
             </li>
           </ol>
 

@@ -20,15 +20,40 @@ export type CarrierGuide = {
   dialCodes?: string[];
 };
 
+/** Digits for carrier dial strings — strip +1 / non-digits. */
+export function orviusDialDigits(line: string | null | undefined): string {
+  if (!line?.trim()) return "";
+  return line.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+}
+
+export function buildCarrierDialExample(
+  carrier: CarrierId,
+  line: string | null | undefined,
+): string | null {
+  const digits = orviusDialDigits(line);
+  if (!digits) return null;
+  switch (carrier) {
+    case "verizon":
+      return `*71${digits}`;
+    case "att":
+      return `*92${digits}`;
+    case "tmobile":
+      return `**61*${digits}#`;
+    default:
+      return null;
+  }
+}
+
 export const CARRIERS: CarrierGuide[] = [
   {
     id: "verizon",
     label: "Verizon",
     steps: [
       "Keep your public Google / truck number.",
-      "Dial *71 + your Orvius number, then call to turn on missed-call forward.",
-      "Or: Verizon account → Call forwarding → forward unanswered / busy to Orvius.",
-      "Call your public number, let it ring — Orvius should answer.",
+      "From that cell, dial *71 + your Orvius number, then call — turns on missed-call forward.",
+      "Or: Verizon account → Call forwarding → unanswered / busy → Orvius.",
+      "Call your public number, let it ring out — Orvius should answer.",
+      "Then open Settings and confirm capture (or text DONE after a prove call on the Orvius line).",
     ],
     dialCodes: ["*71"],
   },
@@ -37,9 +62,10 @@ export const CARRIERS: CarrierGuide[] = [
     label: "AT&T",
     steps: [
       "Keep your public Google / truck number.",
-      "Dial *92 + your Orvius number to forward when you don't answer.",
-      "Or: myAT&T → Phone settings → Call forwarding → unanswered / busy.",
-      "Call your public number, let it ring — Orvius should answer.",
+      "From that cell, dial *92 + your Orvius number — forwards when you don't answer.",
+      "Or: myAT&T → Phone settings → Call forwarding → unanswered / busy → Orvius.",
+      "Call your public number, let it ring out — Orvius should answer.",
+      "Then open Settings and confirm capture (or text DONE after a prove call on the Orvius line).",
     ],
     dialCodes: ["*92"],
   },
@@ -48,9 +74,10 @@ export const CARRIERS: CarrierGuide[] = [
     label: "T-Mobile",
     steps: [
       "Keep your public Google / truck number.",
-      "Dial **61* + Orvius digits + # (no +1) for no-answer forward.",
-      "Or: T-Life / account → Call forwarding → unanswered / busy.",
-      "Call your public number, let it ring — Orvius should answer.",
+      "From that cell, dial **61* + Orvius digits + # (no +1) for no-answer forward.",
+      "Or: T-Life / account → Call forwarding → unanswered / busy → Orvius.",
+      "Call your public number, let it ring out — Orvius should answer.",
+      "Then open Settings and confirm capture (or text DONE after a prove call on the Orvius line).",
     ],
     dialCodes: ["**61*"],
   },
@@ -59,9 +86,10 @@ export const CARRIERS: CarrierGuide[] = [
     label: "Other cell",
     steps: [
       "Keep your public Google / truck number.",
-      "In your phone settings or carrier app, turn on call forwarding for missed, busy, and no-answer.",
-      "Forward those to your Orvius number.",
-      "Call your public number, let it ring — Orvius should answer.",
+      "In phone settings or the carrier app, turn on forward for missed, busy, and no-answer.",
+      "Point those to your Orvius number.",
+      "Call your public number, let it ring out — Orvius should answer.",
+      "Then open Settings and confirm capture (or text DONE after a prove call on the Orvius line).",
     ],
   },
   {
@@ -72,6 +100,7 @@ export const CARRIERS: CarrierGuide[] = [
       "Ask your provider (or open the phone system admin) for after-hours / no-answer / busy forward.",
       "Point those routes at your Orvius number.",
       "Place a test call to the public number after hours or with no answer.",
+      "Then open Settings and confirm capture (or text DONE after a prove call on the Orvius line).",
     ],
   },
 ];
@@ -98,10 +127,13 @@ export function buildForwardGuideSms(params: {
   }
 
   const carrier = getCarrier(params.carrier ?? "other");
-  const dial =
-    carrier.dialCodes?.[0] != null
-      ? ` Quick try: dial ${carrier.dialCodes[0]}${line.replace(/\D/g, "").replace(/^1/, "")} from your cell (carrier-dependent).`
-      : "";
+  const dialExample = buildCarrierDialExample(
+    params.carrier ?? "other",
+    line,
+  );
+  const dial = dialExample
+    ? ` Quick try from your cell: dial ${dialExample} (carrier-dependent).`
+    : "";
 
   return [
     `Orvius for ${params.shopName}:`,

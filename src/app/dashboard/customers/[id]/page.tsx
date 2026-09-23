@@ -1,5 +1,6 @@
 "use client";
 
+import { CustomerTextsPanel } from "@/components/customer-texts-panel";
 import { CustomerTimeline } from "@/components/customer-timeline";
 import { OsShell } from "@/components/os-shell";
 import {
@@ -166,6 +167,13 @@ export default function CustomerDetailPage() {
 
         <ShellPanel title="History" dense>
           <CustomerTimeline events={timeline} />
+        </ShellPanel>
+
+        <ShellPanel title="Texts" dense>
+          <CustomerTextsPanel
+            customerId={customer.id}
+            customerPhone={customer.phone}
+          />
         </ShellPanel>
       </div>
     </OsShell>

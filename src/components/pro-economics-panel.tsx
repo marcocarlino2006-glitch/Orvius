@@ -37,6 +37,7 @@ export function ProEconomicsPanel({
   proofOnBoard = false,
 }: ProEconomicsPanelProps) {
   const [copyState, setCopyState] = useState<"idle" | "ok" | "err">("idle");
+  const [emailNote, setEmailNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [proofAt, setProofAt] = useState<string | null>(lastWeeklyProofAt ?? null);
 
@@ -56,10 +57,21 @@ export function ProEconomicsPanel({
   async function copyWeeklyProof() {
     setBusy(true);
     setCopyState("idle");
+    setEmailNote(null);
     try {
       const data = await copyWeeklyProofRitual();
       setProofAt(data.lastWeeklyProofAt ?? new Date().toISOString());
       setCopyState("ok");
+      const email = data.email;
+      if (email?.attempted && email.sent) {
+        setEmailNote("Emailed to owner");
+      } else if (email && !email.attempted && email.reason === "email_not_configured") {
+        setEmailNote("Copied — email not configured (Resend)");
+      } else if (email && !email.attempted && email.reason === "no_owner_email") {
+        setEmailNote("Copied — add owner email in Settings to email proof");
+      } else if (email?.attempted && !email.sent) {
+        setEmailNote("Copied — email send failed");
+      }
     } catch {
       setCopyState("err");
     } finally {
@@ -240,7 +252,9 @@ export function ProEconomicsPanel({
           Edit ticket &amp; baseline →
         </Link>
         {copyState === "ok" ? (
-          <span className="pro-economics-status">Copied — paste into your notes</span>
+          <span className="pro-economics-status">
+            {emailNote ?? "Copied — paste into your notes"}
+          </span>
         ) : null}
         {copyState === "err" ? (
           <span className="pro-economics-status pro-economics-status--err">

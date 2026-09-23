@@ -78,6 +78,7 @@ model Business {
   calls            Call[]
   leads            Lead[]
   customers        Customer[]
+  customerSms      CustomerSms[]
   jobs             Job[]
   technicians      Technician[]
   estimates        Estimate[]
@@ -124,9 +125,34 @@ model Customer {
   calls Call[]
   leads Lead[]
   jobs  Job[]
+  sms   CustomerSms[]
 
   @@unique([businessId, phoneNormalized])
   @@index([businessId, lastSeenAt])
+}
+
+/**
+ * Two-way SMS thread on a customer record.
+ * Inbound from Twilio webhook; outbound via sendCustomerSms (owner Texts + system).
+ * Twilio MessageSid is stored when present for idempotent inbound writes.
+ */
+model CustomerSms {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /** inbound | outbound */
+  direction  String
+  body       String
+  twilioSid  String?
+  /** sent | received | failed */
+  status     String?
+  createdAt  DateTime @default(now())
+
+  @@index([customerId, createdAt])
+  @@index([businessId, createdAt])
+  @@index([businessId, twilioSid])
 }
 
 model Call {

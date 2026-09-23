@@ -4,10 +4,11 @@ import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { inferExplicitUrgency, maybeAutoBookLead } from "@/lib/auto-job";
 import { company } from "@/lib/company";
+import { recordCustomerSms } from "@/lib/customer-sms";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { demandCategoryLabel } from "@/lib/job-taxonomy";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
-import { logError, logInfo, logWarn } from "@/lib/logger";
+import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import {
   buildLeadAlertDedupeKey,
@@ -180,12 +181,23 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  await linkTouchToCustomer({
+  const customer = await linkTouchToCustomer({
     businessId: business.id,
     leadId: lead.id,
     phone: from,
     notes: body,
   });
+
+  if (customer) {
+    await recordCustomerSms({
+      businessId: business.id,
+      customerId: customer.id,
+      direction: "inbound",
+      body,
+      twilioSid: messageSid || null,
+      status: "received",
+    });
+  }
 
   const autoBook = await maybeAutoBookLead(lead.id);
   const bookedJob = autoBook.jobId

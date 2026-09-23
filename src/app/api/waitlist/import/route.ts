@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { looksLikeSeedProspect } from "@/lib/multi-b-mastery";
 import { parseProspectCsv } from "@/lib/prospect-csv";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminRequest } from "@/lib/env";
@@ -30,6 +31,7 @@ const bodySchema = z.object({
 /**
  * Bulk import prospects into waitlist / pipeline.
  * Dedupes by email. Sets nextActionAt=now so they show due today.
+ * Reports seed-looking rows so founders do not mistake them for density.
  */
 export async function POST(request: NextRequest) {
   if (!(await canManageProspects(request))) {
@@ -50,6 +52,10 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const seedEmails = parsed.rows
+      .filter((row) => looksLikeSeedProspect(row.email))
+      .map((row) => row.email);
 
     const now = new Date();
     let created = 0;
@@ -96,6 +102,12 @@ export async function POST(request: NextRequest) {
       skipped: parsed.skipped,
       parseErrors: parsed.errors,
       total: parsed.rows.length,
+      seedCount: seedEmails.length,
+      seedEmails: seedEmails.slice(0, 20),
+      warning:
+        seedEmails.length > 0
+          ? `${seedEmails.length} row(s) look like seed/example contacts — purge seeds before counting density.`
+          : null,
     });
   } catch (error) {
     const message =

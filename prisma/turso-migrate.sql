@@ -270,3 +270,26 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Business_stripeConnectAccountId_key"
 -- Capture path persistence — confirm stamp must match the ritual the UI shows.
 ALTER TABLE "Business" ADD COLUMN "captureMode" TEXT DEFAULT 'forward';
 ALTER TABLE "Business" ADD COLUMN "forwardCarrier" TEXT;
+
+-- Tranche 1 money loop stamps (review / arrival / no-show) + review URL.
+ALTER TABLE "Business" ADD COLUMN "googleReviewUrl" TEXT;
+ALTER TABLE "Job" ADD COLUMN "arrivalReminderSentAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "customerNoShowAlertedAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "reviewSmsSentAt" DATETIME;
+
+-- Tranche 2 — two-way SMS thread on customer record.
+CREATE TABLE IF NOT EXISTS "CustomerSms" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "customerId" TEXT NOT NULL,
+  "direction" TEXT NOT NULL,
+  "body" TEXT NOT NULL,
+  "twilioSid" TEXT,
+  "status" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "CustomerSms_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "CustomerSms_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "CustomerSms_customerId_createdAt_idx" ON "CustomerSms"("customerId", "createdAt");
+CREATE INDEX IF NOT EXISTS "CustomerSms_businessId_createdAt_idx" ON "CustomerSms"("businessId", "createdAt");
+CREATE INDEX IF NOT EXISTS "CustomerSms_businessId_twilioSid_idx" ON "CustomerSms"("businessId", "twilioSid");

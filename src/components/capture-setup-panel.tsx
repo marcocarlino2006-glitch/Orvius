@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  buildCarrierDialExample,
   CARRIERS,
   type CaptureMode,
   type CarrierId,
@@ -22,7 +23,7 @@ type CaptureSetupPanelProps = {
   }) => Promise<void> | void;
 };
 
-/** Owner capture recovery — one primary by state, helpers under More. */
+/** Owner capture recovery — prove call first, then confirm; helpers in More. */
 export function CaptureSetupPanel({
   line,
   overflowConfirmed,
@@ -52,6 +53,11 @@ export function CaptureSetupPanel({
   const guide = useMemo(
     () => CARRIERS.find((c) => c.id === carrier) ?? CARRIERS[0]!,
     [carrier],
+  );
+
+  const dialExample = useMemo(
+    () => (mode === "forward" ? buildCarrierDialExample(carrier, line) : null),
+    [mode, carrier, line],
   );
 
   const canConfirm = Boolean(line) && lineVerified;
@@ -95,6 +101,16 @@ export function CaptureSetupPanel({
     }
   }
 
+  async function copyDial() {
+    if (!dialExample) return;
+    try {
+      await navigator.clipboard.writeText(dialExample);
+      setNote(`Dial string copied: ${dialExample}`);
+    } catch {
+      setNote(null);
+    }
+  }
+
   async function textSteps() {
     if (!line) return;
     setTexting(true);
@@ -126,7 +142,7 @@ export function CaptureSetupPanel({
     <div className="capture-setup font-sans">
       <p className="account-settings-hint">
         Orvius answers this number. Forward missed calls — or publish it as your
-        main shop line.
+        main shop line. Confirm only after a real prove call.
       </p>
 
       <p className="account-settings-value mt-3">
@@ -169,10 +185,23 @@ export function CaptureSetupPanel({
               </button>
             ))}
           </div>
+          {dialExample ? (
+            <p className="capture-setup-dial mt-3 font-sans text-sm text-void">
+              Carrier dial try:{" "}
+              <code className="tabular-nums">{dialExample}</code>{" "}
+              <button
+                type="button"
+                className="btn btn-ghost text-xs"
+                onClick={() => void copyDial()}
+              >
+                Copy
+              </button>
+            </p>
+          ) : null}
           <ol className="capture-setup-steps mt-3">
             {guide.steps.map((step) => (
               <li key={step}>
-                {line ? step.replace("your Orvius number", line) : step}
+                {line ? step.replace(/your Orvius number/g, line) : step}
               </li>
             ))}
           </ol>
@@ -187,29 +216,52 @@ export function CaptureSetupPanel({
           <li>
             Keep the old number forwarded to Orvius until the cutover is done.
           </li>
+          <li>
+            Call the Orvius line once to prove it answers, then confirm below
+            (or text DONE from your owner phone).
+          </li>
         </ol>
       )}
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap gap-2">
         {!lineVerified && line ? (
           <a href={telHref(line)} className="btn btn-void text-sm">
-            Call to prove it
+            1. Call to prove it
           </a>
-        ) : canConfirm && !overflowConfirmed ? (
+        ) : null}
+        {line ? (
+          <button
+            type="button"
+            className="btn btn-secondary text-sm"
+            disabled={texting}
+            onClick={() => void textSteps()}
+          >
+            {texting ? "Texting…" : "Text me the steps"}
+          </button>
+        ) : null}
+        {canConfirm && !overflowConfirmed ? (
           <button
             type="button"
             className="btn btn-void text-sm"
             disabled={saving}
             onClick={() => void onConfirmOverflow(true)}
           >
-            {saving ? "Saving…" : "Confirm capture"}
+            {saving ? "Saving…" : "2. Confirm capture"}
           </button>
-        ) : overflowConfirmed ? (
-          <p className="text-sm text-live" role="status">
+        ) : null}
+        {overflowConfirmed ? (
+          <p className="text-sm text-live self-center" role="status">
             Capture confirmed{lineVerified ? " · line verified" : ""}.
           </p>
         ) : null}
       </div>
+
+      {!lineVerified && line ? (
+        <p className="mt-2 text-xs text-ash">
+          After the prove call answers, reply DONE from your owner phone — or
+          use Confirm capture here.
+        </p>
+      ) : null}
 
       <details className="capture-setup-more mt-4 font-sans">
         <summary>More</summary>
@@ -221,14 +273,6 @@ export function CaptureSetupPanel({
             onClick={() => void copyLine()}
           >
             Copy number
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost text-sm"
-            disabled={!line || texting}
-            onClick={() => void textSteps()}
-          >
-            {texting ? "Texting…" : "Text me the steps"}
           </button>
           {line && lineVerified ? (
             <a href={telHref(line)} className="btn btn-ghost text-sm">
