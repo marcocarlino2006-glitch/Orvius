@@ -20,6 +20,7 @@ import {
 } from "../src/lib/manus-post.ts";
 import { probeProdTelephony } from "./lib/prod-telephony.mjs";
 import { probeProdBilling } from "./lib/prod-billing.mjs";
+import { resolveFormationStateConfirmed } from "./lib/formation-state.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -41,6 +42,7 @@ const fileEnv = loadEnv();
 const env = { ...fileEnv, ...process.env };
 
 function formationOk() {
+  if (resolveFormationStateConfirmed(env)) return true;
   try {
     const src = readFileSync(join(root, "src/lib/company.ts"), "utf8");
     return /formationStateConfirmed:\s*"/.test(src);

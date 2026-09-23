@@ -141,7 +141,8 @@ export const MANUS_POST_STEPS: ManusPostStep[] = [
     id: "formation",
     order: 10,
     title: "Formation state",
-    action: "Counsel confirms LLC state → set formationStateConfirmed (never invent)",
+    action:
+      "Counsel confirms LLC state → set ORVIUS_FORMATION_STATE on Vercel (never invent)",
     founderOnly: true,
   },
   {

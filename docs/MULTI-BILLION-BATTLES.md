@@ -88,7 +88,16 @@ DNS cutover: `docs/DNS-ORVIUS-IM.md`. Do not post until green.
 ## Legal gate (Battle 6)
 
 `company.governingLawState` stays a placeholder until counsel confirms formation state.
-Do not invent a state. Update `src/lib/company.ts` only after confirmation.
+Do **not** invent a state in git.
+
+After counsel confirms, set on Vercel + `.env`:
+
+```bash
+ORVIUS_FORMATION_STATE=Delaware   # the real state counsel named — never guess
+```
+
+`src/lib/company.ts` reads that env at boot into `formationStateConfirmed` and
+governing-law copy. Verify with `npm run founder:next` / `npm run life:check`.
 
 ## Claim honesty gate (Battle 7)
 

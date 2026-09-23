@@ -173,12 +173,12 @@ export function buildMasteryReport(
       step: 6,
       title: "Legal formation state",
       owner: "founder",
-      doneWhen: "Counsel confirms state → formationStateConfirmed set",
-      action: "Reply with formation state (one word) after counsel — never invent",
+      doneWhen: "Counsel confirms state → ORVIUS_FORMATION_STATE set",
+      action: "Set ORVIUS_FORMATION_STATE on Vercel after counsel (one word) — never invent",
       ok: formation,
       detail: formation
         ? `Confirmed: ${company.formationStateConfirmed}`
-        : "formationStateConfirmed is null",
+        : "ORVIUS_FORMATION_STATE unset",
     },
     {
       id: "external_proof",

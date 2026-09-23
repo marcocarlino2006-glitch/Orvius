@@ -297,6 +297,19 @@ if (ADMIN_KEY) {
         ? `counts reach the key holder (${json.stats.businessCount} shops)`
         : "admin key presented but health withheld the counts",
     );
+    if (json?.emailConfigured === true) {
+      pass("Resend", "emailConfigured on privileged health");
+    } else if (json?.emailConfigured === false) {
+      warn("Resend", "emailConfigured false — paste RESEND_API_KEY on Vercel");
+    }
+    if (json?.formationConfirmed) {
+      pass("Formation", `confirmed: ${json.formationState}`);
+    } else {
+      warn(
+        "Formation",
+        "not set — counsel → ORVIUS_FORMATION_STATE (never invent)",
+      );
+    }
   } catch (error) {
     fail("Admin key", `probe failed: ${error.message}`);
   }

@@ -20,6 +20,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { probeProdTelephonySync } from "./lib/prod-telephony.mjs";
 import { probeProdBillingSync } from "./lib/prod-billing.mjs";
+import { resolveFormationStateConfirmed } from "./lib/formation-state.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -379,10 +380,13 @@ gate(
   "D",
   "formation",
   "Formation counsel-confirmed",
-  /formationStateConfirmed:\s*"/.test(company),
-  /formationStateConfirmed:\s*"/.test(company)
-    ? "formationStateConfirmed set"
-    : "counsel → set — never invent",
+  Boolean(resolveFormationStateConfirmed(env)) ||
+    /formationStateConfirmed:\s*"/.test(company),
+  resolveFormationStateConfirmed(env)
+    ? `ORVIUS_FORMATION_STATE=${resolveFormationStateConfirmed(env)}`
+    : /formationStateConfirmed:\s*"/.test(company)
+      ? "formationStateConfirmed set"
+      : "counsel → set ORVIUS_FORMATION_STATE — never invent",
   "founder",
 );
 

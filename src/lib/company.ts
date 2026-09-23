@@ -1,4 +1,12 @@
 /** Legal entity + brand — single source of truth for site copy and agreements. */
+import {
+  formationGoverningLawLabel,
+  resolveFormationStateConfirmed,
+} from "@/lib/formation-state";
+
+const formationStateConfirmed = resolveFormationStateConfirmed();
+const governingLawState = formationGoverningLawLabel(formationStateConfirmed);
+
 export const company = {
   legalName: "Solution Development LLC",
   productName: "Orvius",
@@ -34,16 +42,15 @@ export const company = {
     "Own context/workflow/data/transactions — use replaceable models; expand OS and trades only after the wedge compounds.",
   ] as const,
   /**
-   * Confirm with counsel against formation docs and update before relying on
-   * arbitration/venue language in production disputes.
-   * FOUNDATION GATE: set the real state name (e.g. "Delaware") — never invent it.
+   * Confirm with counsel against formation docs before relying on arbitration
+   * / venue language. FOUNDATION GATE: set ORVIUS_FORMATION_STATE on Vercel
+   * (e.g. Delaware) after counsel — never invent it in git.
    * See docs/MULTI-BILLION-BATTLES.md Battle 6.
    */
-  governingLawState: "the State in which Solution Development LLC is organized",
-  jurisdictionNote:
-    "the State in which Solution Development LLC is organized",
-  /** null until counsel confirms — do not invent a formation state in code. */
-  formationStateConfirmed: null as string | null,
+  governingLawState,
+  jurisdictionNote: governingLawState,
+  /** null until counsel confirms via ORVIUS_FORMATION_STATE — do not invent. */
+  formationStateConfirmed,
   trademarkNotice:
     "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",
   copyrightNotice: "All rights reserved.",

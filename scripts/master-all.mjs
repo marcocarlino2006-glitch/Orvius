@@ -9,6 +9,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveFormationStateConfirmed } from "./lib/formation-state.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -48,6 +49,7 @@ function has(key) {
 }
 
 function formationOk() {
+  if (resolveFormationStateConfirmed(env)) return true;
   try {
     const src = readFileSync(join(root, "src/lib/company.ts"), "utf8");
     return /formationStateConfirmed:\s*"/.test(src);
@@ -113,7 +115,11 @@ gate(
   6,
   "Formation state",
   formationOk(),
-  formationOk() ? "formationStateConfirmed set" : "Counsel → set formationStateConfirmed — never invent",
+  formationOk()
+    ? resolveFormationStateConfirmed(env)
+      ? `ORVIUS_FORMATION_STATE=${resolveFormationStateConfirmed(env)}`
+      : "formationStateConfirmed set"
+    : "Counsel → set ORVIUS_FORMATION_STATE — never invent",
   "founder",
 );
 
