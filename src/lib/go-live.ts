@@ -48,7 +48,7 @@ export function buildGoLiveReport(input: {
       detail: input.lineVerified
         ? "At least one completed inbound call hit this line."
         : "Place a live test call and complete founder phone cert.",
-      href: "/dashboard/settings#founder-cert",
+      href: "/admin/ops#founder-cert",
     },
     {
       id: "overflow_forward",
@@ -126,7 +126,7 @@ export function buildGoLiveReport(input: {
       detail: input.founderCertComplete
         ? "Five live-cell scenarios stamped."
         : "Finish cert before high-volume outreach claims.",
-      href: "/dashboard/settings#founder-cert",
+      href: "/admin/ops#founder-cert",
     },
   ];
 

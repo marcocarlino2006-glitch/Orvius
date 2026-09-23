@@ -16,7 +16,7 @@ type Status = {
 
 /**
  * Founder post-lock instrument.
- * Compact on Settings. Full only on Billing. Never crowds Command/Today.
+ * Quiet strip on /admin/ops. Full on Billing. Never on owner Settings.
  *
  * Who may see it is decided by /api/bulletproof, which returns 403 to anyone
  * who is not the founder. A non-ok response reads as "nothing to show" below,
@@ -27,8 +27,8 @@ export function PostLockBanner() {
   const [status, setStatus] = useState<Status | null>(null);
 
   const onBilling = pathname?.startsWith("/dashboard/billing");
-  const onSettings = pathname?.startsWith("/dashboard/settings");
-  const show = onBilling || onSettings;
+  const onFounderOps = pathname?.startsWith("/admin/ops");
+  const show = onBilling || onFounderOps;
 
   useEffect(() => {
     if (!show) return;
@@ -51,8 +51,8 @@ export function PostLockBanner() {
 
   const openCount = status.openGates.length;
 
-  // Settings: one quiet line — don't compete with the owner ritual
-  if (onSettings && !onBilling) {
+  // Founder ops: one quiet line — don't compete with Manus/cert paste
+  if (onFounderOps && !onBilling) {
     return (
       <p className="post-lock-strip font-sans" role="status">
         <span className="post-lock-strip-label">Post lock</span>

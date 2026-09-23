@@ -4,7 +4,6 @@ import { buildSettingsHub } from "../src/lib/settings-hub.ts";
 
 test("incomplete shop is pointed at call capture first", () => {
   const hub = buildSettingsHub({
-    founder: false,
     lineVerified: false,
     overflowConfirmed: false,
     ownerPhone: null,
@@ -15,7 +14,6 @@ test("incomplete shop is pointed at call capture first", () => {
 
 test("capture done next asks for owner mobile", () => {
   const hub = buildSettingsHub({
-    founder: false,
     lineVerified: true,
     overflowConfirmed: true,
     ownerPhone: null,
@@ -23,30 +21,42 @@ test("capture done next asks for owner mobile", () => {
   assert.equal(hub.next?.id, "alerts");
 });
 
-test("founder with capture+alerts is pointed at money setup", () => {
+test("alerts done next asks for complete profile when email missing", () => {
   const hub = buildSettingsHub({
-    founder: true,
     lineVerified: true,
     overflowConfirmed: true,
     ownerPhone: "+15551234567",
-    billingConfigured: false,
-    billingFullyReady: false,
-    emailConfigured: false,
+    shopName: "Summit HVAC",
+    ownerEmail: null,
     avgTicketCents: 28500,
+    billingConfigured: true,
   });
-  assert.equal(hub.next?.id, "money");
-  assert.ok(hub.items.some((item) => item.id === "money"));
+  assert.equal(hub.next?.id, "profile");
+  assert.ok(hub.items.some((item) => item.id === "profile"));
 });
 
-test("owner hub never lists founder-only money rows", () => {
+test("owner hub never lists founder Resend/cert/money rows", () => {
   const hub = buildSettingsHub({
-    founder: false,
     lineVerified: true,
     overflowConfirmed: true,
     ownerPhone: "+15551234567",
+    ownerEmail: "mike@summithvac.com",
+    shopName: "Summit HVAC",
     avgTicketCents: 28500,
     billingConfigured: true,
   });
   assert.equal(hub.next, null);
-  assert.ok(!hub.items.some((item) => item.founderOnly));
+  assert.ok(!hub.items.some((item) => item.id === "resend"));
+  assert.ok(!hub.items.some((item) => item.id === "cert"));
+  assert.ok(!hub.items.some((item) => item.id === "money"));
+});
+
+test("settings hub links founder-free — profile is a first-class jump", () => {
+  const hub = buildSettingsHub({
+    lineVerified: true,
+    overflowConfirmed: true,
+    ownerPhone: "+15551234567",
+  });
+  const profile = hub.items.find((item) => item.id === "profile");
+  assert.equal(profile?.href, "/dashboard/profile");
 });

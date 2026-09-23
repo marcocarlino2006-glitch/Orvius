@@ -1,12 +1,10 @@
 "use client";
 
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
-import { FounderManusNext } from "@/components/founder-manus-next";
 import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
-import type { ManusPostStep } from "@/lib/manus-post";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { useEffect, useState } from "react";
@@ -25,7 +23,6 @@ type AccountResponse = {
     baselineMissedCallsPerWeek: number | null;
     baselineJobsPerWeek: number | null;
     lastWeeklyProofAt?: string | null;
-    founderCertJson?: string | null;
     overflowForwardConfirmedAt?: string | null;
     captureMode?: CaptureMode | null;
     forwardCarrier?: CarrierId | null;
@@ -49,28 +46,10 @@ type AccountResponse = {
   };
 };
 
-const FOUNDER_CERT = [
-  "AC emergency after hours — name, phone, service, urgency, address",
-  "Caller asks for a human — 15-min callback offered",
-  "Non-urgent estimate — urgency this-week or flexible",
-  "Hang-up mid-call — partial lead, no crash",
-  "Inbound SMS — lead + auto-reply",
-] as const;
-
-function parseCert(raw: string | null | undefined): boolean[] {
-  const empty = FOUNDER_CERT.map(() => false);
-  if (!raw) return empty;
-  try {
-    const parsed = JSON.parse(raw) as boolean[];
-    if (Array.isArray(parsed) && parsed.length === FOUNDER_CERT.length) {
-      return parsed.map(Boolean);
-    }
-  } catch {
-    /* ignore */
-  }
-  return empty;
-}
-
+/**
+ * Owner Settings — product behavior only.
+ * Profile = identity. Billing = money. /admin/ops = founder paste (Manus/Resend/cert).
+ */
 export default function DashboardSettingsPage() {
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     "loading",
@@ -89,13 +68,8 @@ export default function DashboardSettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [syncWarning, setSyncWarning] = useState<string | null>(null);
-  const [certChecks, setCertChecks] = useState<boolean[]>(() =>
-    FOUNDER_CERT.map(() => false),
-  );
-  const [certSaving, setCertSaving] = useState(false);
   const [overflowForward, setOverflowForward] = useState(false);
   const [overflowSaving, setOverflowSaving] = useState(false);
-  const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
   const [dirty, setDirty] = useState(false);
 
   async function loadAccount() {
@@ -127,7 +101,6 @@ export default function DashboardSettingsPage() {
         ? String(data.business.baselineJobsPerWeek)
         : "",
     );
-    setCertChecks(parseCert(data.business?.founderCertJson));
     setOverflowForward(Boolean(data.business?.overflowForwardConfirmedAt));
     setDirty(false);
     setLoadState("ready");
@@ -161,66 +134,12 @@ export default function DashboardSettingsPage() {
     });
   }, [loadState, account]);
 
-  useEffect(() => {
-    if (!account?.founder) {
-      setManusNext(null);
-      return;
-    }
-    let cancelled = false;
-    fetch("/api/admin/mastery")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { manusPost?: { next?: ManusPostStep | null } } | null) => {
-        if (cancelled) return;
-        setManusNext(data?.manusPost?.next ?? null);
-      })
-      .catch(() => {
-        if (!cancelled) setManusNext(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [account?.founder]);
-
-  async function persistCert(next: boolean[]) {
-    const previous = certChecks;
-    setCertChecks(next);
-    setCertSaving(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/account", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ founderCertJson: JSON.stringify(next) }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setCertChecks(previous);
-        throw new Error(data.error ?? "Could not save certification");
-      }
-      try {
-        localStorage.setItem("orvius-founder-cert", JSON.stringify(next));
-      } catch {
-        /* ignore */
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save certification");
-    } finally {
-      setCertSaving(false);
-    }
-  }
-
-  function toggleCert(index: number) {
-    const next = certChecks.map((v, i) => (i === index ? !v : v));
-    void persistCert(next);
-  }
-
   const line =
     account?.line ??
     account?.business?.vapiPhoneNumber ??
     account?.business?.twilioPhone ??
     null;
 
-  
   async function saveCapturePath(next: {
     mode: CaptureMode;
     carrier: CarrierId | null;
@@ -305,9 +224,6 @@ export default function DashboardSettingsPage() {
           baselineJobsPerWeek: baselineJobs.trim()
             ? Math.round(Number(baselineJobs.replace(/[^0-9.]/g, "")))
             : null,
-          ...(account?.founder
-            ? { founderCertJson: JSON.stringify(certChecks) }
-            : {}),
         }),
       });
       const data = await res.json();
@@ -373,11 +289,9 @@ export default function DashboardSettingsPage() {
     }
   }
 
-  const certDone = certChecks.filter(Boolean).length;
-
   if (loadState !== "ready" || !account) {
     return (
-      <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+      <OsShell title="Settings" subtitle="Capture, alerts, baselines — then Command.">
         <div className="pro-settings-page">
           {loadState === "error" ? (
             <div className="pro-settings-load-error">
@@ -405,22 +319,18 @@ export default function DashboardSettingsPage() {
   }
 
   return (
-    <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+    <OsShell title="Settings" subtitle="Capture, alerts, baselines — then Command.">
       <div className="pro-settings-page">
         <SettingsLaunchGuide
           input={{
-            founder: account.founder,
             lineVerified: Boolean(account.business?.lineVerifiedAt),
             overflowConfirmed: overflowForward,
             ownerPhone,
             ownerEmail,
+            shopName: account.business?.name,
             avgTicketCents: account.business?.avgTicketCents,
-            emailConfigured: account.alerts.emailConfigured,
             ownerSmsOptedOut: account.alerts.ownerSmsOptedOut,
             billingConfigured: account.billing?.configured,
-            billingFullyReady: account.billing?.fullyReady,
-            certDone,
-            certTotal: FOUNDER_CERT.length,
           }}
         />
         <form className="account-stack pro-settings-form" onSubmit={save}>
@@ -464,7 +374,11 @@ export default function DashboardSettingsPage() {
               placeholder="+1 555 123 4567"
             />
             <span className="onboarding-hint">
-              Must be your cell — not your shop line. Lead summaries text here.
+              Must be your cell — not your shop line. Also editable on{" "}
+              <Link href="/dashboard/profile" className="pro-section-link">
+                Profile
+              </Link>
+              .
             </span>
           </label>
 
@@ -484,9 +398,7 @@ export default function DashboardSettingsPage() {
             <span className="onboarding-hint">
               {account.alerts.emailConfigured
                 ? "Email backup is on — used when a text alert can’t deliver."
-                : account.founder
-                  ? "Alerts are text-only until Resend is live — paste keys below."
-                  : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
+                : "Alerts come by text only right now. Email backup switches on from our side — nothing for you to set up."}
             </span>
           </label>
 
@@ -509,29 +421,6 @@ export default function DashboardSettingsPage() {
               · Email {account.alerts.emailConfigured ? "on" : "off"}
             </span>
           </div>
-
-          {!account.alerts.emailConfigured && account.founder ? (
-            <div
-              id="email-failover"
-              className="billing-unblock billing-unblock--instrument mt-4 font-sans"
-            >
-              <p className="billing-unblock-kicker">Resend gates</p>
-              <p className="billing-unblock-title">
-                SMS→email failover stays dark until these are green
-              </p>
-              <ol className="billing-unblock-steps">
-                <li>Add RESEND_API_KEY on Vercel</li>
-                <li>
-                  Set RESEND_FROM to a verified sender (e.g. Orvius
-                  &lt;alerts@orvius.im&gt;)
-                </li>
-                <li>Redeploy · then Send test alert</li>
-              </ol>
-              <p className="billing-unblock-foot">
-                Owners never see this panel — only the founder paste path.
-              </p>
-            </div>
-          ) : null}
         </ShellPanel>
         </div>
 
@@ -611,63 +500,16 @@ export default function DashboardSettingsPage() {
           </div>
         </details>
 
-        {/*
-          The certification is ours, not the shop's — five real calls we place
-          before we trust the line overnight. It says so itself ("internal
-          dogfood checklist"), and it was sitting in every owner's Settings.
-        */}
-        {account.founder ? (
-          <details
-            id="founder-cert"
-            className="pro-settings-secondary font-sans"
-          >
-            <summary>
-              Founder phone certification ({certDone}/{FOUNDER_CERT.length})
-              {certSaving ? " · saving…" : ""}
-            </summary>
-            <div className="pro-settings-secondary-body">
-              <p className="account-settings-hint font-sans mb-3">
-                Internal dogfood checklist — not part of the owner go-live ritual.
-              </p>
-              <ul className="pro-founder-cert-list">
-                {FOUNDER_CERT.map((label, index) => (
-                  <li key={label}>
-                    <label className="pro-founder-cert-item font-sans">
-                      <input
-                        type="checkbox"
-                        checked={certChecks[index] ?? false}
-                        onChange={() => toggleCert(index)}
-                      />
-                      <span>{label}</span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </details>
-        ) : null}
-
-        {account.founder ? (
-          <details
-            id="manus-post-next"
-            className="pro-settings-secondary font-sans"
-            open={Boolean(manusNext)}
-          >
-            <summary>Manus post · next</summary>
-            <FounderManusNext tone="quiet" next={manusNext} />
-          </details>
-        ) : null}
-
-        {/*
-          Billing's home is /dashboard/billing. Settings only points there —
-          a second money panel on the setup hub is theater.
-        */}
         <details className="pro-settings-secondary font-sans">
           <summary>Plan & billing</summary>
           <div className="pro-settings-secondary-body">
             <p className="account-settings-hint font-sans">
-              Plan, payment method, payouts, and deposits live on Billing. The
-              plan name also sits on the profile button in the corner.
+              Plan, payment method, payouts, and deposits live on Billing.
+              Shop identity lives on{" "}
+              <Link href="/dashboard/profile" className="pro-section-link">
+                Profile
+              </Link>
+              .
             </p>
             <Link href="/dashboard/billing" className="btn btn-secondary text-sm mt-4">
               Open billing

@@ -167,22 +167,23 @@ gate(
   there imported by nothing. A file-exists check cannot tell a shipped surface
   from an abandoned one, which is the only thing this gate was ever for.
 
-  Certification stays founder-only inside the quiet Settings instrument. Check
-  the complete product contract rather than requiring a duplicate setup hub:
-  founder surface, API persistence, and database storage.
+  Certification lives on /admin/ops — off owner Settings. Check founder ops
+  surface, API persistence, and database storage.
 */
 gate(
   "launch_gates_ui",
-  "Founder cert reaches Settings",
+  "Founder cert reaches /admin/ops",
   (() => {
     try {
       const settings = readFileSync(join(root, "src/app/dashboard/settings/page.tsx"), "utf8");
+      const ops = readFileSync(join(root, "src/app/admin/ops/page.tsx"), "utf8");
       const account = readFileSync(join(root, "src/app/api/account/route.ts"), "utf8");
       const schema = readFileSync(join(root, "prisma/schema.prisma"), "utf8");
       return (
-        /Founder phone certification/.test(settings) &&
-        /account\?\.founder/.test(settings) &&
-        settings.includes("founderCertJson") &&
+        !/Founder phone certification/.test(settings) &&
+        !/FounderManusNext/.test(settings) &&
+        /Phone certification/.test(ops) &&
+        ops.includes("founderCertJson") &&
         account.includes("founderCertJson") &&
         schema.includes("founderCertJson") &&
         !/<ProSetupHub/.test(settings)
@@ -191,7 +192,7 @@ gate(
       return false;
     }
   })(),
-  "founder-only Settings disclosure persists through the account API to Business.founderCertJson",
+  "founder ops on /admin/ops persist through the account API to Business.founderCertJson",
 );
 
 gate(

@@ -33,6 +33,9 @@ import {
 import { z } from "zod";
 
 const patchSchema = z.object({
+  /** Shop display name — Profile identity. */
+  name: z.string().trim().min(2).max(80).optional(),
+  timezone: z.string().trim().min(3).max(64).optional(),
   ownerPhone: z.string().min(10).optional(),
   ownerEmail: z.string().email().optional(),
   greeting: z.string().max(280).optional(),
@@ -94,6 +97,7 @@ export async function GET() {
         id: businessRecord.id,
         name: businessRecord.name,
         slug: businessRecord.slug,
+        timezone: businessRecord.timezone,
         ownerPhone: businessRecord.ownerPhone,
         ownerEmail: businessRecord.ownerEmail,
         twilioPhone: businessRecord.twilioPhone,
@@ -249,6 +253,10 @@ export async function PATCH(request: Request) {
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {
+        ...(body.name !== undefined ? { name: body.name.trim() } : {}),
+        ...(body.timezone !== undefined
+          ? { timezone: body.timezone.trim() }
+          : {}),
         ...(body.ownerPhone !== undefined
           ? { ownerPhone: body.ownerPhone.trim() }
           : {}),
@@ -318,6 +326,7 @@ export async function PATCH(request: Request) {
       business: {
         id: saved.id,
         name: saved.name,
+        timezone: saved.timezone,
         ownerPhone: saved.ownerPhone,
         ownerEmail: saved.ownerEmail,
         greeting: saved.greeting,

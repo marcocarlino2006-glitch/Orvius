@@ -25,5 +25,5 @@ Accent **Copper** (`#C4783A`) is signal. **Live** (`#1A9B6E`) is success. **Flar
 
 1. Prefer tokens from `orvius-colors.ts` / CSS variables — do not invent new hex on pages.
 2. Wedge-first nav: Command / Inbox / Calls before deeper OS rings.
-3. No founder instruments on owner Settings.
+3. No founder instruments on owner Settings — Resend / phone cert / Manus live on `/admin/ops`. Profile = identity; Settings = product behavior; Billing = money.
 4. `globals.css` eras must be deleted, not layered — see PERFECT-STANDARDS B6.

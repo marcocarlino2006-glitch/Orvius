@@ -1,6 +1,6 @@
 /**
- * Settings hub — one resume point for the shop (and founder paste path).
- * Multi-b pattern: progress + single next action + jump links, not a form dump.
+ * Settings hub — owner product surface only.
+ * Founder ops (Resend, phone cert, Manus) live on /admin/ops — not here.
  */
 
 export type SettingsHubItemId =
@@ -9,9 +9,7 @@ export type SettingsHubItemId =
   | "baseline"
   | "billing"
   | "data"
-  | "money"
-  | "resend"
-  | "cert";
+  | "profile";
 
 export type SettingsHubItem = {
   id: SettingsHubItemId;
@@ -19,8 +17,6 @@ export type SettingsHubItem = {
   detail: string;
   href: string;
   ok: boolean;
-  /** Founder-only rows stay off the owner hub. */
-  founderOnly?: boolean;
 };
 
 export type SettingsHubNext = {
@@ -32,18 +28,14 @@ export type SettingsHubNext = {
 };
 
 export type SettingsHubInput = {
-  founder?: boolean;
   lineVerified?: boolean;
   overflowConfirmed?: boolean;
   ownerPhone?: string | null;
   ownerEmail?: string | null;
+  shopName?: string | null;
   avgTicketCents?: number | null;
-  emailConfigured?: boolean;
   ownerSmsOptedOut?: boolean;
   billingConfigured?: boolean;
-  billingFullyReady?: boolean;
-  certDone?: number;
-  certTotal?: number;
 };
 
 function hasPhone(value: string | null | undefined): boolean {
@@ -57,15 +49,13 @@ export function buildSettingsHub(input: SettingsHubInput): {
   totalCount: number;
 } {
   const captureOk = Boolean(input.lineVerified || input.overflowConfirmed);
-  const alertsOk =
-    hasPhone(input.ownerPhone) && !input.ownerSmsOptedOut;
+  const alertsOk = hasPhone(input.ownerPhone) && !input.ownerSmsOptedOut;
+  const profileOk =
+    Boolean(input.shopName?.trim()) &&
+    hasPhone(input.ownerPhone) &&
+    Boolean(input.ownerEmail?.trim());
   const baselineOk = Boolean(input.avgTicketCents && input.avgTicketCents > 0);
   const billingOk = Boolean(input.billingConfigured);
-  const moneyOk = Boolean(input.billingFullyReady ?? input.billingConfigured);
-  const resendOk = Boolean(input.emailConfigured);
-  const certTotal = input.certTotal ?? 5;
-  const certDone = input.certDone ?? 0;
-  const certOk = certDone >= certTotal;
 
   const items: SettingsHubItem[] = [
     {
@@ -87,6 +77,15 @@ export function buildSettingsHub(input: SettingsHubInput): {
           : "Add the cell that gets night leads",
       href: "#owner-alerts",
       ok: alertsOk,
+    },
+    {
+      id: "profile",
+      label: "Shop profile",
+      detail: profileOk
+        ? "Shop name and contact set"
+        : "Name, mobile, and email on Profile",
+      href: "/dashboard/profile",
+      ok: profileOk,
     },
     {
       id: "baseline",
@@ -113,40 +112,9 @@ export function buildSettingsHub(input: SettingsHubInput): {
       href: "#shop-data",
       ok: true,
     },
-    {
-      id: "money",
-      label: "Money setup",
-      detail: moneyOk
-        ? "Stripe keys + webhook green"
-        : "Secret, prices, webhook on Vercel",
-      href: "/dashboard/billing",
-      ok: moneyOk,
-      founderOnly: true,
-    },
-    {
-      id: "resend",
-      label: "Email backup",
-      detail: resendOk
-        ? "Resend live for SMS failover"
-        : "Paste RESEND_API_KEY on Vercel",
-      href: "#email-failover",
-      ok: resendOk,
-      founderOnly: true,
-    },
-    {
-      id: "cert",
-      label: "Phone certification",
-      detail: `${certDone}/${certTotal} founder call drills`,
-      href: "#founder-cert",
-      ok: certOk,
-      founderOnly: true,
-    },
   ];
 
-  const visible = items.filter(
-    (item) => !item.founderOnly || input.founder,
-  );
-  const actionable = visible.filter((item) => item.id !== "data");
+  const actionable = items.filter((item) => item.id !== "data");
   const doneCount = actionable.filter((item) => item.ok).length;
   const totalCount = actionable.length;
 
@@ -171,21 +139,13 @@ export function buildSettingsHub(input: SettingsHubInput): {
       cta: "Add mobile",
       href: "#owner-alerts",
     };
-  } else if (input.founder && !moneyOk) {
+  } else if (!profileOk) {
     next = {
-      id: "money",
-      title: "Finish money setup",
-      body: "Green checklist on Billing, then one test Pay with card.",
-      cta: "Open Billing",
-      href: "/dashboard/billing",
-    };
-  } else if (input.founder && !resendOk) {
-    next = {
-      id: "resend",
-      title: "Turn on email backup",
-      body: "Paste RESEND_API_KEY and RESEND_FROM on Vercel.",
-      cta: "Open email backup",
-      href: "#email-failover",
+      id: "profile",
+      title: "Complete shop profile",
+      body: "Shop name, owner mobile, and email — identity, not ops.",
+      cta: "Open Profile",
+      href: "/dashboard/profile",
     };
   } else if (!baselineOk) {
     next = {
@@ -194,14 +154,6 @@ export function buildSettingsHub(input: SettingsHubInput): {
       body: "One number unlocks estimated booked value on Command.",
       cta: "Set ticket",
       href: "#economics-baseline",
-    };
-  } else if (input.founder && !certOk) {
-    next = {
-      id: "cert",
-      title: "Finish phone certification",
-      body: "Five real call drills before you trust the line overnight.",
-      cta: "Open certification",
-      href: "#founder-cert",
     };
   } else if (!billingOk) {
     next = {
@@ -213,5 +165,5 @@ export function buildSettingsHub(input: SettingsHubInput): {
     };
   }
 
-  return { items: visible, next, doneCount, totalCount };
+  return { items, next, doneCount, totalCount };
 }

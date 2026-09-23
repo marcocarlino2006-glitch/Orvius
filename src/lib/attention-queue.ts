@@ -464,7 +464,7 @@ export async function getAttentionQueue(
       title: `Phone cert ${certDone}/5`,
       detail: "Five real-phone drills before you trust after-hours alone.",
       recommendedAction: "Run phone cert",
-      href: "/dashboard/settings#founder-cert",
+      href: "/admin/ops#founder-cert",
       entityType: "shop",
       entityId: businessId,
       createdAt: now.toISOString(),

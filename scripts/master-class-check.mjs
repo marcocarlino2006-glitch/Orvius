@@ -77,28 +77,37 @@ try {
 
 try {
   const settings = read("src/app/dashboard/settings/page.tsx");
+  const ops = read("src/app/admin/ops/page.tsx");
   if (/Multi-b launch gates|LaunchGatesStrip|GoLiveChecklist/.test(settings)) {
     fail(
       "Settings ritual",
       "Settings still stacks a second Multi-b / go-live cockpit",
     );
   } else if (
-    /Founder phone certification/.test(settings) &&
-    /account\?\.founder/.test(settings) &&
-    /founderCertJson/.test(settings) &&
-    /Manus post · next/.test(settings) &&
-    /FounderManusNext/.test(settings) &&
+    /Founder phone certification|FounderManusNext|Manus post · next/.test(
+      settings,
+    )
+  ) {
+    fail(
+      "Settings ritual",
+      "Founder instruments still mounted on owner Settings — move to /admin/ops",
+    );
+  } else if (
+    /Phone certification/.test(ops) &&
+    /founderCertJson/.test(ops) &&
+    /Manus post · next/.test(ops) &&
+    /FounderManusNext/.test(ops) &&
     !/<ProSetupHub/.test(settings)
   ) {
     pass(
       "Settings ritual",
-      "Quiet founder-only certification + Manus next — no duplicate setup cockpit",
+      "Owner Settings is product-only; founder cert + Manus on /admin/ops",
     );
   } else {
-    fail("Settings ritual", "Founder certification is not wired through quiet Settings");
+    fail("Settings ritual", "Founder ops not wired on /admin/ops");
   }
 } catch {
-  fail("Settings ritual", "settings page missing");
+  fail("Settings ritual", "settings or admin/ops page missing");
 }
 
 try {

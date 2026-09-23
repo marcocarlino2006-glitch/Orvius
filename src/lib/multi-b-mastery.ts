@@ -109,7 +109,7 @@ export function buildMasteryReport(
       owner: "founder",
       doneWhen: "wedge:ready 8/8 on prod + Settings cert 5/5",
       action: "Call your shop line from your cell — stamp all 5 scenarios in Settings",
-      href: "/dashboard/settings#founder-cert",
+      href: "/admin/ops#founder-cert",
       ok: s.wedgeReady && s.certDone >= 5,
       detail: s.wedgeReady
         ? `Wedge ready · cert ${s.certDone}/5`
@@ -136,7 +136,7 @@ export function buildMasteryReport(
       owner: "founder",
       doneWhen: "RESEND_API_KEY live for magic links + SMS→email backup",
       action: "Paste RESEND_API_KEY (and RESEND_FROM) on Vercel",
-      href: "/dashboard/settings#email-failover",
+      href: "/admin/ops#email-failover",
       ok: resend,
       detail: resend ? "Transactional email configured" : "RESEND_API_KEY missing",
     },

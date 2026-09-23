@@ -303,6 +303,9 @@ export default function AdminPage() {
       subtitle="Provision a shop, connect the live line, and verify owner alerts."
       statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
       actions={
+        <Link href="/admin/ops" className="btn btn-secondary text-sm">
+          Founder ops
+        </Link>
         <Link href="/admin/daily" className="btn btn-void text-sm">
           Master all
         </Link>
@@ -371,6 +374,9 @@ export default function AdminPage() {
               }}
             />
           </label>
+          <Link href="/admin/ops" className="btn btn-secondary text-xs">
+            Founder ops
+          </Link>
           <Link href="/admin/daily" className="btn btn-secondary text-xs">
             Master all
           </Link>

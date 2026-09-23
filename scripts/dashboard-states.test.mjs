@@ -53,7 +53,8 @@ test("Dashboard shares one Ring1 pulse across shell and Command", () => {
   const banner = read("src/components/shop-operate-banner.tsx");
   assert.match(layout, /Ring1Provider/);
   assert.match(ctx, /Ring1Provider/);
-  assert.match(business, /useRing1/);
+  // Shell chrome uses optional (survives outside provider); Command banner requires it.
+  assert.match(business, /use(?:Optional)?Ring1/);
   assert.match(banner, /useRing1/);
   assert.doesNotMatch(banner, /fetch\("\/api\/ring1"\)/);
 });
