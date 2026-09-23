@@ -4890,7 +4890,7 @@ body:has(.mkt-page) .shell-header {
   the same red the rest of the night shell already uses for this reason.
 */
 .os-shell-night .pro-dispatch-today-unassigned-badge {
-  color: #e0855a !important;
+  color: var(--os-attention, #d4a574) !important;
 }
 
 .os-shell-night .pro-dispatch-today-status-emergency {

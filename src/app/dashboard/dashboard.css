@@ -4006,7 +4006,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .lead-rail-row:hover {
-  background: #3f3d39 !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
 }
 
 .lead-rail-row-emergency {
@@ -4225,7 +4225,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .onboarding-shell--night .onboarding-step-active {
-  background: #3f3d39 !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
   border-color: #e9e9e9 !important;
   color: #e9e9e9 !important;
   box-shadow: none !important;
@@ -4241,7 +4241,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .onboarding-shell--night .onboarding-trade-active {
   border-color: #e9e9e9 !important;
-  background: #3f3d39 !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
 }
 
 .onboarding-shell--night .onboarding-ring-num {
@@ -5695,7 +5695,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .billing-settings .btn:hover {
-  background: #3f3d39 !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
   border-color: rgba(255, 255, 255, 0.22) !important;
   color: #ffffff !important;
 }
@@ -6782,7 +6782,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 .os-shell-night .os-ask-dock-chip:hover:not(:disabled) {
   border-color: #595754 !important;
   color: #f4f4f4 !important;
-  background: #3f3d39 !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
 }
 
 .os-shell-night .os-ask-dock-form {
@@ -6949,7 +6949,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-sidebar-brand:hover {
-  background: #312f2a !important;
+  background: var(--mc-hover, #23262c) !important;
 }
 
 .os-shell-night .os-ring-status {
@@ -7048,8 +7048,8 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-nav-link:hover {
-  background: #312f2a !important;
-  color: #e9e9e9 !important;
+  background: var(--mc-hover, #23262c) !important;
+  color: var(--os-ink, #f4f5f7) !important;
 }
 
 .os-shell-night .os-nav-link:hover .os-nav-icon {
@@ -7058,10 +7058,10 @@ a.pro-shift-event:hover .pro-shift-event-title {
 
 .os-shell-night .os-sidebar-pro .os-nav-link-active,
 .os-shell-night .os-nav-link-active {
-  background: #3f3d39 !important;
-  color: #ffffff !important;
-  font-weight: 550 !important;
-  box-shadow: none !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
+  color: var(--os-ink, #f4f5f7) !important;
+  font-weight: 560 !important;
+  box-shadow: inset 2px 0 0 var(--os-live, #2bd576) !important;
 }
 
 .os-shell-night .os-nav-link-active .os-nav-icon {
@@ -7127,7 +7127,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .os-sidebar-user:hover {
-  background: #312f2a !important;
+  background: var(--mc-hover, #23262c) !important;
 }
 
 .os-shell-night .os-topbar-pro,
@@ -7201,7 +7201,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .attention-item:hover {
-  background: #373530 !important;
+  background: var(--mc-hover, #23262c) !important;
 }
 
 .os-shell-night .attention-item-critical {
@@ -7305,7 +7305,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .attention-item-btn:hover {
-  background: #3f3d39 !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
   border-color: #595754 !important;
   color: #ffffff !important;
 }
@@ -7330,7 +7330,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .attention-item-btn-quiet:hover {
-  background: #3f3d39 !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
   color: #ffffff !important;
   border-color: transparent !important;
 }
@@ -7383,7 +7383,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .lead-quick-btn:hover {
-  background: #3f3d39 !important;
+  background: var(--os-panel-raised, #1c1f24) !important;
   border-color: #595754 !important;
   color: #ffffff !important;
 }
@@ -9933,7 +9933,7 @@ a.pro-shift-event:hover .pro-shift-event-title {
 }
 
 .os-shell-night .pro-settings-secondary > summary:hover {
-  background: #373530 !important;
+  background: var(--mc-hover, #23262c) !important;
 }
 
 .os-shell-night .pro-settings-secondary-body {
