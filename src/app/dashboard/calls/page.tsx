@@ -1,12 +1,13 @@
 "use client";
 
 import { CallRecordCard } from "@/components/call-record-card";
+import { ClarityEmpty, ClarityFailure } from "@/components/clarity";
 import { ProLead } from "@/components/pro-lead";
-import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
+import { ProListEnd } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { PAGE_CLARITY } from "@/lib/clarity";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -62,6 +63,7 @@ export default function CallsPage() {
   return (
     <OsShell
       title="Calls"
+      clarity={PAGE_CLARITY.calls}
       actions={
         <Link href="/dashboard/inbox" className="btn btn-void text-sm">
           Inbox
@@ -91,14 +93,41 @@ export default function CallsPage() {
         <>
           {error ? (
             <div className="mb-6">
-              <ShellAlert tone="error">{error}</ShellAlert>
+              <ClarityFailure
+                title="Calls could not load"
+                cause={error}
+                impact="You cannot review transcripts or jump to related leads until this recovers."
+                recovery="Retry now. Your shop line is still answering — this is the list only."
+                action={
+                  <button
+                    type="button"
+                    className="btn btn-void text-sm"
+                    onClick={() => {
+                      setLoading(true);
+                      setError(null);
+                      fetch("/api/calls?limit=50")
+                        .then(async (res) => {
+                          if (!res.ok) throw new Error("Failed to load calls");
+                          return res.json();
+                        })
+                        .then((data) => setCalls(data.calls ?? []))
+                        .catch((err) => setError(err.message))
+                        .finally(() => setLoading(false));
+                    }}
+                  >
+                    Retry
+                  </button>
+                }
+              />
             </div>
           ) : null}
 
           {!calls.length ? (
-            <ProEmptyState
+            <ClarityEmpty
               title="No calls yet"
               body="Every inbound call is transcribed and linked to a lead in your inbox."
+              next="Place a test call on your shop line, then open the recording here."
+              consequence="Seeing the first transcript proves Orvius understood the caller before you book."
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : (

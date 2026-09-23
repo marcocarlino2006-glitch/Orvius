@@ -1,17 +1,17 @@
 "use client";
 
+import { ClarityEmpty, ClarityFailure } from "@/components/clarity";
 import { CustomerRecordCard } from "@/components/customer-record-card";
 import { ProLead } from "@/components/pro-lead";
 import {
   ProSearchBar,
-  ProEmptyState,
   ProListEnd,
 } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
-import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { PAGE_CLARITY } from "@/lib/clarity";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -82,7 +82,7 @@ export default function CustomersPage() {
   }, [customers]);
 
   return (
-    <OsShell title="Customers">
+    <OsShell title="Customers" clarity={PAGE_CLARITY.customers}>
       <PlanUpgradeGate module="customers">
       {loading && !customers.length ? (
         <DashboardSkeleton />
@@ -129,16 +129,28 @@ export default function CustomersPage() {
 
           {error ? (
             <div className="mb-4">
-              <ShellAlert tone="error">{error}</ShellAlert>
+              <ClarityFailure
+                title="Customers could not load"
+                cause={error}
+                impact="You cannot open history or call from a customer record until this recovers."
+                recovery="Retry the search, or open Inbox to work from the newest lead."
+                action={
+                  <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+                    Open inbox
+                  </Link>
+                }
+              />
             </div>
           ) : null}
 
           {loading ? (
             <DashboardSkeleton />
           ) : !customers.length ? (
-            <ProEmptyState
+            <ClarityEmpty
               title="No customers yet"
               body="They appear automatically when someone calls or texts your shop line."
+              next="Call your line once, then open the customer that was created from that call."
+              consequence="Returning numbers are recognized on the next call — history stays attached."
               action={
                 <div className="flex flex-wrap gap-2">
                   <ProShopLineCta showNumber={false} />

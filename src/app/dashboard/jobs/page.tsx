@@ -1,12 +1,13 @@
 "use client";
 
+import { ClarityEmpty, ClarityFailure } from "@/components/clarity";
 import { JobCard } from "@/components/job-card";
 import { ProLead } from "@/components/pro-lead";
-import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
+import { ProListEnd } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
-import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { PAGE_CLARITY } from "@/lib/clarity";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -121,6 +122,19 @@ export default function JobsPage() {
   return (
     <OsShell
       title="Jobs"
+      clarity={{
+        ...PAGE_CLARITY.jobs,
+        happening:
+          unassigned > 0
+            ? `${open.length} open · ${unassigned} still need a tech.`
+            : PAGE_CLARITY.jobs.happening,
+        next:
+          unassigned > 0
+            ? "Assign a technician on Dispatch, or open the next booked job."
+            : PAGE_CLARITY.jobs.next,
+        primaryHref: unassigned > 0 ? "/dashboard/dispatch" : PAGE_CLARITY.jobs.primaryHref,
+        primaryLabel: unassigned > 0 ? `Assign ${unassigned}` : PAGE_CLARITY.jobs.primaryLabel,
+      }}
       subtitle="Open work — first contact through completed jobs."
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
@@ -161,7 +175,26 @@ export default function JobsPage() {
         <>
           {error ? (
             <div className="mb-6">
-              <ShellAlert tone="error">{error}</ShellAlert>
+              <ClarityFailure
+                title="Jobs could not load"
+                cause={error}
+                impact="You cannot assign techs or advance status until this list recovers."
+                recovery="Retry now, or open Inbox to book from a waiting lead."
+                action={
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-void text-sm"
+                      onClick={() => window.location.reload()}
+                    >
+                      Retry
+                    </button>
+                    <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
+                      Inbox
+                    </Link>
+                  </div>
+                }
+              />
             </div>
           ) : null}
 
@@ -191,9 +224,11 @@ export default function JobsPage() {
           </div>
 
           {!jobs.length && !newLeadCount ? (
-            <ProEmptyState
+            <ClarityEmpty
               title="No jobs booked yet"
               body="Open a lead in the inbox, capture the details, and book the appointment."
+              next="Go to Inbox and book the newest waiting lead."
+              consequence="Booking creates a job you can assign, estimate, and collect on — the money loop starts here."
               action={
                 <Link href="/dashboard/inbox" className="btn btn-void text-sm">
                   Go to inbox
@@ -201,7 +236,7 @@ export default function JobsPage() {
               }
             />
           ) : !filtered.length ? (
-            <ProEmptyState
+            <ClarityEmpty
               title={
                 stageId === "booked"
                   ? "No booked jobs right now"
@@ -209,13 +244,15 @@ export default function JobsPage() {
                     ? "No jobs in progress right now"
                     : stageId === "completed"
                       ? "No completed jobs right now"
-                      : stageId === "estimates"
+                      : stageId === "estimate"
                         ? "No estimates right now"
-                        : stageId === "invoices"
+                        : stageId === "invoice"
                           ? "No invoices right now"
                           : `No ${STAGES.find((s) => s.id === stageId)?.label.toLowerCase() ?? "jobs"} right now`
               }
-              body="Switch stages or book from the inbox."
+              body="This stage is clear. Switch stages or book from the inbox."
+              next="Open Inbox for new leads, or pick another pipeline stage."
+              consequence="Keeping stages current keeps crew, estimates, and payments from stalling."
               action={
                 <Link href="/dashboard/inbox" className="btn btn-void text-sm">
                   Inbox

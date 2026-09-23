@@ -8,6 +8,7 @@ import { useBusiness } from "@/lib/use-business";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
 import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
+import { ClarityPurposeBar } from "@/components/clarity";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { OsIcon } from "@/components/os-icons";
 import { OsAskDock } from "@/components/os-ask-dock";
@@ -16,6 +17,7 @@ import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-n
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { PostLockBanner } from "@/components/post-lock-banner";
+import type { ClarityPurpose } from "@/lib/clarity";
 
 type OsShellProps = {
   children: React.ReactNode;
@@ -24,6 +26,8 @@ type OsShellProps = {
   businessName?: string;
   statusLabel?: string;
   actions?: React.ReactNode;
+  /** Four-question guidance — What / Happening / Next / Consequence. */
+  clarity?: ClarityPurpose | null;
 };
 
 function navActive(pathname: string, href: string) {
@@ -37,6 +41,7 @@ export function OsShell({
   subtitle,
   businessName: businessNameProp,
   actions,
+  clarity,
 }: OsShellProps) {
   const pathname = usePathname();
   const { business, loading: businessLoading } = useBusiness();
@@ -269,7 +274,10 @@ export function OsShell({
         </header>
 
         <PostLockBanner />
-        <main className="os-content os-content-pro">{children}</main>
+        <main className="os-content os-content-pro">
+          {clarity ? <ClarityPurposeBar purpose={clarity} /> : null}
+          {children}
+        </main>
         {showAskDock ? <OsAskDock /> : null}
         <OsCommandPalette
           open={paletteOpen}

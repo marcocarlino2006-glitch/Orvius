@@ -3,6 +3,7 @@
 import { FirstNightHandoff } from "@/components/first-night-handoff";
 import { Ring1CommandCenter } from "@/components/ring1-command-center";
 import { OsShell } from "@/components/os-shell";
+import { PAGE_CLARITY } from "@/lib/clarity";
 import { Suspense } from "react";
 
 /**
@@ -11,7 +12,7 @@ import { Suspense } from "react";
  */
 export default function DashboardPage() {
   return (
-    <OsShell title="Command">
+    <OsShell title="Command" clarity={PAGE_CLARITY.command}>
       <Suspense fallback={null}>
         <FirstNightHandoff />
       </Suspense>

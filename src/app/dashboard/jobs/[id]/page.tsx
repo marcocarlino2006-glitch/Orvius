@@ -1,5 +1,6 @@
 "use client";
 
+import { ClarityFailure, WorkflowTrail } from "@/components/clarity";
 import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
 import {
@@ -8,6 +9,7 @@ import {
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
+import { PAGE_CLARITY, buildRecordTrail } from "@/lib/clarity";
 import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -153,21 +155,63 @@ export default function JobDetailPage() {
 
   if (!job) {
     return (
-      <OsShell title="Job" subtitle="Not found">
-        <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/jobs" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Jobs
-        </Link>
+      <OsShell title="Job" clarity={PAGE_CLARITY.jobs}>
+        <ClarityFailure
+          title="Job not found"
+          cause={error ?? "This job is missing or you do not have access."}
+          impact="You cannot assign a tech, send an estimate, or collect payment from here."
+          recovery="Return to Jobs and open an active job, or book from Inbox."
+          action={
+            <div className="flex flex-wrap gap-2">
+              <Link href="/dashboard/jobs" className="btn btn-void text-sm">
+                ← Jobs
+              </Link>
+              <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
+                Inbox
+              </Link>
+            </div>
+          }
+        />
       </OsShell>
     );
   }
 
   const next = nextJobStatus(job.status);
   const phone = job.customer?.phone ?? job.lead?.phone;
+  const trailCurrent =
+    job.estimate?.invoice
+      ? "payment"
+      : job.estimate
+        ? "estimate"
+        : "job";
+  const trail = buildRecordTrail({
+    customerId: job.customer?.id,
+    jobId: job.id,
+    estimateId: job.estimate?.id,
+    invoiceId: job.estimate?.invoice?.id,
+    current: trailCurrent,
+  });
 
   return (
     <OsShell
       title={job.title}
+      clarity={{
+        what: "This job is booked work — schedule, tech, estimate, and payment.",
+        happening: `Status: ${jobStatusLabel(job.status)}${
+          job.technician ? ` · ${job.technician.name}` : " · no tech assigned"
+        }.`,
+        next: !job.technician
+          ? "Assign a technician, then confirm the schedule with the customer."
+          : next
+            ? `Advance with “${next.label}” when the crew is ready.`
+            : job.estimate?.invoice
+              ? "Collect or confirm payment, then follow up if needed."
+              : "Send or finalize the estimate when work is scoped.",
+        consequence:
+          "Status and money changes stay on this record and keep the customer path honest.",
+        primaryHref: !job.technician ? "/dashboard/dispatch" : undefined,
+        primaryLabel: !job.technician ? "Open Dispatch" : undefined,
+      }}
       actions={
         <div className="flex flex-wrap gap-2">
           <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
@@ -181,6 +225,7 @@ export default function JobDetailPage() {
         </div>
       }
     >
+      <WorkflowTrail links={trail} className="mb-4" />
       {error ? (
         <div className="mb-6">
           <ShellAlert tone="error">{error}</ShellAlert>

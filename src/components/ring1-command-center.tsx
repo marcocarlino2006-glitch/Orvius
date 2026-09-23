@@ -65,8 +65,18 @@ export function Ring1CommandCenter() {
         {loadError ? (
           <div className="pro-command-recovery font-sans" role="alert">
             <div>
-              <strong>Connection needs attention</strong>
-              <span>{loadError}</span>
+              <strong>Command could not refresh</strong>
+              <span className="pro-command-recovery-row">
+                <span className="clarity-purpose-label">Cause</span> {loadError}
+              </span>
+              <span className="pro-command-recovery-row">
+                <span className="clarity-purpose-label">Impact</span> Tonight’s
+                queue and outcomes may be stale until this reconnects.
+              </span>
+              <span className="pro-command-recovery-row">
+                <span className="clarity-purpose-label">Recover</span> Retry now —
+                your shop line is still answering calls.
+              </span>
             </div>
             <button
               type="button"

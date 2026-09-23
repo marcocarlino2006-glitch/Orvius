@@ -1,18 +1,18 @@
 "use client";
 
+import { ClarityEmpty, ClarityFailure } from "@/components/clarity";
 import { LeadInboxCard } from "@/components/lead-inbox-card";
 import { ProLead } from "@/components/pro-lead";
 import { LEAD_STATUSES } from "@/components/lead-status-actions";
 import {
   ProFilterBar,
-  ProEmptyState,
   ProListEnd,
 } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
-import { useCallback, useEffect, useState } from "react";
+import { PAGE_CLARITY } from "@/lib/clarity";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type LeadRow = {
   id: string;
@@ -75,9 +75,27 @@ export default function InboxPage() {
 
   const newCount = counts?.new ?? 0;
 
+  const clarity = useMemo(
+    () => ({
+      ...PAGE_CLARITY.inbox,
+      happening:
+        newCount > 0
+          ? `${newCount} new lead${newCount === 1 ? "" : "s"} waiting — newest first.`
+          : PAGE_CLARITY.inbox.happening,
+      next:
+        newCount > 0
+          ? "Open the top new lead and call them back."
+          : PAGE_CLARITY.inbox.next,
+      primaryHref: newCount > 0 && leads[0] ? `/dashboard/inbox/${leads[0].id}` : undefined,
+      primaryLabel: newCount > 0 && leads[0] ? "Open top lead" : undefined,
+    }),
+    [newCount, leads],
+  );
+
   return (
     <OsShell
       title="Inbox"
+      clarity={clarity}
       subtitle={
         newCount > 0
           ? `${newCount} lead${newCount === 1 ? "" : "s"} need your follow-up`
@@ -120,18 +138,38 @@ export default function InboxPage() {
         <>
           {error ? (
             <div className="mb-6">
-              <ShellAlert tone="error">{error}</ShellAlert>
+              <ClarityFailure
+                title="Inbox could not load"
+                cause={error}
+                impact="New leads may be waiting while this list is blank."
+                recovery="Retry the load, or place a test call to confirm capture still works."
+                action={
+                  <button
+                    type="button"
+                    className="btn btn-void text-sm"
+                    onClick={() => void loadLeads(filter)}
+                  >
+                    Retry
+                  </button>
+                }
+              />
             </div>
           ) : null}
 
           {!leads.length ? (
-            <ProEmptyState
+            <ClarityEmpty
               title={filter ? "Nothing in this filter" : "No leads yet"}
               body={
                 filter
-                  ? "Try another status or place a test call on your shop line."
+                  ? "This status is empty right now. Switch filters or place a test call on your shop line."
                   : "When someone calls, Orvius captures service, urgency, address, and callback — then drops it here."
               }
+              next={
+                filter
+                  ? "Clear the filter or call your line once to prove capture."
+                  : "Call your shop line once so you can see how a lead lands."
+              }
+              consequence="A successful test call means after-hours callers become bookable work instead of voicemail."
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : (

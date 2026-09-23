@@ -1,10 +1,12 @@
 "use client";
 
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
+import { ClarityFailure } from "@/components/clarity";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellPanel } from "@/components/shell-primitives";
+import { PAGE_CLARITY } from "@/lib/clarity";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import type { ManusPostStep } from "@/lib/manus-post";
 import type { ShopHealth } from "@/lib/shop-health";
@@ -377,20 +379,29 @@ export default function DashboardSettingsPage() {
 
   if (loadState !== "ready" || !account) {
     return (
-      <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+      <OsShell
+        title="Settings"
+        subtitle="One hub — capture, alerts, billing, then Command."
+        clarity={PAGE_CLARITY.settings}
+      >
         <div className="pro-settings-page">
           {loadState === "error" ? (
             <div className="pro-settings-load-error">
-              <ShellAlert tone="error">
-                {error ?? "Could not load settings."}
-              </ShellAlert>
-              <button
-                type="button"
-                className="btn btn-void text-sm mt-4"
-                onClick={() => void loadAccount()}
-              >
-                Retry
-              </button>
+              <ClarityFailure
+                title="Settings could not load"
+                cause={error ?? "Could not load settings."}
+                impact="You cannot change capture, alerts, or billing until this recovers — the live line keeps last-saved values."
+                recovery="Retry now. If it keeps failing, open Command and email support from there."
+                action={
+                  <button
+                    type="button"
+                    className="btn btn-void text-sm"
+                    onClick={() => void loadAccount()}
+                  >
+                    Retry
+                  </button>
+                }
+              />
             </div>
           ) : (
             <div className="pro-settings-load-skel" aria-busy="true">
@@ -405,7 +416,11 @@ export default function DashboardSettingsPage() {
   }
 
   return (
-    <OsShell title="Settings" subtitle="One hub — capture, alerts, billing, then Command.">
+    <OsShell
+      title="Settings"
+      subtitle="One hub — capture, alerts, billing, then Command."
+      clarity={PAGE_CLARITY.settings}
+    >
       <div className="pro-settings-page">
         <SettingsLaunchGuide
           input={{
@@ -704,12 +719,12 @@ export default function DashboardSettingsPage() {
         <div className="pro-settings-savebar">
           <p className="pro-settings-savebar-hint font-sans">
             {saving
-              ? "Saving your changes…"
+              ? "Saving — live night line updates when this finishes…"
               : saved
-                ? "All changes saved."
+                ? "Saved. Receptionist, overflow, and owner alerts now use these values."
                 : dirty
-                  ? "Unsaved — applies to your live night line."
-                  : "No changes."}
+                  ? "Unsaved — Save changes how Orvius answers, who gets alerts, and what gets booked tonight."
+                  : "No changes. Your live line keeps the last saved settings."}
           </p>
           <button
             type="submit"

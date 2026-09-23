@@ -926,3 +926,198 @@
     animation: none !important;
   }
 }
+
+/* ── Clarity OS — four-question guidance ─────────────────── */
+
+.os-shell-night .clarity-purpose {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--mc-line);
+  border-radius: var(--mc-radius);
+  background: color-mix(in srgb, var(--mc-raised) 88%, transparent);
+  box-shadow: var(--mc-lip);
+}
+
+.os-shell-night .clarity-purpose-what {
+  margin: 0 0 0.55rem;
+  color: var(--mc-ink);
+  font-size: 0.9375rem;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
+}
+
+.os-shell-night .clarity-purpose-row {
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+  gap: 0.45rem 0.75rem;
+  margin: 0.35rem 0 0;
+  color: var(--mc-ink-soft);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.os-shell-night .clarity-purpose-label {
+  color: var(--mc-mute-dim);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  font-weight: 550;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-top: 0.15rem;
+}
+
+.os-shell-night .clarity-purpose-next .clarity-purpose-label,
+.os-shell-night .clarity-purpose-next {
+  color: var(--mc-ink);
+}
+
+.os-shell-night .clarity-purpose-consequence {
+  color: var(--mc-mute);
+}
+
+.os-shell-night .clarity-purpose-cta {
+  color: var(--mc-focus);
+  font-weight: 550;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.os-shell-night .clarity-purpose-cta:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.os-shell-night .clarity-empty,
+.os-shell-night .clarity-failure {
+  margin: 0.5rem 0 1rem;
+  padding: 1.15rem 1.15rem 1.25rem;
+  border: 1px dashed var(--mc-line);
+  border-radius: var(--mc-radius);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.os-shell-night .clarity-failure {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--mc-attention) 45%, transparent);
+  background: var(--mc-attention-soft);
+}
+
+.os-shell-night .clarity-empty-title,
+.os-shell-night .clarity-failure-title {
+  margin: 0 0 0.4rem;
+  color: var(--mc-ink);
+  font-size: 1rem;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+}
+
+.os-shell-night .clarity-empty-body {
+  margin: 0 0 0.65rem;
+  color: var(--mc-mute);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  max-width: 36rem;
+}
+
+.os-shell-night .clarity-empty-next,
+.os-shell-night .clarity-empty-consequence {
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+  gap: 0.35rem 0.75rem;
+  margin: 0.35rem 0 0;
+  color: var(--mc-ink-soft);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.os-shell-night .clarity-empty-action,
+.os-shell-night .clarity-failure-action {
+  margin-top: 0.9rem;
+}
+
+.os-shell-night .pro-command-recovery-row {
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.35rem;
+  color: var(--mc-ink-soft);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.os-shell-night .workflow-trail {
+  margin: 0 0 0.25rem;
+}
+
+.os-shell-night .workflow-trail-kicker {
+  margin: 0 0 0.4rem;
+  color: var(--mc-mute-dim);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  font-weight: 550;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.os-shell-night .workflow-trail-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.os-shell-night .workflow-trail-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.os-shell-night .workflow-trail-rail {
+  width: 0.55rem;
+  height: 1px;
+  margin: 0 0.2rem;
+  background: var(--mc-line);
+}
+
+.os-shell-night .workflow-trail-node {
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--mc-radius-sm);
+  color: var(--mc-mute);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  line-height: 1.3;
+}
+
+.os-shell-night .workflow-trail-item.is-done .workflow-trail-node {
+  color: var(--mc-ink-soft);
+}
+
+.os-shell-night .workflow-trail-item.is-current .workflow-trail-node {
+  color: var(--mc-ink);
+  background: rgba(91, 156, 255, 0.12);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mc-focus) 35%, transparent);
+}
+
+.os-shell-night .workflow-trail-item.is-waiting .workflow-trail-node {
+  color: var(--mc-attention);
+}
+
+.os-shell-night a.workflow-trail-node:hover {
+  color: var(--mc-focus);
+}
+
+@media (max-width: 640px) {
+  .os-shell-night .clarity-purpose-row,
+  .os-shell-night .clarity-empty-next,
+  .os-shell-night .clarity-empty-consequence,
+  .os-shell-night .pro-command-recovery-row {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}

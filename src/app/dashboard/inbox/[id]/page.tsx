@@ -2,6 +2,7 @@
 
 import { BookJobForm } from "@/components/book-job-form";
 import { AssignTechButton } from "@/components/assign-tech-button";
+import { ClarityFailure, WorkflowTrail } from "@/components/clarity";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
 import { LeadQualificationForm } from "@/components/lead-qualification-form";
@@ -13,6 +14,7 @@ import {
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
+import { PAGE_CLARITY, buildRecordTrail } from "@/lib/clarity";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -104,11 +106,18 @@ export default function LeadDetailPage() {
 
   if (error || !lead) {
     return (
-      <OsShell title="Lead" subtitle="Not found">
-        <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/inbox" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Inbox
-        </Link>
+      <OsShell title="Lead" clarity={PAGE_CLARITY.inbox}>
+        <ClarityFailure
+          title="Lead not found"
+          cause={error ?? "This lead is missing or you do not have access."}
+          impact="You cannot call back or book from this screen until you open a valid lead."
+          recovery="Return to Inbox and open the newest waiting lead."
+          action={
+            <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+              ← Inbox
+            </Link>
+          }
+        />
       </OsShell>
     );
   }
@@ -130,9 +139,37 @@ export default function LeadDetailPage() {
     setManualBookingAvailable(!booked);
     void loadLead();
   };
+
+  const trail = buildRecordTrail({
+    callId: lead.call?.id,
+    customerId: lead.customer?.id,
+    jobId: lead.job?.id,
+    current: lead.job ? "job" : "customer",
+  });
+
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
+      clarity={{
+        what: "This lead is the qualified follow-up from a call or text.",
+        happening: lead.job
+          ? "Already booked — open the job to assign a tech or advance status."
+          : `Status: ${lead.status}. Call back or book when you are ready.`,
+        next: lead.job
+          ? "Open the job to keep the money loop moving."
+          : lead.phone
+            ? "Call the lead, then book the job when they confirm."
+            : "Fill missing contact details, then call or book.",
+        consequence: lead.job
+          ? "Job changes notify the customer path and keep crew aligned."
+          : "Booking creates a scheduled job linked to this customer and call.",
+        primaryHref: lead.job
+          ? `/dashboard/jobs/${lead.job.id}`
+          : lead.phone
+            ? `tel:${lead.phone}`
+            : undefined,
+        primaryLabel: lead.job ? "Open job" : lead.phone ? "Call lead" : undefined,
+      }}
       businessName={lead.business?.name ?? undefined}
       actions={
         <div className="flex flex-wrap items-center gap-2">
@@ -149,6 +186,8 @@ export default function LeadDetailPage() {
         </div>
       }
     >
+      <WorkflowTrail links={trail} className="mb-4" />
+
       <div className="ring1-lead-status mb-3">
         <LeadStatusActions
           leadId={lead.id}

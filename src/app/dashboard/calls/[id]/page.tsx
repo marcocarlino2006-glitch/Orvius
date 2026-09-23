@@ -2,6 +2,7 @@
 
 import { AiSituationPanel, type AiSituation } from "@/components/ai-situation-panel";
 import { CallPlayer } from "@/components/call-player";
+import { ClarityFailure, WorkflowTrail } from "@/components/clarity";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
@@ -11,6 +12,7 @@ import {
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
+import { PAGE_CLARITY, buildRecordTrail } from "@/lib/clarity";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -108,11 +110,23 @@ export default function CallDetailPage() {
 
   if (error || !call) {
     return (
-      <OsShell title="Call" subtitle="Not found">
-        <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/calls" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Calls
-        </Link>
+      <OsShell title="Call" clarity={PAGE_CLARITY.calls}>
+        <ClarityFailure
+          title="Call not found"
+          cause={error ?? "This call record is missing or you do not have access."}
+          impact="You cannot review the transcript or jump to the related lead from here."
+          recovery="Return to Calls and open another recording, or check Inbox for the related lead."
+          action={
+            <div className="flex flex-wrap gap-2">
+              <Link href="/dashboard/calls" className="btn btn-void text-sm">
+                ← Calls
+              </Link>
+              <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
+                Inbox
+              </Link>
+            </div>
+          }
+        />
       </OsShell>
     );
   }
@@ -123,10 +137,29 @@ export default function CallDetailPage() {
     call.callerPhone ??
     "Unknown caller";
 
+  const trail = buildRecordTrail({
+    callId: call.id,
+    customerId: call.customer?.id,
+    jobId: call.lead?.job?.id,
+    current: "call",
+  });
+
   return (
     <OsShell
       title={who}
-      
+      clarity={{
+        what: "This call is the source of truth for what the caller said.",
+        happening: call.summary
+          ? "Transcript and summary are ready to review."
+          : "Recording is filed — open the transcript to verify what Orvius heard.",
+        next: call.lead
+          ? "Open the lead to call back or book the job."
+          : "If this should become work, create follow-up from Inbox after the next call.",
+        consequence:
+          "Correcting or booking from this call updates the real customer record — nothing stays siloed.",
+        primaryHref: call.lead ? `/dashboard/inbox/${call.lead.id}` : "/dashboard/inbox",
+        primaryLabel: call.lead ? "Open lead" : "Open Inbox",
+      }}
       businessName={call.business?.name ?? "Your shop"}
       actions={
         <div className="flex flex-wrap gap-2">
@@ -143,6 +176,8 @@ export default function CallDetailPage() {
         </div>
       }
     >
+      <WorkflowTrail links={trail} className="mb-4" />
+
       {situation?.needsReview ? (
         <div className="mb-6">
           <ShellAlert tone="error">

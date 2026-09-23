@@ -20,10 +20,11 @@ test("dashboard routes own loading and error states", () => {
 test("Command exposes failed refreshes and a real retry action", () => {
   const command = read("src/components/ring1-command-center.tsx");
   const ctx = read("src/lib/ring1-context.tsx");
-  assert.match(command, /Connection needs attention/);
+  assert.match(command, /Command could not refresh|Connection needs attention/);
   assert.match(command, /useRing1/);
   assert.match(command, /await refresh\(\)/);
   assert.match(command, /Try again/);
+  assert.match(command, /Cause|Impact|Recover/);
   assert.match(ctx, /Live refresh is temporarily unavailable/);
   assert.doesNotMatch(command, /fetch\("\/api\/ring1"\)/);
 });
