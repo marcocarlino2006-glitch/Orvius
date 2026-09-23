@@ -7,9 +7,11 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { pricing } from "@/lib/company";
@@ -32,52 +34,46 @@ type AccountData = {
   };
 };
 
+type ControlSection = "operate" | "configure" | "systems" | "you";
+
 type ControlItem = {
   id: string;
   href: string;
   label: string;
   hint: string;
-  section: "you" | "shop" | "systems";
+  section: ControlSection;
   keywords?: string;
-  external?: boolean;
-  tone?: "default" | "risk";
+  healthKey?: "line" | "alerts" | "billing";
 };
 
 /**
- * Owner command surface — person, shop, AI, team, money, security.
- * Destinations are real Orvius routes/anchors only (no theater pages).
+ * Frequency-first owner command surface.
+ * Destinations are real Orvius routes/anchors only.
  */
 const CONTROLS: ControlItem[] = [
-  {
-    id: "profile",
-    href: "/dashboard/profile",
-    label: "Profile",
-    hint: "Name, email, shop identity",
-    section: "you",
-    keywords: "account me user",
-  },
-  {
-    id: "security",
-    href: "/dashboard/profile",
-    label: "Security & privacy",
-    hint: "Sign-in and account access",
-    section: "you",
-    keywords: "password oauth google privacy",
-  },
   {
     id: "shop-settings",
     href: "/dashboard/settings",
     label: "Shop settings",
     hint: "Capture, line, and baselines",
-    section: "shop",
-    keywords: "setup configure",
+    section: "operate",
+    keywords: "setup configure hub",
+  },
+  {
+    id: "notifications",
+    href: "/dashboard/settings#owner-alerts",
+    label: "Notifications",
+    hint: "Owner SMS and alert delivery",
+    section: "operate",
+    keywords: "sms alerts text",
+    healthKey: "alerts",
   },
   {
     id: "ai",
     href: "/dashboard/settings#ai-receptionist",
     label: "AI receptionist",
     hint: "Opening line and intake voice",
-    section: "shop",
+    section: "operate",
     keywords: "greeting assistant vapi voice",
   },
   {
@@ -85,15 +81,16 @@ const CONTROLS: ControlItem[] = [
     href: "/dashboard/settings#overflow-forward",
     label: "Phone & call rules",
     hint: "Line, forwarding, overflow",
-    section: "shop",
+    section: "operate",
     keywords: "twilio forward capture",
+    healthKey: "line",
   },
   {
     id: "hours",
     href: "/dashboard/settings#overflow-forward",
     label: "Business hours",
     hint: "After-hours coverage rules",
-    section: "shop",
+    section: "configure",
     keywords: "schedule timezone night",
   },
   {
@@ -101,7 +98,7 @@ const CONTROLS: ControlItem[] = [
     href: "/dashboard/jobs",
     label: "Calendar & booking",
     hint: "Jobs, windows, confirmations",
-    section: "shop",
+    section: "configure",
     keywords: "appointments schedule",
   },
   {
@@ -109,16 +106,8 @@ const CONTROLS: ControlItem[] = [
     href: "/dashboard/settings",
     label: "Service area",
     hint: "Where the shop takes work",
-    section: "shop",
+    section: "configure",
     keywords: "geo territory zip",
-  },
-  {
-    id: "notifications",
-    href: "/dashboard/settings#owner-alerts",
-    label: "Notifications",
-    hint: "Owner SMS and alert delivery",
-    section: "shop",
-    keywords: "sms alerts text",
   },
   {
     id: "team",
@@ -143,6 +132,7 @@ const CONTROLS: ControlItem[] = [
     hint: "Plan, card, and payouts",
     section: "systems",
     keywords: "pay subscription invoice",
+    healthKey: "billing",
   },
   {
     id: "audit",
@@ -152,13 +142,37 @@ const CONTROLS: ControlItem[] = [
     section: "systems",
     keywords: "history timeline proof",
   },
+  {
+    id: "profile",
+    href: "/dashboard/profile",
+    label: "Profile",
+    hint: "Name, email, shop identity",
+    section: "you",
+    keywords: "account me user",
+  },
+  {
+    id: "security",
+    href: "/dashboard/profile",
+    label: "Security & privacy",
+    hint: "Sign-in and account access",
+    section: "you",
+    keywords: "password oauth google privacy",
+  },
 ];
 
-const SECTION_LABEL: Record<ControlItem["section"], string> = {
-  you: "You",
-  shop: "Shop & AI",
+const SECTION_LABEL: Record<ControlSection, string> = {
+  operate: "Operate",
+  configure: "Configure shop",
   systems: "Team, money & trust",
+  you: "You",
 };
+
+const SECTION_ORDER: ControlSection[] = [
+  "operate",
+  "configure",
+  "systems",
+  "you",
+];
 
 type SystemStatus = {
   id: "answering" | "attention" | "offline";
@@ -166,6 +180,8 @@ type SystemStatus = {
   href: string;
   detail: string;
 };
+
+type HealthTone = "ok" | "warn" | "off" | null;
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
   if (name) {
@@ -175,7 +191,11 @@ function initials(name: string | null | undefined, email: string | null | undefi
     }
     return parts[0]?.slice(0, 2).toUpperCase() ?? "OR";
   }
-  return email?.slice(0, 2).toUpperCase() ?? "OR";
+  if (email) {
+    const local = email.split("@")[0] ?? email;
+    return local.slice(0, 2).toUpperCase();
+  }
+  return "OR";
 }
 
 function planDisplayLabel(account: AccountData | null): string {
@@ -231,7 +251,10 @@ function resolveSystemStatus(input: {
     return {
       id: "attention",
       label: "Needs attention",
-      href: input.alertsFailed > 0 ? "/dashboard#attention-board" : "/dashboard/settings#overflow-forward",
+      href:
+        input.alertsFailed > 0
+          ? "/dashboard#attention-board"
+          : "/dashboard/settings#overflow-forward",
       detail:
         input.alertsFailed > 0
           ? `${input.alertsFailed} alert delivery issue${input.alertsFailed === 1 ? "" : "s"}`
@@ -260,8 +283,12 @@ function matchesQuery(item: ControlItem, q: string) {
   return hay.includes(q);
 }
 
+function openCommandPalette() {
+  window.dispatchEvent(new CustomEvent("orvius:open-command-palette"));
+}
+
 /**
- * Bottom-left identity control → upward command popover.
+ * Bottom-left identity control → upward owner command popover.
  * Orvius OS chrome for person, shop, AI, team, integrations, and security.
  */
 export function OsSidebarFooter() {
@@ -273,7 +300,9 @@ export function OsSidebarFooter() {
   const [account, setAccount] = useState<AccountData | null>(null);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef<Array<HTMLAnchorElement | HTMLButtonElement | null>>([]);
   const menuId = useId();
@@ -288,13 +317,46 @@ export function OsSidebarFooter() {
       .catch(() => null);
   }, []);
 
+  const placePanel = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const gutter = 8;
+    const width = Math.min(22.5 * 16, window.innerWidth - gutter * 2);
+    let left = rect.left;
+    if (left + width > window.innerWidth - gutter) {
+      left = window.innerWidth - width - gutter;
+    }
+    if (left < gutter) left = gutter;
+    const bottom = Math.max(gutter, window.innerHeight - rect.top + 8);
+    const maxHeight = Math.max(240, Math.min(560, rect.top - gutter * 2));
+    setPanelStyle({
+      position: "fixed",
+      left,
+      bottom,
+      width,
+      maxHeight,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    placePanel();
+    window.addEventListener("resize", placePanel);
+    window.addEventListener("scroll", placePanel, true);
+    return () => {
+      window.removeEventListener("resize", placePanel);
+      window.removeEventListener("scroll", placePanel, true);
+    };
+  }, [open, placePanel]);
+
   useEffect(() => {
     if (!open) {
       setQuery("");
       setActiveIndex(0);
       return;
     }
-    const t = window.setTimeout(() => searchRef.current?.focus(), 30);
+    const t = window.setTimeout(() => searchRef.current?.focus(), 40);
     return () => window.clearTimeout(t);
   }, [open]);
 
@@ -311,6 +373,7 @@ export function OsSidebarFooter() {
       if (event.key === "Escape") {
         event.preventDefault();
         setOpen(false);
+        triggerRef.current?.focus();
       }
     }
 
@@ -331,29 +394,55 @@ export function OsSidebarFooter() {
     attentionCount: ring?.data?.attention?.length ?? 0,
   });
 
+  const healthFor = useCallback(
+    (key: ControlItem["healthKey"]): HealthTone => {
+      if (!key) return null;
+      if (key === "line") {
+        if (!business?.line) return "off";
+        return business.signals.lineVerified ? "ok" : "warn";
+      }
+      if (key === "alerts") {
+        return (business?.signals.alertsFailed24h ?? 0) > 0 ? "warn" : "ok";
+      }
+      if (key === "billing") {
+        const s = (
+          account?.billing?.status ??
+          account?.business?.billingStatus ??
+          "none"
+        ).toLowerCase();
+        if (s === "past_due" || s === "canceled") return "warn";
+        if (s === "active") return "ok";
+        return "off";
+      }
+      return null;
+    },
+    [account, business],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return CONTROLS.filter((item) => matchesQuery(item, q));
   }, [query]);
 
-  const sections = useMemo(() => {
-    const order: ControlItem["section"][] = ["you", "shop", "systems"];
-    return order
-      .map((section) => ({
+  const sections = useMemo(
+    () =>
+      SECTION_ORDER.map((section) => ({
         section,
         label: SECTION_LABEL[section],
         items: filtered.filter((item) => item.section === section),
-      }))
-      .filter((group) => group.items.length > 0);
-  }, [filtered]);
+      })).filter((group) => group.items.length > 0),
+    [filtered],
+  );
 
   const flatActions = useMemo(() => {
-    const list: Array<{ kind: "link"; item: ControlItem } | { kind: "help" } | { kind: "signout" }> =
-      filtered.map((item) => ({ kind: "link" as const, item }));
-    if (!query.trim() || "help support".includes(query.trim().toLowerCase()) || supportEmail.includes(query.trim().toLowerCase())) {
+    const list: Array<
+      { kind: "link"; item: ControlItem } | { kind: "help" } | { kind: "signout" }
+    > = filtered.map((item) => ({ kind: "link" as const, item }));
+    const q = query.trim().toLowerCase();
+    if (!q || "help support".includes(q) || supportEmail.toLowerCase().includes(q)) {
       list.push({ kind: "help" });
     }
-    if (!query.trim() || "sign out logout".includes(query.trim().toLowerCase())) {
+    if (!q || "sign out logout".includes(q)) {
       list.push({ kind: "signout" });
     }
     return list;
@@ -400,9 +489,10 @@ export function OsSidebarFooter() {
     (account?.billing?.status ?? "").toLowerCase() === "past_due"
       ? "Fix payment"
       : "Pay with card";
-  const modKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)
-    ? "⌘"
-    : "Ctrl";
+  const modKey =
+    typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)
+      ? "⌘"
+      : "Ctrl";
 
   let actionCursor = -1;
 
@@ -428,48 +518,59 @@ export function OsSidebarFooter() {
           role="dialog"
           aria-label="Owner control panel"
           aria-modal="false"
+          style={panelStyle}
           onKeyDown={onPanelKeyDown}
         >
-          <div className="os-identity-search">
-            <label className="sr-only" htmlFor={searchId}>
-              Search controls
-            </label>
-            <input
-              ref={searchRef}
-              id={searchId}
-              type="search"
-              className="os-identity-search-input"
-              placeholder="Search controls…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <span className="os-identity-search-hint" aria-hidden>
-              {modKey}K
-            </span>
-          </div>
+          <div className="os-identity-popover-head">
+            <div className="os-identity-search">
+              <label className="sr-only" htmlFor={searchId}>
+                Search controls
+              </label>
+              <input
+                ref={searchRef}
+                id={searchId}
+                type="search"
+                className="os-identity-search-input"
+                placeholder="Search controls…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                className="os-identity-search-hint"
+                title="Open command palette"
+                onClick={() => {
+                  close();
+                  openCommandPalette();
+                }}
+              >
+                {modKey}K
+              </button>
+            </div>
 
-          <Link
-            href={status.href}
-            className={`os-identity-status os-identity-status--${status.id}`}
-            onClick={close}
-          >
-            <span className="os-identity-status-dot" aria-hidden />
-            <span className="os-identity-status-copy">
-              <strong>{status.label}</strong>
-              <span>{status.detail}</span>
-            </span>
-            <span className="os-identity-status-go">Open →</span>
-          </Link>
+            <Link
+              href={status.href}
+              className={`os-identity-status os-identity-status--${status.id}`}
+              onClick={close}
+            >
+              <span className="os-identity-status-dot" aria-hidden />
+              <span className="os-identity-status-copy">
+                <strong>{status.label}</strong>
+                <span>{status.detail}</span>
+              </span>
+              <span className="os-identity-status-go">Open →</span>
+            </Link>
 
-          <div className="os-identity-workspace">
-            <p className="os-identity-kicker">Workspace</p>
-            <p className="os-identity-workspace-name">{shopName}</p>
-            <p className="os-identity-workspace-meta">
-              {planLabel}
-              {business?.line ? ` · ${business.line}` : ""}
-            </p>
+            <div className="os-identity-workspace">
+              <p className="os-identity-kicker">Current workspace</p>
+              <p className="os-identity-workspace-name">{shopName}</p>
+              <p className="os-identity-workspace-meta">
+                {planLabel}
+                {business?.line ? ` · ${business.line}` : " · Line not set"}
+              </p>
+            </div>
           </div>
 
           <div className="os-identity-scroll">
@@ -483,6 +584,7 @@ export function OsSidebarFooter() {
                     {group.items.map((item) => {
                       actionCursor += 1;
                       const index = actionCursor;
+                      const health = healthFor(item.healthKey);
                       return (
                         <li key={item.id}>
                           <Link
@@ -496,7 +598,28 @@ export function OsSidebarFooter() {
                             onClick={close}
                             onMouseEnter={() => setActiveIndex(index)}
                           >
-                            <span className="os-identity-item-label">{item.label}</span>
+                            <span className="os-identity-item-main">
+                              <span className="os-identity-item-label">{item.label}</span>
+                              {health ? (
+                                <span
+                                  className={`os-identity-health os-identity-health--${health}`}
+                                  title={
+                                    health === "ok"
+                                      ? "Healthy"
+                                      : health === "warn"
+                                        ? "Needs attention"
+                                        : "Not connected"
+                                  }
+                                  aria-label={
+                                    health === "ok"
+                                      ? "Healthy"
+                                      : health === "warn"
+                                        ? "Needs attention"
+                                        : "Not connected"
+                                  }
+                                />
+                              ) : null}
+                            </span>
                             <span className="os-identity-item-hint">{item.hint}</span>
                           </Link>
                         </li>
@@ -510,54 +633,54 @@ export function OsSidebarFooter() {
             <section className="os-identity-section os-identity-section--account">
               <h3 className="os-identity-kicker">Account</h3>
               <ul className="os-identity-list">
-                {(() => {
-                  const helpVisible = flatActions.some((a) => a.kind === "help");
-                  if (!helpVisible) return null;
-                  actionCursor += 1;
-                  const index = actionCursor;
-                  return (
-                    <li>
-                      <a
-                        ref={(el) => {
-                          itemRefs.current[index] = el;
-                        }}
-                        href={supportMailto({ subject: "Help", path: pathname })}
-                        className={`os-identity-item${
-                          index === activeIndex ? " is-active" : ""
-                        }`}
-                        onClick={close}
-                        onMouseEnter={() => setActiveIndex(index)}
-                      >
-                        <span className="os-identity-item-label">Help</span>
-                        <span className="os-identity-item-hint">{supportEmail}</span>
-                      </a>
-                    </li>
-                  );
-                })()}
-                {(() => {
-                  const outVisible = flatActions.some((a) => a.kind === "signout");
-                  if (!outVisible) return null;
-                  actionCursor += 1;
-                  const index = actionCursor;
-                  return (
-                    <li>
-                      <button
-                        ref={(el) => {
-                          itemRefs.current[index] = el;
-                        }}
-                        type="button"
-                        className={`os-identity-item os-identity-signout${
-                          index === activeIndex ? " is-active" : ""
-                        }`}
-                        onClick={() => signOut({ callbackUrl: "/" })}
-                        onMouseEnter={() => setActiveIndex(index)}
-                      >
-                        <span className="os-identity-item-label">Sign out</span>
-                        <span className="os-identity-item-hint">{email}</span>
-                      </button>
-                    </li>
-                  );
-                })()}
+                {flatActions.some((a) => a.kind === "help") ? (
+                  <li>
+                    {(() => {
+                      actionCursor += 1;
+                      const index = actionCursor;
+                      return (
+                        <a
+                          ref={(el) => {
+                            itemRefs.current[index] = el;
+                          }}
+                          href={supportMailto({ subject: "Help", path: pathname })}
+                          className={`os-identity-item${
+                            index === activeIndex ? " is-active" : ""
+                          }`}
+                          onClick={close}
+                          onMouseEnter={() => setActiveIndex(index)}
+                        >
+                          <span className="os-identity-item-label">Help</span>
+                          <span className="os-identity-item-hint">{supportEmail}</span>
+                        </a>
+                      );
+                    })()}
+                  </li>
+                ) : null}
+                {flatActions.some((a) => a.kind === "signout") ? (
+                  <li>
+                    {(() => {
+                      actionCursor += 1;
+                      const index = actionCursor;
+                      return (
+                        <button
+                          ref={(el) => {
+                            itemRefs.current[index] = el;
+                          }}
+                          type="button"
+                          className={`os-identity-item os-identity-signout${
+                            index === activeIndex ? " is-active" : ""
+                          }`}
+                          onClick={() => signOut({ callbackUrl: "/" })}
+                          onMouseEnter={() => setActiveIndex(index)}
+                        >
+                          <span className="os-identity-item-label">Sign out</span>
+                          <span className="os-identity-item-hint">{email}</span>
+                        </button>
+                      );
+                    })()}
+                  </li>
+                ) : null}
               </ul>
             </section>
           </div>
@@ -565,6 +688,7 @@ export function OsSidebarFooter() {
       ) : null}
 
       <button
+        ref={triggerRef}
         type="button"
         className="os-identity-trigger"
         aria-haspopup="dialog"
@@ -583,7 +707,9 @@ export function OsSidebarFooter() {
             <span aria-hidden> · </span>
             {shopName}
           </span>
-          <span className={`os-identity-trigger-status os-identity-trigger-status--${status.id}`}>
+          <span
+            className={`os-identity-trigger-status os-identity-trigger-status--${status.id}`}
+          >
             <span className="os-identity-status-dot" aria-hidden />
             {status.label}
           </span>

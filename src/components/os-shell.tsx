@@ -76,8 +76,15 @@ export function OsShell({
         setPaletteOpen((open) => !open);
       }
     }
+    function onOpenPalette() {
+      setPaletteOpen(true);
+    }
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("orvius:open-command-palette", onOpenPalette);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("orvius:open-command-palette", onOpenPalette);
+    };
   }, []);
 
   useEffect(() => {

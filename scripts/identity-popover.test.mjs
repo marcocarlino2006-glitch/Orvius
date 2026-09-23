@@ -21,7 +21,16 @@ test("identity popover is an Orvius command surface, not a flat link dump", () =
   assert.match(footer, /Answering|Needs attention|Offline/);
   assert.match(footer, /ArrowDown/);
   assert.match(footer, /Escape/);
+  assert.match(footer, /placePanel|position:\s*"fixed"/);
+  assert.match(footer, /orvius:open-command-palette/);
+  assert.match(footer, /healthKey/);
+  assert.match(footer, /Operate/);
   assert.doesNotMatch(footer, /Manus|Cursor Pro|Workspace switcher/i);
+});
+
+test("shell opens command palette from identity popover hint", () => {
+  const shell = read("src/components/os-shell.tsx");
+  assert.match(shell, /orvius:open-command-palette/);
 });
 
 test("AI receptionist deep-link lands on a real settings anchor", () => {
@@ -36,5 +45,6 @@ test("mission-control CSS styles the identity popover", () => {
   const css = read("src/app/orvius-mission-control.css");
   assert.match(css, /\.os-identity-popover/);
   assert.match(css, /\.os-identity-status--answering/);
-  assert.match(css, /max-height:\s*min\(34rem/);
+  assert.match(css, /\.os-identity-health--ok/);
+  assert.match(css, /\.os-identity-popover-head/);
 });
