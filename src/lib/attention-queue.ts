@@ -721,14 +721,17 @@ export async function getAttentionQueue(
       kind: "alert_failed",
       rank: kindRank("alert_failed", null, afterHours),
       impact: "critical",
-      title: "Owner alert failed",
-      detail: [
-        alert.channel.toUpperCase(),
-        alert.error ?? "Delivery exhausted retries",
-      ]
-        .filter(Boolean)
-        .join(" · "),
-      recommendedAction: "Send test alert",
+      title: "Owner alerts failed",
+      detail: alert.leadId
+        ? "An urgent lead may not have reached you — reconnect SMS or send a test alert."
+        : [
+            alert.channel.toUpperCase(),
+            alert.error ?? "Delivery exhausted retries",
+            "— urgent leads may not have been received",
+          ]
+            .filter(Boolean)
+            .join(" "),
+      recommendedAction: "Reconnect SMS or send test alert",
       href: alert.leadId
         ? `/dashboard/inbox/${alert.leadId}`
         : "/dashboard/settings#owner-alerts",

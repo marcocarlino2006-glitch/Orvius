@@ -1,5 +1,5 @@
 import { isAfterHours } from "@/lib/business";
-import { estimatedRevenueCents } from "@/lib/money";
+import { estimatedRevenueCents, formatCents, formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -21,6 +21,125 @@ export type CommandToday = {
   collectedCents: number;
   avgTicketCents: number | null;
 };
+
+/** True when at least one measured shop event landed today. */
+export function todayHasMeasuredActivity(today: CommandToday): boolean {
+  return (
+    today.callsAnswered > 0 ||
+    today.qualifiedLeads > 0 ||
+    today.appointmentsBooked > 0 ||
+    today.missedRecovered > 0 ||
+    today.collectedCents > 0
+  );
+}
+
+export type CommandBriefingMetric = {
+  id: string;
+  label: string;
+  value: string;
+  href: string;
+  /** Soft attention — never red unless the queue says critical. */
+  tone?: "default" | "attention";
+};
+
+/**
+ * Concise AI briefing + clickable metric chips. Only ships real, explainable
+ * figures — zeros never pad the first viewport.
+ */
+export function buildCommandBriefing(
+  today: CommandToday,
+  attentionCount: number,
+): { sentence: string; metrics: CommandBriefingMetric[] } {
+  const parts: string[] = [];
+  const metrics: CommandBriefingMetric[] = [];
+
+  if (today.callsAnswered > 0) {
+    parts.push(
+      `${today.callsAnswered} call${today.callsAnswered === 1 ? "" : "s"} answered`,
+    );
+    metrics.push({
+      id: "calls",
+      label: "Calls",
+      value: String(today.callsAnswered),
+      href: "/dashboard/calls",
+    });
+  }
+  if (today.qualifiedLeads > 0) {
+    parts.push(
+      `${today.qualifiedLeads} qualified lead${today.qualifiedLeads === 1 ? "" : "s"}`,
+    );
+    metrics.push({
+      id: "leads",
+      label: "Leads",
+      value: String(today.qualifiedLeads),
+      href: "/dashboard/inbox",
+    });
+  }
+  if (today.appointmentsBooked > 0) {
+    parts.push(
+      `${today.appointmentsBooked} appointment${today.appointmentsBooked === 1 ? "" : "s"} booked`,
+    );
+    metrics.push({
+      id: "jobs",
+      label: "Booked",
+      value: String(today.appointmentsBooked),
+      href: "/dashboard/jobs",
+    });
+  }
+  if (today.missedRecovered > 0) {
+    parts.push(
+      `${today.missedRecovered} after-hours recovered`,
+    );
+    metrics.push({
+      id: "recovered",
+      label: "Recovered",
+      value: String(today.missedRecovered),
+      href: "/dashboard/inbox",
+    });
+  }
+
+  const estimated = formatCents(today.estimatedJobValueCents);
+  if (estimated) {
+    parts.push(`${estimated} estimated revenue`);
+    metrics.push({
+      id: "estimated",
+      label: "Est. revenue",
+      value: estimated,
+      href: "/dashboard/jobs",
+    });
+  } else if (today.collectedCents > 0) {
+    const collected = formatCentsExact(today.collectedCents);
+    if (collected) {
+      parts.push(`${collected} collected`);
+      metrics.push({
+        id: "collected",
+        label: "Collected",
+        value: collected,
+        href: "/dashboard/billing",
+      });
+    }
+  }
+
+  if (attentionCount > 0) {
+    parts.push(
+      `${attentionCount} item${attentionCount === 1 ? "" : "s"} need your attention`,
+    );
+    metrics.push({
+      id: "attention",
+      label: "Needs you",
+      value: String(attentionCount),
+      href: "#attention-board",
+      tone: "attention",
+    });
+  }
+
+  const sentence =
+    parts.length > 0
+      ? `Today: ${parts.join(", ")}.`
+      : "Today: quiet so far — Orvius is watching the line.";
+
+  return { sentence, metrics };
+}
 
 function startOfToday() {
   const d = new Date();

@@ -252,10 +252,10 @@ export function AttentionQueue({
     return (
       <section
         className="attention-queue attention-queue-loading"
-        aria-label="Needs attention"
+        aria-label="Prioritized actions"
         aria-busy="true"
       >
-        <p className="attention-queue-kicker font-sans">On the board</p>
+        <p className="attention-queue-kicker font-sans">Priority queue</p>
         <div className="attention-queue-skel" aria-hidden>
           <div className="attention-skel-card">
             <span className="skeleton attention-skel-line attention-skel-line-sm" />
@@ -274,8 +274,8 @@ export function AttentionQueue({
 
   if (!items.length) {
     return (
-      <section className="attention-queue attention-queue-clear" aria-label="Needs attention">
-        <p className="attention-queue-kicker font-sans">On the board</p>
+      <section className="attention-queue attention-queue-clear" aria-label="Prioritized actions">
+        <p className="attention-queue-kicker font-sans">Priority queue</p>
         <h2 className="attention-queue-title font-sans">Board is clear</h2>
         <p className="attention-queue-empty font-sans">
           No urgent leads, open jobs, or overdue follow-ups right now.
@@ -300,24 +300,24 @@ export function AttentionQueue({
     <section
       id="attention-board"
       className="attention-queue"
-      aria-label="Needs attention"
+      aria-label="Prioritized actions"
     >
       <header className="attention-queue-head font-sans">
         <div>
-          <p className="attention-queue-kicker">On the board</p>
+          <p className="attention-queue-kicker">Priority queue</p>
           <h2 className="attention-queue-title">
-            {items.length} {items.length === 1 ? "item" : "items"} need you
+            {items.length} {items.length === 1 ? "action" : "actions"} need you
           </h2>
         </div>
         <div className="attention-queue-summary" aria-label="Queue summary">
           {criticalCount > 0 ? (
             <span className="attention-queue-critical">
-              {criticalCount} critical
+              {criticalCount} urgent
             </span>
           ) : (
-            <span>Nothing critical</span>
+            <span>Nothing urgent</span>
           )}
-          {stake ? <strong>{stake} estimated</strong> : null}
+          {stake ? <strong>{stake} at risk</strong> : null}
         </div>
       </header>
 
@@ -340,6 +340,9 @@ export function AttentionQueue({
             showAdvance ||
             showTestAlert ||
             showDismiss;
+          const impactLabel = formatCents(item.estimatedRevenueCents);
+          const showReconnect =
+            showTestAlert || item.kind === "alerts_muted" || item.kind === "alert_failed";
 
           return (
             <li key={item.id}>
@@ -350,20 +353,33 @@ export function AttentionQueue({
                   <p className="attention-item-kind">
                     {item.impact === "critical" ? (
                       <span className="attention-chip attention-chip-critical">
-                        Critical
+                        Urgent
                       </span>
                     ) : null}
                     <span className="attention-item-kindlabel">
                       {attentionKindLabel(item.kind)}
                     </span>
+                    <time
+                      className="attention-item-time"
+                      dateTime={item.createdAt}
+                      title={new Date(item.createdAt).toLocaleString()}
+                    >
+                      {new Date(item.createdAt).toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </time>
                   </p>
                   <h3 className="attention-item-title">{item.title}</h3>
-                  <p className="attention-item-detail">{item.detail}</p>
-                  {formatCents(item.estimatedRevenueCents) ? (
-                    <p className="attention-item-value">
-                      Est. {formatCents(item.estimatedRevenueCents)}
-                    </p>
-                  ) : null}
+                  <p className="attention-item-detail">
+                    <span className="attention-item-impact-label">Impact</span>
+                    {item.detail}
+                    {impactLabel ? ` · ${impactLabel} at risk` : ""}
+                  </p>
+                  <p className="attention-item-recommend">
+                    <span className="attention-item-impact-label">Do this</span>
+                    {item.recommendedAction}
+                  </p>
                   {item.rolledUp && item.group ? (
                     <Link
                       href={item.group.href ?? item.href}
@@ -378,11 +394,6 @@ export function AttentionQueue({
                     One primary action. Details only when there is no one-tap
                     move — never Details + Call competing on the same row.
                   */}
-                  {!hasPrimary && item.href ? (
-                    <Link href={item.href} className="attention-item-btn attention-item-btn-primary">
-                      Open
-                    </Link>
-                  ) : null}
                   {showCall ? (
                     <a
                       href={telHref(item.meta!.phone!)}
@@ -416,6 +427,14 @@ export function AttentionQueue({
                   {showProof ? <CopyProofButton onDone={() => onAction?.()} /> : null}
                   {showTestAlert ? (
                     <TestAlertButton onDone={() => onAction?.()} />
+                  ) : null}
+                  {showReconnect ? (
+                    <Link
+                      href="/dashboard/settings#owner-alerts"
+                      className="attention-item-btn"
+                    >
+                      Reconnect SMS
+                    </Link>
                   ) : null}
                   {showDismiss ? (
                     <MarkNotAJobButton

@@ -12,6 +12,35 @@ import { ProShiftTimeline } from "@/components/pro-shift-timeline";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { useRing1 } from "@/lib/ring1-context";
 
+function nextUpcomingAppointment(
+  jobs:
+    | Array<{
+        id: string;
+        title: string;
+        scheduledAt: string | null;
+        customer?: { name: string | null } | null;
+        lead?: { name: string | null } | null;
+      }>
+    | undefined,
+) {
+  if (!jobs?.length) return null;
+  const now = Date.now();
+  const upcoming = jobs
+    .filter((job) => job.scheduledAt && new Date(job.scheduledAt).getTime() >= now)
+    .sort(
+      (a, b) =>
+        new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime(),
+    );
+  const next = upcoming[0];
+  if (!next?.scheduledAt) return null;
+  return {
+    id: next.id,
+    title: next.title,
+    scheduledAt: next.scheduledAt,
+    customerName: next.customer?.name ?? next.lead?.name ?? null,
+  };
+}
+
 export function Ring1CommandCenter() {
   const { data, loading, loadError, refresh } = useRing1();
   const [refreshing, setRefreshing] = useState(false);
@@ -25,6 +54,10 @@ export function Ring1CommandCenter() {
   }
 
   const attention = data?.attention ?? [];
+  const revenueAtRiskCents = attention.reduce(
+    (sum, item) => sum + (item.estimatedRevenueCents ?? 0),
+    0,
+  );
 
   return (
     <section className="ring1-command ring1-cockpit" aria-label="Command">
@@ -51,6 +84,9 @@ export function Ring1CommandCenter() {
           outcomes={data?.outcomes}
           attentionCount={attention.length}
           loading={loading}
+          lineVerified={data?.health?.lineVerified}
+          line={data?.business?.line}
+          setupReady={data?.wedge?.ready}
         />
 
         <CommandWorkflowStrip
@@ -106,6 +142,9 @@ export function Ring1CommandCenter() {
           coverage={data?.coverage}
           health={data?.health}
           outcomes={data?.outcomes}
+          unresolvedCount={attention.length}
+          revenueAtRiskCents={revenueAtRiskCents || null}
+          nextAppointment={nextUpcomingAppointment(data?.dispatchToday?.jobs)}
         />
       </aside>
     </section>

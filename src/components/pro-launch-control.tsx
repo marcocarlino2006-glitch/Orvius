@@ -2,11 +2,19 @@
 
 import Link from "next/link";
 import { company } from "@/lib/company";
+import { formatCents } from "@/lib/money";
 import type { CoverageState } from "@/lib/coverage-state";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
+
+export type ShopPulseNextAppt = {
+  id: string;
+  title: string;
+  scheduledAt: string;
+  customerName?: string | null;
+} | null;
 
 type ProLaunchControlProps = {
   wedge?: WedgeReadiness | null;
@@ -18,11 +26,14 @@ type ProLaunchControlProps = {
   coverage?: CoverageState | null;
   health?: ShopHealth | null;
   outcomes?: ShopOutcomes | null;
+  unresolvedCount?: number;
+  revenueAtRiskCents?: number | null;
+  nextAppointment?: ShopPulseNextAppt;
 };
 
 /**
- * Quiet shop pulse. Banner above owns the red gate — this rail never coaches
- * the owner to look elsewhere, never scoreboards the loop.
+ * Quiet shop pulse — live-line health, coverage, next appointment, risk.
+ * Never coaches the owner to look at a banner that no longer exists.
  */
 export function ProLaunchControl({
   wedge: _wedge,
@@ -34,6 +45,9 @@ export function ProLaunchControl({
   coverage,
   health,
   outcomes,
+  unresolvedCount = 0,
+  revenueAtRiskCents = null,
+  nextAppointment = null,
 }: ProLaunchControlProps) {
   const failedAlerts = health?.failedAlerts24h ?? 0;
   const stuckAlerts = health?.stuckPendingAlerts ?? 0;
@@ -42,12 +56,11 @@ export function ProLaunchControl({
   const setupReady = _wedge?.ready ?? false;
   const status = atRisk ? "critical" : setupReady ? "healthy" : "attention";
   const statusLabel = atRisk
-    ? "Coverage risk"
+    ? "Needs fix"
     : setupReady
       ? "Covered"
       : "Setup";
-  const caught = outcomes?.afterHoursLeads ?? 0;
-  const booked = outcomes?.afterHoursBooked ?? 0;
+  const afterHours = Boolean(coverage?.afterHoursNow);
   const billing = (billingStatus ?? "none").toLowerCase();
   const needsPay =
     billing !== "active" &&
@@ -56,13 +69,25 @@ export function ProLaunchControl({
       billing === "pilot" ||
       billing === "none");
   const showPayAction = needsPay && !atRisk;
-  const showPrimaryAction = false;
   const payLabel =
     billing === "past_due"
       ? "Fix payment"
       : checkoutReady
         ? "Pay with card"
         : "Open billing";
+  const risk = formatCents(revenueAtRiskCents);
+  const lineLabel = health?.lineVerified
+    ? "Live"
+    : health?.dedicatedLine
+      ? "Needs prove"
+      : "Not set";
+  const nextLabel = nextAppointment
+    ? new Date(nextAppointment.scheduledAt).toLocaleString([], {
+        weekday: "short",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "None scheduled";
 
   return (
     <section className="pro-rail-card pro-launch-control pro-control-center">
@@ -75,29 +100,61 @@ export function ProLaunchControl({
 
       <p className="pro-control-lead font-sans">
         {atRisk
-          ? "Owner alerts need a fix — use the banner above (Send test alert)."
-          : showPayAction
-            ? billing === "past_due"
-              ? "Payment failed — fix the card so the line stays live."
-              : "Card not on file yet."
-            : coverage?.afterHoursNow
-              ? "After hours — the line is watching."
-              : setupReady
-                ? "Front door is covered. The banner above is your next move."
-                : "The banner above is your next move."}
+          ? "Owner alerts need a fix — resolve it in the priority queue."
+          : afterHours
+            ? "After hours — the line is watching."
+            : setupReady
+              ? "Front door is covered."
+              : "Finish setup so night calls land here."}
       </p>
 
-      <dl className="pro-control-pulse">
+      <dl className="pro-control-pulse pro-control-pulse--rich">
         <div>
-          <dt className="font-sans">Line</dt>
+          <dt className="font-sans">Live line</dt>
           <dd className="font-sans">
-            {health?.lineVerified ? "Verified" : "Needs test"}
+            <Link href="/dashboard/settings#overflow-forward">{lineLabel}</Link>
           </dd>
         </div>
         <div>
           <dt className="font-sans">After hours</dt>
           <dd className="font-sans">
-            {caught} caught · {booked} booked
+            {afterHours ? "Covering now" : "In hours"}
+            {(outcomes?.afterHoursLeads ?? 0) > 0
+              ? ` · ${outcomes?.afterHoursLeads} caught`
+              : ""}
+          </dd>
+        </div>
+        <div>
+          <dt className="font-sans">Unresolved</dt>
+          <dd className="font-sans">
+            <a href="#attention-board">
+              {unresolvedCount} lead{unresolvedCount === 1 ? "" : "s"}
+            </a>
+          </dd>
+        </div>
+        <div>
+          <dt className="font-sans">Next appt</dt>
+          <dd className="font-sans">
+            {nextAppointment ? (
+              <Link href={`/dashboard/jobs/${nextAppointment.id}`}>
+                {nextLabel}
+                {nextAppointment.customerName
+                  ? ` · ${nextAppointment.customerName}`
+                  : ""}
+              </Link>
+            ) : (
+              nextLabel
+            )}
+          </dd>
+        </div>
+        <div className="pro-control-pulse-span">
+          <dt className="font-sans">Revenue at risk</dt>
+          <dd className="font-sans">
+            {risk ? (
+              <a href="#attention-board">{risk}</a>
+            ) : (
+              "None measured"
+            )}
           </dd>
         </div>
       </dl>
@@ -106,10 +163,10 @@ export function ProLaunchControl({
         <Link href="/dashboard/billing" className="btn btn-void pro-control-action">
           {payLabel}
         </Link>
-      ) : showPrimaryAction ? (
-        <Link href="/dashboard" className="btn btn-void pro-control-action">
-          Open Command
-        </Link>
+      ) : atRisk ? (
+        <a href="#attention-board" className="btn btn-void pro-control-action">
+          Fix alerts
+        </a>
       ) : null}
 
       {referenceImplementation ? (

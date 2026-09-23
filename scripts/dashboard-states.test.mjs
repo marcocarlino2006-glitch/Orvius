@@ -50,13 +50,13 @@ test("Dashboard shares one Ring1 pulse across shell and Command", () => {
   const layout = read("src/app/dashboard/layout.tsx");
   const ctx = read("src/lib/ring1-context.tsx");
   const business = read("src/lib/use-business.ts");
-  const banner = read("src/components/shop-operate-banner.tsx");
+  const command = read("src/components/ring1-command-center.tsx");
   assert.match(layout, /Ring1Provider/);
   assert.match(ctx, /Ring1Provider/);
-  // Shell chrome uses optional (survives outside provider); Command banner requires it.
+  // Shell chrome uses optional (survives outside provider); Command requires it.
   assert.match(business, /use(?:Optional)?Ring1/);
-  assert.match(banner, /useRing1/);
-  assert.doesNotMatch(banner, /fetch\("\/api\/ring1"\)/);
+  assert.match(command, /useRing1/);
+  assert.doesNotMatch(command, /fetch\("\/api\/ring1"\)/);
 });
 
 test("Settings and loading states use the same owner-system language", () => {

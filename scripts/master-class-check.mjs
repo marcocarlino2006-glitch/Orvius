@@ -293,22 +293,29 @@ try {
       "Operate owner language",
       "Command outcomes still uses exception jargon for owners",
     );
-  } else if (/needs you on the board|Board is clear/.test(outcomes)) {
+  } else if (
+    /need your attention|Board is clear|quiet so far|Line is quiet/.test(
+      outcomes,
+    )
+  ) {
     pass("Operate owner language", "Command pulse speaks owner language");
   } else {
-    fail("Operate owner language", "Outcomes footer must use board / needs-you language");
+    fail("Operate owner language", "Briefing must use board / needs-you language");
   }
   const dash = read("src/app/dashboard/page.tsx");
   if (
-    dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
-    dash.indexOf("<FounderNextGate") < dash.indexOf("<ShopOperateBanner") &&
-    /FirstNightHandoff/.test(dash)
+    /FirstNightHandoff/.test(dash) &&
+    /Ring1CommandCenter/.test(dash) &&
+    !/FounderNextGate|ShopOperateBanner/.test(dash)
   ) {
-    pass("Operate ritual order", "First-night → next-gate → shop operate → Command");
+    pass(
+      "Operate ritual order",
+      "First-night → Command (priority queue owns next actions)",
+    );
   } else {
     fail(
       "Operate ritual order",
-      "Dashboard must order FirstNightHandoff → FounderNextGate → ShopOperateBanner → Command",
+      "Dashboard must be FirstNightHandoff → Command without stacked banners",
     );
   }
   const guard = read("src/components/onboarding-guard.tsx");
@@ -344,20 +351,23 @@ try {
     } else {
       pass("Operate board language", "Board title uses items / need you");
     }
-  } else if (/items need you|Board is clear/.test(board)) {
+  } else if (/actions need you|items need you|Board is clear/.test(board)) {
     pass("Operate board language", "Board title uses items / need you");
   } else {
     fail("Operate board language", "Attention board must speak owner language");
   }
-  const banner = read("src/components/shop-operate-banner.tsx");
+  const queueRituals = read("src/components/attention-queue.tsx");
   if (
-    /copyWeeklyProofRitual/.test(banner) &&
-    /test-alert/.test(banner) &&
-    /runInline/.test(banner)
+    /copyWeeklyProofRitual/.test(queueRituals) &&
+    /test-alert/.test(queueRituals) &&
+    /Reconnect SMS/.test(queueRituals)
   ) {
-    pass("Operate one-tap rituals", "Proof + test alert finish in the shop pulse");
+    pass("Operate one-tap rituals", "Proof + test alert + reconnect live in the priority queue");
   } else {
-    fail("Operate one-tap rituals", "ShopOperateBanner must inline proof and test alert");
+    fail(
+      "Operate one-tap rituals",
+      "AttentionQueue must inline proof, test alert, and reconnect SMS",
+    );
   }
   const kinds = read("src/lib/attention-types.ts");
   if (/ATTENTION_KINDS/.test(kinds) && /attentionActionStrategy/.test(kinds)) {
@@ -382,10 +392,16 @@ try {
     fail("Cursor tunnel covered", "resolveShopOperateNext must never go silent");
   }
   const rail = read("src/components/pro-launch-control.tsx");
-  if (/showPrimaryAction/.test(rail) && /banner above/.test(rail)) {
-    pass("Cursor tunnel one CTA", "Rail defers to the shop pulse banner");
+  if (
+    (/priority queue/.test(rail) || /#attention-board/.test(rail)) &&
+    !/banner above/.test(rail)
+  ) {
+    pass("Cursor tunnel one CTA", "Rail defers to the priority queue");
   } else {
-    fail("Cursor tunnel one CTA", "ProLaunchControl must not compete with the banner");
+    fail(
+      "Cursor tunnel one CTA",
+      "ProLaunchControl must defer to the priority queue, not compete with banners",
+    );
   }
   const wantsHuman = read("src/lib/lead-wants-human.ts");
   const notAJob = read("src/lib/lead-not-a-job.ts");
