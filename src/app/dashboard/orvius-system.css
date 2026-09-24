@@ -2993,3 +2993,85 @@ button.rd-path-btn:hover {
 .cp-skel--tall {
   height: 10rem;
 }
+
+/* ── Settings: operating metrics + data controls ──────────────────────── */
+
+.om-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.om-card {
+  display: grid;
+  align-content: start;
+  gap: 0.15rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s1);
+}
+
+.os-shell.os-shell-night .om-value {
+  font-size: 1.375rem;
+  font-weight: 650;
+  color: var(--ox-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell.os-shell-night .om-card.is-good .om-value {
+  color: var(--ox-green);
+}
+
+.os-shell.os-shell-night .om-card.is-watch .om-value {
+  color: var(--ox-yellow);
+}
+
+.os-shell.os-shell-night .om-card.is-bad .om-value {
+  color: var(--ox-red);
+}
+
+.os-shell.os-shell-night .om-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text-2);
+}
+
+.om-count,
+.om-note {
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.om-skel {
+  height: 5.5rem;
+}
+
+.dw-form {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ox-line);
+}
+
+.dw-label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8125rem;
+  color: var(--ox-text-2);
+}
+
+.dw-error {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ox-red);
+}
+
+.os-shell.os-shell-night .dw-btn:not(:disabled) {
+  border-color: var(--ox-red);
+  color: var(--ox-red);
+}

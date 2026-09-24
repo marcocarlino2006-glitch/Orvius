@@ -3,6 +3,8 @@
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { ShopSetupChecklistPanel } from "@/components/shop-setup-checklist-panel";
+import { DeleteWorkspace } from "@/components/delete-workspace";
+import { OperatingMetricsPanel } from "@/components/operating-metrics-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
@@ -960,6 +962,13 @@ export default function DashboardSettingsPage() {
           </details>
         ) : null}
 
+        <details id="operating-metrics" className="pro-settings-secondary font-sans" open>
+          <summary>How the loop is performing · last 30 days</summary>
+          <div className="pro-settings-secondary-body">
+            <OperatingMetricsPanel />
+          </div>
+        </details>
+
         <details id="integrations" className="pro-settings-secondary font-sans" open>
           <summary>Integrations</summary>
           <div className="pro-settings-secondary-body">
@@ -1047,6 +1056,7 @@ export default function DashboardSettingsPage() {
             >
               {exporting ? "Preparing export…" : "Export shop data"}
             </button>
+            {account?.business?.name ? <DeleteWorkspace workspaceName={account.business.name} /> : null}
           </div>
         </details>
 
