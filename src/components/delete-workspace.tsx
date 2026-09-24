@@ -9,9 +9,8 @@ export function DeleteWorkspace({ workspaceName }: { workspaceName: string }) {
   const [error, setError] = useState<string | null>(null);
   const matches = confirm.trim().toLowerCase() === workspaceName.trim().toLowerCase();
 
-  async function remove(e: React.FormEvent) {
-    e.preventDefault();
-    if (!matches) return;
+  async function remove() {
+    if (!matches || busy) return;
     setBusy(true);
     setError(null);
     try {
@@ -30,23 +29,34 @@ export function DeleteWorkspace({ workspaceName }: { workspaceName: string }) {
   }
 
   return (
-    <form className="dw-form" onSubmit={remove}>
+    // Rendered inside the Settings form, so this cannot be a <form> of its own.
+    <div className="dw-form" role="group" aria-label="Delete workspace">
       <p className="account-settings-hint font-sans">
         Deletes every call, lead, customer, job, and money record in this workspace. Export first if you want a copy. This
         cannot be undone.
       </p>
       <label className="dw-label">
         <span>Type “{workspaceName}” to confirm</span>
-        <input className="input" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="off" />
+        <input
+          className="input"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            void remove();
+          }}
+          autoComplete="off"
+        />
       </label>
       {error ? (
         <p className="dw-error" role="alert">
           {error}
         </p>
       ) : null}
-      <button type="submit" className="btn btn-secondary text-sm dw-btn" disabled={!matches || busy}>
+      <button type="button" className="btn btn-secondary text-sm dw-btn" disabled={!matches || busy} onClick={() => void remove()}>
         {busy ? "Deleting…" : "Delete workspace"}
       </button>
-    </form>
+    </div>
   );
 }
