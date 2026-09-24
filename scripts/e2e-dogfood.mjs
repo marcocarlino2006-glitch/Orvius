@@ -139,12 +139,16 @@ async function main() {
     }),
   );
 
-  const business = await prisma.business.findFirst({
-    orderBy: { createdAt: "asc" },
-  });
+  // Dogfood traffic only ever lands in a demo or test workspace — never a real shop.
+  const business =
+    (await prisma.business.findUnique({ where: { slug: "summit-hvac-demo" } })) ??
+    (await prisma.business.findFirst({
+      where: { environment: { in: ["demo", "test"] } },
+      orderBy: { createdAt: "asc" },
+    }));
 
-  if (!business) {
-    console.log("❌ No business in database — run /admin or npm run onboard");
+  if (!business || business.environment === "production") {
+    console.log("❌ No demo workspace — run the demo call step locally first");
     process.exit(1);
   }
 
