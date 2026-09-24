@@ -82,7 +82,10 @@ export default function CustomersPage() {
   }, [customers]);
 
   return (
-    <OsShell title="Customers">
+    <OsShell
+      title="Customers"
+      subtitle="Every customer, their properties, and the full history of work."
+    >
       <PlanUpgradeGate module="customers">
       {loading && !customers.length ? (
         <DashboardSkeleton />

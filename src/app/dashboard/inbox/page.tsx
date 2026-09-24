@@ -88,6 +88,7 @@ export default function InboxPage() {
   return (
     <OsShell
       title="Inbox"
+      subtitle="Every lead waiting on a decision — act on the top one first."
       actions={
         <ProShopLineCta label="Call your line" showNumber={false} />
       }
