@@ -74,10 +74,11 @@ export default function CustomersPage() {
       /*
         Repeat rate is the number that decides whether a shop grows, so it leads
         this page rather than the headcount. Withheld below ten customers: one
-        repeat out of three is 33% and means nothing.
+        repeat out of three is 33% and means nothing. Withheld at zero too:
+        a shop in its first weeks has had no time for anyone to come back.
       */
       repeatRate:
-        customers.length >= 10
+        customers.length >= 10 && returning > 0
           ? `${Math.round((returning / customers.length) * 100)}%`
           : null,
     };
@@ -100,7 +101,7 @@ export default function CustomersPage() {
             figure={tally.repeatRate ?? String(customers.length)}
             caption={
               tally.repeatRate
-                ? "of your customers called back"
+                ? "of your customers came back"
                 : customers.length === 1
                   ? "customer on file"
                   : "customers on file"
