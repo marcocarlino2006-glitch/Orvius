@@ -87,3 +87,28 @@ test("the migration feeds the file through splitStatements, not a bare split", (
   assert.ok(executeLoop, "expected a loop over statements");
   assert.match(executeLoop, /splitStatements\(/);
 });
+
+test("every Prisma scalar column exists in the Turso base schema or a migration", () => {
+  const schema = readFileSync(join(repoRoot, "prisma/schema.prisma"), "utf8");
+  const baseSql = readFileSync(join(repoRoot, "prisma/turso-schema.sql"), "utf8");
+  const created = new Map();
+  const add = (table, column) => {
+    if (!created.has(table)) created.set(table, new Set());
+    created.get(table).add(column);
+  };
+  for (const sql of [baseSql, migrationSql]) {
+    for (const [, table, body] of sql.matchAll(/CREATE TABLE (?:IF NOT EXISTS )?"(\w+)" \(([\s\S]*?)\n\);/g)) {
+      for (const [, column] of body.matchAll(/^\s*"(\w+)"/gm)) add(table, column);
+    }
+    for (const [, table, column] of sql.matchAll(/ALTER TABLE "(\w+)" ADD COLUMN "(\w+)"/g)) add(table, column);
+  }
+
+  const scalar = /^(String|Int|Boolean|DateTime|Float|BigInt|Json|Decimal|Bytes)$/;
+  const missing = [];
+  for (const [, model, body] of schema.matchAll(/model (\w+) \{([\s\S]*?)\n\}/g)) {
+    for (const [, field, type] of body.matchAll(/^\s+(\w+)\s+(\w+)(?:\?|\[\])?/gm)) {
+      if (scalar.test(type) && !created.get(model)?.has(field)) missing.push(`${model}.${field}`);
+    }
+  }
+  assert.deepEqual(missing, [], `production would 500 selecting: ${missing.join(", ")}`);
+});

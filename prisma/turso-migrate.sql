@@ -270,3 +270,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Business_stripeConnectAccountId_key"
 -- Capture path persistence — confirm stamp must match the ritual the UI shows.
 ALTER TABLE "Business" ADD COLUMN "captureMode" TEXT DEFAULT 'forward';
 ALTER TABLE "Business" ADD COLUMN "forwardCarrier" TEXT;
+
+-- Shop identity, service area, and overflow proof trail. Every Business read
+-- selects these, so a deploy without them fails the whole dashboard.
+ALTER TABLE "Business" ADD COLUMN "trade" TEXT;
+ALTER TABLE "Business" ADD COLUMN "address" TEXT;
+ALTER TABLE "Business" ADD COLUMN "forwardGuideSentAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "overflowProvedAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "serviceZipsJson" TEXT NOT NULL DEFAULT '[]';
