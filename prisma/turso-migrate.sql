@@ -278,3 +278,38 @@ ALTER TABLE "Business" ADD COLUMN "address" TEXT;
 ALTER TABLE "Business" ADD COLUMN "forwardGuideSentAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "overflowProvedAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "serviceZipsJson" TEXT NOT NULL DEFAULT '[]';
+
+-- Environment separation: demo and test workspaces are labeled, never mixed
+-- into a production workspace.
+ALTER TABLE "Business" ADD COLUMN "environment" TEXT NOT NULL DEFAULT 'production';
+UPDATE "Business" SET "environment" = 'demo'
+  WHERE "slug" IN ('summit-hvac', 'summit-hvac-demo') AND "environment" = 'production';
+
+-- Trade playbook: appointment length per job, skills per technician.
+ALTER TABLE "Job" ADD COLUMN "durationMin" INTEGER;
+ALTER TABLE "Technician" ADD COLUMN "skillsJson" TEXT NOT NULL DEFAULT '[]';
+
+-- Operating-loop audit trail. The unique key makes retries write once.
+CREATE TABLE IF NOT EXISTS "AuditEvent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "entityId" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "actor" TEXT NOT NULL DEFAULT 'orvius',
+    "summary" TEXT NOT NULL,
+    "detailJson" TEXT,
+    "callId" TEXT,
+    "leadId" TEXT,
+    "customerId" TEXT,
+    "jobId" TEXT,
+    "idempotencyKey" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AuditEvent_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "AuditEvent_businessId_idempotencyKey_key" ON "AuditEvent"("businessId", "idempotencyKey");
+CREATE INDEX IF NOT EXISTS "AuditEvent_businessId_createdAt_idx" ON "AuditEvent"("businessId", "createdAt");
+CREATE INDEX IF NOT EXISTS "AuditEvent_businessId_entityType_entityId_idx" ON "AuditEvent"("businessId", "entityType", "entityId");
+CREATE INDEX IF NOT EXISTS "AuditEvent_leadId_idx" ON "AuditEvent"("leadId");
+CREATE INDEX IF NOT EXISTS "AuditEvent_jobId_idx" ON "AuditEvent"("jobId");
+CREATE INDEX IF NOT EXISTS "AuditEvent_customerId_idx" ON "AuditEvent"("customerId");
