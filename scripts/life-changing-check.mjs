@@ -133,8 +133,8 @@ const accountApi = fileOk("src/app/api/account/route.ts")
   ? read("src/app/api/account/route.ts")
   : "";
 const outcomes = fileOk("src/lib/shop-outcomes.ts") ? read("src/lib/shop-outcomes.ts") : "";
-const pulse = fileOk("src/components/pro-command-outcomes.tsx")
-  ? read("src/components/pro-command-outcomes.tsx")
+const pulse = fileOk("src/components/pro-economics-panel.tsx")
+  ? read("src/components/pro-economics-panel.tsx")
   : "";
 const settings = fileOk("src/components/settings-center/settings-center.tsx")
   ? read("src/components/settings-center/settings-center.tsx")

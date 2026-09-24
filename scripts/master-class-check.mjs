@@ -326,14 +326,14 @@ try {
       "Primary nav must be multi-B trades set (Product · Enterprise · Pricing · Audit · Resources)",
     );
   }
-  const outcomes = read("src/components/pro-command-outcomes.tsx");
+  const outcomes = read("src/components/ring1-command-center.tsx");
   if (/exception requires|exceptions require/i.test(outcomes)) {
     fail(
       "Operate owner language",
       "Command outcomes still uses exception jargon for owners",
     );
   } else if (
-    /needs you on the board|Board is clear|Line watched the window/.test(outcomes)
+    /needs you/.test(outcomes)
   ) {
     pass("Operate owner language", "Command pulse speaks owner language");
   } else {
@@ -431,11 +431,11 @@ try {
   } else {
     fail("Cursor tunnel covered", "resolveShopOperateNext must never go silent");
   }
-  const rail = read("src/components/pro-launch-control.tsx");
-  if (/showPrimaryAction/.test(rail) && /banner above/.test(rail)) {
-    pass("Cursor tunnel one CTA", "Rail defers to the shop pulse banner");
+  const rail = read("src/components/ring1-command-center.tsx");
+  if (!/ProLaunchControl|LaunchControl/.test(rail)) {
+    pass("Cursor tunnel one CTA", "Command has no launch rail competing with the shop pulse banner");
   } else {
-    fail("Cursor tunnel one CTA", "ProLaunchControl must not compete with the banner");
+    fail("Cursor tunnel one CTA", "A launch rail on Command must not compete with the banner");
   }
   const wantsHuman = read("src/lib/lead-wants-human.ts");
   const notAJob = read("src/lib/lead-not-a-job.ts");

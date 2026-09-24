@@ -9,12 +9,15 @@ import { DeleteWorkspace } from "@/components/delete-workspace";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { OperatingMetricsPanel } from "@/components/operating-metrics-panel";
 import { OrviusLogo } from "@/components/orvius-logo";
+import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { RecordAvatar } from "@/components/record-avatar";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import { pricing } from "@/lib/company";
+import { ownerSlAs } from "@/lib/institutional-standards";
 import { displayPhone } from "@/lib/customer";
 import type { ManusPostStep } from "@/lib/manus-post";
+import { useOptionalRing1 } from "@/lib/ring1-context";
 import { SETTINGS_SECTIONS, type SettingsSectionId } from "@/lib/settings-center";
 import {
   parseHoursForm,
@@ -144,6 +147,7 @@ export function SettingsCenter({
   onSection: (next: SettingsSectionId) => void;
   onClose: () => void;
 }) {
+  const ring1 = useOptionalRing1();
   const [account, setAccount] = useState<Account | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
@@ -677,7 +681,7 @@ export function SettingsCenter({
               </ScRow>
             </ScGroup>
             <ScGroup title="Delivery">
-              <ScRow label="Text alerts">
+              <ScRow label="Text alerts" hint={`Target: on your phone within ${ownerSlAs.alertP95TargetSec} seconds of the call.`}>
                 <ScStatus on={account.alerts.smsEnabled && !account.alerts.ownerSmsOptedOut}>
                   {account.alerts.ownerSmsOptedOut ? "Opted out" : account.alerts.smsEnabled ? "On" : "Off"}
                 </ScStatus>
@@ -810,9 +814,18 @@ export function SettingsCenter({
 
       case "performance":
         return (
-          <div className="sc-embed" id="operating-metrics">
-            <OperatingMetricsPanel />
-          </div>
+          <>
+            <div className="sc-embed">
+              <ProEconomicsPanel
+                outcomes={ring1?.data?.outcomes}
+                shopName={b.name}
+                lastWeeklyProofAt={ring1?.data?.lastWeeklyProofAt}
+              />
+            </div>
+            <div className="sc-embed" id="operating-metrics">
+              <OperatingMetricsPanel />
+            </div>
+          </>
         );
 
       case "data":

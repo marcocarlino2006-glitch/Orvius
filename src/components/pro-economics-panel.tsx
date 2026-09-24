@@ -77,6 +77,7 @@ export function ProEconomicsPanel({
     { label: "Calls", value: String(outcomes.calls) },
     { label: "Leads", value: String(outcomes.leads) },
     { label: "Booked", value: String(outcomes.jobsBooked) },
+    { label: "Completed", value: String(outcomes.jobsCompleted) },
     {
       label: "Booking rate",
       value: outcomes.bookingRate != null ? `${outcomes.bookingRate}%` : "—",
@@ -205,7 +206,7 @@ export function ProEconomicsPanel({
         ) : null}
         {!outcomes.avgTicketCents ? (
           <li>
-            <Link href="/dashboard/settings" className="pro-section-link">
+            <Link href="/dashboard?settings=receptionist" className="pro-section-link">
               Set avg ticket →
             </Link>{" "}
             to estimate captured-demand value
@@ -213,7 +214,7 @@ export function ProEconomicsPanel({
         ) : null}
         {!outcomes.economicsReady ? (
           <li>
-            <Link href="/dashboard/settings" className="pro-section-link">
+            <Link href="/dashboard?settings=receptionist" className="pro-section-link">
               Set before-Orvius baseline →
             </Link>{" "}
             for measured lift (jobs/week + missed calls)
@@ -236,7 +237,7 @@ export function ProEconomicsPanel({
             {busy ? "Preparing…" : stale ? "Copy weekly proof (due)" : "Copy weekly proof"}
           </button>
         )}
-        <Link href="/dashboard/settings" className="pro-section-link text-sm">
+        <Link href="/dashboard?settings=receptionist" className="pro-section-link text-sm">
           Edit ticket &amp; baseline →
         </Link>
         {copyState === "ok" ? (
