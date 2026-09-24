@@ -3133,13 +3133,13 @@ button.rd-path-btn:hover {
 .call-quality-panel q {
   display: block;
   margin-top: 0.2rem;
-  color: #a09f9e;
+  color: #9aa1ab;
   font-style: italic;
 }
 
 .call-quality-score {
   font-size: 0.8125rem;
-  color: #a09f9e;
+  color: #9aa1ab;
 }
 
 .call-quality-score strong {
@@ -3159,4 +3159,16 @@ button.rd-path-btn:hover {
 /* The floating Ask dock sits over the last row of any list without this. */
 .os-shell .os-main {
   padding-bottom: 5.5rem;
+}
+
+.os-shell .lead-rail-actions .lead-quick-actions {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.lead-rail-actions .lead-quick-actions {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
