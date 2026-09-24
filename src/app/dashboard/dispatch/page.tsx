@@ -91,6 +91,46 @@ function Block({
   );
 }
 
+/** The schedule as a list, for screens too narrow for the timeline. */
+function AgendaLane({
+  name,
+  meta,
+  blocks,
+  unassigned,
+}: {
+  name: string;
+  meta: string;
+  blocks: Array<Pick<ScheduleBlock, "id" | "title" | "startMin" | "endMin" | "urgency" | "customerName"> & { conflict?: string | null }>;
+  unassigned?: boolean;
+}) {
+  return (
+    <div className="dsp-agenda-lane">
+      <p className="dsp-agenda-head">
+        <span className="dsp-lane-tech">{name}</span>
+        <span className="dsp-lane-meta">{meta}</span>
+      </p>
+      {blocks.map((b) => (
+        <RecordLink
+          key={b.id}
+          type="job"
+          id={b.id}
+          href={`/dashboard/jobs/${b.id}`}
+          className={`dsp-agenda-row ${b.conflict ? "is-conflict" : b.urgency === "emergency" ? "is-emergency" : unassigned ? "is-open" : ""}`}
+        >
+          <span className="dsp-agenda-time">
+            {clock(b.startMin)}–{clock(b.endMin)}
+          </span>
+          <span className="dsp-agenda-what">
+            <span className="dsp-block-title">{b.title}</span>
+            {b.customerName ? <span className="dsp-block-who">{b.customerName}</span> : null}
+            {b.conflict ? <span className="dsp-agenda-conflict">{b.conflict}</span> : null}
+          </span>
+        </RecordLink>
+      ))}
+    </div>
+  );
+}
+
 function Decision({
   item,
   technicians,
@@ -491,6 +531,19 @@ export default function DispatchPage() {
                         ))}
                       </div>
                     </div>
+                  ))}
+                </div>
+                <div className="dsp-agenda" aria-label={`Agenda for ${dayLabel}`}>
+                  {openScheduled.length ? (
+                    <AgendaLane name="Unassigned" meta={`${openScheduled.length} waiting`} blocks={openScheduled.map((u) => ({ ...u, startMin: u.startMin!, endMin: u.endMin! }))} unassigned />
+                  ) : null}
+                  {schedule.lanes.map((lane) => (
+                    <AgendaLane
+                      key={lane.technician.id}
+                      name={lane.technician.name}
+                      meta={lane.blocks.length ? `${hours(lane.bookedMin)} booked` : "Free all day"}
+                      blocks={lane.blocks}
+                    />
                   ))}
                 </div>
               </section>

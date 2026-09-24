@@ -566,6 +566,17 @@ body:has(.os-shell.os-shell-night) {
   container-type: inline-size;
 }
 
+/* On a phone the owner opens Command to act, so the decisions come before the numbers. */
+@media (max-width: 720px) {
+  .cc-main > .cc-brief {
+    order: -1;
+  }
+
+  .cc-main > .cs-grid {
+    order: 1;
+  }
+}
+
 .cc-rail {
   min-width: 0;
 }
@@ -2329,6 +2340,80 @@ button.rd-path-btn:hover {
 
 .dsp-block-who {
   color: var(--ox-text-2);
+}
+
+.dsp-agenda {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .dsp-grid {
+    display: none;
+  }
+
+  .dsp-agenda {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .dsp-agenda-lane {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .dsp-agenda-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .os-shell.os-shell-night .dsp-agenda-row {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--ox-line);
+    border-left: 3px solid var(--ox-green);
+    border-radius: var(--ox-radius-sm);
+    background: var(--ox-s1);
+    color: var(--ox-text);
+    text-decoration: none;
+  }
+
+  .os-shell.os-shell-night .dsp-agenda-row.is-open {
+    border-left-color: var(--ox-amber);
+  }
+
+  .os-shell.os-shell-night .dsp-agenda-row.is-emergency,
+  .os-shell.os-shell-night .dsp-agenda-row.is-conflict {
+    border-left-color: var(--ox-red);
+  }
+
+  .dsp-agenda-time {
+    font-size: 0.8125rem;
+    color: var(--ox-text-2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dsp-agenda-what {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .dsp-agenda-what .dsp-block-title,
+  .dsp-agenda-what .dsp-block-who {
+    font-size: 0.875rem;
+    white-space: normal;
+  }
+
+  .dsp-agenda-conflict {
+    font-size: 0.75rem;
+    color: var(--ox-red);
+  }
 }
 
 .dsp-skel-name {
