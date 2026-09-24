@@ -99,6 +99,7 @@ test("brief cites the job, recommends the skilled technician, and approval runs 
     assert.equal(runs.filter((r) => r.ok).length, 1, "approval must run exactly once");
     const ok = runs.find((r) => r.ok);
     assert.match(ok.confirmation.summary, /Assigned Ana Cooling/);
+    assert.doesNotMatch(ok.confirmation.summary, /texted them/, "no Twilio in tests, so the summary must not claim a text went out");
     assert.ok(ok.confirmation.auditId);
 
     const after = await prisma.job.findUniqueOrThrow({ where: { id: job.id } });

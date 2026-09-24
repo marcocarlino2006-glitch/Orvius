@@ -60,7 +60,13 @@ async function runProposal(
     });
     return {
       result: { jobId: job.id, technicianId: tech.id, techSms: sms },
-      summary: `Assigned ${tech.name} to ${job.title}${tech.phone ? " and texted them the details" : ""}.`,
+      summary: `Assigned ${tech.name} to ${job.title}${
+        sms.sent
+          ? " and texted them the details"
+          : tech.phone
+            ? ` — the text to ${tech.name} did not send, so tell them directly`
+            : ` — ${tech.name} has no phone on file, so tell them directly`
+      }.`,
       entity: { type: "job", id: job.id },
       links: { jobId: job.id, leadId: job.leadId ?? undefined, customerId: job.customerId },
     };
