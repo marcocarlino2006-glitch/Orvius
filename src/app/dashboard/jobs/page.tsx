@@ -150,7 +150,7 @@ export default function JobsPage() {
             value: newLeadCount,
             live: newLeadCount > 0,
           },
-          { label: "completed", value: stageCounts.completed ?? 0 },
+          { label: "completed", value: jobs.filter((j) => j.status === "completed").length },
         ]}
         action={
           unassigned > 0 ? (
