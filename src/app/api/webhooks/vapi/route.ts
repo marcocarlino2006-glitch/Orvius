@@ -2,26 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
-import {
-  extractLeadFromStructuredData,
-  type VapiWebhookMessage,
-} from "@/lib/vapi";
-import { maybeAutoBookLead } from "@/lib/auto-job";
+import type { VapiWebhookMessage } from "@/lib/vapi";
+import { ingestEndOfCallReport } from "@/lib/call-ingest";
 import { linkTouchToCustomer } from "@/lib/customer";
-import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
-import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
-import {
-  buildLeadAlertDedupeKey,
-  enqueueOwnerAlert,
-  processNotificationQueue,
-} from "@/lib/notifications";
-import { logError, logInfo, logWarn } from "@/lib/logger";
+import { logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
-import {
-  claimWebhookEvent,
-  completeWebhookEvent,
-  recordWebhookEvent,
-} from "@/lib/webhook-events";
+import { recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 
@@ -161,197 +147,21 @@ export async function POST(request: NextRequest) {
   }
 
   if (type === "end-of-call-report") {
-    const claim = await claimWebhookEvent({
-      source: "vapi",
-      externalId: vapiCallId,
-      eventType: type,
-      businessId: business.id,
-      payload: { type },
-    });
-    if (!claim.claimed) {
+    const result = await ingestEndOfCallReport({ business, message, vapiCallId });
+    if (result.duplicate) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
-
-    try {
-      const summary =
-        message.summary ??
-        message.analysis?.summary ??
-        "Call completed. Review transcript in Orvius dashboard.";
-      const transcript = message.transcript ?? null;
-      const durationSec = message.durationSeconds ?? null;
-      const recordingUrl = message.recordingUrl ?? null;
-      const successEvaluation =
-        message.analysis?.successEvaluation == null
-          ? null
-          : String(message.analysis.successEvaluation);
-      const structured = extractLeadFromStructuredData(
-        message.analysis?.structuredData,
-      );
-      const demand = deriveDemandSignal({
-        serviceType: structured.serviceType,
-        notes: structured.notes,
-        summary,
-        address: structured.address,
-        categoryHint: structured.jobCategory,
-        trade: tradeForCapture(business),
-      });
-
-      const txResult = await prisma.$transaction(async (tx) => {
-        const call = await tx.call.upsert({
-          where: { vapiCallId },
-          create: {
-            businessId: business.id,
-            vapiCallId,
-            callerPhone:
-              structured.phone ?? message.call?.customer?.number ?? null,
-            status: "completed",
-            summary,
-            transcript,
-            durationSec,
-            recordingUrl,
-            successEvaluation,
-          },
-          update: {
-            status: "completed",
-            summary,
-            transcript,
-            durationSec,
-            recordingUrl,
-            successEvaluation: successEvaluation ?? undefined,
-            callerPhone:
-              structured.phone ?? message.call?.customer?.number ?? undefined,
-          },
-        });
-
-        const lead = await tx.lead.upsert({
-          where: { callId: call.id },
-          create: {
-            businessId: business.id,
-            callId: call.id,
-            externalId: vapiCallId,
-            name: structured.name ?? null,
-            phone: structured.phone ?? call.callerPhone,
-            email: structured.email ?? null,
-            serviceType: structured.serviceType ?? null,
-            urgency: structured.urgency ?? null,
-            address: structured.address ?? null,
-            notes: structured.notes ?? summary,
-            source: "call",
-            categoryCode: demand.categoryCode,
-            postalCode: demand.postalCode,
-          },
-          update: {
-            name: structured.name ?? undefined,
-            phone: structured.phone ?? undefined,
-            email: structured.email ?? undefined,
-            serviceType: structured.serviceType ?? undefined,
-            urgency: structured.urgency ?? undefined,
-            address: structured.address ?? undefined,
-            notes: structured.notes ?? summary,
-            categoryCode: demand.categoryCode ?? undefined,
-            postalCode: demand.postalCode ?? undefined,
-          },
-        });
-
-        if (!business.lineVerifiedAt) {
-          await tx.business.update({
-            where: { id: business.id },
-            data: { lineVerifiedAt: new Date() },
-          });
-        }
-
-        return { call, lead };
-      });
-
-      await linkTouchToCustomer({
-        businessId: business.id,
-        callId: txResult.call.id,
-        leadId: txResult.lead.id,
-        phone: txResult.call.callerPhone,
-        alternatePhone: txResult.lead.phone,
-        name: txResult.lead.name,
-        email: txResult.lead.email,
-        address: txResult.lead.address,
-        notes: txResult.lead.notes,
-      });
-
-      const autoBook = await maybeAutoBookLead(txResult.lead.id);
-      const bookedJob = autoBook.jobId
-        ? await prisma.job.findUnique({
-            where: { id: autoBook.jobId },
-            select: { id: true, scheduledAt: true, customerConfirmedAt: true },
-          })
-        : null;
-
-      logInfo("vapi.webhook.auto_book", {
-        vapiCallId,
-        leadId: txResult.lead.id,
-        jobId: autoBook.jobId,
-        created: autoBook.created,
-        qualified: autoBook.qualified,
-        skipReason: autoBook.skipReason ?? null,
-      });
-
-      const ownerMessage = buildOwnerLeadAlertMessage({
-        lead: {
-          name: txResult.lead.name,
-          phone: txResult.lead.phone,
-          serviceType: txResult.lead.serviceType,
-          urgency: txResult.lead.urgency,
-          address: txResult.lead.address,
-        },
-        job: bookedJob,
-        autoBooked: autoBook.created,
-      });
-
-      const dedupeKey = buildLeadAlertDedupeKey({ vapiCallId });
-
-      await enqueueOwnerAlert({
-        businessId: business.id,
-        ownerPhone: business.ownerPhone,
-        ownerEmail: business.ownerEmail,
-        businessName: business.name,
-        message: ownerMessage,
-        leadId: txResult.lead.id,
-        dedupeKey,
-      });
-
-      await completeWebhookEvent({
-        source: "vapi",
-        externalId: vapiCallId,
-        eventType: type,
-        status: "processed",
-        payload: {
-          callId: txResult.call.id,
-          leadId: txResult.lead.id,
-          jobId: autoBook.jobId,
-          autoBooked: autoBook.created,
-          skipReason: autoBook.skipReason ?? null,
-        },
-      });
-
-      after(() => drainOwnerAlerts({ at: "vapi.webhook", vapiCallId, businessId: business.id }));
-
-      return NextResponse.json({
-        ok: true,
-        callId: txResult.call.id,
-        leadId: txResult.lead.id,
-        jobId: autoBook.jobId,
-        autoBooked: autoBook.created,
-        qualified: autoBook.qualified,
-        skipReason: autoBook.skipReason ?? null,
-        queued: true,
-      });
-    } catch (error) {
-      await completeWebhookEvent({
-        source: "vapi",
-        externalId: vapiCallId,
-        eventType: type,
-        status: "failed",
-        error: error instanceof Error ? error.message : "unknown",
-      });
-      throw error;
-    }
+    after(() => drainOwnerAlerts({ at: "vapi.webhook", vapiCallId, businessId: business.id }));
+    return NextResponse.json({
+      ok: true,
+      callId: result.callId,
+      leadId: result.leadId,
+      jobId: result.jobId,
+      autoBooked: result.autoBooked,
+      qualified: result.qualified,
+      skipReason: result.skipReason,
+      queued: true,
+    });
   }
 
   return NextResponse.json({ ok: true, type });

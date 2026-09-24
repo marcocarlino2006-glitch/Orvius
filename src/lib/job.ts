@@ -6,7 +6,11 @@ import {
   findAvailableSchedule,
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
+import { recordAudit, type AuditActor } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
+import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
+import { classifyRequest } from "@/lib/trade-playbooks";
+import { parseSkills, recommendTechnician } from "@/lib/technician-match";
 import { prisma } from "@/lib/prisma";
 import { jobTitle } from "@/lib/job-schedule";
 import {
@@ -103,10 +107,76 @@ export function serializeJob<
   };
 }
 
+/** First slot in shop hours where a technician who can do this job is free. */
+async function findOpenSlot(params: {
+  businessId: string;
+  urgency: string | null;
+  durationMin: number;
+  skill: string;
+  hoursJson: string;
+  timezone: string;
+  excludeJobId?: string;
+}): Promise<Date | null> {
+  const [existing, technicians] = await Promise.all([
+    prisma.job.findMany({
+      where: {
+        businessId: params.businessId,
+        status: { notIn: ["completed", "cancelled"] },
+        scheduledAt: { not: null },
+        ...(params.excludeJobId ? { id: { not: params.excludeJobId } } : {}),
+      },
+      select: { scheduledAt: true, durationMin: true, technicianId: true },
+    }),
+    prisma.technician.findMany({
+      where: { businessId: params.businessId, isActive: true },
+      select: { id: true, skillsJson: true },
+    }),
+  ]);
+
+  // Capacity is the people who can do this job — a furnace call cannot use
+  // the cooling specialist's free hour. Unassigned jobs may land on any of
+  // them, so they count against this pool too.
+  const skill = params.skill;
+  const eligible = technicians.filter((t) => {
+    const skills = parseSkills(t.skillsJson);
+    return skill === "general" || skills.length === 0 || skills.includes(skill);
+  });
+  const pool = eligible.length ? eligible : technicians;
+  const poolIds = new Set(pool.map((t) => t.id));
+  const activeTechnicians = pool.length;
+  const relevant = eligible.length
+    ? existing.filter((j) => !j.technicianId || poolIds.has(j.technicianId))
+    : existing;
+
+  const available = findAvailableSchedule({
+    urgency: params.urgency,
+    durationMin: params.durationMin,
+    hoursJson: params.hoursJson,
+    timezone: params.timezone,
+    capacity: Math.max(1, activeTechnicians),
+    existing: relevant.flatMap((job) =>
+      job.scheduledAt
+        ? [
+            {
+              scheduledAt: job.scheduledAt,
+              durationMin: job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+            },
+          ]
+        : [],
+    ),
+  });
+
+  return available;
+}
+
 export async function createJobFromLead(params: {
   leadId: string;
   scheduledAt?: Date | string | null;
   notes?: string | null;
+  /** Who booked it, for the audit trail. Auto-book is Orvius. */
+  actor?: AuditActor;
+  /** Skip automatic technician assignment (the caller assigns). */
+  skipAutoAssign?: boolean;
 }) {
   const lead = await prisma.lead.findUnique({
     where: { id: params.leadId },
@@ -119,6 +189,7 @@ export async function createJobFromLead(params: {
           servicesJson: true,
           hoursJson: true,
           timezone: true,
+          trade: true,
         },
       },
     },
@@ -185,6 +256,14 @@ export async function createJobFromLead(params: {
     customerId = customer?.id ?? null;
   }
 
+  const playbook = classifyRequest({
+    business: lead.business ?? {},
+    serviceType: lead.serviceType,
+    notes: lead.notes,
+    urgency: lead.urgency,
+  });
+  const durationMin = playbook.service.durationMin;
+
   let scheduledAt: Date;
   if (params.scheduledAt) {
     scheduledAt = new Date(params.scheduledAt);
@@ -192,37 +271,14 @@ export async function createJobFromLead(params: {
       throw new Error("Invalid appointment time");
     }
   } else {
-    const [existing, activeTechnicians] = await Promise.all([
-      prisma.job.findMany({
-        where: {
-          businessId: lead.businessId,
-          status: { notIn: ["completed", "cancelled"] },
-          scheduledAt: { not: null },
-        },
-        select: { scheduledAt: true },
-      }),
-      prisma.technician.count({
-        where: { businessId: lead.businessId, isActive: true },
-      }),
-    ]);
-
-    const available = findAvailableSchedule({
+    const available = await findOpenSlot({
+      businessId: lead.businessId,
       urgency: lead.urgency,
+      durationMin,
+      skill: playbook.service.skill,
       hoursJson: lead.business?.hoursJson ?? "{}",
       timezone: lead.business?.timezone ?? "America/New_York",
-      capacity: Math.max(1, activeTechnicians),
-      existing: existing.flatMap((job) =>
-        job.scheduledAt
-          ? [
-              {
-                scheduledAt: job.scheduledAt,
-                durationMin: DEFAULT_JOB_DURATION_MIN,
-              },
-            ]
-          : [],
-      ),
     });
-
     if (!available) {
       throw new Error(
         "No appointment capacity in the next 14 days. Keep the lead open for manual scheduling.",
@@ -263,6 +319,7 @@ export async function createJobFromLead(params: {
           notes,
           status: "scheduled",
           scheduledAt,
+          durationMin,
           categoryCode: demand.categoryCode,
           postalCode: demand.postalCode,
         },
@@ -304,6 +361,88 @@ export async function createJobFromLead(params: {
   }
 
   if (createdNow) {
+    const actor = params.actor ?? "orvius";
+    const link = {
+      businessId: lead.businessId,
+      callId: lead.callId,
+      leadId: lead.id,
+      customerId,
+      jobId: job.id,
+    };
+    await recordAudit({
+      ...link,
+      entityType: "job",
+      entityId: job.id,
+      actor,
+      action: "job.booked",
+      summary: `Booked ${playbook.service.label.toLowerCase()} for ${scheduledAt.toISOString()} (${durationMin} min)`,
+      detail: {
+        scheduledAt: scheduledAt.toISOString(),
+        durationMin,
+        service: playbook.service,
+        chosenBy: params.scheduledAt ? "owner" : "first open slot in shop hours",
+      },
+      idempotencyKey: `job:${job.id}:booked`,
+    });
+
+    if (!params.skipAutoAssign && !job.technicianId) {
+      // When Orvius chose the time, a lost race for the last free tech moves
+      // the job to the next open slot instead of leaving it unassigned.
+      const canReslot = !params.scheduledAt;
+      let slot = scheduledAt;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const last = !canReslot || attempt === 3;
+        const outcome = await autoAssignTechnician({
+          job: { id: job.id, scheduledAt: slot, durationMin, technicianId: null },
+          skill: playbook.service.skill,
+          link,
+          recordUnassigned: last,
+        });
+        job = outcome.job;
+        if (job.technicianId || last || !outcome.busy) {
+          if (!job.technicianId && !last) {
+            await autoAssignTechnician({
+              job: { id: job.id, scheduledAt: slot, durationMin, technicianId: null },
+              skill: playbook.service.skill,
+              link,
+              recordUnassigned: true,
+            });
+          }
+          break;
+        }
+        const next = await findOpenSlot({
+          businessId: lead.businessId,
+          urgency: lead.urgency,
+          durationMin,
+          skill: playbook.service.skill,
+          hoursJson: lead.business?.hoursJson ?? "{}",
+          timezone: lead.business?.timezone ?? "America/New_York",
+          excludeJobId: job.id,
+        });
+        if (!next || next.getTime() === slot.getTime()) {
+          await autoAssignTechnician({
+            job: { id: job.id, scheduledAt: slot, durationMin, technicianId: null },
+            skill: playbook.service.skill,
+            link,
+            recordUnassigned: true,
+          });
+          break;
+        }
+        await prisma.job.update({ where: { id: job.id }, data: { scheduledAt: next } });
+        await recordAudit({
+          ...link,
+          entityType: "job",
+          entityId: job.id,
+          action: "job.rescheduled",
+          summary: `Moved to ${next.toISOString()} — another call took the last free technician at ${slot.toISOString()}`,
+          detail: { from: slot.toISOString(), to: next.toISOString() },
+          idempotencyKey: `job:${job.id}:reslot:${attempt}`,
+        });
+        slot = next;
+        scheduledAt = next;
+      }
+    }
+
     await closeBookingMoneyLoop({
       businessId: lead.businessId,
       leadId: lead.id,
@@ -312,7 +451,18 @@ export async function createJobFromLead(params: {
 
     // Proposed window until the customer confirms — keep appointments honest.
     try {
-      await sendCustomerConfirmSms(job.id);
+      const confirm = await sendCustomerConfirmSms(job.id);
+      await recordAudit({
+        ...link,
+        entityType: "job",
+        entityId: job.id,
+        action: confirm.sent ? "customer.confirmation_sent" : "customer.confirmation_skipped",
+        summary: confirm.sent
+          ? "Texted the customer the proposed window to confirm"
+          : `Customer confirmation not sent (${(confirm.reason ?? "unknown").replace(/_/g, " ")})`,
+        detail: { reason: confirm.reason ?? null },
+        idempotencyKey: `job:${job.id}:confirmation`,
+      });
     } catch (error) {
       logWarn("job.customer_confirm_sms_error", {
         jobId: job.id,
@@ -322,6 +472,100 @@ export async function createJobFromLead(params: {
   }
 
   return job;
+}
+
+async function autoAssignTechnician(params: {
+  job: { id: string; scheduledAt: Date; durationMin: number; technicianId: string | null };
+  skill: string;
+  /** false while Orvius may still move the job to another slot. */
+  recordUnassigned?: boolean;
+  link: { businessId: string; callId: string | null; leadId: string; customerId: string | null; jobId: string };
+}) {
+  const { job, link } = params;
+  let ranking = await recommendTechnician({
+    businessId: link.businessId,
+    scheduledAt: job.scheduledAt,
+    durationMin: job.durationMin,
+    skill: params.skill,
+    excludeJobId: job.id,
+  });
+
+  // Concurrent bookings read the same free calendar. Claim, then re-check the
+  // tech's calendar: on overlap the older job keeps the tech and this one
+  // re-ranks, so two calls can never put one tech in two places.
+  for (let attempt = 0; ranking.pick && attempt < 3; attempt++) {
+    const techId = ranking.pick.technicianId;
+    const claimed = await prisma.job.updateMany({
+      where: { id: job.id, technicianId: null },
+      data: { technicianId: techId },
+    });
+    if (claimed.count !== 1) return { job: await prisma.job.findUniqueOrThrow({ where: { id: job.id } }), busy: false };
+
+    const thisJob = await prisma.job.findUniqueOrThrow({ where: { id: job.id }, select: { createdAt: true } });
+    const others = await prisma.job.findMany({
+      where: {
+        businessId: link.businessId,
+        technicianId: techId,
+        id: { not: job.id },
+        status: { notIn: ["completed", "cancelled"] },
+        scheduledAt: { not: null },
+      },
+      select: { id: true, scheduledAt: true, durationMin: true, createdAt: true },
+    });
+    const start = job.scheduledAt.getTime();
+    const end = start + job.durationMin * 60_000;
+    const conflict = others.find((o) => {
+      const oStart = o.scheduledAt!.getTime();
+      const oEnd = oStart + (o.durationMin ?? DEFAULT_JOB_DURATION_MIN) * 60_000;
+      const overlapping = start < oEnd && oStart < end;
+      const olderWins =
+        o.createdAt.getTime() < thisJob.createdAt.getTime() ||
+        (o.createdAt.getTime() === thisJob.createdAt.getTime() && o.id < job.id);
+      return overlapping && olderWins;
+    });
+    if (!conflict) {
+      await recordAudit({
+        ...link,
+        entityType: "job",
+        entityId: job.id,
+        action: "technician.assigned",
+        summary: `Assigned ${ranking.pick.name} — ${ranking.pick.reason}`,
+        detail: { technicianId: techId, skill: params.skill, considered: ranking.considered },
+        idempotencyKey: `job:${job.id}:auto-assign`,
+      });
+      try {
+        await notifyTechOnAssign({ jobId: job.id, previousTechnicianId: null, nextTechnicianId: techId });
+      } catch (error) {
+        logWarn("job.auto_assign_notify_error", {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      }
+      return { job: await prisma.job.findUniqueOrThrow({ where: { id: job.id } }), busy: false };
+    }
+    await prisma.job.updateMany({ where: { id: job.id, technicianId: techId }, data: { technicianId: null } });
+    ranking = await recommendTechnician({
+      businessId: link.businessId,
+      scheduledAt: job.scheduledAt,
+      durationMin: job.durationMin,
+      skill: params.skill,
+      excludeJobId: job.id,
+    });
+  }
+
+  const busy = !ranking.pick || ranking.considered.some((c) => c.fit === "busy");
+  if (params.recordUnassigned !== false) {
+    await recordAudit({
+      ...link,
+      entityType: "job",
+      entityId: job.id,
+      action: "technician.unassigned",
+      summary: `Left unassigned — ${ranking.blocked ?? "no technician fits"}`,
+      detail: { skill: params.skill, considered: ranking.considered },
+      idempotencyKey: `job:${job.id}:auto-assign`,
+    });
+  }
+  return { job: await prisma.job.findUniqueOrThrow({ where: { id: job.id } }), busy };
 }
 
 export async function updateJobStatus(jobId: string, status: JobStatus) {

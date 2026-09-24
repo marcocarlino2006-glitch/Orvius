@@ -1,3 +1,4 @@
+import { listAuditFor } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/money";
 import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
@@ -408,6 +409,18 @@ function leadChannel(source: string | null | undefined): string {
   return LEAD_CHANNEL[source.toLowerCase()] ?? source.charAt(0).toUpperCase() + source.slice(1);
 }
 
+const AUDIT_TONE: Record<string, RecordEvent["tone"]> = {
+  "job.booked": "success",
+  "technician.assigned": "success",
+  "customer.confirmation_sent": "success",
+  "customer.matched": "success",
+  "lead.escalated": "risk",
+  "lead.held": "attention",
+  "technician.unassigned": "attention",
+  "customer.confirmation_skipped": "attention",
+  "copilot.executed": "success",
+};
+
 export async function getRecordView(
   businessId: string,
   type: RecordType,
@@ -471,6 +484,33 @@ export async function getRecordView(
     next: buildNext(g),
     fullHref: recordHref(type, id),
   };
+
+  const audit = await listAuditFor({
+    businessId,
+    callId: g.call?.id,
+    leadId: g.lead?.id,
+    jobId: g.job?.id,
+    customerId: type === "customer" ? g.customer?.id : null,
+  });
+  if (audit.length) {
+    // The audit trail is the record of what was decided; timestamps fill in
+    // only the lifecycle steps the audit does not narrate.
+    const narrated = /^(Call answered|Lead captured|Job booked|Confirmation text sent|Owner alerted)/;
+    view.events = [
+      ...audit.map((a) => ({
+        at: a.at,
+        label: a.summary,
+        detail: a.actor === "orvius" ? "Orvius" : a.actor === "owner" ? "Owner" : "System",
+        tone: AUDIT_TONE[a.action] ?? ("neutral" as const),
+      })),
+      ...view.events.filter((e) => !narrated.test(e.label)),
+    ].sort((a, b) => b.at.localeCompare(a.at));
+    view.decisions = audit
+      .filter((a) => a.actor === "orvius")
+      .slice()
+      .reverse()
+      .map((a) => a.summary);
+  }
 
   if (type === "customer" && g.customer) {
     const [jobs, leads] = await Promise.all([

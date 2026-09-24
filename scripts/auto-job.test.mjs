@@ -219,7 +219,7 @@ test("out-of-area ZIPs stay on the board when the owner set an allowlist", async
     });
     const blocked = await maybeAutoBookLead(outside.id);
     assert.equal(blocked.created, false);
-    assert.equal(blocked.skipReason, "unqualified");
+    assert.equal(blocked.skipReason, "out_of_area");
 
     const inside = await makeLead(shop.id, {
       urgency: "this-week",

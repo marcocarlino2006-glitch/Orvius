@@ -211,7 +211,7 @@ try {
 // ── L6 Demand capture on lead writes ──
 try {
   const writers = [
-    "src/app/api/webhooks/vapi/route.ts",
+    "src/lib/call-ingest.ts",
     "src/app/api/webhooks/twilio/sms/route.ts",
     "src/lib/job.ts",
   ];

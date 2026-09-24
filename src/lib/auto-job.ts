@@ -1,4 +1,6 @@
+import { recordAudit } from "@/lib/audit";
 import { createJobFromLead } from "@/lib/job";
+import { classifyRequest, type RequestClassification } from "@/lib/trade-playbooks";
 import { getEffectivePlanId } from "@/lib/plan-features";
 import { prisma } from "@/lib/prisma";
 import { isInServiceArea } from "@/lib/service-area";
@@ -48,6 +50,8 @@ export type AutoBookSkipReason =
   | "non_service"
   | "capacity_unavailable"
   | "plan_blocked"
+  | "out_of_area"
+  | "safety_escalation"
   | "not_found";
 
 export type AutoBookResult = {
@@ -55,6 +59,7 @@ export type AutoBookResult = {
   created: boolean;
   qualified: boolean;
   skipReason?: AutoBookSkipReason;
+  classification?: RequestClassification;
 };
 
 function hasUsablePhone(phone?: string | null): boolean {
@@ -108,6 +113,9 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
           pilotEndsAt: true,
           createdAt: true,
           serviceZipsJson: true,
+          trade: true,
+          servicesJson: true,
+          name: true,
         },
       },
     },
@@ -135,8 +143,64 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     };
   }
 
+  const businessId = lead.businessId;
+  const classification = classifyRequest({
+    business: lead.business,
+    serviceType: lead.serviceType,
+    notes: lead.notes,
+    urgency: lead.urgency,
+  });
+  const link = {
+    businessId,
+    callId: lead.callId,
+    leadId: lead.id,
+    customerId: lead.customerId,
+    entityType: "lead" as const,
+    entityId: lead.id,
+  };
+  const decide = (action: string, summary: string, detail?: Record<string, unknown>) =>
+    recordAudit({ ...link, action, summary, detail, idempotencyKey: `lead:${lead.id}:${action}` });
+
+  await decide(
+    "playbook.classified",
+    `${classification.trade ?? "General"} playbook: ${classification.service.label} · ${classification.service.durationMin} min${
+      classification.urgency ? ` · ${classification.urgency}` : ""
+    }`,
+    { ...classification },
+  );
+
+  if (classification.safety) {
+    if (classification.urgency && lead.urgency !== classification.urgency) {
+      await prisma.lead.update({ where: { id: lead.id }, data: { urgency: classification.urgency } });
+    }
+    await decide(
+      "lead.escalated",
+      `Escalated to a human — ${classification.safety.label}. ${classification.safety.instruction}`,
+      { safety: classification.safety },
+    );
+    return {
+      jobId: null,
+      created: false,
+      qualified: true,
+      skipReason: "safety_escalation",
+      classification,
+    };
+  }
+
   const qualified = isLeadQualifiedForBooking(lead);
   if (!qualified) {
+    const missing = [
+      !hasUsablePhone(lead.phone) ? "callback number" : null,
+      !lead.address?.trim() ? "address" : null,
+      !lead.serviceType?.trim() ? "service" : null,
+    ].filter(Boolean);
+    await decide(
+      "lead.held",
+      lead.categoryCode === "other.non_service"
+        ? "Held — not a service request"
+        : `Held for the owner — missing ${missing.join(", ") || "details to book"}`,
+      { missing },
+    );
     return {
       jobId: null,
       created: false,
@@ -145,6 +209,7 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
         lead.categoryCode === "other.non_service"
           ? "non_service"
           : "unqualified",
+      classification,
     };
   }
 
@@ -152,6 +217,7 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
   // Life-changing wedge: Line books every qualified lead. Jobs module still
   // gates Dispatch UI — not the front-door book.
   if (plan === "expired") {
+    await decide("lead.held", "Held — the shop's plan has ended, so Orvius did not book");
     return {
       jobId: null,
       created: false,
@@ -160,14 +226,22 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     };
   }
 
-  if (isInServiceArea(lead.address, lead.business.serviceZipsJson) === false) {
+  const inArea = isInServiceArea(lead.address, lead.business.serviceZipsJson);
+  if (inArea === false) {
+    await decide("service_area.checked", "Outside the service area — held for the owner to decide", { inArea });
     return {
       jobId: null,
       created: false,
       qualified: false,
-      skipReason: "unqualified",
+      skipReason: "out_of_area",
+      classification,
     };
   }
+  await decide(
+    "service_area.checked",
+    inArea === true ? "Address is inside the service area" : "No service area set — accepted",
+    { inArea },
+  );
 
   let job;
   try {
@@ -180,15 +254,17 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
       error instanceof Error &&
       error.message.startsWith("No appointment capacity")
     ) {
+      await decide("lead.held", "No open slot in the next 14 days — held for the owner to schedule");
       return {
         jobId: null,
         created: false,
         qualified: true,
         skipReason: "capacity_unavailable",
+        classification,
       };
     }
     throw error;
   }
 
-  return { jobId: job.id, created: true, qualified: true };
+  return { jobId: job.id, created: true, qualified: true, classification };
 }

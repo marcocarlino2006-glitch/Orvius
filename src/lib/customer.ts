@@ -71,10 +71,23 @@ function mergeAddress(
  * Merges by normalized phone per business.
  */
 export async function findOrCreateCustomer(touch: CustomerTouch) {
+  return (await findOrCreateCustomerDetailed(touch))?.customer ?? null;
+}
+
+/**
+ * Same match, plus whether this touch created the customer. countTouch=false
+ * lets a retried or already-linked touch refresh details without inflating
+ * the interaction count.
+ */
+export async function findOrCreateCustomerDetailed(
+  touch: CustomerTouch,
+  options: { countTouch?: boolean } = {},
+) {
   const normalized = normalizePhone(touch.phone);
   if (!normalized) {
     return null;
   }
+  const countTouch = options.countTouch ?? true;
 
   const existing = await prisma.customer.findUnique({
     where: {
@@ -86,7 +99,7 @@ export async function findOrCreateCustomer(touch: CustomerTouch) {
   });
 
   if (existing) {
-    return prisma.customer.update({
+    const updated = await prisma.customer.update({
       where: { id: existing.id },
       data: {
         name: touch.name?.trim() || existing.name,
@@ -94,23 +107,37 @@ export async function findOrCreateCustomer(touch: CustomerTouch) {
         address: mergeAddress(existing.address, touch.address),
         notes: appendCompoundingNote(existing.notes, touch.notes),
         phone: touch.phone?.trim() || existing.phone,
-        interactionCount: { increment: 1 },
+        ...(countTouch ? { interactionCount: { increment: 1 } } : {}),
         lastSeenAt: new Date(),
       },
     });
+    return { customer: updated, created: false };
   }
 
-  return prisma.customer.create({
-    data: {
-      businessId: touch.businessId,
-      phone: touch.phone?.trim() || normalized,
-      phoneNormalized: normalized,
-      name: touch.name?.trim() || null,
-      email: touch.email?.trim() || null,
-      address: touch.address?.trim() || null,
-      notes: touch.notes?.trim() || null,
-    },
-  });
+  try {
+    const created = await prisma.customer.create({
+      data: {
+        businessId: touch.businessId,
+        phone: touch.phone?.trim() || normalized,
+        phoneNormalized: normalized,
+        name: touch.name?.trim() || null,
+        email: touch.email?.trim() || null,
+        address: touch.address?.trim() || null,
+        notes: touch.notes?.trim() || null,
+      },
+    });
+    return { customer: created, created: true };
+  } catch (error) {
+    // Two concurrent touches from the same caller: the unique
+    // (businessId, phoneNormalized) edge lets exactly one create win.
+    if ((error as { code?: string })?.code !== "P2002") throw error;
+    const winner = await prisma.customer.findUniqueOrThrow({
+      where: {
+        businessId_phoneNormalized: { businessId: touch.businessId, phoneNormalized: normalized },
+      },
+    });
+    return { customer: winner, created: false };
+  }
 }
 
 export async function attachCustomerToCall(callId: string, customerId: string) {
@@ -138,7 +165,13 @@ export async function attachCustomerToJob(jobId: string, customerId: string) {
  * Attach every touch (call / lead / job) to one customer brain.
  * Prefer stable caller phone over AI-extracted alternate when both present.
  */
-export async function linkTouchToCustomer(params: {
+export async function linkTouchToCustomer(
+  params: Parameters<typeof linkTouchToCustomerDetailed>[0],
+) {
+  return (await linkTouchToCustomerDetailed(params))?.customer ?? null;
+}
+
+export async function linkTouchToCustomerDetailed(params: {
   businessId: string;
   callId?: string;
   leadId?: string;
@@ -155,16 +188,30 @@ export async function linkTouchToCustomer(params: {
     ? params.phone
     : (params.alternatePhone ?? params.phone);
 
-  const customer = await findOrCreateCustomer({
-    businessId: params.businessId,
-    phone: resolvedPhone,
-    name: params.name,
-    email: params.email,
-    address: params.address,
-    notes: params.notes,
-  });
+  const [call, lead] = await Promise.all([
+    params.callId
+      ? prisma.call.findUnique({ where: { id: params.callId }, select: { customerId: true } })
+      : null,
+    params.leadId
+      ? prisma.lead.findUnique({ where: { id: params.leadId }, select: { customerId: true } })
+      : null,
+  ]);
+  const alreadyLinked = Boolean(call?.customerId || lead?.customerId);
 
-  if (!customer) return null;
+  const result = await findOrCreateCustomerDetailed(
+    {
+      businessId: params.businessId,
+      phone: resolvedPhone,
+      name: params.name,
+      email: params.email,
+      address: params.address,
+      notes: params.notes,
+    },
+    { countTouch: !alreadyLinked },
+  );
+
+  if (!result) return null;
+  const { customer } = result;
 
   if (params.callId) {
     await attachCustomerToCall(params.callId, customer.id);
@@ -180,7 +227,7 @@ export async function linkTouchToCustomer(params: {
     await attachCustomerToJob(params.jobId, customer.id);
   }
 
-  return customer;
+  return { customer, created: result.created, alreadyLinked };
 }
 
 export type TimelineEvent = {
