@@ -2,7 +2,6 @@
 
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
-import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
 import { ShopSetupChecklistPanel } from "@/components/shop-setup-checklist-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
@@ -79,6 +78,18 @@ const FOUNDER_CERT = [
   "Inbound SMS — lead + auto-reply",
 ] as const;
 
+const CONTROL_PLANE = [
+  { label: "Business", hint: "Name, address, trade", href: "#shop-profile" },
+  { label: "Trade rules", hint: "Services, hours, area", href: "#hours-services" },
+  { label: "Phone line", hint: "Capture and forwarding", href: "#overflow-forward" },
+  { label: "AI behavior", hint: "Opening line, ticket", href: "#economics-baseline" },
+  { label: "Alerts", hint: "Owner mobile, email", href: "#owner-alerts" },
+  { label: "Team & calendar", hint: "Technicians, schedule", href: "/dashboard/dispatch" },
+  { label: "Integrations", hint: "SMS, email, payouts", href: "#integrations" },
+  { label: "Billing", hint: "Plan and invoices", href: "/dashboard/billing" },
+  { label: "Security & data", hint: "Sign-in, export", href: "#shop-data" },
+] as const;
+
 function parseCert(raw: string | null | undefined): boolean[] {
   const empty = FOUNDER_CERT.map(() => false);
   if (!raw) return empty;
@@ -129,6 +140,7 @@ export default function DashboardSettingsPage() {
   const [zipsText, setZipsText] = useState("");
   const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [crewCount, setCrewCount] = useState<number | null>(null);
 
   async function loadAccount() {
     setLoadState("loading");
@@ -177,6 +189,15 @@ export default function DashboardSettingsPage() {
     setDirty(false);
     setLoadState("ready");
   }
+
+  useEffect(() => {
+    fetch("/api/technicians")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { technicians?: unknown[] } | null) => {
+        if (data?.technicians) setCrewCount(data.technicians.length);
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     loadAccount().catch(() => {
@@ -458,8 +479,10 @@ export default function DashboardSettingsPage() {
         hoursJson: serializeHoursForm(hoursForm),
         servicesJson: serializeServicesForm(servicesText),
         serviceZipsJson: serializeZipsForm(zipsText),
+        crewCount,
       }),
     [
+      crewCount,
       shopName,
       trade,
       shopAddress,
@@ -476,7 +499,7 @@ export default function DashboardSettingsPage() {
 
   if (loadState !== "ready" || !account) {
     return (
-      <OsShell title="Settings" subtitle="One next move — then back to Command.">
+      <OsShell title="Settings" subtitle="The control plane: how Orvius answers, books, and alerts for your shop.">
         <div className="pro-settings-page">
           {loadState === "error" ? (
             <div className="pro-settings-load-error">
@@ -522,11 +545,18 @@ export default function DashboardSettingsPage() {
   return (
     <OsShell
       title="Settings"
-      subtitle="One next move — then back to Command."
+      subtitle="The control plane: how Orvius answers, books, and alerts for your shop."
     >
       <div className="pro-settings-page">
         <ShopSetupChecklistPanel checklist={setupChecklist} />
-        <SettingsLaunchGuide input={hubInput} />
+        <nav className="cp-index font-sans" aria-label="Control plane">
+          {CONTROL_PLANE.map((area) => (
+            <Link key={area.label} href={area.href} className="cp-link">
+              <span className="cp-label">{area.label}</span>
+              <span className="cp-hint">{area.hint}</span>
+            </Link>
+          ))}
+        </nav>
         <form className="account-stack pro-settings-form" onSubmit={save}>
         <details
           id="shop-profile"
@@ -929,6 +959,62 @@ export default function DashboardSettingsPage() {
             <FounderManusNext tone="quiet" next={manusNext} />
           </details>
         ) : null}
+
+        <details id="integrations" className="pro-settings-secondary font-sans" open>
+          <summary>Integrations</summary>
+          <div className="pro-settings-secondary-body">
+            <ul className="int-list">
+              <li className="int-row">
+                <span className={`int-dot ${line ? "is-on" : ""}`} aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">Phone line</span>
+                  <span className="int-detail">{line ? `Connected · ${line}` : "Not connected"}</span>
+                </span>
+              </li>
+              <li className="int-row">
+                <span className={`int-dot ${account.alerts.smsEnabled && !account.alerts.ownerSmsOptedOut ? "is-on" : ""}`} aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">SMS alerts</span>
+                  <span className="int-detail">
+                    {account.alerts.ownerSmsOptedOut
+                      ? "Owner number opted out — text START to resume"
+                      : account.alerts.smsEnabled
+                        ? "Connected"
+                        : "Not connected"}
+                  </span>
+                </span>
+              </li>
+              <li className="int-row">
+                <span className={`int-dot ${account.alerts.emailConfigured ? "is-on" : ""}`} aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">Email backup</span>
+                  <span className="int-detail">{account.alerts.emailConfigured ? "Connected" : "Not connected"}</span>
+                </span>
+              </li>
+              <li className="int-row">
+                <span className={`int-dot ${account.billing?.fullyReady ? "is-on" : ""}`} aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">Payments &amp; payouts</span>
+                  <span className="int-detail">
+                    {account.billing?.fullyReady ? "Connected" : "Set up on Billing"}
+                  </span>
+                </span>
+                <Link href="/dashboard/billing#payouts" className="int-action">
+                  Open
+                </Link>
+              </li>
+              <li className="int-row">
+                <span className="int-dot" aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">External calendar</span>
+                  <span className="int-detail">
+                    Not available yet — jobs book onto the Orvius schedule in Dispatch.
+                  </span>
+                </span>
+              </li>
+            </ul>
+          </div>
+        </details>
 
         {/*
           Billing's home is /dashboard/billing. Settings only points there —

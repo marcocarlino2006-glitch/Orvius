@@ -9,46 +9,34 @@ type ShopSetupChecklistPanelProps = {
 };
 
 /**
- * Guided setup — progress + one next action. Never claims done when incomplete.
+ * Readiness path — every step visible as a stop on one line, exactly one next
+ * action expanded. Never claims a step done that the records do not prove.
  */
 export function ShopSetupChecklistPanel({
   checklist,
   className = "",
 }: ShopSetupChecklistPanelProps) {
-  const { next, doneCount, totalCount, progress, steps, readyForNight } =
-    checklist;
+  const { next, doneCount, totalCount, progress, steps } = checklist;
 
   return (
     <section
-      className={`shop-setup-checklist font-sans ${className}`.trim()}
-      aria-label="Shop setup checklist"
+      className={`rp font-sans ${className}`.trim()}
+      aria-label="Readiness path"
     >
-      <div className="shop-setup-checklist-head">
+      <header className="rp-head">
         <div>
-          <p className="shop-setup-checklist-kicker">Setup</p>
-          <h2 className="shop-setup-checklist-title">
-            {readyForNight
-              ? "Night line can run — finish the rest when you can"
-              : "Finish shop setup"}
+          <p className="rp-kicker">Readiness</p>
+          <h2 className="rp-title">
+            {next ? "Get Orvius ready to run the shop" : "Orvius is ready to operate"}
           </h2>
-          <p className="shop-setup-checklist-lead">
-            {doneCount} of {totalCount} complete
-            {next ? ` · Next: ${next.label}` : " · All steps done"}
-          </p>
         </div>
-        {next ? (
-          <Link href={next.href} className="btn btn-void text-sm">
-            {next.label} →
-          </Link>
-        ) : (
-          <Link href="/dashboard" className="btn btn-void text-sm">
-            Open Command
-          </Link>
-        )}
-      </div>
+        <p className="rp-count">
+          {doneCount} of {totalCount}
+        </p>
+      </header>
 
       <div
-        className="shop-setup-checklist-meter"
+        className="rp-meter"
         role="progressbar"
         aria-valuenow={Math.round(progress * 100)}
         aria-valuemin={0}
@@ -58,29 +46,44 @@ export function ShopSetupChecklistPanel({
         <span style={{ width: `${Math.round(progress * 100)}%` }} />
       </div>
 
-      <ol className="shop-setup-checklist-list">
-        {steps.map((step) => (
-          <li
-            key={step.id}
-            className={`shop-setup-checklist-item ${step.done ? "is-done" : ""} ${
-              next?.id === step.id ? "is-next" : ""
-            }`}
-          >
-            <span className="shop-setup-checklist-mark" aria-hidden>
-              {step.done ? "✓" : next?.id === step.id ? "→" : "·"}
-            </span>
-            <div className="shop-setup-checklist-copy">
-              <p className="shop-setup-checklist-label">{step.label}</p>
-              <p className="shop-setup-checklist-detail">{step.detail}</p>
-            </div>
-            {!step.done ? (
-              <Link href={step.href} className="shop-setup-checklist-link">
-                Open
+      <ol className="rp-steps">
+        {steps.map((step, index) => {
+          const state = step.done ? "done" : next?.id === step.id ? "next" : "todo";
+          return (
+            <li key={step.id} className={`rp-step rp-step--${state}`}>
+              <Link href={step.href} className="rp-step-link" aria-current={state === "next" ? "step" : undefined}>
+                <span className="rp-step-mark" aria-hidden>
+                  {step.done ? "✓" : index + 1}
+                </span>
+                <span className="rp-step-label">{step.label}</span>
+                <span className="sr-only">{step.done ? " — done" : state === "next" ? " — next" : ""}</span>
               </Link>
-            ) : null}
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ol>
+
+      {next ? (
+        <div className="rp-next">
+          <div>
+            <p className="rp-next-kicker">Next · {next.label}</p>
+            <p className="rp-next-detail">{next.detail}</p>
+          </div>
+          <Link href={next.href} className="ox-btn ox-btn--primary">
+            {next.id === "verify" ? "Place test call" : `Set up ${next.label.toLowerCase()}`}
+          </Link>
+        </div>
+      ) : (
+        <div className="rp-next rp-next--done">
+          <div>
+            <p className="rp-next-kicker">All steps verified</p>
+            <p className="rp-next-detail">Calls are answered, understood, and routed with your rules.</p>
+          </div>
+          <Link href="/dashboard" className="ox-btn ox-btn--quiet">
+            Open Command
+          </Link>
+        </div>
+      )}
     </section>
   );
 }

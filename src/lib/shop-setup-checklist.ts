@@ -5,15 +5,16 @@
 
 import { TRADES, type Trade } from "@/lib/trades";
 
+/** Readiness path order: Business → Trade rules → Service area → Hours → Phone line → Calendar → Alerts → Test call. */
 export type ShopSetupStepId =
-  | "trade"
   | "identity"
+  | "trade"
+  | "service_area"
+  | "hours"
   | "line"
-  | "verify"
+  | "calendar"
   | "owner_alerts"
-  | "hours_area"
-  | "capture"
-  | "services";
+  | "verify";
 
 export type ShopSetupStep = {
   id: ShopSetupStepId;
@@ -45,6 +46,8 @@ export type ShopSetupInput = {
   hoursJson?: string | null;
   servicesJson?: string | null;
   serviceZipsJson?: string | null;
+  /** Active technicians the schedule can book against. */
+  crewCount?: number | null;
 };
 
 function hasPhone(value: string | null | undefined): boolean {
@@ -89,19 +92,12 @@ export function buildShopSetupChecklist(input: ShopSetupInput): ShopSetupCheckli
   const servicesOk = parseJsonArray(input.servicesJson).length > 0;
   const captureOk = Boolean(input.captureConfirmed) || lineVerified;
 
+  const crewOk = (input.crewCount ?? 0) > 0;
+
   const steps: ShopSetupStep[] = [
     {
-      id: "trade",
-      label: "Trade",
-      detail: trade
-        ? `${trade} — prompts and urgency rules match this trade`
-        : "Choose HVAC, plumbing, electrical, or another trade",
-      href: "/dashboard/settings#shop-profile",
-      done: Boolean(trade),
-    },
-    {
       id: "identity",
-      label: "Shop identity",
+      label: "Business",
       detail: hasName && hasAddress
         ? `${input.name!.trim()} · address on file`
         : hasName
@@ -111,59 +107,68 @@ export function buildShopSetupChecklist(input: ShopSetupInput): ShopSetupCheckli
       done: hasName && hasAddress,
     },
     {
-      id: "line",
-      label: "Shop line",
-      detail: hasLine ? `Line ${input.line}` : "Create your dedicated Orvius number",
-      href: "/dashboard/onboarding",
-      done: hasLine,
+      id: "trade",
+      label: "Trade rules",
+      detail:
+        trade && servicesOk
+          ? `${trade} playbook · services confirmed`
+          : trade
+            ? `${trade} playbook set — confirm the services you answer for`
+            : "Choose HVAC, plumbing, or electrical so urgency rules match the work",
+      href: trade ? "/dashboard/settings#hours-services" : "/dashboard/settings#shop-profile",
+      done: Boolean(trade) && servicesOk,
     },
     {
-      id: "verify",
-      label: "Prove the line",
-      detail: lineVerified
-        ? "A real call reached Orvius"
-        : "Place one test call — transcript must land in Calls",
-      href: "/dashboard/onboarding",
-      done: lineVerified,
+      id: "service_area",
+      label: "Service area",
+      detail: zipsOk ? "Service ZIPs set — out-of-area calls are flagged" : "Add the ZIPs you serve",
+      href: "/dashboard/settings#hours-services",
+      done: zipsOk,
+    },
+    {
+      id: "hours",
+      label: "Hours",
+      detail: hoursOk ? "Business hours set — after-hours rules apply outside them" : "Set when the shop is open",
+      href: "/dashboard/settings#hours-services",
+      done: hoursOk,
+    },
+    {
+      id: "line",
+      label: "Phone line",
+      detail: !hasLine
+        ? "Create your dedicated Orvius number"
+        : captureOk
+          ? `Line ${input.line} · calls routed to Orvius`
+          : `Line ${input.line} — forward missed calls or publish the number`,
+      href: hasLine ? "/dashboard/settings#overflow-forward" : "/dashboard/onboarding",
+      done: hasLine && captureOk,
+    },
+    {
+      id: "calendar",
+      label: "Calendar",
+      detail: crewOk
+        ? "Jobs book onto the Orvius schedule for your crew"
+        : "Add at least one technician so booked jobs have an owner",
+      href: "/dashboard/dispatch",
+      done: crewOk,
     },
     {
       id: "owner_alerts",
-      label: "Owner alerts",
+      label: "Alerts",
       detail: alertsOk
-        ? "Night leads SMS your mobile"
-        : "Add the cell that gets after-hours leads",
+        ? "Escalations text your mobile"
+        : "Add the mobile that receives escalations",
       href: "/dashboard/settings#owner-alerts",
       done: alertsOk,
     },
     {
-      id: "hours_area",
-      label: "Hours & service area",
-      detail:
-        hoursOk && zipsOk
-          ? "Hours and ZIPs set"
-          : hoursOk
-            ? "Add service-area ZIPs"
-            : "Set business hours and service ZIPs",
-      href: "/dashboard/settings#hours-services",
-      done: hoursOk && zipsOk,
-    },
-    {
-      id: "services",
-      label: "Services",
-      detail: servicesOk
-        ? "Trade services on the receptionist"
-        : "Confirm the services this shop answers for",
-      href: "/dashboard/settings#hours-services",
-      done: servicesOk,
-    },
-    {
-      id: "capture",
-      label: "Call capture",
-      detail: captureOk
-        ? "Overflow/publish path ready"
-        : "Forward missed calls or publish the Orvius number",
-      href: "/dashboard/settings#overflow-forward",
-      done: Boolean(input.captureConfirmed),
+      id: "verify",
+      label: "Test call",
+      detail: lineVerified
+        ? "A real call reached Orvius and landed in Calls"
+        : "Place one test call — the transcript must land in Calls",
+      href: "/dashboard/onboarding",
+      done: lineVerified,
     },
   ];
 
