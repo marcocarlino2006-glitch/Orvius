@@ -101,8 +101,9 @@ test("the grade never claims what the transcript does not show", () => {
     lead: lead({ serviceType: "I smell gas near the furnace", urgency: "emergency", job: null, status: "new" }),
     business: hvac,
   });
-  assert.equal(callerOnly.verdict, "clean");
-  assert.match(callerOnly.headline, /does not show what it told the caller/);
+  assert.equal(callerOnly.verdict, "listen", "an unverified hazard call is never graded clean");
+  assert.ok(callerOnly.score < 100);
+  assert.match(callerOnly.headline, /does not show what Orvius told them/);
 
   const noAddress = gradeCall({ call: call(), lead: lead({ address: null, job: null, status: "new" }), business: hvac });
   assert.deepEqual(noAddress.findings.map((f) => f.key), ["missing_capture"], "no address means it could not book");

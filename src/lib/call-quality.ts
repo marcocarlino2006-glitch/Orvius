@@ -19,6 +19,7 @@ export type CallFinding = {
     | "missing_capture"
     | "safety_not_emergency"
     | "safety_no_guidance"
+    | "safety_unverified"
     | "not_booked"
     | "repeated_self"
     | "asked_for_person"
@@ -105,6 +106,7 @@ const PENALTY: Record<CallFinding["key"], number> = {
   missing_capture: 0,
   safety_not_emergency: 35,
   safety_no_guidance: 40,
+  safety_unverified: 10,
   not_booked: 15,
   repeated_self: 10,
   asked_for_person: 10,
@@ -194,6 +196,13 @@ export function gradeCall(input: CallGradeInput): CallGrade {
         quote: trigger ? clip(trigger.text) : undefined,
       });
     }
+    if (!aiLines.length && !live && status !== "failed") {
+      findings.push({
+        key: "safety_unverified",
+        label: `The caller reported ${hazard.label.toLowerCase()}, and the transcript does not show what Orvius told them. Listen to confirm they got safety steps.`,
+        severity: "watch",
+      });
+    }
   }
 
   const booked = call.booked || Boolean(lead?.job);
@@ -273,7 +282,6 @@ export function gradeCall(input: CallGradeInput): CallGrade {
   else if (notAJob) headline = "Not a job for this shop. Orvius handled it without the owner.";
   else if (booked) headline = "Clean call. Orvius got everything the tech needs and booked it.";
   else if (hazard && gaveGuidance) headline = `Clean call. Orvius treated ${hazard.label.toLowerCase()} as an emergency and told the caller how to stay safe.`;
-  else if (hazard) headline = `Orvius marked ${hazard.label.toLowerCase()} an emergency for the owner. The transcript does not show what it told the caller.`;
   else headline = "Clean call. Orvius got everything the tech needs.";
 
   return { score, verdict, headline, captured, missing, findings: ordered };
@@ -294,6 +302,7 @@ const TOPIC: Record<CallFinding["key"], string> = {
   missing_capture: "missed caller details",
   safety_not_emergency: "hazards not marked emergency",
   safety_no_guidance: "hazards without safety guidance",
+  safety_unverified: "hazards to listen to",
   not_booked: "bookable calls left unbooked",
   repeated_self: "callers repeating themselves",
   asked_for_person: "callers asking for a person",
