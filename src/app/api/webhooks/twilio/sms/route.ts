@@ -30,6 +30,7 @@ import { recordWebhookEvent } from "@/lib/webhook-events";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 import { twimlMessage as twimlResponse } from "@/lib/twiml";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
+import { recordAudit } from "@/lib/audit";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -168,19 +169,40 @@ export async function POST(request: NextRequest) {
     demandCategoryLabel(demand.categoryCode) ?? "SMS inquiry";
   const urgency = inferExplicitUrgency(body);
 
-  const lead = await prisma.lead.create({
-    data: {
-      businessId: business.id,
-      externalId: messageSid || null,
-      phone: from,
-      notes: body,
-      serviceType,
-      urgency,
-      source: "sms",
-      status: "new",
-      categoryCode: demand.categoryCode,
-      postalCode: demand.postalCode,
-    },
+  let lead;
+  try {
+    lead = await prisma.lead.create({
+      data: {
+        businessId: business.id,
+        externalId: messageSid || null,
+        phone: from,
+        notes: body,
+        serviceType,
+        urgency,
+        source: "sms",
+        status: "new",
+        categoryCode: demand.categoryCode,
+        postalCode: demand.postalCode,
+      },
+    });
+  } catch (error) {
+    // A concurrent delivery of the same MessageSid won the insert.
+    if ((error as { code?: string })?.code === "P2002") {
+      logInfo("twilio.sms.duplicate", { messageSid, businessId: business.id });
+      return twimlResponse(SMS_REPLY);
+    }
+    throw error;
+  }
+
+  await recordAudit({
+    businessId: business.id,
+    entityType: "lead",
+    entityId: lead.id,
+    action: "lead.captured",
+    summary: `Text captured — ${serviceType}${urgency ? ` · ${urgency}` : ""}`,
+    detail: { channel: "sms", categoryCode: demand.categoryCode },
+    leadId: lead.id,
+    idempotencyKey: `sms:${messageSid || lead.id}:captured`,
   });
 
   await linkTouchToCustomer({
@@ -224,7 +246,15 @@ export async function POST(request: NextRequest) {
     ownerPhone: business.ownerPhone,
     ownerEmail: business.ownerEmail,
     businessName: business.name,
-    message: [ownerMessage, `Message: ${body}`].filter(Boolean).join("\n"),
+    message: [
+      autoBook.skipReason === "safety_escalation" && autoBook.classification?.safety
+        ? `SAFETY — ${autoBook.classification.safety.label}. ${autoBook.classification.safety.instruction}`
+        : null,
+      ownerMessage,
+      `Message: ${body}`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
     leadId: lead.id,
     dedupeKey: buildLeadAlertDedupeKey({
       messageSid: messageSid || lead.id,
@@ -243,6 +273,7 @@ export async function POST(request: NextRequest) {
   after(() => drainOwnerAlerts({ at: "twilio.sms", messageSid, businessId: business.id }));
 
   const safetyReply =
+    autoBook.skipReason === "safety_escalation" ||
     demand.categoryCode === "plumb.gas" ||
     demand.categoryCode === "elec.hazard"
       ? "If there is immediate danger, leave the area and call 911. We received your service request and will follow up shortly."
