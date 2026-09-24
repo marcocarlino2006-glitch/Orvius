@@ -1,3 +1,4 @@
+import { buildAskBrief, type AskBrief } from "@/lib/ask-brief";
 import { formatCents } from "@/lib/money";
 import { getAiModelPolicy } from "@/lib/ai-policy";
 import { getAttentionQueue } from "@/lib/attention-queue";
@@ -222,6 +223,8 @@ export type AskResult = {
   source: "memory" | "memory+model" | "outcomes" | "operate";
   hits: MemoryHit[];
   stats: ShopMemory["stats"];
+  /** Present when the answer rests on individual records. */
+  brief?: AskBrief;
 };
 
 export async function askShop(question: string, businessId: string): Promise<AskResult> {
@@ -275,11 +278,17 @@ export async function askShop(question: string, businessId: string): Promise<Ask
   const memory = await retrieveShopMemory(question, businessId);
   const grounded = composeMemoryAnswer(memory);
   const polished = await polishWithVapi(question, memory);
+  const brief = await buildAskBrief({
+    businessId,
+    hits: memory.hits,
+    modelWorded: Boolean(polished),
+  });
 
   return {
     answer: polished || grounded,
     source: polished ? "memory+model" : "memory",
     hits: memory.hits,
     stats: memory.stats,
+    brief,
   };
 }

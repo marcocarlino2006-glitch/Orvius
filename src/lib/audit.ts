@@ -32,9 +32,9 @@ function isUniqueConstraintError(error: unknown) {
  * Record one decision. The audit trail must never be the reason a call fails
  * to book, so write errors are logged, not thrown.
  */
-export async function recordAudit(input: AuditInput): Promise<void> {
+export async function recordAudit(input: AuditInput): Promise<string | null> {
   try {
-    await prisma.auditEvent.create({
+    const row = await prisma.auditEvent.create({
       data: {
         businessId: input.businessId,
         entityType: input.entityType,
@@ -49,14 +49,17 @@ export async function recordAudit(input: AuditInput): Promise<void> {
         jobId: input.jobId ?? null,
         idempotencyKey: input.idempotencyKey ?? null,
       },
+      select: { id: true },
     });
+    return row.id;
   } catch (error) {
-    if (isUniqueConstraintError(error)) return;
+    if (isUniqueConstraintError(error)) return null;
     logWarn("audit.write_failed", {
       action: input.action,
       entityId: input.entityId,
       error: error instanceof Error ? error.message : "unknown",
     });
+    return null;
   }
 }
 
