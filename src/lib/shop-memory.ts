@@ -221,9 +221,9 @@ export async function retrieveShopMemory(
     if (phone && (customer.phoneNormalized.includes(phone) || customer.phone.includes(phone))) {
       score += 12;
     }
-    score += 4;
     if (score <= 0 && terms.length) continue;
     if (!terms.length && !phone) continue;
+    score += 4;
     hits.push({
       type: "customer",
       id: customer.id,
@@ -271,9 +271,9 @@ export async function retrieveShopMemory(
     if (phone && (job.customer?.phone.includes(phone) || job.lead?.phone?.includes(phone))) {
       score += 8;
     }
-    score += 3;
     if (score <= 0 && !wantsJobs && terms.length) continue;
     if (!terms.length && !wantsJobs && !wantsToday && !wantsTomorrow) continue;
+    score += 3;
     hits.push({
       type: "job",
       id: job.id,
@@ -363,6 +363,8 @@ export async function retrieveShopMemory(
   }
 
 
+  hits.sort((a, b) => b.score - a.score);
+
   // Expand top customer hits with recent timeline so Ask answers from one record
   for (const hit of hits.filter((h) => h.type === "customer").slice(0, 3)) {
     const timeline = await getCustomerTimeline(hit.id);
@@ -371,11 +373,13 @@ export async function retrieveShopMemory(
     hit.summary = `${hit.summary} · Recent: ${recent}`;
   }
 
-  hits.sort((a, b) => b.score - a.score);
+  // A strong match (a name, a phone) should not be padded with weak ones.
+  const best = hits[0]?.score ?? 0;
+  const relevant = hits.filter((h) => h.score >= best * 0.4);
 
   return {
     query: q,
-    hits: hits.slice(0, 8),
+    hits: relevant.slice(0, 8),
     stats: {
       customers: stats[0],
       jobs: stats[1],

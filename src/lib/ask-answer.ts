@@ -117,7 +117,11 @@ export async function answerFromRecords(params: {
     } else {
       const lifetime = paid ? `, ${formatCents(paid)} paid so far` : "";
       parts.push(`${name} has ${customer.jobs.length} job${customer.jobs.length === 1 ? "" : "s"} on file${lifetime}.`);
-      if (upcoming) parts.push(`Next: ${upcoming.title}, ${when(upcoming.scheduledAt!, tz)}.`);
+      if (upcoming && upcoming.scheduledAt!.getTime() < now && upcoming.status !== "on_site") {
+        parts.push(`${upcoming.title} was due ${when(upcoming.scheduledAt!, tz)} and nobody has marked it started.`);
+      } else if (upcoming) {
+        parts.push(`Next: ${upcoming.title}, ${when(upcoming.scheduledAt!, tz)}.`);
+      }
       if (last) parts.push(`Last completed: ${last.title}${last.completedAt ? ` on ${day(last.completedAt, tz)}` : ""}.`);
     }
     return `${parts.join(" ")}${more}`;

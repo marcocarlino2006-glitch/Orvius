@@ -21,6 +21,7 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
 const { buildAskBrief } = await import("../src/lib/ask-brief.ts");
 const { executeProposal } = await import("../src/lib/copilot-execute.ts");
 const { answerFromRecords } = await import("../src/lib/ask-answer.ts");
+const { retrieveShopMemory } = await import("../src/lib/shop-memory.ts");
 const { getCustomerProperties } = await import("../src/lib/customer.ts");
 
 const prisma = new PrismaClient();
@@ -280,6 +281,28 @@ test("Ask answers in a sentence from the top record instead of listing records",
     const properties = await getCustomerProperties(customer.id, customer.address);
     const home = properties.find((p) => p.address.startsWith("1500"));
     assert.equal(home.paidCents, 68000, "a payment on an invoice linked to both the job and its estimate counts once");
+  } finally {
+    await drop(shop.id);
+  }
+});
+
+test("asking about one customer cites that customer, not everyone on file", async () => {
+  const shop = await makeShop();
+  try {
+    const mk = (name, n) =>
+      prisma.customer.create({ data: { businessId: shop.id, name, phone: `+1312555016${n}`, phoneNormalized: `+1312555016${n}`, address: `${n} Elm St, Evanston IL` } });
+    const dana = await mk("Dana Whitfield", 1);
+    await mk("Tom Becker", 2);
+    await mk("Priya Shah", 3);
+    await unassignedJob(shop.id, { title: "Duct cleaning", customerId: dana.id });
+    await unassignedJob(shop.id, { title: "Tune-up" });
+
+    const memory = await retrieveShopMemory("Dana Whitfield", shop.id);
+    assert.ok(memory.hits.length > 0);
+    assert.equal(memory.hits[0].id, dana.id);
+    for (const h of memory.hits) {
+      assert.match(`${h.title} ${h.summary}`, /Dana Whitfield/, `unrelated record cited: ${h.title}`);
+    }
   } finally {
     await drop(shop.id);
   }
