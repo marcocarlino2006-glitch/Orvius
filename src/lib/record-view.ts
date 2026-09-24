@@ -395,6 +395,19 @@ function buildNext(g: Graph): RecordView["next"] {
   return null;
 }
 
+const LEAD_CHANNEL: Record<string, string> = {
+  call: "Phone call",
+  sms: "Text message",
+  web: "Web form",
+  email: "Email",
+  manual: "Added by the shop",
+};
+
+function leadChannel(source: string | null | undefined): string {
+  if (!source) return "Lead";
+  return LEAD_CHANNEL[source.toLowerCase()] ?? source.charAt(0).toUpperCase() + source.slice(1);
+}
+
 export async function getRecordView(
   businessId: string,
   type: RecordType,
@@ -436,7 +449,7 @@ export async function getRecordView(
     status,
     source: sourceAt
       ? {
-          channel: g.call ? "Phone call" : g.lead ? `Lead · ${g.lead.source}` : "Shop record",
+          channel: g.call ? "Phone call" : g.lead ? leadChannel(g.lead.source) : "Shop record",
           from: phone,
           at: sourceAt.toISOString(),
         }

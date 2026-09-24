@@ -233,7 +233,7 @@ function RecordBody({
             const body = (
               <>
                 <span className="rd-path-label">{node.label}</span>
-                <span className="rd-path-value">{node.value ?? "Not yet"}</span>
+                <span className="rd-path-value">{node.value ? sentenceCase(node.value) : "Not yet"}</span>
               </>
             );
             return (
@@ -356,6 +356,10 @@ function RecordBody({
 }
 
 /** A row or link that opens the drawer; falls back to navigation outside the provider. */
+function sentenceCase(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function RecordLink({
   type,
   id,
