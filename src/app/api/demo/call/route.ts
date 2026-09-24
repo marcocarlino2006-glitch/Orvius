@@ -1,20 +1,18 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { maybeAutoBookLead } from "@/lib/auto-job";
-import { linkTouchToCustomer } from "@/lib/customer";
-import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import { after } from "next/server";
+import { ingestEndOfCallReport } from "@/lib/call-ingest";
+import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { verifyAdminRequest } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
-import {
-  buildLeadAlertDedupeKey,
-  notifyOwner,
-} from "@/lib/notifications";
-import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 import { z } from "zod";
 
 const demoCallSchema = z.object({
   businessId: z.string().optional(),
   businessName: z.string().optional(),
+  /** Reuse to prove a replayed report lands on the same records. */
+  callId: z.string().min(4).max(80).optional(),
   callerName: z.string().min(1),
   callerPhone: z.string().min(7),
   serviceType: z.string().min(1),
@@ -22,6 +20,8 @@ const demoCallSchema = z.object({
   address: z.string().optional(),
   notes: z.string().optional(),
 });
+
+const DEMO_SLUG = "summit-hvac-demo";
 
 /**
  * Demo endpoint — simulates a completed receptionist call without Twilio/Vapi.
@@ -43,13 +43,28 @@ export async function POST(request: NextRequest) {
 
     let business = body.businessId
       ? await prisma.business.findUnique({ where: { id: body.businessId } })
-      : await prisma.business.findFirst({ orderBy: { createdAt: "asc" } });
+      : await prisma.business.findUnique({ where: { slug: DEMO_SLUG } });
+
+    if (business && business.environment === "production") {
+      return NextResponse.json(
+        {
+          error:
+            "Demo calls only write to demo or test workspaces. Place a real test call to your line instead.",
+        },
+        { status: 403 },
+      );
+    }
 
     if (!business) {
+      if (body.businessId) {
+        return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+      }
       business = await prisma.business.create({
         data: {
           name: body.businessName ?? "Summit HVAC",
-          slug: "summit-hvac-demo",
+          slug: DEMO_SLUG,
+          environment: "demo",
+          trade: "HVAC",
           greeting:
             "Thank you for calling Summit HVAC. How can I help you today?",
           ownerPhone: process.env.ORVIUS_OWNER_PHONE ?? null,
@@ -80,86 +95,57 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join(" ");
 
-    const vapiCallId = `demo_${Date.now()}`;
-
-    const call = await prisma.call.create({
-      data: {
-        businessId: business.id,
-        vapiCallId,
-        callerPhone: body.callerPhone,
-        status: "completed",
-        durationSec: 95,
+    const vapiCallId = `demo_${body.callId ?? randomUUID()}`;
+    const result = await ingestEndOfCallReport({
+      business,
+      vapiCallId,
+      message: {
+        type: "end-of-call-report",
+        call: { id: vapiCallId, customer: { number: body.callerPhone } },
         summary,
+        durationSeconds: 95,
         transcript: `[Demo transcript]\nCaller: Hi, I need help with ${body.serviceType}.\nOrvius: Of course — can I get your name and address?\nCaller: ${body.callerName}${body.address ? `, ${body.address}` : ""}.\nOrvius: Got it. We'll have someone follow up shortly.`,
-        booked: body.urgency !== "flexible",
-      },
-    });
-
-    const demand = deriveDemandSignal({
-      serviceType: body.serviceType,
-      notes: body.notes,
-      summary,
-      address: body.address,
-      trade: tradeForCapture(business),
-    });
-
-    const lead = await prisma.lead.create({
-      data: {
-        businessId: business.id,
-        callId: call.id,
-        externalId: vapiCallId,
-        name: body.callerName,
-        phone: body.callerPhone,
-        serviceType: body.serviceType,
-        urgency: body.urgency,
-        address: body.address ?? null,
-        notes: body.notes ?? summary,
-        source: "demo",
-        status: "new",
-        categoryCode: demand.categoryCode,
-        postalCode: demand.postalCode,
-      },
-    });
-
-    await linkTouchToCustomer({
-      businessId: business.id,
-      callId: call.id,
-      leadId: lead.id,
-      phone: body.callerPhone,
-      name: body.callerName,
-      address: body.address ?? null,
-      notes: body.notes ?? summary,
-    });
-
-    const autoBook = await maybeAutoBookLead(lead.id);
-    const bookedJob = autoBook.jobId
-      ? await prisma.job.findUnique({
-          where: { id: autoBook.jobId },
-          select: { id: true, scheduledAt: true, customerConfirmedAt: true },
-        })
-      : null;
-
-    if (business.ownerPhone) {
-      await notifyOwner({
-        businessId: business.id,
-        ownerPhone: business.ownerPhone,
-        ownerEmail: business.ownerEmail,
-        businessName: business.name,
-        message: buildOwnerLeadAlertMessage({
-          lead: {
-            name: lead.name,
-            phone: lead.phone,
-            serviceType: lead.serviceType,
-            urgency: lead.urgency,
-            address: lead.address,
+        analysis: {
+          structuredData: {
+            name: body.callerName,
+            phone: body.callerPhone,
+            serviceType: body.serviceType,
+            urgency: body.urgency,
+            address: body.address,
+            notes: body.notes,
           },
-          job: bookedJob,
-          autoBooked: autoBook.created,
-        }),
-        leadId: lead.id,
-        dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),
+        },
+      },
+    });
+
+    if (result.duplicate) {
+      const call = await prisma.call.findUnique({
+        where: { vapiCallId },
+        include: { lead: { include: { job: { select: { id: true } } } } },
+      });
+      return NextResponse.json({
+        ok: true,
+        demo: true,
+        duplicate: true,
+        business: { id: business.id, name: business.name },
+        callId: call?.id ?? null,
+        leadId: call?.lead?.id ?? null,
+        jobId: call?.lead?.job?.id ?? null,
       });
     }
+
+    const businessId = business.id;
+    after(() => drainOwnerAlerts({ at: "demo.call", vapiCallId, businessId }));
+
+    const bookedJob = result.jobId
+      ? await prisma.job.findUnique({
+          where: { id: result.jobId },
+          select: { id: true, scheduledAt: true, customerConfirmedAt: true, technicianId: true },
+        })
+      : null;
+    const autoBook = { created: result.autoBooked, jobId: result.jobId };
+    const call = { id: result.callId };
+    const lead = { id: result.leadId };
 
     const bookingStatus = !autoBook.created
       ? "lead_only"
@@ -175,6 +161,9 @@ export async function POST(request: NextRequest) {
       leadId: lead.id,
       jobId: autoBook.jobId,
       autoBooked: autoBook.created,
+      customerId: result.customerId,
+      technicianId: bookedJob?.technicianId ?? null,
+      skipReason: result.skipReason,
       bookingStatus,
       scheduledAt: bookedJob?.scheduledAt?.toISOString() ?? null,
       customerConfirmedAt: bookedJob?.customerConfirmedAt?.toISOString() ?? null,
