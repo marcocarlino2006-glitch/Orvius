@@ -81,10 +81,14 @@ export function JobCard({
           </div>
         </div>
         <p className="lead-rail-sub">
-          {customerName ?? "Customer"}
-          {phoneLabel ? ` · ${phoneLabel}` : ""}
-          {!facts && technicianName ? ` · ${technicianName}` : ""}
-          {address ? ` · ${address}` : ""}
+          {[
+            customerName,
+            phoneLabel,
+            !facts ? technicianName : null,
+            address,
+          ]
+            .filter(Boolean)
+            .join(" · ") || "No customer details yet"}
         </p>
         {facts ? (
           <dl className="job-facts">

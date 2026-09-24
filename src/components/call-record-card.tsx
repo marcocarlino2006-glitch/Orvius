@@ -20,6 +20,22 @@ type CallRecordCardProps = {
   quality?: { verdict: "clean" | "listen" | "fix"; headline: string };
 };
 
+const squash = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/** "Dana called about: No heat." beside "No heat" says the same thing twice. */
+function summaryAddsSomething(
+  summary: string | null,
+  serviceType: string | null | undefined,
+  leadName: string | null | undefined,
+) {
+  if (!summary?.trim()) return false;
+  if (!serviceType?.trim()) return true;
+  let rest = squash(summary).replace(squash(serviceType), " ");
+  if (leadName?.trim()) rest = rest.replace(squash(leadName), " ");
+  rest = rest.replace(/(called|calling|about|caller|the|a|an|re|regarding)/g, " ").trim();
+  return rest.length > 12;
+}
+
 /** The call was answered and ended normally — the unremarkable outcome. */
 function isSettled(status: string) {
   const s = status.trim().toLowerCase();
@@ -72,7 +88,9 @@ export function CallRecordCard({
     minute: "2-digit",
   });
   const phone = callerPhone ? displayPhone(normalizePhone(callerPhone) ?? callerPhone) : null;
-  const rest = [summary, phone].filter(Boolean).join(" · ");
+  const rest = [summaryAddsSomething(summary, serviceType, leadName) ? summary : null, phone]
+    .filter(Boolean)
+    .join(" · ");
   const settled = isSettled(status);
 
   return (
