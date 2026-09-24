@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { sendCustomerSms } from "@/lib/customer-sms";
-import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
+import { executeProposal, type ProposalParams } from "@/lib/copilot-execute";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
+import { recordAudit } from "@/lib/audit";
 import { requireEntitledSession } from "@/lib/tenant";
 import { z } from "zod";
 
@@ -93,124 +93,28 @@ export async function POST(request: Request) {
         where: { id: proposal.id },
         data: { status: "cancelled" },
       });
+      const params = JSON.parse(proposal.paramsJson) as ProposalParams;
+      await recordAudit({
+        businessId: business.id,
+        entityType: params.jobId ? "job" : params.leadId ? "lead" : "copilot",
+        entityId: params.jobId ?? params.leadId ?? proposal.id,
+        action: "copilot.declined",
+        actor: "owner",
+        summary: `Declined: ${proposal.preview}`,
+        jobId: params.jobId ?? null,
+        leadId: params.leadId ?? null,
+        idempotencyKey: `copilot:${proposal.id}:declined`,
+      });
       return NextResponse.json({ ok: true, proposalId: proposal.id, status: "cancelled" });
     }
 
     if (mode === "execute") {
       const body = executeSchema.parse(await request.json());
-      const proposal = await prisma.copilotAction.findFirst({
-        where: {
-          id: body.proposalId,
-          businessId: business.id,
-          status: "proposed",
-        },
-      });
-      if (!proposal) {
-        return NextResponse.json({ error: "Proposal not found or already used" }, { status: 404 });
+      const outcome = await executeProposal({ business, proposalId: body.proposalId });
+      if (!outcome.ok) {
+        return NextResponse.json({ error: outcome.error, reason: outcome.reason }, { status: outcome.status });
       }
-
-      const params = JSON.parse(proposal.paramsJson) as {
-        jobId?: string;
-        leadId?: string;
-        technicianId?: string;
-      };
-
-      let result: Record<string, unknown> = {};
-
-      if (proposal.action === "assign_tech") {
-        if (!params.jobId || !params.technicianId) {
-          return NextResponse.json({ error: "Invalid assign params" }, { status: 400 });
-        }
-        const existing = await prisma.job.findFirst({
-          where: { id: params.jobId, businessId: business.id },
-        });
-        if (!existing) {
-          return NextResponse.json({ error: "Job not found" }, { status: 404 });
-        }
-        const tech = await prisma.technician.findFirst({
-          where: { id: params.technicianId, businessId: business.id },
-        });
-        if (!tech) {
-          return NextResponse.json({ error: "Technician not found" }, { status: 404 });
-        }
-        await prisma.job.update({
-          where: { id: params.jobId },
-          data: { technicianId: params.technicianId },
-        });
-        const sms = await notifyTechOnAssign({
-          jobId: params.jobId,
-          previousTechnicianId: existing.technicianId,
-          nextTechnicianId: params.technicianId,
-        });
-        result = { jobId: params.jobId, technicianId: params.technicianId, techSms: sms };
-      } else if (proposal.action === "mark_contacted") {
-        if (!params.leadId) {
-          return NextResponse.json({ error: "Invalid lead params" }, { status: 400 });
-        }
-        const lead = await prisma.lead.findFirst({
-          where: { id: params.leadId, businessId: business.id },
-        });
-        if (!lead) {
-          return NextResponse.json({ error: "Lead not found" }, { status: 404 });
-        }
-        await prisma.lead.update({
-          where: { id: params.leadId },
-          data: {
-            status: "contacted",
-            firstContactedAt: lead.firstContactedAt ?? new Date(),
-          },
-        });
-        result = { leadId: params.leadId, status: "contacted" };
-      } else if (proposal.action === "sms_followup") {
-        if (!params.leadId) {
-          return NextResponse.json({ error: "Invalid lead params" }, { status: 400 });
-        }
-        const lead = await prisma.lead.findFirst({
-          where: { id: params.leadId, businessId: business.id },
-        });
-        if (!lead?.phone) {
-          return NextResponse.json({ error: "Lead has no phone" }, { status: 400 });
-        }
-        const message = `Hi${lead.name ? ` ${lead.name}` : ""} — this is ${business.name}. We received your service request and will follow up shortly. Reply STOP to opt out.`;
-        const sms = await sendCustomerSms({
-          businessId: business.id,
-          to: lead.phone,
-          body: message,
-        });
-        if (!sms.sent) {
-          const optedOut = sms.reason === "customer_opted_out";
-          return NextResponse.json(
-            {
-              error: optedOut
-                ? "Customer opted out of SMS"
-                : "SMS unavailable",
-              reason: sms.reason,
-            },
-            { status: optedOut ? 409 : 503 },
-          );
-        }
-        if (lead.status === "new") {
-          await prisma.lead.update({
-            where: { id: lead.id },
-            data: {
-              status: "contacted",
-              firstContactedAt: lead.firstContactedAt ?? new Date(),
-            },
-          });
-        }
-        result = { leadId: lead.id, smsSid: sms.sid };
-      }
-
-      await prisma.copilotAction.update({
-        where: { id: proposal.id },
-        data: {
-          status: "executed",
-          executedAt: new Date(),
-          resultJson: JSON.stringify(result),
-        },
-      });
-
-      return NextResponse.json({ ok: true, result, proposalId: proposal.id });
+      return NextResponse.json(outcome);
     }
 
     const body = proposeSchema.parse(await request.json());
@@ -236,7 +140,10 @@ export async function POST(request: Request) {
       }
       params.jobId = job.id;
       params.technicianId = tech.id;
-      preview = `Assign ${tech.name} to “${job.title}”${tech.phone ? " and SMS them the job details" : ""}.`;
+      const slot = job.scheduledAt
+        ? ` for ${job.scheduledAt.toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit", timeZone: business.timezone ?? undefined })}`
+        : "";
+      preview = `Assign ${tech.name} to “${job.title}”${slot}${tech.phone ? " and text them the job details" : ""}.`;
     } else if (body.action === "mark_contacted") {
       if (!body.leadId) {
         return NextResponse.json({ error: "leadId required" }, { status: 400 });
