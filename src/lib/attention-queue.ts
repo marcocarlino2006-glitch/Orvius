@@ -209,6 +209,7 @@ export async function getAttentionQueue(
           customer: { select: { id: true, name: true, phone: true } },
           lead: { select: { id: true, name: true, phone: true, urgency: true } },
           technician: { select: { id: true, name: true, phone: true } },
+          estimate: { select: { amountCents: true } },
         },
       }),
       listCrew(businessId),
@@ -972,6 +973,7 @@ export async function getAttentionQueue(
   }
 
   for (const job of activeJobs) {
+    const jobValue = job.estimate?.amountCents ?? ticket;
     const who =
       job.customer?.name ??
       job.lead?.name ??
@@ -1025,7 +1027,7 @@ export async function getAttentionQueue(
         entityType: "job",
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
-        estimatedRevenueCents: ticket,
+        estimatedRevenueCents: jobValue,
         group,
         meta: {
           urgency,
@@ -1058,7 +1060,7 @@ export async function getAttentionQueue(
         entityType: "job",
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
-        estimatedRevenueCents: ticket,
+        estimatedRevenueCents: jobValue,
         group,
         meta: {
           urgency,
@@ -1095,7 +1097,7 @@ export async function getAttentionQueue(
         entityType: "job",
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
-        estimatedRevenueCents: ticket,
+        estimatedRevenueCents: jobValue,
         group,
         meta: {
           urgency,
@@ -1135,7 +1137,7 @@ export async function getAttentionQueue(
         entityType: "job",
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
-        estimatedRevenueCents: ticket,
+        estimatedRevenueCents: jobValue,
         // One late technician is one call, however many of their jobs are late.
         group: job.technician
           ? { key: `tech:${job.technician.id}`, label: job.technician.name, href: "/dashboard/dispatch" }
@@ -1167,7 +1169,7 @@ export async function getAttentionQueue(
         entityType: "job",
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
-        estimatedRevenueCents: ticket,
+        estimatedRevenueCents: jobValue,
         group,
         meta: {
           urgency,
