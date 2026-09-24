@@ -34,7 +34,10 @@ export type ShopOutcomes = {
   since: string;
   calls: number;
   leads: number;
+  /** Every job created in the window, including ones the owner added by hand. */
   jobsBooked: number;
+  /** Leads in the window that became a job — the numerator of bookingRate. */
+  leadsBooked: number;
   bookingRate: number | null;
   afterHoursLeads: number;
   afterHoursBooked: number;
@@ -269,6 +272,7 @@ export async function getShopOutcomes(
     calls,
     leads: leadCount,
     jobsBooked,
+    leadsBooked: bookedFromLeads,
     jobsCompleted,
     bookingRate,
     afterHoursLeads,
