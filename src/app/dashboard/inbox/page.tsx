@@ -101,8 +101,8 @@ export default function InboxPage() {
         }
         detail={
           newCount > 0
-            ? "Captured while you were on a job. Newest first."
-            : "Everyone who called has been answered."
+            ? "Orvius took the details. Newest first."
+            : "Nobody is waiting on a callback."
         }
       />
 

@@ -232,7 +232,7 @@ export default function JobsPage() {
             <>
             <p className="jobs-stage-summary">
               {filtered.length} job{filtered.length === 1 ? "" : "s"}
-              {stageValue ? ` · ${stageValue} at stake` : ""}
+              {stageValue ? ` · ${stageValue} in value` : ""}
               {filtered.filter((r) => r.facts.attention).length
                 ? ` · ${filtered.filter((r) => r.facts.attention).length} need you — listed first`
                 : ""}

@@ -73,6 +73,9 @@ test("overdue, unassigned and unpaid work is flagged and weighted", () => {
   assert.equal(paid.money.kind, "paid");
   assert.equal(paid.attention, null);
 
-  const unconfirmed = jobRowFacts(job({ scheduledAt: "2026-09-24T18:00:00Z", customerConfirmedAt: null }), now);
-  assert.match(unconfirmed.attention.reason, /not confirmed/);
+  const autopilotConfirms = jobRowFacts(job({ scheduledAt: "2026-09-24T18:00:00Z", customerConfirmedAt: null }), now);
+  assert.equal(autopilotConfirms.attention, null, "three hours out, autopilot texts the customer");
+
+  const unconfirmed = jobRowFacts(job({ scheduledAt: "2026-09-24T16:30:00Z", customerConfirmedAt: null }), now);
+  assert.match(unconfirmed.attention.reason, /not confirmed\. Call them/);
 });
