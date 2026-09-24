@@ -52,6 +52,7 @@ export type AutoBookSkipReason =
   | "plan_blocked"
   | "out_of_area"
   | "safety_escalation"
+  | "missing_address"
   | "not_found";
 
 export type AutoBookResult = {
@@ -223,6 +224,21 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
       created: false,
       qualified: true,
       skipReason: "plan_blocked",
+    };
+  }
+
+  // A recognised request is real demand without an address, but a technician
+  // cannot be sent to one and the service area cannot be checked.
+  if (!lead.address?.trim()) {
+    await decide("lead.held", "Held for the owner — missing address, so Orvius did not send a technician", {
+      missing: ["address"],
+    });
+    return {
+      jobId: null,
+      created: false,
+      qualified: true,
+      skipReason: "missing_address",
+      classification,
     };
   }
 

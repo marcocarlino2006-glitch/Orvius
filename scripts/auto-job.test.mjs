@@ -51,6 +51,7 @@ async function makeLead(businessId, overrides = {}) {
       serviceType: "AC repair",
       categoryCode: "hvac.no_cool",
       urgency: "this-week",
+      address: "12 Main St, Austin TX 78701",
       source: "call",
       ...overrides,
     },
@@ -170,6 +171,7 @@ test("the reason a lead was passed over is specific", async () => {
     const unqualified = await makeLead(shop.id, {
       serviceType: "call me back",
       categoryCode: null,
+      address: null,
     });
     assert.equal((await maybeAutoBookLead(unqualified.id)).skipReason, "unqualified");
 
@@ -234,3 +236,17 @@ test("out-of-area ZIPs stay on the board when the owner set an allowlist", async
 });
 
 test.after(() => prisma.$disconnect());
+
+test("a recognised request without an address is real demand but is not sent to a technician", async () => {
+  const shop = await makeShop({ billingStatus: "active", billingPlan: "pro" });
+  try {
+    const lead = await makeLead(shop.id, { address: null });
+    const result = await maybeAutoBookLead(lead.id);
+    assert.equal(result.jobId, null);
+    assert.equal(result.qualified, true);
+    assert.equal(result.skipReason, "missing_address");
+    assert.equal(await prisma.job.count({ where: { leadId: lead.id } }), 0);
+  } finally {
+    await dropShop(shop.id);
+  }
+});
