@@ -7,7 +7,7 @@ import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
-import { getDispatchBoard, listCrew } from "@/lib/field";
+import { getDispatchBoard } from "@/lib/field";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
@@ -23,7 +23,9 @@ export async function GET() {
 
   const today = shopDayBounds(null, business.timezone ?? "America/New_York").start;
   const businessFilter = { businessId: business.id };
-  await runAutopilot(business.id).catch(() => null);
+  after(() => runAutopilot(business.id).catch(() => null));
+  const windowStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const healthP = getShopHealth(business.id);
 
   const [
     callsToday,
@@ -37,11 +39,16 @@ export async function GET() {
     recentCalls,
     dispatchBoard,
     health,
-    crew,
     outcomes,
     attention,
     shiftTimeline,
     handled,
+    wedge,
+    messagesAndWeb,
+    qualified,
+    bookedInWindow,
+    jobsInMotion,
+    jobsUnassigned,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -79,49 +86,44 @@ export async function GET() {
         lead: { select: { name: true, serviceType: true } },
       },
     }),
-    getDispatchBoard(business.id),
-    getShopHealth(business.id),
-    listCrew(business.id),
+    getDispatchBoard(business.id, null, business),
+    healthP,
     getShopOutcomes(business.id, 7),
     getAttentionQueue(business.id, 12),
     getShiftTimeline(business.id),
     listHandled(business.id),
+    healthP.then((health) => getWedgeReadiness(business.id, health)),
+    prisma.lead.count({
+      where: { ...businessFilter, callId: null, createdAt: { gte: windowStart } },
+    }),
+    prisma.lead.count({
+      where: {
+        ...businessFilter,
+        createdAt: { gte: windowStart },
+        status: { notIn: ["spam", "lost"] },
+        serviceType: { not: null },
+        phone: { not: null },
+      },
+    }),
+    prisma.lead.count({
+      where: {
+        ...businessFilter,
+        createdAt: { gte: windowStart },
+        job: { isNot: null },
+      },
+    }),
+    prisma.job.count({
+      where: { ...businessFilter, status: { notIn: ["completed", "cancelled"] } },
+    }),
+    prisma.job.count({
+      where: {
+        ...businessFilter,
+        status: { notIn: ["completed", "cancelled"] },
+        technicianId: null,
+      },
+    }),
   ]);
-
-  const windowStart = new Date(Date.now() - outcomes.windowDays * 24 * 60 * 60 * 1000);
-  const [wedge, messagesAndWeb, qualified, bookedInWindow, jobsInMotion, jobsUnassigned] =
-    await Promise.all([
-      getWedgeReadiness(business.id, health),
-      prisma.lead.count({
-        where: { ...businessFilter, callId: null, createdAt: { gte: windowStart } },
-      }),
-      prisma.lead.count({
-        where: {
-          ...businessFilter,
-          createdAt: { gte: windowStart },
-          status: { notIn: ["spam", "lost"] },
-          serviceType: { not: null },
-          phone: { not: null },
-        },
-      }),
-      prisma.lead.count({
-        where: {
-          ...businessFilter,
-          createdAt: { gte: windowStart },
-          job: { isNot: null },
-        },
-      }),
-      prisma.job.count({
-        where: { ...businessFilter, status: { notIn: ["completed", "cancelled"] } },
-      }),
-      prisma.job.count({
-        where: {
-          ...businessFilter,
-          status: { notIn: ["completed", "cancelled"] },
-          technicianId: null,
-        },
-      }),
-    ]);
+  const crew = dispatchBoard.crew;
   if (health.stuckPendingAlerts > 0) {
     after(() =>
       drainOwnerAlerts({ at: "ring1.health", businessId: business.id }),

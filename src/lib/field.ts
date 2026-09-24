@@ -51,23 +51,27 @@ export async function ensureCrew(businessId: string) {
 }
 
 export async function listCrew(businessId: string) {
-  await ensureCrew(businessId);
-  return prisma.technician.findMany({
-    where: { businessId, isActive: true },
-    orderBy: { createdAt: "asc" },
-  });
+  return ensureCrew(businessId);
 }
 
-export async function getDispatchBoard(businessId: string, isoDay?: string | null) {
-  const business = await prisma.business.findUnique({
-    where: { id: businessId },
-    select: { trade: true, servicesJson: true, timezone: true },
-  });
+type BoardBusiness = { trade: string | null; servicesJson: string | null; timezone: string | null };
+
+export async function getDispatchBoard(
+  businessId: string,
+  isoDay?: string | null,
+  known?: BoardBusiness,
+) {
+  const crewP = listCrew(businessId);
+  const business =
+    known ??
+    (await prisma.business.findUnique({
+      where: { id: businessId },
+      select: { trade: true, servicesJson: true, timezone: true },
+    }));
   const timezone = business?.timezone ?? "America/New_York";
   const { start, end, day } = shopDayBounds(isoDay, timezone);
-  const crew = await listCrew(businessId);
 
-  const jobs = await prisma.job.findMany({
+  const jobsP = prisma.job.findMany({
     where: {
       businessId,
       status: { not: "cancelled" },
@@ -83,6 +87,7 @@ export async function getDispatchBoard(businessId: string, isoDay?: string | nul
       technician: { select: { id: true, name: true, phone: true } },
     },
   });
+  const [crew, jobs] = await Promise.all([crewP, jobsP]);
 
   const schedule = buildDispatchSchedule({
     timezone,
