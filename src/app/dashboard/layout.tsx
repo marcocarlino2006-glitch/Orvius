@@ -4,6 +4,7 @@ import { Ring1Provider } from "@/lib/ring1-context";
 import type { ReactNode } from "react";
 import "./dashboard.css";
 import "./orvius-system.css";
+import "./orvius-scale.css";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (

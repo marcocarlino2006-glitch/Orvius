@@ -1,6 +1,7 @@
 "use client";
 
 import { RecordLink } from "@/components/record-drawer";
+import { RecordAvatar } from "@/components/record-avatar";
 import { ShellBadge } from "@/components/shell-primitives";
 import { LeadQuickActions } from "@/components/lead-quick-actions";
 import { LeadStatusBadge } from "@/components/lead-status-actions";
@@ -62,6 +63,7 @@ export function LeadInboxCard({
     <article
       className={`lead-rail-row ${emergency ? "lead-rail-row-emergency" : ""}`}
     >
+      <RecordAvatar name={name} tone={emergency ? "flare" : undefined} />
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
           {/*

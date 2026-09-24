@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, Inter } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
@@ -9,7 +9,7 @@ import "./public-v2.css";
 import "./theme-tokens.css";
 
 /**
- * Two voices, no more. Archivo speaks in prose and headlines; Plex Mono speaks
+ * Archivo speaks for the brand on public pages; Inter runs the product; Plex Mono speaks
  * whenever the interface is reporting machine truth — times, numbers, statuses,
  * phone lines. Mixing a third letterset is what made the old surfaces read cheap.
  */
@@ -18,6 +18,13 @@ const sans = Archivo({
   subsets: ["latin"],
   /* 300 = Cursor-gothic whisper for display; 400–600 for UI; keep 700 for rare emphasis */
   weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
+
+/* The product itself reads in Inter — neutral, dense, and legible at 13–14px. */
+const ui = Inter({
+  variable: "--font-ui",
+  subsets: ["latin"],
   display: "swap",
 });
 
@@ -76,7 +83,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className={`${sans.variable} ${mono.variable} antialiased`}>
+      <body className={`${sans.variable} ${mono.variable} ${ui.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

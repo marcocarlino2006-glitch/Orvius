@@ -1,6 +1,7 @@
 "use client";
 
 import { RecordLink } from "@/components/record-drawer";
+import { RecordAvatar } from "@/components/record-avatar";
 import { customerDisplayName, displayPhone } from "@/lib/customer";
 
 type CustomerRecordCardProps = {
@@ -48,6 +49,7 @@ export function CustomerRecordCard({
       }}
     >
     <RecordLink type="customer" id={id} href={`/dashboard/customers/${id}`} className="lead-rail-row">
+      <RecordAvatar name={label} />
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
           {/*

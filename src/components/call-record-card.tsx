@@ -1,5 +1,6 @@
 "use client";
 
+import { RecordAvatar } from "@/components/record-avatar";
 import { RecordLink } from "@/components/record-drawer";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { ShellBadge } from "@/components/shell-primitives";
@@ -100,6 +101,7 @@ export function CallRecordCard({
       href={`/dashboard/calls/${id}`}
       className={`lead-rail-row${emergency ? " lead-rail-row-emergency" : ""}`}
     >
+      <RecordAvatar name={leadName ?? phone} tone={emergency ? "flare" : undefined} />
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
           {/*

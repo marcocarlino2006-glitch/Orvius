@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { osCurrentRing, osProductNav } from "@/lib/os-nav";
+import { displayPhone } from "@/lib/customer";
 import { useBusiness } from "@/lib/use-business";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
@@ -102,7 +103,7 @@ export function OsShell({
           ) : business?.line ? (
             <>
               <span className="os-ring-status-dot" aria-hidden />
-              {business.line}
+              {displayPhone(business.line)}
             </>
           ) : onSettings ? (
             "Set your line below"

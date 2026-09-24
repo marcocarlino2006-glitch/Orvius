@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatAge, formatFreshness } from "@/lib/command-model";
+import { displayPhone } from "@/lib/customer";
 import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { ShopHealth } from "@/lib/shop-health";
 
@@ -87,7 +88,7 @@ export function OrviusPulse({
         <>
           <PulseRow
             label="Phone line"
-            value={health.line ?? "No line yet"}
+            value={health.line ? displayPhone(health.line) : "No line yet"}
             detail={
               !health.line
                 ? "Calls cannot reach Orvius until a line exists."
