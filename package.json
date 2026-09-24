@@ -17,6 +17,7 @@
     "pilot:onboard": "node scripts/pilot-onboard.mjs",
     "e2e:dogfood": "node scripts/e2e-dogfood.mjs",
     "e2e:loop": "node scripts/e2e-loop.mjs",
+    "demo:seed": "node scripts/demo-seed.mjs",
     "vapi:webhook": "node scripts/configure-vapi-webhook.mjs",
     "vapi:phone": "node scripts/import-vapi-phone.mjs",
     "go-live": "node scripts/go-live.mjs",
