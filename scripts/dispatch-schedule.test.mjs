@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { shopDayBounds } from "../src/lib/availability.ts";
 import { buildDispatchSchedule } from "../src/lib/dispatch-schedule.ts";
 
 const dayStart = new Date(2026, 8, 28, 0, 0, 0, 0);
@@ -102,4 +103,31 @@ test("the window covers the working day and stretches for early or late jobs", (
     jobs: [job("a", { technicianId: "ana", scheduledAt: at(20), durationMin: 90 })],
   });
   assert.equal(late.window.endMin, 22 * 60);
+});
+
+test("the dispatch day is the shop's day, not the server's", () => {
+  const chicago = shopDayBounds("2026-09-24", "America/Chicago");
+  assert.equal(chicago.start.toISOString(), "2026-09-24T05:00:00.000Z");
+  assert.equal(chicago.end.toISOString(), "2026-09-25T05:00:00.000Z");
+
+  const fallBack = shopDayBounds("2026-11-01", "America/New_York");
+  assert.equal(fallBack.start.toISOString(), "2026-11-01T04:00:00.000Z");
+  assert.equal(fallBack.end.getTime() - fallBack.start.getTime(), 25 * 60 * 60 * 1000);
+
+  const lateNightUtc = new Date("2026-09-25T03:00:00Z");
+  assert.equal(shopDayBounds(null, "America/Los_Angeles", lateNightUtc).day, "2026-09-24");
+
+  const job = new Date("2026-09-24T15:30:00Z");
+  const schedule = buildDispatchSchedule({
+    business: { trade: "HVAC" },
+    crew: [{ id: "t1", name: "Ana", phone: null, skills: [] }],
+    jobs: [
+      { id: "a", title: "First", status: "scheduled", scheduledAt: job, durationMin: 120, technicianId: "t1" },
+      { id: "b", title: "Second", status: "scheduled", scheduledAt: new Date(job.getTime() + 3_600_000), durationMin: 60, technicianId: "t1" },
+    ],
+    dayStart: chicago.start,
+    timezone: "America/Chicago",
+  });
+  assert.equal(schedule.lanes[0].blocks[0].startMin, 10 * 60 + 30, "15:30 UTC is 10:30 in Chicago");
+  assert.match(schedule.conflicts[0].message, /runs until 12:30 PM but Second starts at 11:30 AM/);
 });

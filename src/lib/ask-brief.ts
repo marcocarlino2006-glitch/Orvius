@@ -34,11 +34,12 @@ function ago(date: Date, now: number) {
   return `${Math.round(hours / 24)} days`;
 }
 
-function when(date: Date) {
+function when(date: Date, timeZone: string) {
   return date.toLocaleString("en-US", {
     weekday: "short",
     hour: "numeric",
     minute: "2-digit",
+    timeZone,
   });
 }
 
@@ -77,7 +78,7 @@ export async function buildAskBrief(params: {
   const [business, jobs, leads] = await Promise.all([
     prisma.business.findUnique({
       where: { id: params.businessId },
-      select: { trade: true, servicesJson: true, name: true },
+      select: { trade: true, servicesJson: true, name: true, timezone: true },
     }),
     prisma.job.findMany({
       where: {
@@ -101,6 +102,7 @@ export async function buildAskBrief(params: {
     }),
   ]);
 
+  const tz = business?.timezone || "America/New_York";
   const unassigned = jobs.filter((j) => !j.technicianId);
   const emergencyFirst = [...unassigned].sort(
     (a, b) => Number(b.urgency === "emergency") - Number(a.urgency === "emergency"),
@@ -108,7 +110,7 @@ export async function buildAskBrief(params: {
   for (const job of unassigned.slice(0, 2)) {
     matters.push(
       `${job.title}${job.customer?.name ? ` for ${job.customer.name}` : ""} has no technician${
-        job.scheduledAt ? ` and is booked for ${when(job.scheduledAt)}` : ""
+        job.scheduledAt ? ` and is booked for ${when(job.scheduledAt, tz)}` : ""
       }.`,
     );
   }
@@ -119,7 +121,7 @@ export async function buildAskBrief(params: {
   }
   for (const job of jobs.filter((j) => j.technicianId).slice(0, 1)) {
     if (job.scheduledAt && !job.customerConfirmedAt) {
-      matters.push(`${job.customer?.name ?? "The customer"} has not confirmed ${when(job.scheduledAt)} yet.`);
+      matters.push(`${job.customer?.name ?? "The customer"} has not confirmed ${when(job.scheduledAt, tz)} yet.`);
     }
   }
   for (const job of jobs) {

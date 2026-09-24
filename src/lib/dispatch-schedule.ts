@@ -74,6 +74,8 @@ export function buildDispatchSchedule(input: {
   crew: ScheduleTech[];
   jobs: ScheduleJobInput[];
   dayStart: Date;
+  /** Shop timezone for conflict wording; dayStart must already be shop-local midnight. */
+  timezone?: string;
 }): DispatchSchedule {
   const classify = (job: ScheduleJobInput) =>
     classifyRequest({
@@ -112,7 +114,7 @@ export function buildDispatchSchedule(input: {
       const prevJob = mine[i - 1]!;
       const curJob = mine[i]!;
       if (cur.startMin < prev.endMin) {
-        const message = `${technician.name} is double-booked: ${prev.title} runs until ${clock(prev.endMin, input.dayStart)} but ${cur.title} starts at ${clock(cur.startMin, input.dayStart)}.`;
+        const message = `${technician.name} is double-booked: ${prev.title} runs until ${clock(prev.endMin, input.dayStart, input.timezone)} but ${cur.title} starts at ${clock(cur.startMin, input.dayStart, input.timezone)}.`;
         cur.conflict = message;
         prev.conflict ??= message;
         conflicts.push({ technicianId: technician.id, jobIds: [prev.id, cur.id], message });
@@ -200,9 +202,10 @@ export function buildDispatchSchedule(input: {
   return { window: { startMin: Math.max(0, startMin), endMin: Math.min(24 * 60, endMin) }, lanes, unassigned, conflicts };
 }
 
-function clock(min: number, dayStart: Date) {
+function clock(min: number, dayStart: Date, timeZone?: string) {
   return new Date(dayStart.getTime() + min * 60_000).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone,
   });
 }

@@ -209,6 +209,46 @@ export function findAvailableSchedule(input: AvailabilityInput): Date | null {
   return null;
 }
 
+function zoneOffsetMs(at: Date, timezone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  }).formatToParts(at);
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? "0");
+  const wall = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"), get("second"));
+  return wall - Math.floor(at.getTime() / 1000) * 1000;
+}
+
+function shopMidnight(year: number, month: number, day: number, timezone: string) {
+  const guess = Date.UTC(year, month - 1, day);
+  const first = guess - zoneOffsetMs(new Date(guess), timezone);
+  return new Date(guess - zoneOffsetMs(new Date(first), timezone));
+}
+
+/**
+ * The shop's calendar day as UTC instants. Servers run in UTC, so a day built
+ * from server-local midnight would shift every job by the shop's offset.
+ */
+export function shopDayBounds(isoDay: string | null | undefined, timezone: string, now = new Date()) {
+  const tz = safeTimezone(timezone);
+  let ymd = isoDay?.match(/^(\d{4})-(\d{2})-(\d{2})$/)?.slice(1).map(Number);
+  if (!ymd) {
+    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+    ymd = parts.split("-").map(Number);
+  }
+  const [y, m, d] = ymd;
+  const start = shopMidnight(y, m, d, tz);
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  const end = shopMidnight(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate(), tz);
+  return { start, end, day: `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}` };
+}
+
 /** Stable local rendering for logs, alerts, and tests. */
 export function formatShopTime(at: Date, timezone: string) {
   return new Intl.DateTimeFormat("en-US", {

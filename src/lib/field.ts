@@ -1,3 +1,4 @@
+import { shopDayBounds } from "@/lib/availability";
 import { buildDispatchSchedule } from "@/lib/dispatch-schedule";
 import { prisma } from "@/lib/prisma";
 import { serializeJob } from "@/lib/job";
@@ -57,17 +58,13 @@ export async function listCrew(businessId: string) {
   });
 }
 
-export function dayBounds(isoDay?: string | null) {
-  const base = isoDay ? new Date(`${isoDay}T00:00:00`) : new Date();
-  const start = new Date(base);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { start, end };
-}
-
 export async function getDispatchBoard(businessId: string, isoDay?: string | null) {
-  const { start, end } = dayBounds(isoDay);
+  const business = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { trade: true, servicesJson: true, timezone: true },
+  });
+  const timezone = business?.timezone ?? "America/New_York";
+  const { start, end, day } = shopDayBounds(isoDay, timezone);
   const crew = await listCrew(businessId);
 
   const jobs = await prisma.job.findMany({
@@ -87,11 +84,8 @@ export async function getDispatchBoard(businessId: string, isoDay?: string | nul
     },
   });
 
-  const business = await prisma.business.findUnique({
-    where: { id: businessId },
-    select: { trade: true, servicesJson: true },
-  });
   const schedule = buildDispatchSchedule({
+    timezone,
     business: business ?? {},
     crew: crew.map((t) => ({ id: t.id, name: t.name, phone: t.phone, skills: parseSkills(t.skillsJson) })),
     jobs: jobs.map((j) => ({
@@ -119,7 +113,9 @@ export async function getDispatchBoard(businessId: string, isoDay?: string | nul
   }));
 
   return {
-    day: start.toISOString(),
+    day,
+    dayStart: start.toISOString(),
+    timezone,
     crew,
     unassigned,
     columns,

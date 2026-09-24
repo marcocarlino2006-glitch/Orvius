@@ -1,3 +1,4 @@
+import { shopDayBounds } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
 import {
   customerDisplayName,
@@ -97,14 +98,15 @@ function scoreText(text: string, terms: string[]): number {
   return score;
 }
 
-function formatWhen(iso: Date | string | null | undefined) {
+function formatWhen(iso: Date | string | null | undefined, timeZone: string) {
   if (!iso) return "unscheduled";
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone,
   });
 }
 
@@ -122,10 +124,10 @@ export async function retrieveShopMemory(
   if (wantsEmergency && !terms.includes("emergency")) terms.push("emergency");
   const phone = normalizePhone(q) ?? (q.replace(/\D/g, "").length >= 7 ? q.replace(/\D/g, "") : null);
   const now = new Date();
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-  const endOfTomorrow = new Date(startOfToday);
-  endOfTomorrow.setDate(endOfTomorrow.getDate() + 2);
+  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } });
+  const tz = shop?.timezone || "America/New_York";
+  const { start: startOfToday, end: endOfToday } = shopDayBounds(null, tz, now);
+  const endOfTomorrow = shopDayBounds(null, tz, new Date(endOfToday.getTime() + 60 * 60 * 1000)).end;
   const tenant = { businessId };
 
   const [customers, jobs, leads, calls, stats] = await Promise.all([
@@ -173,7 +175,7 @@ export async function retrieveShopMemory(
         id: job.id,
         href: `/dashboard/jobs/${job.id}`,
         title: job.title,
-        summary: [job.status, who, `scheduled ${formatWhen(job.scheduledAt)}`]
+        summary: [job.status, who, `scheduled ${formatWhen(job.scheduledAt, tz)}`]
           .filter(Boolean)
           .join(" · "),
         score: 1,
@@ -185,7 +187,7 @@ export async function retrieveShopMemory(
       id: call.id,
       href: `/dashboard/calls/${call.id}`,
       title: call.customer?.name ?? call.callerPhone ?? "Inbound call",
-      summary: [formatWhen(call.createdAt), call.summary?.slice(0, 160)]
+      summary: [formatWhen(call.createdAt, tz), call.summary?.slice(0, 160)]
         .filter(Boolean)
         .join(" · "),
       score: 1,
@@ -231,7 +233,7 @@ export async function retrieveShopMemory(
         displayPhone(customer.phone),
         customer.address,
         `${customer.interactionCount} interaction${customer.interactionCount === 1 ? "" : "s"}`,
-        `last seen ${formatWhen(customer.lastSeenAt)}`,
+        `last seen ${formatWhen(customer.lastSeenAt, tz)}`,
       ]
         .filter(Boolean)
         .join(" · "),
@@ -259,10 +261,10 @@ export async function retrieveShopMemory(
     if (wantsEmergency && job.urgency?.toLowerCase().includes("emergency")) score += 6;
     if (job.scheduledAt) {
       const at = job.scheduledAt;
-      if (wantsToday && at >= startOfToday && at < new Date(startOfToday.getTime() + 86400000)) {
+      if (wantsToday && at >= startOfToday && at < endOfToday) {
         score += 8;
       }
-      if (wantsTomorrow && at >= new Date(startOfToday.getTime() + 86400000) && at < endOfTomorrow) {
+      if (wantsTomorrow && at >= endOfToday && at < endOfTomorrow) {
         score += 8;
       }
     }
@@ -282,7 +284,7 @@ export async function retrieveShopMemory(
         job.technician?.name ?? "unassigned",
         who,
         job.address,
-        `scheduled ${formatWhen(job.scheduledAt)}`,
+        `scheduled ${formatWhen(job.scheduledAt, tz)}`,
         jobOutcomeLabel(job.resolutionCode),
         job.resolutionSummary,
         job.finalAmountCents != null
@@ -350,7 +352,7 @@ export async function retrieveShopMemory(
       title: call.customer?.name ?? call.callerPhone ?? "Inbound call",
       summary: [
         call.status,
-        formatWhen(call.createdAt),
+        formatWhen(call.createdAt, tz),
         call.summary?.slice(0, 160),
       ]
         .filter(Boolean)
