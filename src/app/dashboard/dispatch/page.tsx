@@ -17,6 +17,8 @@ type Tech = { id: string; name: string; phone: string | null; skillsJson?: strin
 type Board = {
   business: { id: string; name: string };
   day: string;
+  /** The shop's current day, which can differ from the browser's. */
+  today: string;
   jobCount: number;
   crew?: Tech[];
   schedule: DispatchSchedule;
@@ -293,7 +295,7 @@ function AddTechnician({ onAdded }: { onAdded: () => void }) {
 }
 
 export default function DispatchPage() {
-  const [day, setDay] = useState(() => toInputValue(new Date()));
+  const [picked, setPicked] = useState<string | null>(null);
   const [board, setBoard] = useState<Board | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -301,7 +303,7 @@ export default function DispatchPage() {
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetch(`/api/dispatch?day=${day}`)
+    fetch(picked ? `/api/dispatch?day=${picked}` : "/api/dispatch")
       .then(async (res) => {
         if (!res.ok) throw new Error(res.status === 401 ? "Your session expired. Sign in again." : "Dispatch did not load.");
         return res.json();
@@ -312,7 +314,7 @@ export default function DispatchPage() {
         setError(offline ? "You are offline. The last schedule is still shown." : err.message);
       })
       .finally(() => setLoading(false));
-  }, [day]);
+  }, [picked]);
 
   useEffect(() => {
     load();
@@ -327,6 +329,10 @@ export default function DispatchPage() {
     return out;
   }, [axis.startMin, axis.endMin]);
   const openScheduled = schedule?.unassigned.filter((u) => u.startMin != null) ?? [];
+  const today = board?.today ?? toInputValue(new Date());
+  const day = picked ?? today;
+  const setDay = (next: string | ((d: string) => string)) =>
+    setPicked(typeof next === "function" ? next(day) : next);
   const dayLabel = new Date(`${day}T12:00:00`).toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -359,8 +365,8 @@ export default function DispatchPage() {
           <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setDay((d) => shiftDay(d, 1))} aria-label="Next day">
             →
           </button>
-          {day !== toInputValue(new Date()) ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setDay(toInputValue(new Date()))}>
+          {day !== today ? (
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setPicked(null)}>
               Today
             </button>
           ) : null}

@@ -63,7 +63,7 @@ export function CustomerRecordCard({
             said less than the number does.
           */}
           {returning ? (
-            <p className="lead-rail-count is-live">{interactionCount} calls</p>
+            <p className="lead-rail-count is-live">{interactionCount} touchpoints</p>
           ) : null}
           <time dateTime={lastSeenAt} className="lead-rail-time">
             {when}

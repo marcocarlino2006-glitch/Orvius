@@ -114,6 +114,7 @@ export async function getDispatchBoard(businessId: string, isoDay?: string | nul
 
   return {
     day,
+    today: shopDayBounds(null, timezone).day,
     dayStart: start.toISOString(),
     timezone,
     crew,
