@@ -83,7 +83,9 @@ async function runProposal(
       if (!sms.sent) {
         const optedOut = sms.reason === "customer_opted_out";
         return {
-          error: optedOut ? "Customer opted out of SMS" : "SMS unavailable",
+          error: optedOut
+            ? "This customer opted out of texts."
+            : "Texting is not connected for this workspace yet.",
           reason: sms.reason,
           status: optedOut ? 409 : 503,
         };

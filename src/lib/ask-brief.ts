@@ -4,7 +4,8 @@ import { recommendTechnician } from "@/lib/technician-match";
 import { classifyRequest } from "@/lib/trade-playbooks";
 
 export type AskRecommendation = {
-  action: "assign_tech" | "sms_followup" | "mark_contacted";
+  /** `call` is done by the owner; Orvius cannot place it, so there is nothing to approve. */
+  action: "assign_tech" | "sms_followup" | "mark_contacted" | "call";
   label: string;
   reason: string;
   /** Record the action changes — also one of the cited hits. */
@@ -13,6 +14,7 @@ export type AskRecommendation = {
   jobId?: string;
   leadId?: string;
   technicianId?: string;
+  phone?: string;
 };
 
 export type AskBrief = {
@@ -161,8 +163,18 @@ export async function buildAskBrief(params: {
   }
 
   if (!recommendation) {
-    const lead = leads[0];
-    if (lead) {
+    const lead = leads.find((l) => l.urgency === "emergency") ?? leads[0];
+    if (lead?.urgency === "emergency" && lead.phone) {
+      recommendation = {
+        action: "call",
+        label: `Call ${lead.name ?? lead.phone} now`,
+        reason: `This is an emergency and they have waited ${ago(lead.createdAt, now)}. A text is not enough — talk to them, then mark them contacted.`,
+        recordType: "lead",
+        recordId: lead.id,
+        leadId: lead.id,
+        phone: lead.phone,
+      };
+    } else if (lead) {
       recommendation = lead.phone
         ? {
             action: "sms_followup",

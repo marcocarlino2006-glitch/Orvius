@@ -170,6 +170,43 @@ test("a waiting lead gets one follow-up recommendation; failed SMS changes nothi
   }
 });
 
+test("an emergency lead is told to call, not text, ahead of older routine leads", async () => {
+  const shop = await makeShop();
+  try {
+    const routine = await prisma.lead.create({
+      data: {
+        businessId: shop.id,
+        name: "Old Routine",
+        phone: "+13125550178",
+        serviceType: "Tune-up",
+        status: "new",
+        createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
+      },
+    });
+    const gas = await prisma.lead.create({
+      data: {
+        businessId: shop.id,
+        name: "Gas Smell",
+        phone: "+13125550179",
+        serviceType: "I smell gas near the furnace",
+        urgency: "emergency",
+        status: "new",
+        createdAt: new Date(Date.now() - 20 * 60 * 1000),
+      },
+    });
+    const brief = await buildAskBrief({
+      businessId: shop.id,
+      hits: [hit("lead", routine.id), hit("lead", gas.id)],
+      modelWorded: false,
+    });
+    assert.equal(brief.recommendation?.action, "call");
+    assert.equal(brief.recommendation?.leadId, gas.id);
+    assert.equal(brief.recommendation?.phone, gas.phone);
+  } finally {
+    await drop(shop.id);
+  }
+});
+
 test("no records means an explicit uncertainty and no recommendation", async () => {
   const shop = await makeShop();
   try {

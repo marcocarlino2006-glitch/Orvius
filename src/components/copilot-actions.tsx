@@ -17,12 +17,13 @@ type CopilotHit = {
 };
 
 export type CopilotRecommendation = {
-  action: "assign_tech" | "sms_followup" | "mark_contacted";
+  action: "assign_tech" | "sms_followup" | "mark_contacted" | "call";
   label: string;
   reason: string;
   jobId?: string;
   leadId?: string;
   technicianId?: string;
+  phone?: string;
 };
 
 type Confirmation = { summary: string; at: string };
@@ -217,9 +218,11 @@ export function CopilotActions({ hits = [], compact, recommendation }: CopilotAc
       ) : null}
       {error ? (
         <div className="copilot-actions-error" role="alert">
-          <p>{error} Nothing was changed.</p>
-          {proposal ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void execute()}>
+          <p>
+            {/[.!?]$/.test(error) ? error : `${error}.`} Nothing was changed.
+          </p>
+          {!proposal && recommendation && recommendation.action !== "call" ? (
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={previewRecommendation}>
               Try again
             </button>
           ) : null}
@@ -254,15 +257,35 @@ export function CopilotActions({ hits = [], compact, recommendation }: CopilotAc
           <div className="copilot-recommend">
             <p className="copilot-recommend-label">{recommendation.label}</p>
             <p className="copilot-recommend-reason">{recommendation.reason}</p>
-            <button
-              type="button"
-              className="ox-btn ox-btn--primary ox-btn--sm"
-              disabled={busy}
-              onClick={previewRecommendation}
-            >
-              {busy ? "Preparing…" : "Preview changes"}
-            </button>
-            <p className="copilot-actions-lead">Nothing runs until you approve. Every decision is kept in the timeline.</p>
+            {recommendation.action === "call" && recommendation.phone ? (
+              <>
+                <a className="ox-btn ox-btn--primary ox-btn--sm" href={`tel:${recommendation.phone}`}>
+                  Call {recommendation.phone}
+                </a>
+                {recommendation.leadId ? (
+                  <button
+                    type="button"
+                    className="ox-btn ox-btn--quiet ox-btn--sm"
+                    disabled={busy}
+                    onClick={() => void propose({ action: "mark_contacted", leadId: recommendation.leadId! })}
+                  >
+                    I called — mark contacted
+                  </button>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="ox-btn ox-btn--primary ox-btn--sm"
+                  disabled={busy}
+                  onClick={previewRecommendation}
+                >
+                  {busy ? "Preparing…" : "Preview changes"}
+                </button>
+                <p className="copilot-actions-lead">Nothing runs until you approve. Every decision is kept in the timeline.</p>
+              </>
+            )}
           </div>
           {jobHits.length || leadHits.length ? (
             <details className="copilot-more">
