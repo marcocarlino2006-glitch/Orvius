@@ -9,6 +9,7 @@
  * crew moving, alerts delivered, an overnight gas call handled safely, and one
  * decision that genuinely needs the owner. Only ever touches environment=demo.
  */
+import { randomBytes } from "node:crypto";
 import { createScriptPrisma, loadEnvFile } from "./lib/db.mjs";
 
 loadEnvFile();
@@ -35,6 +36,7 @@ const crew = [
 ];
 
 const script = (...lines) => lines.join("\n");
+const token = () => randomBytes(18).toString("base64url");
 
 /*
   Each entry is one request. `job` books it; `paid` completes and collects it;
@@ -254,6 +256,8 @@ async function main() {
         status: r.job.status,
         scheduledAt,
         durationMin: 90,
+        techToken: done ? null : token(),
+        customerConfirmToken: !done && (r.job.status !== "scheduled" || r.job.confirmSent) ? token() : null,
         confirmedAt: r.job.status !== "scheduled" ? new Date(created.getTime() + H) : null,
         customerConfirmSentAt: r.job.status !== "scheduled" || r.job.confirmSent ? new Date(created.getTime() + 30 * 60_000) : null,
         customerConfirmedAt: r.job.status !== "scheduled" ? new Date(created.getTime() + H) : null,
