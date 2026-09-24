@@ -89,7 +89,40 @@ export async function GET() {
     getShiftTimeline(business.id),
   ]);
 
-  const wedge = await getWedgeReadiness(business.id, health);
+  const windowStart = new Date(Date.now() - outcomes.windowDays * 24 * 60 * 60 * 1000);
+  const [wedge, messagesAndWeb, qualified, bookedInWindow, jobsInMotion, jobsUnassigned] =
+    await Promise.all([
+      getWedgeReadiness(business.id, health),
+      prisma.lead.count({
+        where: { ...businessFilter, callId: null, createdAt: { gte: windowStart } },
+      }),
+      prisma.lead.count({
+        where: {
+          ...businessFilter,
+          createdAt: { gte: windowStart },
+          status: { notIn: ["spam", "lost"] },
+          serviceType: { not: null },
+          phone: { not: null },
+        },
+      }),
+      prisma.lead.count({
+        where: {
+          ...businessFilter,
+          createdAt: { gte: windowStart },
+          job: { isNot: null },
+        },
+      }),
+      prisma.job.count({
+        where: { ...businessFilter, status: { notIn: ["completed", "cancelled"] } },
+      }),
+      prisma.job.count({
+        where: {
+          ...businessFilter,
+          status: { notIn: ["completed", "cancelled"] },
+          technicianId: null,
+        },
+      }),
+    ]);
   if (health.stuckPendingAlerts > 0) {
     after(() =>
       drainOwnerAlerts({ at: "ring1.health", businessId: business.id }),
@@ -183,6 +216,16 @@ export async function GET() {
       lastCaller: lastCall?.callerPhone ?? null,
     },
     outcomes,
+    commandCounts: {
+      windowDays: outcomes.windowDays,
+      calls: outcomes.calls,
+      messagesAndWeb,
+      qualified,
+      booked: bookedInWindow,
+      jobsInMotion,
+      jobsUnassigned,
+      avgTicketSet: Boolean(business.avgTicketCents),
+    },
     attention,
     shiftTimeline,
     lastWeeklyProofAt: business.lastWeeklyProofAt?.toISOString() ?? null,

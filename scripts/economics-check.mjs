@@ -73,35 +73,30 @@ const commandSrc = readFileSync(
 );
 const economicsOnCommand = (commandSrc.match(/<ProEconomicsPanel/g) ?? []).length;
 const outcomesOnCommand = (commandSrc.match(/<ProCommandOutcomes/g) ?? []).length;
-const briefingOnCommand = (commandSrc.match(/<OpsBriefing/g) ?? []).length;
+const signalsOnCommand = (commandSrc.match(/<CommandSignals/g) ?? []).length;
 results.push(
   economicsOnCommand === 0 &&
     outcomesOnCommand === 0 &&
-    briefingOnCommand === 1
+    signalsOnCommand === 1
     ? pass(
-        "Command uses one always-on OpsBriefing — money lane + operate banner, no XOR pulse",
+        "Command uses one signal row — Revenue at risk is the money signal, no XOR pulse",
       )
     : fail(
-        `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand} briefing=${briefingOnCommand}`,
+        `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand} signals=${signalsOnCommand}`,
       ),
 );
 
 const workMode = /workMode/.test(commandSrc);
-const briefingLead = commandSrc.indexOf("<OpsBriefing");
-const shiftTimeline = commandSrc.indexOf("<ProShiftTimeline");
+const signalsLead = commandSrc.indexOf("<CommandSignals");
 const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
+const pulse = commandSrc.indexOf("<OrviusPulse");
 results.push(
   !workMode &&
-    briefingLead >= 0 &&
-    exceptionBoard >= 0 &&
-    shiftTimeline > briefingLead &&
-    exceptionBoard > briefingLead
-    ? pass(
-        "Command always-on: OpsBriefing → attention board → trail (no workMode XOR)",
-      )
-    : fail(
-        "Command must keep OpsBriefing visible with board + trail — never XOR pulse away",
-      ),
+    signalsLead >= 0 &&
+    exceptionBoard > signalsLead &&
+    pulse > exceptionBoard
+    ? pass("Command always-on: signals → work queue → Pulse (no workMode XOR)")
+    : fail("Command must keep signals, work queue, and Pulse visible — never XOR"),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");

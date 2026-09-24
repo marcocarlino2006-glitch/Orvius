@@ -395,7 +395,7 @@ try {
     } else {
       pass("Operate board language", "Board title uses items / need you");
     }
-  } else if (/items need you|Board is clear/.test(board)) {
+  } else if (/items need you|Board is clear|items need"|Queue is clear/.test(board)) {
     pass("Operate board language", "Board title uses items / need you");
   } else {
     fail("Operate board language", "Attention board must speak owner language");

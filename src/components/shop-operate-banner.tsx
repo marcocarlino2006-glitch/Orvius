@@ -162,6 +162,10 @@ export function ShopOperateBanner() {
   }
 
   if (!loaded || !next || !shopOperateBannerVisible(next)) return null;
+  // The work queue already carries alert failures as one incident.
+  if (next.id === "alerts" && (ring?.attention ?? []).some((i) => i.kind === "alert_failed")) {
+    return null;
+  }
 
   const inline = next.id === "weekly-proof" || next.id === "alerts";
 

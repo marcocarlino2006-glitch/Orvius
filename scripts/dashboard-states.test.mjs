@@ -20,29 +20,32 @@ test("dashboard routes own loading and error states", () => {
 test("Command exposes failed refreshes and a real retry action", () => {
   const command = read("src/components/ring1-command-center.tsx");
   const ctx = read("src/lib/ring1-context.tsx");
-  assert.match(command, /Connection needs attention/);
+  assert.match(command, /Command could not load/);
   assert.match(command, /useRing1/);
   assert.match(command, /await refresh\(\)/);
-  assert.match(command, /Try again/);
+  assert.match(command, /"Retry"/);
+  assert.match(command, /stale=\{Boolean\(loadError && data\)\}/);
   assert.match(ctx, /Live refresh is temporarily unavailable/);
+  assert.match(ctx, /can't reach the network/);
   assert.doesNotMatch(command, /fetch\("\/api\/ring1"\)/);
 });
 
 test("Command keeps one flagship hierarchy and one control rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
-
-  // Always-on operating console: briefing + board + trail. Never XOR pulse away.
   assert.doesNotMatch(command, /workMode/);
-  assert.match(command, /<OpsBriefing/);
+  assert.match(command, /<CommandSignals/);
   assert.match(command, /<AttentionQueue/);
-  assert.match(command, /<ProShiftTimeline/);
-  assert.doesNotMatch(command, /<ProCommandOutcomes/);
-  assert.equal((command.match(/<ProLaunchControl/g) ?? []).length, 1);
+  assert.match(command, /<OrviusPulse/);
+  assert.equal((command.match(/<aside className="cc-rail"/g) ?? []).length, 1);
+  assert.doesNotMatch(command, /<ProCommandOutcomes|<ProLaunchControl/);
   assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
   assert.match(command, /<ApproveQueue onChange=\{/);
 
   const queue = read("src/components/attention-queue.tsx");
-  assert.match(queue, /items\.slice\(0, 5\)/);
+  assert.match(queue, /rest\.slice\(0, /);
+
+  const banner = read("src/components/shop-operate-banner.tsx");
+  assert.match(banner, /alert_failed/);
 
   const shift = read("src/components/pro-shift-timeline.tsx");
   assert.doesNotMatch(shift, /Finish setup before testing the full loop/);

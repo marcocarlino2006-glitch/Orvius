@@ -126,7 +126,7 @@ export function resolveShopOperateNext(
       detail: `${input.criticalAttention} critical item${
         input.criticalAttention === 1 ? "" : "s"
       } waiting — book, assign, or call back.`,
-      href: "/dashboard#attention-board",
+      href: "/dashboard#work-queue",
       cta: "Open the board",
       tone: "critical",
     };
@@ -139,7 +139,7 @@ export function resolveShopOperateNext(
       detail: `${input.attentionCount} item${
         input.attentionCount === 1 ? "" : "s"
       } need you before the shift moves on.`,
-      href: "/dashboard#attention-board",
+      href: "/dashboard#work-queue",
       cta: "Open the board",
       tone: "attention",
     };

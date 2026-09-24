@@ -33,7 +33,7 @@ export function FirstNightHandoff() {
       /* ignore */
     }
     setOpen(false);
-    router.replace("/dashboard#attention-board");
+    router.replace("/dashboard#work-queue");
   }
 
   if (!open) return null;
