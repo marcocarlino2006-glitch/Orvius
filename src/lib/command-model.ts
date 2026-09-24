@@ -78,7 +78,12 @@ const SEVERITY_ORDER: Record<WorkSeverity, number> = {
 function subjectOf(item: AttentionItem): string {
   if (item.group?.label) return item.group.label;
   if (item.entityType === "shop") return "Your shop";
-  return item.title;
+  return item.title.split(" · ")[0] || item.title;
+}
+
+function kindLabelOf(item: AttentionItem, subject: string): string {
+  if (!item.title.startsWith(subject)) return item.title;
+  return item.title.slice(subject.length).replace(/^[\s·—-]+/, "");
 }
 
 export function groupWorkItems(items: AttentionItem[]): WorkItem[] {
@@ -86,12 +91,13 @@ export function groupWorkItems(items: AttentionItem[]): WorkItem[] {
   const rows: WorkItem[] = [];
 
   for (const item of items) {
+    const subject = subjectOf(item);
     const base: WorkItem = {
       id: item.id,
       severity: severityOf(item),
-      subject: subjectOf(item),
+      subject,
       request: item.detail,
-      kindLabel: item.title,
+      kindLabel: kindLabelOf(item, subject),
       createdAt: item.createdAt,
       impactCents: item.estimatedRevenueCents ?? null,
       occurrences: 1 + (item.rolledUp ?? 0),
@@ -179,7 +185,7 @@ export function buildCommandSignals(
       detail:
         demand === 0
           ? `No calls or messages ${window}`
-          : `${plural(counts.calls, "call")} · ${plural(counts.messagesAndWeb, "message")} ${window}`,
+          : `${plural(counts.calls, "call")} · ${plural(counts.messagesAndWeb, "message")}`,
       href: "/dashboard/calls",
       tone: "neutral",
     },
@@ -190,7 +196,7 @@ export function buildCommandSignals(
       detail:
         counts.qualified === 0
           ? "None yet — service + contact not captured"
-          : `${plural(counts.booked, "booked")} into jobs`,
+          : `${counts.booked} booked into jobs`,
       href: "/dashboard/inbox",
       tone: counts.qualified > 0 ? "success" : "neutral",
     },

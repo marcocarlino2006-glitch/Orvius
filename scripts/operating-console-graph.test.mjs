@@ -62,6 +62,17 @@ test("repeated alert failures collapse into one incident row", () => {
   assert.equal(work[1].subject, "Dana Ruiz");
 });
 
+test("work rows never repeat the customer name in the request line", () => {
+  const [grouped, bare] = groupWorkItems([
+    item({ id: "g", title: "Dana Caller", group: { key: "c", label: "Dana Caller" }, rank: 1 }),
+    item({ id: "b", title: "Dana Caller · $99 deposit", rank: 2 }),
+  ]);
+  assert.equal(grouped.subject, "Dana Caller");
+  assert.equal(grouped.kindLabel, "");
+  assert.equal(bare.subject, "Dana Caller");
+  assert.equal(bare.kindLabel, "$99 deposit");
+});
+
 test("Command ships five truthful signals and never a bare $0", () => {
   const work = groupWorkItems([
     item({ id: "l1", impact: "critical", estimatedRevenueCents: 45000 }),

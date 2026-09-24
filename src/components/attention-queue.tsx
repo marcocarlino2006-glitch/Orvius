@@ -413,6 +413,11 @@ export function AttentionQueue({
   );
 }
 
+function ageLabel(iso: string, now: number): string {
+  const age = formatAge(iso, now);
+  return age === "just now" ? age : `${age} ago`;
+}
+
 function WorkRowBody({ work, now, large = false }: { work: WorkItem; now: number; large?: boolean }) {
   const target = drawerTarget(work.source);
   const impact = work.impactCents ? formatCents(work.impactCents) : null;
@@ -434,11 +439,12 @@ function WorkRowBody({ work, now, large = false }: { work: WorkItem; now: number
         ) : null}
       </div>
       <p className="wq-request">
-        <span className="wq-kind">{work.kindLabel}</span>
-        {work.request ? ` · ${work.request}` : ""}
+        {work.kindLabel ? <span className="wq-kind">{work.kindLabel}</span> : null}
+        {work.kindLabel && work.request ? " · " : ""}
+        {work.request}
       </p>
       <p className="wq-meta">
-        <span>{formatAge(work.createdAt, now)} ago</span>
+        <span>{ageLabel(work.createdAt, now)}</span>
         <span aria-hidden>·</span>
         <span className={impact ? "wq-impact" : ""}>{impact ? `${impact} at stake` : "No value estimate"}</span>
         {work.source.meta?.address ? (
