@@ -219,6 +219,7 @@ export async function getAttentionQueue(
           baselineMissedCallsPerWeek: true,
           baselineJobsPerWeek: true,
           lastWeeklyProofAt: true,
+          autopilot: true,
           billingStatus: true,
           pilotEndsAt: true,
           createdAt: true,
@@ -477,8 +478,9 @@ export async function getAttentionQueue(
     !proofAt ||
     Number.isNaN(proofAt.getTime()) ||
     now.getTime() - proofAt.getTime() > WEEK_MS;
-  // A shop with no calls and no leads this week has nothing to prove yet.
-  if (proofStale && weekTraffic > 0) {
+  // A shop with no calls this week, or less than a week old, has nothing to prove yet.
+  const shopAgeMs = business?.createdAt ? now.getTime() - new Date(business.createdAt).getTime() : 0;
+  if (proofStale && weekTraffic > 0 && shopAgeMs >= WEEK_MS) {
     items.push({
       id: `stale_weekly_proof:${businessId}`,
       kind: "stale_weekly_proof",
@@ -487,9 +489,9 @@ export async function getAttentionQueue(
       title: "Weekly proof due",
       detail: proofAt
         ? "Last proof is older than 7 days — copy a fresh artifact."
-        : "No weekly proof copied yet — measured outcomes, not vanity stats.",
+        : "Your first week is done. Copy what Orvius booked and collected.",
       recommendedAction: "Copy weekly proof",
-      href: "/dashboard#shop-economics",
+      href: "/dashboard?settings=performance",
       entityType: "shop",
       entityId: businessId,
       createdAt: now.toISOString(),
@@ -992,10 +994,11 @@ export async function getAttentionQueue(
         : `/dashboard/jobs/${job.id}`,
     };
 
+    const beforeCallWindow =
+      scheduled != null && scheduled.getTime() - now.getTime() > CONFIRM_CALL_WINDOW_MS;
+    // Autopilot texts for confirmation until the call window, so the owner only sees it after that.
     const waitingOnCustomer =
-      job.customerConfirmSentAt != null &&
-      scheduled != null &&
-      scheduled.getTime() - now.getTime() > CONFIRM_CALL_WINDOW_MS;
+      beforeCallWindow && (job.customerConfirmSentAt != null || business?.autopilot === true);
     if (
       !job.customerConfirmedAt &&
       !waitingOnCustomer &&

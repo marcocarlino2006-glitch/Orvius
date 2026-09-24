@@ -150,6 +150,28 @@ test("the queue skips confirmations already waiting on the customer, but not one
   }
 });
 
+test("with autopilot on, the owner sees only confirmations autopilot will not send, and no proof ask in week one", async () => {
+  const shop = await makeShop({ autopilot: true });
+  try {
+    const t = await tech(shop.id, "Ana");
+    const later = await job(shop.id, { technicianId: t.id, scheduledAt: inHours(26), title: "Later" });
+    const soon = await job(shop.id, { technicianId: t.id, scheduledAt: inHours(1), title: "Soon" });
+    await prisma.lead.create({ data: { businessId: shop.id, name: "Rosa", phone: "+13125550147", source: "call" } });
+
+    const queue = await getAttentionQueue(shop.id, 40);
+    const confirmIds = queue.filter((i) => i.kind === "needs_customer_confirm").map((i) => i.entityId);
+    assert.ok(!confirmIds.includes(later.id), "autopilot texts this one; it is not the owner's decision");
+    assert.ok(confirmIds.includes(soon.id), "an hour out, a person should call");
+    assert.ok(!queue.some((i) => i.kind === "stale_weekly_proof"), "a shop in its first week has nothing to prove");
+
+    await prisma.business.update({ where: { id: shop.id }, data: { createdAt: new Date(Date.now() - 8 * 86_400_000) } });
+    const weekTwo = await getAttentionQueue(shop.id, 40);
+    assert.ok(weekTwo.some((i) => i.kind === "stale_weekly_proof"));
+  } finally {
+    await drop(shop.id);
+  }
+});
+
 test("one late technician is one row, with the rest folded behind it", async () => {
   const shop = await makeShop({ autopilot: false });
   try {

@@ -8,7 +8,7 @@ export type JobRowInput = {
   customerConfirmedAt?: string | null;
   finalAmountCents?: number | null;
   technician?: { name: string } | null;
-  business?: { avgTicketCents: number | null } | null;
+  business?: { avgTicketCents: number | null; autopilot?: boolean } | null;
   estimate?: {
     amountCents: number;
     status: string;
@@ -92,9 +92,11 @@ export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
   else if (money.kind === "due") attention = { reason: "Invoice is waiting on payment.", weight: 2 };
   else if (job.status === "completed" && !job.finalAmountCents && !invoice) {
     attention = { reason: "Completed without a final amount.", weight: 1 };
-  } else if (open && at != null && at - now < 2 * HOUR && !job.customerConfirmedAt) {
-    // Earlier than two hours out, autopilot texts the customer; this close, a person should call.
+  } else if (open && at != null && !job.customerConfirmedAt && at - now < 2 * HOUR) {
     attention = { reason: "Starts within 2 hours and the customer has not confirmed. Call them.", weight: 3 };
+  } else if (open && at != null && !job.customerConfirmedAt && at - now < 24 * HOUR && job.business?.autopilot === false) {
+    // With autopilot on, Orvius texts for confirmation until two hours out.
+    attention = { reason: "Customer has not confirmed the time.", weight: 1 };
   }
 
   return { owner, timing, money, attention };

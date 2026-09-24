@@ -53,8 +53,8 @@ export function getOwnerSetupStatus(business: {
 export function ownerSetupHref(
   nextStep: OwnerSetupStatus["nextStep"],
 ): string {
-  if (nextStep === "owner_phone") return "/dashboard/settings";
-  if (nextStep === "capture") return "/dashboard/settings#overflow-forward";
+  if (nextStep === "owner_phone") return "/dashboard?settings=notifications";
+  if (nextStep === "capture") return "/dashboard?settings=phone";
   if (nextStep === "done") return "/dashboard";
   return "/dashboard/onboarding";
 }

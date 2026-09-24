@@ -56,7 +56,7 @@ async function closeBookingMoneyLoop(params: {
 }
 
 export const JOB_INCLUDE = {
-  business: { select: { id: true, name: true, avgTicketCents: true } },
+  business: { select: { id: true, name: true, avgTicketCents: true, autopilot: true } },
   customer: {
     select: { id: true, name: true, phone: true, address: true, interactionCount: true },
   },
