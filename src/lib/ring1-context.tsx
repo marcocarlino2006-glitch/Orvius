@@ -155,10 +155,22 @@ export function Ring1Provider({
   useEffect(() => {
     void refresh();
     if (!refreshMs) return;
-    const interval = setInterval(() => {
+    let lastRun = Date.now();
+    const tick = () => {
+      if (document.visibilityState !== "visible") return;
+      lastRun = Date.now();
       void refresh();
-    }, refreshMs);
-    return () => clearInterval(interval);
+    };
+    const interval = setInterval(tick, refreshMs);
+    /* A backgrounded tab stops polling; coming back refreshes at once if the data is stale. */
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && Date.now() - lastRun >= refreshMs) tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [refresh, refreshMs]);
 
   const value = useMemo<Ring1ContextValue>(
