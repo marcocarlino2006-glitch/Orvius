@@ -142,7 +142,7 @@
 .os-shell.os-shell-night .os-sidebar-pro .os-nav-link-active,
 .os-shell.os-shell-night .os-nav-link-active {
   position: relative;
-  background: var(--ox-amber-soft) !important;
+  background: rgb(255 255 255 / 0.06) !important;
   color: var(--ox-text) !important;
   font-weight: 600 !important;
 }
@@ -3171,4 +3171,15 @@ button.rd-path-btn:hover {
   margin-top: 0;
   padding-top: 0;
   border-top: 0;
+}
+
+.os-shell.os-shell-night .lead-quick-actions a,
+.os-shell.os-shell-night .lead-quick-actions button {
+  min-height: 2rem !important;
+  padding: 0.3rem 0.7rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  border-radius: var(--ox-radius-sm) !important;
 }
