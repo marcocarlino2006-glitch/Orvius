@@ -9,6 +9,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import type { RecordType, RecordView } from "@/lib/record-types";
@@ -365,12 +366,16 @@ export function RecordLink({
   id,
   href,
   className,
+  style,
+  title,
   children,
 }: {
   type: RecordType;
   id: string;
   href: string;
   className?: string;
+  style?: CSSProperties;
+  title?: string;
   children: ReactNode;
 }) {
   const drawer = useRecordDrawer();
@@ -378,6 +383,8 @@ export function RecordLink({
     <Link
       href={href}
       className={className}
+      style={style}
+      title={title}
       onClick={(event) => {
         if (!drawer || event.metaKey || event.ctrlKey || event.shiftKey) return;
         event.preventDefault();
