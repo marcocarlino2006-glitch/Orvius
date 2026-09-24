@@ -1,12 +1,11 @@
 "use client";
 
-import { LeadInboxCard } from "@/components/lead-inbox-card";
+import { LeadInboxCard, LeadTableHead } from "@/components/lead-inbox-card";
 import { ProLead } from "@/components/pro-lead";
 import { LEAD_STATUSES } from "@/components/lead-status-actions";
 import {
   ProFilterBar,
   ProEmptyState,
-  ProListEnd,
 } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
@@ -88,7 +87,6 @@ export default function InboxPage() {
   return (
     <OsShell
       title="Inbox"
-      subtitle="Every lead waiting on a decision — act on the top one first."
       actions={
         <ProShopLineCta label="Call your line" showNumber={false} />
       }
@@ -96,14 +94,8 @@ export default function InboxPage() {
       <ProLead
         loading={loading && !counts}
         figure={String(newCount)}
-        caption={
-          newCount === 1 ? "lead needs a callback" : "leads need a callback"
-        }
-        detail={
-          newCount > 0
-            ? "Orvius took the details. Newest first."
-            : "Nobody is waiting on a callback."
-        }
+        caption="Waiting on a callback"
+        facts={[{ label: "Booked", value: counts?.booked ?? 0 }]}
       />
 
       <ProFilterBar
@@ -164,10 +156,11 @@ export default function InboxPage() {
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : !leads.length ? null : (
-            <ul className="os-lead-rail">
+            <div className="dt dt--leads font-sans" role="table" aria-label="Leads">
+              <LeadTableHead />
               {leads.map((lead) => (
-                <li key={lead.id}>
                   <LeadInboxCard
+                    key={lead.id}
                     id={lead.id}
                     name={lead.name ?? "Unknown caller"}
                     phone={lead.phone}
@@ -190,14 +183,9 @@ export default function InboxPage() {
                       );
                     }}
                   />
-                </li>
               ))}
-            </ul>
+            </div>
           )}
-          {leads.length ? (
-            <ProListEnd count={leads.length} noun="lead"
-                scope={filter ? FILTERS.find((f) => f.value === filter)?.label.toLowerCase() : undefined} />
-          ) : null}
         </>
       )}
     </OsShell>

@@ -176,7 +176,7 @@ export function ProFilterBar({
             onClick={() => onChange(option.value)}
           >
             {option.label}
-            {typeof option.count === "number" ? ` (${option.count})` : ""}
+            {typeof option.count === "number" ? <span className="pro-filter-count">{option.count}</span> : null}
           </button>
         );
       })}

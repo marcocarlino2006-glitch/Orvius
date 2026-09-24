@@ -383,17 +383,16 @@ export default function DispatchPage() {
   const conflicts = schedule?.conflicts ?? [];
 
   return (
-    <OsShell title="Dispatch" subtitle="Who is going where, and when.">
+    <OsShell title="Dispatch">
       <PlanUpgradeGate module="dispatch">
         <ProLead
           loading={loading && !board}
           figure={String(board?.jobCount ?? 0)}
-          caption={board?.jobCount === 1 ? "job on the schedule" : "jobs on the schedule"}
-          detail={dayLabel}
+          caption="Scheduled"
           facts={[
-            { label: "need a technician", value: decisions, live: decisions > 0 },
-            { label: "conflicts", value: conflicts.length, live: conflicts.length > 0 },
-            { label: "crew", value: crew.length },
+            { label: "Unassigned", value: decisions, live: decisions > 0 },
+            { label: "Conflicts", value: conflicts.length, live: conflicts.length > 0 },
+            { label: "Crew", value: crew.length },
           ]}
         />
 

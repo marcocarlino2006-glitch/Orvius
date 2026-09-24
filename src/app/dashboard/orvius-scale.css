@@ -30,65 +30,6 @@
   letter-spacing: -0.005em;
 }
 
-.os-shell.os-shell-night .os-topbar-live {
-  font-size: 0.6875rem !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.04em !important;
-  color: var(--ox-mute) !important;
-}
-
-/* ── The page's one number, leading its label ────────────────────────── */
-
-.os-shell.os-shell-night .pro-lead--floor {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--ox-line);
-}
-
-.os-shell.os-shell-night .pro-lead--floor .pro-lead-main {
-  justify-content: flex-start;
-  align-items: center;
-  gap: 1.1rem;
-}
-
-.os-shell.os-shell-night .pro-lead--floor .pro-lead-figure,
-.os-shell.os-shell-night .pro-lead--floor .pro-lead-figure-wait {
-  order: -1;
-}
-
-.os-shell.os-shell-night .pro-lead--floor .pro-lead-figure {
-  font-size: 2.75rem !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.04em !important;
-  line-height: 1 !important;
-  opacity: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.os-shell.os-shell-night .pro-lead--floor .pro-lead-caption {
-  font-size: 1.0625rem !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.012em !important;
-}
-
-.os-shell.os-shell-night .pro-lead-detail {
-  margin-top: 0.2rem;
-  font-size: 0.875rem !important;
-  line-height: 1.45;
-}
-
-.os-shell.os-shell-night .pro-lead-facts {
-  gap: 1.25rem;
-  font-size: 0.8125rem;
-  color: var(--ox-mute);
-}
-
-.os-shell.os-shell-night .pro-lead-facts b {
-  margin-right: 0.35rem;
-  font-weight: 600;
-  color: var(--ox-text);
-}
-
 /* ── Lists ───────────────────────────────────────────────────────────── */
 
 .os-shell.os-shell-night .os-lead-rail {
@@ -132,25 +73,10 @@
   color: var(--ox-mute) !important;
 }
 
-.os-shell.os-shell-night .lead-rail-need {
-  font-weight: 500;
-  color: var(--ox-text-2);
-}
-
-.os-shell.os-shell-night .lead-rail-time,
-.os-shell.os-shell-night .lead-rail-kind {
+.os-shell.os-shell-night .lead-rail-time {
   font-size: 0.75rem !important;
   letter-spacing: 0 !important;
   color: var(--ox-mute) !important;
-}
-
-.os-shell.os-shell-night .lead-rail-kind {
-  font-weight: 600 !important;
-  text-transform: none !important;
-}
-
-.os-shell.os-shell-night .lead-rail-kind.is-flare {
-  color: var(--ox-red) !important;
 }
 
 .record-avatar {
@@ -243,14 +169,6 @@
   .os-shell.os-shell-night .lead-rail-row:has(> .record-avatar) {
     grid-template-columns: auto minmax(0, 1fr);
     align-items: start;
-  }
-
-  .os-shell.os-shell-night .lead-rail-row:has(> .record-avatar) > .lead-rail-actions {
-    grid-column: 2;
-  }
-
-  .os-shell.os-shell-night .pro-lead--floor .pro-lead-figure {
-    font-size: 2.25rem !important;
   }
 }
 

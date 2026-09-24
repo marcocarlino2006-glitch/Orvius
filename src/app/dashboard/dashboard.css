@@ -1892,28 +1892,11 @@
   background: #25282e !important;
 }
 
-.lead-rail-row-emergency {
-  box-shadow: inset 2px 0 0 #f4212e;
-}
-
 .lead-rail-meta {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
   align-items: baseline;
-}
-
-.lead-rail-kind {
-  margin: 0;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #9aa1ab;
-}
-
-.lead-rail-kind.is-flare {
-  color: var(--flare-text);
 }
 
 /*
@@ -1941,12 +1924,6 @@
 /* A customer who has called more than once is the asset on the page. */
 .lead-rail-count.is-live {
   color: var(--live-text);
-}
-
-/* What the customer needs — the one fact on the row worth reading first. */
-.lead-rail-need {
-  font-weight: 600;
-  color: #d6d5d3;
 }
 
 .pro-loading-text {
@@ -1992,20 +1969,6 @@
   color: #9aa1ab;
 }
 
-.lead-rail-badges {
-  display: flex;
-  gap: 0.3rem;
-  flex-shrink: 0;
-}
-
-.lead-rail-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  justify-content: flex-end;
-  max-width: 18rem;
-}
-
 @media (max-width: 640px) {
   .jobs-pipeline {
     flex-wrap: nowrap;
@@ -2025,18 +1988,6 @@
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
     padding: 0.85rem;
-  }
-
-  .lead-rail-actions {
-    justify-content: flex-start;
-    width: 100%;
-    max-width: none;
-  }
-
-  .lead-rail-actions .btn,
-  .lead-rail-actions button,
-  .lead-rail-actions a {
-    min-height: 2.75rem;
   }
 }
 
@@ -2216,66 +2167,6 @@
   border-bottom: 1px solid #1a1c20;
 }
 
-.pro-lead--floor {
-  align-items: flex-start;
-}
-
-.pro-lead--floor .pro-lead-main {
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  width: 100%;
-  gap: 1rem;
-}
-
-.pro-lead--floor .pro-lead-figure {
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
-  line-height: 1;
-  opacity: 0.92;
-}
-
-.pro-lead--floor .pro-lead-caption {
-  font-size: 1.05rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-}
-
-.pro-lead-main {
-  display: flex;
-  align-items: baseline;
-  gap: 0.7rem;
-  min-width: 0;
-}
-
-.pro-lead-figure {
-  margin: 0;
-  font-size: var(--os-display);
-  font-weight: 600;
-  line-height: 0.92;
-  letter-spacing: -0.035em;
-  color: #fbfbfb;
-  font-variant-numeric: tabular-nums;
-}
-
-/* The one place the brand gets a surface this large. */
-.pro-lead-figure-hot {
-  color: var(--signal-hot);
-}
-
-/*
-  Holds the figure's exact footprint while the fetch is in flight, so the page
-  does not reflow the moment the real number lands.
-*/
-.pro-lead-figure-wait {
-  display: block;
-  width: 2.4ch;
-  height: calc(var(--os-display) * 0.92);
-  border-radius: 3px;
-  background: linear-gradient(90deg, #15171a 0%, #332f28 50%, #15171a 100%);
-  background-size: 200% 100%;
-  animation: pro-lead-wait 1.4s ease-in-out infinite;
-}
-
 @keyframes pro-lead-wait {
   0%,
   100% {
@@ -2284,71 +2175,6 @@
   50% {
     background-position: 100% 0;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pro-lead-figure-wait {
-    animation: none;
-  }
-}
-
-.pro-lead-copy {
-  min-width: 0;
-}
-
-.pro-lead-caption {
-  margin: 0;
-  font-size: var(--os-lede);
-  font-weight: 500;
-  letter-spacing: -0.012em;
-  color: #ededed;
-}
-
-.pro-lead-detail {
-  margin: 0.15rem 0 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: #a0a6b0;
-}
-
-/*
-  The supporting counts, inline. They were boxes, which gave a 0 the same
-  visual weight as the figure above and turned a quiet week into six framed
-  zeros. As a run of text they stay readable and stop competing.
-*/
-.pro-lead-facts {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0 1.1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pro-lead-facts li {
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  font-size: 0.8125rem;
-  color: #a0a6b0;
-}
-
-.pro-lead-facts b {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #ededed;
-  font-variant-numeric: tabular-nums;
-}
-
-.pro-lead-facts li.is-live b {
-  color: var(--signal-text);
-}
-
-.pro-lead-side {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
 }
 
 @media (max-width: 720px) {
@@ -3333,13 +3159,6 @@
   max-width: 36rem;
 }
 
-.os-shell-night .os-topbar-live {
-  font-size: 0.625rem !important;
-  letter-spacing: 0.12em !important;
-  color: var(--os-live) !important;
-  margin: 0 !important;
-}
-
 .os-shell-night .os-content-pro,
 .os-shell-night .os-content {
   padding: 0.85rem 1rem 5rem !important;
@@ -3430,10 +3249,6 @@
   font-size: 1.25rem !important; /* Grok: tool titles stay modest */
   font-weight: 700 !important;
   color: #e9e9e9 !important;
-}
-
-.os-shell-night .os-topbar-live {
-  color: #00ba7c !important;
 }
 
 .os-shell-night .os-content-pro {
@@ -4032,18 +3847,6 @@
   background: #16181b !important;
 }
 
-.os-shell-night .os-topbar-live {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0 0 0.15rem !important;
-  font-size: 0.6875rem !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.01em !important;
-  color: #9aa1ab !important;
-  font-variant-numeric: tabular-nums;
-}
-
 .os-shell-night .os-topbar-title {
   font-size: 1.125rem !important;
   font-weight: 600 !important;
@@ -4127,17 +3930,12 @@
   pointer-events: auto;
 }
 
-.os-shell-night .lead-rail-kind:not(.is-flare) {
-  color: #9aa1ab !important;
-}
-
 .os-shell-night .os-content-pro > * {
   max-width: 72rem;
 }
 
 .os-shell-night .lead-quick-btn,
-.os-shell-night .lead-quick-actions .lead-quick-btn,
-.os-shell-night .lead-rail-actions .lead-quick-btn {
+.os-shell-night .lead-quick-actions .lead-quick-btn {
   min-height: 1.85rem !important;
   padding: 0 0.7rem !important;
   border-radius: 0.25rem !important;
@@ -4409,18 +4207,6 @@
   .os-topbar {
     padding: 1.5rem 2rem 0;
   }
-}
-
-.os-topbar-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.65rem;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--signal);
 }
 
 .os-topbar-title {

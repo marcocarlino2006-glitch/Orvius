@@ -896,8 +896,7 @@ h3 {
   flex-shrink: 0;
 }
 
-.os-sidebar-pro .pro-live-dot,
-.os-topbar-live .pro-live-dot {
+.os-sidebar-pro .pro-live-dot {
   animation: cinema-ring 1.4s ease-out infinite;
 }
 
@@ -4181,7 +4180,6 @@ label:has(> input[type="radio"]) {
 
 /* Cursor rail list */
 
-.os-shell-night .lead-rail-actions .btn,
 .os-shell-night .lead-quick-actions .btn,
 .os-shell-night .lead-quick-actions a {
   border-radius: 0.25rem !important;
@@ -4196,7 +4194,6 @@ label:has(> input[type="radio"]) {
   box-shadow: none !important;
 }
 
-.os-shell-night .lead-rail-actions .btn-void,
 .os-shell-night .lead-quick-actions .btn-void {
   background: #e9e9e9 !important;
   color: #000 !important;
@@ -5536,7 +5533,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* ── Mastery round 3 — one button voice across every product surface ── */
 .os-shell-night .lead-quick-actions .btn,
-.os-shell-night .lead-rail-actions .btn,
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn,
 .os-shell-night .pro-panel .btn,

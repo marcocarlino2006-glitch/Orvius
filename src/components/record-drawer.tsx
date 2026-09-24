@@ -425,6 +425,7 @@ export function RecordLink({
   className,
   style,
   title,
+  role,
   children,
 }: {
   type: RecordType;
@@ -433,6 +434,7 @@ export function RecordLink({
   className?: string;
   style?: CSSProperties;
   title?: string;
+  role?: string;
   children: ReactNode;
 }) {
   const drawer = useRecordDrawer();
@@ -442,6 +444,7 @@ export function RecordLink({
       className={className}
       style={style}
       title={title}
+      role={role}
       onClick={(event) => {
         if (!drawer || event.metaKey || event.ctrlKey || event.shiftKey) return;
         event.preventDefault();

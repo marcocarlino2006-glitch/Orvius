@@ -127,7 +127,7 @@ export default function AskPage() {
   }
 
   return (
-    <OsShell title="Ask" subtitle="Answers grounded in your calls, leads, customers, and jobs.">
+    <OsShell title="Ask">
       <PlanUpgradeGate module="ask">
         <div className="ask-ws">
           <div className="ask-thread" aria-live="polite">

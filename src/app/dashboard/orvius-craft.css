@@ -1,0 +1,592 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Product finish. Loaded last. One type scale, one table, one status mark;
+   colour means state, never decoration.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.os-shell.os-shell-night {
+  --cr-row-h: 3.25rem;
+  --cr-label: 0.75rem;
+  --cr-body: 0.8125rem;
+  font-feature-settings: "cv11", "ss01";
+}
+
+.os-shell.os-shell-night :where(time, .ms dd, .dt-num, .dt-when, .dt-mono, .cs-value, .wq-title-count) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Header: the page name, and a status only when something is off. */
+.os-shell.os-shell-night .os-topbar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.os-line-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 999px;
+  font-size: var(--cr-label);
+  font-weight: 500;
+  color: var(--ox-text-2);
+}
+
+.os-line-alert::before {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--ox-yellow);
+}
+
+.os-line-alert.is-off::before {
+  background: var(--ox-red);
+}
+
+/* Summary strip: labelled numbers in one panel, no hero figure. */
+.ms {
+  margin: 0 0 1.25rem;
+}
+
+.ms-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  margin: 0;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+
+.ms-cell {
+  min-width: 8.5rem;
+  padding: 0.75rem 1rem;
+  border-right: 1px solid var(--ox-line);
+}
+
+.ms-cell dt {
+  font-size: var(--cr-label);
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+.ms-cell dd {
+  margin: 0.25rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ox-text);
+}
+
+.ms-cell.is-live dd {
+  color: var(--ox-amber);
+}
+
+.ms-wait {
+  display: block;
+  width: 2.5rem;
+  height: 1.25rem;
+  border-radius: 4px;
+  background: var(--ox-s3);
+}
+
+.ms-action {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 0 1rem;
+}
+
+.ms-note {
+  margin: 0.5rem 0 0;
+  font-size: var(--cr-body);
+  color: var(--ox-mute);
+}
+
+/* Data table. Rows are links or hold actions; columns align across rows. */
+.dt {
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+  overflow: hidden;
+  font-size: var(--cr-body);
+}
+
+.dt-head,
+.dt-row {
+  display: grid;
+  align-items: center;
+  column-gap: 1.25rem;
+  padding: 0 1rem;
+}
+
+.dt--jobs .dt-head,
+.dt--jobs .dt-row {
+  grid-template-columns: minmax(0, 2.6fr) minmax(6.5rem, 0.9fr) minmax(7rem, 1fr) minmax(8.5rem, 1fr) minmax(5.5rem, 0.7fr);
+}
+
+.dt--leads .dt-head,
+.dt--leads .dt-row {
+  grid-template-columns: minmax(0, 2.6fr) minmax(6.5rem, 0.8fr) minmax(8.5rem, 0.9fr) minmax(7.5rem, 0.8fr) 6.5rem;
+}
+
+.dt-head {
+  height: 2.25rem;
+  border-bottom: 1px solid var(--ox-line);
+  background: var(--ox-s2);
+  font-size: var(--cr-label);
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+.dt-row {
+  min-height: var(--cr-row-h);
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid var(--ox-line);
+  color: var(--ox-text-2);
+  text-decoration: none;
+  transition: background-color 80ms ease;
+}
+
+.dt-row:last-child {
+  border-bottom: 0;
+}
+
+.dt-row:hover {
+  background: var(--ox-s2);
+}
+
+a.dt-row:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ox-amber);
+}
+
+.dt-row > [role="cell"] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.dt-primary {
+  overflow: hidden;
+}
+
+.dt-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 550;
+  color: var(--ox-text);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dt-link {
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dt-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ox-line-strong);
+}
+
+.dt-sub {
+  overflow: hidden;
+  font-size: var(--cr-label);
+  color: var(--ox-mute);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dt-sub.is-attention,
+.dt-attention {
+  color: var(--ox-yellow);
+}
+
+.dt-sub.is-risk,
+.dt-risk {
+  color: var(--ox-red);
+}
+
+.dt-attention {
+  font-size: var(--cr-label);
+}
+
+.dt-flag {
+  flex: none;
+  font-size: var(--cr-label);
+  font-weight: 600;
+  color: var(--ox-red);
+}
+
+.dt-tag {
+  flex: none;
+  font-size: var(--cr-label);
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+.dt-muted {
+  color: var(--ox-mute);
+}
+
+.dt-num {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.dt-row > .dt-num > span:first-child {
+  color: var(--ox-text);
+}
+
+.dt-actions {
+  align-items: flex-end;
+}
+
+.dt-foot {
+  margin: 0.625rem 0 0;
+  font-size: var(--cr-label);
+  color: var(--ox-mute);
+}
+
+.dt .lead-quick-btn {
+  height: 1.875rem;
+  padding: 0 0.75rem;
+  font-size: var(--cr-label);
+}
+
+@media (max-width: 720px) {
+  .dt-head {
+    display: none;
+  }
+
+  .dt--jobs .dt-row,
+  .dt--leads .dt-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0.375rem;
+  }
+
+  .dt-row > .dt-primary {
+    grid-column: 1 / -1;
+  }
+
+  .dt-row > [role="cell"]:not(.dt-primary):not(.dt-num):not(.dt-actions) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    font-size: var(--cr-label);
+  }
+}
+
+/* Status: a dot and a word. */
+.sd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  white-space: nowrap;
+  color: var(--ox-text-2);
+}
+
+.sd-dot {
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--ox-mute);
+}
+
+.sd--live .sd-dot { background: #6ea8fe; }
+.sd--good .sd-dot { background: var(--ox-green); }
+.sd--attention .sd-dot { background: var(--ox-amber); }
+.sd--risk .sd-dot { background: var(--ox-red); }
+.sd--muted { color: var(--ox-mute); }
+.sd--muted .sd-dot { background: var(--ox-s4); }
+
+/* Command: activity line, one metrics panel, the queue. */
+.os-shell.os-shell-night .cc-brief {
+  margin-bottom: 1rem;
+}
+
+.os-shell.os-shell-night .cc-brief-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0;
+  margin: 0;
+  font-size: var(--cr-body);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: var(--ox-text-2);
+}
+
+.cc-brief-window {
+  margin-right: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.cc-brief-part + .cc-brief-part::before {
+  content: "·";
+  margin: 0 0.5rem;
+  color: var(--ox-s4);
+}
+
+.os-shell.os-shell-night .cs-grid {
+  gap: 0;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+  overflow: hidden;
+}
+
+.os-shell.os-shell-night .cs-grid > li + li .cs-card {
+  border-left: 1px solid var(--ox-line);
+}
+
+.os-shell.os-shell-night .cs-card {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.875rem 1rem;
+}
+
+.os-shell.os-shell-night .cs-card:hover {
+  background: var(--ox-s2);
+}
+
+.os-shell.os-shell-night .cs-label {
+  font-size: var(--cr-label);
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .cs-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.os-shell.os-shell-night .cs-tone--attention .cs-value {
+  color: var(--ox-text);
+}
+
+.os-shell.os-shell-night .cs-detail {
+  font-size: var(--cr-label);
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .wq-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.wq-title-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding: 0 0.375rem;
+  border-radius: 999px;
+  background: var(--ox-s3);
+  font-size: var(--cr-label);
+  font-weight: 600;
+  color: var(--ox-text-2);
+}
+
+.os-shell.os-shell-night .wq-recommend,
+.os-shell.os-shell-night .wq-recommend.wq-sev--critical,
+.os-shell.os-shell-night .wq-recommend.wq-sev--high {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--ox-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.os-shell.os-shell-night .wq-subject--lg {
+  font-size: 0.9375rem;
+}
+
+/* People are named, not colour-coded. */
+.os-shell.os-shell-night .record-avatar,
+.os-shell.os-shell-night .record-avatar.is-flare {
+  background: var(--ox-s3);
+  box-shadow: inset 0 0 0 1px var(--ox-line);
+  color: var(--ox-text-2);
+}
+
+.ms-cell {
+  flex: 1 1 0;
+}
+
+.ms-cell:last-of-type {
+  border-right: 0;
+}
+
+.dt-head > [role="columnheader"],
+.dt-row > [role="cell"] {
+  text-align: left;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.dt-head > .dt-num,
+.dt-row > .dt-num,
+.dt-row > .dt-actions {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.dt-row > .dt-num > .dt-muted:first-child {
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .dt .lead-quick-actions {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.pro-filter-count {
+  margin-left: 0.375rem;
+  color: var(--ox-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ask opens from the header (⌘J); nothing floats over the tables. */
+.os-shell.os-shell-night .os-ask-dock-trigger {
+  display: none;
+}
+
+.os-sidebar-env {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0.75rem 0.5rem;
+  padding: 0;
+  border: 0 !important;
+  background: none !important;
+  font-size: var(--cr-label);
+  color: var(--ox-mute) !important;
+}
+
+.os-sidebar-env::before {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--ox-amber);
+}
+
+.dt--calls .dt-head,
+.dt--calls .dt-row {
+  grid-template-columns: minmax(0, 2.8fr) minmax(6.5rem, 0.8fr) minmax(8.5rem, 0.9fr) minmax(7.5rem, 0.8fr) 4rem;
+}
+
+@media (max-width: 720px) {
+  .dt--calls .dt-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0.375rem;
+  }
+}
+
+/* Customer list: one line of identity, one of contact. */
+.os-shell.os-shell-night .cp-row .lead-rail-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  min-height: var(--cr-row-h);
+  padding: 0.625rem 1rem;
+}
+
+.os-shell.os-shell-night .cp-row .record-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.6875rem;
+}
+
+.os-shell.os-shell-night .cp-row .lead-rail-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name meta" "sub sub";
+  row-gap: 0.125rem;
+}
+
+.os-shell.os-shell-night .cp-row .lead-rail-title-row { grid-area: name; }
+.os-shell.os-shell-night .cp-row .lead-rail-meta { grid-area: meta; margin: 0; }
+.os-shell.os-shell-night .cp-row .lead-rail-sub { grid-area: sub; margin: 0; font-size: var(--cr-label); }
+.os-shell.os-shell-night .cp-row .lead-rail-name { font-size: var(--cr-body); font-weight: 550; }
+
+/* Summary cells draw their own dividers so any wrap stays a clean grid. */
+.ms-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  overflow: hidden;
+}
+
+.ms-cell,
+.ms-cell:last-of-type {
+  border-right: 0;
+  box-shadow: 1px 0 0 var(--ox-line), 0 1px 0 var(--ox-line);
+}
+
+.ms-action {
+  justify-content: flex-end;
+  padding: 0.75rem 1rem;
+}
+
+.dt-sub,
+.dt-attention {
+  max-width: 100%;
+}
+
+@media (max-width: 720px) {
+  .os-shell.os-shell-night .os-topbar-ask {
+    display: none;
+  }
+
+  .dt--jobs .dt-row,
+  .dt--leads .dt-row,
+  .dt--calls .dt-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.875rem;
+  }
+
+  .dt-row > .dt-primary {
+    flex: 1 1 100%;
+  }
+
+  .dt-row > [role="cell"]:not(.dt-primary) {
+    flex: 0 1 auto;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.375rem;
+    justify-content: flex-start;
+    font-size: var(--cr-label);
+  }
+
+  .dt-row > .dt-num,
+  .dt-row > .dt-actions {
+    margin-left: auto;
+  }
+}

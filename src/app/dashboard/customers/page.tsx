@@ -89,7 +89,6 @@ export default function CustomersPage() {
   return (
     <OsShell
       title="Customers"
-      subtitle="Every customer, their properties, and the full history of work."
     >
       <PlanUpgradeGate module="customers">
       {loading && !customers.length ? (
@@ -99,31 +98,17 @@ export default function CustomersPage() {
           <ProLead
             loading={loading && !customers.length}
             figure={tally.repeatRate ?? String(customers.length)}
-            caption={
-              tally.repeatRate
-                ? "of your customers came back"
-                : customers.length === 1
-                  ? "customer on file"
-                  : "customers on file"
-            }
-            detail={
-              tally.repeatRate
-                ? `${tally.returning} of ${customers.length} have called more than once.`
-                : "They appear on their first call and stay linked to every job after."
-            }
+            caption={tally.repeatRate ? "Repeat rate" : "Customers"}
             facts={
               tally.repeatRate
                 ? [
-                    { label: "customers", value: customers.length },
-                    { label: "touchpoints", value: tally.touchpoints },
+                    { label: "Customers", value: customers.length },
+                    { label: "Returning", value: tally.returning },
+                    { label: "Touchpoints", value: tally.touchpoints },
                   ]
                 : [
-                    {
-                      label: "returning",
-                      value: tally.returning,
-                      live: tally.returning > 0,
-                    },
-                    { label: "touchpoints", value: tally.touchpoints },
+                    { label: "Returning", value: tally.returning },
+                    { label: "Touchpoints", value: tally.touchpoints },
                   ]
             }
           />

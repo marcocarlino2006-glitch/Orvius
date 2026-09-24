@@ -169,7 +169,7 @@ async function main() {
     await step("Calls shows the call with a review", async () => {
       await open("/dashboard/calls");
       await page.getByText(caller.name).first().waitFor();
-      await page.getByText(/calls? answered/).first().waitFor();
+      await page.getByText("Answered", { exact: true }).first().waitFor();
       return "graded";
     });
 

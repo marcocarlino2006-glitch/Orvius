@@ -1,9 +1,8 @@
 "use client";
 
-import { RecordAvatar } from "@/components/record-avatar";
 import { RecordLink } from "@/components/record-drawer";
+import { StatusDot, type StatusTone } from "@/components/status-dot";
 import { displayPhone, normalizePhone } from "@/lib/customer";
-import { ShellBadge } from "@/components/shell-primitives";
 import { isEmergency } from "@/lib/urgency";
 
 type CallRecordCardProps = {
@@ -43,10 +42,10 @@ function isSettled(status: string) {
   return s === "completed" || s === "ended";
 }
 
-function statusTone(status: string): "live" | "flare" | "neutral" | "muted" {
+function statusTone(status: string): StatusTone {
   const s = status.toLowerCase();
-  if (s === "failed" || s === "busy" || s === "no-answer") return "flare";
-  if (s === "in-progress" || s === "ringing") return "neutral";
+  if (s === "failed" || s === "busy" || s === "no-answer") return "risk";
+  if (s === "in-progress" || s === "ringing") return "live";
   return "muted";
 }
 
@@ -70,18 +69,6 @@ export function CallRecordCard({
   quality,
 }: CallRecordCardProps) {
   const emergency = isEmergency(urgency);
-  /*
-    "CALL" on a row in the call log is the list's own name. What is worth a
-    kicker is the exception: it was an emergency, it turned into a job, or the
-    caller had rung before.
-  */
-  const kicker = emergency
-    ? "Emergency"
-    : booked
-      ? "Booked"
-      : returning
-        ? "Returning"
-        : null;
   const when = new Date(createdAt).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
@@ -89,69 +76,59 @@ export function CallRecordCard({
     minute: "2-digit",
   });
   const phone = callerPhone ? displayPhone(normalizePhone(callerPhone) ?? callerPhone) : null;
-  const rest = [summaryAddsSomething(summary, serviceType, leadName) ? summary : null, phone]
+  const need = [serviceType, summaryAddsSomething(summary, serviceType, leadName) ? summary : null]
     .filter(Boolean)
-    .join(" · ");
+    .join(". ");
   const settled = isSettled(status);
+  const outcome: { tone: StatusTone; label: string } = !settled
+    ? { tone: statusTone(status), label: formatStatus(status) }
+    : booked
+      ? { tone: "good", label: "Booked" }
+      : { tone: "neutral", label: "Answered" };
 
   return (
-    <RecordLink
-      type="call"
-      id={id}
-      href={`/dashboard/calls/${id}`}
-      className={`lead-rail-row${emergency ? " lead-rail-row-emergency" : ""}`}
-    >
-      <RecordAvatar name={leadName ?? phone} tone={emergency ? "flare" : undefined} />
-      <div className="lead-rail-main">
-        <div className="lead-rail-meta">
-          {/*
-            The status lives in the badge beside the caller's name. Naming it
-            here too printed "Call · completed" above a COMPLETED pill on the
-            same row, which reads as two different facts until you notice it
-            is one.
-          */}
-          {kicker ? (
-            <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
-              {kicker}
-            </p>
-          ) : null}
-          <time dateTime={createdAt} className="lead-rail-time">
-            {when}
-            {durationSec ? ` · ${durationSec}s` : ""}
-          </time>
-        </div>
-        <div className="lead-rail-title-row">
-          <span className="lead-rail-name">
-            {leadName ?? phone ?? "Unknown caller"}
-          </span>
-          <div className="lead-rail-badges">
-            {/*
-              A call that completed is what every row in a call log is, so the
-              pill was COMPLETED sixteen times down the page. The states worth
-              a badge are the ones that cost the shop a customer: failed, busy,
-              no answer, still ringing. Emergency is not repeated here either —
-              the kicker and the row's left edge already say it.
-            */}
-            {settled ? null : (
-              <ShellBadge tone={statusTone(status)}>
-                {formatStatus(status)}
-              </ShellBadge>
-            )}
-          </div>
-        </div>
-        {/* The shop's own name was the last thing on every row of its own
-            call log. */}
-        <p className="lead-rail-sub">
-          {serviceType ? <b className="lead-rail-need">{serviceType}</b> : null}
-          {serviceType && rest ? " · " : ""}
-          {rest}
-        </p>
+    <RecordLink type="call" id={id} href={`/dashboard/calls/${id}`} className="dt-row" role="row">
+      <span role="cell" className="dt-primary">
+        <span className="dt-title">
+          {emergency ? <span className="dt-flag">Emergency</span> : null}
+          {leadName ?? phone ?? "Unknown caller"}
+          {returning ? <span className="dt-tag">Returning</span> : null}
+        </span>
+        {need ? <span className="dt-sub">{need}</span> : null}
         {quality && quality.verdict !== "clean" ? (
-          <p className={`call-quality-note font-sans is-${quality.verdict}`}>
+          <span className={quality.verdict === "fix" ? "dt-sub is-risk" : "dt-attention"}>
             {quality.verdict === "fix" ? "Fix" : "Listen"}: {quality.headline}
-          </p>
+          </span>
         ) : null}
-      </div>
+      </span>
+      <span role="cell">
+        <StatusDot tone={outcome.tone}>{outcome.label.charAt(0).toUpperCase() + outcome.label.slice(1)}</StatusDot>
+      </span>
+      <span role="cell" className="dt-mono">{phone ?? <span className="dt-muted">—</span>}</span>
+      <span role="cell" className="dt-when">
+        <time dateTime={createdAt}>{when}</time>
+      </span>
+      <span role="cell" className="dt-num">
+        {durationSec ? formatDuration(durationSec) : <span className="dt-muted">—</span>}
+      </span>
     </RecordLink>
+  );
+}
+
+function formatDuration(sec: number) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+export function CallTableHead() {
+  return (
+    <div className="dt-head" role="row">
+      <span role="columnheader">Caller</span>
+      <span role="columnheader">Outcome</span>
+      <span role="columnheader">Phone</span>
+      <span role="columnheader">Received</span>
+      <span role="columnheader" className="dt-num">Length</span>
+    </div>
   );
 }

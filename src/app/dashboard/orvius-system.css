@@ -208,11 +208,6 @@
   padding: 0.85rem 2rem !important;
 }
 
-.os-shell.os-shell-night .os-topbar-live {
-  font-size: 0.8125rem !important;
-  color: var(--ox-text-2) !important;
-}
-
 .os-shell.os-shell-night .os-topbar-title {
   font-size: 1.375rem !important;
   font-weight: 650 !important;
@@ -592,13 +587,6 @@ body:has(.os-shell.os-shell-night) {
   }
 }
 
-.cc-brief-kicker {
-  margin: 0 0 0.35rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ox-amber);
-}
-
 .cc-brief-text {
   margin: 0;
   max-width: 46rem;
@@ -727,12 +715,6 @@ a.cs-card:hover {
   color: var(--ox-text);
 }
 
-.wq-sub {
-  margin: 0.2rem 0 0;
-  font-size: 0.875rem;
-  color: var(--ox-mute);
-}
-
 .wq-skel {
   display: grid;
   gap: 0.6rem;
@@ -772,13 +754,6 @@ a.cs-card:hover {
 .wq-recommend-copy {
   min-width: 0;
   flex: 1;
-}
-
-.wq-recommend-kicker {
-  margin: 0 0 0.45rem;
-  font-size: 0.8125rem;
-  font-weight: 650;
-  color: var(--ox-amber);
 }
 
 .wq-list {
@@ -2528,14 +2503,6 @@ button.rd-path-btn:hover {
   color: var(--ox-text);
 }
 
-/* ── Lists on Inbox, Calls, Customers, Jobs, Dispatch ─────────────────── */
-
-.os-shell.os-shell-night .pro-lead-figure,
-.os-shell.os-shell-night .pro-lead-caption {
-  color: var(--ox-text) !important;
-}
-
-.os-shell.os-shell-night .pro-lead-detail,
 .os-shell.os-shell-night .pro-list-item-meta {
   color: var(--ox-mute) !important;
   font-size: 0.875rem !important;
@@ -2562,58 +2529,6 @@ button.rd-path-btn:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-}
-
-/* ── Jobs: meaningful rows ─────────────────────────────────────────────── */
-
-.jobs-stage-summary {
-  margin: 0 0 0.6rem;
-  font-size: 0.8125rem;
-  color: var(--ox-mute);
-}
-
-.job-facts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin: 0.45rem 0 0;
-}
-
-.job-facts div {
-  min-width: 0;
-}
-
-.job-facts dt {
-  font-size: 0.6875rem;
-  color: var(--ox-mute);
-}
-
-.os-shell.os-shell-night .job-facts dd {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ox-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.os-shell.os-shell-night .job-facts .is-risk dd {
-  color: var(--ox-red);
-}
-
-.os-shell.os-shell-night .job-facts .is-attention dd {
-  color: var(--ox-yellow);
-}
-
-.os-shell.os-shell-night .job-facts .is-good dd {
-  color: var(--ox-green);
-}
-
-.job-attention {
-  margin: 0.35rem 0 0;
-  font-size: 0.8125rem;
-  color: var(--ox-amber);
 }
 
 /* ── Customers: list with history beside it ───────────────────────────── */
@@ -2854,17 +2769,6 @@ button.rd-path-btn:hover {
   color: var(--ox-red);
 }
 
-.call-quality-note {
-  margin: 0.3rem 0 0;
-  font-size: 0.75rem;
-  line-height: 1.35;
-  color: var(--ox-amber);
-}
-
-.call-quality-note.is-fix {
-  color: var(--ox-red);
-}
-
 .call-quality-panel ul {
   margin: 0.75rem 0 0;
   padding: 0;
@@ -2912,18 +2816,6 @@ button.rd-path-btn:hover {
 /* The floating Ask dock sits over the last row of any list without this. */
 .os-shell .os-main {
   padding-bottom: 5.5rem;
-}
-
-.os-shell .lead-rail-actions .lead-quick-actions {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: 0;
-}
-
-.lead-rail-actions .lead-quick-actions {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: 0;
 }
 
 .os-shell.os-shell-night .lead-quick-actions a,

@@ -1,8 +1,8 @@
 "use client";
 
-import { JobCard } from "@/components/job-card";
+import { JobTable } from "@/components/job-card";
 import { ProLead } from "@/components/pro-lead";
-import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
+import { ProEmptyState } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
@@ -127,7 +127,6 @@ export default function JobsPage() {
   return (
     <OsShell
       title="Jobs"
-      subtitle="Every booked job from request to paid."
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch
@@ -138,19 +137,10 @@ export default function JobsPage() {
       <ProLead
         loading={loading}
         figure={String(open.length)}
-        caption={open.length === 1 ? "job still open" : "jobs still open"}
-        detail={
-          unassigned > 0
-            ? `${unassigned} ${unassigned === 1 ? "has" : "have"} no technician yet.`
-            : "Every open job has a tech on it."
-        }
+        caption="Open jobs"
         facts={[
-          {
-            label: newLeadCount === 1 ? "new lead" : "new leads",
-            value: newLeadCount,
-            live: newLeadCount > 0,
-          },
-          { label: "completed", value: jobs.filter((j) => j.status === "completed").length },
+          { label: "Unassigned", value: unassigned, live: unassigned > 0 },
+          { label: "New leads", value: newLeadCount, live: newLeadCount > 0 },
         ]}
         action={
           unassigned > 0 ? (
@@ -230,36 +220,25 @@ export default function JobsPage() {
             />
           ) : (
             <>
-            <p className="jobs-stage-summary">
+            <JobTable
+              rows={filtered.map(({ job, facts }) => ({
+                id: job.id,
+                title: job.title,
+                status: job.status,
+                scheduledAt: job.scheduledAt,
+                address: job.address,
+                urgency: job.urgency,
+                customerName: job.customer?.name ?? job.lead?.name,
+                phone: job.customer?.phone ?? job.lead?.phone,
+                facts,
+              }))}
+            />
+            <p className="dt-foot">
               {filtered.length} job{filtered.length === 1 ? "" : "s"}
-              {stageValue ? ` · ${stageValue} in value` : ""}
-              {filtered.filter((r) => r.facts.attention).length
-                ? ` · ${filtered.filter((r) => r.facts.attention).length} need you — listed first`
-                : ""}
+              {stageValue ? ` · ${stageValue} total` : ""}
             </p>
-            <ul className="os-lead-rail">
-              {filtered.map(({ job, facts }) => (
-                <li key={job.id}>
-                  <JobCard
-                    id={job.id}
-                    title={job.title}
-                    status={job.status}
-                    scheduledAt={job.scheduledAt}
-                    address={job.address}
-                    urgency={job.urgency}
-                    customerName={job.customer?.name ?? job.lead?.name}
-                    phone={job.customer?.phone ?? job.lead?.phone}
-                    technicianName={job.technician?.name}
-                    facts={facts}
-                  />
-                </li>
-              ))}
-            </ul>
             </>
           )}
-          {filtered.length ? (
-            <ProListEnd count={filtered.length} noun="job" />
-          ) : null}
         </>
       )}
       </PlanUpgradeGate>

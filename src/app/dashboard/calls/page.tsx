@@ -1,8 +1,8 @@
 "use client";
 
-import { CallRecordCard } from "@/components/call-record-card";
+import { CallRecordCard, CallTableHead } from "@/components/call-record-card";
 import { ProLead } from "@/components/pro-lead";
-import { ProEmptyState, ProFilterBar, ProListEnd } from "@/components/pro-page-chrome";
+import { ProEmptyState, ProFilterBar } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
@@ -81,7 +81,6 @@ export default function CallsPage() {
   return (
     <OsShell
       title="Calls"
-      subtitle="Evidence: what each caller said, what Orvius captured, and what it did."
       actions={
         <Link href="/dashboard/inbox" className="btn btn-void text-sm">
           Inbox
@@ -91,17 +90,16 @@ export default function CallsPage() {
       <ProLead
         loading={loading}
         figure={String(calls.length)}
-        caption={calls.length === 1 ? "call answered" : "calls answered"}
+        caption="Answered"
         detail={qualityDetail(quality)}
         facts={[
           {
-            label: "after hours",
+            label: "After hours",
             value: tally.afterHours,
-            live: tally.afterHours > 0,
           },
-          { label: "booked", value: tally.booked, live: tally.booked > 0 },
-          { label: "returning", value: tally.returning },
-          { label: "worth a listen", value: toReview.length, live: toReview.length > 0 },
+          { label: "Booked", value: tally.booked },
+          { label: "Returning", value: tally.returning },
+          { label: "To review", value: toReview.length, live: toReview.length > 0 },
         ]}
         action={<ProShopLineCta label="Test call" showNumber={false} />}
       />
@@ -138,10 +136,11 @@ export default function CallsPage() {
                 Nothing to review. Every call on this page went cleanly.
               </p>
             ) : null}
-            <ul className="os-lead-rail">
+            <div className="dt dt--calls font-sans" role="table" aria-label="Calls">
+              <CallTableHead />
               {shown.map((call) => (
-                <li key={call.id}>
                   <CallRecordCard
+                    key={call.id}
                     id={call.id}
                     callerPhone={call.callerPhone}
                     status={call.status}
@@ -155,14 +154,10 @@ export default function CallsPage() {
                     returning={(call.customer?.interactionCount ?? 0) > 1}
                     quality={call.quality}
                   />
-                </li>
               ))}
-            </ul>
+            </div>
             </>
           )}
-          {calls.length ? (
-            <ProListEnd count={calls.length} noun="call" />
-          ) : null}
         </>
       )}
     </OsShell>
