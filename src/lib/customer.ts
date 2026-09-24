@@ -294,7 +294,7 @@ export async function getCustomerTimeline(
       id: call.id,
       type: "call" as const,
       at: call.createdAt.toISOString(),
-      title: call.status === "completed" ? "Inbound call" : "Call in progress",
+      title: ["in-progress", "ringing", "queued"].includes(call.status) ? "Call in progress" : "Inbound call",
       summary: call.summary,
       source: "call",
       urgency: null,
