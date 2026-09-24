@@ -2,6 +2,7 @@ import { RecordLink } from "@/components/record-drawer";
 import { ShellBadge } from "@/components/shell-primitives";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { jobStatusLabel } from "@/lib/job-status";
+import type { JobRowFacts } from "@/lib/job-row";
 import { isEmergency } from "@/lib/urgency";
 
 type JobCardProps = {
@@ -14,6 +15,7 @@ type JobCardProps = {
   phone?: string | null;
   urgency?: string | null;
   technicianName?: string | null;
+  facts?: JobRowFacts;
 };
 
 function statusTone(status: string) {
@@ -36,6 +38,7 @@ export function JobCard({
   phone,
   urgency,
   technicianName,
+  facts,
 }: JobCardProps) {
   const emergency = isEmergency(urgency);
   const phoneLabel = phone
@@ -80,9 +83,26 @@ export function JobCard({
         <p className="lead-rail-sub">
           {customerName ?? "Customer"}
           {phoneLabel ? ` · ${phoneLabel}` : ""}
-          {technicianName ? ` · ${technicianName}` : ""}
+          {!facts && technicianName ? ` · ${technicianName}` : ""}
           {address ? ` · ${address}` : ""}
         </p>
+        {facts ? (
+          <dl className="job-facts">
+            <div className={facts.owner.missing ? "is-risk" : ""}>
+              <dt>Owner</dt>
+              <dd>{facts.owner.label}</dd>
+            </div>
+            <div className={`is-${facts.timing.tone}`}>
+              <dt>When</dt>
+              <dd>{facts.timing.label}</dd>
+            </div>
+            <div className={facts.money.kind === "due" ? "is-attention" : facts.money.kind === "paid" ? "is-good" : ""}>
+              <dt>Value</dt>
+              <dd>{facts.money.label}</dd>
+            </div>
+          </dl>
+        ) : null}
+        {facts?.attention ? <p className="job-attention">{facts.attention.reason}</p> : null}
       </div>
     </RecordLink>
   );

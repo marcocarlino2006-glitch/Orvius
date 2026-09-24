@@ -7,24 +7,21 @@ import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { jobRowFacts, type JobRowInput } from "@/lib/job-row";
+import { formatCents } from "@/lib/money";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-type JobRow = {
+type JobRow = JobRowInput & {
   id: string;
   title: string;
-  status: string;
-  scheduledAt: string | null;
   address: string | null;
-  urgency: string | null;
   customer: { name: string | null; phone: string } | null;
   lead: { name: string | null; phone: string | null } | null;
-  technician?: { name: string } | null;
-  estimate?: {
+  estimate?: (NonNullable<JobRowInput["estimate"]> & {
     id: string;
-    status: string;
-    invoice: { id: string; status: string } | null;
-  } | null;
+    invoice: (NonNullable<NonNullable<JobRowInput["estimate"]>["invoice"]> & { id: string }) | null;
+  }) | null;
 };
 
 type PipelineStage = {
@@ -93,8 +90,17 @@ export default function JobsPage() {
   const filtered = useMemo(() => {
     const stage = STAGES.find((s) => s.id === stageId);
     if (!stage) return [];
-    return jobs.filter(stage.match);
+    const now = Date.now();
+    return jobs
+      .filter(stage.match)
+      .map((job) => ({ job, facts: jobRowFacts(job, now) }))
+      .sort((a, b) => (b.facts.attention?.weight ?? 0) - (a.facts.attention?.weight ?? 0));
   }, [jobs, stageId]);
+
+  const stageValue = useMemo(() => {
+    const cents = filtered.reduce((sum, row) => sum + (row.facts.money.cents ?? 0), 0);
+    return cents ? formatCents(cents) : null;
+  }, [filtered]);
 
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -223,8 +229,16 @@ export default function JobsPage() {
               }
             />
           ) : (
+            <>
+            <p className="jobs-stage-summary">
+              {filtered.length} job{filtered.length === 1 ? "" : "s"}
+              {stageValue ? ` · ${stageValue} at stake` : ""}
+              {filtered.filter((r) => r.facts.attention).length
+                ? ` · ${filtered.filter((r) => r.facts.attention).length} need you — listed first`
+                : ""}
+            </p>
             <ul className="os-lead-rail">
-              {filtered.map((job) => (
+              {filtered.map(({ job, facts }) => (
                 <li key={job.id}>
                   <JobCard
                     id={job.id}
@@ -236,10 +250,12 @@ export default function JobsPage() {
                     customerName={job.customer?.name ?? job.lead?.name}
                     phone={job.customer?.phone ?? job.lead?.phone}
                     technicianName={job.technician?.name}
+                    facts={facts}
                   />
                 </li>
               ))}
             </ul>
+            </>
           )}
           {jobs.length ? (
             <ProListEnd count={jobs.length} noun="job" />
