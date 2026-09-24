@@ -73,10 +73,10 @@ export function serializeHoursForm(form: HoursForm): string {
 }
 
 export function parseServicesForm(raw: string | null | undefined): string {
-  const services = parseJson<ServiceOffering[]>(raw ?? "", []);
+  const services = parseJson<(ServiceOffering | string)[]>(raw ?? "", []);
   if (!Array.isArray(services) || services.length === 0) return "";
   return services
-    .map((s) => (typeof s?.name === "string" ? s.name.trim() : ""))
+    .map((s) => (typeof s === "string" ? s.trim() : typeof s?.name === "string" ? s.name.trim() : ""))
     .filter(Boolean)
     .join("\n");
 }
