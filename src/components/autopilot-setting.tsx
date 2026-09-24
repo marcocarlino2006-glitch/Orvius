@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { invalidateAccount } from "@/lib/account-client";
 
 /** Saves on its own; it sits inside the Settings form, so it must not be a form or submit it. */
 export function AutopilotSetting({ initial }: { initial: boolean }) {
@@ -13,6 +14,7 @@ export function AutopilotSetting({ initial }: { initial: boolean }) {
     setError(null);
     setOn(next);
     try {
+      invalidateAccount();
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

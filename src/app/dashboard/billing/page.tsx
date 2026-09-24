@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { fetchAccount } from "@/lib/account-client";
 
 type BillingChecklistItem = {
   id: string;
@@ -94,7 +95,7 @@ export default function DashboardBillingPage() {
     setLoadState("loading");
     setLoadError(null);
     try {
-      const res = await fetch("/api/account");
+      const res = await fetchAccount();
       if (!res.ok) {
         setLoadState("error");
         setLoadError("Could not load billing. Refresh and try again.");

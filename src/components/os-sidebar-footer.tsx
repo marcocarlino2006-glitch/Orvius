@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportEmail, supportMailto } from "@/lib/support";
+import { fetchAccount } from "@/lib/account-client";
 
 type AccountData = {
   business: {
@@ -83,7 +84,7 @@ export function OsSidebarFooter() {
   const menuId = useId();
 
   useEffect(() => {
-    fetch("/api/account")
+    fetchAccount()
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) setAccount(data);

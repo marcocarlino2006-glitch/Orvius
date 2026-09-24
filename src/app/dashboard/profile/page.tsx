@@ -4,6 +4,7 @@ import { OsShell } from "@/components/os-shell";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { fetchAccount } from "@/lib/account-client";
 
 type AccountResponse = {
   user: { name: string | null; email: string | null };
@@ -24,7 +25,7 @@ export default function DashboardProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/account")
+    fetchAccount()
       .then((res) => res.json())
       .then(setAccount)
       .finally(() => setLoading(false));

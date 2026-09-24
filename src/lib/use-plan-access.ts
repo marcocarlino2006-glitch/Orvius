@@ -11,6 +11,7 @@ import {
   navHrefToModule,
 } from "@/lib/plan-features";
 import type { PaidPlanId } from "@/lib/pricing-plans";
+import { fetchAccount } from "@/lib/account-client";
 
 export type PlanAccess = {
   effectivePlan: PaidPlanId | "pilot" | "expired";
@@ -33,7 +34,7 @@ export function usePlanAccess(): {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/account")
+    fetchAccount()
       .then((res) => res.json())
       .then((data) => {
         const billingStatus =

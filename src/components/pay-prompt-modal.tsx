@@ -10,6 +10,7 @@ import {
   PAY_PROMPT_SNOOZE_KEY,
   type PayPromptDecision,
 } from "@/lib/pay-prompt";
+import { fetchAccount } from "@/lib/account-client";
 
 type AccountBillingPayload = {
   business?: {
@@ -47,7 +48,7 @@ export function PayPromptModal() {
 
     async function evaluate() {
       try {
-        const res = await fetch("/api/account");
+        const res = await fetchAccount();
         if (!res.ok) return;
         const data = (await res.json()) as AccountBillingPayload;
         if (cancelled) return;

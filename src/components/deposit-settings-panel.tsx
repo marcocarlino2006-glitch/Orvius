@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { formatCentsExact } from "@/lib/money";
+import { invalidateAccount } from "@/lib/account-client";
 
 type DepositsResponse = {
   enabled: boolean;
@@ -34,6 +35,7 @@ export function DepositSettingsPanel() {
 
   const load = useCallback(async () => {
     try {
+      invalidateAccount();
       const res = await fetch("/api/account", { cache: "no-store" });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Could not load deposits");
@@ -71,6 +73,7 @@ export function DepositSettingsPanel() {
       const cents = trimmed
         ? Math.round(Number(trimmed.replace(/[^0-9.]/g, "")) * 100)
         : null;
+      invalidateAccount();
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

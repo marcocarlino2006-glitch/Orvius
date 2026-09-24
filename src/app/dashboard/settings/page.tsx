@@ -28,6 +28,7 @@ import type { WedgeReadiness } from "@/lib/wedge-readiness";
 import { TRADES, type Trade } from "@/lib/trades";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { invalidateAccount } from "@/lib/account-client";
 
 type AccountResponse = {
   founder?: boolean;
@@ -257,6 +258,7 @@ export default function DashboardSettingsPage() {
     setCertSaving(true);
     setError(null);
     try {
+      invalidateAccount();
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -295,7 +297,8 @@ export default function DashboardSettingsPage() {
     mode: CaptureMode;
     carrier: CarrierId | null;
   }) {
-    const res = await fetch("/api/account", {
+    invalidateAccount();
+      const res = await fetch("/api/account", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -323,6 +326,7 @@ export default function DashboardSettingsPage() {
     setOverflowSaving(true);
     setError(null);
     try {
+      invalidateAccount();
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -377,6 +381,7 @@ export default function DashboardSettingsPage() {
     setSyncWarning(null);
 
     try {
+      invalidateAccount();
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
