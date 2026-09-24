@@ -20,6 +20,8 @@ export type TechRanking = {
   /** Why nobody was picked, when nobody was. */
   blocked: string | null;
   considered: { id: string; name: string; fit: "picked" | "busy" | "no_skill" | "available" }[];
+  /** The pick is strictly better than every alternative, so it can be made without asking. */
+  clearCut?: boolean;
 };
 
 export function parseSkills(skillsJson: string | null | undefined): string[] {
@@ -90,6 +92,11 @@ export function rankTechnicians(input: {
 
   eligible.sort((a, b) => Number(b.specialist) - Number(a.specialist) || a.dayLoad - b.dayLoad);
   const best = eligible[0]!;
+  const runnerUp = eligible[1];
+  const clearCut =
+    !runnerUp ||
+    (best.specialist && !runnerUp.specialist) ||
+    (best.specialist === runnerUp.specialist && best.dayLoad < runnerUp.dayLoad);
   const parts = [
     best.specialist ? `has the ${needsSkill?.replace(/_/g, " ")} skill` : needsSkill ? "takes any job" : null,
     "free at that time",
@@ -100,6 +107,7 @@ export function rankTechnicians(input: {
     pick: { technicianId: best.tech.id, name: best.tech.name, reason: parts.join(", ") },
     blocked: null,
     considered,
+    clearCut,
   };
 }
 

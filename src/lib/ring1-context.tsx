@@ -1,5 +1,6 @@
 "use client";
 
+import type { Handled } from "@/lib/autopilot";
 import {
   createContext,
   useCallback,
@@ -36,6 +37,8 @@ export type Ring1Data = {
   commandCounts?: CommandCounts;
   shiftTimeline?: ShiftEvent[];
   attention?: AttentionItem[];
+  /** What Orvius did on its own in the last 24 hours. */
+  handled?: Handled;
   dispatchToday?: {
     jobCount: number;
     unassigned: number;

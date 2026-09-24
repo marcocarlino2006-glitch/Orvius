@@ -13,6 +13,8 @@ model Business {
   slug                 String   @unique
   /** production | demo | test — demo and test data never render in a production workspace. */
   environment          String   @default("production")
+  /** Orvius sends confirmations and assigns clear-cut jobs itself; the owner can turn this off. */
+  autopilot            Boolean  @default(true)
   phone                String?
   ownerPhone           String?
   ownerEmail           String?

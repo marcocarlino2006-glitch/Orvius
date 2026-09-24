@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { after } from "next/server";
 import { getAttentionQueue } from "@/lib/attention-queue";
 import { isPriorityUrgency } from "@/lib/auto-job";
+import { listHandled, runAutopilot } from "@/lib/autopilot";
+import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
@@ -14,19 +16,14 @@ import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
 
-function startOfToday() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 export async function GET() {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 
-  const today = startOfToday();
+  const today = shopDayBounds(null, business.timezone ?? "America/New_York").start;
   const businessFilter = { businessId: business.id };
+  await runAutopilot(business.id).catch(() => null);
 
   const [
     callsToday,
@@ -44,6 +41,7 @@ export async function GET() {
     outcomes,
     attention,
     shiftTimeline,
+    handled,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -87,6 +85,7 @@ export async function GET() {
     getShopOutcomes(business.id, 7),
     getAttentionQueue(business.id, 12),
     getShiftTimeline(business.id),
+    listHandled(business.id),
   ]);
 
   const windowStart = new Date(Date.now() - outcomes.windowDays * 24 * 60 * 60 * 1000);
@@ -227,6 +226,7 @@ export async function GET() {
       avgTicketSet: Boolean(business.avgTicketCents),
     },
     attention,
+    handled,
     shiftTimeline,
     lastWeeklyProofAt: business.lastWeeklyProofAt?.toISOString() ?? null,
     recentLeads: recentLeads.map((lead) => ({

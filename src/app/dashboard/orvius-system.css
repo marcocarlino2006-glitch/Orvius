@@ -3075,3 +3075,28 @@ button.rd-path-btn:hover {
   border-color: var(--ox-red);
   color: var(--ox-red);
 }
+
+.autopilot-setting {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ox-line);
+}
+
+.autopilot-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.autopilot-row input {
+  margin-top: 0.2rem;
+  accent-color: var(--ox-amber);
+}
+
+.autopilot-row > span {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--ox-text);
+}

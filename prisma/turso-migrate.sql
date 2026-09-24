@@ -313,3 +313,6 @@ CREATE INDEX IF NOT EXISTS "AuditEvent_businessId_entityType_entityId_idx" ON "A
 CREATE INDEX IF NOT EXISTS "AuditEvent_leadId_idx" ON "AuditEvent"("leadId");
 CREATE INDEX IF NOT EXISTS "AuditEvent_jobId_idx" ON "AuditEvent"("jobId");
 CREATE INDEX IF NOT EXISTS "AuditEvent_customerId_idx" ON "AuditEvent"("customerId");
+
+-- Autopilot: routine confirmations and clear-cut assignments run without the owner.
+ALTER TABLE "Business" ADD COLUMN "autopilot" BOOLEAN NOT NULL DEFAULT true;

@@ -2,6 +2,7 @@ import "server-only";
 
 import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
+import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
 import { listCrew } from "@/lib/field";
 import {
@@ -35,6 +36,8 @@ export { attentionKindLabel } from "@/lib/attention-types";
 
 const FOLLOWUP_HOURS = 4;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+/** Inside this window an unconfirmed appointment needs a call, not another text. */
+const CONFIRM_CALL_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 /*
   Housekeeping. Real work, but not work anyone does in the dark, and the
@@ -173,10 +176,6 @@ export async function getAttentionQueue(
 ): Promise<AttentionItem[]> {
   const now = new Date();
   const followupCutoff = new Date(now.getTime() - FOLLOWUP_HOURS * 60 * 60 * 1000);
-  const dayStart = new Date(now);
-  dayStart.setHours(0, 0, 0, 0);
-  const dayEnd = new Date(dayStart);
-  dayEnd.setDate(dayEnd.getDate() + 1);
 
   const weekAgo = new Date(now.getTime() - WEEK_MS);
 
@@ -304,6 +303,10 @@ export async function getAttentionQueue(
   );
 
   const ticket = business?.avgTicketCents ?? null;
+  const timeZone = business?.timezone || "America/New_York";
+  const { start: dayStart, end: dayEnd } = shopDayBounds(null, timeZone, now);
+  const shopTime = (at: Date) =>
+    at.toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit", timeZone });
 
   /*
     Read once and passed down, so every row on a single board is ranked
@@ -989,8 +992,13 @@ export async function getAttentionQueue(
         : `/dashboard/jobs/${job.id}`,
     };
 
+    const waitingOnCustomer =
+      job.customerConfirmSentAt != null &&
+      scheduled != null &&
+      scheduled.getTime() - now.getTime() > CONFIRM_CALL_WINDOW_MS;
     if (
       !job.customerConfirmedAt &&
+      !waitingOnCustomer &&
       (job.status === "scheduled" || job.status === "confirmed") &&
       job.scheduledAt
     ) {
@@ -1004,11 +1012,7 @@ export async function getAttentionQueue(
           "Awaiting customer confirm",
           job.title,
           scheduled
-            ? scheduled.toLocaleString(undefined, {
-                weekday: "short",
-                hour: "numeric",
-                minute: "2-digit",
-              })
+            ? shopTime(scheduled)
             : null,
         ]
           .filter(Boolean)
@@ -1041,11 +1045,7 @@ export async function getAttentionQueue(
           "Needs a tech",
           job.title,
           scheduled
-            ? scheduled.toLocaleString(undefined, {
-                weekday: "short",
-                hour: "numeric",
-                minute: "2-digit",
-              })
+            ? shopTime(scheduled)
             : null,
         ]
           .filter(Boolean)
@@ -1133,7 +1133,10 @@ export async function getAttentionQueue(
         entityId: job.id,
         createdAt: job.createdAt.toISOString(),
         estimatedRevenueCents: ticket,
-        group,
+        // One late technician is one call, however many of their jobs are late.
+        group: job.technician
+          ? { key: `tech:${job.technician.id}`, label: job.technician.name, href: "/dashboard/dispatch" }
+          : group,
         meta: {
           urgency,
           address: job.address,

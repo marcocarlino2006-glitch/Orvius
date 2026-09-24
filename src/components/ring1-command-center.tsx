@@ -6,10 +6,40 @@ import { AttentionQueue } from "@/components/attention-queue";
 import { CommandSignals } from "@/components/command-signals";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
+import type { Handled } from "@/lib/autopilot";
 import { useRing1 } from "@/lib/ring1-context";
 
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
+}
+
+function list(parts: string[]) {
+  if (parts.length <= 1) return parts.join("");
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
+
+function handledSentence(h: Handled | undefined) {
+  if (!h) return null;
+  const parts = [
+    h.calls ? `answered ${plural(h.calls, "call")}` : null,
+    h.booked ? `booked ${plural(h.booked, "job")}` : null,
+    h.assigned ? `assigned ${plural(h.assigned, "technician")}` : null,
+    h.confirmations ? `sent ${plural(h.confirmations, "confirmation")}` : null,
+    h.escalated ? `flagged ${plural(h.escalated, "call")} for you` : null,
+  ].filter((p): p is string => Boolean(p));
+  return parts.length ? `In the last 24 hours Orvius ${list(parts)}.` : null;
+}
+
+function windowSentence(counts: NonNullable<ReturnType<typeof useRing1>["data"]>["commandCounts"]) {
+  if (!counts) return "";
+  return counts.calls + counts.messagesAndWeb > 0
+    ? `Orvius handled ${plural(counts.calls + counts.messagesAndWeb, "request")} and booked ${plural(counts.booked, "job")} in the last ${counts.windowDays} days.`
+    : `No calls or messages in the last ${counts.windowDays} days.`;
+}
+
+function needsYouSentence(n: number) {
+  if (!n) return "Nothing needs you right now.";
+  return n === 1 ? "One thing needs you." : `${n} things need you.`;
 }
 
 /**
@@ -50,14 +80,7 @@ export function Ring1CommandCenter() {
   }
 
   const counts = data?.commandCounts;
-  const brief = counts
-    ? [
-        counts.calls + counts.messagesAndWeb > 0
-          ? `Orvius handled ${plural(counts.calls + counts.messagesAndWeb, "request")} and booked ${plural(counts.booked, "job")} in the last ${counts.windowDays} days.`
-          : `No calls or messages in the last ${counts.windowDays} days.`,
-        work.length ? `${plural(work.length, "decision")} waiting on you.` : "Nothing is waiting on you.",
-      ].join(" ")
-    : null;
+  const brief = counts ? [handledSentence(data?.handled) ?? windowSentence(counts), needsYouSentence(work.length)].join(" ") : null;
 
   return (
     <section className="cc" aria-label="Command">

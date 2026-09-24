@@ -400,7 +400,7 @@ export function AttentionQueue({
         <div>
           <h2 className="wq-title">Work queue</h2>
           <p className="wq-sub">
-            {work.length} {work.length === 1 ? "item needs" : "items need"} a decision · highest impact first
+            {work.length === 1 ? "Only you can decide this" : `${work.length} decisions only you can make`} · highest impact first
           </p>
         </div>
       </header>
@@ -460,6 +460,8 @@ function WorkRowBody({ work, now, large = false }: { work: WorkItem; now: number
         )}
         {work.occurrences > 1 && work.id.startsWith("incident:") ? (
           <span className="wq-count">{work.occurrences}×</span>
+        ) : work.occurrences > 1 ? (
+          <span className="wq-count">+{work.occurrences - 1} more</span>
         ) : null}
       </div>
       <p className="wq-request">

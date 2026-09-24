@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { runAutopilot } from "@/lib/autopilot";
+import { prisma } from "@/lib/prisma";
 import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { logError } from "@/lib/logger";
@@ -55,10 +57,23 @@ export async function GET(request: NextRequest) {
     processNotificationQueue(50),
     sendDueCustomerConfirmationReminders(new Date(), 25),
   ]);
+  const autopilotShops = await prisma.business.findMany({
+    where: { autopilot: true, isActive: true, environment: { not: "test" } },
+    select: { id: true },
+    take: 200,
+  });
+  let autopilotAssigned = 0;
+  let autopilotConfirmations = 0;
+  for (const shop of autopilotShops) {
+    const ran = await runAutopilot(shop.id, { force: true }).catch(() => null);
+    autopilotAssigned += ran?.assigned ?? 0;
+    autopilotConfirmations += ran?.confirmationsSent ?? 0;
+  }
   return NextResponse.json({
     ok: true,
     ...notifications,
     customerConfirmations,
+    autopilot: { shops: autopilotShops.length, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });
 }
 

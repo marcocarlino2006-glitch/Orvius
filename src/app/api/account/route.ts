@@ -53,6 +53,7 @@ const patchSchema = z.object({
   servicesJson: z.string().max(4000).optional(),
   serviceZipsJson: z.string().max(2000).optional(),
   depositEnabled: z.boolean().optional(),
+  autopilot: z.boolean().optional(),
   depositAmountCents: z
     .number()
     .int()
@@ -129,6 +130,7 @@ export async function GET() {
         servicesJson: businessRecord.servicesJson ?? "[]",
         serviceZipsJson: businessRecord.serviceZipsJson ?? "[]",
         depositEnabled: businessRecord.depositEnabled,
+        autopilot: businessRecord.autopilot,
         depositAmountCents: businessRecord.depositAmountCents,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
           ? businessRecord.ownerSmsOptOutAt.toISOString()
@@ -327,6 +329,7 @@ export async function PATCH(request: Request) {
         ...(body.depositEnabled !== undefined
           ? { depositEnabled: body.depositEnabled }
           : {}),
+        ...(body.autopilot !== undefined ? { autopilot: body.autopilot } : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
           : {}),
@@ -381,6 +384,7 @@ export async function PATCH(request: Request) {
         twilioPhone: saved.twilioPhone,
         vapiPhoneNumber: saved.vapiPhoneNumber,
         depositEnabled: saved.depositEnabled,
+        autopilot: saved.autopilot,
         depositAmountCents: saved.depositAmountCents,
       },
       deposits: depositsPayload(saved),

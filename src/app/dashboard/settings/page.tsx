@@ -3,6 +3,7 @@
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
 import { ShopSetupChecklistPanel } from "@/components/shop-setup-checklist-panel";
+import { AutopilotSetting } from "@/components/autopilot-setting";
 import { DeleteWorkspace } from "@/components/delete-workspace";
 import { OperatingMetricsPanel } from "@/components/operating-metrics-panel";
 import { OsShell } from "@/components/os-shell";
@@ -55,6 +56,7 @@ type AccountResponse = {
     serviceZipsJson?: string | null;
     billingStatus?: string;
     pilotEndsAt?: string | null;
+    autopilot?: boolean;
   } | null;
   line?: string | null;
   health: ShopHealth | null;
@@ -965,6 +967,7 @@ export default function DashboardSettingsPage() {
         <details id="operating-metrics" className="pro-settings-secondary font-sans" open>
           <summary>How the loop is performing · last 30 days</summary>
           <div className="pro-settings-secondary-body">
+            {account?.business ? <AutopilotSetting initial={account.business.autopilot ?? true} /> : null}
             <OperatingMetricsPanel />
           </div>
         </details>
