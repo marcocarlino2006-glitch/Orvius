@@ -2779,3 +2779,217 @@ button.rd-path-btn:hover {
     min-height: 2.75rem !important;
   }
 }
+
+.rd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* ── Jobs: meaningful rows ─────────────────────────────────────────────── */
+
+.jobs-stage-summary {
+  margin: 0 0 0.6rem;
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+}
+
+.job-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.45rem 0 0;
+}
+
+.job-facts div {
+  min-width: 0;
+}
+
+.job-facts dt {
+  font-size: 0.6875rem;
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .job-facts dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.os-shell.os-shell-night .job-facts .is-risk dd {
+  color: var(--ox-red);
+}
+
+.os-shell.os-shell-night .job-facts .is-attention dd {
+  color: var(--ox-yellow);
+}
+
+.os-shell.os-shell-night .job-facts .is-good dd {
+  color: var(--ox-green);
+}
+
+.job-attention {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ox-amber);
+}
+
+/* ── Customers: list with history beside it ───────────────────────────── */
+
+.cp-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.cp-side {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .cp-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 28rem);
+    align-items: start;
+  }
+
+  .cp-side {
+    display: block;
+    position: sticky;
+    top: 1rem;
+  }
+
+  .os-shell.os-shell-night .cp-row.is-selected .lead-rail-row {
+    border-color: var(--ox-amber);
+    background: var(--ox-s2);
+  }
+}
+
+.cp-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.cp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.os-shell.os-shell-night .cp-name {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 650;
+  color: var(--ox-text);
+}
+
+.cp-meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+  overflow-wrap: anywhere;
+}
+
+.cp-section {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.cp-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--ox-text-2);
+}
+
+.cp-props,
+.cp-timeline {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cp-prop {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm);
+}
+
+.os-shell.os-shell-night .cp-prop-addr {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.cp-timeline {
+  position: relative;
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--ox-line);
+}
+
+.cp-ev {
+  position: relative;
+}
+
+.cp-ev::before {
+  content: "";
+  position: absolute;
+  left: -1.2rem;
+  top: 0.55rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--ox-s4);
+}
+
+.cp-ev--job::before {
+  background: var(--ox-amber);
+}
+
+.cp-ev--payment::before {
+  background: var(--ox-green);
+}
+
+.os-shell.os-shell-night .cp-ev-link {
+  display: grid;
+  gap: 0.05rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: var(--ox-radius-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.os-shell.os-shell-night a.cp-ev-link:hover {
+  background: var(--ox-s3);
+}
+
+.cp-ev-kind {
+  font-size: 0.6875rem;
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .cp-ev-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.cp-skel {
+  height: 1.25rem;
+}
+
+.cp-skel--tall {
+  height: 10rem;
+}
