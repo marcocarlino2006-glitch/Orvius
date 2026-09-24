@@ -14,6 +14,7 @@ type CopilotHit = {
   type: string;
   id: string;
   title: string;
+  actionable?: boolean;
 };
 
 export type CopilotRecommendation = {
@@ -44,8 +45,8 @@ export function CopilotActions({ hits = [], compact, recommendation }: CopilotAc
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Confirmation | null>(null);
 
-  const jobHits = hits.filter((h) => h.type === "job");
-  const leadHits = hits.filter((h) => h.type === "lead");
+  const jobHits = hits.filter((h) => h.type === "job" && h.actionable !== false);
+  const leadHits = hits.filter((h) => h.type === "lead" && h.actionable !== false);
   const show =
     proposal || recommendation || jobHits.length > 0 || leadHits.length > 0;
 

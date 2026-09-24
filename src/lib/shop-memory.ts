@@ -62,6 +62,8 @@ export type MemoryHit = {
   score: number;
   /** Timestamp on the source row, so model context never loses provenance. */
   observedAt: string;
+  /** False when the record is finished or already owned, so no action should be offered on it. */
+  actionable?: boolean;
 };
 
 export type ShopMemory = {
@@ -151,7 +153,7 @@ export async function retrieveShopMemory(
       where: tenant,
       take: 80,
       orderBy: { createdAt: "desc" },
-      include: { customer: { select: { name: true } } },
+      include: { customer: { select: { name: true } }, job: { select: { id: true } } },
     }),
     prisma.call.findMany({
       where: tenant,
@@ -295,6 +297,7 @@ export async function retrieveShopMemory(
         .join(" · "),
       score: score || 1,
       observedAt: job.updatedAt.toISOString(),
+      actionable: (job.status === "scheduled" || job.status === "confirmed") && !job.technicianId,
     });
   }
 
@@ -329,6 +332,7 @@ export async function retrieveShopMemory(
         .join(" · "),
       score: score || 1,
       observedAt: lead.updatedAt.toISOString(),
+      actionable: (lead.status === "new" || lead.status === "contacted") && !lead.job,
     });
   }
 

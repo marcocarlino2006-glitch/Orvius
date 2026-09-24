@@ -294,7 +294,8 @@ test("asking about one customer cites that customer, not everyone on file", asyn
     const dana = await mk("Dana Whitfield", 1);
     await mk("Tom Becker", 2);
     await mk("Priya Shah", 3);
-    await unassignedJob(shop.id, { title: "Duct cleaning", customerId: dana.id });
+    const open = await unassignedJob(shop.id, { title: "Duct cleaning", customerId: dana.id });
+    const done = await unassignedJob(shop.id, { title: "Furnace repair", customerId: dana.id, status: "completed" });
     await unassignedJob(shop.id, { title: "Tune-up" });
 
     const memory = await retrieveShopMemory("Dana Whitfield", shop.id);
@@ -303,6 +304,14 @@ test("asking about one customer cites that customer, not everyone on file", asyn
     for (const h of memory.hits) {
       assert.match(`${h.title} ${h.summary}`, /Dana Whitfield/, `unrelated record cited: ${h.title}`);
     }
+    assert.equal(memory.hits.find((h) => h.id === open.id)?.actionable, true);
+    assert.equal(memory.hits.find((h) => h.id === done.id)?.actionable, false, "no actions offered on finished work");
+
+    const tech = await prisma.technician.create({ data: { businessId: shop.id, name: "Chris Lee" } });
+    await prisma.job.update({ where: { id: open.id }, data: { technicianId: tech.id, scheduledAt: new Date(Date.now() - 2 * 3600_000) } });
+    const brief = await buildAskBrief({ businessId: shop.id, hits: [hit("job", open.id)], modelWorded: false });
+    assert.ok(brief.matters.some((m) => /was due .* Chris Lee has not marked it started/.test(m)), brief.matters.join(" | "));
+    assert.ok(!brief.matters.some((m) => /has not confirmed/.test(m)), "a passed appointment is not a confirmation problem");
   } finally {
     await drop(shop.id);
   }

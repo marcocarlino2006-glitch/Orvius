@@ -119,8 +119,13 @@ export async function buildAskBrief(params: {
       `${lead.name ?? lead.phone ?? "A caller"} asked about ${lead.serviceType ?? "service"} ${ago(lead.createdAt, now)} ago and has not been contacted.`,
     );
   }
-  for (const job of jobs.filter((j) => j.technicianId).slice(0, 1)) {
-    if (job.scheduledAt && !job.customerConfirmedAt) {
+  for (const job of jobs.filter((j) => j.technicianId).slice(0, 2)) {
+    if (!job.scheduledAt) continue;
+    if (job.scheduledAt.getTime() < now) {
+      matters.push(
+        `${job.title} was due ${when(job.scheduledAt, tz)} and ${job.technician?.name ?? "the technician"} has not marked it started — check whether they went.`,
+      );
+    } else if (!job.customerConfirmedAt) {
       matters.push(`${job.customer?.name ?? "The customer"} has not confirmed ${when(job.scheduledAt, tz)} yet.`);
     }
   }
