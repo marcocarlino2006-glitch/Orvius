@@ -63,14 +63,14 @@ const requests = [
       "User: 77 Main Street, Evanston.",
       "AI: Thank you. I've marked this an emergency and texted the owner right now. Stay outside until the gas company says it's safe.",
     ),
-    job: { tech: 1, when: 2, status: "confirmed", title: "Gas smell inspection after utility clears" },
+    job: { tech: 1, when: 2, status: "confirmed", title: "Gas smell inspection after utility clears", quote: 18_500 },
   },
 
   // Today's crew.
-  { ago: 26, name: "Lena Novak", phone: "+13125550145", service: "No heat, furnace won't ignite", code: "hvac.no_heat", urgency: "same-day", address: "1840 Oak Ave, Evanston IL 60201", job: { tech: 2, when: -1.5, status: "on_site" } },
-  { ago: 20, name: "Marcus Hill", phone: "+13125550149", service: "AC leaking water indoors", code: "hvac.condensate", urgency: "same-day", address: "620 Grove St, Evanston IL 60201", job: { tech: 0, when: 0.75, status: "en_route" } },
-  { ago: 18, name: "Grace Kim", phone: "+13125550150", service: "Tune-up and filter change", code: "hvac.maintenance", urgency: "flexible", address: "2400 Orrington Ave, Evanston IL 60201", job: { tech: 0, when: 3.5, status: "confirmed" } },
-  { ago: 6, name: "Sam Rivera", phone: "+13125550151", service: "Furnace blowing cold air", code: "hvac.no_heat", urgency: "this-week", address: "915 Forest Ave, Evanston IL 60202", job: { tech: 2, when: 22, status: "scheduled", confirmSent: true } },
+  { ago: 26, name: "Lena Novak", phone: "+13125550145", service: "No heat, furnace won't ignite", code: "hvac.no_heat", urgency: "same-day", address: "1840 Oak Ave, Evanston IL 60201", job: { tech: 2, when: -1.5, status: "on_site", quote: 36_000 } },
+  { ago: 20, name: "Marcus Hill", phone: "+13125550149", service: "AC leaking water indoors", code: "hvac.condensate", urgency: "same-day", address: "620 Grove St, Evanston IL 60201", job: { tech: 0, when: 0.75, status: "en_route", quote: 29_500 } },
+  { ago: 18, name: "Grace Kim", phone: "+13125550150", service: "Tune-up and filter change", code: "hvac.maintenance", urgency: "flexible", address: "2400 Orrington Ave, Evanston IL 60201", job: { tech: 0, when: 3.5, status: "confirmed", quote: 16_900 } },
+  { ago: 6, name: "Sam Rivera", phone: "+13125550151", service: "Furnace blowing cold air", code: "hvac.no_heat", urgency: "this-week", address: "915 Forest Ave, Evanston IL 60202", job: { tech: 2, when: 22, status: "scheduled", confirmSent: true, quote: 34_000 } },
 
   // A caller who wanted a person — handled, but worth a listen.
   {
@@ -135,7 +135,7 @@ async function main() {
       address: "1200 Central St, Evanston IL 60201",
       timezone: "America/Chicago",
       hoursJson: "{}",
-      servicesJson: JSON.stringify(["Furnace repair", "AC repair", "Tune-ups", "Replacements"]),
+      servicesJson: JSON.stringify([{ name: "Furnace repair" }, { name: "AC repair" }, { name: "Tune-ups" }, { name: "Replacements" }]),
       serviceZipsJson: JSON.stringify(["60201", "60202", "60203"]),
       greeting: "Summit Heating & Air, this is Orvius. What's going on?",
       twilioPhone: LINE,
@@ -283,6 +283,10 @@ async function main() {
         data: { businessId: business.id, invoiceId: invoice.id, amountCents: r.job.paid, status: "succeeded", method: "card", createdAt: paidAt },
       });
       collected += r.job.paid;
+    } else if (r.job.quote) {
+      await prisma.estimate.create({
+        data: { businessId: business.id, jobId: job.id, leadId: lead.id, amountCents: r.job.quote, status: "sent", createdAt: created },
+      });
     }
   }
 
