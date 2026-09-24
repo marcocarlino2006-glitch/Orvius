@@ -35,8 +35,7 @@ const STAGES: PipelineStage[] = [
   {
     id: "booked",
     label: "Booked",
-    match: (j) =>
-      !j.estimate && (j.status === "scheduled" || j.status === "confirmed"),
+    match: (j) => j.status === "scheduled" || j.status === "confirmed",
   },
   {
     id: "in_progress",
@@ -46,7 +45,7 @@ const STAGES: PipelineStage[] = [
   {
     id: "completed",
     label: "Completed",
-    match: (j) => j.status === "completed" && !j.estimate,
+    match: (j) => j.status === "completed",
   },
   {
     id: "estimate",
