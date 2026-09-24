@@ -31,3 +31,39 @@ jobs:
       - name: Multi-b check (honest — skips stay yellow, never counted green)
         run: MULTI_B_CI=1 npm run multi-b:check
         continue-on-error: false
+
+  loop:
+    # The operating loop in a real browser against a production build: a call
+    # comes in, becomes a booked job, and shows on every screen that should
+    # show it. Secrets here are throwaway values that only exist in this run.
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./ci.db"
+      AUTH_SECRET: ci-only-auth-secret-not-used-anywhere-else
+      VAPI_WEBHOOK_SECRET: ci-only-vapi-secret
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      APP_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma db push --skip-generate
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start the app
+        run: |
+          nohup npx next start -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:3000/api/health > /dev/null && exit 0
+            sleep 2
+          done
+          cat /tmp/next.log
+          exit 1
+      - run: npm run e2e:loop
+      - name: Server log
+        if: failure()
+        run: cat /tmp/next.log
