@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { ConcurrentPrismaLibSql } from "@/lib/prisma-libsql-concurrent";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -24,7 +24,7 @@ function createPrismaClient() {
     parsed.searchParams.delete("authToken");
     const tursoUrl = parsed.toString();
 
-    const adapter = new PrismaLibSql({
+    const adapter = new ConcurrentPrismaLibSql({
       url: tursoUrl,
       authToken,
     });
