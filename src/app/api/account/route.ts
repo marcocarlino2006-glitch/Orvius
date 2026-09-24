@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
+import { calendarFeedUrl } from "@/lib/calendar-feed";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
 import { isEmailConfigured } from "@/lib/email";
@@ -184,6 +185,7 @@ export async function GET(request: Request) {
       ownerSmsOptedOut: Boolean(businessRecord?.ownerSmsOptOutAt),
     },
     founder,
+    calendarFeedUrl: business ? calendarFeedUrl(business.id) : null,
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),

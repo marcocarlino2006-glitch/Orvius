@@ -36,8 +36,27 @@ import { TRADES, type Trade } from "@/lib/trades";
 import { SettingsIcon } from "./settings-icons";
 import { ScField, ScGroup, ScRow, ScStatus, ScSwitch } from "./settings-primitives";
 
+function CopyLinkButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("Copy this calendar link", value);
+    }
+  }
+  return (
+    <button type="button" className="sc-btn" onClick={() => void copy()}>
+      {copied ? "Copied" : "Copy link"}
+    </button>
+  );
+}
+
 type Account = {
   founder?: boolean;
+  calendarFeedUrl?: string | null;
   user?: { name: string | null; email: string | null; image?: string | null };
   business: {
     name: string;
@@ -737,6 +756,7 @@ export function SettingsCenter({
           mark: string;
           offLabel?: string;
           action?: { label: string; to: SettingsSectionId };
+          copy?: string;
         }> = [
           {
             name: "Phone line",
@@ -772,10 +792,12 @@ export function SettingsCenter({
           },
           {
             name: "Calendar",
-            detail: "Jobs book onto the Orvius schedule. External calendars are not available yet.",
-            on: false,
+            detail: account.calendarFeedUrl
+              ? "Subscribe in Google, Apple, or Outlook Calendar. Jobs update about every 15 minutes."
+              : "Calendar feed switches on from our side",
+            on: Boolean(account.calendarFeedUrl),
             mark: "CAL",
-            offLabel: "Coming soon",
+            copy: account.calendarFeedUrl ?? undefined,
           },
         ];
         return (
@@ -791,7 +813,9 @@ export function SettingsCenter({
                 </div>
                 <div className="sc-row-control">
                   {row.on ? <ScStatus on>Connected</ScStatus> : null}
-                  {row.action ? (
+                  {row.copy ? (
+                    <CopyLinkButton value={row.copy} />
+                  ) : row.action ? (
                     <button type="button" className="sc-btn" onClick={() => go(row.action!.to)}>
                       {row.action.label}
                     </button>
