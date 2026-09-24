@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import "@/app/public-field.css";
 
 type ConfirmState =
   | { status: "loading" }
@@ -10,9 +11,33 @@ type ConfirmState =
       status: "ok";
       already: boolean;
       businessName: string;
+      businessPhone: string | null;
+      timezone: string | null;
       title: string;
       scheduledAt: string | null;
     };
+
+function formatWhen(iso: string, timezone: string | null) {
+  const opts: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  };
+  try {
+    return new Date(iso).toLocaleString("en-US", { ...opts, timeZone: timezone ?? undefined });
+  } catch {
+    return new Date(iso).toLocaleString("en-US", opts);
+  }
+}
+
+function formatPhone(raw: string) {
+  const digits = raw.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+  return digits.length === 10
+    ? `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+    : raw;
+}
 
 export default function CustomerConfirmPage() {
   const params = useParams<{ token: string }>();
@@ -41,6 +66,8 @@ export default function CustomerConfirmPage() {
           status: "ok",
           already: Boolean(data.already),
           businessName: data.job.businessName,
+          businessPhone: data.job.businessPhone ?? null,
+          timezone: data.job.timezone ?? null,
           title: data.job.title,
           scheduledAt: data.job.scheduledAt,
         });
@@ -61,35 +88,47 @@ export default function CustomerConfirmPage() {
   }, [token]);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-6 py-16 font-sans">
-      {state.status === "loading" ? (
-        <p className="text-ash">Confirming your appointment…</p>
-      ) : null}
+    <main className="pf pf--center">
+      {state.status === "loading" ? <p className="pf-muted">Confirming your appointment…</p> : null}
 
       {state.status === "error" ? (
-        <>
-          <h1 className="text-2xl font-semibold text-void">Link not valid</h1>
-          <p className="text-ash">{state.message}</p>
-        </>
+        <header className="pf-head">
+          <h1 className="pf-title">Link not valid</h1>
+          <p className="pf-sub">{state.message}</p>
+        </header>
       ) : null}
 
       {state.status === "ok" ? (
         <>
-          <p className="text-xs uppercase tracking-[0.14em] text-ash">
-            {state.businessName}
-          </p>
-          <h1 className="text-2xl font-semibold text-void">
-            {state.already ? "Already confirmed" : "You're confirmed"}
-          </h1>
-          <p className="text-ash">
-            {state.title}
-            {state.scheduledAt
-              ? ` · ${new Date(state.scheduledAt).toLocaleString()}`
-              : null}
-          </p>
-          <p className="text-sm text-ash">
-            The shop has your confirmation. Keep this number handy if plans change.
-          </p>
+          <header className="pf-head">
+            <p className="pf-kicker">{state.businessName}</p>
+            <span className="pf-pill is-done">{state.already ? "Already confirmed" : "Confirmed"}</span>
+            <h1 className="pf-title">
+              {state.already ? "You're already confirmed" : "You're confirmed"}
+            </h1>
+          </header>
+          <dl className="pf-card">
+            <div className="pf-row">
+              <dt>Visit</dt>
+              <dd>{state.title}</dd>
+            </div>
+            {state.scheduledAt ? (
+              <div className="pf-row">
+                <dt>When</dt>
+                <dd>{formatWhen(state.scheduledAt, state.timezone)}</dd>
+              </div>
+            ) : null}
+          </dl>
+          {state.businessPhone ? (
+            <a className="pf-action" href={`tel:${state.businessPhone}`}>
+              <span className="pf-action-label">Call {state.businessName}</span>
+              <span className="pf-action-detail">
+                {formatPhone(state.businessPhone)} · if plans change
+              </span>
+            </a>
+          ) : (
+            <p className="pf-muted">The shop has your confirmation. Reply to their text if plans change.</p>
+          )}
         </>
       ) : null}
     </main>

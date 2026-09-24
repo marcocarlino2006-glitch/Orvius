@@ -2594,8 +2594,7 @@ h3 {
   margin: 0 auto;
 }
 
-.public-money-shop,
-.tech-field-shop {
+.public-money-shop {
   margin: 0 0 0.5rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -2604,8 +2603,7 @@ h3 {
   color: color-mix(in srgb, #c4783a 90%, #fff);
 }
 
-.public-money-title,
-.tech-field-title {
+.public-money-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.75rem, 5vw, 2.25rem);
@@ -2623,82 +2621,7 @@ h3 {
 .public-money-meta,
 .public-money-notes,
 .public-money-status,
-.public-money-muted,
-.tech-field-muted,
-.tech-field-status {
-  margin: 0.5rem 0 0;
-  color: color-mix(in srgb, #ececec 70%, transparent);
-  font-size: 0.9375rem;
-  line-height: 1.5;
-}
-
-.public-money-actions,
-.tech-field-advance {
-  margin-top: 1.75rem;
-  display: grid;
-  gap: 0.75rem;
-}
-
-.public-money-error,
-.tech-field-error,
-.approve-queue-error,
-.job-money-error,
-.panel-action-error {
-  color: #f97066;
-}
-
-.public-money-ok,
-.tech-field-ok {
-  color: #6ee7b7;
-  font-weight: 600;
-}
-
-.public-money-fine {
-  margin-top: 2rem;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  color: color-mix(in srgb, #ececec 45%, transparent);
-}
-
-/* Approve-first queue on Command */
-
-.public-money,
-.tech-field {
-  color: #f6f6f6;
-}
-
-.public-money-shop,
-.tech-field-shop {
-  margin: 0 0 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, #c4783a 90%, #fff);
-}
-
-.public-money-title,
-.tech-field-title {
-  margin: 0;
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.public-money-amount {
-  margin: 1.25rem 0 0;
-  font-size: 2rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.public-money-meta,
-.public-money-notes,
-.public-money-status,
-.public-money-muted,
-.tech-field-muted,
-.tech-field-status {
+.public-money-muted {
   margin: 0.5rem 0 0;
   color: color-mix(in srgb, #ececec 70%, transparent);
   font-size: 0.9375rem;
@@ -2712,12 +2635,75 @@ h3 {
 }
 
 .public-money-error,
-.tech-field-error {
+.approve-queue-error,
+.job-money-error,
+.panel-action-error {
   color: #f97066;
 }
 
-.public-money-ok,
-.tech-field-ok {
+.public-money-ok {
+  color: #6ee7b7;
+  font-weight: 600;
+}
+
+.public-money-fine {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, #ececec 45%, transparent);
+}
+
+/* Approve-first queue on Command */
+
+.public-money {
+  color: #f6f6f6;
+}
+
+.public-money-shop {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #c4783a 90%, #fff);
+}
+
+.public-money-title {
+  margin: 0;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.public-money-amount {
+  margin: 1.25rem 0 0;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.public-money-meta,
+.public-money-notes,
+.public-money-status,
+.public-money-muted {
+  margin: 0.5rem 0 0;
+  color: color-mix(in srgb, #ececec 70%, transparent);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.public-money-actions {
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.public-money-error {
+  color: #f97066;
+}
+
+.public-money-ok {
   color: #6ee7b7;
   font-weight: 600;
 }

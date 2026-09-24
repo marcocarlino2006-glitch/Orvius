@@ -207,13 +207,18 @@ export async function confirmJobByCustomerToken(token: string) {
   const job = await prisma.job.findFirst({
     where: { customerConfirmToken: token },
     include: {
-      business: { select: { id: true, name: true } },
+      business: { select: { id: true, name: true, timezone: true, vapiPhoneNumber: true, twilioPhone: true, phone: true } },
       customer: { select: { name: true, phone: true } },
       lead: { select: { name: true, phone: true } },
     },
   });
 
   if (!job) return { ok: false as const, error: "not_found" as const };
+  const shop = {
+    businessName: job.business.name,
+    businessPhone: job.business.vapiPhoneNumber ?? job.business.twilioPhone ?? job.business.phone ?? null,
+    timezone: job.business.timezone,
+  };
 
   if (job.customerConfirmedAt) {
     return {
@@ -223,7 +228,7 @@ export async function confirmJobByCustomerToken(token: string) {
         id: job.id,
         title: job.title,
         scheduledAt: job.scheduledAt,
-        businessName: job.business.name,
+        ...shop,
         status: job.status,
       },
     };
@@ -250,7 +255,7 @@ export async function confirmJobByCustomerToken(token: string) {
       id: updated.id,
       title: updated.title,
       scheduledAt: updated.scheduledAt,
-      businessName: job.business.name,
+      ...shop,
       status: updated.status,
     },
   };
