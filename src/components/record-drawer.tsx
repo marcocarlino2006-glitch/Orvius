@@ -302,6 +302,8 @@ function RecordBody({
         ) : null}
       </section>
 
+      {record.type === "lead" ? <LeadMoreActions record={record} /> : null}
+
       {record.decisions.length ? (
         <section className="rd-section" aria-label="Decisions">
           <p className="rd-section-label">What Orvius decided</p>
@@ -353,6 +355,61 @@ function RecordBody({
         )}
       </section>
     </>
+  );
+}
+
+function LeadMoreActions({ record }: { record: RecordView }) {
+  const phone = record.captured.find((f) => f.label === "Phone")?.value ?? null;
+  const [status, setStatus] = useState(record.status);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function markContacted() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/leads/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "contacted" }),
+      });
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(data?.error ?? "Update failed");
+      setStatus("contacted");
+    } catch (err) {
+      setError(err instanceof Error ? `${err.message}. Nothing was changed.` : "Update failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!phone && status !== "new") return null;
+  return (
+    <section className="rd-section" aria-label="More actions">
+      <p className="rd-section-label">More actions</p>
+      <div className="rd-actions">
+        {phone ? (
+          <>
+            <a href={`tel:${phone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+              Call
+            </a>
+            <a href={`sms:${phone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+              Text
+            </a>
+          </>
+        ) : null}
+        {status === "new" ? (
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void markContacted()}>
+            {busy ? "Saving…" : "Mark contacted"}
+          </button>
+        ) : null}
+      </div>
+      {error ? (
+        <p className="rd-missing" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </section>
   );
 }
 

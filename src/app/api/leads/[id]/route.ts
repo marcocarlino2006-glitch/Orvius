@@ -1,3 +1,4 @@
+import { recordAudit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 import { maybeAutoBookLead } from "@/lib/auto-job";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
@@ -135,6 +136,7 @@ export async function PATCH(request: Request, { params }: Params) {
       callId: true,
       customerId: true,
       phone: true,
+      status: true,
       job: { select: { id: true } },
       firstContactedAt: true,
     },
@@ -164,6 +166,21 @@ export async function PATCH(request: Request, { params }: Params) {
       closedAt: body.status ? (terminal ? now : null) : undefined,
     },
   });
+
+  if (body.status && body.status !== existing.status) {
+    await recordAudit({
+      businessId: business.id,
+      entityType: "lead",
+      entityId: id,
+      action: "lead.status_changed",
+      actor: "owner",
+      summary: `Owner marked the lead ${body.status}.`,
+      detail: { from: existing.status, to: body.status },
+      leadId: id,
+      callId: existing.callId,
+      customerId: existing.customerId,
+    });
+  }
 
   const phoneChanged =
     body.phone &&

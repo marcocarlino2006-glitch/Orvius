@@ -19,8 +19,8 @@ type LeadInboxCardProps = {
   createdAt: string;
   customerId?: string | null;
   returning?: boolean;
-  booked?: boolean;
-  onStatusChange?: (status: string) => void;
+  jobId?: string | null;
+  onBooked?: (jobId: string) => void;
 };
 
 /**
@@ -38,8 +38,8 @@ export function LeadInboxCard({
   createdAt,
   customerId,
   returning = false,
-  booked = false,
-  onStatusChange,
+  jobId = null,
+  onBooked,
 }: LeadInboxCardProps) {
   const emergency = isEmergency(urgency);
   /*
@@ -125,8 +125,10 @@ export function LeadInboxCard({
             leadId={id}
             phone={phone}
             status={status}
-            booked={booked}
-            onStatusChange={onStatusChange}
+            urgency={urgency}
+            address={address ?? null}
+            jobId={jobId}
+            onBooked={onBooked}
           />
         </div>
       ) : null}
