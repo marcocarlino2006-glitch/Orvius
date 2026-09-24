@@ -34,10 +34,10 @@ type MenuItem = {
 };
 
 const accountLinks: MenuItem[] = [
-  { href: "/dashboard/profile", label: "Profile", hint: "Your name and sign-in" },
-  { href: "/dashboard/settings", label: "Settings", hint: "Business, rules, line, alerts" },
-  { href: "/dashboard/settings#integrations", label: "Integrations", hint: "Phone, SMS, email, payouts" },
-  { href: "/dashboard/billing", label: "Billing", hint: "Plan and invoices" },
+  { href: "/dashboard?settings=account", label: "Account", hint: "Profile, plan, sign-in" },
+  { href: "/dashboard?settings=business", label: "Settings", hint: "Business, line, hours, alerts" },
+  { href: "/dashboard?settings=integrations", label: "Integrations", hint: "Phone, SMS, email, Stripe" },
+  { href: "/dashboard?settings=billing", label: "Billing", hint: "Plan and invoices" },
 ];
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
@@ -128,7 +128,7 @@ export function OsSidebarFooter() {
   const environment = account?.business?.environment ?? "production";
   const sampleWorkspace = environment === "demo" || environment === "test";
   const links = accountLinks.map((item) =>
-    item.href === "/dashboard/billing" && showPay
+    item.label === "Billing" && showPay
       ? { ...item, hint: payLabel, attention: true }
       : item,
   );

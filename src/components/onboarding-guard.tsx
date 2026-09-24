@@ -45,8 +45,10 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
         if (json.provisioned && !json.ready && !onOnboarding) {
           const next = json.setup?.nextStep ?? "line";
           if (next === "owner_phone") {
-            if (!onSettings) {
-              router.replace("/dashboard/settings");
+            const settingsOpen =
+              onSettings || new URLSearchParams(window.location.search).has("settings");
+            if (!settingsOpen) {
+              router.replace("/dashboard?settings=notifications");
               return;
             }
           } else if (next !== "done") {

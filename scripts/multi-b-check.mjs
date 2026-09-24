@@ -178,7 +178,7 @@ gate(
   "Founder cert reaches Settings",
   (() => {
     try {
-      const settings = readFileSync(join(root, "src/app/dashboard/settings/page.tsx"), "utf8");
+      const settings = readFileSync(join(root, "src/components/settings-center/settings-center.tsx"), "utf8");
       const account = readFileSync(join(root, "src/app/api/account/route.ts"), "utf8");
       const schema = readFileSync(join(root, "prisma/schema.prisma"), "utf8");
       return (

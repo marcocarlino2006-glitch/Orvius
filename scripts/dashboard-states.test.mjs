@@ -67,9 +67,10 @@ test("Dashboard shares one Ring1 pulse across shell and Command", () => {
 });
 
 test("Settings and loading states use the same owner-system language", () => {
-  const settings = read("src/app/dashboard/settings/page.tsx");
+  const settings = read("src/components/settings-center/settings-center.tsx");
   assert.doesNotMatch(settings, /<ProSetupHub/);
-  assert.match(settings, /className="account-stack pro-settings-form"/);
+  assert.match(settings, /role="dialog"/);
+  assert.match(settings, /className="sc-nav"/);
 
   const skeleton = read("src/components/shell-skeleton.tsx");
   assert.match(skeleton, /className="os-lead-rail dashboard-list-skeleton"/);

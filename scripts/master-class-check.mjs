@@ -75,7 +75,7 @@ try {
 }
 
 try {
-  const settings = read("src/app/dashboard/settings/page.tsx");
+  const settings = read("src/components/settings-center/settings-center.tsx");
   if (/Multi-b launch gates|LaunchGatesStrip|GoLiveChecklist/.test(settings)) {
     fail(
       "Settings ritual",
@@ -87,13 +87,12 @@ try {
     /founderCertJson/.test(settings) &&
     /(Manus post · next|Launch checklist · next)/.test(settings) &&
     /FounderManusNext/.test(settings) &&
-    /hubFocus/.test(settings) &&
-    /pro-settings-secondary/.test(settings) &&
+    /role="dialog"/.test(settings) &&
     !/<ProSetupHub/.test(settings)
   ) {
     pass(
       "Settings ritual",
-      "One hub focus panel open — quiet founder cert, no duplicate cockpit",
+      "Founder cert lives in its own Settings section, not in owner panes",
     );
   } else {
     fail("Settings ritual", "Founder certification is not wired through quiet Settings");
@@ -560,8 +559,8 @@ try {
   const alertsMuted = read("src/lib/owner-alerts-muted.ts");
   const moneyPath = read("src/lib/deposit-money-path.ts");
   const queueHrefs = read("src/lib/attention-queue.ts");
-  const settingsIds = read("src/app/dashboard/settings/page.tsx");
-  const billingIds = read("src/app/dashboard/billing/page.tsx");
+  const settingsIds = read("src/components/settings-center/settings-center.tsx");
+  const billingIds = read("src/components/billing-content.tsx");
   if (
     /ownerAlertsAreMuted/.test(alertsMuted) &&
     /depositMoneyPathBroken/.test(moneyPath) &&
@@ -592,7 +591,7 @@ try {
   const publicCss = read("src/app/public-v2.css");
   const heroMotion = read("src/components/home-line-hero.tsx");
   const daily = read("src/app/admin/daily/page.tsx");
-  const settingsManus = read("src/app/dashboard/settings/page.tsx");
+  const settingsManus = read("src/components/settings-center/settings-center.tsx");
   if (
     /MANUS_POST_STEPS/.test(manus) &&
     /isPlaceholderOwnerPhone/.test(manus) &&

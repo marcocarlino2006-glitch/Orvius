@@ -136,8 +136,8 @@ const outcomes = fileOk("src/lib/shop-outcomes.ts") ? read("src/lib/shop-outcome
 const pulse = fileOk("src/components/pro-command-outcomes.tsx")
   ? read("src/components/pro-command-outcomes.tsx")
   : "";
-const settings = fileOk("src/app/dashboard/settings/page.tsx")
-  ? read("src/app/dashboard/settings/page.tsx")
+const settings = fileOk("src/components/settings-center/settings-center.tsx")
+  ? read("src/components/settings-center/settings-center.tsx")
   : "";
 const company = fileOk("src/lib/company.ts") ? read("src/lib/company.ts") : "";
 const confirm = fileOk("src/lib/customer-confirm.ts")

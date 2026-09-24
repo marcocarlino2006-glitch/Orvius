@@ -105,8 +105,8 @@ if (confirmLib && confirmApi && confirmPage) {
 
 // Settings mounts CaptureSetupPanel — truth lives on the panel, not page chrome.
 const overflowUi =
-  fileHas("src/app/dashboard/settings/page.tsx", "CaptureSetupPanel") &&
-  fileHas("src/app/dashboard/settings/page.tsx", "overflow-forward") &&
+  fileHas("src/components/settings-center/settings-center.tsx", "CaptureSetupPanel") &&
+  fileHas("src/components/settings-center/settings-center.tsx", "overflow-forward") &&
   fileHas("src/components/capture-setup-panel.tsx", "Copy number") &&
   fileHas("src/components/capture-setup-panel.tsx", "/pilot/forward");
 const overflowPage = existsSync(join(root, "src/app/pilot/forward/page.tsx"));
