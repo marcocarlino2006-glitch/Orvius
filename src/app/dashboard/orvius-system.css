@@ -2068,8 +2068,72 @@ button.rd-path-btn:hover {
 }
 
 .os-shell.os-shell-night .copilot-actions-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
   color: var(--ox-red);
   font-size: 0.875rem;
+}
+
+.copilot-actions-error p {
+  margin: 0;
+}
+
+.copilot-recommend {
+  display: grid;
+  gap: 0.4rem;
+  justify-items: start;
+}
+
+.os-shell.os-shell-night .copilot-recommend-label {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.copilot-recommend-reason {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ox-text-2);
+}
+
+.copilot-more summary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+}
+
+.copilot-more[open] summary {
+  margin-bottom: 0.5rem;
+}
+
+.ask-brief {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.ask-brief-label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-mute);
+}
+
+.ask-brief ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--ox-text);
+}
+
+.ask-brief--unsure ul {
+  color: var(--ox-yellow);
 }
 
 /* ── Settings: readiness path + control plane ──────────────────────────── */

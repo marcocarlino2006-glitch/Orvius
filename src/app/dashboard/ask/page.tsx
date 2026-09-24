@@ -1,6 +1,6 @@
 "use client";
 
-import { CopilotActions } from "@/components/copilot-actions";
+import { CopilotActions, type CopilotRecommendation } from "@/components/copilot-actions";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { RecordLink } from "@/components/record-drawer";
@@ -17,6 +17,12 @@ type Hit = {
   summary: string;
 };
 
+type Brief = {
+  matters: string[];
+  uncertainty: string[];
+  recommendation: CopilotRecommendation | null;
+};
+
 type Turn = {
   id: number;
   question: string;
@@ -24,6 +30,7 @@ type Turn = {
   answer?: string;
   source?: string;
   hits?: Hit[];
+  brief?: Brief;
   error?: string;
 };
 
@@ -58,6 +65,7 @@ export default function AskPage() {
         answer?: string;
         source?: string;
         hits?: Hit[];
+        brief?: Brief;
         error?: string;
       } | null;
       if (!res.ok || !data?.answer) {
@@ -72,7 +80,14 @@ export default function AskPage() {
       setTurns((current) =>
         current.map((t) =>
           t.id === id
-            ? { ...t, status: "done", answer: data.answer, source: data.source, hits: data.hits ?? [] }
+            ? {
+                ...t,
+                status: "done",
+                answer: data.answer,
+                source: data.source,
+                hits: data.hits ?? [],
+                brief: data.brief,
+              }
             : t,
         ),
       );
@@ -165,6 +180,28 @@ export default function AskPage() {
                     </p>
                     <p className="ask-text">{turn.answer}</p>
 
+                    {turn.brief?.matters.length ? (
+                      <div className="ask-brief">
+                        <p className="ask-brief-label">What matters</p>
+                        <ul>
+                          {turn.brief.matters.map((line) => (
+                            <li key={line}>{line}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+
+                    {turn.brief?.uncertainty.length ? (
+                      <div className="ask-brief ask-brief--unsure">
+                        <p className="ask-brief-label">What Orvius is not sure about</p>
+                        <ul>
+                          {turn.brief.uncertainty.map((line) => (
+                            <li key={line}>{line}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+
                     {turn.hits?.length ? (
                       <div className="ask-evidence">
                         <p className="ask-evidence-label">Evidence · {turn.hits.length}</p>
@@ -197,7 +234,7 @@ export default function AskPage() {
                       <p className="ask-no-evidence">No specific records matched — this answer is from shop totals.</p>
                     )}
 
-                    <CopilotActions hits={turn.hits ?? []} />
+                    <CopilotActions hits={turn.hits ?? []} recommendation={turn.brief?.recommendation} />
                   </div>
                 ) : null}
               </article>
