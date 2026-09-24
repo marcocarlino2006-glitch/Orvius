@@ -397,17 +397,13 @@ export function AttentionQueue({
   return (
     <section id="work-queue" className="wq" aria-label="Work queue">
       <header className="wq-head">
-        <div>
-          <h2 className="wq-title">Work queue</h2>
-          <p className="wq-sub">
-            {work.length === 1 ? "Only you can decide this" : `${work.length} decisions only you can make`} · highest impact first
-          </p>
-        </div>
+        <h2 className="wq-title">
+          Queue <span className="wq-title-count">{work.length}</span>
+        </h2>
       </header>
 
-      <article className={`wq-recommend wq-sev--${top!.severity}`} aria-label="Orvius recommends">
+      <article className={`wq-recommend wq-sev--${top!.severity}`} aria-label="Top priority">
         <div className="wq-recommend-copy">
-          <p className="wq-recommend-kicker">Orvius recommends</p>
           <WorkRowBody work={top!} now={now} large />
         </div>
         <div className="wq-actions">

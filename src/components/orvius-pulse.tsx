@@ -73,7 +73,7 @@ export function OrviusPulse({
   return (
     <section className="op-panel font-sans" aria-label="Orvius Pulse">
       <header className="op-head">
-        <p className="op-title">Orvius Pulse</p>
+        <p className="op-title">System</p>
         <span className={`op-fresh ${stale ? "is-stale" : ""}`}>
           {stale ? "Stale" : formatFreshness(lastUpdatedAt, now)}
         </span>
@@ -131,7 +131,7 @@ export function OrviusPulse({
       )}
 
       <div className="op-recent">
-        <p className="op-row-label">Recent successful events</p>
+        <p className="op-row-label">Recent activity</p>
         {recent.length ? (
           <ul>
             {recent.map((event) => (
