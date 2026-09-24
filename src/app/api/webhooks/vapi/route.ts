@@ -9,6 +9,7 @@ import { logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
+import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 
 async function findBusinessForCall(
@@ -52,6 +53,8 @@ async function findBusinessForCall(
 
 export async function POST(request: NextRequest) {
   if (!verifyVapiWebhookSecret(request.headers.get("x-vapi-secret"))) {
+    const limited = webhookAuthFailureLimited(request, "vapi");
+    if (!limited.ok) return tooManyRequests(limited.retryAfterSec);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -29,6 +29,7 @@ import {
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 import { twimlMessage as twimlResponse } from "@/lib/twiml";
+import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -51,6 +52,8 @@ export async function POST(request: NextRequest) {
       formEntries,
     })
   ) {
+    const limited = webhookAuthFailureLimited(request, "twilio-sms");
+    if (!limited.ok) return tooManyRequests(limited.retryAfterSec);
     return NextResponse.json({ error: "Invalid Twilio signature" }, { status: 403 });
   }
 

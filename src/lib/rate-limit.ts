@@ -37,3 +37,19 @@ export function clientIp(request: Request): string {
   if (xf) return xf.split(",")[0]?.trim() || "unknown";
   return request.headers.get("x-real-ip")?.trim() || "unknown";
 }
+
+export function tooManyRequests(retryAfterSec: number, message = "Too many requests. Wait a moment and retry.") {
+  return new Response(JSON.stringify({ error: message }), {
+    status: 429,
+    headers: { "Content-Type": "application/json", "Retry-After": String(retryAfterSec) },
+  });
+}
+
+/**
+ * Throttle only failed webhook authentication. Real providers never fail it, so
+ * legitimate bursts (thirty calls ending at once) are never slowed; someone
+ * guessing secrets is.
+ */
+export function webhookAuthFailureLimited(request: Request, source: string) {
+  return rateLimit({ key: `authfail:${source}:${clientIp(request)}`, limit: 20, windowMs: 60_000 });
+}

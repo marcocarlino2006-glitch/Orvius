@@ -3,6 +3,7 @@ import { executeProposal, type ProposalParams } from "@/lib/copilot-execute";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { recordAudit } from "@/lib/audit";
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { requireEntitledSession } from "@/lib/tenant";
 import { z } from "zod";
 
@@ -72,6 +73,9 @@ export async function POST(request: Request) {
 
   const planGate = requirePlanModule(business, "ask");
   if ("error" in planGate) return planGate.error;
+
+  const limited = rateLimit({ key: `copilot:${business.id}`, limit: 30, windowMs: 60_000 });
+  if (!limited.ok) return tooManyRequests(limited.retryAfterSec);
 
   const url = new URL(request.url);
   const mode = url.searchParams.get("mode") ?? "propose";
