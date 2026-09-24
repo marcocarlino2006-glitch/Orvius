@@ -141,7 +141,7 @@ export default function JobsPage() {
         caption={open.length === 1 ? "job still open" : "jobs still open"}
         detail={
           unassigned > 0
-            ? `${unassigned} of them have no tech assigned yet.`
+            ? `${unassigned} ${unassigned === 1 ? "has" : "have"} no technician yet.`
             : "Every open job has a tech on it."
         }
         facts={[

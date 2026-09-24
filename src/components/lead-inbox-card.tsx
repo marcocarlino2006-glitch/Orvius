@@ -36,7 +36,6 @@ export function LeadInboxCard({
   channel = "Inbound",
   status = "new",
   createdAt,
-  customerId,
   returning = false,
   jobId = null,
   onBooked,
@@ -107,16 +106,6 @@ export function LeadInboxCard({
           {address ? ` · ${address}` : ""}
         </p>
 
-        {customerId ? (
-          <RecordLink
-            type="customer"
-            id={customerId}
-            href={`/dashboard/customers/${customerId}`}
-            className="lead-rail-record"
-          >
-            Customer record
-          </RecordLink>
-        ) : null}
       </div>
 
       {id ? (
