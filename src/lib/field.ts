@@ -1,5 +1,7 @@
+import { buildDispatchSchedule } from "@/lib/dispatch-schedule";
 import { prisma } from "@/lib/prisma";
 import { serializeJob } from "@/lib/job";
+import { parseSkills } from "@/lib/technician-match";
 
 /** Ring 4 — every shop gets a crew so dispatch is never empty. */
 export async function ensureCrew(businessId: string) {
@@ -85,6 +87,30 @@ export async function getDispatchBoard(businessId: string, isoDay?: string | nul
     },
   });
 
+  const business = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { trade: true, servicesJson: true },
+  });
+  const schedule = buildDispatchSchedule({
+    business: business ?? {},
+    crew: crew.map((t) => ({ id: t.id, name: t.name, phone: t.phone, skills: parseSkills(t.skillsJson) })),
+    jobs: jobs.map((j) => ({
+      id: j.id,
+      title: j.title,
+      status: j.status,
+      scheduledAt: j.scheduledAt,
+      durationMin: j.durationMin,
+      technicianId: j.technicianId,
+      serviceType: j.serviceType,
+      notes: j.notes,
+      urgency: j.urgency,
+      address: j.address,
+      postalCode: j.postalCode,
+      customerName: j.customer?.name ?? j.lead?.name ?? null,
+    })),
+    dayStart: start,
+  });
+
   const serialized = jobs.map(serializeJob);
   const unassigned = serialized.filter((job) => !job.technicianId);
   const columns = crew.map((tech) => ({
@@ -98,5 +124,7 @@ export async function getDispatchBoard(businessId: string, isoDay?: string | nul
     unassigned,
     columns,
     jobCount: jobs.length,
+    schedule,
+    trade: business?.trade ?? null,
   };
 }
