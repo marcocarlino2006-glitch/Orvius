@@ -20,6 +20,8 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
 
 const { buildAskBrief } = await import("../src/lib/ask-brief.ts");
 const { executeProposal } = await import("../src/lib/copilot-execute.ts");
+const { answerFromRecords } = await import("../src/lib/ask-answer.ts");
+const { getCustomerProperties } = await import("../src/lib/customer.ts");
 
 const prisma = new PrismaClient();
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -237,6 +239,49 @@ test("another workspace cannot run, or be recommended, a proposal it does not ow
   } finally {
     await drop(a.id);
     await drop(b.id);
+  }
+});
+
+test("Ask answers in a sentence from the top record instead of listing records", async () => {
+  const shop = await makeShop();
+  try {
+    await prisma.business.update({ where: { id: shop.id }, data: { timezone: "America/Chicago" } });
+    const customer = await prisma.customer.create({
+      data: { businessId: shop.id, name: "Dana W", phone: "+13125550146", phoneNormalized: "+13125550146", address: "1500 Chicago Ave, Evanston IL" },
+    });
+    const at = new Date("2026-09-24T19:00:00Z");
+    const open = await unassignedJob(shop.id, { title: "Humidifier install", customerId: customer.id, scheduledAt: at, address: "3300 Central St, Evanston IL" });
+    const job = await unassignedJob(shop.id, {
+      title: "Furnace repair",
+      customerId: customer.id,
+      status: "completed",
+      completedAt: new Date("2026-09-18T15:00:00Z"),
+      address: "1500 Chicago Ave, Evanston IL",
+    });
+    const estimate = await prisma.estimate.create({ data: { businessId: shop.id, jobId: job.id, amountCents: 68000, status: "accepted" } });
+    const invoice = await prisma.invoice.create({
+      data: { businessId: shop.id, jobId: job.id, estimateId: estimate.id, amountCents: 68000, status: "paid" },
+    });
+    await prisma.payment.create({ data: { businessId: shop.id, invoiceId: invoice.id, amountCents: 68000, status: "succeeded" } });
+
+    const jobAnswer = await answerFromRecords({ businessId: shop.id, hits: [hit("job", open.id), hit("customer", customer.id)], now: at.getTime() - 3600_000 });
+    assert.equal(
+      jobAnswer,
+      "Humidifier install for Dana W is booked Thu, Sep 24, 2:00 PM at 3300 Central St. No technician is assigned yet. 1 related record below.",
+    );
+    assert.doesNotMatch(jobAnswer, /From the shop record/);
+
+    const doneAnswer = await answerFromRecords({ businessId: shop.id, hits: [hit("job", job.id)] });
+    assert.match(doneAnswer, /Furnace repair for Dana W was completed Sep 18, paid \$680\./);
+
+    const customerAnswer = await answerFromRecords({ businessId: shop.id, hits: [hit("customer", customer.id)], now: at.getTime() - 3600_000 });
+    assert.match(customerAnswer, /^Dana W has 2 jobs on file, \$680 paid so far\. Next: Humidifier install, Thu, Sep 24, 2:00 PM\. Last completed: Furnace repair on Sep 18\.$/);
+
+    const properties = await getCustomerProperties(customer.id, customer.address);
+    const home = properties.find((p) => p.address.startsWith("1500"));
+    assert.equal(home.paidCents, 68000, "a payment on an invoice linked to both the job and its estimate counts once");
+  } finally {
+    await drop(shop.id);
   }
 });
 

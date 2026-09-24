@@ -429,8 +429,8 @@ export async function getCustomerProperties(
       scheduledAt: true,
       completedAt: true,
       createdAt: true,
-      invoices: { select: { payments: { select: { amountCents: true, status: true } } } },
-      estimate: { select: { invoice: { select: { payments: { select: { amountCents: true, status: true } } } } } },
+      invoices: { select: { payments: { select: { id: true, amountCents: true, status: true } } } },
+      estimate: { select: { invoice: { select: { payments: { select: { id: true, amountCents: true, status: true } } } } } },
     },
   });
 
@@ -461,9 +461,11 @@ export async function getCustomerProperties(
     } else if (!entry.nextAt || when.toISOString() < entry.nextAt) {
       entry.nextAt = when.toISOString();
     }
+    // An estimate's invoice is usually also linked to the job; count each payment once.
     const payments = [
-      ...job.invoices.flatMap((i) => i.payments),
-      ...(job.estimate?.invoice?.payments ?? []),
+      ...new Map(
+        [...job.invoices.flatMap((i) => i.payments), ...(job.estimate?.invoice?.payments ?? [])].map((p) => [p.id, p]),
+      ).values(),
     ];
     entry.paidCents += payments
       .filter((p) => p.status !== "failed" && p.status !== "refunded")

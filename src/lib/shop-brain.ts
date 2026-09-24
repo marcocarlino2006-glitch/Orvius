@@ -13,6 +13,7 @@ import {
   resolveShopOperateNext,
   type ShopOperateNext,
 } from "@/lib/shop-operate";
+import { answerFromRecords } from "@/lib/ask-answer";
 import {
   composeMemoryAnswer,
   retrieveShopMemory,
@@ -276,8 +277,11 @@ export async function askShop(question: string, businessId: string): Promise<Ask
   }
 
   const memory = await retrieveShopMemory(question, businessId);
-  const grounded = composeMemoryAnswer(memory);
-  const polished = await polishWithVapi(question, memory);
+  const [direct, polished] = await Promise.all([
+    answerFromRecords({ businessId, hits: memory.hits }),
+    polishWithVapi(question, memory),
+  ]);
+  const grounded = direct ?? composeMemoryAnswer(memory);
   const brief = await buildAskBrief({
     businessId,
     hits: memory.hits,
