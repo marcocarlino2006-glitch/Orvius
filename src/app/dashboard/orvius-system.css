@@ -13,7 +13,7 @@
    · Nothing smaller than 12px. Controls are at least 36px tall (44px on touch).
    ────────────────────────────────────────────────────────────────────────── */
 
-.os-shell.os-shell-night {
+:root {
   --ox-bg: #0c0d0f;
   --ox-s1: #121316;
   --ox-s2: #181a1e;
@@ -37,6 +37,9 @@
   --ox-radius: 0.625rem;
   --ox-radius-sm: 0.4375rem;
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px var(--ox-amber);
+}
+
+.os-shell.os-shell-night {
 
   /* Legacy tokens re-pointed so untouched components inherit the system. */
   --os-paper: var(--ox-bg);
@@ -80,6 +83,10 @@
   background: var(--ox-s1) !important;
   border-right: 1px solid var(--ox-line) !important;
   width: 16rem !important;
+}
+
+.os-shell.os-shell-night .os-sidebar-inner {
+  background: transparent !important;
 }
 
 .os-shell.os-shell-night .os-sidebar-brand:hover,
@@ -245,9 +252,20 @@
   }
 }
 
+html:has(.os-shell.os-shell-night),
+body:has(.os-shell.os-shell-night) {
+  background: var(--ox-bg);
+}
+
 .os-shell.os-shell-night .os-content,
 .os-shell.os-shell-night .os-content-pro {
   padding: 1.75rem 2rem 6rem !important;
+  background: var(--ox-bg) !important;
+}
+
+.os-shell.os-shell-night .pro-settings-form .pro-settings-savebar {
+  background: rgb(12 13 15 / 0.96) !important;
+  border-top-color: var(--ox-line) !important;
 }
 
 .os-shell.os-shell-night .os-content-pro > * {
@@ -268,7 +286,7 @@
 
 /* ── Controls ──────────────────────────────────────────────────────────── */
 
-.os-shell.os-shell-night .ox-btn,
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn,
 .os-shell.os-shell-night .btn,
 .os-shell.os-shell-night .btn-void,
 .os-shell.os-shell-night .btn-secondary,
@@ -292,7 +310,7 @@
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
-.os-shell.os-shell-night .ox-btn--primary,
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary,
 .os-shell.os-shell-night .btn-void,
 .os-shell.os-shell-night .attention-item-btn-primary,
 .os-shell.os-shell-night .assign-tech-btn,
@@ -302,7 +320,7 @@
   color: var(--ox-on-amber) !important;
 }
 
-.os-shell.os-shell-night .ox-btn--primary:hover:not(:disabled),
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary:hover:not(:disabled),
 .os-shell.os-shell-night .btn-void:hover:not(:disabled),
 .os-shell.os-shell-night .attention-item-btn-primary:hover:not(:disabled),
 .os-shell.os-shell-night .assign-tech-btn:hover:not(:disabled),
@@ -312,7 +330,7 @@
   color: var(--ox-on-amber) !important;
 }
 
-.os-shell.os-shell-night .ox-btn--quiet,
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet,
 .os-shell.os-shell-night .btn-secondary,
 .os-shell.os-shell-night .btn:not(.btn-void),
 .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary) {
@@ -321,7 +339,7 @@
   color: var(--ox-text) !important;
 }
 
-.os-shell.os-shell-night .ox-btn--quiet:hover:not(:disabled),
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet:hover:not(:disabled),
 .os-shell.os-shell-night .btn-secondary:hover:not(:disabled),
 .os-shell.os-shell-night .btn:not(.btn-void):hover:not(:disabled),
 .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary):hover:not(:disabled) {
@@ -329,7 +347,7 @@
   color: var(--ox-text) !important;
 }
 
-.os-shell.os-shell-night .ox-btn:disabled,
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn:disabled,
 .os-shell.os-shell-night .btn:disabled,
 .os-shell.os-shell-night .attention-item-btn:disabled,
 .os-shell.os-shell-night .assign-tech-btn:disabled {
@@ -337,13 +355,13 @@
   cursor: not-allowed;
 }
 
-.os-shell.os-shell-night .ox-btn--sm {
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn--sm {
   min-height: 2.125rem !important;
   padding: 0 0.8rem !important;
   font-size: 0.8125rem !important;
 }
 
-.os-shell.os-shell-night .ox-btn--block {
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn--block {
   width: 100%;
 }
 
@@ -391,7 +409,8 @@
   color: var(--ox-mute) !important;
 }
 
-.os-shell.os-shell-night .skeleton {
+.os-shell.os-shell-night .skeleton,
+.rd-root .skeleton {
   display: block;
   border-radius: var(--ox-radius-sm);
   background: linear-gradient(90deg, var(--ox-s2), var(--ox-s3), var(--ox-s2));
@@ -405,7 +424,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .os-shell.os-shell-night .skeleton {
+  .os-shell.os-shell-night .skeleton,
+  .rd-root .skeleton {
     animation: none;
   }
 }
@@ -569,6 +589,7 @@
   flex-direction: column;
   gap: 1.5rem;
   min-width: 0;
+  container-type: inline-size;
 }
 
 .cc-rail {
@@ -605,11 +626,46 @@
 
 .cs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.75rem;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+@container (max-width: 44rem) {
+  .cs-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .cs-grid > * {
+    grid-column: span 2;
+  }
+  .cs-grid > :nth-child(n + 4) {
+    grid-column: span 3;
+  }
+}
+
+@container (max-width: 28rem) {
+  .cs-grid > *,
+  .cs-grid > :nth-child(n + 4) {
+    grid-column: span 3;
+  }
+  .cs-grid > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* One accent: only the recommended item carries an amber action. */
+.os-shell.os-shell-night .wq-list .wq-actions :is(.ox-btn--primary, .attention-item-btn-primary, .btn-void, .btn-primary, .assign-tech-btn) {
+  background: var(--ox-s3) !important;
+  color: var(--ox-text) !important;
+  border: 1px solid var(--ox-line-strong) !important;
+  box-shadow: none !important;
+}
+
+.os-shell.os-shell-night .wq-list .wq-actions :is(.ox-btn--primary, .attention-item-btn-primary, .btn-void, .btn-primary, .assign-tech-btn):hover:not(:disabled) {
+  background: var(--ox-s4) !important;
+  border-color: var(--ox-amber) !important;
 }
 
 .cs-card {
@@ -1361,7 +1417,6 @@ button.rd-path-btn:hover {
   font-weight: 600;
   color: var(--ox-text);
   overflow-wrap: anywhere;
-  text-transform: capitalize;
 }
 
 .rd-path-node.is-missing .rd-path-btn {
@@ -2025,6 +2080,7 @@ button.rd-path-btn:hover {
   border: 1px solid var(--ox-line);
   border-radius: calc(var(--ox-radius) + 2px);
   background: var(--ox-s1);
+  container-type: inline-size;
 }
 
 .rp-head {
@@ -2073,7 +2129,7 @@ button.rd-path-btn:hover {
 
 .rp-steps {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.4rem;
   margin: 0;
   padding: 0;
@@ -2087,6 +2143,18 @@ button.rd-path-btn:hover {
 }
 
 @media (max-width: 560px) {
+  .rp-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 70rem) {
+  .rp-steps {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 32rem) {
   .rp-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2129,6 +2197,9 @@ button.rd-path-btn:hover {
 .rp-step-label {
   min-width: 0;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rp-step--done .rp-step-mark {
@@ -2294,7 +2365,7 @@ button.rd-path-btn:hover {
 
 /* Touch: never hover-only; larger hit areas on iPad. */
 @media (hover: none) and (pointer: coarse) {
-  .os-shell.os-shell-night .ox-btn,
+  :is(.os-shell.os-shell-night, .rd-root) .ox-btn,
   .os-shell.os-shell-night .btn,
   .os-shell.os-shell-night .attention-item-btn,
   .os-shell.os-shell-night .assign-tech-btn,
