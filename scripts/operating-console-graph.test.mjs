@@ -81,7 +81,7 @@ test("Command ships five truthful signals and never a bare $0", () => {
   const signals = buildCommandSignals(counts, work);
   assert.deepEqual(
     signals.map((s) => s.label),
-    ["New demand", "Qualified opportunities", "Jobs in motion", "Attention required", "Revenue at risk"],
+    ["New demand", "Qualified", "Jobs in motion", "Needs you", "Revenue at risk"],
   );
   assert.equal(signals[0].value, "5");
   assert.equal(signals[3].value, "2");

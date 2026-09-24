@@ -191,7 +191,7 @@ export function buildCommandSignals(
     },
     {
       id: "qualified",
-      label: "Qualified opportunities",
+      label: "Qualified",
       value: String(counts.qualified),
       detail:
         counts.qualified === 0
@@ -215,7 +215,7 @@ export function buildCommandSignals(
     },
     {
       id: "attention",
-      label: "Attention required",
+      label: "Needs you",
       value: String(work.length),
       detail:
         work.length === 0

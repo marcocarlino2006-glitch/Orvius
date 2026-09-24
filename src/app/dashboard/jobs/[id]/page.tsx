@@ -170,7 +170,7 @@ export default function JobDetailPage() {
       title={job.title}
       actions={
         <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+          <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
             Dispatch
           </Link>
           {phone ? (
@@ -192,7 +192,11 @@ export default function JobDetailPage() {
           <div className="flex flex-wrap gap-2">
             <ShellBadge
               tone={
-                job.status === "en_route" || job.status === "on_site" ? "live" : "flare"
+                job.status === "en_route" || job.status === "on_site"
+                  ? "live"
+                  : job.status === "cancelled"
+                    ? "flare"
+                    : "neutral"
               }
             >
               {jobStatusLabel(job.status)}
@@ -261,7 +265,7 @@ export default function JobDetailPage() {
                   {job.scheduledAt && !job.customerConfirmedAt ? (
                     <button
                       type="button"
-                      className="btn btn-void text-sm"
+                      className="btn btn-secondary text-sm"
                       disabled={confirmBusy || saving}
                       onClick={() => {
                         void (async () => {

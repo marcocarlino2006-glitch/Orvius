@@ -266,3 +266,102 @@
     scrollbar-width: none;
   }
 }
+
+/* ── Detail pages ────────────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .os-topbar-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.os-shell.os-shell-night .os-topbar-actions > div {
+  flex-wrap: nowrap !important;
+}
+
+.os-shell.os-shell-night :is(.os-kv, .owner-alert-kv) dt {
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--ox-mute) !important;
+}
+
+.os-shell.os-shell-night :is(.os-kv, .owner-alert-kv) dd {
+  font-size: 0.875rem !important;
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .os-kv-note {
+  font-size: 0.8125rem !important;
+  color: var(--ox-mute) !important;
+}
+
+.os-shell.os-shell-night .owner-alert {
+  border-radius: 0.75rem !important;
+  border-color: var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+}
+
+.os-shell.os-shell-night .owner-alert-title {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .owner-alert-kicker,
+.os-shell.os-shell-night .lead-status-actions-label {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--ox-mute) !important;
+}
+
+.os-shell.os-shell-night .lead-status-actions-row {
+  gap: 0.4rem;
+}
+
+/* The fixed action bar is a thumb target; on a desktop the header already has it. */
+@media (min-width: 1024px) {
+  .os-shell.os-shell-night .lead-detail-sticky {
+    display: none !important;
+  }
+}
+
+.os-shell.os-shell-night .lead-detail-sticky-btn {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+/* ── Command signal cards ────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .cs-card {
+  border-radius: 0.75rem !important;
+  background: var(--ox-s1) !important;
+  border-color: var(--ox-line) !important;
+}
+
+.os-shell.os-shell-night .cs-label {
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--ox-mute) !important;
+  white-space: nowrap;
+}
+
+.os-shell.os-shell-night .cs-value {
+  font-size: 2rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.035em !important;
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .cs-detail {
+  font-size: 0.75rem !important;
+  color: var(--ox-mute) !important;
+}

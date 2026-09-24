@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { displayPhone, normalizePhone } from "@/lib/customer";
 
 type OwnerAlertCardProps = {
   variant?: "void" | "chalk";
@@ -68,7 +69,7 @@ export function OwnerAlertCard({
   const sample = !lead;
   const missing = "Not captured";
   const name = lead ? lead.name ?? "an unknown caller" : "Maria Lopez";
-  const phone = lead ? lead.phone ?? missing : "+1 512 555 0123";
+  const phone = lead ? (lead.phone ? displayPhone(normalizePhone(lead.phone) ?? lead.phone) : missing) : "+1 512 555 0123";
   const service = lead ? lead.service ?? missing : "AC not cooling";
   const urgency = lead ? lead.urgency ?? missing : "Emergency";
   const address = lead ? lead.address ?? missing : "1842 Oak Street";

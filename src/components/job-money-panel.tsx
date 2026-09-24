@@ -361,7 +361,7 @@ export function JobMoneyPanel({
           ) : null}
           <button
             type="button"
-            className="btn btn-void mt-4 text-sm"
+            className="btn btn-secondary mt-4 text-sm"
             disabled={busy || (!avgTicketCents && !amountDollars.trim())}
             onClick={() => void createEstimate()}
           >
