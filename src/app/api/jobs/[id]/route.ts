@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
-import { JOB_INCLUDE, isJobStatus, serializeJob, updateJobStatus } from "@/lib/job";
+import { recordAudit } from "@/lib/audit";
+import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -146,6 +147,47 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (!job) {
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
+  }
+
+  const auditBase = {
+    businessId: business.id,
+    entityType: "job" as const,
+    entityId: id,
+    actor: "owner" as const,
+    jobId: id,
+    leadId: existing.leadId,
+    customerId: existing.customerId,
+  };
+  if (body.status && body.status !== existing.status) {
+    await recordAudit({
+      ...auditBase,
+      action: "job.status_changed",
+      summary: `Owner moved the job from ${jobStatusLabel(existing.status)} to ${jobStatusLabel(body.status)}.`,
+      detail: { from: existing.status, to: body.status },
+    });
+  }
+  if (assigningTech) {
+    await recordAudit({
+      ...auditBase,
+      action: job.technician ? "technician.assigned" : "technician.unassigned",
+      summary: job.technician
+        ? `Owner assigned ${job.technician.name}.`
+        : "Owner removed the technician.",
+      detail: { from: previousTechnicianId, to: job.technicianId },
+    });
+  }
+  if (
+    body.scheduledAt !== undefined &&
+    (job.scheduledAt?.getTime() ?? null) !== (existing.scheduledAt?.getTime() ?? null)
+  ) {
+    await recordAudit({
+      ...auditBase,
+      action: "job.rescheduled",
+      summary: job.scheduledAt
+        ? `Owner moved the appointment to ${job.scheduledAt.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: business.timezone ?? undefined })}.`
+        : "Owner cleared the appointment time.",
+      detail: { from: existing.scheduledAt?.toISOString() ?? null, to: job.scheduledAt?.toISOString() ?? null },
+    });
   }
 
   let techSms: { sent: boolean; reason?: string } | undefined;
