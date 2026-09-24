@@ -3,10 +3,11 @@
 import { CopilotActions } from "@/components/copilot-actions";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
-import { ShellAlert } from "@/components/shell-primitives";
+import { RecordLink } from "@/components/record-drawer";
 import { ASK_SUGGESTIONS } from "@/lib/ask-suggestions";
+import { isRecordType } from "@/lib/record-types";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Hit = {
   type: string;
@@ -17,148 +18,239 @@ type Hit = {
 };
 
 type Turn = {
+  id: number;
   question: string;
-  answer: string;
-  source: string;
-  hits: Hit[];
+  status: "pending" | "done" | "failed";
+  answer?: string;
+  source?: string;
+  hits?: Hit[];
+  error?: string;
+};
+
+const HIT_LABEL: Record<string, string> = {
+  call: "Call",
+  lead: "Lead",
+  customer: "Customer",
+  job: "Job",
+  technician: "Technician",
 };
 
 export default function AskPage() {
   const [question, setQuestion] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const nextId = useRef(1);
+  const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const busy = turns.some((t) => t.status === "pending");
 
-  async function ask(nextQuestion: string) {
-    const q = nextQuestion.trim();
-    if (!q || loading) return;
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [turns]);
 
-    setLoading(true);
-    setError(null);
-    setQuestion("");
-
+  async function run(id: number, q: string) {
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: q }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Ask failed");
-      setTurns((current) => [
-        {
-          question: q,
-          answer: data.answer,
-          source: data.source,
-          hits: data.hits ?? [],
-        },
-        ...current,
-      ]);
+      const data = (await res.json().catch(() => null)) as {
+        answer?: string;
+        source?: string;
+        hits?: Hit[];
+        error?: string;
+      } | null;
+      if (!res.ok || !data?.answer) {
+        throw new Error(
+          res.status === 401
+            ? "Your session expired. Sign in again to ask about the shop."
+            : res.status === 429
+              ? "Too many questions at once. Wait a moment and retry."
+              : "Orvius could not read the shop records just now.",
+        );
+      }
+      setTurns((current) =>
+        current.map((t) =>
+          t.id === id
+            ? { ...t, status: "done", answer: data.answer, source: data.source, hits: data.hits ?? [] }
+            : t,
+        ),
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ask failed");
-    } finally {
-      setLoading(false);
+      const offline = typeof navigator !== "undefined" && !navigator.onLine;
+      setTurns((current) =>
+        current.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                status: "failed",
+                error: offline
+                  ? "You are offline. Your question is kept — retry when the connection returns."
+                  : err instanceof Error
+                    ? err.message
+                    : "Orvius could not answer.",
+              }
+            : t,
+        ),
+      );
     }
   }
 
+  function ask(nextQuestion: string) {
+    const q = nextQuestion.trim();
+    if (!q || busy) return;
+    const id = nextId.current++;
+    setQuestion("");
+    setTurns((current) => [...current, { id, question: q, status: "pending" }]);
+    void run(id, q);
+    inputRef.current?.focus();
+  }
+
+  function retry(turn: Turn) {
+    setTurns((current) => current.map((t) => (t.id === turn.id ? { ...t, status: "pending", error: undefined } : t)));
+    void run(turn.id, turn.question);
+  }
+
   return (
-    <OsShell
-      title="Ask"
-      subtitle="Grounded in your calls, jobs, and dispatch — then approve before anything runs."
-    >
+    <OsShell title="Ask" subtitle="Answers grounded in your calls, leads, customers, and jobs.">
       <PlanUpgradeGate module="ask">
-      <div className="ask-hero pro-panel pro-panel--dense">
-        <div className="pro-panel-head">
-          <h2 className="pro-panel-title font-sans">Shop memory</h2>
-        </div>
-        <div className="pro-panel-body ask-hero-inner">
+        <div className="ask-ws">
+          <div className="ask-thread" aria-live="polite">
+            {!turns.length ? (
+              <div className="ask-intro">
+                <p className="ask-intro-kicker">Shop intelligence</p>
+                <h2 className="ask-intro-title">Ask what happened, what matters, and what to do next.</h2>
+                <p className="ask-intro-copy">
+                  Every answer cites the records it used. When Orvius proposes an action, it tells you exactly
+                  what will happen and waits for your approval.
+                </p>
+                <ul className="ask-suggest-grid">
+                  {ASK_SUGGESTIONS.map((item) => (
+                    <li key={item}>
+                      <button type="button" className="ask-suggest" onClick={() => ask(item)}>
+                        {item}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {turns.map((turn) => (
+              <article key={turn.id} className="ask-turn2">
+                <p className="ask-you">{turn.question}</p>
+
+                {turn.status === "pending" ? (
+                  <div className="ask-answer2 is-pending" aria-busy="true">
+                    <p className="ask-thinking">Reading shop records…</p>
+                    <span className="skeleton ask-skel" />
+                    <span className="skeleton ask-skel ask-skel--short" />
+                  </div>
+                ) : null}
+
+                {turn.status === "failed" ? (
+                  <div className="ox-state ox-state--failure ox-state--inline">
+                    <p className="ox-state-title">No answer yet</p>
+                    <p className="ox-state-copy">{turn.error}</p>
+                    <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => retry(turn)}>
+                      Retry
+                    </button>
+                  </div>
+                ) : null}
+
+                {turn.status === "done" ? (
+                  <div className="ask-answer2">
+                    <p className="ask-source2">
+                      {turn.source === "memory+model" ? "Shop records + reasoning" : "From shop records"}
+                    </p>
+                    <p className="ask-text">{turn.answer}</p>
+
+                    {turn.hits?.length ? (
+                      <div className="ask-evidence">
+                        <p className="ask-evidence-label">Evidence · {turn.hits.length}</p>
+                        <ul>
+                          {turn.hits.map((hit) => {
+                            const body = (
+                              <>
+                                <span className="ask-ev-type">{HIT_LABEL[hit.type] ?? hit.type}</span>
+                                <span className="ask-ev-title">{hit.title}</span>
+                                <span className="ask-ev-sum">{hit.summary}</span>
+                              </>
+                            );
+                            return (
+                              <li key={`${hit.type}-${hit.id}`}>
+                                {isRecordType(hit.type) ? (
+                                  <RecordLink type={hit.type} id={hit.id} href={hit.href} className="ask-ev">
+                                    {body}
+                                  </RecordLink>
+                                ) : (
+                                  <Link href={hit.href} className="ask-ev">
+                                    {body}
+                                  </Link>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p className="ask-no-evidence">No specific records matched — this answer is from shop totals.</p>
+                    )}
+
+                    <CopilotActions hits={turn.hits ?? []} />
+                  </div>
+                ) : null}
+              </article>
+            ))}
+            <div ref={endRef} />
+          </div>
+
           <form
-            className="ask-form"
+            className="ask-composer"
             onSubmit={(e) => {
               e.preventDefault();
-              void ask(question);
+              ask(question);
             }}
           >
-            <input
-              className="input ask-input"
+            <label htmlFor="ask-input" className="sr-only">
+              Ask about your shop
+            </label>
+            <textarea
+              id="ask-input"
+              ref={inputRef}
+              className="ask-composer-input"
               value={question}
+              rows={1}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="What should I do now?"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  ask(question);
+                }
+              }}
+              placeholder="Ask about calls, customers, jobs, or what to do next"
               autoComplete="off"
             />
-            <button type="submit" disabled={loading} className="btn btn-void ask-submit">
-              {loading ? "Searching…" : "Ask"}
+            <button
+              type="submit"
+              className="ox-btn ox-btn--primary ask-composer-send"
+              disabled={busy || !question.trim()}
+            >
+              {busy ? "Thinking…" : "Ask"}
             </button>
           </form>
-
-          <div className="ask-suggestions" role="list">
-            {ASK_SUGGESTIONS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                role="listitem"
-                className="ask-rail-row font-sans"
-                onClick={() => void ask(item)}
-                disabled={loading}
-              >
-                <span className="ask-rail-q">{item}</span>
-                <span className="ask-rail-go">Run</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {error ? (
-        <div className="mt-3">
-          <ShellAlert tone="error">{error}</ShellAlert>
-        </div>
-      ) : null}
-
-      {!turns.length && !loading ? (
-        <div className="ask-empty-state">
-          <p className="ask-empty-title font-sans">
-            Your shop data, not generic AI.
-          </p>
-          <p className="ask-empty font-sans">
-            Ask pulls from calls, leads, customers, and jobs already in Orvius.
-            When answers include jobs or leads, propose an action and approve before it runs.
-          </p>
-        </div>
-      ) : null}
-
-      <ol className="ask-turns">
-        {turns.map((turn, index) => (
-          <li key={`${turn.question}-${index}`} className="ask-turn pro-panel pro-panel--dense">
-            <div className="pro-panel-head">
-              <p className="pro-panel-title font-sans">You asked</p>
+          {turns.length ? (
+            <div className="ask-followups" aria-label="Suggested questions">
+              {ASK_SUGGESTIONS.filter((s) => !turns.some((t) => t.question === s))
+                .slice(0, 3)
+                .map((item) => (
+                  <button key={item} type="button" className="ask-chip" disabled={busy} onClick={() => ask(item)}>
+                    {item}
+                  </button>
+                ))}
             </div>
-            <div className="pro-panel-body">
-              <p className="ask-q font-sans">{turn.question}</p>
-              <div className="ask-a">
-                <p className="ask-source font-sans">
-                  {turn.source === "memory+model" ? "Shop record + model" : "From shop record"}
-                </p>
-                <p className="ask-answer font-sans whitespace-pre-wrap">{turn.answer}</p>
-                {turn.hits.length ? (
-                  <ul className="ask-hits">
-                    {turn.hits.map((hit) => (
-                      <li key={`${hit.type}-${hit.id}`}>
-                        <Link href={hit.href} className="ask-hit font-sans">
-                          <span className="ask-hit-type">{hit.type}</span>
-                          <span className="ask-hit-title">{hit.title}</span>
-                          <span className="ask-hit-sum">{hit.summary}</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                <CopilotActions hits={turn.hits} />
-              </div>
-            </div>
-          </li>
-        ))}
-      </ol>
+          ) : null}
+        </div>
       </PlanUpgradeGate>
     </OsShell>
   );
