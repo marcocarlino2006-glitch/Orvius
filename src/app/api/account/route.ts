@@ -86,7 +86,7 @@ function depositsPayload(
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   const email = session?.user?.email?.toLowerCase();
 
@@ -138,7 +138,9 @@ export async function GET() {
       }
     : null;
 
-  const health = business ? await getShopHealth(business.id) : null;
+  /* Readiness costs three round trips and no screen reads it from here; Command gets it from ring1. */
+  const withReadiness = new URL(request.url).searchParams.get("include") === "readiness";
+  const health = business && withReadiness ? await getShopHealth(business.id) : null;
   const wedge = business && health ? await getWedgeReadiness(business.id, health) : null;
 
   const currentPlanId = business?.billingPlan ?? null;
@@ -201,6 +203,8 @@ export async function GET() {
     deposits: businessRecord ? depositsPayload(businessRecord) : null,
   });
 }
+
+const ASSISTANT_FIELDS = ["name", "greeting", "hoursJson", "servicesJson"] as const;
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -336,31 +340,32 @@ export async function PATCH(request: Request) {
       },
     });
 
-    await autoEnsureCustomerShopLine(business);
+    const { business: saved } = await autoEnsureCustomerShopLine(business);
 
     let assistantSynced = true;
     let syncError: string | null = null;
     let syncWarning: string | null = null;
 
-    try {
-      const refreshed = await prisma.business.findUniqueOrThrow({
-        where: { id: business.id },
-      });
-      const sync = await syncBusinessAssistant(refreshed);
-      syncWarning = sync.warning;
-      if (!sync.assistantUpdated) {
+    /*
+      The assistant is built from name, greeting, hours, and services only.
+      Everything else (autopilot, deposits, ticket, capture path) skips the two
+      Vapi round trips, which is what makes save-as-you-go feel instant.
+    */
+    const touchesAssistant = ASSISTANT_FIELDS.some((key) => body[key] !== undefined);
+    if (touchesAssistant) {
+      try {
+        const sync = await syncBusinessAssistant(saved);
+        syncWarning = sync.warning;
+        if (!sync.assistantUpdated) {
+          assistantSynced = false;
+          syncError = sync.warning ?? "Assistant sync failed";
+        }
+      } catch (error) {
         assistantSynced = false;
-        syncError = sync.warning ?? "Assistant sync failed";
+        syncError =
+          error instanceof Error ? error.message : "Assistant sync failed";
       }
-    } catch (error) {
-      assistantSynced = false;
-      syncError =
-        error instanceof Error ? error.message : "Assistant sync failed";
     }
-
-    const saved = await prisma.business.findUniqueOrThrow({
-      where: { id: business.id },
-    });
 
     return NextResponse.json({
       business: {
