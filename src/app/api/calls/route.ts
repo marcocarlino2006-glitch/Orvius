@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAfterHours } from "@/lib/business";
+import { gradeCall, summarizeCallQuality } from "@/lib/call-quality";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
 
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
   */
   const hours = await prisma.business.findUnique({
     where: { id: business.id },
-    select: { hoursJson: true, timezone: true },
+    select: { hoursJson: true, timezone: true, trade: true, servicesJson: true, name: true },
   });
   const timezone = hours?.timezone ?? "America/New_York";
   const hoursJson = hours?.hoursJson ?? "{}";
@@ -43,13 +44,19 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
     include: {
       business: { select: { name: true } },
-      customer: { select: { id: true, name: true, interactionCount: true } },
+      customer: { select: { id: true, name: true, interactionCount: true, address: true } },
       lead: {
         select: {
           id: true,
           name: true,
+          phone: true,
+          address: true,
           serviceType: true,
           urgency: true,
+          categoryCode: true,
+          notes: true,
+          status: true,
+          job: { select: { id: true } },
         },
       },
     },
@@ -57,9 +64,11 @@ export async function GET(request: NextRequest) {
 
   const hasMore = calls.length > limit;
   const items = hasMore ? calls.slice(0, limit) : calls;
+  const shop = { trade: hours?.trade, servicesJson: hours?.servicesJson, name: hours?.name };
+  const grades = items.map((call) => gradeCall({ call, lead: call.lead, business: shop, knownAddress: call.customer?.address }));
 
   return NextResponse.json({
-    calls: items.map((call) => ({
+    calls: items.map((call, index) => ({
       id: call.id,
       callerPhone: call.callerPhone,
       status: call.status,
@@ -69,9 +78,24 @@ export async function GET(request: NextRequest) {
       createdAt: call.createdAt.toISOString(),
       afterHours: isAfterHours(call.createdAt, hoursJson, timezone),
       business: call.business,
-      customer: call.customer,
-      lead: call.lead,
+      customer: call.customer
+        ? { id: call.customer.id, name: call.customer.name, interactionCount: call.customer.interactionCount }
+        : null,
+      lead: call.lead
+        ? {
+            id: call.lead.id,
+            name: call.lead.name,
+            serviceType: call.lead.serviceType,
+            urgency: call.lead.urgency,
+          }
+        : null,
+      quality: {
+        score: grades[index].score,
+        verdict: grades[index].verdict,
+        headline: grades[index].headline,
+      },
     })),
+    quality: summarizeCallQuality(grades),
     nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
     total: await prisma.call.count({ where: tenant }),
   });

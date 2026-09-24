@@ -3100,3 +3100,49 @@ button.rd-path-btn:hover {
   font-size: 0.875rem;
   color: var(--ox-text);
 }
+
+.call-quality-note {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--ox-amber);
+}
+
+.call-quality-note.is-fix {
+  color: var(--ox-red);
+}
+
+.call-quality-panel ul {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.call-quality-panel li {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ox-text);
+}
+
+.call-quality-panel li.is-fix {
+  color: var(--ox-red);
+}
+
+.call-quality-panel q {
+  display: block;
+  margin-top: 0.2rem;
+  color: #a09f9e;
+  font-style: italic;
+}
+
+.call-quality-score {
+  font-size: 0.8125rem;
+  color: #a09f9e;
+}
+
+.call-quality-score strong {
+  color: var(--ox-text);
+  font-variant-numeric: tabular-nums;
+}

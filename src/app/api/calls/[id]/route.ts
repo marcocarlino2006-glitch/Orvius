@@ -1,37 +1,10 @@
 import { NextResponse } from "next/server";
+import { gradeCall } from "@/lib/call-quality";
 import { getCustomerTimeline } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
-
-/** Heuristic review signal — not a model confidence score. */
-function needsHumanReview(params: {
-  summary: string | null;
-  transcript: string | null;
-  lead: {
-    address: string | null;
-    serviceType: string | null;
-    urgency: string | null;
-    job: { id: string } | null;
-  } | null;
-}): { needsReview: boolean; reasons: string[] } {
-  const reasons: string[] = [];
-  if (!params.summary?.trim() && !params.transcript?.trim()) {
-    reasons.push("No summary or transcript captured");
-  }
-  if (params.lead) {
-    if (!params.lead.address?.trim()) reasons.push("Missing service address");
-    if (!params.lead.serviceType?.trim()) reasons.push("Service type unclear");
-    if (
-      params.lead.urgency?.toLowerCase().includes("emergency") &&
-      !params.lead.job
-    ) {
-      reasons.push("Emergency lead not booked yet");
-    }
-  }
-  return { needsReview: reasons.length > 0, reasons };
-}
 
 export async function GET(_request: Request, { params }: Params) {
   const authResult = await requireEntitledSession();
@@ -43,7 +16,7 @@ export async function GET(_request: Request, { params }: Params) {
   const call = await prisma.call.findFirst({
     where: { id, businessId: business.id },
     include: {
-      business: { select: { id: true, name: true } },
+      business: { select: { id: true, name: true, trade: true, servicesJson: true } },
       customer: {
         select: {
           id: true,
@@ -107,22 +80,12 @@ export async function GET(_request: Request, { params }: Params) {
   }
   if (call.customer) actionsTaken.push("Customer record linked");
 
-  const review = needsHumanReview({
-    summary: call.summary,
-    transcript: call.transcript,
-    lead: call.lead
-      ? {
-          address: call.lead.address,
-          serviceType: call.lead.serviceType,
-          urgency: call.lead.urgency,
-          job: call.lead.job,
-        }
-      : null,
-  });
+  const quality = gradeCall({ call, lead: call.lead, business: call.business ?? undefined, knownAddress: call.customer?.address });
 
   return NextResponse.json({
     call: {
       ...call,
+      business: call.business ? { id: call.business.id, name: call.business.name } : null,
       createdAt: call.createdAt.toISOString(),
       updatedAt: call.updatedAt.toISOString(),
       ownerNotifiedAt: call.ownerNotifiedAt?.toISOString() ?? null,
@@ -149,8 +112,7 @@ export async function GET(_request: Request, { params }: Params) {
     },
     situation: {
       actionsTaken,
-      needsReview: review.needsReview,
-      reviewReasons: review.reasons,
+      quality,
       priorJobs: priorJobs.map((job) => ({
         ...job,
         scheduledAt: job.scheduledAt?.toISOString() ?? null,

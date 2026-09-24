@@ -16,6 +16,7 @@ type CallRecordCardProps = {
   serviceType?: string | null;
   urgency?: string | null;
   returning?: boolean;
+  quality?: { verdict: "clean" | "listen" | "fix"; headline: string };
 };
 
 /** The call was answered and ended normally — the unremarkable outcome. */
@@ -48,6 +49,7 @@ export function CallRecordCard({
   serviceType,
   urgency,
   returning,
+  quality,
 }: CallRecordCardProps) {
   const emergency = isEmergency(urgency);
   /*
@@ -122,6 +124,11 @@ export function CallRecordCard({
           {serviceType && rest ? " · " : ""}
           {rest}
         </p>
+        {quality && quality.verdict !== "clean" ? (
+          <p className={`call-quality-note font-sans is-${quality.verdict}`}>
+            {quality.verdict === "fix" ? "Fix" : "Listen"}: {quality.headline}
+          </p>
+        ) : null}
       </div>
     </RecordLink>
   );

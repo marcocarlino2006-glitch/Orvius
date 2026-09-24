@@ -2,11 +2,12 @@
 
 import { CallRecordCard } from "@/components/call-record-card";
 import { ProLead } from "@/components/pro-lead";
-import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
+import { ProEmptyState, ProFilterBar, ProListEnd } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import type { CallQualitySummary, CallVerdict } from "@/lib/call-quality";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -28,12 +29,27 @@ type CallRow = {
     serviceType: string | null;
     urgency: string | null;
   } | null;
+  quality: { score: number; verdict: CallVerdict; headline: string };
 };
+
+function qualityDetail(summary: CallQualitySummary | null) {
+  if (!summary?.graded) return "Every one transcribed, qualified, and filed against a customer.";
+  const review = summary.listen + summary.fix;
+  if (!review) {
+    return `Every call reviewed. All ${summary.graded} went cleanly.`;
+  }
+  const top = summary.top[0];
+  return `${summary.clean} of ${summary.graded} went cleanly. ${review} ${
+    review === 1 ? "is" : "are"
+  } worth a listen${top ? `, most often for ${top.label}` : ""}.`;
+}
 
 export default function CallsPage() {
   const [calls, setCalls] = useState<CallRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [quality, setQuality] = useState<CallQualitySummary | null>(null);
+  const [filter, setFilter] = useState<"" | "review">("");
 
   useEffect(() => {
     fetch("/api/calls?limit=50")
@@ -43,6 +59,7 @@ export default function CallsPage() {
       })
       .then((data) => {
         setCalls(data.calls ?? []);
+        setQuality(data.quality ?? null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -58,6 +75,8 @@ export default function CallsPage() {
     }),
     [calls],
   );
+  const toReview = calls.filter((call) => call.quality?.verdict !== "clean");
+  const shown = filter === "review" ? toReview : calls;
 
   return (
     <OsShell
@@ -73,7 +92,7 @@ export default function CallsPage() {
         loading={loading}
         figure={String(calls.length)}
         caption={calls.length === 1 ? "call answered" : "calls answered"}
-        detail="Every one transcribed, qualified, and filed against a customer."
+        detail={qualityDetail(quality)}
         facts={[
           {
             label: "after hours",
@@ -82,6 +101,7 @@ export default function CallsPage() {
           },
           { label: "booked", value: tally.booked, live: tally.booked > 0 },
           { label: "returning", value: tally.returning },
+          { label: "worth a listen", value: toReview.length, live: toReview.length > 0 },
         ]}
         action={<ProShopLineCta label="Test call" showNumber={false} />}
       />
@@ -103,8 +123,23 @@ export default function CallsPage() {
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : (
+            <>
+            <ProFilterBar
+              className="mb-4"
+              value={filter}
+              onChange={(value) => setFilter(value === "review" ? "review" : "")}
+              options={[
+                { value: "", label: "All calls", count: calls.length },
+                { value: "review", label: "Worth a listen", count: toReview.length },
+              ]}
+            />
+            {!shown.length ? (
+              <p className="font-sans text-sm text-ash">
+                Nothing to review. Every call on this page went cleanly.
+              </p>
+            ) : null}
             <ul className="os-lead-rail">
-              {calls.map((call) => (
+              {shown.map((call) => (
                 <li key={call.id}>
                   <CallRecordCard
                     id={call.id}
@@ -118,10 +153,12 @@ export default function CallsPage() {
                     serviceType={call.lead?.serviceType}
                     urgency={call.lead?.urgency}
                     returning={(call.customer?.interactionCount ?? 0) > 1}
+                    quality={call.quality}
                   />
                 </li>
               ))}
             </ul>
+            </>
           )}
           {calls.length ? (
             <ProListEnd count={calls.length} noun="call" />
