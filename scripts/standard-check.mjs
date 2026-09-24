@@ -404,7 +404,7 @@ if (uncapturedWrites.length) {
 const customerSmsSurfaces = [
   "src/lib/customer-confirm.ts",
   "src/lib/booking-deposit.ts",
-  "src/app/api/copilot/route.ts",
+  "src/lib/copilot-execute.ts",
 ];
 const unsafeCustomerSms = [];
 for (const rel of customerSmsSurfaces) {
