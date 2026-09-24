@@ -10,7 +10,7 @@ import { FounderManusNext } from "@/components/founder-manus-next";
 import { OperatingMetricsPanel } from "@/components/operating-metrics-panel";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { RecordAvatar } from "@/components/record-avatar";
-import { invalidateAccount } from "@/lib/account-client";
+import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import { pricing } from "@/lib/company";
 import { displayPhone } from "@/lib/customer";
@@ -162,7 +162,7 @@ export function SettingsCenter({
   const load = useCallback(async () => {
     setLoadError(null);
     try {
-      const res = await fetch("/api/account");
+      const res = await fetchAccount();
       if (!res.ok) throw new Error();
       const data = (await res.json()) as Account;
       setAccount(data);

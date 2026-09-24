@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 
 type OnboardingStatus = {
   complete: boolean;
@@ -12,14 +12,36 @@ type OnboardingStatus = {
   } | null;
 };
 
+const READY_KEY = "orvius:workspace-ready";
+
+function rememberReady(ready: boolean) {
+  try {
+    if (ready) sessionStorage.setItem(READY_KEY, "1");
+    else sessionStorage.removeItem(READY_KEY);
+  } catch {
+    /* private mode */
+  }
+}
+
 /**
  * Keep unfinished shops in the setup tunnel.
+ * A shop that already passed this browser session renders at once and is
+ * re-checked in the background, so pages don't wait on this request to start
+ * loading their own data.
  * owner_phone is the only step that belongs in Settings.
  */
 export function OnboardingGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "ready">("loading");
+
+  useLayoutEffect(() => {
+    try {
+      if (sessionStorage.getItem(READY_KEY) === "1") setStatus("ready");
+    } catch {
+      /* private mode */
+    }
+  }, []);
   const onOnboarding = pathname === "/dashboard/onboarding";
   const onSettings = pathname.startsWith("/dashboard/settings");
 
@@ -36,6 +58,7 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
 
         const json = (await res.json()) as OnboardingStatus;
         if (cancelled) return;
+        rememberReady(json.ready);
 
         if (!json.provisioned && !onOnboarding) {
           router.replace("/dashboard/onboarding");

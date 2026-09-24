@@ -5,6 +5,7 @@ import {
   type CaptureMode,
   type CarrierId,
 } from "@/lib/carrier-forward";
+import { displayPhone } from "@/lib/customer";
 import { telHref } from "@/lib/demo-line";
 import { useEffect, useMemo, useState } from "react";
 
@@ -27,6 +28,15 @@ type CaptureSetupPanelProps = {
 };
 
 /** Owner capture recovery — one primary by state, helpers under More. */
+/** Carrier codes take the bare ten digits: *71 + 3125550199, dialed as one string. */
+function withLine(step: string, line: string) {
+  const tenDigits = line.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+  return step
+    .replace(/(\*{1,2}\d+\*?) \+ your Orvius number/, (_, code: string) => `${code}${tenDigits}`)
+    .replace(/(\*{1,2}\d+\*) \+ Orvius digits \+ # \(no \+1\)/, (_, code: string) => `${code}${tenDigits}#`)
+    .replace("your Orvius number", displayPhone(line));
+}
+
 export function CaptureSetupPanel({
   line,
   overflowConfirmed,
@@ -188,7 +198,7 @@ export function CaptureSetupPanel({
           <ol className="capture-setup-steps mt-3">
             {guide.steps.map((step) => (
               <li key={step}>
-                {line ? step.replace("your Orvius number", line) : step}
+                {line ? withLine(step, line) : step}
               </li>
             ))}
           </ol>
