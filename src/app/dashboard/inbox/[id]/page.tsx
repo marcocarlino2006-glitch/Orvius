@@ -50,7 +50,7 @@ type LeadDetail = {
 type Tech = { id: string; name: string };
 
 function formatUrgency(value: string | null) {
-  if (!value) return "Flexible";
+  if (!value) return undefined;
   return value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
