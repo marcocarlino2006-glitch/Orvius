@@ -1,3 +1,5 @@
+"use client";
+
 import { RecordLink } from "@/components/record-drawer";
 import { customerDisplayName, displayPhone } from "@/lib/customer";
 
@@ -10,6 +12,9 @@ type CustomerRecordCardProps = {
   interactionCount: number;
   lastSeenAt: string;
   returning?: boolean;
+  /** Wide layouts show history beside the list; the drawer stays for narrow ones. */
+  onSelect?: () => void;
+  selected?: boolean;
 };
 
 /** Cursor-grade customer row — no avatar soft card. */
@@ -22,6 +27,8 @@ export function CustomerRecordCard({
   interactionCount,
   lastSeenAt,
   returning = interactionCount > 1,
+  onSelect,
+  selected = false,
 }: CustomerRecordCardProps) {
   const label = customerDisplayName(name, phone);
   const when = new Date(lastSeenAt).toLocaleDateString(undefined, {
@@ -30,6 +37,16 @@ export function CustomerRecordCard({
   });
 
   return (
+    <div
+      className={`cp-row${selected ? " is-selected" : ""}`}
+      onClickCapture={(event) => {
+        if (!onSelect || event.metaKey || event.ctrlKey || event.shiftKey) return;
+        if (!window.matchMedia("(min-width: 1100px)").matches) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onSelect();
+      }}
+    >
     <RecordLink type="customer" id={id} href={`/dashboard/customers/${id}`} className="lead-rail-row">
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
@@ -60,5 +77,6 @@ export function CustomerRecordCard({
         </p>
       </div>
     </RecordLink>
+    </div>
   );
 }

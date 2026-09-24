@@ -402,3 +402,73 @@ export async function getCustomerTimeline(
     (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
   );
 }
+
+export type PropertyHistory = {
+  address: string;
+  jobCount: number;
+  lastService: string | null;
+  lastAt: string | null;
+  nextAt: string | null;
+  paidCents: number;
+};
+
+const addressKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** Each service address this customer has used, with what was done there and what it earned. */
+export async function getCustomerProperties(
+  customerId: string,
+  homeAddress: string | null,
+): Promise<PropertyHistory[]> {
+  const jobs = await prisma.job.findMany({
+    where: { customerId, status: { not: "cancelled" } },
+    orderBy: { createdAt: "asc" },
+    select: {
+      address: true,
+      title: true,
+      status: true,
+      scheduledAt: true,
+      completedAt: true,
+      createdAt: true,
+      invoices: { select: { payments: { select: { amountCents: true, status: true } } } },
+      estimate: { select: { invoice: { select: { payments: { select: { amountCents: true, status: true } } } } } },
+    },
+  });
+
+  const byAddress = new Map<string, PropertyHistory>();
+  const ensure = (address: string) => {
+    const key = addressKey(address);
+    let entry = byAddress.get(key);
+    if (!entry) {
+      entry = { address, jobCount: 0, lastService: null, lastAt: null, nextAt: null, paidCents: 0 };
+      byAddress.set(key, entry);
+    }
+    return entry;
+  };
+  if (homeAddress?.trim()) ensure(homeAddress.trim());
+
+  const now = Date.now();
+  for (const job of jobs) {
+    const address = job.address?.trim() || homeAddress?.trim();
+    if (!address) continue;
+    const entry = ensure(address);
+    entry.jobCount += 1;
+    const when = job.completedAt ?? job.scheduledAt ?? job.createdAt;
+    if (when.getTime() <= now || job.status === "completed") {
+      if (!entry.lastAt || when.toISOString() > entry.lastAt) {
+        entry.lastAt = when.toISOString();
+        entry.lastService = job.title;
+      }
+    } else if (!entry.nextAt || when.toISOString() < entry.nextAt) {
+      entry.nextAt = when.toISOString();
+    }
+    const payments = [
+      ...job.invoices.flatMap((i) => i.payments),
+      ...(job.estimate?.invoice?.payments ?? []),
+    ];
+    entry.paidCents += payments
+      .filter((p) => p.status !== "failed" && p.status !== "refunded")
+      .reduce((sum, p) => sum + p.amountCents, 0);
+  }
+
+  return [...byAddress.values()].sort((a, b) => b.jobCount - a.jobCount);
+}

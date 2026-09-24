@@ -1,5 +1,6 @@
 "use client";
 
+import { CustomerPanel } from "@/components/customer-panel";
 import { CustomerRecordCard } from "@/components/customer-record-card";
 import { ProLead } from "@/components/pro-lead";
 import {
@@ -32,6 +33,7 @@ export default function CustomersPage() {
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -80,6 +82,8 @@ export default function CustomersPage() {
           : null,
     };
   }, [customers]);
+
+  const activeId = customers.some((c) => c.id === selectedId) ? selectedId : (customers[0]?.id ?? null);
 
   return (
     <OsShell
@@ -152,10 +156,13 @@ export default function CustomersPage() {
               }
             />
           ) : (
+            <div className="cp-layout">
             <ul className="os-lead-rail">
               {customers.map((customer) => (
                 <li key={customer.id}>
                   <CustomerRecordCard
+                    onSelect={() => setSelectedId(customer.id)}
+                    selected={customer.id === activeId}
                     id={customer.id}
                     name={customer.name}
                     phone={customer.phone}
@@ -168,6 +175,10 @@ export default function CustomersPage() {
                 </li>
               ))}
             </ul>
+            <div className="cp-side">
+              {activeId ? <CustomerPanel customerId={activeId} /> : null}
+            </div>
+            </div>
           )}
           {customers.length ? (
             <ProListEnd count={customers.length} noun="customer" />

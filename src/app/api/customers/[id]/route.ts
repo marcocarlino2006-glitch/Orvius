@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCustomerTimeline, customerDisplayName } from "@/lib/customer";
+import { getCustomerProperties, getCustomerTimeline, customerDisplayName } from "@/lib/customer";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
@@ -28,7 +28,10 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: "Customer not found" }, { status: 404 });
   }
 
-  const timeline = await getCustomerTimeline(id);
+  const [timeline, properties] = await Promise.all([
+    getCustomerTimeline(id),
+    getCustomerProperties(id, customer.address),
+  ]);
 
   return NextResponse.json({
     customer: {
@@ -49,5 +52,6 @@ export async function GET(_request: Request, { params }: Params) {
       returning: customer.interactionCount > 1,
     },
     timeline,
+    properties,
   });
 }
