@@ -960,6 +960,7 @@ export async function getAttentionQueue(
         urgency: lead.urgency,
         address: lead.address,
         phone: lead.phone,
+        status: lead.status,
         scheduledAt: lead.job?.scheduledAt?.toISOString() ?? null,
       },
     });

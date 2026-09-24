@@ -1,5 +1,7 @@
 import { listAuditFor } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
+import { leadNextAction } from "@/lib/lead-next-action";
+import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
 import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
 import {
@@ -385,7 +387,18 @@ function buildNext(g: Graph): RecordView["next"] {
     return null;
   }
   if (g.lead) {
-    if (g.lead.status === "new" || g.lead.status === "contacted") {
+    if (g.lead.status !== "new" && g.lead.status !== "contacted") return null;
+    const next = leadNextAction({ ...g.lead, jobId: null });
+    if (next.kind === "call") {
+      return {
+        label: next.label,
+        href: telHref(next.phone),
+        detail: next.label === "Call now"
+          ? "Emergency — talk to them before anything else, then book."
+          : "No service address yet — get it on the call, then book.",
+      };
+    }
+    if (next.kind === "book") {
       return { label: "Book job", href: recordHref("lead", g.lead.id), detail: "Pick a window and create the job from this lead." };
     }
     return null;

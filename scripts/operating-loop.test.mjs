@@ -410,4 +410,23 @@ test("technician ranking: skill first, then free calendar, then lightest day", (
   assert.match(none.blocked, /sewer/);
 });
 
+test("the record drawer's next action matches the inbox: call when the address or safety demands it", async () => {
+  const shop = await makeShop();
+  try {
+    const lead = (data) =>
+      prisma.lead.create({ data: { businessId: shop.id, phone: "+13125550190", status: "new", ...data } });
+    const noAddress = await lead({ name: "No Address", serviceType: "No heat", urgency: "same-day" });
+    const gas = await lead({ name: "Gas", serviceType: "Smell gas", urgency: "emergency", address: "1 Elm St" });
+    const ready = await lead({ name: "Ready", serviceType: "Tune-up", urgency: "this-week", address: "2 Elm St" });
+
+    assert.equal((await getRecordView(shop.id, "lead", noAddress.id)).next.label, "Call back");
+    const gasNext = (await getRecordView(shop.id, "lead", gas.id)).next;
+    assert.equal(gasNext.label, "Call now");
+    assert.equal(gasNext.href, "tel:+13125550190");
+    assert.equal((await getRecordView(shop.id, "lead", ready.id)).next.label, "Book job");
+  } finally {
+    await drop(shop.id);
+  }
+});
+
 test.after(() => prisma.$disconnect());

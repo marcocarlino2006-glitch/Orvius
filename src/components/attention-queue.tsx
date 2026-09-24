@@ -10,6 +10,7 @@ import { AssignTechButton, type TechOption } from "@/components/assign-tech-butt
 import { JobStatusAdvance } from "@/components/job-status-advance";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { telHref } from "@/lib/demo-line";
+import { leadNextAction } from "@/lib/lead-next-action";
 import { formatCents } from "@/lib/money";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
 import { formatAge, type WorkItem } from "@/lib/command-model";
@@ -28,12 +29,27 @@ function canCall(item: AttentionItem) {
   );
 }
 
-function canBook(item: AttentionItem) {
+function canBookStrategy(item: AttentionItem) {
   const strategy = attentionActionStrategy(item.kind);
   return (
-    (strategy === "book" || item.kind === "urgent_lead" || item.kind === "overdue_followup") &&
-    item.entityType === "lead"
+    item.entityType === "lead" &&
+    (strategy === "book" || item.kind === "urgent_lead" || item.kind === "overdue_followup")
   );
+}
+
+function leadNext(item: AttentionItem) {
+  if (item.entityType !== "lead") return null;
+  return leadNextAction({
+    status: item.meta?.status ?? "new",
+    urgency: item.meta?.urgency ?? null,
+    phone: item.meta?.phone ?? null,
+    address: item.meta?.address ?? null,
+    jobId: null,
+  });
+}
+
+function canBook(item: AttentionItem) {
+  return canBookStrategy(item) && leadNext(item)?.kind === "book";
 }
 
 function canAssign(item: AttentionItem) {
@@ -275,6 +291,14 @@ function PrimaryAction({
         compact
         className="attention-item-assign"
       />
+    );
+  }
+  const next = canBookStrategy(item) ? leadNext(item) : null;
+  if (next?.kind === "call") {
+    return (
+      <a href={telHref(next.phone)} className={primary}>
+        {next.label}
+      </a>
     );
   }
   if (canBook(item)) {
