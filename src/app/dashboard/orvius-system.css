@@ -3146,3 +3146,17 @@ button.rd-path-btn:hover {
   color: var(--ox-text);
   font-variant-numeric: tabular-nums;
 }
+
+.os-shell .pro-search-icon {
+  left: 0.8rem;
+  z-index: 1;
+}
+
+.os-shell .pro-search-input {
+  padding-left: 2.4rem !important;
+}
+
+/* The floating Ask dock sits over the last row of any list without this. */
+.os-shell .os-main {
+  padding-bottom: 5.5rem;
+}

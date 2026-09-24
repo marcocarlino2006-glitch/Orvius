@@ -1,6 +1,7 @@
 "use client";
 
 import { RecordLink } from "@/components/record-drawer";
+import { displayPhone, normalizePhone } from "@/lib/customer";
 import { ShellBadge } from "@/components/shell-primitives";
 import { isEmergency } from "@/lib/urgency";
 
@@ -70,7 +71,8 @@ export function CallRecordCard({
     hour: "numeric",
     minute: "2-digit",
   });
-  const rest = [summary, callerPhone].filter(Boolean).join(" · ");
+  const phone = callerPhone ? displayPhone(normalizePhone(callerPhone) ?? callerPhone) : null;
+  const rest = [summary, phone].filter(Boolean).join(" · ");
   const settled = isSettled(status);
 
   return (
@@ -100,7 +102,7 @@ export function CallRecordCard({
         </div>
         <div className="lead-rail-title-row">
           <span className="lead-rail-name">
-            {leadName ?? callerPhone ?? "Unknown caller"}
+            {leadName ?? phone ?? "Unknown caller"}
           </span>
           <div className="lead-rail-badges">
             {/*

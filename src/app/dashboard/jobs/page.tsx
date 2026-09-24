@@ -257,8 +257,8 @@ export default function JobsPage() {
             </ul>
             </>
           )}
-          {jobs.length ? (
-            <ProListEnd count={jobs.length} noun="job" />
+          {filtered.length ? (
+            <ProListEnd count={filtered.length} noun="job" />
           ) : null}
         </>
       )}
