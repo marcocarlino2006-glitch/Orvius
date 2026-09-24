@@ -29,11 +29,11 @@ function titleForPath(pathname: string) {
 export default function DashboardLoading() {
   const pathname = usePathname() ?? "/dashboard";
   return (
-    <OsShell
-      title={titleForPath(pathname)}
-      subtitle="Loading the latest shop state…"
-    >
+    <OsShell title={titleForPath(pathname)}>
       <section className="dashboard-route-loading" aria-busy="true">
+        <p className="sr-only" role="status">
+          Loading the latest shop state…
+        </p>
         <div className="dashboard-route-loading-main">
           <span className="skeleton dashboard-route-loading-value" />
           <div className="dashboard-route-loading-metrics">
