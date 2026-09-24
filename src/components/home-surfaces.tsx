@@ -139,7 +139,7 @@ export function HomeSurfaces() {
       aria-labelledby="home-surfaces-heading"
     >
       <div className="editorial-wrap mkt-section-inner">
-        <header className="hx-head hx-head--row">
+        <header className="hx-head hx-head--row" data-reveal>
           <div>
             <p className="mkt-manifesto-kicker font-sans">Inside the product</p>
             <h2 id="home-surfaces-heading" className="hx-title">
@@ -156,9 +156,9 @@ export function HomeSurfaces() {
           </div>
         </header>
 
-        <div ref={trackRef} className="hx-track" tabIndex={0} aria-label="Product surfaces">
-          {surfaces.map((s) => (
-            <article key={s.id} className="hx-surface">
+        <div ref={trackRef} className="hx-track" data-reveal data-reveal-stagger tabIndex={0} aria-label="Product surfaces">
+          {surfaces.map((s, i) => (
+            <article key={s.id} className="hx-surface" style={{ ["--s" as string]: i }}>
               <div className="hx-surface-visual">{s.visual}</div>
               <p className="hx-surface-label font-sans">{s.label}</p>
               <h3 className="hx-surface-title">{s.title}</h3>

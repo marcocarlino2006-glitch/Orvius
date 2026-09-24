@@ -12,7 +12,7 @@ export function HomeCallStory() {
       aria-labelledby="home-proof-heading"
       className="mkt-proof-section mkt-proof-section--company mkt-proof-section--quiet"
     >
-      <div className="mkt-close-block">
+      <div className="mkt-close-block" data-reveal>
         <h2 id="home-proof-heading" className="mkt-proof-title">
           Call the product. Hear the night shift.
         </h2>

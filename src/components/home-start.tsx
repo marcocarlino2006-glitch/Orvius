@@ -39,14 +39,14 @@ export function HomeStart() {
       aria-labelledby="home-start-heading"
     >
       <div className="editorial-wrap mkt-section-inner">
-        <header className="hx-head">
+        <header className="hx-head" data-reveal>
           <p className="mkt-manifesto-kicker font-sans">Start here</p>
           <h2 id="home-start-heading" className="hx-title">
             Pick the path that fits your shop.
           </h2>
         </header>
 
-        <div className="hx-start-grid font-sans">
+        <div className="hx-start-grid font-sans" data-reveal data-reveal-stagger>
           <a href={demoLineHref()} className="hx-card hx-card--feature">
             <span className="hx-card-kicker">Live line</span>
             <span className="hx-card-title">Call it right now</span>
@@ -56,8 +56,13 @@ export function HomeStart() {
             </span>
             <span className="hx-card-number hx-mono">{DEMO_LINE_DISPLAY}</span>
           </a>
-          {cards.map((c) => (
-            <Link key={c.href} href={c.href} className="hx-card">
+          {cards.map((c, i) => (
+            <Link
+              key={c.href}
+              href={c.href}
+              className="hx-card"
+              style={{ ["--s" as string]: i + 1 }}
+            >
               <span className="hx-card-kicker">{c.kicker}</span>
               <span className="hx-card-title">{c.title}</span>
               <span className="hx-card-body">{c.body}</span>

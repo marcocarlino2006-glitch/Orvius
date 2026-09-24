@@ -184,14 +184,14 @@ export function HomeCapabilities() {
       aria-labelledby="home-caps-heading"
     >
       <div className="editorial-wrap mkt-section-inner">
-        <header className="hx-head">
+        <header className="hx-head" data-reveal>
           <p className="mkt-manifesto-kicker font-sans">The night shift</p>
           <h2 id="home-caps-heading" className="hx-title">
             One line that answers, books, and hands off.
           </h2>
         </header>
 
-        <div className="hx-caps-grid">
+        <div className="hx-caps-grid" data-reveal>
           <div className="hx-stage" aria-live="polite">
             <div key={current.id} className="hx-stage-inner">
               {current.visual}

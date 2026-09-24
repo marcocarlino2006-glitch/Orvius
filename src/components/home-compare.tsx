@@ -47,14 +47,14 @@ export function HomeCompare() {
       aria-labelledby="home-compare-heading"
     >
       <div className="editorial-wrap mkt-section-inner">
-        <header className="hx-head">
+        <header className="hx-head" data-reveal>
           <p className="mkt-manifesto-kicker font-sans">Compared</p>
           <h2 id="home-compare-heading" className="hx-title">
             What happens to the 11 PM call.
           </h2>
         </header>
 
-        <div className="hx-table-wrap">
+        <div className="hx-table-wrap" data-reveal>
           <table className="hx-table font-sans">
             <thead>
               <tr>
