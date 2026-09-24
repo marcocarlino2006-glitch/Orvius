@@ -4,7 +4,7 @@ import { HomeStatement } from "@/components/home-statement";
 import { HomeWhy } from "@/components/home-why";
 import { HomeNight } from "@/components/home-night";
 import { HomeReveal } from "@/components/home-reveal";
-import { HomeCapabilities } from "@/components/home-capabilities";
+import { HomeRules } from "@/components/home-rules";
 import { HomeSurfaces } from "@/components/home-surfaces";
 import { HomeCompare } from "@/components/home-compare";
 import { HomeStart } from "@/components/home-start";
@@ -14,8 +14,8 @@ import "./home-sections.css";
 export const dynamic = "force-dynamic";
 
 /**
- * Hero → night rules → why we built it → capabilities → a night on the line →
- * product surfaces → compare → start here → call close.
+ * Hero → night rules → why we built it → a night on the line → your rules →
+ * product screens → compare → start here → call close.
  */
 export default function HomePage() {
   return (
@@ -23,8 +23,8 @@ export default function HomePage() {
       <HomeLineHero />
       <HomeStatement />
       <HomeWhy />
-      <HomeCapabilities />
       <HomeNight />
+      <HomeRules />
       <HomeSurfaces />
       <HomeCompare />
       <HomeStart />
