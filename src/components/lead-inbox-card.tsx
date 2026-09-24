@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { RecordLink } from "@/components/record-drawer";
 import { ShellBadge } from "@/components/shell-primitives";
 import { LeadQuickActions } from "@/components/lead-quick-actions";
 import { LeadStatusBadge } from "@/components/lead-status-actions";
@@ -82,9 +82,9 @@ export function LeadInboxCard({
 
         <div className="lead-rail-title-row">
           {id ? (
-            <Link href={`/dashboard/inbox/${id}`} className="lead-rail-name">
+            <RecordLink type="lead" id={id} href={`/dashboard/inbox/${id}`} className="lead-rail-name">
               {name}
-            </Link>
+            </RecordLink>
           ) : (
             <span className="lead-rail-name">{name}</span>
           )}
@@ -108,12 +108,14 @@ export function LeadInboxCard({
         </p>
 
         {customerId ? (
-          <Link
+          <RecordLink
+            type="customer"
+            id={customerId}
             href={`/dashboard/customers/${customerId}`}
             className="lead-rail-record"
           >
             Customer record
-          </Link>
+          </RecordLink>
         ) : null}
       </div>
 

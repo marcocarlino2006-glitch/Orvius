@@ -121,6 +121,7 @@ export default function JobsPage() {
   return (
     <OsShell
       title="Jobs"
+      subtitle="Every booked job from request to paid."
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch

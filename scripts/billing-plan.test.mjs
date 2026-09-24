@@ -118,11 +118,12 @@ describe("entitlement follows the price, not our metadata", () => {
       });
 
       assert.equal(plan, "line");
-      /* Dispatch is a Pro/Fleet module — paying the Line price must lose it. */
+      /* Dispatch stays Pro/Fleet — Line keeps the wedge path (jobs/customers/ask). */
       assert.equal(canAccessModule(plan, "dispatch"), false);
       assert.equal(canAccessModule(plan, "calls"), true);
-      /* And unlimited technicians was the whole of what Fleet added. */
-      assert.equal(getFeatureSetForPlan(plan).maxTechnicians, 0);
+      assert.equal(canAccessModule(plan, "jobs"), true);
+      /* Owner-tech only on Line — Fleet still owns unlimited crew. */
+      assert.equal(getFeatureSetForPlan(plan).maxTechnicians, 1);
     });
   });
 

@@ -11,6 +11,7 @@ import {
 } from "react";
 import type { CoverageState } from "@/lib/coverage-state";
 import type { AttentionItem } from "@/lib/attention-types";
+import type { CommandCounts } from "@/lib/command-model";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
@@ -32,6 +33,7 @@ export type Ring1Data = {
   } | null;
   metrics: BusinessMetrics;
   outcomes?: ShopOutcomes;
+  commandCounts?: CommandCounts;
   shiftTimeline?: ShiftEvent[];
   attention?: AttentionItem[];
   dispatchToday?: {
@@ -70,6 +72,8 @@ type Ring1ContextValue = {
   data: Ring1Data | null;
   loading: boolean;
   loadError: string | null;
+  /** Epoch ms of the last successful refresh — drives the freshness readout. */
+  lastUpdatedAt: number | null;
   refresh: () => Promise<void>;
   business: BusinessSnapshot | null;
 };
@@ -109,6 +113,7 @@ export function Ring1Provider({
   const [data, setData] = useState<Ring1Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -123,9 +128,14 @@ export function Ring1Provider({
       const json = (await res.json()) as Ring1Data;
       setData(json);
       setLoadError(null);
+      setLastUpdatedAt(Date.now());
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Command could not refresh.";
+        err instanceof TypeError
+          ? "Orvius can't reach the network right now."
+          : err instanceof Error
+            ? err.message
+            : "Command could not refresh.";
       setData((current) => {
         setLoadError(
           current
@@ -153,10 +163,11 @@ export function Ring1Provider({
       data,
       loading,
       loadError,
+      lastUpdatedAt,
       refresh,
       business: toBusiness(data),
     }),
-    [data, loading, loadError, refresh],
+    [data, loading, loadError, lastUpdatedAt, refresh],
   );
 
   return (

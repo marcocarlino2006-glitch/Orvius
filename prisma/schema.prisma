@@ -15,6 +15,10 @@ model Business {
   ownerPhone           String?
   ownerEmail           String?
   timezone             String   @default("America/New_York")
+  /** Primary trade — HVAC | Plumbing | Electrical. Drives prompts and taxonomy. */
+  trade                String?
+  /** Shop street address for intake and service-area context. */
+  address              String?
   hoursJson            String   @default("{}")
   servicesJson         String   @default("[]")
   greeting             String?

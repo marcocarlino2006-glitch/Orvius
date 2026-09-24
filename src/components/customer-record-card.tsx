@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { RecordLink } from "@/components/record-drawer";
 import { customerDisplayName, displayPhone } from "@/lib/customer";
 
 type CustomerRecordCardProps = {
@@ -30,7 +30,7 @@ export function CustomerRecordCard({
   });
 
   return (
-    <Link href={`/dashboard/customers/${id}`} className="lead-rail-row">
+    <RecordLink type="customer" id={id} href={`/dashboard/customers/${id}`} className="lead-rail-row">
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
           {/*
@@ -59,6 +59,6 @@ export function CustomerRecordCard({
           {[displayPhone(phone), address, email].filter(Boolean).join(" · ")}
         </p>
       </div>
-    </Link>
+    </RecordLink>
   );
 }

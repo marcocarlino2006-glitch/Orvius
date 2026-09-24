@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { RecordLink } from "@/components/record-drawer";
 import { ShellBadge } from "@/components/shell-primitives";
 import { isEmergency } from "@/lib/urgency";
 
@@ -72,7 +72,9 @@ export function CallRecordCard({
   const settled = isSettled(status);
 
   return (
-    <Link
+    <RecordLink
+      type="call"
+      id={id}
       href={`/dashboard/calls/${id}`}
       className={`lead-rail-row${emergency ? " lead-rail-row-emergency" : ""}`}
     >
@@ -121,6 +123,6 @@ export function CallRecordCard({
           {rest}
         </p>
       </div>
-    </Link>
+    </RecordLink>
   );
 }

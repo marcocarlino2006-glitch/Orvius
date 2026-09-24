@@ -223,7 +223,7 @@ export function ProEconomicsPanel({
 
       <div className="pro-economics-actions">
         {stale && proofOnBoard ? (
-          <a href="#attention-board" className="pro-economics-pointer font-sans">
+          <a href="#work-queue" className="pro-economics-pointer font-sans">
             Weekly proof is due — copy it from the board above
           </a>
         ) : (

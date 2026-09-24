@@ -10,8 +10,13 @@ import {
 } from "@/components/pro-page-chrome";
 import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import {
+  describeDashboardFailure,
+  readDashboardError,
+  type DashboardLoadFailure,
+} from "@/lib/dashboard-fetch";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type LeadRow = {
@@ -46,24 +51,29 @@ export default function InboxPage() {
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [counts, setCounts] = useState<LeadCounts | null>(null);
   const [filter, setFilter] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<DashboardLoadFailure | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadLeads = useCallback(async (statusFilter: string) => {
     setLoading(true);
-    setError(null);
+    setFailure(null);
 
     try {
       const params = new URLSearchParams({ limit: "50" });
       if (statusFilter) params.set("status", statusFilter);
 
       const res = await fetch(`/api/leads?${params}`);
-      if (!res.ok) throw new Error("Failed to load inbox");
+      if (!res.ok) {
+        setFailure(await readDashboardError("Inbox", res));
+        setLeads([]);
+        setCounts(null);
+        return;
+      }
       const data = await res.json();
       setLeads(data.leads ?? []);
       setCounts(data.counts ?? null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load inbox");
+    } catch {
+      setFailure(describeDashboardFailure("Inbox", null, "Network error"));
     } finally {
       setLoading(false);
     }
@@ -78,6 +88,7 @@ export default function InboxPage() {
   return (
     <OsShell
       title="Inbox"
+      subtitle="Every lead waiting on a decision — act on the top one first."
       actions={
         <ProShopLineCta label="Call your line" showNumber={false} />
       }
@@ -113,23 +124,46 @@ export default function InboxPage() {
         <DashboardSkeleton />
       ) : (
         <>
-          {error ? (
-            <div className="mb-6">
-              <ShellAlert tone="error">{error}</ShellAlert>
+          {failure ? (
+            <div className="mb-6 pro-alert pro-alert-error font-sans" role="alert">
+              <p className="font-medium">{failure.title}</p>
+              <p className="mt-2 text-sm opacity-90">
+                <strong>Cause:</strong> {failure.cause}
+              </p>
+              <p className="mt-1 text-sm opacity-90">
+                <strong>Impact:</strong> {failure.impact}
+              </p>
+              <p className="mt-1 text-sm opacity-90">
+                <strong>Recover:</strong> {failure.recovery}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn btn-void text-sm"
+                  onClick={() => void loadLeads(filter)}
+                >
+                  Retry
+                </button>
+                {failure.href ? (
+                  <Link href={failure.href} className="btn btn-secondary text-sm">
+                    {failure.hrefLabel ?? "Open"}
+                  </Link>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
-          {!leads.length ? (
+          {!leads.length && !failure ? (
             <ProEmptyState
               title={filter ? "Nothing in this filter" : "No leads yet"}
               body={
                 filter
                   ? "Try another status or place a test call on your shop line."
-                  : "When someone calls, Orvius captures service, urgency, address, and callback — then drops it here."
+                  : "When someone calls, Orvius captures service, urgency, address, and callback — then drops it here. Next: call your line or run an in-app test from setup."
               }
               action={<ProShopLineCta showNumber={false} />}
             />
-          ) : (
+          ) : !leads.length ? null : (
             <ul className="os-lead-rail">
               {leads.map((lead) => (
                 <li key={lead.id}>

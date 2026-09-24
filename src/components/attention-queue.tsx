@@ -12,14 +12,10 @@ import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
-import { useState } from "react";
-
-type AttentionQueueProps = {
-  items: AttentionItem[];
-  loading?: boolean;
-  technicians?: TechOption[];
-  onAction?: () => void;
-};
+import { formatAge, type WorkItem } from "@/lib/command-model";
+import type { RecordType } from "@/lib/record-types";
+import { RecordLink } from "@/components/record-drawer";
+import { useEffect, useState } from "react";
 
 function canCall(item: AttentionItem) {
   const strategy = attentionActionStrategy(item.kind);
@@ -120,7 +116,7 @@ function MarkNotAJobButton({
   );
 }
 
-function TestAlertButton({ onDone }: { onDone?: () => void }) {
+function TestAlertButton({ onDone, quiet = false }: { onDone?: () => void; quiet?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -153,11 +149,11 @@ function TestAlertButton({ onDone }: { onDone?: () => void }) {
     <>
       <button
         type="button"
-        className="attention-item-btn attention-item-btn-primary"
+        className={quiet ? "attention-item-btn" : "attention-item-btn attention-item-btn-primary"}
         disabled={busy}
         onClick={() => void run()}
       >
-        {busy ? "Sending…" : "Send test alert"}
+        {busy ? "Sending…" : quiet ? "Send test" : "Send test alert"}
       </button>
       {err ? <span className="attention-item-detail">{err}</span> : null}
     </>
@@ -240,228 +236,224 @@ function TextConfirmButton({
   );
 }
 
+function PrimaryAction({
+  work,
+  technicians,
+  onAction,
+}: {
+  work: WorkItem;
+  technicians: TechOption[];
+  onAction?: () => void;
+}) {
+  const item = work.source;
+  const primary = "attention-item-btn attention-item-btn-primary";
+
+  if (work.id.startsWith("incident:")) {
+    return (
+      <>
+        <Link
+          href={
+            item.kind === "alert_failed" || item.kind === "alerts_muted"
+              ? "/dashboard/settings#owner-alerts"
+              : item.href
+          }
+          className={primary}
+        >
+          Fix setup
+        </Link>
+        {canTestAlert(item) ? <TestAlertButton onDone={onAction} quiet /> : null}
+      </>
+    );
+  }
+  if (canTestAlert(item)) return <TestAlertButton onDone={onAction} />;
+  if (canAssign(item)) {
+    return (
+      <AssignTechButton
+        jobId={item.entityId}
+        technicians={technicians}
+        onAssigned={() => onAction?.()}
+        compact
+        className="attention-item-assign"
+      />
+    );
+  }
+  if (canBook(item)) {
+    return (
+      <BookJobQuickButton leadId={item.entityId} onBooked={() => onAction?.()} className={primary} />
+    );
+  }
+  if (canTextConfirm(item)) {
+    return <TextConfirmButton jobId={item.entityId} onDone={() => onAction?.()} className={primary} />;
+  }
+  if (canAdvanceStatus(item)) {
+    return (
+      <JobStatusAdvance jobId={item.entityId} status={item.meta!.status!} onAdvanced={() => onAction?.()} compact />
+    );
+  }
+  if (canCall(item)) {
+    return (
+      <a href={telHref(item.meta!.phone!)} className={primary}>
+        Call back
+      </a>
+    );
+  }
+  if (canCopyProof(item)) return <CopyProofButton onDone={() => onAction?.()} />;
+  if (canDismissNotAJob(item)) {
+    return <MarkNotAJobButton leadId={item.entityId} onDone={() => onAction?.()} />;
+  }
+  return (
+    <Link href={item.href} className={primary}>
+      {item.recommendedAction || "Open"}
+    </Link>
+  );
+}
+
+const SEVERITY_LABEL: Record<WorkItem["severity"], string> = {
+  critical: "Critical",
+  high: "High",
+  normal: "Normal",
+};
+
+function drawerTarget(item: AttentionItem): { type: RecordType; id: string } | null {
+  if (item.entityType === "lead") return { type: "lead", id: item.entityId };
+  if (item.entityType === "job") return { type: "job", id: item.entityId };
+  return null;
+}
+
 export function AttentionQueue({
-  items,
+  work,
   loading,
   technicians = [],
   onAction,
-}: AttentionQueueProps) {
+}: {
+  work: WorkItem[];
+  loading?: boolean;
+  technicians?: TechOption[];
+  onAction?: () => void;
+}) {
   const [expanded, setExpanded] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
-  if (loading && !items.length) {
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (loading && !work.length) {
     return (
-      <section
-        className="attention-queue attention-queue-loading"
-        aria-label="Needs attention"
-        aria-busy="true"
-      >
-        <p className="attention-queue-kicker font-sans">On the board</p>
-        <div className="attention-queue-skel" aria-hidden>
-          <div className="attention-skel-card">
-            <span className="skeleton attention-skel-line attention-skel-line-sm" />
-            <span className="skeleton attention-skel-line attention-skel-line-lg" />
-            <span className="skeleton attention-skel-line attention-skel-line-md" />
-          </div>
-          <div className="attention-skel-card">
-            <span className="skeleton attention-skel-line attention-skel-line-sm" />
-            <span className="skeleton attention-skel-line attention-skel-line-lg" />
-            <span className="skeleton attention-skel-line attention-skel-line-md" />
-          </div>
+      <section id="work-queue" className="wq wq--loading" aria-label="Work queue" aria-busy="true">
+        <header className="wq-head">
+          <h2 className="wq-title">Work queue</h2>
+        </header>
+        <div className="wq-skel" aria-hidden>
+          <span className="skeleton" />
+          <span className="skeleton" />
+          <span className="skeleton" />
         </div>
       </section>
     );
   }
 
-  if (!items.length) {
-    // Board is clear — banner owns “covered”; don’t stamp a second empty instrument.
-    return null;
+  if (!work.length) {
+    return (
+      <section id="work-queue" className="wq wq--clear" aria-label="Work queue">
+        <div className="ox-state ox-state--success">
+          <p className="ox-state-title">Queue is clear</p>
+          <p className="ox-state-copy">
+            Nothing is waiting on you. New calls and messages land here the moment Orvius needs a decision.
+          </p>
+        </div>
+      </section>
+    );
   }
 
-  const criticalCount = items.filter((i) => i.impact === "critical").length;
-
-  /*
-    What is actually riding on the board. Every row already carried its own
-    estimate and nothing added them up, so the owner deciding whether to get
-    out of bed had to do the arithmetic in their head. Rolled-up rows are not
-    counted, so this understates rather than overstates.
-  */
-  const stakeCents = items.reduce((sum, item) => sum + (item.estimatedRevenueCents ?? 0), 0);
-  const stake = formatCents(stakeCents);
-  const visibleItems = expanded ? items : items.slice(0, 5);
+  const [top, ...rest] = work;
+  const visible = expanded ? rest : rest.slice(0, 6);
 
   return (
-    <section
-      id="attention-board"
-      className="attention-queue"
-      aria-label="Needs attention"
-    >
-      <header className="attention-queue-head font-sans">
+    <section id="work-queue" className="wq" aria-label="Work queue">
+      <header className="wq-head">
         <div>
-          <p className="attention-queue-kicker">On the board</p>
-          <h2 className="attention-queue-title">
-            {items.length} {items.length === 1 ? "item" : "items"} need you
-          </h2>
-        </div>
-        <div className="attention-queue-summary" aria-label="Queue summary">
-          {criticalCount > 0 ? (
-            <span className="attention-queue-critical">
-              {criticalCount} critical
-            </span>
-          ) : (
-            <span>Nothing critical</span>
-          )}
-          {stake ? <strong>{stake} estimated</strong> : null}
+          <h2 className="wq-title">Work queue</h2>
+          <p className="wq-sub">
+            {work.length} {work.length === 1 ? "item needs" : "items need"} a decision · highest impact first
+          </p>
         </div>
       </header>
 
-      <ul className="attention-queue-list">
-        {visibleItems.map((item) => {
-          const showCall = canCall(item);
-          const showBook = canBook(item);
-          const showAssign = canAssign(item);
-          const showProof = canCopyProof(item);
-          const showTextConfirm = canTextConfirm(item);
-          const showAdvance = canAdvanceStatus(item);
-          const showTestAlert = canTestAlert(item);
-          const showDismiss = canDismissNotAJob(item);
-          const hasPrimary =
-            showCall ||
-            showBook ||
-            showAssign ||
-            showProof ||
-            showTextConfirm ||
-            showAdvance ||
-            showTestAlert ||
-            showDismiss;
+      <article className={`wq-recommend wq-sev--${top!.severity}`} aria-label="Orvius recommends">
+        <div className="wq-recommend-copy">
+          <p className="wq-recommend-kicker">Orvius recommends</p>
+          <WorkRowBody work={top!} now={now} large />
+        </div>
+        <div className="wq-actions">
+          <PrimaryAction work={top!} technicians={technicians} onAction={onAction} />
+        </div>
+      </article>
 
-          return (
-            <li key={item.id}>
-              <article
-                className={`attention-item attention-item-${item.impact} font-sans`}
-              >
-                <div className="attention-item-copy">
-                  <p className="attention-item-kind">
-                    {item.impact === "critical" ? (
-                      <span className="attention-chip attention-chip-critical">
-                        Critical
-                      </span>
-                    ) : null}
-                    <span className="attention-item-kindlabel">
-                      {attentionKindLabel(item.kind)}
-                    </span>
-                  </p>
-                  <h3 className="attention-item-title">{item.title}</h3>
-                  <p className="attention-item-detail">{item.detail}</p>
-                  {formatCents(item.estimatedRevenueCents) ? (
-                    <p className="attention-item-value">
-                      Est. {formatCents(item.estimatedRevenueCents)}
-                    </p>
-                  ) : null}
-                  {item.rolledUp && item.group ? (
-                    <Link
-                      href={item.group.href ?? item.href}
-                      className="attention-item-rollup"
-                    >
-                      +{item.rolledUp} more for {item.group.label}
-                    </Link>
-                  ) : null}
-                </div>
-                <div className="attention-item-actions">
-                  {/*
-                    One primary action. Details only when there is no one-tap
-                    move — never Details + Call competing on the same row.
-                  */}
-                  {!hasPrimary && item.href ? (
-                    <Link href={item.href} className="attention-item-btn attention-item-btn-primary">
-                      Open
-                    </Link>
-                  ) : null}
-                  {showCall ? (
-                    <a
-                      href={telHref(item.meta!.phone!)}
-                      className={`attention-item-btn ${
-                        showTextConfirm ? "" : "attention-item-btn-primary"
-                      }`}
-                    >
-                      Call
-                    </a>
-                  ) : null}
-                  {showBook ? (
-                    <BookJobQuickButton
-                      leadId={item.entityId}
-                      onBooked={() => onAction?.()}
-                      className={
-                        showCall
-                          ? "attention-item-btn"
-                          : "attention-item-btn attention-item-btn-primary"
-                      }
-                    />
-                  ) : null}
-                  {showAssign ? (
-                    <AssignTechButton
-                      jobId={item.entityId}
-                      technicians={technicians}
-                      onAssigned={() => onAction?.()}
-                      compact
-                      className="attention-item-assign"
-                    />
-                  ) : null}
-                  {showProof ? <CopyProofButton onDone={() => onAction?.()} /> : null}
-                  {showTestAlert ? (
-                    <TestAlertButton onDone={() => onAction?.()} />
-                  ) : null}
-                  {showDismiss ? (
-                    <MarkNotAJobButton
-                      leadId={item.entityId}
-                      onDone={() => onAction?.()}
-                    />
-                  ) : null}
-                  {showTextConfirm ? (
-                    <TextConfirmButton
-                      jobId={item.entityId}
-                      onDone={() => onAction?.()}
-                      className="attention-item-btn attention-item-btn-primary"
-                    />
-                  ) : null}
-                  {showAdvance ? (
-                    <JobStatusAdvance
-                      jobId={item.entityId}
-                      status={item.meta!.status!}
-                      onAdvanced={() => onAction?.()}
-                      compact
-                    />
-                  ) : null}
-                  {hasPrimary ? null : (
-                    <Link
-                      href={item.href}
-                      className="attention-item-btn attention-item-btn-primary"
-                    >
-                      {item.recommendedAction}
-                    </Link>
-                  )}
-                </div>
-              </article>
+      {visible.length ? (
+        <ul className="wq-list">
+          {visible.map((w) => (
+            <li key={w.id} className={`wq-row wq-sev--${w.severity}`}>
+              <WorkRowBody work={w} now={now} />
+              <div className="wq-actions">
+                <PrimaryAction work={w} technicians={technicians} onAction={onAction} />
+              </div>
             </li>
-          );
-        })}
-      </ul>
-      {items.length > visibleItems.length ? (
-        <button
-          type="button"
-          className="attention-queue-more font-sans"
-          onClick={() => setExpanded(true)}
-        >
-          Show {items.length - visibleItems.length} more on the board
-        </button>
-      ) : expanded && items.length > 5 ? (
-        <button
-          type="button"
-          className="attention-queue-more font-sans"
-          onClick={() => setExpanded(false)}
-        >
-          Show only highest priority
+          ))}
+        </ul>
+      ) : null}
+
+      {rest.length > 6 ? (
+        <button type="button" className="wq-more" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? "Show highest priority only" : `Show ${rest.length - 6} more`}
         </button>
       ) : null}
     </section>
+  );
+}
+
+function ageLabel(iso: string, now: number): string {
+  const age = formatAge(iso, now);
+  return age === "just now" ? age : `${age} ago`;
+}
+
+function WorkRowBody({ work, now, large = false }: { work: WorkItem; now: number; large?: boolean }) {
+  const target = drawerTarget(work.source);
+  const impact = work.impactCents ? formatCents(work.impactCents) : null;
+  const subject = <span className={large ? "wq-subject wq-subject--lg" : "wq-subject"}>{work.subject}</span>;
+
+  return (
+    <div className="wq-body">
+      <div className="wq-line1">
+        <span className={`wq-sev wq-sev-pill--${work.severity}`}>{SEVERITY_LABEL[work.severity]}</span>
+        {target ? (
+          <RecordLink type={target.type} id={target.id} href={work.source.href} className="wq-subject-link">
+            {subject}
+          </RecordLink>
+        ) : (
+          subject
+        )}
+        {work.occurrences > 1 && work.id.startsWith("incident:") ? (
+          <span className="wq-count">{work.occurrences}×</span>
+        ) : null}
+      </div>
+      <p className="wq-request">
+        {work.kindLabel ? <span className="wq-kind">{work.kindLabel}</span> : null}
+        {work.kindLabel && work.request ? " · " : ""}
+        {work.request}
+      </p>
+      <p className="wq-meta">
+        <span>{ageLabel(work.createdAt, now)}</span>
+        <span aria-hidden>·</span>
+        <span className={impact ? "wq-impact" : ""}>{impact ? `${impact} at stake` : "No value estimate"}</span>
+        {work.source.meta?.address ? (
+          <>
+            <span aria-hidden>·</span>
+            <span className="wq-addr">{work.source.meta.address}</span>
+          </>
+        ) : null}
+      </p>
+    </div>
   );
 }

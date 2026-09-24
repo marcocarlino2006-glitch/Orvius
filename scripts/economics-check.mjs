@@ -73,25 +73,30 @@ const commandSrc = readFileSync(
 );
 const economicsOnCommand = (commandSrc.match(/<ProEconomicsPanel/g) ?? []).length;
 const outcomesOnCommand = (commandSrc.match(/<ProCommandOutcomes/g) ?? []).length;
+const signalsOnCommand = (commandSrc.match(/<CommandSignals/g) ?? []).length;
 results.push(
-  economicsOnCommand === 0 && outcomesOnCommand === 1
-    ? pass("Command calm uses one retrospect (outcomes) — proof via operate banner")
+  economicsOnCommand === 0 &&
+    outcomesOnCommand === 0 &&
+    signalsOnCommand === 1
+    ? pass(
+        "Command uses one signal row — Revenue at risk is the money signal, no XOR pulse",
+      )
     : fail(
-        `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand}`,
+        `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand} signals=${signalsOnCommand}`,
       ),
 );
 
 const workMode = /workMode/.test(commandSrc);
-const outcomeLead = commandSrc.indexOf("<ProCommandOutcomes");
-const shiftTimeline = commandSrc.indexOf("<ProShiftTimeline");
+const signalsLead = commandSrc.indexOf("<CommandSignals");
 const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
+const pulse = commandSrc.indexOf("<OrviusPulse");
 results.push(
-  workMode &&
-    outcomeLead >= 0 &&
-    exceptionBoard >= 0 &&
-    shiftTimeline > outcomeLead
-    ? pass("Command workMode: board when busy, outcomes then trail when calm")
-    : fail("Command must use workMode — board vs outcomes+trail, never both stacks"),
+  !workMode &&
+    signalsLead >= 0 &&
+    exceptionBoard > signalsLead &&
+    pulse > exceptionBoard
+    ? pass("Command always-on: signals → work queue → Pulse (no workMode XOR)")
+    : fail("Command must keep signals, work queue, and Pulse visible — never XOR"),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");

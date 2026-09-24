@@ -413,6 +413,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         slug,
         ownerEmail: email,
         ownerPhone: input.ownerPhone.trim(),
+        trade: input.trade,
         timezone: input.timezone ?? "America/New_York",
         greeting,
         hoursJson,

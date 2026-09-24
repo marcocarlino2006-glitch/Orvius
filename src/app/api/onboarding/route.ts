@@ -49,6 +49,8 @@ export async function GET() {
           id: business.id,
           name: business.name,
           slug: business.slug,
+          trade: business.trade,
+          address: business.address,
           ownerPhone: business.ownerPhone,
           twilioPhone: business.twilioPhone,
           vapiPhoneNumber: business.vapiPhoneNumber,

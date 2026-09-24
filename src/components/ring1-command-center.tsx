@@ -1,94 +1,94 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
-import { ProCommandOutcomes } from "@/components/pro-command-outcomes";
-import { ProEconomicsPanel } from "@/components/pro-economics-panel";
-import { ProLaunchControl } from "@/components/pro-launch-control";
-import { ProShiftTimeline } from "@/components/pro-shift-timeline";
+import { CommandSignals } from "@/components/command-signals";
+import { OrviusPulse } from "@/components/orvius-pulse";
+import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
 import { useRing1 } from "@/lib/ring1-context";
 
-// Economics panel stays reachable for weekly-proof ritual code; Command calm
-// shows outcomes only so money never double-stacks with the pulse.
-void ProEconomicsPanel;
+function plural(n: number, one: string, many = `${one}s`) {
+  return `${n} ${n === 1 ? one : many}`;
+}
 
 /**
- * Signed-in Command — one composition.
- * Work waiting: board (+ pending approvals only). Calm: one retrospect + trail.
- * Proof copy lives on the operate banner when due. Rail is quiet status.
+ * Command — the control room. Five signals, one dominant work queue, and a
+ * quiet Pulse. The first failed load is a failure state; later failures keep
+ * the last good data on screen and mark it stale.
  */
 export function Ring1CommandCenter() {
-  const { data, loading, loadError, refresh } = useRing1();
+  const { data, loading, loadError, lastUpdatedAt, refresh } = useRing1();
   const [refreshing, setRefreshing] = useState(false);
 
-  async function load() {
+  async function retry() {
     setRefreshing(true);
     await refresh();
     setRefreshing(false);
   }
 
-  const attention = data?.attention ?? [];
-  const workMode = loading || attention.length > 0;
+  const work = useMemo(() => groupWorkItems(data?.attention ?? []), [data?.attention]);
+  const signals = useMemo(
+    () => (data?.commandCounts ? buildCommandSignals(data.commandCounts, work) : null),
+    [data?.commandCounts, work],
+  );
+
+  if (!data && loadError && !loading) {
+    return (
+      <section className="cc" aria-label="Command">
+        <div className="ox-state ox-state--failure" role="alert">
+          <p className="ox-state-title">Command could not load</p>
+          <p className="ox-state-copy">
+            {loadError} Your line keeps answering calls while this screen reconnects.
+          </p>
+          <button type="button" className="ox-btn ox-btn--primary" disabled={refreshing} onClick={() => void retry()}>
+            {refreshing ? "Retrying…" : "Retry"}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  const counts = data?.commandCounts;
+  const brief = counts
+    ? [
+        counts.calls + counts.messagesAndWeb > 0
+          ? `Orvius handled ${plural(counts.calls + counts.messagesAndWeb, "request")} and booked ${plural(counts.booked, "job")} in the last ${counts.windowDays} days.`
+          : `No calls or messages in the last ${counts.windowDays} days.`,
+        work.length ? `${plural(work.length, "decision")} waiting on you.` : "Nothing is waiting on you.",
+      ].join(" ")
+    : null;
 
   return (
-    <section className="ring1-command ring1-cockpit" aria-label="Command">
-      <div className="ring1-cockpit-main">
-        {loadError ? (
-          <div className="pro-command-recovery font-sans" role="alert">
-            <div>
-              <strong>Connection needs attention</strong>
-              <span>{loadError}</span>
-            </div>
-            <button
-              type="button"
-              className="btn btn-secondary text-sm"
-              disabled={refreshing}
-              onClick={() => void load()}
-            >
-              {refreshing ? "Retrying…" : "Try again"}
-            </button>
-          </div>
-        ) : null}
+    <section className="cc" aria-label="Command">
+      <div className="cc-main">
+        <header className="cc-brief">
+          <p className="cc-brief-kicker">{data?.business?.name ?? "Your shop"}</p>
+          <p className="cc-brief-text">{brief ?? "Reading the shop…"}</p>
+        </header>
 
-        {workMode ? (
-          <>
-            <AttentionQueue
-              items={attention}
-              loading={loading}
-              technicians={data?.technicians ?? []}
-              onAction={() => void refresh()}
-            />
-            <ApproveQueue onChange={() => void refresh()} hideWhenEmpty />
-          </>
-        ) : (
-          <>
-            <ProCommandOutcomes
-              outcomes={data?.outcomes}
-              attentionCount={0}
-              loading={false}
-            />
+        <CommandSignals signals={signals} loading={loading} />
 
-            <ProShiftTimeline
-              events={data?.shiftTimeline ?? []}
-              loading={false}
-              moneyEnabled={data?.business?.depositEnabled ?? false}
-            />
-          </>
-        )}
+        <AttentionQueue
+          work={work}
+          loading={loading && !data}
+          technicians={data?.technicians ?? []}
+          onAction={() => void refresh()}
+        />
+
+        <ApproveQueue onChange={() => void refresh()} hideWhenEmpty />
       </div>
 
-      <aside className="ring1-cockpit-rail" aria-label="Shop status">
-        <ProLaunchControl
-          wedge={data?.wedge}
+      <aside className="cc-rail" aria-label="System status">
+        <OrviusPulse
+          health={data?.health}
           events={data?.shiftTimeline ?? []}
-          moneyEnabled={data?.business?.depositEnabled ?? false}
-          checkoutReady={data?.gates?.checkoutReady ?? false}
+          lastUpdatedAt={lastUpdatedAt}
+          stale={Boolean(loadError && data)}
+          refreshing={refreshing}
+          onRetry={() => void retry()}
           billingStatus={data?.business?.billingStatus}
           referenceImplementation={data?.business?.referenceImplementation}
-          coverage={data?.coverage}
-          health={data?.health}
-          outcomes={data?.outcomes}
         />
       </aside>
     </section>

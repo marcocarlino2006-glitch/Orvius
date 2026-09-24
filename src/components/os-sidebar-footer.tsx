@@ -12,6 +12,8 @@ type AccountData = {
     name: string;
     billingStatus: string;
     billingPlan: string | null;
+    ownerEmail?: string | null;
+    trade?: string | null;
   } | null;
   billing: {
     status: string;
@@ -28,14 +30,11 @@ type MenuItem = {
   hint?: string;
 };
 
-/*
-  Profile + Settings for setup, Billing for payouts when Attention says
-  "Open payouts" — three links so money recovery is not buried.
-*/
 const accountLinks: MenuItem[] = [
-  { href: "/dashboard/profile", label: "Profile", hint: "You & your shop" },
-  { href: "/dashboard/settings", label: "Settings", hint: "Line, alerts & capture" },
-  { href: "/dashboard/billing", label: "Billing", hint: "Plan & payouts" },
+  { href: "/dashboard/profile", label: "Profile", hint: "Your name and sign-in" },
+  { href: "/dashboard/settings", label: "Settings", hint: "Business, rules, line, alerts" },
+  { href: "/dashboard/settings#integrations", label: "Integrations", hint: "Phone, SMS, email, payouts" },
+  { href: "/dashboard/billing", label: "Billing", hint: "Plan and invoices" },
 ];
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
@@ -116,6 +115,8 @@ export function OsSidebarFooter() {
   const name = session.user.name ?? "User";
   const email = session.user.email ?? "";
   const planLabel = planDisplayLabel(account);
+  const ownerEmail = account?.business?.ownerEmail?.toLowerCase() ?? null;
+  const role = ownerEmail && email.toLowerCase() === ownerEmail ? "Owner" : "Member";
   const showPay = needsPayCta(account);
   const payLabel =
     (account?.billing?.status ?? "").toLowerCase() === "past_due"
@@ -144,9 +145,35 @@ export function OsSidebarFooter() {
           role="menu"
           aria-label="Account menu"
         >
-          <p className="os-profile-menu-email">{email}</p>
+          <div className="pm-identity">
+            <span className="os-sidebar-avatar pm-avatar" aria-hidden>
+              {initials(session.user.name, session.user.email)}
+            </span>
+            <div className="pm-identity-copy">
+              <p className="pm-name">{name}</p>
+              <p className="pm-email">{email}</p>
+            </div>
+            <span className="pm-role">{role}</span>
+          </div>
 
-          <div className="os-profile-menu-links">
+          <div className="pm-section">
+            <p className="pm-section-label">Workspace</p>
+            <div className="pm-workspace is-current" aria-current="true">
+              <span className="pm-ws-mark" aria-hidden>
+                {(account?.business?.name ?? "O").slice(0, 1).toUpperCase()}
+              </span>
+              <span className="pm-ws-copy">
+                <span className="pm-ws-name">{account?.business?.name ?? "Your business"}</span>
+                <span className="pm-ws-meta">
+                  {[account?.business?.trade, planLabel].filter(Boolean).join(" · ")}
+                </span>
+              </span>
+              <span className="pm-ws-check" aria-hidden>✓</span>
+            </div>
+            <p className="pm-ws-note">This sign-in has one workspace.</p>
+          </div>
+
+          <div className="os-profile-menu-links pm-section">
             {accountLinks.map((item) => (
               <Link
                 key={item.href}
@@ -166,7 +193,7 @@ export function OsSidebarFooter() {
               className="os-profile-menu-link"
               onClick={() => setOpen(false)}
             >
-              <span>Get help</span>
+              <span>Help</span>
               <span className="os-profile-menu-hint">{supportEmail}</span>
             </a>
           </div>
@@ -174,6 +201,7 @@ export function OsSidebarFooter() {
           <div className="os-profile-menu-footer">
             <button
               type="button"
+              role="menuitem"
               className="os-profile-menu-signout"
               onClick={() => signOut({ callbackUrl: "/" })}
             >
@@ -200,7 +228,9 @@ export function OsSidebarFooter() {
           <span className="os-sidebar-user-plan">{planLabel}</span>
         </span>
         <span className="os-profile-menu-chevron" aria-hidden>
-          {open ? "▴" : "▾"}
+          <svg viewBox="0 0 12 12" aria-hidden>
+            <path d={open ? "M3 7.5L6 4.5l3 3" : "M3 4.5l3 3 3-3"} stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+          </svg>
         </span>
       </button>
     </div>

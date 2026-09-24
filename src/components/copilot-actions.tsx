@@ -119,30 +119,35 @@ export function CopilotActions({ hits = [], compact }: CopilotActionsProps) {
 
   return (
     <div className={`copilot-actions font-sans ${compact ? "copilot-actions-compact" : ""}`}>
-      <p className="copilot-actions-kicker">Approve before Orvius acts</p>
+      <p className="copilot-actions-kicker">Proposed actions</p>
+      <p className="copilot-actions-lead">
+        Orvius drafts the action and shows exactly what will happen. Nothing runs until you approve,
+        and every decision is kept in the audit trail.
+      </p>
 
-      {done ? <p className="copilot-actions-done">Done: {done}</p> : null}
+      {done ? <p className="copilot-actions-done">Done — {done}</p> : null}
       {error ? <p className="copilot-actions-error">{error}</p> : null}
 
       {proposal ? (
         <div className="copilot-proposal">
+          <p className="copilot-proposal-label">What will happen</p>
           <p className="copilot-proposal-preview">{proposal.preview}</p>
           <div className="copilot-proposal-btns">
             <button
               type="button"
-              className="btn btn-void text-sm"
+              className="ox-btn ox-btn--primary ox-btn--sm"
               disabled={busy}
               onClick={() => void execute()}
             >
-              {busy ? "Working…" : "Approve & run"}
+              {busy ? "Working…" : "Approve and run"}
             </button>
             <button
               type="button"
-              className="btn btn-secondary text-sm"
+              className="ox-btn ox-btn--quiet ox-btn--sm"
               disabled={busy}
               onClick={() => void cancel()}
             >
-              Cancel
+              Don’t run
             </button>
           </div>
         </div>
@@ -167,7 +172,7 @@ export function CopilotActions({ hits = [], compact }: CopilotActionsProps) {
               ) : null}
               <button
                 type="button"
-                className="btn btn-secondary text-sm"
+                className="ox-btn ox-btn--quiet ox-btn--sm"
                 disabled={busy || !techId}
                 onClick={() =>
                   void propose({
@@ -177,7 +182,7 @@ export function CopilotActions({ hits = [], compact }: CopilotActionsProps) {
                   })
                 }
               >
-                Propose assign
+                Draft assignment
               </button>
             </div>
           ))}
@@ -186,23 +191,23 @@ export function CopilotActions({ hits = [], compact }: CopilotActionsProps) {
               <span className="copilot-action-label">Follow up · {lead.title}</span>
               <button
                 type="button"
-                className="btn btn-secondary text-sm"
+                className="ox-btn ox-btn--quiet ox-btn--sm"
                 disabled={busy}
                 onClick={() =>
                   void propose({ action: "sms_followup", leadId: lead.id })
                 }
               >
-                Propose SMS
+                Draft follow-up text
               </button>
               <button
                 type="button"
-                className="btn btn-secondary text-sm"
+                className="ox-btn ox-btn--quiet ox-btn--sm"
                 disabled={busy}
                 onClick={() =>
                   void propose({ action: "mark_contacted", leadId: lead.id })
                 }
               >
-                Propose contacted
+                Draft “contacted”
               </button>
             </div>
           ))}

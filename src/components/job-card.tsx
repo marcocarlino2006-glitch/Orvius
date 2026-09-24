@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { RecordLink } from "@/components/record-drawer";
 import { ShellBadge } from "@/components/shell-primitives";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { jobStatusLabel } from "@/lib/job-status";
@@ -52,7 +52,9 @@ export function JobCard({
     : "Unscheduled";
 
   return (
-    <Link
+    <RecordLink
+      type="job"
+      id={id}
       href={`/dashboard/jobs/${id}`}
       className={`lead-rail-row job-rail-row${emergency ? " lead-rail-row-emergency" : ""}`}
     >
@@ -82,6 +84,6 @@ export function JobCard({
           {address ? ` · ${address}` : ""}
         </p>
       </div>
-    </Link>
+    </RecordLink>
   );
 }

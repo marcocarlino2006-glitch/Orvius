@@ -2,12 +2,13 @@
 
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { FounderManusNext } from "@/components/founder-manus-next";
-import { SettingsLaunchGuide } from "@/components/settings-launch-guide";
+import { ShopSetupChecklistPanel } from "@/components/shop-setup-checklist-panel";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { buildSettingsHub } from "@/lib/settings-hub";
+import { buildShopSetupChecklist } from "@/lib/shop-setup-checklist";
 import type { ShopHealth } from "@/lib/shop-health";
 import {
   parseHoursForm,
@@ -21,13 +22,16 @@ import {
   type HoursForm,
 } from "@/lib/shop-hours-form";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
-import { useEffect, useState } from "react";
+import { TRADES, type Trade } from "@/lib/trades";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type AccountResponse = {
   founder?: boolean;
   business: {
     name: string;
+    trade?: string | null;
+    address?: string | null;
     ownerPhone: string | null;
     ownerEmail: string | null;
     greeting: string | null;
@@ -74,6 +78,18 @@ const FOUNDER_CERT = [
   "Inbound SMS — lead + auto-reply",
 ] as const;
 
+const CONTROL_PLANE = [
+  { label: "Business", hint: "Name, address, trade", href: "#shop-profile" },
+  { label: "Trade rules", hint: "Services, hours, area", href: "#hours-services" },
+  { label: "Phone line", hint: "Capture and forwarding", href: "#overflow-forward" },
+  { label: "AI behavior", hint: "Opening line, ticket", href: "#economics-baseline" },
+  { label: "Alerts", hint: "Owner mobile, email", href: "#owner-alerts" },
+  { label: "Team & calendar", hint: "Technicians, schedule", href: "/dashboard/dispatch" },
+  { label: "Integrations", hint: "SMS, email, payouts", href: "#integrations" },
+  { label: "Billing", hint: "Plan and invoices", href: "/dashboard/billing" },
+  { label: "Security & data", hint: "Sign-in, export", href: "#shop-data" },
+] as const;
+
 function parseCert(raw: string | null | undefined): boolean[] {
   const empty = FOUNDER_CERT.map(() => false);
   if (!raw) return empty;
@@ -93,6 +109,9 @@ export default function DashboardSettingsPage() {
     "loading",
   );
   const [account, setAccount] = useState<AccountResponse | null>(null);
+  const [shopName, setShopName] = useState("");
+  const [trade, setTrade] = useState<Trade>("HVAC");
+  const [shopAddress, setShopAddress] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const [greeting, setGreeting] = useState("");
@@ -121,6 +140,7 @@ export default function DashboardSettingsPage() {
   const [zipsText, setZipsText] = useState("");
   const [manusNext, setManusNext] = useState<ManusPostStep | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [crewCount, setCrewCount] = useState<number | null>(null);
 
   async function loadAccount() {
     setLoadState("loading");
@@ -133,6 +153,14 @@ export default function DashboardSettingsPage() {
     }
     const data = (await res.json()) as AccountResponse;
     setAccount(data);
+    setShopName(data.business?.name ?? "");
+    setTrade(
+      data.business?.trade === "Plumbing" ||
+        data.business?.trade === "Electrical"
+        ? data.business.trade
+        : "HVAC",
+    );
+    setShopAddress(data.business?.address ?? "");
     setOwnerPhone(data.business?.ownerPhone ?? "");
     setOwnerEmail(data.business?.ownerEmail ?? "");
     setGreeting(data.business?.greeting ?? "");
@@ -161,6 +189,15 @@ export default function DashboardSettingsPage() {
     setDirty(false);
     setLoadState("ready");
   }
+
+  useEffect(() => {
+    fetch("/api/technicians")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { technicians?: unknown[] } | null) => {
+        if (data?.technicians) setCrewCount(data.technicians.length);
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     loadAccount().catch(() => {
@@ -340,6 +377,9 @@ export default function DashboardSettingsPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: shopName.trim(),
+          trade,
+          address: shopAddress.trim() || null,
           ownerPhone: ownerPhone.trim(),
           ownerEmail: ownerEmail.trim() || undefined,
           greeting: greeting.trim(),
@@ -425,9 +465,41 @@ export default function DashboardSettingsPage() {
 
   const certDone = certChecks.filter(Boolean).length;
 
+  const setupChecklist = useMemo(
+    () =>
+      buildShopSetupChecklist({
+        name: shopName,
+        trade,
+        address: shopAddress,
+        ownerPhone,
+        ownerEmail,
+        line: account?.line ?? null,
+        lineVerified: Boolean(account?.business?.lineVerifiedAt),
+        captureConfirmed: overflowForward,
+        hoursJson: serializeHoursForm(hoursForm),
+        servicesJson: serializeServicesForm(servicesText),
+        serviceZipsJson: serializeZipsForm(zipsText),
+        crewCount,
+      }),
+    [
+      crewCount,
+      shopName,
+      trade,
+      shopAddress,
+      ownerPhone,
+      ownerEmail,
+      account?.line,
+      account?.business?.lineVerifiedAt,
+      overflowForward,
+      hoursForm,
+      servicesText,
+      zipsText,
+    ],
+  );
+
   if (loadState !== "ready" || !account) {
     return (
-      <OsShell title="Settings" subtitle="One next move — then back to Command.">
+      <OsShell title="Settings" subtitle="The control plane: how Orvius answers, books, and alerts for your shop.">
         <div className="pro-settings-page">
           {loadState === "error" ? (
             <div className="pro-settings-load-error">
@@ -471,10 +543,78 @@ export default function DashboardSettingsPage() {
   const hubFocus = buildSettingsHub(hubInput).next?.id ?? null;
 
   return (
-    <OsShell title="Settings" subtitle="One next move — then back to Command.">
+    <OsShell
+      title="Settings"
+      subtitle="The control plane: how Orvius answers, books, and alerts for your shop."
+    >
       <div className="pro-settings-page">
-        <SettingsLaunchGuide input={hubInput} />
+        <ShopSetupChecklistPanel checklist={setupChecklist} />
+        <nav className="cp-index font-sans" aria-label="Control plane">
+          {CONTROL_PLANE.map((area) => (
+            <Link key={area.label} href={area.href} className="cp-link">
+              <span className="cp-label">{area.label}</span>
+              <span className="cp-hint">{area.hint}</span>
+            </Link>
+          ))}
+        </nav>
         <form className="account-stack pro-settings-form" onSubmit={save}>
+        <details
+          id="shop-profile"
+          className="pro-settings-secondary font-sans"
+          open={!setupChecklist.steps.find((s) => s.id === "identity")?.done}
+        >
+          <summary>Shop profile</summary>
+          <div className="pro-settings-secondary-body">
+            <p className="account-settings-hint font-sans mb-4">
+              Trade drives receptionist language and emergency rules. Address
+              and name are what callers hear on the night line.
+            </p>
+            <label className="block mb-4">
+              <span className="label mb-2 block">Business name</span>
+              <input
+                className="onboarding-input"
+                value={shopName}
+                onChange={(e) => {
+                  setShopName(e.target.value);
+                  setDirty(true);
+                }}
+                required
+              />
+            </label>
+            <fieldset className="mb-4">
+              <legend className="label mb-2 block">Trade</legend>
+              <div className="onboarding-trade-grid">
+                {TRADES.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`onboarding-trade ${trade === item ? "is-active" : ""}`}
+                    onClick={() => {
+                      setTrade(item);
+                      setDirty(true);
+                    }}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <label className="block mb-2">
+              <span className="label mb-2 block">Shop address</span>
+              <input
+                className="onboarding-input"
+                value={shopAddress}
+                onChange={(e) => {
+                  setShopAddress(e.target.value);
+                  setDirty(true);
+                }}
+                placeholder="1842 Oak Street, Austin TX"
+                autoComplete="street-address"
+              />
+            </label>
+          </div>
+        </details>
+
         <details
           id="overflow-forward"
           className="pro-settings-secondary font-sans"
@@ -819,6 +959,62 @@ export default function DashboardSettingsPage() {
             <FounderManusNext tone="quiet" next={manusNext} />
           </details>
         ) : null}
+
+        <details id="integrations" className="pro-settings-secondary font-sans" open>
+          <summary>Integrations</summary>
+          <div className="pro-settings-secondary-body">
+            <ul className="int-list">
+              <li className="int-row">
+                <span className={`int-dot ${line ? "is-on" : ""}`} aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">Phone line</span>
+                  <span className="int-detail">{line ? `Connected · ${line}` : "Not connected"}</span>
+                </span>
+              </li>
+              <li className="int-row">
+                <span className={`int-dot ${account.alerts.smsEnabled && !account.alerts.ownerSmsOptedOut ? "is-on" : ""}`} aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">SMS alerts</span>
+                  <span className="int-detail">
+                    {account.alerts.ownerSmsOptedOut
+                      ? "Owner number opted out — text START to resume"
+                      : account.alerts.smsEnabled
+                        ? "Connected"
+                        : "Not connected"}
+                  </span>
+                </span>
+              </li>
+              <li className="int-row">
+                <span className={`int-dot ${account.alerts.emailConfigured ? "is-on" : ""}`} aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">Email backup</span>
+                  <span className="int-detail">{account.alerts.emailConfigured ? "Connected" : "Not connected"}</span>
+                </span>
+              </li>
+              <li className="int-row">
+                <span className={`int-dot ${account.billing?.fullyReady ? "is-on" : ""}`} aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">Payments &amp; payouts</span>
+                  <span className="int-detail">
+                    {account.billing?.fullyReady ? "Connected" : "Set up on Billing"}
+                  </span>
+                </span>
+                <Link href="/dashboard/billing#payouts" className="int-action">
+                  Open
+                </Link>
+              </li>
+              <li className="int-row">
+                <span className="int-dot" aria-hidden />
+                <span className="int-copy">
+                  <span className="int-name">External calendar</span>
+                  <span className="int-detail">
+                    Not available yet — jobs book onto the Orvius schedule in Dispatch.
+                  </span>
+                </span>
+              </li>
+            </ul>
+          </div>
+        </details>
 
         {/*
           Billing's home is /dashboard/billing. Settings only points there —

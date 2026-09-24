@@ -29,6 +29,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
   const [entering, setEntering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
 
   const check = useCallback(async () => {
     try {
@@ -74,6 +75,30 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
       setError(err instanceof Error ? err.message : "Could not finish setup");
     } finally {
       setEntering(false);
+    }
+  }
+
+  async function runOwnerTestCall() {
+    setTesting(true);
+    setError(null);
+    setVerifyError(null);
+    try {
+      const res = await fetch("/api/onboarding/test-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(json.error ?? "Test call failed. Try dialing the live line.");
+        return;
+      }
+      await check();
+      setPolling(false);
+    } catch {
+      setError("Network error while running the test call.");
+    } finally {
+      setTesting(false);
     }
   }
 
@@ -149,16 +174,27 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
             {entering ? "Opening…" : "Enter Command"}
           </button>
         ) : (
-          <a href={telHref(line)} className="btn btn-void font-sans">
-            Call your line
-          </a>
+          <>
+            <a href={telHref(line)} className="btn btn-void font-sans">
+              Call your line
+            </a>
+            <button
+              type="button"
+              className="btn btn-secondary font-sans"
+              disabled={testing}
+              onClick={() => void runOwnerTestCall()}
+            >
+              {testing ? "Running test…" : "Run a test call in-app"}
+            </button>
+          </>
         )}
       </div>
 
       {!verified ? (
         <p className="onboarding-footnote font-sans">
-          Call from your cell. After it lands, one tap opens Command.
-          Forward or publish details live in Settings if you need them later.
+          Prefer the real line when you can. The in-app test still creates a
+          Call, Lead, and Customer so Inbox and Command light up — then finish
+          capture in Settings.
         </p>
       ) : null}
     </div>

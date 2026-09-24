@@ -62,6 +62,7 @@ export default function CallsPage() {
   return (
     <OsShell
       title="Calls"
+      subtitle="Evidence: what each caller said, what Orvius captured, and what it did."
       actions={
         <Link href="/dashboard/inbox" className="btn btn-void text-sm">
           Inbox
