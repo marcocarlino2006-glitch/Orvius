@@ -14,6 +14,7 @@ type AccountData = {
     billingPlan: string | null;
     ownerEmail?: string | null;
     trade?: string | null;
+    environment?: string | null;
   } | null;
   billing: {
     status: string;
@@ -28,6 +29,7 @@ type MenuItem = {
   href: string;
   label: string;
   hint?: string;
+  attention?: boolean;
 };
 
 const accountLinks: MenuItem[] = [
@@ -122,20 +124,23 @@ export function OsSidebarFooter() {
     (account?.billing?.status ?? "").toLowerCase() === "past_due"
       ? "Fix payment"
       : "Pay with card";
+  const environment = account?.business?.environment ?? "production";
+  const sampleWorkspace = environment === "demo" || environment === "test";
+  const links = accountLinks.map((item) =>
+    item.href === "/dashboard/billing" && showPay
+      ? { ...item, hint: payLabel, attention: true }
+      : item,
+  );
 
   return (
     <div
       ref={rootRef}
       className={`os-profile-menu os-sidebar-footer font-sans ${open ? "os-profile-menu-open" : ""}`}
     >
-      {showPay && pathname !== "/dashboard/billing" ? (
-        <Link
-          href="/dashboard/billing"
-          className="os-sidebar-pay"
-          title="Open Billing to pay with card"
-        >
-          {payLabel}
-        </Link>
+      {sampleWorkspace ? (
+        <p className="os-sidebar-env" role="status">
+          {environment === "test" ? "Test workspace — not a real shop" : "Demo workspace — sample data"}
+        </p>
       ) : null}
 
       {open ? (
@@ -174,12 +179,12 @@ export function OsSidebarFooter() {
           </div>
 
           <div className="os-profile-menu-links pm-section">
-            {accountLinks.map((item) => (
+            {links.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 role="menuitem"
-                className="os-profile-menu-link"
+                className={`os-profile-menu-link${item.attention ? " is-attention" : ""}`}
                 onClick={() => setOpen(false)}
               >
                 <span>{item.label}</span>

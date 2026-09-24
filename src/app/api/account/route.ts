@@ -101,6 +101,7 @@ export async function GET() {
         name: businessRecord.name,
         slug: businessRecord.slug,
         trade: businessRecord.trade,
+        environment: businessRecord.environment,
         address: businessRecord.address,
         ownerPhone: businessRecord.ownerPhone,
         ownerEmail: businessRecord.ownerEmail,

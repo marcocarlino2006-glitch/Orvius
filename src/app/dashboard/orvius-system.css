@@ -1741,18 +1741,20 @@ button.rd-path-btn:hover {
   color: var(--ox-mute);
 }
 
-.os-shell.os-shell-night .os-sidebar-pay {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.375rem;
+.os-shell.os-shell-night .os-sidebar-env {
   margin: 0 0 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px dashed color-mix(in srgb, var(--ox-amber) 55%, transparent);
   border-radius: var(--ox-radius-sm);
-  background: var(--ox-amber) !important;
-  color: var(--ox-on-amber) !important;
-  font-size: 0.875rem;
-  font-weight: 650;
-  text-decoration: none;
+  color: var(--ox-amber);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.os-shell.os-shell-night .os-profile-menu-link.is-attention .os-profile-menu-hint {
+  color: var(--ox-amber);
+  font-weight: 600;
 }
 
 /* ── Ask ───────────────────────────────────────────────────────────────── */
