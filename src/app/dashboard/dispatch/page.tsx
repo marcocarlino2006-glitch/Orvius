@@ -1,6 +1,7 @@
 "use client";
 
 import { AssignTechButton } from "@/components/assign-tech-button";
+import { RecordLink } from "@/components/record-drawer";
 import { JobStatusAdvance } from "@/components/job-status-advance";
 import { ProDispatchToday } from "@/components/pro-dispatch-today";
 import { ProLead } from "@/components/pro-lead";
@@ -61,7 +62,7 @@ function JobChip({
 
   return (
     <div className="dispatch-job-chip-wrap">
-      <Link href={`/dashboard/jobs/${job.id}`} className="dispatch-job-chip lead-rail-row">
+      <RecordLink type="job" id={job.id} href={`/dashboard/jobs/${job.id}`} className="dispatch-job-chip lead-rail-row">
         <div className="lead-rail-main">
           <div className="lead-rail-meta">
             <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
@@ -77,7 +78,7 @@ function JobChip({
             {job.address ? ` · ${job.address}` : ""}
           </p>
         </div>
-      </Link>
+      </RecordLink>
       {needsAssign ? (
         <AssignTechButton
           jobId={job.id}
@@ -271,6 +272,7 @@ export default function DispatchPage() {
   return (
     <OsShell
       title="Dispatch"
+      subtitle="Who is going where, and when."
       actions={
         <Link href="/dashboard/jobs" className="btn btn-void text-sm">
           All jobs
