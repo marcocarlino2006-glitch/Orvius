@@ -157,6 +157,7 @@ export async function POST(request: NextRequest) {
           },
           job: bookedJob,
           autoBooked: autoBook.created,
+          timezone: business.timezone,
         }),
         leadId: lead.id,
         dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),

@@ -1,11 +1,14 @@
+import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
 import { recordAudit } from "@/lib/audit";
 import { maybeAutoBookLead, type AutoBookResult } from "@/lib/auto-job";
 import { linkTouchToCustomerDetailed } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { logInfo } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { prisma } from "@/lib/prisma";
+import { callerWords } from "@/lib/transcript";
 import { extractLeadFromStructuredData, type VapiWebhookMessage } from "@/lib/vapi";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 
@@ -218,6 +221,42 @@ export async function ingestEndOfCallReport(params: {
 
     const freshLead = await prisma.lead.findUniqueOrThrow({ where: { id: lead.id } });
     const safety = autoBook.classification?.safety;
+    const spoken = callerWords(transcript);
+    const wantsHuman = leadWantsHuman({ notes: `${freshLead.notes ?? ""} ${spoken}`, serviceType: freshLead.serviceType });
+    // Sales reps routinely ask for the owner, so a request for a person does not rescue a non-service call.
+    const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service";
+
+    const promises = detectAssistantPromises(transcript);
+    if (promises.length) {
+      await recordAudit({
+        businessId: business.id,
+        entityType: "call",
+        entityId: call.id,
+        callId: call.id,
+        leadId: lead.id,
+        customerId,
+        action: "call.promise_flagged",
+        summary: describeAssistantPromises(promises) ?? "Receptionist made a commitment",
+        detail: { promises },
+        idempotencyKey: key("promises"),
+      });
+    }
+
+    if (nonService) {
+      await recordAudit({
+        businessId: business.id,
+        entityType: "notification",
+        entityId: lead.id,
+        callId: call.id,
+        leadId: lead.id,
+        customerId,
+        action: "owner.alert_skipped",
+        summary: "Not a service call (spam, sales or wrong number) — owner not texted; call kept in the log",
+        detail: { categoryCode: freshLead.categoryCode },
+        idempotencyKey: key("owner-alert"),
+      });
+    }
+
     const ownerMessage = safety
       ? `SAFETY — ${safety.label}. ${freshLead.name ?? "A caller"} ${freshLead.phone ?? ""} at ${
           freshLead.address ?? "an unknown address"
@@ -232,32 +271,44 @@ export async function ingestEndOfCallReport(params: {
           },
           job: bookedJob,
           autoBooked: autoBook.created,
+          timezone: business.timezone,
+          context: {
+            skipReason: autoBook.skipReason ?? null,
+            intent: autoBook.intent ?? null,
+            existingJob: autoBook.existingJob ?? null,
+            wantsHuman,
+            silentHangup: !spoken.trim() && !freshLead.serviceType && (durationSec ?? 0) < 30,
+            promiseWarning: describeAssistantPromises(promises),
+            summary,
+          },
         });
 
-    await enqueueOwnerAlert({
-      businessId: business.id,
-      ownerPhone: business.ownerPhone,
-      ownerEmail: business.ownerEmail,
-      businessName: business.name,
-      message: ownerMessage,
-      leadId: lead.id,
-      dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),
-    });
-    await recordAudit({
-      businessId: business.id,
-      entityType: "notification",
-      entityId: lead.id,
-      callId: call.id,
-      leadId: lead.id,
-      customerId,
-      jobId: autoBook.jobId,
-      action: "owner.alert_queued",
-      summary: business.ownerPhone || business.ownerEmail
-        ? `Queued the owner alert${safety ? " (safety)" : ""} — delivery retries automatically`
-        : "No owner phone or email on file — alert could not be queued",
-      detail: { channels: { sms: Boolean(business.ownerPhone), email: Boolean(business.ownerEmail) } },
-      idempotencyKey: key("owner-alert"),
-    });
+    if (!nonService) {
+      await enqueueOwnerAlert({
+        businessId: business.id,
+        ownerPhone: business.ownerPhone,
+        ownerEmail: business.ownerEmail,
+        businessName: business.name,
+        message: ownerMessage,
+        leadId: lead.id,
+        dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),
+      });
+      await recordAudit({
+        businessId: business.id,
+        entityType: "notification",
+        entityId: lead.id,
+        callId: call.id,
+        leadId: lead.id,
+        customerId,
+        jobId: autoBook.jobId,
+        action: "owner.alert_queued",
+        summary: business.ownerPhone || business.ownerEmail
+          ? `Queued the owner alert${safety ? " (safety)" : ""} — delivery retries automatically`
+          : "No owner phone or email on file — alert could not be queued",
+        detail: { channels: { sms: Boolean(business.ownerPhone), email: Boolean(business.ownerEmail) } },
+        idempotencyKey: key("owner-alert"),
+      });
+    }
 
     await completeWebhookEvent({
       source: "vapi",

@@ -239,6 +239,12 @@ export async function POST(request: NextRequest) {
     },
     job: bookedJob,
     autoBooked: autoBook.created,
+    timezone: business.timezone,
+    context: {
+      skipReason: autoBook.skipReason ?? null,
+      intent: autoBook.intent ?? null,
+      existingJob: autoBook.existingJob ?? null,
+    },
   });
 
   await enqueueOwnerAlert({
