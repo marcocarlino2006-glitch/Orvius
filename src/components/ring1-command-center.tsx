@@ -71,12 +71,29 @@ export function Ring1CommandCenter() {
 
   const counts = data?.commandCounts;
   const activity = counts ? activityParts(data?.handled, counts) : null;
+  const brief = data?.personalBrief ?? null;
 
   return (
     <section className="cc" aria-label="Command">
       <div className="cc-main">
         <header className="cc-brief">
-          <p className="cc-brief-text">
+          {brief ? (
+            <div className="cc-brief-personal">
+              <p className="cc-brief-greeting">{brief.greeting}</p>
+              <p className="cc-brief-headline">{brief.headline}</p>
+              {brief.detail.length ? (
+                <p className="cc-brief-detail">
+                  {brief.detail.map((line) => (
+                    <span key={line} className="cc-brief-part">
+                      {line}
+                    </span>
+                  ))}
+                </p>
+              ) : null}
+              {brief.pattern ? <p className="cc-brief-pattern">{brief.pattern}</p> : null}
+            </div>
+          ) : null}
+          <p className={brief ? "cc-brief-text cc-brief-text--sub" : "cc-brief-text"}>
             {activity ? (
               <>
                 <span className="cc-brief-window">{activity.window}</span>

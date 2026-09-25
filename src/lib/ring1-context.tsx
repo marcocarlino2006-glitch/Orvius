@@ -13,6 +13,7 @@ import {
 import type { CoverageState } from "@/lib/coverage-state";
 import type { AttentionItem } from "@/lib/attention-types";
 import type { CommandCounts } from "@/lib/command-model";
+import type { PersonalBrief } from "@/lib/personal-brief";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
@@ -60,6 +61,7 @@ export type Ring1Data = {
   wedge?: WedgeReadiness;
   coverage?: CoverageState;
   lastWeeklyProofAt?: string | null;
+  personalBrief?: PersonalBrief | null;
   gates?: {
     certDone: number;
     certTotal: number;
@@ -84,6 +86,43 @@ type Ring1ContextValue = {
 const Ring1Context = createContext<Ring1ContextValue | null>(null);
 
 const DEFAULT_REFRESH_MS = 30_000;
+const LAST_SEEN_KEY = "orvius.command.lastSeen";
+const SESSION_SINCE_KEY = "orvius.command.since";
+const AWAY_MS = 30 * 60_000;
+
+/**
+ * "Since you last looked" is per owner, per device. The first load of a tab
+ * session pins the previous visit so reloads and polling don't reset it to
+ * thirty seconds ago; every successful load moves the stored visit forward.
+ */
+function sessionSince(): string | null {
+  try {
+    const pinned = sessionStorage.getItem(SESSION_SINCE_KEY);
+    if (pinned !== null) return pinned || null;
+    const previous = localStorage.getItem(LAST_SEEN_KEY) ?? "";
+    sessionStorage.setItem(SESSION_SINCE_KEY, previous);
+    return previous || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Coming back to a tab left in the background for a while counts as a new look. */
+function repinSince() {
+  try {
+    sessionStorage.setItem(SESSION_SINCE_KEY, localStorage.getItem(LAST_SEEN_KEY) ?? "");
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+function markSeen() {
+  try {
+    localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
+  } catch {
+    /* private mode: the brief falls back to today's board */
+  }
+}
 
 function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
   if (!data?.business?.name) return null;
@@ -120,7 +159,8 @@ export function Ring1Provider({
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/ring1");
+      const since = sessionSince();
+      const res = await fetch(since ? `/api/ring1?since=${encodeURIComponent(since)}` : "/api/ring1");
       if (!res.ok) {
         throw new Error(
           res.status === 401
@@ -130,6 +170,7 @@ export function Ring1Provider({
       }
       const json = (await res.json()) as Ring1Data;
       setData(json);
+      markSeen();
       setLoadError(null);
       setLastUpdatedAt(Date.now());
     } catch (err) {
@@ -164,7 +205,9 @@ export function Ring1Provider({
     const interval = setInterval(tick, refreshMs);
     /* A backgrounded tab stops polling; coming back refreshes at once if the data is stale. */
     const onVisible = () => {
-      if (document.visibilityState === "visible" && Date.now() - lastRun >= refreshMs) tick();
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastRun >= AWAY_MS) repinSince();
+      if (Date.now() - lastRun >= refreshMs) tick();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {

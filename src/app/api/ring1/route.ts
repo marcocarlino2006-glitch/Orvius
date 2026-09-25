@@ -8,6 +8,8 @@ import { isAfterHours } from "@/lib/business";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { getDispatchBoard } from "@/lib/field";
+import { parseSince } from "@/lib/personal-brief";
+import { loadPersonalBrief } from "@/lib/personal-brief-data";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
@@ -16,10 +18,12 @@ import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
 
-export async function GET() {
+export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business } = authResult;
+  const { business, session } = authResult;
+  const now = new Date();
+  const since = parseSince(new URL(request.url).searchParams.get("since"), now);
 
   const today = shopDayBounds(null, business.timezone ?? "America/New_York").start;
   const businessFilter = { businessId: business.id };
@@ -124,6 +128,21 @@ export async function GET() {
     }),
   ]);
   const crew = dispatchBoard.crew;
+  const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
+  const afterHoursNow = isAfterHours(now, business.hoursJson, business.timezone ?? "America/New_York");
+  const personalBrief = await loadPersonalBrief({
+    business,
+    ownerName: session.user?.name,
+    since,
+    now,
+    todayStart: today,
+    boardJobs,
+    unassigned: dispatchBoard.unassigned.length,
+    attention,
+    totalCalls,
+    lineVerified: health.lineVerified,
+    afterHoursNow,
+  }).catch(() => null);
   if (health.stuckPendingAlerts > 0) {
     after(() =>
       drainOwnerAlerts({ at: "ring1.health", businessId: business.id }),
@@ -189,11 +208,7 @@ export async function GET() {
       referenceImplementation: isDemoBusiness(business),
     },
     coverage: {
-      afterHoursNow: isAfterHours(
-        new Date(),
-        business.hoursJson,
-        business.timezone ?? "America/New_York",
-      ),
+      afterHoursNow,
       timezone: business.timezone ?? null,
       forwardConfirmed: business.overflowForwardConfirmedAt != null,
     },
@@ -259,7 +274,7 @@ export async function GET() {
     dispatchToday: {
       jobCount: dispatchBoard.jobCount,
       unassigned: dispatchBoard.unassigned.length,
-      jobs: [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)].sort(
+      jobs: [...boardJobs].sort(
         (a, b) => {
           if (!a.scheduledAt && !b.scheduledAt) return 0;
           if (!a.scheduledAt) return 1;
@@ -271,5 +286,6 @@ export async function GET() {
     technicians: crew.map((tech) => ({ id: tech.id, name: tech.name })),
     health,
     wedge,
+    personalBrief,
   });
 }

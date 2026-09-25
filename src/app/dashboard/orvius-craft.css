@@ -342,6 +342,49 @@ a.dt-row:focus-visible {
   color: var(--ox-s4);
 }
 
+.cc-brief-personal {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 46rem;
+  margin-bottom: 0.75rem;
+}
+
+.cc-brief-greeting,
+.cc-brief-detail,
+.cc-brief-pattern {
+  margin: 0;
+  font-size: var(--cr-body);
+  line-height: 1.5;
+  color: var(--ox-text-2);
+}
+
+.cc-brief-greeting {
+  color: var(--ox-mute);
+}
+
+.cc-brief-headline {
+  margin: 0;
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  font-weight: 550;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: var(--ox-text);
+}
+
+.cc-brief-detail {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cc-brief-pattern {
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .cc-brief-text--sub {
+  font-size: var(--cr-label, 0.8125rem);
+  color: var(--ox-mute);
+}
+
 .os-shell.os-shell-night .cs-grid {
   gap: 0;
   border: 1px solid var(--ox-line);
