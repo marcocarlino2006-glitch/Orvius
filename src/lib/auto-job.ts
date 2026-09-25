@@ -1,6 +1,8 @@
 import { recordAudit } from "@/lib/audit";
+import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
 import { createJobFromLead } from "@/lib/job";
-import { classifyRequest, type RequestClassification } from "@/lib/trade-playbooks";
+import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
+import { callerWords } from "@/lib/transcript";
 import { getEffectivePlanId } from "@/lib/plan-features";
 import { prisma } from "@/lib/prisma";
 import { isInServiceArea } from "@/lib/service-area";
@@ -53,7 +55,11 @@ export type AutoBookSkipReason =
   | "out_of_area"
   | "safety_escalation"
   | "missing_address"
+  | "existing_job"
+  | "follow_up"
   | "not_found";
+
+export type ExistingJobRef = { id: string; title: string | null; scheduledAt: Date | null };
 
 export type AutoBookResult = {
   jobId: string | null;
@@ -61,7 +67,13 @@ export type AutoBookResult = {
   qualified: boolean;
   skipReason?: AutoBookSkipReason;
   classification?: RequestClassification;
+  intent?: CallIntent;
+  /** Open work this call was about, when it was not a new request. */
+  existingJob?: ExistingJobRef;
 };
+
+const OPEN_JOB_STATUSES = ["scheduled", "confirmed", "en_route", "on_site"];
+const REPEAT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 function hasUsablePhone(phone?: string | null): boolean {
   if (!phone) return false;
@@ -145,12 +157,18 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
   }
 
   const businessId = lead.businessId;
+  const call = lead.callId
+    ? await prisma.call.findUnique({ where: { id: lead.callId }, select: { transcript: true } })
+    : null;
+  const spoken = callerWords(call?.transcript);
   const classification = classifyRequest({
     business: lead.business,
     serviceType: lead.serviceType,
     notes: lead.notes,
+    callerWords: spoken,
     urgency: lead.urgency,
   });
+  const intent = detectCallIntent(lead.serviceType, lead.notes, spoken);
   const link = {
     businessId,
     callId: lead.callId,
@@ -170,10 +188,17 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     { ...classification },
   );
 
+  /*
+    The playbook's read of urgency is what Command sorts by and what the owner's
+    text leads with. Leaving the extractor's raw label ("ASAP!!", or nothing at
+    all for "elderly caller, house freezing") buried emergencies in the queue.
+  */
+  const urgency = classification.urgency ?? normalizeUrgency(lead.urgency);
+  if (urgency && lead.urgency !== urgency) {
+    await prisma.lead.update({ where: { id: lead.id }, data: { urgency } });
+  }
+
   if (classification.safety) {
-    if (classification.urgency && lead.urgency !== classification.urgency) {
-      await prisma.lead.update({ where: { id: lead.id }, data: { urgency: classification.urgency } });
-    }
     await decide(
       "lead.escalated",
       `Escalated to a human — ${classification.safety.label}. ${classification.safety.instruction}`,
@@ -185,6 +210,73 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
       qualified: true,
       skipReason: "safety_escalation",
       classification,
+      intent,
+    };
+  }
+
+  const phone = lead.phone?.trim();
+  const openJobs =
+    lead.customerId || phone
+      ? await prisma.job.findMany({
+          where: {
+            businessId,
+            status: { in: OPEN_JOB_STATUSES },
+            OR: [
+              ...(lead.customerId ? [{ customerId: lead.customerId }] : []),
+              ...(phone ? [{ lead: { phone } }] : []),
+            ],
+          },
+          orderBy: { scheduledAt: "asc" },
+          select: { id: true, title: true, scheduledAt: true, categoryCode: true, createdAt: true },
+          take: 5,
+        })
+      : [];
+
+  if (intent !== "new") {
+    const target = openJobs[0];
+    if (target) {
+      await decide(
+        "lead.follow_up",
+        `About existing job — caller wants to ${intent === "status" ? "check on" : intent} ${target.title ?? "their appointment"}. No new job created.`,
+        { intent, jobId: target.id },
+      );
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "existing_job",
+        classification,
+        intent,
+        existingJob: { id: target.id, title: target.title, scheduledAt: target.scheduledAt },
+      };
+    }
+    await decide(
+      "lead.follow_up",
+      `Caller asked about an appointment (${intent}), but no open job matches — held for the owner`,
+      { intent },
+    );
+    return { jobId: null, created: false, qualified: true, skipReason: "follow_up", classification, intent };
+  }
+
+  const repeat = openJobs.find(
+    (job) =>
+      Date.now() - job.createdAt.getTime() < REPEAT_WINDOW_MS &&
+      (!lead.categoryCode || !job.categoryCode || job.categoryCode === lead.categoryCode),
+  );
+  if (repeat) {
+    await decide(
+      "lead.follow_up",
+      `Called again about ${repeat.title ?? "a job already booked"} — no duplicate job created`,
+      { jobId: repeat.id },
+    );
+    return {
+      jobId: null,
+      created: false,
+      qualified: true,
+      skipReason: "existing_job",
+      classification,
+      intent,
+      existingJob: { id: repeat.id, title: repeat.title, scheduledAt: repeat.scheduledAt },
     };
   }
 
