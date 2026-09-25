@@ -63,6 +63,29 @@ export async function recordAudit(input: AuditInput): Promise<string | null> {
   }
 }
 
+export type AuditQueue = {
+  add(input: AuditInput): void;
+  /** Resolves once every queued row is written (or has logged its failure). */
+  flush(): Promise<void>;
+};
+
+/**
+ * Writes audit rows one after another in the background, so a request can
+ * keep working while its trail is recorded without the trail losing order.
+ * recordAudit never throws, so one failed row cannot stall the rest.
+ */
+export function createAuditQueue(): AuditQueue {
+  let tail: Promise<unknown> = Promise.resolve();
+  return {
+    add(input) {
+      tail = tail.then(() => recordAudit(input));
+    },
+    async flush() {
+      await tail;
+    },
+  };
+}
+
 export type AuditRow = {
   id: string;
   at: string;

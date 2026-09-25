@@ -1,3 +1,4 @@
+import { afterResponse } from "@/lib/after-response";
 import { linkTouchToCustomer } from "@/lib/customer";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
@@ -7,7 +8,7 @@ import {
   type SlotPreference,
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
-import { recordAudit, type AuditActor } from "@/lib/audit";
+import { createAuditQueue, recordAudit, type AuditActor, type AuditQueue } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { classifyRequest } from "@/lib/trade-playbooks";
@@ -212,26 +213,27 @@ export async function createJobFromLead(params: {
   /** Skip automatic technician assignment (the caller assigns). */
   skipAutoAssign?: boolean;
 }) {
-  const lead = await prisma.lead.findUnique({
-    where: { id: params.leadId },
-    include: {
-      job: true,
-      business: {
-        select: {
-          id: true,
-          name: true,
-          servicesJson: true,
-          hoursJson: true,
-          timezone: true,
-          trade: true,
-        },
+  // Parallel instead of `include`, which Prisma runs as one query after another here.
+  const [leadRow, existingJob, business] = await Promise.all([
+    prisma.lead.findUnique({ where: { id: params.leadId } }),
+    prisma.job.findUnique({ where: { leadId: params.leadId } }),
+    prisma.business.findFirst({
+      where: { leads: { some: { id: params.leadId } } },
+      select: {
+        id: true,
+        name: true,
+        servicesJson: true,
+        hoursJson: true,
+        timezone: true,
+        trade: true,
       },
-    },
-  });
+    }),
+  ]);
 
-  if (!lead) {
+  if (!leadRow) {
     throw new Error("Lead not found");
   }
+  const lead = { ...leadRow, job: existingJob, business };
 
   if (!lead.businessId) {
     throw new Error("Lead is not attached to a business");
@@ -403,7 +405,9 @@ export async function createJobFromLead(params: {
       customerId,
       jobId: job.id,
     };
-    await recordAudit({
+    // Booking decisions are written in order while assignment keeps working.
+    const audit = createAuditQueue();
+    audit.add({
       ...link,
       entityType: "job",
       entityId: job.id,
@@ -430,6 +434,7 @@ export async function createJobFromLead(params: {
           job: { id: job.id, scheduledAt: slot, durationMin, technicianId: null },
           skill: playbook.service.skill,
           link,
+          audit,
           recordUnassigned: last,
         });
         job = outcome.job;
@@ -439,6 +444,7 @@ export async function createJobFromLead(params: {
               job: { id: job.id, scheduledAt: slot, durationMin, technicianId: null },
               skill: playbook.service.skill,
               link,
+              audit,
               recordUnassigned: true,
             });
           }
@@ -458,12 +464,13 @@ export async function createJobFromLead(params: {
             job: { id: job.id, scheduledAt: slot, durationMin, technicianId: null },
             skill: playbook.service.skill,
             link,
+            audit,
             recordUnassigned: true,
           });
           break;
         }
         await prisma.job.update({ where: { id: job.id }, data: { scheduledAt: next } });
-        await recordAudit({
+        audit.add({
           ...link,
           entityType: "job",
           entityId: job.id,
@@ -477,32 +484,37 @@ export async function createJobFromLead(params: {
       }
     }
 
-    await closeBookingMoneyLoop({
-      businessId: lead.businessId,
-      leadId: lead.id,
-      jobId: job.id,
+    /*
+      Deposit link, then the customer's confirmation text (which can carry
+      that link). Both already swallow their own failures, so neither could
+      ever fail the booking; running them after the response keeps the
+      caller's webhook from waiting on Stripe and Twilio.
+    */
+    await audit.flush();
+    const bookedJobId = job.id;
+    const businessId = lead.businessId;
+    await afterResponse(async () => {
+      await closeBookingMoneyLoop({ businessId, leadId: lead.id, jobId: bookedJobId });
+      try {
+        const confirm = await sendCustomerConfirmSms(bookedJobId);
+        await recordAudit({
+          ...link,
+          entityType: "job",
+          entityId: bookedJobId,
+          action: confirm.sent ? "customer.confirmation_sent" : "customer.confirmation_skipped",
+          summary: confirm.sent
+            ? "Texted the customer the proposed window to confirm"
+            : `Customer confirmation not sent (${(confirm.reason ?? "unknown").replace(/_/g, " ")})`,
+          detail: { reason: confirm.reason ?? null },
+          idempotencyKey: `job:${bookedJobId}:confirmation`,
+        });
+      } catch (error) {
+        logWarn("job.customer_confirm_sms_error", {
+          jobId: bookedJobId,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      }
     });
-
-    // Proposed window until the customer confirms — keep appointments honest.
-    try {
-      const confirm = await sendCustomerConfirmSms(job.id);
-      await recordAudit({
-        ...link,
-        entityType: "job",
-        entityId: job.id,
-        action: confirm.sent ? "customer.confirmation_sent" : "customer.confirmation_skipped",
-        summary: confirm.sent
-          ? "Texted the customer the proposed window to confirm"
-          : `Customer confirmation not sent (${(confirm.reason ?? "unknown").replace(/_/g, " ")})`,
-        detail: { reason: confirm.reason ?? null },
-        idempotencyKey: `job:${job.id}:confirmation`,
-      });
-    } catch (error) {
-      logWarn("job.customer_confirm_sms_error", {
-        jobId: job.id,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-    }
   }
 
   return job;
@@ -514,6 +526,7 @@ async function autoAssignTechnician(params: {
   /** false while Orvius may still move the job to another slot. */
   recordUnassigned?: boolean;
   link: { businessId: string; callId: string | null; leadId: string; customerId: string | null; jobId: string };
+  audit: AuditQueue;
 }) {
   const { job, link } = params;
   let ranking = await recommendTechnician({
@@ -558,7 +571,7 @@ async function autoAssignTechnician(params: {
       return overlapping && olderWins;
     });
     if (!conflict) {
-      await recordAudit({
+      params.audit.add({
         ...link,
         entityType: "job",
         entityId: job.id,
@@ -567,14 +580,16 @@ async function autoAssignTechnician(params: {
         detail: { technicianId: techId, skill: params.skill, considered: ranking.considered },
         idempotencyKey: `job:${job.id}:auto-assign`,
       });
-      try {
-        await notifyTechOnAssign({ jobId: job.id, previousTechnicianId: null, nextTechnicianId: techId });
-      } catch (error) {
-        logWarn("job.auto_assign_notify_error", {
-          jobId: job.id,
-          error: error instanceof Error ? error.message : "unknown",
-        });
-      }
+      await afterResponse(async () => {
+        try {
+          await notifyTechOnAssign({ jobId: job.id, previousTechnicianId: null, nextTechnicianId: techId });
+        } catch (error) {
+          logWarn("job.auto_assign_notify_error", {
+            jobId: job.id,
+            error: error instanceof Error ? error.message : "unknown",
+          });
+        }
+      });
       return { job: await prisma.job.findUniqueOrThrow({ where: { id: job.id } }), busy: false };
     }
     await prisma.job.updateMany({ where: { id: job.id, technicianId: techId }, data: { technicianId: null } });
@@ -589,7 +604,7 @@ async function autoAssignTechnician(params: {
 
   const busy = !ranking.pick || ranking.considered.some((c) => c.fit === "busy");
   if (params.recordUnassigned !== false) {
-    await recordAudit({
+    params.audit.add({
       ...link,
       entityType: "job",
       entityId: job.id,

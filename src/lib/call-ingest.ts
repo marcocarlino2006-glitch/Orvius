@@ -1,5 +1,5 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
-import { recordAudit } from "@/lib/audit";
+import { createAuditQueue } from "@/lib/audit";
 import { maybeAutoBookLead, type AutoBookResult } from "@/lib/auto-job";
 import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
@@ -39,17 +39,27 @@ export async function ingestEndOfCallReport(params: {
   const { message, vapiCallId } = params;
   // Callers resolve the shop from different partial rows; the playbook needs
   // trade and services, so read the whole row once here.
-  const business = await prisma.business.findUniqueOrThrow({ where: { id: params.business.id } });
   const eventType = "end-of-call-report";
-
-  const claim = await claimWebhookEvent({
-    source: "vapi",
-    externalId: vapiCallId,
-    eventType,
-    businessId: business.id,
-    payload: { type: eventType },
-  });
+  const [shopRead, claim] = await Promise.all([
+    prisma.business.findUniqueOrThrow({ where: { id: params.business.id } }).then(
+      (row) => ({ row, error: null }),
+      (error: unknown) => ({ row: null, error }),
+    ),
+    claimWebhookEvent({
+      source: "vapi",
+      externalId: vapiCallId,
+      eventType,
+      businessId: params.business.id,
+      payload: { type: eventType },
+    }),
+  ]);
   if (!claim.claimed) return { duplicate: true };
+  if (!shopRead.row) {
+    // Release the claim now so Vapi's redelivery is processed, not refused as a duplicate.
+    await completeWebhookEvent({ source: "vapi", externalId: vapiCallId, eventType, status: "failed", error: "business read failed" });
+    throw shopRead.error;
+  }
+  const business = shopRead.row;
 
   try {
     const summary =
@@ -136,7 +146,8 @@ export async function ingestEndOfCallReport(params: {
     });
 
     const key = (step: string) => `call:${vapiCallId}:${step}`;
-    await recordAudit({
+    const audit = createAuditQueue();
+    audit.add({
       businessId: business.id,
       entityType: "call",
       entityId: call.id,
@@ -160,7 +171,7 @@ export async function ingestEndOfCallReport(params: {
     const missing = Object.entries(captured)
       .filter(([, v]) => !v)
       .map(([k]) => k);
-    await recordAudit({
+    audit.add({
       businessId: business.id,
       entityType: "lead",
       entityId: lead.id,
@@ -187,7 +198,7 @@ export async function ingestEndOfCallReport(params: {
     });
     const customerId = link?.customer.id ?? null;
     if (link) {
-      await recordAudit({
+      audit.add({
         businessId: business.id,
         entityType: "customer",
         entityId: link.customer.id,
@@ -202,13 +213,16 @@ export async function ingestEndOfCallReport(params: {
       });
     }
 
-    const autoBook = await maybeAutoBookLead(lead.id);
-    const bookedJob = autoBook.jobId
-      ? await prisma.job.findUnique({
-          where: { id: autoBook.jobId },
-          select: { id: true, scheduledAt: true, customerConfirmedAt: true },
-        })
-      : null;
+    const autoBook = await maybeAutoBookLead(lead.id, { audit });
+    const [bookedJob, freshLead] = await Promise.all([
+      autoBook.jobId
+        ? prisma.job.findUnique({
+            where: { id: autoBook.jobId },
+            select: { id: true, scheduledAt: true, customerConfirmedAt: true },
+          })
+        : null,
+      prisma.lead.findUniqueOrThrow({ where: { id: lead.id } }),
+    ]);
 
     logInfo("vapi.webhook.auto_book", {
       vapiCallId,
@@ -219,7 +233,6 @@ export async function ingestEndOfCallReport(params: {
       skipReason: autoBook.skipReason ?? null,
     });
 
-    const freshLead = await prisma.lead.findUniqueOrThrow({ where: { id: lead.id } });
     const safety = autoBook.classification?.safety;
     const spoken = callerWords(transcript);
     const callerId = message.call?.customer?.number ?? null;
@@ -234,7 +247,7 @@ export async function ingestEndOfCallReport(params: {
       (promise) => !(promise.kind === "arrival" && call.heldSlotAt),
     );
     if (promises.length) {
-      await recordAudit({
+      audit.add({
         businessId: business.id,
         entityType: "call",
         entityId: call.id,
@@ -249,7 +262,7 @@ export async function ingestEndOfCallReport(params: {
     }
 
     if (nonService) {
-      await recordAudit({
+      audit.add({
         businessId: business.id,
         entityType: "notification",
         entityId: lead.id,
@@ -301,7 +314,7 @@ export async function ingestEndOfCallReport(params: {
         leadId: lead.id,
         dedupeKey: buildLeadAlertDedupeKey({ vapiCallId }),
       });
-      await recordAudit({
+      audit.add({
         businessId: business.id,
         entityType: "notification",
         entityId: lead.id,
@@ -318,19 +331,22 @@ export async function ingestEndOfCallReport(params: {
       });
     }
 
-    await completeWebhookEvent({
-      source: "vapi",
-      externalId: vapiCallId,
-      eventType,
-      status: "processed",
-      payload: {
-        callId: call.id,
-        leadId: lead.id,
-        jobId: autoBook.jobId,
-        autoBooked: autoBook.created,
-        skipReason: autoBook.skipReason ?? null,
-      },
-    });
+    await Promise.all([
+      audit.flush(),
+      completeWebhookEvent({
+        source: "vapi",
+        externalId: vapiCallId,
+        eventType,
+        status: "processed",
+        payload: {
+          callId: call.id,
+          leadId: lead.id,
+          jobId: autoBook.jobId,
+          autoBooked: autoBook.created,
+          skipReason: autoBook.skipReason ?? null,
+        },
+      }),
+    ]);
 
     return {
       duplicate: false,

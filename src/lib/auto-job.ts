@@ -1,4 +1,4 @@
-import { recordAudit } from "@/lib/audit";
+import { recordAudit, type AuditQueue } from "@/lib/audit";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
 import { createJobFromLead } from "@/lib/job";
 import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
@@ -108,6 +108,34 @@ export function isLeadQualifiedForBooking(lead: {
   return true;
 }
 
+/*
+  One round trip instead of four. Prisma runs each `include` as its own query
+  after the parent on SQLite/Turso, and on Turso every query is a network hop
+  inside the caller's webhook. Filtering each relation by the lead id lets all
+  four go at once.
+*/
+async function loadLeadForBooking(leadId: string) {
+  const [lead, job, call, business] = await Promise.all([
+    prisma.lead.findUnique({ where: { id: leadId } }),
+    prisma.job.findUnique({ where: { leadId }, select: { id: true } }),
+    prisma.call.findFirst({ where: { lead: { is: { id: leadId } } }, select: { transcript: true, heldSlotAt: true } }),
+    prisma.business.findFirst({
+      where: { leads: { some: { id: leadId } } },
+      select: {
+        billingStatus: true,
+        billingPlan: true,
+        pilotEndsAt: true,
+        createdAt: true,
+        serviceZipsJson: true,
+        trade: true,
+        servicesJson: true,
+        name: true,
+      },
+    }),
+  ]);
+  return lead ? { ...lead, job, call, business } : null;
+}
+
 /**
  * Loop 1 capture book:
  * - Qualify first (phone + service/address)
@@ -115,25 +143,11 @@ export function isLeadQualifiedForBooking(lead: {
  * - Every entitled shop (Line / Pro / Fleet / pilot) auto-books qualified leads
  * - Expired / locked billing → plan_blocked
  */
-export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult> {
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
-    include: {
-      job: { select: { id: true } },
-      business: {
-        select: {
-          billingStatus: true,
-          billingPlan: true,
-          pilotEndsAt: true,
-          createdAt: true,
-          serviceZipsJson: true,
-          trade: true,
-          servicesJson: true,
-          name: true,
-        },
-      },
-    },
-  });
+export async function maybeAutoBookLead(
+  leadId: string,
+  options: { audit?: AuditQueue } = {},
+): Promise<AutoBookResult> {
+  const lead = await loadLeadForBooking(leadId);
 
   if (!lead) {
     return { jobId: null, created: false, qualified: false, skipReason: "not_found" };
@@ -158,12 +172,7 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
   }
 
   const businessId = lead.businessId;
-  const call = lead.callId
-    ? await prisma.call.findUnique({
-        where: { id: lead.callId },
-        select: { transcript: true, heldSlotAt: true },
-      })
-    : null;
+  const call = lead.call;
   const spoken = callerWords(call?.transcript);
   const classification = classifyRequest({
     business: lead.business,
@@ -181,8 +190,11 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     entityType: "lead" as const,
     entityId: lead.id,
   };
-  const decide = (action: string, summary: string, detail?: Record<string, unknown>) =>
-    recordAudit({ ...link, action, summary, detail, idempotencyKey: `lead:${lead.id}:${action}` });
+  const decide = async (action: string, summary: string, detail?: Record<string, unknown>) => {
+    const row = { ...link, action, summary, detail, idempotencyKey: `lead:${lead.id}:${action}` };
+    if (options.audit) options.audit.add(row);
+    else await recordAudit(row);
+  };
 
   await decide(
     "playbook.classified",
@@ -198,11 +210,13 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     all for "elderly caller, house freezing") buried emergencies in the queue.
   */
   const urgency = classification.urgency ?? normalizeUrgency(lead.urgency);
-  if (urgency && lead.urgency !== urgency) {
-    await prisma.lead.update({ where: { id: lead.id }, data: { urgency } });
-  }
+  const urgencyWrite =
+    urgency && lead.urgency !== urgency
+      ? prisma.lead.update({ where: { id: lead.id }, data: { urgency } })
+      : null;
 
   if (classification.safety) {
+    await urgencyWrite;
     await decide(
       "lead.escalated",
       `Escalated to a human — ${classification.safety.label}. ${classification.safety.instruction}`,
@@ -219,9 +233,10 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
   }
 
   const phone = lead.phone?.trim();
-  const openJobs =
+  const [, openJobs] = await Promise.all([
+    urgencyWrite,
     lead.customerId || phone
-      ? await prisma.job.findMany({
+      ? prisma.job.findMany({
           where: {
             businessId,
             status: { in: OPEN_JOB_STATUSES },
@@ -234,7 +249,8 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
           select: { id: true, title: true, scheduledAt: true, categoryCode: true, createdAt: true },
           take: 5,
         })
-      : [];
+      : [],
+  ]);
 
   if (intent === "complaint") {
     await decide(
@@ -365,6 +381,8 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
   );
 
   const held = call?.heldSlotAt && call.heldSlotAt.getTime() > Date.now() ? call.heldSlotAt : null;
+  // Booking writes its own audit rows directly; the decisions before it land first.
+  await options.audit?.flush();
   let job;
   try {
     job = await createJobFromLead({

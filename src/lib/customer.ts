@@ -213,19 +213,17 @@ export async function linkTouchToCustomerDetailed(params: {
   if (!result) return null;
   const { customer } = result;
 
-  if (params.callId) {
-    await attachCustomerToCall(params.callId, customer.id);
-  }
-  if (params.leadId) {
-    await attachCustomerToLead(params.leadId, customer.id);
-    await prisma.job.updateMany({
-      where: { leadId: params.leadId, customerId: null },
-      data: { customerId: customer.id },
-    });
-  }
-  if (params.jobId) {
-    await attachCustomerToJob(params.jobId, customer.id);
-  }
+  await Promise.all([
+    params.callId ? attachCustomerToCall(params.callId, customer.id) : null,
+    params.leadId ? attachCustomerToLead(params.leadId, customer.id) : null,
+    params.leadId
+      ? prisma.job.updateMany({
+          where: { leadId: params.leadId, customerId: null },
+          data: { customerId: customer.id },
+        })
+      : null,
+    params.jobId ? attachCustomerToJob(params.jobId, customer.id) : null,
+  ]);
 
   return { customer, created: result.created, alreadyLinked };
 }
