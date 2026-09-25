@@ -160,8 +160,11 @@ When asked for the address say: "Hold on, let me grab my husband, he knows the a
     id: "robocall",
     name: "Sales robocall",
     persona: `You are a recorded sales message, not a customer. Say: "This is an important message about your business's Google listing. Press one to speak with a listing specialist or stay on the line." Repeat a variation if they respond. Do not give any personal details.`,
-    grade: ({ structured, durationSec }) => [
-      ...(structured.jobCategory === "other.non_service" || /spam|sales|not a job/i.test(structured.notes ?? "")
+    // Vapi's extractor often returns nothing on a 20-second call; what decides the owner text is Orvius's own read of the summary.
+    grade: ({ structured, durationSec, call }) => [
+      ...(structured.jobCategory === "other.non_service" ||
+      /spam|sales|not a job/i.test(structured.notes ?? "") ||
+      deriveDemandSignal({ summary: call.analysis?.summary ?? call.summary ?? "", trade: "hvac" }).categoryCode === "other.non_service"
         ? []
         : [`not marked as spam (category "${structured.jobCategory ?? ""}", notes "${structured.notes ?? ""}")`]),
       ...(durationSec != null && durationSec > 75 ? [`stayed on a robocall for ${Math.round(durationSec)}s`] : []),
