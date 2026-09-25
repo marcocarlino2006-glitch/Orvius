@@ -118,6 +118,15 @@ test("backups resolve SQLite from prisma/ like Prisma does, and stay out of git"
   assert.match(readFileSync(".gitignore", "utf8"), /^\/backups\/$/m);
 });
 
+test("a SQLite file can opt into the same concurrent adapter as Turso, at the path Prisma would use", async () => {
+  const { resolveSqliteUrl } = await import("../src/lib/prisma.ts");
+  assert.equal(resolveSqliteUrl("file:./dev.db", "/app"), "file:/app/prisma/dev.db");
+  assert.equal(resolveSqliteUrl("file:ci.db", "/app/"), "file:/app/prisma/ci.db");
+  assert.equal(resolveSqliteUrl("file:/data/orvius.db?connection_limit=1", "/app"), "file:/data/orvius.db");
+  const src = readFileSync("src/lib/prisma.ts", "utf8");
+  assert.match(src, /startsWith\("file:"\) && process\.env\.PRISMA_SQLITE_ADAPTER === "libsql"[\s\S]*new ConcurrentPrismaLibSql/);
+});
+
 test("load-test percentiles are nearest-rank", () => {
   const xs = Array.from({ length: 100 }, (_, i) => i + 1);
   assert.equal(percentile(xs, 50), 50);

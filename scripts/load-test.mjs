@@ -8,6 +8,12 @@
  * Seeds its own test-environment shop and deletes it afterwards.
  *
  *   APP_URL=http://127.0.0.1:3000 VAPI_WEBHOOK_SECRET=… node scripts/load-test.mjs [--calls 200] [--concurrency 25] [--dupes 0.2] [--json out.json]
+ *
+ * Against Turso this measures production. Against a local SQLite file, start
+ * the app with PRISMA_SQLITE_ADAPTER=libsql on a fresh file (e.g.
+ * DATABASE_URL=file:./load.db after `prisma db push`) so it runs the same
+ * adapter production does; Prisma's built-in SQLite engine times out under
+ * concurrent writes and measures that instead.
  */
 import { writeFileSync } from "node:fs";
 import { createScriptPrisma, loadEnvFile } from "./lib/db.mjs";
