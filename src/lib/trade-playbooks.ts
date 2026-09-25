@@ -49,20 +49,31 @@ export const GENERAL_DURATION_MIN = 120;
 const HVAC: TradePlaybook = {
   trade: "HVAC",
   services: [
-    { key: "no_cooling", label: "No cooling / AC repair", durationMin: 120, skill: "cooling", keywords: [/\b(no|not) (cool|cooling|ac|a\/c)\b/, /\bac\b.*\b(out|down|broken|not working)\b/, /air condition/, /\bcooling\b/] },
-    { key: "no_heat", label: "No heat / furnace repair", durationMin: 120, skill: "heating", keywords: [/\bno heat\b/, /furnace/, /heat pump/, /\bheating\b/, /boiler/] },
+    { key: "no_cooling", label: "No cooling / AC repair", durationMin: 120, skill: "cooling", keywords: [/\b(no|not) (cool|cooling|ac|a\/c)\b/, /\bac\b.*\b(out|down|broken|not working)\b/, /air condition/, /\bcooling\b/, /aire acondicionado/, /no enfr[ií]a/] },
+    { key: "no_heat", label: "No heat / furnace repair", durationMin: 120, skill: "heating", keywords: [/\bno heat\b/, /furnace/, /heat pump/, /\bheating\b/, /boiler/, /calefacci[oó]n/, /\bcaldera\b/, /\bsin calor\b/] },
     { key: "tune_up", label: "Maintenance tune-up", durationMin: 60, skill: "maintenance", keywords: [/tune[- ]?up/, /maintenance/, /\bservice (visit|check)\b/, /filter/] },
     { key: "thermostat", label: "Thermostat issue", durationMin: 60, skill: "controls", keywords: [/thermostat/] },
     { key: "system_quote", label: "New system estimate", durationMin: 90, skill: "sales", keywords: [/new (system|unit|ac|furnace)/, /replace(ment)?/, /quote/, /estimate/] },
   ],
   fallback: { key: "hvac_diagnostic", label: "HVAC diagnostic", durationMin: 120, skill: "general", keywords: [] },
   safety: [
-    { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing)? (of )?gas/, /gas (smell|leak)/] },
-    { key: "carbon_monoxide", label: "Carbon monoxide alarm", instruction: "Tell the caller to get outside and call 911. Call them back now.", keywords: [/carbon monoxide/, /\bco (alarm|detector)\b/] },
+    { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing)? (of )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
+    { key: "carbon_monoxide", label: "Carbon monoxide alarm", instruction: "Tell the caller to get outside and call 911. Call them back now.", keywords: [/carbon monoxide/, /\bco (alarm|detector)\b/, /mon[oó]xido de carbono/] },
     { key: "burning_unit", label: "Burning smell or smoke from the unit", instruction: "Tell the caller to shut the system off at the breaker. Call them back now.", keywords: [/(burning|smoke|smoking).{0,20}(unit|furnace|system|vent)/, /(unit|furnace).{0,20}(burning|smoke)/] },
   ],
-  emergency: [/\bno heat\b.*\b(freez|cold|baby|elderly)/, /water (leaking|pouring) from (the )?(indoor|air handler)/],
-  sameDay: [/\bno (heat|cooling|ac|a\/c)\b/, /\basap\b/, /\btoday\b/, /\burgent\b/],
+  emergency: [
+    /\bno heat\b.*\b(freez|cold|baby|infant|elderly)/,
+    /\b(freez|baby|infant|elderly)\w*\b.{0,80}\bno heat\b/,
+    /water (leaking|pouring|gushing) from (the )?(indoor|air handler)/,
+    /(sin|no (tengo|hay)) calefacci[oó]n.{0,80}(beb[eé]|fr[ií]o|congel|anciano|mayor)/,
+    /(beb[eé]|anciano|congel).{0,80}(sin|no (tengo|hay)) calefacci[oó]n/,
+    /\b(no (ac|a\/c|cooling)|(ac|a\/c|air conditioner) (died|is dead|is out|quit|stopped))\b.{0,80}\b(baby|infant|elderly|oxygen|heat ?stroke)/,
+  ],
+  sameDay: [
+    /\b(ac|a\/c|air conditioner|air conditioning)\b.{0,20}\b(died|dead|out|quit|stopped|not working|broke)/,
+    /\b(9[0-9]|1[01][0-9])\s*(degrees|in here|inside|in the house)\b/,
+    /sin aire( acondicionado)?/,
+    /\bno (heat|cooling|ac|a\/c)\b/, /\basap\b/, /\btoday\b/, /\burgent\b/, /(sin|no (tengo|hay)) calefacci[oó]n/, /\burgente\b/, /\bhoy\b/],
 };
 
 const PLUMBING: TradePlaybook = {
@@ -77,7 +88,7 @@ const PLUMBING: TradePlaybook = {
   ],
   fallback: { key: "plumbing_diagnostic", label: "Plumbing diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
-    { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing)? (of )?gas/, /gas (smell|leak)/] },
+    { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing)? (of )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
     { key: "sewage_backup", label: "Sewage backing up into the home", instruction: "Tell the caller to stop using water and keep people away from it. Call them back now.", keywords: [/sewage (backing|coming) (up|in)/, /raw sewage/] },
   ],
   emergency: [/burst/, /flood/, /water everywhere/, /can'?t (shut|turn) (it |the water )?off/],
@@ -95,7 +106,7 @@ const ELECTRICAL: TradePlaybook = {
   ],
   fallback: { key: "electrical_diagnostic", label: "Electrical diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
-    { key: "sparking", label: "Sparking, burning smell, or smoke", instruction: "Tell the caller to shut off the main breaker if it is safe and call 911 if there is fire. Call them back now.", keywords: [/spark/, /burning smell/, /smell(s|ing)? (like )?burning/, /smok(e|ing)/, /electrical fire/] },
+    { key: "sparking", label: "Sparking, burning smell, or smoke", instruction: "Tell the caller to shut off the main breaker if it is safe and call 911 if there is fire. Call them back now.", keywords: [/spark/, /burning smell/, /smell(s|ing)? (like )?burning/, /smok(e|ing)/, /electrical fire/, /chispa/, /\bhumo\b/, /olor a quemado/] },
     { key: "shock", label: "Someone was shocked", instruction: "If anyone is hurt, the caller should call 911. Call them back now.", keywords: [/(got|was|been) shocked/, /electrocut/] },
     { key: "exposed_wires", label: "Exposed or hot wires", instruction: "Tell the caller to keep everyone away and shut off the breaker. Call them back now.", keywords: [/exposed wire/, /wires? (hanging|exposed|hot)/, /downed (power )?line/] },
   ],
@@ -164,10 +175,14 @@ function matches(text: string, patterns: RegExp[]) {
   return patterns.some((p) => p.test(text));
 }
 
-function normalizeUrgency(value: string | null | undefined): RequestUrgency | null {
+export function normalizeUrgency(value: string | null | undefined): RequestUrgency | null {
   const key = value?.toLowerCase().replace(/[\s_]+/g, "-") ?? "";
-  if (key.includes("emergency")) return "emergency";
-  if (key.includes("same-day") || key === "today" || key === "urgent") return "same-day";
+  if (key.includes("emergency") || key.includes("emergencia")) return "emergency";
+  if (
+    key.includes("same-day") ||
+    /\b(today|urgent|urgente|asap|immediately|right-away|now)\b/.test(key)
+  )
+    return "same-day";
   if (key.includes("week")) return "this-week";
   if (key.includes("flex")) return "flexible";
   return null;
@@ -182,10 +197,12 @@ export function classifyRequest(input: {
   serviceType?: string | null;
   notes?: string | null;
   summary?: string | null;
+  /** What the caller said on the call, without the receptionist's lines. */
+  callerWords?: string | null;
   urgency?: string | null;
 }): RequestClassification {
   const trade = resolveTrade(input.business);
-  const text = [input.serviceType, input.notes, input.summary]
+  const text = [input.serviceType, input.notes, input.summary, input.callerWords]
     .filter(Boolean)
     .join(" \n ")
     .toLowerCase();

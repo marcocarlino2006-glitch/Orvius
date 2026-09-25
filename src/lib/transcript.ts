@@ -30,3 +30,14 @@ export function parseTranscript(transcript: string | null | undefined): Transcri
       return { speaker: null, role: "unknown" as const, text: line };
     });
 }
+
+/**
+ * Only what the caller said. The receptionist's own lines are excluded because
+ * it recites safety scripts ("if you smell gas, leave the home") on routine calls.
+ */
+export function callerWords(transcript: string | null | undefined): string {
+  return parseTranscript(transcript)
+    .filter((line) => line.role === "caller")
+    .map((line) => line.text)
+    .join(" \n ");
+}
