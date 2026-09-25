@@ -49,6 +49,11 @@ test("public copy describes the transfer the receptionist actually does: only wi
   assert.match(company, /callback/);
 });
 
+test("the status badge opens the status page", () => {
+  const pill = readFileSync("src/components/system-status-pill.tsx", "utf8");
+  assert.match(pill, /<Link\s+href="\/status"/);
+});
+
 test("booking flushes its decisions before booking, and defers only work that could never fail it", () => {
   const autoJob = readFileSync("src/lib/auto-job.ts", "utf8");
   assert.match(autoJob, /await options\.audit\?\.flush\(\);\s*let job;/);
