@@ -26,7 +26,11 @@ test("production health publishes readiness but keeps operational detail privile
     "the detailed response must remain behind the production guard",
   );
 
-  const publicResponse = source.slice(publicGuard, detailedResponse);
+  const publicResponse = source.slice(publicGuard, source.indexOf("\n  }\n", publicGuard));
+  assert.ok(
+    source.indexOf("prisma.") > publicGuard,
+    "anonymous health checks must answer before any database round trip",
+  );
   assert.doesNotMatch(publicResponse, /\bstats\b/);
   assert.doesNotMatch(publicResponse, /\bauth\b\s*:/);
   assert.doesNotMatch(publicResponse, /\bconfig\b\s*:/);

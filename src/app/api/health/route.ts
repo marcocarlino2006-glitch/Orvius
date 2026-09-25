@@ -9,6 +9,22 @@ import { isProduction } from "@/lib/runtime";
 
 export async function GET(request: NextRequest) {
   const config = getConfigStatus();
+  /*
+    Readiness is public and the counts are not: how many shops and leads are
+    behind the line is something a prospect or competitor should have to ask
+    for. And since the public answer carries no counts, it must not pay for
+    them — five Turso round trips made the uptime probe take three seconds.
+  */
+  if (isProduction() && !(await isPrivilegedRequest(request))) {
+    return NextResponse.json({
+      ok: true,
+      service: "orvius",
+      configured: config.ready,
+      ownerSmsEnabled: config.ownerSmsEnabled,
+      twilioPhone: config.twilioPhone,
+      appUrl: config.appUrl,
+    });
+  }
   const authStatus = getAuthConfigStatus();
   let businessCount = 0;
   let leadCount = 0;
@@ -45,27 +61,6 @@ export async function GET(request: NextRequest) {
     ownerSmsEnabled && Boolean(ownerPhone) && !ownerPhoneIsTwilioLine;
 
   const stats = { businessCount, leadCount, callCount, jobCount };
-
-  /*
-    Readiness is public and the counts are not.
-
-    Whether the line is configured, and which number it is, are things we print
-    on the website for customers to call. How many shops and leads are behind
-    it is not: anonymous `curl` against production returned "4 shops, 19 leads",
-    which is the one number a prospect or a competitor should have to ask us
-    for. Gates keep working — they run against a local build, where this branch
-    is not taken, and against production with the admin key.
-  */
-  if (isProduction() && !(await isPrivilegedRequest(request))) {
-    return NextResponse.json({
-      ok: true,
-      service: "orvius",
-      configured: config.ready,
-      ownerSmsEnabled,
-      twilioPhone,
-      appUrl: config.appUrl,
-    });
-  }
 
   return NextResponse.json({
     ok: true,
