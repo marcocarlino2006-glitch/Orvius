@@ -108,3 +108,18 @@ test("appointment times are texted in the shop's zone, not the server's", () => 
   });
   assert.match(tech, /When: Tue, Sep 29, 6:00 AM PDT/);
 });
+
+test("a complaint about a past visit or bill is held for a person, never booked", () => {
+  assert.equal(detectCallIntent("You came out Tuesday and the furnace is still not working"), "complaint");
+  assert.equal(detectCallIntent("I was charged twice, I want a refund"), "complaint");
+  assert.equal(detectCallIntent("Quiero un reembolso"), "complaint");
+  assert.equal(detectCallIntent("My furnace broke, can someone come out?"), "new");
+  assert.match(ownerAlertContextLine({ timezone: "UTC", skipReason: "complaint" }) ?? "", /past visit or bill/);
+});
+
+test("a callback number that differs from caller ID is surfaced, not silently trusted", () => {
+  assert.match(
+    ownerAlertContextLine({ timezone: "UTC", callerId: "+13125550100" }) ?? "",
+    /^Called from \+13125550100 · confirm which number is right$/,
+  );
+});

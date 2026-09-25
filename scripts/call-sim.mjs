@@ -370,6 +370,42 @@ const scenarios = [
     calls: [{ transcript: T("AI: Sim Heating, what's going on?"), summary: "", durationSeconds: 6, structured: {} }],
     expect: { jobs: 0, alert: /hung up/i },
   },
+  {
+    id: "angry-callback",
+    name: "Review: angry customer about a past visit forced into a booking",
+    calls: [
+      {
+        transcript: T("User: You guys came out Tuesday and the furnace is still not working. I want my money back.", "AI: I'm sorry. I'll get this to the owner."),
+        summary: "Customer says the furnace is still broken after Tuesday's visit and wants a refund.",
+        structured: { name: "Grace Lee", serviceType: "Furnace still not working after repair", urgency: "same-day", address: "1500 Oak Ave, Evanston IL 60201" },
+      },
+    ],
+    expect: { jobs: 0, skip: "complaint", alert: /past visit or bill/ },
+  },
+  {
+    id: "callback-number-differs",
+    name: "Review: phone number captured wrong",
+    calls: [
+      {
+        transcript: T("User: Furnace short-cycling. Call me at 312-555-0199.", "AI: Got it. Address?", "User: 2020 Maple Ave, Evanston 60201."),
+        summary: "Furnace short-cycling.",
+        structured: { name: "Omar Haddad", phone: "+13125550199", serviceType: "Furnace short cycling", urgency: "this-week", address: "2020 Maple Ave, Evanston IL 60201" },
+      },
+    ],
+    expect: { alert: /Called from \+1312\d+ · confirm which number/ },
+  },
+  {
+    id: "routine-tune-up",
+    name: "Review: annual tune-up must not be triaged like an outage",
+    calls: [
+      {
+        transcript: T("User: Just want to schedule the annual AC tune-up before summer, no rush."),
+        summary: "Caller wants an annual AC tune-up, no rush.",
+        structured: { name: "Beth Moore", serviceType: "Annual AC tune-up", urgency: "flexible", address: "901 Elm Ave, Evanston IL 60202" },
+      },
+    ],
+    expect: { jobs: 1, urgency: ["flexible", "this-week"] },
+  },
 ];
 
 async function seed() {
