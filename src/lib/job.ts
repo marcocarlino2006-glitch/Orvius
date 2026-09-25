@@ -35,6 +35,13 @@ function isUniqueConstraintError(error: unknown) {
   );
 }
 
+/*
+  Each round of a booking race settles at least one job per free technician,
+  and the rest move on together. Four rounds left most of a 20-call burst
+  unassigned on top of each other; this covers bursts several times the crew.
+*/
+const RESLOT_ATTEMPTS = 12;
+
 async function closeBookingMoneyLoop(params: {
   businessId: string;
   leadId: string;
@@ -122,6 +129,12 @@ type OpenSlotParams = {
   excludeJobId?: string;
   /** The live call asking, whose own hold must not block it. */
   excludeCallId?: string;
+  /**
+   * Count only holds claimed before this one (ties broken by call id), so a
+   * caller re-checking its own fresh hold yields to earlier callers but not
+   * to later ones — exactly one side of any race keeps the time.
+   */
+  holdsClaimedBefore?: { at: Date; callId: string };
 };
 
 /** First slot in shop hours where a technician who can do this job is free. */
@@ -158,7 +171,20 @@ export async function findOpenSlots(
         heldSlotAt: { gte: now },
         updatedAt: { gte: new Date(now.getTime() - HOLD_TTL_MS) },
         ...(params.excludeCallId ? { id: { not: params.excludeCallId } } : {}),
-        OR: [{ lead: { is: null } }, { lead: { is: { job: { is: null } } } }],
+        AND: [
+          { OR: [{ lead: { is: null } }, { lead: { is: { job: { is: null } } } }] },
+          ...(params.holdsClaimedBefore
+            ? [
+                {
+                  OR: [
+                    { heldClaimedAt: null },
+                    { heldClaimedAt: { lt: params.holdsClaimedBefore.at } },
+                    { heldClaimedAt: params.holdsClaimedBefore.at, id: { lt: params.holdsClaimedBefore.callId } },
+                  ],
+                },
+              ]
+            : []),
+        ],
       },
       select: { heldSlotAt: true, heldSlotDurationMin: true },
     }),
@@ -428,8 +454,8 @@ export async function createJobFromLead(params: {
       // the job to the next open slot instead of leaving it unassigned.
       const canReslot = !params.scheduledAt;
       let slot = scheduledAt;
-      for (let attempt = 0; attempt < 4; attempt++) {
-        const last = !canReslot || attempt === 3;
+      for (let attempt = 0; attempt < RESLOT_ATTEMPTS; attempt++) {
+        const last = !canReslot || attempt === RESLOT_ATTEMPTS - 1;
         const outcome = await autoAssignTechnician({
           job: { id: job.id, scheduledAt: slot, durationMin, technicianId: null },
           skill: playbook.service.skill,

@@ -17,6 +17,8 @@ const OFFERED_SLOTS = 3;
 /** Offered times at least this far apart, so "8, 8:30 or 9" never happens. */
 const OFFER_GAP_MIN = 180;
 
+const TAKEN = "That time was just taken. Apologize briefly and call check_availability again for fresh times.";
+
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
 type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name">;
@@ -68,25 +70,37 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
   if (playbook.safety) {
     return `Do not book this. ${playbook.safety.instruction}`;
   }
-  const open = await findOpenSlots(
-    {
-      businessId: shop.id,
-      urgency: null,
-      durationMin,
-      skill,
-      hoursJson: shop.hoursJson,
-      timezone,
-      excludeCallId: callId,
-    },
-    { count: 1, onlyAt: at },
-  );
-  if (!open.length) {
-    return "That time was just taken. Apologize briefly and call check_availability again for fresh times.";
-  }
+  const slot = {
+    businessId: shop.id,
+    urgency: null,
+    durationMin,
+    skill,
+    hoursJson: shop.hoursJson,
+    timezone,
+    excludeCallId: callId,
+  };
+  if (!(await findOpenSlots(slot, { count: 1, onlyAt: at })).length) return TAKEN;
+
+  /*
+    Checking and then writing is a race: callers holding the same time at the
+    same moment all see it open. So write the hold, then re-check counting
+    only holds claimed earlier. Every racer sees the same order, so the
+    earliest claims keep the time and the rest let go before the receptionist
+    tells anyone they're booked.
+  */
+  const claimedAt = new Date();
   await prisma.call.update({
     where: { id: callId },
-    data: { heldSlotAt: at, heldSlotDurationMin: durationMin },
+    data: { heldSlotAt: at, heldSlotDurationMin: durationMin, heldClaimedAt: claimedAt },
   });
+  const kept = await findOpenSlots({ ...slot, holdsClaimedBefore: { at: claimedAt, callId } }, { count: 1, onlyAt: at });
+  if (!kept.length) {
+    await prisma.call.updateMany({
+      where: { id: callId, heldClaimedAt: claimedAt },
+      data: { heldSlotAt: null, heldSlotDurationMin: null, heldClaimedAt: null },
+    });
+    return TAKEN;
+  }
   return `Held ${describeSlot(at, timezone)}. Tell the caller they're penciled in for that time and will get a text to confirm. Make sure you have their name, callback number and service address before ending the call.`;
 }
 

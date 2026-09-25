@@ -345,3 +345,6 @@ CREATE TABLE IF NOT EXISTS "PushSubscription" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");
 CREATE INDEX IF NOT EXISTS "PushSubscription_businessId_idx" ON "PushSubscription"("businessId");
+
+-- Live booking: when a caller's hold was claimed. Earlier claims win a race for the last technician.
+ALTER TABLE "Call" ADD COLUMN "heldClaimedAt" DATETIME;

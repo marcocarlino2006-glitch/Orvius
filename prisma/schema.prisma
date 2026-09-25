@@ -170,6 +170,8 @@ model Call {
   /** Appointment the receptionist offered and the caller took during the call; booking uses it. */
   heldSlotAt          DateTime?
   heldSlotDurationMin Int?
+  /** When this call's hold was claimed; the earlier claim keeps a contested time. */
+  heldClaimedAt       DateTime?
   /** When the returning-caller note was handed to the live receptionist (once per call). */
   callerContextSentAt DateTime?
   createdAt        DateTime  @default(now())
