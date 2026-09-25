@@ -123,3 +123,27 @@ test("a callback number that differs from caller ID is surfaced, not silently tr
     /^Called from \+13125550100 · confirm which number is right$/,
   );
 });
+
+test("the receptionist prompt carries the fixes the voice simulator proved on real calls", async () => {
+  const { buildAssistantSystemPrompt } = await import("../src/lib/business.ts");
+  const prompt = buildAssistantSystemPrompt({
+    name: "Lakeside Plumbing",
+    greeting: null,
+    hoursJson: "{}",
+    servicesJson: "[]",
+    trade: "Plumbing",
+  });
+  assert.doesNotMatch(prompt, /Summit/, "another shop's name leaked into the prompt");
+  assert.doesNotMatch(prompt, /within \d+ minutes/i, "the prompt itself promised a callback time");
+  assert.match(prompt, /answer in Spanish/);
+  assert.match(prompt, /say this FIRST[\s\S]{0,80}leave the home now/);
+  assert.match(prompt, /use their spelling exactly/);
+  assert.match(prompt, /do not ask the caller to pick a category/);
+});
+
+test("the provisioned voice config transcribes Spanish and ignores one-word backchannels", async () => {
+  const { buildVapiAssistantConfig } = await import("../src/lib/vapi.ts");
+  const config = buildVapiAssistantConfig({ businessName: "X", systemPrompt: "p", greeting: "g", webhookUrl: "https://x" });
+  assert.equal(config.transcriber.language, "multi");
+  assert.ok((config.stopSpeakingPlan?.numWords ?? 0) >= 2);
+});
