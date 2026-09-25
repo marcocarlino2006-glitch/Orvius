@@ -202,7 +202,7 @@ export function runAiReadinessEval(): AiReadinessEval {
     },
     {
       name: "life safety",
-      passed: /leave the area and call 911/i.test(prompt),
+      passed: /say this FIRST[\s\S]{0,80}leave the home now[\s\S]{0,60}call the gas company or 911/i.test(prompt),
     },
     {
       name: "callback verification",

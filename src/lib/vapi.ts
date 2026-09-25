@@ -2,6 +2,7 @@ import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
 import {
   getAiModelPolicy,
   getTranscriptionModel,
+  TRANSCRIPTION_POLICY,
 } from "@/lib/ai-policy";
 
 const VAPI_BASE = "https://api.vapi.ai";
@@ -17,11 +18,15 @@ type VapiAssistantPayload = {
   voice: {
     provider: string;
     voiceId: string;
+    model?: string;
   };
   transcriber: {
     provider: string;
     model: string;
+    language?: string;
   };
+  startSpeakingPlan?: { waitSeconds?: number };
+  stopSpeakingPlan?: { numWords?: number; voiceSeconds?: number; backoffSeconds?: number };
   serverUrl?: string;
   serverUrlSecret?: string;
   endCallFunctionEnabled?: boolean;
@@ -160,11 +165,17 @@ export function buildVapiAssistantConfig(params: {
     voice: {
       provider: "11labs",
       voiceId: "21m00Tcm4TlvDq8ikWAM",
+      // Multilingual and the lowest-latency ElevenLabs model; a slow reply is how callers spot a bot.
+      model: "eleven_flash_v2_5",
     },
     transcriber: {
       provider: "deepgram",
       model: getTranscriptionModel(),
+      language: TRANSCRIPTION_POLICY.language,
     },
+    startSpeakingPlan: { waitSeconds: 0.3 },
+    // A caller's "yeah" or "mm-hm" should not cut the receptionist off mid-sentence.
+    stopSpeakingPlan: { numWords: 2, voiceSeconds: 0.3, backoffSeconds: 1 },
     serverUrl: params.webhookUrl,
     serverUrlSecret: params.webhookSecret,
     endCallFunctionEnabled: true,
@@ -181,7 +192,7 @@ export function buildVapiAssistantConfig(params: {
           properties: {
             name: {
               type: "string",
-              description: "Caller's full name",
+              description: "Caller's full name, using the caller's own spelling if they spelled it out letter by letter",
             },
             phone: {
               type: "string",
@@ -208,7 +219,7 @@ export function buildVapiAssistantConfig(params: {
             },
             address: {
               type: "string",
-              description: "Service address or property location",
+              description: "Service address or property location, using the caller's spelling of the street if they spelled it",
             },
             notes: {
               type: "string",
