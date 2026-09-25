@@ -18,12 +18,25 @@ import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
 
+/** Polling every 30s would otherwise write the shop row every 30s. */
+const LAST_SEEN_WRITE_MS = 60_000;
+
 export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business, session } = authResult;
   const now = new Date();
-  const since = parseSince(new URL(request.url).searchParams.get("since"), now);
+  // A tab that already pinned its anchor sends it; a fresh visit uses the account's last look.
+  const sinceParam = new URL(request.url).searchParams.get("since");
+  const previousLook = sinceParam ?? business.ownerLastSeenAt?.toISOString() ?? null;
+  const since = parseSince(previousLook, now);
+  if (!business.ownerLastSeenAt || now.getTime() - business.ownerLastSeenAt.getTime() > LAST_SEEN_WRITE_MS) {
+    after(() =>
+      prisma.business
+        .update({ where: { id: business.id }, data: { ownerLastSeenAt: now } })
+        .catch(() => null),
+    );
+  }
 
   const today = shopDayBounds(null, business.timezone ?? "America/New_York").start;
   const businessFilter = { businessId: business.id };
@@ -287,5 +300,7 @@ export async function GET(request: Request) {
     health,
     wedge,
     personalBrief,
+    /** The anchor this response used, so the tab can keep it for the session. */
+    sinceUsed: since?.toISOString() ?? null,
   });
 }

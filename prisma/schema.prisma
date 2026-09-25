@@ -27,6 +27,8 @@ model Business {
   servicesJson         String   @default("[]")
   greeting             String?
   /** Callers who ask for a person are connected here. Null means transfers are off and they get a callback. */
+  /** Last time the owner loaded Command on any device — anchors "since you looked". */
+  ownerLastSeenAt      DateTime?
   /** ElevenLabs voice for this shop's receptionist; null uses the default. */
   voiceId              String?
   transferPhone        String?
@@ -102,6 +104,7 @@ model Business {
   deposits         Deposit[]
   copilotActions   CopilotAction[]
   ownerNotifications OwnerNotification[]
+  pushSubscriptions  PushSubscription[]
   webhookEvents      WebhookEvent[]
   smsOptOuts         SmsOptOut[]
   auditEvents        AuditEvent[]
@@ -525,4 +528,19 @@ model AuditEvent {
   @@index([leadId])
   @@index([jobId])
   @@index([customerId])
+}
+
+/** A browser or installed app the owner turned on push alerts for. */
+model PushSubscription {
+  id          String    @id @default(cuid())
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  endpoint    String    @unique
+  p256dh      String
+  auth        String
+  userAgent   String?
+  lastSentAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([businessId])
 }

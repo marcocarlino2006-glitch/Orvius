@@ -1,4 +1,5 @@
 import { getOwnerAlertOpenUrl } from "@/lib/owner-alert-message";
+import { pushFromAlert, sendOwnerPush } from "@/lib/web-push";
 import { getWebhookUrl } from "@/lib/env";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { logError, logInfo } from "@/lib/logger";
@@ -186,7 +187,12 @@ export async function enqueueOwnerAlert(params: {
     if (created) queued.push("email");
   }
 
-  if (queued.length > 0) return { queued, duplicate: false };
+  if (queued.length > 0) {
+    await sendOwnerPush(params.businessId, pushFromAlert(params.businessName, params.message, params.leadId)).catch(
+      () => 0,
+    );
+    return { queued, duplicate: false };
+  }
 
   const existing = await prisma.ownerNotification.findFirst({
     where: {

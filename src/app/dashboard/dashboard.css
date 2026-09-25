@@ -5990,3 +5990,52 @@
 .shop-operate-banner--ritual .shop-operate-banner-kicker {
   color: var(--live-text, #1a9b6e);
 }
+
+.os-shortcuts {
+  padding: 0.75rem 0.5rem 0.5rem;
+  overflow-y: auto;
+}
+
+.os-shortcuts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.55rem 0.5rem;
+}
+
+.os-shortcuts-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #e7e7e5;
+}
+
+.os-shortcuts-head .os-palette-kbd {
+  background: none;
+  cursor: pointer;
+}
+
+.os-shortcuts-group + .os-shortcuts-group {
+  margin-top: 0.5rem;
+}
+
+.os-shortcuts-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.os-shortcuts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.8125rem;
+  color: #c9c9c7;
+}
+
+.os-shortcuts-keys {
+  display: inline-flex;
+  gap: 0.25rem;
+}

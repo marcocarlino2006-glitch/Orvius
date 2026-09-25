@@ -19,6 +19,7 @@ import { displayPhone } from "@/lib/customer";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { useOptionalRing1 } from "@/lib/ring1-context";
 import { SETTINGS_SECTIONS, type SettingsSectionId } from "@/lib/settings-center";
+import { PushAlertsRows } from "@/components/settings-center/push-alerts-rows";
 import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import {
   parseHoursForm,
@@ -740,6 +741,7 @@ export function SettingsCenter({
               >
                 <ScStatus on={account.alerts.emailConfigured}>{account.alerts.emailConfigured ? "On" : "Off"}</ScStatus>
               </ScRow>
+              <PushAlertsRows />
               <ScRow label="Send a test alert" hint="Texts your mobile the way a real lead would.">
                 <button type="button" className="sc-btn" disabled={testing} onClick={() => void sendTestAlert()}>
                   {testing ? "Sending…" : "Send test"}

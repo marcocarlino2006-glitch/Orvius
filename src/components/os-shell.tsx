@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { osCurrentRing, osProductNav } from "@/lib/os-nav";
@@ -267,6 +268,7 @@ export function OsShell({
         <PostLockBanner />
         <main className="os-content os-content-pro">{children}</main>
         {showAskDock ? <OsAskDock /> : null}
+        <KeyboardShortcuts />
         <OsCommandPalette
           open={paletteOpen}
           onClose={() => setPaletteOpen(false)}

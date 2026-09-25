@@ -62,6 +62,7 @@ export type Ring1Data = {
   coverage?: CoverageState;
   lastWeeklyProofAt?: string | null;
   personalBrief?: PersonalBrief | null;
+  sinceUsed?: string | null;
   gates?: {
     certDone: number;
     certTotal: number;
@@ -86,41 +87,38 @@ type Ring1ContextValue = {
 const Ring1Context = createContext<Ring1ContextValue | null>(null);
 
 const DEFAULT_REFRESH_MS = 30_000;
-const LAST_SEEN_KEY = "orvius.command.lastSeen";
 const SESSION_SINCE_KEY = "orvius.command.since";
 const AWAY_MS = 30 * 60_000;
 
 /**
- * "Since you last looked" is per owner, per device. The first load of a tab
- * session pins the previous visit so reloads and polling don't reset it to
- * thirty seconds ago; every successful load moves the stored visit forward.
+ * "Since you last looked" is anchored on the account, so the phone and the
+ * laptop agree. The first load of a tab pins the anchor the server used, so
+ * reloads and polling don't reset it to thirty seconds ago.
  */
-function sessionSince(): string | null {
+function pinnedSince(): string | null {
   try {
     const pinned = sessionStorage.getItem(SESSION_SINCE_KEY);
-    if (pinned !== null) return pinned || null;
-    const previous = localStorage.getItem(LAST_SEEN_KEY) ?? "";
-    sessionStorage.setItem(SESSION_SINCE_KEY, previous);
-    return previous || null;
+    // "" means this tab started with no previous look; keep it that way rather than fall back.
+    return pinned === null ? null : pinned || "none";
   } catch {
     return null;
   }
 }
 
-/** Coming back to a tab left in the background for a while counts as a new look. */
-function repinSince() {
+function pinSince(value: string | null | undefined) {
   try {
-    sessionStorage.setItem(SESSION_SINCE_KEY, localStorage.getItem(LAST_SEEN_KEY) ?? "");
+    if (sessionStorage.getItem(SESSION_SINCE_KEY) === null) sessionStorage.setItem(SESSION_SINCE_KEY, value ?? "");
   } catch {
-    /* storage unavailable */
+    /* storage unavailable: each load uses the account anchor */
   }
 }
 
-function markSeen() {
+/** Coming back to a tab left in the background for a while counts as a new look. */
+function unpinSince() {
   try {
-    localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
+    sessionStorage.removeItem(SESSION_SINCE_KEY);
   } catch {
-    /* private mode: the brief falls back to today's board */
+    /* storage unavailable */
   }
 }
 
@@ -159,7 +157,7 @@ export function Ring1Provider({
 
   const refresh = useCallback(async () => {
     try {
-      const since = sessionSince();
+      const since = pinnedSince();
       const res = await fetch(since ? `/api/ring1?since=${encodeURIComponent(since)}` : "/api/ring1");
       if (!res.ok) {
         throw new Error(
@@ -170,7 +168,7 @@ export function Ring1Provider({
       }
       const json = (await res.json()) as Ring1Data;
       setData(json);
-      markSeen();
+      pinSince(json.sinceUsed);
       setLoadError(null);
       setLastUpdatedAt(Date.now());
     } catch (err) {
@@ -203,15 +201,39 @@ export function Ring1Provider({
       void refresh();
     };
     const interval = setInterval(tick, refreshMs);
+
+    /* The stream says when something changed; polling stays as the fallback when it can't connect. */
+    let stream: EventSource | null = null;
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const openStream = () => {
+      if (stream || typeof EventSource === "undefined") return;
+      stream = new EventSource("/api/ring1/stream");
+      stream.addEventListener("change", () => {
+        if (pending) clearTimeout(pending);
+        pending = setTimeout(tick, 400);
+      });
+    };
+    const closeStream = () => {
+      stream?.close();
+      stream = null;
+    };
+    openStream();
+
     /* A backgrounded tab stops polling; coming back refreshes at once if the data is stale. */
     const onVisible = () => {
-      if (document.visibilityState !== "visible") return;
-      if (Date.now() - lastRun >= AWAY_MS) repinSince();
+      if (document.visibilityState !== "visible") {
+        closeStream();
+        return;
+      }
+      openStream();
+      if (Date.now() - lastRun >= AWAY_MS) unpinSince();
       if (Date.now() - lastRun >= refreshMs) tick();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       clearInterval(interval);
+      if (pending) clearTimeout(pending);
+      closeStream();
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [refresh, refreshMs]);

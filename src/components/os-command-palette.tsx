@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SHOW_SHORTCUTS_EVENT } from "@/lib/keyboard-shortcuts";
 import { useRouter } from "next/navigation";
 import { OsIcon, type OsIconName } from "@/components/os-icons";
 import { osProductNav, osWorkspaceNav } from "@/lib/os-nav";
@@ -169,6 +170,16 @@ export function OsCommandPalette({
           }
         },
       },
+      {
+        id: "action:shortcuts",
+        label: "Keyboard shortcuts",
+        hint: "?",
+        group: "Do",
+        run: () => {
+          onClose();
+          window.dispatchEvent(new Event(SHOW_SHORTCUTS_EVENT));
+        },
+      },
     ];
 
     const matches = (item: PaletteItem) =>
@@ -177,7 +188,7 @@ export function OsCommandPalette({
       (item.hint?.toLowerCase().includes(q) ?? false);
 
     return [...records, ...screens.filter(matches), ...actions.filter(matches)];
-  }, [hits, query, go, shopLine]);
+  }, [hits, query, go, shopLine, onClose]);
 
   useEffect(() => {
     setActive(0);

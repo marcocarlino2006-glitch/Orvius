@@ -327,3 +327,21 @@ ALTER TABLE "Business" ADD COLUMN "voiceId" TEXT;
 ALTER TABLE "Call" ADD COLUMN "heldSlotAt" DATETIME;
 ALTER TABLE "Call" ADD COLUMN "heldSlotDurationMin" INTEGER;
 ALTER TABLE "Call" ADD COLUMN "callerContextSentAt" DATETIME;
+
+-- "Since you looked" anchored on the account, not the device.
+ALTER TABLE "Business" ADD COLUMN "ownerLastSeenAt" DATETIME;
+
+-- Web push: installed app / browser alerts for the owner.
+CREATE TABLE IF NOT EXISTS "PushSubscription" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "endpoint" TEXT NOT NULL,
+    "p256dh" TEXT NOT NULL,
+    "auth" TEXT NOT NULL,
+    "userAgent" TEXT,
+    "lastSentAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "PushSubscription_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");
+CREATE INDEX IF NOT EXISTS "PushSubscription_businessId_idx" ON "PushSubscription"("businessId");
