@@ -3,7 +3,11 @@
  * A booked customer asking "what time is the tech coming?" must never become a
  * second job, and a cancellation must never become a new booking.
  */
-export type CallIntent = "cancel" | "reschedule" | "status" | "new";
+export type CallIntent = "complaint" | "cancel" | "reschedule" | "status" | "new";
+
+/** Unhappy about a past visit or a bill — a person should call, not a booking flow. */
+const COMPLAINT =
+  /\b(?:came|were) (?:out|here|by)\b.{0,60}\b(?:still|again|not fixed|didn'?t fix|never fixed)\b|\bstill (?:not|isn'?t|is not) (?:working|fixed)\b|\bbroke(?:n)? (?:down )?again\b|\b(?:money back|refund)\b|\bovercharg|\bcharged (?:me )?twice\b|\b(?:file|make) a complaint\b|\bbilling (?:issue|dispute|problem)\b|\bdispute (?:the|a|my) (?:bill|charge|invoice)\b|\bqueja\b|\breembolso\b/i;
 
 const CANCEL =
   /\bcancel(?:l?ing|l?ed|lation)?\b|\bcall (?:it |the (?:visit|appointment) )?off\b|don'?t need (?:the|a|you to) (?:tech|technician|visit|appointment|come)|\bcancelar\b/i;
@@ -17,6 +21,7 @@ const STATUS =
 export function detectCallIntent(...texts: (string | null | undefined)[]): CallIntent {
   const text = texts.filter(Boolean).join(" \n ");
   if (!text.trim()) return "new";
+  if (COMPLAINT.test(text)) return "complaint";
   if (CANCEL.test(text)) return "cancel";
   if (RESCHEDULE.test(text)) return "reschedule";
   if (STATUS.test(text)) return "status";

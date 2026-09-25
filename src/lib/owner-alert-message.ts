@@ -41,7 +41,9 @@ export function getOwnerAlertOpenUrl(params: {
 
 export type OwnerAlertContext = {
   skipReason?: string | null;
-  intent?: "cancel" | "reschedule" | "status" | "new" | null;
+  intent?: "complaint" | "cancel" | "reschedule" | "status" | "new" | null;
+  /** Number the caller gave, when it differs from caller ID — one of them was captured wrong. */
+  callerId?: string | null;
   existingJob?: { title?: string | null; scheduledAt?: Date | string | null } | null;
   wantsHuman?: boolean;
   /** Caller hung up before saying anything — often a homeowner who does not want to talk to AI. */
@@ -67,6 +69,8 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
   let line: string | null = null;
   if (context.silentHangup) {
     line = "Hung up without saying anything · worth a call back if the number looks real";
+  } else if (skipReason === "complaint") {
+    line = "Unhappy about a past visit or bill · call them yourself — not booked";
   } else if (skipReason === "existing_job" && existingJob) {
     if (intent === "cancel") line = `Wants to cancel the ${jobRef}. Not cancelled yet — call to confirm.`;
     else if (intent === "reschedule") line = `Wants to move the ${jobRef}. Not moved yet — call to pick a time.`;
@@ -86,6 +90,10 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
   if (wantsHuman) {
     const ask = "Asked for a person · call back";
     line = line ? `${line}\n${ask}` : ask;
+  }
+  if (context.callerId) {
+    const check = `Called from ${context.callerId} · confirm which number is right`;
+    line = line ? `${line}\n${check}` : check;
   }
   if (context.promiseWarning) {
     line = line ? `${line}\n${context.promiseWarning}` : context.promiseWarning;

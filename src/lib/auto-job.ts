@@ -57,6 +57,7 @@ export type AutoBookSkipReason =
   | "missing_address"
   | "existing_job"
   | "follow_up"
+  | "complaint"
   | "not_found";
 
 export type ExistingJobRef = { id: string; title: string | null; scheduledAt: Date | null };
@@ -231,6 +232,15 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
           take: 5,
         })
       : [];
+
+  if (intent === "complaint") {
+    await decide(
+      "lead.follow_up",
+      "Caller is unhappy about a past visit or a bill — held for the owner to call, not booked as new work",
+      { intent },
+    );
+    return { jobId: null, created: false, qualified: true, skipReason: "complaint", classification, intent };
+  }
 
   if (intent !== "new") {
     const target = openJobs[0];

@@ -1,7 +1,7 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
 import { recordAudit } from "@/lib/audit";
 import { maybeAutoBookLead, type AutoBookResult } from "@/lib/auto-job";
-import { linkTouchToCustomerDetailed } from "@/lib/customer";
+import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { logInfo } from "@/lib/logger";
@@ -222,6 +222,9 @@ export async function ingestEndOfCallReport(params: {
     const freshLead = await prisma.lead.findUniqueOrThrow({ where: { id: lead.id } });
     const safety = autoBook.classification?.safety;
     const spoken = callerWords(transcript);
+    const callerId = message.call?.customer?.number ?? null;
+    const phoneMismatch =
+      Boolean(callerId && freshLead.phone) && normalizePhone(callerId) !== normalizePhone(freshLead.phone);
     const wantsHuman = leadWantsHuman({ notes: `${freshLead.notes ?? ""} ${spoken}`, serviceType: freshLead.serviceType });
     // Sales reps routinely ask for the owner, so a request for a person does not rescue a non-service call.
     const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service";
@@ -277,6 +280,7 @@ export async function ingestEndOfCallReport(params: {
             intent: autoBook.intent ?? null,
             existingJob: autoBook.existingJob ?? null,
             wantsHuman,
+            callerId: phoneMismatch ? callerId : null,
             silentHangup: !spoken.trim() && !freshLead.serviceType && (durationSec ?? 0) < 30,
             promiseWarning: describeAssistantPromises(promises),
             summary,
