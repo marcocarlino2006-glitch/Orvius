@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { buildInCallTools } from "@/lib/in-call-tool-defs";
+import { DEFAULT_VOICE_ID } from "@/lib/voices";
 import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
 import {
   getAiModelPolicy,
@@ -33,6 +35,8 @@ type VapiAssistantPayload = {
   stopSpeakingPlan?: { numWords?: number; voiceSeconds?: number; backoffSeconds?: number };
   serverUrl?: string;
   serverUrlSecret?: string;
+  /** Live call control lets the webhook hand the receptionist a returning-caller note. */
+  monitorPlan?: { controlEnabled?: boolean; listenEnabled?: boolean };
   endCallFunctionEnabled?: boolean;
   analysisPlan?: {
     summaryPlan?: { enabled: boolean };
@@ -161,8 +165,31 @@ export function buildVapiAssistantConfig(params: {
   webhookSecret?: string;
   /** E.164 number to hand callers to when they insist on a person. */
   transferPhone?: string | null;
+  voiceId?: string | null;
+  /** Give the receptionist check_availability and hold_appointment. */
+  inCallBooking?: boolean;
 }): VapiAssistantPayload {
   const receptionist = getAiModelPolicy("receptionist");
+  const tools: Array<Record<string, unknown>> = [
+    ...(params.inCallBooking
+      ? buildInCallTools({ webhookUrl: params.webhookUrl, webhookSecret: params.webhookSecret })
+      : []),
+    ...(params.transferPhone
+      ? [
+          {
+            type: "transferCall",
+            destinations: [
+              {
+                type: "number",
+                number: params.transferPhone,
+                message: "One moment, I'm connecting you now.",
+                description: "The shop owner, for callers who ask for a person",
+              },
+            ],
+          },
+        ]
+      : []),
+  ];
   const config: VapiAssistantPayload = {
     name: `${params.businessName} Receptionist`,
     firstMessage: params.greeting,
@@ -170,27 +197,11 @@ export function buildVapiAssistantConfig(params: {
       provider: receptionist.provider,
       model: receptionist.model,
       messages: [{ role: "system", content: params.systemPrompt }],
-      ...(params.transferPhone
-        ? {
-            tools: [
-              {
-                type: "transferCall",
-                destinations: [
-                  {
-                    type: "number",
-                    number: params.transferPhone,
-                    message: "One moment, I'm connecting you now.",
-                    description: "The shop owner, for callers who ask for a person",
-                  },
-                ],
-              },
-            ],
-          }
-        : {}),
+      ...(tools.length ? { tools } : {}),
     },
     voice: {
       provider: "11labs",
-      voiceId: "21m00Tcm4TlvDq8ikWAM",
+      voiceId: params.voiceId || DEFAULT_VOICE_ID,
       // Multilingual and the lowest-latency ElevenLabs model; a slow reply is how callers spot a bot.
       model: "eleven_flash_v2_5",
     },
@@ -204,6 +215,7 @@ export function buildVapiAssistantConfig(params: {
     stopSpeakingPlan: { numWords: 2, voiceSeconds: 0.3, backoffSeconds: 1 },
     serverUrl: params.webhookUrl,
     serverUrlSecret: params.webhookSecret,
+    monitorPlan: { controlEnabled: true },
     endCallFunctionEnabled: true,
     analysisPlan: {
       summaryPlan: { enabled: true },
@@ -259,7 +271,7 @@ export function buildVapiAssistantConfig(params: {
   return { ...config, metadata: { orviusConfig: assistantConfigFingerprint(config) } };
 }
 
-/** Stable hash of the assistant config, excluding the webhook secret and the fingerprint itself. */
+/** Stable hash of the assistant config, excluding webhook secrets and the fingerprint itself. */
 export function assistantConfigFingerprint(config: VapiAssistantPayload): string {
   const { serverUrlSecret: _secret, metadata: _meta, ...rest } = config;
   const canonical = (value: unknown): unknown =>
@@ -268,6 +280,7 @@ export function assistantConfigFingerprint(config: VapiAssistantPayload): string
       : value && typeof value === "object"
         ? Object.fromEntries(
             Object.keys(value as Record<string, unknown>)
+              .filter((k) => k !== "secret")
               .sort()
               .map((k) => [k, canonical((value as Record<string, unknown>)[k])]),
           )
@@ -283,7 +296,10 @@ export type VapiWebhookMessage = {
       assistantId?: string;
       customer?: { number?: string };
       phoneNumber?: { number?: string };
+      monitor?: { controlUrl?: string; listenUrl?: string };
     };
+    status?: string;
+    toolCallList?: Array<{ id?: string; function?: { name?: string; arguments?: unknown } }>;
     transcript?: string;
     summary?: string;
     recordingUrl?: string;

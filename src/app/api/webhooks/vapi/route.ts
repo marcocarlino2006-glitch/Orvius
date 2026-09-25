@@ -12,6 +12,9 @@ import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
+import { handleInCallToolCalls } from "@/lib/in-call-tools";
+import { readToolCalls } from "@/lib/in-call-tool-defs";
+import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
 
 async function findBusinessForCall(
   vapiCallId: string,
@@ -113,6 +116,26 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (type === "tool-calls") {
+    const callerPhone = message.call?.customer?.number ?? null;
+    const call = await prisma.call.upsert({
+      where: { vapiCallId },
+      create: { businessId: business.id, vapiCallId, callerPhone, status: "in-progress" },
+      update: {},
+      select: { id: true },
+    });
+    const shop = await prisma.business.findUniqueOrThrow({
+      where: { id: business.id },
+      select: { id: true, name: true, hoursJson: true, timezone: true, trade: true, servicesJson: true },
+    });
+    const results = await handleInCallToolCalls({
+      shop,
+      callId: call.id,
+      toolCalls: readToolCalls(message),
+    });
+    return NextResponse.json({ results });
+  }
+
   if (type === "call-started" || type === "status-update") {
     const callerPhone = message.call?.customer?.number ?? null;
     const call = await prisma.call.upsert({
@@ -146,6 +169,24 @@ export async function POST(request: NextRequest) {
       status: "processed",
       payload: { type },
     });
+
+    const controlUrl = message.call?.monitor?.controlUrl;
+    const connected = type === "call-started" || message.status === "in-progress";
+    if (callerPhone && controlUrl && connected) {
+      after(async () => {
+        const claimed = await prisma.call.updateMany({
+          where: { id: call.id, callerContextSentAt: null },
+          data: { callerContextSentAt: new Date() },
+        });
+        if (!claimed.count) return;
+        const note = await loadCallerContextNote({
+          businessId: business.id,
+          phone: callerPhone,
+          timezone: business.timezone ?? "America/New_York",
+        });
+        if (note) await sendCallerContext(controlUrl, note);
+      });
+    }
 
     if (type === "call-started") {
       const shop = await prisma.business.findUnique({ where: { id: business.id } });

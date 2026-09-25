@@ -319,3 +319,11 @@ ALTER TABLE "Business" ADD COLUMN "autopilot" BOOLEAN NOT NULL DEFAULT true;
 
 -- Live transfer: callers who insist on a person are connected to this number. Null = off.
 ALTER TABLE "Business" ADD COLUMN "transferPhone" TEXT;
+
+-- Per-shop receptionist voice. Null = default voice.
+ALTER TABLE "Business" ADD COLUMN "voiceId" TEXT;
+
+-- In-call booking: the slot the caller took on the call, and the returning-caller note sent to the live receptionist.
+ALTER TABLE "Call" ADD COLUMN "heldSlotAt" DATETIME;
+ALTER TABLE "Call" ADD COLUMN "heldSlotDurationMin" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "callerContextSentAt" DATETIME;

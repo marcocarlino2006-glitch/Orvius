@@ -148,6 +148,8 @@ export function buildAssistantSystemPrompt(business: {
   trade?: Trade | null;
   /** A live transfer destination is configured on the assistant. */
   canTransfer?: boolean;
+  /** check_availability and hold_appointment are on the assistant. */
+  canBook?: boolean;
 }): string {
   const greeting =
     business.greeting ??
@@ -177,12 +179,22 @@ YOUR JOB (in order)
 2. Understand what they need: service type (AC, heat, plumbing leak, electrical, etc.).
 3. Decide urgency yourself from what they describe — do not ask the caller to pick a category. Emergency: gas smell, no heat or AC in extreme weather or with a baby, elderly or sick person at home, active water leak, no power, burning smell. Otherwise same-day, this week, or flexible.
 4. Collect: full service address, caller name, callback number. Read numbers back digit by digit exactly as the caller said them; if they correct you, repeat the corrected version. If the caller spells a name or street, use their spelling exactly, not how it sounded.
-5. If they want to schedule: preferred day/time window. Say we'll confirm by text or callback.
-6. Close: "I've got everything. A technician will follow up shortly" or equivalent.
+${
+    business.canBook
+      ? `5. Book it on the call: once you know the problem, call check_availability (pass their preferred day or time if they gave one). Offer at most two of the times it returns, in plain words. When they pick one, call hold_appointment with that slot. Then say "You're penciled in for [time]. You'll get a text to confirm." If they want a time that isn't open, say so and offer what is. Never book an emergency or safety call — follow the safety rule instead.
+6. Close: "I've got everything" and repeat the time if you held one.`
+      : `5. If they want to schedule: preferred day/time window. Say we'll confirm by text or callback.
+6. Close: "I've got everything. A technician will follow up shortly" or equivalent.`
+  }
 
 RULES
 - NEVER invent pricing, arrival times, or technician names.
-- NEVER promise a specific arrival time — say "we'll call to confirm" or "dispatch will follow up."
+${
+    business.canBook
+      ? `- NEVER say an appointment time that did not come from check_availability, and never promise arrival "within the hour" or similar.`
+      : `- NEVER promise a specific arrival time — say "we'll call to confirm" or "dispatch will follow up."`
+  }
+- A private note may tell you this number has called before. Only ask "Is this [name]?" — never read their address or history to someone who has not confirmed their name.
 ${
     business.canTransfer
       ? `- If caller asks for a person: do not argue or keep asking about the problem. Get their name and callback number first, then say "Of course — let me connect you now" and use the transfer tool. If the transfer does not go through, say "They're on another job — I'll have them call you back as soon as they can." Never give a callback time.`

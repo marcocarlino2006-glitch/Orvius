@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isReceptionistVoice, resolveVoiceId } from "@/lib/voices";
 import { auth } from "@/auth";
 import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
@@ -42,6 +43,7 @@ const patchSchema = z.object({
   ownerEmail: z.string().email().optional(),
   greeting: z.string().max(280).optional(),
   transferPhone: z.string().max(24).nullable().optional(),
+  voiceId: z.string().max(64).nullable().optional(),
   avgTicketCents: z.number().int().min(5000).max(5_000_000).nullable().optional(),
   baselineMissedCallsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   baselineJobsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
@@ -118,6 +120,7 @@ export async function GET(request: Request) {
         createdAt: businessRecord.createdAt,
         greeting: businessRecord.greeting,
         transferPhone: businessRecord.transferPhone,
+        voiceId: resolveVoiceId(businessRecord.voiceId),
         lineVerifiedAt: businessRecord.lineVerifiedAt,
         avgTicketCents: businessRecord.avgTicketCents,
         baselineMissedCallsPerWeek: businessRecord.baselineMissedCallsPerWeek,
@@ -209,7 +212,7 @@ export async function GET(request: Request) {
   });
 }
 
-const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "hoursJson", "servicesJson"] as const;
+const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "servicesJson"] as const;
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -239,6 +242,10 @@ export async function PATCH(request: Request) {
       if (!phoneCheck.ok) {
         return NextResponse.json({ error: phoneCheck.reason }, { status: 400 });
       }
+    }
+
+    if (body.voiceId != null && !isReceptionistVoice(body.voiceId)) {
+      return NextResponse.json({ error: "Pick one of the listed voices." }, { status: 400 });
     }
 
     let transferPhone: string | null | undefined;
@@ -320,6 +327,7 @@ export async function PATCH(request: Request) {
           : {}),
         ...(body.greeting !== undefined ? { greeting: body.greeting.trim() } : {}),
         ...(transferPhone !== undefined ? { transferPhone } : {}),
+        ...(body.voiceId !== undefined ? { voiceId: body.voiceId } : {}),
         ...(body.avgTicketCents !== undefined
           ? { avgTicketCents: body.avgTicketCents }
           : {}),
@@ -403,6 +411,7 @@ export async function PATCH(request: Request) {
         ownerEmail: saved.ownerEmail,
         greeting: saved.greeting,
         transferPhone: saved.transferPhone,
+        voiceId: resolveVoiceId(saved.voiceId),
         avgTicketCents: saved.avgTicketCents,
         baselineMissedCallsPerWeek: saved.baselineMissedCallsPerWeek,
         baselineJobsPerWeek: saved.baselineJobsPerWeek,

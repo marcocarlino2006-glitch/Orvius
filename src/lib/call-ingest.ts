@@ -229,7 +229,10 @@ export async function ingestEndOfCallReport(params: {
     // Sales reps routinely ask for the owner, so a request for a person does not rescue a non-service call.
     const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service";
 
-    const promises = detectAssistantPromises(transcript);
+    // A time read out after hold_appointment came from the schedule, not the model.
+    const promises = detectAssistantPromises(transcript).filter(
+      (promise) => !(promise.kind === "arrival" && call.heldSlotAt),
+    );
     if (promises.length) {
       await recordAudit({
         businessId: business.id,
@@ -283,6 +286,7 @@ export async function ingestEndOfCallReport(params: {
             callerId: phoneMismatch ? callerId : null,
             silentHangup: !spoken.trim() && !freshLead.serviceType && (durationSec ?? 0) < 30,
             promiseWarning: describeAssistantPromises(promises),
+            heldSlotAt: !autoBook.jobId && call.heldSlotAt ? call.heldSlotAt : null,
             summary,
           },
         });

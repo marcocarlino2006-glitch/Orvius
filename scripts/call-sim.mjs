@@ -46,6 +46,12 @@ const T = (...lines) => lines.join("\n");
  *   alert       regex the owner's text for the last call must match
  *   alertNot    regex the owner's text for the last call must not match
  *   noAlert     true when the owner should not be texted for the last call
+ *   bookedHeld  the job landed on the exact time the caller took on the call
+ *
+ * A call with `live` first runs the in-call tools the receptionist would use:
+ * check_availability, then hold_appointment on the first time offered.
+ * `busyWith` runs another caller's live hold first, on another line, and
+ * expects this caller never to be offered that time.
  */
 const scenarios = [
   {
@@ -406,7 +412,74 @@ const scenarios = [
     ],
     expect: { jobs: 1, urgency: ["flexible", "this-week"] },
   },
+  {
+    id: "booked-on-the-call",
+    name: "Caller picks a time on the call and the job lands on it",
+    calls: [
+      {
+        live: { serviceType: "Furnace blowing cold air", preference: "Thursday afternoon" },
+        transcript: T("User: Furnace is blowing cold air.", "AI: Let me check the schedule. I have Thursday at 12 or 3.", "User: 3 works.", "AI: You're penciled in for Thursday at 3. You'll get a text to confirm."),
+        summary: "Furnace blowing cold air; booked Thursday afternoon on the call.",
+        structured: { name: "Jordan Park", serviceType: "Furnace blowing cold air", urgency: "this-week", address: "1500 Chicago Ave, Evanston IL 60201" },
+      },
+    ],
+    expect: { jobs: 1, bookedHeld: true, alertNot: /Check: receptionist mentioned/ },
+  },
+  {
+    id: "two-callers-one-tech",
+    name: "Two callers at once are never offered the same technician's time",
+    busyWith: { serviceType: "Furnace blowing cold air" },
+    calls: [
+      {
+        live: { serviceType: "Furnace blowing cold air" },
+        transcript: T("User: No heat upstairs.", "AI: I have Monday at 11."),
+        summary: "No heat upstairs.",
+        structured: { name: "Sam Rivera", serviceType: "Furnace blowing cold air", urgency: "this-week", address: "900 Davis St, Evanston IL 60201" },
+      },
+    ],
+    expect: { jobs: 1, bookedHeld: true },
+  },
+  {
+    id: "held-but-out-of-area",
+    name: "Caller took a time but lives outside the service area",
+    calls: [
+      {
+        live: { serviceType: "AC not cooling" },
+        transcript: T("User: AC isn't cooling.", "AI: I have Monday at 8.", "User: Great."),
+        summary: "AC not cooling.",
+        structured: { name: "Alex Kim", serviceType: "AC not cooling", urgency: "this-week", address: "10 Lake St, Chicago IL 60601" },
+      },
+    ],
+    expect: { jobs: 0, skip: "out_of_area", alert: /Caller was offered and took .+ on the call/ },
+  },
 ];
+
+async function postTool(callId, phone, name, args) {
+  const res = await fetch(`${APP_URL}/api/webhooks/vapi`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...(VAPI_SECRET ? { "x-vapi-secret": VAPI_SECRET } : {}) },
+    body: JSON.stringify({
+      message: {
+        type: "tool-calls",
+        call: { id: callId, customer: { number: phone }, phoneNumber: { number: shop.line } },
+        toolCallList: [{ id: `tc_${name}`, type: "function", function: { name, arguments: args } }],
+      },
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`tool ${name} ${res.status}: ${JSON.stringify(data).slice(0, 200)}`);
+  return data.results?.[0]?.result ?? "";
+}
+
+/** check_availability, then hold the first time offered. Returns what was offered and held. */
+async function liveBooking(callId, phone, live) {
+  const offer = await postTool(callId, phone, "check_availability", live);
+  const offered = [...offer.matchAll(/\[slot ([^\]]+)\]/g)].map((m) => m[1]);
+  if (!offered.length) throw new Error(`no times offered: ${offer}`);
+  const held = await postTool(callId, phone, "hold_appointment", { slot: offered[0], serviceType: live.serviceType });
+  if (!/^Held /.test(held)) throw new Error(`hold refused: ${held}`);
+  return { offered, held: offered[0] };
+}
 
 async function seed() {
   const business = await prisma.business.create({
@@ -466,9 +539,16 @@ async function runScenario(business, s) {
   const phone = nextPhone();
   const failures = [];
   let last = null;
+  let live = null;
+  let busySlot = null;
+  if (s.busyWith) {
+    busySlot = (await liveBooking(`sim_${stamp}_${s.id}_busy`, nextPhone(), s.busyWith)).held;
+  }
   for (let i = 0; i < s.calls.length; i++) {
     const callId = `sim_${stamp}_${s.id}_${i}`;
-    last = await postCall(callId, s.samePhone === false ? nextPhone() : phone, s.calls[i]);
+    const callerPhone = s.samePhone === false ? nextPhone() : phone;
+    if (s.calls[i].live) live = await liveBooking(callId, callerPhone, s.calls[i].live);
+    last = await postCall(callId, callerPhone, s.calls[i]);
     if (i < s.calls.length - 1) await new Promise((r) => setTimeout(r, 150));
   }
 
@@ -495,6 +575,13 @@ async function runScenario(business, s) {
   if (e.alertNot && alert?.message && e.alertNot.test(alert.message))
     failures.push(`owner text should not match ${e.alertNot}; got "${alert.message}"`);
   if (e.noAlert && alert) failures.push(`owner should not be texted; got "${alert.message}"`);
+  if (busySlot && live?.offered.includes(busySlot))
+    failures.push(`offered ${busySlot}, which another live caller is holding`);
+  if (e.bookedHeld) {
+    const job = last.jobId ? await prisma.job.findUnique({ where: { id: last.jobId } }) : null;
+    if (!job?.scheduledAt || job.scheduledAt.toISOString() !== live?.held)
+      failures.push(`job should be at the held time ${live?.held}; got ${job?.scheduledAt?.toISOString() ?? "no job"}`);
+  }
 
   return {
     id: s.id,

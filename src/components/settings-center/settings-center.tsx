@@ -19,6 +19,7 @@ import { displayPhone } from "@/lib/customer";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { useOptionalRing1 } from "@/lib/ring1-context";
 import { SETTINGS_SECTIONS, type SettingsSectionId } from "@/lib/settings-center";
+import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import {
   parseHoursForm,
   parseServicesForm,
@@ -66,6 +67,7 @@ type Account = {
     ownerEmail: string | null;
     greeting: string | null;
     transferPhone?: string | null;
+    voiceId?: string | null;
     avgTicketCents: number | null;
     baselineMissedCallsPerWeek: number | null;
     baselineJobsPerWeek: number | null;
@@ -614,6 +616,20 @@ export function SettingsCenter({
                   placeholder={`Thank you for calling ${b.name}. How can I help you today?`}
                   onCommit={(v) => patch({ greeting: v.trim() })}
                 />
+              </ScRow>
+              <ScRow label="Voice" hint="Callers hear this voice. Changes apply to the next call.">
+                <select
+                  className="sc-input"
+                  aria-label="Receptionist voice"
+                  value={b.voiceId ?? DEFAULT_VOICE_ID}
+                  onChange={(e) => void patch({ voiceId: e.target.value })}
+                >
+                  {RECEPTIONIST_VOICES.map((voice) => (
+                    <option key={voice.id} value={voice.id}>
+                      {voice.label} — {voice.description}
+                    </option>
+                  ))}
+                </select>
               </ScRow>
               <ScRow
                 label="Connect callers who ask for a person"

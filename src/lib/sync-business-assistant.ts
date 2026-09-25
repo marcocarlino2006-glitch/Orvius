@@ -13,6 +13,7 @@ import {
   updateAssistant,
   vapiRequest,
 } from "@/lib/vapi";
+import { resolveVoiceId } from "@/lib/voices";
 import type { Business } from "@prisma/client";
 
 export type AssistantSyncResult = {
@@ -35,6 +36,7 @@ export function buildBusinessAssistantConfig(business: Business) {
     servicesJson: business.servicesJson,
     trade: (business.trade as Trade | null) ?? null,
     canTransfer: Boolean(transferPhone),
+    canBook: true,
   });
   return buildVapiAssistantConfig({
     businessName: business.name,
@@ -43,6 +45,8 @@ export function buildBusinessAssistantConfig(business: Business) {
     webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
     webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
     transferPhone,
+    voiceId: resolveVoiceId(business.voiceId),
+    inCallBooking: true,
   });
 }
 

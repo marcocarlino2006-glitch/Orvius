@@ -27,6 +27,8 @@ model Business {
   servicesJson         String   @default("[]")
   greeting             String?
   /** Callers who ask for a person are connected here. Null means transfers are off and they get a callback. */
+  /** ElevenLabs voice for this shop's receptionist; null uses the default. */
+  voiceId              String?
   transferPhone        String?
   vapiAssistantId      String?
   vapiPhoneNumber      String?
@@ -162,6 +164,11 @@ model Call {
   ownerNotifiedAt  DateTime?
   /** VAPI analysis.successEvaluation — NumericScale 1–10 when configured. */
   successEvaluation String?
+  /** Appointment the receptionist offered and the caller took during the call; booking uses it. */
+  heldSlotAt          DateTime?
+  heldSlotDurationMin Int?
+  /** When the returning-caller note was handed to the live receptionist (once per call). */
+  callerContextSentAt DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

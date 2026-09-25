@@ -50,6 +50,8 @@ export type OwnerAlertContext = {
   silentHangup?: boolean;
   /** Already-formatted warning about commitments the receptionist voiced. */
   promiseWarning?: string | null;
+  /** Time the caller took on the call when it could not be booked — they think they have it. */
+  heldSlotAt?: Date | null;
   summary?: string | null;
   timezone: string;
 };
@@ -87,6 +89,10 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
     line = "No open slot on the board · call back to schedule";
   }
 
+  if (context.heldSlotAt) {
+    const took = `Caller was offered and took ${formatSchedule(context.heldSlotAt, context.timezone)} on the call — they expect that time`;
+    line = line ? `${line}\n${took}` : took;
+  }
   if (wantsHuman) {
     const ask = "Asked for a person · call back";
     line = line ? `${line}\n${ask}` : ask;

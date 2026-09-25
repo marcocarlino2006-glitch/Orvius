@@ -159,7 +159,10 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
 
   const businessId = lead.businessId;
   const call = lead.callId
-    ? await prisma.call.findUnique({ where: { id: lead.callId }, select: { transcript: true } })
+    ? await prisma.call.findUnique({
+        where: { id: lead.callId },
+        select: { transcript: true, heldSlotAt: true },
+      })
     : null;
   const spoken = callerWords(call?.transcript);
   const classification = classifyRequest({
@@ -361,11 +364,13 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     { inArea },
   );
 
+  const held = call?.heldSlotAt && call.heldSlotAt.getTime() > Date.now() ? call.heldSlotAt : null;
   let job;
   try {
     job = await createJobFromLead({
       leadId,
-      notes: "Auto-booked from inbound lead",
+      scheduledAt: held,
+      notes: held ? "Booked on the call — the caller picked this time" : "Auto-booked from inbound lead",
     });
   } catch (error) {
     if (

@@ -3,7 +3,8 @@ import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import {
   DEFAULT_JOB_DURATION_MIN,
-  findAvailableSchedule,
+  findAvailableSchedules,
+  type SlotPreference,
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
 import { recordAudit, type AuditActor } from "@/lib/audit";
@@ -107,8 +108,10 @@ export function serializeJob<
   };
 }
 
-/** First slot in shop hours where a technician who can do this job is free. */
-async function findOpenSlot(params: {
+/** A slot the receptionist held on a live call stays reserved this long if the call never books. */
+export const HOLD_TTL_MS = 2 * 60 * 60 * 1000;
+
+type OpenSlotParams = {
   businessId: string;
   urgency: string | null;
   durationMin: number;
@@ -116,8 +119,25 @@ async function findOpenSlot(params: {
   hoursJson: string;
   timezone: string;
   excludeJobId?: string;
-}): Promise<Date | null> {
-  const [existing, technicians] = await Promise.all([
+  /** The live call asking, whose own hold must not block it. */
+  excludeCallId?: string;
+};
+
+/** First slot in shop hours where a technician who can do this job is free. */
+async function findOpenSlot(params: OpenSlotParams): Promise<Date | null> {
+  return (await findOpenSlots(params, { count: 1 }))[0] ?? null;
+}
+
+/**
+ * Open slots for this job, counting booked work and times other live callers
+ * are holding, so two callers at once are never offered the same technician.
+ */
+export async function findOpenSlots(
+  params: OpenSlotParams,
+  options: { count: number; minGapMin?: number; preference?: SlotPreference; onlyAt?: Date },
+): Promise<Date[]> {
+  const now = new Date();
+  const [existing, technicians, holds] = await Promise.all([
     prisma.job.findMany({
       where: {
         businessId: params.businessId,
@@ -130,6 +150,16 @@ async function findOpenSlot(params: {
     prisma.technician.findMany({
       where: { businessId: params.businessId, isActive: true },
       select: { id: true, skillsJson: true },
+    }),
+    prisma.call.findMany({
+      where: {
+        businessId: params.businessId,
+        heldSlotAt: { gte: now },
+        updatedAt: { gte: new Date(now.getTime() - HOLD_TTL_MS) },
+        ...(params.excludeCallId ? { id: { not: params.excludeCallId } } : {}),
+        OR: [{ lead: { is: null } }, { lead: { is: { job: { is: null } } } }],
+      },
+      select: { heldSlotAt: true, heldSlotDurationMin: true },
     }),
   ]);
 
@@ -148,25 +178,29 @@ async function findOpenSlot(params: {
     ? existing.filter((j) => !j.technicianId || poolIds.has(j.technicianId))
     : existing;
 
-  const available = findAvailableSchedule({
-    urgency: params.urgency,
-    durationMin: params.durationMin,
-    hoursJson: params.hoursJson,
-    timezone: params.timezone,
-    capacity: Math.max(1, activeTechnicians),
-    existing: relevant.flatMap((job) =>
-      job.scheduledAt
-        ? [
-            {
-              scheduledAt: job.scheduledAt,
-              durationMin: job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
-            },
-          ]
-        : [],
-    ),
-  });
-
-  return available;
+  return findAvailableSchedules(
+    {
+      now,
+      urgency: params.urgency,
+      durationMin: params.durationMin,
+      hoursJson: params.hoursJson,
+      timezone: params.timezone,
+      capacity: Math.max(1, activeTechnicians),
+      existing: [
+        ...relevant.flatMap((job) =>
+          job.scheduledAt
+            ? [{ scheduledAt: job.scheduledAt, durationMin: job.durationMin ?? DEFAULT_JOB_DURATION_MIN }]
+            : [],
+        ),
+        ...holds.flatMap((hold) =>
+          hold.heldSlotAt
+            ? [{ scheduledAt: hold.heldSlotAt, durationMin: hold.heldSlotDurationMin ?? DEFAULT_JOB_DURATION_MIN }]
+            : [],
+        ),
+      ],
+    },
+    options,
+  );
 }
 
 export async function createJobFromLead(params: {
