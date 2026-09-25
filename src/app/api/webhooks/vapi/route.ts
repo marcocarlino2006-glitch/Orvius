@@ -11,6 +11,7 @@ import { recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 
 async function findBusinessForCall(
   vapiCallId: string,
@@ -145,6 +146,11 @@ export async function POST(request: NextRequest) {
       status: "processed",
       payload: { type },
     });
+
+    if (type === "call-started") {
+      const shop = await prisma.business.findUnique({ where: { id: business.id } });
+      if (shop) after(() => ensureAssistantCurrent(shop));
+    }
 
     return NextResponse.json({ ok: true });
   }

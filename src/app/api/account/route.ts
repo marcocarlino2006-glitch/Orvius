@@ -31,6 +31,7 @@ import {
   formatPlatformFeeRate,
   shopNetCents,
 } from "@/lib/platform-fee";
+import { normalizePhone } from "@/lib/customer";
 import { z } from "zod";
 
 const patchSchema = z.object({
@@ -40,6 +41,7 @@ const patchSchema = z.object({
   ownerPhone: z.string().min(10).optional(),
   ownerEmail: z.string().email().optional(),
   greeting: z.string().max(280).optional(),
+  transferPhone: z.string().max(24).nullable().optional(),
   avgTicketCents: z.number().int().min(5000).max(5_000_000).nullable().optional(),
   baselineMissedCallsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
   baselineJobsPerWeek: z.number().int().min(0).max(500).nullable().optional(),
@@ -115,6 +117,7 @@ export async function GET(request: Request) {
         stripeSubscriptionId: businessRecord.stripeSubscriptionId,
         createdAt: businessRecord.createdAt,
         greeting: businessRecord.greeting,
+        transferPhone: businessRecord.transferPhone,
         lineVerifiedAt: businessRecord.lineVerifiedAt,
         avgTicketCents: businessRecord.avgTicketCents,
         baselineMissedCallsPerWeek: businessRecord.baselineMissedCallsPerWeek,
@@ -206,7 +209,7 @@ export async function GET(request: Request) {
   });
 }
 
-const ASSISTANT_FIELDS = ["name", "greeting", "hoursJson", "servicesJson"] as const;
+const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "hoursJson", "servicesJson"] as const;
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -235,6 +238,26 @@ export async function PATCH(request: Request) {
       });
       if (!phoneCheck.ok) {
         return NextResponse.json({ error: phoneCheck.reason }, { status: 400 });
+      }
+    }
+
+    let transferPhone: string | null | undefined;
+    if (body.transferPhone !== undefined) {
+      const raw = body.transferPhone?.trim() ?? "";
+      if (!raw) {
+        transferPhone = null;
+      } else {
+        transferPhone = normalizePhone(raw);
+        if (!transferPhone?.startsWith("+")) {
+          return NextResponse.json({ error: "Enter the transfer number with area code." }, { status: 400 });
+        }
+        const lines = getShopLines(existing).map((line) => normalizePhone(line));
+        if (lines.includes(transferPhone)) {
+          return NextResponse.json(
+            { error: "That's your Orvius line — transfers there would loop back to the receptionist. Use your cell or office phone." },
+            { status: 400 },
+          );
+        }
       }
     }
 
@@ -296,6 +319,7 @@ export async function PATCH(request: Request) {
           ? { ownerEmail: body.ownerEmail.trim().toLowerCase() }
           : {}),
         ...(body.greeting !== undefined ? { greeting: body.greeting.trim() } : {}),
+        ...(transferPhone !== undefined ? { transferPhone } : {}),
         ...(body.avgTicketCents !== undefined
           ? { avgTicketCents: body.avgTicketCents }
           : {}),
@@ -349,7 +373,7 @@ export async function PATCH(request: Request) {
     let syncWarning: string | null = null;
 
     /*
-      The assistant is built from name, greeting, hours, and services only.
+      The assistant is built from name, trade, greeting, transfer number, hours, and services only.
       Everything else (autopilot, deposits, ticket, capture path) skips the two
       Vapi round trips, which is what makes save-as-you-go feel instant.
     */
@@ -378,6 +402,7 @@ export async function PATCH(request: Request) {
         ownerPhone: saved.ownerPhone,
         ownerEmail: saved.ownerEmail,
         greeting: saved.greeting,
+        transferPhone: saved.transferPhone,
         avgTicketCents: saved.avgTicketCents,
         baselineMissedCallsPerWeek: saved.baselineMissedCallsPerWeek,
         baselineJobsPerWeek: saved.baselineJobsPerWeek,

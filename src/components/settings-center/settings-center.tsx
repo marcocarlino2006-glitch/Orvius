@@ -65,6 +65,7 @@ type Account = {
     ownerPhone: string | null;
     ownerEmail: string | null;
     greeting: string | null;
+    transferPhone?: string | null;
     avgTicketCents: number | null;
     baselineMissedCallsPerWeek: number | null;
     baselineJobsPerWeek: number | null;
@@ -612,6 +613,18 @@ export function SettingsCenter({
                   value={b.greeting ?? ""}
                   placeholder={`Thank you for calling ${b.name}. How can I help you today?`}
                   onCommit={(v) => patch({ greeting: v.trim() })}
+                />
+              </ScRow>
+              <ScRow
+                label="Connect callers who ask for a person"
+                hint="The receptionist takes their name and number, then transfers the call here. Leave empty to get a callback text instead."
+              >
+                <ScField
+                  type="tel"
+                  ariaLabel="Transfer number"
+                  value={b.transferPhone ?? ""}
+                  placeholder="+1 555 123 4567"
+                  onCommit={(v) => patch({ transferPhone: v.trim() || null })}
                 />
               </ScRow>
               <ScRow

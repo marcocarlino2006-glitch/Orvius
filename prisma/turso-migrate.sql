@@ -316,3 +316,6 @@ CREATE INDEX IF NOT EXISTS "AuditEvent_customerId_idx" ON "AuditEvent"("customer
 
 -- Autopilot: routine confirmations and clear-cut assignments run without the owner.
 ALTER TABLE "Business" ADD COLUMN "autopilot" BOOLEAN NOT NULL DEFAULT true;
+
+-- Live transfer: callers who insist on a person are connected to this number. Null = off.
+ALTER TABLE "Business" ADD COLUMN "transferPhone" TEXT;

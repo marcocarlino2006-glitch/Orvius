@@ -26,6 +26,8 @@ model Business {
   hoursJson            String   @default("{}")
   servicesJson         String   @default("[]")
   greeting             String?
+  /** Callers who ask for a person are connected here. Null means transfers are off and they get a callback. */
+  transferPhone        String?
   vapiAssistantId      String?
   vapiPhoneNumber      String?
   twilioPhone          String?

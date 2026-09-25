@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
 import {
   getAiModelPolicy,
@@ -14,7 +15,10 @@ type VapiAssistantPayload = {
     provider: string;
     model: string;
     messages: Array<{ role: string; content: string }>;
+    tools?: Array<Record<string, unknown>>;
   };
+  /** `orviusConfig` is a fingerprint of everything else, so drift from the deployed code is detectable. */
+  metadata?: { orviusConfig: string };
   voice: {
     provider: string;
     voiceId: string;
@@ -114,20 +118,23 @@ export async function importTwilioPhoneToVapi(params: {
   );
 
   const normalized = params.number.replace(/\s/g, "");
+  // A number imported more than once must not leave a copy routing to an old assistant.
   const existing = Array.isArray(list)
-    ? list.find(
+    ? list.filter(
         (entry) =>
           entry.number === params.number ||
           entry.number?.replace(/\s/g, "") === normalized,
       )
-    : undefined;
+    : [];
 
-  if (existing?.id) {
-    await vapiRequest(`/phone-number/${existing.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ assistantId: params.assistantId }),
-    });
-    return { id: existing.id, number: params.number };
+  if (existing.length) {
+    for (const entry of existing) {
+      await vapiRequest(`/phone-number/${entry.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ assistantId: params.assistantId }),
+      });
+    }
+    return { id: existing[0].id, number: params.number };
   }
 
   const created = await vapiRequest<{ id: string }>("/phone-number", {
@@ -152,15 +159,34 @@ export function buildVapiAssistantConfig(params: {
   greeting: string;
   webhookUrl: string;
   webhookSecret?: string;
+  /** E.164 number to hand callers to when they insist on a person. */
+  transferPhone?: string | null;
 }): VapiAssistantPayload {
   const receptionist = getAiModelPolicy("receptionist");
-  return {
+  const config: VapiAssistantPayload = {
     name: `${params.businessName} Receptionist`,
     firstMessage: params.greeting,
     model: {
       provider: receptionist.provider,
       model: receptionist.model,
       messages: [{ role: "system", content: params.systemPrompt }],
+      ...(params.transferPhone
+        ? {
+            tools: [
+              {
+                type: "transferCall",
+                destinations: [
+                  {
+                    type: "number",
+                    number: params.transferPhone,
+                    message: "One moment, I'm connecting you now.",
+                    description: "The shop owner, for callers who ask for a person",
+                  },
+                ],
+              },
+            ],
+          }
+        : {}),
     },
     voice: {
       provider: "11labs",
@@ -230,6 +256,23 @@ export function buildVapiAssistantConfig(params: {
       },
     },
   };
+  return { ...config, metadata: { orviusConfig: assistantConfigFingerprint(config) } };
+}
+
+/** Stable hash of the assistant config, excluding the webhook secret and the fingerprint itself. */
+export function assistantConfigFingerprint(config: VapiAssistantPayload): string {
+  const { serverUrlSecret: _secret, metadata: _meta, ...rest } = config;
+  const canonical = (value: unknown): unknown =>
+    Array.isArray(value)
+      ? value.map(canonical)
+      : value && typeof value === "object"
+        ? Object.fromEntries(
+            Object.keys(value as Record<string, unknown>)
+              .sort()
+              .map((k) => [k, canonical((value as Record<string, unknown>)[k])]),
+          )
+        : value;
+  return createHash("sha256").update(JSON.stringify(canonical(rest))).digest("hex").slice(0, 16);
 }
 
 export type VapiWebhookMessage = {

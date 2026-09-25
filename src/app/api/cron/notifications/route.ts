@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runAutopilot } from "@/lib/autopilot";
+import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { prisma } from "@/lib/prisma";
 import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
@@ -69,9 +70,18 @@ export async function GET(request: NextRequest) {
     autopilotAssigned += ran?.assigned ?? 0;
     autopilotConfirmations += ran?.confirmationsSent ?? 0;
   }
+  const lineShops = await prisma.business.findMany({
+    where: { isActive: true, vapiAssistantId: { not: null }, environment: { not: "test" } },
+    take: 200,
+  });
+  const assistants = { current: 0, updated: 0, skipped: 0 };
+  for (const shop of lineShops) {
+    assistants[await ensureAssistantCurrent(shop)] += 1;
+  }
   return NextResponse.json({
     ok: true,
     ...notifications,
+    assistants,
     customerConfirmations,
     autopilot: { shops: autopilotShops.length, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });

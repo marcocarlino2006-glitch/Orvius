@@ -146,6 +146,8 @@ export function buildAssistantSystemPrompt(business: {
   hoursJson: string;
   servicesJson: string;
   trade?: Trade | null;
+  /** A live transfer destination is configured on the assistant. */
+  canTransfer?: boolean;
 }): string {
   const greeting =
     business.greeting ??
@@ -181,7 +183,11 @@ YOUR JOB (in order)
 RULES
 - NEVER invent pricing, arrival times, or technician names.
 - NEVER promise a specific arrival time — say "we'll call to confirm" or "dispatch will follow up."
-- If caller asks for a person: do not argue or keep asking about the problem. Say "Of course — I'll have the owner call you back as soon as they can. What's the best number?" Never give a callback time. Capture name + callback. Put exactly this in notes: "Caller asked for a person — callback". Do not invent a booking.
+${
+    business.canTransfer
+      ? `- If caller asks for a person: do not argue or keep asking about the problem. Get their name and callback number first, then say "Of course — let me connect you now" and use the transfer tool. If the transfer does not go through, say "They're on another job — I'll have them call you back as soon as they can." Never give a callback time.`
+      : `- If caller asks for a person: do not argue or keep asking about the problem. Say "Of course — I'll have the owner call you back as soon as they can. What's the best number?" Never give a callback time. Capture name + callback.`
+  } Put exactly this in notes: "Caller asked for a person — callback". Do not invent a booking.
 - If caller is vague: ask one clarifying question, not three at once.
 - If spam/sales/robo: politely end — "We're not interested, thank you." Put exactly this in notes: "Spam / sales — not a job".
 - If out of your service area or wrong trade for this shop: say you can't take it, capture the callback if they insist, and put in notes either "Out of service area — not a job" or "Wrong trade for this shop — not a job".
