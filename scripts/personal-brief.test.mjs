@@ -17,6 +17,7 @@ const base = {
   firstName: "Dana",
   since: null,
   today,
+  openNeedsYou: 0,
   totalCalls: 40,
   lineVerified: true,
   afterHoursNow: false,
@@ -55,7 +56,9 @@ test("what changed since the owner last looked leads the brief", () => {
   const brief = composePersonalBrief({ ...base, now, since });
   assert.equal(brief.headline, "Since you looked 3 hours ago: 4 calls, 2 booked, 1 needs you.");
   const quiet = composePersonalBrief({ ...base, now, since: { ...since, calls: 0, booked: 0, needsYou: 0 } });
-  assert.match(quiet.headline, /^Quiet since you looked 3 hours ago/);
+  assert.equal(quiet.headline, "Quiet since you looked 3 hours ago — nothing needs you.");
+  const stillOpen = composePersonalBrief({ ...base, now, openNeedsYou: 3, since: { ...since, calls: 0, booked: 0, needsYou: 0 } });
+  assert.equal(stillOpen.headline, "Nothing new since you looked 3 hours ago. 3 things still need you.");
 });
 
 test("without a last visit, the brief follows the day", () => {

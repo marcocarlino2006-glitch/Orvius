@@ -41,6 +41,8 @@ export type PersonalBriefInput = {
     completed: number;
     bookedToday: number;
   };
+  /** Items in the Command queue right now, grouped the way the queue shows them. */
+  openNeedsYou: number;
   totalCalls: number;
   lineVerified: boolean;
   afterHoursNow: boolean;
@@ -202,7 +204,9 @@ export function composePersonalBrief(input: PersonalBriefInput): PersonalBrief {
     ].filter(Boolean);
     headline = `Since you looked ${sinceLabel(since.at, now)}: ${parts.join(", ")}.`;
   } else if (since) {
-    headline = `Quiet since you looked ${sinceLabel(since.at, now)} — nothing new needs you.`;
+    headline = input.openNeedsYou
+      ? `Nothing new since you looked ${sinceLabel(since.at, now)}. ${plural(input.openNeedsYou, "thing")} still ${input.openNeedsYou === 1 ? "needs" : "need"} you.`
+      : `Quiet since you looked ${sinceLabel(since.at, now)} — nothing needs you.`;
   } else if (moment === "morning") {
     headline = today.jobs ? `${plural(today.jobs, "job")} on the board today.` : "Nothing on the board yet today.";
   } else if (moment === "evening" || moment === "night") {
