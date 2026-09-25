@@ -42,6 +42,13 @@ test("the call pipeline queues its audit trail and flushes it before finishing",
   assert.match(ingest, /Release the claim now/);
 });
 
+test("public copy describes the transfer the receptionist actually does: only with a transfer number, callback otherwise", () => {
+  const company = readFileSync("src/lib/company.ts", "utf8");
+  assert.doesNotMatch(company, /no live transfer/i);
+  assert.match(company, /transferred to the owner's phone when a transfer number is set/);
+  assert.match(company, /callback/);
+});
+
 test("booking flushes its decisions before booking, and defers only work that could never fail it", () => {
   const autoJob = readFileSync("src/lib/auto-job.ts", "utf8");
   assert.match(autoJob, /await options\.audit\?\.flush\(\);\s*let job;/);

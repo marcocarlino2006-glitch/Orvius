@@ -31,6 +31,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       "Urgency and safety are classified from what the caller said, including Spanish and heat-wave calls; gas-smell callers are told to get outside first.",
       "No new job is booked when someone calls about work that's already booked or calls back about the same problem.",
       "Complaints about past visits are held for you, and callback numbers that differ from caller ID are flagged.",
+      "Callers who ask for a person are transferred to your phone when you set a transfer number in Settings; otherwise you get a callback alert.",
       "Owner texts say what the call was about, skip spam, flag anything the receptionist promised, and use your time zone.",
     ],
   },
