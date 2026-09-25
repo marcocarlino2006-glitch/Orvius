@@ -26,9 +26,9 @@ test("Settings readiness path runs Business → … → Test call, one next step
   });
   assert.equal(partial.next?.id, "hours");
 
-  const panel = read("src/components/shop-setup-checklist-panel.tsx");
-  assert.match(panel, /rp-next/);
-  assert.match(panel, /Place test call/);
+  const panel = read("src/components/settings-center/settings-center.tsx");
+  assert.match(panel, /checklist\.next\.label/);
+  assert.match(panel, /checklist\.next\.href/);
 });
 
 test("Calendar step is honest: it needs a real crew to book against", () => {

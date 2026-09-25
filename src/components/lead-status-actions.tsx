@@ -81,9 +81,7 @@ export function LeadStatusActions({
             key={item.value}
             type="button"
             disabled={loading !== null}
-            className={`btn text-sm ${
-              item.value === "spam" ? "btn-secondary" : "btn-void"
-            }`}
+            className="btn btn-secondary text-sm"
             onClick={() => updateStatus(item.value)}
           >
             {loading === item.value ? "Saving…" : item.label}

@@ -3,6 +3,7 @@ import { normalizePhone } from "@/lib/customer";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
+import { skillOptions } from "@/lib/trade-playbooks";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -18,6 +19,7 @@ export async function PATCH(request: Request, { params }: Params) {
   const body = (await request.json()) as {
     name?: string;
     phone?: string | null;
+    skills?: string[];
   };
 
   const existing = await prisma.technician.findFirst({
@@ -27,7 +29,15 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Technician not found" }, { status: 404 });
   }
 
-  const data: { name?: string; phone?: string | null } = {};
+  const data: { name?: string; phone?: string | null; skillsJson?: string } = {};
+
+  if (body.skills !== undefined) {
+    const known = new Set(skillOptions(null).map((s) => s.key));
+    if (!Array.isArray(body.skills) || body.skills.some((s) => typeof s !== "string" || !known.has(s))) {
+      return NextResponse.json({ error: "Unknown skill" }, { status: 400 });
+    }
+    data.skillsJson = JSON.stringify([...new Set(body.skills)]);
+  }
 
   if (body.name !== undefined) {
     const name = body.name.trim();

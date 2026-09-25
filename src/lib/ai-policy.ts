@@ -48,7 +48,9 @@ export function getAiModelPolicy(task: AiTask): AiModelPolicy {
 
 export const TRANSCRIPTION_POLICY = {
   provider: "deepgram" as const,
-  model: "nova-2",
+  // Multilingual so a Spanish-speaking caller is transcribed, not guessed at in English.
+  model: "nova-3",
+  language: "multi",
   envOverride: "ORVIUS_AI_TRANSCRIBER_MODEL",
 };
 

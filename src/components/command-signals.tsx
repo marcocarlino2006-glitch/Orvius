@@ -17,7 +17,7 @@ export function CommandSignals({
   if (!signals) {
     return (
       <ul className="cs-grid" aria-label="Business signals" aria-busy={loading}>
-        {["New demand", "Qualified opportunities", "Jobs in motion", "Attention required", "Revenue at risk"].map(
+        {["New demand", "Qualified", "Jobs in motion", "Needs you", "Revenue at risk"].map(
           (label) => (
             <li key={label} className="cs-card cs-card--loading">
               <p className="cs-label">{label}</p>

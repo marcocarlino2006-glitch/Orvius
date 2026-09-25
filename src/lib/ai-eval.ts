@@ -184,6 +184,7 @@ export function runAiReadinessEval(): AiReadinessEval {
     }),
     servicesJson: JSON.stringify([{ name: "Emergency repair" }]),
     trade: "HVAC",
+    canBook: true,
   });
   const promptChecks = [
     {
@@ -198,11 +199,11 @@ export function runAiReadinessEval(): AiReadinessEval {
       name: "no invented pricing or arrival",
       passed:
         /NEVER invent pricing, arrival times, or technician names/.test(prompt) &&
-        /NEVER promise a specific arrival time/.test(prompt),
+        /NEVER say an appointment time that did not come from check_availability/.test(prompt),
     },
     {
       name: "life safety",
-      passed: /leave the area and call 911/i.test(prompt),
+      passed: /say this FIRST[\s\S]{0,80}leave the home now[\s\S]{0,60}call the gas company or 911/i.test(prompt),
     },
     {
       name: "callback verification",

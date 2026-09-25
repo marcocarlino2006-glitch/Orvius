@@ -52,9 +52,9 @@ test("shop setup checklist exposes progress and one next action", () => {
   assert.match(lib, /buildShopSetupChecklist/);
   assert.match(lib, /readyForNight/);
   assert.match(lib, /Booked or Escalated|hours_area|owner_alerts|capture/);
-  const ui = read("src/components/shop-setup-checklist-panel.tsx");
-  assert.match(ui, /ShopSetupChecklistPanel/);
-  assert.match(ui, /progressbar/);
+  const ui = read("src/components/settings-center/settings-center.tsx");
+  assert.match(ui, /buildShopSetupChecklist/);
+  assert.match(ui, /sc-meter/);
 });
 
 test("dashboard fetch failures name cause, impact, and recovery", () => {

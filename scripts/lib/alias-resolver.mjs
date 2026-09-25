@@ -44,6 +44,10 @@ function resolveExtensionlessSubpath(specifier) {
 }
 
 export function resolve(specifier, context, nextResolve) {
+  // Next.js enforces `server-only` at bundle time; under node:test every module is server code.
+  if (specifier === "server-only") {
+    return { url: "data:text/javascript,export {};", shortCircuit: true };
+  }
   if (!specifier.startsWith("@/")) {
     const subpath = resolveExtensionlessSubpath(specifier);
     if (subpath) return nextResolve(pathToFileURL(subpath).href, context);

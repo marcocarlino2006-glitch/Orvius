@@ -10,6 +10,7 @@ import { AssignTechButton, type TechOption } from "@/components/assign-tech-butt
 import { JobStatusAdvance } from "@/components/job-status-advance";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { telHref } from "@/lib/demo-line";
+import { leadNextAction } from "@/lib/lead-next-action";
 import { formatCents } from "@/lib/money";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
 import { formatAge, type WorkItem } from "@/lib/command-model";
@@ -28,12 +29,27 @@ function canCall(item: AttentionItem) {
   );
 }
 
-function canBook(item: AttentionItem) {
+function canBookStrategy(item: AttentionItem) {
   const strategy = attentionActionStrategy(item.kind);
   return (
-    (strategy === "book" || item.kind === "urgent_lead" || item.kind === "overdue_followup") &&
-    item.entityType === "lead"
+    item.entityType === "lead" &&
+    (strategy === "book" || item.kind === "urgent_lead" || item.kind === "overdue_followup")
   );
+}
+
+function leadNext(item: AttentionItem) {
+  if (item.entityType !== "lead") return null;
+  return leadNextAction({
+    status: item.meta?.status ?? "new",
+    urgency: item.meta?.urgency ?? null,
+    phone: item.meta?.phone ?? null,
+    address: item.meta?.address ?? null,
+    jobId: null,
+  });
+}
+
+function canBook(item: AttentionItem) {
+  return canBookStrategy(item) && leadNext(item)?.kind === "book";
 }
 
 function canAssign(item: AttentionItem) {
@@ -277,6 +293,14 @@ function PrimaryAction({
       />
     );
   }
+  const next = canBookStrategy(item) ? leadNext(item) : null;
+  if (next?.kind === "call") {
+    return (
+      <a href={telHref(next.phone)} className={primary}>
+        {next.label}
+      </a>
+    );
+  }
   if (canBook(item)) {
     return (
       <BookJobQuickButton leadId={item.entityId} onBooked={() => onAction?.()} className={primary} />
@@ -373,17 +397,13 @@ export function AttentionQueue({
   return (
     <section id="work-queue" className="wq" aria-label="Work queue">
       <header className="wq-head">
-        <div>
-          <h2 className="wq-title">Work queue</h2>
-          <p className="wq-sub">
-            {work.length} {work.length === 1 ? "item needs" : "items need"} a decision · highest impact first
-          </p>
-        </div>
+        <h2 className="wq-title">
+          Queue <span className="wq-title-count">{work.length}</span>
+        </h2>
       </header>
 
-      <article className={`wq-recommend wq-sev--${top!.severity}`} aria-label="Orvius recommends">
+      <article className={`wq-recommend wq-sev--${top!.severity}`} aria-label="Top priority">
         <div className="wq-recommend-copy">
-          <p className="wq-recommend-kicker">Orvius recommends</p>
           <WorkRowBody work={top!} now={now} large />
         </div>
         <div className="wq-actions">
@@ -436,6 +456,8 @@ function WorkRowBody({ work, now, large = false }: { work: WorkItem; now: number
         )}
         {work.occurrences > 1 && work.id.startsWith("incident:") ? (
           <span className="wq-count">{work.occurrences}×</span>
+        ) : work.occurrences > 1 ? (
+          <span className="wq-count">+{work.occurrences - 1} more</span>
         ) : null}
       </div>
       <p className="wq-request">

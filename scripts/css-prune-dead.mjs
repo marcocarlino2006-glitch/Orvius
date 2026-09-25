@@ -16,7 +16,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 import postcss from "postcss";
 
 const DRY = process.argv.includes("--dry");
-const FILES = ["src/app/globals.css", "src/app/dashboard/dashboard.css"];
+const FILES = [
+  "src/app/globals.css",
+  "src/app/dashboard/dashboard.css",
+  "src/app/dashboard/orvius-system.css",
+  "src/app/dashboard/orvius-scale.css",
+];
 
 const report = execFileSync("node", ["scripts/css-usage.mjs"], {
   encoding: "utf8",

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { displayPhone, normalizePhone } from "@/lib/customer";
 
 type OwnerAlertCardProps = {
   variant?: "void" | "chalk";
@@ -63,11 +64,15 @@ export function OwnerAlertCard({
 }: OwnerAlertCardProps) {
   const isVoid = variant === "void";
 
-  const name = lead?.name ?? "Maria Lopez";
-  const phone = lead?.phone ?? "+1 512 555 0123";
-  const service = lead?.service ?? "AC not cooling";
-  const urgency = lead?.urgency ?? "Emergency";
-  const address = lead?.address ?? "1842 Oak Street";
+  // Sample values belong to the marketing preview only. On a real record a
+  // blank field must read as blank — an invented address sends a tech to it.
+  const sample = !lead;
+  const missing = "Not captured";
+  const name = lead ? lead.name ?? "an unknown caller" : "Maria Lopez";
+  const phone = lead ? (lead.phone ? displayPhone(normalizePhone(lead.phone) ?? lead.phone) : missing) : "+1 512 555 0123";
+  const service = lead ? lead.service ?? missing : "AC not cooling";
+  const urgency = lead ? lead.urgency ?? missing : "Emergency";
+  const address = lead ? lead.address ?? missing : "1842 Oak Street";
   const channel = lead?.channel ?? "Inbound call · after hours";
   const bookingLine = lead?.bookingLine;
   const isEmergency = urgency.toLowerCase().includes("emergency");
@@ -93,7 +98,7 @@ export function OwnerAlertCard({
           <span className="owner-alert-dot" aria-hidden />
           Owner alert
         </p>
-        <span className="owner-alert-time font-sans">just now</span>
+        {sample ? <span className="owner-alert-time font-sans">just now</span> : null}
       </header>
 
       <div className="owner-alert-body">
@@ -109,7 +114,7 @@ export function OwnerAlertCard({
           ))}
         </dl>
 
-        {!compact ? (
+        {!compact && sample ? (
           <p className="owner-alert-foot font-sans">
             Orvius captured this while the owner was on a job.
           </p>

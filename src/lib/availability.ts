@@ -167,46 +167,132 @@ export function overlappingJobs(input: {
  * work than active technicians. The customer still confirms the proposal.
  */
 export function findAvailableSchedule(input: AvailabilityInput): Date | null {
+  return findAvailableSchedules(input, { count: 1 })[0] ?? null;
+}
+
+export type SlotPreference = {
+  /** Shop-local weekdays the caller asked for, lowercase ("tuesday"). */
+  weekdays?: string[];
+  part?: "morning" | "afternoon" | "evening";
+  /** Shop-local day offsets from today: 0 = today, 1 = tomorrow. */
+  dayOffsets?: number[];
+};
+
+function localDayIndex(at: Date, timezone: string) {
+  const ymd = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(at);
+  const [y, m, d] = ymd.split("-").map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / 86_400_000);
+}
+
+function matchesPreference(at: Date, now: Date, timezone: string, pref?: SlotPreference) {
+  if (!pref) return true;
+  const clock = localClock(at, timezone);
+  if (pref.weekdays?.length && !pref.weekdays.includes(clock.weekday)) return false;
+  if (pref.dayOffsets?.length) {
+    const offset = localDayIndex(at, timezone) - localDayIndex(now, timezone);
+    if (!pref.dayOffsets.includes(offset)) return false;
+  }
+  if (pref.part === "morning" && clock.hour >= 12) return false;
+  if (pref.part === "afternoon" && (clock.hour < 12 || clock.hour >= 17)) return false;
+  if (pref.part === "evening" && clock.hour < 16) return false;
+  return true;
+}
+
+/**
+ * Up to `count` open windows, spread out so a caller hears real choices
+ * ("8 tomorrow, or 1 Thursday") rather than 8:00, 8:30 and 9:00.
+ */
+export function findAvailableSchedules(
+  input: AvailabilityInput,
+  options: {
+    count: number;
+    minGapMin?: number;
+    preference?: SlotPreference;
+    /** Check this one start instead of searching: is it still open? */
+    onlyAt?: Date;
+  },
+): Date[] {
   const now = input.now ?? new Date();
+  const timezone = safeTimezone(input.timezone);
   const durationMin = Math.max(
     SLOT_STEP_MIN,
     input.durationMin ?? DEFAULT_JOB_DURATION_MIN,
   );
   const capacity = Math.max(1, Math.floor(input.capacity));
+  if (options.onlyAt) {
+    const at = options.onlyAt;
+    const open =
+      at.getTime() > now.getTime() &&
+      at.getTime() <= now.getTime() + MAX_SCHEDULE_DAYS * 24 * 60 * 60_000 &&
+      fitsShopHours({ start: at, durationMin, hoursJson: input.hoursJson, timezone }) &&
+      overlappingJobs({ start: at, durationMin, existing: input.existing }) < capacity;
+    return open ? [at] : [];
+  }
   const earliest = roundUp(
     new Date(now.getTime() + minimumLeadMinutes(input.urgency) * 60_000),
     SLOT_STEP_MIN,
   );
   const deadline = now.getTime() + MAX_SCHEDULE_DAYS * 24 * 60 * 60_000;
+  const gapMs = (options.minGapMin ?? 0) * 60_000;
+  const found: Date[] = [];
 
   for (
     let candidate = earliest;
-    candidate.getTime() <= deadline;
+    candidate.getTime() <= deadline && found.length < options.count;
     candidate = new Date(candidate.getTime() + SLOT_STEP_MIN * 60_000)
   ) {
-    if (
-      !fitsShopHours({
-        start: candidate,
-        durationMin,
-        hoursJson: input.hoursJson,
-        timezone: input.timezone,
-      })
-    ) {
+    const last = found[found.length - 1];
+    if (last && candidate.getTime() - last.getTime() < gapMs) continue;
+    if (!matchesPreference(candidate, now, timezone, options.preference)) continue;
+    if (!fitsShopHours({ start: candidate, durationMin, hoursJson: input.hoursJson, timezone })) {
       continue;
     }
-
-    if (
-      overlappingJobs({
-        start: candidate,
-        durationMin,
-        existing: input.existing,
-      }) < capacity
-    ) {
-      return candidate;
+    if (overlappingJobs({ start: candidate, durationMin, existing: input.existing }) < capacity) {
+      found.push(candidate);
     }
   }
 
-  return null;
+  return found;
+}
+
+function zoneOffsetMs(at: Date, timezone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  }).formatToParts(at);
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? "0");
+  const wall = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"), get("second"));
+  return wall - Math.floor(at.getTime() / 1000) * 1000;
+}
+
+function shopMidnight(year: number, month: number, day: number, timezone: string) {
+  const guess = Date.UTC(year, month - 1, day);
+  const first = guess - zoneOffsetMs(new Date(guess), timezone);
+  return new Date(guess - zoneOffsetMs(new Date(first), timezone));
+}
+
+/**
+ * The shop's calendar day as UTC instants. Servers run in UTC, so a day built
+ * from server-local midnight would shift every job by the shop's offset.
+ */
+export function shopDayBounds(isoDay: string | null | undefined, timezone: string, now = new Date()) {
+  const tz = safeTimezone(timezone);
+  let ymd = isoDay?.match(/^(\d{4})-(\d{2})-(\d{2})$/)?.slice(1).map(Number);
+  if (!ymd) {
+    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+    ymd = parts.split("-").map(Number);
+  }
+  const [y, m, d] = ymd;
+  const start = shopMidnight(y, m, d, tz);
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  const end = shopMidnight(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate(), tz);
+  return { start, end, day: `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}` };
 }
 
 /** Stable local rendering for logs, alerts, and tests. */

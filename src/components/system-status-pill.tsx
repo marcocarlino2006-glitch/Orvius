@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { PublicStatus } from "@/app/api/status/route";
 
@@ -56,15 +57,15 @@ export function SystemStatusPill({ className = "" }: { className?: string }) {
   const detail = scope ?? SCOPE_FALLBACK[state];
 
   return (
-    <span
+    <Link
+      href="/status"
       className={`ov-status-pill ov-status-pill--${state} ${className}`.trim()}
       data-state={state}
-      role="status"
-      title={detail}
-      aria-label={`${COPY[state]} — ${detail}`}
+      title={`${detail} — see every provider`}
+      aria-label={`${COPY[state]} — ${detail}. Open the status page.`}
     >
       <span className="ov-status-dot" aria-hidden />
-      {COPY[state]}
-    </span>
+      <span role="status">{COPY[state]}</span>
+    </Link>
   );
 }

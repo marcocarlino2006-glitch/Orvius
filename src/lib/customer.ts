@@ -71,10 +71,23 @@ function mergeAddress(
  * Merges by normalized phone per business.
  */
 export async function findOrCreateCustomer(touch: CustomerTouch) {
+  return (await findOrCreateCustomerDetailed(touch))?.customer ?? null;
+}
+
+/**
+ * Same match, plus whether this touch created the customer. countTouch=false
+ * lets a retried or already-linked touch refresh details without inflating
+ * the interaction count.
+ */
+export async function findOrCreateCustomerDetailed(
+  touch: CustomerTouch,
+  options: { countTouch?: boolean } = {},
+) {
   const normalized = normalizePhone(touch.phone);
   if (!normalized) {
     return null;
   }
+  const countTouch = options.countTouch ?? true;
 
   const existing = await prisma.customer.findUnique({
     where: {
@@ -86,7 +99,7 @@ export async function findOrCreateCustomer(touch: CustomerTouch) {
   });
 
   if (existing) {
-    return prisma.customer.update({
+    const updated = await prisma.customer.update({
       where: { id: existing.id },
       data: {
         name: touch.name?.trim() || existing.name,
@@ -94,23 +107,37 @@ export async function findOrCreateCustomer(touch: CustomerTouch) {
         address: mergeAddress(existing.address, touch.address),
         notes: appendCompoundingNote(existing.notes, touch.notes),
         phone: touch.phone?.trim() || existing.phone,
-        interactionCount: { increment: 1 },
+        ...(countTouch ? { interactionCount: { increment: 1 } } : {}),
         lastSeenAt: new Date(),
       },
     });
+    return { customer: updated, created: false };
   }
 
-  return prisma.customer.create({
-    data: {
-      businessId: touch.businessId,
-      phone: touch.phone?.trim() || normalized,
-      phoneNormalized: normalized,
-      name: touch.name?.trim() || null,
-      email: touch.email?.trim() || null,
-      address: touch.address?.trim() || null,
-      notes: touch.notes?.trim() || null,
-    },
-  });
+  try {
+    const created = await prisma.customer.create({
+      data: {
+        businessId: touch.businessId,
+        phone: touch.phone?.trim() || normalized,
+        phoneNormalized: normalized,
+        name: touch.name?.trim() || null,
+        email: touch.email?.trim() || null,
+        address: touch.address?.trim() || null,
+        notes: touch.notes?.trim() || null,
+      },
+    });
+    return { customer: created, created: true };
+  } catch (error) {
+    // Two concurrent touches from the same caller: the unique
+    // (businessId, phoneNormalized) edge lets exactly one create win.
+    if ((error as { code?: string })?.code !== "P2002") throw error;
+    const winner = await prisma.customer.findUniqueOrThrow({
+      where: {
+        businessId_phoneNormalized: { businessId: touch.businessId, phoneNormalized: normalized },
+      },
+    });
+    return { customer: winner, created: false };
+  }
 }
 
 export async function attachCustomerToCall(callId: string, customerId: string) {
@@ -138,7 +165,13 @@ export async function attachCustomerToJob(jobId: string, customerId: string) {
  * Attach every touch (call / lead / job) to one customer brain.
  * Prefer stable caller phone over AI-extracted alternate when both present.
  */
-export async function linkTouchToCustomer(params: {
+export async function linkTouchToCustomer(
+  params: Parameters<typeof linkTouchToCustomerDetailed>[0],
+) {
+  return (await linkTouchToCustomerDetailed(params))?.customer ?? null;
+}
+
+export async function linkTouchToCustomerDetailed(params: {
   businessId: string;
   callId?: string;
   leadId?: string;
@@ -155,32 +188,44 @@ export async function linkTouchToCustomer(params: {
     ? params.phone
     : (params.alternatePhone ?? params.phone);
 
-  const customer = await findOrCreateCustomer({
-    businessId: params.businessId,
-    phone: resolvedPhone,
-    name: params.name,
-    email: params.email,
-    address: params.address,
-    notes: params.notes,
-  });
+  const [call, lead] = await Promise.all([
+    params.callId
+      ? prisma.call.findUnique({ where: { id: params.callId }, select: { customerId: true } })
+      : null,
+    params.leadId
+      ? prisma.lead.findUnique({ where: { id: params.leadId }, select: { customerId: true } })
+      : null,
+  ]);
+  const alreadyLinked = Boolean(call?.customerId || lead?.customerId);
 
-  if (!customer) return null;
+  const result = await findOrCreateCustomerDetailed(
+    {
+      businessId: params.businessId,
+      phone: resolvedPhone,
+      name: params.name,
+      email: params.email,
+      address: params.address,
+      notes: params.notes,
+    },
+    { countTouch: !alreadyLinked },
+  );
 
-  if (params.callId) {
-    await attachCustomerToCall(params.callId, customer.id);
-  }
-  if (params.leadId) {
-    await attachCustomerToLead(params.leadId, customer.id);
-    await prisma.job.updateMany({
-      where: { leadId: params.leadId, customerId: null },
-      data: { customerId: customer.id },
-    });
-  }
-  if (params.jobId) {
-    await attachCustomerToJob(params.jobId, customer.id);
-  }
+  if (!result) return null;
+  const { customer } = result;
 
-  return customer;
+  await Promise.all([
+    params.callId ? attachCustomerToCall(params.callId, customer.id) : null,
+    params.leadId ? attachCustomerToLead(params.leadId, customer.id) : null,
+    params.leadId
+      ? prisma.job.updateMany({
+          where: { leadId: params.leadId, customerId: null },
+          data: { customerId: customer.id },
+        })
+      : null,
+    params.jobId ? attachCustomerToJob(params.jobId, customer.id) : null,
+  ]);
+
+  return { customer, created: result.created, alreadyLinked };
 }
 
 export type TimelineEvent = {
@@ -247,7 +292,7 @@ export async function getCustomerTimeline(
       id: call.id,
       type: "call" as const,
       at: call.createdAt.toISOString(),
-      title: call.status === "completed" ? "Inbound call" : "Call in progress",
+      title: ["in-progress", "ringing", "queued"].includes(call.status) ? "Call in progress" : "Inbound call",
       summary: call.summary,
       source: "call",
       urgency: null,
@@ -354,4 +399,76 @@ export async function getCustomerTimeline(
   return events.sort(
     (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
   );
+}
+
+export type PropertyHistory = {
+  address: string;
+  jobCount: number;
+  lastService: string | null;
+  lastAt: string | null;
+  nextAt: string | null;
+  paidCents: number;
+};
+
+const addressKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** Each service address this customer has used, with what was done there and what it earned. */
+export async function getCustomerProperties(
+  customerId: string,
+  homeAddress: string | null,
+): Promise<PropertyHistory[]> {
+  const jobs = await prisma.job.findMany({
+    where: { customerId, status: { not: "cancelled" } },
+    orderBy: { createdAt: "asc" },
+    select: {
+      address: true,
+      title: true,
+      status: true,
+      scheduledAt: true,
+      completedAt: true,
+      createdAt: true,
+      invoices: { select: { payments: { select: { id: true, amountCents: true, status: true } } } },
+      estimate: { select: { invoice: { select: { payments: { select: { id: true, amountCents: true, status: true } } } } } },
+    },
+  });
+
+  const byAddress = new Map<string, PropertyHistory>();
+  const ensure = (address: string) => {
+    const key = addressKey(address);
+    let entry = byAddress.get(key);
+    if (!entry) {
+      entry = { address, jobCount: 0, lastService: null, lastAt: null, nextAt: null, paidCents: 0 };
+      byAddress.set(key, entry);
+    }
+    return entry;
+  };
+  if (homeAddress?.trim()) ensure(homeAddress.trim());
+
+  const now = Date.now();
+  for (const job of jobs) {
+    const address = job.address?.trim() || homeAddress?.trim();
+    if (!address) continue;
+    const entry = ensure(address);
+    entry.jobCount += 1;
+    const when = job.completedAt ?? job.scheduledAt ?? job.createdAt;
+    if (when.getTime() <= now || job.status === "completed") {
+      if (!entry.lastAt || when.toISOString() > entry.lastAt) {
+        entry.lastAt = when.toISOString();
+        entry.lastService = job.title;
+      }
+    } else if (!entry.nextAt || when.toISOString() < entry.nextAt) {
+      entry.nextAt = when.toISOString();
+    }
+    // An estimate's invoice is usually also linked to the job; count each payment once.
+    const payments = [
+      ...new Map(
+        [...job.invoices.flatMap((i) => i.payments), ...(job.estimate?.invoice?.payments ?? [])].map((p) => [p.id, p]),
+      ).values(),
+    ];
+    entry.paidCents += payments
+      .filter((p) => p.status !== "failed" && p.status !== "refunded")
+      .reduce((sum, p) => sum + p.amountCents, 0);
+  }
+
+  return [...byAddress.values()].sort((a, b) => b.jobCount - a.jobCount);
 }

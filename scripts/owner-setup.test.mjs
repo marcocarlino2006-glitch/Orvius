@@ -42,8 +42,8 @@ test("line proof unlocks Command — capture is next, not a fake door", () => {
 test("recovery links resume the guided setup ritual", () => {
   assert.equal(ownerSetupHref("line"), "/dashboard/onboarding");
   assert.equal(ownerSetupHref("verify"), "/dashboard/onboarding");
-  assert.equal(ownerSetupHref("capture"), "/dashboard/settings#overflow-forward");
-  assert.equal(ownerSetupHref("owner_phone"), "/dashboard/settings");
+  assert.equal(ownerSetupHref("capture"), "/dashboard?settings=phone");
+  assert.equal(ownerSetupHref("owner_phone"), "/dashboard?settings=notifications");
   assert.equal(ownerSetupHref("done"), "/dashboard");
 });
 

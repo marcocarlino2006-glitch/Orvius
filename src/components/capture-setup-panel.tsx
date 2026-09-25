@@ -5,6 +5,7 @@ import {
   type CaptureMode,
   type CarrierId,
 } from "@/lib/carrier-forward";
+import { displayPhone } from "@/lib/customer";
 import { telHref } from "@/lib/demo-line";
 import { useEffect, useMemo, useState } from "react";
 
@@ -27,6 +28,15 @@ type CaptureSetupPanelProps = {
 };
 
 /** Owner capture recovery — one primary by state, helpers under More. */
+/** Carrier codes take the bare ten digits: *71 + 3125550199, dialed as one string. */
+function withLine(step: string, line: string) {
+  const tenDigits = line.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+  return step
+    .replace(/(\*{1,2}\d+\*?) \+ your Orvius number/, (_, code: string) => `${code}${tenDigits}`)
+    .replace(/(\*{1,2}\d+\*) \+ Orvius digits \+ # \(no \+1\)/, (_, code: string) => `${code}${tenDigits}#`)
+    .replace("your Orvius number", displayPhone(line));
+}
+
 export function CaptureSetupPanel({
   line,
   overflowConfirmed,
@@ -188,7 +198,7 @@ export function CaptureSetupPanel({
           <ol className="capture-setup-steps mt-3">
             {guide.steps.map((step) => (
               <li key={step}>
-                {line ? step.replace("your Orvius number", line) : step}
+                {line ? withLine(step, line) : step}
               </li>
             ))}
           </ol>
@@ -205,6 +215,33 @@ export function CaptureSetupPanel({
           </li>
         </ol>
       )}
+
+      {mode === "publish" ? (
+        <details className="capture-setup-more mt-4 font-sans">
+          <summary>Keep your existing number instead (port it)</summary>
+          <div className="mt-3 text-sm">
+            <p className="account-settings-hint">
+              Porting moves the number customers already know to Orvius, so
+              nothing printed has to change. Email{" "}
+              <a href="mailto:hello@orvius.im?subject=Port%20my%20shop%20number" className="home-platform-link">
+                hello@orvius.im
+              </a>{" "}
+              with:
+            </p>
+            <ol className="capture-setup-steps mt-2">
+              <li>Your latest phone bill (PDF or photo) showing the account name and service address.</li>
+              <li>Your account number and port-out PIN — your carrier gives you the PIN on request.</li>
+              <li>The name of the person authorized on the account.</li>
+            </ol>
+            <p className="account-settings-hint mt-2">
+              Don&apos;t cancel your current service — that can release the
+              number. Keep it forwarded to Orvius until we confirm the port is
+              done. Your carrier sets the date; we tell you as soon as it&apos;s
+              scheduled.
+            </p>
+          </div>
+        </details>
+      ) : null}
 
       <div className="mt-4">
         {!lineVerified && line ? (

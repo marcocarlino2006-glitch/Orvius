@@ -75,7 +75,7 @@ try {
 }
 
 try {
-  const settings = read("src/app/dashboard/settings/page.tsx");
+  const settings = read("src/components/settings-center/settings-center.tsx");
   if (/Multi-b launch gates|LaunchGatesStrip|GoLiveChecklist/.test(settings)) {
     fail(
       "Settings ritual",
@@ -87,13 +87,12 @@ try {
     /founderCertJson/.test(settings) &&
     /(Manus post · next|Launch checklist · next)/.test(settings) &&
     /FounderManusNext/.test(settings) &&
-    /hubFocus/.test(settings) &&
-    /pro-settings-secondary/.test(settings) &&
+    /role="dialog"/.test(settings) &&
     !/<ProSetupHub/.test(settings)
   ) {
     pass(
       "Settings ritual",
-      "One hub focus panel open — quiet founder cert, no duplicate cockpit",
+      "Founder cert lives in its own Settings section, not in owner panes",
     );
   } else {
     fail("Settings ritual", "Founder certification is not wired through quiet Settings");
@@ -327,14 +326,14 @@ try {
       "Primary nav must be multi-B trades set (Product · Enterprise · Pricing · Audit · Resources)",
     );
   }
-  const outcomes = read("src/components/pro-command-outcomes.tsx");
+  const outcomes = read("src/components/ring1-command-center.tsx");
   if (/exception requires|exceptions require/i.test(outcomes)) {
     fail(
       "Operate owner language",
       "Command outcomes still uses exception jargon for owners",
     );
   } else if (
-    /needs you on the board|Board is clear|Line watched the window/.test(outcomes)
+    /needs you/.test(outcomes)
   ) {
     pass("Operate owner language", "Command pulse speaks owner language");
   } else {
@@ -432,11 +431,11 @@ try {
   } else {
     fail("Cursor tunnel covered", "resolveShopOperateNext must never go silent");
   }
-  const rail = read("src/components/pro-launch-control.tsx");
-  if (/showPrimaryAction/.test(rail) && /banner above/.test(rail)) {
-    pass("Cursor tunnel one CTA", "Rail defers to the shop pulse banner");
+  const rail = read("src/components/ring1-command-center.tsx");
+  if (!/ProLaunchControl|LaunchControl/.test(rail)) {
+    pass("Cursor tunnel one CTA", "Command has no launch rail competing with the shop pulse banner");
   } else {
-    fail("Cursor tunnel one CTA", "ProLaunchControl must not compete with the banner");
+    fail("Cursor tunnel one CTA", "A launch rail on Command must not compete with the banner");
   }
   const wantsHuman = read("src/lib/lead-wants-human.ts");
   const notAJob = read("src/lib/lead-not-a-job.ts");
@@ -560,8 +559,8 @@ try {
   const alertsMuted = read("src/lib/owner-alerts-muted.ts");
   const moneyPath = read("src/lib/deposit-money-path.ts");
   const queueHrefs = read("src/lib/attention-queue.ts");
-  const settingsIds = read("src/app/dashboard/settings/page.tsx");
-  const billingIds = read("src/app/dashboard/billing/page.tsx");
+  const settingsIds = read("src/components/settings-center/settings-center.tsx");
+  const billingIds = read("src/components/billing-content.tsx");
   if (
     /ownerAlertsAreMuted/.test(alertsMuted) &&
     /depositMoneyPathBroken/.test(moneyPath) &&
@@ -592,7 +591,7 @@ try {
   const publicCss = read("src/app/public-v2.css");
   const heroMotion = read("src/components/home-line-hero.tsx");
   const daily = read("src/app/admin/daily/page.tsx");
-  const settingsManus = read("src/app/dashboard/settings/page.tsx");
+  const settingsManus = read("src/components/settings-center/settings-center.tsx");
   if (
     /MANUS_POST_STEPS/.test(manus) &&
     /isPlaceholderOwnerPhone/.test(manus) &&

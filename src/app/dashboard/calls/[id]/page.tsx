@@ -10,6 +10,7 @@ import {
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
+import type { CallGrade } from "@/lib/call-quality";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -53,8 +54,7 @@ type CallDetail = {
 
 type Situation = {
   actionsTaken: string[];
-  needsReview: boolean;
-  reviewReasons: string[];
+  quality: CallGrade;
   priorJobs: Array<{
     id: string;
     title: string;
@@ -72,7 +72,7 @@ type Situation = {
 };
 
 function formatUrgency(value: string | null) {
-  if (!value) return "Flexible";
+  if (!value) return undefined;
   return value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -145,11 +145,10 @@ export default function CallDetailPage() {
         </div>
       }
     >
-      {situation?.needsReview ? (
+      {situation?.quality.verdict === "fix" ? (
         <div className="mb-6">
           <ShellAlert tone="error">
-            Needs human review — {situation.reviewReasons.join(" · ")}. Take over from the
-            lead or call the customer directly.
+            {situation.quality.headline} Take over from the lead or call the customer directly.
           </ShellAlert>
         </div>
       ) : null}
@@ -230,7 +229,7 @@ export default function CallDetailPage() {
             ) : (
               <p className="font-sans text-sm text-ash">No actions recorded yet.</p>
             )}
-            {situation?.needsReview ? (
+            {situation && situation.quality.verdict !== "clean" ? (
               <div className="mt-4 flex flex-wrap gap-2">
                 {call.lead ? (
                   <Link
@@ -248,6 +247,42 @@ export default function CallDetailPage() {
               </div>
             ) : null}
           </ShellPanel>
+
+          {situation ? (
+            <div className="call-quality-panel">
+            <ShellPanel title="Call review" dense>
+              <p className="call-quality-score font-sans">
+                Score <strong>{situation.quality.score}</strong> / 100
+              </p>
+              <p className="mt-2 font-sans text-sm leading-relaxed text-void">
+                {situation.quality.findings.length > 1
+                  ? `${situation.quality.findings.length} things worth a listen in the recording:`
+                  : situation.quality.headline}
+              </p>
+              {situation.quality.findings.length > 1 ? (
+                <ul className="font-sans">
+                  {situation.quality.findings.map((finding) => (
+                    <li key={finding.key} className={finding.severity === "fix" ? "is-fix" : ""}>
+                      {finding.label}
+                      {finding.quote ? <q>{finding.quote}</q> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : situation.quality.findings[0]?.quote ? (
+                <ul className="font-sans">
+                  <li>
+                    <q>{situation.quality.findings[0].quote}</q>
+                  </li>
+                </ul>
+              ) : null}
+              {situation.quality.captured.length ? (
+                <p className="mt-3 font-sans text-sm text-ash">
+                  Captured: {situation.quality.captured.join(", ")}.
+                </p>
+              ) : null}
+            </ShellPanel>
+            </div>
+          ) : null}
 
           {call.customer ? (
             <ShellPanel title="Customer" dense>

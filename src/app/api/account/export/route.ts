@@ -12,7 +12,7 @@ export async function GET() {
 
   const businessId = session.business.id;
 
-  const [business, customers, leads, jobs, estimates, invoices, payments, technicians] =
+  const [business, customers, leads, jobs, estimates, invoices, payments, technicians, auditEvents] =
     await Promise.all([
       prisma.business.findUnique({
         where: { id: businessId },
@@ -63,6 +63,11 @@ export async function GET() {
         where: { businessId },
         orderBy: { name: "asc" },
       }),
+      prisma.auditEvent.findMany({
+        where: { businessId },
+        orderBy: { createdAt: "desc" },
+        take: 20000,
+      }),
     ]);
 
   const payload = {
@@ -77,6 +82,7 @@ export async function GET() {
       invoices: invoices.length,
       payments: payments.length,
       technicians: technicians.length,
+      auditEvents: auditEvents.length,
     },
     customers,
     leads,
@@ -85,6 +91,7 @@ export async function GET() {
     invoices,
     payments,
     technicians,
+    auditEvents,
   };
 
   const slug = business?.slug ?? "shop";

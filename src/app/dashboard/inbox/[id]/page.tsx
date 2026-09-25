@@ -2,7 +2,6 @@
 
 import { BookJobForm } from "@/components/book-job-form";
 import { AssignTechButton } from "@/components/assign-tech-button";
-import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { LeadStatusActions } from "@/components/lead-status-actions";
 import { LeadQualificationForm } from "@/components/lead-qualification-form";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
@@ -48,11 +47,6 @@ type LeadDetail = {
 };
 
 type Tech = { id: string; name: string };
-
-function formatUrgency(value: string | null) {
-  if (!value) return "Flexible";
-  return value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 export default function LeadDetailPage() {
   const params = useParams<{ id: string }>();
@@ -113,10 +107,6 @@ export default function LeadDetailPage() {
     );
   }
 
-  const channel =
-    lead.source === "sms"
-      ? "SMS inquiry"
-      : `Inbound call · ${lead.business?.name ?? "Orvius"}`;
   const updateDraft = (values: {
     name: string;
     phone: string;
@@ -201,17 +191,6 @@ export default function LeadDetailPage() {
             </ShellPanel>
           ) : null}
 
-          <OwnerAlertCard
-            variant="void"
-            lead={{
-              name: lead.name ?? undefined,
-              phone: lead.phone ?? undefined,
-              service: lead.serviceType ?? undefined,
-              urgency: formatUrgency(lead.urgency),
-              address: lead.address ?? undefined,
-              channel,
-            }}
-          />
 
           {lead.job ? (
             <ShellPanel title="Captured details" dense>
@@ -301,7 +280,7 @@ export default function LeadDetailPage() {
             </ShellPanel>
           ) : null}
 
-          {lead.notes ? (
+          {lead.notes?.trim() && lead.notes.trim() !== lead.call?.summary?.trim() ? (
             <ShellPanel title="Notes" dense>
               <p className="font-sans text-sm leading-relaxed text-void whitespace-pre-wrap">
                 {lead.notes}

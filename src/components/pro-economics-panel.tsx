@@ -76,7 +76,7 @@ export function ProEconomicsPanel({
   const funnel = [
     { label: "Calls", value: String(outcomes.calls) },
     { label: "Leads", value: String(outcomes.leads) },
-    { label: "Booked", value: String(outcomes.jobsBooked) },
+    { label: "Booked", value: String(outcomes.leadsBooked) },
     {
       label: "Booking rate",
       value: outcomes.bookingRate != null ? `${outcomes.bookingRate}%` : "—",
@@ -153,9 +153,11 @@ export function ProEconomicsPanel({
           <p className="pro-economics-hint">Recorded payments in the window</p>
         </div>
         <div>
-          <dt>Pipeline (jobs)</dt>
+          <dt>Pipeline (all jobs)</dt>
           <dd>{pipeline ?? "—"}</dd>
-          <p className="pro-economics-hint">Jobs booked × avg ticket</p>
+          <p className="pro-economics-hint">
+            {outcomes.jobsBooked} {outcomes.jobsBooked === 1 ? "job" : "jobs"} × avg ticket
+          </p>
         </div>
         <div>
           <dt>Open money</dt>
@@ -177,6 +179,9 @@ export function ProEconomicsPanel({
         has not set a baseline.
       */}
       <ul className="pro-economics-notes">
+        <li>
+          <strong>{outcomes.jobsCompleted}</strong> {outcomes.jobsCompleted === 1 ? "job" : "jobs"} completed
+        </li>
         {outcomes.afterHoursLeads > 0 ? (
           <li>
             <strong>{outcomes.afterHoursLeads}</strong> after-hours leads ·{" "}
@@ -205,7 +210,7 @@ export function ProEconomicsPanel({
         ) : null}
         {!outcomes.avgTicketCents ? (
           <li>
-            <Link href="/dashboard/settings" className="pro-section-link">
+            <Link href="/dashboard?settings=receptionist" className="pro-section-link">
               Set avg ticket →
             </Link>{" "}
             to estimate captured-demand value
@@ -213,7 +218,7 @@ export function ProEconomicsPanel({
         ) : null}
         {!outcomes.economicsReady ? (
           <li>
-            <Link href="/dashboard/settings" className="pro-section-link">
+            <Link href="/dashboard?settings=receptionist" className="pro-section-link">
               Set before-Orvius baseline →
             </Link>{" "}
             for measured lift (jobs/week + missed calls)
@@ -236,7 +241,7 @@ export function ProEconomicsPanel({
             {busy ? "Preparing…" : stale ? "Copy weekly proof (due)" : "Copy weekly proof"}
           </button>
         )}
-        <Link href="/dashboard/settings" className="pro-section-link text-sm">
+        <Link href="/dashboard?settings=receptionist" className="pro-section-link text-sm">
           Edit ticket &amp; baseline →
         </Link>
         {copyState === "ok" ? (

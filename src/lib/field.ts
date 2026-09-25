@@ -1,5 +1,8 @@
+import { shopDayBounds } from "@/lib/availability";
+import { buildDispatchSchedule } from "@/lib/dispatch-schedule";
 import { prisma } from "@/lib/prisma";
 import { serializeJob } from "@/lib/job";
+import { parseSkills } from "@/lib/technician-match";
 
 /** Ring 4 — every shop gets a crew so dispatch is never empty. */
 export async function ensureCrew(businessId: string) {
@@ -48,27 +51,27 @@ export async function ensureCrew(businessId: string) {
 }
 
 export async function listCrew(businessId: string) {
-  await ensureCrew(businessId);
-  return prisma.technician.findMany({
-    where: { businessId, isActive: true },
-    orderBy: { createdAt: "asc" },
-  });
+  return ensureCrew(businessId);
 }
 
-export function dayBounds(isoDay?: string | null) {
-  const base = isoDay ? new Date(`${isoDay}T00:00:00`) : new Date();
-  const start = new Date(base);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { start, end };
-}
+type BoardBusiness = { trade: string | null; servicesJson: string | null; timezone: string | null };
 
-export async function getDispatchBoard(businessId: string, isoDay?: string | null) {
-  const { start, end } = dayBounds(isoDay);
-  const crew = await listCrew(businessId);
+export async function getDispatchBoard(
+  businessId: string,
+  isoDay?: string | null,
+  known?: BoardBusiness,
+) {
+  const crewP = listCrew(businessId);
+  const business =
+    known ??
+    (await prisma.business.findUnique({
+      where: { id: businessId },
+      select: { trade: true, servicesJson: true, timezone: true },
+    }));
+  const timezone = business?.timezone ?? "America/New_York";
+  const { start, end, day } = shopDayBounds(isoDay, timezone);
 
-  const jobs = await prisma.job.findMany({
+  const jobsP = prisma.job.findMany({
     where: {
       businessId,
       status: { not: "cancelled" },
@@ -84,6 +87,28 @@ export async function getDispatchBoard(businessId: string, isoDay?: string | nul
       technician: { select: { id: true, name: true, phone: true } },
     },
   });
+  const [crew, jobs] = await Promise.all([crewP, jobsP]);
+
+  const schedule = buildDispatchSchedule({
+    timezone,
+    business: business ?? {},
+    crew: crew.map((t) => ({ id: t.id, name: t.name, phone: t.phone, skills: parseSkills(t.skillsJson) })),
+    jobs: jobs.map((j) => ({
+      id: j.id,
+      title: j.title,
+      status: j.status,
+      scheduledAt: j.scheduledAt,
+      durationMin: j.durationMin,
+      technicianId: j.technicianId,
+      serviceType: j.serviceType,
+      notes: j.notes,
+      urgency: j.urgency,
+      address: j.address,
+      postalCode: j.postalCode,
+      customerName: j.customer?.name ?? j.lead?.name ?? null,
+    })),
+    dayStart: start,
+  });
 
   const serialized = jobs.map(serializeJob);
   const unassigned = serialized.filter((job) => !job.technicianId);
@@ -93,10 +118,15 @@ export async function getDispatchBoard(businessId: string, isoDay?: string | nul
   }));
 
   return {
-    day: start.toISOString(),
+    day,
+    today: shopDayBounds(null, timezone).day,
+    dayStart: start.toISOString(),
+    timezone,
     crew,
     unassigned,
     columns,
     jobCount: jobs.length,
+    schedule,
+    trade: business?.trade ?? null,
   };
 }

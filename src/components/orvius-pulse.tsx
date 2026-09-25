@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatAge, formatFreshness } from "@/lib/command-model";
+import { displayPhone } from "@/lib/customer";
 import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { ShopHealth } from "@/lib/shop-health";
 
@@ -72,7 +73,7 @@ export function OrviusPulse({
   return (
     <section className="op-panel font-sans" aria-label="Orvius Pulse">
       <header className="op-head">
-        <p className="op-title">Orvius Pulse</p>
+        <p className="op-title">System</p>
         <span className={`op-fresh ${stale ? "is-stale" : ""}`}>
           {stale ? "Stale" : formatFreshness(lastUpdatedAt, now)}
         </span>
@@ -87,7 +88,7 @@ export function OrviusPulse({
         <>
           <PulseRow
             label="Phone line"
-            value={health.line ?? "No line yet"}
+            value={health.line ? displayPhone(health.line) : "No line yet"}
             detail={
               !health.line
                 ? "Calls cannot reach Orvius until a line exists."
@@ -130,7 +131,7 @@ export function OrviusPulse({
       )}
 
       <div className="op-recent">
-        <p className="op-row-label">Recent successful events</p>
+        <p className="op-row-label">Recent activity</p>
         {recent.length ? (
           <ul>
             {recent.map((event) => (

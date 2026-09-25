@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportEmail, supportMailto } from "@/lib/support";
+import { fetchAccount } from "@/lib/account-client";
 
 type AccountData = {
   business: {
@@ -14,6 +15,7 @@ type AccountData = {
     billingPlan: string | null;
     ownerEmail?: string | null;
     trade?: string | null;
+    environment?: string | null;
   } | null;
   billing: {
     status: string;
@@ -28,13 +30,14 @@ type MenuItem = {
   href: string;
   label: string;
   hint?: string;
+  attention?: boolean;
 };
 
 const accountLinks: MenuItem[] = [
-  { href: "/dashboard/profile", label: "Profile", hint: "Your name and sign-in" },
-  { href: "/dashboard/settings", label: "Settings", hint: "Business, rules, line, alerts" },
-  { href: "/dashboard/settings#integrations", label: "Integrations", hint: "Phone, SMS, email, payouts" },
-  { href: "/dashboard/billing", label: "Billing", hint: "Plan and invoices" },
+  { href: "/dashboard?settings=account", label: "Account", hint: "Profile, plan, sign-in" },
+  { href: "/dashboard?settings=business", label: "Settings", hint: "Business, line, hours, alerts" },
+  { href: "/dashboard?settings=integrations", label: "Integrations", hint: "Phone, SMS, email, Stripe" },
+  { href: "/dashboard?settings=billing", label: "Billing", hint: "Plan and invoices" },
 ];
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
@@ -81,7 +84,7 @@ export function OsSidebarFooter() {
   const menuId = useId();
 
   useEffect(() => {
-    fetch("/api/account")
+    fetchAccount()
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) setAccount(data);
@@ -122,20 +125,23 @@ export function OsSidebarFooter() {
     (account?.billing?.status ?? "").toLowerCase() === "past_due"
       ? "Fix payment"
       : "Pay with card";
+  const environment = account?.business?.environment ?? "production";
+  const sampleWorkspace = environment === "demo" || environment === "test";
+  const links = accountLinks.map((item) =>
+    item.label === "Billing" && showPay
+      ? { ...item, hint: payLabel, attention: true }
+      : item,
+  );
 
   return (
     <div
       ref={rootRef}
       className={`os-profile-menu os-sidebar-footer font-sans ${open ? "os-profile-menu-open" : ""}`}
     >
-      {showPay && pathname !== "/dashboard/billing" ? (
-        <Link
-          href="/dashboard/billing"
-          className="os-sidebar-pay"
-          title="Open Billing to pay with card"
-        >
-          {payLabel}
-        </Link>
+      {sampleWorkspace ? (
+        <p className="os-sidebar-env" role="status">
+          {environment === "test" ? "Test workspace — not a real shop" : "Demo workspace — sample data"}
+        </p>
       ) : null}
 
       {open ? (
@@ -174,12 +180,12 @@ export function OsSidebarFooter() {
           </div>
 
           <div className="os-profile-menu-links pm-section">
-            {accountLinks.map((item) => (
+            {links.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 role="menuitem"
-                className="os-profile-menu-link"
+                className={`os-profile-menu-link${item.attention ? " is-attention" : ""}`}
                 onClick={() => setOpen(false)}
               >
                 <span>{item.label}</span>

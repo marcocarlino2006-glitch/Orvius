@@ -1,4 +1,8 @@
+import { recordAudit, type AuditQueue } from "@/lib/audit";
+import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
 import { createJobFromLead } from "@/lib/job";
+import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
+import { callerWords } from "@/lib/transcript";
 import { getEffectivePlanId } from "@/lib/plan-features";
 import { prisma } from "@/lib/prisma";
 import { isInServiceArea } from "@/lib/service-area";
@@ -48,14 +52,29 @@ export type AutoBookSkipReason =
   | "non_service"
   | "capacity_unavailable"
   | "plan_blocked"
+  | "out_of_area"
+  | "safety_escalation"
+  | "missing_address"
+  | "existing_job"
+  | "follow_up"
+  | "complaint"
   | "not_found";
+
+export type ExistingJobRef = { id: string; title: string | null; scheduledAt: Date | null };
 
 export type AutoBookResult = {
   jobId: string | null;
   created: boolean;
   qualified: boolean;
   skipReason?: AutoBookSkipReason;
+  classification?: RequestClassification;
+  intent?: CallIntent;
+  /** Open work this call was about, when it was not a new request. */
+  existingJob?: ExistingJobRef;
 };
+
+const OPEN_JOB_STATUSES = ["scheduled", "confirmed", "en_route", "on_site"];
+const REPEAT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 function hasUsablePhone(phone?: string | null): boolean {
   if (!phone) return false;
@@ -89,6 +108,34 @@ export function isLeadQualifiedForBooking(lead: {
   return true;
 }
 
+/*
+  One round trip instead of four. Prisma runs each `include` as its own query
+  after the parent on SQLite/Turso, and on Turso every query is a network hop
+  inside the caller's webhook. Filtering each relation by the lead id lets all
+  four go at once.
+*/
+async function loadLeadForBooking(leadId: string) {
+  const [lead, job, call, business] = await Promise.all([
+    prisma.lead.findUnique({ where: { id: leadId } }),
+    prisma.job.findUnique({ where: { leadId }, select: { id: true } }),
+    prisma.call.findFirst({ where: { lead: { is: { id: leadId } } }, select: { transcript: true, heldSlotAt: true } }),
+    prisma.business.findFirst({
+      where: { leads: { some: { id: leadId } } },
+      select: {
+        billingStatus: true,
+        billingPlan: true,
+        pilotEndsAt: true,
+        createdAt: true,
+        serviceZipsJson: true,
+        trade: true,
+        servicesJson: true,
+        name: true,
+      },
+    }),
+  ]);
+  return lead ? { ...lead, job, call, business } : null;
+}
+
 /**
  * Loop 1 capture book:
  * - Qualify first (phone + service/address)
@@ -96,22 +143,11 @@ export function isLeadQualifiedForBooking(lead: {
  * - Every entitled shop (Line / Pro / Fleet / pilot) auto-books qualified leads
  * - Expired / locked billing → plan_blocked
  */
-export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult> {
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
-    include: {
-      job: { select: { id: true } },
-      business: {
-        select: {
-          billingStatus: true,
-          billingPlan: true,
-          pilotEndsAt: true,
-          createdAt: true,
-          serviceZipsJson: true,
-        },
-      },
-    },
-  });
+export async function maybeAutoBookLead(
+  leadId: string,
+  options: { audit?: AuditQueue } = {},
+): Promise<AutoBookResult> {
+  const lead = await loadLeadForBooking(leadId);
 
   if (!lead) {
     return { jobId: null, created: false, qualified: false, skipReason: "not_found" };
@@ -135,8 +171,158 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     };
   }
 
+  const businessId = lead.businessId;
+  const call = lead.call;
+  const spoken = callerWords(call?.transcript);
+  const classification = classifyRequest({
+    business: lead.business,
+    serviceType: lead.serviceType,
+    notes: lead.notes,
+    callerWords: spoken,
+    urgency: lead.urgency,
+  });
+  const intent = detectCallIntent(lead.serviceType, lead.notes, spoken);
+  const link = {
+    businessId,
+    callId: lead.callId,
+    leadId: lead.id,
+    customerId: lead.customerId,
+    entityType: "lead" as const,
+    entityId: lead.id,
+  };
+  const decide = async (action: string, summary: string, detail?: Record<string, unknown>) => {
+    const row = { ...link, action, summary, detail, idempotencyKey: `lead:${lead.id}:${action}` };
+    if (options.audit) options.audit.add(row);
+    else await recordAudit(row);
+  };
+
+  await decide(
+    "playbook.classified",
+    `${classification.trade ?? "General"} playbook: ${classification.service.label} · ${classification.service.durationMin} min${
+      classification.urgency ? ` · ${classification.urgency}` : ""
+    }`,
+    { ...classification },
+  );
+
+  /*
+    The playbook's read of urgency is what Command sorts by and what the owner's
+    text leads with. Leaving the extractor's raw label ("ASAP!!", or nothing at
+    all for "elderly caller, house freezing") buried emergencies in the queue.
+  */
+  const urgency = classification.urgency ?? normalizeUrgency(lead.urgency);
+  const urgencyWrite =
+    urgency && lead.urgency !== urgency
+      ? prisma.lead.update({ where: { id: lead.id }, data: { urgency } })
+      : null;
+
+  if (classification.safety) {
+    await urgencyWrite;
+    await decide(
+      "lead.escalated",
+      `Escalated to a human — ${classification.safety.label}. ${classification.safety.instruction}`,
+      { safety: classification.safety },
+    );
+    return {
+      jobId: null,
+      created: false,
+      qualified: true,
+      skipReason: "safety_escalation",
+      classification,
+      intent,
+    };
+  }
+
+  const phone = lead.phone?.trim();
+  const [, openJobs] = await Promise.all([
+    urgencyWrite,
+    lead.customerId || phone
+      ? prisma.job.findMany({
+          where: {
+            businessId,
+            status: { in: OPEN_JOB_STATUSES },
+            OR: [
+              ...(lead.customerId ? [{ customerId: lead.customerId }] : []),
+              ...(phone ? [{ lead: { phone } }] : []),
+            ],
+          },
+          orderBy: { scheduledAt: "asc" },
+          select: { id: true, title: true, scheduledAt: true, categoryCode: true, createdAt: true },
+          take: 5,
+        })
+      : [],
+  ]);
+
+  if (intent === "complaint") {
+    await decide(
+      "lead.follow_up",
+      "Caller is unhappy about a past visit or a bill — held for the owner to call, not booked as new work",
+      { intent },
+    );
+    return { jobId: null, created: false, qualified: true, skipReason: "complaint", classification, intent };
+  }
+
+  if (intent !== "new") {
+    const target = openJobs[0];
+    if (target) {
+      await decide(
+        "lead.follow_up",
+        `About existing job — caller wants to ${intent === "status" ? "check on" : intent} ${target.title ?? "their appointment"}. No new job created.`,
+        { intent, jobId: target.id },
+      );
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "existing_job",
+        classification,
+        intent,
+        existingJob: { id: target.id, title: target.title, scheduledAt: target.scheduledAt },
+      };
+    }
+    await decide(
+      "lead.follow_up",
+      `Caller asked about an appointment (${intent}), but no open job matches — held for the owner`,
+      { intent },
+    );
+    return { jobId: null, created: false, qualified: true, skipReason: "follow_up", classification, intent };
+  }
+
+  const repeat = openJobs.find(
+    (job) =>
+      Date.now() - job.createdAt.getTime() < REPEAT_WINDOW_MS &&
+      (!lead.categoryCode || !job.categoryCode || job.categoryCode === lead.categoryCode),
+  );
+  if (repeat) {
+    await decide(
+      "lead.follow_up",
+      `Called again about ${repeat.title ?? "a job already booked"} — no duplicate job created`,
+      { jobId: repeat.id },
+    );
+    return {
+      jobId: null,
+      created: false,
+      qualified: true,
+      skipReason: "existing_job",
+      classification,
+      intent,
+      existingJob: { id: repeat.id, title: repeat.title, scheduledAt: repeat.scheduledAt },
+    };
+  }
+
   const qualified = isLeadQualifiedForBooking(lead);
   if (!qualified) {
+    const missing = [
+      !hasUsablePhone(lead.phone) ? "callback number" : null,
+      !lead.address?.trim() ? "address" : null,
+      !lead.serviceType?.trim() ? "service" : null,
+    ].filter(Boolean);
+    await decide(
+      "lead.held",
+      lead.categoryCode === "other.non_service"
+        ? "Held — not a service request"
+        : `Held for the owner — missing ${missing.join(", ") || "details to book"}`,
+      { missing },
+    );
     return {
       jobId: null,
       created: false,
@@ -145,6 +331,7 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
         lead.categoryCode === "other.non_service"
           ? "non_service"
           : "unqualified",
+      classification,
     };
   }
 
@@ -152,6 +339,7 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
   // Life-changing wedge: Line books every qualified lead. Jobs module still
   // gates Dispatch UI — not the front-door book.
   if (plan === "expired") {
+    await decide("lead.held", "Held — the shop's plan has ended, so Orvius did not book");
     return {
       jobId: null,
       created: false,
@@ -160,35 +348,64 @@ export async function maybeAutoBookLead(leadId: string): Promise<AutoBookResult>
     };
   }
 
-  if (isInServiceArea(lead.address, lead.business.serviceZipsJson) === false) {
+  // A recognised request is real demand without an address, but a technician
+  // cannot be sent to one and the service area cannot be checked.
+  if (!lead.address?.trim()) {
+    await decide("lead.held", "Held for the owner — missing address, so Orvius did not send a technician", {
+      missing: ["address"],
+    });
+    return {
+      jobId: null,
+      created: false,
+      qualified: true,
+      skipReason: "missing_address",
+      classification,
+    };
+  }
+
+  const inArea = isInServiceArea(lead.address, lead.business.serviceZipsJson);
+  if (inArea === false) {
+    await decide("service_area.checked", "Outside the service area — held for the owner to decide", { inArea });
     return {
       jobId: null,
       created: false,
       qualified: false,
-      skipReason: "unqualified",
+      skipReason: "out_of_area",
+      classification,
     };
   }
+  await decide(
+    "service_area.checked",
+    inArea === true ? "Address is inside the service area" : "No service area set — accepted",
+    { inArea },
+  );
 
+  const held = call?.heldSlotAt && call.heldSlotAt.getTime() > Date.now() ? call.heldSlotAt : null;
+  // Booking writes its own audit rows directly; the decisions before it land first.
+  await options.audit?.flush();
   let job;
   try {
     job = await createJobFromLead({
       leadId,
-      notes: "Auto-booked from inbound lead",
+      scheduledAt: held,
+      notes: held ? "Booked on the call — the caller picked this time" : "Auto-booked from inbound lead",
     });
   } catch (error) {
     if (
       error instanceof Error &&
       error.message.startsWith("No appointment capacity")
     ) {
+      await decide("lead.held", "No open slot in the next 14 days — held for the owner to schedule");
       return {
         jobId: null,
         created: false,
         qualified: true,
         skipReason: "capacity_unavailable",
+        classification,
       };
     }
     throw error;
   }
 
-  return { jobId: job.id, created: true, qualified: true };
+  return { jobId: job.id, created: true, qualified: true, classification };
 }

@@ -18,6 +18,7 @@ import {
   type ShopOperateNext,
 } from "@/lib/shop-operate";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
+import { fetchAccount } from "@/lib/account-client";
 
 type AccountPayload = {
   business?: {
@@ -65,7 +66,7 @@ export function ShopOperateBanner() {
   }, [searchParams]);
 
   const refresh = useCallback(async () => {
-    const accountRes = await fetch("/api/account");
+    const accountRes = await fetchAccount();
     if (!accountRes.ok) return;
     const account = (await accountRes.json()) as AccountPayload;
     if (!account.business) {

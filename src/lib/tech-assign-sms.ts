@@ -1,17 +1,12 @@
+import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl } from "@/lib/domains";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 
-function formatSchedule(iso: string | Date | null | undefined): string | null {
+function formatSchedule(iso: string | Date | null | undefined, timezone: string): string | null {
   if (!iso) return null;
   const date = iso instanceof Date ? iso : new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return formatShopTime(date, timezone);
 }
 
 export type TechAssignJob = {
@@ -23,7 +18,7 @@ export type TechAssignJob = {
   serviceType?: string | null;
   customer?: { name?: string | null; phone?: string | null } | null;
   lead?: { name?: string | null; phone?: string | null } | null;
-  business?: { name?: string | null } | null;
+  business?: { name?: string | null; timezone?: string | null } | null;
   /** Prefer magic field link when present. */
   techToken?: string | null;
 };
@@ -39,7 +34,7 @@ export function buildTechJobAssignMessage(job: TechAssignJob): string {
     "Customer";
   const phone = job.customer?.phone?.trim() || job.lead?.phone?.trim() || null;
   const address = job.address?.trim() || null;
-  const when = formatSchedule(job.scheduledAt ?? null);
+  const when = formatSchedule(job.scheduledAt ?? null, job.business?.timezone ?? "America/New_York");
   const urgency = job.urgency?.toLowerCase().includes("emergency")
     ? "Emergency"
     : null;

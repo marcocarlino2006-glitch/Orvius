@@ -9,6 +9,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import type { RecordType, RecordView } from "@/lib/record-types";
@@ -301,6 +302,8 @@ function RecordBody({
         ) : null}
       </section>
 
+      {record.type === "lead" ? <LeadMoreActions record={record} /> : null}
+
       {record.decisions.length ? (
         <section className="rd-section" aria-label="Decisions">
           <p className="rd-section-label">What Orvius decided</p>
@@ -355,6 +358,61 @@ function RecordBody({
   );
 }
 
+function LeadMoreActions({ record }: { record: RecordView }) {
+  const phone = record.captured.find((f) => f.label === "Phone")?.value ?? null;
+  const [status, setStatus] = useState(record.status);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function markContacted() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/leads/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "contacted" }),
+      });
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(data?.error ?? "Update failed");
+      setStatus("contacted");
+    } catch (err) {
+      setError(err instanceof Error ? `${err.message}. Nothing was changed.` : "Update failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!phone && status !== "new") return null;
+  return (
+    <section className="rd-section" aria-label="More actions">
+      <p className="rd-section-label">More actions</p>
+      <div className="rd-actions">
+        {phone ? (
+          <>
+            <a href={`tel:${phone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+              Call
+            </a>
+            <a href={`sms:${phone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+              Text
+            </a>
+          </>
+        ) : null}
+        {status === "new" ? (
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void markContacted()}>
+            {busy ? "Saving…" : "Mark contacted"}
+          </button>
+        ) : null}
+      </div>
+      {error ? (
+        <p className="rd-missing" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 /** A row or link that opens the drawer; falls back to navigation outside the provider. */
 function sentenceCase(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -365,12 +423,18 @@ export function RecordLink({
   id,
   href,
   className,
+  style,
+  title,
+  role,
   children,
 }: {
   type: RecordType;
   id: string;
   href: string;
   className?: string;
+  style?: CSSProperties;
+  title?: string;
+  role?: string;
   children: ReactNode;
 }) {
   const drawer = useRecordDrawer();
@@ -378,6 +442,9 @@ export function RecordLink({
     <Link
       href={href}
       className={className}
+      style={style}
+      title={title}
+      role={role}
       onClick={(event) => {
         if (!drawer || event.metaKey || event.ctrlKey || event.shiftKey) return;
         event.preventDefault();

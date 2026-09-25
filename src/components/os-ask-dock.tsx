@@ -62,6 +62,8 @@ function SendIcon() {
   );
 }
 
+export const ASK_OPEN_EVENT = "orvius:ask-open";
+
 export function OsAskDock() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -88,9 +90,18 @@ export function OsAskDock() {
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") {
+        event.preventDefault();
+        setOpen((value) => !value);
+      }
     }
+    const onOpen = () => setOpen(true);
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    window.addEventListener(ASK_OPEN_EVENT, onOpen);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener(ASK_OPEN_EVENT, onOpen);
+    };
   }, []);
 
   const ask = useCallback(async (raw: string) => {

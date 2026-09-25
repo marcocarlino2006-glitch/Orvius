@@ -278,3 +278,73 @@ ALTER TABLE "Business" ADD COLUMN "address" TEXT;
 ALTER TABLE "Business" ADD COLUMN "forwardGuideSentAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "overflowProvedAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "serviceZipsJson" TEXT NOT NULL DEFAULT '[]';
+
+-- Environment separation: demo and test workspaces are labeled, never mixed
+-- into a production workspace.
+ALTER TABLE "Business" ADD COLUMN "environment" TEXT NOT NULL DEFAULT 'production';
+UPDATE "Business" SET "environment" = 'demo'
+  WHERE "slug" IN ('summit-hvac', 'summit-hvac-demo') AND "environment" = 'production';
+
+-- Trade playbook: appointment length per job, skills per technician.
+ALTER TABLE "Job" ADD COLUMN "durationMin" INTEGER;
+ALTER TABLE "Technician" ADD COLUMN "skillsJson" TEXT NOT NULL DEFAULT '[]';
+
+-- Operating-loop audit trail. The unique key makes retries write once.
+CREATE TABLE IF NOT EXISTS "AuditEvent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "entityId" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "actor" TEXT NOT NULL DEFAULT 'orvius',
+    "summary" TEXT NOT NULL,
+    "detailJson" TEXT,
+    "callId" TEXT,
+    "leadId" TEXT,
+    "customerId" TEXT,
+    "jobId" TEXT,
+    "idempotencyKey" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AuditEvent_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "AuditEvent_businessId_idempotencyKey_key" ON "AuditEvent"("businessId", "idempotencyKey");
+CREATE INDEX IF NOT EXISTS "AuditEvent_businessId_createdAt_idx" ON "AuditEvent"("businessId", "createdAt");
+CREATE INDEX IF NOT EXISTS "AuditEvent_businessId_entityType_entityId_idx" ON "AuditEvent"("businessId", "entityType", "entityId");
+CREATE INDEX IF NOT EXISTS "AuditEvent_leadId_idx" ON "AuditEvent"("leadId");
+CREATE INDEX IF NOT EXISTS "AuditEvent_jobId_idx" ON "AuditEvent"("jobId");
+CREATE INDEX IF NOT EXISTS "AuditEvent_customerId_idx" ON "AuditEvent"("customerId");
+
+-- Autopilot: routine confirmations and clear-cut assignments run without the owner.
+ALTER TABLE "Business" ADD COLUMN "autopilot" BOOLEAN NOT NULL DEFAULT true;
+
+-- Live transfer: callers who insist on a person are connected to this number. Null = off.
+ALTER TABLE "Business" ADD COLUMN "transferPhone" TEXT;
+
+-- Per-shop receptionist voice. Null = default voice.
+ALTER TABLE "Business" ADD COLUMN "voiceId" TEXT;
+
+-- In-call booking: the slot the caller took on the call, and the returning-caller note sent to the live receptionist.
+ALTER TABLE "Call" ADD COLUMN "heldSlotAt" DATETIME;
+ALTER TABLE "Call" ADD COLUMN "heldSlotDurationMin" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "callerContextSentAt" DATETIME;
+
+-- "Since you looked" anchored on the account, not the device.
+ALTER TABLE "Business" ADD COLUMN "ownerLastSeenAt" DATETIME;
+
+-- Web push: installed app / browser alerts for the owner.
+CREATE TABLE IF NOT EXISTS "PushSubscription" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "endpoint" TEXT NOT NULL,
+    "p256dh" TEXT NOT NULL,
+    "auth" TEXT NOT NULL,
+    "userAgent" TEXT,
+    "lastSentAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "PushSubscription_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");
+CREATE INDEX IF NOT EXISTS "PushSubscription_businessId_idx" ON "PushSubscription"("businessId");
+
+-- Live booking: when a caller's hold was claimed. Earlier claims win a race for the last technician.
+ALTER TABLE "Call" ADD COLUMN "heldClaimedAt" DATETIME;

@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { after } from "next/server";
 import { getAttentionQueue } from "@/lib/attention-queue";
 import { isPriorityUrgency } from "@/lib/auto-job";
+import { listHandled, runAutopilot } from "@/lib/autopilot";
+import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
-import { getDispatchBoard, listCrew } from "@/lib/field";
+import { getDispatchBoard } from "@/lib/field";
+import { parseSince } from "@/lib/personal-brief";
+import { loadPersonalBrief } from "@/lib/personal-brief-data";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
@@ -14,19 +18,31 @@ import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
 
-function startOfToday() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
+/** Polling every 30s would otherwise write the shop row every 30s. */
+const LAST_SEEN_WRITE_MS = 60_000;
 
-export async function GET() {
+export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business } = authResult;
+  const { business, session } = authResult;
+  const now = new Date();
+  // A tab that already pinned its anchor sends it; a fresh visit uses the account's last look.
+  const sinceParam = new URL(request.url).searchParams.get("since");
+  const previousLook = sinceParam ?? business.ownerLastSeenAt?.toISOString() ?? null;
+  const since = parseSince(previousLook, now);
+  if (!business.ownerLastSeenAt || now.getTime() - business.ownerLastSeenAt.getTime() > LAST_SEEN_WRITE_MS) {
+    after(() =>
+      prisma.business
+        .update({ where: { id: business.id }, data: { ownerLastSeenAt: now } })
+        .catch(() => null),
+    );
+  }
 
-  const today = startOfToday();
+  const today = shopDayBounds(null, business.timezone ?? "America/New_York").start;
   const businessFilter = { businessId: business.id };
+  after(() => runAutopilot(business.id).catch(() => null));
+  const windowStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const healthP = getShopHealth(business.id);
 
   const [
     callsToday,
@@ -40,10 +56,16 @@ export async function GET() {
     recentCalls,
     dispatchBoard,
     health,
-    crew,
     outcomes,
     attention,
     shiftTimeline,
+    handled,
+    wedge,
+    messagesAndWeb,
+    qualified,
+    bookedInWindow,
+    jobsInMotion,
+    jobsUnassigned,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -81,48 +103,59 @@ export async function GET() {
         lead: { select: { name: true, serviceType: true } },
       },
     }),
-    getDispatchBoard(business.id),
-    getShopHealth(business.id),
-    listCrew(business.id),
+    getDispatchBoard(business.id, null, business),
+    healthP,
     getShopOutcomes(business.id, 7),
     getAttentionQueue(business.id, 12),
     getShiftTimeline(business.id),
+    listHandled(business.id),
+    healthP.then((health) => getWedgeReadiness(business.id, health)),
+    prisma.lead.count({
+      where: { ...businessFilter, callId: null, createdAt: { gte: windowStart } },
+    }),
+    prisma.lead.count({
+      where: {
+        ...businessFilter,
+        createdAt: { gte: windowStart },
+        status: { notIn: ["spam", "lost"] },
+        serviceType: { not: null },
+        phone: { not: null },
+      },
+    }),
+    prisma.lead.count({
+      where: {
+        ...businessFilter,
+        createdAt: { gte: windowStart },
+        job: { isNot: null },
+      },
+    }),
+    prisma.job.count({
+      where: { ...businessFilter, status: { notIn: ["completed", "cancelled"] } },
+    }),
+    prisma.job.count({
+      where: {
+        ...businessFilter,
+        status: { notIn: ["completed", "cancelled"] },
+        technicianId: null,
+      },
+    }),
   ]);
-
-  const windowStart = new Date(Date.now() - outcomes.windowDays * 24 * 60 * 60 * 1000);
-  const [wedge, messagesAndWeb, qualified, bookedInWindow, jobsInMotion, jobsUnassigned] =
-    await Promise.all([
-      getWedgeReadiness(business.id, health),
-      prisma.lead.count({
-        where: { ...businessFilter, callId: null, createdAt: { gte: windowStart } },
-      }),
-      prisma.lead.count({
-        where: {
-          ...businessFilter,
-          createdAt: { gte: windowStart },
-          status: { notIn: ["spam", "lost"] },
-          serviceType: { not: null },
-          phone: { not: null },
-        },
-      }),
-      prisma.lead.count({
-        where: {
-          ...businessFilter,
-          createdAt: { gte: windowStart },
-          job: { isNot: null },
-        },
-      }),
-      prisma.job.count({
-        where: { ...businessFilter, status: { notIn: ["completed", "cancelled"] } },
-      }),
-      prisma.job.count({
-        where: {
-          ...businessFilter,
-          status: { notIn: ["completed", "cancelled"] },
-          technicianId: null,
-        },
-      }),
-    ]);
+  const crew = dispatchBoard.crew;
+  const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
+  const afterHoursNow = isAfterHours(now, business.hoursJson, business.timezone ?? "America/New_York");
+  const personalBrief = await loadPersonalBrief({
+    business,
+    ownerName: session.user?.name,
+    since,
+    now,
+    todayStart: today,
+    boardJobs,
+    unassigned: dispatchBoard.unassigned.length,
+    attention,
+    totalCalls,
+    lineVerified: health.lineVerified,
+    afterHoursNow,
+  }).catch(() => null);
   if (health.stuckPendingAlerts > 0) {
     after(() =>
       drainOwnerAlerts({ at: "ring1.health", businessId: business.id }),
@@ -188,11 +221,7 @@ export async function GET() {
       referenceImplementation: isDemoBusiness(business),
     },
     coverage: {
-      afterHoursNow: isAfterHours(
-        new Date(),
-        business.hoursJson,
-        business.timezone ?? "America/New_York",
-      ),
+      afterHoursNow,
       timezone: business.timezone ?? null,
       forwardConfirmed: business.overflowForwardConfirmedAt != null,
     },
@@ -227,6 +256,7 @@ export async function GET() {
       avgTicketSet: Boolean(business.avgTicketCents),
     },
     attention,
+    handled,
     shiftTimeline,
     lastWeeklyProofAt: business.lastWeeklyProofAt?.toISOString() ?? null,
     recentLeads: recentLeads.map((lead) => ({
@@ -257,7 +287,7 @@ export async function GET() {
     dispatchToday: {
       jobCount: dispatchBoard.jobCount,
       unassigned: dispatchBoard.unassigned.length,
-      jobs: [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)].sort(
+      jobs: [...boardJobs].sort(
         (a, b) => {
           if (!a.scheduledAt && !b.scheduledAt) return 0;
           if (!a.scheduledAt) return 1;
@@ -269,5 +299,8 @@ export async function GET() {
     technicians: crew.map((tech) => ({ id: tech.id, name: tech.name })),
     health,
     wedge,
+    personalBrief,
+    /** The anchor this response used, so the tab can keep it for the session. */
+    sinceUsed: since?.toISOString() ?? null,
   });
 }

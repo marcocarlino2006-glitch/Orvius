@@ -6,10 +6,30 @@ import { AttentionQueue } from "@/components/attention-queue";
 import { CommandSignals } from "@/components/command-signals";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
+import type { Handled } from "@/lib/autopilot";
 import { useRing1 } from "@/lib/ring1-context";
 
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
+}
+
+function activityParts(h: Handled | undefined, counts: NonNullable<ReturnType<typeof useRing1>["data"]>["commandCounts"]) {
+  const parts = h
+    ? [
+        h.calls ? plural(h.calls, "call") + " answered" : null,
+        h.booked ? plural(h.booked, "job") + " booked" : null,
+        h.assigned ? plural(h.assigned, "technician") + " assigned" : null,
+        h.confirmations ? plural(h.confirmations, "confirmation") + " sent" : null,
+        h.escalated ? plural(h.escalated, "call") + " flagged" : null,
+      ].filter((p): p is string => Boolean(p))
+    : [];
+  if (parts.length) return { window: "Last 24 hours", parts };
+  if (!counts) return null;
+  const requests = counts.calls + counts.messagesAndWeb;
+  return {
+    window: `Last ${counts.windowDays} days`,
+    parts: requests ? [plural(requests, "request"), plural(counts.booked, "job") + " booked"] : ["No calls or messages"],
+  };
 }
 
 /**
@@ -50,21 +70,43 @@ export function Ring1CommandCenter() {
   }
 
   const counts = data?.commandCounts;
-  const brief = counts
-    ? [
-        counts.calls + counts.messagesAndWeb > 0
-          ? `Orvius handled ${plural(counts.calls + counts.messagesAndWeb, "request")} and booked ${plural(counts.booked, "job")} in the last ${counts.windowDays} days.`
-          : `No calls or messages in the last ${counts.windowDays} days.`,
-        work.length ? `${plural(work.length, "decision")} waiting on you.` : "Nothing is waiting on you.",
-      ].join(" ")
-    : null;
+  const activity = counts ? activityParts(data?.handled, counts) : null;
+  const brief = data?.personalBrief ?? null;
 
   return (
     <section className="cc" aria-label="Command">
       <div className="cc-main">
         <header className="cc-brief">
-          <p className="cc-brief-kicker">{data?.business?.name ?? "Your shop"}</p>
-          <p className="cc-brief-text">{brief ?? "Reading the shop…"}</p>
+          {brief ? (
+            <div className="cc-brief-personal">
+              <p className="cc-brief-greeting">{brief.greeting}</p>
+              <p className="cc-brief-headline">{brief.headline}</p>
+              {brief.detail.length ? (
+                <p className="cc-brief-detail">
+                  {brief.detail.map((line) => (
+                    <span key={line} className="cc-brief-part">
+                      {line}
+                    </span>
+                  ))}
+                </p>
+              ) : null}
+              {brief.pattern ? <p className="cc-brief-pattern">{brief.pattern}</p> : null}
+            </div>
+          ) : null}
+          <p className={brief ? "cc-brief-text cc-brief-text--sub" : "cc-brief-text"}>
+            {activity ? (
+              <>
+                <span className="cc-brief-window">{activity.window}</span>
+                {activity.parts.map((part) => (
+                  <span key={part} className="cc-brief-part">
+                    {part}
+                  </span>
+                ))}
+              </>
+            ) : (
+              "Reading the shop…"
+            )}
+          </p>
         </header>
 
         <CommandSignals signals={signals} loading={loading} />

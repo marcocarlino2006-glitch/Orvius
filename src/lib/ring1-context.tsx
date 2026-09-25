@@ -1,5 +1,6 @@
 "use client";
 
+import type { Handled } from "@/lib/autopilot";
 import {
   createContext,
   useCallback,
@@ -12,6 +13,7 @@ import {
 import type { CoverageState } from "@/lib/coverage-state";
 import type { AttentionItem } from "@/lib/attention-types";
 import type { CommandCounts } from "@/lib/command-model";
+import type { PersonalBrief } from "@/lib/personal-brief";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
@@ -36,6 +38,8 @@ export type Ring1Data = {
   commandCounts?: CommandCounts;
   shiftTimeline?: ShiftEvent[];
   attention?: AttentionItem[];
+  /** What Orvius did on its own in the last 24 hours. */
+  handled?: Handled;
   dispatchToday?: {
     jobCount: number;
     unassigned: number;
@@ -57,6 +61,8 @@ export type Ring1Data = {
   wedge?: WedgeReadiness;
   coverage?: CoverageState;
   lastWeeklyProofAt?: string | null;
+  personalBrief?: PersonalBrief | null;
+  sinceUsed?: string | null;
   gates?: {
     certDone: number;
     certTotal: number;
@@ -81,6 +87,40 @@ type Ring1ContextValue = {
 const Ring1Context = createContext<Ring1ContextValue | null>(null);
 
 const DEFAULT_REFRESH_MS = 30_000;
+const SESSION_SINCE_KEY = "orvius.command.since";
+const AWAY_MS = 30 * 60_000;
+
+/**
+ * "Since you last looked" is anchored on the account, so the phone and the
+ * laptop agree. The first load of a tab pins the anchor the server used, so
+ * reloads and polling don't reset it to thirty seconds ago.
+ */
+function pinnedSince(): string | null {
+  try {
+    const pinned = sessionStorage.getItem(SESSION_SINCE_KEY);
+    // "" means this tab started with no previous look; keep it that way rather than fall back.
+    return pinned === null ? null : pinned || "none";
+  } catch {
+    return null;
+  }
+}
+
+function pinSince(value: string | null | undefined) {
+  try {
+    if (sessionStorage.getItem(SESSION_SINCE_KEY) === null) sessionStorage.setItem(SESSION_SINCE_KEY, value ?? "");
+  } catch {
+    /* storage unavailable: each load uses the account anchor */
+  }
+}
+
+/** Coming back to a tab left in the background for a while counts as a new look. */
+function unpinSince() {
+  try {
+    sessionStorage.removeItem(SESSION_SINCE_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
 
 function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
   if (!data?.business?.name) return null;
@@ -117,7 +157,8 @@ export function Ring1Provider({
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/ring1");
+      const since = pinnedSince();
+      const res = await fetch(since ? `/api/ring1?since=${encodeURIComponent(since)}` : "/api/ring1");
       if (!res.ok) {
         throw new Error(
           res.status === 401
@@ -127,6 +168,7 @@ export function Ring1Provider({
       }
       const json = (await res.json()) as Ring1Data;
       setData(json);
+      pinSince(json.sinceUsed);
       setLoadError(null);
       setLastUpdatedAt(Date.now());
     } catch (err) {
@@ -152,10 +194,48 @@ export function Ring1Provider({
   useEffect(() => {
     void refresh();
     if (!refreshMs) return;
-    const interval = setInterval(() => {
+    let lastRun = Date.now();
+    const tick = () => {
+      if (document.visibilityState !== "visible") return;
+      lastRun = Date.now();
       void refresh();
-    }, refreshMs);
-    return () => clearInterval(interval);
+    };
+    const interval = setInterval(tick, refreshMs);
+
+    /* The stream says when something changed; polling stays as the fallback when it can't connect. */
+    let stream: EventSource | null = null;
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const openStream = () => {
+      if (stream || typeof EventSource === "undefined") return;
+      stream = new EventSource("/api/ring1/stream");
+      stream.addEventListener("change", () => {
+        if (pending) clearTimeout(pending);
+        pending = setTimeout(tick, 400);
+      });
+    };
+    const closeStream = () => {
+      stream?.close();
+      stream = null;
+    };
+    openStream();
+
+    /* A backgrounded tab stops polling; coming back refreshes at once if the data is stale. */
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") {
+        closeStream();
+        return;
+      }
+      openStream();
+      if (Date.now() - lastRun >= AWAY_MS) unpinSince();
+      if (Date.now() - lastRun >= refreshMs) tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      if (pending) clearTimeout(pending);
+      closeStream();
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [refresh, refreshMs]);
 
   const value = useMemo<Ring1ContextValue>(

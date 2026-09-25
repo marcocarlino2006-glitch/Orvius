@@ -1,0 +1,247 @@
+/* Public phone pages (/t tech job, /c customer confirm). Loaded outside /dashboard. */
+.pf {
+  min-height: 100dvh;
+  background: #0b0c0e;
+  color: #eceef1;
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem 1rem calc(6.5rem + env(safe-area-inset-bottom));
+}
+.pf > * {
+  width: 100%;
+  max-width: 30rem;
+  margin-inline: auto;
+}
+.pf--center {
+  justify-content: center;
+  padding-bottom: 2rem;
+}
+
+.pf-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.5rem 0 0.25rem;
+}
+.pf-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b919a;
+}
+.pf-title {
+  margin: 0;
+  font-size: 1.625rem;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.pf-sub {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #b4bac3;
+}
+.pf-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pf-pill {
+  align-self: flex-start;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(96, 165, 250, 0.14);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.28);
+}
+.pf-pill.is-risk {
+  background: rgba(248, 113, 113, 0.14);
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+.pf-pill.is-done {
+  background: rgba(52, 211, 153, 0.14);
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+.pf-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+.pf-action {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-height: 4.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: 14px;
+  background: #16181c;
+  border: 1px solid #262a31;
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.pf-action:active {
+  background: #1d2026;
+}
+.pf-action-label {
+  font-size: 1rem;
+  font-weight: 650;
+  color: #fff;
+}
+.pf-action-detail {
+  font-size: 0.8125rem;
+  color: #8b919a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-card {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 14px;
+  background: #121418;
+  border: 1px solid #22262c;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.pf-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+}
+.pf-row dt {
+  color: #8b919a;
+}
+.pf-row dd {
+  margin: 0;
+  color: #eceef1;
+  word-break: break-word;
+}
+.pf-row a {
+  color: #93c5fd;
+  text-decoration: none;
+}
+.pf-h2,
+.pf-label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #b4bac3;
+}
+.pf-inline {
+  display: flex;
+  gap: 0.5rem;
+}
+.pf-inline .pf-input {
+  flex: 1;
+  min-width: 0;
+}
+.pf-input,
+.pf select,
+.pf textarea {
+  width: 100%;
+  min-height: 2.875rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #2c3139;
+  background: #0b0c0e;
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+}
+.pf textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+.pf-input:focus,
+.pf select:focus,
+.pf textarea:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.pf-btn {
+  min-height: 2.875rem;
+  padding: 0 1.125rem;
+  border-radius: 10px;
+  border: 1px solid #2c3139;
+  background: #1a1d22;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.pf-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.pf-btn--primary {
+  width: 100%;
+  min-height: 3.375rem;
+  border: 0;
+  border-radius: 14px;
+  background: #3b82f6;
+  font-size: 1.0625rem;
+}
+.pf-btn--primary:active {
+  background: #2563eb;
+}
+
+.pf-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+  font-size: 0.9375rem;
+}
+.pf-money {
+  font-size: 1.5rem;
+  font-weight: 650;
+  color: #fff;
+}
+.pf-done {
+  border-color: rgba(52, 211, 153, 0.3);
+}
+.pf-muted {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #8b919a;
+}
+
+.pf > .pf-dock {
+  max-width: none;
+}
+.pf-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, #0b0c0e 70%, rgba(11, 12, 14, 0));
+}
+.pf-dock > * {
+  max-width: 30rem;
+  margin-inline: auto;
+}

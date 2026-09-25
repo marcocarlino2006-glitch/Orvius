@@ -1,3 +1,4 @@
+import { shopDayBounds } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
 import {
   customerDisplayName,
@@ -61,6 +62,8 @@ export type MemoryHit = {
   score: number;
   /** Timestamp on the source row, so model context never loses provenance. */
   observedAt: string;
+  /** False when the record is finished or already owned, so no action should be offered on it. */
+  actionable?: boolean;
 };
 
 export type ShopMemory = {
@@ -97,14 +100,15 @@ function scoreText(text: string, terms: string[]): number {
   return score;
 }
 
-function formatWhen(iso: Date | string | null | undefined) {
+function formatWhen(iso: Date | string | null | undefined, timeZone: string) {
   if (!iso) return "unscheduled";
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone,
   });
 }
 
@@ -122,10 +126,10 @@ export async function retrieveShopMemory(
   if (wantsEmergency && !terms.includes("emergency")) terms.push("emergency");
   const phone = normalizePhone(q) ?? (q.replace(/\D/g, "").length >= 7 ? q.replace(/\D/g, "") : null);
   const now = new Date();
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-  const endOfTomorrow = new Date(startOfToday);
-  endOfTomorrow.setDate(endOfTomorrow.getDate() + 2);
+  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } });
+  const tz = shop?.timezone || "America/New_York";
+  const { start: startOfToday, end: endOfToday } = shopDayBounds(null, tz, now);
+  const endOfTomorrow = shopDayBounds(null, tz, new Date(endOfToday.getTime() + 60 * 60 * 1000)).end;
   const tenant = { businessId };
 
   const [customers, jobs, leads, calls, stats] = await Promise.all([
@@ -149,7 +153,7 @@ export async function retrieveShopMemory(
       where: tenant,
       take: 80,
       orderBy: { createdAt: "desc" },
-      include: { customer: { select: { name: true } } },
+      include: { customer: { select: { name: true } }, job: { select: { id: true } } },
     }),
     prisma.call.findMany({
       where: tenant,
@@ -173,7 +177,7 @@ export async function retrieveShopMemory(
         id: job.id,
         href: `/dashboard/jobs/${job.id}`,
         title: job.title,
-        summary: [job.status, who, `scheduled ${formatWhen(job.scheduledAt)}`]
+        summary: [job.status, who, `scheduled ${formatWhen(job.scheduledAt, tz)}`]
           .filter(Boolean)
           .join(" · "),
         score: 1,
@@ -185,7 +189,7 @@ export async function retrieveShopMemory(
       id: call.id,
       href: `/dashboard/calls/${call.id}`,
       title: call.customer?.name ?? call.callerPhone ?? "Inbound call",
-      summary: [formatWhen(call.createdAt), call.summary?.slice(0, 160)]
+      summary: [formatWhen(call.createdAt, tz), call.summary?.slice(0, 160)]
         .filter(Boolean)
         .join(" · "),
       score: 1,
@@ -219,9 +223,9 @@ export async function retrieveShopMemory(
     if (phone && (customer.phoneNormalized.includes(phone) || customer.phone.includes(phone))) {
       score += 12;
     }
-    score += 4;
     if (score <= 0 && terms.length) continue;
     if (!terms.length && !phone) continue;
+    score += 4;
     hits.push({
       type: "customer",
       id: customer.id,
@@ -231,7 +235,7 @@ export async function retrieveShopMemory(
         displayPhone(customer.phone),
         customer.address,
         `${customer.interactionCount} interaction${customer.interactionCount === 1 ? "" : "s"}`,
-        `last seen ${formatWhen(customer.lastSeenAt)}`,
+        `last seen ${formatWhen(customer.lastSeenAt, tz)}`,
       ]
         .filter(Boolean)
         .join(" · "),
@@ -259,19 +263,19 @@ export async function retrieveShopMemory(
     if (wantsEmergency && job.urgency?.toLowerCase().includes("emergency")) score += 6;
     if (job.scheduledAt) {
       const at = job.scheduledAt;
-      if (wantsToday && at >= startOfToday && at < new Date(startOfToday.getTime() + 86400000)) {
+      if (wantsToday && at >= startOfToday && at < endOfToday) {
         score += 8;
       }
-      if (wantsTomorrow && at >= new Date(startOfToday.getTime() + 86400000) && at < endOfTomorrow) {
+      if (wantsTomorrow && at >= endOfToday && at < endOfTomorrow) {
         score += 8;
       }
     }
     if (phone && (job.customer?.phone.includes(phone) || job.lead?.phone?.includes(phone))) {
       score += 8;
     }
-    score += 3;
     if (score <= 0 && !wantsJobs && terms.length) continue;
     if (!terms.length && !wantsJobs && !wantsToday && !wantsTomorrow) continue;
+    score += 3;
     hits.push({
       type: "job",
       id: job.id,
@@ -282,7 +286,7 @@ export async function retrieveShopMemory(
         job.technician?.name ?? "unassigned",
         who,
         job.address,
-        `scheduled ${formatWhen(job.scheduledAt)}`,
+        `scheduled ${formatWhen(job.scheduledAt, tz)}`,
         jobOutcomeLabel(job.resolutionCode),
         job.resolutionSummary,
         job.finalAmountCents != null
@@ -293,6 +297,7 @@ export async function retrieveShopMemory(
         .join(" · "),
       score: score || 1,
       observedAt: job.updatedAt.toISOString(),
+      actionable: (job.status === "scheduled" || job.status === "confirmed") && !job.technicianId,
     });
   }
 
@@ -327,6 +332,7 @@ export async function retrieveShopMemory(
         .join(" · "),
       score: score || 1,
       observedAt: lead.updatedAt.toISOString(),
+      actionable: (lead.status === "new" || lead.status === "contacted") && !lead.job,
     });
   }
 
@@ -350,7 +356,7 @@ export async function retrieveShopMemory(
       title: call.customer?.name ?? call.callerPhone ?? "Inbound call",
       summary: [
         call.status,
-        formatWhen(call.createdAt),
+        formatWhen(call.createdAt, tz),
         call.summary?.slice(0, 160),
       ]
         .filter(Boolean)
@@ -361,6 +367,8 @@ export async function retrieveShopMemory(
   }
 
 
+  hits.sort((a, b) => b.score - a.score);
+
   // Expand top customer hits with recent timeline so Ask answers from one record
   for (const hit of hits.filter((h) => h.type === "customer").slice(0, 3)) {
     const timeline = await getCustomerTimeline(hit.id);
@@ -369,11 +377,13 @@ export async function retrieveShopMemory(
     hit.summary = `${hit.summary} · Recent: ${recent}`;
   }
 
-  hits.sort((a, b) => b.score - a.score);
+  // A strong match (a name, a phone) should not be padded with weak ones.
+  const best = hits[0]?.score ?? 0;
+  const relevant = hits.filter((h) => h.score >= best * 0.4);
 
   return {
     query: q,
-    hits: hits.slice(0, 8),
+    hits: relevant.slice(0, 8),
     stats: {
       customers: stats[0],
       jobs: stats[1],

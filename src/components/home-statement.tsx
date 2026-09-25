@@ -30,7 +30,7 @@ export function HomeStatement() {
       aria-labelledby="home-manifesto-heading"
     >
       <div className="mkt-manifesto-rules">
-        <header className="mkt-manifesto-rules-head">
+        <header className="mkt-manifesto-rules-head" data-reveal>
           <p className="mkt-manifesto-kicker font-sans" data-i18n="rules.kicker">
             Night rules
           </p>
@@ -43,9 +43,13 @@ export function HomeStatement() {
           </h2>
         </header>
 
-        <ol className="mkt-laws mkt-laws--ruled font-sans">
-          {nightRules.map((rule) => (
-            <li key={rule.id} className="mkt-law mkt-law--ruled">
+        <ol className="mkt-laws mkt-laws--ruled font-sans" data-reveal data-reveal-stagger>
+          {nightRules.map((rule, i) => (
+            <li
+              key={rule.id}
+              className="mkt-law mkt-law--ruled"
+              style={{ ["--s" as string]: i }}
+            >
               <span className="mkt-law-index" aria-hidden>
                 {rule.id}
               </span>

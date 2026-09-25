@@ -13,6 +13,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { TRADES, inferTradeFromBusiness, tradePromptPack } from "../src/lib/trades.ts";
+import { parseServicesForm } from "../src/lib/shop-hours-form.ts";
 
 test("a shop is read from its name and its services together", () => {
   assert.equal(
@@ -102,4 +103,11 @@ test("every trade has a pack, and each pack is about that trade", () => {
     assert.match(pack, /Emergency signals:/);
     assert.match(pack, /Never /, "each pack names something not to promise");
   }
+});
+
+test("services saved as plain strings still read back", () => {
+  const legacy = JSON.stringify(["Furnace repair", "AC repair"]);
+  assert.equal(parseServicesForm(legacy), "Furnace repair\nAC repair");
+  assert.equal(inferTradeFromBusiness({ name: "Northside", servicesJson: legacy }), "HVAC");
+  assert.equal(parseServicesForm(JSON.stringify([{ name: "Drain cleaning" }])), "Drain cleaning");
 });

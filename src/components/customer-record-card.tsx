@@ -1,4 +1,7 @@
+"use client";
+
 import { RecordLink } from "@/components/record-drawer";
+import { RecordAvatar } from "@/components/record-avatar";
 import { customerDisplayName, displayPhone } from "@/lib/customer";
 
 type CustomerRecordCardProps = {
@@ -10,6 +13,9 @@ type CustomerRecordCardProps = {
   interactionCount: number;
   lastSeenAt: string;
   returning?: boolean;
+  /** Wide layouts show history beside the list; the drawer stays for narrow ones. */
+  onSelect?: () => void;
+  selected?: boolean;
 };
 
 /** Cursor-grade customer row — no avatar soft card. */
@@ -22,6 +28,8 @@ export function CustomerRecordCard({
   interactionCount,
   lastSeenAt,
   returning = interactionCount > 1,
+  onSelect,
+  selected = false,
 }: CustomerRecordCardProps) {
   const label = customerDisplayName(name, phone);
   const when = new Date(lastSeenAt).toLocaleDateString(undefined, {
@@ -30,23 +38,22 @@ export function CustomerRecordCard({
   });
 
   return (
+    <div
+      className={`cp-row${selected ? " is-selected" : ""}`}
+      onClickCapture={(event) => {
+        if (!onSelect || event.metaKey || event.ctrlKey || event.shiftKey) return;
+        if (!window.matchMedia("(min-width: 1100px)").matches) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onSelect();
+      }}
+    >
     <RecordLink type="customer" id={id} href={`/dashboard/customers/${id}`} className="lead-rail-row">
+      <RecordAvatar name={label} />
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
-          {/*
-            One statement of the fact, not three. This read "Customer · returning
-            · 2 touches" beside a "Returning" badge, on a page where every row is
-            a customer by definition — so of four pieces of text, one was a
-            tautology and two were the same claim.
-
-            Now it is the count alone, and only when the count is interesting.
-            "1 CALL" in tracked caps on ten of thirteen rows was a label the
-            width of a column heading saying the least remarkable thing true of
-            a customer, and the RETURNING badge beside the three that mattered
-            said less than the number does.
-          */}
           {returning ? (
-            <p className="lead-rail-count is-live">{interactionCount} calls</p>
+            <p className="lead-rail-count is-live">{interactionCount} touchpoints</p>
           ) : null}
           <time dateTime={lastSeenAt} className="lead-rail-time">
             {when}
@@ -60,5 +67,6 @@ export function CustomerRecordCard({
         </p>
       </div>
     </RecordLink>
+    </div>
   );
 }

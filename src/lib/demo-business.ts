@@ -15,7 +15,20 @@ export function isDemoPlatformLine(phone: string | null | undefined): boolean {
   return normalizePhone(phone) === normalizePhone(demo);
 }
 
-export function isDemoBusiness(business: { slug: string; name?: string }): boolean {
+export type WorkspaceEnvironment = "production" | "demo" | "test";
+
+export function workspaceEnvironment(
+  value: string | null | undefined,
+): WorkspaceEnvironment {
+  return value === "demo" || value === "test" ? value : "production";
+}
+
+export function isDemoBusiness(business: {
+  slug: string;
+  name?: string;
+  environment?: string | null;
+}): boolean {
+  if (business.environment === "demo") return true;
   // Summit owns the public marketing/demo line — never re-provision it away.
   if (
     business.slug === "summit-hvac" ||

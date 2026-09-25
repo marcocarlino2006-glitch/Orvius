@@ -1,96 +1,40 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { RecordLink } from "@/components/record-drawer";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
+import { leadNextAction } from "@/lib/lead-next-action";
 
 type LeadQuickActionsProps = {
   leadId: string;
   phone: string | null;
   status: string;
-  booked?: boolean;
-  onStatusChange?: (status: string) => void;
-  onBooked?: () => void;
+  urgency: string | null;
+  address: string | null;
+  jobId: string | null;
+  onBooked?: (jobId: string) => void;
 };
 
-export function LeadQuickActions({
-  leadId,
-  phone,
-  status,
-  booked = false,
-  onStatusChange,
-  onBooked,
-}: LeadQuickActionsProps) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function markContacted(event: React.MouseEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (status !== "new" || loading) return;
-
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/leads/${leadId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "contacted" }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Update failed");
-      onStatusChange?.("contacted");
-    } catch (caught) {
-      setError(
-        caught instanceof Error ? caught.message : "Could not mark contacted",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+/** One primary action per opportunity; text, contacted and the rest live in the drawer. */
+export function LeadQuickActions({ leadId, phone, status, urgency, address, jobId, onBooked }: LeadQuickActionsProps) {
+  const next = leadNextAction({ status, urgency, phone, address, jobId });
 
   return (
     <div className="lead-quick-actions font-sans" onClick={(e) => e.stopPropagation()}>
-      {phone ? (
-        <>
-          <a href={`tel:${phone}`} className="lead-quick-btn lead-quick-btn-primary">
-            Call
-          </a>
-          <a href={`sms:${phone}`} className="lead-quick-btn">
-            Text
-          </a>
-        </>
-      ) : null}
-      {!booked ? (
-        <BookJobQuickButton
-          leadId={leadId}
-          onBooked={onBooked}
-          className="lead-quick-btn lead-quick-btn-signal"
-        />
-      ) : null}
-      {status === "new" ? (
-        <button
-          type="button"
-          className="lead-quick-btn lead-quick-btn-signal"
-          disabled={loading}
-          aria-describedby={error ? `contacted-error-${leadId}` : undefined}
-          onClick={markContacted}
-        >
-          {loading ? "…" : "Contacted"}
-        </button>
-      ) : null}
-      <Link href={`/dashboard/inbox/${leadId}`} className="lead-quick-btn">
-        Open
-      </Link>
-      {error ? (
-        <span
-          id={`contacted-error-${leadId}`}
-          className="today-priority-book-error"
-          role="alert"
-        >
-          {error}
-        </span>
-      ) : null}
+      {next.kind === "view_job" ? (
+        <RecordLink type="job" id={next.jobId} href={`/dashboard/jobs/${next.jobId}`} className="lead-quick-btn">
+          {next.label}
+        </RecordLink>
+      ) : next.kind === "call" ? (
+        <a href={`tel:${next.phone}`} className="lead-quick-btn lead-quick-btn-primary">
+          {next.label}
+        </a>
+      ) : next.kind === "book" ? (
+        <BookJobQuickButton leadId={leadId} onBooked={onBooked} className="lead-quick-btn lead-quick-btn-primary" />
+      ) : (
+        <RecordLink type="lead" id={leadId} href={`/dashboard/inbox/${leadId}`} className="lead-quick-btn">
+          {next.label}
+        </RecordLink>
+      )}
     </div>
   );
 }

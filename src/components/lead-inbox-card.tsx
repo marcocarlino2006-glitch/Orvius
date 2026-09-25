@@ -1,9 +1,8 @@
 "use client";
 
 import { RecordLink } from "@/components/record-drawer";
-import { ShellBadge } from "@/components/shell-primitives";
 import { LeadQuickActions } from "@/components/lead-quick-actions";
-import { LeadStatusBadge } from "@/components/lead-status-actions";
+import { StatusDot, type StatusTone } from "@/components/status-dot";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 
@@ -19,13 +18,18 @@ type LeadInboxCardProps = {
   createdAt: string;
   customerId?: string | null;
   returning?: boolean;
-  booked?: boolean;
-  onStatusChange?: (status: string) => void;
+  jobId?: string | null;
+  onBooked?: (jobId: string) => void;
 };
 
-/**
- * Cursor-grade lead row — density first, not a soft marketing card.
- */
+const STATUS_TONE: Record<string, StatusTone> = {
+  new: "attention",
+  contacted: "live",
+  booked: "good",
+  lost: "muted",
+  spam: "muted",
+};
+
 export function LeadInboxCard({
   id,
   name,
@@ -36,18 +40,11 @@ export function LeadInboxCard({
   channel = "Inbound",
   status = "new",
   createdAt,
-  customerId,
   returning = false,
-  booked = false,
-  onStatusChange,
+  jobId = null,
+  onBooked,
 }: LeadInboxCardProps) {
   const emergency = isEmergency(urgency);
-  /*
-    The kicker earns its line or it does not get one. It used to read "LEAD" on
-    every row of a list of leads, which is the page's own title repeated
-    seventy-six times in tracked caps.
-  */
-  const kicker = emergency ? "Emergency" : returning ? "Returning" : null;
   const notable = notableUrgency(urgency);
   const phoneLabel = phone
     ? displayPhone(normalizePhone(phone) ?? phone)
@@ -59,77 +56,62 @@ export function LeadInboxCard({
     minute: "2-digit",
   });
 
-  return (
-    <article
-      className={`lead-rail-row ${emergency ? "lead-rail-row-emergency" : ""}`}
-    >
-      <div className="lead-rail-main">
-        <div className="lead-rail-meta">
-          {/*
-            One rule across the rails: the kicker says why this row wants
-            attention, the badge says what state it is in. Printing the status
-            in both put "booked" above a BOOKED pill on the same line.
-          */}
-          {kicker ? (
-            <p className={`lead-rail-kind ${emergency ? "is-flare" : ""}`}>
-              {kicker}
-            </p>
-          ) : null}
-          <time dateTime={createdAt} className="lead-rail-time">
-            {when}
-          </time>
-        </div>
+  const statusTone = STATUS_TONE[status] ?? "neutral";
+  const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
 
-        <div className="lead-rail-title-row">
+  return (
+    <div className="dt-row" role="row">
+      <span role="cell" className="dt-primary">
+        <span className="dt-title">
+          {emergency ? <span className="dt-flag">Emergency</span> : null}
           {id ? (
-            <RecordLink type="lead" id={id} href={`/dashboard/inbox/${id}`} className="lead-rail-name">
+            <RecordLink type="lead" id={id} href={`/dashboard/inbox/${id}`} className="dt-link">
               {name}
             </RecordLink>
           ) : (
-            <span className="lead-rail-name">{name}</span>
+            name
           )}
-          <div className="lead-rail-badges">
-            {status !== "new" ? <LeadStatusBadge status={status} /> : null}
-            {notable ? <ShellBadge tone="neutral">{notable}</ShellBadge> : null}
-          </div>
-        </div>
-
-        {/*
-          What they need, first and in the row's own voice. It used to be the
-          third item in a grey run-on that opened with the channel and closed
-          with the shop's own name — so the most useful fact on the row was
-          behind two the owner already knew.
-        */}
-        <p className="lead-rail-sub">
-          <b className="lead-rail-need">{service ?? "General inquiry"}</b>
-          {channel !== "Call" ? ` · ${channel}` : ""}
-          {phoneLabel ? ` · ${phoneLabel}` : ""}
-          {address ? ` · ${address}` : ""}
-        </p>
-
-        {customerId ? (
-          <RecordLink
-            type="customer"
-            id={customerId}
-            href={`/dashboard/customers/${customerId}`}
-            className="lead-rail-record"
-          >
-            Customer record
-          </RecordLink>
-        ) : null}
-      </div>
-
-      {id ? (
-        <div className="lead-rail-actions">
+          {returning ? <span className="dt-tag">Returning</span> : null}
+        </span>
+        <span className="dt-sub">
+          {[service ?? "General inquiry", channel !== "Call" ? channel : null, address].filter(Boolean).join(", ")}
+        </span>
+      </span>
+      <span role="cell">
+        <StatusDot tone={statusTone}>{statusLabel}</StatusDot>
+        {notable ? <span className="dt-sub">{notable.charAt(0).toUpperCase() + notable.slice(1)}</span> : null}
+      </span>
+      <span role="cell" className="dt-mono">{phoneLabel ?? <span className="dt-muted">—</span>}</span>
+      <span role="cell" className="dt-when">
+        <time dateTime={createdAt}>{when}</time>
+      </span>
+      <span role="cell" className="dt-actions">
+        {id ? (
           <LeadQuickActions
             leadId={id}
             phone={phone}
             status={status}
-            booked={booked}
-            onStatusChange={onStatusChange}
+            urgency={urgency}
+            address={address ?? null}
+            jobId={jobId}
+            onBooked={onBooked}
           />
-        </div>
-      ) : null}
-    </article>
+        ) : null}
+      </span>
+    </div>
+  );
+}
+
+export function LeadTableHead() {
+  return (
+    <div className="dt-head" role="row">
+      <span role="columnheader">Caller</span>
+      <span role="columnheader">Status</span>
+      <span role="columnheader">Phone</span>
+      <span role="columnheader">Received</span>
+      <span role="columnheader" className="dt-num">
+        <span className="sr-only">Actions</span>
+      </span>
+    </div>
   );
 }

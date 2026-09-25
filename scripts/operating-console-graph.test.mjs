@@ -81,7 +81,7 @@ test("Command ships five truthful signals and never a bare $0", () => {
   const signals = buildCommandSignals(counts, work);
   assert.deepEqual(
     signals.map((s) => s.label),
-    ["New demand", "Qualified opportunities", "Jobs in motion", "Attention required", "Revenue at risk"],
+    ["New demand", "Qualified", "Jobs in motion", "Needs you", "Revenue at risk"],
   );
   assert.equal(signals[0].value, "5");
   assert.equal(signals[3].value, "2");
@@ -123,7 +123,7 @@ test("Command is signals → work queue → approvals, with Pulse in the rail", 
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
 
   const pulse = read("src/components/orvius-pulse.tsx");
-  for (const row of ["Phone line", "Alert delivery", "Recent successful events"]) {
+  for (const row of ["Phone line", "Alert delivery", "Recent activity"]) {
     assert.match(pulse, new RegExp(row));
   }
   assert.match(pulse, /formatFreshness/);
@@ -132,7 +132,7 @@ test("Command is signals → work queue → approvals, with Pulse in the rail", 
 test("work queue rows show severity, customer, request, age, impact, one action", () => {
   const queue = read("src/components/attention-queue.tsx");
   assert.match(queue, /id="work-queue"/);
-  assert.match(queue, /Orvius recommends/);
+  assert.match(queue, /Top priority/);
   assert.match(queue, /formatAge/);
   assert.match(queue, /at stake/);
   assert.match(queue, /No value estimate/);

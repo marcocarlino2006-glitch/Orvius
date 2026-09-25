@@ -1,30 +1,27 @@
 "use client";
 
-import { JobCard } from "@/components/job-card";
+import { JobTable } from "@/components/job-card";
 import { ProLead } from "@/components/pro-lead";
-import { ProEmptyState, ProListEnd } from "@/components/pro-page-chrome";
+import { ProEmptyState } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { jobRowFacts, type JobRowInput } from "@/lib/job-row";
+import { formatCents } from "@/lib/money";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-type JobRow = {
+type JobRow = JobRowInput & {
   id: string;
   title: string;
-  status: string;
-  scheduledAt: string | null;
   address: string | null;
-  urgency: string | null;
   customer: { name: string | null; phone: string } | null;
   lead: { name: string | null; phone: string | null } | null;
-  technician?: { name: string } | null;
-  estimate?: {
+  estimate?: (NonNullable<JobRowInput["estimate"]> & {
     id: string;
-    status: string;
-    invoice: { id: string; status: string } | null;
-  } | null;
+    invoice: (NonNullable<NonNullable<JobRowInput["estimate"]>["invoice"]> & { id: string }) | null;
+  }) | null;
 };
 
 type PipelineStage = {
@@ -38,8 +35,7 @@ const STAGES: PipelineStage[] = [
   {
     id: "booked",
     label: "Booked",
-    match: (j) =>
-      !j.estimate && (j.status === "scheduled" || j.status === "confirmed"),
+    match: (j) => j.status === "scheduled" || j.status === "confirmed",
   },
   {
     id: "in_progress",
@@ -49,7 +45,7 @@ const STAGES: PipelineStage[] = [
   {
     id: "completed",
     label: "Completed",
-    match: (j) => j.status === "completed" && !j.estimate,
+    match: (j) => j.status === "completed",
   },
   {
     id: "estimate",
@@ -93,8 +89,17 @@ export default function JobsPage() {
   const filtered = useMemo(() => {
     const stage = STAGES.find((s) => s.id === stageId);
     if (!stage) return [];
-    return jobs.filter(stage.match);
+    const now = Date.now();
+    return jobs
+      .filter(stage.match)
+      .map((job) => ({ job, facts: jobRowFacts(job, now) }))
+      .sort((a, b) => (b.facts.attention?.weight ?? 0) - (a.facts.attention?.weight ?? 0));
   }, [jobs, stageId]);
+
+  const stageValue = useMemo(() => {
+    const cents = filtered.reduce((sum, row) => sum + (row.facts.money.cents ?? 0), 0);
+    return cents ? formatCents(cents) : null;
+  }, [filtered]);
 
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -121,7 +126,6 @@ export default function JobsPage() {
   return (
     <OsShell
       title="Jobs"
-      subtitle="Every booked job from request to paid."
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
           Dispatch
@@ -132,19 +136,10 @@ export default function JobsPage() {
       <ProLead
         loading={loading}
         figure={String(open.length)}
-        caption={open.length === 1 ? "job still open" : "jobs still open"}
-        detail={
-          unassigned > 0
-            ? `${unassigned} of them have no tech assigned yet.`
-            : "Every open job has a tech on it."
-        }
+        caption="Open jobs"
         facts={[
-          {
-            label: newLeadCount === 1 ? "new lead" : "new leads",
-            value: newLeadCount,
-            live: newLeadCount > 0,
-          },
-          { label: "completed", value: stageCounts.completed ?? 0 },
+          { label: "Unassigned", value: unassigned, live: unassigned > 0 },
+          { label: "New leads", value: newLeadCount, live: newLeadCount > 0 },
         ]}
         action={
           unassigned > 0 ? (
@@ -223,27 +218,26 @@ export default function JobsPage() {
               }
             />
           ) : (
-            <ul className="os-lead-rail">
-              {filtered.map((job) => (
-                <li key={job.id}>
-                  <JobCard
-                    id={job.id}
-                    title={job.title}
-                    status={job.status}
-                    scheduledAt={job.scheduledAt}
-                    address={job.address}
-                    urgency={job.urgency}
-                    customerName={job.customer?.name ?? job.lead?.name}
-                    phone={job.customer?.phone ?? job.lead?.phone}
-                    technicianName={job.technician?.name}
-                  />
-                </li>
-              ))}
-            </ul>
+            <>
+            <JobTable
+              rows={filtered.map(({ job, facts }) => ({
+                id: job.id,
+                title: job.title,
+                status: job.status,
+                scheduledAt: job.scheduledAt,
+                address: job.address,
+                urgency: job.urgency,
+                customerName: job.customer?.name ?? job.lead?.name,
+                phone: job.customer?.phone ?? job.lead?.phone,
+                facts,
+              }))}
+            />
+            <p className="dt-foot">
+              {filtered.length} job{filtered.length === 1 ? "" : "s"}
+              {stageValue ? ` · ${stageValue} total` : ""}
+            </p>
+            </>
           )}
-          {jobs.length ? (
-            <ProListEnd count={jobs.length} noun="job" />
-          ) : null}
         </>
       )}
       </PlanUpgradeGate>

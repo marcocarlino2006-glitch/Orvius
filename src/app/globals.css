@@ -39,7 +39,7 @@
   --spectral: #f1f1f1;
 
   /* Ink — graphite (near Cursor warm-black, cooler for trades) */
-  --void: #120f09;
+  --void: #0c0d0f;
   --void-deep: #000000;
   --panel: #191611;
   --mist: #e2e2e2;
@@ -605,6 +605,40 @@ h3 {
   font-weight: 600;
 }
 
+.legal-prose .status-list {
+  list-style: none;
+  margin-left: 0;
+}
+
+.status-row {
+  display: grid;
+  grid-template-columns: 0.75rem 7rem 1fr;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.status-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--ash);
+}
+
+.status-row[data-state="operational"] .status-dot { background: #1f9d55; }
+.status-row[data-state="degraded"] .status-dot { background: #d69e2e; }
+.status-row[data-state="outage"] .status-dot { background: #e53e3e; }
+
+@media (max-width: 560px) {
+  .status-row {
+    grid-template-columns: 0.75rem 1fr;
+  }
+  .status-row > span:last-child {
+    grid-column: 2;
+  }
+}
+
 /* Editorial homepage — Claude / Anthropic restraint */
 .editorial-wrap {
   width: 100%;
@@ -896,8 +930,7 @@ h3 {
   flex-shrink: 0;
 }
 
-.os-sidebar-pro .pro-live-dot,
-.os-topbar-live .pro-live-dot {
+.os-sidebar-pro .pro-live-dot {
   animation: cinema-ring 1.4s ease-out infinite;
 }
 
@@ -1038,10 +1071,6 @@ h3 {
   font-weight: 700;
   color: var(--void);
   letter-spacing: -0.02em;
-}
-
-.billing-unblock-steps li + li {
-  margin-top: 0.35rem;
 }
 
 .tier1-strategy-list {
@@ -2598,8 +2627,7 @@ h3 {
   margin: 0 auto;
 }
 
-.public-money-shop,
-.tech-field-shop {
+.public-money-shop {
   margin: 0 0 0.5rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -2608,8 +2636,7 @@ h3 {
   color: color-mix(in srgb, #c4783a 90%, #fff);
 }
 
-.public-money-title,
-.tech-field-title {
+.public-money-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: clamp(1.75rem, 5vw, 2.25rem);
@@ -2627,82 +2654,7 @@ h3 {
 .public-money-meta,
 .public-money-notes,
 .public-money-status,
-.public-money-muted,
-.tech-field-muted,
-.tech-field-status {
-  margin: 0.5rem 0 0;
-  color: color-mix(in srgb, #ececec 70%, transparent);
-  font-size: 0.9375rem;
-  line-height: 1.5;
-}
-
-.public-money-actions,
-.tech-field-advance {
-  margin-top: 1.75rem;
-  display: grid;
-  gap: 0.75rem;
-}
-
-.public-money-error,
-.tech-field-error,
-.approve-queue-error,
-.job-money-error,
-.panel-action-error {
-  color: #f97066;
-}
-
-.public-money-ok,
-.tech-field-ok {
-  color: #6ee7b7;
-  font-weight: 600;
-}
-
-.public-money-fine {
-  margin-top: 2rem;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  color: color-mix(in srgb, #ececec 45%, transparent);
-}
-
-/* Approve-first queue on Command */
-
-.public-money,
-.tech-field {
-  color: #f6f6f6;
-}
-
-.public-money-shop,
-.tech-field-shop {
-  margin: 0 0 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, #c4783a 90%, #fff);
-}
-
-.public-money-title,
-.tech-field-title {
-  margin: 0;
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.public-money-amount {
-  margin: 1.25rem 0 0;
-  font-size: 2rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.public-money-meta,
-.public-money-notes,
-.public-money-status,
-.public-money-muted,
-.tech-field-muted,
-.tech-field-status {
+.public-money-muted {
   margin: 0.5rem 0 0;
   color: color-mix(in srgb, #ececec 70%, transparent);
   font-size: 0.9375rem;
@@ -2716,12 +2668,75 @@ h3 {
 }
 
 .public-money-error,
-.tech-field-error {
+.approve-queue-error,
+.job-money-error,
+.panel-action-error {
   color: #f97066;
 }
 
-.public-money-ok,
-.tech-field-ok {
+.public-money-ok {
+  color: #6ee7b7;
+  font-weight: 600;
+}
+
+.public-money-fine {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, #ececec 45%, transparent);
+}
+
+/* Approve-first queue on Command */
+
+.public-money {
+  color: #f6f6f6;
+}
+
+.public-money-shop {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #c4783a 90%, #fff);
+}
+
+.public-money-title {
+  margin: 0;
+  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.public-money-amount {
+  margin: 1.25rem 0 0;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.public-money-meta,
+.public-money-notes,
+.public-money-status,
+.public-money-muted {
+  margin: 0.5rem 0 0;
+  color: color-mix(in srgb, #ececec 70%, transparent);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.public-money-actions {
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.public-money-error {
+  color: #f97066;
+}
+
+.public-money-ok {
   color: #6ee7b7;
   font-weight: 600;
 }
@@ -3316,14 +3331,12 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .pro-panel,
 .os-shell-pro .attention-queue,
 .os-shell-pro .shop-outcomes,
-.os-shell-pro .dispatch-col,
 .os-shell-pro .lead-inbox-card,
 .os-shell-pro .job-card,
 .os-shell-pro .customer-record-card,
 .os-shell-pro .pro-signal-bar,
 .os-shell-pro .post-lock-strip,
 .os-shell-pro .post-lock-banner,
-.os-shell-pro .billing-unblock,
 .os-shell-pro .live-status-bar {
   border-radius: var(--os-radius) !important;
   border: 1px solid var(--os-line) !important;
@@ -3334,8 +3347,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-pro .lead-inbox-card:hover,
 .os-shell-pro .job-card:hover,
-.os-shell-pro .customer-record-card:hover,
-.os-shell-pro .dispatch-job-chip:hover {
+.os-shell-pro .customer-record-card:hover {
   transform: none !important;
   box-shadow: none !important;
   border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
@@ -3632,7 +3644,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .tier1-hero {
   padding-top: clamp(6.5rem, 14vh, 8.5rem);
   background:
-    radial-gradient(ellipse 70% 45% at 80% 0%, color-mix(in srgb, #4b4945 16%, transparent), transparent 58%),
+    radial-gradient(ellipse 70% 45% at 80% 0%, color-mix(in srgb, #2a2e35 16%, transparent), transparent 58%),
     #0a0701 !important;
 }
 
@@ -3965,7 +3977,6 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .call-record-card,
 .os-shell-pro .approve-queue,
 .os-shell-pro .approve-queue-item,
-.os-shell-pro .pro-dispatch-today,
 .os-shell-pro .account-billing-plan,
 .os-shell-pro .pro-economics-panel,
 .os-shell-pro .owner-alert-card,
@@ -3980,16 +3991,10 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-pro .call-record-card:hover,
-.os-shell-pro .approve-queue-item:hover,
-.os-shell-pro .dispatch-job-chip:hover {
+.os-shell-pro .approve-queue-item:hover {
   transform: none !important;
   box-shadow: none !important;
   border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
-}
-
-.os-shell-pro .dispatch-col-unassigned {
-  background: var(--os-panel) !important;
-  background-image: none !important;
 }
 
 .os-shell-pro .pro-filter-bar .btn-void {
@@ -4026,7 +4031,6 @@ label:has(> input[type="radio"]) {
 .os-shell-night .pro-panel,
 .os-shell-night .attention-queue,
 .os-shell-night .shop-outcomes,
-.os-shell-night .dispatch-col,
 .os-shell-night .lead-inbox-card,
 .os-shell-night .job-card,
 .os-shell-night .customer-record-card,
@@ -4034,11 +4038,9 @@ label:has(> input[type="radio"]) {
 .os-shell-night .pro-signal-bar,
 .os-shell-night .post-lock-strip,
 .os-shell-night .post-lock-banner,
-.os-shell-night .billing-unblock,
 .os-shell-night .live-status-bar,
 .os-shell-night .approve-queue,
 .os-shell-night .approve-queue-item,
-.os-shell-night .pro-dispatch-today,
 .os-shell-night .account-billing-plan,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .owner-alert-card,
@@ -4126,21 +4128,6 @@ label:has(> input[type="radio"]) {
   padding: 0.65rem 0.75rem !important;
 }
 
-/*
-  Brand copper and flare are picked to sit on paper, and on the shell's panel
-  at rgb(47,45,40) they land at 4.44:1 and 3.68:1 — both under AA, on the two
-  bits of the board that exist to be noticed. Lifted just far enough to clear
-  it: 5.1:1 for the unassigned count, 5.0:1 for an emergency, the latter being
-  the same red the rest of the night shell already uses for this reason.
-*/
-.os-shell-night .pro-dispatch-today-unassigned-badge {
-  color: #e0855a !important;
-}
-
-.os-shell-night .pro-dispatch-today-status-emergency {
-  color: #f87171 !important;
-}
-
 
 
 
@@ -4185,7 +4172,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .pro-stat {
   border-radius: 0.125rem !important;
-  background: #292722 !important;
+  background: #17191d !important;
 }
 
 .os-shell-night .pro-stat.is-active {
@@ -4227,7 +4214,6 @@ label:has(> input[type="radio"]) {
 
 /* Cursor rail list */
 
-.os-shell-night .lead-rail-actions .btn,
 .os-shell-night .lead-quick-actions .btn,
 .os-shell-night .lead-quick-actions a {
   border-radius: 0.25rem !important;
@@ -4238,11 +4224,10 @@ label:has(> input[type="radio"]) {
   text-transform: uppercase !important;
   background: transparent !important;
   color: #e9e9e9 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid #2a2e35 !important;
   box-shadow: none !important;
 }
 
-.os-shell-night .lead-rail-actions .btn-void,
 .os-shell-night .lead-quick-actions .btn-void {
   background: #e9e9e9 !important;
   color: #000 !important;
@@ -4254,13 +4239,11 @@ label:has(> input[type="radio"]) {
 /* Panels / stats — Grok surfaces */
 .os-shell-night .pro-stat,
 .os-shell-night .pro-panel,
-.os-shell-night .os-shell-night .dispatch-col,
 .os-shell-night .approve-queue,
-.os-shell-night .pro-dispatch-today,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .account-billing-plan {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   color: #e9e9e9 !important;
@@ -4277,14 +4260,14 @@ label:has(> input[type="radio"]) {
 .os-shell-night .btn {
   background: transparent !important;
   color: #e9e9e9 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
 }
 
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn {
   background: transparent !important;
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
   border: 1px solid transparent !important;
   border-radius: 0.25rem !important;
 }
@@ -4303,9 +4286,9 @@ label:has(> input[type="radio"]) {
 .os-shell-night .status-pill-muted,
 .os-shell-night .status-pill-flare {
   background: transparent !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.125rem !important;
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
   font-size: 0.625rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -4314,7 +4297,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .status-pill-flare {
   color: #f87171 !important;
-  border-color: color-mix(in srgb, #f87171 45%, #4b4945) !important;
+  border-color: color-mix(in srgb, #f87171 45%, #2a2e35) !important;
 }
 
 .os-shell-night .pro-page-filters {
@@ -4324,12 +4307,12 @@ label:has(> input[type="radio"]) {
 
 /* Marketing void → Grok true black */
 .mkt-page {
-  background: #27241f !important;
+  background: #16181b !important;
 }
 
 .mkt-footer--institution {
-  background: #27241f !important;
-  border-top-color: #4b4945 !important;
+  background: #16181b !important;
+  border-top-color: #2a2e35 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4343,7 +4326,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .pro-stat {
   border-top: none !important;
   border-radius: 0.125rem !important;
-  background: #2f2d28 !important;
+  background: #1a1c20 !important;
 }
 
 .os-shell-night .pro-stat::before {
@@ -4352,48 +4335,33 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .pro-stat.is-active,
 .os-shell-night .pro-stat[data-highlight="true"] {
-  border-color: #4b4945 !important;
+  border-color: #2a2e35 !important;
   border-left: 2px solid #e9e9e9 !important;
-  background: #3f3d39 !important;
+  background: #25282e !important;
   box-shadow: none !important;
 }
 
 /* Kill copper top accents on stats forever */
 .os-shell-night .pro-stat {
-  border-top-color: #4b4945 !important;
+  border-top-color: #2a2e35 !important;
   background-image: none !important;
 }
 
-.os-shell-night .account-grid,
 .os-shell-night .account-billing-plan {
   gap: 0.65rem !important;
 }
 
 /* Marketing: kill leftover white mastery cards if any */
 .mkt-page .tier1-plan {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   color: #e9e9e9 !important;
   box-shadow: none !important;
 }
 
-/* KEEP WORKING wave 2 — denser rails + instrument panels */
-
-.os-shell-night .account-grid {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 0.5rem !important;
-}
-
-@media (min-width: 960px) {
-  .os-shell-night .account-grid {
-    grid-template-columns: 1fr 1fr !important;
-  }
-}
-
 .os-shell-night .capture-setup-panel {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
   padding: 0.75rem !important;
   box-shadow: none !important;
@@ -4402,16 +4370,16 @@ label:has(> input[type="radio"]) {
 .os-shell-night .cookie-consent,
 .cookie-consent {
   border-radius: 0.25rem !important;
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
 }
 
 .os-shell-night .post-lock-banner,
 .os-shell-night .post-lock-strip {
   padding: 0.5rem 0.7rem !important;
   border-radius: 0.25rem !important;
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   border-left: 2px solid #e9e9e9 !important;
 }
 
@@ -4446,46 +4414,6 @@ label:has(> input[type="radio"]) {
   background-color: var(--os-panel-raised) !important;
 }
 
-/* Billing instrument unblock */
-.billing-unblock--instrument,
-.os-shell-night .billing-unblock {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
-  border-left: 2px solid #e9e9e9 !important;
-  border-radius: 0.25rem !important;
-  padding: 0.7rem 0.75rem !important;
-  box-shadow: none !important;
-}
-
-.os-shell-night .billing-unblock-title,
-.billing-unblock--instrument .billing-unblock-title {
-  margin: 0.25rem 0 0.55rem !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  color: #e9e9e9 !important;
-}
-
-.os-shell-night .billing-unblock-steps,
-.billing-unblock--instrument .billing-unblock-steps {
-  margin: 0;
-  padding-left: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: #a09f9e;
-}
-
-.billing-unblock-foot code {
-  font-size: 0.625rem;
-  padding: 0.05rem 0.25rem;
-  border: 1px solid #4b4945;
-  border-radius: 0.125rem;
-  margin-right: 0.25rem;
-  color: #e9e9e9;
-}
-
 .os-shell-night .account-billing-plan {
   padding: 0.65rem !important;
   display: flex;
@@ -4516,7 +4444,7 @@ label:has(> input[type="radio"]) {
 .onboarding-shell--night .btn-ghost {
   background: transparent !important;
   color: #e9e9e9 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
 }
 
@@ -4527,25 +4455,17 @@ label:has(> input[type="radio"]) {
 /* Owner alert / transcript on night details */
 .os-shell-night .owner-alert-card,
 .os-shell-night .transcript-cinema {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   color: #e9e9e9 !important;
 }
 
-.os-shell-night .account-grid {
-  gap: 0.5rem !important;
-}
-
-.os-shell-night .account-stack {
-  gap: 0.5rem !important;
-}
-
 .os-shell-night .post-lock-strip,
 .os-shell-night .post-lock-banner {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: #121316 !important;
+  border: 1px solid #2a2e35 !important;
   border-left: 2px solid #767572 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
@@ -4556,7 +4476,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .post-lock-kicker {
   font-size: 0.625rem !important;
   letter-spacing: 0.14em !important;
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
 }
 
 .os-shell-night .post-lock-strip-copy,
@@ -4566,8 +4486,8 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-night .pro-signal-bar {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+  background: #121316 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.4rem 0.55rem !important;
@@ -4587,9 +4507,9 @@ label:has(> input[type="radio"]) {
   gap: 0 !important;
   margin-bottom: 0.65rem !important;
   padding: 0 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
-  background: #23201b !important;
+  background: #121316 !important;
   overflow-x: auto;
   overflow-y: hidden;
   width: fit-content;
@@ -4602,10 +4522,10 @@ label:has(> input[type="radio"]) {
   margin: 0 !important;
   padding: 0.4rem 0.7rem !important;
   border: 0 !important;
-  border-right: 1px solid #4b4945 !important;
+  border-right: 1px solid #2a2e35 !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
   font-size: 0.6875rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
@@ -4619,7 +4539,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .pro-filter-tab:hover {
   color: #e9e9e9 !important;
-  background: #2f2d28 !important;
+  background: #1a1c20 !important;
 }
 
 .os-shell-night .pro-filter-tab-active,
@@ -4631,8 +4551,8 @@ label:has(> input[type="radio"]) {
 
 /* Owner alert — instrument, not soft product surface */
 .owner-alert {
-  background: #2f2d28;
-  border: 1px solid #4b4945;
+  background: #1a1c20;
+  border: 1px solid #2a2e35;
   border-radius: 0.25rem;
   box-shadow: none;
   overflow: hidden;
@@ -4640,7 +4560,7 @@ label:has(> input[type="radio"]) {
 }
 
 .owner-alert--chalk {
-  background: #2f2d28;
+  background: #1a1c20;
   color: #e9e9e9;
 }
 
@@ -4654,8 +4574,8 @@ label:has(> input[type="radio"]) {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.45rem 0.65rem;
-  border-bottom: 1px solid #4b4945;
-  background: #23201b;
+  border-bottom: 1px solid #2a2e35;
+  background: #121316;
 }
 
 .owner-alert-kicker {
@@ -4667,7 +4587,7 @@ label:has(> input[type="radio"]) {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #a09f9e;
+  color: #9aa1ab;
 }
 
 .owner-alert--critical .owner-alert-kicker {
@@ -4687,7 +4607,7 @@ label:has(> input[type="radio"]) {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #a09f9e;
+  color: #9aa1ab;
 }
 
 .owner-alert-body {
@@ -4710,7 +4630,7 @@ label:has(> input[type="radio"]) {
 .owner-alert-channel {
   margin: 0.2rem 0 0;
   font-size: 0.75rem;
-  color: #a09f9e;
+  color: #9aa1ab;
 }
 
 .owner-alert-kv {
@@ -4724,9 +4644,9 @@ label:has(> input[type="radio"]) {
 .owner-alert-foot {
   margin: 0.55rem 0 0;
   padding-top: 0.45rem;
-  border-top: 1px solid #4b4945;
+  border-top: 1px solid #2a2e35;
   font-size: 0.6875rem;
-  color: #a09f9e;
+  color: #9aa1ab;
   line-height: 1.4;
 }
 
@@ -4740,7 +4660,7 @@ label:has(> input[type="radio"]) {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #a09f9e;
+  color: #9aa1ab;
 }
 
 .owner-alert-transcript .transcript-line span {
@@ -4750,8 +4670,8 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .owner-alert,
 .os-shell-night .owner-alert-card {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
@@ -4773,7 +4693,7 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
   background: transparent !important;
   color: #e9e9e9 !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid #2a2e35 !important;
 }
 
 .billing-lock-cta,
@@ -4784,10 +4704,9 @@ label:has(> input[type="radio"]) {
 
 /* Ask page densify */
 
-.os-shell-night .ask-input,
-.os-shell-night .ask-hero .input {
-  background: #23201b !important;
-  border: 1px solid #4b4945 !important;
+.os-shell-night .ask-input {
+  background: #121316 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
   color: #e9e9e9 !important;
   min-height: 2.35rem;
@@ -4848,46 +4767,18 @@ label:has(> input[type="radio"]) {
 
 /* Assign tech — instrument, not fat CTA */
 
-/* Plan upgrade gate night */
-
-/* Dispatch mastery — kill soft card air + fat assign CTAs */
-
-.os-shell-night .dispatch-job-assign,
-.os-shell-night .assign-tech-inline.dispatch-job-assign,
-.os-shell-night .dispatch-job-assign .assign-tech-btn,
-.os-shell-night .dispatch-job-assign .assign-tech-btn.font-sans {
-  width: auto !important;
-  max-width: 100%;
-  min-height: 1.75rem !important;
-  padding: 0.2rem 0.5rem !important;
-  font-size: 0.625rem !important;
-  border-radius: 0.125rem !important;
-  box-shadow: none !important;
-}
-
-.os-shell-night .dispatch-job-status .btn,
-.os-shell-night .dispatch-job-status button {
-  min-height: 1.75rem !important;
-  padding: 0.2rem 0.5rem !important;
-  font-size: 0.625rem !important;
-  border-radius: 0.125rem !important;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 700;
-}
-
 /* Transcript cinema denser instrument */
 .os-shell-night .transcript-cinema {
   border-radius: 0.25rem !important;
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .transcript-cinema-head {
   padding: 0.4rem 0.65rem !important;
-  border-bottom: 1px solid #4b4945 !important;
-  background: #23201b !important;
+  border-bottom: 1px solid #2a2e35 !important;
+  background: #121316 !important;
 }
 
 .os-shell-night .transcript-cinema-body {
@@ -4898,7 +4789,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .transcript-cinema-line {
   margin-top: 0.45rem !important;
   font-size: 0.75rem !important;
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
 }
 
 .os-shell-night .transcript-cinema-line-ai,
@@ -4908,9 +4799,9 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .transcript-cinema-foot {
   padding: 0.4rem 0.65rem !important;
-  border-top: 1px solid #4b4945 !important;
+  border-top: 1px solid #2a2e35 !important;
   font-size: 0.6875rem !important;
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
 }
 
 /* Force canvas true black everywhere in shell */
@@ -4932,17 +4823,17 @@ label:has(> input[type="radio"]) {
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid #4b4945;
+  border: 1px solid #2a2e35;
   border-radius: 0.25rem;
   overflow: hidden;
-  background: #23201b;
+  background: #121316;
 }
 
 .os-shell-night .customer-timeline-item {
   display: block;
   margin: 0;
   padding: 0;
-  border-bottom: 1px solid #4b4945;
+  border-bottom: 1px solid #2a2e35;
 }
 
 .os-shell-night .customer-timeline-item:last-child {
@@ -4968,7 +4859,7 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-night .customer-timeline-card .text-ash {
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
 }
 
 .os-shell-night .customer-timeline-link {
@@ -4986,8 +4877,8 @@ label:has(> input[type="radio"]) {
 .mkt-page .call-demo-void,
 .mkt-page .call-demo-section {
   border-radius: 0.25rem !important;
-  border: 1px solid #4b4945 !important;
-  background: #2f2d28 !important;
+  border: 1px solid #2a2e35 !important;
+  background: #1a1c20 !important;
   box-shadow: none !important;
   padding: 0.85rem 0.95rem !important;
   gap: 0.6rem !important;
@@ -5002,15 +4893,15 @@ label:has(> input[type="radio"]) {
 
 /* Marketing pro-panel (demo simulate) → dark head, X palette, no cream */
 .mkt-page .pro-panel {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
 .mkt-page .pro-panel-head {
   
-  border-bottom: 1px solid #4b4945 !important;
+  border-bottom: 1px solid #2a2e35 !important;
   padding: 0.65rem 0.9rem !important;
 }
 
@@ -5031,21 +4922,10 @@ label:has(> input[type="radio"]) {
 .mkt-page .pricing-wizard,
 .mkt-page .pricing-matrix-scroll,
 .mkt-page .pricing-page-controls {
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
+  background: #1a1c20 !important;
+  border: 1px solid #2a2e35 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-}
-
-/* Night OS dispatch "add to crew" toolbar → flat instrument */
-
-.os-shell-night .pro-toolbar-input,
-.os-shell-night .pro-toolbar .input {
-  border-radius: 0.25rem !important;
-  background: #2f2d28 !important;
-  border: 1px solid #4b4945 !important;
-  color: #e9e9e9 !important;
-  min-height: 1.85rem !important;
 }
 
 /* ============================================================
@@ -5588,18 +5468,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .account-settings-hint {
   font-size: 0.8125rem !important;
   line-height: 1.5 !important;
-  color: #a09f9e !important;
-}
-
-/* Secondary settings groups become real disclosure rows */
-
-.os-shell-night .pro-founder-cert-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  color: #9aa1ab !important;
 }
 
 .os-shell-night .pro-founder-cert-item {
@@ -5660,13 +5529,13 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .btn-secondary {
   background: transparent !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid #2a2e35 !important;
   color: #c7c7c7 !important;
 }
 
 .os-shell-night .btn-secondary:hover:not(:disabled) {
-  background: #3f3d39 !important;
-  border-color: #595754 !important;
+  background: #25282e !important;
+  border-color: #3a3f47 !important;
   color: #ffffff !important;
 }
 
@@ -5683,14 +5552,14 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night button.btn-secondary,
 .os-shell-night a.btn-secondary {
   background: transparent !important;
-  border: 1px solid #4b4945 !important;
+  border: 1px solid #2a2e35 !important;
   color: #c7c7c7 !important;
 }
 
 .os-shell-night button.btn-secondary:hover:not(:disabled),
 .os-shell-night a.btn-secondary:hover {
-  background: #3f3d39 !important;
-  border-color: #595754 !important;
+  background: #25282e !important;
+  border-color: #3a3f47 !important;
   color: #ffffff !important;
 }
 
@@ -5698,14 +5567,11 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* ── Mastery round 3 — one button voice across every product surface ── */
 .os-shell-night .lead-quick-actions .btn,
-.os-shell-night .lead-rail-actions .btn,
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn,
 .os-shell-night .pro-panel .btn,
-.os-shell-night .pro-settings-secondary .btn,
 .os-shell-night .capture-setup .btn,
-.os-shell-night .pro-filter-tab,
-.os-shell-night .dispatch-job-assign .assign-tech-btn {
+.os-shell-night .pro-filter-tab {
   font-size: 0.75rem !important;
   font-weight: 500 !important;
   letter-spacing: -0.002em !important;
@@ -5747,8 +5613,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* ── Mastery round 5 — numbers become numbers ── */
 .os-shell-night .shop-outcomes,
 .os-shell-night .pro-economics {
-  background: #2f2d28 !important;
-  border: 1px solid #44423e !important;
+  background: #1a1c20 !important;
+  border: 1px solid #272b31 !important;
   border-radius: 0.5rem !important;
   padding: 0.9rem !important;
 }
@@ -5767,7 +5633,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 1rem 1.5rem;
   margin: 0.85rem 0 0 !important;
   padding: 0.85rem 0 0 !important;
-  border-top: 1px solid #44423e;
+  border-top: 1px solid #272b31;
 }
 
 .os-shell-night .pro-economics-grid dt {
@@ -5794,7 +5660,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.75rem !important;
   line-height: 1.5 !important;
   text-wrap: balance;
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
 }
 
 .os-shell-night .pro-economics-actions {
@@ -5804,7 +5670,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   flex-wrap: wrap;
   margin-top: 0.9rem !important;
   padding-top: 0.85rem !important;
-  border-top: 1px solid #44423e;
+  border-top: 1px solid #272b31;
 }
 
 /* Inline assign control on the board */
@@ -5821,83 +5687,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* ── Two-column cockpit: board on the left, shop status parked on the right ── */
 
-/* Between phone and a wide desk there is no room for a second column. Keep the
-   status rail compact, but leave it after the outcome and exception board:
-   setup state must not outrank the work Orvius completed. */
-@media (min-width: 640px) and (max-width: 1279px) {
-
-  .os-shell-night .ring1-cockpit-rail .pro-rail-card {
-    padding: 0.8rem 0.9rem;
-  }
-}
-
-/* ── Rail cards ── */
-.os-shell-night .pro-rail-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  padding: 0.85rem 0.9rem 0.9rem;
-  border: 1px solid #44423e;
-  border-radius: 0.5rem;
-  background: #2f2d28;
-}
-
-.os-shell-night .pro-rail-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-}
-
-.os-shell-night .pro-rail-card-title {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: #f4f4f4;
-}
-
-.os-shell-night .pro-rail-status {
-  padding: 0.1rem 0.4rem;
-  border-radius: 0.25rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-}
-
-.os-shell-night .pro-rail-status-healthy {
-  background: color-mix(in srgb, #00ba7c 18%, transparent);
-  color: #4fd6a8;
-}
-
-.os-shell-night .pro-rail-status-attention {
-  background: color-mix(in srgb, #d8a15a 20%, transparent);
-  color: #e0b782;
-}
-
-.os-shell-night .pro-rail-status-critical {
-  background: color-mix(in srgb, #f4212e 20%, transparent);
-  color: #ff8a90;
-}
-
-.os-shell-night .pro-rail-card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding-top: 0.55rem;
-  border-top: 1px solid #3d3a36;
-  font-size: 0.6875rem;
-  color: #adadac;
-}
-
-.os-shell-night .pro-rail-card .pro-section-link {
-  font-size: 0.6875rem;
-  white-space: nowrap;
-}
-
 /* ── Setup score ── */
 
 /* Gate banners sit inside the rail now, so they drop their page-width padding. */
@@ -5907,12 +5696,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* ── Rail badge for jobs with no tech ── */
 
 /* ── Command palette ── */
-
-/* ── Night watch rail card ── */
-.os-shell-night .pro-rail-status-night {
-  background: color-mix(in srgb, #6f8dff 22%, transparent);
-  color: #a7b8ff;
-}
 
 /* Stale-proof notice: a solid amber on charcoal instead of translucent ink on
    a red wash, which fell under 2:1 once the canvas lifted. */
@@ -5964,22 +5747,12 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* Scoped through .os-shell to outrank the shell's own !important Archivo rules. */
 .os-shell .os-sidebar-label,
-.os-shell .attention-queue-kicker,
-.os-shell .attention-item-kindlabel,
 .os-shell .pay-prompt-kicker,
 .os-shell .type-eyebrow,
-.os-shell .pro-rail-status,
 .os-shell .os-nav-badge {
   font-family: var(--font-mono), ui-monospace, monospace !important;
   font-weight: 500 !important;
   letter-spacing: 0.12em !important;
-}
-
-/* Times, counts, and money are data — never prose. */
-.os-shell .pro-dispatch-today-time,
-.os-shell .attention-item-age {
-  font-family: var(--font-mono), ui-monospace, monospace !important;
-  font-variant-numeric: tabular-nums;
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -6009,11 +5782,10 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   to separate them; boxing them made the page four identical rectangles deep
   and buried the one rectangle that mattered.
 */
-.os-shell-night .pro-economics,
-.os-shell-night .pro-dispatch-today {
+.os-shell-night .pro-economics {
   background: transparent !important;
   border: 0 !important;
-  border-top: 1px solid #2e2c26 !important;
+  border-top: 1px solid #1a1c20 !important;
   border-radius: 0 !important;
   padding: 1.15rem 0 0 !important;
   box-shadow: none !important;
@@ -6023,8 +5795,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   The heading of a tier-two section, marked by a short brand rule rather than
   another tiny grey eyebrow. There were ten of those on this page.
 */
-.os-shell-night .pro-economics-title,
-.os-shell-night .pro-dispatch-today-kicker {
+.os-shell-night .pro-economics-title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -6036,8 +5807,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   color: #f4f4f4 !important;
 }
 
-.os-shell-night .pro-economics-title::before,
-.os-shell-night .pro-dispatch-today-kicker::before {
+.os-shell-night .pro-economics-title::before {
   content: "";
   width: 0.1875rem;
   height: 0.875rem;
@@ -6081,7 +5851,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-economics-funnel dt {
   order: 2;
   font-size: 0.6875rem;
-  color: #a09f9e;
+  color: #9aa1ab;
 }
 
 .os-shell-night .pro-economics-funnel dd {
@@ -6103,7 +5873,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.3rem;
   font-size: 0.6875rem;
   line-height: 1.45;
-  color: #a09f9e;
+  color: #9aa1ab;
 }
 
 .os-shell-night .pro-economics-notes strong {
@@ -6129,7 +5899,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 400 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
-  color: #a09f9e !important;
+  color: #9aa1ab !important;
 }
 
 /* Founder next-gate — operate O1: impossible to miss */
@@ -6150,91 +5920,5 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
     width: 100%;
     justify-content: center;
     min-height: 44px;
-  }
-}
-
-/* Call → cash — one pulse chain (Stripe-quiet), not a card grid */
-
-.pro-command-pulse {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.35rem 0;
-  margin: 0 0 1rem;
-  padding: 0.85rem 0 0;
-  list-style: none;
-  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
-}
-
-.pro-command-pulse-step {
-  display: flex;
-  align-items: flex-start;
-  min-width: 0;
-}
-
-.pro-command-pulse-sep {
-  display: inline-flex;
-  align-items: center;
-  margin: 1.55rem 0.55rem 0;
-  opacity: 0.4;
-  font-size: 0.75rem;
-}
-
-.pro-command-pulse-body {
-  min-width: 4.5rem;
-}
-
-.pro-command-pulse-label {
-  margin: 0;
-  font-size: 0.6875rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-weight: 400;
-  opacity: 0.62;
-}
-
-.pro-command-pulse-value {
-  margin: 0.3rem 0 0;
-  font-size: 1.5rem;
-  font-weight: 400;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-
-.pro-command-pulse-hint {
-  margin: 0.25rem 0 0;
-  max-width: 12rem;
-  font-size: 0.625rem;
-  line-height: 1.35;
-  font-weight: 400;
-  opacity: 0.55;
-}
-
-.pro-command-pulse-meta {
-  margin: 0 0 0.85rem;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  opacity: 0.72;
-}
-
-.pro-command-pulse-meta strong {
-  font-weight: 500;
-  opacity: 1;
-}
-
-@media (max-width: 900px) {
-  .pro-command-pulse {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem 1rem;
-  }
-
-  .pro-command-pulse-step {
-    display: block;
-  }
-
-  .pro-command-pulse-sep {
-    display: none;
   }
 }

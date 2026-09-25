@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { JOB_OUTCOMES, jobOutcomeLabel } from "@/lib/job-outcome";
+import { isEmergency, notableUrgency } from "@/lib/urgency";
+import "@/app/public-field.css";
 
 type TechJob = {
   title: string;
@@ -23,12 +25,39 @@ type TechJob = {
 
 const ADVANCES: Record<string, { label: string; status: string } | null> = {
   scheduled: { label: "Confirm job", status: "confirmed" },
-  confirmed: { label: "En route", status: "en_route" },
-  en_route: { label: "On site", status: "on_site" },
+  confirmed: { label: "Heading there", status: "en_route" },
+  en_route: { label: "I'm on site", status: "on_site" },
   on_site: { label: "Complete job", status: "completed" },
   completed: null,
   cancelled: null,
 };
+
+const STATUS_LABEL: Record<string, string> = {
+  scheduled: "Scheduled",
+  confirmed: "Confirmed",
+  en_route: "On the way",
+  on_site: "On site",
+  completed: "Complete",
+  cancelled: "Cancelled",
+};
+
+function phoneLabel(phone: string) {
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 11 && d.startsWith("1")) return `(${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  return phone;
+}
+
+function whenLabel(iso: string | null) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  const today = new Date();
+  const tomorrow = new Date(today.getTime() + 86_400_000);
+  const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  if (d.toDateString() === today.toDateString()) return `Today · ${time}`;
+  if (d.toDateString() === tomorrow.toDateString()) return `Tomorrow · ${time}`;
+  return `${d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · ${time}`;
+}
 
 export function TechFieldClient({ token }: { token: string }) {
   const [job, setJob] = useState<TechJob | null>(null);
@@ -36,6 +65,7 @@ export function TechFieldClient({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [etaText, setEtaText] = useState("");
+  const [etaSaved, setEtaSaved] = useState(false);
   const [resolutionCode, setResolutionCode] = useState("");
   const [resolutionSummary, setResolutionSummary] = useState("");
   const [finalAmount, setFinalAmount] = useState("");
@@ -49,11 +79,7 @@ export function TechFieldClient({ token }: { token: string }) {
       setEtaText(data.job.etaText ?? "");
       setResolutionCode(data.job.resolutionCode ?? "");
       setResolutionSummary(data.job.resolutionSummary ?? "");
-      setFinalAmount(
-        data.job.finalAmountCents != null
-          ? String(data.job.finalAmountCents / 100)
-          : "",
-      );
+      setFinalAmount(data.job.finalAmountCents != null ? String(data.job.finalAmountCents / 100) : "");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Job not found");
     } finally {
@@ -78,26 +104,36 @@ export function TechFieldClient({ token }: { token: string }) {
       if (!res.ok) throw new Error(data.error ?? "Update failed");
       setJob(data.job);
       if (data.job?.etaText != null) setEtaText(data.job.etaText);
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
+      return false;
     } finally {
       setBusy(false);
     }
   }
 
   if (loading) {
-    return <p className="tech-field-muted font-sans">Loading job…</p>;
+    return (
+      <main className="pf">
+        <p className="pf-muted">Loading job…</p>
+      </main>
+    );
   }
 
   if (!job) {
     return (
-      <p className="tech-field-error font-sans">
-        {error ?? "This field link is invalid or expired."}
-      </p>
+      <main className="pf">
+        <h1 className="pf-title">Link not valid</h1>
+        <p className="pf-muted">{error ?? "This job link is invalid or expired. Ask the office to resend it."}</p>
+      </main>
     );
   }
 
   const next = ADVANCES[job.status] ?? null;
+  const emergency = isEmergency(job.urgency);
+  const urgency = notableUrgency(job.urgency);
+  const when = whenLabel(job.scheduledAt);
 
   function completeWithOutcome() {
     if (!resolutionCode) {
@@ -105,10 +141,7 @@ export function TechFieldClient({ token }: { token: string }) {
       return;
     }
     const dollars = finalAmount.trim() ? Number(finalAmount) : null;
-    if (
-      dollars != null &&
-      (!Number.isFinite(dollars) || dollars < 0 || dollars > 50_000)
-    ) {
+    if (dollars != null && (!Number.isFinite(dollars) || dollars < 0 || dollars > 50_000)) {
       setError("Final amount must be between $0 and $50,000.");
       return;
     }
@@ -116,163 +149,199 @@ export function TechFieldClient({ token }: { token: string }) {
       status: "completed",
       resolutionCode,
       resolutionSummary,
-      finalAmountCents:
-        dollars == null ? null : Math.round(dollars * 100),
+      finalAmountCents: dollars == null ? null : Math.round(dollars * 100),
     });
   }
 
   return (
-    <div className="tech-field font-sans">
-      <p className="tech-field-shop">{job.shopName}</p>
-      <h1 className="tech-field-title">{job.title}</h1>
-      <p className="tech-field-status">Status · {job.status.replace(/_/g, " ")}</p>
+    <main className="pf">
+      <header className="pf-head">
+        <p className="pf-kicker">{job.shopName}</p>
+        <h1 className="pf-title">{job.title}</h1>
+        <p className="pf-sub pf-meta">
+          <span className={`pf-pill${emergency ? " is-risk" : job.status === "completed" ? " is-done" : ""}`}>
+            {emergency ? "Emergency" : STATUS_LABEL[job.status] ?? job.status}
+          </span>
+          {[when, urgency].filter(Boolean).join(" · ")}
+        </p>
+      </header>
 
-      <dl className="tech-field-meta">
+      {job.customerPhone || job.address ? (
+        <div className="pf-actions">
+          {job.customerPhone ? (
+            <a className="pf-action" href={`tel:${job.customerPhone}`}>
+              <span className="pf-action-label">Call</span>
+              <span className="pf-action-detail">{job.customerName ?? phoneLabel(job.customerPhone)}</span>
+            </a>
+          ) : null}
+          {job.address ? (
+            <a
+              className="pf-action"
+              href={`https://maps.google.com/?q=${encodeURIComponent(job.address)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span className="pf-action-label">Directions</span>
+              <span className="pf-action-detail">{job.address.split(",")[0]}</span>
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+
+      <dl className="pf-card">
         {job.customerName ? (
-          <div>
+          <div className="pf-row">
             <dt>Customer</dt>
             <dd>{job.customerName}</dd>
           </div>
         ) : null}
         {job.customerPhone ? (
-          <div>
+          <div className="pf-row">
             <dt>Phone</dt>
             <dd>
-              <a href={`tel:${job.customerPhone}`}>{job.customerPhone}</a>
+              <a href={`tel:${job.customerPhone}`}>{phoneLabel(job.customerPhone)}</a>
             </dd>
           </div>
         ) : null}
         {job.address ? (
-          <div>
+          <div className="pf-row">
             <dt>Address</dt>
-            <dd>
-              <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(job.address)}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {job.address}
-              </a>
-            </dd>
+            <dd>{job.address}</dd>
           </div>
         ) : null}
-        {job.urgency ? (
-          <div>
-            <dt>Urgency</dt>
-            <dd>{job.urgency}</dd>
+        {job.serviceType && job.serviceType !== job.title ? (
+          <div className="pf-row">
+            <dt>Request</dt>
+            <dd>{job.serviceType}</dd>
           </div>
         ) : null}
         {job.notes ? (
-          <div>
+          <div className="pf-row">
             <dt>Notes</dt>
             <dd>{job.notes}</dd>
           </div>
         ) : null}
       </dl>
 
-      {error ? <p className="tech-field-error">{error}</p> : null}
-
       {job.status === "confirmed" || job.status === "en_route" ? (
-        <label className="tech-field-eta">
-          <span>ETA</span>
-          <input
-            value={etaText}
-            onChange={(e) => setEtaText(e.target.value)}
-            placeholder="e.g. 20 min"
-            disabled={busy}
-          />
-          <button
-            type="button"
-            className="btn btn-secondary text-sm"
-            disabled={busy}
-            onClick={() => void patch({ etaText })}
-          >
-            Save ETA
-          </button>
-        </label>
+        <form
+          className="pf-card pf-eta"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setEtaSaved(false);
+            void patch({ etaText }).then((ok) => setEtaSaved(ok));
+          }}
+        >
+          <label className="pf-label" htmlFor="pf-eta">
+            Arrival time for the customer
+          </label>
+          <div className="pf-inline">
+            <input
+              id="pf-eta"
+              className="pf-input"
+              value={etaText}
+              onChange={(e) => {
+                setEtaText(e.target.value);
+                setEtaSaved(false);
+              }}
+              placeholder="e.g. 20 min"
+              disabled={busy}
+            />
+            <button type="submit" className="pf-btn" disabled={busy || !etaText.trim()}>
+              {etaSaved ? "Saved" : "Save"}
+            </button>
+          </div>
+        </form>
+      ) : null}
+
+      {error ? (
+        <p className="pf-error" role="alert">
+          {error}
+        </p>
       ) : null}
 
       {job.status === "on_site" ? (
-        <section className="tech-field-outcome" aria-labelledby="job-outcome-title">
-          <h2 id="job-outcome-title">Close the loop</h2>
-          <p className="tech-field-muted">
-            One outcome makes future quoting and diagnosis more accurate.
-          </p>
-          <label>
-            <span>What happened?</span>
-            <select
-              value={resolutionCode}
-              onChange={(event) => setResolutionCode(event.target.value)}
-              disabled={busy}
-            >
-              <option value="">Choose one</option>
-              {JOB_OUTCOMES.map((outcome) => (
-                <option key={outcome.code} value={outcome.code}>
-                  {outcome.label}
-                </option>
-              ))}
-            </select>
+        <section className="pf-card pf-outcome" aria-labelledby="pf-outcome-title">
+          <h2 id="pf-outcome-title" className="pf-h2">
+            Close out the job
+          </h2>
+          <label className="pf-label" htmlFor="pf-outcome">
+            What happened?
           </label>
-          <label>
-            <span>What fixed it? <em>Optional</em></span>
-            <textarea
-              value={resolutionSummary}
-              onChange={(event) => setResolutionSummary(event.target.value)}
-              placeholder="e.g. Replaced failed 45/5 capacitor"
-              maxLength={500}
-              rows={3}
+          <select
+            id="pf-outcome"
+            className="pf-input"
+            value={resolutionCode}
+            onChange={(event) => setResolutionCode(event.target.value)}
+            disabled={busy}
+          >
+            <option value="">Choose one</option>
+            {JOB_OUTCOMES.map((outcome) => (
+              <option key={outcome.code} value={outcome.code}>
+                {outcome.label}
+              </option>
+            ))}
+          </select>
+          <label className="pf-label" htmlFor="pf-summary">
+            What fixed it? <em>Optional</em>
+          </label>
+          <textarea
+            id="pf-summary"
+            className="pf-input"
+            value={resolutionSummary}
+            onChange={(event) => setResolutionSummary(event.target.value)}
+            placeholder="e.g. Replaced failed 45/5 capacitor"
+            maxLength={500}
+            rows={3}
+            disabled={busy}
+          />
+          <label className="pf-label" htmlFor="pf-amount">
+            Final amount <em>Optional</em>
+          </label>
+          <div className="pf-money">
+            <span aria-hidden>$</span>
+            <input
+              id="pf-amount"
+              className="pf-input"
+              type="number"
+              min="0"
+              max="50000"
+              step="0.01"
+              inputMode="decimal"
+              value={finalAmount}
+              onChange={(event) => setFinalAmount(event.target.value)}
+              placeholder="0.00"
               disabled={busy}
             />
-          </label>
-          <label>
-            <span>Final amount <em>Optional</em></span>
-            <div className="tech-field-money">
-              <span aria-hidden>$</span>
-              <input
-                type="number"
-                min="0"
-                max="50000"
-                step="0.01"
-                inputMode="decimal"
-                value={finalAmount}
-                onChange={(event) => setFinalAmount(event.target.value)}
-                placeholder="0.00"
-                disabled={busy}
-              />
-            </div>
-          </label>
-          <button
-            type="button"
-            className="btn btn-void tech-field-advance"
-            disabled={busy}
-            onClick={completeWithOutcome}
-          >
-            {busy ? "Completing…" : "Complete job"}
-          </button>
+          </div>
         </section>
-      ) : next ? (
-        <button
-          type="button"
-          className="btn btn-void tech-field-advance"
-          disabled={busy}
-          onClick={() => void patch({ status: next.status })}
-        >
-          {busy ? "Updating…" : next.label}
-        </button>
-      ) : job.status === "completed" ? (
-        <div className="tech-field-complete">
-          <p className="tech-field-ok">Job complete.</p>
+      ) : null}
+
+      {job.status === "completed" ? (
+        <section className="pf-card pf-done">
+          <p className="pf-h2">Job complete</p>
           {job.resolutionCode ? (
-            <p className="tech-field-muted">
+            <p className="pf-muted">
               {jobOutcomeLabel(job.resolutionCode)}
               {job.resolutionSummary ? ` · ${job.resolutionSummary}` : ""}
-              {job.finalAmountCents != null
-                ? ` · $${(job.finalAmountCents / 100).toFixed(2)}`
-                : ""}
+              {job.finalAmountCents != null ? ` · $${(job.finalAmountCents / 100).toFixed(2)}` : ""}
             </p>
           ) : null}
+        </section>
+      ) : null}
+
+      {job.status === "on_site" || next ? (
+        <div className="pf-dock">
+          <button
+            type="button"
+            className="pf-btn pf-btn--primary"
+            disabled={busy}
+            onClick={() => (job.status === "on_site" ? completeWithOutcome() : void patch({ status: next!.status }))}
+          >
+            {busy ? "Updating…" : job.status === "on_site" ? "Complete job" : next!.label}
+          </button>
         </div>
       ) : null}
-    </div>
+    </main>
   );
 }

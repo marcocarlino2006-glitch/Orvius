@@ -51,6 +51,7 @@ async function makeLead(businessId, overrides = {}) {
       serviceType: "AC repair",
       categoryCode: "hvac.no_cool",
       urgency: "this-week",
+      address: "12 Main St, Austin TX 78701",
       source: "call",
       ...overrides,
     },
@@ -130,10 +131,32 @@ test("Line books every qualified lead — urgency does not gate the front door",
     const urgent = await makeLead(shop.id, { urgency: "emergency" });
     assert.equal((await maybeAutoBookLead(urgent.id)).created, true);
 
-    const later = await makeLead(shop.id, { urgency: "this-week" });
+    const later = await makeLead(shop.id, { urgency: "this-week", phone: "+15551234568" });
     const laterResult = await maybeAutoBookLead(later.id);
     assert.equal(laterResult.created, true);
     assert.equal(laterResult.qualified, true);
+  } finally {
+    await dropShop(shop.id);
+  }
+});
+
+test("the same caller ringing back about the same problem does not get a second job", async () => {
+  const shop = await makeShop({ billingStatus: "active", billingPlan: "pro" });
+  try {
+    const first = await maybeAutoBookLead((await makeLead(shop.id)).id);
+    assert.equal(first.created, true);
+
+    const again = await maybeAutoBookLead((await makeLead(shop.id)).id);
+    assert.equal(again.created, false);
+    assert.equal(again.skipReason, "existing_job");
+    assert.equal(again.existingJob?.id, first.jobId);
+
+    const cancel = await maybeAutoBookLead(
+      (await makeLead(shop.id, { serviceType: "Wants to cancel the appointment", categoryCode: null })).id,
+    );
+    assert.equal(cancel.skipReason, "existing_job");
+    assert.equal(cancel.intent, "cancel");
+    assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 1);
   } finally {
     await dropShop(shop.id);
   }
@@ -170,6 +193,7 @@ test("the reason a lead was passed over is specific", async () => {
     const unqualified = await makeLead(shop.id, {
       serviceType: "call me back",
       categoryCode: null,
+      address: null,
     });
     assert.equal((await maybeAutoBookLead(unqualified.id)).skipReason, "unqualified");
 
@@ -219,7 +243,7 @@ test("out-of-area ZIPs stay on the board when the owner set an allowlist", async
     });
     const blocked = await maybeAutoBookLead(outside.id);
     assert.equal(blocked.created, false);
-    assert.equal(blocked.skipReason, "unqualified");
+    assert.equal(blocked.skipReason, "out_of_area");
 
     const inside = await makeLead(shop.id, {
       urgency: "this-week",
@@ -234,3 +258,17 @@ test("out-of-area ZIPs stay on the board when the owner set an allowlist", async
 });
 
 test.after(() => prisma.$disconnect());
+
+test("a recognised request without an address is real demand but is not sent to a technician", async () => {
+  const shop = await makeShop({ billingStatus: "active", billingPlan: "pro" });
+  try {
+    const lead = await makeLead(shop.id, { address: null });
+    const result = await maybeAutoBookLead(lead.id);
+    assert.equal(result.jobId, null);
+    assert.equal(result.qualified, true);
+    assert.equal(result.skipReason, "missing_address");
+    assert.equal(await prisma.job.count({ where: { leadId: lead.id } }), 0);
+  } finally {
+    await dropShop(shop.id);
+  }
+});

@@ -1,0 +1,1039 @@
+/* Home page extension: capabilities, surfaces, compare, start. Tokens only, so day and night both work. */
+
+.ov-public .hx-section {
+  padding-block: clamp(4.5rem, 9vw, 7.5rem);
+  padding-inline: max(20px, 5vw);
+  background: var(--ov-paper);
+  border-top: 1px solid var(--ov-hairline);
+}
+
+.ov-public .hx-section.hx-night,
+.ov-public .hx-section.hx-surfaces,
+.ov-public .hx-section.hx-start {
+  background: var(--ov-paper-raised);
+}
+
+.ov-public .hx-head {
+  max-width: 44rem;
+  margin: 0;
+}
+
+.ov-public .hx-head--row {
+  max-width: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.ov-public .hx-title {
+  margin: 0;
+  max-width: 22ch;
+  color: var(--ov-headline);
+  font-family: var(--ov-font);
+  font-size: clamp(1.75rem, 3.2vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+}
+
+.ov-public .hx-mono {
+  font-family: var(--ov-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Capabilities ---------- */
+
+.ov-public .hx-rules-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: stretch;
+}
+
+.ov-public .hx-stage {
+  position: relative;
+  aspect-ratio: 1200 / 890;
+  border-radius: 18px;
+  border: 1px solid var(--ov-hairline-strong);
+  background: #0c0c0e;
+  box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.6);
+  overflow: hidden;
+  align-self: center;
+}
+
+.ov-public .hx-stage-shot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  transition:
+    opacity 500ms ease,
+    transform 1100ms cubic-bezier(0.25, 0.8, 0.25, 1),
+    transform-origin 1100ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.ov-public .hx-stage-shot.is-on {
+  opacity: 1;
+}
+
+.ov-public .hx-stage-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes hx-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ov-public .hx-caps-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ov-hairline);
+  align-self: center;
+}
+
+.ov-public .hx-caps-list > li {
+  position: relative;
+  border-bottom: 1px solid var(--ov-hairline);
+}
+
+.ov-public .hx-cap {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: baseline;
+  padding: 1.1rem 0;
+  cursor: pointer;
+  color: var(--ov-muted);
+  transition: color 160ms ease;
+}
+
+.ov-public .hx-cap:hover,
+.ov-public .hx-caps-list > li.is-active .hx-cap {
+  color: var(--ov-headline);
+}
+
+.ov-public .hx-cap:focus-visible {
+  outline: 2px solid var(--ov-copper);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.ov-public .hx-cap-index {
+  font-family: var(--ov-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+}
+
+.ov-public .hx-cap-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.ov-public .hx-cap-body {
+  padding: 0 0 1.25rem 2.5rem;
+}
+
+.ov-public .hx-cap-body p {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--ov-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.ov-public .hx-cap-progress {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1px;
+  width: 100%;
+  background: var(--ov-copper);
+  transform-origin: left;
+  animation: hx-progress linear forwards;
+}
+
+@keyframes hx-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.ov-public .hx-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--ov-muted);
+}
+
+.ov-public .hx-dot--live,
+.ov-public .hx-dot--good {
+  background: var(--ov-emerald-text);
+}
+
+.ov-public .hx-dot--live {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ov-emerald-text) 22%, transparent);
+}
+
+.ov-public .hx-dot--risk {
+  background: var(--ov-copper);
+}
+
+.ov-public .hx-dot--attention {
+  background: var(--ov-amber);
+}
+
+/* ---------- Surfaces carousel ---------- */
+
+.ov-public .hx-arrows {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ov-public .hx-arrows button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ov-hairline-strong);
+  background: transparent;
+  color: var(--ov-headline);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.ov-public .hx-arrows button:hover {
+  border-color: var(--ov-hairline-hover);
+  background: var(--ov-hairline);
+}
+
+.ov-public .hx-surfaces .hx-track {
+  --hx-rail: max(max(20px, 5vw), calc((100vw - 1240px) / 2));
+  display: flex;
+  gap: 20px;
+  margin: clamp(2rem, 4vw, 3rem) calc(-1 * max(20px, 5vw)) 0;
+  padding: 0 var(--hx-rail) 0.75rem;
+  scroll-padding-inline: var(--hx-rail);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  outline: none;
+}
+
+.ov-public .hx-track::-webkit-scrollbar {
+  display: none;
+}
+
+.ov-public .hx-track:focus-visible {
+  outline: 2px solid var(--ov-copper);
+  outline-offset: -2px;
+}
+
+.ov-public .hx-surface {
+  flex: 0 0 min(46rem, 86vw);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-public .hx-surface--field {
+  flex-basis: min(30rem, 86vw);
+}
+
+.ov-public .hx-surface-visual {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
+  border: 1px solid var(--ov-hairline-strong);
+  background: #0c0c0e;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -36px rgb(0 0 0 / 0.55);
+}
+
+.ov-public .hx-surface-visual > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+  transition: transform 900ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.ov-public .hx-surface:hover .hx-surface-visual > img {
+  transform: scale(1.02);
+}
+
+.ov-public .hx-surface-visual--phones {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 0;
+  aspect-ratio: auto;
+  height: calc(min(46rem, 86vw) * 10 / 16);
+  background:
+    radial-gradient(80% 70% at 50% 0%, color-mix(in srgb, var(--ov-copper) 16%, transparent), transparent 70%),
+    #0c0c0e;
+}
+
+.ov-public .hx-surface-visual--phones > img {
+  width: auto;
+  height: 118%;
+  object-fit: contain;
+  border-radius: 22px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+}
+
+.ov-public .hx-surface-visual--phones > img + img {
+  margin-top: 2.25rem;
+}
+
+.ov-public .hx-surface-label {
+  margin: 1.1rem 0 0.35rem;
+  color: var(--ov-accent-text);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.ov-public .hx-surface-title {
+  margin: 0 0 0.4rem;
+  color: var(--ov-headline);
+  font-family: var(--ov-font);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ov-public .hx-surface-body {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--ov-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* ---------- Compare ---------- */
+
+.ov-public .hx-table-wrap {
+  overflow-x: auto;
+}
+
+.ov-public .hx-table {
+  width: 100%;
+  min-width: 36rem;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.ov-public .hx-table th,
+.ov-public .hx-table td {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid var(--ov-hairline);
+  text-align: center;
+}
+
+.ov-public .hx-table th[scope="row"],
+.ov-public .hx-table thead th:first-child {
+  text-align: left;
+  padding-left: 0;
+  font-weight: 400;
+  color: var(--ov-ink);
+}
+
+.ov-public .hx-table thead th {
+  color: var(--ov-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-bottom-color: var(--ov-hairline-strong);
+}
+
+.ov-public .hx-table .is-us,
+.ov-public .hx-table td:last-child {
+  width: 22%;
+  background: color-mix(in srgb, var(--ov-copper) 7%, transparent);
+}
+
+.ov-public .hx-table thead .is-us {
+  color: var(--ov-headline);
+  font-weight: 600;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  box-shadow: inset 0 2px 0 var(--ov-copper);
+}
+
+.ov-public .hx-table-group th {
+  padding-top: 1.75rem;
+  padding-left: 0;
+  text-align: left;
+  color: var(--ov-accent-text);
+  font-size: 0.78rem;
+  font-weight: 500;
+  border-bottom-color: var(--ov-hairline-strong);
+}
+
+.ov-public .hx-table tbody:first-of-type .hx-table-group th {
+  padding-top: 1.25rem;
+}
+
+.ov-public .hx-mark {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.ov-public .hx-mark--yes {
+  color: var(--ov-emerald-text);
+}
+
+.ov-public .hx-mark--some {
+  color: var(--ov-amber);
+}
+
+.ov-public .hx-mark--no {
+  color: var(--ov-muted);
+  opacity: 0.55;
+}
+
+.ov-public .hx-footnote {
+  margin: 1.25rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.8rem;
+}
+
+/* ---------- Start grid ---------- */
+
+.ov-public .hx-start-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 1rem;
+}
+
+.ov-public .hx-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 13rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--ov-hairline);
+  background: var(--ov-paper);
+  color: var(--ov-ink);
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.ov-public .hx-card:hover {
+  border-color: var(--ov-hairline-hover);
+  transform: translateY(-2px);
+}
+
+.ov-public .hx-card:focus-visible {
+  outline: 2px solid var(--ov-copper);
+  outline-offset: 3px;
+}
+
+.ov-public .hx-card--feature {
+  grid-row: span 2;
+  justify-content: flex-end;
+  background:
+    radial-gradient(110% 80% at 0% 0%, color-mix(in srgb, var(--ov-copper) 22%, transparent), transparent 60%),
+    radial-gradient(90% 70% at 100% 100%, color-mix(in srgb, var(--ov-emerald) 20%, transparent), transparent 60%),
+    var(--ov-paper);
+}
+
+.ov-public .hx-card-kicker {
+  color: var(--ov-accent-text);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.ov-public .hx-card-title {
+  color: var(--ov-headline);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ov-public .hx-card--feature .hx-card-title {
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  letter-spacing: -0.02em;
+}
+
+.ov-public .hx-card-body {
+  color: var(--ov-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.ov-public .hx-card-cta {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  color: var(--ov-headline);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.ov-public .hx-card-number {
+  margin-top: 1rem;
+  color: var(--ov-emerald-text);
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  letter-spacing: 0.1em;
+}
+
+/* ---------- Reveal motion ---------- */
+
+html.hx-motion [data-reveal]:not([data-reveal-stagger]),
+html.hx-motion [data-reveal-stagger] > * {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 600ms ease,
+    transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--s, 0) * 60ms);
+}
+
+html.hx-motion [data-reveal].is-in:not([data-reveal-stagger]),
+html.hx-motion [data-reveal-stagger].is-in > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Why we built Orvius ---------- */
+
+.ov-public .hx-section.hx-why {
+  padding-top: clamp(3rem, 6vw, 5rem);
+}
+
+.ov-public .hx-why-panel {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.9rem;
+  min-height: min(78vh, 42rem);
+  padding: clamp(2rem, 6vw, 5rem) clamp(1.25rem, 4vw, 3rem);
+  border-radius: 24px;
+  border: 1px solid var(--ov-hairline);
+  background:
+    radial-gradient(70% 60% at 15% 10%, color-mix(in srgb, var(--ov-copper) 18%, transparent), transparent 65%),
+    radial-gradient(60% 60% at 90% 95%, color-mix(in srgb, var(--ov-emerald) 20%, transparent), transparent 65%),
+    var(--ov-paper-raised);
+  text-align: center;
+  overflow: hidden;
+}
+
+.ov-public .hx-why-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ov-hairline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ov-hairline) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 70%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.ov-public .hx-lineart {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 26rem);
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.ov-public .hx-draw {
+  stroke: var(--ov-headline);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.ov-public .hx-draw--muted {
+  stroke: var(--ov-muted);
+}
+
+.ov-public .hx-draw--lit {
+  stroke: var(--ov-copper);
+}
+
+.ov-public .hx-node {
+  fill: var(--ov-copper);
+}
+
+html.hx-motion .ov-public .hx-draw {
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1400ms cubic-bezier(0.6, 0.1, 0.2, 1) var(--d, 0ms);
+}
+
+html.hx-motion .ov-public .hx-node {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  transition:
+    opacity 300ms ease var(--d, 0ms),
+    transform 500ms cubic-bezier(0.3, 1.6, 0.5, 1) var(--d, 0ms);
+}
+
+html.hx-motion .ov-public .is-in .hx-draw {
+  stroke-dashoffset: 0;
+}
+
+html.hx-motion .ov-public .is-in .hx-node {
+  opacity: 1;
+  transform: none;
+}
+
+.ov-public .hx-why-kicker {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--ov-accent-text);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ov-public .hx-why-title {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  max-width: 16ch;
+  color: var(--ov-headline);
+  font-family: var(--ov-font);
+  font-size: clamp(2.3rem, 6vw, 4.8rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.ov-public .hx-why-title span {
+  color: var(--ov-muted);
+}
+
+.ov-public .hx-why-body {
+  max-width: 44rem;
+  margin: clamp(3rem, 8vw, 6rem) auto clamp(2rem, 5vw, 4rem);
+}
+
+.ov-public .hx-lit {
+  margin: 0;
+  color: var(--ov-headline);
+  font-family: var(--ov-font);
+  font-size: clamp(1.35rem, 2.6vw, 2.05rem);
+  font-weight: 500;
+  line-height: 1.32;
+  letter-spacing: -0.018em;
+}
+
+.ov-public .hx-lit span {
+  opacity: clamp(0.16, calc(var(--p, 1) * (var(--n) + 6) - var(--i)), 1);
+  transition: opacity 120ms linear;
+}
+
+.ov-public .hx-chapters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--ov-hairline);
+}
+
+.ov-public .hx-chapter-kicker {
+  margin: 0 0 0.75rem;
+  color: var(--ov-accent-text);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.ov-public .hx-chapter-kicker .hx-mono {
+  color: var(--ov-muted);
+  margin-right: 0.35rem;
+}
+
+.ov-public .hx-chapter-title {
+  margin: 0 0 0.5rem;
+  color: var(--ov-headline);
+  font-family: var(--ov-font);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.ov-public .hx-chapter-body {
+  margin: 0;
+  color: var(--ov-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.ov-public .hx-signoff {
+  margin: clamp(2rem, 4vw, 3rem) 0 0;
+  color: var(--ov-muted);
+  font-size: 0.8rem;
+}
+
+/* ---------- A night on the line ---------- */
+
+.ov-public .hx-night-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+}
+
+.ov-public .hx-night-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1.5rem;
+  border-left: 1px solid var(--ov-hairline);
+}
+
+.ov-public .hx-night-steps > li {
+  position: relative;
+  min-height: 62vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0.32;
+  transition: opacity 400ms ease;
+}
+
+.ov-public .hx-night-steps > li:first-child {
+  min-height: 45vh;
+  justify-content: flex-start;
+  padding-top: 2rem;
+}
+
+.ov-public .hx-night-steps > li:last-child {
+  min-height: 55vh;
+}
+
+.ov-public .hx-night-steps > li.is-active {
+  opacity: 1;
+}
+
+.ov-public .hx-night-steps > li.is-past {
+  opacity: 0.5;
+}
+
+.ov-public .hx-night-steps > li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1.5rem - 4px);
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ov-muted);
+  transition: background 300ms ease, box-shadow 300ms ease;
+}
+
+.ov-public .hx-night-steps > li:first-child::before {
+  top: 2.4rem;
+}
+
+.ov-public .hx-night-steps > li.is-active::before {
+  background: var(--ov-copper);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--ov-copper) 22%, transparent);
+}
+
+.ov-public .hx-night-time {
+  margin: 0 0 0.5rem;
+  color: var(--ov-accent-text);
+  font-size: 0.8rem;
+}
+
+.ov-public .hx-night-title {
+  margin: 0 0 0.6rem;
+  color: var(--ov-headline);
+  font-family: var(--ov-font);
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.ov-public .hx-night-body {
+  margin: 0;
+  max-width: 38ch;
+  color: var(--ov-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.ov-public .hx-night-stage {
+  position: sticky;
+  top: calc(50vh - 13rem);
+}
+
+.ov-public .hx-record {
+  padding: 1.25rem;
+  border-radius: 20px;
+  border: 1px solid var(--ov-hairline);
+  background:
+    radial-gradient(80% 60% at 100% 0%, color-mix(in srgb, var(--ov-copper) 12%, transparent), transparent 60%),
+    var(--ov-paper);
+}
+
+.ov-public .hx-record-clock {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ov-public .hx-record-time {
+  min-width: 5.5rem;
+  color: var(--ov-headline);
+  font-size: 1.35rem;
+  animation: hx-tick 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes hx-tick {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.ov-public .hx-record-track {
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ov-hairline);
+  overflow: hidden;
+}
+
+.ov-public .hx-record-track span {
+  display: block;
+  height: 100%;
+  background: var(--ov-copper);
+  transform-origin: left;
+  transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.ov-public .hx-record-card {
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid var(--ov-hairline-strong);
+  background: var(--ov-paper-raised);
+  font-family: var(--ov-font);
+}
+
+.ov-public .hx-record-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--ov-hairline);
+}
+
+.ov-public .hx-record-avatar {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--ov-hairline);
+  color: var(--ov-headline);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ov-public .hx-record-name {
+  margin: 0;
+  color: var(--ov-headline);
+  font-weight: 600;
+}
+
+.ov-public .hx-record-sub {
+  margin: 0.1rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.8rem;
+}
+
+.ov-public .hx-record-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--ov-hairline-strong);
+  color: var(--ov-headline);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  animation: hx-rise 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.ov-public .hx-record-status.is-good {
+  border-color: color-mix(in srgb, var(--ov-emerald-text) 45%, transparent);
+}
+
+.ov-public .hx-record-status.is-attention {
+  border-color: color-mix(in srgb, var(--ov-amber) 50%, transparent);
+}
+
+.ov-public .hx-record-log {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0 0;
+}
+
+.ov-public .hx-record-log li {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  font-size: 0.85rem;
+  color: var(--ov-ink);
+  opacity: 0.16;
+  filter: blur(3px);
+  transform: translateX(-8px);
+  transition:
+    opacity 400ms ease,
+    filter 400ms ease,
+    transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.ov-public .hx-record-log li.is-on {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+.ov-public .hx-record-log li .hx-mono {
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .ov-public .hx-chapters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ov-public .hx-night-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .ov-public .hx-night-stage {
+    order: -1;
+    top: 72px;
+    z-index: 2;
+  }
+
+  .ov-public .hx-record {
+    padding: 0.85rem;
+    box-shadow: 0 18px 30px -18px rgb(0 0 0 / 0.6);
+  }
+
+  .ov-public .hx-record-log li {
+    display: none;
+  }
+
+  .ov-public .hx-record-log li.is-on:has(+ li:not(.is-on)),
+  .ov-public .hx-record-log li.is-on:last-child {
+    display: grid;
+  }
+
+  .ov-public .hx-record-log li {
+    padding: 0.35rem 0;
+    font-size: 0.8rem;
+  }
+
+  .ov-public .hx-night-steps > li,
+  .ov-public .hx-night-steps > li:first-child,
+  .ov-public .hx-night-steps > li:last-child {
+    min-height: 55vh;
+    justify-content: center;
+    padding-top: 0;
+  }
+
+  .ov-public .hx-night-steps > li:first-child::before {
+    top: 50%;
+  }
+
+  .ov-public .hx-rules-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ov-public .hx-start-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ov-public .hx-card--feature {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .ov-public .hx-head--row .hx-arrows {
+    display: none;
+  }
+
+
+  .ov-public .hx-start-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ov-public .hx-card {
+    min-height: 0;
+  }
+
+  .ov-public .hx-table {
+    min-width: 0;
+    font-size: 0.85rem;
+  }
+
+  .ov-public .hx-table th,
+  .ov-public .hx-table td {
+    padding: 0.8rem 0.4rem;
+  }
+
+  .ov-public .hx-table thead th {
+    font-size: 0.72rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .hx-stage-shot {
+    transition: opacity 200ms ease;
+  }
+
+  .ov-public .hx-record-time,
+  .ov-public .hx-record-status,
+  .ov-public .hx-cap-progress {
+    animation: none;
+  }
+}

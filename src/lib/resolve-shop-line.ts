@@ -5,6 +5,7 @@ import { normalizePhone } from "@/lib/customer";
 type ShopLineMatch = {
   id: string;
   name: string;
+  timezone: string;
   ownerPhone: string | null;
   ownerEmail: string | null;
   twilioPhone: string | null;
@@ -41,6 +42,7 @@ export async function resolveBusinessByInboundPhone(
     select: {
       id: true,
       name: true,
+      timezone: true,
       ownerPhone: true,
       ownerEmail: true,
       twilioPhone: true,

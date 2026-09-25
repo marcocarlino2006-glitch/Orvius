@@ -1,7 +1,11 @@
+import { createHash } from "node:crypto";
+import { buildInCallTools } from "@/lib/in-call-tool-defs";
+import { DEFAULT_VOICE_ID } from "@/lib/voices";
 import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
 import {
   getAiModelPolicy,
   getTranscriptionModel,
+  TRANSCRIPTION_POLICY,
 } from "@/lib/ai-policy";
 
 const VAPI_BASE = "https://api.vapi.ai";
@@ -13,17 +17,26 @@ type VapiAssistantPayload = {
     provider: string;
     model: string;
     messages: Array<{ role: string; content: string }>;
+    tools?: Array<Record<string, unknown>>;
   };
+  /** `orviusConfig` is a fingerprint of everything else, so drift from the deployed code is detectable. */
+  metadata?: { orviusConfig: string };
   voice: {
     provider: string;
     voiceId: string;
+    model?: string;
   };
   transcriber: {
     provider: string;
     model: string;
+    language?: string;
   };
+  startSpeakingPlan?: { waitSeconds?: number };
+  stopSpeakingPlan?: { numWords?: number; voiceSeconds?: number; backoffSeconds?: number };
   serverUrl?: string;
   serverUrlSecret?: string;
+  /** Live call control lets the webhook hand the receptionist a returning-caller note. */
+  monitorPlan?: { controlEnabled?: boolean; listenEnabled?: boolean };
   endCallFunctionEnabled?: boolean;
   analysisPlan?: {
     summaryPlan?: { enabled: boolean };
@@ -109,20 +122,23 @@ export async function importTwilioPhoneToVapi(params: {
   );
 
   const normalized = params.number.replace(/\s/g, "");
+  // A number imported more than once must not leave a copy routing to an old assistant.
   const existing = Array.isArray(list)
-    ? list.find(
+    ? list.filter(
         (entry) =>
           entry.number === params.number ||
           entry.number?.replace(/\s/g, "") === normalized,
       )
-    : undefined;
+    : [];
 
-  if (existing?.id) {
-    await vapiRequest(`/phone-number/${existing.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ assistantId: params.assistantId }),
-    });
-    return { id: existing.id, number: params.number };
+  if (existing.length) {
+    for (const entry of existing) {
+      await vapiRequest(`/phone-number/${entry.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ assistantId: params.assistantId }),
+      });
+    }
+    return { id: existing[0].id, number: params.number };
   }
 
   const created = await vapiRequest<{ id: string }>("/phone-number", {
@@ -147,26 +163,59 @@ export function buildVapiAssistantConfig(params: {
   greeting: string;
   webhookUrl: string;
   webhookSecret?: string;
+  /** E.164 number to hand callers to when they insist on a person. */
+  transferPhone?: string | null;
+  voiceId?: string | null;
+  /** Give the receptionist check_availability and hold_appointment. */
+  inCallBooking?: boolean;
 }): VapiAssistantPayload {
   const receptionist = getAiModelPolicy("receptionist");
-  return {
+  const tools: Array<Record<string, unknown>> = [
+    ...(params.inCallBooking
+      ? buildInCallTools({ webhookUrl: params.webhookUrl, webhookSecret: params.webhookSecret })
+      : []),
+    ...(params.transferPhone
+      ? [
+          {
+            type: "transferCall",
+            destinations: [
+              {
+                type: "number",
+                number: params.transferPhone,
+                message: "One moment, I'm connecting you now.",
+                description: "The shop owner, for callers who ask for a person",
+              },
+            ],
+          },
+        ]
+      : []),
+  ];
+  const config: VapiAssistantPayload = {
     name: `${params.businessName} Receptionist`,
     firstMessage: params.greeting,
     model: {
       provider: receptionist.provider,
       model: receptionist.model,
       messages: [{ role: "system", content: params.systemPrompt }],
+      ...(tools.length ? { tools } : {}),
     },
     voice: {
       provider: "11labs",
-      voiceId: "21m00Tcm4TlvDq8ikWAM",
+      voiceId: params.voiceId || DEFAULT_VOICE_ID,
+      // Multilingual and the lowest-latency ElevenLabs model; a slow reply is how callers spot a bot.
+      model: "eleven_flash_v2_5",
     },
     transcriber: {
       provider: "deepgram",
       model: getTranscriptionModel(),
+      language: TRANSCRIPTION_POLICY.language,
     },
+    startSpeakingPlan: { waitSeconds: 0.3 },
+    // A caller's "yeah" or "mm-hm" should not cut the receptionist off mid-sentence.
+    stopSpeakingPlan: { numWords: 2, voiceSeconds: 0.3, backoffSeconds: 1 },
     serverUrl: params.webhookUrl,
     serverUrlSecret: params.webhookSecret,
+    monitorPlan: { controlEnabled: true },
     endCallFunctionEnabled: true,
     analysisPlan: {
       summaryPlan: { enabled: true },
@@ -181,7 +230,7 @@ export function buildVapiAssistantConfig(params: {
           properties: {
             name: {
               type: "string",
-              description: "Caller's full name",
+              description: "Caller's full name, using the caller's own spelling if they spelled it out letter by letter",
             },
             phone: {
               type: "string",
@@ -208,7 +257,7 @@ export function buildVapiAssistantConfig(params: {
             },
             address: {
               type: "string",
-              description: "Service address or property location",
+              description: "Service address or property location, using the caller's spelling of the street if they spelled it",
             },
             notes: {
               type: "string",
@@ -219,6 +268,24 @@ export function buildVapiAssistantConfig(params: {
       },
     },
   };
+  return { ...config, metadata: { orviusConfig: assistantConfigFingerprint(config) } };
+}
+
+/** Stable hash of the assistant config, excluding webhook secrets and the fingerprint itself. */
+export function assistantConfigFingerprint(config: VapiAssistantPayload): string {
+  const { serverUrlSecret: _secret, metadata: _meta, ...rest } = config;
+  const canonical = (value: unknown): unknown =>
+    Array.isArray(value)
+      ? value.map(canonical)
+      : value && typeof value === "object"
+        ? Object.fromEntries(
+            Object.keys(value as Record<string, unknown>)
+              .filter((k) => k !== "secret")
+              .sort()
+              .map((k) => [k, canonical((value as Record<string, unknown>)[k])]),
+          )
+        : value;
+  return createHash("sha256").update(JSON.stringify(canonical(rest))).digest("hex").slice(0, 16);
 }
 
 export type VapiWebhookMessage = {
@@ -229,7 +296,10 @@ export type VapiWebhookMessage = {
       assistantId?: string;
       customer?: { number?: string };
       phoneNumber?: { number?: string };
+      monitor?: { controlUrl?: string; listenUrl?: string };
     };
+    status?: string;
+    toolCallList?: Array<{ id?: string; function?: { name?: string; arguments?: unknown } }>;
     transcript?: string;
     summary?: string;
     recordingUrl?: string;

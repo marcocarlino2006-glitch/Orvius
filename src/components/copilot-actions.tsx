@@ -14,26 +14,41 @@ type CopilotHit = {
   type: string;
   id: string;
   title: string;
+  actionable?: boolean;
 };
+
+export type CopilotRecommendation = {
+  action: "assign_tech" | "sms_followup" | "mark_contacted" | "call";
+  label: string;
+  reason: string;
+  jobId?: string;
+  leadId?: string;
+  technicianId?: string;
+  phone?: string;
+};
+
+type Confirmation = { summary: string; at: string };
 
 type CopilotActionsProps = {
   hits?: CopilotHit[];
+  /** The one action Orvius recommends; manual actions fold behind it. */
+  recommendation?: CopilotRecommendation | null;
   /** Compact dock layout */
   compact?: boolean;
 };
 
-export function CopilotActions({ hits = [], compact }: CopilotActionsProps) {
+export function CopilotActions({ hits = [], compact, recommendation }: CopilotActionsProps) {
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [crew, setCrew] = useState<Tech[]>([]);
   const [techId, setTechId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<string | null>(null);
+  const [done, setDone] = useState<Confirmation | null>(null);
 
-  const jobHits = hits.filter((h) => h.type === "job");
-  const leadHits = hits.filter((h) => h.type === "lead");
+  const jobHits = hits.filter((h) => h.type === "job" && h.actionable !== false);
+  const leadHits = hits.filter((h) => h.type === "lead" && h.actionable !== false);
   const show =
-    proposal || jobHits.length > 0 || leadHits.length > 0;
+    proposal || recommendation || jobHits.length > 0 || leadHits.length > 0;
 
   useEffect(() => {
     if (!jobHits.length) return;
@@ -86,7 +101,10 @@ export function CopilotActions({ hits = [], compact }: CopilotActionsProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Execute failed");
-      setDone(proposal.preview);
+      setDone({
+        summary: data.confirmation?.summary ?? proposal.preview,
+        at: data.confirmation?.at ?? new Date().toISOString(),
+      });
       setProposal(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Execute failed");
@@ -117,42 +135,8 @@ export function CopilotActions({ hits = [], compact }: CopilotActionsProps) {
 
   if (!show) return null;
 
-  return (
-    <div className={`copilot-actions font-sans ${compact ? "copilot-actions-compact" : ""}`}>
-      <p className="copilot-actions-kicker">Proposed actions</p>
-      <p className="copilot-actions-lead">
-        Orvius drafts the action and shows exactly what will happen. Nothing runs until you approve,
-        and every decision is kept in the audit trail.
-      </p>
-
-      {done ? <p className="copilot-actions-done">Done — {done}</p> : null}
-      {error ? <p className="copilot-actions-error">{error}</p> : null}
-
-      {proposal ? (
-        <div className="copilot-proposal">
-          <p className="copilot-proposal-label">What will happen</p>
-          <p className="copilot-proposal-preview">{proposal.preview}</p>
-          <div className="copilot-proposal-btns">
-            <button
-              type="button"
-              className="ox-btn ox-btn--primary ox-btn--sm"
-              disabled={busy}
-              onClick={() => void execute()}
-            >
-              {busy ? "Working…" : "Approve and run"}
-            </button>
-            <button
-              type="button"
-              className="ox-btn ox-btn--quiet ox-btn--sm"
-              disabled={busy}
-              onClick={() => void cancel()}
-            >
-              Don’t run
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="copilot-action-list">
+  const manual = (
+    <div className="copilot-action-list">
           {jobHits.slice(0, 2).map((job) => (
             <div key={job.id} className="copilot-action-row">
               <span className="copilot-action-label">Assign · {job.title}</span>
@@ -211,7 +195,114 @@ export function CopilotActions({ hits = [], compact }: CopilotActionsProps) {
               </button>
             </div>
           ))}
+    </div>
+  );
+
+  function previewRecommendation() {
+    if (!recommendation) return;
+    const body: Record<string, string> = { action: recommendation.action };
+    if (recommendation.jobId) body.jobId = recommendation.jobId;
+    if (recommendation.leadId) body.leadId = recommendation.leadId;
+    if (recommendation.technicianId) body.technicianId = recommendation.technicianId;
+    void propose(body);
+  }
+
+  return (
+    <div className={`copilot-actions font-sans ${compact ? "copilot-actions-compact" : ""}`}>
+      <p className="copilot-actions-kicker">{recommendation ? "Recommended next action" : "Proposed actions"}</p>
+
+      {done ? (
+        <p className="copilot-actions-done" role="status">
+          Done — {done.summary} Recorded in the timeline at{" "}
+          {new Date(done.at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}.
+        </p>
+      ) : null}
+      {error ? (
+        <div className="copilot-actions-error" role="alert">
+          <p>
+            {/[.!?]$/.test(error) ? error : `${error}.`} Nothing was changed.
+          </p>
+          {!proposal && recommendation && recommendation.action !== "call" ? (
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={previewRecommendation}>
+              Try again
+            </button>
+          ) : null}
         </div>
+      ) : null}
+
+      {proposal ? (
+        <div className="copilot-proposal">
+          <p className="copilot-proposal-label">What will happen</p>
+          <p className="copilot-proposal-preview">{proposal.preview}</p>
+          <div className="copilot-proposal-btns">
+            <button
+              type="button"
+              className="ox-btn ox-btn--primary ox-btn--sm"
+              disabled={busy}
+              onClick={() => void execute()}
+            >
+              {busy ? "Working…" : "Approve and run"}
+            </button>
+            <button
+              type="button"
+              className="ox-btn ox-btn--quiet ox-btn--sm"
+              disabled={busy}
+              onClick={() => void cancel()}
+            >
+              Don’t run
+            </button>
+          </div>
+        </div>
+      ) : done ? null : recommendation ? (
+        <>
+          <div className="copilot-recommend">
+            <p className="copilot-recommend-label">{recommendation.label}</p>
+            <p className="copilot-recommend-reason">{recommendation.reason}</p>
+            {recommendation.action === "call" && recommendation.phone ? (
+              <>
+                <a className="ox-btn ox-btn--primary ox-btn--sm" href={`tel:${recommendation.phone}`}>
+                  Call {recommendation.phone}
+                </a>
+                {recommendation.leadId ? (
+                  <button
+                    type="button"
+                    className="ox-btn ox-btn--quiet ox-btn--sm"
+                    disabled={busy}
+                    onClick={() => void propose({ action: "mark_contacted", leadId: recommendation.leadId! })}
+                  >
+                    I called — mark contacted
+                  </button>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="ox-btn ox-btn--primary ox-btn--sm"
+                  disabled={busy}
+                  onClick={previewRecommendation}
+                >
+                  {busy ? "Preparing…" : "Preview changes"}
+                </button>
+                <p className="copilot-actions-lead">Nothing runs until you approve. Every decision is kept in the timeline.</p>
+              </>
+            )}
+          </div>
+          {jobHits.length || leadHits.length ? (
+            <details className="copilot-more">
+              <summary>Other actions</summary>
+              {manual}
+            </details>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <p className="copilot-actions-lead">
+            Orvius drafts the action and shows exactly what will happen. Nothing runs until you approve,
+            and every decision is kept in the timeline.
+          </p>
+          {manual}
+        </>
       )}
     </div>
   );

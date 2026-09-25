@@ -50,8 +50,10 @@ export function inferTradeFromBusiness(input: {
 
   if (input.servicesJson) {
     try {
-      const services = JSON.parse(input.servicesJson) as Array<{ name?: string; description?: string }>;
-      haystack += ` ${services.map((s) => `${s.name ?? ""} ${s.description ?? ""}`).join(" ")}`.toLowerCase();
+      const services = JSON.parse(input.servicesJson) as Array<string | { name?: string; description?: string }>;
+      haystack += ` ${services
+        .map((s) => (typeof s === "string" ? s : `${s.name ?? ""} ${s.description ?? ""}`))
+        .join(" ")}`.toLowerCase();
     } catch {
       /* ignore */
     }

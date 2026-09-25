@@ -1,4 +1,6 @@
+import { afterResponse } from "@/lib/after-response";
 import { getOwnerAlertOpenUrl } from "@/lib/owner-alert-message";
+import { pushFromAlert, sendOwnerPush } from "@/lib/web-push";
 import { getWebhookUrl } from "@/lib/env";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { logError, logInfo } from "@/lib/logger";
@@ -157,9 +159,8 @@ export async function enqueueOwnerAlert(params: {
   ownerPhone?: string | null;
   ownerEmail?: string | null;
 }) {
-  const queued: Array<"sms" | "email"> = [];
-
-  if (params.ownerPhone) {
+  const queueSms = async () => {
+    if (!params.ownerPhone) return false;
     const shop = await prisma.business.findUnique({
       where: { id: params.businessId },
       select: { ownerSmsOptOutAt: true },
@@ -169,24 +170,26 @@ export async function enqueueOwnerAlert(params: {
         businessId: params.businessId,
         dedupeKey: params.dedupeKey,
       });
-    } else {
-      const created = await createQueueRow({
-        ...params,
-        channel: "sms",
-      });
-      if (created) queued.push("sms");
+      return false;
     }
-  }
+    return createQueueRow({ ...params, channel: "sms" });
+  };
+  const [sms, email] = await Promise.all([
+    queueSms(),
+    params.ownerEmail ? createQueueRow({ ...params, channel: "email" }) : false,
+  ]);
+  const queued: Array<"sms" | "email"> = [];
+  if (sms) queued.push("sms");
+  if (email) queued.push("email");
 
-  if (params.ownerEmail) {
-    const created = await createQueueRow({
-      ...params,
-      channel: "email",
-    });
-    if (created) queued.push("email");
+  if (queued.length > 0) {
+    // The owner's phone is a best-effort nudge on top of the queued text and
+    // email; the caller's webhook should not wait on a push service.
+    await afterResponse(() =>
+      sendOwnerPush(params.businessId, pushFromAlert(params.businessName, params.message, params.leadId)),
+    );
+    return { queued, duplicate: false };
   }
-
-  if (queued.length > 0) return { queued, duplicate: false };
 
   const existing = await prisma.ownerNotification.findFirst({
     where: {

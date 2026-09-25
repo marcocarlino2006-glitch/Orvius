@@ -73,8 +73,17 @@ export function ApproveQueue({
 
   useEffect(() => {
     void load();
-    const id = setInterval(() => void load(), 20_000);
-    return () => clearInterval(id);
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, 20_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [load]);
 
   async function act(proposalId: string, mode: "execute" | "cancel") {

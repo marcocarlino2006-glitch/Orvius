@@ -11,6 +11,10 @@ model Business {
   id                   String   @id @default(cuid())
   name                 String
   slug                 String   @unique
+  /** production | demo | test — demo and test data never render in a production workspace. */
+  environment          String   @default("production")
+  /** Orvius sends confirmations and assigns clear-cut jobs itself; the owner can turn this off. */
+  autopilot            Boolean  @default(true)
   phone                String?
   ownerPhone           String?
   ownerEmail           String?
@@ -22,6 +26,12 @@ model Business {
   hoursJson            String   @default("{}")
   servicesJson         String   @default("[]")
   greeting             String?
+  /** Callers who ask for a person are connected here. Null means transfers are off and they get a callback. */
+  /** Last time the owner loaded Command on any device — anchors "since you looked". */
+  ownerLastSeenAt      DateTime?
+  /** ElevenLabs voice for this shop's receptionist; null uses the default. */
+  voiceId              String?
+  transferPhone        String?
   vapiAssistantId      String?
   vapiPhoneNumber      String?
   twilioPhone          String?
@@ -94,8 +104,10 @@ model Business {
   deposits         Deposit[]
   copilotActions   CopilotAction[]
   ownerNotifications OwnerNotification[]
+  pushSubscriptions  PushSubscription[]
   webhookEvents      WebhookEvent[]
   smsOptOuts         SmsOptOut[]
+  auditEvents        AuditEvent[]
 }
 
 /** Phone numbers that opted out of SMS on a shop line (STOP). */
@@ -155,6 +167,13 @@ model Call {
   ownerNotifiedAt  DateTime?
   /** VAPI analysis.successEvaluation — NumericScale 1–10 when configured. */
   successEvaluation String?
+  /** Appointment the receptionist offered and the caller took during the call; booking uses it. */
+  heldSlotAt          DateTime?
+  heldSlotDurationMin Int?
+  /** When this call's hold was claimed; the earlier claim keeps a contested time. */
+  heldClaimedAt       DateTime?
+  /** When the returning-caller note was handed to the live receptionist (once per call). */
+  callerContextSentAt DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -247,6 +266,8 @@ model Job {
   techToken     String?     @unique
   /** Free-text ETA from tech (e.g. "25 min"). */
   etaText       String?
+  /** Appointment length from the trade playbook; null means the shop default. */
+  durationMin   Int?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -268,6 +289,8 @@ model Technician {
   phone      String?
   role       String   @default("tech")
   isActive   Boolean  @default(true)
+  /** Playbook skill keys (e.g. ["cooling","heating"]). Empty means generalist. */
+  skillsJson String   @default("[]")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -474,4 +497,52 @@ model LoginToken {
 
   @@index([email, createdAt])
   @@index([expiresAt])
+}
+
+/**
+ * One decision in the operating loop — what Orvius (or the owner) decided,
+ * about which record, and why. idempotencyKey makes webhook retries and
+ * replays write each decision once.
+ */
+model AuditEvent {
+  id             String   @id @default(cuid())
+  businessId     String
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /** call | lead | customer | job | technician | notification | copilot | shop */
+  entityType     String
+  entityId       String
+  /** Stable machine code, e.g. lead.captured, technician.assigned. */
+  action         String
+  /** orvius | owner | system */
+  actor          String   @default("orvius")
+  summary        String
+  detailJson     String?
+  callId         String?
+  leadId         String?
+  customerId     String?
+  jobId          String?
+  idempotencyKey String?
+  createdAt      DateTime @default(now())
+
+  @@unique([businessId, idempotencyKey])
+  @@index([businessId, createdAt])
+  @@index([businessId, entityType, entityId])
+  @@index([leadId])
+  @@index([jobId])
+  @@index([customerId])
+}
+
+/** A browser or installed app the owner turned on push alerts for. */
+model PushSubscription {
+  id          String    @id @default(cuid())
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  endpoint    String    @unique
+  p256dh      String
+  auth        String
+  userAgent   String?
+  lastSentAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([businessId])
 }

@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { sendCustomerSms } from "@/lib/customer-sms";
+import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl } from "@/lib/domains";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -8,17 +9,11 @@ import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 export const CONFIRM_REMINDER_AFTER_HOURS = 12;
 export const CONFIRM_REMINDER_MIN_LEAD_HOURS = 2;
 
-function formatWindow(iso: Date | string | null | undefined): string | null {
+function formatWindow(iso: Date | string | null | undefined, timezone: string): string | null {
   if (!iso) return null;
   const date = iso instanceof Date ? iso : new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return formatShopTime(date, timezone);
 }
 
 export function customerConfirmUrl(token: string): string {
@@ -70,6 +65,7 @@ export async function sendCustomerConfirmSms(
         select: {
           id: true,
           name: true,
+          timezone: true,
           twilioPhone: true,
           vapiPhoneNumber: true,
         },
@@ -89,7 +85,7 @@ export async function sendCustomerConfirmSms(
   if (!to) return { sent: false, reason: "no_customer_phone" };
 
   const token = await ensureCustomerConfirmToken(jobId);
-  const when = formatWindow(job.scheduledAt);
+  const when = formatWindow(job.scheduledAt, job.business.timezone);
   const shop = job.business.name;
   const body = withSmsOptOutFooter(
     [
@@ -207,13 +203,18 @@ export async function confirmJobByCustomerToken(token: string) {
   const job = await prisma.job.findFirst({
     where: { customerConfirmToken: token },
     include: {
-      business: { select: { id: true, name: true } },
+      business: { select: { id: true, name: true, timezone: true, vapiPhoneNumber: true, twilioPhone: true, phone: true } },
       customer: { select: { name: true, phone: true } },
       lead: { select: { name: true, phone: true } },
     },
   });
 
   if (!job) return { ok: false as const, error: "not_found" as const };
+  const shop = {
+    businessName: job.business.name,
+    businessPhone: job.business.vapiPhoneNumber ?? job.business.twilioPhone ?? job.business.phone ?? null,
+    timezone: job.business.timezone,
+  };
 
   if (job.customerConfirmedAt) {
     return {
@@ -223,7 +224,7 @@ export async function confirmJobByCustomerToken(token: string) {
         id: job.id,
         title: job.title,
         scheduledAt: job.scheduledAt,
-        businessName: job.business.name,
+        ...shop,
         status: job.status,
       },
     };
@@ -250,7 +251,7 @@ export async function confirmJobByCustomerToken(token: string) {
       id: updated.id,
       title: updated.title,
       scheduledAt: updated.scheduledAt,
-      businessName: job.business.name,
+      ...shop,
       status: updated.status,
     },
   };

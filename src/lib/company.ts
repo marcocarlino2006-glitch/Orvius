@@ -25,7 +25,7 @@ export const company = {
   tagline: "After-hours HVAC receptionist that turns missed calls into paid jobs.",
   /** Category for the beginning — OS is earned after the wedge pays. */
   categoryClaim:
-    "A focused AI receptionist for HVAC — answers, qualifies, books, confirms, and alerts the owner. Uncertain calls land on the board for the owner to dial back — no live transfer yet.",
+    "A focused AI receptionist for HVAC — answers, qualifies, books, confirms, and alerts the owner. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
   /** Wedge proof — one missed call → one completed, paid job. */
   proofLine: "Missed HVAC calls become booked, completed, paid jobs.",
   vision:
@@ -35,7 +35,7 @@ export const company = {
    * Dashboard north star: demand captured → completed work → money produced.
    */
   mission:
-    "Deploy with one local HVAC company on overflow or after-hours. Answer inbound calls, understand the problem, capture address and contact, identify urgency, check service area, book, confirm, and notify the shop. When unsure or the caller wants a person, escalate to the owner on the board for a callback — no live transfer yet. Charge a controlled pilot. Track calls answered, leads captured, appointments booked, jobs completed, and revenue influenced — until the wedge pays.",
+    "Deploy with one local HVAC company on overflow or after-hours. Answer inbound calls, understand the problem, capture address and contact, identify urgency, check service area, book, confirm, and notify the shop. When the caller wants a person, take their name and number and transfer to the owner's phone if a transfer number is set; when unsure, or when the transfer does not go through, escalate to the owner on the board for a callback. Charge a controlled pilot. Track calls answered, leads captured, appointments booked, jobs completed, and revenue influenced — until the wedge pays.",
   strategy: [
     "One HVAC shop first — overflow/after-hours pilot that pays.",
     "Prove call → cash: demand captured, completed work, money produced.",

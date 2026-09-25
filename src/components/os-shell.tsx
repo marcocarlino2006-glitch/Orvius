@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { osCurrentRing, osProductNav } from "@/lib/os-nav";
+import { displayPhone } from "@/lib/customer";
 import { useBusiness } from "@/lib/use-business";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
 import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { OsIcon } from "@/components/os-icons";
-import { OsAskDock } from "@/components/os-ask-dock";
+import { ASK_OPEN_EVENT, OsAskDock } from "@/components/os-ask-dock";
 import { OsCommandPalette } from "@/components/os-command-palette";
 import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
@@ -55,15 +57,16 @@ export function OsShell({
   */
   const offHours = business?.signals.afterHoursNow ?? false;
   const onSettings = pathname.startsWith("/dashboard/settings");
-  const liveLabel = businessLoading
+  /* Shown only when the line is not simply answering; a normal day needs no banner. */
+  const lineAlert = businessLoading
     ? null
     : business?.line
       ? offHours
-        ? "Answering — after hours"
-        : "Answering"
+        ? "After hours"
+        : null
       : onSettings
-        ? "Set your line below"
-        : "Line not set — finish setup";
+        ? null
+        : "Line not set up";
 
   useEffect(() => {
     setNavOpen(false);
@@ -102,7 +105,7 @@ export function OsShell({
           ) : business?.line ? (
             <>
               <span className="os-ring-status-dot" aria-hidden />
-              {business.line}
+              {displayPhone(business.line)}
             </>
           ) : onSettings ? (
             "Set your line below"
@@ -221,18 +224,6 @@ export function OsShell({
           <div className="os-topbar-row">
             <OsMobileNavButton open={navOpen} onToggle={() => setNavOpen((v) => !v)} />
             <div className="os-topbar-copy">
-              {/*
-                The state of the line, and nothing that is already on screen.
-                This slot used to print the new-lead count — which every page now
-                leads with in display type an inch below it — or else the shop's
-                phone number, which the sidebar shows two inches to the left. Both
-                readings were the same sentence twice. What an owner cannot see
-                anywhere else is whether the thing is picking up right now.
-              */}
-              <p className="os-topbar-live font-sans">
-                <span className="pro-live-dot" />
-                {liveLabel ?? "Checking line…"}
-              </p>
               <h1 className="os-topbar-title font-sans">{title}</h1>
               {subtitle ? (
                 <p className="os-topbar-sub font-sans">{subtitle}</p>
@@ -240,6 +231,9 @@ export function OsShell({
             </div>
           </div>
           <div className="os-topbar-actions">
+            {lineAlert ? (
+              <span className={`os-line-alert font-sans${business?.line ? "" : " is-off"}`}>{lineAlert}</span>
+            ) : null}
             <button
               type="button"
               className="os-topbar-search font-sans"
@@ -257,6 +251,16 @@ export function OsShell({
               <span className="os-topbar-search-label">Search</span>
               <kbd>⌘K</kbd>
             </button>
+            {showAskDock ? (
+              <button
+                type="button"
+                className="os-topbar-search os-topbar-ask font-sans"
+                onClick={() => window.dispatchEvent(new Event(ASK_OPEN_EVENT))}
+              >
+                <span className="os-topbar-search-label">Ask</span>
+                <kbd>⌘J</kbd>
+              </button>
+            ) : null}
             {actions}
           </div>
         </header>
@@ -264,6 +268,7 @@ export function OsShell({
         <PostLockBanner />
         <main className="os-content os-content-pro">{children}</main>
         {showAskDock ? <OsAskDock /> : null}
+        <KeyboardShortcuts />
         <OsCommandPalette
           open={paletteOpen}
           onClose={() => setPaletteOpen(false)}
