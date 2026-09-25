@@ -41,6 +41,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
               <Link href="/enterprise">Enterprise</Link>
               <Link href="/pilot">Call audit</Link>
               <Link href="/resources">Resources</Link>
+              <Link href="/changelog">Changelog</Link>
               <Link href="/signin">Log in</Link>
             </nav>
             <nav className="mkt-footer-col" aria-label="Company">
@@ -62,7 +63,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
               <p className="mkt-footer-heading font-sans">Connect</p>
               <a href="tel:+18446439170">+1 844 643 9170</a>
               <a href="mailto:hello@orvius.im">hello@orvius.im</a>
-              <Link href="/security">Security</Link>
+              <Link href="/status">Status</Link>
             </nav>
           </div>
           <div className="mkt-footer-bottom mkt-footer-bottom--legal">

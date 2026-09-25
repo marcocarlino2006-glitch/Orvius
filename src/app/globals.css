@@ -605,6 +605,40 @@ h3 {
   font-weight: 600;
 }
 
+.legal-prose .status-list {
+  list-style: none;
+  margin-left: 0;
+}
+
+.status-row {
+  display: grid;
+  grid-template-columns: 0.75rem 7rem 1fr;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.status-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--ash);
+}
+
+.status-row[data-state="operational"] .status-dot { background: #1f9d55; }
+.status-row[data-state="degraded"] .status-dot { background: #d69e2e; }
+.status-row[data-state="outage"] .status-dot { background: #e53e3e; }
+
+@media (max-width: 560px) {
+  .status-row {
+    grid-template-columns: 0.75rem 1fr;
+  }
+  .status-row > span:last-child {
+    grid-column: 2;
+  }
+}
+
 /* Editorial homepage — Claude / Anthropic restraint */
 .editorial-wrap {
   width: 100%;

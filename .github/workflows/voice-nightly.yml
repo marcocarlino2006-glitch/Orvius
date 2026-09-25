@@ -1,0 +1,50 @@
+name: Voice nightly
+
+# Real phone calls between the receptionist Orvius provisions and scripted
+# callers (scripts/voice-sim.mjs). Each call is billed by Vapi on both legs, so
+# this runs once a night and only when the three secrets below are set; without
+# them the job says so and exits green rather than pretending to have tested.
+on:
+  schedule:
+    - cron: "17 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
+      VOICE_SIM_RECEPTIONIST_PHONE_ID: ${{ secrets.VOICE_SIM_RECEPTIONIST_PHONE_ID }}
+      VOICE_SIM_CALLER_PHONE_ID: ${{ secrets.VOICE_SIM_CALLER_PHONE_ID }}
+    steps:
+      - name: Check secrets
+        id: gate
+        run: |
+          if [ -n "$VAPI_API_KEY" ] && [ -n "$VOICE_SIM_RECEPTIONIST_PHONE_ID" ] && [ -n "$VOICE_SIM_CALLER_PHONE_ID" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipped — set VAPI_API_KEY, VOICE_SIM_RECEPTIONIST_PHONE_ID and VOICE_SIM_CALLER_PHONE_ID in repo secrets to run real voice calls."
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - if: steps.gate.outputs.run == 'true'
+        run: npm ci
+      - if: steps.gate.outputs.run == 'true'
+        name: Run voice simulator
+        run: npm run sim:voice -- --json voice-results.json
+      # Results hold synthetic callers only — the receptionist runs with no
+      # server URL, so no shop or customer data is ever in these transcripts.
+      - if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: voice-results
+          path: voice-results.json
+          if-no-files-found: ignore
+          retention-days: 30

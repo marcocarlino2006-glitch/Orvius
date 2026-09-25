@@ -12,6 +12,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/pilot",
     "/about",
     "/security",
+    "/status",
+    "/changelog",
     "/demo",
     "/legal",
   ];
