@@ -24,15 +24,17 @@ export function ProLead({ figure, caption, detail, facts, action, loading = fals
   const metrics: LeadFact[] = [{ label: caption, value: figure }, ...(facts ?? [])];
   return (
     <section className="ms font-sans" aria-label="Summary">
-      <dl className="ms-row">
-        {metrics.map((metric, index) => (
-          <div key={metric.label} className={`ms-cell${index === 0 ? " is-primary" : ""}${metric.live ? " is-live" : ""}`}>
-            <dt>{metric.label}</dt>
-            <dd>{loading ? <span className="ms-wait" aria-hidden /> : metric.value}</dd>
-          </div>
-        ))}
+      <div className="ms-row">
+        <dl className="ms-facts">
+          {metrics.map((metric, index) => (
+            <div key={metric.label} className={`ms-cell${index === 0 ? " is-primary" : ""}${metric.live ? " is-live" : ""}`}>
+              <dt>{metric.label}</dt>
+              <dd>{loading ? <span className="ms-wait" aria-hidden /> : metric.value}</dd>
+            </div>
+          ))}
+        </dl>
         {action && !loading ? <div className="ms-action">{action}</div> : null}
-      </dl>
+      </div>
       {detail && !loading ? <p className="ms-note">{detail}</p> : null}
     </section>
   );

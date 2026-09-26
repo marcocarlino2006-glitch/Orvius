@@ -137,7 +137,7 @@
   font-family: var(--ov-mono);
   font-size: 0.75rem;
   letter-spacing: 0.08em;
-  opacity: 0.6;
+  opacity: 0.88;
 }
 
 .ov-public .hx-cap-title {
@@ -741,7 +741,15 @@ html.hx-motion .ov-public .is-in .hx-node {
 }
 
 .ov-public .hx-night-steps > li.is-past {
-  opacity: 0.5;
+  opacity: 0.88;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .ov-public .hx-night-steps > li,
+  .ov-public .hx-night-steps > li.is-past {
+    opacity: 1;
+  }
 }
 
 .ov-public .hx-night-steps > li::before {

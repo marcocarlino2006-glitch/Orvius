@@ -56,7 +56,7 @@ export function CustomerPanel({ customerId }: { customerId: string }) {
 
   if (error) {
     return (
-      <aside className="cp-panel">
+      <aside className="cp-panel" aria-label="Customer history">
         <div className="ox-state ox-state--failure ox-state--inline" role="alert">
           <p className="ox-state-title">History unavailable</p>
           <p className="ox-state-copy">{error}</p>
@@ -70,7 +70,7 @@ export function CustomerPanel({ customerId }: { customerId: string }) {
 
   if (!detail || detail.customer.id !== customerId) {
     return (
-      <aside className="cp-panel" aria-busy="true">
+      <aside className="cp-panel" aria-label="Customer history" aria-busy="true">
         <span className="skeleton cp-skel" />
         <span className="skeleton cp-skel" />
         <span className="skeleton cp-skel cp-skel--tall" />

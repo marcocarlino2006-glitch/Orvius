@@ -1981,7 +1981,7 @@ body {
   font-size: 0.75rem;
   line-height: 1.5;
   /* Lines already spoken recede so the current one owns the eye. */
-  opacity: 0.62;
+  opacity: 0.84;
   transition: opacity 200ms ease;
 }
 
@@ -2584,7 +2584,7 @@ body {
 /* Capture panel: instrument plate, not marketing card */
 .ov-public .ov-capture-label {
   letter-spacing: 0.14em;
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .ov-public .ov-capture-row.is-set dd {
@@ -2597,11 +2597,11 @@ body {
 
 /* Wire: who owns the line is readable without reading the text */
 .ov-public .ov-wire-line--orvius .ov-wire-who {
-  color: color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 72%, #918f87);
+  color: color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 80%, #b4b2aa);
 }
 
 .ov-public .ov-wire-line--caller .ov-wire-who {
-  color: #7a7870;
+  color: #a3a198;
 }
 
 .ov-public .ov-wire-line.is-active .ov-wire-who {
@@ -2740,7 +2740,7 @@ body {
 
 /* Ruled night rules: tighter index, quieter body */
 .ov-public .mkt-law-index {
-  opacity: 0.42;
+  opacity: 0.62;
   font-size: 0.75rem;
 }
 
@@ -2749,13 +2749,13 @@ body {
 }
 
 .ov-public .mkt-law--ruled .mkt-law-body {
-  opacity: 0.74;
+  opacity: 1;
   line-height: 1.55;
 }
 
 .ov-public .mkt-manifesto-kicker {
   letter-spacing: 0.16em;
-  opacity: 0.62;
+  opacity: 1;
 }
 
 /* Close: dial path matches hero liveline emerald truth */
@@ -2773,7 +2773,7 @@ body {
 }
 
 .ov-public .mkt-proof-section--quiet .mkt-proof-lead {
-  opacity: 0.76;
+  opacity: 0.86;
   max-width: 38ch;
   margin-inline: auto;
 }
@@ -2814,17 +2814,17 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
 
 /* Footer: recede — product already proved above */
 .ov-public .mkt-footer {
-  opacity: 0.92;
+  opacity: 1;
 }
 
 .ov-public .mkt-footer-tagline,
 .ov-public .mkt-footer-copy,
 .ov-public .mkt-footer-mark {
-  opacity: 0.78;
+  opacity: 1;
 }
 
 .ov-public .mkt-footer a {
-  opacity: 0.7;
+  opacity: 1;
   transition: opacity 140ms ease;
 }
 

@@ -51,6 +51,12 @@
   margin: 0 0 1.25rem;
 }
 
+/* The facts list stays a real <dl> for screen readers while its cells lay out
+   in .ms-row's grid, next to the action. */
+.ms-facts {
+  display: contents;
+}
+
 .ms-row {
   display: flex;
   flex-wrap: wrap;

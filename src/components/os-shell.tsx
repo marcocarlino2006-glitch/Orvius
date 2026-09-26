@@ -216,6 +216,7 @@ export function OsShell({
 
       <aside
         className={`os-sidebar os-sidebar-pro ${navOpen ? "os-sidebar-open" : ""}`}
+        aria-label="Workspace"
         aria-hidden={!navOpen ? undefined : false}
       >
         {sidebar}

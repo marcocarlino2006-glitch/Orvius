@@ -5279,7 +5279,7 @@ html[data-theme="night"] .mkt-page .brand-intro-description,
 html[data-theme="night"] .mkt-page .text-ash,
 html[data-theme="night"] .mkt-page .mkt-law-body,
 html[data-theme="night"] .mkt-page .mkt-proof-lead {
-  color: #8a8880 !important;
+  color: var(--ov-muted, #9a978f) !important;
 }
 
 /* Cards / panels → dark */
@@ -5381,7 +5381,7 @@ html[data-theme="night"] .mkt-footer-tagline,
 html[data-theme="night"] .mkt-footer-col a,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-copy,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
-  color: #8a8880 !important;
+  color: var(--ov-muted, #9a978f) !important;
 }
 
 html[data-theme="night"] .mkt-footer-bottom {
