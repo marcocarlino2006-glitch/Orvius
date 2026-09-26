@@ -232,7 +232,8 @@ export function buildVapiAssistantConfig(params: {
       waitSeconds: 0.3,
       // Vapi waits 1.5s after an unpunctuated transcript before replying; that pause measured as the slowest turn on live calls.
       // Digits get a longer wait than Vapi's 0.5s default: callers read numbers in groups, and 0.6s cut one off mid-number.
-      transcriptionEndpointingPlan: { onPunctuationSeconds: 0.1, onNoPunctuationSeconds: 1, onNumberSeconds: 1 },
+      // 0.8s cut nobody off across 11 sim calls of addresses, phone numbers and spelling; 1s made every number turn the slowest.
+      transcriptionEndpointingPlan: { onPunctuationSeconds: 0.1, onNoPunctuationSeconds: 0.8, onNumberSeconds: 0.8 },
     },
     // A caller's "yeah" or "mm-hm" should not cut the receptionist off mid-sentence.
     stopSpeakingPlan: { numWords: 2, voiceSeconds: 0.3, backoffSeconds: 1 },
