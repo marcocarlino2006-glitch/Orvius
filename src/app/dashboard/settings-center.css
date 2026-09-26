@@ -913,3 +913,9 @@
   color: var(--ox-mute);
   font-size: 0.8125rem;
 }
+
+.sc-voice-play {
+  flex: none;
+  min-width: 4rem;
+  margin-left: 0.5rem;
+}

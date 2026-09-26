@@ -259,6 +259,39 @@ function dollars(value: string): number | null {
   return value.trim() && Number.isFinite(n) ? n : null;
 }
 
+function VoiceSampleButton({ voiceId }: { voiceId: string }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    audioRef.current?.pause();
+    setPlaying(false);
+  }, [voiceId]);
+
+  useEffect(() => () => audioRef.current?.pause(), []);
+
+  function toggle() {
+    if (playing) {
+      audioRef.current?.pause();
+      setPlaying(false);
+      return;
+    }
+    const audio = new Audio(`/voices/${voiceId}.mp3`);
+    audioRef.current?.pause();
+    audioRef.current = audio;
+    audio.onended = () => setPlaying(false);
+    audio.onerror = () => setPlaying(false);
+    setPlaying(true);
+    void audio.play().catch(() => setPlaying(false));
+  }
+
+  return (
+    <button type="button" className="sc-btn sc-voice-play" onClick={toggle} aria-pressed={playing}>
+      {playing ? "Stop" : "Play"}
+    </button>
+  );
+}
+
 export function SettingsCenter({
   section,
   onSection,
@@ -731,6 +764,7 @@ export function SettingsCenter({
                     </option>
                   ))}
                 </select>
+                <VoiceSampleButton voiceId={b.voiceId ?? DEFAULT_VOICE_ID} />
               </ScRow>
               <ScRow
                 label="Connect callers who ask for a person"
