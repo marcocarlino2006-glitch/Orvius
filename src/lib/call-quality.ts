@@ -27,6 +27,8 @@ export type CallFinding = {
     | "corrected_orvius"
     | "frustrated"
     | "asked_twice"
+    | "stacked_questions"
+    | "long_reply"
     | "no_transcript"
     | "low_self_rating";
   /** One sentence, written for the owner. */
@@ -86,6 +88,15 @@ const FRUSTRATED =
 const SAFETY_GUIDANCE =
   /\b911\b|leave (the|your) (house|home|building)|get (everyone )?out(side)?|step outside|shut (it |the \w+ )?off|turn (it |the \w+ )?off|breaker|gas (company|utility)|stay away|don'?t (touch|use|flip|light)|evacuat/i;
 
+/** The opening line plus the recording disclosure legitimately runs long. */
+const DISCLOSURE = /\brecorded\b/i;
+const LONG_REPLY_WORDS = 45;
+
+/** Transcribers turn "Got it." into "Got it?", so a question needs three words to count. */
+function questionCount(text: string) {
+  return (text.match(/[^.?!]+\?/g) ?? []).filter((q) => q.trim().split(/\s+/).length >= 3).length;
+}
+
 function usablePhone(phone: string | null | undefined) {
   return (phone ?? "").replace(/\D/g, "").length >= 10;
 }
@@ -114,6 +125,8 @@ const PENALTY: Record<CallFinding["key"], number> = {
   corrected_orvius: 12,
   frustrated: 15,
   asked_twice: 8,
+  stacked_questions: 5,
+  long_reply: 5,
   no_transcript: 10,
   low_self_rating: 10,
 };
@@ -254,6 +267,27 @@ export function gradeCall(input: CallGradeInput): CallGrade {
     seen.set(norm, line.text);
   }
 
+  const stacked = aiLines.find((l) => questionCount(l.text) >= 2);
+  if (stacked) {
+    findings.push({
+      key: "stacked_questions",
+      label: "Orvius asked more than one question at once.",
+      severity: "watch",
+      quote: clip(stacked.text),
+    });
+  }
+  const long = aiLines.find(
+    (l) => l.text.trim().split(/\s+/).length > LONG_REPLY_WORDS && !SAFETY_GUIDANCE.test(l.text) && !DISCLOSURE.test(l.text),
+  );
+  if (long) {
+    findings.push({
+      key: "long_reply",
+      label: "Orvius talked for too long in one turn.",
+      severity: "watch",
+      quote: clip(long.text),
+    });
+  }
+
   if (!live && status !== "failed" && !call.transcript?.trim() && (call.durationSec ?? 0) >= 20) {
     findings.push({ key: "no_transcript", label: "No transcript was saved, so this call cannot be reviewed from text.", severity: "watch" });
   }
@@ -310,6 +344,8 @@ const TOPIC: Record<CallFinding["key"], string> = {
   corrected_orvius: "callers correcting Orvius",
   frustrated: "frustrated callers",
   asked_twice: "repeated questions",
+  stacked_questions: "several questions at once",
+  long_reply: "long replies",
   no_transcript: "missing transcripts",
   low_self_rating: "low voice-agent scores",
 };
