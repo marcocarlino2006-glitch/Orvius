@@ -31,7 +31,10 @@ type VapiAssistantPayload = {
     model: string;
     language?: string;
   };
-  startSpeakingPlan?: { waitSeconds?: number };
+  startSpeakingPlan?: {
+    waitSeconds?: number;
+    transcriptionEndpointingPlan?: { onPunctuationSeconds?: number; onNoPunctuationSeconds?: number; onNumberSeconds?: number };
+  };
   stopSpeakingPlan?: { numWords?: number; voiceSeconds?: number; backoffSeconds?: number };
   serverUrl?: string;
   serverUrlSecret?: string;
@@ -210,7 +213,12 @@ export function buildVapiAssistantConfig(params: {
       model: getTranscriptionModel(),
       language: TRANSCRIPTION_POLICY.language,
     },
-    startSpeakingPlan: { waitSeconds: 0.3 },
+    startSpeakingPlan: {
+      waitSeconds: 0.3,
+      // Vapi waits 1.5s after an unpunctuated transcript before replying; that pause measured as the slowest turn on live calls.
+      // Digits get a longer wait than Vapi's 0.5s default: callers read numbers in groups, and 0.6s cut one off mid-number.
+      transcriptionEndpointingPlan: { onPunctuationSeconds: 0.1, onNoPunctuationSeconds: 1, onNumberSeconds: 1 },
+    },
     // A caller's "yeah" or "mm-hm" should not cut the receptionist off mid-sentence.
     stopSpeakingPlan: { numWords: 2, voiceSeconds: 0.3, backoffSeconds: 1 },
     serverUrl: params.webhookUrl,

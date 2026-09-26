@@ -54,6 +54,7 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
           required: ["slot"],
         },
       },
+      messages: [{ type: "request-start", content: "One moment." }],
       server,
     },
   ];
