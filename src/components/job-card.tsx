@@ -50,12 +50,12 @@ export function JobTable({ rows }: { rows: JobTableRow[] }) {
         const phone = row.phone ? displayPhone(normalizePhone(row.phone) ?? row.phone) : null;
         const { facts } = row;
         return (
-          <RecordLink key={row.id} type="job" id={row.id} href={`/dashboard/jobs/${row.id}`} className="dt-row" role="row">
+          <div key={row.id} className="dt-row dt-row--link" role="row">
             <span role="cell" className="dt-primary">
-              <span className="dt-title">
+              <RecordLink type="job" id={row.id} href={`/dashboard/jobs/${row.id}`} className="dt-title dt-row-link">
                 {isEmergency(row.urgency) ? <span className="dt-flag">Emergency</span> : null}
                 {row.title}
-              </span>
+              </RecordLink>
               <span className="dt-sub">
                 {[row.customerName, phone, row.address].filter(Boolean).join(", ") || "No customer details yet"}
               </span>
@@ -92,7 +92,7 @@ export function JobTable({ rows }: { rows: JobTableRow[] }) {
                 </>
               )}
             </span>
-          </RecordLink>
+          </div>
         );
       })}
     </div>
