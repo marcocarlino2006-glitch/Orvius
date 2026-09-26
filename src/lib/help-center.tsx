@@ -28,7 +28,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       <>
         <h2>1. Get your Orvius number</h2>
         <p>
-          Sign in and your shop gets its own Orvius line. You'll find it under{" "}
+          Sign in and your shop gets its own Orvius line. You’ll find it under{" "}
           <strong>Settings → Phone line</strong>.
         </p>
         <h2>2. Tell the receptionist about your shop</h2>
@@ -70,7 +70,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       <>
         <p>
           Your public number stays on Google, trucks and ads. You pick up when you can; every call you miss goes to
-          Orvius. Codes can differ by plan — if one doesn't work, use your carrier's app or call their support and ask
+          Orvius. Codes can differ by plan — if one doesn’t work, use your carrier’s app or call their support and ask
           for <em>conditional call forwarding</em> (busy, no answer, unreachable).
         </p>
         {CARRIERS.map((carrier) => (
@@ -85,13 +85,13 @@ export const HELP_ARTICLES: HelpArticle[] = [
         ))}
         <h2>Or publish the Orvius number</h2>
         <p>
-          If you'd rather Orvius answer every call, put your Orvius number on Google, trucks and ads instead. Callers who
+          If you’d rather Orvius answer every call, put your Orvius number on Google, trucks and ads instead. Callers who
           ask for a person are transferred to the number in <strong>Settings → Receptionist</strong>, or you get a
           callback request.
         </p>
         <h2>Check it worked</h2>
         <p>
-          From another phone, call your public number and don't answer. Orvius should pick up with your shop name.
+          From another phone, call your public number and don’t answer. Orvius should pick up with your shop name.
           Under <strong>Settings → Phone line</strong> you can text yourself these steps for your carrier.
         </p>
       </>
@@ -108,16 +108,16 @@ export const HELP_ARTICLES: HelpArticle[] = [
         <h2>Every call</h2>
         <ul>
           <li>Answers with your opening line and says the call may be recorded and assisted by an automated receptionist.</li>
-          <li>Works out what's wrong and how urgent it is — callers aren't asked to pick a category.</li>
+          <li>Works out what’s wrong and how urgent it is — callers aren’t asked to pick a category.</li>
           <li>Takes the service address, name and callback number, and reads numbers back digit by digit.</li>
           <li>If the caller spells a name or street, that spelling is what gets saved.</li>
           <li>Speaks Spanish if the caller does. Your records stay in English.</li>
         </ul>
         <h2>Booking</h2>
         <p>
-          When booking on the call is on, it offers up to two open times from your hours, your technicians' existing
+          When booking on the call is on, it offers up to two open times from your hours, your technicians’ existing
           jobs, and <Link href="/help/calendar">busy times on your own calendar</Link>. When the caller picks one, the
-          time is held for them and they hear "The shop will confirm with you shortly." Two callers at once are never
+          time is held for them and they hear “The shop will confirm with you shortly.” Two callers at once are never
           given the same time.
         </p>
         <h2>Emergencies and danger</h2>
@@ -131,20 +131,20 @@ export const HELP_ARTICLES: HelpArticle[] = [
             No heat, no AC, a leak, or a baby or elderly person at home is marked urgent — it is not treated as danger,
             and those callers are never told to leave.
           </li>
-          <li>Emergencies are never booked into a slot; they're marked for your team to call back right away.</li>
+          <li>Emergencies are never booked into a slot; they’re marked for your team to call back right away.</li>
         </ul>
         <h2>What it will never do</h2>
         <ul>
           <li>Quote prices, arrival times or technician names.</li>
           <li>Promise a text, an email or a callback time.</li>
-          <li>Claim it found or confirmed an earlier request — it can't see your records.</li>
-          <li>Read a returning caller's address or history before they've confirmed their name.</li>
+          <li>Claim it found or confirmed an earlier request — it can’t see your records.</li>
+          <li>Read a returning caller’s address or history before they’ve confirmed their name.</li>
         </ul>
         <h2>Other callers</h2>
         <p>
           Callers who ask for a person are transferred to your number in <strong>Settings → Receptionist</strong> after
           it takes their name and number, or flagged for a callback. Spam and sales calls are ended politely. Callers
-          outside your ZIPs or your trade are told it can't take the job.
+          outside your ZIPs or your trade are told it can’t take the job.
         </p>
       </>
     ),
@@ -159,7 +159,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
       <>
         <p>
           When a number that has called before rings in, the receptionist gets a private note with the name on file. It
-          only asks "Is this [name]?" — it never reads out an address or past jobs to someone who hasn't confirmed who
+          only asks “Is this [name]?” — it never reads out an address or past jobs to someone who hasn’t confirmed who
           they are.
         </p>
         <p>
@@ -183,7 +183,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
             Add your cell (not the shop line) under <strong>Settings → Notifications</strong>. Every new lead is texted
             there.
           </li>
-          <li>Your sign-in email is the backup: when a text can't be delivered, the alert goes to email.</li>
+          <li>Your sign-in email is the backup: when a text can’t be delivered, the alert goes to email.</li>
           <li>
             <strong>Send test</strong> texts your mobile the way a real lead would.
           </li>
@@ -207,12 +207,12 @@ export const HELP_ARTICLES: HelpArticle[] = [
         <p>
           Under <strong>Settings → Integrations → Jobs calendar feed</strong>, copy the link and subscribe to it in
           Google, Apple or Outlook Calendar. Jobs update about every 15 minutes. The link is private — anyone who has it
-          can see your jobs, so don't share it.
+          can see your jobs, so don’t share it.
         </p>
-        <h2>Block times you're busy</h2>
+        <h2>Block times you’re busy</h2>
         <p>
-          Under <strong>Settings → Integrations → Busy times</strong>, paste your calendar's private address. Any time
-          you're busy there is never offered to a caller.
+          Under <strong>Settings → Integrations → Busy times</strong>, paste your calendar’s private address. Any time
+          you’re busy there is never offered to a caller.
         </p>
         <ul>
           <li>
@@ -227,8 +227,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
           </li>
         </ul>
         <p>
-          Orvius checks it at most every 10 minutes while calls come in. Events marked "free" and cancelled events
-          don't block anything. Repeating events and all-day events do. If a check fails, the last good copy keeps
+          Orvius checks it at most every 10 minutes while calls come in. Events marked “free” and cancelled events
+          don’t block anything. Repeating events and all-day events do. If a check fails, the last good copy keeps
           being used and Settings shows what went wrong.
         </p>
       </>
@@ -269,7 +269,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     keywords: "not working problem help broken calls missing no alerts wrong name fix",
     body: (
       <>
-        <h2>Calls aren't reaching Orvius</h2>
+        <h2>Calls aren’t reaching Orvius</h2>
         <ol>
           <li>Call your Orvius number directly. If it answers, the line is fine and the issue is forwarding.</li>
           <li>
@@ -280,19 +280,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
             trouble right now.
           </li>
         </ol>
-        <h2>Alerts aren't arriving</h2>
+        <h2>Alerts aren’t arriving</h2>
         <ol>
           <li>
             Check your mobile under <strong>Settings → Notifications</strong> — it must be your cell, not the shop line.
           </li>
           <li>
-            Use <strong>Send test</strong>. If texts don't arrive, check your email: alerts fall back there.
+            Use <strong>Send test</strong>. If texts don’t arrive, check your email: alerts fall back there.
           </li>
           <li>If you replied STOP to an Orvius text, reply START to turn texts back on.</li>
         </ol>
         <h2>A detail was captured wrong</h2>
         <p>
-          Numbers are read back to every caller, and spelled names are saved as spelled. Names the caller doesn't
+          Numbers are read back to every caller, and spelled names are saved as spelled. Names the caller doesn’t
           spell are saved as heard, so unusual names can come through wrong — the recording and transcript are on
           the call so you can check.
         </p>
@@ -318,7 +318,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
         </p>
         <p>
           To take deposits from customers, finish payouts under <strong>Settings → Billing</strong>. Payouts run through
-          Stripe, and customer payments go to your shop's bank account once that's set up. Until then, deposits stay
+          Stripe, and customer payments go to your shop’s bank account once that’s set up. Until then, deposits stay
           off.
         </p>
         <p>

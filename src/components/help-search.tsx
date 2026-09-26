@@ -30,7 +30,7 @@ export function HelpSearch({ articles, categories }: { articles: HelpIndexEntry[
 
       {matches.length === 0 ? (
         <p className="help-empty">
-          Nothing matches "{query}". Try another word, or email{" "}
+          Nothing matches “{query}”. Try another word, or email{" "}
           <a href="mailto:hello@orvius.im">hello@orvius.im</a>.
         </p>
       ) : (

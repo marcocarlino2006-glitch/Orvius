@@ -34,7 +34,7 @@ export default function HelpPage() {
             }))}
           />
           <p className="help-contact">
-            Can't find it? Email <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a> or call{" "}
+            Can’t find it? Email <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a> or call{" "}
             <a href="tel:+18446439170">+1 844 643 9170</a>.
           </p>
         </div>
