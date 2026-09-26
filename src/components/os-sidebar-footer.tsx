@@ -233,7 +233,13 @@ export function OsSidebarFooter() {
             ))}
             {needle && !shownShops.length ? <p className="pm-ws-note">No location matches.</p> : null}
             </div>
-            {otherShops.length ? null : <p className="pm-ws-note">This sign-in has one workspace.</p>}
+            {otherShops.length ? (
+              <Link href="/dashboard/portfolio" role="menuitem" className="pm-ws-all" onClick={() => setOpen(false)}>
+                All {otherShops.length + 1} locations side by side
+              </Link>
+            ) : (
+              <p className="pm-ws-note">This sign-in has one workspace.</p>
+            )}
           </div>
 
           <div className="os-profile-menu-links pm-section">

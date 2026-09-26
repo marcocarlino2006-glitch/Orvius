@@ -578,6 +578,103 @@ a.dt-row:focus-visible,
   }
 }
 
+/* Portfolio: every location side by side. */
+.dt--portfolio .dt-head,
+.dt--portfolio .dt-row {
+  grid-template-columns: minmax(0, 2.6fr) repeat(4, minmax(3.5rem, 0.5fr)) minmax(6rem, 0.8fr) minmax(6.5rem, 0.8fr) minmax(5.5rem, 0.6fr);
+}
+
+.dt--portfolio .pf-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dt--portfolio .pf-open:focus-visible {
+  outline: none;
+}
+
+.pf-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pf-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--cr-label);
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .pf-sort select {
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s1);
+  color: var(--ox-text);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
+.os-shell.os-shell-night .pf-hot {
+  color: var(--ox-red) !important;
+  font-weight: 600;
+}
+
+.os-shell.os-shell-night .pf-hot-note {
+  display: block;
+  font-size: var(--cr-label);
+  font-weight: 500;
+  color: var(--ox-red) !important;
+}
+
+.pf-line {
+  font-size: var(--cr-label);
+  font-weight: 500;
+}
+
+.pf-line--ok {
+  color: var(--ox-green);
+}
+
+.pf-line--warn {
+  color: var(--ox-yellow);
+}
+
+.pf-line--bad {
+  color: var(--ox-red);
+}
+
+.os-shell.os-shell-night p.pf-foot {
+  margin: 0.75rem 0 0;
+  max-width: 44rem;
+  font-size: var(--cr-label);
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .dt--portfolio .dt-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+  }
+
+  .dt--portfolio .dt-row > [data-label]::before {
+    content: attr(data-label) " ";
+    color: var(--ox-mute);
+    font-weight: 400;
+  }
+}
+
 /* Customer list: one line of identity, one of contact. */
 .os-shell.os-shell-night .cp-row .lead-rail-row {
   display: grid;

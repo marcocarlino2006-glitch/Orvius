@@ -1679,6 +1679,22 @@ button.rd-path-btn:hover {
   color: var(--ox-mute);
 }
 
+.os-shell.os-shell-night .pm-ws-all {
+  display: block;
+  margin: 0.25rem 0.25rem 0;
+  padding: 0.5rem;
+  border-radius: var(--ox-radius-sm);
+  font-size: 0.8125rem;
+  color: var(--ox-text-2);
+  text-decoration: none;
+}
+
+.os-shell.os-shell-night .pm-ws-all:hover,
+.os-shell.os-shell-night .pm-ws-all:focus-visible {
+  background: var(--ox-s3);
+  color: var(--ox-text);
+}
+
 .os-shell.os-shell-night .os-profile-menu-links {
   padding: 0.35rem 0.5rem !important;
 }
