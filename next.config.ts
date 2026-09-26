@@ -6,6 +6,20 @@ const nextConfig: NextConfig = {
   ...(process.env.ORVIUS_STANDALONE === "1"
     ? { output: "standalone" as const }
     : {}),
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+        ],
+      },
+    ];
+  },
 };
 
 const hasSentryAuth = Boolean(process.env.SENTRY_AUTH_TOKEN?.trim());
