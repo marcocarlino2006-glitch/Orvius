@@ -73,7 +73,7 @@ export default function TermsPage() {
         </p>
         <p>
           Continued use after the pilot requires a paid plan (for example, {company.productName}{" "}
-          Pro at ${pro?.price ?? 299}/month, unless otherwise agreed in writing). We will notify you
+          Pro at ${pro?.price ?? 399}/month, unless otherwise agreed in writing). We will notify you
           before any charge begins. Pilot access may be revoked for abuse or material breach.
         </p>
       </LegalSection>

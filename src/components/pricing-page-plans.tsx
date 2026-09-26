@@ -14,7 +14,7 @@ import {
 
 export function PricingPagePlans() {
   const paidPlans = getPaidPlans();
-  const [interval, setInterval] = useState<BillingInterval>("month");
+  const [interval, setInterval] = useState<BillingInterval>("year");
   const [recommendedPlanId, setRecommendedPlanId] = useState<
     PaidPlanId | "multi" | null
   >(null);

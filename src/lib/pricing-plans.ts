@@ -35,12 +35,20 @@ export const ANNUAL_DISCOUNT_LABEL = "2 months free";
 
 /*
   Measured voice cost is about $0.12 per answered call (Vapi, 21 simulated calls,
-  85s average). Allowances keep each plan above ~65% gross margin at full use, and
+  85s average). Allowances keep each plan above ~70% gross margin at full use, and
   sit well above what a 1–15 truck shop forwards in a month. Past the allowance the
   line keeps answering: an unanswered emergency costs the shop more than any overage.
 */
 export const OVERAGE_CENTS_PER_CALL = 50;
 
+/*
+  Priced against the alternatives a shop already pays for, not against our cost:
+  a human answering service runs ~$250–300/mo for 50–90 calls, and a field-service
+  suite runs $200–400/mo before per-tech fees. Line undercuts the first with 300
+  calls; Pro replaces both for less than their sum; Fleet stays flat where per-tech
+  pricing would pass $1,000 at 6+ trucks. One recovered emergency job is typically
+  $300–1,500 of revenue, so each plan is sized to pay back on one or two.
+*/
 export const pricingPlans: readonly PricingPlan[] = [
   {
     id: "pilot",
@@ -64,8 +72,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     id: "line",
     name: "Line",
     tagline: "Answer after-hours and overflow calls. Capture every lead that reaches the line.",
-    price: 149,
-    annualPrice: 124,
+    price: 199,
+    annualPrice: 166,
     period: "per month",
     includedCalls: 300,
     cta: "Pay with card",
@@ -86,8 +94,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     id: "pro",
     name: "Pro",
     tagline: "Full shop workspace — front door through dispatch",
-    price: 299,
-    annualPrice: 249,
+    price: 399,
+    annualPrice: 333,
     period: "per month",
     includedCalls: 750,
     featured: true,
@@ -109,8 +117,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     id: "fleet",
     name: "Fleet",
     tagline: "For shops running 6+ trucks",
-    price: 499,
-    annualPrice: 416,
+    price: 749,
+    annualPrice: 624,
     period: "per month",
     includedCalls: 1500,
     cta: "Pay with card",
@@ -137,7 +145,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     id: "multi",
     name: "Multi-shop",
     tagline: "Every location, one sign-in",
-    price: 249,
+    price: 333,
     period: "per location / mo",
     limit: "3 or more locations",
     includedCalls: 750,

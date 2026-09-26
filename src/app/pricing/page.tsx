@@ -11,7 +11,7 @@ const featured = getFeaturedPlan();
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Orvius plans from $124/mo (annual) — Line, Pro, and Fleet. Monthly or annual billing.",
+    `Orvius plans from $${getLowestPaidPrice("year")}/mo (annual) — Line, Pro, and Fleet. Monthly or annual billing.`,
 };
 
 export default function PricingPage() {

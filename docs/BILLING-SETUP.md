@@ -4,17 +4,17 @@ Orvius has **three paid plans** plus a free design partner program:
 
 | Plan | Monthly | Annual | Best for |
 |------|---------|--------|----------|
-| **Line** | $149/mo | $124/mo billed yearly | Front door — AI receptionist, inbox, owner SMS |
-| **Pro** | $299/mo | $249/mo billed yearly | Full workspace — customers, jobs, dispatch, Ask |
-| **Fleet** | $499/mo | $429/mo billed yearly | 6+ trucks — priority support, multi-tech dispatch |
+| **Line** | $199/mo | $166/mo billed yearly | Front door — AI receptionist, inbox, owner SMS |
+| **Pro** | $399/mo | $333/mo billed yearly | Full workspace — customers, jobs, dispatch, Ask |
+| **Fleet** | $749/mo | $624/mo billed yearly | 6+ trucks — unlimited technicians, multi-tech dispatch |
 
 Plan copy and **need-based matching** live in `src/lib/pricing-plans.ts` and `src/lib/plan-needs.ts`.
 
 | Plan | Price | Need it if… | Modules |
 |------|-------|-------------|---------|
-| **Line** | $149/mo | You miss after-hours calls | Today, Inbox, Calls |
-| **Pro** | $299/mo | Leads don't become jobs | + Customers, Jobs, Dispatch, Ask |
-| **Fleet** | $499/mo | 6+ trucks, dispatch chaos | Pro + priority support |
+| **Line** | $199/mo | You miss after-hours calls | Today, Inbox, Calls |
+| **Pro** | $399/mo | Leads don't become jobs | + Customers, Jobs, Dispatch, Ask |
+| **Fleet** | $749/mo | 6+ trucks, dispatch chaos | Pro + unlimited technicians |
 
 Pilot shops get **Pro access** during the 30-day program. Line subscribers see upgrade prompts for Pro modules.
 

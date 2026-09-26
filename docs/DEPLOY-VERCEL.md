@@ -29,7 +29,7 @@ Copy everything from your `.env` into Vercel → Settings → Environment Variab
 | `ORVIUS_*` | Domain config |
 | `ENABLE_OWNER_SMS` | `true` when owner phones are set |
 | `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_PRICE_ID` | From `npm run stripe:setup` ($299/mo Orvius Pro) |
+| `STRIPE_PRICE_ID` | From `npm run stripe:setup` ($399/mo Orvius Pro) |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `RESEND_API_KEY` | Resend API key — magic links + SMS→email failover |
 | `RESEND_FROM` | Verified sender, e.g. `Orvius <alerts@orvius.im>` |

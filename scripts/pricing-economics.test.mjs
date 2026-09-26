@@ -4,6 +4,7 @@
  * agree with the plan it is on.
  */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -95,4 +96,15 @@ test("the metering window starts on the 1st in UTC", () => {
     usagePeriodStart(new Date("2026-09-26T15:00:00Z")).toISOString(),
     "2026-09-01T00:00:00.000Z",
   );
+});
+
+test("the Stripe setup script creates the prices the site shows", () => {
+  const src = readFileSync(new URL("./stripe-setup.mjs", import.meta.url), "utf8");
+  for (const plan of getPaidPlans()) {
+    const block = src.slice(src.indexOf(`id: "${plan.id}"`));
+    const monthly = Number(block.match(/monthlyAmount:\s*(\d+)/)[1]);
+    const annual = Number(block.match(/annualAmount:\s*(\d+)/)[1]);
+    assert.equal(monthly, plan.price * 100, `${plan.name} monthly Stripe amount`);
+    assert.equal(annual, plan.annualPrice * 1200, `${plan.name} annual Stripe amount`);
+  }
 });

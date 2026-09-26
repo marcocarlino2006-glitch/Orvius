@@ -15,7 +15,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "annual",
     question: "Can I pay annually?",
     answer:
-      "Yes. Annual billing is two months free — Line from $124/mo, Pro from $249/mo, Fleet from $416/mo when billed yearly. Toggle annual on the pricing page before subscribing.",
+      "Yes. Annual billing is two months free — Line from $166/mo, Pro from $333/mo, Fleet from $624/mo when billed yearly. Toggle annual on the pricing page before subscribing.",
   },
   {
     id: "calls",

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Stripe setup — creates monthly + annual prices for Line, Pro, Fleet.
- * Annual = monthly equivalent × 12 (e.g. Pro $249/mo → $2988/yr).
+ * Annual = monthly equivalent × 12 (e.g. Pro $333/mo → $3996/yr).
+ * Amounts must match src/lib/pricing-plans.ts; scripts/pricing-economics.test.mjs checks.
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -14,8 +15,8 @@ const PLANS = [
   {
     id: "line",
     name: "Orvius Line",
-    monthlyAmount: 14900,
-    annualAmount: 148800, // $124/mo × 12
+    monthlyAmount: 19900,
+    annualAmount: 199200, // $166/mo × 12
     envKey: "STRIPE_PRICE_ID_LINE",
     envKeyAnnual: "STRIPE_PRICE_ID_LINE_ANNUAL",
     metadata: { orvius: "line" },
@@ -24,8 +25,8 @@ const PLANS = [
   {
     id: "pro",
     name: "Orvius Pro",
-    monthlyAmount: 29900,
-    annualAmount: 298800, // $249/mo × 12
+    monthlyAmount: 39900,
+    annualAmount: 399600, // $333/mo × 12
     envKey: "STRIPE_PRICE_ID_PRO",
     envKeyAnnual: "STRIPE_PRICE_ID_PRO_ANNUAL",
     metadata: { orvius: "pro" },
@@ -34,12 +35,12 @@ const PLANS = [
   {
     id: "fleet",
     name: "Orvius Fleet",
-    monthlyAmount: 49900,
-    annualAmount: 499200, // $416/mo × 12
+    monthlyAmount: 74900,
+    annualAmount: 748800, // $624/mo × 12
     envKey: "STRIPE_PRICE_ID_FLEET",
     envKeyAnnual: "STRIPE_PRICE_ID_FLEET_ANNUAL",
     metadata: { orvius: "fleet" },
-    description: "For shops running 6+ trucks with priority support.",
+    description: "For shops running 6+ trucks — unlimited technicians on dispatch.",
   },
 ];
 
