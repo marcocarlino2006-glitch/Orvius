@@ -1,0 +1,61 @@
+name: Voice gate
+
+# Pre-deploy gate for anything that changes what the receptionist says or
+# hears: real calls through the ship-blocking scenarios in
+# scripts/voice-scenarios.mjs (danger instructions, honesty about being
+# automated, no invented prices, times, names or discounts, correct capture).
+# One failure fails the check. Billed by Vapi on both legs, so it runs only on
+# PRs that touch these files, and only when the three secrets are set.
+on:
+  pull_request:
+    paths:
+      - src/lib/vapi.ts
+      - src/lib/ai-policy.ts
+      - src/lib/business.ts
+      - src/lib/assistant-promises.ts
+      - src/lib/spelled-name.ts
+      - scripts/voice-sim.mjs
+      - scripts/voice-scenarios.mjs
+  workflow_dispatch:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
+      VOICE_SIM_RECEPTIONIST_PHONE_ID: ${{ secrets.VOICE_SIM_RECEPTIONIST_PHONE_ID }}
+      VOICE_SIM_CALLER_PHONE_ID: ${{ secrets.VOICE_SIM_CALLER_PHONE_ID }}
+    steps:
+      - name: Check secrets
+        id: gate
+        run: |
+          if [ -n "$VAPI_API_KEY" ] && [ -n "$VOICE_SIM_RECEPTIONIST_PHONE_ID" ] && [ -n "$VOICE_SIM_CALLER_PHONE_ID" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Voice gate NOT run — set VAPI_API_KEY, VOICE_SIM_RECEPTIONIST_PHONE_ID and VOICE_SIM_CALLER_PHONE_ID in repo secrets. This receptionist change has not been call-tested."
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - if: steps.gate.outputs.run == 'true'
+        run: npm ci
+      - if: steps.gate.outputs.run == 'true'
+        name: Run gate scenarios
+        run: npm run sim:gate -- --json voice-gate.json --report voice-gate.md
+      - if: always() && steps.gate.outputs.run == 'true'
+        run: cat voice-gate.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+      - if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: voice-gate
+          path: |
+            voice-gate.json
+            voice-gate.md
+          if-no-files-found: ignore
+          retention-days: 30

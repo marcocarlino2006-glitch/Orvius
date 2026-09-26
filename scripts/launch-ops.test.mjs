@@ -140,8 +140,16 @@ test("nightly voice run skips honestly without secrets and never uploads shop da
   assert.match(wf, /schedule:/);
   assert.match(wf, /VOICE_SIM_RECEPTIONIST_PHONE_ID/);
   assert.match(wf, /run=false/);
-  assert.match(wf, /sim:voice -- --json voice-results\.json/);
+  assert.match(wf, /sim:voice -- .*--json voice-results\.json/);
   assert.doesNotMatch(wf, /backups\/|db-backup/);
+});
+
+test("voice gate runs on receptionist changes and says loudly when it was skipped", () => {
+  const wf = readFileSync(".github/workflows/voice-gate.yml", "utf8");
+  assert.match(wf, /pull_request:/);
+  for (const path of ["src/lib/vapi.ts", "src/lib/ai-policy.ts", "src/lib/business.ts", "scripts/voice-scenarios.mjs"]) assert.ok(wf.includes(path), path);
+  assert.match(wf, /::warning::Voice gate NOT run/);
+  assert.match(wf, /npm run sim:gate/);
 });
 
 test("porting steps ask for what a carrier needs and promise no date", () => {
