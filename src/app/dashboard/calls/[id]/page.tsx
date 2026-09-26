@@ -199,7 +199,7 @@ export default function CallDetailPage() {
             screen on any call longer than a minute.
           */}
           {call.recordingUrl ? (
-            <CallPlayer src={call.recordingUrl} durationSec={call.durationSec} />
+            <CallPlayer src={`/api/calls/${callId}/recording`} durationSec={call.durationSec} />
           ) : null}
 
           {call.transcript ? (

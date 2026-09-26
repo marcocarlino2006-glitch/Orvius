@@ -87,6 +87,18 @@ export async function vapiRequest<T>(
   return response.json() as Promise<T>;
 }
 
+/** Short-lived signed URL for a call's combined recording, or null when Vapi has none. */
+export async function vapiRecordingRedirect(vapiCallId: string): Promise<string | null> {
+  if (!process.env.VAPI_API_KEY) return null;
+  const response = await fetch(`${VAPI_BASE}/call/${encodeURIComponent(vapiCallId)}/mono-recording`, {
+    headers: getVapiHeaders(),
+    redirect: "manual",
+    cache: "no-store",
+  });
+  if (response.status >= 300 && response.status < 400) return response.headers.get("location");
+  return null;
+}
+
 export async function createAssistant(payload: VapiAssistantPayload) {
   return vapiRequest<{ id: string }>("/assistant", {
     method: "POST",
