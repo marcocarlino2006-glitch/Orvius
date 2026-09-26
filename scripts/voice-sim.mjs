@@ -26,6 +26,7 @@ import { writeFileSync } from "node:fs";
 import { buildAssistantSystemPrompt } from "../src/lib/business.ts";
 import { buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 import { detectAssistantPromises } from "../src/lib/assistant-promises.ts";
+import { deriveDemandSignal } from "../src/lib/demand-capture.ts";
 
 const KEY = process.env.VAPI_API_KEY?.trim();
 const FROM_ID = process.env.VOICE_SIM_RECEPTIONIST_PHONE_ID?.trim();
