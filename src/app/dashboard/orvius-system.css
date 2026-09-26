@@ -2916,3 +2916,14 @@ button.rd-path-btn:hover {
 @media (prefers-reduced-motion: reduce) {
   .os-toast { animation: none; }
 }
+
+.os-shell.os-shell-night :is(button, .btn, [role="button"]):not(:disabled, [aria-disabled="true"]):active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .os-shell.os-shell-night :is(button, .btn, [role="button"]):active {
+    transform: none;
+  }
+}

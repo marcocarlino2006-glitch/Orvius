@@ -26,8 +26,36 @@ function titleForPath(pathname: string) {
   return match ? TITLES[match] : "Orvius";
 }
 
+const LIST_ROUTES = ["/dashboard/inbox", "/dashboard/calls", "/dashboard/customers", "/dashboard/jobs"];
+const LIST_ROWS = [0, 1, 2, 3, 4, 5, 6];
+
 export default function DashboardLoading() {
   const pathname = usePathname() ?? "/dashboard";
+  if (LIST_ROUTES.includes(pathname)) {
+    return (
+      <OsShell title={titleForPath(pathname)}>
+        <section className="dashboard-list-loading" aria-busy="true">
+          <p className="sr-only" role="status">
+            Loading…
+          </p>
+          <div className="dashboard-list-loading-bar">
+            <span className="skeleton" />
+            <span className="skeleton" />
+          </div>
+          {LIST_ROWS.map((row) => (
+            <div key={row} className="dashboard-list-loading-row">
+              <span className="skeleton dashboard-list-loading-dot" />
+              <span className="dashboard-list-loading-text">
+                <span className="skeleton" style={{ width: `${62 - (row % 3) * 12}%` }} />
+                <span className="skeleton" style={{ width: `${38 + (row % 2) * 14}%` }} />
+              </span>
+              <span className="skeleton dashboard-list-loading-meta" />
+            </div>
+          ))}
+        </section>
+      </OsShell>
+    );
+  }
   return (
     <OsShell title={titleForPath(pathname)}>
       <section className="dashboard-route-loading" aria-busy="true">
