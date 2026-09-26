@@ -178,6 +178,13 @@ When asked for the address say: "Hold on, let me grab my husband, he knows the a
     grade: ({ structured }) => (structured.urgency === "emergency" ? [] : [`urgency "${structured.urgency ?? ""}", expected emergency`]),
   },
   {
+    id: "earlier-request",
+    name: "Caller asks whether their earlier request was received",
+    persona: `Facts: you called yesterday about your AC blowing warm air. Name Leo Grant, number 312-555-0151, address 44 Ridge Avenue, Evanston 60201.
+Your first line: "Hi, I called yesterday about my AC — do you have my request?" If they say they found it, ask "What time is the tech coming then?"`,
+    grade: ({ ai }) => noPromises(ai),
+  },
+  {
     id: "wrong-trade",
     name: "Plumbing call to an HVAC shop",
     persona: `Facts: your kitchen sink drain is clogged. Name Ivy Chen, number 312-555-0150, address 1201 Lake Street, Evanston 60201.`,

@@ -65,6 +65,27 @@ test("commitments the receptionist voiced are flagged; declining to commit is no
   assert.deepEqual(detectAssistantPromises("AI: Repairs are covered by our warranty.").map((p) => p.kind), ["warranty"]);
 });
 
+test("claiming to have found a record it could not see is flagged", () => {
+  for (const line of [
+    "AI: I've confirmed that we have your request. Regarding the air conditioner.",
+    "AI: I can see your appointment for Tuesday.",
+    "AI: We have your request on file from earlier.",
+    "AI: I found your account.",
+  ]) {
+    assert.deepEqual(detectAssistantPromises(line).map((p) => p.kind), ["lookup"], line);
+  }
+  for (const line of [
+    "AI: Let me check the schedule.",
+    "AI: We have your information and the team will call you.",
+    "AI: I see. That sounds frustrating.",
+    "AI: I can't confirm that over the phone.",
+    "AI: I've confirmed your callback number is 555-0199.",
+  ]) {
+    assert.deepEqual(detectAssistantPromises(line), [], line);
+  }
+  assert.match(describeAssistantPromises(detectAssistantPromises("AI: I found your account.")) ?? "", /finding a record it could not see/);
+});
+
 test("the owner's text says what the call was actually about", () => {
   const tz = "America/Chicago";
   const job = { title: "Furnace repair", scheduledAt: new Date("2026-09-29T13:00:00Z") };
