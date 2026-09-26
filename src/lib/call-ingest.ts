@@ -9,6 +9,7 @@ import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications"
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { prisma } from "@/lib/prisma";
 import { callerWords } from "@/lib/transcript";
+import { withCallerSpelling } from "@/lib/spelled-name";
 import { extractLeadFromStructuredData, type VapiWebhookMessage } from "@/lib/vapi";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 
@@ -71,7 +72,13 @@ export async function ingestEndOfCallReport(params: {
     const recordingUrl = message.recordingUrl ?? null;
     const successEvaluation =
       message.analysis?.successEvaluation == null ? null : String(message.analysis.successEvaluation);
-    const structured = extractLeadFromStructuredData(message.analysis?.structuredData);
+    const extracted = extractLeadFromStructuredData(message.analysis?.structuredData);
+    const spelled = withCallerSpelling(extracted, message.transcript);
+    const structured = {
+      ...extracted,
+      name: spelled.name ?? extracted.name,
+      address: spelled.address ?? extracted.address,
+    };
     const demand = deriveDemandSignal({
       serviceType: structured.serviceType,
       notes: structured.notes,
