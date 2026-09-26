@@ -1139,6 +1139,12 @@ body {
   color: #d7d6d5;
 }
 
+.ov-signin-dev .tier1-login-dev-btn {
+  margin-top: 0.75rem;
+  color: #f2f1ec !important;
+  border-color: rgb(255 255 255 / 0.28) !important;
+}
+
 .ov-signin-foot {
   display: flex;
   flex-wrap: wrap;

@@ -155,19 +155,19 @@ export function CheckoutButton({
     return (
       <div className={className}>
         <Link
-          href={anyReady ? "/dashboard/billing" : "/pricing"}
+          href={anyReady ? "/dashboard/billing" : "/pilot"}
           className={`inst-btn w-full justify-center ${
             variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
           }`}
         >
-          {anyReady ? "Open billing to pay" : "See plans"}
+          {anyReady ? "Open billing to pay" : "Book a call audit"}
         </Link>
         <p className="mt-3 font-sans text-sm text-ash">
           {annualMissing
             ? "Annual checkout isn’t open for this plan yet — pay monthly on Billing."
             : anyReady
               ? "This plan isn’t on card checkout yet. Open Billing and pay with the plan that’s ready."
-              : "Card checkout isn’t open yet. Plans are listed on Pricing — Billing unlocks Pay when Stripe is live."}
+              : "Card signup isn’t open yet. Book a call audit and we’ll set up your line with you."}
         </p>
       </div>
     );

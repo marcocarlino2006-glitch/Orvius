@@ -22,7 +22,7 @@ type ResumePayload = {
  * Frictionless tunnel: one form → create line → one call → Command.
  * No welcome rings, no separate alerts/live screens, no capture teach-before-prove.
  */
-export function OnboardingWizard() {
+export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boolean } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const checkoutSessionId = searchParams.get("session_id")?.trim() ?? "";
@@ -144,15 +144,31 @@ export function OnboardingWizard() {
             </p>
           </header>
           <div className="onboarding-panel">
-            <h1 className="onboarding-title font-sans">Pay first, then your line.</h1>
-            <p className="onboarding-lead font-sans">
-              One paid plan unlocks a dedicated number. No surprise phone charge.
-            </p>
-            <div className="onboarding-actions">
-              <Link href="/pricing" className="btn btn-void font-sans">
-                Pay with card
-              </Link>
-            </div>
+            {checkoutOpen ? (
+              <>
+                <h1 className="onboarding-title font-sans">Pay first, then your line.</h1>
+                <p className="onboarding-lead font-sans">
+                  One paid plan unlocks a dedicated number. No surprise phone charge.
+                </p>
+                <div className="onboarding-actions">
+                  <Link href="/pricing" className="btn btn-void font-sans">
+                    Pay with card
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="onboarding-title font-sans">We set up new shops with you.</h1>
+                <p className="onboarding-lead font-sans">
+                  Card signup isn&apos;t open yet. Book a call audit and we&apos;ll get your line answering with you on the call.
+                </p>
+                <div className="onboarding-actions">
+                  <Link href="/pilot" className="btn btn-void font-sans">
+                    Book a call audit
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </main>

@@ -1,4 +1,5 @@
 import { OnboardingWizard } from "@/components/onboarding-wizard";
+import { getBillingReadiness } from "@/lib/billing-readiness";
 import { company } from "@/lib/company";
 import type { Metadata } from "next";
 
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardOnboardingPage() {
-  return <OnboardingWizard />;
+  return <OnboardingWizard checkoutOpen={getBillingReadiness().checkoutReady} />;
 }
