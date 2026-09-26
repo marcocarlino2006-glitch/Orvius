@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { buildInCallTools } from "@/lib/in-call-tool-defs";
-import { DEFAULT_VOICE_ID } from "@/lib/voices";
+import { DEFAULT_VOICE_ID, VOICE_MODEL, VOICE_PROVIDER } from "@/lib/voices";
 import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
 import {
   getAiModelPolicy,
@@ -25,6 +25,7 @@ type VapiAssistantPayload = {
     provider: string;
     voiceId: string;
     model?: string;
+    chunkPlan?: { enabled: boolean; minCharacters?: number };
   };
   transcriber: {
     provider: string;
@@ -203,10 +204,11 @@ export function buildVapiAssistantConfig(params: {
       ...(tools.length ? { tools } : {}),
     },
     voice: {
-      provider: "11labs",
+      provider: VOICE_PROVIDER,
       voiceId: params.voiceId || DEFAULT_VOICE_ID,
-      // Multilingual and the lowest-latency ElevenLabs model; a slow reply is how callers spot a bot.
-      model: "eleven_flash_v2_5",
+      model: VOICE_MODEL,
+      // Vapi buffers 30 characters of model output before its first TTS request; a short opener like "Got it." can speak on its own.
+      chunkPlan: { enabled: true, minCharacters: 10 },
     },
     transcriber: {
       provider: "deepgram",
@@ -214,6 +216,7 @@ export function buildVapiAssistantConfig(params: {
       language: TRANSCRIPTION_POLICY.language,
     },
     startSpeakingPlan: {
+      // 0.1s measured ~100ms faster but cut a caller off mid-spelling ("S-I-O-B-H-A-N") in the voice sim.
       waitSeconds: 0.3,
       // Vapi waits 1.5s after an unpunctuated transcript before replying; that pause measured as the slowest turn on live calls.
       // Digits get a longer wait than Vapi's 0.5s default: callers read numbers in groups, and 0.6s cut one off mid-number.
