@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/toaster";
 import { useCallback, useEffect, useState } from "react";
 
 type Proposal = {
@@ -101,6 +102,7 @@ export function ApproveQueue({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Action failed");
+      toast({ title: mode === "execute" ? "Approved and done" : "Dismissed" });
       await load();
       onChange?.();
     } catch (err) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/toaster";
 import Link from "next/link";
 import {
   createContext,
@@ -376,6 +377,7 @@ function LeadMoreActions({ record }: { record: RecordView }) {
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) throw new Error(data?.error ?? "Update failed");
       setStatus("contacted");
+      toast({ title: "Marked contacted" });
     } catch (err) {
       setError(err instanceof Error ? `${err.message}. Nothing was changed.` : "Update failed.");
     } finally {

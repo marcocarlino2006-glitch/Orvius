@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "@/components/toaster";
 
 export type TechOption = { id: string; name: string };
 
@@ -58,8 +59,12 @@ export function AssignTechButton({
       if (!res.ok) {
         throw new Error(data?.error ?? "Assign failed");
       }
+      const name = technicians.find((t) => t.id === techId)?.name ?? "Tech";
       if (data?.techSms && !data.techSms.sent && data.techSms.reason === "no_phone") {
         setError("Assigned — add mobile on Dispatch so they get SMS");
+        toast({ title: `${name} assigned. No mobile on file, so no text went out.` });
+      } else {
+        toast({ title: data?.techSms?.sent ? `${name} assigned and texted` : `${name} assigned` });
       }
       onAssigned?.();
       router.refresh();

@@ -18,6 +18,7 @@ import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-n
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { PostLockBanner } from "@/components/post-lock-banner";
+import { Toaster } from "@/components/toaster";
 
 type OsShellProps = {
   children: React.ReactNode;
@@ -211,6 +212,7 @@ export function OsShell({
   return (
     <div className="os-shell os-shell-pro os-shell-night min-h-screen">
       <OsMobileNavBackdrop open={navOpen} onClose={() => setNavOpen(false)} />
+      <Toaster />
 
       <aside
         className={`os-sidebar os-sidebar-pro ${navOpen ? "os-sidebar-open" : ""}`}

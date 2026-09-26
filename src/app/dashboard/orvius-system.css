@@ -2828,3 +2828,91 @@ button.rd-path-btn:hover {
   text-transform: none !important;
   border-radius: var(--ox-radius-sm) !important;
 }
+
+/* Toasts: one quiet confirmation surface for every in-app action. */
+.os-toaster {
+  position: fixed;
+  left: 50%;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.os-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+  max-width: min(92vw, 28rem);
+  padding: 0.375rem 0.375rem 0.375rem 0.875rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s3);
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
+  pointer-events: auto;
+  animation: os-toast-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.os-toast-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--ox-green);
+}
+
+.os-toast--error .os-toast-dot {
+  background: var(--ox-red);
+}
+
+.os-toast-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.os-toast-action,
+.os-toast-close {
+  flex: none;
+  min-height: 2rem;
+  padding: 0 0.625rem;
+  border-radius: var(--ox-radius-sm);
+  color: var(--ox-text);
+  font-weight: 600;
+}
+
+.os-toast-action {
+  color: var(--ox-amber-hi);
+}
+
+.os-toast-close {
+  color: var(--ox-mute);
+  font-size: 1.125rem;
+  font-weight: 400;
+}
+
+.os-toast-action:hover,
+.os-toast-close:hover {
+  background: var(--ox-s4);
+}
+
+.os-toast-action:focus-visible,
+.os-toast-close:focus-visible {
+  outline: none;
+  box-shadow: var(--ox-focus);
+}
+
+@keyframes os-toast-in {
+  from { opacity: 0; transform: translateY(0.5rem) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-toast { animation: none; }
+}

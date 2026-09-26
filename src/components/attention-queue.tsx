@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/toaster";
 import Link from "next/link";
 import {
   attentionActionStrategy,
@@ -109,6 +110,7 @@ function MarkNotAJobButton({
       });
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) throw new Error(data?.error ?? "Could not clear lead");
+      toast({ title: "Cleared as spam" });
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not clear");
@@ -153,6 +155,7 @@ function TestAlertButton({ onDone, quiet = false }: { onDone?: () => void; quiet
             "Alert queued but not delivered. Check Settings.",
         );
       }
+      toast({ title: "Test alert sent. Check your phone." });
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not send");
@@ -186,6 +189,7 @@ function CopyProofButton({ onDone }: { onDone?: () => void }) {
     setErr(false);
     try {
       await copyWeeklyProofRitual();
+      toast({ title: "Copied" });
       onDone?.();
     } catch {
       setErr(true);
@@ -234,6 +238,7 @@ function TextConfirmButton({
         error?: string;
       } | null;
       if (!res.ok) throw new Error(data?.error ?? "Could not send");
+      toast({ title: "Confirmation text sent" });
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not send");

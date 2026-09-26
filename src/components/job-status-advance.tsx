@@ -1,6 +1,7 @@
 "use client";
 
-import { nextJobStatus } from "@/lib/job-status";
+import { toast } from "@/components/toaster";
+import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
 import { useState } from "react";
 
 type JobStatusAdvanceProps = {
@@ -24,6 +25,16 @@ export function JobStatusAdvance({
 
   if (!next) return null;
 
+  async function setJobStatus(value: string) {
+    const res = await fetch(`/api/jobs/${jobId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: value }),
+    });
+    const data = (await res.json().catch(() => null)) as { error?: string } | null;
+    if (!res.ok) throw new Error(data?.error ?? "Update failed");
+  }
+
   async function advance(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
@@ -32,14 +43,23 @@ export function JobStatusAdvance({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/jobs/${jobId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: next.status }),
-      });
-      const data = (await res.json().catch(() => null)) as { error?: string } | null;
-      if (!res.ok) throw new Error(data?.error ?? "Update failed");
+      await setJobStatus(next.status);
       onAdvanced?.(next.status);
+      const previous = status;
+      toast({
+        title: `Job moved to ${jobStatusLabel(next.status)}`,
+        action: {
+          label: "Undo",
+          run: async () => {
+            try {
+              await setJobStatus(previous);
+              onAdvanced?.(previous);
+            } catch {
+              toast({ title: "Could not undo. The job is still moved.", tone: "error" });
+            }
+          },
+        },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
     } finally {

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/toaster";
 import { formatCents, formatCentsExact } from "@/lib/money";
 import Link from "next/link";
 import { useState } from "react";
@@ -104,6 +105,7 @@ export function JobMoneyPanel({
     try {
       await navigator.clipboard.writeText(url);
       setDepositCopied(true);
+      toast({ title: "Deposit link copied" });
     } catch {
       setError("Could not copy — select the link manually");
     }
@@ -128,6 +130,7 @@ export function JobMoneyPanel({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not create estimate");
+      toast({ title: "Estimate drafted" });
       onRefresh();
     } catch (err) {
       setError(
@@ -152,6 +155,7 @@ export function JobMoneyPanel({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not send estimate");
       setShareUrl(data.shareUrl ?? null);
+      toast({ title: "Estimate ready. Copy the link to send it." });
       onRefresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send estimate");
@@ -165,6 +169,7 @@ export function JobMoneyPanel({
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      toast({ title: "Estimate link copied" });
     } catch {
       setError("Could not copy — select the link manually");
     }
@@ -182,6 +187,7 @@ export function JobMoneyPanel({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not create invoice");
+      toast({ title: "Invoice created" });
       onRefresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create invoice");
