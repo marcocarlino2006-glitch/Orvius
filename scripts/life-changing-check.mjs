@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 import { probeProdTelephonySync } from "./lib/prod-telephony.mjs";
 import { probeProdBillingSync } from "./lib/prod-billing.mjs";
 import { resolveFormationStateConfirmed } from "./lib/formation-state.mjs";
+import { readSettingsSource } from "./lib/settings-source.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -136,9 +137,7 @@ const outcomes = fileOk("src/lib/shop-outcomes.ts") ? read("src/lib/shop-outcome
 const pulse = fileOk("src/components/pro-economics-panel.tsx")
   ? read("src/components/pro-economics-panel.tsx")
   : "";
-const settings = fileOk("src/components/settings-center/settings-center.tsx")
-  ? read("src/components/settings-center/settings-center.tsx")
-  : "";
+const settings = readSettingsSource();
 const company = fileOk("src/lib/company.ts") ? read("src/lib/company.ts") : "";
 const confirm = fileOk("src/lib/customer-confirm.ts")
   ? read("src/lib/customer-confirm.ts")

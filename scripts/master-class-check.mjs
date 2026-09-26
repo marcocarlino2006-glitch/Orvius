@@ -5,6 +5,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readSettingsSource } from "./lib/settings-source.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -75,7 +76,7 @@ try {
 }
 
 try {
-  const settings = read("src/components/settings-center/settings-center.tsx");
+  const settings = readSettingsSource();
   if (/Multi-b launch gates|LaunchGatesStrip|GoLiveChecklist/.test(settings)) {
     fail(
       "Settings ritual",
@@ -559,7 +560,7 @@ try {
   const alertsMuted = read("src/lib/owner-alerts-muted.ts");
   const moneyPath = read("src/lib/deposit-money-path.ts");
   const queueHrefs = read("src/lib/attention-queue.ts");
-  const settingsIds = read("src/components/settings-center/settings-center.tsx");
+  const settingsIds = readSettingsSource();
   const billingIds = read("src/components/billing-content.tsx");
   if (
     /ownerAlertsAreMuted/.test(alertsMuted) &&
@@ -591,7 +592,7 @@ try {
   const publicCss = read("src/app/public-v2.css");
   const heroMotion = read("src/components/home-line-hero.tsx");
   const daily = read("src/app/admin/daily/page.tsx");
-  const settingsManus = read("src/components/settings-center/settings-center.tsx");
+  const settingsManus = readSettingsSource();
   if (
     /MANUS_POST_STEPS/.test(manus) &&
     /isPlaceholderOwnerPhone/.test(manus) &&

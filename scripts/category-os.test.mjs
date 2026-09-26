@@ -26,7 +26,7 @@ test("Settings readiness path runs Business → … → Test call, one next step
   });
   assert.equal(partial.next?.id, "hours");
 
-  const panel = read("src/components/settings-center/settings-center.tsx");
+  const panel = read("src/components/settings-center/sections/account-section.tsx");
   assert.match(panel, /checklist\.next\.label/);
   assert.match(panel, /checklist\.next\.href/);
 });
