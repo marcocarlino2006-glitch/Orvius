@@ -1,6 +1,6 @@
 import type { SettingsSectionId } from "@/lib/settings-center";
 
-const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external", string[]> = {
+const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external" | "search", string[]> = {
   account: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z", "M4.5 20a7.5 7.5 0 0 1 15 0"],
   business: ["M4 20V8l8-4 8 4v12", "M9 20v-6h6v6", "M3 20h18"],
   phone: [
@@ -28,6 +28,7 @@ const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external", 
   close: ["M6 6l12 12", "M18 6 6 18"],
   back: ["M15 5l-7 7 7 7"],
   external: ["M14 4h6v6", "M20 4l-9 9", "M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"],
+  search: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z", "M20 20l-4-4"],
 };
 
 export function SettingsIcon({ name }: { name: keyof typeof PATHS }) {

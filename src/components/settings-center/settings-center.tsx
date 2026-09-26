@@ -18,7 +18,7 @@ import { ownerSlAs } from "@/lib/institutional-standards";
 import { displayPhone } from "@/lib/customer";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { useOptionalRing1 } from "@/lib/ring1-context";
-import { SETTINGS_SECTIONS, type SettingsSectionId } from "@/lib/settings-center";
+import { SETTINGS_SECTIONS, searchSettings, type SettingsSectionId } from "@/lib/settings-center";
 import { PushAlertsRows } from "@/components/settings-center/push-alerts-rows";
 import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import {
@@ -33,7 +33,6 @@ import {
   type HoursForm,
 } from "@/lib/shop-hours-form";
 import { buildShopSetupChecklist } from "@/lib/shop-setup-checklist";
-import { supportMailto } from "@/lib/support";
 import { TRADES, type Trade } from "@/lib/trades";
 import { SettingsIcon } from "./settings-icons";
 import { ScField, ScGroup, ScRow, ScStatus, ScSwitch } from "./settings-primitives";
@@ -275,6 +274,7 @@ export function SettingsCenter({
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [crew, setCrew] = useState<Technician[] | null>(null);
   const [hours, setHours] = useState<HoursForm>(() => parseHoursForm(null));
   const [certChecks, setCertChecks] = useState<boolean[]>(() => FOUNDER_CERT.map(() => false));
@@ -473,6 +473,7 @@ export function SettingsCenter({
   );
 
   const sections = SETTINGS_SECTIONS.filter((s) => s.id !== "internal" || account?.founder);
+  const results = searchSettings(query).filter((r) => sections.some((s) => s.id === r.section));
   const current = SETTINGS_SECTIONS.find((s) => s.id === section) ?? SETTINGS_SECTIONS[0];
   const name = account?.user?.name ?? b?.name ?? "Owner";
   const email = account?.user?.email ?? b?.ownerEmail ?? "";
@@ -606,7 +607,7 @@ export function SettingsCenter({
                 <span className="sc-value sc-mono">{line ? displayPhone(line) : "Not connected"}</span>
               </ScRow>
             </ScGroup>
-            <ScGroup title="Call capture">
+            <ScGroup title="Forwarding">
               <div className="sc-embed">
                 <CaptureSetupPanel
                   line={line}
@@ -754,7 +755,7 @@ export function SettingsCenter({
                 />
               </ScRow>
             </ScGroup>
-            <ScGroup title="Numbers Orvius uses">
+            <ScGroup title="Your numbers">
               <ScRow label="Average ticket" hint="Estimates booked value on Command. Not money collected.">
                 <span className="sc-affix">
                   <span>$</span>
@@ -828,7 +829,7 @@ export function SettingsCenter({
                 <span className="sc-value">{b.ownerEmail ?? email}</span>
               </ScRow>
             </ScGroup>
-            <ScGroup title="Delivery">
+            <ScGroup title="How alerts reach you">
               <ScRow label="Text alerts" hint={`Target: on your phone within ${ownerSlAs.alertP95TargetSec} seconds of the call.`}>
                 <ScStatus on={account.alerts.smsEnabled && !account.alerts.ownerSmsOptedOut}>
                   {account.alerts.ownerSmsOptedOut ? "Opted out" : account.alerts.smsEnabled ? "On" : "Off"}
@@ -1065,6 +1066,53 @@ export function SettingsCenter({
               <SettingsIcon name="close" />
             </button>
           </div>
+          <div className="sc-search">
+            <SettingsIcon name="search" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && results[0]) {
+                  go(results[0].section);
+                  setQuery("");
+                }
+                if (e.key === "Escape" && query) {
+                  e.stopPropagation();
+                  setQuery("");
+                }
+              }}
+              placeholder="Search settings"
+              aria-label="Search settings"
+            />
+          </div>
+          {query.trim() ? (
+            <nav className="sc-nav-list" aria-label="Search results">
+              {results.length ? (
+                results.map((item) => (
+                  <button
+                    key={`${item.section}-${item.label}`}
+                    type="button"
+                    className="sc-nav-item sc-search-hit"
+                    onClick={() => {
+                      go(item.section);
+                      setQuery("");
+                    }}
+                  >
+                    <SettingsIcon name={item.section} />
+                    <span className="sc-search-text">
+                      <span>{item.label}</span>
+                      <span className="sc-search-where">
+                        {SETTINGS_SECTIONS.find((s) => s.id === item.section)?.label}
+                      </span>
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <p className="sc-search-empty">No setting matches “{query.trim()}”.</p>
+              )}
+            </nav>
+          ) : (
           <nav className="sc-nav-list">
             {sections.map((item, index) => {
               const heading = GROUP_LABELS[item.group];
@@ -1090,7 +1138,8 @@ export function SettingsCenter({
               );
             })}
           </nav>
-          <a className="sc-nav-item sc-nav-help" href={supportMailto({ subject: "Help", path: "/dashboard/settings" })}>
+          )}
+          <a className="sc-nav-item sc-nav-help" href="/help" target="_blank" rel="noreferrer">
             <SettingsIcon name="help" />
             <span>Get help</span>
             <SettingsIcon name="external" />

@@ -70,7 +70,7 @@ export function buildSettingsHub(input: SettingsHubInput): {
   const items: SettingsHubItem[] = [
     {
       id: "capture",
-      label: "Call capture",
+      label: "Forwarding",
       detail: captureOk
         ? "Line path confirmed"
         : "Forward or publish your shop number",

@@ -15,6 +15,48 @@ export const SETTINGS_SECTIONS = [
 
 export type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]["id"];
 
+/** Every setting an owner can look for, with the words they might type instead of ours. */
+export const SETTINGS_SEARCH: Array<{ label: string; section: SettingsSectionId; keywords?: string }> = [
+  { label: "Name and email", section: "account", keywords: "profile sign in login" },
+  { label: "Setup checklist", section: "account", keywords: "getting started onboarding progress" },
+  { label: "Business name", section: "business", keywords: "shop company rename" },
+  { label: "Trade", section: "business", keywords: "hvac plumbing electrical industry" },
+  { label: "Shop address", section: "business", keywords: "location" },
+  { label: "Your Orvius line", section: "phone", keywords: "phone number" },
+  { label: "Forwarding", section: "phone", keywords: "call forward carrier verizon att t-mobile missed calls" },
+  { label: "Open hours", section: "hours", keywords: "schedule after hours weekend" },
+  { label: "Services", section: "hours", keywords: "work you take jobs" },
+  { label: "Service ZIPs", section: "hours", keywords: "area zip codes coverage" },
+  { label: "Opening line", section: "receptionist", keywords: "greeting first thing callers hear" },
+  { label: "Voice", section: "receptionist", keywords: "receptionist sound male female" },
+  { label: "Connect callers who ask for a person", section: "receptionist", keywords: "transfer human live person" },
+  { label: "Handle routine work", section: "receptionist", keywords: "autopilot automatic confirm assign" },
+  { label: "Average ticket", section: "receptionist", keywords: "job value numbers" },
+  { label: "Your mobile", section: "notifications", keywords: "phone alerts cell" },
+  { label: "Text alerts", section: "notifications", keywords: "sms lead alerts" },
+  { label: "Email backup", section: "notifications", keywords: "email alerts" },
+  { label: "Push alerts on this device", section: "notifications", keywords: "notifications browser app" },
+  { label: "Send a test alert", section: "notifications", keywords: "test" },
+  { label: "Technicians", section: "team", keywords: "crew staff techs team members" },
+  { label: "Stripe", section: "integrations", keywords: "payments card connect" },
+  { label: "Busy times", section: "integrations", keywords: "block busy calendar ical icloud outlook personal" },
+  { label: "Jobs calendar feed", section: "integrations", keywords: "ical subscribe calendar google apple outlook sync" },
+  { label: "Plan and billing", section: "billing", keywords: "subscription payment card invoice upgrade cancel" },
+  { label: "Deposits and payouts", section: "billing", keywords: "stripe money bank" },
+  { label: "Performance", section: "performance", keywords: "metrics results stats" },
+  { label: "Export shop data", section: "data", keywords: "download backup csv" },
+  { label: "Delete workspace", section: "data", keywords: "danger close account remove" },
+];
+
+export function searchSettings(query: string) {
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!terms.length) return [];
+  return SETTINGS_SEARCH.filter((item) => {
+    const hay = `${item.label} ${item.keywords ?? ""}`.toLowerCase();
+    return terms.every((term) => hay.includes(term));
+  });
+}
+
 const SECTION_IDS = new Set<string>(SETTINGS_SECTIONS.map((s) => s.id));
 
 /** Old in-page anchors still used by alerts, the setup checklist, and the work queue. */
