@@ -73,11 +73,11 @@ export function MarketingShell({ children }: MarketingShellProps) {
             <p className="mkt-footer-mark">
               Orvius™ is a trademark of Solution Development LLC.
             </p>
+            <UtilityDock placement="inline" />
           </div>
         </footer>
         <I18nRuntime />
       </div>
-      <UtilityDock />
     </>
   );
 }

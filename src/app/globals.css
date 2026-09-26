@@ -3023,7 +3023,7 @@ button.btn {
   margin-inline: auto;
   display: grid;
   gap: 2.5rem 3rem;
-  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
 }
 
 .mkt-footer-brand {
@@ -5265,10 +5265,21 @@ label:has(> input[type="radio"]) {
 .mkt-footer-bottom--legal {
   align-items: center;
   justify-content: flex-start !important;
-  padding-bottom: 4rem;
+  padding-bottom: 1.5rem;
 }
 .mkt-footer-bottom--legal .mkt-footer-mark {
   margin-left: auto !important;
+}
+
+@media (max-width: 720px) {
+  .mkt-footer-bottom--legal {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .mkt-footer-bottom--legal .mkt-footer-mark {
+    margin-left: 0 !important;
+  }
 }
 
 /* ============================================================
