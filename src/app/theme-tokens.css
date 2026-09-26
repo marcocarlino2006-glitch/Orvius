@@ -84,6 +84,21 @@ body {
 }
 
 /*
+  Type scale. Body text steps 1px from 11px to 18px (0.6875rem to 1.125rem);
+  nothing smaller than 11px ships. Headlines use one of five fluid display
+  sizes instead of per-rule clamp() formulas, so a hero or section title is the
+  same size on every page that uses it.
+*/
+:root {
+  --fs-lead: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --fs-display-xs: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --fs-display-sm: clamp(1.375rem, 1.15rem + 0.9vw, 1.875rem);
+  --fs-display-md: clamp(1.625rem, 1.25rem + 1.5vw, 2.5rem);
+  --fs-display-lg: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);
+  --fs-display-xl: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+}
+
+/*
   The dock is fixed to the bottom-right, so the last row of any page it floats
   over has to give up that corner or the dock lands on top of it — which is
   exactly what happened to the footer's trademark line. This is the dock's

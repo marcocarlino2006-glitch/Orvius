@@ -297,7 +297,7 @@
 }
 
 .attention-item-assign .assign-tech-btn {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .attention-item-btn {
@@ -493,7 +493,7 @@
   border: 1px solid color-mix(in srgb, var(--flare, #c45c26) 35%, transparent);
   background: color-mix(in srgb, var(--flare, #c45c26) 8%, transparent);
   color: var(--void);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
@@ -537,7 +537,7 @@
 .billing-money-check-mark {
   flex-shrink: 0;
   width: 1.1rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.35;
   color: var(--ash);
@@ -598,16 +598,16 @@
   padding: 0.875rem 1.125rem; border-bottom: 1px solid color-mix(in srgb, var(--void) 6%, var(--rule));
   background: color-mix(in srgb, var(--fog) 50%, var(--white));
 }
-.transcript-cinema-kicker { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+.transcript-cinema-kicker { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
 .transcript-cinema-live {
   display: inline-flex; align-items: center; gap: 0.35rem;
-  font-size: 0.625rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--live);
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--live);
 }
 .transcript-cinema-body { padding: 1rem 1.125rem; max-height: 20rem; overflow: auto; }
 .transcript-cinema-line { margin-top: 0.75rem; font-size: 0.8125rem; line-height: 1.55; }
 .transcript-cinema-line:first-child { margin-top: 0; }
 .transcript-cinema-speaker {
-  display: block; margin-bottom: 0.15rem; font-size: 0.625rem; font-weight: 700;
+  display: block; margin-bottom: 0.15rem; font-size: 0.6875rem; font-weight: 700;
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--ash);
 }
 .transcript-cinema-line-ai { color: var(--void); }
@@ -977,7 +977,7 @@
 }
 
 .onboarding-title {
-  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-size: var(--fs-display-sm);
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--void);
@@ -1100,7 +1100,7 @@
 .onboarding-hero-line {
   display: block;
   margin-top: 1.25rem;
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: var(--fs-display-md);
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--void);
@@ -1549,7 +1549,7 @@
 .approve-queue-title {
   margin: 0.35rem 0 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: 1.35rem;
+  font-size: 1.375rem;
   font-weight: 700;
 }
 
@@ -1672,7 +1672,7 @@
   padding: 0.18rem 0.35rem;
   border: 1px solid currentColor;
   border-radius: 999px;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-align: center;
@@ -2064,7 +2064,7 @@
 }
 
 .os-kv-stats-label {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2086,7 +2086,7 @@
 
 .os-kv-notes-label {
   margin: 0 0 0.35rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2637,7 +2637,7 @@
 
 .billing-settings .account-plan-name {
   color: #f3f2ef !important;
-  font-size: 1.05rem;
+  font-size: 1.0625rem;
   font-weight: 590;
   letter-spacing: -0.018em;
 }
@@ -2826,7 +2826,7 @@
 }
 .first-night-handoff-title {
   margin: 0.35rem 0 0;
-  font-size: 1.35rem;
+  font-size: 1.375rem;
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.2;
@@ -2995,7 +2995,7 @@
 }
 
 .os-shell-pro .os-topbar-title {
-  font-size: clamp(1.45rem, 2.4vw, 1.85rem) !important;
+  font-size: var(--fs-display-sm) !important;
 }
 
 .os-shell-pro .os-topbar-sub {
@@ -3143,7 +3143,7 @@
   }
 
 .os-shell-night .os-topbar-title {
-  font-size: 1.15rem !important;
+  font-size: 1.125rem !important;
   font-weight: 600 !important;
   letter-spacing: -0.02em !important;
   color: #f7f7f7 !important;
@@ -3343,7 +3343,7 @@
 }
 
 .os-shell-night .os-topbar-title {
-  font-size: 1.05rem !important;
+  font-size: 1.0625rem !important;
 }
 
 .os-shell-night .os-topbar-pro {
@@ -3559,7 +3559,7 @@
 }
 
 .os-shell-night .lead-status-actions-label {
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -3634,7 +3634,7 @@
   border-radius: 0.125rem !important;
   min-width: 1.1rem !important;
   height: 1.1rem !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
 }
 
 .os-shell-night .os-sidebar {
@@ -3670,7 +3670,7 @@
 
 .os-shell-night .os-sidebar-label {
   margin: 0 0 0.3rem !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase !important;
@@ -3799,7 +3799,7 @@
   */
   background: #d91b28 !important;
   color: #ffffff !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   font-weight: 650 !important;
   line-height: 1.15rem !important;
   text-align: center;
@@ -3812,7 +3812,7 @@
   border-radius: 999px !important;
   background: transparent !important;
   color: #9aa1ab !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
@@ -4008,7 +4008,7 @@
   border: 1px solid #2a2e35;
   border-radius: 0.25rem;
   font-family: inherit;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   color: var(--os-mute);
 }
 
@@ -4131,7 +4131,7 @@
 .os-sidebar-label {
   margin-bottom: 0.5rem;
   padding-inline: 0.5rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -4175,7 +4175,7 @@
 }
 
 .os-nav-badge {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -4210,7 +4210,7 @@
 }
 
 .os-topbar-title {
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-size: var(--fs-display-md);
   line-height: 1.08;
   letter-spacing: -0.04em;
 }
@@ -4297,7 +4297,7 @@
 }
 
 .os-topbar-pro .os-topbar-title {
-  font-size: clamp(1.625rem, 2.8vw, 2.25rem);
+  font-size: var(--fs-display-md);
   font-weight: 600;
   letter-spacing: -0.03em;
 }
@@ -4358,7 +4358,7 @@
 
 .pay-prompt-title {
   margin: 0.45rem 0 0;
-  font-size: 1.35rem;
+  font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.2;
@@ -4367,7 +4367,7 @@
 
 .pay-prompt-body {
   margin: 0.65rem 0 0;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: color-mix(in srgb, var(--void) 72%, transparent);
 }
@@ -4460,7 +4460,7 @@
 
 .billing-lock-title {
   margin: 0.5rem 0 0;
-  font-size: 1.45rem;
+  font-size: 1.5rem;
   font-weight: 750;
   letter-spacing: -0.03em;
   line-height: 1.2;
@@ -4469,7 +4469,7 @@
 
 .billing-lock-body {
   margin: 0.65rem 0 0;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: color-mix(in srgb, var(--void) 70%, transparent);
 }
@@ -4489,7 +4489,7 @@
 }
 
 .billing-lock-price-per {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ash);
 }
 
@@ -4597,7 +4597,7 @@
 
 .os-profile-menu-chevron {
   margin-left: auto;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   color: color-mix(in srgb, var(--mist) 45%, var(--ash));
   flex-shrink: 0;
 }
@@ -4724,7 +4724,7 @@
 }
 
 .os-ask-dock-kicker {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -4935,7 +4935,7 @@
   border-radius: 999px;
   background: linear-gradient(135deg, var(--signal) 0%, var(--signal-dim) 100%);
   color: var(--white);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
 }
 
 .os-ask-dock-trigger-label {
@@ -4976,7 +4976,7 @@
 
 .attention-item-assign .assign-tech-select {
   max-width: 9rem;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .job-money-error {
@@ -5091,7 +5091,7 @@
 
 .os-nav-lock {
   margin-left: auto;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5270,7 +5270,7 @@
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
   font-weight: 600 !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
 }
 
 .os-sidebar-pro .os-nav-link,
@@ -5339,7 +5339,7 @@
 .os-shell-pro .pro-panel-title {
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -5378,7 +5378,7 @@
 
 .os-shell-night .pro-panel-title {
   color: #9aa1ab !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
 }
@@ -5432,7 +5432,7 @@
 
 .os-kv dt {
   margin: 0;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -5518,14 +5518,14 @@
 }
 
 .pay-prompt-kicker {
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   letter-spacing: 0.14em !important;
   color: #9aa1ab !important;
 }
 
 .pay-prompt-title {
   margin-top: 0.3rem !important;
-  font-size: 1.15rem !important;
+  font-size: 1.125rem !important;
   font-weight: 700 !important;
   letter-spacing: -0.02em !important;
   color: #e9e9e9 !important;
@@ -5582,14 +5582,14 @@
 }
 
 .billing-lock-kicker {
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   letter-spacing: 0.14em !important;
   color: #9aa1ab !important;
 }
 
 .billing-lock-title {
   color: #e9e9e9 !important;
-  font-size: 1.2rem !important;
+  font-size: 1.25rem !important;
 }
 
 .billing-lock-body,
@@ -5673,7 +5673,7 @@
 
 .os-shell-night .plan-upgrade-gate-kicker {
   color: #9aa1ab !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
 }
 
 .os-shell-night .plan-upgrade-gate-title {
@@ -5870,7 +5870,7 @@
   border: 1px solid #2a2e35;
   border-radius: 0.25rem;
   font-family: inherit;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   color: #adadac;
 }
 
@@ -5886,7 +5886,7 @@
 .os-palette-group-label {
   margin: 0;
   padding: 0.35rem 0.55rem 0.25rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;

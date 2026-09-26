@@ -31,7 +31,7 @@
   max-width: 22ch;
   color: var(--ov-headline);
   font-family: var(--ov-font);
-  font-size: clamp(1.75rem, 3.2vw, 2.6rem);
+  font-size: var(--fs-display-md);
   font-weight: 600;
   line-height: 1.08;
   letter-spacing: -0.028em;
@@ -135,13 +135,13 @@
 
 .ov-public .hx-cap-index {
   font-family: var(--ov-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   opacity: 0.6;
 }
 
 .ov-public .hx-cap-title {
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   font-weight: 500;
   letter-spacing: -0.01em;
 }
@@ -154,7 +154,7 @@
   margin: 0;
   max-width: 44ch;
   color: var(--ov-muted);
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   line-height: 1.55;
 }
 
@@ -312,7 +312,7 @@
 .ov-public .hx-surface-label {
   margin: 1.1rem 0 0.35rem;
   color: var(--ov-accent-text);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
@@ -320,7 +320,7 @@
   margin: 0 0 0.4rem;
   color: var(--ov-headline);
   font-family: var(--ov-font);
-  font-size: 1.15rem;
+  font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -329,7 +329,7 @@
   margin: 0;
   max-width: 52ch;
   color: var(--ov-muted);
-  font-size: 0.92rem;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
@@ -343,7 +343,7 @@
   width: 100%;
   min-width: 36rem;
   border-collapse: collapse;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
 }
 
 .ov-public .hx-table th,
@@ -363,7 +363,7 @@
 
 .ov-public .hx-table thead th {
   color: var(--ov-muted);
-  font-size: 0.82rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   border-bottom-color: var(--ov-hairline-strong);
 }
@@ -387,7 +387,7 @@
   padding-left: 0;
   text-align: left;
   color: var(--ov-accent-text);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border-bottom-color: var(--ov-hairline-strong);
 }
@@ -397,7 +397,7 @@
 }
 
 .ov-public .hx-mark {
-  font-size: 1.05rem;
+  font-size: 1.0625rem;
   line-height: 1;
 }
 
@@ -417,7 +417,7 @@
 .ov-public .hx-footnote {
   margin: 1.25rem 0 0;
   color: var(--ov-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 /* ---------- Start grid ---------- */
@@ -466,25 +466,25 @@
 
 .ov-public .hx-card-kicker {
   color: var(--ov-accent-text);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .ov-public .hx-card-title {
   color: var(--ov-headline);
-  font-size: 1.15rem;
+  font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .ov-public .hx-card--feature .hx-card-title {
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-size: var(--fs-display-sm);
   letter-spacing: -0.02em;
 }
 
 .ov-public .hx-card-body {
   color: var(--ov-muted);
-  font-size: 0.92rem;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
@@ -492,14 +492,14 @@
   margin-top: auto;
   padding-top: 0.75rem;
   color: var(--ov-headline);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
 .ov-public .hx-card-number {
   margin-top: 1rem;
   color: var(--ov-emerald-text);
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-size: var(--fs-display-xs);
   letter-spacing: 0.1em;
 }
 
@@ -616,7 +616,7 @@ html.hx-motion .ov-public .is-in .hx-node {
   z-index: 1;
   margin: 0;
   color: var(--ov-accent-text);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
@@ -627,7 +627,7 @@ html.hx-motion .ov-public .is-in .hx-node {
   max-width: 16ch;
   color: var(--ov-headline);
   font-family: var(--ov-font);
-  font-size: clamp(2.3rem, 6vw, 4.8rem);
+  font-size: var(--fs-display-xl);
   font-weight: 600;
   line-height: 1.02;
   letter-spacing: -0.035em;
@@ -647,7 +647,7 @@ html.hx-motion .ov-public .is-in .hx-node {
   margin: 0;
   color: var(--ov-headline);
   font-family: var(--ov-font);
-  font-size: clamp(1.35rem, 2.6vw, 2.05rem);
+  font-size: var(--fs-display-sm);
   font-weight: 500;
   line-height: 1.32;
   letter-spacing: -0.018em;
@@ -669,7 +669,7 @@ html.hx-motion .ov-public .is-in .hx-node {
 .ov-public .hx-chapter-kicker {
   margin: 0 0 0.75rem;
   color: var(--ov-accent-text);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 
@@ -682,7 +682,7 @@ html.hx-motion .ov-public .is-in .hx-node {
   margin: 0 0 0.5rem;
   color: var(--ov-headline);
   font-family: var(--ov-font);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.012em;
 }
@@ -690,14 +690,14 @@ html.hx-motion .ov-public .is-in .hx-node {
 .ov-public .hx-chapter-body {
   margin: 0;
   color: var(--ov-muted);
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   line-height: 1.6;
 }
 
 .ov-public .hx-signoff {
   margin: clamp(2rem, 4vw, 3rem) 0 0;
   color: var(--ov-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 /* ---------- A night on the line ---------- */
@@ -768,14 +768,14 @@ html.hx-motion .ov-public .is-in .hx-node {
 .ov-public .hx-night-time {
   margin: 0 0 0.5rem;
   color: var(--ov-accent-text);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .ov-public .hx-night-title {
   margin: 0 0 0.6rem;
   color: var(--ov-headline);
   font-family: var(--ov-font);
-  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  font-size: var(--fs-display-sm);
   font-weight: 600;
   letter-spacing: -0.025em;
 }
@@ -812,7 +812,7 @@ html.hx-motion .ov-public .is-in .hx-node {
 .ov-public .hx-record-time {
   min-width: 5.5rem;
   color: var(--ov-headline);
-  font-size: 1.35rem;
+  font-size: 1.375rem;
   animation: hx-tick 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
@@ -876,7 +876,7 @@ html.hx-motion .ov-public .is-in .hx-node {
 .ov-public .hx-record-sub {
   margin: 0.1rem 0 0;
   color: var(--ov-muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .ov-public .hx-record-status {
@@ -912,7 +912,7 @@ html.hx-motion .ov-public .is-in .hx-node {
   grid-template-columns: 5rem minmax(0, 1fr);
   gap: 0.75rem;
   padding: 0.55rem 0;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ov-ink);
   opacity: 0.16;
   filter: blur(3px);
@@ -968,7 +968,7 @@ html.hx-motion .ov-public .is-in .hx-node {
 
   .ov-public .hx-record-log li {
     padding: 0.35rem 0;
-    font-size: 0.8rem;
+    font-size: 0.8125rem;
   }
 
   .ov-public .hx-night-steps > li,
@@ -1013,7 +1013,7 @@ html.hx-motion .ov-public .is-in .hx-node {
 
   .ov-public .hx-table {
     min-width: 0;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
   }
 
   .ov-public .hx-table th,
@@ -1022,7 +1022,7 @@ html.hx-motion .ov-public .is-in .hx-node {
   }
 
   .ov-public .hx-table thead th {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
   }
 }
 

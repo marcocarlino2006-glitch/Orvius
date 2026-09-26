@@ -231,7 +231,7 @@ button,
 
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  font-size: var(--fs-display-md);
   font-weight: 400;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
@@ -241,7 +241,7 @@ button,
 
 .type-phone {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+  font-size: var(--fs-display-xs);
   font-weight: 500;
   line-height: var(--leading-tight);
   letter-spacing: 0.06em;
@@ -278,7 +278,7 @@ h3 {
 }
 
 .eyebrow {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -682,7 +682,7 @@ h3 {
 
 .home-os-kicker {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1015,7 +1015,7 @@ h3 {
 }
 
 .pro-section-kicker {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1024,7 +1024,7 @@ h3 {
 
 .pro-section-title {
   margin-top: 0.35rem;
-  font-size: clamp(1.5rem, 2.5vw, 1.875rem);
+  font-size: var(--fs-display-sm);
   line-height: 1.08;
   letter-spacing: -0.035em;
 }
@@ -1072,7 +1072,7 @@ h3 {
 
 .pro-economics-grid dd {
   margin: 0.15rem 0 0;
-  font-size: 1.15rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--void);
   letter-spacing: -0.02em;
@@ -1855,7 +1855,7 @@ h3 {
 }
 
 .tier1-plan-price {
-  font-size: clamp(2.25rem, 4vw, 3rem);
+  font-size: var(--fs-display-lg);
   line-height: 1;
   letter-spacing: -0.04em;
   font-weight: 600;
@@ -2404,7 +2404,7 @@ h3 {
 
 .mkt-section-title {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+  font-size: var(--fs-display-md);
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.035em;
@@ -2420,7 +2420,7 @@ h3 {
 
 .mkt-section-lead {
   margin: 1rem 0 0;
-  font-size: clamp(1rem, 1.4vw, 1.125rem);
+  font-size: var(--fs-lead);
   line-height: 1.65;
   color: var(--ash);
   max-width: 52ch;
@@ -2531,7 +2531,7 @@ h3 {
 .mkt-manifesto-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  font-size: var(--fs-display-xl);
   font-weight: 700;
   line-height: 1.02;
   letter-spacing: -0.02em;
@@ -2561,7 +2561,7 @@ h3 {
 .mkt-law-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  font-size: var(--fs-display-sm);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.015em;
@@ -2571,7 +2571,7 @@ h3 {
 .mkt-law-body {
   margin: 0.55rem 0 0;
   max-width: 44ch;
-  font-size: 0.9875rem;
+  font-size: 1rem;
   line-height: 1.55;
   color: color-mix(in srgb, #ececec 68%, transparent);
 }
@@ -2608,7 +2608,7 @@ h3 {
 /* Legal fortress UI */
 .mkt-footer-mark {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   opacity: 0.7;
   max-width: 28rem;
 }
@@ -2644,7 +2644,7 @@ h3 {
 .public-money-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-size: var(--fs-display-md);
   font-weight: 700;
   line-height: 1.1;
 }
@@ -2709,7 +2709,7 @@ h3 {
 .public-money-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-size: var(--fs-display-md);
   font-weight: 700;
   line-height: 1.1;
 }
@@ -2845,7 +2845,7 @@ button.btn {
 .mkt-proof-section--company .mkt-proof-title {
   margin: 0;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+  font-size: var(--fs-display-md);
   font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1.08;
@@ -2881,7 +2881,7 @@ button.btn {
   color: var(--ash);
 }
 .post-lock-strip-label {
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2910,7 +2910,7 @@ button.btn {
   padding: 0.9rem 1.1rem;
 }
 .post-lock-kicker {
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--void);
@@ -2919,14 +2919,14 @@ button.btn {
 }
 .post-lock-message {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 0.9375rem;
   color: var(--void, #0a0b0a);
   font-weight: 600;
 }
 .post-lock-gates {
   margin: 0.6rem 0 0;
   padding-left: 1.1rem;
-  font-size: 0.82rem;
+  font-size: 0.8125rem;
   color: var(--ash, #5c5a55);
 }
 .post-lock-actions {
@@ -2937,7 +2937,7 @@ button.btn {
   align-items: center;
 }
 .post-lock-hint {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--ash, #5c5a55);
 }
 
@@ -3223,7 +3223,7 @@ label:has(> input[type="radio"]) {
 }
 
 .mkt-nav-brand .orvius-logo-word {
-  font-size: 1.65rem;
+  font-size: 1.625rem;
 }
 
 .mkt-nav-links a,
@@ -3508,7 +3508,7 @@ label:has(> input[type="radio"]) {
   color: #f6f6f6;
   text-decoration: none;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.35rem, 5vw, 1.65rem);
+  font-size: var(--fs-display-xs);
   font-weight: 500;
   letter-spacing: -0.025em;
 }
@@ -4147,7 +4147,7 @@ label:has(> input[type="radio"]) {
   color: color-mix(in srgb, #ececec 78%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 16%, transparent) !important;
   padding: 0.12rem 0.35rem !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   font-weight: 700 !important;
@@ -4169,7 +4169,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .lead-quick-actions a {
   border-radius: 0.125rem !important;
   min-height: 1.7rem !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   padding: 0.2rem 0.45rem !important;
 }
 
@@ -4224,7 +4224,7 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
   min-height: 1.7rem !important;
   padding: 0.2rem 0.5rem !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   background: transparent !important;
@@ -4294,7 +4294,7 @@ label:has(> input[type="radio"]) {
   border: 1px solid #2a2e35 !important;
   border-radius: 0.125rem !important;
   color: #9aa1ab !important;
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   padding: 0.1rem 0.3rem !important;
@@ -4479,7 +4479,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .post-lock-strip-label,
 .os-shell-night .post-lock-kicker {
-  font-size: 0.625rem !important;
+  font-size: 0.6875rem !important;
   letter-spacing: 0.14em !important;
   color: #9aa1ab !important;
 }
@@ -4588,7 +4588,7 @@ label:has(> input[type="radio"]) {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -4608,7 +4608,7 @@ label:has(> input[type="radio"]) {
 }
 
 .owner-alert-time {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -4625,7 +4625,7 @@ label:has(> input[type="radio"]) {
 
 .owner-alert-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.0625rem;
   font-weight: 650;
   letter-spacing: -0.02em;
   color: #e9e9e9;
@@ -5654,7 +5654,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-economics-grid dt {
   margin: 0 0 0.2rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;

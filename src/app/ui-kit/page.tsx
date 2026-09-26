@@ -73,7 +73,7 @@ function Colorway({ theme, title }: { theme: "night" | "day"; title: string }) {
               className="h-12 w-full rounded-lg border border-ui-border"
               style={{ background: `var(${token.name})` }}
             />
-            <span className="font-mono text-[10px] leading-tight text-ui-muted">
+            <span className="font-mono text-[11px] leading-tight text-ui-muted">
               {token.name}
             </span>
             <span className="text-[11px] leading-tight text-ui-text">{token.role}</span>
