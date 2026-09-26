@@ -192,7 +192,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
             <>
               <h1 className="onboarding-title font-sans">Get your shop line.</h1>
               <p className="onboarding-lead font-sans">
-                Name, mobile, create. Then one call proves it — you work from Command.
+                Enter your shop name and mobile. We assign your number, then one test call lets you hear it answer.
               </p>
 
               <div className="onboarding-form">
