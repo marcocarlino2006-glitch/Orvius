@@ -1,0 +1,90 @@
+name: Uptime
+
+# Every 10 minutes: the pages an owner or caller depends on, plus the webhook
+# Vapi posts finished calls to. A failure that survives one retry opens an
+# "uptime" issue (GitHub emails repo watchers); the next green run closes it.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe
+        id: probe
+        run: |
+          check() {
+            local name="$1" url="$2" want="$3" grep_for="${4:-}"
+            local code body
+            body=$(curl -sS --max-time 20 -o /tmp/body -w "%{http_code}" "$url" 2>/tmp/err) || true
+            code="$body"
+            if [ "$code" != "$want" ]; then
+              echo "$name: expected HTTP $want, got ${code:-no response} $(head -c 200 /tmp/err)"
+              return 1
+            fi
+            if [ -n "$grep_for" ] && ! grep -q "$grep_for" /tmp/body; then
+              echo "$name: HTTP $code but response did not contain $grep_for"
+              return 1
+            fi
+          }
+          run_all() {
+            local failed=""
+            out=$(check "App status" "https://orvius.im/api/status" 200 '"operational"') || failed="$failed\n- $out"
+            out=$(check "Home page" "https://orvius.im/" 200) || failed="$failed\n- $out"
+            out=$(check "Sign in" "https://orvius.im/signin" 200) || failed="$failed\n- $out"
+            out=$(check "App domain" "https://app.orvius.im/api/status" 200 '"operational"') || failed="$failed\n- $out"
+            # GET is rejected by design; a 405 proves the route is deployed and answering.
+            out=$(check "Call webhook" "https://orvius.im/api/webhooks/vapi" 405) || failed="$failed\n- $out"
+            printf "%b" "$failed"
+          }
+          first=$(run_all)
+          if [ -n "$first" ]; then
+            echo "First probe failed, retrying in 30s:"; printf "%b\n" "$first"
+            sleep 30
+            second=$(run_all)
+          else
+            second=""
+          fi
+          if [ -n "$second" ]; then
+            printf "%b\n" "$second"
+            { echo "down<<EOF"; printf "%b\n" "$second"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+            echo "status=down" >> "$GITHUB_OUTPUT"
+          else
+            echo "All checks passed."
+            echo "status=up" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the outage issue
+        if: steps.probe.outputs.status == 'down'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOWN: ${{ steps.probe.outputs.down }}
+        run: |
+          gh label create uptime --color B60205 --description "Automated uptime alert" -R "$GITHUB_REPOSITORY" 2>/dev/null || true
+          open=$(gh issue list -R "$GITHUB_REPOSITORY" --label uptime --state open --json number --jq '.[0].number')
+          note=$(printf "Failing since %s UTC:\n%s\n\nRun: %s/%s/actions/runs/%s" "$(date -u '+%Y-%m-%d %H:%M')" "$DOWN" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+          if [ -n "$open" ]; then
+            gh issue comment "$open" -R "$GITHUB_REPOSITORY" --body "$note"
+          else
+            gh issue create -R "$GITHUB_REPOSITORY" --label uptime --title "Orvius is down" --body "$note"
+          fi
+          exit 1
+
+      - name: Close the outage issue on recovery
+        if: steps.probe.outputs.status == 'up'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list -R "$GITHUB_REPOSITORY" --label uptime --state open --json number --jq '.[].number'); do
+            gh issue close "$n" -R "$GITHUB_REPOSITORY" --comment "Recovered at $(date -u '+%Y-%m-%d %H:%M') UTC."
+          done
