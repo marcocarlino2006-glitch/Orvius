@@ -1,0 +1,27 @@
+name: Line watch
+
+# Every 30 minutes: recover any call Vapi finished that never reached Orvius,
+# repair a line pointing at the wrong receptionist, and alert the owner when
+# either cannot be fixed. Vercel cron on this project only allows a daily run.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      APP_URL: ${{ secrets.LINE_WATCH_URL || 'https://api.orvius.im' }}
+    steps:
+      - name: Watch lines
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::notice::Skipped — set CRON_SECRET in repo secrets (same value as on Vercel) to watch lines."
+            exit 0
+          fi
+          body=$(curl -fsS --max-time 240 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/line-watch")
+          echo "$body"
+          echo "$body" | grep -q '"unrecovered":0' || echo "::warning::Some calls could not be recovered — owners were alerted."
