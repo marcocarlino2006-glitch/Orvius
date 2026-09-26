@@ -9,6 +9,7 @@ import {
 import { formatCentsExact } from "@/lib/money";
 import { getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
+import { publicTokenLimited } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +36,9 @@ function serializePublic(deposit: LoadedDeposit) {
   };
 }
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "deposit", "GET");
+  if (limited) return limited;
   const { token } = await params;
   const deposit = await getDepositByToken(token);
   if (!deposit?.publicToken) {
@@ -66,6 +69,8 @@ const actionSchema = z.object({
  * checkbox.
  */
 export async function POST(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "deposit", "POST");
+  if (limited) return limited;
   const { token } = await params;
   const deposit = await getDepositByToken(token);
   if (!deposit?.publicToken) {

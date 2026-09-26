@@ -560,3 +560,12 @@ model PushSubscription {
 
   @@index([businessId])
 }
+
+/// Rate-limit counters shared by every server instance.
+model RateLimitBucket {
+  key       String @id
+  count     Int
+  resetAtMs BigInt
+
+  @@index([resetAtMs])
+}

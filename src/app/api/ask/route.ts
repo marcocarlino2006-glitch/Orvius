@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { askShop } from "@/lib/shop-brain";
 import { requirePlanModule } from "@/lib/plan-gate";
-import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { requireEntitledSession } from "@/lib/tenant";
 
 export async function GET() {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const planGate = requirePlanModule(business, "ask");
   if ("error" in planGate) return planGate.error;
 
-  const limited = rateLimit({ key: `ask:${business.id}`, limit: 30, windowMs: 60_000 });
+  const limited = await sharedRateLimit({ key: `ask:${business.id}`, limit: 30, windowMs: 60_000 });
   if (!limited.ok) return tooManyRequests(limited.retryAfterSec, "Too many questions at once. Wait a moment and retry.");
 
   const body = (await request.json()) as { question?: string };

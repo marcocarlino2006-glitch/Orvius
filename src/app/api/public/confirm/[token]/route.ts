@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { confirmJobByCustomerToken } from "@/lib/customer-confirm";
+import { publicTokenLimited } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ token: string }> };
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "confirm", "GET");
+  if (limited) return limited;
   const { token } = await params;
   if (!token?.trim()) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
@@ -24,7 +27,9 @@ export async function GET(_request: Request, { params }: Params) {
   });
 }
 
-export async function POST(_request: Request, { params }: Params) {
+export async function POST(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "confirm", "POST");
+  if (limited) return limited;
   const { token } = await params;
   if (!token?.trim()) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });

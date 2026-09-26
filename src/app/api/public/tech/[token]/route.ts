@@ -8,6 +8,7 @@ import {
 import { isJobOutcomeCode } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { publicTokenLimited } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -44,7 +45,9 @@ function serializeTechJob(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>)
   };
 }
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "tech", "GET");
+  if (limited) return limited;
   const { token } = await params;
   const job = await loadJob(token);
   if (!job) {
@@ -62,6 +65,8 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "tech", "PATCH");
+  if (limited) return limited;
   const { token } = await params;
   const job = await loadJob(token);
   if (!job) {

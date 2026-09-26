@@ -7,7 +7,7 @@ import {
   issueMagicLink,
 } from "@/lib/magic-link";
 import { isDevAuthBypassEnabled } from "@/lib/dev-auth";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ export type MagicLinkResponse = {
  * "check your inbox" when nothing was sent would strand the operator.
  */
 export async function POST(request: NextRequest) {
-  const limit = rateLimit({
+  const limit = await sharedRateLimit({
     key: `magic-link:${clientIp(request)}`,
     limit: 10,
     windowMs: 60 * 60 * 1000,

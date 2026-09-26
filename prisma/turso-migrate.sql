@@ -365,3 +365,11 @@ ALTER TABLE "Business" ADD COLUMN "busyCalendarUrl" TEXT;
 ALTER TABLE "Business" ADD COLUMN "busyCalendarJson" TEXT;
 ALTER TABLE "Business" ADD COLUMN "busyCalendarSyncedAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "busyCalendarError" TEXT;
+
+-- Rate limits shared across server instances, instead of per-instance memory.
+CREATE TABLE IF NOT EXISTS "RateLimitBucket" (
+    "key" TEXT NOT NULL PRIMARY KEY,
+    "count" INTEGER NOT NULL,
+    "resetAtMs" BIGINT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS "RateLimitBucket_resetAtMs_idx" ON "RateLimitBucket"("resetAtMs");

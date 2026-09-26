@@ -6,7 +6,7 @@ import { verifyAdminRequest } from "@/lib/env";
 import { isFounderEmail } from "@/lib/founder";
 import { logWarn } from "@/lib/logger";
 import { z } from "zod";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 
 const PIPELINE_STATUSES = [
   "new",
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const ip = clientIp(request);
-  const limited = rateLimit({
+  const limited = await sharedRateLimit({
     key: `waitlist:${ip}`,
     limit: 8,
     windowMs: 60 * 60 * 1000,

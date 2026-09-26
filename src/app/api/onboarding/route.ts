@@ -11,7 +11,7 @@ import {
   provisionBusiness,
 } from "@/lib/provision-business";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
 import { TRADES } from "@/lib/trades";
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const limit = rateLimit({
+  const limit = await sharedRateLimit({
     key: `onboarding:${clientIp(request)}`,
     limit: 3,
     windowMs: 60 * 60 * 1000,
