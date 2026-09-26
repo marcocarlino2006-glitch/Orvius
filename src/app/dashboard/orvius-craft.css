@@ -166,9 +166,31 @@
   background: var(--ox-s2);
 }
 
-a.dt-row:focus-visible {
+a.dt-row:focus-visible,
+.dt-row--link:has(.dt-row-link:focus-visible) {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--ox-amber);
+}
+
+/* The row is a real table row; its one link stretches over it so the whole row stays the click target. */
+.dt-row--link {
+  position: relative;
+  cursor: pointer;
+}
+
+.dt-row-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dt-row-link:focus-visible {
+  outline: none;
+}
+
+.dt-row-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
 }
 
 .dt-row > [role="cell"] {

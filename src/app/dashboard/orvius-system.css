@@ -37,6 +37,55 @@
   --ox-radius: 0.625rem;
   --ox-radius-sm: 0.4375rem;
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px var(--ox-amber);
+  --ox-tint: 255 255 255;
+  --ox-legacy-text: #e9e9e9;
+  --ox-legacy-text-2: #c7c7c7;
+  --ox-legacy-mute: #8f8d88;
+  --ox-panel: #1b1c1f;
+  --ox-rail: #151618;
+}
+
+/*
+  Light colorway: the same graphite ladder inverted, not the marketing paper.
+  Amber darkens because it is also used as text — #f2a93b on white is 2:1 —
+  and on the darker amber, button labels flip to white to keep 4.5:1.
+*/
+html[data-theme="day"] .os-shell.os-shell-night,
+html[data-theme="day"] .os-shell-night {
+  color-scheme: light;
+  --ox-bg: #f5f6f7;
+  --ox-s1: #ffffff;
+  --ox-s2: #f0f1f3;
+  --ox-s3: #e8eaed;
+  --ox-s4: #dde0e4;
+  --ox-line: #e1e3e7;
+  --ox-line-strong: #c9cdd3;
+  --ox-text: #111316;
+  --ox-text-2: #363b42;
+  --ox-mute: #5c636d;
+  --ox-amber: #9a5b00;
+  --ox-amber-hi: #b36a00;
+  --ox-amber-soft: rgb(154 91 0 / 0.1);
+  --ox-on-amber: #ffffff;
+  --ox-green: #0b7a53;
+  --ox-green-soft: rgb(11 122 83 / 0.1);
+  --ox-yellow: #7d6200;
+  --ox-yellow-soft: rgb(125 98 0 / 0.1);
+  --ox-red: #c0282d;
+  --ox-red-soft: rgb(192 40 45 / 0.09);
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px var(--ox-amber);
+  --ox-tint: 17 19 22;
+  --ox-legacy-text: #111316;
+  --ox-legacy-text-2: #363b42;
+  --ox-legacy-mute: #5c636d;
+  /* Day-only: legacy night rules read these with their original hex as fallback. */
+  --ox-day-surface: #ffffff;
+  --ox-day-sunk: #f5f6f7;
+  --ox-day-line: #e1e3e7;
+  --ox-day-ink: #111316;
+  --ox-day-soft: #5c636d;
+  --ox-panel: #ffffff;
+  --ox-rail: #f5f6f7;
 }
 
 .os-shell.os-shell-night {
@@ -202,7 +251,7 @@
 .os-shell.os-shell-night .os-topbar,
 .os-shell.os-shell-night .os-topbar-pro,
 .os-shell.os-shell-night .os-topbar-night {
-  background: rgb(12 13 15 / 0.88) !important;
+  background: color-mix(in srgb, var(--ox-bg) 88%, transparent) !important;
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--ox-line) !important;
   padding: 0.85rem 2rem !important;
@@ -2960,4 +3009,52 @@ button.rd-path-btn:hover {
 
 .os-shell.os-shell-night button.pm-workspace:hover:not(:disabled) {
   background: var(--ox-s3);
+}
+
+/*
+  Light colorway, legacy repaint. Older night rules in globals.css and
+  dashboard.css hard-code dark surfaces with !important; these re-point the
+  ones still on screen to tokens until those rules are retired.
+*/
+html[data-theme="day"] .os-shell.os-shell-night :is(.os-main, .os-topbar, .os-content, .dt, .cc, .wq, .sc-dialog) {
+  color: var(--ox-text) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.orvius-logo-word, .orvius-logo-void, h2, .wq-title) {
+  color: var(--ox-text) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.pro-page-filters, .pro-filter-bar) {
+  border-color: var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .pro-filter-tab {
+  border-color: var(--ox-line) !important;
+  color: var(--ox-mute) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .pro-filter-tab:hover {
+  background: var(--ox-s2) !important;
+  color: var(--ox-text) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.pro-filter-tab-active, .pro-filter-tab[aria-selected="true"], .pro-page-filters button[aria-pressed="true"]) {
+  background: var(--ox-text) !important;
+  color: var(--ox-s1) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-banner, .post-lock-strip, .pro-stat, .pro-panel, .approve-queue, .pro-economics-panel, .pro-signal-bar, .capture-setup-panel, .capture-setup-carrier, .account-billing-plan, .transcript-cinema, .owner-alert) {
+  border-color: var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+  color: var(--ox-text) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-kicker, .post-lock-message, .post-lock-gates, .post-lock-gates strong, .account-billing-plan-name, .account-billing-plan-price) {
+  color: var(--ox-text-2) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn, .lead-quick-actions a, .btn:not(.btn-void)) {
+  border-color: var(--ox-line-strong) !important;
+  color: var(--ox-text-2) !important;
 }

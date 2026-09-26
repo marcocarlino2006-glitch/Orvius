@@ -459,7 +459,7 @@ h3 {
 }
 
 .orvius-logo-void {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .orvius-logo-chalk {
@@ -2090,7 +2090,7 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-nav--elevated .mkt-nav-brand .orvius-logo {
@@ -2130,7 +2130,7 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-links a:hover {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   background: color-mix(in srgb, #fff 8%, transparent);
 }
 
@@ -2139,13 +2139,13 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-login:hover {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   background: color-mix(in srgb, #fff 8%, transparent);
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta {
   background: transparent !important;
-  color: #f6f6f6 !important;
+  color: var(--ox-day-ink, #f6f6f6) !important;
   border-color: color-mix(in srgb, #f6f6f6 36%, transparent) !important;
   box-shadow: none;
 }
@@ -2158,7 +2158,7 @@ h3 {
 
 .mkt-nav--elevated .mkt-nav-cta {
   background: var(--void) !important;
-  color: #f6f6f6 !important;
+  color: var(--ox-day-ink, #f6f6f6) !important;
   border-color: var(--void) !important;
 }
 
@@ -2168,7 +2168,7 @@ h3 {
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-toggle {
   border-color: color-mix(in srgb, #f6f6f6 28%, transparent);
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-icon span {
@@ -2518,7 +2518,7 @@ h3 {
   font-weight: 700;
   line-height: 1.02;
   letter-spacing: -0.02em;
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-laws {
@@ -2548,7 +2548,7 @@ h3 {
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.015em;
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-law-body {
@@ -2606,7 +2606,7 @@ h3 {
 .public-shell {
   min-height: 100vh;
   background: #100d07;
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   padding: 2rem 1.25rem 3rem;
 }
 
@@ -2677,7 +2677,7 @@ h3 {
 /* Approve-first queue on Command */
 
 .public-money {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .public-money-shop {
@@ -2968,7 +2968,7 @@ button.btn {
 
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-nav--institution .mkt-nav-links a,
@@ -3452,7 +3452,7 @@ label:has(> input[type="radio"]) {
   display: flex;
   flex-direction: column;
   background: #0a0701;
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   padding:
     max(0.75rem, env(safe-area-inset-top))
     clamp(1.25rem, 5vw, 1.75rem)
@@ -3470,7 +3470,7 @@ label:has(> input[type="radio"]) {
 
 .mkt-nav-sheet-bar .mkt-nav-brand,
 .mkt-nav-sheet-bar .orvius-logo {
-  color: #f6f6f6 !important;
+  color: var(--ox-day-ink, #f6f6f6) !important;
 }
 
 .mkt-nav-sheet-nav {
@@ -3486,7 +3486,7 @@ label:has(> input[type="radio"]) {
   justify-content: space-between;
   padding: 1.15rem 0;
   border-bottom: 1px solid color-mix(in srgb, #f1f1f1 10%, transparent);
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   text-decoration: none;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--fs-display-xs);
@@ -3643,7 +3643,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .tier1-section-title,
 .mkt-page .type-headline,
 .mkt-page .brand-intro .tier1-page-title {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .mkt-page a.underline,
@@ -3735,7 +3735,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .tier1-form-slot select,
 .mkt-page .tier1-form-slot textarea {
   background: #100d07 !important;
-  color: #f4f4f4 !important;
+  color: var(--ox-day-ink, #f4f4f4) !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
@@ -3861,7 +3861,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .pricing-needs-option-label,
 .mkt-page .pricing-faq-question,
 .mkt-page .pricing-matrix-feature-label {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .mkt-page .pricing-needs-option,
@@ -3878,7 +3878,7 @@ label:has(> input[type="radio"]) {
 }
 
 .mkt-page .pricing-needs-result-plan {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .mkt-page .pricing-needs-result-reason,
@@ -3986,7 +3986,7 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-pro .os-sidebar-brand .orvius-logo {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .os-shell-pro .lead-inbox-card,
@@ -4023,11 +4023,11 @@ label:has(> input[type="radio"]) {
 .os-shell-night .os-shell-night .os-ask-dock-panel,
 .os-shell-night .pro-empty-state,
 .os-shell-night .capture-setup-panel {
-  background: #14120c !important;
+  background: var(--ox-day-sunk, #14120c) !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #ececec !important;
+  color: var(--ox-day-ink, #ececec) !important;
 }
 
 /* Dense attention board — Cursor row density */
@@ -4054,7 +4054,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .attention-item-btn {
   background: transparent !important;
-  color: #ececec !important;
+  color: var(--ox-day-ink, #ececec) !important;
   border: 1px solid color-mix(in srgb, #fff 18%, transparent) !important;
 }
 
@@ -4063,7 +4063,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .job-card,
 .os-shell-night .call-record-card,
 .os-shell-night .customer-record-card {
-  background: #14120c !important;
+  background: var(--ox-day-sunk, #14120c) !important;
 }
 
 /*
@@ -4122,7 +4122,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .status-pill-live {
   border-color: color-mix(in srgb, #f6f6f6 40%, transparent) !important;
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .os-shell-night .status-pill-flare {
@@ -4144,13 +4144,13 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .pro-stat {
   border-radius: 0.125rem !important;
-  background: #17191d !important;
+  background: var(--ox-day-surface, #17191d) !important;
 }
 
 .os-shell-night .pro-stat.is-active {
   border-top: 2px solid #d8a15a !important;
   border-color: color-mix(in srgb, #fff 14%, transparent) !important;
-  background: #14120c !important;
+  background: var(--ox-day-sunk, #14120c) !important;
 }
 
 .os-shell-night .pro-filter-bar .btn {
@@ -4161,13 +4161,13 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-night .post-lock-banner {
-  background: #14120c !important;
+  background: var(--ox-day-sunk, #14120c) !important;
   border-left: 2px solid var(--signal) !important;
 }
 
 .os-shell-night .home-platform-link,
 .os-shell-night .customer-timeline-link {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 /* Kill soft hover lift forever on night OS */
@@ -4195,8 +4195,8 @@ label:has(> input[type="radio"]) {
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   background: transparent !important;
-  color: #e9e9e9 !important;
-  border: 1px solid #2a2e35 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   box-shadow: none !important;
 }
 
@@ -4208,24 +4208,24 @@ label:has(> input[type="radio"]) {
 .os-shell-night .approve-queue,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .account-billing-plan {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 .os-shell-night .btn {
   background: transparent !important;
-  color: #e9e9e9 !important;
-  border: 1px solid #2a2e35 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
 }
 
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn {
   background: transparent !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
   border: 1px solid transparent !important;
   border-radius: 0.25rem !important;
 }
@@ -4242,9 +4242,9 @@ label:has(> input[type="radio"]) {
 .os-shell-night .status-pill-muted,
 .os-shell-night .status-pill-flare {
   background: transparent !important;
-  border: 1px solid #2a2e35 !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.125rem !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
   font-size: 0.6875rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -4253,7 +4253,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .status-pill-flare {
   color: #f87171 !important;
-  border-color: color-mix(in srgb, #f87171 45%, #2a2e35) !important;
+  border-color: color-mix(in srgb, #f87171 45%, var(--ox-day-line, #2a2e35)) !important;
 }
 
 .os-shell-night .pro-page-filters {
@@ -4263,12 +4263,12 @@ label:has(> input[type="radio"]) {
 
 /* Marketing void → Grok true black */
 .mkt-page {
-  background: #16181b !important;
+  background: var(--ox-day-sunk, #16181b) !important;
 }
 
 .mkt-footer--institution {
-  background: #16181b !important;
-  border-top-color: #2a2e35 !important;
+  background: var(--ox-day-sunk, #16181b) !important;
+  border-top-color: var(--ox-day-line, #2a2e35) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4282,7 +4282,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .pro-stat {
   border-top: none !important;
   border-radius: 0.125rem !important;
-  background: #1a1c20 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
 }
 
 .os-shell-night .pro-stat::before {
@@ -4291,7 +4291,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .pro-stat.is-active,
 .os-shell-night .pro-stat[data-highlight="true"] {
-  border-color: #2a2e35 !important;
+  border-color: var(--ox-day-line, #2a2e35) !important;
   border-left: 2px solid #e9e9e9 !important;
   background: #25282e !important;
   box-shadow: none !important;
@@ -4299,7 +4299,7 @@ label:has(> input[type="radio"]) {
 
 /* Kill copper top accents on stats forever */
 .os-shell-night .pro-stat {
-  border-top-color: #2a2e35 !important;
+  border-top-color: var(--ox-day-line, #2a2e35) !important;
   background-image: none !important;
 }
 
@@ -4309,15 +4309,15 @@ label:has(> input[type="radio"]) {
 
 /* Marketing: kill leftover white mastery cards if any */
 .mkt-page .tier1-plan {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
-  color: #e9e9e9 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .capture-setup-panel {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   padding: 0.75rem !important;
   box-shadow: none !important;
@@ -4326,16 +4326,16 @@ label:has(> input[type="radio"]) {
 .os-shell-night .cookie-consent,
 .cookie-consent {
   border-radius: 0.25rem !important;
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
 }
 
 .os-shell-night .post-lock-banner,
 .os-shell-night .post-lock-strip {
   padding: 0.5rem 0.7rem !important;
   border-radius: 0.25rem !important;
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-left: 2px solid #e9e9e9 !important;
 }
 
@@ -4354,7 +4354,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .os-kv dd,
 .os-shell-night .os-kv .text-void {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 /* The dim red is tuned for paper; the night shell needs the lighter step. */
@@ -4379,13 +4379,13 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .account-plan-name,
 .os-shell-night .account-billing-plan-name {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   font-size: 1rem !important;
 }
 
 .os-shell-night .account-plan-price,
 .os-shell-night .account-billing-plan-price {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 /* Night onboarding — Grok void */
@@ -4399,29 +4399,29 @@ label:has(> input[type="radio"]) {
 
 .onboarding-shell--night .btn-ghost {
   background: transparent !important;
-  color: #e9e9e9 !important;
-  border: 1px solid #2a2e35 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
 }
 
 .onboarding-shell--night .orvius-logo {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 /* Owner alert / transcript on night details */
 .os-shell-night .owner-alert-card,
 .os-shell-night .transcript-cinema {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 .os-shell-night .post-lock-strip,
 .os-shell-night .post-lock-banner {
-  background: #121316 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-sunk, #121316) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-left: 2px solid #767572 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
@@ -4432,18 +4432,18 @@ label:has(> input[type="radio"]) {
 .os-shell-night .post-lock-kicker {
   font-size: 0.6875rem !important;
   letter-spacing: 0.14em !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .post-lock-strip-copy,
 .os-shell-night .post-lock-message {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   font-size: 0.75rem !important;
 }
 
 .os-shell-night .pro-signal-bar {
-  background: #121316 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-sunk, #121316) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.4rem 0.55rem !important;
@@ -4463,9 +4463,9 @@ label:has(> input[type="radio"]) {
   gap: 0 !important;
   margin-bottom: 0.65rem !important;
   padding: 0 !important;
-  border: 1px solid #2a2e35 !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
-  background: #121316 !important;
+  background: var(--ox-day-sunk, #121316) !important;
   overflow-x: auto;
   overflow-y: hidden;
   width: fit-content;
@@ -4478,10 +4478,10 @@ label:has(> input[type="radio"]) {
   margin: 0 !important;
   padding: 0.4rem 0.7rem !important;
   border: 0 !important;
-  border-right: 1px solid #2a2e35 !important;
+  border-right: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
   font-size: 0.6875rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
@@ -4494,8 +4494,8 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-night .pro-filter-tab:hover {
-  color: #e9e9e9 !important;
-  background: #1a1c20 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
 }
 
 .os-shell-night .pro-filter-tab-active,
@@ -4507,17 +4507,17 @@ label:has(> input[type="radio"]) {
 
 /* Owner alert — instrument, not soft product surface */
 .owner-alert {
-  background: #1a1c20;
-  border: 1px solid #2a2e35;
+  background: var(--ox-day-surface, #1a1c20);
+  border: 1px solid var(--ox-day-line, #2a2e35);
   border-radius: 0.25rem;
   box-shadow: none;
   overflow: hidden;
-  color: #e9e9e9;
+  color: var(--ox-legacy-text, #e9e9e9);
 }
 
 .owner-alert--chalk {
-  background: #1a1c20;
-  color: #e9e9e9;
+  background: var(--ox-day-surface, #1a1c20);
+  color: var(--ox-legacy-text, #e9e9e9);
 }
 
 .owner-alert--critical {
@@ -4530,8 +4530,8 @@ label:has(> input[type="radio"]) {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.45rem 0.65rem;
-  border-bottom: 1px solid #2a2e35;
-  background: #121316;
+  border-bottom: 1px solid var(--ox-day-line, #2a2e35);
+  background: var(--ox-day-sunk, #121316);
 }
 
 .owner-alert-kicker {
@@ -4543,7 +4543,7 @@ label:has(> input[type="radio"]) {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .owner-alert--critical .owner-alert-kicker {
@@ -4563,7 +4563,7 @@ label:has(> input[type="radio"]) {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .owner-alert-body {
@@ -4579,14 +4579,14 @@ label:has(> input[type="radio"]) {
   font-size: 1.0625rem;
   font-weight: 650;
   letter-spacing: -0.02em;
-  color: #e9e9e9;
+  color: var(--ox-legacy-text, #e9e9e9);
   line-height: 1.25;
 }
 
 .owner-alert-channel {
   margin: 0.2rem 0 0;
   font-size: 0.75rem;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .owner-alert-kv {
@@ -4600,9 +4600,9 @@ label:has(> input[type="radio"]) {
 .owner-alert-foot {
   margin: 0.55rem 0 0;
   padding-top: 0.45rem;
-  border-top: 1px solid #2a2e35;
+  border-top: 1px solid var(--ox-day-line, #2a2e35);
   font-size: 0.6875rem;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
   line-height: 1.4;
 }
 
@@ -4616,18 +4616,18 @@ label:has(> input[type="radio"]) {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .owner-alert-transcript .transcript-line span {
-  color: #e9e9e9;
+  color: var(--ox-legacy-text, #e9e9e9);
   font-weight: 600;
 }
 
 .os-shell-night .owner-alert,
 .os-shell-night .owner-alert-card {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
@@ -4647,8 +4647,8 @@ label:has(> input[type="radio"]) {
 .pay-prompt-secondary .btn-secondary {
   border-radius: 0.25rem !important;
   background: transparent !important;
-  color: #e9e9e9 !important;
-  border: 1px solid #2a2e35 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
 }
 
 .billing-lock-cta,
@@ -4660,10 +4660,10 @@ label:has(> input[type="radio"]) {
 /* Ask page densify */
 
 .os-shell-night .ask-input {
-  background: #121316 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-sunk, #121316) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   min-height: 2.35rem;
 }
 
@@ -4725,15 +4725,15 @@ label:has(> input[type="radio"]) {
 /* Transcript cinema denser instrument */
 .os-shell-night .transcript-cinema {
   border-radius: 0.25rem !important;
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .transcript-cinema-head {
   padding: 0.4rem 0.65rem !important;
-  border-bottom: 1px solid #2a2e35 !important;
-  background: #121316 !important;
+  border-bottom: 1px solid var(--ox-day-line, #2a2e35) !important;
+  background: var(--ox-day-sunk, #121316) !important;
 }
 
 .os-shell-night .transcript-cinema-body {
@@ -4744,19 +4744,19 @@ label:has(> input[type="radio"]) {
 .os-shell-night .transcript-cinema-line {
   margin-top: 0.45rem !important;
   font-size: 0.75rem !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .transcript-cinema-line-ai,
 .os-shell-night .transcript-cinema-speaker {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 .os-shell-night .transcript-cinema-foot {
   padding: 0.4rem 0.65rem !important;
-  border-top: 1px solid #2a2e35 !important;
+  border-top: 1px solid var(--ox-day-line, #2a2e35) !important;
   font-size: 0.6875rem !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 /* Force canvas true black everywhere in shell */
@@ -4778,17 +4778,17 @@ label:has(> input[type="radio"]) {
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid #2a2e35;
+  border: 1px solid var(--ox-day-line, #2a2e35);
   border-radius: 0.25rem;
   overflow: hidden;
-  background: #121316;
+  background: var(--ox-day-sunk, #121316);
 }
 
 .os-shell-night .customer-timeline-item {
   display: block;
   margin: 0;
   padding: 0;
-  border-bottom: 1px solid #2a2e35;
+  border-bottom: 1px solid var(--ox-day-line, #2a2e35);
 }
 
 .os-shell-night .customer-timeline-item:last-child {
@@ -4810,15 +4810,15 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-night .customer-timeline-card .text-void {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 .os-shell-night .customer-timeline-card .text-ash {
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .customer-timeline-link {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   font-size: 0.75rem !important;
 }
 
@@ -4832,8 +4832,8 @@ label:has(> input[type="radio"]) {
 .mkt-page .call-demo-void,
 .mkt-page .call-demo-section {
   border-radius: 0.25rem !important;
-  border: 1px solid #2a2e35 !important;
-  background: #1a1c20 !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
   box-shadow: none !important;
   padding: 0.85rem 0.95rem !important;
   gap: 0.6rem !important;
@@ -4848,15 +4848,15 @@ label:has(> input[type="radio"]) {
 
 /* Marketing pro-panel (demo simulate) → dark head, X palette, no cream */
 .mkt-page .pro-panel {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
 .mkt-page .pro-panel-head {
   
-  border-bottom: 1px solid #2a2e35 !important;
+  border-bottom: 1px solid var(--ox-day-line, #2a2e35) !important;
   padding: 0.65rem 0.9rem !important;
 }
 
@@ -4877,8 +4877,8 @@ label:has(> input[type="radio"]) {
 .mkt-page .pricing-wizard,
 .mkt-page .pricing-matrix-scroll,
 .mkt-page .pricing-page-controls {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
@@ -5434,7 +5434,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .account-settings-hint {
   font-size: 0.8125rem !important;
   line-height: 1.5 !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .pro-founder-cert-item {
@@ -5445,7 +5445,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-radius: 0.25rem;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #c7c7c7;
+  color: var(--ox-legacy-text-2, #c7c7c7);
   cursor: pointer;
   transition: background 110ms ease;
 }
@@ -5529,7 +5529,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* ── Mastery round 5 — numbers become numbers ── */
 .os-shell-night .shop-outcomes,
 .os-shell-night .pro-economics {
-  background: #1a1c20 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
   border: 1px solid #272b31 !important;
   border-radius: 0.5rem !important;
   padding: 0.9rem !important;
@@ -5558,7 +5558,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #adadac;
+  color: var(--ox-day-soft, #adadac);
 }
 
 .os-shell-night .pro-economics-grid dd {
@@ -5576,7 +5576,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.75rem !important;
   line-height: 1.5 !important;
   text-wrap: balance;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .pro-economics-actions {
@@ -5720,7 +5720,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 600 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
-  color: #f4f4f4 !important;
+  color: var(--ox-day-ink, #f4f4f4) !important;
 }
 
 .os-shell-night .pro-economics-title::before {
@@ -5767,7 +5767,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-economics-funnel dt {
   order: 2;
   font-size: 0.6875rem;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .os-shell-night .pro-economics-funnel dd {
@@ -5776,7 +5776,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 1.125rem;
   font-weight: 600;
   line-height: 1;
-  color: #f4f4f4;
+  color: var(--ox-day-ink, #f4f4f4);
   font-variant-numeric: tabular-nums;
 }
 
@@ -5789,7 +5789,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.3rem;
   font-size: 0.6875rem;
   line-height: 1.45;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .os-shell-night .pro-economics-notes strong {
@@ -5815,7 +5815,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-weight: 400 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 /* Founder next-gate — operate O1: impossible to miss */

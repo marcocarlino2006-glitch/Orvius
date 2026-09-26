@@ -19,6 +19,7 @@ import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { PostLockBanner } from "@/components/post-lock-banner";
 import { Toaster } from "@/components/toaster";
+import { DARK_QUERY, applyResolvedTheme, readThemeChoice, resolveTheme } from "@/lib/theme";
 
 type OsShellProps = {
   children: React.ReactNode;
@@ -72,6 +73,15 @@ export function OsShell({
   useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
+
+  /* "System" keeps following the OS while the app is open, not just at first paint. */
+  useEffect(() => {
+    if (readThemeChoice() !== "system") return;
+    const query = window.matchMedia(DARK_QUERY);
+    const onChange = () => applyResolvedTheme(resolveTheme("system"));
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
