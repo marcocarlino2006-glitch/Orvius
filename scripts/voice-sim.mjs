@@ -295,6 +295,7 @@ async function main() {
           endedReason: call.endedReason,
           durationSec,
           cost: call.cost,
+          gaps: [...lat],
           latencyMs: lat.length ? { median: lat.sort((a, b) => a - b)[Math.floor(lat.length / 2)], max: Math.max(...lat), turns: lat.length } : null,
           structured,
           transcript: call.artifact?.transcript ?? call.transcript ?? "",
@@ -314,7 +315,12 @@ async function main() {
     await vapi(`/assistant/${persona.id}`, { method: "DELETE" }).catch(() => {});
   }
   const passed = results.filter((r) => r.ok).length;
-  console.log(`\n${passed}/${results.length} calls handled the way a good dispatcher would.\n`);
+  const allGaps = results.flatMap((r) => r.gaps ?? []).sort((a, b) => a - b);
+  const pct = (p) => allGaps[Math.min(allGaps.length - 1, Math.floor(allGaps.length * p))];
+  console.log(`\n${passed}/${results.length} calls handled the way a good dispatcher would.`);
+  if (allGaps.length) {
+    console.log(`Reply gap over ${allGaps.length} turns (${receptionistAssistant().model.model}): p50 ${pct(0.5)}ms · p90 ${pct(0.9)}ms\n`);
+  }
   if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ at: new Date().toISOString(), passed, total: results.length, results }, null, 2));
   if (passed !== results.length) process.exitCode = 1;
 }
