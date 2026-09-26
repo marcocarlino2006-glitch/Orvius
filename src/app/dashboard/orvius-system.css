@@ -2927,3 +2927,37 @@ button.rd-path-btn:hover {
     transform: none;
   }
 }
+
+.pm-ws-list {
+  display: grid;
+  gap: 2px;
+  max-height: min(16rem, 38vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.os-shell.os-shell-night .pm-ws-filter {
+  width: 100%;
+  margin: 0 0 0.375rem;
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid var(--os-line);
+  border-radius: 0.375rem;
+  background: var(--ox-s2, transparent);
+  color: var(--os-ink);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
+.os-shell.os-shell-night button.pm-workspace {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night button.pm-workspace:hover:not(:disabled) {
+  background: var(--ox-s3);
+}

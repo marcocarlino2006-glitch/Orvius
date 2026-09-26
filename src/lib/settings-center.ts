@@ -37,6 +37,7 @@ export const SETTINGS_SEARCH: Array<{ label: string; section: SettingsSectionId;
   { label: "Email backup", section: "notifications", keywords: "email alerts" },
   { label: "Push alerts on this device", section: "notifications", keywords: "notifications browser app" },
   { label: "Send a test alert", section: "notifications", keywords: "test" },
+  { label: "People with access", section: "team", keywords: "invite teammates users roles permissions manager dispatcher office staff access seats" },
   { label: "Technicians", section: "team", keywords: "crew staff techs team members" },
   { label: "Stripe", section: "integrations", keywords: "payments card connect" },
   { label: "Busy times", section: "integrations", keywords: "block busy calendar ical icloud outlook personal" },

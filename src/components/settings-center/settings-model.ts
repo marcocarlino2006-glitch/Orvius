@@ -5,6 +5,7 @@ export type BusyCalendar = { source: string | null; syncedAt: string | null; err
 
 export type Account = {
   founder?: boolean;
+  role?: "owner" | "manager" | "dispatcher" | null;
   calendarFeedUrl?: string | null;
   busyCalendar?: BusyCalendar;
   user?: { name: string | null; email: string | null; image?: string | null };

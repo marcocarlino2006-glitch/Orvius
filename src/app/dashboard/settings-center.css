@@ -919,3 +919,9 @@
   min-width: 4rem;
   margin-left: 0.5rem;
 }
+
+.os-shell .sc-dialog .sc-team-role {
+  width: auto;
+  min-width: 8.5rem;
+  flex: 0 0 auto;
+}

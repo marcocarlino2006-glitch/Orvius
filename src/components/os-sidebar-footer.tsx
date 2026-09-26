@@ -6,7 +6,8 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportEmail, supportMailto } from "@/lib/support";
-import { fetchAccount } from "@/lib/account-client";
+import { fetchAccount, invalidateAccount } from "@/lib/account-client";
+import { ROLE_LABELS, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
 
 type AccountData = {
   business: {
@@ -16,7 +17,10 @@ type AccountData = {
     ownerEmail?: string | null;
     trade?: string | null;
     environment?: string | null;
+    id?: string;
   } | null;
+  role?: ShopRole | null;
+  shops?: ShopSummary[];
   billing: {
     status: string;
     planId: string | null;
@@ -80,6 +84,8 @@ export function OsSidebarFooter() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [account, setAccount] = useState<AccountData | null>(null);
+  const [switching, setSwitching] = useState<string | null>(null);
+  const [shopQuery, setShopQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
@@ -118,8 +124,26 @@ export function OsSidebarFooter() {
   const name = session.user.name ?? "User";
   const email = session.user.email ?? "";
   const planLabel = planDisplayLabel(account);
-  const ownerEmail = account?.business?.ownerEmail?.toLowerCase() ?? null;
-  const role = ownerEmail && email.toLowerCase() === ownerEmail ? "Owner" : "Member";
+  const role = account?.role ? ROLE_LABELS[account.role] : null;
+  const currentId = account?.business?.id ?? null;
+  const otherShops = (account?.shops ?? []).filter((shop) => shop.id !== currentId);
+  const needle = shopQuery.trim().toLowerCase();
+  const shownShops = needle ? otherShops.filter((shop) => shop.name.toLowerCase().includes(needle)) : otherShops;
+
+  async function openShop(id: string) {
+    setSwitching(id);
+    const res = await fetch("/api/shop/switch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessId: id }),
+    }).catch(() => null);
+    if (res?.ok) {
+      invalidateAccount();
+      window.location.assign("/dashboard");
+      return;
+    }
+    setSwitching(null);
+  }
   const showPay = needsPayCta(account);
   const payLabel =
     (account?.billing?.status ?? "").toLowerCase() === "past_due"
@@ -159,7 +183,7 @@ export function OsSidebarFooter() {
               <p className="pm-name">{name}</p>
               <p className="pm-email">{email}</p>
             </div>
-            <span className="pm-role">{role}</span>
+            {role ? <span className="pm-role">{role}</span> : null}
           </div>
 
           <div className="pm-section">
@@ -176,7 +200,40 @@ export function OsSidebarFooter() {
               </span>
               <span className="pm-ws-check" aria-hidden>✓</span>
             </div>
-            <p className="pm-ws-note">This sign-in has one workspace.</p>
+            {otherShops.length > 6 ? (
+              <input
+                className="pm-ws-filter"
+                type="search"
+                aria-label="Find a location"
+                placeholder={`Find one of ${otherShops.length + 1} locations`}
+                value={shopQuery}
+                onChange={(e) => setShopQuery(e.target.value)}
+              />
+            ) : null}
+            <div className="pm-ws-list">
+            {shownShops.map((shop) => (
+              <button
+                key={shop.id}
+                type="button"
+                role="menuitem"
+                className="pm-workspace"
+                disabled={switching !== null}
+                onClick={() => void openShop(shop.id)}
+              >
+                <span className="pm-ws-mark" aria-hidden>
+                  {shop.name.slice(0, 1).toUpperCase()}
+                </span>
+                <span className="pm-ws-copy">
+                  <span className="pm-ws-name">{shop.name}</span>
+                  <span className="pm-ws-meta">
+                    {switching === shop.id ? "Opening…" : [shop.trade, ROLE_LABELS[shop.role]].filter(Boolean).join(" · ")}
+                  </span>
+                </span>
+              </button>
+            ))}
+            {needle && !shownShops.length ? <p className="pm-ws-note">No location matches.</p> : null}
+            </div>
+            {otherShops.length ? null : <p className="pm-ws-note">This sign-in has one workspace.</p>}
           </div>
 
           <div className="os-profile-menu-links pm-section">

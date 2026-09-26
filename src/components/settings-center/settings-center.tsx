@@ -502,7 +502,14 @@ export function SettingsCenter({
                 No shop linked yet. <Link href="/dashboard/onboarding">Finish setup</Link> to connect your line.
               </p>
             ) : (
-              renderSection()
+              <>
+                {account.role === "dispatcher" && section !== "team" && section !== "account" ? (
+                  <p className="sc-banner" role="status">
+                    You&apos;re a Dispatcher here, so settings are view-only. The shop owner or a manager can change them.
+                  </p>
+                ) : null}
+                {renderSection()}
+              </>
             )}
           </div>
         </section>
