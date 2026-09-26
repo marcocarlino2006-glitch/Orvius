@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { company, legalPages } from "@/lib/company";
+import { HELP_ARTICLES } from "@/lib/help-center";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = `https://${company.domain}`;
@@ -9,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/enterprise",
     "/pricing",
     "/resources",
+    "/help",
     "/pilot",
     "/about",
     "/security",
@@ -18,8 +20,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/legal",
   ];
   const legal = legalPages.map((p) => p.href);
+  const help = HELP_ARTICLES.map((a) => `/help/${a.slug}`);
 
-  return [...staticRoutes, ...legal].map((path) => ({
+  return [...staticRoutes, ...legal, ...help].map((path) => ({
     url: `${base}${path || "/"}`,
     lastModified: new Date(company.legalUpdated),
   }));

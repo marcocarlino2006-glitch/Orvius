@@ -586,6 +586,11 @@ h3 {
   list-style: disc;
 }
 
+.legal-prose ol {
+  margin: 0.75rem 0 0.75rem 1.25rem;
+  list-style: decimal;
+}
+
 .legal-prose li {
   margin-bottom: 0.35rem;
 }

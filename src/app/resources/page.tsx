@@ -13,6 +13,7 @@ const groups = [
   {
     heading: "Get started",
     links: [
+      { href: "/help", label: "Help center" },
       { href: "tel:+18446439170", label: "Call the live line" },
       { href: "/pilot", label: "Book a call audit" },
       { href: "/pricing", label: "Pricing & plans" },
