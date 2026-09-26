@@ -27,7 +27,7 @@
 .os-shell.os-shell-night .os-topbar-sub {
   margin-top: 0.2rem;
   font-size: 0.875rem !important;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
 }
 
 /* ── Lists ───────────────────────────────────────────────────────────── */
@@ -62,7 +62,7 @@
 .os-shell.os-shell-night .lead-rail-name {
   font-size: 0.9375rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--ox-text) !important;
 }
 
@@ -132,7 +132,7 @@
   min-height: 2.25rem;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   border-radius: 0.5rem !important;
 }
 
@@ -151,7 +151,7 @@
 .os-shell.os-shell-night .pro-panel-title {
   font-size: 0.9375rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
 }
 
 /* A critical recommendation is marked by its edge and label, not a red slab. */

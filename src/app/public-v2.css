@@ -284,7 +284,7 @@ body {
   font-family: var(--ov-font) !important;
   font-size: 0.875rem !important;
   font-weight: 400 !important;
-  letter-spacing: -0.006em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
 }
 
@@ -321,7 +321,7 @@ body {
   font-family: var(--ov-font) !important;
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.006em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   transition:
     background 120ms ease,
@@ -374,7 +374,7 @@ body {
   font-family: var(--ov-font) !important;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
 }
 
@@ -879,7 +879,7 @@ body {
   color: #f2f1ed;
   font-size: 0.8125rem;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .ov-signin-row-detail {
@@ -1562,7 +1562,7 @@ body {
   font-family: var(--ov-font);
   font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: -0.014em;
+  letter-spacing: 0;
   text-decoration: none;
   transition:
     background 140ms ease,
@@ -2363,7 +2363,7 @@ body {
   text-align: center;
   margin-top: 0.75rem;
   font-size: 0.8125rem;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   opacity: 0.85;
 }
 
@@ -2989,7 +2989,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
   font-size: 0.875rem !important;
   font-weight: 400 !important;
   opacity: 0.78 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
 }
 
 .ov-public .mkt-nav-login {
@@ -3015,7 +3015,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
   border: 1px solid #edecec !important;
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.012em !important;
+  letter-spacing: 0 !important;
 }
 
 html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
@@ -3062,7 +3062,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public .ov-console-menutitle {
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   font-size: 0.8125rem;
   text-transform: none;
   color: #f2f1ed;
@@ -3085,7 +3085,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public .ov-console-shop {
   font-size: 0.8125rem;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .ov-public .ov-console-context {
@@ -3146,7 +3146,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   border-radius: 9999px !important;
   font-size: 0.9375rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   text-decoration: none;
 }
 
@@ -3209,7 +3209,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .ov-public .mkt-nav-links a {
   font-size: 0.875rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
   white-space: nowrap !important;
   opacity: 0.9 !important;
 }
@@ -3253,7 +3253,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   border-radius: 9999px !important;
   font-size: 0.9375rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
 }
 
 .ov-public .shell-page-actions .ov-btn--solid {

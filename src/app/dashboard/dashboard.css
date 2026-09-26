@@ -412,7 +412,7 @@
 .jobs-pipeline-label {
   font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: -0.006em;
+  letter-spacing: 0;
   text-transform: none;
   color: inherit;
 }
@@ -1955,7 +1955,7 @@
   font-weight: 600;
   color: #e9e9e9;
   text-decoration: none;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .lead-rail-name:hover {
@@ -2690,7 +2690,7 @@
   color: #e9e8e4 !important;
   font-size: 0.875rem;
   font-weight: 580;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .payment-state-copy {
@@ -3682,7 +3682,7 @@
   margin: 0 !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.006em !important;
+  letter-spacing: 0 !important;
   color: #e9e9e9 !important;
 }
 
@@ -3736,7 +3736,7 @@
   color: #adadac !important;
   font-size: 0.8125rem !important;
   font-weight: 450 !important;
-  letter-spacing: -0.003em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   transition: background 110ms ease, color 110ms ease;
 }
@@ -3877,7 +3877,7 @@
   border-radius: 0.25rem !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.002em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   transition: background 110ms ease, color 110ms ease, border-color 110ms ease;
 }
@@ -3941,7 +3941,7 @@
   border-radius: 0.25rem !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.002em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   background: transparent !important;
   border: 1px solid #2a2e35 !important;
@@ -4735,7 +4735,7 @@
   margin-top: 0.15rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: var(--void);
 }
 
@@ -5277,7 +5277,7 @@
 .os-nav-link {
   border-radius: var(--radius-control, var(--radius-md)) !important;
   font-weight: 500 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
 }
 
 .os-sidebar-pro .os-nav-link-active {
@@ -5714,7 +5714,7 @@
   margin: 0 !important;
   font-size: 0.8125rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.004em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   color: #f7f9f9 !important;
 }
@@ -5728,7 +5728,7 @@
   margin-bottom: 0.3rem !important;
   font-size: 0.75rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.002em !important;
+  letter-spacing: 0 !important;
   color: #e9e9e9 !important;
   text-transform: none !important;
 }
@@ -5784,7 +5784,7 @@
   color: #f7f9f9 !important;
   font-size: 0.8125rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.004em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
 }
 
@@ -5798,7 +5798,7 @@
   color: #c7c7c7 !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.002em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
 }
 

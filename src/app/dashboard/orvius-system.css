@@ -292,7 +292,7 @@ body:has(.os-shell.os-shell-night) {
   border-radius: var(--ox-radius-sm) !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.005em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   white-space: nowrap;
   text-decoration: none !important;
@@ -436,7 +436,7 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night .pro-panel-title {
   font-size: 1rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   color: var(--ox-text) !important;
 }
