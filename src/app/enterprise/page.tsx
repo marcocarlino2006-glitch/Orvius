@@ -21,8 +21,8 @@ const pillars = [
   },
   {
     id: "03",
-    title: "Multi-location with us — not self-serve theater.",
-    body: "Portfolio roles, consolidated billing, and cross-location reporting ship per deal after the wedge holds.",
+    title: "Every location, one sign-in.",
+    body: "Owners, managers, and dispatchers each get the access their job needs, and anyone running several shops switches between them from one account. Every access change is recorded. Consolidated billing and cross-location reporting are set up with you per deal.",
   },
 ] as const;
 
