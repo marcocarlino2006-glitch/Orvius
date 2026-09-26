@@ -42,6 +42,10 @@ export function buildCallerContextNote(input: CallerContextInput): string | null
     lines.push(
       `They have an open job: ${input.openJob.title ?? "a service visit"}${when} (${input.openJob.status}). If they are calling about it, help with that instead of booking new work.`,
     );
+  } else {
+    lines.push(
+      "Nothing is booked for them. If they ask about an earlier request, do not say you found or confirmed it — say you'll take the details now so the team has them, then book or capture as usual.",
+    );
   }
   if (input.lastJob) {
     const when = input.lastJob.scheduledAt

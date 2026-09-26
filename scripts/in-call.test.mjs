@@ -91,6 +91,8 @@ test("a returning caller is recognised but must confirm before details are used"
   });
   assert.match(open, /Their name is not on file/);
   assert.match(open, /open job: Furnace tune-up on Monday, September 28 at 9:00 AM/);
+  assert.doesNotMatch(open, /Nothing is booked/);
+  assert.match(note, /Nothing is booked for them.*do not say you found or confirmed it/);
 
   assert.equal(buildCallerContextNote({ name: "New", interactionCount: 1, timezone: NY, lastJob: null, openJob: null }), null);
 });
