@@ -102,7 +102,10 @@ test("the receptionist books on the call and never names a time the schedule did
   assert.match(prompt, /call check_availability/);
   assert.match(prompt, /call hold_appointment/);
   assert.match(prompt, /NEVER say an appointment time that did not come from check_availability/);
-  assert.match(prompt, /Never book an emergency or safety call/);
+  assert.match(prompt, /Never book an emergency/);
+  assert.match(prompt, /Only the danger rule below tells anyone to leave the home/);
+  assert.match(prompt, /urgent, not dangerous\. NEVER tell those callers to leave the home/);
+  assert.match(prompt, /never read out digits the caller did not say/);
   assert.match(prompt, /never read their address or history to someone who has not confirmed/);
 
   const legacy = buildAssistantSystemPrompt({ name: "Sim Heating", greeting: null, hoursJson: "{}", servicesJson: "[]" });

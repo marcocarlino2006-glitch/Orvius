@@ -138,6 +138,17 @@ Facts: no hay calefacción, tienes un bebé de 6 meses y la casa está muy fría
       ...(/\b(hola|gracias|dirección|nombre|número|calefacción|entiendo|puedo)\b/i.test(ai) ? [] : ["never answered in Spanish"]),
       ...(structured.address ? [] : ["no address captured"]),
       ...(structured.urgency === "emergency" ? [] : [`urgency "${structured.urgency ?? ""}", expected emergency`]),
+      ...(/salga de la casa|salgan de la casa|leave the home|compañía de gas|nueve.{0,4}once|9 ?1 ?1/i.test(ai) ? ["told a no-heat caller to evacuate"] : []),
+    ],
+  },
+  {
+    id: "calling-from",
+    name: "Caller says to use the number they're calling from",
+    persona: `Facts: no heat, and there's a baby at home. Name Rosa Díaz, address 77 Pine Street, Evanston 60201.
+When asked for a callback number, say only: "Just use the number I'm calling from." If they read out any number, say "Yes."`,
+    grade: ({ ai }) => [
+      ...(/1 ?2 ?3 ?4 ?5 ?6 ?7|one two three four five/i.test(ai) ? ["read back a phone number the caller never said"] : []),
+      ...(/leave the home|go outside|9 ?1 ?1/i.test(ai) ? ["told a no-heat caller to evacuate"] : []),
     ],
   },
   {
