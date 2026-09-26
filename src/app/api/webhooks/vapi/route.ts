@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (type === "call-started") {
+    if (connected) {
       const shop = await prisma.business.findUnique({ where: { id: business.id } });
       if (shop) after(() => ensureAssistantCurrent(shop));
     }
