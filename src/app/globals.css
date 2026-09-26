@@ -1040,23 +1040,6 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
-.os-shell-pro .btn-void {
-  background: var(--void);
-  color: var(--chalk);
-  border: 1px solid var(--void);
-  box-shadow: none;
-}
-
-.os-shell-pro .btn-void:hover {
-  background: var(--void-deep);
-  border-color: var(--void-deep);
-}
-
-.os-shell-pro .btn-secondary {
-  background: var(--white);
-  border-color: color-mix(in srgb, var(--void) 12%, var(--rule));
-}
-
 /* Ring 1 — Front door mastery */
 
 .call-ai-confidence strong {
@@ -3360,8 +3343,6 @@ label:has(> input[type="radio"]) {
 
 /* —— Controls: hard geometry, never sausages —— */
 .os-shell-pro .btn,
-.os-shell-pro .btn-void,
-.os-shell-pro .btn-secondary,
 .os-shell-pro .inst-btn,
 .os-shell-pro button.btn,
 .os-shell-pro .attention-item-btn,
@@ -3810,12 +3791,6 @@ label:has(> input[type="radio"]) {
   box-shadow: none !important;
 }
 
-.os-shell-pro .btn-void {
-  background: var(--os-ink) !important;
-  color: #fff !important;
-  border-radius: var(--os-radius) !important;
-}
-
 /* Public estimate / tech field keep void; tighten radii */
 .public-shell {
   background: #0a0701 !important;
@@ -4002,10 +3977,6 @@ label:has(> input[type="radio"]) {
   border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
 }
 
-.os-shell-pro .pro-filter-bar .btn-void {
-  box-shadow: none !important;
-}
-
 .os-shell-pro .account-billing-plan,
 .os-shell-pro .tier1-plan {
   background: var(--os-panel) !important;
@@ -4064,8 +4035,6 @@ label:has(> input[type="radio"]) {
 .os-shell-night .attention-item-btn,
 .os-shell-night .attention-item-btn-primary,
 .os-shell-night .btn,
-.os-shell-night .btn-void,
-.os-shell-night .btn-secondary,
 .os-shell-night button.btn {
   border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
@@ -4077,15 +4046,13 @@ label:has(> input[type="radio"]) {
   box-shadow: none !important;
 }
 
-.os-shell-night .attention-item-btn-primary,
-.os-shell-night .btn-void {
+.os-shell-night .attention-item-btn-primary {
   background: #f6f6f6 !important;
   color: #0c0903 !important;
   border: 1px solid #f6f6f6 !important;
 }
 
-.os-shell-night .attention-item-btn,
-.os-shell-night .btn-secondary {
+.os-shell-night .attention-item-btn {
   background: transparent !important;
   color: #ececec !important;
   border: 1px solid color-mix(in srgb, #fff 18%, transparent) !important;
@@ -4233,12 +4200,6 @@ label:has(> input[type="radio"]) {
   box-shadow: none !important;
 }
 
-.os-shell-night .lead-quick-actions .btn-void {
-  background: #e9e9e9 !important;
-  color: #000 !important;
-  border-color: #e9e9e9 !important;
-}
-
 /* Attention board = Cursor IN PROGRESS rail */
 
 /* Panels / stats — Grok surfaces */
@@ -4254,14 +4215,6 @@ label:has(> input[type="radio"]) {
   color: #e9e9e9 !important;
 }
 
-.os-shell-night .btn-void {
-  background: #e9e9e9 !important;
-  color: #000 !important;
-  border: 1px solid #e9e9e9 !important;
-  border-radius: 0.25rem !important;
-}
-
-.os-shell-night .btn-secondary,
 .os-shell-night .btn {
   background: transparent !important;
   color: #e9e9e9 !important;
@@ -4277,8 +4230,6 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
 }
 
-.os-shell-night .pro-filter-bar .btn-void,
-.os-shell-night .pro-page-filters .btn-void,
 .os-shell-night .pro-page-filters button[aria-pressed="true"] {
   background: #e9e9e9 !important;
   color: #000 !important;
@@ -4685,8 +4636,7 @@ label:has(> input[type="radio"]) {
 
 .pay-prompt-primary,
 .pay-prompt-checkout .inst-btn,
-.pay-prompt-checkout .btn,
-.os-shell-night .pay-prompt .btn-void {
+.pay-prompt-checkout .btn {
   border-radius: 0.25rem !important;
   background: #e9e9e9 !important;
   color: #000 !important;
@@ -5526,58 +5476,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   text-transform: none !important;
 }
 
-.os-shell-night .btn-void {
-  background: #f7f9f9 !important;
-  border: 1px solid #f7f9f9 !important;
-  color: #000000 !important;
-  font-weight: 600 !important;
-}
-
-.os-shell-night .btn-void:hover:not(:disabled) {
-  background: #ffffff !important;
-  border-color: #ffffff !important;
-}
-
-.os-shell-night .btn-void:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.os-shell-night .btn-secondary {
-  background: transparent !important;
-  border: 1px solid #2a2e35 !important;
-  color: #c7c7c7 !important;
-}
-
-.os-shell-night .btn-secondary:hover:not(:disabled) {
-  background: #25282e !important;
-  border-color: #3a3f47 !important;
-  color: #ffffff !important;
-}
-
 /* One column width for the whole settings surface */
 
-.os-shell-night button.btn-void,
-.os-shell-night a.btn-void {
-  background: #f7f9f9 !important;
-  border: 1px solid #f7f9f9 !important;
-  color: #000000 !important;
-  font-weight: 600 !important;
-}
-
-.os-shell-night button.btn-secondary,
-.os-shell-night a.btn-secondary {
-  background: transparent !important;
-  border: 1px solid #2a2e35 !important;
-  color: #c7c7c7 !important;
-}
-
-.os-shell-night button.btn-secondary:hover:not(:disabled),
-.os-shell-night a.btn-secondary:hover {
-  background: #25282e !important;
-  border-color: #3a3f47 !important;
-  color: #ffffff !important;
-}
 
 /* Panel titles read as headings, not micro-labels */
 
