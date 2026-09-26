@@ -41,3 +41,12 @@ test("spellings that match nothing change nothing", () => {
   assert.equal(withCallerSpelling({ name: "Maria Lopez" }, null).name, "Maria Lopez");
   assert.equal(withCallerSpelling({ name: null }, realCall).name, null);
 });
+
+test("a silent first letter does not move the cut (voice sim, Sep 26)", () => {
+  const t = [
+    "AI: May I have your full name, please?",
+    "User: Sure. It's Siobhan Guyen. That's s I o b h a n n g u y e n.",
+  ].join("\n");
+  assert.equal(withCallerSpelling({ name: "Siobhan Guyen" }, t).name, "Siobhan Nguyen");
+  assert.equal(withCallerSpelling({ name: "Tom Night" }, "User: Tom Night, that's t o m k n i g h t.").name, "Tom Knight");
+});

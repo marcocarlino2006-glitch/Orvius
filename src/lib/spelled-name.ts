@@ -69,6 +69,8 @@ function distance(a: string, b: string) {
 /* Names are misheard in the middle far more than at the start, so a cut that moves a first letter costs extra. */
 function pieceCost(piece: string, word: string) {
   const w = word.toLowerCase();
+  /* A silent first letter is dropped from what was heard: Nguyen → "Guyen", Knight → "Night", Tsai → "Sai". */
+  if (piece.length > 1 && piece.slice(1) === w) return 0.5;
   return distance(piece, w) + (piece[0] === w[0] ? 0 : 0.5);
 }
 

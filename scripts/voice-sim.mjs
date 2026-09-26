@@ -27,6 +27,7 @@ import { buildAssistantSystemPrompt } from "../src/lib/business.ts";
 import { buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 import { detectAssistantPromises } from "../src/lib/assistant-promises.ts";
 import { deriveDemandSignal } from "../src/lib/demand-capture.ts";
+import { withCallerSpelling } from "../src/lib/spelled-name.ts";
 
 const KEY = process.env.VAPI_API_KEY?.trim();
 const FROM_ID = process.env.VOICE_SIM_RECEPTIONIST_PHONE_ID?.trim();
@@ -282,7 +283,10 @@ async function main() {
         const call = await waitForEnd(started.id);
         const msgs = call.artifact?.messages ?? call.messages ?? [];
         const ai = msgs.filter((m) => m.role === "bot" || m.role === "assistant").map((m) => m.message ?? m.content ?? "").join("\n");
-        const structured = call.analysis?.structuredData ?? {};
+        const raw = call.analysis?.structuredData ?? {};
+        // Graded as stored: ingest rebuilds name and address from the caller's spelling.
+        const spelled = withCallerSpelling(raw, call.artifact?.transcript ?? call.transcript);
+        const structured = { ...raw, name: spelled.name ?? raw.name, address: spelled.address ?? raw.address };
         const durationSec = call.startedAt && call.endedAt ? (Date.parse(call.endedAt) - Date.parse(call.startedAt)) / 1000 : null;
         const lat = turnLatencies(call);
         const failures = s.grade({ ai, structured, durationSec, call });
