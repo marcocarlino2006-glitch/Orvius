@@ -400,3 +400,6 @@ ALTER TABLE "Invoice" ADD COLUMN "applicationFeeCents" INTEGER;
 CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_publicToken_key" ON "Invoice"("publicToken");
 CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_stripeSessionId_key" ON "Invoice"("stripeSessionId");
 CREATE INDEX IF NOT EXISTS "Invoice_jobId_idx" ON "Invoice"("jobId");
+
+-- Monthly call overage is invoiced once per shop per calendar month.
+ALTER TABLE "Business" ADD COLUMN "overageBilledPeriod" TEXT;

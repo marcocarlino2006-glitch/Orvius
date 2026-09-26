@@ -88,7 +88,7 @@ export default function TermsPage() {
         <p>
           Each paid plan includes the number of answered calls per billing month shown on our{" "}
           <Link href="/pricing">pricing page</Link>. Calls beyond that allowance are still answered
-          and may be billed at the per-call rate shown there, in arrears, on your next invoice.
+          and are billed at the per-call rate shown there, in arrears, on a separate invoice after each calendar month. Calls answered before a paid plan begins are not billed.
         </p>
         <p>
           Failure to pay may result in suspension. You remain responsible for charges incurred

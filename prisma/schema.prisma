@@ -116,6 +116,8 @@ model Business {
   smsOptOuts         SmsOptOut[]
   auditEvents        AuditEvent[]
   memberships        Membership[]
+  /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
+  overageBilledPeriod String?
 }
 
 /** Phone numbers that opted out of SMS on a shop line (STOP). */

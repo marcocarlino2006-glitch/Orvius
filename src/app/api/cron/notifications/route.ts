@@ -9,6 +9,7 @@ import { sendDueWeeklyReports } from "@/lib/weekly-report";
 import { logError } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
 import { isProduction } from "@/lib/runtime";
+import { billPreviousMonthOverage } from "@/lib/overage-billing";
 
 /*
   The daily sweep, not the thing that makes the retry ladder work.
@@ -82,12 +83,14 @@ export async function GET(request: NextRequest) {
   }
   const lines = await watchAllLines().catch(() => null);
   const weeklyReports = await sendDueWeeklyReports().catch(() => null);
+  const overage = await billPreviousMonthOverage().catch(() => null);
   return NextResponse.json({
     ok: true,
     ...notifications,
     assistants,
     lines,
     weeklyReports,
+    overage,
     customerConfirmations,
     autopilot: { shops: autopilotShops.length, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });

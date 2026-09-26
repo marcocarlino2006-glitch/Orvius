@@ -282,7 +282,7 @@ export function BillingContent() {
                     <p className="billing-usage-foot">
                       {account.billing.usage.overCalls > 0
                         ? `${account.billing.usage.overCalls.toLocaleString("en-US")} × ${OVERAGE_CENTS_PER_CALL}¢ = $${(account.billing.usage.overageCents / 100).toFixed(2)} so far. Calls never stop at the limit.`
-                        : `Past the allowance every call is still answered, at ${OVERAGE_CENTS_PER_CALL}¢ each. Resets on the 1st.`}
+                        : `Past the allowance every call is still answered, at ${OVERAGE_CENTS_PER_CALL}¢ each, invoiced after the month ends. Resets on the 1st.`}
                     </p>
                   </div>
                 ) : null}
