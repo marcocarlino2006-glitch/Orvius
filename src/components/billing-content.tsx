@@ -57,6 +57,7 @@ type BillingAccount = {
     entitled?: boolean;
     pilotEndsAt?: string | null;
     usage?: CallUsage | null;
+    valueLine?: string | null;
   };
 };
 
@@ -266,6 +267,9 @@ export function BillingContent() {
                 <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
                   {statusCopy(status, entitled, pilotEndsAt)}
                 </p>
+                {account?.billing.valueLine ? (
+                  <p className="billing-value-line font-sans">{account.billing.valueLine}</p>
+                ) : null}
                 {account?.billing.usage ? (
                   <div className={`billing-usage billing-usage--${account.billing.usage.tone} font-sans`}>
                     <p className="billing-usage-line">{callUsageLine(account.billing.usage)}</p>

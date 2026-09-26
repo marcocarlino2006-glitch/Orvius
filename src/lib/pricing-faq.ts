@@ -27,7 +27,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "payments-fee",
     question: "Do you take a cut of deposits and payments?",
     answer:
-      "1% of each deposit or payment collected through Orvius, on top of Stripe's standard processing on your own Stripe account. You see the amount you keep before you turn deposits on.",
+      "1% of each deposit or final bill a customer pays by card through Orvius, on top of Stripe's standard processing on your own Stripe account. The money settles to your bank, never to us. Cash and checks you record by hand carry no fee.",
   },
   {
     id: "cancel",

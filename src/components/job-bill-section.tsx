@@ -131,7 +131,9 @@ export function JobBillSection({
           >
             {busy
               ? "Sending…"
-              : `${invoice?.sentAt ? "Resend" : "Text"} ${balanceCents != null ? formatCentsExact(balanceCents) : ""} pay link`}
+              : [invoice?.sentAt ? "Resend" : "Text", balanceCents != null ? formatCentsExact(balanceCents) : null, "pay link"]
+                  .filter(Boolean)
+                  .join(" ")}
           </button>
         ) : null}
         <button

@@ -6148,3 +6148,10 @@
   display: block;
   max-width: 14rem;
 }
+
+.billing-value-line {
+  margin: 0.75rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--void);
+}

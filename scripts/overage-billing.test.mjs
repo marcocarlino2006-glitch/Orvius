@@ -54,3 +54,16 @@ test("inside the allowance, or under Stripe's minimum, nothing is charged", () =
   assert.equal(decideOverage({ ...base, callsInPeriod: 301 }).reason, "below_minimum");
   assert.equal(decideOverage({ ...base, callsInPeriod: 302 }).bill, true);
 });
+
+test("the month-value line names only what happened, in plain English", async () => {
+  const { monthValueLine } = await import("../src/lib/month-value.ts");
+  assert.equal(monthValueLine({ callsAnswered: 0, leadsCaptured: 0, jobsBooked: 0, collectedCents: 0 }), null);
+  assert.equal(
+    monthValueLine({ callsAnswered: 1, leadsCaptured: 0, jobsBooked: 0, collectedCents: 0 }),
+    "This month Orvius answered 1 call.",
+  );
+  assert.equal(
+    monthValueLine({ callsAnswered: 212, leadsCaptured: 64, jobsBooked: 31, collectedCents: 842_000 }),
+    "This month Orvius answered 212 calls, captured 64 leads, booked 31 jobs, and collected $8,420 by card.",
+  );
+});

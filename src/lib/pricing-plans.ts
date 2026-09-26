@@ -109,6 +109,7 @@ export const pricingPlans: readonly PricingPlan[] = [
       "750 answered calls a month included",
       "Customer records & full history",
       "Jobs, scheduling, and dispatch board",
+      "Text-to-pay for deposits and final bills",
       "Ask — shop intelligence on your data",
       "Up to 15 technicians on dispatch",
     ],
