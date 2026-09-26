@@ -3665,3 +3665,92 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     animation: none !important;
   }
 }
+
+/* Header actions sit on the right edge at every width; the menu button is a full thumb target. */
+@media (max-width: 980px) {
+  .ov-public .mkt-nav-inner {
+    grid-template-columns: auto 1fr auto !important;
+  }
+
+  .ov-public .mkt-nav-actions {
+    grid-column: 3;
+    justify-self: end;
+  }
+}
+
+.ov-public .mkt-nav-menu-toggle {
+  width: 44px !important;
+  height: 44px !important;
+  border-color: color-mix(in srgb, var(--ov-ink) 24%, transparent) !important;
+}
+
+/* Narrow screens: the shop name keeps one line; the context label steps aside. */
+.ov-public .ov-console-shop {
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .ov-public .ov-console-sep,
+  .ov-public .ov-console-context {
+    display: none;
+  }
+}
+
+/* Touch screens: every standalone control is at least a 40px target (44px for primary buttons). */
+@media (pointer: coarse) {
+  .mkt-footer-col a,
+  .ov-signin-foot nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .mkt-footer-col {
+    row-gap: 0 !important;
+  }
+
+  .mkt-nav-brand,
+  .ov-signin-brand,
+  .ov-hero-liveline,
+  .call-demo-number,
+  .mkt-close-line {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .ov-player-toggle,
+  .call-demo-copy,
+  .pricing-billing-option {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .ov-btn,
+  .inst-btn,
+  .btn {
+    min-height: 44px;
+  }
+}
+
+/* Desktop heroes: the headline gets the width to land in two lines, not a narrow three-line column. */
+@media (min-width: 1024px) {
+  .ov-public .ov-hero-copy {
+    max-width: 920px !important;
+  }
+
+  .ov-public .ov-hero-title {
+    max-width: 17ch !important;
+    font-size: clamp(3.25rem, 4.6vw, 4.5rem) !important;
+  }
+
+  .ov-public .tier1-hero-compact .tier1-page-title {
+    max-width: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ov-public .ov-hero-copy {
+    padding-top: 2.5rem;
+  }
+}

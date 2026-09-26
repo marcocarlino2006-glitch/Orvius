@@ -96,7 +96,7 @@ export function SignInPanel({
         <button
           type="submit"
           className="ov-signin-submit"
-          disabled={status.kind === "sending" || email.trim().length === 0}
+          disabled={status.kind === "sending"}
         >
           {status.kind === "sending" ? "Sending…" : "Email me a sign-in link"}
         </button>
