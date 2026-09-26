@@ -11,7 +11,6 @@ import { HomeStart } from "@/components/home-start";
 import { HomeCallStory } from "@/components/home-call-story";
 import "./home-sections.css";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Hero → night rules → why we built it → a night on the line → your rules →
