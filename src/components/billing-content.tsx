@@ -255,7 +255,7 @@ export function BillingContent() {
                   </p>
                   <p className="account-plan-price">
                     {status === "active" || status === "past_due"
-                      ? `$${account?.billing.plan.price}/${account?.billing.plan.period}`
+                      ? `$${account?.billing.plan.price} ${account?.billing.plan.period}`
                       : status === "pilot" && entitled
                         ? pricing.pilot.period
                         : locked

@@ -1,4 +1,4 @@
-import type { PlanId } from "@/lib/pricing-plans";
+import { OVERAGE_CENTS_PER_CALL, getPlanById, type PlanId } from "@/lib/pricing-plans";
 
 export type FeatureCell = boolean | string;
 
@@ -16,7 +16,21 @@ export const pricingFeatureCategories = [
   "Support",
 ] as const;
 
+const calls = (id: PlanId) => (getPlanById(id).includedCalls ?? 0).toLocaleString("en-US");
+
 export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
+  {
+    id: "included-calls",
+    label: `Answered calls a month (then ${OVERAGE_CENTS_PER_CALL}¢ each)`,
+    category: "Front door",
+    values: {
+      pilot: calls("pro"),
+      line: calls("line"),
+      pro: calls("pro"),
+      fleet: calls("fleet"),
+      multi: `${calls("multi")} per location`,
+    },
+  },
   {
     id: "dedicated-line",
     label: "Dedicated shop line",
