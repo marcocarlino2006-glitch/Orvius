@@ -63,6 +63,11 @@ model Business {
   lastWeeklyProofAt    DateTime?
   /** Last automatic Monday results email. */
   weeklyReportSentAt DateTime?
+  /// Owner's private iCal address; busy times there are never offered to callers.
+  busyCalendarUrl      String?
+  busyCalendarJson     String?
+  busyCalendarSyncedAt DateTime?
+  busyCalendarError    String?
   /** Founder phone cert checklist JSON — boolean[] matching Settings scenarios. */
   founderCertJson      String?
   /** Owner confirmed missed/busy/after-hours forward to Orvius line. */

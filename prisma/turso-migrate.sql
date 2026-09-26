@@ -359,3 +359,9 @@ ALTER TABLE "Call" ADD COLUMN "heldSeq" INTEGER;
 
 -- Weekly results email to the owner.
 ALTER TABLE "Business" ADD COLUMN "weeklyReportSentAt" DATETIME;
+
+-- Owner's own calendar blocks booking.
+ALTER TABLE "Business" ADD COLUMN "busyCalendarUrl" TEXT;
+ALTER TABLE "Business" ADD COLUMN "busyCalendarJson" TEXT;
+ALTER TABLE "Business" ADD COLUMN "busyCalendarSyncedAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "busyCalendarError" TEXT;

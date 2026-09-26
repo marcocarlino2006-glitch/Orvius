@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isReceptionistVoice, resolveVoiceId } from "@/lib/voices";
 import { auth } from "@/auth";
 import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
+import { busyCalendarHost } from "@/lib/busy-calendar";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
@@ -192,6 +193,13 @@ export async function GET(request: Request) {
     },
     founder,
     calendarFeedUrl: business ? calendarFeedUrl(business.id) : null,
+    busyCalendar: businessRecord?.busyCalendarUrl
+      ? {
+          source: busyCalendarHost(businessRecord.busyCalendarUrl),
+          syncedAt: businessRecord.busyCalendarSyncedAt?.toISOString() ?? null,
+          error: businessRecord.busyCalendarError,
+        }
+      : null,
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),

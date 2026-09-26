@@ -8,6 +8,7 @@ import {
   type SlotPreference,
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
+import { getBusyWindows } from "@/lib/busy-calendar";
 import { createAuditQueue, recordAudit, type AuditActor, type AuditQueue } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -130,11 +131,10 @@ type OpenSlotParams = {
   /** The live call asking, whose own hold must not block it. */
   excludeCallId?: string;
   /**
-   * Count only holds claimed before this one (ties broken by call id), so a
-   * caller re-checking its own fresh hold yields to earlier callers but not
+   * Count only holds sequenced before this one, plus any not yet sequenced, so
+   * a caller re-checking its own fresh hold yields to earlier callers but not
    * to later ones — exactly one side of any race keeps the time.
    */
-  /** Count only holds sequenced before this one, plus any not yet sequenced. */
   holdsSequencedBefore?: number;
 };
 
@@ -152,7 +152,7 @@ export async function findOpenSlots(
   options: { count: number; minGapMin?: number; preference?: SlotPreference; onlyAt?: Date },
 ): Promise<Date[]> {
   const now = new Date();
-  const [existing, technicians, holds] = await Promise.all([
+  const [existing, technicians, holds, blocked] = await Promise.all([
     prisma.job.findMany({
       where: {
         businessId: params.businessId,
@@ -181,6 +181,7 @@ export async function findOpenSlots(
       },
       select: { heldSlotAt: true, heldSlotDurationMin: true },
     }),
+    getBusyWindows(params.businessId, now),
   ]);
 
   // Capacity is the people who can do this job — a furnace call cannot use
@@ -206,6 +207,7 @@ export async function findOpenSlots(
       hoursJson: params.hoursJson,
       timezone: params.timezone,
       capacity: Math.max(1, activeTechnicians),
+      blocked,
       existing: [
         ...relevant.flatMap((job) =>
           job.scheduledAt

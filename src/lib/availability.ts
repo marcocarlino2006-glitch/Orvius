@@ -19,7 +19,18 @@ type AvailabilityInput = {
   existing: ExistingWindow[];
   capacity: number;
   durationMin?: number;
+  /** Times the whole shop is unavailable (the owner's own calendar). */
+  blocked?: BusyWindow[];
 };
+
+export type BusyWindow = { start: Date; end: Date };
+
+function hitsBlocked(start: Date, durationMin: number, blocked: BusyWindow[] | undefined) {
+  if (!blocked?.length) return false;
+  const startMs = start.getTime();
+  const endMs = startMs + durationMin * 60_000;
+  return blocked.some((b) => startMs < b.end.getTime() && b.start.getTime() < endMs);
+}
 
 type LocalClock = {
   weekday: string;
@@ -225,6 +236,7 @@ export function findAvailableSchedules(
       at.getTime() > now.getTime() &&
       at.getTime() <= now.getTime() + MAX_SCHEDULE_DAYS * 24 * 60 * 60_000 &&
       fitsShopHours({ start: at, durationMin, hoursJson: input.hoursJson, timezone }) &&
+      !hitsBlocked(at, durationMin, input.blocked) &&
       overlappingJobs({ start: at, durationMin, existing: input.existing }) < capacity;
     return open ? [at] : [];
   }
@@ -247,6 +259,7 @@ export function findAvailableSchedules(
     if (!fitsShopHours({ start: candidate, durationMin, hoursJson: input.hoursJson, timezone })) {
       continue;
     }
+    if (hitsBlocked(candidate, durationMin, input.blocked)) continue;
     if (overlappingJobs({ start: candidate, durationMin, existing: input.existing }) < capacity) {
       found.push(candidate);
     }
@@ -271,10 +284,27 @@ function zoneOffsetMs(at: Date, timezone: string) {
   return wall - Math.floor(at.getTime() / 1000) * 1000;
 }
 
-function shopMidnight(year: number, month: number, day: number, timezone: string) {
-  const guess = Date.UTC(year, month - 1, day);
+/** A wall-clock time in `timezone` as a UTC instant. */
+export function zonedWallToUtc(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+  timezone: string,
+) {
+  const guess = Date.UTC(year, month - 1, day, hour, minute, second);
   const first = guess - zoneOffsetMs(new Date(guess), timezone);
   return new Date(guess - zoneOffsetMs(new Date(first), timezone));
+}
+
+function shopMidnight(year: number, month: number, day: number, timezone: string) {
+  return zonedWallToUtc(year, month, day, 0, 0, 0, timezone);
+}
+
+export function isValidTimezone(timezone: string) {
+  return safeTimezone(timezone) === timezone;
 }
 
 /**
