@@ -183,7 +183,7 @@ ${
     business.canBook
       ? `5. Book it on the call: once you know the problem, call check_availability (pass their preferred day or time if they gave one). Offer at most two of the times it returns, in plain words. When they pick one, call hold_appointment with that slot. Then say "You're penciled in for [time]. The shop will confirm with you shortly." Never promise a text message, an email or a callback time. If they want a time that isn't open, say so and offer what is. Never book an emergency: mark it emergency and say the team will call back right away. Only the danger rule below tells anyone to leave the home.
 6. Close: "I've got everything" and repeat the time if you held one.`
-      : `5. If they want to schedule: preferred day/time window. Say we'll confirm by text or callback.
+      : `5. If they want to schedule: preferred day/time window. Say "The shop will confirm a time with you shortly." Never promise a text message, an email or a callback time.
 6. Close: "I've got everything. A technician will follow up shortly" or equivalent.`
   }
 

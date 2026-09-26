@@ -17,8 +17,8 @@ export function HomeCallStory() {
           Call the product. Hear the night shift.
         </h2>
         <p className="mkt-proof-lead font-sans">
-          Same intake the console shows — propose a window, alert the owner,
-          confirm by text.
+          Same intake the console shows — book an open time, alert the owner,
+          keep one record.
         </p>
         <a
           href={demoLineHref()}

@@ -30,8 +30,8 @@ export default function PilotForwardPage() {
           <ul className="mt-4 space-y-2 font-sans text-sm leading-relaxed text-ash">
             <li>Answers the Orvius line (and any calls you forward to it)</li>
             <li>Qualifies: name, phone, service, urgency, address</li>
-            <li>Proposes a job window and texts the customer a confirm link</li>
-            <li>Texts you the lead summary (email failover if SMS fails)</li>
+            <li>Books an open time on the call, checked against your jobs and calendar</li>
+            <li>Texts you the lead summary (email backup if a text can&apos;t deliver)</li>
             <li>Keeps one shop record for leads, jobs, and weekly proof</li>
           </ul>
 
@@ -42,10 +42,7 @@ export default function PilotForwardPage() {
             <li>
               Catch calls on your public number <strong>unless you forward</strong>
             </li>
-            <li>
-              Treat a proposed window as locked until the customer confirms the SMS
-              link
-            </li>
+            <li>Quote prices, arrival times, or technician names</li>
             <li>
               Take card money into your shop bank until you finish{" "}
               <Link href="/dashboard/billing#payouts" className="underline underline-offset-2">
@@ -65,7 +62,10 @@ export default function PilotForwardPage() {
             <li>
               Set missed, busy, and after-hours forward to your Orvius line in
               your carrier app (Verizon, AT&amp;T, T-Mobile, or your business
-              phone system).
+              phone system).{" "}
+              <Link href="/help/forward-your-calls" className="underline underline-offset-2">
+                Steps and codes by carrier
+              </Link>
             </li>
             <li>Or publish the Orvius line as your main number.</li>
             <li>Place a live test call from your cell → confirm owner SMS.</li>
@@ -80,7 +80,7 @@ export default function PilotForwardPage() {
               “We catch what hits the Orvius line — forward missed and after-hours,
               or publish this number.”
             </li>
-            <li>“Booked means proposed until the customer confirms.”</li>
+            <li>“You&apos;re penciled in — the shop will confirm with you shortly.”</li>
             <li>
               “Card pay on estimates goes to your shop bank after you finish
               payouts in Billing.”

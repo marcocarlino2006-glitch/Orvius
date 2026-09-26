@@ -16,8 +16,11 @@ export type CarrierGuide = {
   id: CarrierId;
   label: string;
   steps: string[];
-  /** Optional dial codes owners can try from their cell (US GSM). */
+  /** Optional dial codes owners can try from their cell. The number goes between prefix and suffix. */
   dialCodes?: string[];
+  dialSuffix?: string;
+  /** Prefix a leading 1 to the 10-digit Orvius number. */
+  dialCountryCode?: boolean;
 };
 
 export const CARRIERS: CarrierGuide[] = [
@@ -37,22 +40,26 @@ export const CARRIERS: CarrierGuide[] = [
     label: "AT&T",
     steps: [
       "Keep your public Google / truck number.",
-      "Dial *92 + your Orvius number to forward when you don't answer.",
+      "Dial **004*1 + your 10-digit Orvius number + # and press call to forward when you don't answer, are busy, or have no signal.",
       "Or: myAT&T → Phone settings → Call forwarding → unanswered / busy.",
       "Call your public number, let it ring — Orvius should answer.",
     ],
-    dialCodes: ["*92"],
+    dialCodes: ["**004*"],
+    dialSuffix: "#",
+    dialCountryCode: true,
   },
   {
     id: "tmobile",
     label: "T-Mobile",
     steps: [
       "Keep your public Google / truck number.",
-      "Dial **61* + Orvius digits + # (no +1) for no-answer forward.",
+      "Dial **004*1 + your 10-digit Orvius number + # and press call to forward when you don't answer, are busy, or have no signal.",
       "Or: T-Life / account → Call forwarding → unanswered / busy.",
       "Call your public number, let it ring — Orvius should answer.",
     ],
-    dialCodes: ["**61*"],
+    dialCodes: ["**004*"],
+    dialSuffix: "#",
+    dialCountryCode: true,
   },
   {
     id: "other",
@@ -76,6 +83,15 @@ export const CARRIERS: CarrierGuide[] = [
   },
 ];
 
+/** The full string to dial for this carrier, e.g. "*718445550100" or "**004*18445550100#". */
+export function forwardDialCode(carrier: CarrierGuide, orviusLine: string) {
+  const prefix = carrier.dialCodes?.[0];
+  if (!prefix) return null;
+  const ten = orviusLine.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+  if (ten.length !== 10) return null;
+  return `${prefix}${carrier.dialCountryCode ? "1" : ""}${ten}${carrier.dialSuffix ?? ""}`;
+}
+
 export function getCarrier(id: CarrierId): CarrierGuide {
   return CARRIERS.find((c) => c.id === id) ?? CARRIERS[3]!;
 }
@@ -98,10 +114,8 @@ export function buildForwardGuideSms(params: {
   }
 
   const carrier = getCarrier(params.carrier ?? "other");
-  const dial =
-    carrier.dialCodes?.[0] != null
-      ? ` Quick try: dial ${carrier.dialCodes[0]}${line.replace(/\D/g, "").replace(/^1/, "")} from your cell (carrier-dependent).`
-      : "";
+  const code = forwardDialCode(carrier, line);
+  const dial = code ? ` Quick try: dial ${code} from your cell (carrier-dependent).` : "";
 
   return [
     `Orvius for ${params.shopName}:`,
