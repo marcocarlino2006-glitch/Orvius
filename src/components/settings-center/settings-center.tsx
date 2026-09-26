@@ -81,7 +81,10 @@ function BusyCalendarGroup({ value, onChange }: { value: BusyCalendar; onChange:
       onChange({ source: data.source, syncedAt: data.syncedAt, error: null });
       setMessage({
         error: false,
-        text: `Connected. ${data.busyBlocks === 1 ? "1 busy block" : `${data.busyBlocks} busy blocks`} in the next two weeks won't be offered to callers.`,
+        text:
+          data.busyBlocks > 0
+            ? `Found ${data.busyBlocks === 1 ? "1 busy time" : `${data.busyBlocks} busy times`} in the next two weeks. Callers won't be offered ${data.busyBlocks === 1 ? "it" : "those"}.`
+            : "Nothing busy in the next two weeks. Anything you add there blocks booking within 10 minutes.",
       });
     } finally {
       setBusy(false);
@@ -102,7 +105,7 @@ function BusyCalendarGroup({ value, onChange }: { value: BusyCalendar; onChange:
   }
 
   return (
-    <ScGroup title="Your calendar">
+    <ScGroup title="Busy times">
       {value ? (
         <ScRow
           label={`${value.source ?? "Calendar"} connected`}
@@ -122,7 +125,7 @@ function BusyCalendarGroup({ value, onChange }: { value: BusyCalendar; onChange:
           label="Block times you're busy"
           hint="Paste your calendar's secret iCal address. Google: Settings → your calendar → Integrate calendar → Secret address in iCal format. Apple and Outlook share links work too."
         >
-          <div className="sc-actions">
+          <div className="sc-inline-field">
             <input
               className="sc-input"
               aria-label="Calendar iCal address"
@@ -918,9 +921,9 @@ export function SettingsCenter({
             action: { label: account.billing?.fullyReady ? "Manage" : "Connect", to: "billing" },
           },
           {
-            name: "Calendar",
+            name: "Jobs calendar feed",
             detail: account.calendarFeedUrl
-              ? "Subscribe in Google, Apple, or Outlook Calendar. Jobs update about every 15 minutes."
+              ? "See your jobs in Google, Apple, or Outlook Calendar. Updates about every 15 minutes."
               : "Calendar feed switches on from our side",
             on: Boolean(account.calendarFeedUrl),
             mark: "CAL",
