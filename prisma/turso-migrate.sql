@@ -353,3 +353,6 @@ ALTER TABLE "Call" ADD COLUMN "heldClaimedAt" DATETIME;
 ALTER TABLE "Job" ADD COLUMN "customerConfirmSid" TEXT;
 ALTER TABLE "Job" ADD COLUMN "customerConfirmFailedAt" DATETIME;
 CREATE INDEX IF NOT EXISTS "Job_customerConfirmSid_idx" ON "Job"("customerConfirmSid");
+
+-- Live booking: holds ordered by a database-assigned sequence, so a later hold can never miss an earlier one.
+ALTER TABLE "Call" ADD COLUMN "heldSeq" INTEGER;

@@ -83,21 +83,23 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
 
   /*
     Checking and then writing is a race: callers holding the same time at the
-    same moment all see it open. So write the hold, then re-check counting
-    only holds claimed earlier. Every racer sees the same order, so the
-    earliest claims keep the time and the rest let go before the receptionist
-    tells anyone they're booked.
+    same moment all see it open. So write the hold, take a sequence number in
+    one statement (the database serializes it, so a lower number is always
+    visible to a higher one), then re-check counting holds numbered earlier
+    and holds not yet numbered. Two racers can both let go; both can never keep.
   */
   const claimedAt = new Date();
   await prisma.call.update({
     where: { id: callId },
-    data: { heldSlotAt: at, heldSlotDurationMin: durationMin, heldClaimedAt: claimedAt },
+    data: { heldSlotAt: at, heldSlotDurationMin: durationMin, heldClaimedAt: claimedAt, heldSeq: null },
   });
-  const kept = await findOpenSlots({ ...slot, holdsClaimedBefore: { at: claimedAt, callId } }, { count: 1, onlyAt: at });
+  await prisma.$executeRaw`UPDATE "Call" SET "heldSeq" = (SELECT COALESCE(MAX("heldSeq"), 0) + 1 FROM "Call" WHERE "businessId" = ${shop.id}) WHERE "id" = ${callId}`;
+  const { heldSeq } = await prisma.call.findUniqueOrThrow({ where: { id: callId }, select: { heldSeq: true } });
+  const kept = await findOpenSlots({ ...slot, holdsSequencedBefore: heldSeq ?? 0 }, { count: 1, onlyAt: at });
   if (!kept.length) {
     await prisma.call.updateMany({
       where: { id: callId, heldClaimedAt: claimedAt },
-      data: { heldSlotAt: null, heldSlotDurationMin: null, heldClaimedAt: null },
+      data: { heldSlotAt: null, heldSlotDurationMin: null, heldClaimedAt: null, heldSeq: null },
     });
     return TAKEN;
   }

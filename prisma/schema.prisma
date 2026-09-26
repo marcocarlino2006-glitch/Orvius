@@ -172,6 +172,8 @@ model Call {
   heldSlotDurationMin Int?
   /** When this call's hold was claimed; the earlier claim keeps a contested time. */
   heldClaimedAt       DateTime?
+  /** Database-assigned order of hold writes; commit order and sequence order always agree. */
+  heldSeq Int?
   /** When the returning-caller note was handed to the live receptionist (once per call). */
   callerContextSentAt DateTime?
   createdAt        DateTime  @default(now())

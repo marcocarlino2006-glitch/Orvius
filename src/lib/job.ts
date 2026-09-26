@@ -134,7 +134,8 @@ type OpenSlotParams = {
    * caller re-checking its own fresh hold yields to earlier callers but not
    * to later ones — exactly one side of any race keeps the time.
    */
-  holdsClaimedBefore?: { at: Date; callId: string };
+  /** Count only holds sequenced before this one, plus any not yet sequenced. */
+  holdsSequencedBefore?: number;
 };
 
 /** First slot in shop hours where a technician who can do this job is free. */
@@ -173,16 +174,8 @@ export async function findOpenSlots(
         ...(params.excludeCallId ? { id: { not: params.excludeCallId } } : {}),
         AND: [
           { OR: [{ lead: { is: null } }, { lead: { is: { job: { is: null } } } }] },
-          ...(params.holdsClaimedBefore
-            ? [
-                {
-                  OR: [
-                    { heldClaimedAt: null },
-                    { heldClaimedAt: { lt: params.holdsClaimedBefore.at } },
-                    { heldClaimedAt: params.holdsClaimedBefore.at, id: { lt: params.holdsClaimedBefore.callId } },
-                  ],
-                },
-              ]
+          ...(params.holdsSequencedBefore != null
+            ? [{ OR: [{ heldSeq: null }, { heldSeq: { lt: params.holdsSequencedBefore } }] }]
             : []),
         ],
       },
