@@ -61,6 +61,8 @@ model Business {
   pilotEndsAt          DateTime?
   /** Last time owner copied/exported weekly economics proof. */
   lastWeeklyProofAt    DateTime?
+  /** Last automatic Monday results email. */
+  weeklyReportSentAt DateTime?
   /** Founder phone cert checklist JSON — boolean[] matching Settings scenarios. */
   founderCertJson      String?
   /** Owner confirmed missed/busy/after-hours forward to Orvius line. */

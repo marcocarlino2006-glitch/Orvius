@@ -356,3 +356,6 @@ CREATE INDEX IF NOT EXISTS "Job_customerConfirmSid_idx" ON "Job"("customerConfir
 
 -- Live booking: holds ordered by a database-assigned sequence, so a later hold can never miss an earlier one.
 ALTER TABLE "Call" ADD COLUMN "heldSeq" INTEGER;
+
+-- Weekly results email to the owner.
+ALTER TABLE "Business" ADD COLUMN "weeklyReportSentAt" DATETIME;

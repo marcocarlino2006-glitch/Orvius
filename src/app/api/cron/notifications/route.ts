@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { watchAllLines } from "@/lib/line-watch";
+import { sendDueWeeklyReports } from "@/lib/weekly-report";
 import { logError } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
 import { isProduction } from "@/lib/runtime";
@@ -80,11 +81,13 @@ export async function GET(request: NextRequest) {
     assistants[await ensureAssistantCurrent(shop)] += 1;
   }
   const lines = await watchAllLines().catch(() => null);
+  const weeklyReports = await sendDueWeeklyReports().catch(() => null);
   return NextResponse.json({
     ok: true,
     ...notifications,
     assistants,
     lines,
+    weeklyReports,
     customerConfirmations,
     autopilot: { shops: autopilotShops.length, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });
