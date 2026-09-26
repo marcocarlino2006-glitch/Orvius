@@ -101,7 +101,7 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
     });
     return TAKEN;
   }
-  return `Held ${describeSlot(at, timezone)}. Tell the caller they're penciled in for that time and will get a text to confirm. Make sure you have their name, callback number and service address before ending the call.`;
+  return `Held ${describeSlot(at, timezone)}. Tell the caller they're penciled in for that time and the shop will confirm with them shortly. Do not promise a text. Make sure you have their name, callback number and service address before ending the call.`;
 }
 
 export async function handleInCallToolCalls(params: {

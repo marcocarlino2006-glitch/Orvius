@@ -348,3 +348,8 @@ CREATE INDEX IF NOT EXISTS "PushSubscription_businessId_idx" ON "PushSubscriptio
 
 -- Live booking: when a caller's hold was claimed. Earlier claims win a race for the last technician.
 ALTER TABLE "Call" ADD COLUMN "heldClaimedAt" DATETIME;
+
+-- Confirmation text delivery: a carrier rejection alerts the owner to call instead.
+ALTER TABLE "Job" ADD COLUMN "customerConfirmSid" TEXT;
+ALTER TABLE "Job" ADD COLUMN "customerConfirmFailedAt" DATETIME;
+CREATE INDEX IF NOT EXISTS "Job_customerConfirmSid_idx" ON "Job"("customerConfirmSid");

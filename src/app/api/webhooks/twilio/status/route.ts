@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
+import { applyCustomerConfirmReceipt } from "@/lib/customer-confirm";
 import { applyDepositDeliveryReceipt } from "@/lib/deposit-delivery";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
     messageStatus,
     errorCode,
   });
+  const confirmReceipt = await applyCustomerConfirmReceipt({ messageSid, messageStatus, errorCode });
   const depositReceipt = await applyDepositDeliveryReceipt({
     messageSid,
     messageStatus,
@@ -74,6 +76,7 @@ export async function POST(request: NextRequest) {
       reopened: receipt.reopened,
       depositMatched: depositReceipt.matched,
       depositReopened: depositReceipt.reopened,
+      confirmAlerted: confirmReceipt.alerted,
     },
   });
 

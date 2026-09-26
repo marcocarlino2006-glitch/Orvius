@@ -29,6 +29,7 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
 
 const { ingestEndOfCallReport } = await import("../src/lib/call-ingest.ts");
 const { getRecordView } = await import("../src/lib/record-view.ts");
+const { applyCustomerConfirmReceipt } = await import("../src/lib/customer-confirm.ts");
 const { classifyRequest } = await import("../src/lib/trade-playbooks.ts");
 const { rankTechnicians } = await import("../src/lib/technician-match.ts");
 
@@ -241,6 +242,33 @@ test("a caller who gives a different callback number is still known by the numbe
       where: { businessId_phoneNormalized: { businessId: shop.id, phoneNormalized: callerId } },
     });
     assert.equal(byCallerId?.name, "Dana Reyes");
+  } finally {
+    await drop(shop.id);
+  }
+});
+
+test("a confirmation text the carrier rejects asks the owner to call, once", async () => {
+  const shop = await makeShop({ name: "Confirm Test HVAC" });
+  try {
+    const job = await prisma.job.create({
+      data: {
+        businessId: shop.id,
+        title: "Furnace banging",
+        status: "scheduled",
+        scheduledAt: new Date("2026-10-01T15:00:00Z"),
+        customerConfirmSentAt: new Date(),
+        customerConfirmSid: `SM${uid()}`,
+      },
+    });
+    const receipt = { messageSid: job.customerConfirmSid, messageStatus: "undelivered", errorCode: "30034" };
+    assert.deepEqual(await applyCustomerConfirmReceipt({ ...receipt, messageStatus: "delivered" }), { matched: false, alerted: false });
+    assert.deepEqual(await applyCustomerConfirmReceipt(receipt), { matched: true, alerted: true });
+    assert.deepEqual(await applyCustomerConfirmReceipt(receipt), { matched: true, alerted: false });
+    const saved = await prisma.job.findUniqueOrThrow({ where: { id: job.id } });
+    assert.ok(saved.customerConfirmFailedAt);
+    const alerts = await prisma.ownerNotification.findMany({ where: { businessId: shop.id, dedupeKey: `confirm-failed:${job.id}` } });
+    assert.deepEqual(alerts.map((a) => a.channel).sort(), ["email", "sms"]);
+    assert.match(alerts[0].message, /did not go through — carrier error 30034\. Call to confirm/);
   } finally {
     await drop(shop.id);
   }

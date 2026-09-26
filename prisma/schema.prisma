@@ -250,6 +250,10 @@ model Job {
   customerConfirmSentAt DateTime?
   /** One retry only; stamped only after Twilio accepts it. */
   customerConfirmReminderSentAt DateTime?
+  /** Twilio sid of the latest confirmation text, matched against the carrier's delivery receipt. */
+  customerConfirmSid String?
+  /** The carrier rejected the confirmation text; the owner was asked to call instead. */
+  customerConfirmFailedAt DateTime?
   /** When the customer confirmed the proposed window. */
   customerConfirmedAt DateTime?
   dispatchedAt  DateTime?
@@ -279,6 +283,7 @@ model Job {
   @@index([businessId, status])
   @@index([technicianId, scheduledAt])
   @@index([businessId, categoryCode])
+  @@index([customerConfirmSid])
 }
 
 model Technician {

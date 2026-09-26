@@ -3,6 +3,7 @@ import { sendCustomerSms } from "@/lib/customer-sms";
 import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl } from "@/lib/domains";
 import { logInfo, logWarn } from "@/lib/logger";
+import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 
@@ -107,9 +108,12 @@ export async function sendCustomerConfirmSms(
     const sentAt = new Date();
     await prisma.job.update({
       where: { id: jobId },
-      data: options.reminder
-        ? { customerConfirmReminderSentAt: sentAt }
-        : { customerConfirmSentAt: sentAt },
+      data: {
+        ...(options.reminder
+          ? { customerConfirmReminderSentAt: sentAt }
+          : { customerConfirmSentAt: sentAt }),
+        customerConfirmSid: result.sid ?? null,
+      },
     });
     logInfo("customer.confirm_sms_sent", {
       jobId,
@@ -123,11 +127,66 @@ export async function sendCustomerConfirmSms(
       jobId,
       error: error instanceof Error ? error.message : "send failed",
     });
+    await alertOwnerConfirmFailed(jobId, "the text was rejected").catch(() => undefined);
     return {
       sent: false,
       reason: error instanceof Error ? error.message : "send_failed",
     };
   }
+}
+
+/**
+ * The caller was told the shop would confirm. When the text cannot carry that,
+ * the owner has to — once per job, however many receipts arrive.
+ */
+async function alertOwnerConfirmFailed(jobId: string, why: string) {
+  const claimed = await prisma.job.updateMany({
+    where: { id: jobId, customerConfirmFailedAt: null, customerConfirmedAt: null },
+    data: { customerConfirmFailedAt: new Date() },
+  });
+  if (!claimed.count) return false;
+  const job = await prisma.job.findUniqueOrThrow({
+    where: { id: jobId },
+    select: {
+      businessId: true,
+      leadId: true,
+      scheduledAt: true,
+      customer: { select: { name: true, phone: true } },
+      lead: { select: { name: true, phone: true } },
+      business: { select: { name: true, timezone: true, ownerPhone: true, ownerEmail: true } },
+    },
+  });
+  const who = job.customer?.name || job.lead?.name || "The customer";
+  const phone = job.customer?.phone || job.lead?.phone || "";
+  const when = formatWindow(job.scheduledAt, job.business.timezone);
+  await enqueueOwnerAlert({
+    businessId: job.businessId,
+    leadId: job.leadId ?? undefined,
+    dedupeKey: `confirm-failed:${jobId}`,
+    businessName: job.business.name,
+    message: `Confirmation text to ${who}${phone ? ` (${phone})` : ""} did not go through — ${why}. Call to confirm${when ? ` ${when}` : ""}.`,
+    ownerPhone: job.business.ownerPhone,
+    ownerEmail: job.business.ownerEmail,
+  });
+  logWarn("customer.confirm_undelivered", { jobId, why });
+  return true;
+}
+
+/** Apply Twilio's carrier verdict to a confirmation text. */
+export async function applyCustomerConfirmReceipt(params: {
+  messageSid: string;
+  messageStatus: string;
+  errorCode?: string | null;
+}) {
+  const status = params.messageStatus.trim().toLowerCase();
+  if (status !== "failed" && status !== "undelivered") return { matched: false, alerted: false };
+  const job = await prisma.job.findFirst({
+    where: { customerConfirmSid: params.messageSid },
+    select: { id: true },
+  });
+  if (!job) return { matched: false, alerted: false };
+  const why = params.errorCode ? `carrier error ${params.errorCode}` : `the carrier reported it ${status}`;
+  return { matched: true, alerted: await alertOwnerConfirmFailed(job.id, why) };
 }
 
 export function shouldSendConfirmationReminder(
