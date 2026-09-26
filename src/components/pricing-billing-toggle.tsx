@@ -1,5 +1,7 @@
 "use client";
 
+import { ANNUAL_DISCOUNT_LABEL } from "@/lib/pricing-plans";
+
 export type BillingInterval = "month" | "year";
 
 type PricingBillingToggleProps = {
@@ -23,7 +25,7 @@ export function PricingBillingToggle({ value, onChange }: PricingBillingTogglePr
         onClick={() => onChange("year")}
       >
         Annual
-        <span className="pricing-billing-save">Save ~17%</span>
+        <span className="pricing-billing-save">{ANNUAL_DISCOUNT_LABEL}</span>
       </button>
     </div>
   );

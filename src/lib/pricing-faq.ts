@@ -15,7 +15,19 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "annual",
     question: "Can I pay annually?",
     answer:
-      "Yes. Annual billing saves about 17% compared to monthly — Line from $124/mo, Pro from $249/mo, Fleet from $429/mo when billed yearly. Toggle annual on the pricing page before subscribing.",
+      "Yes. Annual billing is two months free — Line from $124/mo, Pro from $249/mo, Fleet from $416/mo when billed yearly. Toggle annual on the pricing page before subscribing.",
+  },
+  {
+    id: "calls",
+    question: "What if we get more calls than the plan includes?",
+    answer:
+      "Every call is still answered — the line never stops at a limit. Line includes 300 answered calls a month, Pro 750, Fleet 1,500. Past that, calls are 50¢ each, and Billing shows the running count so there is no surprise. Most shops stay well inside the allowance.",
+  },
+  {
+    id: "payments-fee",
+    question: "Do you take a cut of deposits and payments?",
+    answer:
+      "1% of each deposit or payment collected through Orvius, on top of Stripe's standard processing on your own Stripe account. You see the amount you keep before you turn deposits on.",
   },
   {
     id: "cancel",
@@ -33,7 +45,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "fleet",
     question: "When do I need Fleet?",
     answer:
-      "Fleet is built for 6+ trucks — unlimited technicians on dispatch and the multi-truck dispatch workflows. Pro caps technicians at 15. Growing shops with 3–5 trucks are usually on Pro. Support is the same on every plan: email us and you get a person, normally within a business day.",
+      "Fleet is built for 6+ trucks — unlimited technicians on dispatch, 1,500 included calls, and the multi-truck dispatch workflows. Pro caps technicians at 15. Growing shops with 3–5 trucks are usually on Pro. Support is the same on every plan: email us and you get a person, normally within a business day.",
   },
   {
     id: "launch",

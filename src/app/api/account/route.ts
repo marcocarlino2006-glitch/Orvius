@@ -23,6 +23,7 @@ import {
   resolvePilotEndsAt,
 } from "@/lib/billing-entitlement";
 import { getShopHealth } from "@/lib/shop-health";
+import { summarizeCallUsage, usagePeriodStart } from "@/lib/call-usage";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import {
   MAX_DEPOSIT_CENTS,
@@ -152,7 +153,14 @@ export async function GET(request: Request) {
 
   /* Readiness costs three round trips and no screen reads it from here; Command gets it from ring1. */
   const withReadiness = new URL(request.url).searchParams.get("include") === "readiness";
-  const health = business && withReadiness ? await getShopHealth(business.id) : null;
+  const [health, callsThisMonth] = await Promise.all([
+    business && withReadiness ? getShopHealth(business.id) : null,
+    business
+      ? prisma.call.count({
+          where: { businessId: business.id, direction: "inbound", createdAt: { gte: usagePeriodStart() } },
+        })
+      : 0,
+  ]);
   const wedge = business && health ? await getWedgeReadiness(business.id, health) : null;
 
   const currentPlanId = business?.billingPlan ?? null;
@@ -221,6 +229,7 @@ export async function GET(request: Request) {
       hasSubscription: Boolean(business?.stripeSubscriptionId),
       entitled,
       pilotEndsAt: pilotEnds?.toISOString() ?? null,
+      usage: business ? summarizeCallUsage({ used: callsThisMonth, planId: currentPlanId }) : null,
     },
     deposits: businessRecord ? depositsPayload(businessRecord) : null,
   });

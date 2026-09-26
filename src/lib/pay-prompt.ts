@@ -6,6 +6,7 @@ import {
   resolvePilotEndsAt,
   type BusinessBillingFields,
 } from "@/lib/billing-entitlement";
+import { pricing } from "@/lib/pricing-plans";
 
 export type PayPromptTone = "trial" | "required" | "past_due" | "locked";
 
@@ -93,8 +94,8 @@ export function getPayPromptDecision(
         ? "Pay to run Orvius for your shop"
         : "Keep Orvius for your shop",
     body: endingSoon
-      ? "Pay with card now so after-hours calls keep becoming qualified jobs without interruption. Pro is $299/mo — cancel anytime."
-      : "Shop access is temporary. Pro is $299/mo — one tap opens Stripe Checkout. We’ll ask again soon.",
+      ? `Pay with card now so after-hours calls keep becoming qualified jobs without interruption. Pro is $${pricing.pro.price}/mo — cancel anytime.`
+      : `Shop access is temporary. Pro is $${pricing.pro.price}/mo — one tap opens Stripe Checkout. We’ll ask again soon.`,
     primaryCta: "Pay with card",
     snoozeMs: endingSoon || status === "none" ? 2 * HOUR : 4 * HOUR,
     hard: false,

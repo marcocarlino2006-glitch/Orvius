@@ -35,7 +35,7 @@ const PLANS = [
     id: "fleet",
     name: "Orvius Fleet",
     monthlyAmount: 49900,
-    annualAmount: 514800, // $429/mo × 12
+    annualAmount: 499200, // $416/mo × 12
     envKey: "STRIPE_PRICE_ID_FLEET",
     envKeyAnnual: "STRIPE_PRICE_ID_FLEET_ANNUAL",
     metadata: { orvius: "fleet" },

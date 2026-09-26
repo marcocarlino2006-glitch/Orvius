@@ -36,17 +36,17 @@ function withEnv(vars, run) {
   }
 }
 
-test("the default take rate is 2%", () => {
+test("the default take rate is 1%", () => {
   withEnv({ ORVIUS_PLATFORM_FEE_BPS: undefined }, () => {
-    assert.equal(getPlatformFeeBps(), 200);
-    assert.equal(formatPlatformFeeRate(), "2%");
+    assert.equal(getPlatformFeeBps(), 100);
+    assert.equal(formatPlatformFeeRate(), "1%");
   });
 });
 
-test("a $450 deposit yields a $9 fee and the shop keeps $441", () => {
+test("a $450 deposit yields a $4.50 fee and the shop keeps $445.50", () => {
   withEnv({ ORVIUS_PLATFORM_FEE_BPS: undefined }, () => {
-    assert.equal(calculatePlatformFeeCents(45_000), 900);
-    assert.equal(shopNetCents(45_000), 44_100);
+    assert.equal(calculatePlatformFeeCents(45_000), 450);
+    assert.equal(shopNetCents(45_000), 44_550);
   });
 });
 
@@ -80,9 +80,9 @@ test("even at the highest permitted rate the fee stays under the charge", () => 
 
 test("rounding is to the nearest cent, not truncated", () => {
   withEnv({ ORVIUS_PLATFORM_FEE_BPS: undefined }, () => {
-    // 2% of 175c is 3.5c, and 2% of 125c is 2.5c.
-    assert.equal(calculatePlatformFeeCents(175), 4);
-    assert.equal(calculatePlatformFeeCents(125), 3);
+    // 1% of 350c is 3.5c, and 1% of 150c is 1.5c.
+    assert.equal(calculatePlatformFeeCents(350), 4);
+    assert.equal(calculatePlatformFeeCents(150), 2);
   });
 });
 
@@ -97,7 +97,7 @@ test("a configured rate overrides the default", () => {
 test("a malformed rate falls back to the default instead of charging nothing", () => {
   for (const bad of ["", "  ", "abc", "NaN", "-50", "Infinity"]) {
     withEnv({ ORVIUS_PLATFORM_FEE_BPS: bad }, () => {
-      assert.equal(getPlatformFeeBps(), 200, `"${bad}" zeroed the take rate`);
+      assert.equal(getPlatformFeeBps(), 100, `"${bad}" zeroed the take rate`);
     });
   }
 });

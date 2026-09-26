@@ -14,6 +14,8 @@ export type PricingPlan = {
   annualPrice?: number;
   period: string;
   limit?: string;
+  /** Answered calls per billing month before overage; the line never stops answering. */
+  includedCalls?: number;
   cta: string;
   href?: string;
   featured?: boolean;
@@ -25,7 +27,19 @@ export type PricingPlan = {
   stripeProductKey?: string;
 };
 
-export const ANNUAL_DISCOUNT_LABEL = "Save ~17%";
+/*
+  Annual is ten months for twelve. Every annualPrice is the monthly price × 10 / 12,
+  rounded to the dollar, so the label is true for each plan rather than on average.
+*/
+export const ANNUAL_DISCOUNT_LABEL = "2 months free";
+
+/*
+  Measured voice cost is about $0.12 per answered call (Vapi, 21 simulated calls,
+  85s average). Allowances keep each plan above ~65% gross margin at full use, and
+  sit well above what a 1–15 truck shop forwards in a month. Past the allowance the
+  line keeps answering: an unanswered emergency costs the shop more than any overage.
+*/
+export const OVERAGE_CENTS_PER_CALL = 50;
 
 export const pricingPlans: readonly PricingPlan[] = [
   {
@@ -53,12 +67,14 @@ export const pricingPlans: readonly PricingPlan[] = [
     price: 149,
     annualPrice: 124,
     period: "per month",
+    includedCalls: 300,
     cta: "Pay with card",
     stripePriceEnvKey: "STRIPE_PRICE_ID_LINE",
     stripePriceEnvKeyAnnual: "STRIPE_PRICE_ID_LINE_ANNUAL",
     stripeProductKey: "orvius-line",
     idealFor: "Owner-operators who need after-hours and overflow answered and alerted",
     highlights: [
+      "300 answered calls a month included",
       "Dedicated shop line + After-hours answer",
       "Qualified leads — urgency, service, address",
       "Owner SMS alerts + lead inbox",
@@ -73,6 +89,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     price: 299,
     annualPrice: 249,
     period: "per month",
+    includedCalls: 750,
     featured: true,
     cta: "Pay with card",
     stripePriceEnvKey: "STRIPE_PRICE_ID_PRO",
@@ -81,6 +98,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     idealFor: "Shops turning leads into jobs with 3–5 trucks",
     highlights: [
       "Everything in Line",
+      "750 answered calls a month included",
       "Customer records & full history",
       "Jobs, scheduling, and dispatch board",
       "Ask — shop intelligence on your data",
@@ -92,8 +110,9 @@ export const pricingPlans: readonly PricingPlan[] = [
     name: "Fleet",
     tagline: "For shops running 6+ trucks",
     price: 499,
-    annualPrice: 429,
+    annualPrice: 416,
     period: "per month",
+    includedCalls: 1500,
     cta: "Pay with card",
     stripePriceEnvKey: "STRIPE_PRICE_ID_FLEET",
     stripePriceEnvKeyAnnual: "STRIPE_PRICE_ID_FLEET_ANNUAL",
@@ -108,6 +127,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     */
     highlights: [
       "Everything in Pro",
+      "1,500 answered calls a month included",
       "Unlimited technicians on dispatch",
       "Multi-truck dispatch workflows",
       "Shop health and alert delivery, measured per line",
@@ -116,24 +136,25 @@ export const pricingPlans: readonly PricingPlan[] = [
   {
     id: "multi",
     name: "Multi-shop",
-    tagline: "Not generally available",
-    price: 0,
-    period: "Custom",
-    cta: "Contact us",
+    tagline: "Every location, one sign-in",
+    price: 249,
+    period: "per location / mo",
+    limit: "3 or more locations",
+    includedCalls: 750,
+    cta: "Talk to us",
     href: "mailto:hello@orvius.im?subject=Orvius%20Multi-shop",
     contactSales: true,
     idealFor: "Owners running multiple brands or locations",
     /*
-      Contact-sales, so the terms are whatever the conversation agrees to —
-      which is exactly why this list must not pre-commit to a support tier the
-      product cannot deliver. Everything here is either a capability that
-      exists or a thing genuinely settled per deal.
+      Priced per location at the Pro annual rate without the annual commitment.
+      Checkout cannot take a quantity yet, so a person sets it up; the list names
+      only what exists today — separate lines, one sign-in, roles per location.
     */
     highlights: [
-      "Dedicated lines per location",
-      "Central billing & admin",
-      "Per-location onboarding plan",
-      "Consolidated commercial terms when available",
+      "Pro at every location, 750 calls each",
+      "Dedicated line per location",
+      "Switch locations from one sign-in",
+      "Owner, manager, and dispatcher roles",
     ],
   },
 ] as const;

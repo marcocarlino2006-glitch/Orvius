@@ -387,3 +387,6 @@ CREATE TABLE IF NOT EXISTS "Membership" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "Membership_businessId_email_key" ON "Membership"("businessId", "email");
 CREATE INDEX IF NOT EXISTS "Membership_email_idx" ON "Membership"("email");
+
+-- Monthly call metering counts inbound calls per shop since the 1st.
+CREATE INDEX IF NOT EXISTS "Call_businessId_createdAt_idx" ON "Call"("businessId", "createdAt");

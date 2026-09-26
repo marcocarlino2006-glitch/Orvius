@@ -16,6 +16,8 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { fetchAccount } from "@/lib/account-client";
+import { callUsageLine, type CallUsage } from "@/lib/call-usage";
+import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
 
 type BillingChecklistItem = {
   id: string;
@@ -54,6 +56,7 @@ type BillingAccount = {
     hasSubscription: boolean;
     entitled?: boolean;
     pilotEndsAt?: string | null;
+    usage?: CallUsage | null;
   };
 };
 
@@ -263,6 +266,26 @@ export function BillingContent() {
                 <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
                   {statusCopy(status, entitled, pilotEndsAt)}
                 </p>
+                {account?.billing.usage ? (
+                  <div className={`billing-usage billing-usage--${account.billing.usage.tone} font-sans`}>
+                    <p className="billing-usage-line">{callUsageLine(account.billing.usage)}</p>
+                    <div
+                      className="billing-usage-meter"
+                      role="meter"
+                      aria-label="Included calls used this month"
+                      aria-valuemin={0}
+                      aria-valuemax={account.billing.usage.included}
+                      aria-valuenow={Math.min(account.billing.usage.used, account.billing.usage.included)}
+                    >
+                      <span style={{ width: `${Math.round(account.billing.usage.fraction * 100)}%` }} />
+                    </div>
+                    <p className="billing-usage-foot">
+                      {account.billing.usage.overCalls > 0
+                        ? `${account.billing.usage.overCalls.toLocaleString("en-US")} × ${OVERAGE_CENTS_PER_CALL}¢ = $${(account.billing.usage.overageCents / 100).toFixed(2)} so far. Calls never stop at the limit.`
+                        : `Past the allowance every call is still answered, at ${OVERAGE_CENTS_PER_CALL}¢ each. Resets on the 1st.`}
+                    </p>
+                  </div>
+                ) : null}
                 {account?.business ? (
                   <p className="mt-2 font-sans text-xs text-ash">
                     Billed to {account.business.name}

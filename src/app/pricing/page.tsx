@@ -24,7 +24,7 @@ export default function PricingPage() {
           <ShellPageIntro
             label="Pricing"
             title={`From $${getLowestPaidPrice("year")} per month. Flat.`}
-            subline="Monthly or annual — pick the plan that matches your shop."
+            subline="Calls included. Monthly, or annual with two months free."
             description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks."
             actions={
               <>
