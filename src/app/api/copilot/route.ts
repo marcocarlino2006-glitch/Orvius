@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { executeProposal, type ProposalParams } from "@/lib/copilot-execute";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { recordAudit } from "@/lib/audit";
+import { personActor, recordAudit } from "@/lib/audit";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { requireEntitledSession } from "@/lib/tenant";
 import { z } from "zod";
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
         entityType: params.jobId ? "job" : params.leadId ? "lead" : "copilot",
         entityId: params.jobId ?? params.leadId ?? proposal.id,
         action: "copilot.declined",
-        actor: "owner",
+        ...personActor(authResult),
         summary: `Declined: ${proposal.preview}`,
         jobId: params.jobId ?? null,
         leadId: params.leadId ?? null,
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
     if (mode === "execute") {
       const body = executeSchema.parse(await request.json());
-      const outcome = await executeProposal({ business, proposalId: body.proposalId });
+      const outcome = await executeProposal({ business, proposalId: body.proposalId, by: authResult });
       if (!outcome.ok) {
         return NextResponse.json({ error: outcome.error, reason: outcome.reason }, { status: outcome.status });
       }

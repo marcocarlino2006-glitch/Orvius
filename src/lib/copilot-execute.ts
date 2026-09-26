@@ -1,4 +1,4 @@
-import { recordAudit, type AuditInput } from "@/lib/audit";
+import { personActor, recordAudit, type AuditInput } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -133,6 +133,7 @@ export type ExecuteOutcome =
 export async function executeProposal(params: {
   business: { id: string; name: string };
   proposalId: string;
+  by?: { role: string; email: string };
 }): Promise<ExecuteOutcome> {
   const { business } = params;
   const claimed = await prisma.copilotAction.updateMany({
@@ -166,7 +167,7 @@ export async function executeProposal(params: {
     entityType: outcome.entity.type,
     entityId: outcome.entity.id,
     action: "copilot.executed",
-    actor: "owner",
+    ...(params.by ? personActor(params.by) : { actor: "owner" as const }),
     summary: outcome.summary,
     detail: { proposalId: proposal.id, action: proposal.action, preview: proposal.preview, ...outcome.result },
     jobId: outcome.links.jobId ?? null,

@@ -26,6 +26,7 @@ import { ScGroup, ScRow } from "./settings-primitives";
 import { FOUNDER_CERT, parseCert, type Account, type Patch, type Technician } from "./settings-model";
 import { AccountSection } from "./sections/account-section";
 import { BusinessSection } from "./sections/business-section";
+import { ActivitySection } from "./sections/activity-section";
 import { DataSection } from "./sections/data-section";
 import { HoursSection } from "./sections/hours-section";
 import { IntegrationsSection } from "./sections/integrations-section";
@@ -350,6 +351,9 @@ export function SettingsCenter({
             </div>
           </>
         );
+
+      case "activity":
+        return <ActivitySection role={account.role ?? null} />;
 
       case "data":
         return <DataSection shopName={b.name} exporting={exporting} exportShopData={exportShopData} />;

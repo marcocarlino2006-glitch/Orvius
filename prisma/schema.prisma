@@ -541,8 +541,10 @@ model AuditEvent {
   entityId       String
   /** Stable machine code, e.g. lead.captured, technician.assigned. */
   action         String
-  /** orvius | owner | system */
+  /** orvius | owner | teammate | system */
   actor          String   @default("orvius")
+  /** Sign-in email of the person who acted, when a person did. */
+  actorEmail     String?
   summary        String
   detailJson     String?
   callId         String?
@@ -555,6 +557,7 @@ model AuditEvent {
   @@unique([businessId, idempotencyKey])
   @@index([businessId, createdAt])
   @@index([businessId, entityType, entityId])
+  @@index([businessId, action, createdAt])
   @@index([leadId])
   @@index([jobId])
   @@index([customerId])

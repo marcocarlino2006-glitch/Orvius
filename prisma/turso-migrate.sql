@@ -403,3 +403,7 @@ CREATE INDEX IF NOT EXISTS "Invoice_jobId_idx" ON "Invoice"("jobId");
 
 -- Monthly call overage is invoiced once per shop per calendar month.
 ALTER TABLE "Business" ADD COLUMN "overageBilledPeriod" TEXT;
+
+-- Enterprise audit log: who acted, and filtering by action.
+ALTER TABLE "AuditEvent" ADD COLUMN "actorEmail" TEXT;
+CREATE INDEX IF NOT EXISTS "AuditEvent_businessId_action_createdAt_idx" ON "AuditEvent"("businessId", "action", "createdAt");

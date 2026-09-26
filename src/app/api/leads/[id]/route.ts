@@ -1,4 +1,4 @@
-import { recordAudit } from "@/lib/audit";
+import { personActor, recordAudit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 import { maybeAutoBookLead } from "@/lib/auto-job";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
@@ -173,8 +173,8 @@ export async function PATCH(request: Request, { params }: Params) {
       entityType: "lead",
       entityId: id,
       action: "lead.status_changed",
-      actor: "owner",
-      summary: `Owner marked the lead ${body.status}.`,
+      ...personActor(authResult),
+      summary: `${authResult.email} marked the lead ${body.status}.`,
       detail: { from: existing.status, to: body.status },
       leadId: id,
       callId: existing.callId,

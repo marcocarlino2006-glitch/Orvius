@@ -9,6 +9,7 @@ export const SETTINGS_SECTIONS = [
   { id: "integrations", label: "Integrations", group: "workspace" },
   { id: "billing", label: "Billing", group: "workspace" },
   { id: "performance", label: "Performance", group: "workspace" },
+  { id: "activity", label: "Activity log", group: "workspace" },
   { id: "data", label: "Data controls", group: "workspace" },
   { id: "internal", label: "Internal", group: "founder" },
 ] as const;
@@ -45,6 +46,8 @@ export const SETTINGS_SEARCH: Array<{ label: string; section: SettingsSectionId;
   { label: "Plan and billing", section: "billing", keywords: "subscription payment card invoice upgrade cancel" },
   { label: "Deposits and payouts", section: "billing", keywords: "stripe money bank" },
   { label: "Performance", section: "performance", keywords: "metrics results stats" },
+  { label: "Activity log", section: "activity", keywords: "audit trail history who changed log compliance security events" },
+  { label: "Download activity CSV", section: "activity", keywords: "audit export csv compliance" },
   { label: "Export shop data", section: "data", keywords: "download backup csv" },
   { label: "Delete workspace", section: "data", keywords: "danger close account remove" },
 ];

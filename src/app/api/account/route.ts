@@ -6,6 +6,7 @@ import { busyCalendarHost } from "@/lib/busy-calendar";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getShopAccessWithAutoLine } from "@/lib/provision-business";
+import { recordAudit } from "@/lib/audit";
 import { roleForbiddenResponse } from "@/lib/tenant";
 import { can, listShopAccess, resolveShopAccess, summarizeShops } from "@/lib/workspace-access";
 import { isEmailConfigured } from "@/lib/email";
@@ -233,6 +234,39 @@ export async function GET(request: Request) {
   });
 }
 
+/** Settings an owner can change, as the activity log names them. Long JSON fields are logged as changed, not by value. */
+const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
+  name: { label: "shop name" },
+  trade: { label: "trade" },
+  address: { label: "shop address" },
+  ownerPhone: { label: "owner mobile" },
+  ownerEmail: { label: "owner email" },
+  greeting: { label: "opening line" },
+  transferPhone: { label: "transfer number" },
+  voiceId: { label: "receptionist voice" },
+  avgTicketCents: { label: "average ticket" },
+  baselineMissedCallsPerWeek: { label: "missed calls baseline" },
+  baselineJobsPerWeek: { label: "jobs baseline" },
+  overflowForwardConfirmedAt: { label: "call capture confirmation", value: false },
+  captureMode: { label: "capture mode" },
+  forwardCarrier: { label: "carrier" },
+  hoursJson: { label: "open hours", value: false },
+  servicesJson: { label: "services", value: false },
+  serviceZipsJson: { label: "service ZIPs", value: false },
+  depositEnabled: { label: "deposits" },
+  depositAmountCents: { label: "deposit amount" },
+  autopilot: { label: "routine work handling" },
+};
+
+function settingsChanges(before: Record<string, unknown>, after: Record<string, unknown>) {
+  const norm = (v: unknown) => (v instanceof Date ? v.toISOString() : v ?? null);
+  return Object.entries(SETTING_LABELS)
+    .filter(([key]) => JSON.stringify(norm(before[key])) !== JSON.stringify(norm(after[key])))
+    .map(([key, { label, value }]) =>
+      value === false ? { field: key, label } : { field: key, label, from: norm(before[key]), to: norm(after[key]) },
+    );
+}
+
 const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "servicesJson"] as const;
 
 export async function PATCH(request: Request) {
@@ -394,6 +428,20 @@ export async function PATCH(request: Request) {
     });
 
     const { business: saved } = await autoEnsureCustomerShopLine(business);
+
+    const changed = settingsChanges(existing as unknown as Record<string, unknown>, business as unknown as Record<string, unknown>);
+    if (changed.length) {
+      await recordAudit({
+        businessId: existing.id,
+        entityType: "shop",
+        entityId: existing.id,
+        action: "settings.changed",
+        actor: access.role === "owner" ? "owner" : "teammate",
+        actorEmail: email,
+        summary: `${email} changed ${changed.map((c) => c.label).join(", ")}.`,
+        detail: { changes: changed },
+      });
+    }
 
     let assistantSynced = true;
     let syncError: string | null = null;

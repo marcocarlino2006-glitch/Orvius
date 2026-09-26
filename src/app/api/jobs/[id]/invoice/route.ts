@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { recordAudit } from "@/lib/audit";
+import { personActor, recordAudit } from "@/lib/audit";
 import { sendInvoiceLink, upsertJobInvoice } from "@/lib/invoice-pay";
 import { formatCentsExact } from "@/lib/money";
 import { requirePlanModule } from "@/lib/plan-gate";
@@ -52,7 +52,7 @@ export async function POST(request: Request, { params }: Params) {
       entityType: "job",
       entityId: job.id,
       jobId: job.id,
-      actor: "owner",
+      ...personActor(authResult),
       action: created ? "invoice.created" : "invoice.updated",
       summary: `Invoice ${formatCentsExact(invoice.amountCents)}${sms?.sent ? ", texted to the customer" : ""}`,
       detail: { totalCents: body.totalCents, depositPaidCents },

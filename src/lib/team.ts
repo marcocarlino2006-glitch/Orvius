@@ -73,6 +73,7 @@ export async function inviteTeammate(params: {
     entityId: params.business.id,
     action: "team.added",
     actor: params.invitedBy === params.business.ownerEmail?.toLowerCase() ? "owner" : "teammate",
+    actorEmail: params.invitedBy,
     summary: `${params.invitedBy} gave ${email} ${ROLE_LABELS[role]} access.`,
     detail: { email, role, by: params.invitedBy },
   });
@@ -121,6 +122,7 @@ export async function changeTeammateRole(params: {
     entityId: params.businessId,
     action: "team.role_changed",
     actor: params.byOwner ? "owner" : "teammate",
+    actorEmail: params.by,
     summary: `${params.by} changed ${member.email} from ${ROLE_LABELS[member.role as MemberRole] ?? member.role} to ${ROLE_LABELS[params.role]}.`,
     detail: { email: member.email, from: member.role, to: params.role, by: params.by },
   });
@@ -145,6 +147,7 @@ export async function removeTeammate(params: {
     entityId: params.businessId,
     action: self ? "team.left" : "team.removed",
     actor: params.byOwner ? "owner" : "teammate",
+    actorEmail: params.by,
     summary: self ? `${member.email} left the shop.` : `${params.by} removed ${member.email}.`,
     detail: { email: member.email, role: member.role, by: params.by },
   });

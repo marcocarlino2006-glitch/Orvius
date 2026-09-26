@@ -23,6 +23,7 @@ const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external" |
     "M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6",
     "M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6",
   ],
+  activity: ["M4 5h16", "M4 12h10", "M4 19h13", "M18 10l3 2-3 2"],
   internal: ["M12 3 4 6v5c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6l-8-3Z"],
   help: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M9.5 9.5a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.7-.8 1.2v.4", "M12 16.8v.2"],
   close: ["M6 6l12 12", "M18 6 6 18"],

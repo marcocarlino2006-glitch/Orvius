@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
 import { invoicePayUrl } from "@/lib/invoice-pay";
 import { getConnectStatus } from "@/lib/stripe-connect";
-import { recordAudit } from "@/lib/audit";
+import { personActor, recordAudit } from "@/lib/audit";
 import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
@@ -172,7 +172,7 @@ export async function PATCH(request: Request, { params }: Params) {
     businessId: business.id,
     entityType: "job" as const,
     entityId: id,
-    actor: "owner" as const,
+    ...personActor(authResult),
     jobId: id,
     leadId: existing.leadId,
     customerId: existing.customerId,

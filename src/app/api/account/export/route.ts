@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { recordAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/tenant";
 
 /**
@@ -93,6 +94,16 @@ export async function GET() {
     technicians,
     auditEvents,
   };
+
+  await recordAudit({
+    businessId,
+    entityType: "shop",
+    entityId: businessId,
+    action: "data.exported",
+    actor: session.role === "owner" ? "owner" : "teammate",
+    actorEmail: session.email,
+    summary: `${session.email} exported shop data (${customers.length} customers, ${jobs.length} jobs).`,
+  });
 
   const slug = business?.slug ?? "shop";
   const filename = `orvius-export-${slug}-${new Date().toISOString().slice(0, 10)}.json`;

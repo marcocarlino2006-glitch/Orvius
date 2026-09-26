@@ -342,6 +342,79 @@
   text-align: right;
 }
 
+.os-shell .sc-input--select {
+  width: auto;
+  min-width: 9.5rem;
+  padding-right: 0.5rem;
+  cursor: pointer;
+}
+
+/* Activity log */
+
+.sc-log-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.os-shell .sc-log-filters input[type="search"].sc-input {
+  flex: 1 1 12rem;
+  width: auto;
+}
+
+.sc-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-log-row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.75rem 0;
+}
+
+.sc-log-row + .sc-log-row {
+  border-top: 1px solid rgb(var(--ox-tint) / 0.06);
+}
+
+.sc-log-when {
+  padding-top: 0.0625rem;
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sc-log-summary {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ox-text);
+  overflow-wrap: anywhere;
+}
+
+.sc-log-meta {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+  overflow-wrap: anywhere;
+}
+
+.sc-log-meta code {
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .sc-log-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.125rem;
+  }
+}
+
 .sc-affix {
   display: inline-flex;
   align-items: center;
@@ -739,7 +812,8 @@
 .os-shell .sc-dialog .sc-row-label,
 .os-shell .sc-dialog .sc-profile-name,
 .os-shell .sc-dialog .sc-plan-name,
-.os-shell .sc-dialog .sc-title {
+.os-shell .sc-dialog .sc-title,
+.os-shell .sc-dialog .sc-log-summary {
   color: var(--ox-text) !important;
 }
 
@@ -752,6 +826,7 @@
 .os-shell .sc-dialog .sc-profile-email,
 .os-shell .sc-dialog .sc-plan-detail,
 .os-shell .sc-dialog .sc-plan-kicker,
+.os-shell .sc-dialog .sc-log-meta,
 .os-shell .sc-dialog .sc-muted {
   color: var(--ox-mute) !important;
 }
