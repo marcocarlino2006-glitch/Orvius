@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requirePermission } from "@/lib/tenant";
 
 /**
  * Shop data export — switching-cost trust: owners can leave with their records.
  * JSON download of customers, leads, jobs, estimates, invoices, payments.
  */
 export async function GET() {
-  const session = await requireBusinessSession();
+  const session = await requirePermission("data.export", { entitled: false });
   if ("error" in session) return session.error;
 
   const businessId = session.business.id;

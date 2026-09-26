@@ -78,12 +78,8 @@ const nextAuth = NextAuth({
          * bundle; loading it only here lets an existing shop owner authenticate
          * without weakening the gate for unknown Google accounts.
          */
-        const { prisma } = await import("@/lib/prisma");
-        const shop = await prisma.business.findFirst({
-          where: { ownerEmail: email, isActive: true },
-          select: { id: true },
-        });
-        return Boolean(shop);
+        const { hasAnyShopAccess } = await import("@/lib/workspace-access");
+        return hasAnyShopAccess(email);
       });
     },
   },

@@ -24,13 +24,22 @@ const LAST_SEEN_WRITE_MS = 60_000;
 export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business, session } = authResult;
+  const { business, session, role, email } = authResult;
   const now = new Date();
   // A tab that already pinned its anchor sends it; a fresh visit uses the account's last look.
   const sinceParam = new URL(request.url).searchParams.get("since");
   const previousLook = sinceParam ?? business.ownerLastSeenAt?.toISOString() ?? null;
   const since = parseSince(previousLook, now);
-  if (!business.ownerLastSeenAt || now.getTime() - business.ownerLastSeenAt.getTime() > LAST_SEEN_WRITE_MS) {
+  if (role !== "owner") {
+    after(() =>
+      prisma.membership
+        .updateMany({
+          where: { businessId: business.id, email, OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: new Date(now.getTime() - LAST_SEEN_WRITE_MS) } }] },
+          data: { lastSeenAt: now },
+        })
+        .catch(() => null),
+    );
+  } else if (!business.ownerLastSeenAt || now.getTime() - business.ownerLastSeenAt.getTime() > LAST_SEEN_WRITE_MS) {
     after(() =>
       prisma.business
         .update({ where: { id: business.id }, data: { ownerLastSeenAt: now } })

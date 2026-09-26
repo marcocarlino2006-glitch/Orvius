@@ -5,7 +5,9 @@ import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
 import { busyCalendarHost } from "@/lib/busy-calendar";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
 import { getShopLineForBusiness } from "@/lib/demo-business";
-import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
+import { getShopAccessWithAutoLine } from "@/lib/provision-business";
+import { roleForbiddenResponse } from "@/lib/tenant";
+import { can, listShopAccess, resolveShopAccess, summarizeShops } from "@/lib/workspace-access";
 import { isEmailConfigured } from "@/lib/email";
 import { isFounderEmail } from "@/lib/founder";
 import { prisma } from "@/lib/prisma";
@@ -100,7 +102,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const businessRecord = await getBusinessForOwnerWithAutoLine(email);
+  const [access, shops] = await Promise.all([getShopAccessWithAutoLine(email), listShopAccess(email)]);
+  const businessRecord = access?.business ?? null;
+  const role = access?.role ?? null;
 
   const business = businessRecord
     ? {
@@ -183,6 +187,8 @@ export async function GET(request: Request) {
       image: session.user.image ?? null,
     },
     business,
+    role,
+    shops: summarizeShops(shops),
     line: business ? getShopLineForBusiness(business) : null,
     health,
     wedge,
@@ -233,14 +239,12 @@ export async function PATCH(request: Request) {
   try {
     const body = patchSchema.parse(await request.json());
 
-    const existing = await prisma.business.findFirst({
-      where: { ownerEmail: email, isActive: true },
-      orderBy: { createdAt: "asc" },
-    });
-
-    if (!existing) {
+    const access = await resolveShopAccess(email);
+    if (!access) {
       return NextResponse.json({ error: "No shop linked" }, { status: 404 });
     }
+    if (!can(access.role, "settings.edit")) return roleForbiddenResponse("settings.edit");
+    const existing = access.business;
 
     if (body.ownerPhone !== undefined) {
       const phoneCheck = validateOwnerPhoneForAlerts({

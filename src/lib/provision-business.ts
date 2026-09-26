@@ -32,6 +32,7 @@ import {
   deleteAssistant,
 } from "@/lib/vapi";
 import type { Business } from "@prisma/client";
+import { resolveShopAccess, type ShopAccess } from "@/lib/workspace-access";
 
 export type { Trade } from "@/lib/trades";
 export { TRADES } from "@/lib/trades";
@@ -198,16 +199,16 @@ export async function autoEnsureCustomerShopLine(
   }
 }
 
+/** The shop this person has open (owned or shared with them), with their role in it. */
+export async function getShopAccessWithAutoLine(email: string): Promise<ShopAccess | null> {
+  const access = await resolveShopAccess(email);
+  if (!access) return null;
+  const { business: ready } = await autoEnsureCustomerShopLine(access.business);
+  return { business: ready, role: access.role };
+}
+
 export async function getBusinessForOwnerWithAutoLine(email: string) {
-  const business = await prisma.business.findFirst({
-    where: { ownerEmail: email.toLowerCase(), isActive: true },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (!business) return null;
-
-  const { business: ready } = await autoEnsureCustomerShopLine(business);
-  return ready;
+  return (await getShopAccessWithAutoLine(email))?.business ?? null;
 }
 
 /**

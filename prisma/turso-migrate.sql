@@ -373,3 +373,17 @@ CREATE TABLE IF NOT EXISTS "RateLimitBucket" (
     "resetAtMs" BIGINT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS "RateLimitBucket_resetAtMs_idx" ON "RateLimitBucket"("resetAtMs");
+
+-- Teammates and multi-location access: people other than the owner who can sign in to a shop.
+CREATE TABLE IF NOT EXISTS "Membership" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'dispatcher',
+    "invitedBy" TEXT,
+    "lastSeenAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Membership_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Membership_businessId_email_key" ON "Membership"("businessId", "email");
+CREATE INDEX IF NOT EXISTS "Membership_email_idx" ON "Membership"("email");

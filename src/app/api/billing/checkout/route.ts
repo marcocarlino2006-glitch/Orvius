@@ -24,6 +24,7 @@ import {
 } from "@/lib/pricing-plans";
 import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
+import { resolveShopAccess } from "@/lib/workspace-access";
 
 const checkoutSchema = z.object({
   email: z.string().email(),
@@ -73,10 +74,11 @@ export async function POST(request: NextRequest) {
       ? await prisma.business.findFirst({
           where: { id: body.businessId, ownerEmail: sessionEmail },
         })
-      : await prisma.business.findFirst({
+      : ((await resolveShopAccess(sessionEmail).then((a) => (a?.role === "owner" ? a.business : null))) ??
+        (await prisma.business.findFirst({
           where: { ownerEmail: sessionEmail },
           orderBy: { createdAt: "asc" },
-        });
+        })));
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",

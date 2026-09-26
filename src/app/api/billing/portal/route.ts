@@ -1,22 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/tenant";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 
 export async function POST(_request: NextRequest) {
   try {
-    const session = await auth();
-    const email = session?.user?.email?.toLowerCase();
-
-    if (!email) {
-      return NextResponse.json({ error: "Sign in to manage billing" }, { status: 401 });
-    }
-
-    const business = await prisma.business.findFirst({
-      where: { ownerEmail: email, isActive: true },
-      orderBy: { createdAt: "asc" },
-      select: { stripeCustomerId: true },
-    });
+    const authResult = await requirePermission("billing.manage", { entitled: false });
+    if ("error" in authResult) return authResult.error;
+    const { business } = authResult;
 
     if (!business?.stripeCustomerId) {
       return NextResponse.json(

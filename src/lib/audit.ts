@@ -1,7 +1,7 @@
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
-export type AuditActor = "orvius" | "owner" | "system";
+export type AuditActor = "orvius" | "owner" | "teammate" | "system";
 
 export type AuditInput = {
   businessId: string;

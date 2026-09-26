@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { requireActiveBilling } from "@/lib/plan-gate";
-import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
+import { getShopAccessWithAutoLine } from "@/lib/provision-business";
+import { can, type Permission } from "@/lib/workspace-access";
 import { verifyAdminRequest } from "@/lib/env";
 import { NextResponse } from "next/server";
 import type { Business } from "@prisma/client";
@@ -35,13 +36,32 @@ export async function requireBusinessSession() {
     return { error: unauthorizedResponse() };
   }
 
-  const business = await getBusinessForOwnerWithAutoLine(email);
+  const access = await getShopAccessWithAutoLine(email);
 
-  if (!business) {
+  if (!access) {
     return { error: noBusinessResponse() };
   }
 
-  return { session, email, business };
+  return { session, email, business: access.business, role: access.role };
+}
+
+export function roleForbiddenResponse(permission: Permission) {
+  const what: Record<Permission, string> = {
+    "settings.edit": "change settings",
+    "team.manage": "manage the team",
+    "data.export": "export shop data",
+    "billing.manage": "manage billing",
+    "workspace.delete": "delete the workspace",
+  };
+  return NextResponse.json({ error: `Your role can't ${what[permission]}. Ask the shop owner.` }, { status: 403 });
+}
+
+/** Auth plus a role check, for routes only some teammates may use. */
+export async function requirePermission(permission: Permission, options: { entitled?: boolean } = {}) {
+  const authResult = options.entitled === false ? await requireBusinessSession() : await requireEntitledSession();
+  if ("error" in authResult) return authResult;
+  if (!can(authResult.role, permission)) return { error: roleForbiddenResponse(permission) };
+  return authResult;
 }
 
 /** Auth + active billing — blocks expired pilot / canceled shops. */

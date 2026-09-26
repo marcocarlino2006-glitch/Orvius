@@ -115,6 +115,7 @@ model Business {
   webhookEvents      WebhookEvent[]
   smsOptOuts         SmsOptOut[]
   auditEvents        AuditEvent[]
+  memberships        Membership[]
 }
 
 /** Phone numbers that opted out of SMS on a shop line (STOP). */
@@ -568,4 +569,21 @@ model RateLimitBucket {
   resetAtMs BigInt
 
   @@index([resetAtMs])
+}
+
+/// Someone other than the owner with access to a shop. The owner is Business.ownerEmail.
+model Membership {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /// Lowercased sign-in email.
+  email      String
+  /// manager | dispatcher
+  role       String   @default("dispatcher")
+  invitedBy  String?
+  lastSeenAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([businessId, email])
+  @@index([email])
 }
