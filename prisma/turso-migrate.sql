@@ -390,3 +390,13 @@ CREATE INDEX IF NOT EXISTS "Membership_email_idx" ON "Membership"("email");
 
 -- Monthly call metering counts inbound calls per shop since the 1st.
 CREATE INDEX IF NOT EXISTS "Call_businessId_createdAt_idx" ON "Call"("businessId", "createdAt");
+
+-- Invoice pay links: customers pay finished work by card on the shop's account.
+ALTER TABLE "Invoice" ADD COLUMN "publicToken" TEXT;
+ALTER TABLE "Invoice" ADD COLUMN "sentAt" DATETIME;
+ALTER TABLE "Invoice" ADD COLUMN "paidAt" DATETIME;
+ALTER TABLE "Invoice" ADD COLUMN "stripeSessionId" TEXT;
+ALTER TABLE "Invoice" ADD COLUMN "applicationFeeCents" INTEGER;
+CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_publicToken_key" ON "Invoice"("publicToken");
+CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_stripeSessionId_key" ON "Invoice"("stripeSessionId");
+CREATE INDEX IF NOT EXISTS "Invoice_jobId_idx" ON "Invoice"("jobId");

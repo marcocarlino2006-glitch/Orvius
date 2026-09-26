@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
+import { invoicePayUrl } from "@/lib/invoice-pay";
+import { getConnectStatus } from "@/lib/stripe-connect";
 import { recordAudit } from "@/lib/audit";
 import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -45,6 +47,11 @@ export async function GET(_request: Request, { params }: Params) {
     orderBy: { createdAt: "desc" },
   });
 
+  const invoice = await prisma.invoice.findFirst({
+    where: { businessId: business.id, jobId: job.id },
+    orderBy: { createdAt: "desc" },
+  });
+
   return NextResponse.json({
     job: serializeJob(job),
     deposit: deposit
@@ -61,6 +68,18 @@ export async function GET(_request: Request, { params }: Params) {
         }
       : null,
     depositReadiness: getDepositReadiness(business),
+    invoice: invoice
+      ? {
+          id: invoice.id,
+          amountCents: invoice.amountCents,
+          status: invoice.status,
+          payUrl: invoice.publicToken ? invoicePayUrl(invoice.publicToken) : null,
+          sentAt: invoice.sentAt?.toISOString() ?? null,
+          paidAt: invoice.paidAt?.toISOString() ?? null,
+        }
+      : null,
+    finalAmountCents: job.finalAmountCents,
+    cardPayReady: getConnectStatus(business).canAcceptPayments,
   });
 }
 

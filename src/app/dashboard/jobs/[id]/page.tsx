@@ -1,5 +1,6 @@
 "use client";
 
+import { JobBillSection, type JobBill } from "@/components/job-bill-section";
 import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
 import {
@@ -82,6 +83,7 @@ export default function JobDetailPage() {
   const [deposit, setDeposit] = useState<DepositState>(null);
   const [depositReadiness, setDepositReadiness] =
     useState<DepositReadiness | null>(null);
+  const [bill, setBill] = useState<JobBill | null>(null);
   const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,6 +105,11 @@ export default function JobDetailPage() {
         setJob(jobData.job);
         setDeposit(jobData.deposit ?? null);
         setDepositReadiness(jobData.depositReadiness ?? null);
+        setBill({
+          invoice: jobData.invoice ?? null,
+          finalAmountCents: jobData.finalAmountCents ?? null,
+          cardPayReady: Boolean(jobData.cardPayReady),
+        });
         setCrew(techData.technicians ?? []);
         if (jobData.job?.scheduledAt) {
           const d = new Date(jobData.job.scheduledAt);
@@ -401,6 +408,17 @@ export default function JobDetailPage() {
               depositReadiness={depositReadiness}
               onRefresh={load}
             />
+            {bill ? (
+              <JobBillSection
+                key={bill.invoice?.id ?? "new"}
+                jobId={job.id}
+                bill={bill}
+                defaultCents={job.estimate?.amountCents ?? null}
+                depositPaidCents={deposit?.status === "paid" ? deposit.amountCents : 0}
+                customerPhone={job.lead?.phone ?? job.customer?.phone ?? null}
+                onRefresh={load}
+              />
+            ) : null}
           </ShellPanel>
 
           {job.notes ? (

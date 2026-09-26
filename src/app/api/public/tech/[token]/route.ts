@@ -1,3 +1,5 @@
+import { invoiceCompletedJob } from "@/lib/invoice-pay";
+import { logWarn } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { ensureJobTechToken } from "@/lib/ensure-tech-token";
 import {
@@ -99,6 +101,12 @@ export async function PATCH(request: Request, { params }: Params) {
           resolutionSummary: body.resolutionSummary,
           finalAmountCents: body.finalAmountCents,
         });
+        await invoiceCompletedJob(job.id).catch((error) =>
+          logWarn("invoice.on_complete_failed", {
+            jobId: job.id,
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        );
       } else {
         await updateJobStatus(job.id, body.status);
       }

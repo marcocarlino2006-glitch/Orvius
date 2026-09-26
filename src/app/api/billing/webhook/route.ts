@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
 import { fulfillDepositCheckoutSession, failDepositCheckoutSession } from "@/lib/booking-deposit";
+import { fulfillInvoiceCheckoutSession } from "@/lib/invoice-pay";
 import { fulfillEstimateCheckoutSession, failEstimateCheckoutSession } from "@/lib/estimate-pay";
 import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
@@ -97,6 +98,11 @@ export async function POST(request: Request) {
 
         if (session.mode === "payment" && session.metadata?.kind === "estimate_pay") {
           await fulfillEstimateCheckoutSession(session);
+          break;
+        }
+
+        if (session.mode === "payment" && session.metadata?.kind === "invoice_pay") {
+          await fulfillInvoiceCheckoutSession(session);
           break;
         }
 

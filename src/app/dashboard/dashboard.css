@@ -6139,3 +6139,12 @@
   display: inline-flex;
   gap: 0.25rem;
 }
+
+.job-bill {
+  margin-top: 1rem;
+}
+
+.job-bill-field {
+  display: block;
+  max-width: 14rem;
+}

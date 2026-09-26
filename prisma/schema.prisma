@@ -353,7 +353,7 @@ model Estimate {
   @@index([businessId, createdAt])
 }
 
-/** Thin Money stub — status tracking only, no payment rails yet. */
+/** What the customer owes for finished work; paid by card on the shop's own Stripe account or recorded by hand. */
 model Invoice {
   id          String    @id @default(cuid())
   businessId  String
@@ -364,11 +364,20 @@ model Invoice {
   job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   amountCents Int
   status      String    @default("draft")
+  /** Public magic-link token for the customer pay page (/i/[token]). */
+  publicToken String?   @unique
+  sentAt      DateTime?
+  paidAt      DateTime?
+  /** Direct-charge Checkout session on the connected account; unique so a replay cannot pay twice. */
+  stripeSessionId     String? @unique
+  /** What Orvius earned here, stamped at fulfilment and never recomputed. */
+  applicationFeeCents Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   payments    Payment[]
 
   @@index([businessId, status])
+  @@index([jobId])
 }
 
 model Payment {
