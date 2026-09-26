@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json(
       {
-        error: "New shop signup is not open on this deployment.",
+        error: "Card signup isn't open yet. Book a call audit at orvius.im/pilot and we'll set up your shop with you.",
         code: "self_serve_signup_disabled",
       },
       { status: 403 },
@@ -126,12 +126,11 @@ export async function POST(request: NextRequest) {
       email,
     );
   } catch (error) {
+    console.error("Paid checkout could not be verified:", error);
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Complete paid checkout before creating your shop line",
+          "We couldn't confirm your payment yet. If you just paid, wait a minute and try again — or email hello@orvius.im and we'll finish setup with you.",
         code: "paid_checkout_required",
       },
       { status: 402 },
