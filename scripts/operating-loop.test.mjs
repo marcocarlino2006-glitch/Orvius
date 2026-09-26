@@ -221,6 +221,31 @@ test("a returning caller is matched, not duplicated, and the touch is counted on
   }
 });
 
+test("a caller who gives a different callback number is still known by the number they called from", async () => {
+  const shop = await makeShop();
+  try {
+    const callerId = "+13125550188";
+    const vapiCallId = `loop_${uid()}`;
+    const message = report(vapiCallId, {
+      name: "Dana Reyes",
+      phone: "+13125550199",
+      serviceType: "AC blowing warm air",
+      urgency: "this-week",
+      address: "14 Maple St, Evanston IL 60201",
+    });
+    message.call.customer.number = callerId;
+    const result = await ingestEndOfCallReport({ business: shop, vapiCallId, message });
+    const call = await prisma.call.findUniqueOrThrow({ where: { id: result.callId } });
+    assert.equal(call.callerPhone, callerId);
+    const byCallerId = await prisma.customer.findUnique({
+      where: { businessId_phoneNormalized: { businessId: shop.id, phoneNormalized: callerId } },
+    });
+    assert.equal(byCallerId?.name, "Dana Reyes");
+  } finally {
+    await drop(shop.id);
+  }
+});
+
 test("a life-safety call is escalated to a human, never put on the calendar", async () => {
   const shop = await makeShop();
   try {

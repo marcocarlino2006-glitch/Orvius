@@ -87,7 +87,7 @@ export async function ingestEndOfCallReport(params: {
         create: {
           businessId: business.id,
           vapiCallId,
-          callerPhone: structured.phone ?? message.call?.customer?.number ?? null,
+          callerPhone: message.call?.customer?.number ?? structured.phone ?? null,
           status: "completed",
           summary,
           transcript,
@@ -102,7 +102,7 @@ export async function ingestEndOfCallReport(params: {
           durationSec,
           recordingUrl,
           successEvaluation: successEvaluation ?? undefined,
-          callerPhone: structured.phone ?? message.call?.customer?.number ?? undefined,
+          callerPhone: message.call?.customer?.number ?? structured.phone ?? undefined,
         },
       });
 
