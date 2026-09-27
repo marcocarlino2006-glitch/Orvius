@@ -173,9 +173,12 @@ function plan() {
 class LineBusy extends Error {}
 
 async function findReceptionistLeg(personaId, placedAt, callerNumber, claimed) {
-  for (let i = 0; i < 30; i++) {
+  // The call list can lag the call itself, so keep looking until well after the persona hangs up.
+  let endedAt = null;
+  while (endedAt == null ? Date.now() - placedAt < 20 * 60_000 : Date.now() - endedAt < 90_000) {
     const persona = await vapi(`/call/${personaId}`);
     if (persona.status === "ended" && /busy|no-answer|failed/i.test(persona.endedReason ?? "")) throw new LineBusy(persona.endedReason);
+    if (persona.status === "ended" && endedAt == null) endedAt = Date.now();
     const calls = await vapi(`/call?phoneNumberId=${FROM_ID}&createdAtGt=${encodeURIComponent(new Date(placedAt - 5_000).toISOString())}&limit=50`);
     const match = calls
       .filter((c) => c.type === "inboundPhoneCall" && !claimed.has(c.id) && c.customer?.number === callerNumber)

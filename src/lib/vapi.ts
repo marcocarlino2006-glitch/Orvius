@@ -272,7 +272,7 @@ export function buildVapiAssistantConfig(params: {
               type: "string",
               enum: [...DEMAND_CATEGORY_CODES],
               description:
-                "Closest matching job category code. Choose the single best match from the list; omit entirely if none fits rather than guessing.",
+                "Closest matching job category code. Choose the single best match from the list; omit entirely if none fits rather than guessing. Use other.non_service for sales pitches, vendors, robocalls and wrong numbers.",
             },
             urgency: {
               type: "string",
