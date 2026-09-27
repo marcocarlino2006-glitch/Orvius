@@ -103,7 +103,8 @@ function receptionistAssistant() {
 const PERSONA_RULES = `You are a person phoning a heating and cooling company. You are the CALLER, not the business.
 Speak like a real caller: short, natural sentences, one thing at a time. Never describe yourself as a simulation.
 Answer the receptionist's questions using only the facts below. If asked for something not listed, make up a plausible answer.
-When the receptionist says goodbye or has everything, say thanks and goodbye, then end the call.`;
+Never hang up while the receptionist is still asking you something; answer first, even if they said they can't do what you wanted.
+Only after the receptionist says goodbye or says they have everything, say thanks and goodbye, then end the call.`;
 
 
 function callerAssistant(s) {
