@@ -391,6 +391,23 @@ body:has(.os-shell.os-shell-night) {
   color: var(--ox-text) !important;
 }
 
+/* One filled action per view: only the top queue item keeps amber. */
+.os-shell.os-shell-night .wq-row .attention-item-btn-primary,
+.os-shell.os-shell-night .wq-row .assign-tech-btn,
+.os-shell.os-shell-night .wq-row .job-status-advance-btn {
+  background: transparent !important;
+  border: 1px solid var(--ox-line-strong) !important;
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .wq-row .attention-item-btn-primary:hover:not(:disabled),
+.os-shell.os-shell-night .wq-row .assign-tech-btn:hover:not(:disabled),
+.os-shell.os-shell-night .wq-row .job-status-advance-btn:hover:not(:disabled) {
+  background: var(--ox-s3) !important;
+  border-color: var(--ox-line-strong) !important;
+  color: var(--ox-text) !important;
+}
+
 :is(.os-shell.os-shell-night, .rd-root) .ox-btn:disabled,
 .os-shell.os-shell-night .btn:disabled,
 .os-shell.os-shell-night .attention-item-btn:disabled,
