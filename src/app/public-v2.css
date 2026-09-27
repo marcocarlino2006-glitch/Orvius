@@ -2688,7 +2688,7 @@ body {
 
 /* Rail: quieter pending, crisper active — stages as machine state */
 .ov-public .ov-rail-step {
-  opacity: 0.55;
+  color: #8a877e;
   letter-spacing: 0.1em;
 }
 
