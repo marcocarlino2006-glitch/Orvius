@@ -1,4 +1,3 @@
-import { PILOT_DAYS } from "@/lib/billing-entitlement";
 import { OVERAGE_CENTS_PER_CALL, getPlanById, type PaidPlanId } from "@/lib/pricing-plans";
 
 const calls = (id: PaidPlanId) => (getPlanById(id).includedCalls ?? 0).toLocaleString("en-US");
@@ -60,6 +59,6 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "launch",
     question: "What happens before my line goes live?",
     answer:
-      `We verify your shop name, services, hours, escalation number, and one real test call. Shops set up through a call audit run on Pro free for ${PILOT_DAYS} days; after that, the plan you choose is charged through Stripe.`,
+      "We verify your shop name, services, hours, escalation number, and one real test call. Early accounts get guided setup while these checks are automated. Your selected paid plan begins through Stripe checkout; there is no advertised free-trial period.",
   },
 ] as const;
