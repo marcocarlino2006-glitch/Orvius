@@ -4,13 +4,13 @@ import { useEffect, useRef } from "react";
 import { company } from "@/lib/company";
 
 const MANIFESTO =
-  "Most trade shops don't lose work to a better competitor. They lose it to voicemail. A furnace dies at night, the owner is asleep, and the caller dials the next number on the list. We built Orvius so that call gets answered, understood, and booked, and so the owner wakes up to a short list instead of a missed-call log.";
+  "A furnace dies at night, the owner is asleep, and the call goes to voicemail. A caller with no heat can dial the next shop on the list instead of waiting for morning. We built Orvius so that call gets answered, understood, and booked, and so the owner wakes up to a short list instead of a missed-call log.";
 
 const chapters = [
   {
     kicker: "The problem",
     title: "Calls come when nobody can take them.",
-    body: "After hours, at lunch, when every tech is on a job. Answering services take a message, and someone still has to call back in the morning.",
+    body: "After hours, at lunch, when every tech is on a job. Many answering services take a message, and someone still has to call back in the morning.",
   },
   {
     kicker: "What we believe",

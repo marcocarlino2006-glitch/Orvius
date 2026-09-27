@@ -7,7 +7,7 @@ const cards = [
     kicker: "Call audit",
     title: "See the calls you're missing",
     body: "A live look at your after-hours and overflow pattern, then we set up your shop line.",
-    cta: "Request an audit",
+    cta: "Book a call audit",
   },
   {
     href: "/product",
@@ -19,8 +19,8 @@ const cards = [
   {
     href: "/pricing",
     kicker: "Pricing",
-    title: "Plans for one truck or forty",
-    body: "Line, Pro, and Enterprise. Start on the line and add seats as the shop grows.",
+    title: "Plans by the size of your shop",
+    body: "Line, Pro and Fleet, plus Multi-shop for three or more locations. Calls included on every plan.",
     cta: "Compare plans",
   },
   {

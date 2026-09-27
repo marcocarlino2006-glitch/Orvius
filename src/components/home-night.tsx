@@ -39,23 +39,23 @@ const steps: Step[] = [
   {
     time: "11:45 PM",
     title: "The owner",
-    body: "The owner gets an alert with the summary already written. One tap approves the slot.",
-    status: "Approved",
+    body: "The owner gets a text with the summary already written, and the job is on the board.",
+    status: "Owner alerted",
     tone: "good",
-    log: "Owner alerted · approved",
+    log: "Owner alerted by text",
   },
   {
     time: "11:46 PM",
     title: "The text",
-    body: "Dana gets a confirmation with the window and the tech's name. No phone tag in the morning.",
+    body: "Dana gets a text with the proposed window and a link to confirm it. She taps it. No phone tag in the morning.",
     status: "Confirmed",
     tone: "good",
-    log: "Confirmation texted to Dana",
+    log: "Dana confirmed by text",
   },
   {
     time: "7:52 AM",
     title: "The driveway",
-    body: "Marcus opens the job on his phone, taps On my way, and Dana gets the heads-up.",
+    body: "Marcus opens the job from the link he was texted and taps Heading there. The board shows him on the way.",
     status: "En route",
     tone: "live",
     log: "Marcus on the way",
@@ -120,7 +120,7 @@ export function HomeNight() {
     <section className="hx-section hx-night" aria-labelledby="home-night-heading">
       <div className="editorial-wrap mkt-section-inner">
         <header className="hx-head" data-reveal>
-          <p className="mkt-manifesto-kicker font-sans">A night on the line</p>
+          <p className="mkt-manifesto-kicker font-sans">A night on the line · example</p>
           <h2 id="home-night-heading" className="hx-title">
             One call, from 11:42 PM to the driveway.
           </h2>

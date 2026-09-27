@@ -22,7 +22,7 @@ const groups: { title: string; rows: Row[] }[] = [
     title: "Follow-through",
     rows: [
       { label: "Pages the owner on emergencies", voicemail: "no", service: "yes", orvius: "yes" },
-      { label: "Call lands on the customer record", voicemail: "no", service: "no", orvius: "yes" },
+      { label: "Call lands on the customer record", voicemail: "no", service: "some", orvius: "yes" },
       { label: "Tech gets the job on their phone", voicemail: "no", service: "no", orvius: "yes" },
       { label: "Weekly summary of booked value", voicemail: "no", service: "no", orvius: "yes" },
     ],
