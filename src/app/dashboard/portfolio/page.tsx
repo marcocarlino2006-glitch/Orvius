@@ -36,6 +36,7 @@ export default function PortfolioPage() {
   const [error, setError] = useState<string | null>(null);
   const [opening, setOpening] = useState<string | null>(null);
   const [sort, setSort] = useState<SortKey>("waiting");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let live = true;
@@ -66,7 +67,11 @@ export default function PortfolioPage() {
   }
 
   const t = data?.totals;
-  const shops = [...(data?.shops ?? [])].sort((a, b) =>
+  const needle = query.trim().toLowerCase();
+  const allShops = data?.shops ?? [];
+  const shops = allShops
+    .filter((s) => !needle || `${s.name} ${s.trade ?? ""}`.toLowerCase().includes(needle))
+    .sort((a, b) =>
     sort === "name"
       ? a.name.localeCompare(b.name)
       : sort === "waiting"
@@ -119,6 +124,16 @@ export default function PortfolioPage() {
               value={days}
               onChange={setDays}
             />
+            {allShops.length > 8 ? (
+              <input
+                type="search"
+                className="pf-search"
+                placeholder="Find a location"
+                aria-label="Find a location"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            ) : null}
             <label className="pf-sort">
               <span>Sort</span>
               <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
@@ -173,6 +188,9 @@ export default function PortfolioPage() {
                 </div>
               );
             })}
+            {needle && !shops.length ? (
+              <p className="pf-empty">No location matches “{query.trim()}”.</p>
+            ) : null}
           </div>
           {data.truncated ? (
             <p className="pf-foot">Showing the first {data.shops.length} locations this sign-in can open.</p>

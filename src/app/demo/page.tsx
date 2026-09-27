@@ -19,31 +19,31 @@ import { useState } from "react";
 
 const presets = [
   {
-    label: "AC emergency",
+    label: "AC out, same day",
     callerName: "Maria Lopez",
     callerPhone: "+15125550123",
     serviceType: "AC not cooling",
-    urgency: "emergency" as const,
+    urgency: "same-day" as const,
     address: "1842 Oak Street, Austin TX",
     notes: "No cool air since this morning. Prefers today after 4pm.",
   },
   {
-    label: "Plumbing estimate",
+    label: "Water from the indoor unit",
     callerName: "James Carter",
     callerPhone: "+15125550199",
-    serviceType: "Water heater estimate",
-    urgency: "this-week" as const,
+    serviceType: "Water leaking from indoor unit",
+    urgency: "emergency" as const,
     address: "902 Cedar Ave, Round Rock TX",
-    notes: "Looking for quote on tankless replacement.",
+    notes: "Water coming through the ceiling under the attic unit.",
   },
   {
-    label: "Electrical same-day",
+    label: "Furnace tune-up",
     callerName: "Priya Patel",
     callerPhone: "+15125550888",
-    serviceType: "Breaker keeps tripping",
-    urgency: "same-day" as const,
+    serviceType: "Furnace tune-up",
+    urgency: "this-week" as const,
     address: "4412 Lakeview Dr, Austin TX",
-    notes: "Kitchen circuit trips when microwave runs.",
+    notes: "Wants it checked before the first cold snap. Any weekday morning.",
   },
 ];
 

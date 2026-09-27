@@ -27,7 +27,15 @@ function CellValue({ value }: { value: FeatureCell }) {
   return <span className="pricing-matrix-text">{value}</span>;
 }
 
-export function PricingFeatureMatrix() {
+function cell(row: (typeof pricingFeatureMatrix)[number], planId: PlanId, selfServeReady: boolean): FeatureCell {
+  if (row.id === "onboarding" && !selfServeReady) return "Guided";
+  return row.values[planId];
+}
+
+export function PricingFeatureMatrix({ selfServeReady = true }: { selfServeReady?: boolean }) {
+  const rows = pricingFeatureMatrix.filter((row) =>
+    pricingCompareColumns.some((planId) => row.values[planId] !== false),
+  );
   return (
     <section className="pricing-matrix" aria-label="Plan comparison">
       <div className="pricing-matrix-head font-sans">
@@ -63,7 +71,7 @@ export function PricingFeatureMatrix() {
                     {category}
                   </th>
                 </tr>
-                {pricingFeatureMatrix
+                {rows
                   .filter((row) => row.category === category)
                   .map((row) => (
                     <tr key={row.id}>
@@ -72,7 +80,7 @@ export function PricingFeatureMatrix() {
                       </th>
                       {pricingCompareColumns.map((planId) => (
                         <td key={`${row.id}-${planId}`} className="pricing-matrix-cell">
-                          <CellValue value={row.values[planId as PlanId]} />
+                          <CellValue value={cell(row, planId, selfServeReady)} />
                         </td>
                       ))}
                     </tr>

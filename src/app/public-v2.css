@@ -1273,9 +1273,43 @@ body {
 
 /* Numbers, timestamps, and phone lines read as data, not prose. */
 
-.ov-public .tier1-plan-price,
 .ov-public .mkt-footer-entity {
   font-family: var(--ov-mono) !important;
+}
+
+.ov-public .tier1-plan-price {
+  font-family: var(--ov-font) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .pricing-multi-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-top: 1rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--ov-hairline);
+  border-radius: 12px;
+}
+
+.ov-public .pricing-multi-row--recommended {
+  border-color: var(--ov-copper);
+}
+
+.ov-public .pricing-multi-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ov-headline);
+}
+
+.ov-public .pricing-multi-body {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ov-muted);
 }
 
 /* The snippet sits on the dark panel in both colorways, so it takes the
@@ -3509,7 +3543,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   overflow: hidden;
   border-radius: clamp(1.25rem, 2.6vw, 2rem);
   pointer-events: none;
-  background: #6b9bc0;
+  background: #6b9bc0 url("/marketing/stage-world.svg") center / cover no-repeat;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.55),
     0 36px 80px -36px rgb(0 0 0 / 0.55);
@@ -3613,17 +3647,10 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public .ov-hero-stage .ov-console-caption,
 .ov-public .ov-product-stage .ov-console-caption {
-  color: rgba(28, 30, 26, 0.78);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  /* The caption lands on the dark foreground of the landscape plate in either colorway. */
+  color: rgb(255 255 255 / 0.9);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
   animation: ov-world-caption-in 700ms ease 500ms both;
-}
-
-/* Stacked, the caption lands on the dark foreground of the landscape plate in either colorway. */
-@media (max-width: 980px) {
-  .ov-public .ov-hero-stage .ov-console-caption {
-    color: rgb(255 255 255 / 0.88);
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
-  }
 }
 
 @keyframes ov-world-sky {

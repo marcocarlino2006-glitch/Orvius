@@ -606,6 +606,26 @@ a.dt-row:focus-visible,
   margin-bottom: 0.75rem;
 }
 
+.os-shell.os-shell-night .pf-search {
+  flex: 1 1 14rem;
+  max-width: 20rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s1);
+  color: var(--ox-text);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
+.pf-empty {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+}
+
 .pf-sort {
   display: inline-flex;
   align-items: center;

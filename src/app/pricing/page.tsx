@@ -50,7 +50,7 @@ export default function PricingPage() {
       </section>
 
       <section className="tier1-story">
-        <PricingPagePlans />
+        <PricingPagePlans selfServeReady={selfServeReady} />
       </section>
 
       <section className="tier1-close">

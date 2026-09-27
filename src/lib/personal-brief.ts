@@ -201,6 +201,7 @@ export function composePersonalBrief(input: PersonalBriefInput): PersonalBrief {
       since.calls ? plural(since.calls, "call") : null,
       since.booked ? `${since.booked} booked` : null,
       since.needsYou ? `${since.needsYou} ${since.needsYou === 1 ? "needs" : "need"} you` : null,
+      input.openNeedsYou > since.needsYou ? `${input.openNeedsYou} open in all` : null,
     ].filter(Boolean);
     headline = `Since you looked ${sinceLabel(since.at, now)}: ${parts.join(", ")}.`;
   } else if (since) {

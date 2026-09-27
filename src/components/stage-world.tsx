@@ -6,7 +6,7 @@ type NetworkInfo = { saveData?: boolean; effectiveType?: string };
 
 /**
  * Cursor-style soft landscape plate behind the product console.
- * The poster paints first; the video loop is fetched after the page has loaded
+ * The still plate (the frame background) paints first; the video loop is fetched after the page has loaded
  * so its ~400KB never competes with the hero, and never on data saver, slow
  * networks, or reduced motion.
  */
@@ -27,7 +27,7 @@ export function StageWorld() {
       }
       if (!video.src) video.src = "/marketing/stage-world.mp4";
       void video.play().catch(() => {
-        /* autoplay can be blocked; poster still shows */
+        /* autoplay can be blocked; the still plate still shows */
       });
     };
     const start = () => {
@@ -56,7 +56,6 @@ export function StageWorld() {
         loop
         playsInline
         preload="none"
-        poster="/marketing/stage-world.svg"
       />
       <span className="ov-stage-world-haze" />
       <span className="ov-stage-world-land" />

@@ -7,6 +7,11 @@ import { toast } from "@/components/toaster";
 
 export type TechOption = { id: string; name: string };
 
+/** Crews seeded before the owner row was named "Owner" carry "<Shop name> owner". */
+function buttonName(name: string) {
+  return /\sowner$/i.test(name) ? "owner" : name;
+}
+
 type AssignTechButtonProps = {
   jobId: string;
   technicians: TechOption[];
@@ -104,7 +109,7 @@ export function AssignTechButton({
           {loading
             ? "…"
             : technicians.length === 1
-              ? `Assign ${technicians[0]!.name}`
+              ? `Assign ${buttonName(technicians[0]!.name)}`
               : "Assign"}
         </button>
         {error ? <span className="assign-tech-error font-sans">{error}</span> : null}

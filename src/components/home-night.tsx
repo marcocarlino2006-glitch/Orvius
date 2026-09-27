@@ -15,7 +15,7 @@ const steps: Step[] = [
   {
     time: "11:42 PM",
     title: "The call",
-    body: "Dana's furnace is short-cycling. Two kids at home, 58°F inside. The line picks up in Summit HVAC's name.",
+    body: "Dana's furnace keeps shutting off. It's 64°F inside and she wants it looked at first thing. The line picks up in Summit HVAC's name.",
     status: "On the line",
     tone: "live",
     log: "Call answered · after-hours line",
@@ -26,7 +26,7 @@ const steps: Step[] = [
     body: "Issue, address, equipment, and urgency. Every answer is written to her customer record as she says it.",
     status: "Qualified",
     tone: "attention",
-    log: "No heat · gas furnace · emergency",
+    log: "Furnace short-cycling · gas · first thing",
   },
   {
     time: "11:44 PM",
@@ -39,7 +39,7 @@ const steps: Step[] = [
   {
     time: "11:45 PM",
     title: "The owner",
-    body: "Flagged as an emergency, so the owner gets an alert with the summary already written. One tap approves it.",
+    body: "The owner gets an alert with the summary already written. One tap approves the slot.",
     status: "Approved",
     tone: "good",
     log: "Owner alerted · approved",

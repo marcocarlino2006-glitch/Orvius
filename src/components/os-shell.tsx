@@ -264,7 +264,7 @@ export function OsShell({
               <span className="os-topbar-search-label">Search</span>
               <kbd>⌘K</kbd>
             </button>
-            {showAskDock ? (
+            {showAskDock && !navActive(pathname, "/dashboard/ask") ? (
               <button
                 type="button"
                 className="os-topbar-search os-topbar-ask font-sans"

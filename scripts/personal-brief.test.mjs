@@ -55,6 +55,8 @@ test("what changed since the owner last looked leads the brief", () => {
   const since = { at: new Date(now.getTime() - 3 * 3_600_000), calls: 4, booked: 2, needsYou: 1 };
   const brief = composePersonalBrief({ ...base, now, since });
   assert.equal(brief.headline, "Since you looked 3 hours ago: 4 calls, 2 booked, 1 needs you.");
+  const withOlder = composePersonalBrief({ ...base, now, since, openNeedsYou: 8 });
+  assert.equal(withOlder.headline, "Since you looked 3 hours ago: 4 calls, 2 booked, 1 needs you, 8 open in all.");
   const quiet = composePersonalBrief({ ...base, now, since: { ...since, calls: 0, booked: 0, needsYou: 0 } });
   assert.equal(quiet.headline, "Quiet since you looked 3 hours ago — nothing needs you.");
   const stillOpen = composePersonalBrief({ ...base, now, openNeedsYou: 3, since: { ...since, calls: 0, booked: 0, needsYou: 0 } });

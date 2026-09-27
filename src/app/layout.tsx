@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     template: "%s · Orvius",
   },
   description:
-    "Orvius answers after-hours and overflow calls for HVAC, plumbing, and electrical shops, captures the request, proposes an open window, and alerts the owner.",
+    "Orvius answers after-hours and overflow calls for HVAC shops, captures the request, proposes an open window, and alerts the owner.",
   metadataBase: new URL(`https://${company.domain}`),
   alternates: { canonical: "/" },
   appleWebApp: { capable: true, title: "Orvius", statusBarStyle: "black-translucent" },

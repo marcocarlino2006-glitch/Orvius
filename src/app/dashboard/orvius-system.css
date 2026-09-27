@@ -1830,8 +1830,13 @@ button.rd-path-btn:hover {
   list-style: none;
 }
 
+.ask-suggest-grid > li {
+  display: flex;
+}
+
 .ask-suggest {
   width: 100%;
+  height: 100%;
   min-height: 3.25rem;
   padding: 0.8rem 1rem;
   border: 1px solid var(--ox-line);
@@ -2166,6 +2171,11 @@ button.rd-path-btn:hover {
 .os-shell.os-shell-night .dsp-date {
   width: auto;
   min-height: 2.25rem;
+  color-scheme: dark;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .dsp-date {
+  color-scheme: light;
 }
 
 .dsp-refreshing {
@@ -2470,7 +2480,29 @@ button.rd-path-btn:hover {
 }
 
 .dsp-crew summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   cursor: pointer;
+  list-style: none;
+}
+
+.dsp-crew summary::-webkit-details-marker {
+  display: none;
+}
+
+.dsp-crew summary::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--ox-dur-fast) var(--ox-ease);
+}
+
+.dsp-crew[open] > summary::before {
+  transform: rotate(45deg);
 }
 
 .dsp-crew-help {

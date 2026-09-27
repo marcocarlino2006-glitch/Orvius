@@ -19,7 +19,7 @@ export default function AboutPage() {
             label="About"
             title={company.tagline}
             subline={company.proofLine}
-            description={company.mission}
+            description="Most trade shops don't lose work to a better competitor. They lose it to voicemail. Orvius answers the calls a shop can't take, understands them, books them, and hands the owner a short list in the morning."
             actions={
               <>
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">
@@ -37,21 +37,14 @@ export default function AboutPage() {
       <section className="tier1-story">
         <div className="editorial-wrap max-w-3xl">
           <h2 className="tier1-section-title type-headline">
-            Beginning: one HVAC shop, overflow and after-hours.
+            Why heating and cooling first.
           </h2>
           <p className="tier1-section-lead font-sans">
-            Orvius answers inbound calls, understands the problem, captures
-            address and contact, identifies urgency, checks the service area,
-            books, confirms, notifies the shop, and escalates when unsure. The
-            goal is a controlled pilot that turns missed calls into completed,
-            paid jobs — not the full OS on day one.
+            HVAC calls are urgent, seasonal, and they come at night. A furnace
+            that quits at 11 PM is a job for whoever picks up. We started where
+            a missed call costs the most, and built the receptionist, the board
+            and the weekly results around one trade before adding the next.
           </p>
-          <ul className="tier1-strategy-list font-sans">
-            <li>Answer · qualify · book · confirm · alert · escalate</li>
-            <li>Deploy first on overflow or after-hours for one local HVAC company</li>
-            <li>Charge a pilot and measure demand → completed work → money</li>
-            <li>Expand recovery, estimates, dispatch, and payments only after the wedge pays</li>
-          </ul>
         </div>
       </section>
 
