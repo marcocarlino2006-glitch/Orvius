@@ -151,7 +151,8 @@ export function CheckoutButton({
 
   if (!planReady) {
     const annualMissing = interval === "year" && planStatus?.checkoutReady;
-    const anyReady = Boolean(billing?.checkoutReady);
+    // Stripe can be configured with no plan price attached yet; only a payable plan is worth sending someone to.
+    const anyReady = Object.values(billing?.plans ?? {}).some((plan) => plan.checkoutReady);
     return (
       <div className={className}>
         <Link
