@@ -61,7 +61,7 @@ function Colorway({ theme, title }: { theme: "night" | "day"; title: string }) {
     >
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-lg font-medium tracking-tight">{title}</h2>
-        <p className="font-mono text-[11px] tracking-wide text-ui-muted uppercase">
+        <p className="font-mono text-xs tracking-wide text-ui-muted uppercase">
           data-theme=&quot;{theme}&quot;
         </p>
       </div>
@@ -73,10 +73,10 @@ function Colorway({ theme, title }: { theme: "night" | "day"; title: string }) {
               className="h-12 w-full rounded-lg border border-ui-border"
               style={{ background: `var(${token.name})` }}
             />
-            <span className="font-mono text-[11px] leading-tight text-ui-muted">
+            <span className="font-mono text-xs leading-tight text-ui-muted">
               {token.name}
             </span>
-            <span className="text-[11px] leading-tight text-ui-text">{token.role}</span>
+            <span className="text-xs leading-tight text-ui-text">{token.role}</span>
           </div>
         ))}
       </div>

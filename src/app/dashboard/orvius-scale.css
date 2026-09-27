@@ -43,7 +43,7 @@
   background: transparent !important;
   border-bottom: 1px solid var(--ox-line) !important;
   padding: 0.9rem 1.1rem !important;
-  transition: background 120ms ease;
+  transition: background var(--ox-dur-fast) ease;
 }
 
 .os-shell.os-shell-night .os-lead-rail > li:last-child .lead-rail-row {

@@ -222,7 +222,7 @@ button,
 .type-eyebrow {
   /* SpaceX mission label */
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: var(--tracking-mission);
   text-transform: uppercase;
@@ -278,7 +278,7 @@ h3 {
 }
 
 .eyebrow {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -682,7 +682,7 @@ h3 {
 
 .home-os-kicker {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -788,7 +788,7 @@ h3 {
 
 /* Platform rings */
 .home-platform-kicker {
-  font-size: 0.6875rem; font-weight: 700;
+  font-size: 0.75rem; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--signal-dim);
 }
@@ -900,7 +900,7 @@ h3 {
 
 .pro-list-end-text {
   flex: none;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -998,7 +998,7 @@ h3 {
 
 .pro-list-item-meta {
   flex-shrink: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1015,7 +1015,7 @@ h3 {
 }
 
 .pro-section-kicker {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1047,7 +1047,7 @@ h3 {
 }
 
 .pro-economics-grid dt {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ash);
@@ -1116,7 +1116,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1471,7 +1471,7 @@ h3 {
 
 .pricing-needs-result-kicker {
   margin: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1542,7 +1542,7 @@ h3 {
 }
 
 .pricing-billing-save {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1695,7 +1695,7 @@ h3 {
 
 .pricing-matrix-category-row th {
   text-align: left !important;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1940,7 +1940,7 @@ h3 {
   align-items: center;
   padding: 0.2rem 0.5rem;
   border-radius: 0.25rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
@@ -2337,7 +2337,7 @@ h3 {
 
 .mkt-kicker {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2504,7 +2504,7 @@ h3 {
 
 .mkt-manifesto-kicker {
   margin: 0 0 1rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2591,7 +2591,7 @@ h3 {
 /* Legal fortress UI */
 .mkt-footer-mark {
   margin: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   opacity: 0.7;
   max-width: 28rem;
 }
@@ -2753,7 +2753,7 @@ h3 {
 }
 
 .mkt-kicker {
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   font-weight: 600 !important;
   letter-spacing: var(--tracking-mission) !important;
   text-transform: uppercase !important;
@@ -2864,7 +2864,7 @@ button.btn {
   color: var(--ash);
 }
 .post-lock-strip-label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2893,7 +2893,7 @@ button.btn {
   padding: 0.9rem 1.1rem;
 }
 .post-lock-kicker {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--void);
@@ -2955,7 +2955,7 @@ button.btn {
 }
 
 .mkt-nav--institution .mkt-nav-links a {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.14em;
   font-weight: 600;
 }
@@ -2988,7 +2988,7 @@ button.btn {
   border-radius: 0.25rem !important;
   min-height: 2.35rem;
   padding: 0.55rem 1.1rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.1em !important;
   background: transparent !important;
   color: #f1f1f1 !important;
@@ -3045,7 +3045,7 @@ button.btn {
 
 .mkt-footer-heading {
   margin: 0 0 0.35rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -4039,7 +4039,7 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0.25rem 0.55rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.04em !important;
   text-transform: uppercase !important;
   font-weight: 600 !important;
@@ -4114,7 +4114,7 @@ label:has(> input[type="radio"]) {
   color: color-mix(in srgb, #ececec 78%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 16%, transparent) !important;
   padding: 0.12rem 0.35rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   font-weight: 700 !important;
@@ -4136,7 +4136,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .lead-quick-actions a {
   border-radius: 0.125rem !important;
   min-height: 1.7rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   padding: 0.2rem 0.45rem !important;
 }
 
@@ -4191,7 +4191,7 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
   min-height: 1.7rem !important;
   padding: 0.2rem 0.5rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   background: transparent !important;
@@ -4245,7 +4245,7 @@ label:has(> input[type="radio"]) {
   border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.125rem !important;
   color: var(--ox-day-soft, #9aa1ab) !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   padding: 0.1rem 0.3rem !important;
@@ -4430,7 +4430,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .post-lock-strip-label,
 .os-shell-night .post-lock-kicker {
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.14em !important;
   color: var(--ox-day-soft, #9aa1ab) !important;
 }
@@ -4482,7 +4482,7 @@ label:has(> input[type="radio"]) {
   border-radius: 0 !important;
   background: transparent !important;
   color: var(--ox-day-soft, #9aa1ab) !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -4539,7 +4539,7 @@ label:has(> input[type="radio"]) {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -4559,7 +4559,7 @@ label:has(> input[type="radio"]) {
 }
 
 .owner-alert-time {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -4601,7 +4601,7 @@ label:has(> input[type="radio"]) {
   margin: 0.55rem 0 0;
   padding-top: 0.45rem;
   border-top: 1px solid var(--ox-day-line, #2a2e35);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--ox-day-soft, #9aa1ab);
   line-height: 1.4;
 }
@@ -4674,7 +4674,7 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0.25rem 0.55rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 700;
@@ -4755,7 +4755,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .transcript-cinema-foot {
   padding: 0.4rem 0.65rem !important;
   border-top: 1px solid var(--ox-day-line, #2a2e35) !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
@@ -5554,7 +5554,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-economics-grid dt {
   margin: 0 0 0.2rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -5766,7 +5766,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-economics-funnel dt {
   order: 2;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--ox-day-soft, #9aa1ab);
 }
 
@@ -5787,7 +5787,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   line-height: 1.45;
   color: var(--ox-day-soft, #9aa1ab);
 }
@@ -5811,7 +5811,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   are sentence case made one section look like two.
 */
 .os-shell-night .pro-economics-grid dt {
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   font-weight: 400 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
