@@ -19,14 +19,14 @@ export default function AboutPage() {
             label="About"
             title={company.tagline}
             subline={company.proofLine}
-            description="Most trade shops don't lose work to a better competitor. They lose it to voicemail. Orvius answers the calls a shop can't take, understands them, books them, and hands the owner a short list in the morning."
+            description="Orvius answers the calls a shop can't take, captures what the caller needs, offers an open window from the shop's schedule, and hands the owner a short list in the morning."
             actions={
               <>
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">
                   Call the live line
                 </a>
                 <Link href="/pilot" className="ov-btn ov-btn--quiet">
-                  Request a demo
+                  Book a call audit
                 </Link>
               </>
             }
@@ -41,8 +41,8 @@ export default function AboutPage() {
           </h2>
           <p className="tier1-section-lead font-sans">
             HVAC calls are urgent, seasonal, and they come at night. A furnace
-            that quits at 11 PM is a job for whoever picks up. We started where
-            a missed call costs the most, and built the receptionist, the board
+            that quits at 11 PM is a job for whoever picks up. We started with
+            one trade where a missed call is often an urgent job, and built the receptionist, the board
             and the weekly results around one trade before adding the next.
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function AboutPage() {
               Call the live line
             </a>
             <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Request a demo
+              Book a call audit
             </Link>
           </div>
         </div>
