@@ -49,7 +49,7 @@ export default function GlobalError({
           <p
             style={{
               margin: 0,
-              fontSize: "0.625rem",
+              fontSize: "0.75rem",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
               color: "#a09f9e",

@@ -169,7 +169,7 @@ body {
   background: rgb(16 185 129 / 0.1);
   color: var(--ov-emerald-text);
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   line-height: 1.5;
@@ -787,7 +787,7 @@ body {
 .ov-signin-board-title {
   color: #aaa8a0;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -835,7 +835,7 @@ body {
 .ov-signin-row-shop {
   color: #918f87;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   font-variant-numeric: tabular-nums;
 }
@@ -848,7 +848,7 @@ body {
   background: rgb(255 255 255 / 0.04);
   color: #aaa8a0;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
 }
@@ -894,7 +894,7 @@ body {
   border-top: 1px solid rgb(255 255 255 / 0.1);
   background: #17150e;
   color: #8a8880;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 /* ── Auth card ── */
@@ -937,7 +937,7 @@ body {
   margin: 0;
   color: var(--ov-copper);
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1013,7 +1013,7 @@ body {
   background: #1b1913;
   color: #8a8880;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -1023,7 +1023,7 @@ body {
   margin-bottom: 0.45rem;
   color: #aaa8a0;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1248,7 +1248,7 @@ body {
 .ov-public .mkt-footer-heading,
 .ov-public .tier1-eyebrow {
   font-family: var(--ov-mono) !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   font-weight: 500 !important;
   letter-spacing: 0.14em !important;
   text-transform: uppercase !important;
@@ -1617,7 +1617,7 @@ body {
   gap: 0.5rem;
   color: var(--ov-muted);
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1843,7 +1843,7 @@ body {
   padding: 0 0.35rem;
   color: color-mix(in srgb, #edecec 62%, transparent);
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1905,7 +1905,7 @@ body {
   border-bottom: 1px solid var(--ov-hairline);
   background: #1c1a14;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.06em;
 }
 
@@ -1992,7 +1992,7 @@ body {
 
 .ov-public .ov-wire-who {
   color: #918f87;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding-top: 0.15rem;
@@ -2036,7 +2036,7 @@ body {
   margin: 0 0 0.75rem;
   color: #918f87;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -2065,7 +2065,7 @@ body {
 .ov-public .ov-capture-row dt {
   color: #9c9a92;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -2194,7 +2194,7 @@ body {
   flex-shrink: 0;
   color: #9c9a92;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   font-variant-numeric: tabular-nums;
 }
@@ -2207,7 +2207,7 @@ body {
   border-top: 1px solid var(--ov-hairline);
   background: #1c1a14;
   font-family: var(--ov-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -2549,7 +2549,7 @@ body {
 
 .ov-public .ov-console-caption {
   margin-top: 0.7rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.02em;
   opacity: 0.58;
 }
@@ -2882,7 +2882,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
 }
 
 .ov-public .ov-hero-inner--poster .ov-hero-liveline-label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .ov-public .ov-hero-inner--poster .ov-hero-liveline-number {
@@ -3116,7 +3116,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .ov-public .ov-console-live {
   border-radius: 9999px;
   padding: 0.2rem 0.7rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .ov-public .ov-console-clock {

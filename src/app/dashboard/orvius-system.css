@@ -37,6 +37,11 @@
   --ox-radius: 0.625rem;
   --ox-radius-sm: 0.4375rem;
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px var(--ox-amber);
+  /* Motion: hover and press are fast, state changes base, panels slow. */
+  --ox-dur-fast: 120ms;
+  --ox-dur: 160ms;
+  --ox-dur-slow: 200ms;
+  --ox-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ox-tint: 255 255 255;
   --ox-legacy-text: #e9e9e9;
   --ox-legacy-text-2: #c7c7c7;
@@ -346,7 +351,7 @@ body:has(.os-shell.os-shell-night) {
   white-space: nowrap;
   text-decoration: none !important;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition: background var(--ox-dur-fast) ease, border-color var(--ox-dur-fast) ease, color var(--ox-dur-fast) ease;
 }
 
 :is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary,
@@ -689,7 +694,7 @@ body:has(.os-shell.os-shell-night) {
   background: var(--ox-s2);
   color: inherit;
   text-decoration: none;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--ox-dur-fast) ease, border-color var(--ox-dur-fast) ease;
 }
 
 a.cs-card:hover {
@@ -2312,7 +2317,7 @@ button.rd-path-btn:hover {
   position: absolute;
   top: 0;
   transform: translateX(-50%);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--ox-mute);
   white-space: nowrap;
 }
@@ -2362,7 +2367,7 @@ button.rd-path-btn:hover {
 }
 
 .dsp-block-time {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--ox-mute);
 }
 
@@ -2734,7 +2739,7 @@ button.rd-path-btn:hover {
 }
 
 .cp-ev-kind {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--ox-mute);
 }
 
@@ -3073,4 +3078,16 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-kicker, .post-loc
 html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn, .lead-quick-actions a, .btn:not(.btn-void)) {
   border-color: var(--ox-line-strong) !important;
   color: var(--ox-text-2) !important;
+}
+
+/* Motion is decoration here, never information: honor the OS setting everywhere in the app. */
+@media (prefers-reduced-motion: reduce) {
+  .os-shell *,
+  .os-shell *::before,
+  .os-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

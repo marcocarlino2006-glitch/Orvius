@@ -155,7 +155,7 @@
   border-bottom: 1px solid var(--ox-line);
   color: var(--ox-text-2);
   text-decoration: none;
-  transition: background-color 80ms ease;
+  transition: background-color var(--ox-dur-fast) ease;
 }
 
 .dt-row:last-child {
@@ -688,7 +688,7 @@ a.dt-row:focus-visible,
 .os-shell.os-shell-night .cp-row .record-avatar {
   width: 1.75rem;
   height: 1.75rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .os-shell.os-shell-night .cp-row .lead-rail-main {
