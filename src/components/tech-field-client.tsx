@@ -165,7 +165,7 @@ export function TechFieldClient({ token }: { token: string }) {
           <span className={`pf-pill${emergency ? " is-risk" : job.status === "completed" ? " is-done" : ""}`}>
             {emergency ? "Emergency" : STATUS_LABEL[job.status] ?? job.status}
           </span>
-          {[when, urgency].filter(Boolean).join(" · ")}
+          {when ?? urgency}
         </p>
       </header>
 

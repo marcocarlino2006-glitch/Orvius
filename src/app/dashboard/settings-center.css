@@ -484,7 +484,7 @@
 }
 
 .sc-switch.is-on {
-  background: #2f7cf6;
+  background: var(--ox-amber);
 }
 
 .sc-switch:disabled {
