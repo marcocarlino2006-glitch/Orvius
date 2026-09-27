@@ -38,8 +38,8 @@ export const shopNeeds: readonly ShopNeed[] = [
   },
   {
     id: "dispatch-fleet",
-    label: "Dispatching 6+ techs is chaos",
-    detail: "Multi-truck dispatch with unlimited technicians.",
+    label: "I dispatch more than 15 techs",
+    detail: "The Pro workspace with no cap on technicians.",
     planId: "fleet",
   },
 ] as const;
@@ -47,7 +47,7 @@ export const shopNeeds: readonly ShopNeed[] = [
 export const shopSizes: readonly ShopSize[] = [
   {
     id: "solo",
-    label: "Solo or 1–2 trucks",
+    label: "Owner-operator",
     trucks: "1–2",
     planId: "line",
   },

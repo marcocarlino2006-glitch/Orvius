@@ -138,8 +138,6 @@ export const pricingPlans: readonly PricingPlan[] = [
       "Everything in Pro",
       "1,500 answered calls a month included",
       "Unlimited technicians on dispatch",
-      "Multi-truck dispatch workflows",
-      "Shop health and alert delivery, measured per line",
     ],
   },
   {
@@ -162,8 +160,8 @@ export const pricingPlans: readonly PricingPlan[] = [
     highlights: [
       "Pro at every location, 750 calls each",
       "Dedicated line per location",
-      "Switch locations from one sign-in",
-      "Owner, manager, and dispatcher roles",
+      "Every location side by side, from one sign-in",
+      "Set up with you on an order form",
     ],
   },
 ] as const;

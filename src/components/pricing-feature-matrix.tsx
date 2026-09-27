@@ -40,13 +40,13 @@ export function PricingFeatureMatrix({ selfServeReady = true }: { selfServeReady
     <section className="pricing-matrix" aria-label="Plan comparison">
       <div className="pricing-matrix-head font-sans">
         <p className="pricing-matrix-kicker type-eyebrow">Compare plans</p>
-        <h2 className="pricing-matrix-title type-headline">Everything included.</h2>
+        <h2 className="pricing-matrix-title type-headline">What each plan includes.</h2>
         <p className="pricing-matrix-lead type-lead">
           Pick the plan you need today. Upgrade when the shop grows.
         </p>
       </div>
 
-      <div className="pricing-matrix-scroll">
+      <div className="pricing-matrix-scroll" role="region" aria-label="Plan comparison table, scrolls sideways" tabIndex={0}>
         <table className="pricing-matrix-table font-sans">
           <thead>
             <tr>

@@ -1,5 +1,8 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { company } from "@/lib/company";
+import { OVERAGE_CENTS_PER_CALL, getPlanById } from "@/lib/pricing-plans";
+
+const multi = getPlanById("multi");
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -17,7 +20,7 @@ const pillars = [
   {
     id: "02",
     title: "Roles that match the job.",
-    body: "Owners, managers and dispatchers each get the access their job needs. One sign-in switches between every shop it can open.",
+    body: "Owners add managers and dispatchers by email, on every plan. Managers can change settings and the team; dispatchers run calls, leads, jobs and dispatch. One sign-in switches between every shop it can open.",
   },
   {
     id: "03",
@@ -27,7 +30,7 @@ const pillars = [
   {
     id: "04",
     title: "Rolled out with you.",
-    body: "Each shop’s services, hours, service area and escalation rules are set up with you before its line goes live. Billing for several locations is arranged per agreement.",
+    body: "Each shop’s services, hours, service area and escalation rules are set up with you before its line goes live. Card checkout takes one location at a time, so multi-shop billing is set up with you on an order form.",
   },
 ] as const;
 
@@ -47,7 +50,7 @@ export default function EnterprisePage() {
                   href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop%20HVAC"
                   className="ov-btn ov-btn--solid"
                 >
-                  Contact sales
+                  Talk to us
                 </a>
                 <Link href="/pricing" className="ov-btn ov-btn--quiet">
                   View pricing
@@ -83,8 +86,10 @@ export default function EnterprisePage() {
               Talk through your footprint.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Multi-shop pricing is custom. Tell us how many HVAC locations you
-              run and we&apos;ll set them up with you.
+              Multi-shop is ${multi.price} per location a month for {multi.limit?.toLowerCase()}, with
+              Pro and {(multi.includedCalls ?? 0).toLocaleString("en-US")} answered calls at each location
+              ({OVERAGE_CENTS_PER_CALL}¢ per call past that). Tell us how many HVAC locations you run and
+              we&apos;ll set them up with you.
             </p>
           </div>
           <div className="tier1-actions">
@@ -92,10 +97,10 @@ export default function EnterprisePage() {
               href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop%20HVAC"
               className="ov-btn ov-btn--solid"
             >
-              Contact sales
+              Talk to us
             </a>
             <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Request a demo
+              Book a call audit
             </Link>
           </div>
         </div>

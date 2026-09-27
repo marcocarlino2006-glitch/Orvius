@@ -1,6 +1,6 @@
 import { LegalDocument, LegalSection } from "@/components/legal-document";
 import { company } from "@/lib/company";
-import { getPaidPlans, pricing } from "@/lib/pricing-plans";
+import { OVERAGE_CENTS_PER_CALL, getPaidPlans, getPlanById } from "@/lib/pricing-plans";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 
 export default function RefundsPage() {
   const paid = getPaidPlans();
+  const multi = getPlanById("multi");
 
   return (
     <LegalDocument
@@ -38,18 +39,19 @@ export default function RefundsPage() {
             <li key={plan.id}>
               <strong>{plan.name}</strong> — ${plan.price}/month
               {plan.annualPrice != null
-                ? ` (about $${plan.annualPrice}/mo when billed annually)`
+                ? `, or $${(plan.price * 10).toLocaleString("en-US")}/year billed annually`
                 : ""}
-              . {plan.tagline}
+              , including {(plan.includedCalls ?? 0).toLocaleString("en-US")} answered calls a month.
             </li>
           ))}
           <li>
-            <strong>Multi-shop</strong> — custom pricing via order form.
+            <strong>{multi.name}</strong> — ${multi.price} per location a month for{" "}
+            {multi.limit?.toLowerCase()}, set up on an order form.
           </li>
         </ul>
         <p>
-          Featured self-serve plan today: {pricing.pro.name} at ${pricing.pro.price}/month unless a
-          custom agreement states otherwise. Charges are processed by Stripe. Subscriptions renew
+          Answered calls past a plan&apos;s monthly allowance are {OVERAGE_CENTS_PER_CALL}¢ each, invoiced
+          after the calendar month ends. Charges are processed by Stripe. Subscriptions renew
           automatically each billing period until canceled. You are responsible for applicable taxes.
         </p>
       </LegalSection>

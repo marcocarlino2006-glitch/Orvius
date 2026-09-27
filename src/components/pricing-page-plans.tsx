@@ -8,6 +8,7 @@ import { PricingFeatureMatrix } from "@/components/pricing-feature-matrix";
 import { PricingNeedsPicker } from "@/components/pricing-needs-picker";
 import { PricingPlanCard } from "@/components/pricing-plan-card";
 import {
+  OVERAGE_CENTS_PER_CALL,
   getPaidPlans,
   getPlanById,
   type BillingInterval,
@@ -34,7 +35,10 @@ export function PricingPagePlans({ selfServeReady = true }: { selfServeReady?: b
       <div className="editorial-wrap pricing-page-controls">
         <PricingBillingToggle value={interval} onChange={setInterval} />
         <p className="pricing-page-controls-note font-sans">
-          Prices shown as monthly equivalent. Annual plans billed once per year.
+          {interval === "year"
+            ? "Annual prices are shown per month and charged once a year."
+            : "Monthly prices, charged each month. Cancel any time."}{" "}
+          Included calls reset on the 1st; each call past the allowance is {OVERAGE_CENTS_PER_CALL}¢, invoiced after the month ends.
         </p>
       </div>
 

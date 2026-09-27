@@ -122,9 +122,11 @@ export function PricingPlanCard({
           <span className="tier1-plan-period">/mo</span>
         </p>
       )}
-      {!isPilot && !isMulti && interval === "year" && monthlyPrice ? (
+      {!isPilot && !isMulti && monthlyPrice ? (
         <p className="tier1-plan-annual-note font-sans">
-          ${monthlyPrice}/mo if billed monthly · {ANNUAL_DISCOUNT_LABEL.toLowerCase()}
+          {interval === "year"
+            ? `$${(monthlyPrice * 10).toLocaleString("en-US")} a year · $${monthlyPrice}/mo if billed monthly`
+            : `Or $${plan.annualPrice}/mo billed annually · ${ANNUAL_DISCOUNT_LABEL.toLowerCase()}`}
         </p>
       ) : null}
       <p className="tier1-section-lead font-sans">{plan.tagline}</p>
