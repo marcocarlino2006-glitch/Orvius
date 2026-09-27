@@ -277,7 +277,8 @@ export function buildVapiAssistantConfig(params: {
             urgency: {
               type: "string",
               enum: ["emergency", "same-day", "this-week", "flexible"],
-              description: "How urgent the request is",
+              description:
+                "How urgent the request is. emergency: gas smell, no heat or AC in extreme weather or with a baby, elderly or sick person at home, active water leak (including water pouring or dripping from a unit or ceiling), flooding, no power, burning smell or sparking. Otherwise same-day, this-week, or flexible.",
             },
             address: {
               type: "string",
@@ -285,7 +286,8 @@ export function buildVapiAssistantConfig(params: {
             },
             notes: {
               type: "string",
-              description: "Additional details and appointment preference",
+              description:
+                'Additional details and appointment preference. If the caller is outside the service area, start with "Out of service area — not a job". If the request is a trade this shop does not do, start with "Wrong trade for this shop — not a job".',
             },
           },
         },
