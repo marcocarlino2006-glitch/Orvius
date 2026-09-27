@@ -425,6 +425,20 @@ a.dt-row:focus-visible,
   border-left: 1px solid var(--ox-line);
 }
 
+/* Once the container queries in orvius-system.css wrap the strip, each signal stands as its own card. */
+@container (max-width: 44rem) {
+  .os-shell.os-shell-night .cs-grid {
+    gap: 0.75rem;
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .os-shell.os-shell-night .cs-grid .cs-card,
+  .os-shell.os-shell-night .cs-grid > li + li .cs-card {
+    border: 1px solid var(--ox-line);
+  }
+}
+
 .os-shell.os-shell-night .cs-card {
   height: 100%;
   border: 0;
