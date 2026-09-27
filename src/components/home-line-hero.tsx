@@ -70,7 +70,7 @@ export function HomeLineHero() {
               className="ov-btn ov-btn--quiet ov-hero-cta-secondary"
               data-i18n="hero.demo"
             >
-              Request a demo
+              Book a call audit
             </Link>
           </div>
 

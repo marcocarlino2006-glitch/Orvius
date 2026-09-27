@@ -17,12 +17,12 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.enterprise": { en: "Enterprise", es: "Empresas", fr: "Entreprise", de: "Unternehmen" },
   "nav.pricing": { en: "Pricing", es: "Precios", fr: "Tarifs", de: "Preise" },
   "nav.resources": { en: "Resources", es: "Recursos", fr: "Ressources", de: "Ressourcen" },
-  "nav.audit": { en: "Audit", es: "Auditoría", fr: "Audit", de: "Audit" },
+  "nav.audit": { en: "Call audit", es: "Auditoría de llamadas", fr: "Audit d’appels", de: "Anruf-Audit" },
   "nav.about": { en: "About", es: "Nosotros", fr: "À propos", de: "Über uns" },
   "nav.signin": { en: "Sign in", es: "Iniciar sesión", fr: "Se connecter", de: "Anmelden" },
   "nav.bookdemo": { en: "Book an audit", es: "Reservar una auditoría", fr: "Réserver un audit", de: "Audit buchen" },
   "nav.proveit": { en: "Call the live line", es: "Llamar a la línea en vivo", fr: "Appeler la ligne en direct", de: "Live-Leitung anrufen" },
-  "nav.contact": { en: "Contact sales", es: "Hablar con ventas", fr: "Contacter les ventes", de: "Vertrieb kontaktieren" },
+  "nav.contact": { en: "Talk to us", es: "Hablar con nosotros", fr: "Nous contacter", de: "Kontakt" },
 
   "hero.title": {
     en: "After-hours calls become qualified jobs.",
@@ -43,10 +43,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Live-Leitung anrufen",
   },
   "hero.demo": {
-    en: "Request a demo",
-    es: "Solicitar una demo",
-    fr: "Demander une démo",
-    de: "Demo anfragen",
+    en: "Book a call audit",
+    es: "Reservar una auditoría",
+    fr: "Réserver un audit",
+    de: "Audit buchen",
   },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
   "hero.nightshift": {

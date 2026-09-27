@@ -50,7 +50,7 @@ export default function ProductPage() {
                   Call the live line
                 </a>
                 <Link href="/pilot" className="ov-btn ov-btn--quiet">
-                  Request a demo
+                  Book a call audit
                 </Link>
               </>
             }
@@ -95,7 +95,7 @@ export default function ProductPage() {
               Call the live line
             </a>
             <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Request a demo
+              Book a call audit
             </Link>
           </div>
         </div>

@@ -48,14 +48,14 @@ export default function ResourcesPage() {
             label="Resources"
             title="Everything to run the night shift."
             subline="Guides, trust, and the company behind the line."
-            description="Start a demo, read how we handle your data, or reach the team."
+            description="Call the live line, read how we handle your data, or reach us."
             actions={
               <>
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">
                   Call the live line
                 </a>
                 <Link href="/pilot" className="ov-btn ov-btn--quiet">
-                  Request a demo
+                  Book a call audit
                 </Link>
               </>
             }

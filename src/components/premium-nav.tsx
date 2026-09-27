@@ -8,7 +8,7 @@ const NAV = [
   { href: "/product", label: "Product", i18n: "nav.product" },
   { href: "/enterprise", label: "Enterprise", i18n: "nav.enterprise" },
   { href: "/pricing", label: "Pricing", i18n: "nav.pricing" },
-  { href: "/pilot", label: "Audit", i18n: "nav.audit" },
+  { href: "/pilot", label: "Call audit", i18n: "nav.audit" },
   { href: "/resources", label: "Resources", i18n: "nav.resources" },
 ] as const;
 
@@ -93,9 +93,9 @@ export function PremiumNav() {
             <Link href="/signin" className="mkt-nav-login" data-i18n="nav.signin">
               Sign in
             </Link>
-            <Link href="/enterprise" className="mkt-nav-login mkt-nav-contact" data-i18n="nav.contact">
-              Contact sales
-            </Link>
+            <a href="mailto:hello@orvius.im" className="mkt-nav-login mkt-nav-contact" data-i18n="nav.contact">
+              Talk to us
+            </a>
             <a
               href="tel:+18446439170"
               className="ov-btn ov-btn--solid mkt-nav-cta"
