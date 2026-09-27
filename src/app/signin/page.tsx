@@ -21,6 +21,12 @@ const ERRORS: Record<string, string> = {
   CredentialsSignin:
     "That sign-in link is no longer valid. Links work once and expire after 10 minutes.",
   Verification: "That sign-in link has expired. Request a new one below.",
+  OAuthAccountNotLinked:
+    "That email already signs in another way. Use the method you used first, or an email link below.",
+  OAuthSignin: "Google sign-in didn’t finish. Try again, or use an email link below.",
+  OAuthCallback: "Google sign-in didn’t finish. Try again, or use an email link below.",
+  OAuthCallbackError: "Google sign-in didn’t finish. Try again, or use an email link below.",
+  Default: "Sign-in didn’t finish. Try again below.",
 };
 
 /**
@@ -36,7 +42,7 @@ export default async function SignInPage({
 }) {
   const params = await searchParams;
   const callbackUrl = params.callbackUrl ?? "/dashboard";
-  const error = params.error ? (ERRORS[params.error] ?? ERRORS.CredentialsSignin) : null;
+  const error = params.error ? (ERRORS[params.error] ?? ERRORS.Default) : null;
   const showDevChrome =
     isDevAuthBypassEnabled() && (params.dev === "1" || params.dev === "true");
   const selfServeEnabled = getPublicLaunchReadiness().ready;
