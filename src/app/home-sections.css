@@ -654,8 +654,14 @@ html.hx-motion .ov-public .is-in .hx-node {
 }
 
 .ov-public .hx-lit span {
-  opacity: clamp(0.16, calc(var(--p, 1) * (var(--n) + 6) - var(--i)), 1);
+  opacity: clamp(0.5, calc(var(--p, 1) * (var(--n) + 6) - var(--i)), 1);
   transition: opacity 120ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .hx-lit span {
+    opacity: 1;
+  }
 }
 
 .ov-public .hx-chapters {
