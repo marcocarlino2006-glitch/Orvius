@@ -1,70 +1,26 @@
-import { MktSection } from "@/components/mkt-section";
-
-const nightRules = [
-  {
-    id: "01",
-    key: "rule1",
-    title: "The bay never goes dark.",
-    body: "After-hours and overflow get answered, qualified, and alerted — demand does not die on voicemail.",
-  },
-  {
-    id: "02",
-    key: "rule2",
-    title: "One board. Not twelve tabs.",
-    body: "Every call, text, and job stays on one shop record — clear the board, move on.",
-  },
-  {
-    id: "03",
-    key: "rule3",
-    title: "A clear weekly summary.",
-    body: "See what the line proposed this week — jobs and estimated value you can check against your books.",
-  },
+/*
+  Where Cursor shows customer logos, we show what every call gets. Each line is
+  something a visitor can check by dialing the live line.
+*/
+const facts = [
+  { title: "Answers in your shop's name", body: "After hours and overflow, with your opening line." },
+  { title: "English and Spanish", body: "It switches when the caller does. Records stay in English." },
+  { title: "Safety first", body: "Gas, carbon monoxide and smoke callers are told to get safe before anything else." },
+  { title: "Every call on the record", body: "Recorded, transcribed and graded, with the rough ones flagged." },
 ] as const;
 
-/** Same doctrine — ruled list, no icon/badge cards (Cursor restraint). */
 export function HomeStatement() {
   return (
-    <MktSection
-      tone="light"
-      className="mkt-manifesto mkt-manifesto--rules"
-      aria-labelledby="home-manifesto-heading"
-    >
-      <div className="mkt-manifesto-rules">
-        <header className="mkt-manifesto-rules-head" data-reveal>
-          <p className="mkt-manifesto-kicker font-sans" data-i18n="rules.kicker">
-            Night rules
-          </p>
-          <h2
-            id="home-manifesto-heading"
-            className="mkt-manifesto-title"
-            data-i18n="rules.title"
-          >
-            How the shop runs when you&apos;re not on the floor.
-          </h2>
-        </header>
-
-        <ol className="mkt-laws mkt-laws--ruled font-sans" data-reveal data-reveal-stagger>
-          {nightRules.map((rule, i) => (
-            <li
-              key={rule.id}
-              className="mkt-law mkt-law--ruled"
-              style={{ ["--s" as string]: i }}
-            >
-              <span className="mkt-law-index" aria-hidden>
-                {rule.id}
-              </span>
-              <div className="mkt-law-copy">
-                <h3 className="mkt-law-title" data-i18n={`${rule.key}.title`}>
-                  {rule.title}
-                </h3>
-                <p className="mkt-law-body" data-i18n={`${rule.key}.body`}>
-                  {rule.body}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </MktSection>
+    <section className="hx-facts" aria-label="What every call gets">
+      <p className="hx-facts-caption font-sans">What every call gets</p>
+      <ul className="hx-facts-row font-sans">
+        {facts.map((f) => (
+          <li key={f.title} className="hx-fact">
+            <p className="hx-fact-title">{f.title}</p>
+            <p className="hx-fact-body">{f.body}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

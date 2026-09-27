@@ -100,7 +100,6 @@ body {
   font-family: var(--ov-font);
 }
 
-
 .ov-public {
   min-height: 100vh;
   overflow: clip;
@@ -405,45 +404,6 @@ body {
   --ov-amber: #c9a227;
   --ov-accent-text: #f54e00;
   --ov-emerald-text: #6ee7a8;
-}
-
-/* Product proof on a charcoal field with a lit warm top edge. The panel used to
-   be a flat copper block; on the dark canvas the same emphasis comes from the
-   amber lip and its upward bloom, which reads as a powered surface instead of a
-   colour swatch. */
-
-/* ── Dispatch board tags ──
-   The preview shipped its labels as 42–58% translucent sans, which measured
-   between 3.2:1 and 3.9:1 — under AA at 9–11px. Every tag is now an opaque
-   monospaced label on a neutral charcoal plate, so the board reads like an
-   instrument panel instead of a watermark. */
-
-/* Editorial sections */
-
-.ov-public .mkt-manifesto {
-  padding: 118px 5vw !important;
-  border: 0 !important;
-  border-top: 1px solid var(--ov-line) !important;
-  background: var(--ov-paper) !important;
-  color: var(--ov-ink) !important;
-}
-
-/*
-  The lead used to be the pinned left column of a two-column section, so it
-  carried `position: sticky`. It now stacks above the card grid in a single
-  column, where pinning has nothing to scroll against and instead lets the
-  headline drift down over the cards. Unpin it.
-*/
-
-.ov-public .mkt-manifesto-title {
-  max-width: 620px !important;
-  margin: 0 !important;
-  color: var(--ov-headline) !important;
-  font-family: var(--ov-font) !important;
-  font-size: var(--fs-display-lg) !important;
-  font-weight: 600 !important;
-  line-height: 1.08 !important;
-  letter-spacing: -0.028em !important;
 }
 
 /* Night rules — three elevated surfaces rather than a ruled list. The grid sits
@@ -1256,7 +1216,6 @@ body {
 
 /* Headlines carry Archivo's weight; the old 400 read thin and generic. */
 
-.ov-public .mkt-manifesto-title,
 .ov-public .mkt-proof-title,
 .ov-public .tier1-section-title,
 .ov-public .tier1-page-title {
@@ -1338,12 +1297,10 @@ body {
     padding: 0 16px !important;
   }
 
-  .ov-public .mkt-manifesto-title,
   .ov-public .mkt-proof-title {
     font-size: 2.25rem !important;
   }
 
-  .ov-public .mkt-manifesto,
   .ov-public .mkt-proof-section,
   .ov-public .tier1-story,
   .ov-public .tier1-close {
@@ -2419,25 +2376,6 @@ body {
   margin-top: 1.65rem;
 }
 
-.ov-public .mkt-manifesto--rules {
-  padding-block: clamp(4rem, 8vw, 6.5rem);
-}
-
-.ov-public .mkt-manifesto-rules {
-  max-width: 42rem;
-  margin-inline: auto;
-}
-
-.ov-public .mkt-manifesto-rules-head {
-  margin-bottom: 2.25rem;
-}
-
-.ov-public .mkt-manifesto--rules .mkt-manifesto-title {
-  font-size: var(--fs-display-sm);
-  max-width: 18ch;
-  margin-top: 0.55rem;
-}
-
 .ov-public .mkt-laws--ruled {
   list-style: none;
   margin: 0;
@@ -3184,7 +3122,6 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   padding-top: clamp(96px, 11vh, 120px);
 }
 
-
 /* Cursor two-link CTAs — solid Call + quiet Request a demo */
 .ov-public .ov-hero-inner--poster .ov-hero-actions {
   display: flex !important;
@@ -3510,8 +3447,6 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     grid-template-columns: 1fr;
   }
 }
-
-
 
 /* ── Cursor-style world behind the product ──
    Soft multi-tone landscape plate + clear ambient motion. */
@@ -3949,4 +3884,75 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public main:focus {
   outline: none;
+}
+
+.ov-public .ov-hero-lead {
+  max-width: 38rem;
+  margin: 1.25rem 0 0;
+  color: var(--ov-muted);
+  font-family: var(--ov-font);
+  font-size: clamp(1.0625rem, 0.4vw + 0.95rem, 1.25rem);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.ov-public .ov-hero-lead + .ov-hero-actions {
+  margin-top: 1.75rem;
+}
+
+.ov-public .hx-facts {
+  width: min(100% - 2.5rem, 72rem);
+  margin: 0 auto;
+  padding: clamp(3rem, 6vw, 4.5rem) 0;
+}
+
+.ov-public .hx-facts-caption {
+  margin: 0 0 1.25rem;
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.ov-public .hx-facts-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ov-line);
+  border-radius: 0.75rem;
+  background: var(--ov-line);
+  list-style: none;
+}
+
+.ov-public .hx-fact {
+  padding: 1.25rem 1.25rem 1.375rem;
+  background: var(--ov-paper);
+}
+
+.ov-public .hx-fact-title {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.ov-public .hx-fact-body {
+  margin: 0.375rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 860px) {
+  .ov-public .hx-facts-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .ov-public .hx-facts-row {
+    grid-template-columns: 1fr;
+  }
 }

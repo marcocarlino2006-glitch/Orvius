@@ -55,6 +55,10 @@ export function HomeLineHero() {
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
             After-hours calls become qualified jobs.
           </h1>
+          <p className="ov-hero-lead" data-i18n="hero.lead">
+            Orvius is the AI receptionist for HVAC shops. It answers the calls you can&apos;t take, offers an open
+            window from your schedule, and texts you the job.
+          </p>
 
           <div className="ov-hero-actions">
             <a

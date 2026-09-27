@@ -1298,7 +1298,6 @@ h3 {
   background: var(--chalk);
 }
 
-
 .tier1-story-grid {
   display: grid;
   gap: clamp(2.5rem, 5vw, 4rem);
@@ -2418,14 +2417,6 @@ h3 {
   background: rgba(255, 255, 255, 0.9);
 }
 
-/* ── Manifesto — first principles ── */
-
-.mkt-manifesto {
-  padding-block: clamp(4.5rem, 12vh, 7rem);
-  background: var(--void-deep);
-  border-block: 1px solid color-mix(in srgb, #fff 6%, transparent);
-}
-
 .mkt-manifesto-kicker {
   margin: 0 0 1rem;
   font-size: 0.75rem;
@@ -2433,16 +2424,6 @@ h3 {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--signal) 85%, #fff);
-}
-
-.mkt-manifesto-title {
-  margin: 0;
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: var(--fs-display-xl);
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-laws {
@@ -2519,7 +2500,6 @@ h3 {
   opacity: 0.7;
   max-width: 28rem;
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Mastery layer — densify every section to hero weight
@@ -2733,7 +2713,6 @@ button.btn {
   font-weight: 400 !important;
 }
 
-
 /* ── LOGO LOCK — never inherit button DIN / gothic onto the letterset ── */
 .orvius-logo,
 .orvius-logo-mark,
@@ -2771,7 +2750,6 @@ button.btn {
   box-shadow: none !important;
   animation: none !important;
 }
-
 
 /* Manus bar — fail-closed founder post lock */
 .post-lock-strip {
@@ -3102,7 +3080,6 @@ label:has(> input[type="radio"]) {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-.mkt-manifesto-title,
 .mkt-law-title,
 .mkt-proof-title,
 .type-headline {
@@ -3144,7 +3121,6 @@ label:has(> input[type="radio"]) {
 
 /* Template / surface boxes — identical material language */
 
-
 /* Login craft — same Archivo + same box language as marketing */
 
 .tier1-login-dev-btn {
@@ -3167,7 +3143,6 @@ label:has(> input[type="radio"]) {
 }
 
 /* Quiet details — never paint setup/dev chrome as product CTAs */
-
 
 /* Kill leftover pills on auth + pricing surfaces */
 .tier1-login-dev-btn,
@@ -4024,9 +3999,6 @@ label:has(> input[type="radio"]) {
   padding: 0.65rem 0.75rem !important;
 }
 
-
-
-
 .os-shell-night .status-pill,
 .os-shell-night .os-nav-badge,
 .os-shell-night .status-pill-live,
@@ -4184,7 +4156,6 @@ label:has(> input[type="radio"]) {
   margin-bottom: 0.65rem !important;
 }
 
-
 /* Marketing void → Grok true black */
 .mkt-page {
   background: var(--ox-day-sunk, #16181b) !important;
@@ -4262,7 +4233,6 @@ label:has(> input[type="radio"]) {
   border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-left: 2px solid #e9e9e9 !important;
 }
-
 
 /* Detail pages: denser panel stacks */
 
@@ -5160,7 +5130,6 @@ label:has(> input[type="radio"]) {
   color: var(--ov-headline, #f4f4f4) !important;
 }
 
-
 /* Legal footer clearance (utility dock + cookie) */
 .mkt-footer-bottom--legal {
   align-items: center;
@@ -5196,7 +5165,6 @@ html[data-theme="night"] .mkt-page .tier1-close {
 html[data-theme="night"] .mkt-page .tier1-story,
 html[data-theme="night"] .mkt-page .tier1-story-muted,
 html[data-theme="night"] .mkt-page .marketing-section,
-html[data-theme="night"] .mkt-page .mkt-manifesto,
 html[data-theme="night"] .mkt-page .mkt-proof-section {
   background: #1b1913 !important;
   color: #edecec !important;
@@ -5204,7 +5172,6 @@ html[data-theme="night"] .mkt-page .mkt-proof-section {
 }
 
 /* Ink → light */
-html[data-theme="night"] .mkt-page .mkt-manifesto-title,
 html[data-theme="night"] .mkt-page .mkt-law-title,
 html[data-theme="night"] .mkt-page .mkt-proof-title,
 html[data-theme="night"] .mkt-page .tier1-page-title,
@@ -5423,7 +5390,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* One column width for the whole settings surface */
 
-
 /* Panel titles read as headings, not micro-labels */
 
 /* ── Mastery round 3 — one button voice across every product surface ── */
@@ -5469,7 +5435,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* ── Mastery round 4 ── */
 
 /* Opaque topbar: content must not ghost through while scrolling */
-
 
 /* ── Mastery round 5 — numbers become numbers ── */
 .os-shell-night .shop-outcomes,

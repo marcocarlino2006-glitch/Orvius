@@ -521,191 +521,6 @@ html.hx-motion [data-reveal-stagger].is-in > * {
   transform: none;
 }
 
-/* ---------- Why we built Orvius ---------- */
-
-.ov-public .hx-section.hx-why {
-  padding-top: clamp(3rem, 6vw, 5rem);
-}
-
-.ov-public .hx-why-panel {
-  position: relative;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 0.9rem;
-  min-height: min(78vh, 42rem);
-  padding: clamp(2rem, 6vw, 5rem) clamp(1.25rem, 4vw, 3rem);
-  border-radius: 24px;
-  border: 1px solid var(--ov-hairline);
-  background:
-    radial-gradient(70% 60% at 15% 10%, color-mix(in srgb, var(--ov-copper) 18%, transparent), transparent 65%),
-    radial-gradient(60% 60% at 90% 95%, color-mix(in srgb, var(--ov-emerald) 20%, transparent), transparent 65%),
-    var(--ov-paper-raised);
-  text-align: center;
-  overflow: hidden;
-}
-
-.ov-public .hx-why-panel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--ov-hairline) 1px, transparent 1px),
-    linear-gradient(90deg, var(--ov-hairline) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 70%);
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-.ov-public .hx-lineart {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 26rem);
-  height: auto;
-  margin-bottom: 1rem;
-}
-
-.ov-public .hx-draw {
-  stroke: var(--ov-headline);
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
-}
-
-.ov-public .hx-draw--muted {
-  stroke: var(--ov-muted);
-}
-
-.ov-public .hx-draw--lit {
-  stroke: var(--ov-copper);
-}
-
-.ov-public .hx-node {
-  fill: var(--ov-copper);
-}
-
-html.hx-motion .ov-public .hx-draw {
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset 1400ms cubic-bezier(0.6, 0.1, 0.2, 1) var(--d, 0ms);
-}
-
-html.hx-motion .ov-public .hx-node {
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scale(0);
-  transition:
-    opacity 300ms ease var(--d, 0ms),
-    transform 500ms cubic-bezier(0.3, 1.6, 0.5, 1) var(--d, 0ms);
-}
-
-html.hx-motion .ov-public .is-in .hx-draw {
-  stroke-dashoffset: 0;
-}
-
-html.hx-motion .ov-public .is-in .hx-node {
-  opacity: 1;
-  transform: none;
-}
-
-.ov-public .hx-why-kicker {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  color: var(--ov-accent-text);
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.ov-public .hx-why-title {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  max-width: 16ch;
-  color: var(--ov-headline);
-  font-family: var(--ov-font);
-  font-size: var(--fs-display-xl);
-  font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
-  text-wrap: balance;
-}
-
-.ov-public .hx-why-title span {
-  color: var(--ov-muted);
-}
-
-.ov-public .hx-why-body {
-  max-width: 44rem;
-  margin: clamp(3rem, 8vw, 6rem) auto clamp(2rem, 5vw, 4rem);
-}
-
-.ov-public .hx-lit {
-  margin: 0;
-  color: var(--ov-headline);
-  font-family: var(--ov-font);
-  font-size: var(--fs-display-sm);
-  font-weight: 500;
-  line-height: 1.32;
-  letter-spacing: -0.018em;
-}
-
-.ov-public .hx-lit span {
-  opacity: clamp(0.5, calc(var(--p, 1) * (var(--n) + 6) - var(--i)), 1);
-  transition: opacity 120ms linear;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ov-public .hx-lit span {
-    opacity: 1;
-  }
-}
-
-.ov-public .hx-chapters {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-  padding-top: clamp(2rem, 4vw, 3rem);
-  border-top: 1px solid var(--ov-hairline);
-}
-
-.ov-public .hx-chapter-kicker {
-  margin: 0 0 0.75rem;
-  color: var(--ov-accent-text);
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-.ov-public .hx-chapter-kicker .hx-mono {
-  color: var(--ov-muted);
-  margin-right: 0.35rem;
-}
-
-.ov-public .hx-chapter-title {
-  margin: 0 0 0.5rem;
-  color: var(--ov-headline);
-  font-family: var(--ov-font);
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.012em;
-}
-
-.ov-public .hx-chapter-body {
-  margin: 0;
-  color: var(--ov-muted);
-  font-size: 0.9375rem;
-  line-height: 1.6;
-}
-
-.ov-public .hx-signoff {
-  margin: clamp(2rem, 4vw, 3rem) 0 0;
-  color: var(--ov-muted);
-  font-size: 0.8125rem;
-}
-
 /* ---------- A night on the line ---------- */
 
 .ov-public .hx-night-grid {
@@ -951,9 +766,6 @@ html.hx-motion .ov-public .is-in .hx-node {
 /* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {
-  .ov-public .hx-chapters {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
   .ov-public .hx-night-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1015,7 +827,6 @@ html.hx-motion .ov-public .is-in .hx-node {
   .ov-public .hx-head--row .hx-arrows {
     display: none;
   }
-
 
   .ov-public .hx-start-grid {
     grid-template-columns: minmax(0, 1fr);
