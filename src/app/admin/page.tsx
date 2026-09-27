@@ -407,8 +407,8 @@ export default function AdminPage() {
           <Link href="/pilot" className="btn btn-secondary text-xs">
             Pilot page
           </Link>
-          <Link href="/demo" className="btn btn-secondary text-xs">
-            Demo
+          <Link href="/product" className="btn btn-secondary text-xs">
+            Product tour
           </Link>
         </div>
         {importNote ? (
@@ -447,8 +447,8 @@ export default function AdminPage() {
               <Link href="/pilot" className="btn btn-secondary text-sm">
                 Open pilot form
               </Link>
-              <Link href="/demo" className="btn btn-secondary text-sm">
-                Share demo
+              <Link href="/product" className="btn btn-secondary text-sm">
+                Share product tour
               </Link>
               <button
                 type="button"

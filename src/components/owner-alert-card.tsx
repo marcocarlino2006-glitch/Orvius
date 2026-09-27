@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 
 type OwnerAlertCardProps = {
@@ -22,39 +21,6 @@ type AlertField = {
   value: string;
   accent?: boolean;
 };
-
-function formatUrgencyLabel(value: string) {
-  if (value === "emergency") return "Emergency";
-  if (value === "same-day") return "Same day";
-  if (value === "this-week") return "This week";
-  if (value === "flexible") return "Flexible";
-  return value;
-}
-
-export function leadFromDemoForm(form: {
-  callerName: string;
-  callerPhone: string;
-  serviceType: string;
-  urgency: string;
-  address: string;
-}) {
-  const urgency = formatUrgencyLabel(form.urgency);
-  const books =
-    form.urgency === "emergency" ||
-    form.urgency === "same-day" ||
-    form.urgency === "this-week";
-  return {
-    name: form.callerName,
-    phone: form.callerPhone,
-    service: form.serviceType,
-    urgency,
-    address: form.address,
-    channel: "Simulated call · demo",
-    bookingLine: books
-      ? "Proposed window · awaiting customer confirm"
-      : undefined,
-  };
-}
 
 export function OwnerAlertCard({
   variant = "void",
@@ -155,14 +121,4 @@ export function CallTranscriptProof({
       </div>
     </div>
   );
-}
-
-export function SectionEyebrow({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <p className={`home-os-kicker ${className}`}>{children}</p>;
 }

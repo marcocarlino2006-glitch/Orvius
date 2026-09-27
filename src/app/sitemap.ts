@@ -16,7 +16,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/security",
     "/status",
     "/changelog",
-    "/demo",
     "/legal",
   ];
   const legal = legalPages.map((p) => p.href);

@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   ...(process.env.ORVIUS_STANDALONE === "1"
     ? { output: "standalone" as const }
     : {}),
+  async redirects() {
+    return [{ source: "/demo", destination: "/product", permanent: true }];
+  },
   async headers() {
     return [
       {
