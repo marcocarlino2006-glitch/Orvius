@@ -329,6 +329,39 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ),
   },
   {
+    slug: "your-team",
+    title: "Your team",
+    summary: "Give a manager or dispatcher their own sign-in to your shop, and what each role can do.",
+    category: "Account",
+    keywords: "team invite teammate user role manager dispatcher office staff access seat remove",
+    body: (
+      <>
+        <p>
+          In <strong>Settings → Team</strong>, enter someone&apos;s email and pick a role. They sign in at orvius.im
+          with that address, using Google or an email link. When email is set up for your workspace they also get a
+          note saying they were added. Teams are available on every plan, up to 50 people per shop.
+        </p>
+        <ul>
+          <li>
+            <strong>Owner</strong>: everything, including billing and deleting the workspace. Each shop has one owner.
+          </li>
+          <li>
+            <strong>Manager</strong>: everything except billing and deleting the workspace, including settings, the
+            team, exports and the activity log.
+          </li>
+          <li>
+            <strong>Dispatcher</strong>: calls, leads, jobs, customers and dispatch. Can&apos;t change settings or the
+            team.
+          </li>
+        </ul>
+        <p>
+          Owners and managers can change a role or remove someone; anyone can leave a shop. Every change is recorded in
+          the activity log. Technicians don&apos;t need a sign-in: they get each job as a text link.
+        </p>
+      </>
+    ),
+  },
+  {
     slug: "your-data",
     title: "Your data",
     summary: "Export everything, delete your workspace, and where to read how data is handled.",

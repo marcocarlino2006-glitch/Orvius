@@ -11,6 +11,16 @@ export type ChangelogEntry = {
  */
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    date: "2026-09-26",
+    title: "Teammates, locations, and an activity log",
+    items: [
+      "Add managers and dispatchers by email in Settings → Team, change their role, or remove them. Managers can change settings and the team; dispatchers work calls, leads, jobs and dispatch. Billing and deleting the workspace stay with the owner.",
+      "One sign-in can open several shops. Switch between them from the account menu, and see every location side by side over 7, 30 or 90 days.",
+      "Settings → Activity log shows who changed what and when. Search it, filter it, and download it as CSV.",
+      "Billing shows how many of your included calls you've used this month. Calls past the allowance are invoiced once, after the month ends.",
+    ],
+  },
+  {
     date: "2026-09-25",
     title: "Books on the call, live Command, alerts on your phone",
     items: [
