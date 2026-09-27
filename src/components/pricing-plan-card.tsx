@@ -80,6 +80,7 @@ export function PricingPlanCard({
       }
       variant={featured || recommended ? "primary" : "secondary"}
       email={email}
+      quietWhenClosed={layout !== "dashboard"}
     />
   );
 

@@ -11,6 +11,8 @@ type CheckoutButtonProps = {
   className?: string;
   variant?: "primary" | "secondary";
   email?: string;
+  /** The page already explains that card signup isn't open. */
+  quietWhenClosed?: boolean;
 };
 
 type PlanBillingStatus = {
@@ -32,6 +34,7 @@ export function CheckoutButton({
   className = "",
   variant = "secondary",
   email: emailProp = "",
+  quietWhenClosed = false,
 }: CheckoutButtonProps) {
   const [email, setEmail] = useState(emailProp);
   const [loading, setLoading] = useState(false);
@@ -163,13 +166,15 @@ export function CheckoutButton({
         >
           {anyReady ? "Open billing to pay" : "Book a call audit"}
         </Link>
-        <p className="mt-3 font-sans text-sm text-ash">
-          {annualMissing
-            ? "Annual checkout isn’t open for this plan yet — pay monthly on Billing."
-            : anyReady
-              ? "This plan isn’t on card checkout yet. Open Billing and pay with the plan that’s ready."
-              : "Card signup isn’t open yet. Book a call audit and we’ll set up your line with you."}
-        </p>
+        {quietWhenClosed && !anyReady ? null : (
+          <p className="mt-3 font-sans text-sm text-ash">
+            {annualMissing
+              ? "Annual checkout isn’t open for this plan yet — pay monthly on Billing."
+              : anyReady
+                ? "This plan isn’t on card checkout yet. Open Billing and pay with the plan that’s ready."
+                : "Card signup isn’t open yet. Book a call audit and we’ll set up your line with you."}
+          </p>
+        )}
       </div>
     );
   }
