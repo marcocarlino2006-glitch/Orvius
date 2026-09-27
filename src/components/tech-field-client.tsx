@@ -18,6 +18,7 @@ type TechJob = {
   finalAmountCents: number | null;
   scheduledAt: string | null;
   shopName: string;
+  shopTimezone: string | null;
   customerName: string | null;
   customerPhone: string | null;
   technicianName: string | null;
@@ -48,15 +49,17 @@ function phoneLabel(phone: string) {
   return phone;
 }
 
-function whenLabel(iso: string | null) {
+/** The tech's phone may sit in another zone than the shop; the visit happens in the shop's. */
+function whenLabel(iso: string | null, timeZone: string | null) {
   if (!iso) return null;
+  const tz = timeZone || undefined;
   const d = new Date(iso);
-  const today = new Date();
-  const tomorrow = new Date(today.getTime() + 86_400_000);
-  const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-  if (d.toDateString() === today.toDateString()) return `Today · ${time}`;
-  if (d.toDateString() === tomorrow.toDateString()) return `Tomorrow · ${time}`;
-  return `${d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · ${time}`;
+  const day = (date: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  const now = Date.now();
+  const time = d.toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" });
+  if (day(d) === day(new Date(now))) return `Today · ${time}`;
+  if (day(d) === day(new Date(now + 86_400_000))) return `Tomorrow · ${time}`;
+  return `${d.toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" })} · ${time}`;
 }
 
 export function TechFieldClient({ token }: { token: string }) {
@@ -133,7 +136,7 @@ export function TechFieldClient({ token }: { token: string }) {
   const next = ADVANCES[job.status] ?? null;
   const emergency = isEmergency(job.urgency);
   const urgency = notableUrgency(job.urgency);
-  const when = whenLabel(job.scheduledAt);
+  const when = whenLabel(job.scheduledAt, job.shopTimezone);
 
   function completeWithOutcome() {
     if (!resolutionCode) {

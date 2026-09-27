@@ -18,7 +18,7 @@ async function loadJob(token: string) {
   return prisma.job.findFirst({
     where: { techToken: token },
     include: {
-      business: { select: { name: true } },
+      business: { select: { name: true, timezone: true } },
       customer: { select: { name: true, phone: true } },
       lead: { select: { name: true, phone: true } },
       technician: { select: { name: true, phone: true } },
@@ -40,6 +40,7 @@ function serializeTechJob(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>)
     finalAmountCents: job.finalAmountCents,
     scheduledAt: job.scheduledAt?.toISOString() ?? null,
     shopName: job.business.name,
+    shopTimezone: job.business.timezone,
     customerName:
       job.customer?.name ?? job.lead?.name ?? job.customer?.phone ?? job.lead?.phone ?? null,
     customerPhone: job.customer?.phone ?? job.lead?.phone ?? null,
