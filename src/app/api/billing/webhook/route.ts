@@ -3,6 +3,7 @@ import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
 import { fulfillDepositCheckoutSession, failDepositCheckoutSession } from "@/lib/booking-deposit";
 import { fulfillInvoiceCheckoutSession } from "@/lib/invoice-pay";
 import { fulfillEstimateCheckoutSession, failEstimateCheckoutSession } from "@/lib/estimate-pay";
+import { applyChargeRefund } from "@/lib/payment-refund";
 import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
@@ -189,6 +190,24 @@ export async function POST(request: Request) {
           subscription,
           invoice.customer_email,
         );
+        break;
+      }
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const intentId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+        if (!intentId) break;
+        // Customer payments are direct charges, so the intent lives on the shop's connected account.
+        const intent = await stripe.paymentIntents.retrieve(
+          intentId,
+          undefined,
+          event.account ? { stripeAccount: event.account } : undefined,
+        );
+        await applyChargeRefund({
+          metadata: intent.metadata,
+          amountRefundedCents: charge.amount_refunded,
+          fullyRefunded: charge.refunded,
+          chargeId: charge.id,
+        });
         break;
       }
       case "checkout.session.expired": {

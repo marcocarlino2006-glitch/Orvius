@@ -14,7 +14,7 @@ export function estimateNeedsOwnerFollowUp(input: {
   afterHours?: boolean;
 }): boolean {
   const status = input.status.toLowerCase();
-  if (status === "draft" || status === "paid" || status === "void") {
+  if (status === "draft" || status === "paid" || status === "void" || status === "refunded") {
     return false;
   }
   if (status === "payment_failed") return true;
