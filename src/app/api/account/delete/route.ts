@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { releaseShopLine } from "@/lib/line-lifecycle";
+import { logError } from "@/lib/logger";
 import { requirePermission } from "@/lib/tenant";
 import { checkWorkspaceDeletion, deleteWorkspace } from "@/lib/workspace-deletion";
 
@@ -23,9 +25,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: check.error, reason: check.reason }, { status: check.status });
   }
 
+  // Deleting is the owner saying they are done, so nothing should keep billing or answering.
+  const line = await releaseShopLine(session.business);
+  if (line.line && !line.released) {
+    logError("workspace.delete.line_not_released", { businessId: session.business.id, line: line.line });
+  }
   await deleteWorkspace(session.business.id, session.business.ownerEmail);
   return NextResponse.json({
     ok: true,
-    message: "Workspace deleted. Contact support if you want the phone number released.",
+    message: line.line && line.released
+      ? `Workspace deleted and ${line.line} released.`
+      : "Workspace deleted.",
   });
 }
