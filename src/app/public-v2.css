@@ -15,8 +15,8 @@
  */
 /*
  * Palette values are Cursor's published design tokens, read from their served
- * stylesheet rather than sampled by eye: warm near-black #14120b under warm
- * paper #f7f7f4, warm olive ink #26251e, the card ladder #1b1913 → #2b2923 on
+ * stylesheet rather than sampled by eye: warm near-black #18181a under warm
+ * paper #f7f7f4, warm olive ink #26251e, the card ladder #1f1f22 → #303034 on
  * night and #f2f1ed → #e1e0db on day, and the #f54e00 accent.
  *
  * Two slots deliberately do not take the literal value, because two of those
@@ -29,27 +29,27 @@
  */
 :root,
 html[data-theme="night"] {
-  --ov-paper: #14120b;
-  --ov-paper-raised: #1b1913;
+  --ov-paper: #18181a;
+  --ov-paper-raised: #1f1f22;
   --ov-ink: #edecec;
-  /* Night has no published secondary-text hex; this is the warm gray that
-     clears AA on #14120b at 6.4:1. */
-  --ov-muted: #9a978f;
-  --ov-line: #26241e;
-  --ov-line-strong: #2b2923;
-  --ov-charcoal: #1b1913;
-  --ov-charcoal-raised: #201e18;
+  /* Night has no published secondary-text hex; this is the neutral gray that
+     clears AA on #18181a at 6.6:1. */
+  --ov-muted: #9d9da4;
+  --ov-line: #2a2a2e;
+  --ov-line-strong: #303034;
+  --ov-charcoal: #1f1f22;
+  --ov-charcoal-raised: #242427;
   --ov-night-text: #edecec;
   --ov-copper: #f54e00;
   --ov-copper-dark: #c43e00;
-  /* Exact accent, and it clears AA here — 5.3:1 on #14120b. */
+  /* Exact accent, and it clears AA here — 5.0:1 on #18181a. */
   --ov-accent-text: #f54e00;
   --ov-emerald-text: #6ee7a8;
   /* Text sitting *on* an accent fill. White on #f54e00 is only 3.5:1, so the
-     ink is the canvas colour instead, at 5.3:1. This does not flip with the
+     ink is the canvas colour instead, at 5.0:1. This does not flip with the
      colorway because the fill does not. */
-  --ov-on-copper: #14120b;
-  --ov-copper-field: #1b1913;
+  --ov-on-copper: #18181a;
+  --ov-copper-field: #1f1f22;
   --ov-amber: #c9a227;
   --ov-green: #6ee7a8;
   --ov-emerald: #1f8a65;
@@ -78,7 +78,7 @@ html[data-theme="day"] {
      from this darkened accent at 5.7:1 instead. */
   --ov-accent-text: #b23800;
   --ov-emerald-text: #167d5e;
-  --ov-on-copper: #14120b;
+  --ov-on-copper: #18181a;
   --ov-copper-field: #f54e00;
   --ov-amber: #c08532;
   --ov-green: #167d5e;
@@ -395,8 +395,8 @@ body {
   --ov-headline: #ffffff;
   --ov-ink: #edecec;
   --ov-muted: #a0a0a0;
-  --ov-line: #26241e;
-  --ov-line-strong: #2b2923;
+  --ov-line: #2a2a2e;
+  --ov-line-strong: #303034;
   --ov-hairline: rgb(255 255 255 / 0.1);
   --ov-hairline-strong: rgb(255 255 255 / 0.2);
   --ov-hairline-hover: rgb(255 255 255 / 0.4);
@@ -655,7 +655,7 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  background: #14120b;
+  background: #18181a;
   color: #edecec;
   font-family: var(--ov-font);
   -webkit-font-smoothing: antialiased;
@@ -727,7 +727,7 @@ body {
   margin-top: 2.25rem;
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 16px;
-  background: #1b1913;
+  background: #1f1f22;
   box-shadow:
     inset 0 1px 0 0 rgb(255 255 255 / 0.05),
     0 30px 80px -30px rgb(0 0 0 / 0.9);
@@ -887,7 +887,7 @@ body {
   padding: 2rem;
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 16px;
-  background: #1b1913;
+  background: #1f1f22;
   box-shadow:
     inset 0 1px 0 0 rgb(255 255 255 / 0.05),
     0 30px 80px -30px rgb(0 0 0 / 0.9);
@@ -970,7 +970,7 @@ body {
 .ov-signin-or span {
   position: relative;
   padding: 0 0.7rem;
-  background: #1b1913;
+  background: #1f1f22;
   color: #8a8880;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
@@ -1026,7 +1026,7 @@ body {
   border: 1px solid #ffffff;
   border-radius: 0.25rem;
   background: #ffffff;
-  color: #14120b;
+  color: #18181a;
   font-family: var(--ov-font);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -1143,7 +1143,7 @@ body {
   padding: 2rem;
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 16px;
-  background: #1b1913;
+  background: #1f1f22;
   text-align: center;
 }
 
@@ -1718,7 +1718,7 @@ body {
   border-radius: 20px;
   /* The bezel reads as the dark edge of a monitor in both colorways; a screen
      does not turn to paper when the page does. */
-  background: #14120b;
+  background: #18181a;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.08),
     0 40px 110px -34px rgb(0 0 0 / 0.7);
@@ -1879,7 +1879,7 @@ body {
   z-index: 1;
   border: 1px solid var(--ov-hairline);
   border-radius: 12px;
-  background: #1b1913;
+  background: #1f1f22;
   /* Drawn as a window lifted off the wallpaper behind it rather than a card
      lifted off the page — hence a shorter, tighter drop than the desk's. */
   box-shadow:
@@ -2044,7 +2044,7 @@ body {
   padding: 0.4rem 0.55rem;
   border: 1px solid var(--ov-hairline);
   border-radius: 8px;
-  background: #201e18;
+  background: #242427;
   transition:
     border-color 220ms ease,
     background 220ms ease;
@@ -2073,7 +2073,7 @@ body {
 
 .ov-public .ov-capture-row.is-set {
   border-color: color-mix(in srgb, var(--ov-copper) 34%, transparent);
-  background: color-mix(in srgb, var(--ov-copper) 9%, #201e18);
+  background: color-mix(in srgb, var(--ov-copper) 9%, #242427);
   animation: ov-capture 620ms ease-out;
 }
 
@@ -2084,7 +2084,7 @@ body {
 @keyframes ov-capture {
   0% {
     border-color: var(--ov-copper);
-    background: color-mix(in srgb, var(--ov-copper) 26%, #201e18);
+    background: color-mix(in srgb, var(--ov-copper) 26%, #242427);
     transform: translateX(4px);
   }
   100% {
@@ -2117,7 +2117,7 @@ body {
   border: 1px solid var(--ov-hairline-strong);
   border-radius: 9999px !important;
   background: #ffffff;
-  color: #14120b;
+  color: #18181a;
   cursor: pointer;
   transition:
     transform 130ms ease,
@@ -2152,7 +2152,7 @@ body {
   min-width: 1.5px;
   max-width: 3px;
   border-radius: 1px;
-  background: #2b2923;
+  background: #303034;
   opacity: 0.55;
   transition: background 120ms ease, opacity 120ms ease;
 }
@@ -2215,7 +2215,7 @@ body {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #2b2923;
+  background: #303034;
   transition:
     background 220ms ease,
     box-shadow 220ms ease;
@@ -2255,7 +2255,7 @@ body {
   padding: 0.7rem 0.85rem 0.8rem;
   border: 1px solid rgb(255 255 255 / 0.14);
   border-radius: 14px;
-  background: rgb(38 36 30 / 0.86);
+  background: rgb(40 40 44 / 0.86);
   backdrop-filter: blur(18px) saturate(1.4);
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
   box-shadow: 0 18px 40px -14px rgb(0 0 0 / 0.75);
@@ -2661,14 +2661,14 @@ body {
 
 .ov-public .ov-capture-row.is-set {
   border-color: color-mix(in srgb, var(--ov-emerald, #10b981) 38%, transparent);
-  background: color-mix(in srgb, var(--ov-emerald, #10b981) 8%, #201e18);
+  background: color-mix(in srgb, var(--ov-emerald, #10b981) 8%, #242427);
   animation: ov-capture-truth 680ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes ov-capture-truth {
   0% {
     border-color: var(--ov-emerald, #10b981);
-    background: color-mix(in srgb, var(--ov-emerald, #10b981) 22%, #201e18);
+    background: color-mix(in srgb, var(--ov-emerald, #10b981) 22%, #242427);
     transform: translateX(3px);
   }
   100% {
@@ -2825,7 +2825,7 @@ body {
 .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta,
 html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta,
 html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
-  background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 18%, var(--ov-charcoal, #1b1913)) !important;
+  background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 18%, var(--ov-charcoal, #1f1f22)) !important;
   border-color: color-mix(in srgb, var(--ov-emerald, #1f8a65) 42%, transparent) !important;
   color: var(--ov-night-text, #edecec) !important;
   box-shadow: none !important;
@@ -2835,7 +2835,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
 .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta:hover,
 html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta:hover {
-  background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 28%, var(--ov-charcoal, #1b1913)) !important;
+  background: color-mix(in srgb, var(--ov-emerald, #1f8a65) 28%, var(--ov-charcoal, #1f1f22)) !important;
   border-color: color-mix(in srgb, var(--ov-emerald-text, #6ee7a8) 55%, transparent) !important;
   color: var(--ov-night-text, #edecec) !important;
 }
@@ -2942,7 +2942,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
 }
 
 .ov-public .ov-hero-inner--poster .ov-console-wallpaper {
-  background: linear-gradient(168deg, #1a2430 0%, #14120b 52%, #0c0b08 100%);
+  background: linear-gradient(168deg, #1a2430 0%, #18181a 52%, #101012 100%);
 }
 
 .ov-public .ov-hero-inner--poster .ov-console-aurora--a {
@@ -3074,7 +3074,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
   padding: 0 0.9rem !important;
   border-radius: 4px !important;
   background: #edecec !important;
-  color: #14120b !important;
+  color: #18181a !important;
   border: 1px solid #edecec !important;
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
@@ -3085,7 +3085,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .ov-public .mkt-nav--institution .mkt-nav-cta:hover {
   background: #ffffff !important;
   border-color: #ffffff !important;
-  color: #14120b !important;
+  color: #18181a !important;
 }
 
 /* Console title bar = Cursor Desktop chrome */
@@ -3214,7 +3214,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public .ov-hero-inner--poster .ov-hero-cta-primary {
   background: #edecec !important;
-  color: #14120b !important;
+  color: #18181a !important;
   border: 1px solid #edecec !important;
   box-shadow: none !important;
 }
@@ -3320,7 +3320,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public .shell-page-actions .ov-btn--solid {
   background: #edecec !important;
-  color: #14120b !important;
+  color: #18181a !important;
   border: 1px solid #edecec !important;
 }
 
@@ -3389,7 +3389,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   background:
     radial-gradient(ellipse 90% 70% at 72% 42%, #161410 0%, transparent 58%),
     radial-gradient(ellipse 70% 50% at 18% 20%, #12151a 0%, transparent 55%),
-    linear-gradient(180deg, #0c0e12 0%, #14120b 48%, #0a0907 100%) !important;
+    linear-gradient(180deg, #0c0e12 0%, #18181a 48%, #0a0907 100%) !important;
 }
 
 .ov-public .ov-hero-sky-plane {
@@ -3486,7 +3486,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .ov-public.mkt-page--craft {
   background:
     radial-gradient(ellipse 80% 50% at 50% 0%, #161410 0%, transparent 55%),
-    #14120b;
+    #18181a;
 }
 
 .ov-public .tier1-hero {
@@ -4025,4 +4025,17 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   .ov-public .hx-facts-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* One flat canvas: colour is reserved for state (live, booked) and the single
+   copper accent, never for ambient glow behind the product. */
+.ov-public .ov-hero-sky-bloom,
+.ov-public .ov-hero-sky-bloom-bay,
+.ov-public .ov-console-aurora {
+  display: none;
+}
+
+.ov-public .ov-console-wallpaper,
+.ov-public .ov-hero-inner--poster .ov-console-wallpaper {
+  background: #1f1f22;
 }

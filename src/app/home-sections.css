@@ -293,7 +293,6 @@
   aspect-ratio: auto;
   height: calc(min(46rem, 86vw) * 10 / 16);
   background:
-    radial-gradient(80% 70% at 50% 0%, color-mix(in srgb, var(--ov-copper) 16%, transparent), transparent 70%),
     #0c0c0e;
 }
 
@@ -459,8 +458,6 @@
   grid-row: span 2;
   justify-content: flex-end;
   background:
-    radial-gradient(110% 80% at 0% 0%, color-mix(in srgb, var(--ov-copper) 22%, transparent), transparent 60%),
-    radial-gradient(90% 70% at 100% 100%, color-mix(in srgb, var(--ov-emerald) 20%, transparent), transparent 60%),
     var(--ov-paper);
 }
 
@@ -627,7 +624,6 @@ html.hx-motion [data-reveal-stagger].is-in > * {
   border-radius: 20px;
   border: 1px solid var(--ov-hairline);
   background:
-    radial-gradient(80% 60% at 100% 0%, color-mix(in srgb, var(--ov-copper) 12%, transparent), transparent 60%),
     var(--ov-paper);
 }
 

@@ -5158,7 +5158,7 @@ label:has(> input[type="radio"]) {
 html[data-theme="night"] .mkt-page,
 html[data-theme="night"] .mkt-page .tier1-hero,
 html[data-theme="night"] .mkt-page .tier1-close {
-  background: #14120b !important;
+  background: #18181a !important;
   color: #edecec !important;
 }
 
@@ -5166,9 +5166,9 @@ html[data-theme="night"] .mkt-page .tier1-story,
 html[data-theme="night"] .mkt-page .tier1-story-muted,
 html[data-theme="night"] .mkt-page .marketing-section,
 html[data-theme="night"] .mkt-page .mkt-proof-section {
-  background: #1b1913 !important;
+  background: #1f1f22 !important;
   color: #edecec !important;
-  border-color: #26241e !important;
+  border-color: #2a2a2e !important;
 }
 
 /* Ink → light */
@@ -5191,7 +5191,7 @@ html[data-theme="night"] .mkt-page .brand-intro-description,
 html[data-theme="night"] .mkt-page .text-ash,
 html[data-theme="night"] .mkt-page .mkt-law-body,
 html[data-theme="night"] .mkt-page .mkt-proof-lead {
-  color: var(--ov-muted, #9a978f) !important;
+  color: var(--ov-muted, #9d9da4) !important;
 }
 
 /* Cards / panels → dark */
@@ -5203,13 +5203,13 @@ html[data-theme="night"] .mkt-page .pricing-wizard,
 html[data-theme="night"] .mkt-page .pricing-needs-picker,
 html[data-theme="night"] .mkt-page .pricing-needs-option {
   background: #1c1a14 !important;
-  border-color: #26241e !important;
+  border-color: #2a2a2e !important;
   color: #edecec !important;
 }
 
 html[data-theme="night"] .mkt-page .pro-panel-head {
-  background: #14120b !important;
-  border-color: #26241e !important;
+  background: #18181a !important;
+  border-color: #2a2a2e !important;
 }
 
 /* Inputs → dark */
@@ -5219,27 +5219,27 @@ html[data-theme="night"] .mkt-page textarea,
 html[data-theme="night"] .mkt-page .input {
   background: #1c1a14 !important;
   color: #edecec !important;
-  border-color: #26241e !important;
+  border-color: #2a2a2e !important;
 }
 
 /* Primary pills invert to light on dark */
 html[data-theme="night"] .mkt-page .inst-btn-primary {
   background: #edecec !important;
-  color: #14120b !important;
+  color: #18181a !important;
   border-color: #edecec !important;
 }
 
 html[data-theme="night"] .mkt-page .inst-btn-ghost {
   background: #1c1a14 !important;
   color: #edecec !important;
-  border-color: #26241e !important;
+  border-color: #2a2a2e !important;
 }
 
 /* Nav → dark */
 html[data-theme="night"] .mkt-nav--institution,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
-  background: color-mix(in srgb, #14120b 88%, transparent) !important;
-  border-bottom-color: #26241e !important;
+  background: color-mix(in srgb, #18181a 88%, transparent) !important;
+  border-bottom-color: #2a2a2e !important;
 }
 
 html[data-theme="night"] .mkt-nav-brand .orvius-logo,
@@ -5255,7 +5255,7 @@ html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-cta,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
   background: #edecec !important;
-  color: #14120b !important;
+  color: #18181a !important;
   border-color: #edecec !important;
 }
 
@@ -5277,8 +5277,8 @@ html[data-theme="night"] .mkt-page .tier1-plan-badge {
 /* Footer → dark */
 html[data-theme="night"] .mkt-footer,
 html[data-theme="night"] .mkt-footer--institution {
-  background: #14120b !important;
-  border-top-color: #26241e !important;
+  background: #18181a !important;
+  border-top-color: #2a2a2e !important;
 }
 
 html[data-theme="night"] .mkt-footer-entity,
@@ -5293,11 +5293,11 @@ html[data-theme="night"] .mkt-footer-tagline,
 html[data-theme="night"] .mkt-footer-col a,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-copy,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
-  color: var(--ov-muted, #9a978f) !important;
+  color: var(--ov-muted, #9d9da4) !important;
 }
 
 html[data-theme="night"] .mkt-footer-bottom {
-  border-top-color: #26241e !important;
+  border-top-color: #2a2a2e !important;
 }
 
 /* Resources hub links */
