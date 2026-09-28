@@ -33,17 +33,17 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 
 | ID | Problem | Evidence | Status |
 |----|---------|----------|--------|
-| B1 | A canceled shop's line keeps answering and costing Twilio and Vapi minutes. Cancel only changes `billingStatus`; nothing turns the line off. | `src/lib/billing-sync.ts` (subscription sync), Vapi assistant stays attached | needs owner (grace period + number retention policy) |
-| B2 | Deleting a workspace or an admin deleting a shop does not release the Twilio number, so it bills forever. | `src/lib/workspace-deletion.ts`, `src/app/api/businesses/route.ts` | needs owner (release policy), then open |
+| B1 | A canceled shop's line keeps answering and costing Twilio and Vapi minutes. Cancel only changes `billingStatus`; nothing turns the line off. | `src/lib/billing-sync.ts` (subscription sync), Vapi assistant stays attached | in PR — decided: suspend at cancel, keep 30 days |
+| B2 | Deleting a workspace or an admin deleting a shop does not release the Twilio number, so it bills forever. | `src/lib/workspace-deletion.ts`, `src/app/api/businesses/route.ts` | in PR — released on delete |
 | B3 | Two onboarding submits at once can buy two numbers and create two shops. Same for the auto line fix on parallel page loads, and a retry after a failed rollback. | `src/app/api/onboarding/route.ts`, `src/lib/provision-business.ts` (no lock; `ownerEmail` not unique) | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) (lease + reuse); resumable UI still open under G3 |
-| B4 | Checkout does not check the signup gate, so a non-invited person can pay and then be refused a shop. A paid checkout abandoned before onboarding leaves a charge with no shop and no follow-up. | `src/app/api/billing/checkout/route.ts`, `src/lib/billing-sync.ts` | open |
+| B4 | Checkout does not check the signup gate, so a non-invited person can pay and then be refused a shop. A paid checkout abandoned before onboarding leaves a charge with no shop and no follow-up. | `src/app/api/billing/checkout/route.ts`, `src/lib/billing-sync.ts` | in PR — checkout gated; abandoned-checkout follow-up still open (G4) |
 | B5 | A time held during the call is booked without re-checking capacity, so a slot taken in between can be double-booked. | `src/lib/auto-job.ts` held-slot path, `src/lib/job.ts` `createJobFromLead` | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
 | B6 | The in-app "test call" marks the line verified without a real call, and writes a fake "1842 Oak Street" address onto the real shop. | `src/app/api/onboarding/test-call/route.ts` | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
 | B7 | `/api/admin/mastery` answers any signed-in user with platform-wide numbers (waitlist counts, shop counts, readiness gates). | `src/app/api/admin/mastery/route.ts` (no founder check) | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
 | B8 | The daily cron hides failures: line watch, weekly reports, overage billing and autopilot errors become `null` with no log and the job reports ok. | `src/app/api/cron/notifications/route.ts` `.catch(() => null)` | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
 | B9 | Alerts can be lost or doubled on a crash: an inbound text's owner alert is lost if the function dies after the lead is saved; the customer confirmation text is best-effort after response; an owner text can send twice if the function dies between Twilio and the DB write. | `src/app/api/webhooks/twilio/sms/route.ts`, `src/lib/job.ts`, `src/lib/notification-queue.ts` | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) for lost text alerts; duplicate send on crash and durable confirm text still open |
 | B10 | A Stripe refund does not update the deposit or invoice, which stays "paid". | `src/app/api/billing/webhook/route.ts` (no refund events) | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
-| B11 | `past_due` shops keep full access forever, and their overage is never billed. | `src/lib/billing-entitlement.ts`, `src/lib/overage-billing.ts` | needs owner (grace length) |
+| B11 | `past_due` shops keep full access forever, and their overage is never billed. | `src/lib/billing-entitlement.ts`, `src/lib/overage-billing.ts` | in PR — 7-day grace |
 | B12 | Sprint fixes waiting on merge: false "alerts not delivering" warning, info-only calls graded as missed bookings, invited members sent to signup. | [PR #76](https://github.com/marcocarlino2006-glitch/Orvius/pull/76), [PR #77](https://github.com/marcocarlino2006-glitch/Orvius/pull/77) | in PR — needs owner review |
 
 ## Tier 1 — Scale bottlenecks (what breaks at hundreds or thousands of shops)
@@ -97,14 +97,25 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 
 ---
 
-## Needs Marco (nothing else moves these)
+## Decisions (made 2026-09-28)
 
-1. Add `RESEND_API_KEY` in Vercel (unblocks G1, G4).
+| Question | Decision | Why |
+|----------|----------|-----|
+| Failed payment | 7 days of full access while Stripe retries, then the workspace locks. Calls keep being answered and alerted the whole time. Overage is billed for past-due shops too. | Most failed cards are fixed within a week; the shop's customers should never feel our billing problem. |
+| Cancellation | The AI stops answering at once (callers hear a short "not taking calls" message), so we stop paying for minutes. The number is kept 30 days; paying again restores the line on the same number. | Keeps win-back cheap and honest: same number on the truck, no free service. |
+| Number release | Numbers of shops canceled over 30 days are released by the daily cron. Starts in report-only mode; set `ORVIUS_RELEASE_LAPSED_LINES=1` after reviewing the first week's `line.release.dry_run` logs. | Releasing is permanent, so the first run is watched. |
+| Workspace or shop deleted | The number and assistant are released immediately. | The owner said they are done; nothing should keep billing. |
+| Paying before signup opens | Checkout refuses anyone who couldn't create a shop afterwards. | Never take money we can't turn into a working line. |
+| Self-serve signup | Open it (`ORVIUS_SELF_SERVE_SIGNUP`) once `RESEND_API_KEY` is set, so sign-in links and billing emails work. | A signup that can't email its owner isn't self-serve. |
+| Recordings and transcripts | Keep 24 months, then purge (to build; privacy page to match). | Long enough for disputes and warranty callbacks; not forever. |
+| Beta features (Jobs, Dispatch, money, Ask, Portfolio) | Frozen: no new work until the receptionist hits 1,000 paying shops. Kept visible for shops already using them. | Focus. |
+
+## Still needs Marco
+
+1. Add `RESEND_API_KEY` in Vercel.
 2. Tell me the Twilio toll-free or 10DLC verification status (S6).
-3. Decide: grace period for failed payments, and whether canceled shops keep their number and for how long (B1, B2, B11).
-4. Decide: open self-serve signup now or after G3 ships (G2).
-5. Decide: how long to keep recordings and transcripts (F5).
-6. Review and merge PRs #76, #77, #78; approve switching the demo number to server-URL mode (G5).
+3. In Stripe, make sure the webhook receives `charge.refunded` (including connected accounts).
+4. Switch the demo number to server-URL mode in Vapi, so the `/try` preview goes live (G5).
 
 ## Order of work
 
