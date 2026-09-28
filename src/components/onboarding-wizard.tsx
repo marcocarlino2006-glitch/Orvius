@@ -35,6 +35,41 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedSms, setAcceptedSms] = useState(false);
   const [resuming, setResuming] = useState(true);
+  const [areaCode, setAreaCode] = useState("");
+  const [areaCodeTouched, setAreaCodeTouched] = useState(false);
+  const [numbers, setNumbers] = useState<string[] | null>(null);
+  const [numbersSearchable, setNumbersSearchable] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [pickedNumber, setPickedNumber] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (areaCodeTouched) return;
+    const digits = ownerPhone.replace(/\D/g, "");
+    const national = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+    if (national.length === 10 && /^[2-9]/.test(national)) setAreaCode(national.slice(0, 3));
+  }, [ownerPhone, areaCodeTouched]);
+
+  useEffect(() => {
+    setNumbers(null);
+    setPickedNumber(null);
+  }, [areaCode]);
+
+  async function searchNumbers() {
+    if (!/^[2-9]\d{2}$/.test(areaCode)) return;
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/onboarding/numbers?areaCode=${areaCode}`);
+      const json = (await res.json()) as { numbers?: string[]; searchable?: boolean };
+      setNumbers(json.numbers ?? []);
+      setNumbersSearchable(json.searchable !== false);
+      setPickedNumber(json.numbers?.[0] ?? null);
+    } catch {
+      setNumbers([]);
+      setNumbersSearchable(false);
+    } finally {
+      setSearching(false);
+    }
+  }
 
   const resumeExisting = useCallback(async () => {
     const res = await fetch("/api/onboarding");
@@ -82,6 +117,8 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
           trade,
           ownerPhone: ownerPhone.trim(),
           checkoutSessionId,
+          ...(/^[2-9]\d{2}$/.test(areaCode) ? { areaCode } : {}),
+          ...(pickedNumber ? { phoneNumber: pickedNumber } : {}),
         }),
       });
 
@@ -241,6 +278,60 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                     <Link href="/sms-terms">SMS Terms</Link>.
                   </span>
                 </label>
+
+                <div className="onboarding-field font-sans">
+                  <label className="onboarding-label" htmlFor="onboarding-area-code">
+                    Area code for your Orvius number
+                  </label>
+                  <div className="onboarding-area-row">
+                    <input
+                      id="onboarding-area-code"
+                      type="text"
+                      value={areaCode}
+                      onChange={(e) => {
+                        setAreaCodeTouched(true);
+                        setAreaCode(e.target.value.replace(/\D/g, "").slice(0, 3));
+                      }}
+                      placeholder="512"
+                      className="onboarding-input onboarding-area-input"
+                      inputMode="numeric"
+                      maxLength={3}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-ghost font-sans"
+                      disabled={!/^[2-9]\d{2}$/.test(areaCode) || searching}
+                      onClick={() => void searchNumbers()}
+                    >
+                      {searching ? "Checking…" : "See numbers"}
+                    </button>
+                  </div>
+                  {numbers && numbers.length > 0 ? (
+                    <div className="onboarding-trade-grid" role="radiogroup" aria-label="Available numbers">
+                      {numbers.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          role="radio"
+                          aria-checked={pickedNumber === item}
+                          className={`onboarding-trade ${pickedNumber === item ? "onboarding-trade-active" : ""}`}
+                          onClick={() => setPickedNumber(item)}
+                        >
+                          {formatLine(item)}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <span className="onboarding-hint" aria-live="polite">
+                    {numbers === null
+                      ? "Callers see this number. Keep your existing number and forward to it, or put it on your trucks."
+                      : !numbersSearchable
+                        ? "We couldn't check numbers right now. We'll assign one in this area code when you create your line."
+                        : numbers.length === 0
+                          ? `No numbers left in ${areaCode}. Try a nearby area code, or we'll assign the closest available US number.`
+                          : "If your pick is taken before you finish, we'll assign another in the same area code."}
+                  </span>
+                </div>
               </div>
 
               <p className="onboarding-footnote font-sans">
@@ -298,4 +389,11 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
       </div>
     </main>
   );
+}
+
+function formatLine(e164: string): string {
+  const digits = e164.replace(/\D/g, "").slice(-10);
+  return digits.length === 10
+    ? `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+    : e164;
 }

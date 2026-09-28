@@ -84,6 +84,11 @@ export async function isOnboardingComplete(email: string): Promise<boolean> {
   return Boolean(business);
 }
 
+export type LineChoice = {
+  areaCode?: number | null;
+  phoneNumber?: string | null;
+};
+
 export type ProvisionInput = {
   name: string;
   trade: Trade;
@@ -91,6 +96,7 @@ export type ProvisionInput = {
   ownerPhone: string;
   greeting?: string;
   timezone?: string;
+  line?: LineChoice;
   billing: {
     customerId: string;
     subscriptionId: string;
@@ -120,8 +126,13 @@ async function provisionDedicatedLine(params: {
   shopName: string;
   ownerPhone: string;
   assistantId: string;
+  line?: LineChoice;
 }) {
-  const phone = await purchaseLocalNumber(params.ownerPhone);
+  const { phoneNumber: phone } = await purchaseLocalNumber({
+    ownerPhone: params.ownerPhone,
+    areaCode: params.line?.areaCode ?? null,
+    phoneNumber: params.line?.phoneNumber ?? null,
+  });
   await configureSmsWebhook(phone);
   await attachAssistantToShopLine({
     phone,
@@ -386,6 +397,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         shopName: name,
         ownerPhone: input.ownerPhone,
         assistantId: vapiAssistantId,
+        line: input.line,
       });
     } catch (error) {
       logError("provision.dedicated_line_failed", {

@@ -26,6 +26,14 @@ const createSchema = z.object({
   greeting: z.string().max(280).optional(),
   timezone: z.string().optional(),
   checkoutSessionId: z.string().min(8, "Paid checkout is required"),
+  areaCode: z
+    .string()
+    .regex(/^[2-9]\d{2}$/, "Area code must be three digits")
+    .optional(),
+  phoneNumber: z
+    .string()
+    .regex(/^\+1[2-9]\d{9}$/, "Pick a number from the list")
+    .optional(),
 });
 
 export async function GET() {
@@ -146,6 +154,10 @@ export async function POST(request: NextRequest) {
       ownerPhone: body.ownerPhone,
       greeting: body.greeting,
       timezone: body.timezone,
+      line: {
+        areaCode: body.areaCode ? Number(body.areaCode) : null,
+        phoneNumber: body.phoneNumber ?? null,
+      },
       billing,
     });
 

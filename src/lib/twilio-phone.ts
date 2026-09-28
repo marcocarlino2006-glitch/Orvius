@@ -1,41 +1,100 @@
 import { getTwilioClient } from "@/lib/twilio-client";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
 
-function areaCodeFromPhone(phone: string): number | undefined {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length === 11 && digits.startsWith("1")) {
-    return Number(digits.slice(1, 4));
-  }
-  if (digits.length >= 10) {
-    return Number(digits.slice(0, 3));
-  }
-  return undefined;
+type TwilioClient = ReturnType<typeof getTwilioClient>;
+
+export function areaCodeFromPhone(phone: string | null | undefined): number | undefined {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  const national = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  return national.length === 10 ? parseAreaCode(national.slice(0, 3)) ?? undefined : undefined;
 }
 
-export async function purchaseLocalNumber(ownerPhone?: string | null) {
-  const client = getTwilioClient();
-  const areaCode = ownerPhone ? areaCodeFromPhone(ownerPhone) : undefined;
+/** North American area codes: three digits, first digit 2–9. */
+export function parseAreaCode(value: string | number | null | undefined): number | null {
+  const text = String(value ?? "").trim();
+  return /^[2-9]\d{2}$/.test(text) ? Number(text) : null;
+}
 
+export async function listAvailableNumbers(
+  areaCode: number,
+  limit = 5,
+  client: TwilioClient = getTwilioClient(),
+): Promise<string[]> {
   const available = await client.availablePhoneNumbers("US").local.list({
-    ...(areaCode ? { areaCode } : {}),
-    limit: 5,
+    areaCode,
+    limit,
     smsEnabled: true,
     voiceEnabled: true,
   });
+  return available.map((entry) => entry.phoneNumber);
+}
 
-  if (!available.length) {
-    throw new Error("No local phone numbers available in Twilio");
+export type PurchasedLine = {
+  phoneNumber: string;
+  /** False when the requested area code was sold out and another local number was assigned. */
+  areaCodeMatched: boolean;
+};
+
+/**
+ * Buy the shop's line. This runs after payment, so it must not fail just
+ * because one area code is sold out: it tries the exact number the owner
+ * picked, then their area code, then their mobile's, then any US local number.
+ */
+export async function purchaseLocalNumber(
+  params: {
+    ownerPhone?: string | null;
+    areaCode?: number | null;
+    phoneNumber?: string | null;
+  },
+  client: TwilioClient = getTwilioClient(),
+): Promise<PurchasedLine> {
+  const wanted = params.areaCode ?? areaCodeFromPhone(params.ownerPhone) ?? null;
+  const buy = async (phoneNumber: string) =>
+    (
+      await client.incomingPhoneNumbers.create({
+        phoneNumber,
+        smsUrl: getWebhookUrl("/api/webhooks/twilio/sms"),
+        smsMethod: "POST",
+        friendlyName: "Orvius shop line",
+        ...voiceFallback(),
+      })
+    ).phoneNumber;
+
+  if (params.phoneNumber?.trim()) {
+    try {
+      return { phoneNumber: await buy(params.phoneNumber.trim()), areaCodeMatched: true };
+    } catch {
+      // Taken between search and purchase; fall through to the same area code.
+    }
   }
 
-  const purchased = await client.incomingPhoneNumbers.create({
-    phoneNumber: available[0].phoneNumber,
-    smsUrl: getWebhookUrl("/api/webhooks/twilio/sms"),
-    smsMethod: "POST",
-    friendlyName: "Orvius shop line",
-    ...voiceFallback(),
-  });
+  const tried = new Set<number>();
+  for (const areaCode of [params.areaCode, areaCodeFromPhone(params.ownerPhone)]) {
+    if (!areaCode || tried.has(areaCode)) continue;
+    tried.add(areaCode);
+    for (const candidate of await listAvailableNumbers(areaCode, 3, client)) {
+      try {
+        return { phoneNumber: await buy(candidate), areaCodeMatched: areaCode === wanted };
+      } catch {
+        continue;
+      }
+    }
+  }
 
-  return purchased.phoneNumber;
+  const anywhere = await client.availablePhoneNumbers("US").local.list({
+    limit: 3,
+    smsEnabled: true,
+    voiceEnabled: true,
+  });
+  for (const entry of anywhere) {
+    try {
+      return { phoneNumber: await buy(entry.phoneNumber), areaCodeMatched: wanted === null };
+    } catch {
+      continue;
+    }
+  }
+
+  throw new Error("No local phone numbers available in Twilio");
 }
 
 /*
