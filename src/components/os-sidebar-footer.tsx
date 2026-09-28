@@ -139,6 +139,7 @@ export function OsSidebarFooter() {
     }).catch(() => null);
     if (res?.ok) {
       invalidateAccount();
+      clearWorkspaceSessionState();
       window.location.assign("/dashboard");
       return;
     }
@@ -304,4 +305,13 @@ export function OsSidebarFooter() {
       </button>
     </div>
   );
+}
+
+/** Per-tab state that belongs to the shop being left: its setup verdict and "since you looked" anchor. */
+function clearWorkspaceSessionState() {
+  try {
+    for (const key of ["orvius:workspace-ready", "orvius.command.since"]) sessionStorage.removeItem(key);
+  } catch {
+    /* storage unavailable */
+  }
 }

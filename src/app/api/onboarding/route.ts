@@ -6,7 +6,6 @@ import {
   linkPaidCheckoutToBusiness,
 } from "@/lib/billing-sync";
 import {
-  findBusinessForOwner,
   isOnboardingComplete,
   provisionBusiness,
 } from "@/lib/provision-business";
@@ -15,6 +14,7 @@ import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
 import { TRADES } from "@/lib/trades";
+import { resolveShopAccess } from "@/lib/workspace-access";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -44,7 +44,8 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const business = await findBusinessForOwner(email);
+  // The open workspace, owned or shared — an invited dispatcher owns no shop but is not unprovisioned.
+  const business = (await resolveShopAccess(email))?.business ?? null;
   const setup = business ? getOwnerSetupStatus(business) : null;
 
   return NextResponse.json({
