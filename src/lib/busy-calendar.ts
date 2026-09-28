@@ -1,4 +1,5 @@
 import type { Business } from "@prisma/client";
+import { afterResponse } from "@/lib/after-response";
 import { isValidTimezone, MAX_SCHEDULE_DAYS, zonedWallToUtc, type BusyWindow } from "@/lib/availability";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -14,6 +15,7 @@ const ALLOWED_HOSTS = [/^calendar\.google\.com$/, /^([a-z0-9-]+\.)*icloud\.com$/
 const MAX_BYTES = 3_000_000;
 const FETCH_TIMEOUT_MS = 2500;
 export const BUSY_REFRESH_MS = 10 * 60_000;
+export const BUSY_STALE_MAX_MS = 2 * 60 * 60_000;
 const HORIZON_MS = (MAX_SCHEDULE_DAYS + 1) * 86_400_000;
 const MAX_WINDOWS = 2000;
 const MAX_DAYS_EXPANDED = 20_000;
@@ -382,14 +384,27 @@ export async function refreshBusyCalendar(business: BusyBusiness, now = new Date
   }
 }
 
-/** Busy times to block when offering slots, refreshed when the stored copy is older than ten minutes. */
+/**
+ * Busy times to block when offering slots. A slightly stale copy is served at
+ * once and refreshed after the response: this runs inside live calls, where
+ * waiting on someone's calendar server is dead air, and the held-slot re-check
+ * at booking reads the refreshed copy. A copy too old to trust, or none, waits.
+ */
 export async function getBusyWindows(businessId: string, now = new Date()): Promise<BusyWindow[]> {
   const business = await prisma.business.findUnique({
     where: { id: businessId },
     select: { id: true, timezone: true, busyCalendarUrl: true, busyCalendarJson: true, busyCalendarSyncedAt: true },
   });
   if (!business?.busyCalendarUrl) return [];
-  const fresh = business.busyCalendarSyncedAt && now.getTime() - business.busyCalendarSyncedAt.getTime() < BUSY_REFRESH_MS;
-  const windows = fresh ? decode(business.busyCalendarJson) : (await refreshBusyCalendar(business, now)).windows;
+  const age = business.busyCalendarSyncedAt ? now.getTime() - business.busyCalendarSyncedAt.getTime() : Infinity;
+  let windows: BusyWindow[];
+  if (age < BUSY_REFRESH_MS) {
+    windows = decode(business.busyCalendarJson);
+  } else if (age < BUSY_STALE_MAX_MS) {
+    windows = decode(business.busyCalendarJson);
+    await afterResponse(() => refreshBusyCalendar(business, now).then(() => undefined));
+  } else {
+    windows = (await refreshBusyCalendar(business, now)).windows;
+  }
   return windows.filter((w) => w.end.getTime() > now.getTime());
 }
