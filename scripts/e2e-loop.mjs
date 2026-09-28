@@ -12,6 +12,7 @@
  */
 import { encode } from "@auth/core/jwt";
 import { chromium } from "playwright";
+import { waitForCallReport } from "./lib/call-report-outcome.mjs";
 import { createScriptPrisma, loadEnvFile } from "./lib/db.mjs";
 
 loadEnvFile();
@@ -127,6 +128,7 @@ async function main() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(`webhook ${res.status}: ${JSON.stringify(data).slice(0, 160)}`);
+      await waitForCallReport(prisma, `e2e_${stamp}`);
       const lead = await prisma.lead.findFirst({ where: { businessId: business.id }, include: { job: true } });
       if (!lead) throw new Error("no lead was written");
       if (!lead.job) throw new Error("lead was not booked into a job");

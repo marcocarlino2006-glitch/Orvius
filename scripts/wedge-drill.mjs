@@ -5,6 +5,7 @@
 import { readFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { waitForCallReport } from "./lib/call-report-outcome.mjs";
 import { createScriptPrisma } from "./lib/db.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -119,6 +120,7 @@ async function runScenario(appUrl, env, business, scenario) {
     throw new Error(`HTTP ${endRes.status}: ${text.slice(0, 120)}`);
   }
   if (!endRes.ok) throw new Error(JSON.stringify(endData));
+  await waitForCallReport(prisma, vapiCallId);
 
   return endData.leadId;
 }
