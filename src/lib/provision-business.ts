@@ -21,6 +21,7 @@ import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import {
   canProvisionDedicatedLine,
   configureSmsWebhook,
+  findLineByFriendlyName,
   purchaseLocalNumber,
   releasePhoneNumber,
 } from "@/lib/twilio-phone";
@@ -31,7 +32,17 @@ import {
   createAssistant,
   deleteAssistant,
 } from "@/lib/vapi";
-import type { Business } from "@prisma/client";
+import type { Business, ProvisionAttempt } from "@prisma/client";
+import {
+  claimProvisionAttempt,
+  finishProvisionAttempt,
+  lineFriendlyName,
+  onboardingAttemptKey,
+  ProvisionBusyError,
+  recordProvisionStep,
+  reopenProvisionAttempt,
+  shopLineAttemptKey,
+} from "@/lib/provision-attempt";
 import { resolveShopAccess, type ShopAccess } from "@/lib/workspace-access";
 
 export type { Trade } from "@/lib/trades";
@@ -122,17 +133,33 @@ async function uniqueSlug(name: string): Promise<string> {
   return candidate;
 }
 
+/**
+ * The number this run owns: one an earlier try already bought (recorded, or
+ * found in Twilio by its tag when the purchase response was lost), else a new
+ * purchase that is recorded before anything else can fail.
+ */
 async function provisionDedicatedLine(params: {
+  attempt: ProvisionAttempt;
   shopName: string;
   ownerPhone: string;
   assistantId: string;
   line?: LineChoice;
 }) {
-  const { phoneNumber: phone } = await purchaseLocalNumber({
-    ownerPhone: params.ownerPhone,
-    areaCode: params.line?.areaCode ?? null,
-    phoneNumber: params.line?.phoneNumber ?? null,
-  });
+  const friendlyName = lineFriendlyName(params.attempt.tag);
+  let phone =
+    params.attempt.phoneNumber ??
+    (params.attempt.attempts > 1 ? await findLineByFriendlyName(friendlyName) : null);
+  if (!phone) {
+    phone = (
+      await purchaseLocalNumber({
+        ownerPhone: params.ownerPhone,
+        areaCode: params.line?.areaCode ?? null,
+        phoneNumber: params.line?.phoneNumber ?? null,
+        friendlyName,
+      })
+    ).phoneNumber;
+  }
+  await recordProvisionStep(params.attempt.key, { phoneNumber: phone });
   await configureSmsWebhook(phone);
   await attachAssistantToShopLine({
     phone,
@@ -142,14 +169,17 @@ async function provisionDedicatedLine(params: {
   return phone;
 }
 
+/** Undo a failed run. Whatever could not be undone is returned so the retry reuses it instead of buying again. */
 async function rollbackProvision(params: {
   vapiAssistantId: string | null;
   shopLine: string | null;
   releaseLine: boolean;
-}) {
+}): Promise<{ phoneNumber: string | null; vapiAssistantId: string | null }> {
+  const kept = { phoneNumber: params.shopLine, vapiAssistantId: params.vapiAssistantId };
   if (params.shopLine && params.releaseLine) {
     try {
       await releasePhoneNumber(params.shopLine);
+      kept.phoneNumber = null;
     } catch (error) {
       logError("provision.rollback.phone_failed", {
         shopLine: params.shopLine,
@@ -161,6 +191,7 @@ async function rollbackProvision(params: {
   if (params.vapiAssistantId) {
     try {
       await deleteAssistant(params.vapiAssistantId);
+      kept.vapiAssistantId = null;
     } catch (error) {
       logError("provision.rollback.assistant_failed", {
         vapiAssistantId: params.vapiAssistantId,
@@ -168,6 +199,7 @@ async function rollbackProvision(params: {
       });
     }
   }
+  return kept;
 }
 
 export function shopNeedsAutoLine(business: {
@@ -201,6 +233,7 @@ export async function autoEnsureCustomerShopLine(
     const result = await ensureDedicatedShopLine(business);
     return { business: result.business, provisioned: true };
   } catch (error) {
+    if (error instanceof ProvisionBusyError) return { business, provisioned: false };
     logError("autoEnsureCustomerShopLine.failed", {
       businessId: business.id,
       name: business.name,
@@ -267,19 +300,41 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
     throw new Error("Add your owner mobile in Settings before provisioning a shop line");
   }
 
-  const shopLine = await provisionDedicatedLine({
-    shopName: business.name,
-    ownerPhone,
-    assistantId: business.vapiAssistantId,
-  });
-
-  const updated = await prisma.business.update({
-    where: { id: business.id },
-    data: {
-      twilioPhone: shopLine,
-      vapiPhoneNumber: shopLine,
-    },
-  });
+  const key = shopLineAttemptKey(business.id);
+  await reopenProvisionAttempt(key);
+  const attempt = await claimProvisionAttempt(key);
+  const fresh = await prisma.business.findUniqueOrThrow({ where: { id: business.id } });
+  const freshLine = fresh.vapiPhoneNumber ?? fresh.twilioPhone;
+  if (freshLine && !(shopMustNotUseDemoLine(fresh) && isDemoPlatformLine(freshLine))) {
+    // Another request bought this shop's line while this one waited for the lease.
+    await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
+    return { business: fresh, repaired: false, dedicatedLine: true };
+  }
+  let updated: Business;
+  try {
+    const shopLine = await provisionDedicatedLine({
+      attempt,
+      shopName: business.name,
+      ownerPhone,
+      assistantId: business.vapiAssistantId,
+    });
+    updated = await prisma.business.update({
+      where: { id: business.id },
+      data: {
+        twilioPhone: shopLine,
+        vapiPhoneNumber: shopLine,
+      },
+    });
+  } catch (error) {
+    const current = await prisma.provisionAttempt.findUnique({ where: { key } });
+    await finishProvisionAttempt(key, {
+      status: "failed",
+      error: error instanceof Error ? error.message : "unknown",
+      keep: { phoneNumber: current?.phoneNumber ?? null, vapiAssistantId: null },
+    });
+    throw error;
+  }
+  await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
 
   await syncBusinessAssistant(updated);
 
@@ -377,23 +432,36 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
     servicesJson,
   });
 
-  let vapiAssistantId: string | null = null;
-  let shopLine: string | null = null;
+  const key = onboardingAttemptKey(email);
+  let attempt = await claimProvisionAttempt(key);
+  if (attempt.status === "succeeded") {
+    // A run that finished while this request waited already made the shop.
+    if (await findBusinessForOwner(email)) throw new Error("A shop is already linked to this account");
+    await reopenProvisionAttempt(key);
+    attempt = await claimProvisionAttempt(key);
+  }
+
+  let vapiAssistantId: string | null = attempt.vapiAssistantId;
+  let shopLine: string | null = attempt.phoneNumber;
 
   try {
-    const assistant = await createAssistant(
-      buildVapiAssistantConfig({
-        businessName: name,
-        systemPrompt,
-        greeting,
-        webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-        webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
-      }),
-    );
-    vapiAssistantId = assistant.id;
+    if (!vapiAssistantId) {
+      const assistant = await createAssistant(
+        buildVapiAssistantConfig({
+          businessName: name,
+          systemPrompt,
+          greeting,
+          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+        }),
+      );
+      vapiAssistantId = assistant.id;
+      await recordProvisionStep(key, { vapiAssistantId });
+    }
 
     try {
       shopLine = await provisionDedicatedLine({
+        attempt: { ...attempt, phoneNumber: shopLine },
         shopName: name,
         ownerPhone: input.ownerPhone,
         assistantId: vapiAssistantId,
@@ -442,14 +510,21 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
       },
     });
 
+    await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
     await syncBusinessAssistant(business);
 
     return { business, dedicatedLine: true };
   } catch (error) {
-    await rollbackProvision({
+    const recorded = await prisma.provisionAttempt.findUnique({ where: { key } });
+    const kept = await rollbackProvision({
       vapiAssistantId,
-      shopLine,
-      releaseLine: Boolean(shopLine),
+      shopLine: shopLine ?? recorded?.phoneNumber ?? null,
+      releaseLine: Boolean(shopLine ?? recorded?.phoneNumber),
+    });
+    await finishProvisionAttempt(key, {
+      status: "failed",
+      error: error instanceof Error ? error.message : "unknown",
+      keep: kept,
     });
     throw error;
   }

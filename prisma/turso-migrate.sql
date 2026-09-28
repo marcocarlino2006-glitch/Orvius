@@ -420,3 +420,20 @@ CREATE TABLE IF NOT EXISTS "OutboundSms" (
 );
 CREATE INDEX IF NOT EXISTS "OutboundSms_toNormalized_createdAt_idx" ON "OutboundSms"("toNormalized", "createdAt");
 CREATE INDEX IF NOT EXISTS "OutboundSms_businessId_createdAt_idx" ON "OutboundSms"("businessId", "createdAt");
+
+-- Paid provisioning runs: a lease so concurrent setup can't buy two numbers, and a record so retries reuse the purchase.
+CREATE TABLE IF NOT EXISTS "ProvisionAttempt" (
+    "key" TEXT NOT NULL PRIMARY KEY,
+    "tag" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "leaseUntil" DATETIME NOT NULL,
+    "attempts" INTEGER NOT NULL DEFAULT 1,
+    "phoneNumber" TEXT,
+    "vapiAssistantId" TEXT,
+    "businessId" TEXT,
+    "error" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ProvisionAttempt_tag_key" ON "ProvisionAttempt"("tag");
+
