@@ -1222,6 +1222,32 @@ h3 {
   margin-top: var(--space-6);
 }
 
+.shop-preview-card {
+  margin-top: var(--space-5);
+  padding: var(--space-5);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.shop-preview-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.shop-preview-card-lines {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.shop-preview-actions {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .tier1-page-title {
   margin-top: var(--space-4);
   max-width: 22ch;

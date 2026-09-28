@@ -67,7 +67,8 @@ export async function recordOutboundSms(params: {
 export async function sendSms(params: {
   to: string;
   body: string;
-  businessId: string;
+  /** Omitted only for texts that belong to no shop, such as a pre-purchase preview. */
+  businessId?: string;
   audience: SmsAudience;
 }): Promise<{ sid: string } | null> {
   const sender = smsSender();
@@ -84,12 +85,14 @@ export async function sendSms(params: {
     statusCallback: smsStatusCallback(),
   });
 
-  await recordOutboundSms({
-    businessId: params.businessId,
-    to,
-    audience: params.audience,
-    sid: sms.sid,
-  });
+  if (params.businessId) {
+    await recordOutboundSms({
+      businessId: params.businessId,
+      to,
+      audience: params.audience,
+      sid: sms.sid,
+    });
+  }
 
   return { sid: sms.sid };
 }
