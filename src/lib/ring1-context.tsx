@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -63,6 +64,7 @@ export type Ring1Data = {
   lastWeeklyProofAt?: string | null;
   personalBrief?: PersonalBrief | null;
   sinceUsed?: string | null;
+  version?: string;
   gates?: {
     certDone: number;
     certTotal: number;
@@ -154,11 +156,17 @@ export function Ring1Provider({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
+  const version = useRef<string | null>(null);
 
-  const refresh = useCallback(async () => {
+  /** `ifChanged` lets the server skip the rebuild when nothing moved; a refresh someone asked for never does. */
+  const load = useCallback(async (ifChanged: boolean) => {
     try {
+      const params = new URLSearchParams();
       const since = pinnedSince();
-      const res = await fetch(since ? `/api/ring1?since=${encodeURIComponent(since)}` : "/api/ring1");
+      if (since) params.set("since", since);
+      if (ifChanged && version.current) params.set("v", version.current);
+      const query = params.toString();
+      const res = await fetch(query ? `/api/ring1?${query}` : "/api/ring1");
       if (!res.ok) {
         throw new Error(
           res.status === 401
@@ -166,8 +174,9 @@ export function Ring1Provider({
             : "Command could not refresh.",
         );
       }
-      const json = (await res.json()) as Ring1Data;
-      setData(json);
+      const json = (await res.json()) as Ring1Data | { unchanged: true; version: string; sinceUsed?: string | null };
+      if (!("unchanged" in json)) setData(json);
+      version.current = json.version ?? null;
       pinSince(json.sinceUsed);
       setLoadError(null);
       setLastUpdatedAt(Date.now());
@@ -190,15 +199,16 @@ export function Ring1Provider({
       setLoading(false);
     }
   }, []);
+  const refresh = useCallback(() => load(false), [load]);
 
   useEffect(() => {
-    void refresh();
+    void load(false);
     if (!refreshMs) return;
     let lastRun = Date.now();
     const tick = () => {
       if (document.visibilityState !== "visible") return;
       lastRun = Date.now();
-      void refresh();
+      void load(true);
     };
     const interval = setInterval(tick, refreshMs);
 
@@ -236,7 +246,7 @@ export function Ring1Provider({
       closeStream();
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [refresh, refreshMs]);
+  }, [load, refreshMs]);
 
   const value = useMemo<Ring1ContextValue>(
     () => ({

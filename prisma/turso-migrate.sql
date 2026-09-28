@@ -473,3 +473,9 @@ CREATE INDEX IF NOT EXISTS "Business_stripeCustomerId_idx" ON "Business"("stripe
 ALTER TABLE "Business" ADD COLUMN "pastDueSince" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "canceledAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "lineReleasedAt" DATETIME;
+
+-- Command's change stamp reads the newest row per shop every few seconds.
+CREATE INDEX IF NOT EXISTS "Call_businessId_updatedAt_idx" ON "Call"("businessId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "Lead_businessId_updatedAt_idx" ON "Lead"("businessId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "Job_businessId_updatedAt_idx" ON "Job"("businessId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "OwnerNotification_businessId_processedAt_idx" ON "OwnerNotification"("businessId", "processedAt");

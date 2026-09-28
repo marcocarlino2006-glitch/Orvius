@@ -1,7 +1,8 @@
 /*
- * Regression tests for the scale pass (docs/BACKLOG.md S3): slot and
- * technician lookups read only the jobs that can matter, and a live call
- * never waits on the owner's calendar server for a recently synced copy.
+ * Regression tests for the scale pass (docs/BACKLOG.md S3, S4): slot and
+ * technician lookups read only the jobs that can matter, a live call never
+ * waits on the owner's calendar server for a recently synced copy, and the
+ * Command poll skips its rebuild when nothing changed.
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -9,6 +10,7 @@ import test from "node:test";
 import { PrismaClient } from "@prisma/client";
 
 import { BUSY_REFRESH_MS, BUSY_STALE_MAX_MS, getBusyWindows } from "../src/lib/busy-calendar.ts";
+import { COMMAND_VERSION_BUCKET_MS, commandVersion, shopVersion } from "../src/lib/shop-version.ts";
 import { jobsNear, loadTechCandidates } from "../src/lib/technician-match.ts";
 
 const prisma = new PrismaClient();
@@ -146,6 +148,35 @@ test("open-slot search reads only jobs that can overlap the booking horizon", ()
   assert.doesNotMatch(query, /scheduledAt: \{ not: null \}/);
   assert.match(query, /gte: new Date\(now\.getTime\(\) - 7/);
   assert.match(query, /MAX_SCHEDULE_DAYS \+ 1/);
+});
+
+test("Command's version holds while nothing changes and moves when a lead lands or time passes", async () => {
+  const shop = await makeShop();
+  try {
+    const now = new Date();
+    const first = commandVersion(await shopVersion(shop.id), now, null);
+    assert.equal(commandVersion(await shopVersion(shop.id), now, null), first);
+    await prisma.lead.create({ data: { businessId: shop.id, name: "New caller", phone: "+15125550100", source: "call" } });
+    const second = commandVersion(await shopVersion(shop.id), now, null);
+    assert.notEqual(second, first);
+    const later = new Date(now.getTime() + COMMAND_VERSION_BUCKET_MS);
+    assert.notEqual(commandVersion(await shopVersion(shop.id), later, null), second, "time-based parts still refresh");
+    assert.notEqual(commandVersion(await shopVersion(shop.id), now, new Date(now.getTime() - DAY)), second, "a new brief window rebuilds");
+  } finally {
+    await prisma.business.delete({ where: { id: shop.id } });
+  }
+});
+
+test("the Command poll answers 'unchanged' before running any of the heavy loaders", () => {
+  const route = read("src/app/api/ring1/route.ts");
+  const early = route.indexOf("unchanged: true");
+  assert.ok(early > 0);
+  for (const heavy of ["getDispatchBoard(", "getShopHealth(", "getAttentionQueue(", "loadPersonalBrief("]) {
+    assert.ok(route.indexOf(heavy) > early, `${heavy} runs after the version check`);
+  }
+  const client = read("src/lib/ring1-context.tsx");
+  assert.match(client, /void load\(true\)/, "background ticks ask only for changes");
+  assert.match(client, /const refresh = useCallback\(\(\) => load\(false\)/, "an asked-for refresh is always full");
 });
 
 test.after(() => prisma.$disconnect());

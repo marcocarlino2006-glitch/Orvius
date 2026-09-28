@@ -220,6 +220,7 @@ model Call {
   lead Lead?
 
   @@index([businessId, createdAt])
+  @@index([businessId, updatedAt])
 }
 
 model Lead {
@@ -263,6 +264,7 @@ model Lead {
   @@index([businessId, createdAt])
   @@index([businessId, categoryCode])
   @@index([businessId, postalCode])
+  @@index([businessId, updatedAt])
 }
 
 model Job {
@@ -326,6 +328,7 @@ model Job {
   @@index([technicianId, scheduledAt])
   @@index([businessId, categoryCode])
   @@index([customerConfirmSid])
+  @@index([businessId, updatedAt])
 }
 
 model Technician {
@@ -522,6 +525,7 @@ model OwnerNotification {
   @@index([businessId, createdAt])
   @@index([businessId, status])
   @@index([status, nextRetryAt])
+  @@index([businessId, processedAt])
 }
 
 model WebhookEvent {

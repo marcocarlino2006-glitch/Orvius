@@ -13,6 +13,7 @@ import { loadPersonalBrief } from "@/lib/personal-brief-data";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
+import { commandVersion, shopVersion } from "@/lib/shop-version";
 import { getShiftTimeline } from "@/lib/shift-timeline";
 import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
@@ -47,9 +48,17 @@ export async function GET(request: Request) {
     );
   }
 
+  after(() => runAutopilot(business.id).catch(() => null));
+
+  // The 30s poll mostly finds nothing new; answer that from four indexed reads.
+  const versionP = shopVersion(business.id).then((data) => commandVersion(data, now, since));
+  const haveVersion = new URL(request.url).searchParams.get("v");
+  if (haveVersion && haveVersion === (await versionP)) {
+    return NextResponse.json({ unchanged: true, version: haveVersion, sinceUsed: since?.toISOString() ?? null });
+  }
+
   const today = shopDayBounds(null, business.timezone ?? "America/New_York").start;
   const businessFilter = { businessId: business.id };
-  after(() => runAutopilot(business.id).catch(() => null));
   const windowStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const healthP = getShopHealth(business.id);
 
@@ -311,5 +320,7 @@ export async function GET(request: Request) {
     personalBrief,
     /** The anchor this response used, so the tab can keep it for the session. */
     sinceUsed: since?.toISOString() ?? null,
+    /** Sent back as `v` on the next poll to skip the rebuild when nothing changed. */
+    version: await versionP,
   });
 }
