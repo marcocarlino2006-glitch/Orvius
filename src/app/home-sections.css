@@ -211,20 +211,26 @@
 }
 
 .ov-public .hx-arrows button {
-  width: 2.5rem;
-  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 999px;
-  border: 1px solid var(--ov-hairline-strong);
-  background: transparent;
+  border: 1px solid var(--ov-hairline);
+  background: rgb(255 255 255 / 0.04);
   color: var(--ov-headline);
-  font-size: 1rem;
   cursor: pointer;
-  transition: border-color 160ms ease, background 160ms ease;
+  transition: border-color 160ms ease, background 160ms ease, opacity 160ms ease;
 }
 
-.ov-public .hx-arrows button:hover {
+.ov-public .hx-arrows button:hover:not(:disabled) {
   border-color: var(--ov-hairline-hover);
-  background: var(--ov-hairline);
+  background: rgb(255 255 255 / 0.08);
+}
+
+.ov-public .hx-arrows button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .ov-public .hx-surfaces .hx-track {

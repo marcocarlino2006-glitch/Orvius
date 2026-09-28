@@ -354,7 +354,7 @@ body {
 
 .ov-public .mkt-manifesto-kicker {
   margin: 0 0 1.25rem !important;
-  color: var(--ov-accent-text) !important;
+  color: var(--ov-muted) !important;
   font-family: var(--ov-font) !important;
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
@@ -3895,4 +3895,22 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .ov-public .ov-console-wallpaper,
 .ov-public .ov-hero-inner--poster .ov-console-wallpaper {
   background: #1f1f22;
+}
+
+/* Hero shares the 1240px rail and 5vw gutter every section below it uses. */
+.ov-public .ov-hero--atmosphere {
+  padding-inline: max(20px, 5vw);
+}
+
+.ov-public .ov-hero-inner--poster {
+  width: min(100%, 1240px);
+  margin-inline: auto;
+}
+
+@media (min-width: 900px) {
+  .ov-public .mkt-laws--ruled {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(2rem, 5vw, 4.5rem);
+  }
 }

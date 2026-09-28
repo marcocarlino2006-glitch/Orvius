@@ -1,7 +1,26 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+function Chevron({ flip = false }: { flip?: boolean }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      style={flip ? { transform: "scaleX(-1)" } : undefined}
+    >
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
 
 type Surface = {
   id: string;
@@ -50,6 +69,24 @@ const field: Surface = {
 
 export function HomeSurfaces() {
   const trackRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ start: true, end: false });
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const update = () =>
+      setEdges({
+        start: track.scrollLeft <= 4,
+        end: track.scrollLeft + track.clientWidth >= track.scrollWidth - 4,
+      });
+    update();
+    track.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      track.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
 
   const scrollBy = (dir: 1 | -1) => {
     const track = trackRef.current;
@@ -70,11 +107,21 @@ export function HomeSurfaces() {
             </h2>
           </div>
           <div className="hx-arrows">
-            <button type="button" aria-label="Previous" onClick={() => scrollBy(-1)}>
-              ←
+            <button
+              type="button"
+              aria-label="Previous screen"
+              disabled={edges.start}
+              onClick={() => scrollBy(-1)}
+            >
+              <Chevron flip />
             </button>
-            <button type="button" aria-label="Next" onClick={() => scrollBy(1)}>
-              →
+            <button
+              type="button"
+              aria-label="Next screen"
+              disabled={edges.end}
+              onClick={() => scrollBy(1)}
+            >
+              <Chevron />
             </button>
           </div>
         </header>
