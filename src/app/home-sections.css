@@ -8,8 +8,7 @@
 }
 
 .ov-public .hx-section.hx-night,
-.ov-public .hx-section.hx-surfaces,
-.ov-public .hx-section.hx-start {
+.ov-public .hx-section.hx-surfaces {
   background: var(--ov-paper-raised);
 }
 
@@ -370,7 +369,7 @@
 .ov-public .hx-table .is-us,
 .ov-public .hx-table td:last-child {
   width: 22%;
-  background: color-mix(in srgb, var(--ov-copper) 7%, transparent);
+  background: rgb(255 255 255 / 0.03);
 }
 
 .ov-public .hx-table thead .is-us {
@@ -419,87 +418,6 @@
   font-size: 0.8125rem;
 }
 
-/* ---------- Start grid ---------- */
-
-.ov-public .hx-start-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-auto-rows: 1fr;
-  gap: 1rem;
-}
-
-.ov-public .hx-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-height: 13rem;
-  padding: 1.5rem;
-  border-radius: 16px;
-  border: 1px solid var(--ov-hairline);
-  background: var(--ov-paper);
-  color: var(--ov-ink);
-  text-decoration: none;
-  transition:
-    border-color 180ms ease,
-    transform 180ms ease;
-}
-
-.ov-public .hx-card:hover {
-  border-color: var(--ov-hairline-hover);
-  transform: translateY(-2px);
-}
-
-.ov-public .hx-card:focus-visible {
-  outline: 2px solid var(--ov-copper);
-  outline-offset: 3px;
-}
-
-.ov-public .hx-card--feature {
-  grid-row: span 2;
-  justify-content: flex-end;
-  background:
-    var(--ov-paper);
-}
-
-.ov-public .hx-card-kicker {
-  color: var(--ov-accent-text);
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.ov-public .hx-card-title {
-  color: var(--ov-headline);
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.ov-public .hx-card--feature .hx-card-title {
-  font-size: var(--fs-display-sm);
-  letter-spacing: -0.02em;
-}
-
-.ov-public .hx-card-body {
-  color: var(--ov-muted);
-  font-size: 0.9375rem;
-  line-height: 1.5;
-}
-
-.ov-public .hx-card-cta {
-  margin-top: auto;
-  padding-top: 0.75rem;
-  color: var(--ov-headline);
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.ov-public .hx-card-number {
-  margin-top: 1rem;
-  color: var(--ov-emerald-text);
-  font-size: var(--fs-display-xs);
-  letter-spacing: 0.1em;
-}
-
 /* ---------- Reveal motion ---------- */
 
 html.hx-motion [data-reveal]:not([data-reveal-stagger]),
@@ -536,7 +454,7 @@ html.hx-motion [data-reveal-stagger].is-in > * {
 
 .ov-public .hx-night-steps > li {
   position: relative;
-  min-height: 62vh;
+  min-height: 34vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -545,13 +463,13 @@ html.hx-motion [data-reveal-stagger].is-in > * {
 }
 
 .ov-public .hx-night-steps > li:first-child {
-  min-height: 45vh;
+  min-height: 30vh;
   justify-content: flex-start;
   padding-top: 2rem;
 }
 
 .ov-public .hx-night-steps > li:last-child {
-  min-height: 55vh;
+  min-height: 40vh;
 }
 
 .ov-public .hx-night-steps > li.is-active {
@@ -796,7 +714,7 @@ html.hx-motion [data-reveal-stagger].is-in > * {
   .ov-public .hx-night-steps > li,
   .ov-public .hx-night-steps > li:first-child,
   .ov-public .hx-night-steps > li:last-child {
-    min-height: 55vh;
+    min-height: 40vh;
     justify-content: center;
     padding-top: 0;
   }
@@ -809,14 +727,9 @@ html.hx-motion [data-reveal-stagger].is-in > * {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .ov-public .hx-start-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  
 
-  .ov-public .hx-card--feature {
-    grid-column: 1 / -1;
-    grid-row: auto;
-  }
+  
 }
 
 @media (max-width: 560px) {
@@ -824,13 +737,9 @@ html.hx-motion [data-reveal-stagger].is-in > * {
     display: none;
   }
 
-  .ov-public .hx-start-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  
 
-  .ov-public .hx-card {
-    min-height: 0;
-  }
+  
 
   .ov-public .hx-table {
     min-width: 0;

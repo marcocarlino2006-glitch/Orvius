@@ -1,6 +1,5 @@
 import { HomeLiveCall } from "@/components/home-live-call";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
-import { StageWorld } from "@/components/stage-world";
 import { company } from "@/lib/company";
 import { demoLineHref } from "@/lib/demo-line";
 import type { Metadata } from "next";
@@ -56,7 +55,6 @@ export default function ProductPage() {
             }
           />
           <div className="ov-product-stage">
-            <StageWorld />
             <HomeLiveCall />
           </div>
         </div>

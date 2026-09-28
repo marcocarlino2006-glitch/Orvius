@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { HomeLiveCall } from "@/components/home-live-call";
-import { StageWorld } from "@/components/stage-world";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /*
@@ -92,7 +91,6 @@ export function HomeLineHero() {
         </div>
 
         <div className="ov-hero-stage">
-          <StageWorld />
           <HomeLiveCall />
         </div>
       </div>
