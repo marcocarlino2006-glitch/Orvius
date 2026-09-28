@@ -437,3 +437,9 @@ CREATE TABLE IF NOT EXISTS "ProvisionAttempt" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "ProvisionAttempt_tag_key" ON "ProvisionAttempt"("tag");
 
+-- Every call, text and sign-in looks a shop up by one of these.
+CREATE INDEX IF NOT EXISTS "Business_ownerEmail_idx" ON "Business"("ownerEmail");
+CREATE INDEX IF NOT EXISTS "Business_twilioPhone_idx" ON "Business"("twilioPhone");
+CREATE INDEX IF NOT EXISTS "Business_vapiPhoneNumber_idx" ON "Business"("vapiPhoneNumber");
+CREATE INDEX IF NOT EXISTS "Business_vapiAssistantId_idx" ON "Business"("vapiAssistantId");
+CREATE INDEX IF NOT EXISTS "Business_stripeCustomerId_idx" ON "Business"("stripeCustomerId");

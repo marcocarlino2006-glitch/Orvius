@@ -119,6 +119,12 @@ model Business {
   memberships        Membership[]
   /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
   overageBilledPeriod String?
+
+  @@index([ownerEmail])
+  @@index([twilioPhone])
+  @@index([vapiPhoneNumber])
+  @@index([vapiAssistantId])
+  @@index([stripeCustomerId])
 }
 
 /** Phone numbers that opted out of SMS on a shop line (STOP). */
