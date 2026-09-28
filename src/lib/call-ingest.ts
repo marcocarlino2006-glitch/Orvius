@@ -5,7 +5,7 @@ import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
-import { logInfo } from "@/lib/logger";
+import { logError, logInfo, logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { prisma } from "@/lib/prisma";
@@ -13,6 +13,10 @@ import { callerWords } from "@/lib/transcript";
 import { withCallerSpelling } from "@/lib/spelled-name";
 import { extractLeadFromStructuredData, type VapiWebhookMessage } from "@/lib/vapi";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
+import type { Business, Call, Lead } from "@prisma/client";
+
+/** Call and lead saved, the rest not yet done. */
+const CAPTURED = "captured";
 
 export type IngestResult =
   | { duplicate: true }
@@ -38,6 +42,23 @@ export async function ingestEndOfCallReport(params: {
   message: VapiWebhookMessage["message"];
   vapiCallId: string;
 }): Promise<IngestResult> {
+  const captured = await captureEndOfCallReport(params);
+  if (captured.duplicate) return captured;
+  return finishCallReport(captured);
+}
+
+type Captured = { duplicate: false; business: Business; vapiCallId: string; call: Call; lead: Lead };
+
+/**
+ * The part of a report that must be saved before Vapi gets its answer: the
+ * call and its lead. Everything after reads only those rows, so it can run
+ * after the response and be re-run by sweepUnfinishedCallReports.
+ */
+export async function captureEndOfCallReport(params: {
+  business: { id: string };
+  message: VapiWebhookMessage["message"];
+  vapiCallId: string;
+}): Promise<{ duplicate: true } | Captured> {
   const { message, vapiCallId } = params;
   // Callers resolve the shop from different partial rows; the playbook needs
   // trade and services, so read the whole row once here.
@@ -153,6 +174,28 @@ export async function ingestEndOfCallReport(params: {
       return { call, lead };
     });
 
+    await completeWebhookEvent({ source: "vapi", externalId: vapiCallId, eventType, status: CAPTURED });
+    return { duplicate: false, business, vapiCallId, call, lead };
+  } catch (error) {
+    await completeWebhookEvent({
+      source: "vapi",
+      externalId: vapiCallId,
+      eventType,
+      status: "failed",
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    throw error;
+  }
+}
+
+/** Customer match, booking and the owner alert for a captured call. Safe to re-run. */
+export async function finishCallReport(input: Omit<Captured, "duplicate">): Promise<IngestResult> {
+  const { business, vapiCallId, call, lead } = input;
+  const eventType = "end-of-call-report";
+  const { summary, transcript, durationSec, successEvaluation } = call;
+  // Stored from the caller ID when Vapi had one, which is all the mismatch check needs.
+  const callerId = call.callerPhone;
+  try {
     const key = (step: string) => `call:${vapiCallId}:${step}`;
     const audit = createAuditQueue();
     audit.add({
@@ -248,7 +291,6 @@ export async function ingestEndOfCallReport(params: {
 
     const safety = autoBook.classification?.safety;
     const spoken = callerWords(transcript);
-    const callerId = message.call?.customer?.number ?? null;
     const phoneMismatch =
       Boolean(callerId && freshLead.phone) && normalizePhone(callerId) !== normalizePhone(freshLead.phone);
     const wantsHuman = leadWantsHuman({ notes: `${freshLead.notes ?? ""} ${spoken}`, serviceType: freshLead.serviceType });
@@ -381,4 +423,70 @@ export async function ingestEndOfCallReport(params: {
     });
     throw error;
   }
+}
+
+const FINISH_GRACE_MS = 5 * 60_000;
+const FINISH_LOOKBACK_MS = 24 * 60 * 60_000;
+
+/**
+ * Vapi is answered once the call is saved, so a function that dies before
+ * finishing leaves a call nobody booked or alerted on, and Vapi will not send
+ * it again. This finishes those. One try each: if finishing fails again the
+ * owner still gets a plain alert under the same dedupe key.
+ */
+export async function sweepUnfinishedCallReports(now = new Date()): Promise<number> {
+  const eventType = "end-of-call-report";
+  const events = await prisma.webhookEvent.findMany({
+    where: {
+      source: "vapi",
+      eventType,
+      status: { in: [CAPTURED, "failed"] },
+      createdAt: { gte: new Date(now.getTime() - FINISH_LOOKBACK_MS), lte: new Date(now.getTime() - FINISH_GRACE_MS) },
+    },
+    select: { id: true, externalId: true, status: true },
+    orderBy: { createdAt: "asc" },
+    take: 25,
+  });
+  if (!events.length) return 0;
+  const calls = await prisma.call.findMany({
+    where: { vapiCallId: { in: events.map((e) => e.externalId) } },
+    include: { lead: true, business: true },
+  });
+
+  let finished = 0;
+  for (const event of events) {
+    const call = calls.find((c) => c.vapiCallId === event.externalId);
+    // Failed before the call was saved: Vapi's redelivery or line watch recovers those.
+    if (!call?.lead) continue;
+    const claimed = await prisma.webhookEvent.updateMany({
+      where: { id: event.id, status: event.status },
+      data: { status: "processing" },
+    });
+    if (!claimed.count) continue;
+    const { business, lead, ...row } = call;
+    try {
+      await finishCallReport({ business, vapiCallId: event.externalId, call: row, lead });
+      finished += 1;
+      logWarn("vapi.call_report_finished_late", { businessId: business.id, vapiCallId: event.externalId });
+    } catch (error) {
+      logError("vapi.call_report_unfinished", {
+        businessId: business.id,
+        vapiCallId: event.externalId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      await prisma.webhookEvent.update({ where: { id: event.id }, data: { status: "abandoned" } });
+      await enqueueOwnerAlert({
+        businessId: business.id,
+        ownerPhone: business.ownerPhone,
+        ownerEmail: business.ownerEmail,
+        businessName: business.name,
+        message: [`New call · ${lead.serviceType ?? "needs review"}`, lead.phone, lead.address, call.summary]
+          .filter(Boolean)
+          .join("\n"),
+        leadId: lead.id,
+        dedupeKey: buildLeadAlertDedupeKey({ vapiCallId: event.externalId }),
+      }).catch(() => undefined);
+    }
+  }
+  return finished;
 }

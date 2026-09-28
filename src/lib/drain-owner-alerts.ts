@@ -1,3 +1,4 @@
+import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
 import { logError } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
 import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
@@ -40,7 +41,7 @@ export async function drainOwnerAlerts(context: Record<string, unknown> = {}) {
       try {
         if (Date.now() - lastStrandedSweep >= STRANDED_SWEEP_EVERY_MS) {
           lastStrandedSweep = Date.now();
-          await alertStrandedTextLeads();
+          await Promise.all([alertStrandedTextLeads(), sweepUnfinishedCallReports()]);
         }
         await processNotificationQueue(10);
       } catch (error) {

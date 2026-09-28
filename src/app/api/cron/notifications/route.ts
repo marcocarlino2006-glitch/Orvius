@@ -4,6 +4,7 @@ import { runAutopilot } from "@/lib/autopilot";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { prisma } from "@/lib/prisma";
 import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
+import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { releaseLapsedLines } from "@/lib/line-lifecycle";
 import { watchAllLines } from "@/lib/line-watch";
@@ -71,7 +72,10 @@ export async function GET(request: NextRequest) {
     }
   };
 
-  const strandedTextLeads = await step("stranded_text_leads", () => alertStrandedTextLeads());
+  const [strandedTextLeads, lateCallReports] = await Promise.all([
+    step("stranded_text_leads", () => alertStrandedTextLeads()),
+    step("unfinished_call_reports", () => sweepUnfinishedCallReports()),
+  ]);
   const [notifications, customerConfirmations] = await Promise.all([
     step("notifications", () => processNotificationQueue(50)),
     step("customer_confirmations", () => sendDueCustomerConfirmationReminders(new Date(), 25)),
@@ -107,6 +111,7 @@ export async function GET(request: NextRequest) {
     overage,
     customerConfirmations,
     strandedTextLeads,
+    lateCallReports,
     lapsedLines,
     autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });

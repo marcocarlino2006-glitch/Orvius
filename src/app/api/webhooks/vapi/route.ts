@@ -3,9 +3,9 @@ import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import type { VapiWebhookMessage } from "@/lib/vapi";
-import { ingestEndOfCallReport } from "@/lib/call-ingest";
+import { captureEndOfCallReport, finishCallReport } from "@/lib/call-ingest";
 import { linkTouchToCustomer } from "@/lib/customer";
-import { logWarn } from "@/lib/logger";
+import { logError, logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
@@ -243,21 +243,22 @@ export async function POST(request: NextRequest) {
   }
 
   if (type === "end-of-call-report") {
-    const result = await ingestEndOfCallReport({ business, message, vapiCallId });
-    if (result.duplicate) {
+    // Booking can take several rounds; Vapi only needs to know the call is saved.
+    const captured = await captureEndOfCallReport({ business, message, vapiCallId });
+    if (captured.duplicate) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
-    after(() => drainOwnerAlerts({ at: "vapi.webhook", vapiCallId, businessId: business.id }));
-    return NextResponse.json({
-      ok: true,
-      callId: result.callId,
-      leadId: result.leadId,
-      jobId: result.jobId,
-      autoBooked: result.autoBooked,
-      qualified: result.qualified,
-      skipReason: result.skipReason,
-      queued: true,
+    after(async () => {
+      await finishCallReport(captured).catch((error: unknown) =>
+        logError("vapi.call_report_finish_failed", {
+          vapiCallId,
+          businessId: business.id,
+          error: error instanceof Error ? error.message : "unknown",
+        }),
+      );
+      await drainOwnerAlerts({ at: "vapi.webhook", vapiCallId, businessId: business.id });
     });
+    return NextResponse.json({ ok: true, callId: captured.call.id, leadId: captured.lead.id, queued: true });
   }
 
   return NextResponse.json({ ok: true, type });

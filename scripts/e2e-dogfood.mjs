@@ -6,6 +6,7 @@
 import { readFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { waitForCallReport } from "./lib/call-report-outcome.mjs";
 import { createScriptPrisma } from "./lib/db.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -233,6 +234,7 @@ async function main() {
       });
       const data = await res.json();
       if (!res.ok) return { ok: false, message: JSON.stringify(data) };
+      Object.assign(data, await waitForCallReport(prisma, vapiCallId));
       return {
         ok: Boolean(data.leadId && data.autoBooked && data.jobId),
         message: `lead ${data.leadId ?? "created"}, job ${data.jobId ?? "missing"}`,
