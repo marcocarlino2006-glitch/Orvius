@@ -87,7 +87,7 @@ function localClock(at: Date, timezone: string): LocalClock {
   return { weekday, hour, minute };
 }
 
-function safeTimezone(timezone: string) {
+export function safeTimezone(timezone: string) {
   try {
     // Throws for an invalid IANA identifier.
     new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format(new Date());

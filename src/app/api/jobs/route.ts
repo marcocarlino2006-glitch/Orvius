@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
+import { safeTimezone } from "@/lib/availability";
 import { JOB_INCLUDE, createJobFromLead, serializeJob } from "@/lib/job";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -22,6 +23,7 @@ export async function GET() {
 
   return NextResponse.json({
     jobs: jobs.map(serializeJob),
+    timezone: safeTimezone(business.timezone),
   });
 }
 

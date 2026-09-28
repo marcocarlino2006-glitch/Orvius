@@ -67,6 +67,7 @@ export default function JobsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stageId, setStageId] = useState("booked");
+  const [timeZone, setTimeZone] = useState<string | undefined>();
 
   useEffect(() => {
     Promise.all([
@@ -80,6 +81,7 @@ export default function JobsPage() {
     ])
       .then(([jobData, leadData]) => {
         setJobs(jobData.jobs ?? []);
+        setTimeZone(jobData.timezone ?? undefined);
         setNewLeadCount(leadData.counts?.new ?? 0);
       })
       .catch((err) => setError(err.message))
@@ -220,6 +222,7 @@ export default function JobsPage() {
           ) : (
             <>
             <JobTable
+              timeZone={timeZone}
               rows={filtered.map(({ job, facts }) => ({
                 id: job.id,
                 title: job.title,
