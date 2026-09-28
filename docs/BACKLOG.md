@@ -51,9 +51,9 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | ID | Problem | Evidence | Status |
 |----|---------|----------|--------|
 | S1 | The hottest shop lookups have no index: owner email, Twilio number, Vapi number, Stripe customer. Every call, text and sign-in scans the shop table. | `prisma/schema.prisma` `Business` | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
-| S2 | The end-of-call webhook books the job and assigns a tech (up to 12 reslot rounds) before replying to Vapi, risking timeouts and retries under load. | `src/app/api/webhooks/vapi/route.ts`, `src/lib/call-ingest.ts` | open |
-| S3 | Every availability check loads all open jobs for the shop, and the slot scan is slots × jobs. A live-call tool can also wait 2.5 s on a calendar fetch. | `src/lib/job.ts`, `src/lib/availability.ts`, `src/lib/busy-calendar.ts` | open |
-| S4 | The Command page poll runs 20+ database queries each time. | `src/app/api/ring1/route.ts`, `src/lib/attention-queue.ts` | open |
+| S2 | The end-of-call webhook books the job and assigns a tech (up to 12 reslot rounds) before replying to Vapi, risking timeouts and retries under load. | `src/app/api/webhooks/vapi/route.ts`, `src/lib/call-ingest.ts` | in PR (scale pass) |
+| S3 | Every availability check loads all open jobs for the shop, and the slot scan is slots × jobs. A live-call tool can also wait 2.5 s on a calendar fetch. | `src/lib/job.ts`, `src/lib/availability.ts`, `src/lib/busy-calendar.ts` | in PR (scale pass) |
+| S4 | The Command page poll runs 20+ database queries each time. | `src/app/api/ring1/route.ts`, `src/lib/attention-queue.ts` | in PR (scale pass) |
 | S5 | The daily cron handles shops one at a time and stops at 200 shops without saying so. Owner alert retries for quiet shops wait for that daily run. | `src/app/api/cron/notifications/route.ts`, `src/lib/drain-owner-alerts.ts` | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
 | S6 | All shops text from one shared sender; replies route to whichever shop texted that phone last. Carrier registration (toll-free or 10DLC) is handled outside the product. | `src/lib/twilio-sms.ts`, `src/lib/resolve-shop-line.ts` | needs owner (Twilio verification status) |
 | S7 | Turso is a single writer. Fine now; a ceiling later. | `src/lib/prisma-libsql-concurrent.ts` | watch |
