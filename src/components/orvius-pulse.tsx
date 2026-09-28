@@ -151,7 +151,7 @@ export function OrviusPulse({
             ))}
           </ul>
         ) : (
-          <p className="op-row-detail">Nothing proven in the last 24 hours.</p>
+          <p className="op-row-detail">No calls, bookings or payments in the last 24 hours.</p>
         )}
       </div>
 

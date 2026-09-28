@@ -675,16 +675,6 @@ body {
   overflow: hidden;
 }
 
-/* One warm bloom behind the board so the dark half is not a flat rectangle. */
-.ov-signin-canvas::before {
-  content: "";
-  position: absolute;
-  inset: -30% -20% auto -30%;
-  height: 90%;
-  background: radial-gradient(circle at 40% 45%, rgb(217 119 6 / 0.14), transparent 62%);
-  pointer-events: none;
-}
-
 .ov-signin-canvas-inner {
   position: relative;
   width: min(100%, 620px);
