@@ -194,31 +194,50 @@ export async function POST(request: NextRequest) {
     throw error;
   }
 
-  await recordAudit({
-    businessId: business.id,
-    entityType: "lead",
-    entityId: lead.id,
-    action: "lead.captured",
-    summary: `Text captured — ${serviceType}${urgency ? ` · ${urgency}` : ""}`,
-    detail: { channel: "sms", categoryCode: demand.categoryCode },
-    leadId: lead.id,
-    idempotencyKey: `sms:${messageSid || lead.id}:captured`,
-  });
+  /*
+    Twilio never redelivers an inbound text, so once the lead exists nothing
+    after it may stop the owner alert. A failure here costs the booking, not
+    the alert; the stranded-lead sweep covers a function that dies outright.
+  */
+  let autoBook: Awaited<ReturnType<typeof maybeAutoBookLead>> = {
+    jobId: null,
+    created: false,
+    qualified: false,
+  };
+  let bookedJob: { id: string; scheduledAt: Date | null; customerConfirmedAt: Date | null } | null = null;
+  try {
+    await recordAudit({
+      businessId: business.id,
+      entityType: "lead",
+      entityId: lead.id,
+      action: "lead.captured",
+      summary: `Text captured — ${serviceType}${urgency ? ` · ${urgency}` : ""}`,
+      detail: { channel: "sms", categoryCode: demand.categoryCode },
+      leadId: lead.id,
+      idempotencyKey: `sms:${messageSid || lead.id}:captured`,
+    });
 
-  await linkTouchToCustomer({
-    businessId: business.id,
-    leadId: lead.id,
-    phone: from,
-    notes: body,
-  });
+    await linkTouchToCustomer({
+      businessId: business.id,
+      leadId: lead.id,
+      phone: from,
+      notes: body,
+    });
 
-  const autoBook = await maybeAutoBookLead(lead.id);
-  const bookedJob = autoBook.jobId
-    ? await prisma.job.findUnique({
-        where: { id: autoBook.jobId },
-        select: { id: true, scheduledAt: true, customerConfirmedAt: true },
-      })
-    : null;
+    autoBook = await maybeAutoBookLead(lead.id);
+    bookedJob = autoBook.jobId
+      ? await prisma.job.findUnique({
+          where: { id: autoBook.jobId },
+          select: { id: true, scheduledAt: true, customerConfirmedAt: true },
+        })
+      : null;
+  } catch (error) {
+    logError("twilio.sms.post_capture_failed", {
+      messageSid,
+      leadId: lead.id,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+  }
 
   logInfo("twilio.sms.auto_book", {
     messageSid,
