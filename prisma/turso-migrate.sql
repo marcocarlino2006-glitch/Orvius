@@ -468,3 +468,8 @@ CREATE INDEX IF NOT EXISTS "Business_twilioPhone_idx" ON "Business"("twilioPhone
 CREATE INDEX IF NOT EXISTS "Business_vapiPhoneNumber_idx" ON "Business"("vapiPhoneNumber");
 CREATE INDEX IF NOT EXISTS "Business_vapiAssistantId_idx" ON "Business"("vapiAssistantId");
 CREATE INDEX IF NOT EXISTS "Business_stripeCustomerId_idx" ON "Business"("stripeCustomerId");
+
+-- Billing lifecycle clocks: grace after a failed payment, retention after cancel.
+ALTER TABLE "Business" ADD COLUMN "pastDueSince" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "canceledAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "lineReleasedAt" DATETIME;

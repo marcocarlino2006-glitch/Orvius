@@ -34,8 +34,9 @@ test("calls past the allowance bill at 50 cents each", () => {
   });
 });
 
-test("nothing is billed without an active paid subscription", () => {
-  for (const billingStatus of ["pilot", "past_due", "canceled", "none"]) {
+test("nothing is billed without a paid subscription; past due still owes its overage", () => {
+  assert.equal(decideOverage({ ...base, billingStatus: "past_due", callsInPeriod: 900 }).bill, true);
+  for (const billingStatus of ["pilot", "canceled", "none"]) {
     assert.equal(decideOverage({ ...base, billingStatus, callsInPeriod: 900 }).bill, false);
   }
   assert.equal(decideOverage({ ...base, stripeCustomerId: null, callsInPeriod: 900 }).bill, false);

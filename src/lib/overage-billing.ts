@@ -35,7 +35,8 @@ export function decideOverage(params: {
   periodKey: string;
   callsInPeriod: number;
 }): OverageDecision {
-  if (params.billingStatus !== "active" || !params.stripeCustomerId) {
+  // Past-due shops used the calls too; Stripe collects when the card is fixed.
+  if ((params.billingStatus !== "active" && params.billingStatus !== "past_due") || !params.stripeCustomerId) {
     return { bill: false, reason: "not_subscribed" };
   }
   if (params.overageBilledPeriod && params.overageBilledPeriod >= params.periodKey) {
@@ -63,7 +64,7 @@ export async function billPreviousMonthOverage(now = new Date()) {
   const period = previousPeriod(now);
   const shops = await prisma.business.findMany({
     where: {
-      billingStatus: "active",
+      billingStatus: { in: ["active", "past_due"] },
       stripeCustomerId: { not: null },
       environment: { not: "test" },
       OR: [{ overageBilledPeriod: null }, { overageBilledPeriod: { lt: period.key } }],

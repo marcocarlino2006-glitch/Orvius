@@ -2,6 +2,7 @@
 
 import {
   isBillingEntitled,
+  PAST_DUE_GRACE_DAYS,
   isPilotExpired,
   resolvePilotEndsAt,
   type BusinessBillingFields,
@@ -55,7 +56,7 @@ export function getPayPromptDecision(
       show: true,
       tone: "past_due",
       headline: "Payment failed — keep your line live",
-      body: "Update billing now so after-hours calls keep converting into qualified jobs. Access stays locked until payment succeeds.",
+      body: `Your line keeps answering. Update your card within ${PAST_DUE_GRACE_DAYS} days of the failed payment or the workspace locks until it succeeds.`,
       primaryCta: "Fix payment",
       snoozeMs: 0,
       hard: true,

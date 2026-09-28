@@ -119,6 +119,12 @@ model Business {
   memberships        Membership[]
   /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
   overageBilledPeriod String?
+  /** When Stripe first reported the subscription past due; the grace period runs from here. */
+  pastDueSince       DateTime?
+  /** When the subscription ended; the line is suspended now and released after the retention window. */
+  canceledAt         DateTime?
+  /** When a lapsed shop's number was given back to Twilio. */
+  lineReleasedAt     DateTime?
 
   @@index([ownerEmail])
   @@index([twilioPhone])
