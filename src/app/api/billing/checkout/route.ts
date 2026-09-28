@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAllowedEmails } from "@/lib/auth-allowlist";
+import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { auth } from "@/auth";
 import { isPrivilegedRequest } from "@/lib/admin-access";
 import { company } from "@/lib/company";
@@ -79,6 +81,24 @@ export async function POST(request: NextRequest) {
           where: { ownerEmail: sessionEmail },
           orderBy: { createdAt: "asc" },
         })));
+
+    // Paying must lead to a shop: someone who can't create one yet is not charged.
+    if (
+      !business &&
+      !canCreateShopForEmail(
+        sessionEmail,
+        (normalized) => getAllowedEmails().includes(normalized),
+        getPublicLaunchReadiness().ready,
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error: "Card signup isn't open yet. Book a call audit at orvius.im/pilot and we'll set up your shop with you.",
+          code: "self_serve_signup_disabled",
+        },
+        { status: 403 },
+      );
+    }
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
