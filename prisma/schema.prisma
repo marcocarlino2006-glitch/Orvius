@@ -619,3 +619,31 @@ model Membership {
   @@unique([businessId, email])
   @@index([email])
 }
+
+/// "Hear your shop" preview: before paying, the owner calls the demo line from
+/// their own phone and it answers as their shop. Never tied to a Business, so a
+/// preview call can never land in a real shop's records.
+model ShopPreview {
+  id             String    @id @default(cuid())
+  token          String    @unique
+  shopName       String
+  serviceArea    String?
+  servicesJson   String    @default("[]")
+  hoursJson      String    @default("{}")
+  ownerPhone     String
+  ownerPhoneNormalized String
+  ip             String?
+  callsUsed      Int       @default(0)
+  maxCalls       Int       @default(2)
+  expiresAt      DateTime
+  lastVapiCallId String?   @unique
+  lastCallAt     DateTime?
+  lastSummary    String?
+  lastCaptureJson String?
+  alertSentAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([ownerPhoneNormalized, expiresAt])
+  @@index([createdAt])
+}
+

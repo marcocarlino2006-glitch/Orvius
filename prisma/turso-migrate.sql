@@ -420,3 +420,29 @@ CREATE TABLE IF NOT EXISTS "OutboundSms" (
 );
 CREATE INDEX IF NOT EXISTS "OutboundSms_toNormalized_createdAt_idx" ON "OutboundSms"("toNormalized", "createdAt");
 CREATE INDEX IF NOT EXISTS "OutboundSms_businessId_createdAt_idx" ON "OutboundSms"("businessId", "createdAt");
+
+-- Pre-purchase "hear your shop" previews; never linked to a Business.
+CREATE TABLE IF NOT EXISTS "ShopPreview" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "token" TEXT NOT NULL,
+    "shopName" TEXT NOT NULL,
+    "serviceArea" TEXT,
+    "servicesJson" TEXT NOT NULL DEFAULT '[]',
+    "hoursJson" TEXT NOT NULL DEFAULT '{}',
+    "ownerPhone" TEXT NOT NULL,
+    "ownerPhoneNormalized" TEXT NOT NULL,
+    "ip" TEXT,
+    "callsUsed" INTEGER NOT NULL DEFAULT 0,
+    "maxCalls" INTEGER NOT NULL DEFAULT 2,
+    "expiresAt" DATETIME NOT NULL,
+    "lastVapiCallId" TEXT,
+    "lastCallAt" DATETIME,
+    "lastSummary" TEXT,
+    "lastCaptureJson" TEXT,
+    "alertSentAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopPreview_token_key" ON "ShopPreview"("token");
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopPreview_lastVapiCallId_key" ON "ShopPreview"("lastVapiCallId");
+CREATE INDEX IF NOT EXISTS "ShopPreview_ownerPhoneNormalized_expiresAt_idx" ON "ShopPreview"("ownerPhoneNormalized", "expiresAt");
+CREATE INDEX IF NOT EXISTS "ShopPreview_createdAt_idx" ON "ShopPreview"("createdAt");

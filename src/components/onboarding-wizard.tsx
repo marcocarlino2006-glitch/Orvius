@@ -3,6 +3,7 @@
 import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { company } from "@/lib/company";
+import { readPreviewDraft } from "@/lib/preview-draft";
 import { TRADES, type Trade } from "@/lib/trades";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -98,6 +99,12 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
 
   useEffect(() => {
     void resumeExisting()
+      .then((resumed) => {
+        if (resumed) return;
+        const draft = readPreviewDraft();
+        if (draft?.shopName) setName((current) => current || draft.shopName);
+        if (draft?.ownerPhone) setOwnerPhone((current) => current || draft.ownerPhone);
+      })
       .catch(() => {
         /* New shops continue with the normal form. */
       })

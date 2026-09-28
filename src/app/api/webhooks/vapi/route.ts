@@ -11,6 +11,12 @@ import { recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import {
+  buildPreviewAssistant,
+  claimPreviewCall,
+  findPreviewByVapiCallId,
+  recordPreviewOutcome,
+} from "@/lib/shop-preview";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { handleInCallToolCalls } from "@/lib/in-call-tools";
 import { readToolCalls } from "@/lib/in-call-tool-defs";
@@ -55,6 +61,26 @@ async function findBusinessForCall(
   return null;
 }
 
+/**
+ * Vapi asks which assistant should take a call on a line with no fixed
+ * assistant. An owner with an active preview hears their own shop; everyone
+ * else hears the shop that owns the line, exactly as before.
+ */
+async function answerAssistantRequest(params: {
+  vapiCallId: string;
+  callerPhone?: string;
+  inboundNumber?: string;
+}) {
+  const preview = await claimPreviewCall({ callerPhone: params.callerPhone, vapiCallId: params.vapiCallId });
+  if (preview) return { assistant: buildPreviewAssistant(preview) };
+
+  const owner = params.inboundNumber ? await resolveBusinessByInboundPhone(params.inboundNumber) : null;
+  if (owner?.vapiAssistantId) return { assistantId: owner.vapiAssistantId };
+
+  logWarn("vapi.assistant_request.unrouted", { vapiCallId: params.vapiCallId, inboundNumber: params.inboundNumber });
+  return { error: "Sorry, this line isn't taking calls right now. Please try again later." };
+}
+
 export async function POST(request: NextRequest) {
   if (!verifyVapiWebhookSecret(request.headers.get("x-vapi-secret"))) {
     const limited = webhookAuthFailureLimited(request, "vapi");
@@ -73,6 +99,23 @@ export async function POST(request: NextRequest) {
 
   const inboundNumber = message.call?.phoneNumber?.number;
   const assistantId = message.call?.assistantId;
+
+  if (type === "assistant-request") {
+    return NextResponse.json(
+      await answerAssistantRequest({
+        vapiCallId,
+        callerPhone: message.call?.customer?.number,
+        inboundNumber,
+      }),
+    );
+  }
+
+  // Preview calls belong to no shop: they must never reach findBusinessForCall's number fallback.
+  const preview = await findPreviewByVapiCallId(vapiCallId);
+  if (preview) {
+    if (type === "end-of-call-report") await recordPreviewOutcome(preview, message);
+    return NextResponse.json({ ok: true, preview: true });
+  }
 
   const business = await findBusinessForCall(
     vapiCallId,
