@@ -45,7 +45,12 @@ export async function notifyTechOnAssign(params: {
       techToken,
     });
 
-    const result = await sendSms({ to: job.technician.phone, body });
+    const result = await sendSms({
+      to: job.technician.phone,
+      body,
+      businessId: job.businessId,
+      audience: "tech",
+    });
     if (!result) {
       return { sent: false, reason: "sms_unavailable", techToken };
     }

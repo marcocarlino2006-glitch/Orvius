@@ -407,3 +407,16 @@ ALTER TABLE "Business" ADD COLUMN "overageBilledPeriod" TEXT;
 -- Enterprise audit log: who acted, and filtering by action.
 ALTER TABLE "AuditEvent" ADD COLUMN "actorEmail" TEXT;
 CREATE INDEX IF NOT EXISTS "AuditEvent_businessId_action_createdAt_idx" ON "AuditEvent"("businessId", "action", "createdAt");
+
+-- Shared-sender reply routing: which shop last texted which phone.
+CREATE TABLE IF NOT EXISTS "OutboundSms" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "toNormalized" TEXT NOT NULL,
+    "audience" TEXT NOT NULL,
+    "sid" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "OutboundSms_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "OutboundSms_toNormalized_createdAt_idx" ON "OutboundSms"("toNormalized", "createdAt");
+CREATE INDEX IF NOT EXISTS "OutboundSms_businessId_createdAt_idx" ON "OutboundSms"("businessId", "createdAt");

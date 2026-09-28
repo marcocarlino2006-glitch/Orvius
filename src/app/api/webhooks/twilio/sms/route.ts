@@ -27,7 +27,7 @@ import {
   validateTwilioRequest,
 } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
-import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { resolveBusinessForInboundSms } from "@/lib/resolve-shop-line";
 import { twimlMessage as twimlResponse } from "@/lib/twiml";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     return twimlResponse("");
   }
 
-  const business = await resolveBusinessByInboundPhone(to);
+  const business = await resolveBusinessForInboundSms({ to, from });
 
   if (!business) {
     /*

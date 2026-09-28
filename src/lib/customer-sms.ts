@@ -42,7 +42,12 @@ export async function sendCustomerSms(params: {
     return { sent: false, reason: "customer_opted_out" };
   }
 
-  const result = await sendSms({ to: normalized, body: params.body });
+  const result = await sendSms({
+    to: normalized,
+    body: params.body,
+    businessId: params.businessId,
+    audience: "customer",
+  });
   if (!result) return { sent: false, reason: "sms_not_configured" };
   return { sent: true, sid: result.sid };
 }

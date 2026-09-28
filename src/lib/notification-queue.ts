@@ -1,7 +1,7 @@
 import { afterResponse } from "@/lib/after-response";
 import { getOwnerAlertOpenUrl } from "@/lib/owner-alert-message";
 import { pushFromAlert, sendOwnerPush } from "@/lib/web-push";
-import { getWebhookUrl } from "@/lib/env";
+import { recordOutboundSms, smsSender, smsStatusCallback } from "@/lib/twilio-sms";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { logError, logInfo } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -253,7 +253,7 @@ async function deliverQueuedRow(row: {
     if (
       process.env.ENABLE_OWNER_SMS !== "true" ||
       !row.ownerPhone ||
-      !process.env.TWILIO_PHONE_NUMBER
+      !smsSender()
     ) {
       await markDeliveryFailure(
         row,
@@ -278,11 +278,15 @@ async function deliverQueuedRow(row: {
     const client = getTwilioClient();
     const sms = await client.messages.create({
       body: smsBody,
-      from: process.env.TWILIO_PHONE_NUMBER,
+      ...smsSender()!,
       to: row.ownerPhone,
-      statusCallback:
-        process.env.TWILIO_STATUS_CALLBACK_URL?.trim() ||
-        getWebhookUrl("/api/webhooks/twilio/status"),
+      statusCallback: smsStatusCallback(),
+    });
+    await recordOutboundSms({
+      businessId: row.businessId,
+      to: row.ownerPhone,
+      audience: "owner",
+      sid: sms.sid,
     });
 
     await prisma.ownerNotification.update({
@@ -688,15 +692,24 @@ export async function notifyOwnerSync(params: {
   if (
     process.env.ENABLE_OWNER_SMS === "true" &&
     params.ownerPhone &&
-    process.env.TWILIO_PHONE_NUMBER
+    smsSender()
   ) {
     try {
       const client = getTwilioClient();
       const sms = await client.messages.create({
         body: smsBody,
-        from: process.env.TWILIO_PHONE_NUMBER,
+        ...smsSender()!,
         to: params.ownerPhone,
+        statusCallback: smsStatusCallback(),
       });
+      if (params.businessId) {
+        await recordOutboundSms({
+          businessId: params.businessId,
+          to: params.ownerPhone,
+          audience: "owner",
+          sid: sms.sid,
+        });
+      }
       result.sms = { status: "sent", id: sms.sid };
     } catch (error) {
       result.sms = {

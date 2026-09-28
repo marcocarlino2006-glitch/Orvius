@@ -114,6 +114,7 @@ model Business {
   pushSubscriptions  PushSubscription[]
   webhookEvents      WebhookEvent[]
   smsOptOuts         SmsOptOut[]
+  outboundSms        OutboundSms[]
   auditEvents        AuditEvent[]
   memberships        Membership[]
   /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
@@ -121,6 +122,21 @@ model Business {
 }
 
 /** Phone numbers that opted out of SMS on a shop line (STOP). */
+/// Every text Orvius sends goes out from one shared sender, so a reply cannot be
+/// routed by the number it was sent to. This is how a reply finds its shop.
+model OutboundSms {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  toNormalized String
+  audience     String
+  sid          String?
+  createdAt    DateTime @default(now())
+
+  @@index([toNormalized, createdAt])
+  @@index([businessId, createdAt])
+}
+
 model SmsOptOut {
   id           String   @id @default(cuid())
   businessId   String
