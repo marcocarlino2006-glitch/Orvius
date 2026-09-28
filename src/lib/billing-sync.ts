@@ -1,3 +1,4 @@
+import { resumeShopLine, suspendShopLine } from "@/lib/line-lifecycle";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { isPaidPlanId, planIdForStripePriceId } from "@/lib/pricing-plans";
@@ -170,7 +171,9 @@ export async function syncSubscriptionToBusiness(
   const billingStatus =
     mapped === "incomplete" ? "canceled" : mapped;
 
-  await prisma.business.update({
+  const now = new Date();
+  const previous = business.billingStatus;
+  const updated = await prisma.business.update({
     where: { id: business.id },
     data: {
       stripeCustomerId: customerId,
@@ -178,8 +181,16 @@ export async function syncSubscriptionToBusiness(
       billingStatus,
       billingPlan: resolveBillingPlan(subscription),
       ownerEmail: business.ownerEmail ?? customerEmail?.toLowerCase() ?? undefined,
+      pastDueSince: billingStatus === "past_due" ? (business.pastDueSince ?? now) : null,
+      canceledAt: billingStatus === "canceled" ? (business.canceledAt ?? now) : null,
     },
   });
+
+  if (billingStatus === "canceled" && previous !== "canceled") {
+    await suspendShopLine(updated);
+  } else if (billingStatus === "active" && previous === "canceled" && !updated.lineReleasedAt) {
+    await resumeShopLine(updated);
+  }
 
   return { businessId: business.id };
 }

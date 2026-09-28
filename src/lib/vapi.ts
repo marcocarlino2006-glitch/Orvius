@@ -173,6 +173,36 @@ export async function importTwilioPhoneToVapi(params: {
   return { id: created.id, number: params.number };
 }
 
+async function vapiNumbersMatching(number: string) {
+  const list = await vapiRequest<Array<{ id: string; number?: string }>>("/phone-number?limit=100");
+  const normalized = number.replace(/\s/g, "");
+  return Array.isArray(list) ? list.filter((entry) => entry.number?.replace(/\s/g, "") === normalized) : [];
+}
+
+/**
+ * Take the assistant off a number and hand its calls to our server, which
+ * answers Vapi's assistant-request. A suspended shop's callers then hear a
+ * short message instead of an assistant billing minutes to nobody.
+ */
+export async function routeVapiNumberToServer(params: { number: string; serverUrl: string; serverUrlSecret?: string }) {
+  const entries = await vapiNumbersMatching(params.number);
+  for (const entry of entries) {
+    await vapiRequest(`/phone-number/${entry.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ assistantId: null, serverUrl: params.serverUrl, serverUrlSecret: params.serverUrlSecret }),
+    });
+  }
+  return entries.length;
+}
+
+export async function removeVapiNumber(number: string) {
+  const entries = await vapiNumbersMatching(number);
+  for (const entry of entries) {
+    await vapiRequest(`/phone-number/${entry.id}`, { method: "DELETE" });
+  }
+  return entries.length;
+}
+
 export function buildVapiAssistantConfig(params: {
   businessName: string;
   systemPrompt: string;

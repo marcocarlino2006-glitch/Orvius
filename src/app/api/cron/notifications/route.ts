@@ -5,6 +5,7 @@ import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { prisma } from "@/lib/prisma";
 import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
+import { releaseLapsedLines } from "@/lib/line-lifecycle";
 import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
 import { logError } from "@/lib/logger";
@@ -95,6 +96,7 @@ export async function GET(request: NextRequest) {
   const lines = await step("line_watch", () => watchAllLines());
   const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
   const overage = await step("overage_billing", () => billPreviousMonthOverage());
+  const lapsedLines = await step("lapsed_lines", () => releaseLapsedLines());
   return NextResponse.json({
     ok: failed.length === 0,
     failed,
@@ -105,6 +107,7 @@ export async function GET(request: NextRequest) {
     overage,
     customerConfirmations,
     strandedTextLeads,
+    lapsedLines,
     autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });
 }

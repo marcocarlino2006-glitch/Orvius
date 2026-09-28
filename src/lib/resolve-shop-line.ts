@@ -13,6 +13,7 @@ const SHOP_LINE_SELECT = {
   vapiPhoneNumber: true,
   vapiAssistantId: true,
   lineVerifiedAt: true,
+  billingStatus: true,
   createdAt: true,
 } as const;
 
@@ -29,6 +30,7 @@ type ShopLineMatch = {
   vapiPhoneNumber: string | null;
   vapiAssistantId: string | null;
   lineVerifiedAt: Date | null;
+  billingStatus: string;
   createdAt: Date;
 };
 
@@ -66,6 +68,7 @@ export async function resolveBusinessByInboundPhone(
       vapiPhoneNumber: true,
       vapiAssistantId: true,
       lineVerifiedAt: true,
+      billingStatus: true,
       createdAt: true,
     },
     orderBy: { createdAt: "asc" },

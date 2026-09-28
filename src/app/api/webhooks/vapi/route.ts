@@ -75,6 +75,9 @@ async function answerAssistantRequest(params: {
   if (preview) return { assistant: buildPreviewAssistant(preview) };
 
   const owner = params.inboundNumber ? await resolveBusinessByInboundPhone(params.inboundNumber) : null;
+  if (owner?.billingStatus === "canceled") {
+    return { error: `Thanks for calling ${owner.name}. This line isn't taking calls right now. Please reach the business directly.` };
+  }
   if (owner?.vapiAssistantId) return { assistantId: owner.vapiAssistantId };
 
   logWarn("vapi.assistant_request.unrouted", { vapiCallId: params.vapiCallId, inboundNumber: params.inboundNumber });
