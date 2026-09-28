@@ -90,10 +90,6 @@ export function PricingFeatureMatrix({ selfServeReady = true }: { selfServeReady
           </tbody>
         </table>
       </div>
-
-      <p className="pricing-matrix-footnote font-sans">
-        Call-audit shops get full Pro during setup (30 days).
-      </p>
     </section>
   );
 }

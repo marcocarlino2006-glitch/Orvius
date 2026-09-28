@@ -16,7 +16,7 @@ export const company = {
   legalEmail: "hello@orvius.im",
   dmcaEmail: "hello@orvius.im",
   foundedYear: 2026,
-  trades: ["HVAC", "Plumbing", "Electrical"] as const,
+  trades: ["HVAC"] as const,
   /**
    * Wedge first (founder lock 2026-09-22): beginning = focused AI receptionist
    * for HVAC after-hours/overflow — not the full OS. Expand only after one shop

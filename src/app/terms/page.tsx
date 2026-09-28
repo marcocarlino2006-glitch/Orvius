@@ -39,7 +39,7 @@ export default function TermsPage() {
           {company.productName} provides AI-assisted call and text handling and related workspace
           tools for home-service businesses, including qualification, summaries, owner
           notifications, jobs, dispatch, and related features we make available. The Service is
-          designed for {company.trades.join(", ")}, and related trades we approve.
+          designed for {company.trades.join(", ")} shops and related trades we approve.
         </p>
         <p>
           We improve the Service continuously. Features, providers, and integrations may change.

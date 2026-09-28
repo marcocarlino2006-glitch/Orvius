@@ -1657,12 +1657,6 @@ h3 {
   color: var(--void);
 }
 
-.pricing-matrix-footnote {
-  margin: 0.75rem 0 0;
-  font-size: 0.75rem;
-  color: var(--ash);
-}
-
 /* ── Pricing FAQ ── */
 .pricing-faq {
   margin-bottom: 3rem;
