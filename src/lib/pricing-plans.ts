@@ -33,6 +33,11 @@ export type PricingPlan = {
 */
 export const ANNUAL_DISCOUNT_LABEL = "2 months free";
 
+/** What Stripe charges once a year: the annual monthly price × 12 (scripts/stripe-setup.mjs). */
+export function annualChargeDollars(plan: { annualPrice?: number }): number {
+  return (plan.annualPrice ?? 0) * 12;
+}
+
 /*
   Measured voice cost is about $0.12 per answered call (Vapi, 21 simulated calls,
   85s average). Allowances keep each plan above ~70% gross margin at full use, and
@@ -71,7 +76,7 @@ export const pricingPlans: readonly PricingPlan[] = [
   {
     id: "line",
     name: "Line",
-    tagline: "Answer after-hours and overflow calls. Capture every lead that reaches the line.",
+    tagline: "Every call answered, booked and texted to you, with the jobs to run it yourself.",
     price: 199,
     annualPrice: 166,
     period: "per month",
@@ -80,20 +85,20 @@ export const pricingPlans: readonly PricingPlan[] = [
     stripePriceEnvKey: "STRIPE_PRICE_ID_LINE",
     stripePriceEnvKeyAnnual: "STRIPE_PRICE_ID_LINE_ANNUAL",
     stripeProductKey: "orvius-line",
-    idealFor: "Owner-operators who need after-hours and overflow answered and alerted",
+    idealFor: "Owner-operators who run the jobs themselves",
     highlights: [
       "300 answered calls a month included",
-      "Dedicated shop line + After-hours answer",
-      "Qualified leads — urgency, service, address",
-      "Owner SMS alerts + lead inbox",
-      "Call log with transcripts",
-      "Business hours & services you control",
+      "Dedicated shop line + after-hours answer",
+      "Qualified leads booked into open windows",
+      "Owner SMS alerts, lead inbox and call transcripts",
+      "Customer records, jobs and text-to-pay",
+      "Ask — shop intelligence on your data",
     ],
   },
   {
     id: "pro",
     name: "Pro",
-    tagline: "Full shop workspace — front door through dispatch",
+    tagline: "Everything in Line, plus a dispatch board for your crew",
     price: 399,
     annualPrice: 333,
     period: "per month",
@@ -103,21 +108,18 @@ export const pricingPlans: readonly PricingPlan[] = [
     stripePriceEnvKey: "STRIPE_PRICE_ID_PRO",
     stripePriceEnvKeyAnnual: "STRIPE_PRICE_ID_PRO_ANNUAL",
     stripeProductKey: "orvius-pro",
-    idealFor: "Shops turning leads into jobs with 3–5 trucks",
+    idealFor: "Shops sending a crew of up to 15 technicians",
     highlights: [
       "Everything in Line",
       "750 answered calls a month included",
-      "Customer records & full history",
-      "Jobs, scheduling, and dispatch board",
-      "Text-to-pay for deposits and final bills",
-      "Ask — shop intelligence on your data",
-      "Up to 15 technicians on dispatch",
+      "Dispatch board for the whole crew",
+      "Up to 15 technicians",
     ],
   },
   {
     id: "fleet",
     name: "Fleet",
-    tagline: "For shops running 6+ trucks",
+    tagline: "For shops running more than 15 technicians",
     price: 749,
     annualPrice: 624,
     period: "per month",

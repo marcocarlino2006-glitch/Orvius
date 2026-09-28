@@ -97,7 +97,7 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
     category: "Front door",
     values: {
       pilot: true,
-      line: false,
+      line: true,
       pro: true,
       fleet: true,
       multi: true,
@@ -109,7 +109,7 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
     category: "Shop workspace",
     values: {
       pilot: true,
-      line: false,
+      line: true,
       pro: true,
       fleet: true,
       multi: true,
@@ -121,7 +121,7 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
     category: "Shop workspace",
     values: {
       pilot: true,
-      line: false,
+      line: true,
       pro: true,
       fleet: true,
       multi: true,
@@ -133,7 +133,7 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
     category: "Shop workspace",
     values: {
       pilot: true,
-      line: false,
+      line: true,
       pro: true,
       fleet: true,
       multi: true,
@@ -153,11 +153,11 @@ export const pricingFeatureMatrix: readonly PricingFeatureRow[] = [
   },
   {
     id: "tech-limit",
-    label: "Technicians on dispatch",
+    label: "Technicians",
     category: "Field & dispatch",
     values: {
       pilot: "15",
-      line: "—",
+      line: "1",
       pro: "15",
       fleet: "Unlimited",
       multi: "Per location",

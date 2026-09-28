@@ -121,7 +121,7 @@ export function PricingNeedsPicker({
                   onClick={() => selectSize(item.id)}
                 >
                   <span className="pricing-needs-option-label">{item.label}</span>
-                  <span className="pricing-needs-option-detail">{item.trucks} trucks</span>
+                  <span className="pricing-needs-option-detail">{item.trucks} {item.trucks === "1" ? "truck" : "trucks"}</span>
                 </button>
               </li>
             ))}

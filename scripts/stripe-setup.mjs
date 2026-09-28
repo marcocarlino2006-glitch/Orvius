@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Stripe setup — creates monthly + annual prices for Line, Pro, Fleet.
- * Annual = monthly equivalent × 12 (e.g. Pro $333/mo → $3996/yr).
+ * Annual = monthly equivalent × 12 (e.g. Pro $333/mo → $3,996/yr); the site shows this exact charge.
  * Amounts must match src/lib/pricing-plans.ts; scripts/pricing-economics.test.mjs checks.
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -40,7 +40,7 @@ const PLANS = [
     envKey: "STRIPE_PRICE_ID_FLEET",
     envKeyAnnual: "STRIPE_PRICE_ID_FLEET_ANNUAL",
     metadata: { orvius: "fleet" },
-    description: "For shops running 6+ trucks — unlimited technicians on dispatch.",
+    description: "For shops running more than 15 technicians — unlimited technicians on dispatch.",
   },
 ];
 

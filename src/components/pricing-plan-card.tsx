@@ -7,6 +7,7 @@ import {
   type BillingInterval,
   type PaidPlanId,
   type PricingPlan,
+  annualChargeDollars,
 } from "@/lib/pricing-plans";
 
 type PricingPlanCardProps = {
@@ -125,7 +126,7 @@ export function PricingPlanCard({
       {!isPilot && !isMulti && monthlyPrice ? (
         <p className="tier1-plan-annual-note font-sans">
           {interval === "year"
-            ? `$${(monthlyPrice * 10).toLocaleString("en-US")} a year · $${monthlyPrice}/mo if billed monthly`
+            ? `$${annualChargeDollars(plan).toLocaleString("en-US")} a year · $${monthlyPrice}/mo if billed monthly`
             : `Or $${plan.annualPrice}/mo billed annually · ${ANNUAL_DISCOUNT_LABEL.toLowerCase()}`}
         </p>
       ) : null}

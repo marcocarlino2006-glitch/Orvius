@@ -27,13 +27,13 @@ export const shopNeeds: readonly ShopNeed[] = [
   {
     id: "after-hours",
     label: "I miss calls when I'm on a job",
-    detail: "After-hours and overflow coverage with owner SMS alerts.",
+    detail: "Calls answered, booked and texted to you, with jobs and customers included.",
     planId: "line",
   },
   {
     id: "lead-to-job",
-    label: "Leads don't become booked jobs",
-    detail: "Inbox, customers, jobs, and dispatch in one workspace.",
+    label: "I send a crew of techs",
+    detail: "A dispatch board for up to 15 technicians.",
     planId: "pro",
   },
   {
@@ -48,19 +48,19 @@ export const shopSizes: readonly ShopSize[] = [
   {
     id: "solo",
     label: "Owner-operator",
-    trucks: "1–2",
+    trucks: "1",
     planId: "line",
   },
   {
     id: "growing",
     label: "Growing shop",
-    trucks: "3–5",
+    trucks: "2–15",
     planId: "pro",
   },
   {
     id: "fleet",
     label: "Fleet operation",
-    trucks: "6+",
+    trucks: "16+",
     planId: "fleet",
   },
 ] as const;

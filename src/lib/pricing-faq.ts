@@ -1,9 +1,9 @@
-import { OVERAGE_CENTS_PER_CALL, getPlanById, type PaidPlanId } from "@/lib/pricing-plans";
+import { OVERAGE_CENTS_PER_CALL, annualChargeDollars, getPlanById, type PaidPlanId } from "@/lib/pricing-plans";
 
 const calls = (id: PaidPlanId) => (getPlanById(id).includedCalls ?? 0).toLocaleString("en-US");
 const annualLine = (id: PaidPlanId) => {
   const plan = getPlanById(id);
-  return `${plan.name} $${(plan.price * 10).toLocaleString("en-US")}/yr ($${plan.annualPrice}/mo)`;
+  return `${plan.name} $${annualChargeDollars(plan).toLocaleString("en-US")}/yr ($${plan.annualPrice}/mo)`;
 };
 
 export type PricingFaqItem = {
@@ -17,7 +17,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "line-vs-pro",
     question: "What's the difference between Line and Pro?",
     answer:
-      "Line is the front door — after-hours and overflow calls answered, qualified, and alerted on a configured line. Pro adds the shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
+      "Both plans answer, qualify and book your calls, and both include the lead inbox, customer records, jobs, text-to-pay and Ask. Line is for one person running the work, with one technician. Pro adds the dispatch board and up to 15 technicians, so you need it once you're sending a crew.",
   },
   {
     id: "annual",

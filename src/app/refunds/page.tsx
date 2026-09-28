@@ -1,6 +1,6 @@
 import { LegalDocument, LegalSection } from "@/components/legal-document";
 import { company } from "@/lib/company";
-import { OVERAGE_CENTS_PER_CALL, getPaidPlans, getPlanById } from "@/lib/pricing-plans";
+import { OVERAGE_CENTS_PER_CALL, annualChargeDollars, getPaidPlans, getPlanById } from "@/lib/pricing-plans";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -22,8 +22,8 @@ export default function RefundsPage() {
     >
       <LegalSection title="1. Pilot program">
         <p>
-          Pilot access is free for thirty (30) days unless otherwise agreed in writing.
-          No credit card is required to start a pilot when offered. At the end of the pilot, you
+          When we offer a pilot, it runs at no charge for thirty (30) days unless otherwise agreed in
+          writing, and no credit card is required to start it. At the end of the pilot, you
           may subscribe to a paid plan or discontinue use. Pilot credits (if any) are governed by
           the applicable pilot agreement or order form.
         </p>
@@ -39,7 +39,7 @@ export default function RefundsPage() {
             <li key={plan.id}>
               <strong>{plan.name}</strong> — ${plan.price}/month
               {plan.annualPrice != null
-                ? `, or $${(plan.price * 10).toLocaleString("en-US")}/year billed annually`
+                ? `, or $${annualChargeDollars(plan).toLocaleString("en-US")}/year billed annually`
                 : ""}
               , including {(plan.includedCalls ?? 0).toLocaleString("en-US")} answered calls a month.
             </li>
