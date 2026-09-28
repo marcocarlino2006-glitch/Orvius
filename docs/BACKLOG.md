@@ -4,6 +4,25 @@ This is the single ranked list of what is broken, what limits scale, and what
 separates Orvius from best in class. Work comes from here, top down. When an
 item ships, mark it done with the PR link; do not start new lists elsewhere.
 
+## What Orvius is (decided 2026-09-28)
+
+**Now:** the receptionist that answers every call for an HVAC shop, books the
+job on the calendar, and texts the owner. One promise: *you never lose a job to
+a missed call.* Nothing ships that doesn't make that promise truer, faster or
+easier to buy.
+
+**Path:** (1) win HVAC with the receptionist, target 1,000 paying shops;
+(2) become where the job lives, by syncing into ServiceTitan, Housecall Pro and
+Jobber before replacing anything; (3) take a share of the money that flows
+through booked jobs (deposits, invoices, financing); (4) plumbing, electrical,
+then franchises.
+
+**Scoreboard, weekly:** paying shops · booked jobs per shop · calls answered
+without failure · signup to first booked job, in minutes · monthly churn.
+
+**Rules:** reliability before features; the product demos itself (call it,
+hear your shop); build on the best models, never our own; one list (this file).
+
 Last full inspection: 2026-09-28 (call path, money path, platform, product surface).
 
 Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approval only Marco can give).
