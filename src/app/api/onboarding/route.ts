@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ProvisionBusyError } from "@/lib/provision-attempt";
 import { auth } from "@/auth";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
 import {
@@ -195,6 +196,9 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
+    if (error instanceof ProvisionBusyError) {
+      return NextResponse.json({ error: error.message, code: "provision_in_progress" }, { status: 409 });
+    }
     console.error("Onboarding provision failed:", error);
     const message =
       error instanceof z.ZodError

@@ -9,6 +9,7 @@ import {
 } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { requireEntitledSession } from "@/lib/tenant";
+import { OWNER_TEST_CALL_PREFIX } from "@/lib/owner-test-call";
 import { TRADES, type Trade } from "@/lib/trades";
 import { z } from "zod";
 
@@ -57,13 +58,13 @@ export async function POST(request: NextRequest) {
 
   const callerName = "Test Caller";
   const callerPhone = business.ownerPhone?.trim() || "+15555550100";
-  const address = business.address?.trim() || "1842 Oak Street";
-  const vapiCallId = `owner_test_${Date.now()}`;
+  const address = business.address?.trim() || null;
+  const vapiCallId = `${OWNER_TEST_CALL_PREFIX}${Date.now()}`;
 
   const summary = [
     `${callerName} called about ${script.serviceType}.`,
     `Urgency: ${script.urgency}.`,
-    `Address: ${address}.`,
+    address ? `Address: ${address}.` : "No address given.",
     script.notes,
   ].join(" ");
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     `Orvius: Thanks for calling ${business.name}. How can I help?`,
     `Caller: ${script.serviceType}. Can someone come today?`,
     `Orvius: I can help. What's the address and a callback number?`,
-    `Caller: ${address}. ${callerPhone}.`,
+    `Caller: ${address ?? "I'll give the address when you call back"}. ${callerPhone}.`,
     `Orvius: Got it. I'll mark this ${script.urgency} and alert the owner.`,
   ].join("\n");
 
@@ -125,13 +126,6 @@ export async function POST(request: NextRequest) {
     notes: script.notes,
   });
 
-  if (!business.lineVerifiedAt) {
-    await prisma.business.update({
-      where: { id: business.id },
-      data: { lineVerifiedAt: new Date() },
-    });
-  }
-
   const autoBook = await maybeAutoBookLead(lead.id);
   const bookedJob = autoBook.jobId
     ? await prisma.job.findUnique({
@@ -174,7 +168,7 @@ export async function POST(request: NextRequest) {
     leadId: lead.id,
     jobId: autoBook.jobId,
     autoBooked: autoBook.created,
-    lineVerified: true,
+    lineVerified: Boolean(business.lineVerifiedAt),
     next: autoBook.jobId
       ? { href: `/dashboard/jobs/${autoBook.jobId}`, label: "Open booked job" }
       : { href: `/dashboard/inbox/${lead.id}`, label: "Open lead in Inbox" },

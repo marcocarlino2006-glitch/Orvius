@@ -446,3 +446,25 @@ CREATE UNIQUE INDEX IF NOT EXISTS "ShopPreview_token_key" ON "ShopPreview"("toke
 CREATE UNIQUE INDEX IF NOT EXISTS "ShopPreview_lastVapiCallId_key" ON "ShopPreview"("lastVapiCallId");
 CREATE INDEX IF NOT EXISTS "ShopPreview_ownerPhoneNormalized_expiresAt_idx" ON "ShopPreview"("ownerPhoneNormalized", "expiresAt");
 CREATE INDEX IF NOT EXISTS "ShopPreview_createdAt_idx" ON "ShopPreview"("createdAt");
+-- Paid provisioning runs: a lease so concurrent setup can't buy two numbers, and a record so retries reuse the purchase.
+CREATE TABLE IF NOT EXISTS "ProvisionAttempt" (
+    "key" TEXT NOT NULL PRIMARY KEY,
+    "tag" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "leaseUntil" DATETIME NOT NULL,
+    "attempts" INTEGER NOT NULL DEFAULT 1,
+    "phoneNumber" TEXT,
+    "vapiAssistantId" TEXT,
+    "businessId" TEXT,
+    "error" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ProvisionAttempt_tag_key" ON "ProvisionAttempt"("tag");
+
+-- Every call, text and sign-in looks a shop up by one of these.
+CREATE INDEX IF NOT EXISTS "Business_ownerEmail_idx" ON "Business"("ownerEmail");
+CREATE INDEX IF NOT EXISTS "Business_twilioPhone_idx" ON "Business"("twilioPhone");
+CREATE INDEX IF NOT EXISTS "Business_vapiPhoneNumber_idx" ON "Business"("vapiPhoneNumber");
+CREATE INDEX IF NOT EXISTS "Business_vapiAssistantId_idx" ON "Business"("vapiAssistantId");
+CREATE INDEX IF NOT EXISTS "Business_stripeCustomerId_idx" ON "Business"("stripeCustomerId");

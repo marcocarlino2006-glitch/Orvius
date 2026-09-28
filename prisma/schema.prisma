@@ -119,6 +119,12 @@ model Business {
   memberships        Membership[]
   /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
   overageBilledPeriod String?
+
+  @@index([ownerEmail])
+  @@index([twilioPhone])
+  @@index([vapiPhoneNumber])
+  @@index([vapiAssistantId])
+  @@index([stripeCustomerId])
 }
 
 /** Phone numbers that opted out of SMS on a shop line (STOP). */
@@ -592,6 +598,24 @@ model PushSubscription {
   createdAt   DateTime  @default(now())
 
   @@index([businessId])
+}
+
+/// One paid provisioning run (a shop's number and assistant), leased so two
+/// requests can't both buy, and remembered so a retry reuses what was bought.
+model ProvisionAttempt {
+  key             String   @id
+  /// Written into the Twilio number's friendly name, so a purchase whose
+  /// response was lost can still be found before buying again.
+  tag             String   @unique
+  status          String
+  leaseUntil      DateTime
+  attempts        Int      @default(1)
+  phoneNumber     String?
+  vapiAssistantId String?
+  businessId      String?
+  error           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 /// Rate-limit counters shared by every server instance.

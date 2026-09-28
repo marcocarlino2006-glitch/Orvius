@@ -21,13 +21,17 @@ import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
 
 /**
  * Founder mastery scorecard — ordered multi-b gates.
- * Auth: signed-in founder (or owner session for their shop snapshot).
+ * Auth: signed-in founder only. It reports platform-wide counts, and its shop
+ * lookup can provision a line, so an ordinary owner session must not reach it.
  */
 export async function GET() {
   const session = await auth();
   const email = session?.user?.email?.toLowerCase();
   if (!email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isFounderEmail(email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const business = await getBusinessForOwnerWithAutoLine(email).catch(() => null);

@@ -45,6 +45,7 @@ export async function purchaseLocalNumber(
     ownerPhone?: string | null;
     areaCode?: number | null;
     phoneNumber?: string | null;
+    friendlyName?: string;
   },
   client: TwilioClient = getTwilioClient(),
 ): Promise<PurchasedLine> {
@@ -55,7 +56,7 @@ export async function purchaseLocalNumber(
         phoneNumber,
         smsUrl: getWebhookUrl("/api/webhooks/twilio/sms"),
         smsMethod: "POST",
-        friendlyName: "Orvius shop line",
+        friendlyName: params.friendlyName ?? "Orvius shop line",
         ...voiceFallback(),
       })
     ).phoneNumber;
@@ -114,6 +115,15 @@ function voiceFallback() {
     voiceFallbackUrl: getWebhookUrl("/api/webhooks/twilio/voice-fallback"),
     voiceFallbackMethod: "POST" as const,
   };
+}
+
+/** A number an earlier run bought under this friendly name, even if that run never heard back. */
+export async function findLineByFriendlyName(
+  friendlyName: string,
+  client: TwilioClient = getTwilioClient(),
+): Promise<string | null> {
+  const [entry] = await client.incomingPhoneNumbers.list({ friendlyName, limit: 1 });
+  return entry?.phoneNumber ?? null;
 }
 
 export async function releasePhoneNumber(phoneNumber: string) {

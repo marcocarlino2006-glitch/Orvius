@@ -570,7 +570,7 @@ export async function getAttentionQueue(
   ]);
 
   for (const invoice of openMoney[0]) {
-    if (invoice.status === "paid" || invoice.status === "void") continue;
+    if (invoice.status === "paid" || invoice.status === "void" || invoice.status === "refunded") continue;
     const phone =
       invoice.job?.customer?.phone ?? invoice.job?.lead?.phone ?? null;
     const who =

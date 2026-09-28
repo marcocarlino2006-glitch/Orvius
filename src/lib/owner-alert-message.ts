@@ -89,6 +89,8 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
     line = "Question about the shop, not a service request · nothing booked";
   } else if (skipReason === "capacity_unavailable") {
     line = "No open slot on the board · call back to schedule";
+  } else if (skipReason === "held_slot_taken") {
+    line = "The time they picked on the call was taken before it booked · call to pick a new time";
   }
 
   if (context.heldSlotAt) {

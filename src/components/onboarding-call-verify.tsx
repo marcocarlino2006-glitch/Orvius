@@ -30,6 +30,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
   const [error, setError] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
+  const [testRan, setTestRan] = useState(false);
 
   const check = useCallback(async () => {
     try {
@@ -93,8 +94,8 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         setError(json.error ?? "Test call failed. Try dialing the live line.");
         return;
       }
+      setTestRan(true);
       await check();
-      setPolling(false);
     } catch {
       setError("Network error while running the test call.");
     } finally {
@@ -192,9 +193,9 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
 
       {!verified ? (
         <p className="onboarding-footnote font-sans">
-          Prefer the real line when you can. The in-app test still creates a
-          Call, Lead, and Customer so Inbox and Command light up — then finish
-          capture in Settings.
+          {testRan
+            ? "Test lead added to your Inbox so you can see the alert. It didn't use the phone network, so call your line to prove it works."
+            : "The in-app test shows what an alert looks like. Only a real call to your line proves it works."}
         </p>
       ) : null}
     </div>

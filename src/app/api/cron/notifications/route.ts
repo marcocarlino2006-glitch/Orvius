@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Business, Prisma } from "@prisma/client";
 import { runAutopilot } from "@/lib/autopilot";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +9,7 @@ import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
 import { logError } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
+import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
 import { isProduction } from "@/lib/runtime";
 import { billPreviousMonthOverage } from "@/lib/overage-billing";
 
@@ -57,43 +59,78 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  const failed: string[] = [];
+  const step = async <T,>(name: string, run: () => Promise<T>): Promise<T | null> => {
+    try {
+      return await run();
+    } catch (error) {
+      failed.push(name);
+      logError("cron.step_failed", { step: name, error: error instanceof Error ? error.message : String(error) });
+      return null;
+    }
+  };
+
+  const strandedTextLeads = await step("stranded_text_leads", () => alertStrandedTextLeads());
   const [notifications, customerConfirmations] = await Promise.all([
-    processNotificationQueue(50),
-    sendDueCustomerConfirmationReminders(new Date(), 25),
+    step("notifications", () => processNotificationQueue(50)),
+    step("customer_confirmations", () => sendDueCustomerConfirmationReminders(new Date(), 25)),
   ]);
-  const autopilotShops = await prisma.business.findMany({
-    where: { autopilot: true, isActive: true, environment: { not: "test" } },
-    select: { id: true },
-    take: 200,
-  });
+
+  let autopilotShops = 0;
   let autopilotAssigned = 0;
   let autopilotConfirmations = 0;
-  for (const shop of autopilotShops) {
-    const ran = await runAutopilot(shop.id, { force: true }).catch(() => null);
+  await forEachShop({ autopilot: true, isActive: true, environment: { not: "test" } }, async (shop) => {
+    autopilotShops += 1;
+    const ran = await step(`autopilot:${shop.id}`, () => runAutopilot(shop.id, { force: true }));
     autopilotAssigned += ran?.assigned ?? 0;
     autopilotConfirmations += ran?.confirmationsSent ?? 0;
-  }
-  const lineShops = await prisma.business.findMany({
-    where: { isActive: true, vapiAssistantId: { not: null }, environment: { not: "test" } },
-    take: 200,
   });
+
   const assistants = { current: 0, updated: 0, skipped: 0 };
-  for (const shop of lineShops) {
-    assistants[await ensureAssistantCurrent(shop)] += 1;
-  }
-  const lines = await watchAllLines().catch(() => null);
-  const weeklyReports = await sendDueWeeklyReports().catch(() => null);
-  const overage = await billPreviousMonthOverage().catch(() => null);
+  await forEachShop({ isActive: true, vapiAssistantId: { not: null }, environment: { not: "test" } }, async (shop) => {
+    const outcome = await step(`assistant:${shop.id}`, () => ensureAssistantCurrent(shop));
+    if (outcome) assistants[outcome] += 1;
+  });
+
+  const lines = await step("line_watch", () => watchAllLines());
+  const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
+  const overage = await step("overage_billing", () => billPreviousMonthOverage());
   return NextResponse.json({
-    ok: true,
+    ok: failed.length === 0,
+    failed,
     ...notifications,
     assistants,
     lines,
     weeklyReports,
     overage,
     customerConfirmations,
-    autopilot: { shops: autopilotShops.length, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
+    strandedTextLeads,
+    autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });
+}
+
+const SHOP_PAGE = 100;
+const SHOP_CONCURRENCY = 8;
+
+/** Every matching shop, paged by id, a few at a time — no silent cap as the shop count grows. */
+async function forEachShop(
+  where: Prisma.BusinessWhereInput,
+  run: (shop: Business) => Promise<void>,
+) {
+  let cursor: string | undefined;
+  for (;;) {
+    const page = await prisma.business.findMany({
+      where,
+      orderBy: { id: "asc" },
+      take: SHOP_PAGE,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+    for (let i = 0; i < page.length; i += SHOP_CONCURRENCY) {
+      await Promise.all(page.slice(i, i + SHOP_CONCURRENCY).map(run));
+    }
+    if (page.length < SHOP_PAGE) return;
+    cursor = page[page.length - 1]!.id;
+  }
 }
 
 export async function POST(request: NextRequest) {
