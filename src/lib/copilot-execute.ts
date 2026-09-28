@@ -41,7 +41,7 @@ async function runProposal(
       return { error: `${tech.name} is already on this job.`, status: 409, reason: "already_assigned" };
     }
     if (job.scheduledAt) {
-      const calendar = (await loadTechCandidates(business.id, job.id)).find((c) => c.id === tech.id);
+      const calendar = (await loadTechCandidates(business.id, job.id, job.scheduledAt)).find((c) => c.id === tech.id);
       const duration = job.durationMin ?? DEFAULT_JOB_DURATION_MIN;
       const clash = calendar?.jobs.find((j) => overlaps(job.scheduledAt!, duration, j.scheduledAt, j.durationMin));
       if (clash) {

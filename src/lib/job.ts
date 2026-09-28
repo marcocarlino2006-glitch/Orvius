@@ -5,6 +5,7 @@ import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import {
   DEFAULT_JOB_DURATION_MIN,
   findAvailableSchedules,
+  MAX_SCHEDULE_DAYS,
   type SlotPreference,
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
@@ -157,7 +158,11 @@ export async function findOpenSlots(
       where: {
         businessId: params.businessId,
         status: { notIn: ["completed", "cancelled"] },
-        scheduledAt: { not: null },
+        // Only jobs that can overlap the search window (long installs start up to a week early).
+        scheduledAt: {
+          gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+          lte: new Date(now.getTime() + (MAX_SCHEDULE_DAYS + 1) * 24 * 60 * 60 * 1000),
+        },
         ...(params.excludeJobId ? { id: { not: params.excludeJobId } } : {}),
       },
       select: { scheduledAt: true, durationMin: true, technicianId: true },
