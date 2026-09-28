@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall } from "@/lib/call-quality";
 import { getCustomerTimeline } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
@@ -80,7 +81,17 @@ export async function GET(_request: Request, { params }: Params) {
   }
   if (call.customer) actionsTaken.push("Customer record linked");
 
-  const quality = gradeCall({ call, lead: call.lead, business: call.business ?? undefined, knownAddress: call.customer?.address });
+  const holds =
+    call.lead && !call.lead.job
+      ? await holdDecisionsByLead(call.businessId, [call.lead.id])
+      : new Map<string, string>();
+  const quality = gradeCall({
+    call,
+    lead: call.lead,
+    business: call.business ?? undefined,
+    knownAddress: call.customer?.address,
+    holdDecision: call.lead ? holds.get(call.lead.id) : null,
+  });
 
   return NextResponse.json({
     call: {

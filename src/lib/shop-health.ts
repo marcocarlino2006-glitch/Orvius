@@ -1,3 +1,4 @@
+import { failuresThatReachedNoOne } from "@/lib/alert-reach";
 import { shopHasWrongDemoLine } from "@/lib/demo-business";
 import { prisma } from "@/lib/prisma";
 import { isEmailConfigured } from "@/lib/email";
@@ -67,7 +68,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
 
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  const [lastCall, lastLead, failedAlerts, recentFailures, lastSuccess, alertMetrics] =
+  const [lastCall, lastLead, failedRows, lastSuccess, alertMetrics] =
     await Promise.all([
       prisma.call.findFirst({
         where: { businessId, status: "completed" },
@@ -79,14 +80,11 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
         orderBy: { createdAt: "desc" },
         select: { createdAt: true },
       }),
-      prisma.ownerNotification.count({
-        where: { businessId, status: "failed", createdAt: { gte: since24h } },
-      }),
       prisma.ownerNotification.findMany({
         where: { businessId, status: "failed", createdAt: { gte: since24h } },
         orderBy: { createdAt: "desc" },
-        take: 3,
-        select: { channel: true, error: true, createdAt: true },
+        take: 100,
+        select: { dedupeKey: true, channel: true, error: true, createdAt: true },
       }),
       prisma.ownerNotification.findFirst({
         where: { businessId, status: "sent" },
@@ -96,6 +94,9 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       getAlertMetrics(businessId),
     ]);
 
+  const unreached = await failuresThatReachedNoOne(businessId, failedRows);
+  const failedAlerts = unreached.length;
+  const recentFailures = unreached.slice(0, 3);
   const smsEnabled = process.env.ENABLE_OWNER_SMS === "true";
   const ownerPhoneOk = Boolean(business.ownerPhone?.trim());
   const ownerEmailOk = Boolean(business.ownerEmail?.trim());

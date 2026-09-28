@@ -1,3 +1,4 @@
+import { isInformationOnlyRequest } from "@/lib/info-request";
 import { recordAudit, type AuditQueue } from "@/lib/audit";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
 import { createJobFromLead } from "@/lib/job";
@@ -58,6 +59,7 @@ export type AutoBookSkipReason =
   | "existing_job"
   | "follow_up"
   | "complaint"
+  | "info_only"
   | "not_found";
 
 export type ExistingJobRef = { id: string; title: string | null; scheduledAt: Date | null };
@@ -285,6 +287,23 @@ export async function maybeAutoBookLead(
       { intent },
     );
     return { jobId: null, created: false, qualified: true, skipReason: "follow_up", classification, intent };
+  }
+
+  if (
+    isInformationOnlyRequest({
+      serviceType: lead.serviceType,
+      categoryCode: lead.categoryCode,
+      address: lead.address,
+      notes: lead.notes,
+      callerWords: spoken,
+    })
+  ) {
+    await decide(
+      "lead.answered",
+      "Caller asked a question about the shop, not for service — nothing to book",
+      { intent: "info" },
+    );
+    return { jobId: null, created: false, qualified: false, skipReason: "info_only", classification, intent };
   }
 
   const repeat = openJobs.find(

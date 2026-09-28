@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAfterHours } from "@/lib/business";
+import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall, summarizeCallQuality } from "@/lib/call-quality";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
@@ -65,7 +66,19 @@ export async function GET(request: NextRequest) {
   const hasMore = calls.length > limit;
   const items = hasMore ? calls.slice(0, limit) : calls;
   const shop = { trade: hours?.trade, servicesJson: hours?.servicesJson, name: hours?.name };
-  const grades = items.map((call) => gradeCall({ call, lead: call.lead, business: shop, knownAddress: call.customer?.address }));
+  const holds = await holdDecisionsByLead(
+    business.id,
+    items.flatMap((call) => (call.lead && !call.lead.job ? [call.lead.id] : [])),
+  );
+  const grades = items.map((call) =>
+    gradeCall({
+      call,
+      lead: call.lead,
+      business: shop,
+      knownAddress: call.customer?.address,
+      holdDecision: call.lead ? holds.get(call.lead.id) : null,
+    }),
+  );
 
   return NextResponse.json({
     calls: items.map((call, index) => ({

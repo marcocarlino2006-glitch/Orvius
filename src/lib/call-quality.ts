@@ -1,4 +1,5 @@
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
+import { isInformationOnlyRequest } from "@/lib/info-request";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { parseTranscript } from "@/lib/transcript";
 import { classifyRequest } from "@/lib/trade-playbooks";
@@ -71,6 +72,8 @@ export type CallGradeInput = {
     job?: { id: string } | null;
   } | null;
   business?: { trade?: string | null; servicesJson?: string | null; name?: string | null };
+  /** Auto-book's recorded reason for holding this lead, when it held it on purpose. */
+  holdDecision?: string | null;
   /** A returning customer's address on file — not a capture miss if the call skipped it. */
   knownAddress?: string | null;
 };
@@ -148,9 +151,12 @@ export function gradeCall(input: CallGradeInput): CallGrade {
   const live = status === "in-progress" || status === "ringing";
 
   const notAJob = lead ? leadIsNotAJob(lead) : false;
+  const infoOnly = lead
+    ? isInformationOnlyRequest({ ...lead, callerWords: callerLines.map((l) => l.text).join("\n") })
+    : false;
   const problem = Boolean(lead?.serviceType?.trim() || (lead?.categoryCode && !lead.categoryCode.startsWith("other.")));
 
-  if (!findings.length && !live && !notAJob) {
+  if (!findings.length && !live && !notAJob && !infoOnly) {
     const shortCall = call.durationSec != null && call.durationSec < 20;
     if (shortCall && !problem) {
       findings.push({ key: "hung_up", label: "The caller hung up before saying what they needed.", severity: "watch" });
@@ -226,6 +232,7 @@ export function gradeCall(input: CallGradeInput): CallGrade {
     !hazard &&
     !notAJob &&
     !live &&
+    !input.holdDecision &&
     (lead.status ?? "new") === "new" &&
     Boolean(lead.address?.trim()) &&
     isLeadQualifiedForBooking(lead)

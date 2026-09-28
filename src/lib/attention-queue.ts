@@ -1,5 +1,7 @@
 import "server-only";
 
+import { failuresThatReachedNoOne } from "@/lib/alert-reach";
+import { isInformationOnlyRequest } from "@/lib/info-request";
 import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isLeadQualifiedForBooking, isPriorityUrgency } from "@/lib/auto-job";
 import { shopDayBounds } from "@/lib/availability";
@@ -247,6 +249,7 @@ export async function getAttentionQueue(
         select: {
           id: true,
           leadId: true,
+          dedupeKey: true,
           channel: true,
           error: true,
           createdAt: true,
@@ -696,7 +699,7 @@ export async function getAttentionQueue(
     });
   }
 
-  for (const alert of failedAlerts) {
+  for (const alert of await failuresThatReachedNoOne(businessId, failedAlerts)) {
     items.push({
       id: `alert_failed:${alert.id}`,
       kind: "alert_failed",
@@ -840,6 +843,13 @@ export async function getAttentionQueue(
         .filter(Boolean)
         .join(" · ");
       recommendedAction = "Not a job";
+    } else if (isInformationOnlyRequest(lead)) {
+      kind = "new_lead";
+      impact = "med";
+      detail = ["Question about the shop — not a service request", lead.notes]
+        .filter(Boolean)
+        .join(" · ");
+      recommendedAction = "Open lead";
     } else if (leadWantsHuman(lead) && lead.phone?.trim()) {
       kind = "wants_human";
       impact = urgent || afterHours ? "critical" : "high";

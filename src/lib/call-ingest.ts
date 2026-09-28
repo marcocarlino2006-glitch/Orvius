@@ -3,6 +3,7 @@ import { createAuditQueue } from "@/lib/audit";
 import { maybeAutoBookLead, type AutoBookResult } from "@/lib/auto-job";
 import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import { isInformationOnlyRequest } from "@/lib/info-request";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { logInfo } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
@@ -175,9 +176,12 @@ export async function ingestEndOfCallReport(params: {
       callback: lead.phone,
       name: lead.name,
     };
-    const missing = Object.entries(captured)
-      .filter(([, v]) => !v)
-      .map(([k]) => k);
+    const question = isInformationOnlyRequest({ ...lead, callerWords: callerWords(transcript) });
+    const missing = question
+      ? []
+      : Object.entries(captured)
+          .filter(([, v]) => !v)
+          .map(([k]) => k);
     audit.add({
       businessId: business.id,
       entityType: "lead",
@@ -185,7 +189,9 @@ export async function ingestEndOfCallReport(params: {
       callId: call.id,
       leadId: lead.id,
       action: "lead.captured",
-      summary: missing.length
+      summary: question
+        ? "Captured a question about the shop — no service intake needed"
+        : missing.length
         ? `Captured ${lead.serviceType ?? "the request"} — missing ${missing.join(", ")}`
         : `Captured ${lead.serviceType}, ${lead.urgency}, address and callback number`,
       detail: { captured, missing },
