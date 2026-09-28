@@ -1,6 +1,6 @@
 import { recordAudit, type AuditQueue } from "@/lib/audit";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
-import { createJobFromLead } from "@/lib/job";
+import { createJobFromLead, findOpenSlots } from "@/lib/job";
 import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
 import { callerWords } from "@/lib/transcript";
 import { getEffectivePlanId } from "@/lib/plan-features";
@@ -51,6 +51,7 @@ export type AutoBookSkipReason =
   | "unqualified"
   | "non_service"
   | "capacity_unavailable"
+  | "held_slot_taken"
   | "plan_blocked"
   | "out_of_area"
   | "safety_escalation"
@@ -118,7 +119,7 @@ async function loadLeadForBooking(leadId: string) {
   const [lead, job, call, business] = await Promise.all([
     prisma.lead.findUnique({ where: { id: leadId } }),
     prisma.job.findUnique({ where: { leadId }, select: { id: true } }),
-    prisma.call.findFirst({ where: { lead: { is: { id: leadId } } }, select: { transcript: true, heldSlotAt: true } }),
+    prisma.call.findFirst({ where: { lead: { is: { id: leadId } } }, select: { id: true, transcript: true, heldSlotAt: true } }),
     prisma.business.findFirst({
       where: { leads: { some: { id: leadId } } },
       select: {
@@ -130,6 +131,8 @@ async function loadLeadForBooking(leadId: string) {
         trade: true,
         servicesJson: true,
         name: true,
+        hoursJson: true,
+        timezone: true,
       },
     }),
   ]);
@@ -381,6 +384,37 @@ export async function maybeAutoBookLead(
   );
 
   const held = call?.heldSlotAt && call.heldSlotAt.getTime() > Date.now() ? call.heldSlotAt : null;
+  /*
+    The hold kept the slot while the call was live, but the owner or another
+    booking can take it before the end-of-call report lands. The caller was told
+    this exact time, so a taken slot goes to the owner instead of a silent move.
+  */
+  if (held && call) {
+    const stillOpen = await findOpenSlots(
+      {
+        businessId,
+        urgency: null,
+        durationMin: classification.service.durationMin,
+        skill: classification.service.skill,
+        hoursJson: lead.business.hoursJson ?? "{}",
+        timezone: lead.business.timezone ?? "America/New_York",
+        excludeCallId: call.id,
+      },
+      { count: 1, onlyAt: held },
+    );
+    if (!stillOpen.length) {
+      await decide("lead.held", "The time held on the call was taken before booking — held for the owner to reschedule the caller", {
+        heldSlotAt: held.toISOString(),
+      });
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "held_slot_taken",
+        classification,
+      };
+    }
+  }
   // Booking writes its own audit rows directly; the decisions before it land first.
   await options.audit?.flush();
   let job;
