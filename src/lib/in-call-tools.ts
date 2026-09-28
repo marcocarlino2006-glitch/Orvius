@@ -85,8 +85,8 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
     Checking and then writing is a race: callers holding the same time at the
     same moment all see it open. So write the hold, take a sequence number in
     one statement (the database serializes it, so a lower number is always
-    visible to a higher one), then re-check counting holds numbered earlier
-    and holds not yet numbered. Two racers can both let go; both can never keep.
+    visible to a higher one), then re-check counting only holds numbered
+    earlier. The lowest number keeps the time; everyone after it lets go.
   */
   const claimedAt = new Date();
   await prisma.call.update({

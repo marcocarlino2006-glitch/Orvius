@@ -9,6 +9,7 @@ import test from "node:test";
 import { PrismaClient } from "@prisma/client";
 
 import { handleInCallToolCalls } from "../src/lib/in-call-tools.ts";
+import { findOpenSlots } from "../src/lib/job.ts";
 import { maxOverlap } from "./live-booking-load.mjs";
 
 const prisma = new PrismaClient();
@@ -63,6 +64,31 @@ test("five callers holding the last technician's time at once: exactly one keeps
 
     const holding = await prisma.call.count({ where: { businessId: shop.id, heldSlotAt: new Date(slot) } });
     assert.equal(holding, 1, "the losers let go of the time");
+  } finally {
+    await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
+  }
+});
+
+test("a hold not yet numbered cannot make an earlier-numbered caller let go", async () => {
+  const stamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  const shop = await prisma.business.create({
+    data: { name: "Order Heating", slug: `hold-order-${stamp}`, environment: "test", trade: "HVAC", hoursJson: "{}", timezone: "America/Chicago", servicesJson: "[]" },
+  });
+  try {
+    await prisma.technician.create({ data: { businessId: shop.id, name: "Only Tech", phone: "+15550002222", skillsJson: "[]" } });
+    const params = { businessId: shop.id, urgency: null, durationMin: 90, skill: "general", hoursJson: shop.hoursJson, timezone: shop.timezone };
+    const [at] = await findOpenSlots(params, { count: 1 });
+    assert.ok(at);
+    const hold = (i, heldSeq) =>
+      prisma.call.create({
+        data: { businessId: shop.id, vapiCallId: `order_${stamp}_${i}`, status: "in-progress", heldSlotAt: at, heldSlotDurationMin: 90, heldClaimedAt: new Date(), heldSeq },
+      });
+    const mine = await hold("mine", 5);
+    await hold("unnumbered", null);
+    const recheck = () => findOpenSlots({ ...params, excludeCallId: mine.id, holdsSequencedBefore: 5 }, { count: 1, onlyAt: at });
+    assert.equal((await recheck()).length, 1, "the later racer yields, so this one keeps the time");
+    await hold("earlier", 3);
+    assert.equal((await recheck()).length, 0, "an earlier number still wins");
   } finally {
     await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
   }

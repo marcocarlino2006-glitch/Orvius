@@ -132,9 +132,10 @@ type OpenSlotParams = {
   /** The live call asking, whose own hold must not block it. */
   excludeCallId?: string;
   /**
-   * Count only holds sequenced before this one, plus any not yet sequenced, so
-   * a caller re-checking its own fresh hold yields to earlier callers but not
-   * to later ones — exactly one side of any race keeps the time.
+   * Count only holds sequenced before this one, so a caller re-checking its
+   * own fresh hold yields to earlier callers but not to later ones. A hold not
+   * yet sequenced will number after this one and yield to it, so counting it
+   * too would let every racer lose.
    */
   holdsSequencedBefore?: number;
 };
@@ -180,7 +181,7 @@ export async function findOpenSlots(
         AND: [
           { OR: [{ lead: { is: null } }, { lead: { is: { job: { is: null } } } }] },
           ...(params.holdsSequencedBefore != null
-            ? [{ OR: [{ heldSeq: null }, { heldSeq: { lt: params.holdsSequencedBefore } }] }]
+            ? [{ heldSeq: { lt: params.holdsSequencedBefore } }]
             : []),
         ],
       },
