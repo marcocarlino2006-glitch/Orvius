@@ -1,0 +1,96 @@
+# Orvius backlog — the one list
+
+This is the single ranked list of what is broken, what limits scale, and what
+separates Orvius from best in class. Work comes from here, top down. When an
+item ships, mark it done with the PR link; do not start new lists elsewhere.
+
+Last full inspection: 2026-09-28 (call path, money path, platform, product surface).
+
+Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approval only Marco can give).
+
+---
+
+## Tier 0 — Stop the bleeding (money and trust bugs, confirmed in code)
+
+| ID | Problem | Evidence | Status |
+|----|---------|----------|--------|
+| B1 | A canceled shop's line keeps answering and costing Twilio and Vapi minutes. Cancel only changes `billingStatus`; nothing turns the line off. | `src/lib/billing-sync.ts` (subscription sync), Vapi assistant stays attached | needs owner (grace period + number retention policy) |
+| B2 | Deleting a workspace or an admin deleting a shop does not release the Twilio number, so it bills forever. | `src/lib/workspace-deletion.ts`, `src/app/api/businesses/route.ts` | needs owner (release policy), then open |
+| B3 | Two onboarding submits at once can buy two numbers and create two shops. Same for the auto line fix on parallel page loads, and a retry after a failed rollback. | `src/app/api/onboarding/route.ts`, `src/lib/provision-business.ts` (no lock; `ownerEmail` not unique) | open — sprint ticket 3 |
+| B4 | Checkout does not check the signup gate, so a non-invited person can pay and then be refused a shop. A paid checkout abandoned before onboarding leaves a charge with no shop and no follow-up. | `src/app/api/billing/checkout/route.ts`, `src/lib/billing-sync.ts` | open |
+| B5 | A time held during the call is booked without re-checking capacity, so a slot taken in between can be double-booked. | `src/lib/auto-job.ts` held-slot path, `src/lib/job.ts` `createJobFromLead` | open |
+| B6 | The in-app "test call" marks the line verified without a real call, and writes a fake "1842 Oak Street" address onto the real shop. | `src/app/api/onboarding/test-call/route.ts` | open |
+| B7 | `/api/admin/mastery` answers any signed-in user with platform-wide numbers (waitlist counts, shop counts, readiness gates). | `src/app/api/admin/mastery/route.ts` (no founder check) | open |
+| B8 | The daily cron hides failures: line watch, weekly reports, overage billing and autopilot errors become `null` with no log and the job reports ok. | `src/app/api/cron/notifications/route.ts` `.catch(() => null)` | open |
+| B9 | Alerts can be lost or doubled on a crash: an inbound text's owner alert is lost if the function dies after the lead is saved; the customer confirmation text is best-effort after response; an owner text can send twice if the function dies between Twilio and the DB write. | `src/app/api/webhooks/twilio/sms/route.ts`, `src/lib/job.ts`, `src/lib/notification-queue.ts` | open |
+| B10 | A Stripe refund does not update the deposit or invoice, which stays "paid". | `src/app/api/billing/webhook/route.ts` (no refund events) | open |
+| B11 | `past_due` shops keep full access forever, and their overage is never billed. | `src/lib/billing-entitlement.ts`, `src/lib/overage-billing.ts` | needs owner (grace length) |
+| B12 | Sprint fixes waiting on merge: false "alerts not delivering" warning, info-only calls graded as missed bookings, invited members sent to signup. | [PR #76](https://github.com/marcocarlino2006-glitch/Orvius/pull/76), [PR #77](https://github.com/marcocarlino2006-glitch/Orvius/pull/77) | in PR — needs owner review |
+
+## Tier 1 — Scale bottlenecks (what breaks at hundreds or thousands of shops)
+
+| ID | Problem | Evidence | Status |
+|----|---------|----------|--------|
+| S1 | The hottest shop lookups have no index: owner email, Twilio number, Vapi number, Stripe customer. Every call, text and sign-in scans the shop table. | `prisma/schema.prisma` `Business` | open |
+| S2 | The end-of-call webhook books the job and assigns a tech (up to 12 reslot rounds) before replying to Vapi, risking timeouts and retries under load. | `src/app/api/webhooks/vapi/route.ts`, `src/lib/call-ingest.ts` | open |
+| S3 | Every availability check loads all open jobs for the shop, and the slot scan is slots × jobs. A live-call tool can also wait 2.5 s on a calendar fetch. | `src/lib/job.ts`, `src/lib/availability.ts`, `src/lib/busy-calendar.ts` | open |
+| S4 | The Command page poll runs 20+ database queries each time. | `src/app/api/ring1/route.ts`, `src/lib/attention-queue.ts` | open |
+| S5 | The daily cron handles shops one at a time and stops at 200 shops without saying so. Owner alert retries for quiet shops wait for that daily run. | `src/app/api/cron/notifications/route.ts`, `src/lib/drain-owner-alerts.ts` | open |
+| S6 | All shops text from one shared sender; replies route to whichever shop texted that phone last. Carrier registration (toll-free or 10DLC) is handled outside the product. | `src/lib/twilio-sms.ts`, `src/lib/resolve-shop-line.ts` | needs owner (Twilio verification status) |
+| S7 | Turso is a single writer. Fine now; a ceiling later. | `src/lib/prisma-libsql-concurrent.ts` | watch |
+| S8 | Some state lives in one server's memory (autopilot last run, assistant sync cache, fallback rate limits), so it resets across instances. | `src/lib/autopilot.ts`, `src/lib/sync-business-assistant.ts`, `src/lib/rate-limit.ts` | open |
+| S9 | `puppeteer` is a production dependency though only scripts use it. | `package.json` | open |
+
+## Tier 2 — Let shops buy and go live without Marco
+
+| ID | Problem | Evidence | Status |
+|----|---------|----------|--------|
+| G1 | Email is off in production (`RESEND_API_KEY` missing): no magic links, no email alerts, no dunning. | production magic-link endpoint | needs owner |
+| G2 | Public self-serve signup is switched off; shop creation is invite-only. Multi-shop is sales-only. | `src/lib/self-serve-signup.ts`, `src/lib/pricing-plans.ts` | needs owner (when to open) |
+| G3 | Setup cannot reliably resume, and "ready" does not require call forwarding, so a shop can go live catching only calls to the new number. | `src/lib/owner-setup-state.ts`, `src/components/onboarding-wizard.tsx` | open — sprint ticket 3 |
+| G4 | No payment-failed emails, no "finish setup" nudge after paying, no near-limit usage alert. | `src/app/api/billing/webhook/route.ts`, `src/lib/call-usage.ts` | open (needs G1) |
+| G5 | The "hear your shop" preview is built but dormant until the demo number is switched to server-URL mode in Vapi. | [PR #78](https://github.com/marcocarlino2006-glitch/Orvius/pull/78) | in PR — needs owner approval for the live switch |
+| G6 | No number porting; only new numbers plus forwarding guides. | `src/lib/twilio-phone.ts`, `src/lib/carrier-forward.ts` | later |
+| G7 | Stripe test-mode lifecycle not yet proven end to end (sprint ticket 5). | — | open |
+
+## Tier 3 — Master class (what makes it clearly the best)
+
+| ID | Gap | Evidence | Status |
+|----|-----|----------|--------|
+| M1 | Voice reply time is p50 1.08 s / p90 1.79 s; best in class feels under 0.8 s. | `docs/VOICE-RESULTS.md` | open |
+| M2 | Transfer to a person is a cold transfer only, and gas or CO safety calls alert after the call instead of transferring live. | `src/lib/vapi.ts`, `src/lib/auto-job.ts` | open |
+| M3 | No ServiceTitan, Housecall Pro or Jobber sync, and Google Calendar is read-only busy blocks. These are what real shops run on. | only marketing mentions; `src/lib/busy-calendar.ts` | open |
+| M4 | The voice test suite never runs the live booking tools or transfer, so the most valuable path is ungated. | `scripts/voice-sim.mjs` | open |
+| M5 | On a call, customers cannot reschedule, cancel or ask job status. | `src/lib/in-call-tool-defs.ts` | later |
+| M6 | The owner app on a phone is the desktop layout shrunk; no phone-first "tonight" view. The first-night handoff screen is built but never shown. | `src/components/os-shell.tsx`, `FirstNightHandoff` unmounted | open |
+| M7 | No tests for call ingest, provisioning or billing sync directly. | `package.json` `test:trust` | open |
+
+## Tier 4 — Focus and cleanup (cost of carrying too much)
+
+| ID | Problem | Evidence | Status |
+|----|---------|----------|--------|
+| F1 | About 22,000 lines of CSS across 10 files, with five button systems and three color token sets. | `src/app/*.css`, `src/app/dashboard/*.css` | open |
+| F2 | Jobs, Dispatch, money (estimates, invoices, deposits), Ask and Portfolio ship beside a stated receptionist wedge; several are marked beta. | `src/lib/os-nav.ts`, `src/lib/company.ts` | needs owner (hide beta rings until the wedge pays?) |
+| F3 | Claims to tighten: a "LIVE" badge on the illustrative sign-in feed; the compare table's unconditional "Yes" rows; a P95 alert latency promise with no readout. | `src/components/signin-board.tsx`, `src/components/home-compare.tsx`, `src/lib/institutional-standards.ts` | open |
+| F4 | Summit and "1842 Oak Street" placeholders appear in real-shop settings and onboarding. | `business-section.tsx`, `onboarding-wizard.tsx` | open — sprint ticket 4 |
+| F5 | Call recordings and transcripts are kept forever; customer links (confirm, invoice, deposit) never expire; a shop's calendar feed cannot be revoked alone; backups are manual. | `prisma/schema.prisma`, `src/lib/calendar-feed.ts` | needs owner (retention policy) |
+| F6 | Repo clutter: 33 strategy docs in `docs/`, about 34 one-off scripts, 42 untracked `.tmp-*.mjs` files in the root. | `docs/`, `scripts/` | open |
+
+---
+
+## Needs Marco (nothing else moves these)
+
+1. Add `RESEND_API_KEY` in Vercel (unblocks G1, G4).
+2. Tell me the Twilio toll-free or 10DLC verification status (S6).
+3. Decide: grace period for failed payments, and whether canceled shops keep their number and for how long (B1, B2, B11).
+4. Decide: open self-serve signup now or after G3 ships (G2).
+5. Decide: how long to keep recordings and transcripts (F5).
+6. Review and merge PRs #76, #77, #78; approve switching the demo number to server-URL mode (G5).
+
+## Order of work
+
+1. B3 + G3 (sprint ticket 3): no duplicate numbers, resumable setup, truthful checklist.
+2. B5, B6, B7, B8, B9, B10: small, confirmed, high-trust fixes.
+3. S1, S2, S3, S4, S5: scale.
+4. B4, G4, G7: money path proven in Stripe test mode (sprint ticket 5).
+5. M1 to M4, then F1 to F6.
