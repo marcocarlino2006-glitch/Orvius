@@ -58,7 +58,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | S6 | All shops text from one shared sender; replies route to whichever shop texted that phone last. Carrier registration (toll-free or 10DLC) is handled outside the product. | `src/lib/twilio-sms.ts`, `src/lib/resolve-shop-line.ts` | needs owner (Twilio verification status) |
 | S7 | Turso is a single writer. Fine now; a ceiling later. | `src/lib/prisma-libsql-concurrent.ts` | watch |
 | S8 | Some state lives in one server's memory (autopilot last run, assistant sync cache, fallback rate limits), so it resets across instances. | `src/lib/autopilot.ts`, `src/lib/sync-business-assistant.ts`, `src/lib/rate-limit.ts` | open |
-| S9 | `puppeteer` is a production dependency though only scripts use it. | `package.json` | open |
+| S9 | `puppeteer` is a production dependency though only scripts use it. | `package.json` | in PR (quick fixes) |
 
 ## Tier 2 — Let shops buy and go live without Marco
 
@@ -66,7 +66,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 |----|---------|----------|--------|
 | G1 | Email is off in production (`RESEND_API_KEY` missing): no magic links, no email alerts, no dunning. | production magic-link endpoint | needs owner |
 | G2 | Public self-serve signup is switched off; shop creation is invite-only. Multi-shop is sales-only. | `src/lib/self-serve-signup.ts`, `src/lib/pricing-plans.ts` | needs owner (when to open) |
-| G3 | Setup cannot reliably resume, and "ready" does not require call forwarding, so a shop can go live catching only calls to the new number. | `src/lib/owner-setup-state.ts`, `src/components/onboarding-wizard.tsx` | in PR (resumable setup) |
+| G3 | Setup cannot reliably resume, and "ready" does not require call forwarding, so a shop can go live catching only calls to the new number. | `src/lib/owner-setup-state.ts`, `src/components/onboarding-wizard.tsx` | done — [PR #83](https://github.com/marcocarlino2006-glitch/Orvius/pull/83) |
 | G4 | No payment-failed emails, no "finish setup" nudge after paying, no near-limit usage alert. | `src/app/api/billing/webhook/route.ts`, `src/lib/call-usage.ts` | open (needs G1) |
 | G5 | The "hear your shop" preview is built but dormant until the demo number is switched to server-URL mode in Vapi. | [PR #78](https://github.com/marcocarlino2006-glitch/Orvius/pull/78) | in PR — needs owner approval for the live switch |
 | G6 | No number porting; only new numbers plus forwarding guides. | `src/lib/twilio-phone.ts`, `src/lib/carrier-forward.ts` | later |
@@ -91,7 +91,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | F1 | About 22,000 lines of CSS across 10 files, with five button systems and three color token sets. | `src/app/*.css`, `src/app/dashboard/*.css` | open |
 | F2 | Jobs, Dispatch, money (estimates, invoices, deposits), Ask and Portfolio ship beside a stated receptionist wedge; several are marked beta. | `src/lib/os-nav.ts`, `src/lib/company.ts` | needs owner (hide beta rings until the wedge pays?) |
 | F3 | Claims to tighten: a "LIVE" badge on the illustrative sign-in feed; the compare table's unconditional "Yes" rows; a P95 alert latency promise with no readout. | `src/components/signin-board.tsx`, `src/components/home-compare.tsx`, `src/lib/institutional-standards.ts` | open |
-| F4 | Summit and "1842 Oak Street" placeholders appear in real-shop settings and onboarding. | `business-section.tsx`, `onboarding-wizard.tsx` | open — sprint ticket 4 |
+| F4 | Summit and "1842 Oak Street" placeholders appear in real-shop settings and onboarding. | `business-section.tsx`, `onboarding-wizard.tsx` | in PR (quick fixes) |
 | F5 | Call recordings and transcripts are kept forever; customer links (confirm, invoice, deposit) never expire; a shop's calendar feed cannot be revoked alone; backups are manual. | `prisma/schema.prisma`, `src/lib/calendar-feed.ts` | needs owner (retention policy) |
 | F6 | Repo clutter: 33 strategy docs in `docs/`, about 34 one-off scripts, 42 untracked `.tmp-*.mjs` files in the root. | `docs/`, `scripts/` | open |
 
