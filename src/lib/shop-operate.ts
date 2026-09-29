@@ -48,9 +48,9 @@ const SETUP_COPY: Record<
     cta: "Prove it",
   },
   capture: {
-    title: "Confirm call capture",
-    detail: "Forward overflow / after-hours — or publish the Orvius number.",
-    cta: "Confirm capture",
+    title: "Your main number doesn't reach Orvius yet",
+    detail: "Only calls to your Orvius number are answered. Forward your main number to it, or confirm you've put it on your trucks and site.",
+    cta: "Set up forwarding",
   },
 };
 
@@ -107,7 +107,8 @@ export function resolveShopOperateNext(
     };
   }
 
-  if (!input.setupReady && input.setupNext !== "done") {
+  // Capture comes after Command opens, so it can't wait on setupReady — "covered" must never show before it.
+  if (input.setupNext !== "done") {
     const copy = SETUP_COPY[input.setupNext];
     return {
       id: `setup:${input.setupNext}`,

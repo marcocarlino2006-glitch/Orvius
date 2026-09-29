@@ -2,6 +2,7 @@
 
 import { telHref } from "@/lib/demo-line";
 import { markFirstNightPending } from "@/components/first-night-handoff";
+import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -19,8 +20,8 @@ type OnboardingCallVerifyProps = {
 const POLL_MS = 3_000;
 
 /**
- * One job after the line exists: Call → Enter Command.
- * Capture (forward/publish) stays on Settings — never stamp overflow here.
+ * One job after the line exists: call it. Then forwarding is offered first;
+ * capture is confirmed in Settings, never stamped here.
  */
 export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyProps) {
   const router = useRouter();
@@ -63,14 +64,14 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
     return () => clearInterval(interval);
   }, [check, polling]);
 
-  async function enterCommand() {
+  async function enterCommand(href = "/dashboard?live=1") {
     if (!verified) return;
     setEntering(true);
     setError(null);
     try {
       // Line is proved. Do not invent overflow/forward confirm — Settings owns that.
       markFirstNightPending();
-      router.replace("/dashboard?live=1");
+      router.replace(href);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not finish setup");
@@ -120,13 +121,11 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         )}
         <div>
           <h1 className="onboarding-title font-sans">
-            {verified ? "Line works. You’re in." : "Call your line once."}
+            {verified ? "Your Orvius line answers." : "Call your line once."}
           </h1>
           <p className="onboarding-lead font-sans">
             {verified
-              ? leadName
-                ? `${shopName} caught a lead from ${leadName}. Open Command and clear the board.`
-                : `${shopName} is answering. Open Command — the banner at the top is always your next move.`
+              ? `${leadName ? `It caught a lead from ${leadName}. ` : ""}Your customers still call your main number, so forward it here (or put this number on your trucks) before you count on it.`
               : `Tap Call. Orvius answers as ${shopName} and texts you. Stay on this screen — we watch for the call.`}
           </p>
         </div>
@@ -166,14 +165,24 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
 
       <div className="onboarding-actions">
         {verified ? (
-          <button
-            type="button"
-            className="btn btn-void font-sans"
-            disabled={entering}
-            onClick={() => void enterCommand()}
-          >
-            {entering ? "Opening…" : "Enter Command"}
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn btn-void font-sans"
+              disabled={entering}
+              onClick={() => void enterCommand(ownerSetupHref("capture"))}
+            >
+              {entering ? "Opening…" : "Forward my main number"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary font-sans"
+              disabled={entering}
+              onClick={() => void enterCommand()}
+            >
+              Enter Command
+            </button>
+          </>
         ) : (
           <>
             <a href={telHref(line)} className="btn btn-void font-sans">
