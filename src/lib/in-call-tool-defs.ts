@@ -6,7 +6,7 @@ import type { SlotPreference } from "@/lib/availability";
  * assistant config can be built and tested anywhere.
  */
 
-export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment"] as const;
+export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "alert_team_now"] as const;
 export type InCallToolName = (typeof IN_CALL_TOOL_NAMES)[number];
 
 const URGENCY = ["emergency", "same-day", "this-week", "flexible"] as const;
@@ -55,6 +55,25 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
         },
       },
       messages: [{ type: "request-start", content: "One moment." }],
+      server,
+    },
+    {
+      type: "function",
+      function: {
+        name: "alert_team_now",
+        description:
+          "Text the shop owner right now, while the caller is still on the line. Use it only on a danger call — gas smell, carbon monoxide alarm, smoke or sparking — right after giving the safety instruction. Pass whatever you already know; do not hold the call to collect more.",
+        parameters: {
+          type: "object",
+          properties: {
+            hazard: { type: "string", description: "What the caller reported, e.g. 'gas smell in the basement'" },
+            address: { type: "string", description: "Service address, if the caller has given it" },
+            callerName: { type: "string", description: "Caller's name, if given" },
+            callbackNumber: { type: "string", description: "Callback number the caller gave, if different from the one they are calling from" },
+          },
+          required: ["hazard"],
+        },
+      },
       server,
     },
   ];

@@ -1,5 +1,10 @@
 import type { Business } from "@prisma/client";
+import { afterResponse } from "@/lib/after-response";
+import { displayPhone } from "@/lib/customer";
+import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { findOpenSlots } from "@/lib/job";
+import { logError, logInfo } from "@/lib/logger";
+import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { describeSlot, parseSlotPreference, type ToolCall } from "@/lib/in-call-tool-defs";
@@ -21,7 +26,10 @@ const TAKEN = "That time was just taken. Apologize briefly and call check_availa
 
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
-type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name">;
+type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name"> &
+  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone">>;
+
+type CallForTools = { id: string; vapiCallId?: string | null; callerPhone?: string | null };
 
 function jobShape(shop: ShopForTools, serviceType: string | null, urgency: string | null) {
   const playbook = classifyRequest({ business: shop, serviceType, urgency });
@@ -34,7 +42,7 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   const urgency = str(args.urgency);
   const { playbook, durationMin, skill } = jobShape(shop, serviceType, urgency);
   if (playbook.safety) {
-    return `Do not book this. ${playbook.safety.instruction} Take their name, number and address and tell them the team is being alerted now.`;
+    return `Do not book this. ${playbook.safety.instruction} Call alert_team_now if you have not already, then follow the danger rule.`;
   }
   const base = {
     businessId: shop.id,
@@ -68,7 +76,7 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
   }
   const { durationMin, skill, playbook } = jobShape(shop, str(args.serviceType), null);
   if (playbook.safety) {
-    return `Do not book this. ${playbook.safety.instruction}`;
+    return `Do not book this. ${playbook.safety.instruction} Call alert_team_now if you have not already, then follow the danger rule.`;
   }
   const slot = {
     businessId: shop.id,
@@ -106,13 +114,79 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
   return `Held ${describeSlot(at, timezone)}. Tell the caller they're penciled in for that time and the shop will confirm with them shortly. Do not promise a text. Make sure you have their name, callback number and service address before ending the call.`;
 }
 
+/*
+  A danger call used to reach the owner only after the caller hung up, which
+  on a gas or carbon monoxide call is minutes the owner didn't have. This
+  texts them mid-call. The post-call alert still goes out with the full
+  record; this one is keyed to the call so a repeated tool call texts once.
+*/
+async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record<string, unknown>) {
+  const hazard = str(args.hazard) ?? "a safety hazard";
+  const address = str(args.address);
+  const name = str(args.callerName);
+  const rawNumber = str(args.callbackNumber) ?? call.callerPhone ?? null;
+  const number = rawNumber ? displayPhone(rawNumber) : null;
+  const transferring = Boolean(shop.transferPhone?.trim());
+  const canReach = Boolean(shop.ownerPhone || shop.ownerEmail);
+
+  if (canReach) {
+    await enqueueOwnerAlert({
+      businessId: shop.id,
+      businessName: shop.name,
+      ownerPhone: shop.ownerPhone,
+      ownerEmail: shop.ownerEmail,
+      dedupeKey: `safety-live:${call.vapiCallId ?? call.id}`,
+      message: [
+        `SAFETY CALL, caller on the line now: ${hazard}.`,
+        address ? `Address: ${address}.` : null,
+        [name, number].filter(Boolean).length ? `Caller: ${[name, number].filter(Boolean).join(", ")}.` : null,
+        transferring ? "Orvius is connecting them to your transfer number." : "Call them back now.",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    });
+    await afterResponse(() =>
+      drainOwnerAlerts({ at: "in-call.alert_team_now", businessId: shop.id }).catch((error) =>
+        logError("in_call.safety_alert_drain_failed", {
+          businessId: shop.id,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      ),
+    );
+    logInfo("in_call.safety_alert", { businessId: shop.id, callId: call.id, transferring });
+  }
+
+  const told = canReach ? "The owner has been texted. " : "";
+  return transferring
+    ? `${told}Now say "I'm connecting you to the team now" and use the transfer tool in the same reply. If the transfer does not go through, tell them the team will call right back and take their name, number and address.`
+    : `${told}Tell them "The team has been alerted and will call you right back." Then take their name, callback number and address if you don't have them yet.`;
+}
+
 export async function handleInCallToolCalls(params: {
   shop: ShopForTools;
   callId: string;
+  call?: CallForTools;
   toolCalls: ToolCall[];
 }): Promise<Array<{ toolCallId: string; result: string }>> {
   return Promise.all(
     params.toolCalls.map(async (call) => {
+      if (call.name === "alert_team_now") {
+        try {
+          return {
+            toolCallId: call.id,
+            result: await alertTeamNow(params.shop, params.call ?? { id: params.callId }, call.args),
+          };
+        } catch (error) {
+          logError("in_call.safety_alert_failed", {
+            businessId: params.shop.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return {
+            toolCallId: call.id,
+            result: "The alert did not go through. Tell them the team will call right back, and take their name, number and address.",
+          };
+        }
+      }
       try {
         if (call.name === "check_availability") {
           return { toolCallId: call.id, result: await checkAvailability(params.shop, params.callId, call.args) };

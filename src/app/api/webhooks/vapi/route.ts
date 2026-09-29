@@ -168,15 +168,26 @@ export async function POST(request: NextRequest) {
       where: { vapiCallId },
       create: { businessId: business.id, vapiCallId, callerPhone, status: "in-progress" },
       update: {},
-      select: { id: true },
+      select: { id: true, vapiCallId: true, callerPhone: true },
     });
     const shop = await prisma.business.findUniqueOrThrow({
       where: { id: business.id },
-      select: { id: true, name: true, hoursJson: true, timezone: true, trade: true, servicesJson: true },
+      select: {
+        id: true,
+        name: true,
+        hoursJson: true,
+        timezone: true,
+        trade: true,
+        servicesJson: true,
+        ownerPhone: true,
+        ownerEmail: true,
+        transferPhone: true,
+      },
     });
     const results = await handleInCallToolCalls({
       shop,
       callId: call.id,
+      call: { ...call, callerPhone: call.callerPhone ?? callerPhone },
       toolCalls: readToolCalls(message),
     });
     return NextResponse.json({ results });

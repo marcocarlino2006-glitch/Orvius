@@ -241,7 +241,30 @@ export function buildVapiAssistantConfig(params: {
                 type: "number",
                 number: params.transferPhone,
                 message: "One moment, I'm connecting you now.",
-                description: "The shop owner, for callers who ask for a person",
+                description:
+                  "The shop owner or on-call tech: callers who ask for a person, and danger calls (gas smell, carbon monoxide, smoke, sparking)",
+                /*
+                  Warm, not blind: the owner hears who is calling and why before
+                  the caller is put through, so a 2 a.m. transfer doesn't open
+                  with "who is this?". Waiting for the owner's hello keeps the
+                  briefing from talking over them. Warm modes need Twilio
+                  telephony, which every shop line is.
+                */
+                transferPlan: {
+                  mode: "warm-transfer-wait-for-operator-to-speak-first-and-then-say-summary",
+                  timeout: 15,
+                  summaryPlan: {
+                    enabled: true,
+                    timeoutSeconds: 5,
+                    messages: [
+                      {
+                        role: "system",
+                        content: `You are briefing the owner of ${params.businessName}, who just answered a transferred call from a customer. In at most two short spoken sentences say who is calling, what the problem is, and the address if given. If the caller reported gas, carbon monoxide, smoke or sparking, start with "Safety call." Return only the words to say.`,
+                      },
+                      { role: "user", content: "{{transcript}}" },
+                    ],
+                  },
+                },
               },
             ],
           },
