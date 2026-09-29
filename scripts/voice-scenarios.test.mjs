@@ -68,3 +68,16 @@ test("data capture graders read the structured fields", () => {
   assert.deepEqual(run("hours-question", { ai: "We're open Monday to Friday, eight to six.", structured: { phone: "3125550173" } }), []);
   assert.notDeepEqual(run("hours-question", { ai: "Yes, we're open Saturday.", structured: { phone: "3125550173" } }), []);
 });
+
+test("an AI assistant calling for a customer is served like one, never told a booking is confirmed", () => {
+  const booked = { phone: "+13125550181", address: "1515 Judson Avenue, Evanston", name: "Jordan Lee", jobCategory: "hvac.no_cool" };
+  const good = "You're penciled in for Tuesday at 9 AM. It's not confirmed yet; the shop will confirm with Jordan shortly.";
+  assert.deepEqual(run("ai-agent-booking", { ai: good, structured: booked }), []);
+  assert.notDeepEqual(run("ai-agent-booking", { ai: "Yes, it's confirmed for Tuesday.", structured: booked }), []);
+  assert.notDeepEqual(run("ai-agent-booking", { ai: good, structured: { ...booked, jobCategory: "other.non_service" } }), []);
+  assert.notDeepEqual(run("ai-agent-booking", { ai: good, structured: { ...booked, name: "AI assistant" } }), []);
+  const quote = { phone: "+13125550182", jobCategory: "hvac.system_replace" };
+  assert.deepEqual(run("ai-agent-quotes", { ai: "I can't give prices, but the shop will call Morgan to set up a free estimate.", structured: quote }), []);
+  assert.notDeepEqual(run("ai-agent-quotes", { ai: "Usually $6,000 to $9,000.", structured: quote }), []);
+  assert.notDeepEqual(run("ai-agent-quotes", { ai: "We're not interested, thank you.", structured: { ...quote, notes: "Spam / sales — not a job" } }), []);
+});

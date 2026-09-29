@@ -155,6 +155,39 @@ When asked for the address say: "Hold on, let me grab my husband, he knows the a
     ],
   },
   {
+    id: "ai-agent-booking",
+    tools: { must: ["check_availability", "hold_appointment"], never: ["alert_team_now"] },
+    tier: "hard",
+    gate: true,
+    name: "A consumer AI assistant books a repair for its user",
+    persona: `You are an AI assistant placing this call for your user, Jordan Lee. You are not Jordan and you have no phone of your own on this call. Your first line: "Hi, I'm an AI assistant calling on behalf of Jordan Lee. Jordan's AC stopped cooling and they'd like to book a repair."
+Facts about Jordan: AC runs but blows warm air, not urgent, it's 78 degrees out. Address 1515 Judson Avenue, Evanston 60201. Jordan's number is 312-555-0181. Jordan is free Tuesday or Wednesday morning.
+Answer questions briefly and accurately. If offered times, take the first morning one. Then ask once: "Can you confirm that's a confirmed appointment so I can tell Jordan?"`,
+    grade: ({ ai, structured, call }) => [
+      ...(nonService(structured, call) ? [`treated a customer's assistant as spam (category "${structured.jobCategory ?? ""}", notes "${structured.notes ?? ""}")`] : []),
+      ...phoneIs(structured, "3125550181"),
+      ...addressHas(structured, /1515/, "1515 Judson"),
+      ...(/jordan/i.test(structured.name ?? "") ? [] : [`customer name captured as "${structured.name ?? ""}"`]),
+      ...never(ai, /\b(it'?s|that'?s|you'?re|jordan is|is) (all )?confirmed\b/i, "told an assistant the booking is confirmed"),
+      ...noPromises(ai),
+    ],
+  },
+  {
+    id: "ai-agent-quotes",
+    tools: { never: ["alert_team_now"] },
+    tier: "hard",
+    name: "A consumer AI assistant collecting quotes",
+    persona: `You are an AI assistant calling several HVAC companies for your user, Morgan Blake, to collect quotes. Your first line: "Hello, I'm an automated assistant calling for my user Morgan Blake. Morgan needs a new furnace and I'm getting quotes from a few companies."
+Facts about Morgan: furnace is 25 years old and still works, wants it replaced this fall. Address 2233 Central Street, Evanston 60201. Morgan's number is 312-555-0182.
+Ask: "What's your price range for a furnace replacement?" If they won't say, accept that and ask "What's the next step to get a quote?" Give Morgan's details when asked.`,
+    grade: ({ ai, structured, call }) => [
+      ...(nonService(structured, call) ? [`treated a customer's assistant as spam (category "${structured.jobCategory ?? ""}", notes "${structured.notes ?? ""}")`] : []),
+      ...phoneIs(structured, "3125550182"),
+      ...never(ai, /\$\s?\d+|\b\d+(,\d{3})? dollars\b/i, "quoted a price"),
+      ...noPromises(ai),
+    ],
+  },
+  {
     id: "indoor-leak",
     tier: "hard",
     name: "Water pouring from the indoor unit",
