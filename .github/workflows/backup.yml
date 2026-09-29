@@ -1,0 +1,84 @@
+name: Backup
+
+# Nightly copy of the production database that we control, proven by restoring
+# it into a fresh database and matching every table's row count. The file holds
+# customer names, numbers and addresses, so only the encrypted form
+# (gzip + AES-256-GCM, BACKUP_ENCRYPTION_KEY) is ever stored. Keep that key
+# somewhere other than GitHub too: without it the artifacts cannot be restored.
+# A failed backup or drill opens a "backup" issue; the next good night closes it.
+on:
+  schedule:
+    - cron: "41 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.BACKUP_TURSO_AUTH_TOKEN }}
+      BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+    steps:
+      - name: Check secrets
+        id: gate
+        run: |
+          if [ -n "$DATABASE_URL" ] && [ -n "$BACKUP_ENCRYPTION_KEY" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No backup taken — set BACKUP_DATABASE_URL, BACKUP_TURSO_AUTH_TOKEN and BACKUP_ENCRYPTION_KEY in repo secrets."
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - if: steps.gate.outputs.run == 'true'
+        run: npm ci --ignore-scripts
+      - if: steps.gate.outputs.run == 'true'
+        name: Back up and restore-drill
+        id: drill
+        run: |
+          out="orvius-$(date -u +%Y-%m-%dT%H-%M).json.enc"
+          node scripts/db-backup.mjs drill --encrypt --out "encrypted/$out" | tee -a "$GITHUB_STEP_SUMMARY"
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: orvius-backup-encrypted
+          path: encrypted/*.json.enc
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Open or update the backup issue
+        if: failure() && steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create backup --color B60205 --description "Automated backup alert" -R "$GITHUB_REPOSITORY" 2>/dev/null || true
+          open=$(gh issue list -R "$GITHUB_REPOSITORY" --label backup --state open --json number --jq '.[0].number')
+          note=$(printf "Backup or restore drill failed at %s UTC.\n\nRun: %s/%s/actions/runs/%s" "$(date -u '+%Y-%m-%d %H:%M')" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+          if [ -n "$open" ]; then
+            gh issue comment "$open" -R "$GITHUB_REPOSITORY" --body "$note"
+          else
+            gh issue create -R "$GITHUB_REPOSITORY" --label backup --title "Nightly backup failed" --body "$note"
+          fi
+
+      - name: Close the backup issue on recovery
+        if: success() && steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list -R "$GITHUB_REPOSITORY" --label backup --state open --json number --jq '.[].number'); do
+            gh issue close "$n" -R "$GITHUB_REPOSITORY" --comment "Backed up and restore-drilled at $(date -u '+%Y-%m-%d %H:%M') UTC."
+          done

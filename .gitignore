@@ -52,3 +52,6 @@ next-env.d.ts
 
 # Database backups hold customer data
 /backups/
+
+# Local scratch scripts
+/.tmp-*
