@@ -75,7 +75,9 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
     line = "Unhappy about a past visit or bill · call them yourself — not booked";
   } else if (skipReason === "existing_job" && existingJob) {
     if (intent === "cancel") line = `Wants to cancel the ${jobRef}. Not cancelled yet — call to confirm.`;
-    else if (intent === "reschedule") line = `Wants to move the ${jobRef}. Not moved yet — call to pick a time.`;
+    else if (intent === "reschedule" && context.heldSlotAt) {
+      line = `Wants to move the ${jobRef} to ${formatSchedule(context.heldSlotAt, context.timezone)}. That time is held for them for 2 hours — move the job and confirm with them. Not moved yet.`;
+    } else if (intent === "reschedule") line = `Wants to move the ${jobRef}. Not moved yet — call to pick a time.`;
     else if (intent === "status") line = `Asking about their ${jobRef}. No new job created.`;
     else line = `Called again about the job already booked (${jobRef}). No new job created.`;
   } else if (skipReason === "follow_up") {
@@ -93,7 +95,8 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
     line = "The time they picked on the call was taken before it booked · call to pick a new time";
   }
 
-  if (context.heldSlotAt) {
+  const heldForMove = skipReason === "existing_job" && existingJob && intent === "reschedule";
+  if (context.heldSlotAt && !heldForMove) {
     const took = `Caller was offered and took ${formatSchedule(context.heldSlotAt, context.timezone)} on the call — they expect that time`;
     line = line ? `${line}\n${took}` : took;
   }

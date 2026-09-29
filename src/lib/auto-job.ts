@@ -121,7 +121,7 @@ async function loadLeadForBooking(leadId: string) {
   const [lead, job, call, business] = await Promise.all([
     prisma.lead.findUnique({ where: { id: leadId } }),
     prisma.job.findUnique({ where: { leadId }, select: { id: true } }),
-    prisma.call.findFirst({ where: { lead: { is: { id: leadId } } }, select: { id: true, transcript: true, heldSlotAt: true } }),
+    prisma.call.findFirst({ where: { lead: { is: { id: leadId } } }, select: { id: true, transcript: true, heldSlotAt: true, heldIntent: true } }),
     prisma.business.findFirst({
       where: { leads: { some: { id: leadId } } },
       select: {
@@ -186,7 +186,10 @@ export async function maybeAutoBookLead(
     callerWords: spoken,
     urgency: lead.urgency,
   });
-  const intent = detectCallIntent(lead.serviceType, lead.notes, spoken);
+  const detected = detectCallIntent(lead.serviceType, lead.notes, spoken);
+  // "Can you come Friday instead?" reads as new work to the phrase detector; a
+  // time held with hold_new_time is a move of an existing visit, never a job.
+  const intent: CallIntent = detected !== "complaint" && call?.heldIntent === "reschedule" ? "reschedule" : detected;
   const link = {
     businessId,
     callId: lead.callId,

@@ -13,7 +13,14 @@ import { prisma } from "@/lib/prisma";
  * never to read an address or history back to someone who hasn't confirmed.
  */
 
-type JobRef = { title: string | null; scheduledAt: Date | null; status: string; address: string | null };
+type JobRef = { title: string | null; scheduledAt: Date | null; status: string; address: string | null; etaText?: string | null };
+
+const STATUS_WORDS: Record<string, string> = {
+  scheduled: "scheduled",
+  confirmed: "confirmed",
+  en_route: "the technician is on the way",
+  on_site: "the technician is there now",
+};
 
 export type CallerContextInput = {
   name: string | null;
@@ -39,8 +46,10 @@ export function buildCallerContextNote(input: CallerContextInput): string | null
   ];
   if (input.openJob) {
     const when = input.openJob.scheduledAt ? ` on ${describeSlot(input.openJob.scheduledAt, input.timezone)}` : "";
+    const status = STATUS_WORDS[input.openJob.status] ?? input.openJob.status;
+    const eta = input.openJob.status === "en_route" && input.openJob.etaText?.trim() ? `, arriving in about ${input.openJob.etaText.trim()}` : "";
     lines.push(
-      `They have an open job: ${input.openJob.title ?? "a service visit"}${when} (${input.openJob.status}). If they are calling about it, help with that instead of booking new work.`,
+      `They have an open job: ${input.openJob.title ?? "a service visit"}${when} (${status}${eta}). If they are calling about it, help with that instead of booking new work. Once they confirm who they are, you may tell them this time and status; to move it, follow the rule for moving a visit.`,
     );
   } else {
     lines.push(
@@ -79,7 +88,7 @@ export async function loadCallerContextNote(params: {
       jobs: {
         orderBy: { createdAt: "desc" },
         take: 5,
-        select: { title: true, scheduledAt: true, status: true, address: true },
+        select: { title: true, scheduledAt: true, status: true, address: true, etaText: true },
       },
     },
   });

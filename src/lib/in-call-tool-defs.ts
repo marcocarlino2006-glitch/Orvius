@@ -6,7 +6,7 @@ import type { SlotPreference } from "@/lib/availability";
  * assistant config can be built and tested anywhere.
  */
 
-export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "alert_team_now"] as const;
+export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now"] as const;
 export type InCallToolName = (typeof IN_CALL_TOOL_NAMES)[number];
 
 const URGENCY = ["emergency", "same-day", "this-week", "flexible"] as const;
@@ -50,6 +50,24 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
           properties: {
             slot: { type: "string", description: "The slot id from check_availability, e.g. 2026-09-29T12:00:00.000Z" },
             serviceType: { type: "string", description: "What needs fixing" },
+          },
+          required: ["slot"],
+        },
+      },
+      messages: [{ type: "request-start", content: "One moment." }],
+      server,
+    },
+    {
+      type: "function",
+      function: {
+        name: "hold_new_time",
+        description:
+          "The caller already has a visit and wants to move it. Reserve the new time they picked from check_availability instead of hold_appointment. This never books a second visit; the shop moves the existing one and confirms.",
+        parameters: {
+          type: "object",
+          properties: {
+            slot: { type: "string", description: "The slot id from check_availability" },
+            serviceType: { type: "string", description: "What the existing visit is for" },
           },
           required: ["slot"],
         },
@@ -149,6 +167,10 @@ export function availabilityReply(slots: Date[], timezone: string, note = "") {
 
 export function heldReply(at: Date, timezone: string) {
   return `Held ${describeSlot(at, timezone)}. Tell the caller they're penciled in for that time and the shop will confirm with them shortly. Do not promise a text. Make sure you have their name, callback number and service address before ending the call.`;
+}
+
+export function heldNewTimeReply(at: Date, timezone: string) {
+  return `Held ${describeSlot(at, timezone)} as the new time for their existing visit. Tell the caller "I've held ${describeSlot(at, timezone)} for you, and the shop will confirm the change with you." Never say the visit is moved or confirmed.`;
 }
 
 export function safetyAlertReply(params: { texted: boolean; transferring: boolean }) {

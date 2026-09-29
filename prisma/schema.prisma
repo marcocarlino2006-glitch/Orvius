@@ -214,6 +214,8 @@ model Call {
   heldClaimedAt       DateTime?
   /** Database-assigned order of hold writes; commit order and sequence order always agree. */
   heldSeq Int?
+  /** "reschedule" when the held time is a new time for a visit the caller already has, never a new job. */
+  heldIntent String?
   /** When the returning-caller note was handed to the live receptionist (once per call). */
   callerContextSentAt DateTime?
   /** Caller's wait for a reply on this call, from Vapi's turn timing (lib/call-latency.ts). */

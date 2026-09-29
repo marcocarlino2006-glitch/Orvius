@@ -11,6 +11,7 @@ import {
   availabilityReply,
   BAD_SLOT_REPLY,
   dangerRefusal,
+  heldNewTimeReply,
   heldReply,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
@@ -72,7 +73,12 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   return availabilityReply(slots, timezone, note);
 }
 
-async function holdAppointment(shop: ShopForTools, callId: string, args: Record<string, unknown>) {
+async function holdAppointment(
+  shop: ShopForTools,
+  callId: string,
+  args: Record<string, unknown>,
+  intent: "new" | "reschedule" = "new",
+) {
   const timezone = shop.timezone ?? "America/New_York";
   const raw = str(args.slot);
   const at = raw ? new Date(raw) : null;
@@ -104,7 +110,13 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
   const claimedAt = new Date();
   await prisma.call.update({
     where: { id: callId },
-    data: { heldSlotAt: at, heldSlotDurationMin: durationMin, heldClaimedAt: claimedAt, heldSeq: null },
+    data: {
+      heldSlotAt: at,
+      heldSlotDurationMin: durationMin,
+      heldClaimedAt: claimedAt,
+      heldSeq: null,
+      heldIntent: intent === "reschedule" ? "reschedule" : null,
+    },
   });
   await prisma.$executeRaw`UPDATE "Call" SET "heldSeq" = (SELECT COALESCE(MAX("heldSeq"), 0) + 1 FROM "Call" WHERE "businessId" = ${shop.id}) WHERE "id" = ${callId}`;
   const { heldSeq } = await prisma.call.findUniqueOrThrow({ where: { id: callId }, select: { heldSeq: true } });
@@ -116,7 +128,7 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
     });
     return SLOT_TAKEN_REPLY;
   }
-  return heldReply(at, timezone);
+  return intent === "reschedule" ? heldNewTimeReply(at, timezone) : heldReply(at, timezone);
 }
 
 /*
@@ -195,6 +207,9 @@ export async function handleInCallToolCalls(params: {
         }
         if (call.name === "hold_appointment") {
           return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args) };
+        }
+        if (call.name === "hold_new_time") {
+          return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "reschedule") };
         }
         return { toolCallId: call.id, result: "Unknown tool. Continue the call without it." };
       } catch {

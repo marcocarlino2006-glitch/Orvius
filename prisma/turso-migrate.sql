@@ -492,3 +492,6 @@ ALTER TABLE "Business" ADD COLUMN "calendarFeedVersion" INTEGER NOT NULL DEFAULT
 ALTER TABLE "Call" ADD COLUMN "replyP50Ms" INTEGER;
 ALTER TABLE "Call" ADD COLUMN "replyP90Ms" INTEGER;
 ALTER TABLE "Call" ADD COLUMN "latencyJson" TEXT;
+
+-- A time held on the call as the new time for an existing visit.
+ALTER TABLE "Call" ADD COLUMN "heldIntent" TEXT;

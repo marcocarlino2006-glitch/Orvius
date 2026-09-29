@@ -495,9 +495,12 @@ Ask: "Do you offer financing? Like zero percent?"`,
   },
   {
     id: "reschedule",
+    tools: { must: ["check_availability", "hold_new_time"], never: ["hold_appointment", "alert_team_now"] },
     tier: "normal",
+    gate: true,
     name: "Customer wants to move an existing visit",
-    persona: `Facts: you have a maintenance visit booked for Thursday and want to move it to Friday. Name Ann Cole, number 312-555-0179, address 1122 Elinor Place, Evanston 60201.`,
+    persona: `Facts: you have a maintenance visit booked for Thursday and want to move it to Friday. Name Ann Cole, number 312-555-0179, address 1122 Elinor Place, Evanston 60201.
+If the receptionist offers times, take the first one on Friday, or the first one offered if none are Friday.`,
     grade: ({ ai, structured }) => [
       ...noPromises(ai),
       ...never(ai, /\b(you'?re all set|i'?ve (moved|rescheduled)|it'?s (been )?moved) (for|to) friday\b/i, "confirmed a reschedule it cannot make"),

@@ -4,6 +4,7 @@ import {
   availabilityReply,
   BAD_SLOT_REPLY,
   dangerRefusal,
+  heldNewTimeReply,
   heldReply,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
@@ -85,7 +86,7 @@ function answer(call: ToolCall, now: Date, transferring: boolean) {
     }
     return slots.length ? availabilityReply(slots, tz, note) : NO_SLOTS_REPLY;
   }
-  if (call.name === "hold_appointment") {
+  if (call.name === "hold_appointment" || call.name === "hold_new_time") {
     const raw = str(call.args.slot);
     const at = raw ? new Date(raw) : null;
     if (!at || Number.isNaN(at.getTime())) return BAD_SLOT_REPLY;
@@ -95,7 +96,8 @@ function answer(call: ToolCall, now: Date, transferring: boolean) {
       { now, hoursJson: VOICE_SIM_SHOP.hoursJson, timezone: tz, existing: [], capacity: 1, durationMin },
       { count: 1, onlyAt: at },
     );
-    return open.length ? heldReply(at, tz) : SLOT_TAKEN_REPLY;
+    if (!open.length) return SLOT_TAKEN_REPLY;
+    return call.name === "hold_new_time" ? heldNewTimeReply(at, tz) : heldReply(at, tz);
   }
   if (call.name === "alert_team_now") return safetyAlertReply({ texted: true, transferring });
   return "Unknown tool. Continue the call without it.";

@@ -197,6 +197,11 @@ ${
       ? `- NEVER say an appointment time that did not come from check_availability, and never promise arrival "within the hour" or similar.`
       : `- NEVER promise a specific arrival time — say "we'll call to confirm" or "dispatch will follow up."`
   }
+${
+    business.canBook
+      ? `- If they want to move a visit they already have: call check_availability, and when they pick a time call hold_new_time, never hold_appointment. To cancel, take their name and say the shop will confirm the cancellation. Never say a visit is moved or cancelled.`
+      : `- If they want to move or cancel a visit they already have, take their name and the change they want, and say the shop will confirm it. Never say a visit is moved or cancelled.`
+  }
 - A private note may tell you this number has called before. Only ask "Is this [name]?" — never read their address or history to someone who has not confirmed their name.
 ${
     business.canTransfer
