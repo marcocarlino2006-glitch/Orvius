@@ -57,7 +57,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | S5 | The daily cron handles shops one at a time and stops at 200 shops without saying so. Owner alert retries for quiet shops wait for that daily run. | `src/app/api/cron/notifications/route.ts`, `src/lib/drain-owner-alerts.ts` | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
 | S6 | All shops text from one shared sender; replies route to whichever shop texted that phone last. Carrier registration (toll-free or 10DLC) is handled outside the product. | `src/lib/twilio-sms.ts`, `src/lib/resolve-shop-line.ts` | needs owner (Twilio verification status) |
 | S7 | Turso is a single writer. Fine now; a ceiling later. | `src/lib/prisma-libsql-concurrent.ts` | watch |
-| S8 | Some state lives in one server's memory (autopilot last run, assistant sync cache, fallback rate limits), so it resets across instances. | `src/lib/autopilot.ts`, `src/lib/sync-business-assistant.ts`, `src/lib/rate-limit.ts` | open |
+| S8 | Some state lives in one server's memory (autopilot last run, assistant sync cache, fallback rate limits), so it resets across instances. | `src/lib/autopilot.ts`, `src/lib/sync-business-assistant.ts`, `src/lib/rate-limit.ts` | in PR (confirm once) — rate limits and assistant cache were already safe; autopilot overlap could double-text customers |
 | S9 | `puppeteer` is a production dependency though only scripts use it. | `package.json` | done — [PR #84](https://github.com/marcocarlino2006-glitch/Orvius/pull/84) |
 
 ## Tier 2 — Let shops buy and go live without Marco
@@ -67,10 +67,10 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | G1 | Email is off in production (`RESEND_API_KEY` missing): no magic links, no email alerts, no dunning. | production magic-link endpoint | needs owner |
 | G2 | Public self-serve signup is switched off; shop creation is invite-only. Multi-shop is sales-only. | `src/lib/self-serve-signup.ts`, `src/lib/pricing-plans.ts` | needs owner (when to open) |
 | G3 | Setup cannot reliably resume, and "ready" does not require call forwarding, so a shop can go live catching only calls to the new number. | `src/lib/owner-setup-state.ts`, `src/components/onboarding-wizard.tsx` | done — [PR #83](https://github.com/marcocarlino2006-glitch/Orvius/pull/83) |
-| G4 | No payment-failed emails, no "finish setup" nudge after paying, no near-limit usage alert. | `src/app/api/billing/webhook/route.ts`, `src/lib/call-usage.ts` | in PR (owner nudges) — texts now, email once RESEND_API_KEY is set |
+| G4 | No payment-failed emails, no "finish setup" nudge after paying, no near-limit usage alert. | `src/app/api/billing/webhook/route.ts`, `src/lib/call-usage.ts` | done — [PR #85](https://github.com/marcocarlino2006-glitch/Orvius/pull/85); texts now, email once RESEND_API_KEY is set |
 | G5 | The "hear your shop" preview is built but dormant until the demo number is switched to server-URL mode in Vapi. | [PR #78](https://github.com/marcocarlino2006-glitch/Orvius/pull/78) | in PR — needs owner approval for the live switch |
 | G6 | No number porting; only new numbers plus forwarding guides. | `src/lib/twilio-phone.ts`, `src/lib/carrier-forward.ts` | later |
-| G7 | Stripe test-mode lifecycle not yet proven end to end (sprint ticket 5). | — | open |
+| G7 | Stripe test-mode lifecycle not yet proven end to end (sprint ticket 5). | — | needs owner — a Stripe test-mode secret key |
 
 ## Tier 3 — Master class (what makes it clearly the best)
 
