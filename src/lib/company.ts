@@ -55,7 +55,7 @@ export const company = {
     "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",
   copyrightNotice: "All rights reserved.",
   smsProgramName: "Orvius Owner Alerts",
-  legalUpdated: "September 4, 2026",
+  legalUpdated: "September 29, 2026",
 } as const;
 
 /**

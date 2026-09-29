@@ -204,7 +204,7 @@ export async function GET(request: Request) {
       ownerSmsOptedOut: Boolean(businessRecord?.ownerSmsOptOutAt),
     },
     founder,
-    calendarFeedUrl: business ? calendarFeedUrl(business.id) : null,
+    calendarFeedUrl: businessRecord ? calendarFeedUrl(businessRecord.id, businessRecord.calendarFeedVersion) : null,
     busyCalendar: businessRecord?.busyCalendarUrl
       ? {
           source: busyCalendarHost(businessRecord.busyCalendarUrl),

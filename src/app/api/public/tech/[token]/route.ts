@@ -1,7 +1,7 @@
 import { invoiceCompletedJob } from "@/lib/invoice-pay";
 import { logWarn } from "@/lib/logger";
 import { NextResponse } from "next/server";
-import { ensureJobTechToken } from "@/lib/ensure-tech-token";
+import { ensureJobTechToken, techLinkExpired } from "@/lib/ensure-tech-token";
 import {
   completeJobWithOutcome,
   isJobStatus,
@@ -13,6 +13,9 @@ import { z } from "zod";
 import { publicTokenLimited } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ token: string }> };
+
+const expiredResponse = () =>
+  NextResponse.json({ error: "This job link has expired. Ask the shop for the job details." }, { status: 410 });
 
 async function loadJob(token: string) {
   return prisma.job.findFirst({
@@ -56,6 +59,7 @@ export async function GET(request: Request, { params }: Params) {
   if (!job) {
     return NextResponse.json({ error: "Job link not found" }, { status: 404 });
   }
+  if (techLinkExpired(job)) return expiredResponse();
   return NextResponse.json({ job: serializeTechJob(job) });
 }
 
@@ -75,6 +79,7 @@ export async function PATCH(request: Request, { params }: Params) {
   if (!job) {
     return NextResponse.json({ error: "Job link not found" }, { status: 404 });
   }
+  if (techLinkExpired(job)) return expiredResponse();
 
   try {
     const body = patchSchema.parse(await request.json());

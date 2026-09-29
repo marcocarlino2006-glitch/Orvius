@@ -4,6 +4,17 @@ import { publicTokenLimited } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ token: string }> };
 
+function failure(result: { error: "not_found" | "expired"; businessName?: string }) {
+  if (result.error === "expired") {
+    const who = result.businessName ?? "the shop";
+    return NextResponse.json(
+      { error: `This visit has passed or was closed, so the link no longer works. Call ${who} if you need anything.` },
+      { status: 410 },
+    );
+  }
+  return NextResponse.json({ error: "Link not found" }, { status: 404 });
+}
+
 export async function GET(request: Request, { params }: Params) {
   const limited = await publicTokenLimited(request, "confirm", "GET");
   if (limited) return limited;
@@ -13,9 +24,7 @@ export async function GET(request: Request, { params }: Params) {
   }
 
   const result = await confirmJobByCustomerToken(token.trim());
-  if (!result.ok) {
-    return NextResponse.json({ error: "Link not found" }, { status: 404 });
-  }
+  if (!result.ok) return failure(result);
 
   return NextResponse.json({
     ok: true,
@@ -36,9 +45,7 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const result = await confirmJobByCustomerToken(token.trim());
-  if (!result.ok) {
-    return NextResponse.json({ error: "Link not found" }, { status: 404 });
-  }
+  if (!result.ok) return failure(result);
 
   return NextResponse.json({
     ok: true,

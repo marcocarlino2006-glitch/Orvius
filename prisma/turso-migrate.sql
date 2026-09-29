@@ -482,3 +482,8 @@ CREATE INDEX IF NOT EXISTS "OwnerNotification_businessId_processedAt_idx" ON "Ow
 
 -- A send in flight holds the job so concurrent autopilot runs can't text the customer twice.
 ALTER TABLE "Job" ADD COLUMN "customerConfirmClaimAt" DATETIME;
+
+-- Call recordings and transcripts are deleted after 24 months; a shop can reset its calendar feed link.
+ALTER TABLE "Call" ADD COLUMN "contentPurgedAt" DATETIME;
+CREATE INDEX IF NOT EXISTS "Call_contentPurgedAt_createdAt_idx" ON "Call"("contentPurgedAt", "createdAt");
+ALTER TABLE "Business" ADD COLUMN "calendarFeedVersion" INTEGER NOT NULL DEFAULT 1;

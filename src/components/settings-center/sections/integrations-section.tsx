@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { displayPhone } from "@/lib/customer";
 import type { SettingsSectionId } from "@/lib/settings-center";
 import { BusyCalendarGroup } from "../busy-calendar-group";
@@ -18,6 +19,27 @@ export function IntegrationsSection({
   go: (next: SettingsSectionId) => void;
   onBusyCalendarChange: (next: BusyCalendar) => void;
 }) {
+  const [feedUrl, setFeedUrl] = useState(account.calendarFeedUrl ?? null);
+  const [feedBusy, setFeedBusy] = useState(false);
+  const [feedNote, setFeedNote] = useState<string | null>(null);
+
+  async function resetFeed() {
+    if (!window.confirm("Reset the calendar link? Calendars subscribed to the old link stop updating until you add the new one.")) return;
+    setFeedBusy(true);
+    setFeedNote(null);
+    try {
+      const res = await fetch("/api/account/calendar-feed", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.calendarFeedUrl) throw new Error(data.error ?? "Could not reset the link. Try again.");
+      setFeedUrl(data.calendarFeedUrl);
+      setFeedNote("New link ready. The old one no longer works.");
+    } catch (error) {
+      setFeedNote(error instanceof Error ? error.message : "Could not reset the link. Try again.");
+    } finally {
+      setFeedBusy(false);
+    }
+  }
+
   const rows: Array<{
     name: string;
     detail: string;
@@ -26,6 +48,7 @@ export function IntegrationsSection({
     offLabel?: string;
     action?: { label: string; to: SettingsSectionId };
     copy?: string;
+    reset?: boolean;
   }> = [
     {
       name: "Phone line",
@@ -61,12 +84,15 @@ export function IntegrationsSection({
     },
     {
       name: "Jobs calendar feed",
-      detail: account.calendarFeedUrl
-        ? "See your jobs in Google, Apple, or Outlook Calendar. Updates about every 15 minutes."
-        : "Calendar feed switches on from our side",
-      on: Boolean(account.calendarFeedUrl),
+      detail: feedNote
+        ? feedNote
+        : feedUrl
+          ? "See your jobs in Google, Apple, or Outlook Calendar. Updates about every 15 minutes. Anyone with the link can see them."
+          : "Calendar feed switches on from our side",
+      on: Boolean(feedUrl),
       mark: "CAL",
-      copy: account.calendarFeedUrl ?? undefined,
+      copy: feedUrl ?? undefined,
+      reset: Boolean(feedUrl),
     },
   ];
   return (
@@ -85,7 +111,13 @@ export function IntegrationsSection({
             {row.on ? <ScStatus on>Connected</ScStatus> : null}
             {row.copy ? (
               <CopyLinkButton value={row.copy} />
-            ) : row.action ? (
+            ) : null}
+            {row.reset ? (
+              <button type="button" className="sc-btn" disabled={feedBusy} onClick={() => void resetFeed()}>
+                {feedBusy ? "Resetting…" : "Reset link"}
+              </button>
+            ) : null}
+            {row.copy ? null : row.action ? (
               <button type="button" className="sc-btn" onClick={() => go(row.action!.to)}>
                 {row.action.label}
               </button>

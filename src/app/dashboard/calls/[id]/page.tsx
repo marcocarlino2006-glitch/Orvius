@@ -23,6 +23,7 @@ type CallDetail = {
   transcript: string | null;
   durationSec: number | null;
   recordingUrl: string | null;
+  contentPurgedAt: string | null;
   booked: boolean;
   ownerNotifiedAt: string | null;
   successEvaluation: string | null;
@@ -204,6 +205,12 @@ export default function CallDetailPage() {
 
           {call.transcript ? (
             <TranscriptCinema transcript={call.transcript} variant="void" />
+          ) : null}
+
+          {call.contentPurgedAt ? (
+            <p className="font-sans text-sm leading-relaxed text-void">
+              The recording and transcript were deleted 24 months after the call. The summary and job history stay.
+            </p>
           ) : null}
         </div>
 

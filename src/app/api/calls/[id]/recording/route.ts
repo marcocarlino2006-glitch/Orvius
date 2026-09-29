@@ -17,9 +17,12 @@ export async function GET(_request: Request, { params }: Params) {
 
   const call = await prisma.call.findFirst({
     where: { id, businessId: business.id },
-    select: { vapiCallId: true, recordingUrl: true },
+    select: { vapiCallId: true, recordingUrl: true, contentPurgedAt: true },
   });
   if (!call) return NextResponse.json({ error: "Call not found" }, { status: 404 });
+  if (call.contentPurgedAt) {
+    return NextResponse.json({ error: "This recording was deleted after 24 months" }, { status: 410 });
+  }
 
   const target = call.vapiCallId ? await vapiRecordingRedirect(call.vapiCallId) : call.recordingUrl;
   if (!target) return NextResponse.json({ error: "No recording for this call" }, { status: 404 });

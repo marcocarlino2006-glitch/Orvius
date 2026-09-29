@@ -9,7 +9,7 @@ export async function GET(request: Request, { params }: Params) {
   const limited = await publicTokenLimited(request, "calendar", "GET");
   if (limited) return limited;
   const { token } = await params;
-  const businessId = verifyCalendarFeedToken(token);
+  const businessId = await verifyCalendarFeedToken(token);
   const body = businessId ? await loadCalendarFeed(businessId) : null;
   if (!body) {
     return new Response("Calendar not found", { status: 404, headers: { "Cache-Control": "no-store" } });

@@ -99,6 +99,18 @@ export async function vapiRecordingRedirect(vapiCallId: string): Promise<string 
   return null;
 }
 
+/** Deletes Vapi's copy of a call, including its recording and transcript. A call Vapi no longer has counts as gone. */
+export async function deleteVapiCall(vapiCallId: string): Promise<"deleted" | "missing"> {
+  const response = await fetch(`${VAPI_BASE}/call/${encodeURIComponent(vapiCallId)}`, {
+    method: "DELETE",
+    headers: getVapiHeaders(),
+    cache: "no-store",
+  });
+  if (response.status === 404) return "missing";
+  if (!response.ok) throw new Error(`Vapi API error (${response.status}): ${await response.text()}`);
+  return "deleted";
+}
+
 export async function createAssistant(payload: VapiAssistantPayload) {
   return vapiRequest<{ id: string }>("/assistant", {
     method: "POST",

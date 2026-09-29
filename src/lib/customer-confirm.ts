@@ -292,7 +292,15 @@ export async function sendDueCustomerConfirmationReminders(
   return { checked: candidates.length, sent, skipped };
 }
 
-export async function confirmJobByCustomerToken(token: string) {
+/** A confirm link stops working a day after the visit, or once the job is closed. */
+export const CONFIRM_LINK_GRACE_MS = 24 * 60 * 60 * 1000;
+
+export function confirmLinkExpired(job: { status: string; scheduledAt: Date | null }, now: Date) {
+  if (job.status === "cancelled" || job.status === "completed") return true;
+  return Boolean(job.scheduledAt && now.getTime() > job.scheduledAt.getTime() + CONFIRM_LINK_GRACE_MS);
+}
+
+export async function confirmJobByCustomerToken(token: string, now = new Date()) {
   const job = await prisma.job.findFirst({
     where: { customerConfirmToken: token },
     include: {
@@ -308,6 +316,10 @@ export async function confirmJobByCustomerToken(token: string) {
     businessPhone: job.business.vapiPhoneNumber ?? job.business.twilioPhone ?? job.business.phone ?? null,
     timezone: job.business.timezone,
   };
+
+  if (confirmLinkExpired(job, now)) {
+    return { ok: false as const, error: "expired" as const, ...shop };
+  }
 
   if (job.customerConfirmedAt) {
     return {

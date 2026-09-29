@@ -15,6 +15,8 @@ model Business {
   environment          String   @default("production")
   /** Orvius sends confirmations and assigns clear-cut jobs itself; the owner can turn this off. */
   autopilot            Boolean  @default(true)
+  /** Bumped when the owner resets their calendar feed link; old links stop working. */
+  calendarFeedVersion  Int      @default(1)
   phone                String?
   ownerPhone           String?
   ownerEmail           String?
@@ -214,6 +216,8 @@ model Call {
   heldSeq Int?
   /** When the returning-caller note was handed to the live receptionist (once per call). */
   callerContextSentAt DateTime?
+  /** Transcript and recording deleted here and at Vapi after the retention period (lib/retention.ts). */
+  contentPurgedAt DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -221,6 +225,7 @@ model Call {
 
   @@index([businessId, createdAt])
   @@index([businessId, updatedAt])
+  @@index([contentPurgedAt, createdAt])
 }
 
 model Lead {

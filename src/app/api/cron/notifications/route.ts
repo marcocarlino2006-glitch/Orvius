@@ -15,6 +15,7 @@ import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
 import { isProduction } from "@/lib/runtime";
 import { billPreviousMonthOverage } from "@/lib/overage-billing";
 import { sendOwnerNudges } from "@/lib/owner-nudges";
+import { purgeExpiredCallContent } from "@/lib/retention";
 
 /*
   The daily sweep, not the thing that makes the retry ladder work.
@@ -103,6 +104,7 @@ export async function GET(request: NextRequest) {
   const overage = await step("overage_billing", () => billPreviousMonthOverage());
   const lapsedLines = await step("lapsed_lines", () => releaseLapsedLines());
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
+  const retention = await step("call_content_retention", () => purgeExpiredCallContent());
   return NextResponse.json({
     ok: failed.length === 0,
     failed,
@@ -116,6 +118,7 @@ export async function GET(request: NextRequest) {
     lateCallReports,
     lapsedLines,
     ownerNudges,
+    retention,
     autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });
 }
