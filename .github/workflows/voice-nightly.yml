@@ -17,6 +17,8 @@ jobs:
       VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
       VOICE_SIM_RECEPTIONIST_PHONE_ID: ${{ secrets.VOICE_SIM_RECEPTIONIST_PHONE_ID }}
       VOICE_SIM_CALLER_PHONE_ID: ${{ secrets.VOICE_SIM_CALLER_PHONE_ID }}
+      # Optional: where warm transfers ring during the sim. Unset runs with transfers off.
+      VOICE_SIM_TRANSFER_NUMBER: ${{ secrets.VOICE_SIM_TRANSFER_NUMBER }}
     steps:
       - name: Check secrets
         id: gate
@@ -41,8 +43,9 @@ jobs:
         run: npm run sim:voice -- --min-pass 0.9 --json voice-results.json --report voice-report.md
       - if: always() && steps.gate.outputs.run == 'true'
         run: cat voice-report.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-      # Results hold synthetic callers only — the receptionist runs with no
-      # server URL, so no shop or customer data is ever in these transcripts.
+      # Results hold synthetic callers only — the receptionist's tools answer
+      # from the app's database-free sandbox and call reports go nowhere, so no
+      # shop or customer data is ever in these transcripts.
       - if: always() && steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:

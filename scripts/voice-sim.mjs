@@ -12,10 +12,18 @@
  * reviews of answering services and AI receptionists.
  *
  * The receptionist is an assistant built from the same code that provisions
- * shops, with no server URL, so nothing reaches any Orvius database or owner.
+ * shops, with the same booking, safety-alert and transfer tools. Its tools
+ * answer from the app's sandbox (/api/webhooks/voice-sim-tools: production
+ * reply text over an empty calendar, no database), and it has no server URL
+ * for call reports, so nothing reaches any Orvius shop, customer or owner.
+ * Graders see which tools the receptionist actually called.
  * It is attached to RECEPTIONIST_PHONE_ID for the run (the number's previous
  * assistant is restored at the end), and each caller persona dials in from
  * CALLER_PHONE_ID as a transient call. Scenarios live in voice-scenarios.mjs.
+ *
+ * VOICE_SIM_APP_URL (default https://app.orvius.im) is the deployment whose
+ * sandbox answers the tools. VOICE_SIM_TRANSFER_NUMBER, if set, is where
+ * transfers ring; without it the receptionist runs with transfers off.
  *
  *   VAPI_API_KEY=… VOICE_SIM_RECEPTIONIST_PHONE_ID=… VOICE_SIM_CALLER_PHONE_ID=… npm run sim:voice -- \
  *     [--only id,id] [--gate] [--calls 200] [--concurrency 4] [--min-pass 0.95] [--json out.json] [--report out.md]
@@ -28,7 +36,8 @@ import { writeFileSync } from "node:fs";
 import { buildAssistantSystemPrompt } from "../src/lib/business.ts";
 import { buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 import { withCallerSpelling } from "../src/lib/spelled-name.ts";
-import { scenarios as library } from "./voice-scenarios.mjs";
+import { VOICE_SIM_SHOP, voiceSimToolSecret } from "../src/lib/voice-sim-tools.ts";
+import { gradeScenario, scenarios as library } from "./voice-scenarios.mjs";
 
 const KEY = process.env.VAPI_API_KEY?.trim();
 const FROM_ID = process.env.VOICE_SIM_RECEPTIONIST_PHONE_ID?.trim();
@@ -73,27 +82,19 @@ function mergeDeep(base, extra) {
   return out;
 }
 
-const shop = {
-  name: "Summit HVAC",
-  greeting: null,
-  trade: "HVAC",
-  hoursJson: JSON.stringify(
-    Object.fromEntries(
-      ["monday", "tuesday", "wednesday", "thursday", "friday"].map((d) => [d, { open: "08:00", close: "18:00" }]),
-    ),
-  ),
-  servicesJson: JSON.stringify([
-    { name: "Emergency repair", description: "Same-day urgent service" },
-    { name: "Maintenance", description: "Scheduled maintenance visit" },
-  ]),
-};
+const shop = VOICE_SIM_SHOP;
+const APP_URL = (process.env.VOICE_SIM_APP_URL?.trim() || "https://app.orvius.im").replace(/\/$/, "");
+const TRANSFER_NUMBER = process.env.VOICE_SIM_TRANSFER_NUMBER?.trim() || null;
 
 function receptionistAssistant() {
   const config = buildVapiAssistantConfig({
     businessName: shop.name,
-    systemPrompt: buildAssistantSystemPrompt(shop),
+    systemPrompt: buildAssistantSystemPrompt({ ...shop, canBook: true, canTransfer: Boolean(TRANSFER_NUMBER) }),
     greeting: `Thank you for calling ${shop.name}. How can I help you today?`,
-    webhookUrl: "",
+    webhookUrl: `${APP_URL}/api/webhooks/voice-sim-tools${TRANSFER_NUMBER ? "?transfer=1" : ""}`,
+    webhookSecret: voiceSimToolSecret(KEY),
+    transferPhone: TRANSFER_NUMBER,
+    inCallBooking: true,
   });
   delete config.serverUrl;
   delete config.serverUrlSecret;
@@ -194,6 +195,14 @@ async function findReceptionistLeg(personaId, placedAt, callerNumber, claimed) {
   throw new Error("receptionist leg never showed up");
 }
 
+/** Names of the tools the receptionist called, from Vapi's message log (calls, or their results if only those are logged). */
+function toolsCalled(msgs) {
+  const calls = msgs.flatMap((m) =>
+    m.role === "tool_calls" ? (m.toolCalls ?? m.tool_calls ?? []).map((t) => t.function?.name ?? t.name).filter(Boolean) : [],
+  );
+  return calls.length ? calls : msgs.filter((m) => m.role === "tool_call_result" && m.name).map((m) => m.name);
+}
+
 function grade(s, call, prompt) {
   const msgs = call.artifact?.messages ?? call.messages ?? [];
   const ai = msgs.filter((m) => m.role === "bot" || m.role === "assistant").map((m) => m.message ?? m.content ?? "").join("\n");
@@ -204,7 +213,8 @@ function grade(s, call, prompt) {
   const durationSec = call.startedAt && call.endedAt ? (Date.parse(call.endedAt) - Date.parse(call.startedAt)) / 1000 : null;
   const lat = turnLatencies(call);
   const vapiTurns = (call.artifact?.performanceMetrics?.turnLatencies ?? []).map((t) => t.turnLatency).filter((t) => t > 0);
-  const failures = s.grade({ ai, structured, durationSec, call, prompt });
+  const tools = toolsCalled(msgs);
+  const failures = gradeScenario(s, { ai, structured, durationSec, call, prompt, tools });
   return {
     id: s.id,
     name: s.name,
@@ -220,6 +230,7 @@ function grade(s, call, prompt) {
     vapiTurns,
     latencyMs: lat.length ? { median: lat.sort((a, b) => a - b)[Math.floor(lat.length / 2)], max: Math.max(...lat), turns: lat.length } : null,
     structured,
+    tools,
     transcript: call.artifact?.transcript ?? call.transcript ?? "",
   };
 }

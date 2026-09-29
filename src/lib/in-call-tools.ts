@@ -7,7 +7,20 @@ import { logError, logInfo } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
-import { describeSlot, parseSlotPreference, type ToolCall } from "@/lib/in-call-tool-defs";
+import {
+  availabilityReply,
+  BAD_SLOT_REPLY,
+  dangerRefusal,
+  heldReply,
+  NO_ALT_NOTE,
+  NO_SLOTS_REPLY,
+  OFFER_GAP_MIN,
+  OFFERED_SLOTS,
+  parseSlotPreference,
+  safetyAlertReply,
+  SLOT_TAKEN_REPLY,
+  type ToolCall,
+} from "@/lib/in-call-tool-defs";
 
 /**
  * What the receptionist can do while the caller is still on the line.
@@ -18,11 +31,6 @@ import { describeSlot, parseSlotPreference, type ToolCall } from "@/lib/in-call-
  * receptionist says out loud always came from here.
  */
 
-const OFFERED_SLOTS = 3;
-/** Offered times at least this far apart, so "8, 8:30 or 9" never happens. */
-const OFFER_GAP_MIN = 180;
-
-const TAKEN = "That time was just taken. Apologize briefly and call check_availability again for fresh times.";
 
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
@@ -42,7 +50,7 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   const urgency = str(args.urgency);
   const { playbook, durationMin, skill } = jobShape(shop, serviceType, urgency);
   if (playbook.safety) {
-    return `Do not book this. ${playbook.safety.instruction} Call alert_team_now if you have not already, then follow the danger rule.`;
+    return dangerRefusal(playbook.safety.instruction);
   }
   const base = {
     businessId: shop.id,
@@ -58,13 +66,10 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   let note = "";
   if (!slots.length && preference) {
     slots = await findOpenSlots(base, { count: OFFERED_SLOTS, minGapMin: OFFER_GAP_MIN });
-    if (slots.length) note = "Nothing is open at the time they asked for. Say so, then offer these instead. ";
+    if (slots.length) note = NO_ALT_NOTE;
   }
-  if (!slots.length) {
-    return "No open times in the next two weeks. Do not offer a time. Take their details and say the office will call to schedule.";
-  }
-  const list = slots.map((at) => `${describeSlot(at, timezone)} [slot ${at.toISOString()}]`).join("; ");
-  return `${note}Open times, shop local time: ${list}. Offer at most two, in plain words, without the slot ids. When they pick one, call hold_appointment with that slot id.`;
+  if (!slots.length) return NO_SLOTS_REPLY;
+  return availabilityReply(slots, timezone, note);
 }
 
 async function holdAppointment(shop: ShopForTools, callId: string, args: Record<string, unknown>) {
@@ -72,11 +77,11 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
   const raw = str(args.slot);
   const at = raw ? new Date(raw) : null;
   if (!at || Number.isNaN(at.getTime())) {
-    return "That slot id is not valid. Call check_availability again and use a slot id it returns.";
+    return BAD_SLOT_REPLY;
   }
   const { durationMin, skill, playbook } = jobShape(shop, str(args.serviceType), null);
   if (playbook.safety) {
-    return `Do not book this. ${playbook.safety.instruction} Call alert_team_now if you have not already, then follow the danger rule.`;
+    return dangerRefusal(playbook.safety.instruction);
   }
   const slot = {
     businessId: shop.id,
@@ -87,7 +92,7 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
     timezone,
     excludeCallId: callId,
   };
-  if (!(await findOpenSlots(slot, { count: 1, onlyAt: at })).length) return TAKEN;
+  if (!(await findOpenSlots(slot, { count: 1, onlyAt: at })).length) return SLOT_TAKEN_REPLY;
 
   /*
     Checking and then writing is a race: callers holding the same time at the
@@ -109,9 +114,9 @@ async function holdAppointment(shop: ShopForTools, callId: string, args: Record<
       where: { id: callId, heldClaimedAt: claimedAt },
       data: { heldSlotAt: null, heldSlotDurationMin: null, heldClaimedAt: null, heldSeq: null },
     });
-    return TAKEN;
+    return SLOT_TAKEN_REPLY;
   }
-  return `Held ${describeSlot(at, timezone)}. Tell the caller they're penciled in for that time and the shop will confirm with them shortly. Do not promise a text. Make sure you have their name, callback number and service address before ending the call.`;
+  return heldReply(at, timezone);
 }
 
 /*
@@ -156,10 +161,7 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
     logInfo("in_call.safety_alert", { businessId: shop.id, callId: call.id, transferring });
   }
 
-  const told = canReach ? "The owner has been texted. " : "";
-  return transferring
-    ? `${told}Now say "I'm connecting you to the team now" and use the transfer tool in the same reply. If the transfer does not go through, tell them the team will call right back and take their name, number and address.`
-    : `${told}Tell them "The team has been alerted and will call you right back." Then take their name, callback number and address if you don't have them yet.`;
+  return safetyAlertReply({ texted: canReach, transferring });
 }
 
 export async function handleInCallToolCalls(params: {

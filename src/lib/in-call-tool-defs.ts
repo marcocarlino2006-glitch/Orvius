@@ -125,6 +125,39 @@ export function describeSlot(at: Date, timezone: string) {
 
 export type ToolCall = { id: string; name: string; args: Record<string, unknown> };
 
+/*
+  What the receptionist is told back. Production and the voice sim's sandbox
+  both answer with these, so the sim grades the words a real call hears.
+*/
+export const OFFERED_SLOTS = 3;
+/** Offered times at least this far apart, so "8, 8:30 or 9" never happens. */
+export const OFFER_GAP_MIN = 180;
+export const SLOT_TAKEN_REPLY = "That time was just taken. Apologize briefly and call check_availability again for fresh times.";
+export const NO_SLOTS_REPLY =
+  "No open times in the next two weeks. Do not offer a time. Take their details and say the office will call to schedule.";
+export const BAD_SLOT_REPLY = "That slot id is not valid. Call check_availability again and use a slot id it returns.";
+export const NO_ALT_NOTE = "Nothing is open at the time they asked for. Say so, then offer these instead. ";
+
+export function dangerRefusal(instruction: string) {
+  return `Do not book this. ${instruction} Call alert_team_now if you have not already, then follow the danger rule.`;
+}
+
+export function availabilityReply(slots: Date[], timezone: string, note = "") {
+  const list = slots.map((at) => `${describeSlot(at, timezone)} [slot ${at.toISOString()}]`).join("; ");
+  return `${note}Open times, shop local time: ${list}. Offer at most two, in plain words, without the slot ids. When they pick one, call hold_appointment with that slot id.`;
+}
+
+export function heldReply(at: Date, timezone: string) {
+  return `Held ${describeSlot(at, timezone)}. Tell the caller they're penciled in for that time and the shop will confirm with them shortly. Do not promise a text. Make sure you have their name, callback number and service address before ending the call.`;
+}
+
+export function safetyAlertReply(params: { texted: boolean; transferring: boolean }) {
+  const told = params.texted ? "The owner has been texted. " : "";
+  return params.transferring
+    ? `${told}Now say "I'm connecting you to the team now" and use the transfer tool in the same reply. If the transfer does not go through, tell them the team will call right back and take their name, number and address.`
+    : `${told}Tell them "The team has been alerted and will call you right back." Then take their name, callback number and address if you don't have them yet.`;
+}
+
 /** Vapi sends arguments as an object, some providers as a JSON string. */
 export function readToolCalls(message: {
   toolCallList?: Array<{ id?: string; function?: { name?: string; arguments?: unknown } }>;

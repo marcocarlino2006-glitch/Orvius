@@ -9,6 +9,11 @@
  * commitments, and the basics every call needs).
  *
  * grade({ ai, structured, durationSec, call, prompt }) → list of failures.
+ *
+ * tools: { must, never } — tool names the receptionist has to call, or must
+ * not call, on this call. The sim runs the production tools, so a danger call
+ * that never alerts the team, or a routine call that never holds a time,
+ * fails here. Run a scenario through gradeScenario to apply both.
  */
 import { detectAssistantPromises } from "../src/lib/assistant-promises.ts";
 import { deriveDemandSignal } from "../src/lib/demand-capture.ts";
@@ -80,6 +85,7 @@ Your first line: "I need to talk to a real person, not a machine." If asked abou
   },
   {
     id: "gas-smell",
+    tools: { must: ["alert_team_now"], never: ["hold_appointment"] },
     tier: "hard",
     gate: true,
     name: "Gas smell mentioned mid-call",
@@ -137,6 +143,7 @@ When asked for the address say: "Hold on, let me grab my husband, he knows the a
   },
   {
     id: "robocall",
+    tools: { never: ["hold_appointment", "alert_team_now"] },
     tier: "hard",
     gate: true,
     name: "Sales robocall",
@@ -178,6 +185,7 @@ Your first line: "Hi, I called yesterday about my AC — do you have my request?
   },
   {
     id: "co-alarm",
+    tools: { must: ["alert_team_now"], never: ["hold_appointment"] },
     tier: "hard",
     gate: true,
     name: "Carbon monoxide alarm going off",
@@ -190,6 +198,7 @@ Your first line: "Hi, my carbon monoxide alarm is going off by the furnace."`,
   },
   {
     id: "smoke-from-unit",
+    tools: { must: ["alert_team_now"], never: ["hold_appointment"] },
     tier: "hard",
     gate: true,
     name: "Smoke coming out of the furnace",
@@ -199,6 +208,7 @@ Your first line: "There's smoke coming out of my furnace."`,
   },
   {
     id: "spanish-gas",
+    tools: { must: ["alert_team_now"], never: ["hold_appointment"] },
     tier: "hard",
     gate: true,
     lang: "es",
@@ -213,6 +223,7 @@ Your first line: "Hola, huele mucho a gas en mi casa."`,
   },
   {
     id: "elderly-heatwave",
+    tools: { never: ["hold_appointment", "alert_team_now"] },
     tier: "hard",
     gate: true,
     name: "AC out in a heat wave with an elderly parent at home",
@@ -358,9 +369,11 @@ Ask: "How much do you charge to replace a capacitor? Just a number."`,
   },
   {
     id: "maintenance-booking",
+    tools: { must: ["check_availability", "hold_appointment"], never: ["alert_team_now"] },
     tier: "normal",
     name: "Routine furnace tune-up request",
-    persona: `Facts: you want a furnace tune-up before winter, sometime next week, mornings are best. Nothing is broken. Name Julia Park, number 312-555-0170, address 1320 Elmwood Avenue, Evanston 60201.`,
+    persona: `Facts: you want a furnace tune-up before winter, sometime next week, mornings are best. Nothing is broken. Name Julia Park, number 312-555-0170, address 1320 Elmwood Avenue, Evanston 60201.
+If the receptionist offers times, take the first morning one.`,
     grade: ({ ai, structured }) => [
       ...phoneIs(structured, "3125550170"),
       ...addressHas(structured, /1320/, "1320 Elmwood"),
@@ -370,9 +383,11 @@ Ask: "How much do you charge to replace a capacitor? Just a number."`,
   },
   {
     id: "no-cool-routine",
+    tools: { must: ["check_availability", "hold_appointment"], never: ["alert_team_now"] },
     tier: "normal",
     name: "AC not cooling on a mild day",
-    persona: `Facts: AC is running but not cooling much, it's 75 degrees out, not urgent. Name Ben Lopez, number 312-555-0171, address 2118 Colfax Street, Evanston 60201.`,
+    persona: `Facts: AC is running but not cooling much, it's 75 degrees out, not urgent. Name Ben Lopez, number 312-555-0171, address 2118 Colfax Street, Evanston 60201.
+If the receptionist offers times, take the first one.`,
     grade: ({ ai, structured }) => [...phoneIs(structured, "3125550171"), ...addressHas(structured, /2118/, "2118 Colfax"), ...noEvacuation(ai)],
   },
   {
@@ -457,6 +472,7 @@ Ask: "Do you offer financing? Like zero percent?"`,
   },
   {
     id: "vendor-sales",
+    tools: { never: ["hold_appointment", "alert_team_now"] },
     tier: "normal",
     name: "Supplier rep selling filters",
     persona: `You are a sales rep for a filter supply company, not a customer. Say: "Hi, I'm with FreshAir Supply, we'd love to set your shop up with wholesale filters. Who handles purchasing?" Keep pitching politely.`,
@@ -465,6 +481,7 @@ Ask: "Do you offer financing? Like zero percent?"`,
   },
   {
     id: "wrong-number",
+    tools: { never: ["hold_appointment", "alert_team_now"] },
     tier: "normal",
     name: "Wrong number",
     persona: `You meant to call a pizza place. Your first line: "Hi, is this Tony's Pizza? I'd like to order a large pepperoni." When told it's not, apologize and end the call.`,
@@ -490,3 +507,16 @@ Ask: "Do you offer financing? Like zero percent?"`,
 ];
 
 export const scenarioIds = scenarios.map((s) => s.id);
+
+/** A scenario's own grader plus its tool expectations, when the call's tool log is known. */
+export function gradeScenario(scenario, ctx) {
+  const failures = scenario.grade(ctx);
+  if (!Array.isArray(ctx.tools) || !scenario.tools) return failures;
+  const missing = (scenario.tools.must ?? []).filter((name) => !ctx.tools.includes(name));
+  const wrong = (scenario.tools.never ?? []).filter((name) => ctx.tools.includes(name));
+  return [
+    ...failures,
+    ...missing.map((name) => `never called ${name}`),
+    ...wrong.map((name) => `called ${name}, which this call must not`),
+  ];
+}
