@@ -9,13 +9,14 @@ import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { releaseLapsedLines } from "@/lib/line-lifecycle";
 import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
-import { logError } from "@/lib/logger";
+import { logError, logInfo } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
 import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
 import { isProduction } from "@/lib/runtime";
 import { billPreviousMonthOverage } from "@/lib/overage-billing";
 import { sendOwnerNudges } from "@/lib/owner-nudges";
 import { purgeExpiredCallContent } from "@/lib/retention";
+import { voiceLatencyRollup } from "@/lib/call-latency";
 
 /*
   The daily sweep, not the thing that makes the retry ladder work.
@@ -105,6 +106,11 @@ export async function GET(request: NextRequest) {
   const lapsedLines = await step("lapsed_lines", () => releaseLapsedLines());
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
   const retention = await step("call_content_retention", () => purgeExpiredCallContent());
+  const voiceLatency = await step("voice_latency", async () => {
+    const rollup = await voiceLatencyRollup(new Date(Date.now() - 24 * 60 * 60 * 1000));
+    logInfo("voice.latency_daily", rollup);
+    return rollup;
+  });
   return NextResponse.json({
     ok: failed.length === 0,
     failed,
@@ -119,6 +125,7 @@ export async function GET(request: NextRequest) {
     lapsedLines,
     ownerNudges,
     retention,
+    voiceLatency,
     autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });
 }

@@ -216,6 +216,11 @@ model Call {
   heldSeq Int?
   /** When the returning-caller note was handed to the live receptionist (once per call). */
   callerContextSentAt DateTime?
+  /** Caller's wait for a reply on this call, from Vapi's turn timing (lib/call-latency.ts). */
+  replyP50Ms  Int?
+  replyP90Ms  Int?
+  /** {turns, stages: {endpointing, transcriber, model, voice}} medians in ms. */
+  latencyJson String?
   /** Transcript and recording deleted here and at Vapi after the retention period (lib/retention.ts). */
   contentPurgedAt DateTime?
   createdAt        DateTime  @default(now())

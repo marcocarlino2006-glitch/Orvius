@@ -401,6 +401,9 @@ export type VapiWebhookMessage = {
       structuredData?: Record<string, unknown>;
     };
     endedReason?: string;
+    artifact?: {
+      performanceMetrics?: { turnLatencies?: import("@/lib/call-latency").TurnLatency[] };
+    };
   };
 };
 

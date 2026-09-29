@@ -487,3 +487,8 @@ ALTER TABLE "Job" ADD COLUMN "customerConfirmClaimAt" DATETIME;
 ALTER TABLE "Call" ADD COLUMN "contentPurgedAt" DATETIME;
 CREATE INDEX IF NOT EXISTS "Call_contentPurgedAt_createdAt_idx" ON "Call"("contentPurgedAt", "createdAt");
 ALTER TABLE "Business" ADD COLUMN "calendarFeedVersion" INTEGER NOT NULL DEFAULT 1;
+
+-- Caller wait per call, from Vapi's turn timing.
+ALTER TABLE "Call" ADD COLUMN "replyP50Ms" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "replyP90Ms" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "latencyJson" TEXT;

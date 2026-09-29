@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import type { VapiWebhookMessage } from "@/lib/vapi";
 import { captureEndOfCallReport, finishCallReport } from "@/lib/call-ingest";
 import { linkTouchToCustomer } from "@/lib/customer";
-import { logError, logWarn } from "@/lib/logger";
+import { logError, logInfo, logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
@@ -163,32 +163,47 @@ export async function POST(request: NextRequest) {
   }
 
   if (type === "tool-calls") {
+    /*
+      The caller is waiting on this reply mid-sentence, so the two reads run
+      together and the time is logged per tool: it is the one part of a turn's
+      latency that is ours rather than Vapi's.
+    */
+    const startedAt = Date.now();
     const callerPhone = message.call?.customer?.number ?? null;
-    const call = await prisma.call.upsert({
-      where: { vapiCallId },
-      create: { businessId: business.id, vapiCallId, callerPhone, status: "in-progress" },
-      update: {},
-      select: { id: true, vapiCallId: true, callerPhone: true },
-    });
-    const shop = await prisma.business.findUniqueOrThrow({
-      where: { id: business.id },
-      select: {
-        id: true,
-        name: true,
-        hoursJson: true,
-        timezone: true,
-        trade: true,
-        servicesJson: true,
-        ownerPhone: true,
-        ownerEmail: true,
-        transferPhone: true,
-      },
-    });
+    const [call, shop] = await Promise.all([
+      prisma.call.upsert({
+        where: { vapiCallId },
+        create: { businessId: business.id, vapiCallId, callerPhone, status: "in-progress" },
+        update: {},
+        select: { id: true, vapiCallId: true, callerPhone: true },
+      }),
+      prisma.business.findUniqueOrThrow({
+        where: { id: business.id },
+        select: {
+          id: true,
+          name: true,
+          hoursJson: true,
+          timezone: true,
+          trade: true,
+          servicesJson: true,
+          ownerPhone: true,
+          ownerEmail: true,
+          transferPhone: true,
+        },
+      }),
+    ]);
+    const toolCalls = readToolCalls(message);
     const results = await handleInCallToolCalls({
       shop,
       callId: call.id,
       call: { ...call, callerPhone: call.callerPhone ?? callerPhone },
-      toolCalls: readToolCalls(message),
+      toolCalls,
+    });
+    logInfo("in_call.tool_ms", {
+      businessId: business.id,
+      vapiCallId,
+      tools: toolCalls.map((t) => t.name).join(","),
+      ms: Date.now() - startedAt,
     });
     return NextResponse.json({ results });
   }

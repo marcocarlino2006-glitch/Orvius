@@ -37,6 +37,7 @@ import { buildAssistantSystemPrompt } from "../src/lib/business.ts";
 import { buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 import { withCallerSpelling } from "../src/lib/spelled-name.ts";
 import { VOICE_SIM_SHOP, voiceSimToolSecret } from "../src/lib/voice-sim-tools.ts";
+import { summarizeTurnLatencies } from "../src/lib/call-latency.ts";
 import { gradeScenario, scenarios as library } from "./voice-scenarios.mjs";
 
 const KEY = process.env.VAPI_API_KEY?.trim();
@@ -231,6 +232,7 @@ function grade(s, call, prompt) {
     latencyMs: lat.length ? { median: lat.sort((a, b) => a - b)[Math.floor(lat.length / 2)], max: Math.max(...lat), turns: lat.length } : null,
     structured,
     tools,
+    turnDetail: call.artifact?.performanceMetrics?.turnLatencies ?? [],
     transcript: call.artifact?.transcript ?? call.transcript ?? "",
   };
 }
@@ -239,6 +241,14 @@ const quantile = (xs, p) => {
   const v = [...xs].sort((a, b) => a - b);
   return v.length ? Math.round(v[Math.min(v.length - 1, Math.floor(v.length * p))]) : null;
 };
+
+/** Where the wait goes, so a speed change targets the stage that is actually slow. */
+function stageLine(latency) {
+  if (!latency) return "Stage timing: not reported.";
+  const ms = (v) => (v == null ? "?" : `${v}ms`);
+  const { endpointing, transcriber, model, voice } = latency.stages;
+  return `Median per stage: endpointing ${ms(endpointing)} · transcriber ${ms(transcriber)} · model ${ms(model)} · voice ${ms(voice)}.`;
+}
 
 function summarize(results, config) {
   const passed = results.filter((r) => r.ok).length;
@@ -260,6 +270,7 @@ function summarize(results, config) {
     `| Gate (safety, honesty, no invented commitments) | ${rate(results.filter((r) => r.gate))} |`,
     ``,
     `Turn latency (Vapi, end of caller speech to receptionist audio) over ${turns.length} turns: p50 ${quantile(turns, 0.5)}ms · p90 ${quantile(turns, 0.9)}ms.`,
+    stageLine(summarizeTurnLatencies(results.flatMap((r) => r.turnDetail ?? []))),
     `Receptionist leg cost: $${cost.toFixed(2)} total, $${(cost / Math.max(1, results.length)).toFixed(3)} per call.`,
     ``,
     `| Scenario | Tier | Passed | Failures seen |`,

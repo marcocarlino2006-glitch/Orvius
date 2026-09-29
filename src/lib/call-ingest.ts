@@ -1,4 +1,5 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
+import { latencyColumns, latencyFromReport } from "@/lib/call-latency";
 import { createAuditQueue } from "@/lib/audit";
 import { maybeAutoBookLead, type AutoBookResult } from "@/lib/auto-job";
 import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
@@ -94,6 +95,7 @@ export async function captureEndOfCallReport(params: {
     const recordingUrl = message.recordingUrl ?? null;
     const successEvaluation =
       message.analysis?.successEvaluation == null ? null : String(message.analysis.successEvaluation);
+    const latency = latencyColumns(latencyFromReport(message));
     const extracted = extractLeadFromStructuredData(message.analysis?.structuredData);
     const spelled = withCallerSpelling(extracted, message.transcript);
     const structured = {
@@ -123,6 +125,7 @@ export async function captureEndOfCallReport(params: {
           durationSec,
           recordingUrl,
           successEvaluation,
+          ...latency,
         },
         update: {
           status: "completed",
@@ -132,6 +135,7 @@ export async function captureEndOfCallReport(params: {
           recordingUrl,
           successEvaluation: successEvaluation ?? undefined,
           callerPhone: message.call?.customer?.number ?? structured.phone ?? undefined,
+          ...latency,
         },
       });
 
