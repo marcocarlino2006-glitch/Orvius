@@ -57,7 +57,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | S5 | The daily cron handles shops one at a time and stops at 200 shops without saying so. Owner alert retries for quiet shops wait for that daily run. | `src/app/api/cron/notifications/route.ts`, `src/lib/drain-owner-alerts.ts` | in PR [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
 | S6 | All shops text from one shared sender; replies route to whichever shop texted that phone last. Carrier registration (toll-free or 10DLC) is handled outside the product. | `src/lib/twilio-sms.ts`, `src/lib/resolve-shop-line.ts` | needs owner (Twilio verification status) |
 | S7 | Turso is a single writer. Fine now; a ceiling later. | `src/lib/prisma-libsql-concurrent.ts` | watch |
-| S8 | Some state lives in one server's memory (autopilot last run, assistant sync cache, fallback rate limits), so it resets across instances. | `src/lib/autopilot.ts`, `src/lib/sync-business-assistant.ts`, `src/lib/rate-limit.ts` | in PR (confirm once) — rate limits and assistant cache were already safe; autopilot overlap could double-text customers |
+| S8 | Some state lives in one server's memory (autopilot last run, assistant sync cache, fallback rate limits), so it resets across instances. | `src/lib/autopilot.ts`, `src/lib/sync-business-assistant.ts`, `src/lib/rate-limit.ts` | done (#86) — rate limits and assistant cache were already safe; autopilot overlap could double-text customers, now claimed once |
 | S9 | `puppeteer` is a production dependency though only scripts use it. | `package.json` | done — [PR #84](https://github.com/marcocarlino2006-glitch/Orvius/pull/84) |
 
 ## Tier 2 — Let shops buy and go live without Marco
@@ -92,7 +92,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | F2 | Jobs, Dispatch, money (estimates, invoices, deposits), Ask and Portfolio ship beside a stated receptionist wedge; several are marked beta. | `src/lib/os-nav.ts`, `src/lib/company.ts` | needs owner (hide beta rings until the wedge pays?) |
 | F3 | Claims to tighten: a "LIVE" badge on the illustrative sign-in feed; the compare table's unconditional "Yes" rows; a P95 alert latency promise with no readout. | `src/components/signin-board.tsx`, `src/components/home-compare.tsx`, `src/lib/institutional-standards.ts` | open |
 | F4 | Summit and "1842 Oak Street" placeholders appear in real-shop settings and onboarding. | `business-section.tsx`, `onboarding-wizard.tsx` | done — [PR #84](https://github.com/marcocarlino2006-glitch/Orvius/pull/84) |
-| F5 | Call recordings and transcripts are kept forever; customer links (confirm, invoice, deposit) never expire; a shop's calendar feed cannot be revoked alone; backups are manual. | `prisma/schema.prisma`, `src/lib/calendar-feed.ts` | needs owner (retention policy) |
+| F5 | Call recordings and transcripts are kept forever; customer links (confirm, invoice, deposit) never expire; a shop's calendar feed cannot be revoked alone; backups are manual. | `src/lib/retention.ts`, `src/lib/calendar-feed.ts`, `src/lib/customer-confirm.ts` | in PR — daily purge after 24 months (ours, Vapi, Twilio voicemail); confirm links close a day after the visit, tech links a week after; per-shop calendar link reset. Invoice and deposit links stay open until paid on purpose (an expired unpaid invoice is lost money). Backups: still manual (`npm run db:backup`) |
 | F6 | Repo clutter: 33 strategy docs in `docs/`, about 34 one-off scripts, 42 untracked `.tmp-*.mjs` files in the root. | `docs/`, `scripts/` | open |
 
 ---
@@ -107,7 +107,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | Workspace or shop deleted | The number and assistant are released immediately. | The owner said they are done; nothing should keep billing. |
 | Paying before signup opens | Checkout refuses anyone who couldn't create a shop afterwards. | Never take money we can't turn into a working line. |
 | Self-serve signup | Open it (`ORVIUS_SELF_SERVE_SIGNUP`) once `RESEND_API_KEY` is set, so sign-in links and billing emails work. | A signup that can't email its owner isn't self-serve. |
-| Recordings and transcripts | Keep 24 months, then purge (to build; privacy page to match). | Long enough for disputes and warranty callbacks; not forever. |
+| Recordings and transcripts | Keep 24 months, then purge (built in F5; privacy page says so). | Long enough for disputes and warranty callbacks; not forever. |
 | Beta features (Jobs, Dispatch, money, Ask, Portfolio) | Frozen: no new work until the receptionist hits 1,000 paying shops. Kept visible for shops already using them. | Focus. |
 
 ## Still needs Marco

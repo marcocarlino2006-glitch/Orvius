@@ -33,16 +33,24 @@ export function calendarFeedUrl(businessId: string, version = 1) {
   return token ? `${getAppUrl().replace(/\/$/, "")}/api/public/calendar/${token}.ics` : null;
 }
 
-export async function verifyCalendarFeedToken(raw: string): Promise<string | null> {
+async function currentFeedVersion(businessId: string) {
+  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { calendarFeedVersion: true } });
+  return shop?.calendarFeedVersion ?? null;
+}
+
+export async function verifyCalendarFeedToken(
+  raw: string,
+  feedVersion: (businessId: string) => Promise<number | null> = currentFeedVersion,
+): Promise<string | null> {
   const secret = feedSecret();
   const token = raw.replace(/\.ics$/, "");
   const dot = token.lastIndexOf(".");
   if (!secret || dot <= 0) return null;
   const businessId = token.slice(0, dot);
-  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { calendarFeedVersion: true } });
-  if (!shop) return null;
+  const version = await feedVersion(businessId);
+  if (version == null) return null;
   const presented = Buffer.from(token.slice(dot + 1));
-  const expected = Buffer.from(sign(businessId, shop.calendarFeedVersion, secret));
+  const expected = Buffer.from(sign(businessId, version, secret));
   if (presented.length !== expected.length || !timingSafeEqual(presented, expected)) return null;
   return businessId;
 }
