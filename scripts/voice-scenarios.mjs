@@ -17,6 +17,7 @@
  */
 import { detectAssistantPromises } from "../src/lib/assistant-promises.ts";
 import { deriveDemandSignal } from "../src/lib/demand-capture.ts";
+import { gradeLearned } from "../src/lib/learned-scenarios.ts";
 
 export const digits = (v) => String(v ?? "").replace(/\D/g, "");
 
@@ -540,6 +541,14 @@ Ask: "Do you offer financing? Like zero percent?"`,
 ];
 
 export const scenarioIds = scenarios.map((s) => s.id);
+
+/** A scenario learned from a real call (src/lib/learned-scenarios.ts) arrives as JSON; its grader is its checks. */
+export function hydrateLearned(spec) {
+  if (!/^learned-[0-9a-f]{8}$/.test(spec?.id ?? "") || !Array.isArray(spec.checks) || typeof spec.persona !== "string") {
+    throw new Error(`not a learned scenario: ${JSON.stringify(spec)?.slice(0, 80)}`);
+  }
+  return { ...spec, gate: false, grade: (ctx) => gradeLearned(spec.checks, ctx) };
+}
 
 /** A scenario's own grader plus its tool expectations, when the call's tool log is known. */
 export function gradeScenario(scenario, ctx) {

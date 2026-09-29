@@ -1,6 +1,7 @@
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
+import { SAFETY_GUIDANCE } from "@/lib/safety-guidance";
 import { parseTranscript } from "@/lib/transcript";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { isEmergency } from "@/lib/urgency";
@@ -87,9 +88,6 @@ const CORRECTED =
   /\bthat'?s not what i (said|meant)\b|\bno,? i said\b|\byou (got|have) (it|that) wrong\b|\bthat'?s (wrong|not right|incorrect)\b|\bwrong (address|number|name|day|time)\b/i;
 const FRUSTRATED =
   /\b(ridiculous|frustrat\w*|annoying|useless|forget it|never ?mind|this is stupid|waste of (my )?time)\b/i;
-/** What a receptionist says to someone reporting a hazard. */
-const SAFETY_GUIDANCE =
-  /\b911\b|leave (the|your) (house|home|building)|get (everyone )?out(side)?|step outside|shut (it |the \w+ )?off|turn (it |the \w+ )?off|breaker|gas (company|utility)|stay away|don'?t (touch|use|flip|light)|evacuat/i;
 
 /** The opening line plus the recording disclosure legitimately runs long. */
 const DISCLOSURE = /\brecorded\b/i;

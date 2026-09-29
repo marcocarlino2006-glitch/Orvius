@@ -26,7 +26,7 @@
  * transfers ring; without it the receptionist runs with transfers off.
  *
  *   VAPI_API_KEY=… VOICE_SIM_RECEPTIONIST_PHONE_ID=… VOICE_SIM_CALLER_PHONE_ID=… npm run sim:voice -- \
- *     [--only id,id] [--gate] [--calls 200] [--concurrency 4] [--min-pass 0.95] [--json out.json] [--report out.md]
+ *     [--only id,id] [--gate] [--learned] [--calls 200] [--concurrency 4] [--min-pass 0.95] [--json out.json] [--report out.md]
  *
  * --gate runs only ship-blocking scenarios and fails on any failure.
  * --calls cycles the selected scenarios until that many calls have run.
@@ -38,7 +38,7 @@ import { buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 import { withCallerSpelling } from "../src/lib/spelled-name.ts";
 import { VOICE_SIM_SHOP, voiceSimToolSecret } from "../src/lib/voice-sim-tools.ts";
 import { summarizeTurnLatencies } from "../src/lib/call-latency.ts";
-import { gradeScenario, scenarios as library } from "./voice-scenarios.mjs";
+import { gradeScenario, hydrateLearned, scenarios as builtIn } from "./voice-scenarios.mjs";
 
 const KEY = process.env.VAPI_API_KEY?.trim();
 const FROM_ID = process.env.VOICE_SIM_RECEPTIONIST_PHONE_ID?.trim();
@@ -85,6 +85,26 @@ function mergeDeep(base, extra) {
 
 const shop = VOICE_SIM_SHOP;
 const APP_URL = (process.env.VOICE_SIM_APP_URL?.trim() || "https://app.orvius.im").replace(/\/$/, "");
+
+/*
+  --learned adds scenarios learned from real calls that went wrong
+  (/api/admin/learned-scenarios, ORVIUS_ADMIN_KEY). They never gate; a
+  learned failure that matters gets promoted into voice-scenarios.mjs.
+*/
+async function learnedScenarios() {
+  if (!args.includes("--learned") || gate) return [];
+  const key = process.env.ORVIUS_ADMIN_KEY?.trim();
+  if (!key) {
+    console.log("⚠️  --learned skipped: ORVIUS_ADMIN_KEY is not set");
+    return [];
+  }
+  const res = await fetch(`${APP_URL}/api/admin/learned-scenarios`, { headers: { Authorization: `Bearer ${key}` } });
+  if (!res.ok) throw new Error(`learned scenarios → HTTP ${res.status}`);
+  const { scenarios: specs = [], graded } = await res.json();
+  console.log(`📚 ${specs.length} scenarios learned from ${graded} recent real calls`);
+  return specs.map(hydrateLearned);
+}
+const library = [...builtIn, ...(await learnedScenarios())];
 const TRANSFER_NUMBER = process.env.VOICE_SIM_TRANSFER_NUMBER?.trim() || null;
 
 function receptionistAssistant() {
