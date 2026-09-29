@@ -1,3 +1,5 @@
+import { logWarn } from "@/lib/logger";
+import { alertPaymentFailed } from "@/lib/owner-nudges";
 import { resumeShopLine, suspendShopLine } from "@/lib/line-lifecycle";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
@@ -200,6 +202,11 @@ export async function syncSubscriptionToBusiness(
     },
   });
 
+  if (billingStatus === "past_due" && previous !== "past_due") {
+    await alertPaymentFailed(updated).catch((error: unknown) =>
+      logWarn("billing.past_due_alert_failed", { businessId: updated.id, error: error instanceof Error ? error.message : "unknown" }),
+    );
+  }
   if (billingStatus === "canceled" && previous !== "canceled") {
     await suspendShopLine(updated);
   } else if (billingStatus === "active" && previous === "canceled" && !updated.lineReleasedAt) {
