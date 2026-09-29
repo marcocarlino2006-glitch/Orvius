@@ -34,7 +34,7 @@ export function BusinessSection({ b, patch }: { b: Business; patch: PatchFn }) {
         <ScField
           ariaLabel="Shop address"
           value={b.address ?? ""}
-          placeholder="1842 Oak Street, Austin TX"
+          placeholder="Street, city, state"
           autoComplete="street-address"
           onCommit={(v) => patch({ address: v.trim() || null })}
         />

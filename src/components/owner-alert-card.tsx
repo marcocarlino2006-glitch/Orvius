@@ -89,36 +89,3 @@ export function OwnerAlertCard({
     </section>
   );
 }
-
-export function CallTranscriptProof({
-  variant = "void",
-  className = "",
-}: {
-  variant?: "void" | "chalk";
-  className?: string;
-}) {
-  const isVoid = variant === "void";
-
-  return (
-    <div
-      className={`owner-alert owner-alert--${isVoid ? "void" : "chalk"} ${className}`.trim()}
-    >
-      <header className="owner-alert-head">
-        <p className="owner-alert-kicker font-sans">Front door</p>
-      </header>
-      <div className="owner-alert-body owner-alert-transcript font-sans">
-        <p className="transcript-line">
-          <span>Orvius</span> · Thanks for calling Summit HVAC. How can I help?
-        </p>
-        <p className="transcript-line">
-          <span>Caller</span> · My AC stopped cooling. Can someone come today?
-        </p>
-        <p className="transcript-line">
-          <span>Orvius</span> · I can help. What&apos;s the address and best
-          callback number?
-        </p>
-        <p className="owner-alert-foot">Lead captured · owner notified</p>
-      </div>
-    </div>
-  );
-}

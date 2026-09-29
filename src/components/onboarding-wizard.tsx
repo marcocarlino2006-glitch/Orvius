@@ -252,7 +252,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Summit HVAC & Cooling"
+                    placeholder="Your shop name"
                     className="onboarding-input"
                     autoFocus
                     autoComplete="organization"
