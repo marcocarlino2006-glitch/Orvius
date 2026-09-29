@@ -74,7 +74,6 @@
     "@sentry/nextjs": "^10.74.0",
     "next": "^15.2.0",
     "next-auth": "^5.0.0-beta.32",
-    "puppeteer": "^25.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "stripe": "^18.5.0",
@@ -93,6 +92,7 @@
     "eslint-config-next": "^15.2.0",
     "playwright": "^1.49.0",
     "prisma": "^6.5.0",
+    "puppeteer": "^25.9.0",
     "tailwindcss": "^4.0.9",
     "typescript": "^5.8.2"
   }
