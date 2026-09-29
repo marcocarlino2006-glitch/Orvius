@@ -479,3 +479,6 @@ CREATE INDEX IF NOT EXISTS "Call_businessId_updatedAt_idx" ON "Call"("businessId
 CREATE INDEX IF NOT EXISTS "Lead_businessId_updatedAt_idx" ON "Lead"("businessId", "updatedAt");
 CREATE INDEX IF NOT EXISTS "Job_businessId_updatedAt_idx" ON "Job"("businessId", "updatedAt");
 CREATE INDEX IF NOT EXISTS "OwnerNotification_businessId_processedAt_idx" ON "OwnerNotification"("businessId", "processedAt");
+
+-- A send in flight holds the job so concurrent autopilot runs can't text the customer twice.
+ALTER TABLE "Job" ADD COLUMN "customerConfirmClaimAt" DATETIME;

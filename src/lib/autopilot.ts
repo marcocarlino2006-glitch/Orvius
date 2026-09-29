@@ -123,7 +123,7 @@ export async function runAutopilot(
     select: { id: true, title: true, customerId: true, leadId: true },
   });
   for (const job of unconfirmed) {
-    const sent = await sendCustomerConfirmSms(job.id);
+    const sent = await sendCustomerConfirmSms(job.id, { firstOnly: true });
     if (!sent.sent) {
       result.skipped += 1;
       continue;

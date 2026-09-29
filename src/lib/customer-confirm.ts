@@ -47,17 +47,26 @@ export async function ensureCustomerConfirmToken(jobId: string): Promise<string>
  * Ask the customer to confirm the proposed window.
  * Until they confirm, the job is a proposed schedule — not a locked appointment.
  */
+type ConfirmSendOptions = {
+  reminder?: boolean;
+  /** Automatic sends: skip a job whose first confirmation already went out. The owner's resend doesn't set this. */
+  firstOnly?: boolean;
+};
+
+/** A send that crashed mid-flight frees the job after this. */
+const CONFIRM_CLAIM_MS = 2 * 60_000;
+
 export async function sendCustomerConfirmSms(jobId: string): Promise<{
   sent: boolean;
   reason?: string;
 }>;
 export async function sendCustomerConfirmSms(
   jobId: string,
-  options: { reminder?: boolean },
+  options: ConfirmSendOptions,
 ): Promise<{ sent: boolean; reason?: string }>;
 export async function sendCustomerConfirmSms(
   jobId: string,
-  options: { reminder?: boolean } = {},
+  options: ConfirmSendOptions = {},
 ): Promise<{ sent: boolean; reason?: string }> {
   const job = await prisma.job.findUnique({
     where: { id: jobId },
@@ -98,13 +107,36 @@ export async function sendCustomerConfirmSms(
     ].join("\n"),
   );
 
+  const claimAt = new Date();
+  const claimed = await prisma.job.updateMany({
+    where: {
+      id: jobId,
+      customerConfirmedAt: null,
+      OR: [{ customerConfirmClaimAt: null }, { customerConfirmClaimAt: { lt: new Date(claimAt.getTime() - CONFIRM_CLAIM_MS) } }],
+      ...(options.reminder
+        ? { customerConfirmReminderSentAt: null }
+        : options.firstOnly
+          ? { customerConfirmSentAt: null }
+          : {}),
+    },
+    data: { customerConfirmClaimAt: claimAt },
+  });
+  if (!claimed.count) return { sent: false, reason: "already_sending_or_sent" };
+  const release = () =>
+    prisma.job
+      .updateMany({ where: { id: jobId, customerConfirmClaimAt: claimAt }, data: { customerConfirmClaimAt: null } })
+      .catch(() => undefined);
+
   try {
     const result = await sendCustomerSms({
       businessId: job.businessId,
       to,
       body,
     });
-    if (!result.sent) return result;
+    if (!result.sent) {
+      await release();
+      return result;
+    }
     const sentAt = new Date();
     await prisma.job.update({
       where: { id: jobId },
@@ -113,6 +145,7 @@ export async function sendCustomerConfirmSms(
           ? { customerConfirmReminderSentAt: sentAt }
           : { customerConfirmSentAt: sentAt }),
         customerConfirmSid: result.sid ?? null,
+        customerConfirmClaimAt: null,
       },
     });
     logInfo("customer.confirm_sms_sent", {
@@ -123,6 +156,7 @@ export async function sendCustomerConfirmSms(
     });
     return { sent: true };
   } catch (error) {
+    await release();
     logWarn("customer.confirm_sms_failed", {
       jobId,
       error: error instanceof Error ? error.message : "send failed",

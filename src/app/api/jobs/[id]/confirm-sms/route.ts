@@ -32,7 +32,7 @@ export async function POST(_request: Request, { params }: Params) {
   const result = await sendCustomerConfirmSms(id);
   if (!result.sent) {
     const status =
-      result.reason === "already_confirmed"
+      result.reason === "already_confirmed" || result.reason === "already_sending_or_sent"
         ? 409
         : result.reason === "not_found"
           ? 404
@@ -42,6 +42,8 @@ export async function POST(_request: Request, { params }: Params) {
         error:
           result.reason === "already_confirmed"
             ? "Customer already confirmed"
+            : result.reason === "already_sending_or_sent"
+              ? "A confirmation text is going out to this customer right now"
             : result.reason === "no_customer_phone"
               ? "No customer phone on this job"
               : result.reason === "sms_not_configured"

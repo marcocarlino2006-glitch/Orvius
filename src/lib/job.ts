@@ -523,7 +523,7 @@ export async function createJobFromLead(params: {
     await afterResponse(async () => {
       await closeBookingMoneyLoop({ businessId, leadId: lead.id, jobId: bookedJobId });
       try {
-        const confirm = await sendCustomerConfirmSms(bookedJobId);
+        const confirm = await sendCustomerConfirmSms(bookedJobId, { firstOnly: true });
         await recordAudit({
           ...link,
           entityType: "job",
