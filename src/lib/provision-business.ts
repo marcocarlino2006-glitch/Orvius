@@ -209,8 +209,16 @@ export function shopNeedsAutoLine(business: {
   vapiPhoneNumber?: string | null;
   vapiAssistantId?: string | null;
   ownerPhone?: string | null;
+  billingStatus?: string | null;
 }): boolean {
   if (!shopMustNotUseDemoLine(business)) return false;
+  /*
+    This runs on every signed-in request, ahead of the billing check. A
+    canceled shop whose number was released would otherwise buy a new one the
+    next time its owner opened the dashboard. Paying again makes it active,
+    and the line comes back then.
+  */
+  if (business.billingStatus === "canceled") return false;
   if (!business.vapiAssistantId?.trim() || !business.ownerPhone?.trim()) {
     return false;
   }

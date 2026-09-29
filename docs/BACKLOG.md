@@ -82,7 +82,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | M4 | The voice test suite never runs the live booking tools or transfer, so the most valuable path is ungated. | `scripts/voice-sim.mjs`, `src/lib/voice-sim-tools.ts` | done ([#89](https://github.com/marcocarlino2006-glitch/Orvius/pull/89)) — sim now runs the production receptionist with its tools (sandboxed, no database) and grades which tools each call used. The nightly still skips until `VAPI_API_KEY`, `VOICE_SIM_RECEPTIONIST_PHONE_ID` and `VOICE_SIM_CALLER_PHONE_ID` are set as repo secrets (owner) |
 | M5 | On a call, customers cannot reschedule, cancel or ask job status. | `src/lib/in-call-tool-defs.ts` | later |
 | M6 | The owner app on a phone is the desktop layout shrunk; no phone-first "tonight" view. The first-night handoff screen is built but never shown. | `src/components/os-shell.tsx`, `FirstNightHandoff` unmounted | open |
-| M7 | No tests for call ingest, provisioning or billing sync directly. | `package.json` `test:trust` | open |
+| M7 | No tests for call ingest, provisioning or billing sync directly. | `scripts/billing-core.test.mjs`, `scripts/provision-core.test.mjs` | in PR — call ingest was already covered (23 direct calls); billing sync now runs against a local stand-in Stripe, and provisioning's refusals are tested. Found and fixed: a second checkout double-charged an active shop, an extra subscription's cancel suspended a paying shop's line, and a canceled shop with a released number would auto-buy a new one on dashboard load |
 
 ## Tier 4 — Focus and cleanup (cost of carrying too much)
 

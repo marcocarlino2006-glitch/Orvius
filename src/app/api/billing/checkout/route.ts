@@ -24,6 +24,7 @@ import {
   isPlanCheckoutReady,
   type PaidPlanId,
 } from "@/lib/pricing-plans";
+import { shopHasLivePlan } from "@/lib/billing-sync";
 import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
 import { resolveShopAccess } from "@/lib/workspace-access";
@@ -81,6 +82,21 @@ export async function POST(request: NextRequest) {
           where: { ownerEmail: sessionEmail },
           orderBy: { createdAt: "asc" },
         })));
+
+    /*
+      A shop that is already paying changes plans in the billing portal. A
+      second checkout would open a second subscription and charge twice.
+    */
+    if (business && shopHasLivePlan(business)) {
+      return NextResponse.json(
+        {
+          error: `${business.name} already has a plan. Change or update it in Settings → Billing.`,
+          code: "already_subscribed",
+          manageUrl: "/dashboard?settings=billing",
+        },
+        { status: 409 },
+      );
+    }
 
     // Paying must lead to a shop: someone who can't create one yet is not charged.
     if (

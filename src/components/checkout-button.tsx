@@ -120,6 +120,10 @@ export function CheckoutButton({
           window.location.href = `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
           return;
         }
+        if (res.status === 409 && data.code === "already_subscribed" && data.manageUrl) {
+          window.location.href = data.manageUrl;
+          return;
+        }
         throw new Error(data.error ?? "Checkout unavailable");
       }
 
