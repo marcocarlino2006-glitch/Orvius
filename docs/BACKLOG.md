@@ -76,7 +76,7 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 
 | ID | Gap | Evidence | Status |
 |----|-----|----------|--------|
-| M1 | Voice reply time is p50 1.08 s / p90 1.79 s; best in class feels under 0.8 s. | `docs/VOICE-RESULTS.md` | open |
+| M1 | Voice reply time is p50 1.08 s / p90 1.79 s; best in class feels under 0.8 s. | `docs/VOICE-RESULTS.md` | measuring (#91): every call now stores reply p50/p90 + stage medians; `/api/admin/voice-latency` names the slowest stage. Next: cut the slowest stage once a week of real calls is in |
 | M2 | Transfer to a person is a cold transfer only, and gas or CO safety calls alert after the call instead of transferring live. | `src/lib/vapi.ts`, `src/lib/in-call-tools.ts` | done ([#88](https://github.com/marcocarlino2006-glitch/Orvius/pull/88)) — danger calls text the owner mid-call (`alert_team_now`) and transfer warm with a spoken briefing when a transfer number is set; still needs one live test call |
 | M3 | No ServiceTitan, Housecall Pro or Jobber sync, and Google Calendar is read-only busy blocks. These are what real shops run on. | only marketing mentions; `src/lib/busy-calendar.ts` | open |
 | M4 | The voice test suite never runs the live booking tools or transfer, so the most valuable path is ungated. | `scripts/voice-sim.mjs`, `src/lib/voice-sim-tools.ts` | done ([#89](https://github.com/marcocarlino2006-glitch/Orvius/pull/89)) — sim now runs the production receptionist with its tools (sandboxed, no database) and grades which tools each call used. The nightly still skips until `VAPI_API_KEY`, `VOICE_SIM_RECEPTIONIST_PHONE_ID` and `VOICE_SIM_CALLER_PHONE_ID` are set as repo secrets (owner) |
