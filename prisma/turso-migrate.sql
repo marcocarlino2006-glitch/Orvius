@@ -495,3 +495,43 @@ ALTER TABLE "Call" ADD COLUMN "latencyJson" TEXT;
 
 -- A time held on the call as the new time for an existing visit.
 ALTER TABLE "Call" ADD COLUMN "heldIntent" TEXT;
+
+-- Jobber: a shop's connection, and each lead's one-time trip into Jobber.
+ALTER TABLE "Customer" ADD COLUMN "jobberClientId" TEXT;
+CREATE TABLE IF NOT EXISTS "JobberConnection" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "accountId" TEXT NOT NULL,
+  "accountName" TEXT,
+  "accessTokenEnc" TEXT,
+  "refreshTokenEnc" TEXT,
+  "accessExpiresAt" DATETIME,
+  "refreshClaimAt" DATETIME,
+  "status" TEXT NOT NULL DEFAULT 'active',
+  "lastError" TEXT,
+  "connectedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "disconnectedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "JobberConnection_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "JobberConnection_businessId_key" ON "JobberConnection"("businessId");
+CREATE INDEX IF NOT EXISTS "JobberConnection_accountId_idx" ON "JobberConnection"("accountId");
+CREATE TABLE IF NOT EXISTS "JobberSync" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "leadId" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "attempts" INTEGER NOT NULL DEFAULT 0,
+  "nextAttemptAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "claimedAt" DATETIME,
+  "requestSentAt" DATETIME,
+  "jobberClientId" TEXT,
+  "jobberRequestId" TEXT,
+  "lastError" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "JobberSync_leadId_key" ON "JobberSync"("leadId");
+CREATE INDEX IF NOT EXISTS "JobberSync_status_nextAttemptAt_idx" ON "JobberSync"("status", "nextAttemptAt");
+CREATE INDEX IF NOT EXISTS "JobberSync_businessId_createdAt_idx" ON "JobberSync"("businessId", "createdAt");

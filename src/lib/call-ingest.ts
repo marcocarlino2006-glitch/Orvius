@@ -1,10 +1,12 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
 import { latencyColumns, latencyFromReport } from "@/lib/call-latency";
+import { afterResponse } from "@/lib/after-response";
 import { createAuditQueue } from "@/lib/audit";
 import { maybeAutoBookLead, type AutoBookResult } from "@/lib/auto-job";
 import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { isInformationOnlyRequest } from "@/lib/info-request";
+import { drainJobberSyncs, enqueueJobberSync } from "@/lib/jobber";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
@@ -389,6 +391,17 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
         idempotencyKey: key("owner-alert"),
       });
     }
+
+    const toJobber = await enqueueJobberSync({
+      businessId: business.id,
+      leadId: lead.id,
+      skipReason: autoBook.skipReason,
+      nonService,
+    }).catch((error) => {
+      logWarn("jobber.enqueue_failed", { leadId: lead.id, error: error instanceof Error ? error.message : String(error) });
+      return false;
+    });
+    if (toJobber) await afterResponse(() => drainJobberSyncs({ businessId: business.id, limit: 5 }));
 
     await Promise.all([
       audit.flush(),

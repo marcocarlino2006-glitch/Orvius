@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
 import { busyCalendarHost } from "@/lib/busy-calendar";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
+import { jobberStatus } from "@/lib/jobber";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getShopAccessWithAutoLine } from "@/lib/provision-business";
 import { recordAudit } from "@/lib/audit";
@@ -212,6 +213,7 @@ export async function GET(request: Request) {
           error: businessRecord.busyCalendarError,
         }
       : null,
+    jobber: businessRecord ? await jobberStatus(businessRecord.id).catch(() => null) : null,
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),

@@ -106,6 +106,7 @@ model Business {
   leads            Lead[]
   customers        Customer[]
   jobs             Job[]
+  jobberConnection JobberConnection?
   technicians      Technician[]
   estimates        Estimate[]
   invoices         Invoice[]
@@ -172,6 +173,8 @@ model Customer {
   name              String?
   phone             String
   phoneNormalized   String
+  /** The same person in the shop's Jobber, once Orvius has matched or created them. */
+  jobberClientId    String?
   email             String?
   address           String?
   notes             String?
@@ -695,3 +698,47 @@ model ShopPreview {
   @@index([createdAt])
 }
 
+
+/** A shop's Jobber account. Tokens are sealed with ORVIUS_TOKEN_KEY (secret-box.ts), never stored in the clear. */
+model JobberConnection {
+  id              String    @id @default(cuid())
+  businessId      String    @unique
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  accountId       String
+  accountName     String?
+  accessTokenEnc  String?
+  refreshTokenEnc String?
+  accessExpiresAt DateTime?
+  /** Held while one worker refreshes: Jobber rotates refresh tokens, so two refreshes at once would disconnect the shop. */
+  refreshClaimAt  DateTime?
+  /** active | disconnected | reconnect (Jobber refused our tokens) */
+  status          String    @default("active")
+  lastError       String?
+  connectedAt     DateTime  @default(now())
+  disconnectedAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([accountId])
+}
+
+/** One lead on its way into the shop's Jobber as a request. At most one per lead, and never sent twice. */
+model JobberSync {
+  id              String    @id @default(cuid())
+  businessId      String
+  leadId          String    @unique
+  /** pending | done | skipped | failed | check (sent, reply lost: look in Jobber before resending) */
+  status          String    @default("pending")
+  attempts        Int       @default(0)
+  nextAttemptAt   DateTime  @default(now())
+  claimedAt       DateTime?
+  requestSentAt   DateTime?
+  jobberClientId  String?
+  jobberRequestId String?
+  lastError       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([businessId, createdAt])
+}

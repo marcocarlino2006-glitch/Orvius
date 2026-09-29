@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { displayPhone } from "@/lib/customer";
 import type { SettingsSectionId } from "@/lib/settings-center";
 import { BusyCalendarGroup } from "../busy-calendar-group";
 import { CopyLinkButton } from "../settings-controls";
-import type { Account, BusyCalendar } from "../settings-model";
+import type { Account, BusyCalendar, JobberLink } from "../settings-model";
 import { ScGroup, ScStatus } from "../settings-primitives";
 
 export function IntegrationsSection({
@@ -22,6 +22,38 @@ export function IntegrationsSection({
   const [feedUrl, setFeedUrl] = useState(account.calendarFeedUrl ?? null);
   const [feedBusy, setFeedBusy] = useState(false);
   const [feedNote, setFeedNote] = useState<string | null>(null);
+
+  const [jobber, setJobber] = useState<JobberLink>(account.jobber ?? null);
+  const [jobberBusy, setJobberBusy] = useState(false);
+  const [jobberNote, setJobberNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    const outcome = new URLSearchParams(window.location.search).get("jobber");
+    const notes: Record<string, string> = {
+      connected: "Jobber connected. New calls land there as requests.",
+      cancelled: "Jobber was not connected.",
+      expired: "That Jobber link expired. Connect again.",
+      failed: "Jobber did not finish connecting. Try again.",
+      unavailable: "Jobber switches on from our side.",
+    };
+    if (outcome && notes[outcome]) setJobberNote(notes[outcome]);
+  }, []);
+
+  async function disconnectJobber() {
+    if (!window.confirm("Disconnect Jobber? New calls stop going to Jobber. Requests already there stay.")) return;
+    setJobberBusy(true);
+    setJobberNote(null);
+    try {
+      const res = await fetch("/api/integrations/jobber/disconnect", { method: "POST" });
+      if (!res.ok) throw new Error("Could not disconnect. Try again.");
+      setJobber((prev) => (prev ? { ...prev, status: "disconnected", accountName: null } : prev));
+      setJobberNote("Jobber disconnected.");
+    } catch (error) {
+      setJobberNote(error instanceof Error ? error.message : "Could not disconnect. Try again.");
+    } finally {
+      setJobberBusy(false);
+    }
+  }
 
   async function resetFeed() {
     if (!window.confirm("Reset the calendar link? Calendars subscribed to the old link stop updating until you add the new one.")) return;
@@ -49,6 +81,8 @@ export function IntegrationsSection({
     action?: { label: string; to: SettingsSectionId };
     copy?: string;
     reset?: boolean;
+    href?: { label: string; url: string };
+    disconnect?: boolean;
   }> = [
     {
       name: "Phone line",
@@ -94,6 +128,7 @@ export function IntegrationsSection({
       copy: feedUrl ?? undefined,
       reset: Boolean(feedUrl),
     },
+    jobberRow(jobber, jobberNote),
   ];
   return (
     <>
@@ -117,7 +152,17 @@ export function IntegrationsSection({
                 {feedBusy ? "Resetting…" : "Reset link"}
               </button>
             ) : null}
-            {row.copy ? null : row.action ? (
+            {row.disconnect ? (
+              <button type="button" className="sc-btn" disabled={jobberBusy} onClick={() => void disconnectJobber()}>
+                {jobberBusy ? "Disconnecting…" : "Disconnect"}
+              </button>
+            ) : null}
+            {row.href ? (
+              <a className="sc-btn" href={row.href.url}>
+                {row.href.label}
+              </a>
+            ) : null}
+            {row.copy || row.href || row.disconnect ? null : row.action ? (
               <button type="button" className="sc-btn" onClick={() => go(row.action!.to)}>
                 {row.action.label}
               </button>
@@ -134,4 +179,28 @@ export function IntegrationsSection({
     />
     </>
   );
+}
+
+function jobberRow(jobber: JobberLink, note: string | null) {
+  const base = { name: "Jobber", mark: "JB" };
+  const connect = { label: "Connect", url: "/api/integrations/jobber/connect" };
+  if (jobber?.status === "active") {
+    const sent = jobber.sentLast30Days === 1 ? "1 call" : `${jobber.sentLast30Days} calls`;
+    const attention = jobber.needsAttention
+      ? ` ${jobber.needsAttention} did not go through. Your alert texts still have them.`
+      : "";
+    return {
+      ...base,
+      on: true,
+      detail: note ?? `New calls land in ${jobber.accountName ?? "Jobber"} as requests. ${sent} sent in 30 days.${attention}`,
+      disconnect: true,
+    };
+  }
+  if (jobber?.status === "reconnect") {
+    return { ...base, on: false, detail: note ?? "Jobber stopped accepting Orvius. Reconnect to keep calls flowing there.", href: { ...connect, label: "Reconnect" } };
+  }
+  if (!jobber?.available) {
+    return { ...base, on: false, detail: note ?? "Switches on from our side", offLabel: "Off" };
+  }
+  return { ...base, on: false, detail: note ?? "Send every call to Jobber as a request, matched to the client by phone.", href: connect };
 }

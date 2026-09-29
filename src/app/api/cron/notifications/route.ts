@@ -17,6 +17,7 @@ import { billPreviousMonthOverage } from "@/lib/overage-billing";
 import { sendOwnerNudges } from "@/lib/owner-nudges";
 import { purgeExpiredCallContent } from "@/lib/retention";
 import { voiceLatencyRollup } from "@/lib/call-latency";
+import { drainJobberSyncs } from "@/lib/jobber";
 
 /*
   The daily sweep, not the thing that makes the retry ladder work.
@@ -105,6 +106,7 @@ export async function GET(request: NextRequest) {
   const overage = await step("overage_billing", () => billPreviousMonthOverage());
   const lapsedLines = await step("lapsed_lines", () => releaseLapsedLines());
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
+  const jobber = await step("jobber_sync", () => drainJobberSyncs({ limit: 100, budgetMs: 60_000 }));
   const retention = await step("call_content_retention", () => purgeExpiredCallContent());
   const voiceLatency = await step("voice_latency", async () => {
     const rollup = await voiceLatencyRollup(new Date(Date.now() - 24 * 60 * 60 * 1000));
@@ -125,6 +127,7 @@ export async function GET(request: NextRequest) {
     lapsedLines,
     ownerNudges,
     retention,
+    jobber,
     voiceLatency,
     autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
   });

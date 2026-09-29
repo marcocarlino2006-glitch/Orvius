@@ -3,11 +3,22 @@ import { pricing } from "@/lib/company";
 
 export type BusyCalendar = { source: string | null; syncedAt: string | null; error: string | null } | null;
 
+export type JobberLink = {
+  available: boolean;
+  status: "none" | "active" | "disconnected" | "reconnect" | string;
+  accountName: string | null;
+  connectedAt: string | null;
+  lastError: string | null;
+  sentLast30Days: number;
+  needsAttention: number;
+} | null;
+
 export type Account = {
   founder?: boolean;
   role?: "owner" | "manager" | "dispatcher" | null;
   calendarFeedUrl?: string | null;
   busyCalendar?: BusyCalendar;
+  jobber?: JobberLink;
   user?: { name: string | null; email: string | null; image?: string | null };
   business: {
     name: string;
