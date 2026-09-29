@@ -113,6 +113,20 @@ export async function getPaidCheckoutActivation(
   return resolvePaidCheckoutActivation(session, subscription, expectedEmail);
 }
 
+/**
+ * The owner's completed plan checkout, for coming back to setup without the
+ * success page's link. getPaidCheckoutActivation still verifies it on use.
+ */
+export async function findPaidCheckoutSessionId(email: string): Promise<string | null> {
+  const stripe = getStripe();
+  const sessions = await stripe.checkout.sessions.list({
+    customer_details: { email: email.toLowerCase() },
+    status: "complete",
+    limit: 10,
+  });
+  return sessions.data.find((s) => s.mode === "subscription" && s.subscription)?.id ?? null;
+}
+
 export async function linkPaidCheckoutToBusiness(
   activation: PaidCheckoutActivation,
   businessId: string,

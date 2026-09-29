@@ -3,9 +3,12 @@ import { ProvisionBusyError } from "@/lib/provision-attempt";
 import { auth } from "@/auth";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
 import {
+  findPaidCheckoutSessionId,
   getPaidCheckoutActivation,
   linkPaidCheckoutToBusiness,
 } from "@/lib/billing-sync";
+import { logWarn } from "@/lib/logger";
+import { isStripeCheckoutConfigured } from "@/lib/stripe";
 import {
   isOnboardingComplete,
   provisionBusiness,
@@ -37,7 +40,7 @@ const createSchema = z.object({
     .optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await auth();
   const email = session?.user?.email?.toLowerCase();
 
@@ -49,11 +52,21 @@ export async function GET() {
   const business = (await resolveShopAccess(email))?.business ?? null;
   const setup = business ? getOwnerSetupStatus(business) : null;
 
+  // Setup asks on open so an owner who paid and left comes back to the form, not "Pay first".
+  let checkoutSessionId: string | null = null;
+  if (!business && request.nextUrl.searchParams.get("resume") === "1" && isStripeCheckoutConfigured()) {
+    checkoutSessionId = await findPaidCheckoutSessionId(email).catch((error: unknown) => {
+      logWarn("onboarding.checkout_lookup_failed", { error: error instanceof Error ? error.message : "unknown" });
+      return null;
+    });
+  }
+
   return NextResponse.json({
     provisioned: Boolean(business),
     complete: setup?.ready ?? false,
     ready: setup?.ready ?? false,
     setup,
+    checkoutSessionId,
     business: business
       ? {
           id: business.id,

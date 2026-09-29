@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 
 type ResumePayload = {
   provisioned?: boolean;
+  checkoutSessionId?: string | null;
   ready?: boolean;
   setup?: { line?: string | null; nextStep?: string };
   business?: {
@@ -26,7 +27,9 @@ type ResumePayload = {
 export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boolean } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const checkoutSessionId = searchParams.get("session_id")?.trim() ?? "";
+  const urlSessionId = searchParams.get("session_id")?.trim() ?? "";
+  const [recoveredSessionId, setRecoveredSessionId] = useState("");
+  const checkoutSessionId = urlSessionId || recoveredSessionId;
   const [name, setName] = useState("");
   const [trade, setTrade] = useState<Trade>("HVAC");
   const [ownerPhone, setOwnerPhone] = useState("");
@@ -73,10 +76,13 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   }
 
   const resumeExisting = useCallback(async () => {
-    const res = await fetch("/api/onboarding");
+    const res = await fetch("/api/onboarding?resume=1");
     if (!res.ok) return false;
     const json = (await res.json()) as ResumePayload;
-    if (!json.provisioned || !json.business) return false;
+    if (!json.provisioned || !json.business) {
+      if (json.checkoutSessionId) setRecoveredSessionId(json.checkoutSessionId);
+      return false;
+    }
 
     if (json.ready) {
       router.replace("/dashboard?live=1");
