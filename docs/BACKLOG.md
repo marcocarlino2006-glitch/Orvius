@@ -120,7 +120,7 @@ this list. It runs daily in GitHub Actions and keeps a `prod-verify` issue open
 until production is clean. As of 2026-09-30 it reports:
 
 1. ~~`CRON_SECRET`~~ — done 2026-09-30: set in Vercel and GitHub; `/api/cron/line-watch` answers 200 with the secret.
-2. **www.orvius.im certificate.** Add `www.orvius.im` in Vercel → Domains.
+2. ~~www.orvius.im certificate~~ — done 2026-09-30: www redirects to orvius.im with a valid certificate.
 3. **Signup is closed.** Add `RESEND_API_KEY` (and verify the sending domain in
    Resend), then set `ORVIUS_SELF_SERVE_SIGNUP=1`.
 4. **Toll-free verification** for +1 844 643 9170 (S6). The admin launch-gate
