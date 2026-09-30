@@ -96,12 +96,17 @@ test("the way shops actually describe themselves is recognised", () => {
 
 test("every trade has a pack, and each pack is about that trade", () => {
   /* The inference is only worth anything if the thing it selects exists. */
-  for (const trade of TRADES) {
+  for (const trade of ["HVAC", "Plumbing", "Electrical"]) {
     const pack = tradePromptPack(trade);
     assert.ok(pack.length > 200, `${trade} pack is substantive`);
     assert.match(pack, new RegExp(`TRADE — ${trade.toUpperCase()}`));
     assert.match(pack, /Emergency signals:/);
-    assert.match(pack, /Never /, "each pack names something not to promise");
+  }
+  for (const trade of TRADES) {
+    const pack = tradePromptPack(trade);
+    assert.ok(pack.length > 150, `${trade} pack is substantive`);
+    assert.match(pack, /^(TRADE|INDUSTRY) — /, `${trade} pack has a header`);
+    assert.match(pack, /Never /, `${trade} pack names something not to promise`);
   }
 });
 

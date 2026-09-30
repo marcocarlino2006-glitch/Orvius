@@ -77,6 +77,85 @@ const TRADE_SERVICES: Record<Trade, ServiceOffering[]> = {
     { name: "Emergency electrical", description: "No power and safety issues" },
     { name: "Lighting", description: "Fixtures and dimmer installs" },
   ],
+  Roofing: [
+    { name: "Leak repair", description: "Active roof leaks" },
+    { name: "Storm damage", description: "Hail, wind and tree damage" },
+    { name: "Inspection", description: "Roof and gutter inspections" },
+    { name: "Replacement", description: "New roof quotes" },
+  ],
+  "Pest control": [
+    { name: "General pest", description: "Ants, roaches and spiders" },
+    { name: "Rodents", description: "Mice and rats" },
+    { name: "Termites", description: "Inspection and treatment" },
+    { name: "Recurring service", description: "Monthly or quarterly plans" },
+  ],
+  Cleaning: [
+    { name: "Standard clean", description: "Recurring home cleaning" },
+    { name: "Deep clean", description: "Top-to-bottom cleaning" },
+    { name: "Move-in / move-out", description: "Empty home cleaning" },
+    { name: "Office cleaning", description: "Commercial spaces" },
+  ],
+  Moving: [
+    { name: "Local move", description: "Moves within the area" },
+    { name: "Long-distance move", description: "Out-of-area moves" },
+    { name: "Packing", description: "Packing and unpacking" },
+    { name: "Large items", description: "Single heavy items" },
+  ],
+  Locksmith: [
+    { name: "Lockout", description: "Home, car and business lockouts" },
+    { name: "Rekey", description: "Rekeying existing locks" },
+    { name: "Lock change", description: "New locks installed" },
+    { name: "Car keys", description: "Replacement and programming" },
+  ],
+  "Garage doors": [
+    { name: "Door repair", description: "Won't open, close or stay on track" },
+    { name: "Spring replacement", description: "Broken torsion and extension springs" },
+    { name: "Opener repair", description: "Openers and remotes" },
+    { name: "New door", description: "Replacement door quotes" },
+  ],
+  "Appliance repair": [
+    { name: "Refrigerator", description: "Not cooling or leaking" },
+    { name: "Washer & dryer", description: "Laundry appliance repair" },
+    { name: "Dishwasher", description: "Not draining or cleaning" },
+    { name: "Oven & range", description: "Cooking appliance repair" },
+  ],
+  "Auto repair": [
+    { name: "Diagnostics", description: "Check engine and warning lights" },
+    { name: "Brakes", description: "Pads, rotors and inspections" },
+    { name: "Oil change", description: "Routine maintenance" },
+    { name: "Tires", description: "Tires, rotation and alignment" },
+  ],
+  "Salon & spa": [
+    { name: "Haircut", description: "Cuts and styling" },
+    { name: "Color", description: "Color, highlights and treatments" },
+    { name: "Nails", description: "Manicures and pedicures" },
+    { name: "Spa", description: "Facials, massage and waxing" },
+  ],
+  "Dental office": [
+    { name: "Cleaning", description: "Routine cleaning and exam" },
+    { name: "New patient", description: "First visit and exam" },
+    { name: "Tooth pain", description: "Urgent visits" },
+    { name: "Consultation", description: "Treatment consultations" },
+  ],
+  "Medical office": [
+    { name: "New patient", description: "First visit" },
+    { name: "Sick visit", description: "Same-day or next-day visits" },
+    { name: "Follow-up", description: "Follow-up appointments" },
+    { name: "Annual physical", description: "Routine checkups" },
+  ],
+  "Law office": [
+    { name: "Consultation", description: "New matter consultations" },
+    { name: "Existing client", description: "Updates for current clients" },
+  ],
+  "Real estate": [
+    { name: "Buying", description: "Buyer consultations and showings" },
+    { name: "Selling", description: "Home valuations and listings" },
+    { name: "Renting", description: "Rental inquiries" },
+  ],
+  "Other business": [
+    { name: "Appointment", description: "Book a time with the team" },
+    { name: "Question", description: "General questions and messages" },
+  ],
 };
 
 export function servicesForTrade(trade: Trade): string {

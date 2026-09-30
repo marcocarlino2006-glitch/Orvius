@@ -13,6 +13,7 @@ import { can, listShopAccess, resolveShopAccess, summarizeShops } from "@/lib/wo
 import { isEmailConfigured } from "@/lib/email";
 import { isFounderEmail } from "@/lib/founder";
 import { prisma } from "@/lib/prisma";
+import { TRADES } from "@/lib/trades";
 import {
   getShopLines,
   validateOwnerPhoneForAlerts,
@@ -44,7 +45,7 @@ import { z } from "zod";
 
 const patchSchema = z.object({
   name: z.string().min(2).max(120).optional(),
-  trade: z.enum(["HVAC", "Plumbing", "Electrical"]).nullable().optional(),
+  trade: z.enum(TRADES).nullable().optional(),
   address: z.string().max(280).nullable().optional(),
   ownerPhone: z.string().min(10).optional(),
   ownerEmail: z.string().email().optional(),

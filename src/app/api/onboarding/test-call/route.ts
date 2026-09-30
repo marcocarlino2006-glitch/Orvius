@@ -10,7 +10,7 @@ import {
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { requireEntitledSession } from "@/lib/tenant";
 import { OWNER_TEST_CALL_PREFIX } from "@/lib/owner-test-call";
-import { TRADES, type Trade } from "@/lib/trades";
+import { TRADES, industryKind, isTrade, type Trade } from "@/lib/trades";
 import { z } from "zod";
 
 const schema = z.object({
@@ -36,6 +36,76 @@ const TRADE_SCRIPTS: Record<
     urgency: "emergency",
     notes: "Owner test call — electrical outage / panel concern",
   },
+  Roofing: {
+    serviceType: "Roof leak after storm",
+    urgency: "emergency",
+    notes: "Owner test call — water coming through the ceiling",
+  },
+  "Pest control": {
+    serviceType: "Mice in the kitchen",
+    urgency: "same-day",
+    notes: "Owner test call — rodents in the home",
+  },
+  Cleaning: {
+    serviceType: "Move-out deep clean",
+    urgency: "same-day",
+    notes: "Owner test call — 3 bed / 2 bath move-out clean",
+  },
+  Moving: {
+    serviceType: "Local move quote",
+    urgency: "same-day",
+    notes: "Owner test call — 2 bedroom local move",
+  },
+  Locksmith: {
+    serviceType: "Locked out of the house",
+    urgency: "emergency",
+    notes: "Owner test call — home lockout",
+  },
+  "Garage doors": {
+    serviceType: "Garage door won't open",
+    urgency: "same-day",
+    notes: "Owner test call — loud bang, likely broken spring",
+  },
+  "Appliance repair": {
+    serviceType: "Refrigerator not cooling",
+    urgency: "same-day",
+    notes: "Owner test call — fridge warm, food at risk",
+  },
+  "Auto repair": {
+    serviceType: "Check engine light",
+    urgency: "same-day",
+    notes: "Owner test call — check engine light, car still drivable",
+  },
+  "Salon & spa": {
+    serviceType: "Haircut and color",
+    urgency: "same-day",
+    notes: "Owner test call — new client wants a cut and color",
+  },
+  "Dental office": {
+    serviceType: "Toothache",
+    urgency: "same-day",
+    notes: "Owner test call — existing patient with tooth pain",
+  },
+  "Medical office": {
+    serviceType: "Sick visit",
+    urgency: "same-day",
+    notes: "Owner test call — existing patient with a sore throat",
+  },
+  "Law office": {
+    serviceType: "New consultation",
+    urgency: "same-day",
+    notes: "Owner test call — new client wants a consultation",
+  },
+  "Real estate": {
+    serviceType: "Home valuation",
+    urgency: "same-day",
+    notes: "Owner test call — seller wants a valuation",
+  },
+  "Other business": {
+    serviceType: "Appointment request",
+    urgency: "same-day",
+    notes: "Owner test call — caller wants to book a time",
+  },
 };
 
 /**
@@ -50,32 +120,43 @@ export async function POST(request: NextRequest) {
   const body = schema.parse(await request.json().catch(() => ({})));
   const inferred = tradeForCapture(business);
   const trade: Trade =
-    body.trade ??
-    (inferred === "HVAC" || inferred === "Plumbing" || inferred === "Electrical"
-      ? inferred
-      : "HVAC");
+    body.trade ?? (inferred && isTrade(inferred) ? inferred : "HVAC");
   const script = TRADE_SCRIPTS[trade];
+  const office = industryKind(trade) === "office";
 
   const callerName = "Test Caller";
   const callerPhone = business.ownerPhone?.trim() || "+15555550100";
-  const address = business.address?.trim() || null;
+  const address = office ? null : business.address?.trim() || null;
   const vapiCallId = `${OWNER_TEST_CALL_PREFIX}${Date.now()}`;
 
   const summary = [
     `${callerName} called about ${script.serviceType}.`,
     `Urgency: ${script.urgency}.`,
-    address ? `Address: ${address}.` : "No address given.",
+    office ? null : address ? `Address: ${address}.` : "No address given.",
     script.notes,
-  ].join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  const transcript = [
-    `[Owner test · ${trade}]`,
-    `Orvius: Thanks for calling ${business.name}. How can I help?`,
-    `Caller: ${script.serviceType}. Can someone come today?`,
-    `Orvius: I can help. What's the address and a callback number?`,
-    `Caller: ${address ?? "I'll give the address when you call back"}. ${callerPhone}.`,
-    `Orvius: Got it. I'll mark this ${script.urgency} and alert the owner.`,
-  ].join("\n");
+  const transcript = (
+    office
+      ? [
+          `[Owner test · ${trade}]`,
+          `Orvius: Thanks for calling ${business.name}. How can I help?`,
+          `Caller: ${script.serviceType}. Can I get in today?`,
+          `Orvius: I can help. What's your name and a good callback number?`,
+          `Caller: ${callerName}. ${callerPhone}.`,
+          `Orvius: Got it. I'll pass this to the team and someone will confirm your time.`,
+        ]
+      : [
+          `[Owner test · ${trade}]`,
+          `Orvius: Thanks for calling ${business.name}. How can I help?`,
+          `Caller: ${script.serviceType}. Can someone come today?`,
+          `Orvius: I can help. What's the address and a callback number?`,
+          `Caller: ${address ?? "I'll give the address when you call back"}. ${callerPhone}.`,
+          `Orvius: Got it. I'll mark this ${script.urgency} and alert the owner.`,
+        ]
+  ).join("\n");
 
   const call = await prisma.call.create({
     data: {

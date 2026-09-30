@@ -4,7 +4,7 @@ import {
   type DemandCategoryCode,
 } from "@/lib/job-taxonomy";
 import { extractPostalCode } from "@/lib/service-area";
-import { inferTradeFromBusiness, type Trade } from "@/lib/trades";
+import { inferTradeFromBusiness, isTrade, type Trade } from "@/lib/trades";
 
 export type DemandSignal = {
   categoryCode: DemandCategoryCode | null;
@@ -64,8 +64,6 @@ export function tradeForCapture(business: {
   name?: string | null;
 }) {
   const stored = business.trade?.trim();
-  if (stored === "HVAC" || stored === "Plumbing" || stored === "Electrical") {
-    return stored;
-  }
+  if (isTrade(stored)) return stored;
   return inferTradeFromBusiness(business);
 }
