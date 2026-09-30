@@ -47,11 +47,11 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 
 | # | Item | Where | Status |
 |---|------|-------|--------|
-| E1 | Signup and onboarding ask the industry; the business gets that pack. Today every shop is set up as a trade. | `src/lib/trades.ts`, onboarding | open |
-| E2 | A general pack that answers well for any business: intake, booking and "send to a human" rules without trade assumptions. | `src/lib/trade-playbooks.ts` (`general_service` is only a label today) | open |
-| E3 | Launch packs: auto repair, salons and spas, medical and dental front desk, law offices, real estate, cleaning, moving, pest control, roofing. Each passes the voice simulator before it's sold. | `src/lib/trade-playbooks.ts`, `scripts/voice-scenarios*` | open |
-| E4 | `/try` for any business: pick the industry, hear it answer as you. | `src/app/try`, `src/lib/shop-preview.ts` | open |
-| E5 | Homepage and pricing speak to every business; `/try` is the main button. | `src/app/page.tsx` | open |
+| E1 | Signup and onboarding ask the industry; the business gets that pack. | `src/lib/trades.ts`, onboarding, settings | done — 17 business types; office types get a prompt that never asks for an address |
+| E2 | A general pack that answers well for any business: intake, booking and "send to a human" rules without trade assumptions. | "Other business" pack + office prompt in `src/lib/business.ts` | done |
+| E3 | Launch packs: auto repair, salons and spas, medical and dental front desk, law offices, real estate, cleaning, moving, pest control, roofing, locksmith, garage doors, appliance repair. Each passes the voice simulator before it's sold. | `src/lib/trade-playbooks.ts`, `scripts/industry-packs.test.mjs` | built and unit-tested — voice simulator run per pack still owed; medical/dental need a HIPAA BAA before we sell to them |
+| E4 | `/try` for any business: pick the industry, hear it answer as you. | `src/app/try`, `src/lib/shop-preview.ts` | built — off until `ORVIUS_PREVIEW_LIVE=1`, which waits on the Vapi server-URL switch (G5) |
+| E5 | Homepage and pricing speak to every business; `/try` is the main button. | `src/components/home-line-hero.tsx`, `src/lib/company.ts` | done — the hero button points to `/try` once previews are live, and to signup until then |
 | E6 | Google Calendar and Outlook as the booking calendar for businesses without an industry tool. | new integration | open |
 
 ## Tier 1 — Scale bottlenecks (what breaks at hundreds or thousands of shops)
