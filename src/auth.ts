@@ -34,7 +34,29 @@ const providers: Provider[] = [
       const { consumeMagicLink } = await import("@/lib/magic-link");
       const email = await consumeMagicLink(token);
       if (!email) return null;
+      const { dropUnverifiedPassword } = await import("@/lib/password-auth");
+      await dropUnverifiedPassword(email);
       return { id: email, email, name: email.split("@")[0] };
+    },
+  }),
+  Credentials({
+    id: "password",
+    name: "Email and password",
+    credentials: { email: { type: "email" }, password: { type: "password" } },
+    async authorize(credentials, request) {
+      const email = typeof credentials?.email === "string" ? credentials.email : "";
+      const password = typeof credentials?.password === "string" ? credentials.password : "";
+      const { clientIp, sharedRateLimit } = await import("@/lib/rate-limit");
+      const limit = await sharedRateLimit({
+        key: `password-signin:${clientIp(request)}`,
+        limit: 20,
+        windowMs: 15 * 60 * 1000,
+      });
+      if (!limit.ok) return null;
+      const { verifyPasswordLogin } = await import("@/lib/password-auth");
+      const verified = await verifyPasswordLogin(email, password);
+      if (!verified) return null;
+      return { id: verified, email: verified, name: verified.split("@")[0] };
     },
   }),
 ];
@@ -58,9 +80,14 @@ const nextAuth = NextAuth({
   providers,
   callbacks: {
     ...authConfig.callbacks,
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === "dev") {
         return isDevAuthBypassEnabled();
+      }
+
+      if (account?.provider === "google" && user.email && profile?.email_verified !== false) {
+        const { dropUnverifiedPassword } = await import("@/lib/password-auth");
+        await dropUnverifiedPassword(user.email);
       }
 
       if (user.email) {

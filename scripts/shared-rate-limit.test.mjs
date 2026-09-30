@@ -53,7 +53,7 @@ test("every public token route, test alerts and confirmation texts are limited",
   }
   assert.match(read("src/app/api/account/test-alert/route.ts"), /sharedRateLimit\(\{ key: `test-alert:/);
   assert.match(read("src/app/api/jobs/[id]/confirm-sms/route.ts"), /sharedRateLimit\(\{ key: `confirm-sms:/);
-  for (const path of ["auth/magic-link", "onboarding", "waitlist", "ask", "copilot"]) {
+  for (const path of ["auth/magic-link", "auth/signup", "auth/password-reset", "onboarding", "waitlist", "ask", "copilot"]) {
     assert.match(read(`src/app/api/${path}/route.ts`), /await sharedRateLimit\(/);
   }
 });

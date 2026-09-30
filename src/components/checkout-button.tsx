@@ -117,7 +117,7 @@ export function CheckoutButton({
       if (!res.ok) {
         if (res.status === 401) {
           const callbackUrl = `/pricing?plan=${planId}&interval=${interval}`;
-          window.location.href = `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+          window.location.href = `/signin?mode=signup&callbackUrl=${encodeURIComponent(callbackUrl)}`;
           return;
         }
         if (res.status === 409 && data.code === "already_subscribed" && data.manageUrl) {

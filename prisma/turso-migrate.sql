@@ -538,3 +538,14 @@ CREATE INDEX IF NOT EXISTS "JobberSync_businessId_createdAt_idx" ON "JobberSync"
 ALTER TABLE "Business" ADD COLUMN "followUpMode" TEXT NOT NULL DEFAULT 'ask';
 ALTER TABLE "Lead" ADD COLUMN "followUpSentAt" DATETIME;
 ALTER TABLE "Lead" ADD COLUMN "followUpRepliedAt" DATETIME;
+CREATE TABLE IF NOT EXISTS "PasswordLogin" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "email" TEXT NOT NULL,
+  "passwordHash" TEXT NOT NULL,
+  "verifiedAt" DATETIME,
+  "failedCount" INTEGER NOT NULL DEFAULT 0,
+  "lockedUntil" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PasswordLogin_email_key" ON "PasswordLogin"("email");

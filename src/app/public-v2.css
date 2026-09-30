@@ -1038,6 +1038,28 @@ body {
   cursor: not-allowed;
 }
 
+.ov-signin-label--gap {
+  margin-top: 0.9rem;
+}
+
+.ov-signin-switch {
+  margin: 1rem 0 0;
+  color: #8a8880;
+  font-size: 0.8125rem;
+}
+
+.ov-signin-switch a,
+.ov-signin-switch button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #ffffff;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 .ov-signin-status:empty {
   display: none;
 }

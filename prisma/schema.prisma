@@ -569,6 +569,20 @@ model WebhookEvent {
 
 /// Single-use sign-in link. Only the SHA-256 of the token is stored, so a leaked
 /// database row cannot be replayed as a login.
+/// Email + password sign-in. verifiedAt stays null until the owner proves the
+/// address (Google, an emailed link, or a reset); an unverified login is
+/// dropped the moment someone else proves it.
+model PasswordLogin {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  verifiedAt   DateTime?
+  failedCount  Int       @default(0)
+  lockedUntil  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
 model LoginToken {
   id         String    @id @default(cuid())
   email      String
