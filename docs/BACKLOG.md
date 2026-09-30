@@ -115,10 +115,27 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 
 ## Still needs Marco
 
-1. Add `RESEND_API_KEY` in Vercel.
-2. Tell me the Twilio toll-free or 10DLC verification status (S6).
-3. In Stripe, make sure the webhook receives `charge.refunded` (including connected accounts).
-4. Switch the demo number to server-URL mode in Vapi, so the `/try` preview goes live (G5).
+Where production actually stands is whatever `npm run prod:verify` says, not
+this list. It runs daily in GitHub Actions and keeps a `prod-verify` issue open
+until production is clean. As of 2026-09-30 it reports:
+
+1. **`CRON_SECRET` is missing in Vercel and GitHub.** The scheduler is refused,
+   so alert retries, reminders, the unfinished-call sweep, weekly reports,
+   Jobber retries and follow-ups have never run. Generate one value
+   (`openssl rand -hex 32`) and set it both in Vercel env and in GitHub
+   Actions secrets, then redeploy.
+2. **www.orvius.im certificate.** Add `www.orvius.im` in Vercel → Domains.
+3. **Signup is closed.** Add `RESEND_API_KEY` (and verify the sending domain in
+   Resend), then set `ORVIUS_SELF_SERVE_SIGNUP=1`.
+4. **Toll-free verification** for +1 844 643 9170 (S6). The admin launch-gate
+   card reads the live status from Twilio.
+5. **`ORVIUS_ADMIN_KEY` in GitHub Actions secrets and Cursor secrets**, so the
+   daily check and the builder can test privileged paths.
+6. In Stripe, make sure the webhook receives `charge.refunded` (including connected accounts).
+7. Switch the demo number to server-URL mode in Vapi, so the `/try` preview goes live (G5).
+
+Already done in production (verified 2026-09-30): Stripe live checkout, Twilio +
+Vapi credentials, owner SMS, Google sign-in, legal pages.
 
 ## Order of work
 

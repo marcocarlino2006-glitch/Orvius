@@ -1,0 +1,70 @@
+name: Production verify
+
+# Daily: asks the live deployment the questions uptime does not — is the
+# scheduler able to run, are private routes shut, is signup open, does every
+# domain's certificate cover it. Failures open a "prod-verify" issue (GitHub
+# emails repo watchers); the next clean run closes it.
+on:
+  schedule:
+    - cron: "17 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: prod-verify
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify
+        id: verify
+        env:
+          ORVIUS_ADMIN_KEY: ${{ secrets.ORVIUS_ADMIN_KEY }}
+        run: |
+          set +e
+          node scripts/prod-verify.mjs > /tmp/report.txt 2>&1
+          code=$?
+          cat /tmp/report.txt
+          if [ $code -ne 0 ]; then
+            { echo "report<<EOF"; grep -E "^(❌|⚠️)" /tmp/report.txt; echo "EOF"; } >> "$GITHUB_OUTPUT"
+            echo "status=fail" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the issue
+        if: steps.verify.outputs.status == 'fail'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT: ${{ steps.verify.outputs.report }}
+        run: |
+          gh label create prod-verify --color D93F0B --description "Automated production check" -R "$GITHUB_REPOSITORY" 2>/dev/null || true
+          open=$(gh issue list -R "$GITHUB_REPOSITORY" --label prod-verify --state open --json number --jq '.[0].number')
+          note=$(printf "Production check on %s UTC:\n\n%s\n\nRun: %s/%s/actions/runs/%s" "$(date -u '+%Y-%m-%d %H:%M')" "$REPORT" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+          if [ -n "$open" ]; then
+            gh issue comment "$open" -R "$GITHUB_REPOSITORY" --body "$note"
+          else
+            gh issue create -R "$GITHUB_REPOSITORY" --label prod-verify --title "Production is not clean" --body "$note"
+          fi
+          exit 1
+
+      - name: Close the issue when clean
+        if: steps.verify.outputs.status == 'ok'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list -R "$GITHUB_REPOSITORY" --label prod-verify --state open --json number --jq '.[].number'); do
+            gh issue close "$n" -R "$GITHUB_REPOSITORY" --comment "Clean at $(date -u '+%Y-%m-%d %H:%M') UTC."
+          done

@@ -227,6 +227,30 @@ for (const path of MUST_BE_CLOSED) {
   }
 }
 
+/*
+  A 503 above counts as "closed", which is true and not enough: the same 503
+  means the scheduler's own calls are refused too, so alert retries, reminders,
+  the unfinished-call sweep and follow-ups never run. That sat unnoticed.
+*/
+section("Background work runs");
+
+for (const path of ["/api/cron/notifications", "/api/cron/line-watch"]) {
+  try {
+    const { status, json } = await get(path);
+    if (status === 503 && /CRON_SECRET/.test(json?.error ?? "")) {
+      fail(
+        path,
+        "CRON_SECRET unset in Vercel — the scheduler is refused, so alert retries, " +
+          "reminders and follow-ups never run. Set it in Vercel and in GitHub Actions secrets",
+      );
+    } else {
+      pass(path, `scheduler can authenticate (anonymous HTTP ${status})`);
+    }
+  } catch (error) {
+    warn(path, `could not probe: ${error.message}`);
+  }
+}
+
 /* ── 3. Public endpoints must not hand out the diagnosis ── */
 
 section("Public responses stay public");
@@ -280,6 +304,16 @@ try {
       unconfigured — it just cannot collect.
     */
     warn("Checkout", "Stripe not configured — pricing falls back to the call audit, no self-serve revenue");
+  }
+
+  if (json?.selfServeAvailable) {
+    pass("Signup", "open — a shop can sign up and pay without us");
+  } else {
+    warn(
+      "Signup",
+      "closed — set RESEND_API_KEY and ORVIUS_SELF_SERVE_SIGNUP=1 in Vercel; " +
+        "the admin launch-gate card lists anything else still missing",
+    );
   }
 } catch (error) {
   fail("/api/billing/checkout", `unreachable: ${error.message}`);
