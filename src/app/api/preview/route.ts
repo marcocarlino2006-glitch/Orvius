@@ -3,9 +3,11 @@ import { z } from "zod";
 import { DEMO_LINE_DISPLAY, DEMO_LINE_TEL } from "@/lib/demo-line";
 import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 import { createShopPreview, PREVIEW_MAX_CALLS } from "@/lib/shop-preview";
+import { TRADES } from "@/lib/trades";
 
 const previewSchema = z.object({
   shopName: z.string().trim().min(2).max(80),
+  trade: z.enum(TRADES).optional(),
   serviceArea: z.string().trim().max(120).optional(),
   services: z.array(z.string().trim().min(1).max(60)).max(12).optional(),
   ownerPhone: z.string().trim().min(7).max(40),
@@ -33,6 +35,7 @@ export async function POST(request: NextRequest) {
 
   const result = await createShopPreview({
     shopName: body.shopName,
+    trade: body.trade,
     serviceArea: body.serviceArea,
     services: body.services,
     ownerPhone: body.ownerPhone,

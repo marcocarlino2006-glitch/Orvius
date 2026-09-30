@@ -697,6 +697,7 @@ model ShopPreview {
   id             String    @id @default(cuid())
   token          String    @unique
   shopName       String
+  trade          String    @default("HVAC")
   serviceArea    String?
   servicesJson   String    @default("[]")
   hoursJson      String    @default("{}")

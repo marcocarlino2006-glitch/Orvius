@@ -6,6 +6,7 @@ import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_HOURS_JSON, servicesForTrade } from "@/lib/provision-business";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
+import { industryKind, isTrade, type Trade } from "@/lib/trades";
 import { sendSms } from "@/lib/twilio-sms";
 import { buildVapiAssistantConfig, extractLeadFromStructuredData, type VapiWebhookMessage } from "@/lib/vapi";
 
@@ -47,6 +48,7 @@ export type CreatePreviewResult =
  */
 export async function createShopPreview(input: {
   shopName: string;
+  trade?: Trade | null;
   serviceArea?: string | null;
   services?: string[];
   ownerPhone: string;
@@ -57,11 +59,13 @@ export async function createShopPreview(input: {
   const phone = normalizePhone(input.ownerPhone);
   if (!phone) return { ok: false, reason: "invalid_phone" };
 
+  const trade = input.trade ?? "HVAC";
   const servicesJson = input.services?.length
     ? JSON.stringify(input.services.map((name) => ({ name, description: "" })))
-    : servicesForTrade("HVAC");
+    : servicesForTrade(trade);
   const details = {
     shopName: input.shopName.trim(),
+    trade,
     serviceArea: input.serviceArea?.trim() || null,
     servicesJson,
   };
@@ -134,21 +138,30 @@ export async function claimPreviewCall(params: {
 export function buildPreviewAssistant(preview: {
   id: string;
   shopName: string;
+  trade?: string | null;
   serviceArea: string | null;
   servicesJson: string;
   hoursJson: string;
 }) {
   const greeting = `Thank you for calling ${preview.shopName}. How can I help you today?`;
+  const trade: Trade = isTrade(preview.trade) ? preview.trade : "HVAC";
   const base = buildAssistantSystemPrompt({
     name: preview.shopName,
     greeting,
     hoursJson: preview.hoursJson,
     servicesJson: preview.servicesJson,
-    trade: "HVAC",
+    trade,
     canBook: false,
   });
   const area = preview.serviceArea ? `\n\nSERVICE AREA\n- ${preview.shopName} serves ${preview.serviceArea}.` : "";
-  const systemPrompt = `${base}${area}
+  const systemPrompt =
+    industryKind(trade) === "office"
+      ? `${base}${area}
+
+PREVIEW CALL
+- The business owner is trying you out. Handle the call exactly as you would a real customer's.
+- You cannot see the schedule on this call. Never say a time is booked; say the owner will text to confirm the time.`
+      : `${base}${area}
 
 PREVIEW CALL
 - The shop owner is trying you out. Handle the call exactly as you would a real customer's.

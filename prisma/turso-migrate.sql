@@ -549,3 +549,6 @@ CREATE TABLE IF NOT EXISTS "PasswordLogin" (
   "updatedAt" DATETIME NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "PasswordLogin_email_key" ON "PasswordLogin"("email");
+
+-- Industry packs: /try previews answer as the business type the owner picked.
+ALTER TABLE "ShopPreview" ADD COLUMN "trade" TEXT NOT NULL DEFAULT 'HVAC';

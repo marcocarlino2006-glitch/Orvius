@@ -37,6 +37,24 @@ test("one active preview per phone: resubmitting updates it instead of minting f
   }
 });
 
+test("a preview keeps the business type and starts with that industry's services", async () => {
+  const phone = uniquePhone();
+  try {
+    const made = await createShopPreview({ shopName: "Bright Smile Dental", trade: "Dental office", ownerPhone: phone });
+    assert.ok(made.ok);
+    const row = await prisma.shopPreview.findFirst({ where: { ownerPhoneNormalized: phone } });
+    assert.equal(row?.trade, "Dental office");
+    assert.match(row?.servicesJson ?? "", /New patient/);
+    const defaulted = await createShopPreview({ shopName: "Bright Smile", ownerPhone: uniquePhone() });
+    assert.ok(defaulted.ok);
+    const plain = await prisma.shopPreview.findUnique({ where: { token: defaulted.token } });
+    assert.equal(plain?.trade, "HVAC", "a preview with no type answers as it always did");
+    await prisma.shopPreview.delete({ where: { token: defaulted.token } });
+  } finally {
+    await cleanup(phone);
+  }
+});
+
 test("rejects a phone that cannot be normalized", async () => {
   assert.deepEqual(await createShopPreview({ shopName: "X Air", ownerPhone: "12" }), { ok: false, reason: "invalid_phone" });
 });

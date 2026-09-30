@@ -4,6 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FormField } from "@/components/shell-primitives";
 import { savePreviewDraft } from "@/lib/preview-draft";
+import { industryKind, TRADES, type IndustryKind, type Trade } from "@/lib/trades";
+
+const PLACEHOLDER_NAME: Record<IndustryKind, string> = { field: "Summit HVAC", office: "Bright Smile Dental" };
+const PLACEHOLDER_SERVICES: Record<IndustryKind, string> = {
+  field: "AC repair, furnace repair, tune-ups",
+  office: "Cleanings, new patients, consultations",
+};
 
 type Started = { token: string; callNumber: string; callTel: string; maxCalls: number };
 
@@ -19,8 +26,24 @@ type Status = {
 
 const POLL_MS = 4000;
 
+function practiceLine(trade: Trade): string {
+  switch (trade) {
+    case "HVAC":
+      return "Pretend you're a customer with a broken AC.";
+    case "Plumbing":
+      return "Pretend you're a customer with a leak under the sink.";
+    case "Electrical":
+      return "Pretend you're a customer who just lost power to half the house.";
+    default:
+      return industryKind(trade) === "office"
+        ? "Pretend you're a new customer who wants to book a time."
+        : "Pretend you're a customer who needs someone out this week.";
+  }
+}
+
 export function ShopPreviewForm() {
   const [shopName, setShopName] = useState("");
+  const [trade, setTrade] = useState<Trade>("HVAC");
   const [serviceArea, setServiceArea] = useState("");
   const [services, setServices] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
@@ -60,6 +83,7 @@ export function ShopPreviewForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           shopName,
+          trade,
           serviceArea: serviceArea || undefined,
           services: services
             .split(",")
@@ -75,7 +99,7 @@ export function ShopPreviewForm() {
         setError(data.error ?? "We couldn't set up your preview. Try again.");
         return;
       }
-      savePreviewDraft({ token: data.token, shopName, ownerPhone });
+      savePreviewDraft({ token: data.token, shopName, ownerPhone, trade });
       setStarted({
         token: data.token,
         callNumber: data.callNumber ?? "",
@@ -99,7 +123,7 @@ export function ShopPreviewForm() {
           Call <a href={`tel:${started.callTel}`}>{started.callNumber}</a> from {ownerPhone}.
         </h3>
         <p className="tier1-section-lead font-sans">
-          You&apos;ll hear it answer as {shopName}. Pretend you&apos;re a customer with a broken AC. {left} of{" "}
+          You&apos;ll hear it answer as {shopName}. {practiceLine(trade)} {left} of{" "}
           {started.maxCalls} preview calls left today.
         </p>
 
@@ -129,10 +153,10 @@ export function ShopPreviewForm() {
 
         <div className="shop-preview-actions">
           <Link href={`/pricing?preview=${started.token}`} className="ov-btn ov-btn--solid">
-            Put this on my shop line
+            Put this on my business line
           </Link>
           <button type="button" className="ov-btn ov-btn--quiet" onClick={() => setStarted(null)}>
-            Edit shop details
+            Edit details
           </button>
         </div>
       </div>
@@ -146,16 +170,25 @@ export function ShopPreviewForm() {
         <input name="website" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" />
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="Shop name" required>
+        <FormField label="Business name" required>
           <input
             className="input"
             required
             minLength={2}
             value={shopName}
             onChange={(e) => setShopName(e.target.value)}
-            placeholder="Summit HVAC"
+            placeholder={PLACEHOLDER_NAME[industryKind(trade)]}
             autoComplete="organization"
           />
+        </FormField>
+        <FormField label="Business type" required>
+          <select className="input" value={trade} onChange={(e) => setTrade(e.target.value as Trade)}>
+            {TRADES.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
         </FormField>
         <FormField label="Your mobile" required>
           <input
@@ -178,7 +211,7 @@ export function ShopPreviewForm() {
           className="input"
           value={services}
           onChange={(e) => setServices(e.target.value)}
-          placeholder="AC repair, furnace repair, tune-ups"
+          placeholder={PLACEHOLDER_SERVICES[industryKind(trade)]}
         />
       </FormField>
       {error ? (
@@ -207,7 +240,7 @@ export function ShopPreviewForm() {
         </span>
       </label>
       <button type="submit" disabled={loading} className={`btn btn-void w-full sm:w-auto ${loading ? "btn-loading" : ""}`}>
-        Hear my shop
+        Hear my receptionist
       </button>
     </form>
   );
