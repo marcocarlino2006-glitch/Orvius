@@ -110,6 +110,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
         const draft = readPreviewDraft();
         if (draft?.shopName) setName((current) => current || draft.shopName);
         if (draft?.ownerPhone) setOwnerPhone((current) => current || draft.ownerPhone);
+        if (draft?.trade) setTrade(draft.trade);
       })
       .catch(() => {
         /* New shops continue with the normal form. */
@@ -252,7 +253,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Your shop name"
+                    placeholder="Your business name"
                     className="onboarding-input"
                     autoFocus
                     autoComplete="organization"
@@ -260,12 +261,14 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                 </label>
 
                 <fieldset className="onboarding-field font-sans">
-                  <legend className="onboarding-label">Trade</legend>
-                  <div className="onboarding-trade-grid">
+                  <legend className="onboarding-label">Business type</legend>
+                  <div className="onboarding-trade-grid" role="radiogroup" aria-label="Business type">
                     {TRADES.map((item) => (
                       <button
                         key={item}
                         type="button"
+                        role="radio"
+                        aria-checked={trade === item}
                         className={`onboarding-trade ${trade === item ? "onboarding-trade-active" : ""}`}
                         onClick={() => setTrade(item)}
                       >

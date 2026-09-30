@@ -1,6 +1,6 @@
 "use client";
 
-import { TRADES } from "@/lib/trades";
+import { TRADES, type Trade } from "@/lib/trades";
 import type { Business, PatchFn } from "../settings-model";
 import { ScField, ScGroup, ScRow } from "../settings-primitives";
 
@@ -14,21 +14,19 @@ export function BusinessSection({ b, patch }: { b: Business; patch: PatchFn }) {
           onCommit={(v) => (v.trim().length >= 2 ? patch({ name: v.trim() }) : false)}
         />
       </ScRow>
-      <ScRow label="Trade" hint="Sets receptionist language and emergency rules.">
-        <div className="sc-segment" role="radiogroup" aria-label="Trade">
+      <ScRow label="Business type" hint="Sets receptionist language and emergency rules.">
+        <select
+          className="sc-input sc-input--select"
+          aria-label="Business type"
+          value={b.trade ?? "HVAC"}
+          onChange={(e) => void patch({ trade: e.target.value as Trade })}
+        >
           {TRADES.map((item) => (
-            <button
-              key={item}
-              type="button"
-              role="radio"
-              aria-checked={(b.trade ?? "HVAC") === item}
-              className={(b.trade ?? "HVAC") === item ? "is-active" : ""}
-              onClick={() => void patch({ trade: item })}
-            >
+            <option key={item} value={item}>
               {item}
-            </button>
+            </option>
           ))}
-        </div>
+        </select>
       </ScRow>
       <ScRow label="Shop address" hint="Used for directions and travel time.">
         <ScField
