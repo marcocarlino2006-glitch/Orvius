@@ -121,7 +121,7 @@ until production is clean. As of 2026-09-30 it reports:
 
 1. ~~`CRON_SECRET`~~ — done 2026-09-30: set in Vercel and GitHub; `/api/cron/line-watch` answers 200 with the secret.
 2. ~~www.orvius.im certificate~~ — done 2026-09-30: www redirects to orvius.im with a valid certificate.
-3. **Signup is closed.** `RESEND_API_KEY` is live (2026-09-30; DKIM and `send` records at Namecheap). Remaining: set `ORVIUS_SELF_SERVE_SIGNUP=1` once a sign-in email is confirmed to arrive.
+3. ~~Signup~~ — open 2026-09-30: Resend live, `ORVIUS_SELF_SERVE_SIGNUP=1`, `/api/billing/checkout` reports `selfServeAvailable: true`.
 4. **Toll-free verification** for +1 844 643 9170 (S6). The admin launch-gate
    card reads the live status from Twilio.
 5. **`ORVIUS_ADMIN_KEY` in GitHub Actions secrets and Cursor secrets**, so the
