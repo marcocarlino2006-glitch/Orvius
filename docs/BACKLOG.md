@@ -119,11 +119,7 @@ Where production actually stands is whatever `npm run prod:verify` says, not
 this list. It runs daily in GitHub Actions and keeps a `prod-verify` issue open
 until production is clean. As of 2026-09-30 it reports:
 
-1. **`CRON_SECRET` is missing in Vercel and GitHub.** The scheduler is refused,
-   so alert retries, reminders, the unfinished-call sweep, weekly reports,
-   Jobber retries and follow-ups have never run. Generate one value
-   (`openssl rand -hex 32`) and set it both in Vercel env and in GitHub
-   Actions secrets, then redeploy.
+1. ~~`CRON_SECRET`~~ — done 2026-09-30: set in Vercel and GitHub; `/api/cron/line-watch` answers 200 with the secret.
 2. **www.orvius.im certificate.** Add `www.orvius.im` in Vercel → Domains.
 3. **Signup is closed.** Add `RESEND_API_KEY` (and verify the sending domain in
    Resend), then set `ORVIUS_SELF_SERVE_SIGNUP=1`.
