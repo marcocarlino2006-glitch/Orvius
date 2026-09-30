@@ -4,23 +4,18 @@ This is the single ranked list of what is broken, what limits scale, and what
 separates Orvius from best in class. Work comes from here, top down. When an
 item ships, mark it done with the PR link; do not start new lists elsewhere.
 
-## What Orvius is (decided 2026-09-28)
+## What Orvius is (decided 2026-09-30)
 
-**Now:** the receptionist that answers every call for an HVAC shop, books the
-job on the calendar, and texts the owner. One promise: *you never lose a job to
-a missed call.* Nothing ships that doesn't make that promise truer, faster or
-easier to buy.
+**Now:** the AI front office for any business that runs on the phone. It answers
+every call in the business's name, books the appointment, and texts the owner.
+One promise: *you never lose a customer to a missed call.* Home services
+(HVAC, plumbing, electrical) is the first industry pack, not the ceiling.
 
-**Path:** (1) win HVAC with the receptionist, target 1,000 paying shops;
-(2) become where the job lives, by syncing into ServiceTitan, Housecall Pro and
-Jobber before replacing anything; (3) take a share of the money that flows
-through booked jobs (deposits, invoices, financing); (4) plumbing, electrical,
-then franchises.
+**Path:** see `docs/ROADMAP.md`: launch for everyone with industry packs,
+grow through referrals and partners, run the payments, then every office job.
 
 **Scoreboard, weekly:** paying shops · booked jobs per shop · calls answered
 without failure · signup to first booked job, in minutes · monthly churn.
-
-**Business roadmap:** `docs/ROADMAP.md` (stages and gates to multi-billion).
 
 **Rules:** reliability before features; the product demos itself (call it,
 hear your shop); build on the best models, never our own; one list (this file).
@@ -47,6 +42,17 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | B10 | A Stripe refund does not update the deposit or invoice, which stays "paid". | `src/app/api/billing/webhook/route.ts` (no refund events) | done [#80](https://github.com/marcocarlino2006-glitch/Orvius/pull/80) |
 | B11 | `past_due` shops keep full access forever, and their overage is never billed. | `src/lib/billing-entitlement.ts`, `src/lib/overage-billing.ts` | done — 7-day grace |
 | B12 | Sprint fixes waiting on merge: false "alerts not delivering" warning, info-only calls graded as missed bookings, invited members sent to signup. | [PR #76](https://github.com/marcocarlino2006-glitch/Orvius/pull/76), [PR #77](https://github.com/marcocarlino2006-glitch/Orvius/pull/77) | done (#76, #77 merged) |
+
+## Launch for everyone (roadmap Stage 1)
+
+| # | Item | Where | Status |
+|---|------|-------|--------|
+| E1 | Signup and onboarding ask the industry; the business gets that pack. Today every shop is set up as a trade. | `src/lib/trades.ts`, onboarding | open |
+| E2 | A general pack that answers well for any business: intake, booking and "send to a human" rules without trade assumptions. | `src/lib/trade-playbooks.ts` (`general_service` is only a label today) | open |
+| E3 | Launch packs: auto repair, salons and spas, medical and dental front desk, law offices, real estate, cleaning, moving, pest control, roofing. Each passes the voice simulator before it's sold. | `src/lib/trade-playbooks.ts`, `scripts/voice-scenarios*` | open |
+| E4 | `/try` for any business: pick the industry, hear it answer as you. | `src/app/try`, `src/lib/shop-preview.ts` | open |
+| E5 | Homepage and pricing speak to every business; `/try` is the main button. | `src/app/page.tsx` | open |
+| E6 | Google Calendar and Outlook as the booking calendar for businesses without an industry tool. | new integration | open |
 
 ## Tier 1 — Scale bottlenecks (what breaks at hundreds or thousands of shops)
 

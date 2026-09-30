@@ -1,151 +1,150 @@
 # Orvius business roadmap — the road to multi-billion
 
-Updated 2026-09-30. Stages end at gates, not dates: we move to the next stage
-when its numbers are true on the weekly scoreboard (`/admin`, emailed every
-Monday), not when a calendar says so. The work itself lives in
-`docs/BACKLOG.md`; this file says where the work is going and why.
+Updated 2026-09-30. Stages end at gates, not dates: we move on when the numbers
+are true on the weekly scoreboard (`/admin`, emailed every Monday). The work
+itself lives in `docs/BACKLOG.md`; this file sets direction.
 
-## The destination
+## The bet
 
-**Orvius runs the office for every home-service business in America.** Every
-call, text, booking, dispatch, quote, invoice, payment and follow-up is handled
-by Orvius agents, so a shop never needs to hire an office person again, and
-Orvius earns a share of every dollar that moves through it.
+**Orvius is the AI front office for every business that runs on the phone.**
+It answers every call and text, books the appointment, takes the deposit,
+follows up, and collects the invoice, in the business's own name, for any
+industry. Anyone can sign up tonight, and it works in minutes.
 
-**Today we are the AI receptionist for home-service trades** (HVAC, plumbing,
-electrical). We say only that in public until more is live. Each new agent is
-claimed on the site the day it works, not before.
+Horizontal, like Square and Shopify: one platform for everyone, with an
+**industry pack** per kind of business (its intake questions, booking rules,
+emergency rules and wording) so it never sounds generic. Home services is the
+first pack, not the ceiling.
+
+## Why this is big
+
+- **Every business answers the phone.** The US has about 33 million small
+  businesses; roughly 6 million have employees. Most miss calls every day, and
+  every missed call is lost money.
+- **It replaces a hire.** A front-desk person costs $35,000–50,000 a year and
+  covers 40 hours a week. Orvius covers all 168, in any language.
+- **The money moves through it.** Deposits, no-show fees, invoices and
+  payments for every booking it makes. That is where Square and Toast earn most
+  of their money.
+- **AI assistants are starting to call businesses for people.** Orvius already
+  serves AI callers (M8). If assistants book local services through Orvius,
+  we're the front door of local business on both sides of the call.
 
 ## The math
 
-| Revenue line | Per shop per year | Where it comes from |
+| Revenue line | Per business per year | Where it comes from |
 |---|---|---|
-| Subscription | ~$4,000 | Line $199, Pro $399, Fleet $749 a month, plus overage past the included calls |
-| Payments | ~$10,000 | 1% platform fee (`ORVIUS_PLATFORM_FEE_BPS`, default 100) on deposits and invoices, on a shop taking ~$1M a year from customers |
-| Add-ons | $1,000–5,000 | Extra lines, financing referral share, memberships, more agents |
-| **Total** | **~$15,000+** | |
+| Subscription | $2,400–9,000 | $199 entry up to front-office tiers priced against a hire |
+| Payments | $2,000–10,000 | ~1% on deposits, invoices and payments booked through Orvius |
+| Add-ons | $500–3,000 | Extra lines and locations, more agents, booked-job pricing |
+| **Total** | **~$5,000–20,000** | |
 
-At 100,000 shops, that's **$1.5B+ a year in revenue**. ServiceTitan does
-$961M from ~10,800 larger customers; Toast earns ~0.6% on $51B of payments a
-quarter. Subscription alone never gets there: 100,000 shops × $4,000 is $400M.
-**The money through the platform is the business.**
+| Businesses | Revenue at ~$5,000 each | At ~$10,000 each |
+|---|---|---|
+| 10,000 | $50M | $100M |
+| 100,000 | $500M | $1B |
+| 1,000,000 | $5B | $10B |
 
-A multi-billion *valuation* comes earlier. Avoca reached $1B with 800+
-customers because the market pays for fast growth in this category.
+Square serves millions of sellers; Shopify millions of merchants. A million
+businesses is the scale of a horizontal leader, and a multi-billion valuation
+comes long before it.
 
-## Stage 1 — Proof: 1 to 10 shops
+## Stage 1 — Launch for everyone
 
-**Goal:** a receptionist shops can't live without.
+**Goal:** any business can sign up, hear Orvius answer as itself, and go live
+the same night.
 
-- One real shop runs on Orvius for two weeks, found by hand. We fix everything
-  it hits the same day.
-- `/try`, the "hear your shop" demo, is the main thing on the homepage. An
-  owner types their shop name, calls and hears Orvius answer as their shop,
-  and their own phone gets the job text.
-- The launch video is that demo on camera: an 11 PM emergency, Spanish, a gas
-  smell, the booked slot, the owner's phone buzzing.
-- Owner's phone-first view; the first-night screen; claims on the site match
-  what's live.
+- **Signup asks the industry**, and the business gets the right pack:
+  home services (HVAC, plumbing, electrical: built), plus a general pack that
+  works well for any business out of the box.
+- **Launch packs** for the busiest phone industries: auto repair, salons and
+  spas, medical and dental offices (front desk only, no health records),
+  law offices, real estate, cleaning, moving, pest control, roofing.
+- **`/try` for any business:** type your business name and industry, call,
+  hear Orvius answer as you, and get the booking text on your own phone.
+- **The launch video** shows three businesses in a row answered as themselves
+  (an HVAC shop at 11 PM, a salon, a law office), then "Try yours free."
+- **Calendars people already use:** Google Calendar and Outlook first, then
+  the industry tools (Jobber done, Square Appointments, Housecall Pro).
 
-**Must be true first:** toll-free verification approved (texts arrive), and
-the Vapi demo number in server-URL mode.
+**Must be true first:** texts arrive (toll-free verification), the `/try`
+demo number is live (the Vapi switch), and calls finish cleanly on every pack.
 
-**Gate to Stage 2:** 10 paying shops · none cancel after two billing cycles ·
-calls finished cleanly ≥ 99% · each shop can name jobs it would have lost.
-**~$50k a year.**
+**Gate:** 100 paying businesses across at least 5 industries, none canceling
+after two billing cycles. **~$300k a year.**
 
-## Stage 2 — Repeatable: 10 to 1,000 shops
+## Stage 2 — Grow on its own
 
-**Goal:** shops arrive without the founder in the room.
+**Goal:** businesses arrive without us.
 
-- **Self-serve in minutes:** sign up with email and password, forward the
-  line, live the same night. No sales call, no contract. Already built.
-- **Referrals:** a referral link in every owner's weekly report; one month
-  free for both shops.
-- **Content where owners are:** HVAC, plumbing and electrical Facebook groups,
-  r/HVAC, TikTok and Reels, with real calls (with permission) and real shop
-  numbers.
-- **Integrations for shops that already have a system:** Jobber (done), then
-  Housecall Pro, then QuickBooks.
-- **More agents, one at a time:** follow-up (done), unpaid-invoice chasing,
-  review requests.
-- **Next trades:** roofing, garage doors, locksmiths, appliance repair, pest
-  control. Each gets its own questions and safety rules before it's sold.
+- **The signup data picks the next pack.** Whichever industries sign up most
+  get a dedicated pack next; nothing is guessed.
+- **Referrals:** "Answered by Orvius" on booking texts and a referral link in
+  every owner's weekly report.
+- **Content:** real calls (with permission) on TikTok, Reels and YouTube, one
+  industry at a time.
+- **Partners with millions of small businesses:** website builders, booking
+  tools, payment processors, phone carriers and accountants that resell or
+  bundle it.
+- **App stores:** Google Workspace, Square, Shopify, HubSpot marketplaces.
 
-**Gate to Stage 3:** 1,000 paying shops · monthly cancellations under 3% ·
-median signup to first booked job under one day · 1 in 5 new shops from
-referrals · a shop pays back what it cost to win it within 6 months.
-**~$5M a year.**
+**Gate:** 10,000 paying businesses · monthly cancellations under 3% · 1 in 5
+new businesses from referrals or partners. **~$50M a year.**
 
-## Stage 3 — The money: 1,000 to 10,000 shops
+## Stage 3 — The money
 
-**Goal:** Orvius is where the shop gets paid.
+**Goal:** Orvius is where the customer pays.
 
-- Every booked job ends in an Orvius deposit or invoice link. Same-day payouts
-  to the shop.
-- Financing offered at the customer's kitchen table for big installs and
-  replacements.
-- Maintenance memberships: Orvius signs customers up, bills them and books
-  their tune-ups.
-- **ServiceTitan marketplace** and multi-location support, for bigger shops
-  and the investment firms buying up HVAC companies.
-- **Partners that bring thousands of shops at once:** equipment-brand dealer
-  programs, supply houses, franchise groups, trade associations.
-- Dispatch and quoting agents.
+- A deposit or payment link on every booking; no-show fees; invoices; payouts
+  the same day.
+- Front-office tiers for bigger businesses, priced against a hire.
+- Multi-location and franchise accounts: dental groups, salon chains, the
+  investment firms rolling up HVAC shops.
 
-**Gate to Stage 4:** 10,000 shops · more than half of booked jobs paid through
-Orvius · existing shops spend more each year than the last (net retention
-above 110%). **~$100M+ a year.**
+**Gate:** 100,000 businesses · most bookings paid through Orvius · businesses
+spend more each year than the last. **$500M–1B a year.**
 
-## Stage 4 — The office for the trades: 10,000 to 100,000 shops
+## Stage 4 — The front office for every business
 
-**Goal:** the shop's whole front office is Orvius.
+**Goal:** every office job is done by Orvius agents.
 
-- Every office job done by agents: phones, texts, scheduling, dispatch,
-  quotes, invoices, collections, reviews, memberships, the morning brief.
-- Orvius is the shop's main system, not a layer on top of one.
-- A public "missed-call index" built from our own data: how much work each
-  trade loses to missed calls, city by city. Whoever owns that number owns the
-  category.
-- Every trade in home services.
+- Calls, texts, email and web chat; scheduling; reminders; quotes; invoices;
+  collections; reviews; memberships; the morning brief.
+- **AI assistants book through Orvius:** a public booking interface (MCP and
+  API) so ChatGPT, Siri, Gemini and Meta's assistants can book any Orvius
+  business directly.
+- Other countries and languages.
 
-**Gate:** 100,000 shops. **$1.5B+ a year.**
-
-## Stage 5 — Beyond
-
-- Homeowners book directly through the Orvius network; shops get jobs, not
-  just calls.
-- Canada, the UK and Australia.
-- Lending to shops based on the payments we already see; insurance; parts
-  purchasing.
+**Gate:** 1,000,000 businesses. **$5B+ a year.**
 
 ## Why we win
 
-1. **Trade depth.** Generic AI receptionists compete on price. We know which
-   calls are emergencies, what each trade needs to ask, and what to do when a
-   caller smells gas.
-2. **Small shops, self-serve.** Avoca and ServiceTitan sell to big shops
-   through sales teams. The 1–10 truck shop, which is most of the market, can
-   start with us tonight for $199.
-3. **Every call makes it better.** Failed calls become test scenarios for
-   the voice simulator, so the product improves with volume.
-4. **The money.** Once deposits land through Orvius, leaving means changing
-   how the shop gets paid. That's what keeps ServiceTitan's customers above
-   95% retention.
+1. **Industry packs on one platform.** Generic receptionists sound generic;
+   vertical tools only serve one industry. We're both: one platform, and it
+   knows each business's calls.
+2. **Self-serve in minutes.** No sales call, no contract, live tonight.
+3. **It demos itself.** Nobody else lets a business hear itself answered
+   before paying.
+4. **The money.** Once payments land through Orvius, leaving means changing
+   how the business gets paid.
+5. **Every call makes it better.** Failed calls become test scenarios for
+   the voice simulator.
 
 ## What would kill us
 
 | Risk | What we do about it |
 |---|---|
-| A missed or botched emergency call | Reliability before features; the safety rules are tested on every change; the daily production check |
-| Texts blocked by carriers | Toll-free verification before launch; 10DLC or dedicated numbers as volume grows |
-| A well-funded competitor moves down to small shops | Be faster, cheaper to start, and deeper in each trade; own the payments first |
-| Voice AI costs per call | Reply latency is tracked per call; add cost per call, and switch models as prices fall |
+| Sounding generic and getting compared on price alone | Industry packs, and `/try` so people hear the difference |
+| A botched emergency call (gas, flooding, medical) | Emergency rules in every pack, tested on every change; send to a human when unsure |
+| Texts blocked by carriers | Toll-free verification now; 10DLC and dedicated numbers as volume grows |
+| Big platforms (Google, Square) building their own | Be faster and better on calls; partner with them where they'd rather bundle than build |
+| Regulated industries (medical, legal) | Front desk only: book and route, never give medical or legal advice, no health records |
+| Voice AI cost per call | Reply latency is tracked per call; add cost per call and switch models as prices fall |
 | Overclaiming | The site claims only what is live; every claim is checked against production before a post |
 
 ## Rules
 
 - One list of work (`docs/BACKLOG.md`); this file only sets direction.
-- Reliability before features. A shop's customers never feel our bugs.
-- Nothing is claimed publicly before it works.
+- Reliability before features. A business's customers never feel our bugs.
+- A pack is sold only after its calls pass the voice simulator.
 - The scoreboard decides what's next: every Monday, the weakest number gets the week.
