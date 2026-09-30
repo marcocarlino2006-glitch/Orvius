@@ -20,6 +20,8 @@ then franchises.
 **Scoreboard, weekly:** paying shops · booked jobs per shop · calls answered
 without failure · signup to first booked job, in minutes · monthly churn.
 
+**Business roadmap:** `docs/ROADMAP.md` (stages and gates to multi-billion).
+
 **Rules:** reliability before features; the product demos itself (call it,
 hear your shop); build on the best models, never our own; one list (this file).
 
