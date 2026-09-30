@@ -44,6 +44,7 @@ export type Account = {
     serviceZipsJson?: string | null;
     billingStatus?: string;
     autopilot?: boolean;
+    followUpMode?: "off" | "ask" | "auto";
     createdAt?: string;
     vapiPhoneNumber?: string | null;
     twilioPhone?: string | null;

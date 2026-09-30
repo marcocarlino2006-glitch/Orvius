@@ -43,6 +43,8 @@ type Graph = {
     status: string;
     source: string;
     firstContactedAt: Date | null;
+    followUpSentAt: Date | null;
+    followUpRepliedAt: Date | null;
     closedAt: Date | null;
     createdAt: Date;
   } | null;
@@ -102,6 +104,8 @@ const LEAD_SELECT = {
   status: true,
   source: true,
   firstContactedAt: true,
+  followUpSentAt: true,
+  followUpRepliedAt: true,
   closedAt: true,
   createdAt: true,
 } as const;
@@ -332,6 +336,8 @@ function buildEvents(g: Graph): RecordEvent[] {
   if (g.lead) {
     push(g.lead.createdAt, g.call ? "Lead captured from call" : `Lead captured · ${g.lead.source}`, "neutral", g.lead.serviceType);
     push(g.lead.firstContactedAt, "Shop contacted customer", "success");
+    push(g.lead.followUpSentAt, "Follow-up text sent", "neutral");
+    push(g.lead.followUpRepliedAt, "Customer replied to the follow-up", "success");
     if (g.lead.closedAt && g.lead.status !== "booked") {
       push(g.lead.closedAt, `Lead closed · ${g.lead.status}`, g.lead.status === "lost" ? "risk" : "neutral");
     }

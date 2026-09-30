@@ -66,6 +66,7 @@ const patchSchema = z.object({
   serviceZipsJson: z.string().max(2000).optional(),
   depositEnabled: z.boolean().optional(),
   autopilot: z.boolean().optional(),
+  followUpMode: z.enum(["off", "ask", "auto"]).optional(),
   depositAmountCents: z
     .number()
     .int()
@@ -147,6 +148,7 @@ export async function GET(request: Request) {
         serviceZipsJson: businessRecord.serviceZipsJson ?? "[]",
         depositEnabled: businessRecord.depositEnabled,
         autopilot: businessRecord.autopilot,
+        followUpMode: businessRecord.followUpMode,
         depositAmountCents: businessRecord.depositAmountCents,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
           ? businessRecord.ownerSmsOptOutAt.toISOString()
@@ -258,6 +260,7 @@ const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
   depositEnabled: { label: "deposits" },
   depositAmountCents: { label: "deposit amount" },
   autopilot: { label: "routine work handling" },
+  followUpMode: { label: "follow-up texts" },
 };
 
 function settingsChanges(before: Record<string, unknown>, after: Record<string, unknown>) {
@@ -423,6 +426,7 @@ export async function PATCH(request: Request) {
           ? { depositEnabled: body.depositEnabled }
           : {}),
         ...(body.autopilot !== undefined ? { autopilot: body.autopilot } : {}),
+        ...(body.followUpMode !== undefined ? { followUpMode: body.followUpMode } : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
           : {}),
@@ -495,6 +499,7 @@ export async function PATCH(request: Request) {
         vapiPhoneNumber: saved.vapiPhoneNumber,
         depositEnabled: saved.depositEnabled,
         autopilot: saved.autopilot,
+        followUpMode: saved.followUpMode,
         depositAmountCents: saved.depositAmountCents,
       },
       deposits: depositsPayload(saved),

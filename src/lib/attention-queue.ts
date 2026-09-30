@@ -168,6 +168,12 @@ function baseRank(kind: AttentionKind, urgency?: string | null): number {
   }
 }
 
+function followUpState(lead: { followUpSentAt: Date | null; followUpRepliedAt: Date | null }) {
+  if (lead.followUpRepliedAt) return "Replied to the follow-up text";
+  if (lead.followUpSentAt) return "Follow-up texted · no reply yet";
+  return null;
+}
+
 /**
  * Ranked command-center queue from existing shop data.
  * No invented revenue — impact is operational urgency.
@@ -927,7 +933,7 @@ export async function getAttentionQueue(
       } else if (overdue) {
         kind = "overdue_followup";
         impact = "high";
-        detail = [`Qualified · unworked ${ageHrs}h`, lead.serviceType, lead.address]
+        detail = [followUpState(lead) ?? `Qualified · unworked ${ageHrs}h`, lead.serviceType, lead.address]
           .filter(Boolean)
           .join(" · ");
         recommendedAction = "Book job";
@@ -943,7 +949,7 @@ export async function getAttentionQueue(
       kind = overdue ? "overdue_followup" : "new_lead";
       impact = overdue ? "high" : "med";
       detail = [
-        overdue ? `Unworked ${ageHrs}h` : "New lead",
+        followUpState(lead) ?? (overdue ? `Unworked ${ageHrs}h` : "New lead"),
         lead.serviceType,
         lead.address,
       ]

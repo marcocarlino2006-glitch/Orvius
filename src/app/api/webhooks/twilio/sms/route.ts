@@ -31,6 +31,7 @@ import { resolveBusinessForInboundSms } from "@/lib/resolve-shop-line";
 import { twimlMessage as twimlResponse } from "@/lib/twiml";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
+import { answerFollowUpReply } from "@/lib/lead-follow-up";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -157,6 +158,9 @@ export async function POST(request: NextRequest) {
       return twimlResponse(SMS_REPLY);
     }
   }
+
+  const followUpReply = await answerFollowUpReply({ business, from, to, body, messageSid });
+  if (followUpReply) return twimlResponse(followUpReply);
 
   // A text says "SMS inquiry" in serviceType and everything real in the body,
   // so the widened pass is what classifies these.

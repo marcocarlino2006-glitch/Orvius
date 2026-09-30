@@ -535,3 +535,6 @@ CREATE TABLE IF NOT EXISTS "JobberSync" (
 CREATE UNIQUE INDEX IF NOT EXISTS "JobberSync_leadId_key" ON "JobberSync"("leadId");
 CREATE INDEX IF NOT EXISTS "JobberSync_status_nextAttemptAt_idx" ON "JobberSync"("status", "nextAttemptAt");
 CREATE INDEX IF NOT EXISTS "JobberSync_businessId_createdAt_idx" ON "JobberSync"("businessId", "createdAt");
+ALTER TABLE "Business" ADD COLUMN "followUpMode" TEXT NOT NULL DEFAULT 'ask';
+ALTER TABLE "Lead" ADD COLUMN "followUpSentAt" DATETIME;
+ALTER TABLE "Lead" ADD COLUMN "followUpRepliedAt" DATETIME;

@@ -63,6 +63,21 @@ export function ReceptionistSection({
             onChange={(next) => void patch({ autopilot: next })}
           />
         </ScRow>
+        <ScRow
+          label="Follow up with callers who didn't book"
+          hint="If nobody has reached a caller three hours after they called, one short text asks for a good time. Once per caller, 9am to 8pm, never for emergencies. Replies come to you."
+        >
+          <select
+            className="sc-input"
+            aria-label="Follow-up texts"
+            value={b.followUpMode ?? "ask"}
+            onChange={(e) => void patch({ followUpMode: e.target.value as "off" | "ask" | "auto" })}
+          >
+            <option value="ask">Draft it, I tap send</option>
+            <option value="auto">Send it for me</option>
+            <option value="off">Off</option>
+          </select>
+        </ScRow>
       </ScGroup>
       <ScGroup title="Your numbers">
         <ScRow label="Average ticket" hint="Estimates booked value on Command. Not money collected.">

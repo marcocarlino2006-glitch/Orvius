@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { drainJobberSyncs } from "@/lib/jobber";
+import { runAutoFollowUps } from "@/lib/lead-follow-up";
 import { watchAllLines } from "@/lib/line-watch";
 import { logError } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
@@ -22,12 +23,16 @@ export async function GET(request: NextRequest) {
     }
   }
   const lines = await watchAllLines();
-  // Rides the 30-minute schedule so a Jobber retry waits minutes, not a day.
-  const jobber = await drainJobberSyncs({ limit: 25, budgetMs: 25_000 }).catch((error) => {
-    logError("cron.step_failed", { step: "jobber_sync", error: error instanceof Error ? error.message : String(error) });
+  const failed = (step: string) => (error: unknown) => {
+    logError("cron.step_failed", { step, error: error instanceof Error ? error.message : String(error) });
     return null;
-  });
-  return NextResponse.json({ ok: true, ...lines, jobber });
+  };
+  // On the 30-minute schedule: a Jobber retry waits minutes, and a caller hears back hours after calling, not the next day.
+  const [jobber, followUps] = await Promise.all([
+    drainJobberSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("jobber_sync")),
+    runAutoFollowUps({ budgetMs: 25_000 }).catch(failed("follow_ups")),
+  ]);
+  return NextResponse.json({ ok: true, ...lines, jobber, followUps });
 }
 
 export async function POST(request: NextRequest) {
