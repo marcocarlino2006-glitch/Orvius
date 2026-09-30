@@ -113,6 +113,25 @@ Status: `open` · `in PR` · `done` · `needs owner` (a decision, key, or approv
 | Recordings and transcripts | Keep 24 months, then purge (built in F5; privacy page says so). | Long enough for disputes and warranty callbacks; not forever. |
 | Beta features (Jobs, Dispatch, money, Ask, Portfolio) | Frozen: no new work until the receptionist hits 1,000 paying shops. Kept visible for shops already using them. | Focus. |
 
+## How the leaders operate (studied 2026-09-30)
+
+Sources: ServiceTitan FY2026 10-K; Toast 10-K and Q4'25 remarks; Avoca's public customer stories and funding coverage; Jobber and Housecall Pro trial and onboarding pages.
+
+| Company | Scale | How it actually wins |
+|---|---|---|
+| ServiceTitan | $961M revenue, ~10,800 customers (~$89k a year each), $82B invoiced through it, gross retention >95%, net >110% | It is the shop's system of record, so leaving is painful. Growth comes from add-ons and payments on the money that flows through it ("share of wallet"). |
+| Avoca (closest to us) | $1B valuation (Apr 2026), 800+ customers, on track to book $1B of jobs in 2026 | Built in a three-month sprint for one AC company and sold from there. Sits on top of ServiceTitan instead of replacing it. Sells by letting owners hear it take a call live. Its headline number is booking rate (70% to 90%). Leadership reviews the same board every week. |
+| Toast | 58 bps take on $51B a quarter in payments | Field reps in dense territories; 1 in 5 deals from referrals; supplier partnerships; 24/7 support as a differentiator; payments pay for the sales force. |
+| Jobber / Housecall Pro | Self-serve leaders for small shops | 14-day trial with no card, setup tuned by trade, real data from day one, and high-touch onboarding only for big accounts. Growth is measured on customer quality (CAC, LTV, payback), not trial volume. |
+
+What Orvius takes from it:
+
+1. **One board, every week.** Paying shops, new and canceled, calls finished cleanly, booking rate, jobs booked, money collected, and signup to first booked job. Built as `src/lib/company-scoreboard.ts`: the /admin card, plus an email to the founders each Monday.
+2. **Win the first shops by hand.** Avoca's first customer came from building for one real shop. Before any public post, one real HVAC shop runs on Orvius for two weeks and the board shows its numbers.
+3. **Hearing it sells it.** The "hear your shop" preview (G5) moves up: it only needs the Vapi demo number switched.
+4. **Integrate before replacing.** Jobber is done; Housecall Pro next (small shops), then ServiceTitan's marketplace (mid-market, which needs a partner application).
+5. **Money through the platform is the long game.** Invoices and deposits already run on Stripe; measure collected dollars weekly and grow them.
+
 ## Still needs Marco
 
 Where production actually stands is whatever `npm run prod:verify` says, not

@@ -10,6 +10,7 @@ import {
 } from "@/lib/outreach-templates";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
 
 type Business = {
   id: string;
@@ -99,6 +100,7 @@ export default function AdminPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [gate, setGate] = useState<LaunchGate | null>(null);
+  const [board, setBoard] = useState<CompanyScoreboard | null>(null);
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
@@ -164,6 +166,10 @@ export default function AdminPage() {
     fetch("/api/admin/launch-gate")
       .then((res) => (res.ok ? res.json() : null))
       .then(setGate)
+      .catch(() => null);
+    fetch("/api/admin/scoreboard")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setBoard)
       .catch(() => null);
   }, []);
 
@@ -343,6 +349,7 @@ export default function AdminPage() {
     >
       <LiveStatusBar />
 
+      {board ? <ScoreboardCard board={board} /> : null}
       {gate ? <LaunchGateCard gate={gate} /> : null}
 
       <section className="card mb-8 p-6">
@@ -795,6 +802,63 @@ export default function AdminPage() {
         </section>
       </div>
     </OsShell>
+  );
+}
+
+const pctText = (value: number | null) => (value == null ? "—" : `${value}%`);
+const dollars = (cents: number) => `$${Math.round(cents / 100).toLocaleString("en-US")}`;
+
+function firstJobText(minutes: number | null) {
+  if (minutes == null) return "—";
+  if (minutes < 120) return `${minutes} min`;
+  if (minutes < 2 * 24 * 60) return `${Math.round(minutes / 60)} h`;
+  return `${Math.round(minutes / (24 * 60))} days`;
+}
+
+/** The weekly board: the same numbers every Monday, this week against last. */
+function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
+  const rows: Array<{ label: string; value: (week: ScoreboardWeek) => string }> = [
+    { label: "New shops", value: (w) => String(w.newShops) },
+    { label: "Canceled", value: (w) => String(w.churnedShops) },
+    { label: "Calls", value: (w) => String(w.calls) },
+    { label: "Finished cleanly", value: (w) => pctText(w.answeredCleanPct) },
+    { label: "Booking rate", value: (w) => pctText(w.bookingRate) },
+    { label: "Jobs booked", value: (w) => String(w.jobsBooked) },
+    { label: "Collected", value: (w) => dollars(w.collectedCents) },
+  ];
+  return (
+    <section className="card mb-8 p-6" aria-label="Weekly scoreboard">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="home-os-kicker">Scoreboard</p>
+          <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+            {board.payingShops} paying {board.payingShops === 1 ? "shop" : "shops"} · {board.activeShops} active
+          </h2>
+        </div>
+        <p className="font-sans text-xs text-ash">
+          Signup to first booked job: {firstJobText(board.signupToFirstJobMinutes)} median
+          {board.shopsWithoutFirstJob ? ` · ${board.shopsWithoutFirstJob} new without one` : ""}
+        </p>
+      </div>
+      <table className="mt-4 w-full font-sans text-sm">
+        <thead>
+          <tr className="text-left text-xs text-ash">
+            <th className="py-1 font-normal">Last 7 days</th>
+            <th className="py-1 text-right font-normal">This week</th>
+            <th className="py-1 text-right font-normal">Week before</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label} className="border-t border-black/5">
+              <td className="py-1.5 text-void">{row.label}</td>
+              <td className="py-1.5 text-right tabular-nums text-void">{row.value(board.thisWeek)}</td>
+              <td className="py-1.5 text-right tabular-nums text-ash">{row.value(board.lastWeek)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }
 

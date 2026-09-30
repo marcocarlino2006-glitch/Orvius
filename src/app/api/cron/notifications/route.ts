@@ -9,6 +9,7 @@ import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { releaseLapsedLines } from "@/lib/line-lifecycle";
 import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
+import { sendFounderScoreboard } from "@/lib/company-scoreboard";
 import { logError, logInfo } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
 import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
@@ -103,6 +104,7 @@ export async function GET(request: NextRequest) {
 
   const lines = await step("line_watch", () => watchAllLines());
   const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
+  const founderScoreboard = await step("founder_scoreboard", () => sendFounderScoreboard());
   const overage = await step("overage_billing", () => billPreviousMonthOverage());
   const lapsedLines = await step("lapsed_lines", () => releaseLapsedLines());
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
@@ -120,6 +122,7 @@ export async function GET(request: NextRequest) {
     assistants,
     lines,
     weeklyReports,
+    founderScoreboard,
     overage,
     customerConfirmations,
     strandedTextLeads,
