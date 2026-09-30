@@ -57,7 +57,7 @@ const HVAC: TradePlaybook = {
   ],
   fallback: { key: "hvac_diagnostic", label: "HVAC diagnostic", durationMin: 120, skill: "general", keywords: [] },
   safety: [
-    { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing)? (of )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
+    { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing|ed)? (like |of )?(natural )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
     { key: "carbon_monoxide", label: "Carbon monoxide alarm", instruction: "Tell the caller to get outside and call 911. Call them back now.", keywords: [/carbon monoxide/, /\bco (alarm|detector)\b/, /mon[oó]xido de carbono/] },
     { key: "burning_unit", label: "Burning smell or smoke from the unit", instruction: "Tell the caller to shut the system off at the breaker. Call them back now.", keywords: [/(burning|smoke|smoking).{0,20}(unit|furnace|system|vent)/, /(unit|furnace).{0,20}(burning|smoke)/] },
   ],
@@ -88,7 +88,7 @@ const PLUMBING: TradePlaybook = {
   ],
   fallback: { key: "plumbing_diagnostic", label: "Plumbing diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
-    { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing)? (of )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
+    { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing|ed)? (like |of )?(natural )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
     { key: "sewage_backup", label: "Sewage backing up into the home", instruction: "Tell the caller to stop using water and keep people away from it. Call them back now.", keywords: [/sewage (backing|coming) (up|in)/, /raw sewage/] },
   ],
   emergency: [/burst/, /flood/, /water everywhere/, /can'?t (shut|turn) (it |the water )?off/],

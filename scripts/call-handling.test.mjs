@@ -43,6 +43,13 @@ test("only the caller's words are scanned, not the receptionist's safety script"
   assert.equal(hidden.safety?.key, "gas_smell");
 });
 
+test("a gas smell is caught however the caller puts it", () => {
+  for (const words of ["It smells like gas in the kitchen", "the basement smelled like natural gas", "I smell gas", "there's a gas smell"]) {
+    assert.equal(classifyRequest({ business: hvac, callerWords: words }).safety?.key, "gas_smell", words);
+  }
+  assert.equal(classifyRequest({ business: hvac, callerWords: "The vents smell musty" }).safety, null);
+});
+
 test("urgency is read the way a dispatcher would", () => {
   const u = (words, urgency) => classifyRequest({ business: hvac, callerWords: words, urgency }).urgency;
   assert.equal(u("No heat and my elderly mother is freezing"), "emergency");
