@@ -37,6 +37,12 @@ type HealthStatus = {
   config: Array<{ name: string; configured: boolean; optional: boolean }>;
 };
 
+type LaunchGate = {
+  signupOpen: boolean;
+  blockers: number;
+  items: Array<{ key: string; label: string; ready: boolean; blocksSignup: boolean; fix: string[] }>;
+};
+
 const PIPELINE_STATUSES = [
   "new",
   "contacted",
@@ -92,6 +98,7 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
+  const [gate, setGate] = useState<LaunchGate | null>(null);
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
@@ -153,6 +160,10 @@ export default function AdminPage() {
     fetch("/api/health")
       .then((res) => res.json())
       .then(setHealth)
+      .catch(() => null);
+    fetch("/api/admin/launch-gate")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setGate)
       .catch(() => null);
   }, []);
 
@@ -331,6 +342,8 @@ export default function AdminPage() {
       }
     >
       <LiveStatusBar />
+
+      {gate ? <LaunchGateCard gate={gate} /> : null}
 
       <section className="card mb-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -782,5 +795,37 @@ export default function AdminPage() {
         </section>
       </div>
     </OsShell>
+  );
+}
+
+/** What stands between today and public signup, each with the exact fix. */
+function LaunchGateCard({ gate }: { gate: LaunchGate }) {
+  return (
+    <section className="card mb-8 p-6" aria-label="Launch gate">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="home-os-kicker">Launch</p>
+          <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+            {gate.signupOpen ? "Signup is open" : `${gate.blockers} ${gate.blockers === 1 ? "step" : "steps"} before signup opens`}
+          </h2>
+        </div>
+        <ShellBadge tone={gate.signupOpen ? "live" : "flare"}>{gate.signupOpen ? "Open" : "Closed"}</ShellBadge>
+      </div>
+      <ul className="mt-4 space-y-3">
+        {gate.items.map((item) => (
+          <li key={item.key} className="font-sans text-sm">
+            <p className={item.ready ? "text-live" : "text-void"}>
+              {item.ready ? "✓" : "○"} {item.label}
+              {!item.ready && !item.blocksSignup ? " · does not block signup, but alerts may not arrive" : ""}
+            </p>
+            {item.fix.map((step) => (
+              <p key={step} className="ml-5 mt-1 text-xs text-ash">
+                {step}
+              </p>
+            ))}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
