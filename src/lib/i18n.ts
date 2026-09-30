@@ -25,17 +25,24 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.contact": { en: "Talk to us", es: "Hablar con nosotros", fr: "Nous contacter", de: "Kontakt" },
 
   "hero.title": {
-    en: "After-hours calls become qualified jobs.",
-    es: "Las llamadas fuera de horario se vuelven trabajos calificados.",
-    fr: "Les appels hors horaires deviennent des interventions qualifiées.",
-    de: "Anrufe außerhalb der Geschäftszeiten werden zu qualifizierten Aufträgen.",
+    en: "Every call answered. Every customer booked.",
+    es: "Cada llamada contestada. Cada cliente agendado.",
+    fr: "Chaque appel répondu. Chaque client réservé.",
+    de: "Jeder Anruf angenommen. Jeder Kunde gebucht.",
   },
   "hero.lead": {
-    en: "Orvius is the AI receptionist for HVAC shops. It answers the calls you can't take, offers an open window from your schedule, and texts you the job.",
-    es: "Orvius es la recepcionista con IA para talleres de climatización. Contesta las llamadas que usted no puede, ofrece un horario libre de su agenda y le envía el trabajo por mensaje.",
-    fr: "Orvius est le réceptionniste IA des entreprises de chauffage et climatisation. Il répond aux appels que vous ne pouvez pas prendre, propose un créneau libre de votre planning et vous envoie l’intervention par SMS.",
-    de: "Orvius ist die KI-Rezeption für Heizungs- und Klimabetriebe. Sie nimmt die Anrufe an, die Sie nicht annehmen können, bietet einen freien Termin aus Ihrem Kalender an und schickt Ihnen den Auftrag per SMS.",
+    en: "Orvius is the AI front desk for any business that runs on the phone. It answers the calls you can't take, offers an open time from your schedule, and texts you what happened.",
+    es: "Orvius es la recepción con IA para cualquier negocio que vive del teléfono. Contesta las llamadas que usted no puede, ofrece un horario libre de su agenda y le envía por mensaje lo que pasó.",
+    fr: "Orvius est l’accueil IA de toute entreprise qui vit du téléphone. Il répond aux appels que vous ne pouvez pas prendre, propose un créneau libre de votre planning et vous envoie un SMS avec ce qui s’est passé.",
+    de: "Orvius ist die KI-Rezeption für jedes Unternehmen, das vom Telefon lebt. Sie nimmt die Anrufe an, die Sie nicht annehmen können, bietet einen freien Termin aus Ihrem Kalender an und schickt Ihnen per SMS, was passiert ist.",
   },
+  "hero.try": {
+    en: "Hear it as your business",
+    es: "Escúchelo como su negocio",
+    fr: "Écoutez-le pour votre entreprise",
+    de: "Als Ihr Unternehmen anhören",
+  },
+  "hero.start": { en: "Get started", es: "Empezar", fr: "Commencer", de: "Loslegen" },
   "hero.cta": {
     en: "Call the live line",
     es: "Llama a la línea en vivo",

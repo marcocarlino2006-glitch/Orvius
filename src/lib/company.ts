@@ -22,12 +22,12 @@ export const company = {
    * for HVAC after-hours/overflow — not the full OS. Expand only after one shop
    * pays and call→cash is proven.
    */
-  tagline: "After-hours HVAC receptionist that turns missed calls into paid jobs.",
+  tagline: "The AI front desk for every business that runs on the phone.",
   /** Category for the beginning — OS is earned after the wedge pays. */
   categoryClaim:
-    "A focused AI receptionist for HVAC — answers, qualifies, books, confirms, and alerts the owner. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
+    "An AI front desk for trades, clinics, salons, shops and offices — answers, qualifies, books, confirms, and alerts the owner. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
   /** Wedge proof — one missed call → one completed, paid job. */
-  proofLine: "Missed HVAC calls become booked, completed, paid jobs.",
+  proofLine: "Missed calls become booked customers.",
   vision:
     "Prove that one local HVAC company will pay Orvius to turn one customer call into one completed and paid job. Only then expand recovery, follow-up, estimates, memberships, analytics — and only after that dispatch, tech workflows, equipment history, payments, and the broader OS.",
   /**
