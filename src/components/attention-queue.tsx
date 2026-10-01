@@ -354,11 +354,13 @@ export function AttentionQueue({
   loading,
   technicians = [],
   onAction,
+  bare = false,
 }: {
   work: WorkItem[];
   loading?: boolean;
   technicians?: TechOption[];
   onAction?: () => void;
+  bare?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -385,7 +387,7 @@ export function AttentionQueue({
 
   if (!work.length) {
     return (
-      <section id="work-queue" className="wq wq--clear" aria-label="Work queue">
+      <section id="work-queue" className={bare ? "wq wq--clear wq--bare" : "wq wq--clear"} aria-label="Work queue">
         <div className="ox-state ox-state--success">
           <p className="ox-state-title">Queue is clear</p>
           <p className="ox-state-copy">
@@ -400,12 +402,14 @@ export function AttentionQueue({
   const visible = expanded ? rest : rest.slice(0, 6);
 
   return (
-    <section id="work-queue" className="wq" aria-label="Work queue">
-      <header className="wq-head">
-        <h2 className="wq-title">
-          Queue <span className="wq-title-count">{work.length}</span>
-        </h2>
-      </header>
+    <section id="work-queue" className={bare ? "wq wq--bare" : "wq"} aria-label="Work queue">
+      {bare ? null : (
+        <header className="wq-head">
+          <h2 className="wq-title">
+            Queue <span className="wq-title-count">{work.length}</span>
+          </h2>
+        </header>
+      )}
 
       <article className={`wq-recommend wq-sev--${top!.severity}`} aria-label="Top priority">
         <div className="wq-recommend-copy">

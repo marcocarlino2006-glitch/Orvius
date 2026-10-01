@@ -109,7 +109,7 @@ test("work age is human, not a timestamp", () => {
   assert.equal(formatAge("2026-09-22T12:00:00.000Z", now), "2d");
 });
 
-test("Command is board → signals → work queue, with Pulse in the rail", () => {
+test("Command is one board (work queue as its Follow-ups tab), with signals and Pulse in the rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
   assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes/);
@@ -117,7 +117,8 @@ test("Command is board → signals → work queue, with Pulse in the rail", () =
   const signalsIdx = command.indexOf("<CommandSignals");
   const queueIdx = command.indexOf("<AttentionQueue");
   const pulseIdx = command.indexOf("<OrviusPulse");
-  assert.ok(boardIdx >= 0 && signalsIdx > boardIdx && queueIdx > signalsIdx && pulseIdx > queueIdx);
+  assert.ok(boardIdx >= 0 && queueIdx > boardIdx && signalsIdx > queueIdx && pulseIdx > signalsIdx);
+  assert.ok(command.indexOf('<aside className="cc-rail"') < signalsIdx, "signals live in the rail");
   assert.match(command, /groupWorkItems/);
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
 

@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { AttentionQueue } from "@/components/attention-queue";
-import { CommandBoard } from "@/components/command-board";
 import { CommandSignals } from "@/components/command-signals";
+import { CommandBoard } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
 import type { Handled } from "@/lib/autopilot";
@@ -33,9 +33,9 @@ function activityParts(h: Handled | undefined, counts: NonNullable<ReturnType<ty
 }
 
 /**
- * Command — the daily workspace. The board (requests, proposals, confirmed
- * work, exceptions, approvals) leads; signals, the money and crew queue, and a
- * quiet Pulse follow. The first failed load is a failure state; later failures keep
+ * Command — the daily workspace. One board: approvals, exceptions, requests,
+ * proposals, confirmed work, and the money and crew follow-ups as its last
+ * tab. The rail holds the numbers and a quiet Pulse. The first failed load is a failure state; later failures keep
  * the last good data on screen and mark it stale.
  */
 export function Ring1CommandCenter() {
@@ -48,7 +48,10 @@ export function Ring1CommandCenter() {
     setRefreshing(false);
   }
 
-  const work = useMemo(() => groupWorkItems(data?.attention ?? []), [data?.attention]);
+  const work = useMemo(
+    () => groupWorkItems(data?.attention ?? []).filter((w) => !w.id.startsWith("incident:")),
+    [data?.attention],
+  );
   const signals = useMemo(
     () => (data?.commandCounts ? buildCommandSignals(data.commandCounts, work) : null),
     [data?.commandCounts, work],
@@ -110,19 +113,27 @@ export function Ring1CommandCenter() {
           </p>
         </header>
 
-        <CommandBoard onChange={() => void refresh()} />
-
-        <CommandSignals signals={signals} loading={loading} />
-
-        <AttentionQueue
-          work={work}
-          loading={loading && !data}
-          technicians={data?.technicians ?? []}
-          onAction={() => void refresh()}
+        <CommandBoard
+          onChange={() => void refresh()}
+          extra={{
+            id: "follow-ups",
+            label: "Follow-ups",
+            count: work.length,
+            content: (
+              <AttentionQueue
+                bare
+                work={work}
+                loading={loading && !data}
+                technicians={data?.technicians ?? []}
+                onAction={() => void refresh()}
+              />
+            ),
+          }}
         />
       </div>
 
       <aside className="cc-rail" aria-label="System status">
+        <CommandSignals signals={signals} loading={loading} />
         <OrviusPulse
           health={data?.health}
           events={data?.shiftTimeline ?? []}
