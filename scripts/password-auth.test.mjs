@@ -24,6 +24,8 @@ async function clear() {
   await prisma.loginToken.deleteMany({ where: { email: { endsWith: DOMAIN } } });
   await prisma.membership.deleteMany({ where: { email: { endsWith: DOMAIN } } });
   await prisma.business.deleteMany({ where: { ownerEmail: { endsWith: DOMAIN } } });
+  // Test IPs repeat across runs, and the reset limit is an hour long.
+  await prisma.rateLimitBucket.deleteMany({ where: { key: { startsWith: "password-reset-" } } }).catch(() => {});
 }
 
 function shop(ownerEmail) {

@@ -110,3 +110,27 @@ test("hot-path indexes ship to Turso as well as the Prisma schema", () => {
     assert.match(sql, new RegExp(`CREATE INDEX IF NOT EXISTS "${name}"`));
   }
 });
+
+test("a promised time that filled is refused, and a time Orvius picked moves instead of overbooking", async () => {
+  const { createJobFromLead, SlotTakenError } = await import("../src/lib/job.ts");
+  const shop = await prisma.business.create({
+    data: { name: "Race Air", slug: `race-${stamp()}`, environment: "test", timezone: "America/Chicago", hoursJson: "{}", servicesJson: "[]" },
+  });
+  try {
+    const at = new Date(Date.now() + 2 * 86_400_000);
+    at.setUTCMinutes(0, 0, 0);
+    await prisma.job.create({ data: { businessId: shop.id, title: "Existing", status: "scheduled", scheduledAt: at, durationMin: 120 } });
+    const lead = await prisma.lead.create({ data: { businessId: shop.id, phone: "+15555550180", status: "new" } });
+
+    await assert.rejects(
+      createJobFromLead({ leadId: lead.id, scheduledAt: at, enforceCapacity: true, skipAutoAssign: true }),
+      (error) => error instanceof SlotTakenError,
+    );
+    assert.equal(await prisma.job.count({ where: { leadId: lead.id } }), 0);
+
+    const owner = await createJobFromLead({ leadId: lead.id, scheduledAt: at, skipAutoAssign: true });
+    assert.equal(owner.scheduledAt.getTime(), at.getTime(), "an owner may overbook on purpose");
+  } finally {
+    await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
+  }
+});

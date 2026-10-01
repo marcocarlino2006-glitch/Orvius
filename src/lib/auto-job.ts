@@ -1,7 +1,7 @@
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { recordAudit, type AuditQueue } from "@/lib/audit";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
-import { createJobFromLead, findOpenSlots } from "@/lib/job";
+import { createJobFromLead, findOpenSlots, SlotTakenError } from "@/lib/job";
 import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
 import { callerWords } from "@/lib/transcript";
 import { getEffectivePlanId } from "@/lib/plan-features";
@@ -444,9 +444,22 @@ export async function maybeAutoBookLead(
     job = await createJobFromLead({
       leadId,
       scheduledAt: held,
+      enforceCapacity: Boolean(held),
       notes: held ? "Booked on the call — the caller picked this time" : "Auto-booked from inbound lead",
     });
   } catch (error) {
+    if (error instanceof SlotTakenError) {
+      await decide("lead.held", "The time held on the call filled while booking — held for the owner to reschedule the caller", {
+        heldSlotAt: held?.toISOString() ?? null,
+      });
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "held_slot_taken",
+        classification,
+      };
+    }
     if (
       error instanceof Error &&
       error.message.startsWith("No appointment capacity")
