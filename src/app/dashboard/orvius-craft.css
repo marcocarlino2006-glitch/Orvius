@@ -919,3 +919,23 @@ a.dt-row:focus-visible,
     width: 100%;
   }
 }
+
+/* The end-of-list line is a quiet sentence, not a label. */
+.os-shell.os-shell-night .pro-list-end-text {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ox-mute);
+}
+
+/* Carrier steps are done in order; the reset hid the numbers that say so. */
+.os-shell .capture-setup-steps {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.os-shell .capture-setup-steps li::marker {
+  color: var(--ox-mute);
+  font-variant-numeric: tabular-nums;
+}

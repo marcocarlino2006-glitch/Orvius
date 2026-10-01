@@ -137,7 +137,7 @@ export function ProListEnd({ count, noun, scope }: ProListEndProps) {
       <span className="pro-list-end-rule" aria-hidden="true" />
       <span className="pro-list-end-text">
         {count} {plural}
-        {scope ? ` ${scope}` : ""} · nothing older
+        {scope ? ` ${scope}` : ""} · that&apos;s everything
       </span>
     </p>
   );
