@@ -41,6 +41,9 @@ export default function TryPage() {
               </div>
             )}
           </div>
+          <p className="pd-scenario-sub" style={{ marginTop: "1.25rem" }}>
+            Rather click than call? <Link href="/watch">Watch Orvius run a demo HVAC shop</Link>, no account needed.
+          </p>
         </div>
       </section>
     </MarketingShell>
