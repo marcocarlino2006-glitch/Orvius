@@ -131,10 +131,10 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
                 <p className="pd-kicker">{full ? "Full audit trail" : "What Orvius did"}</p>
                 <ol className="pd-trace">
                   {shown.map((e) => (
-                    <li key={e.id} data-tone={e.tone}>
-                      <span className="pd-trace-tag">{TONE_LABEL[e.tone]}</span>
+                    <li key={e.id} data-tone={!full && e.tone === "info" ? "ok" : e.tone}>
+                      <span className="pd-trace-tag">{TONE_LABEL[!full && e.tone === "info" ? "ok" : e.tone]}</span>
                       <span>
-                        {e.title}
+                        {e.simulated ? e.title.replace(/\s*\(simulated\)/, "") : e.title}
                         {e.simulated ? <em> · simulated</em> : null}
                       </span>
                     </li>
