@@ -129,6 +129,8 @@ model Business {
   smsOptOuts         SmsOptOut[]
   outboundSms        OutboundSms[]
   messages           Message[]
+  servicePlans       ServicePlan[]
+  planMembers        PlanMember[]
   auditEvents        AuditEvent[]
   memberships        Membership[]
   /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
@@ -163,6 +165,55 @@ model OutboundSms {
   @@index([businessId, createdAt])
 }
 
+/** A membership or maintenance plan customers pay for monthly or yearly. */
+model ServicePlan {
+  id            String   @id @default(cuid())
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name          String
+  priceCents    Int
+  /** month | year */
+  interval      String
+  /** Included visits a year; drives the "your visit is due" text. 0 means none. */
+  visitsPerYear Int      @default(0)
+  perks         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  members PlanMember[]
+
+  @@index([businessId, isActive])
+}
+
+model PlanMember {
+  id                   String      @id @default(cuid())
+  businessId           String
+  business             Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  planId               String
+  plan                 ServicePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  customerId           String?
+  name                 String?
+  phone                String
+  phoneNormalized      String
+  email                String?
+  /** pending | active | past_due | canceled */
+  status               String      @default("pending")
+  stripeSubscriptionId String?     @unique
+  stripeCustomerId     String?
+  startedAt            DateTime?
+  currentPeriodEnd     DateTime?
+  canceledAt           DateTime?
+  nextVisitDueAt       DateTime?
+  visitReminderSentAt  DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, phoneNormalized])
+  @@index([status, nextVisitDueAt])
+}
+
 /** Every customer text in and out, so the owner reads and answers one thread per phone. */
 model Message {
   id              String   @id @default(cuid())
@@ -175,6 +226,8 @@ model Message {
   author          String
   body            String
   sid             String?
+  /** Carrier receipt for an outbound text: sent | delivered | undelivered | failed. */
+  deliveryStatus  String?
   /** Set when the owner has read an inbound text. */
   readAt          DateTime?
   createdAt       DateTime @default(now())

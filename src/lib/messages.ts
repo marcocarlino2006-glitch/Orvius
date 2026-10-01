@@ -169,6 +169,7 @@ export type ThreadEntry =
       direction: "in" | "out";
       author: MessageAuthor;
       body: string;
+      deliveryStatus: string | null;
     }
   | {
       kind: "call";
@@ -229,6 +230,7 @@ export async function getThread(businessId: string, phone: string) {
         direction: m.direction === "in" ? "in" : "out",
         author: m.author as MessageAuthor,
         body: m.body,
+        deliveryStatus: m.deliveryStatus,
       }),
     ),
     ...calls.map(
@@ -250,6 +252,29 @@ export async function getThread(businessId: string, phone: string) {
     optedOut: Boolean(optOut && !optOut.clearedAt),
     entries,
   };
+}
+
+const RECEIPT_RANK: Record<string, number> = { queued: 0, accepted: 0, sending: 1, sent: 2, delivered: 3, read: 4, undelivered: 5, failed: 5 };
+
+/** A carrier receipt moves a text forward (sent → delivered) or to failed, never back. */
+export async function applyMessageReceipt(params: { messageSid: string; messageStatus: string }) {
+  const next = params.messageStatus.toLowerCase();
+  if (!(next in RECEIPT_RANK) || !params.messageSid) return 0;
+  const rows = await prisma.message.findMany({
+    where: { sid: params.messageSid, direction: "out" },
+    select: { id: true, deliveryStatus: true },
+  });
+  let updated = 0;
+  for (const row of rows) {
+    const current = row.deliveryStatus ? (RECEIPT_RANK[row.deliveryStatus] ?? -1) : -1;
+    if (RECEIPT_RANK[next] <= current) continue;
+    const result = await prisma.message.updateMany({
+      where: { id: row.id, deliveryStatus: row.deliveryStatus },
+      data: { deliveryStatus: next === "read" ? "delivered" : next },
+    });
+    updated += result.count;
+  }
+  return updated;
 }
 
 export async function markThreadRead(businessId: string, phone: string, now = new Date()) {

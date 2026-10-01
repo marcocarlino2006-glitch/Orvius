@@ -4,6 +4,7 @@ import { fulfillDepositCheckoutSession, failDepositCheckoutSession } from "@/lib
 import { fulfillInvoiceCheckoutSession } from "@/lib/invoice-pay";
 import { fulfillEstimateCheckoutSession, failEstimateCheckoutSession } from "@/lib/estimate-pay";
 import { applyChargeRefund } from "@/lib/payment-refund";
+import { activatePlanMember, applyPlanInvoice, cancelPendingPlanJoin, syncPlanSubscription } from "@/lib/service-plans";
 import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
@@ -107,6 +108,13 @@ export async function POST(request: Request) {
           break;
         }
 
+        if (session.mode === "subscription" && session.metadata?.kind === "plan_join") {
+          await activatePlanMember(session);
+          break;
+        }
+        // Any other connected-account checkout is never the shop's own Orvius subscription.
+        if (event.account) break;
+
         if (session.mode !== "subscription" || !session.subscription) break;
 
         const subscription = await stripe.subscriptions.retrieve(
@@ -150,6 +158,11 @@ export async function POST(request: Request) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+        // A customer's maintenance plan on the shop's account, not the shop's Orvius plan.
+        if (event.account) {
+          await syncPlanSubscription(subscription);
+          break;
+        }
         const customer =
           typeof subscription.customer === "string"
             ? await stripe.customers.retrieve(subscription.customer)
@@ -185,6 +198,10 @@ export async function POST(request: Request) {
         const invoice = event.data.object as Stripe.Invoice;
         const subId = resolveInvoiceSubscriptionId(invoice);
         if (!subId) break;
+        if (event.account) {
+          await applyPlanInvoice(subId, event.type === "invoice.paid");
+          break;
+        }
         const subscription = await stripe.subscriptions.retrieve(subId);
         await syncSubscriptionToBusiness(
           subscription,
@@ -216,6 +233,8 @@ export async function POST(request: Request) {
           await failDepositCheckoutSession(session);
         } else if (session.metadata?.kind === "estimate_pay") {
           await failEstimateCheckoutSession(session);
+        } else if (session.metadata?.kind === "plan_join") {
+          await cancelPendingPlanJoin(session);
         }
         break;
       }
