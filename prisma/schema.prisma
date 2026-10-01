@@ -563,6 +563,8 @@ model WebhookEvent {
   status      String
   payloadJson String?
   error       String?
+  /// Sweep retries of a call report that failed to finish.
+  attempts    Int       @default(0)
   createdAt   DateTime  @default(now())
 
   @@unique([source, externalId, eventType])
