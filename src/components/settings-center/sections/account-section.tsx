@@ -32,7 +32,7 @@ export function AccountSection({
           <img className="sc-profile-avatar" src={account.user.image} alt="" referrerPolicy="no-referrer" />
         ) : (
           <span className="sc-profile-avatar">
-            <RecordAvatar name={name} />
+            <RecordAvatar name={account.user?.name} email={email} />
           </span>
         )}
         <div className="sc-profile-copy">

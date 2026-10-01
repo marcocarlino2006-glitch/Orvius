@@ -141,13 +141,9 @@ export function BillingContent() {
   const otherPlans = paidPlans.filter((plan) => plan.id !== featuredId);
   const checkoutReady = account?.billing.configured ?? false;
   const founder = account?.founder ?? false;
-  const fullyReady = account?.billing.fullyReady ?? false;
-  const readiness = account?.billing.readiness;
-  const checklist = readiness?.checklist ?? [];
   const loading = loadState === "loading";
   const locked = !entitled;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
-  const openCount = checklist.filter((item) => !item.ok).length;
 
   return (
     <>
@@ -166,79 +162,6 @@ export function BillingContent() {
         </div>
       ) : (
         <div className="billing-settings">
-          {founder ? (
-            <ShellPanel title="Money setup" dense>
-              {loading ? (
-                <ShellLoading />
-              ) : (
-                <div className="billing-money-setup font-sans">
-                  <p className="billing-money-setup-lead">
-                    {fullyReady
-                      ? "Checkout is live. Run one test Pay with card below, then flip to live keys when you’re ready for real cards."
-                      : checkoutReady
-                        ? "Pay can open — finish the open items so webhooks and every plan stay honest."
-                        : "One checklist. Paste on Vercel, redeploy, then Pay with card appears for shops."}
-                  </p>
-                  <ul className="billing-money-checklist" aria-label="Money setup checklist">
-                    {(checklist.length
-                      ? checklist
-                      : [
-                          {
-                            id: "secret",
-                            label: "Stripe secret key",
-                            detail: "STRIPE_SECRET_KEY on Vercel",
-                            ok: false,
-                          },
-                          {
-                            id: "publishable",
-                            label: "Publishable key",
-                            detail: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-                            ok: false,
-                          },
-                          {
-                            id: "prices",
-                            label: "Plan prices",
-                            detail: "Line, Pro, Fleet price IDs",
-                            ok: false,
-                          },
-                          {
-                            id: "webhook",
-                            label: "Webhook",
-                            detail: "STRIPE_WEBHOOK_SECRET",
-                            ok: false,
-                          },
-                        ]
-                    ).map((item) => (
-                      <li
-                        key={item.id}
-                        className={`billing-money-check ${item.ok ? "is-ok" : "is-open"}`}
-                      >
-                        <span className="billing-money-check-mark" aria-hidden>
-                          {item.ok ? "✓" : "○"}
-                        </span>
-                        <span className="billing-money-check-copy">
-                          <strong>{item.label}</strong>
-                          <span>{item.detail}</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  {!fullyReady && openCount > 0 ? (
-                    <p className="billing-money-setup-foot">
-                      {openCount} open · Redeploy after each Vercel paste ·{" "}
-                      <code>docs/BILLING-SETUP.md</code>
-                    </p>
-                  ) : null}
-                  {fullyReady ? (
-                    <p className="billing-money-setup-foot billing-money-setup-foot--live">
-                      All green · Owners see Pay with card · You can take a test card now
-                    </p>
-                  ) : null}
-                </div>
-              )}
-            </ShellPanel>
-          ) : null}
-
           <ShellPanel title="Current plan" dense>
             {loading ? (
               <ShellLoading />
@@ -376,7 +299,7 @@ export function BillingContent() {
               <>
                 <p className="font-sans text-sm leading-relaxed text-ash">
                   {founder
-                    ? "Pay with card unlocks when the Money setup checklist is green. Finish the open items above, redeploy, then refresh."
+                    ? "Pay with card unlocks when the Stripe launch gates in Settings → Internal are green."
                     : "Card checkout isn’t open yet. Your shop access stays active — we’ll notify you before billing begins. Need to pay now?"}{" "}
                   {!founder ? (
                     <a

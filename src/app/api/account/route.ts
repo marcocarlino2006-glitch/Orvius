@@ -403,7 +403,7 @@ export async function PATCH(request: Request) {
           ? { address: body.address?.trim() || null }
           : {}),
         ...(body.ownerPhone !== undefined
-          ? { ownerPhone: body.ownerPhone.trim() }
+          ? { ownerPhone: normalizePhone(body.ownerPhone) ?? body.ownerPhone.trim() }
           : {}),
         ...(body.ownerEmail !== undefined
           ? { ownerEmail: body.ownerEmail.trim().toLowerCase() }

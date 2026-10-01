@@ -1,5 +1,6 @@
 "use client";
 
+import { displayPhone } from "@/lib/customer";
 import { ownerSlAs } from "@/lib/institutional-standards";
 import { PushAlertsRows } from "../push-alerts-rows";
 import type { Account, Business, PatchFn } from "../settings-model";
@@ -33,7 +34,7 @@ export function NotificationsSection({
           <ScField
             type="tel"
             ariaLabel="Your mobile"
-            value={b.ownerPhone ?? ""}
+            value={b.ownerPhone ? displayPhone(b.ownerPhone) : ""}
             placeholder="+1 555 123 4567"
             onCommit={(v) => patch({ ownerPhone: v.trim() })}
           />
@@ -50,9 +51,13 @@ export function NotificationsSection({
         </ScRow>
         <ScRow
           label="Email backup"
-          hint={account.alerts.emailConfigured ? undefined : "Switches on from our side. Nothing to set up."}
+          hint={
+            account.alerts.emailConfigured
+              ? `Sent to ${b.ownerEmail ?? email} when a text can't deliver.`
+              : "Not live yet. Text alerts carry every lead until it is."
+          }
         >
-          <ScStatus on={account.alerts.emailConfigured}>{account.alerts.emailConfigured ? "On" : "Off"}</ScStatus>
+          <ScStatus on={account.alerts.emailConfigured}>{account.alerts.emailConfigured ? "On" : "Coming soon"}</ScStatus>
         </ScRow>
         <PushAlertsRows />
         <ScRow label="Send a test alert" hint="Texts your mobile the way a real lead would.">

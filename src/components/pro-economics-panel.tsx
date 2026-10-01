@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WeeklyTrend } from "@/components/weekly-trend";
-import { formatCents, formatCentsExact } from "@/lib/money";
+import { formatCents, formatCentsTidy } from "@/lib/money";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
 
@@ -70,7 +70,7 @@ export function ProEconomicsPanel({
   const capturedValue = formatCents(
     outcomes.capturedDemandEstimatedValueCents,
   );
-  const collected = formatCentsExact(outcomes.collectedCents);
+  const collected = formatCentsTidy(outcomes.collectedCents);
   const pipeline = formatCents(outcomes.estimatedPipelineCents);
 
   const funnel = [
@@ -150,7 +150,7 @@ export function ProEconomicsPanel({
         <div>
           <dt>Collected</dt>
           <dd>{collected}</dd>
-          <p className="pro-economics-hint">Recorded payments in the window</p>
+          <p className="pro-economics-hint">Payments and deposits in the window</p>
         </div>
         <div>
           <dt>Pipeline (all jobs)</dt>
@@ -162,13 +162,21 @@ export function ProEconomicsPanel({
         <div>
           <dt>Open money</dt>
           <dd>
-            {formatCentsExact(
+            {formatCentsTidy(
               outcomes.openEstimateCents + outcomes.openInvoiceCents,
             )}
           </dd>
           <p className="pro-economics-hint">
-            Estimates {formatCentsExact(outcomes.openEstimateCents)} · invoices{" "}
-            {formatCentsExact(outcomes.openInvoiceCents)}
+            {[
+              outcomes.openEstimateCents > 0
+                ? `Estimates ${formatCentsTidy(outcomes.openEstimateCents)}`
+                : null,
+              outcomes.openInvoiceCents > 0
+                ? `Invoices ${formatCentsTidy(outcomes.openInvoiceCents)}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ") || "Nothing waiting to be paid"}
           </p>
         </div>
       </dl>
@@ -184,18 +192,21 @@ export function ProEconomicsPanel({
         </li>
         {outcomes.afterHoursLeads > 0 ? (
           <li>
-            <strong>{outcomes.afterHoursLeads}</strong> after-hours leads ·{" "}
+            <strong>{outcomes.afterHoursLeads}</strong> after-hours{" "}
+            {outcomes.afterHoursLeads === 1 ? "lead" : "leads"} ·{" "}
             <strong>{outcomes.afterHoursBooked}</strong> booked
           </li>
         ) : null}
         {outcomes.emergenciesBooked > 0 ? (
           <li>
-            <strong>{outcomes.emergenciesBooked}</strong> emergencies booked
+            <strong>{outcomes.emergenciesBooked}</strong>{" "}
+            {outcomes.emergenciesBooked === 1 ? "emergency" : "emergencies"} booked
           </li>
         ) : null}
         {outcomes.unassignedJobs > 0 ? (
           <li>
-            <strong>{outcomes.unassignedJobs}</strong> jobs still need a tech
+            <strong>{outcomes.unassignedJobs}</strong>{" "}
+            {outcomes.unassignedJobs === 1 ? "job still needs" : "jobs still need"} a tech
           </li>
         ) : null}
         {outcomes.jobsPerWeekVsBaseline != null ? (

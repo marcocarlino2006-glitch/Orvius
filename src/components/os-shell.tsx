@@ -18,7 +18,6 @@ import { OsCommandPalette } from "@/components/os-command-palette";
 import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
-import { PostLockBanner } from "@/components/post-lock-banner";
 import { Toaster } from "@/components/toaster";
 import { DARK_QUERY, applyResolvedTheme, readThemeChoice, resolveTheme } from "@/lib/theme";
 
@@ -282,7 +281,6 @@ export function OsShell({
           </div>
         </header>
 
-        <PostLockBanner />
         <main className="os-content os-content-pro">{children}</main>
         {showAskDock ? <OsAskDock /> : null}
         <KeyboardShortcuts />

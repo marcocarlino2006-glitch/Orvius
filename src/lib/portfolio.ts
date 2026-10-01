@@ -60,9 +60,9 @@ export async function getPortfolio(email: string, days: number, now = new Date()
         prisma.job.groupBy({ by: ["businessId"], where: { ...inShops, createdAt: { gte: since } }, _count: { _all: true } }),
         prisma.job.groupBy({ by: ["businessId"], where: { ...inShops, completedAt: { gte: since } }, _count: { _all: true } }),
         prisma.deposit.groupBy({ by: ["businessId"], where: { ...inShops, status: "paid", paidAt: { gte: since } }, _sum: { amountCents: true } }),
-        prisma.invoice.groupBy({
+        prisma.payment.groupBy({
           by: ["businessId"],
-          where: { ...inShops, status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null } },
+          where: { ...inShops, createdAt: { gte: since }, status: { in: ["recorded", "paid", "succeeded"] } },
           _sum: { amountCents: true },
         }),
         prisma.lead.groupBy({ by: ["businessId"], where: { ...inShops, status: "new" }, _count: { _all: true } }),

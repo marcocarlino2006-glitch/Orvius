@@ -3114,13 +3114,13 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.pro-filter-tab-active, .pro
   color: var(--ox-s1) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-banner, .post-lock-strip, .pro-stat, .pro-panel, .approve-queue, .pro-economics-panel, .pro-signal-bar, .capture-setup-panel, .capture-setup-carrier, .account-billing-plan, .transcript-cinema, .owner-alert) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-banner, .pro-stat, .pro-panel, .approve-queue, .pro-economics-panel, .pro-signal-bar, .capture-setup-panel, .capture-setup-carrier, .account-billing-plan, .transcript-cinema, .owner-alert) {
   border-color: var(--ox-line) !important;
   background: var(--ox-s1) !important;
   color: var(--ox-text) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-kicker, .post-lock-message, .post-lock-gates, .post-lock-gates strong, .account-billing-plan-name, .account-billing-plan-price) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.account-billing-plan-name, .account-billing-plan-price) {
   color: var(--ox-text-2) !important;
 }
 

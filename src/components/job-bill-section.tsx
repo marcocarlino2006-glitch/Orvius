@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "@/components/toaster";
 import { formatCentsExact } from "@/lib/money";
+import { formatDay, formatWhen } from "@/lib/when";
 
 export type JobBill = {
   invoice: {
@@ -84,7 +85,7 @@ export function JobBillSection({
         <p className="job-money-share-label">Final bill</p>
         <p className="job-money-lead">
           {formatCentsExact(invoice.amountCents)} paid
-          {invoice.paidAt ? ` on ${new Date(invoice.paidAt).toLocaleDateString()}` : ""}.
+          {invoice.paidAt ? ` on ${formatDay(invoice.paidAt)}` : ""}.
         </p>
       </div>
     );
@@ -152,7 +153,7 @@ export function JobBillSection({
       </div>
       {note ? <p className="job-money-lead">{note}</p> : null}
       {invoice?.sentAt && !note ? (
-        <p className="job-money-lead">Texted {new Date(invoice.sentAt).toLocaleString()} — not paid yet.</p>
+        <p className="job-money-lead">Texted {formatWhen(invoice.sentAt)} — not paid yet.</p>
       ) : null}
     </div>
   );

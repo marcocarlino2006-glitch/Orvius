@@ -792,3 +792,130 @@ a.dt-row:focus-visible,
     margin-left: auto;
   }
 }
+
+/* Billing page: every section is the same flat label | content row. The global
+   boxed-panel rules tie on specificity, so without this the look varied by panel. */
+
+.os-shell.os-shell-night .billing-settings:not(.sc-embed *) > .pro-panel,
+.os-shell.os-shell-night .billing-settings:not(.sc-embed *) > div > .pro-panel {
+  display: grid !important;
+  grid-template-columns: minmax(9rem, 12rem) minmax(0, 1fr);
+  gap: 2.5rem;
+  margin: 0 !important;
+  padding: 1.75rem 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--ox-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.os-shell.os-shell-night .billing-settings:not(.sc-embed *) > :first-child,
+.os-shell.os-shell-night .billing-settings:not(.sc-embed *) > :first-child > .pro-panel {
+  padding-top: 0.25rem !important;
+  border-top: 0 !important;
+}
+
+.os-shell.os-shell-night .billing-settings:not(.sc-embed *) .pro-panel-head {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.os-shell.os-shell-night .billing-settings:not(.sc-embed *) .pro-panel-title {
+  color: var(--ox-text-2) !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+}
+
+.os-shell.os-shell-night .billing-settings:not(.sc-embed *) .pro-panel-body {
+  padding: 0 !important;
+}
+
+@media (max-width: 720px) {
+  .os-shell.os-shell-night .billing-settings:not(.sc-embed *) > .pro-panel,
+  .os-shell.os-shell-night .billing-settings:not(.sc-embed *) > div > .pro-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+/* The transcript sits between ShellPanels, so its head reads like their titles. */
+.os-shell.os-shell-night .transcript-cinema-kicker {
+  color: var(--ox-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.os-shell.os-shell-night .transcript-cinema-live {
+  color: var(--ox-mute);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Dispatch: a tile is as wide as the booking, so a short job can hold ten
+   characters. Hover or focus lifts it to its full title without moving the lane. */
+.os-shell.os-shell-night .dsp-block:hover,
+.os-shell.os-shell-night .dsp-block:focus-visible {
+  z-index: 4;
+  width: max-content !important;
+  min-width: 2.5rem;
+  max-width: 18rem;
+  padding-right: 0.75rem;
+  overflow: visible;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+}
+
+.os-shell.os-shell-night .dsp-block:hover .dsp-block-title,
+.os-shell.os-shell-night .dsp-block:hover .dsp-block-who,
+.os-shell.os-shell-night .dsp-block:focus-visible .dsp-block-title,
+.os-shell.os-shell-night .dsp-block:focus-visible .dsp-block-who {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Settings fields: a select and the text fields beside it are one control family —
+   same type size, corner and right edge. Base select rules tie in from globals. */
+.os-shell.os-shell-night.sc-overlay .sc-input {
+  font-size: 0.8125rem !important;
+  border-radius: 0.5rem !important;
+}
+
+.os-shell.os-shell-night.sc-overlay .sc-row .sc-input--select {
+  width: 16.5rem;
+  max-width: 100%;
+  padding-right: 2rem;
+}
+
+.os-shell.os-shell-night.sc-overlay .sc-input--narrow {
+  width: 6.5rem;
+}
+
+@media (max-width: 640px) {
+  .os-shell.os-shell-night.sc-overlay .sc-input {
+    font-size: 1rem !important;
+  }
+}
+
+/* A datetime field has a wide intrinsic size; in a phone-width card it must take the card's width instead. */
+.os-shell.os-shell-night .os-kv-actions > label {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.os-shell.os-shell-night .os-kv-actions input {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .os-shell.os-shell-night .os-kv-actions > label,
+  .os-shell.os-shell-night .os-kv-actions input {
+    width: 100%;
+  }
+}

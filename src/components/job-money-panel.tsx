@@ -4,6 +4,7 @@ import { toast } from "@/components/toaster";
 import { formatCents, formatCentsExact } from "@/lib/money";
 import Link from "next/link";
 import { useState } from "react";
+import { formatDay, statusWord } from "@/lib/when";
 
 type EstimateState = {
   id: string;
@@ -39,6 +40,8 @@ type JobMoneyPanelProps = {
   customerPhone: string | null;
   deposit: DepositState;
   depositReadiness: DepositReadiness | null;
+  /** A finished visit never asks for a deposit to hold the slot. */
+  jobClosed?: boolean;
   onRefresh: () => void;
 };
 
@@ -50,8 +53,11 @@ export function JobMoneyPanel({
   customerPhone,
   deposit,
   depositReadiness,
+  jobClosed = false,
   onRefresh,
 }: JobMoneyPanelProps) {
+  const settled = estimate?.invoice?.status === "paid";
+  const showDeposit = Boolean(deposit) || (!jobClosed && !settled);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -225,6 +231,7 @@ export function JobMoneyPanel({
         for when the appointment is made, while the estimate below belongs to
         the visit itself.
       */}
+      {showDeposit ? (
       <div className="job-money-share">
         <p className="job-money-share-label">Booking deposit</p>
 
@@ -234,7 +241,7 @@ export function JobMoneyPanel({
               {deposit.status === "paid"
                 ? `${formatCentsExact(deposit.amountCents)} paid${
                     deposit.paidAt
-                      ? ` on ${new Date(deposit.paidAt).toLocaleDateString()}`
+                      ? ` on ${formatDay(deposit.paidAt)}`
                       : ""
                   }.`
                 : `${formatCentsExact(deposit.amountCents)} requested${
@@ -334,6 +341,7 @@ export function JobMoneyPanel({
           <p className="job-money-lead">{depositNote}</p>
         ) : null}
       </div>
+      ) : null}
 
       {!estimate ? (
         <>
@@ -380,7 +388,7 @@ export function JobMoneyPanel({
             <div>
               <dt>Estimate</dt>
               <dd>
-                {formatCents(estimate.amountCents)} · {estimate.status}
+                {formatCents(estimate.amountCents)} · {statusWord(estimate.status)}
               </dd>
             </div>
             {estimate.invoice ? (
@@ -388,14 +396,14 @@ export function JobMoneyPanel({
                 <dt>Invoice</dt>
                 <dd>
                   {formatCents(estimate.invoice.amountCents)} ·{" "}
-                  {estimate.invoice.status}
+                  {statusWord(estimate.invoice.status)}
                 </dd>
               </div>
             ) : null}
           </dl>
 
           <div className="job-money-actions">
-            {estimate.status !== "accepted" || !estimate.publicToken ? (
+            {estimate.status !== "accepted" && !settled ? (
               <button
                 type="button"
                 className="btn btn-void text-sm"
@@ -460,9 +468,7 @@ export function JobMoneyPanel({
               >
                 {busy ? "Recording…" : "Record payment (manual)"}
               </button>
-            ) : (
-              <p className="text-sm text-ash">Paid in full.</p>
-            )}
+            ) : null}
           </div>
         </>
       )}

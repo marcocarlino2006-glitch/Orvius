@@ -112,6 +112,7 @@ export async function getShopOutcomes(
     openEstimates,
     openInvoices,
     trendLeads,
+    depositsPaid,
   ] = await Promise.all([
     prisma.call.count({
       where: { businessId, createdAt: { gte: since } },
@@ -199,6 +200,11 @@ export async function getShopOutcomes(
       where: { businessId, createdAt: { gte: trendSince } },
       select: { createdAt: true, job: { select: { id: true } } },
     }),
+    // Invoices bill the balance net of any deposit, so deposits add to payments without counting twice.
+    prisma.deposit.aggregate({
+      where: { businessId, status: "paid", paidAt: { gte: since } },
+      _sum: { amountCents: true },
+    }),
   ]);
 
   const leadCount = leads.length;
@@ -231,7 +237,8 @@ export async function getShopOutcomes(
       ? Math.round((jobsPerWeek - baselineJobs) * 10) / 10
       : null;
 
-  const collectedCents = payments.reduce((sum, p) => sum + p.amountCents, 0);
+  const collectedCents =
+    payments.reduce((sum, p) => sum + p.amountCents, 0) + (depositsPaid._sum.amountCents ?? 0);
   const openEstimateCents = openEstimates.reduce((sum, e) => sum + e.amountCents, 0);
   const openInvoiceCents = openInvoices.reduce((sum, i) => sum + i.amountCents, 0);
 

@@ -24,11 +24,6 @@
   text-wrap: balance;
 }
 
-.ov-public .hx-mono {
-  font-family: var(--ov-mono);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---------- Features: heading, one line, one link, the real screen on a painting ---------- */
 
 .ov-public .hf-section {

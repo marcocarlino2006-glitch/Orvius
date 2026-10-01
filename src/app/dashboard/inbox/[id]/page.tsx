@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { formatWhen, statusWord } from "@/lib/when";
 
 type LeadDetail = {
   id: string;
@@ -167,9 +168,9 @@ export default function LeadDetailPage() {
           {lead.job ? (
             <ShellPanel title="Job on dispatch" dense>
               <p className="font-sans text-sm text-ash">
-                {lead.job.title} · {lead.job.status}
+                {lead.job.title} · {statusWord(lead.job.status)}
                 {lead.job.scheduledAt
-                  ? ` · ${new Date(lead.job.scheduledAt).toLocaleString()}`
+                  ? ` · ${formatWhen(lead.job.scheduledAt)}`
                   : ""}
                 {!lead.job.technicianId ? " · needs a tech" : ""}
               </p>

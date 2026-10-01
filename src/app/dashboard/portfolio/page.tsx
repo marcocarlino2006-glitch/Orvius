@@ -197,7 +197,7 @@ export default function PortfolioPage() {
           ) : null}
           <p className="pf-foot">
             Calls, leads, bookings, completions and money are counted over the last {data.days} days. Waiting counts every
-            lead with no callback yet, however old. Collected is card payments that settled to each shop.
+            lead with no callback yet, however old. Collected is every recorded payment and paid deposit, the same figure as each shop&apos;s Performance page.
           </p>
         </>
       )}

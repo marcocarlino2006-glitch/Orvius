@@ -9,7 +9,8 @@ import {
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
-import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
+import { nextJobStatus } from "@/lib/job-status";
+import { statusWord } from "@/lib/when";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -206,10 +207,10 @@ export default function JobDetailPage() {
                     : "neutral"
               }
             >
-              {jobStatusLabel(job.status)}
+              {statusWord(job.status)}
             </ShellBadge>
             {job.urgency ? (
-              <ShellBadge tone="neutral">{job.urgency.replace(/-/g, " ")}</ShellBadge>
+              <ShellBadge tone="neutral">{statusWord(job.urgency)}</ShellBadge>
             ) : null}
             {job.technician ? (
               <ShellBadge tone="live">{job.technician.name}</ShellBadge>
@@ -235,11 +236,12 @@ export default function JobDetailPage() {
                 </p>
                 <p className="os-kv-note">
                   {job.customerConfirmedAt
-                    ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString()}`
+                    ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`
                     : job.scheduledAt
                       ? "Proposed window — awaiting customer confirm"
                       : "No window proposed yet"}
                 </p>
+                {job.status !== "completed" && job.status !== "cancelled" ? (
                 <div className="os-kv-actions">
                   <label className="font-sans text-sm">
                     <span className="label">Reschedule</span>
@@ -304,6 +306,7 @@ export default function JobDetailPage() {
                     </button>
                   ) : null}
                 </div>
+                ) : null}
                 {confirmMsg ? (
                   <p className="os-kv-note">{confirmMsg}</p>
                 ) : null}
@@ -406,6 +409,7 @@ export default function JobDetailPage() {
               customerPhone={job.lead?.phone ?? job.customer?.phone ?? null}
               deposit={deposit}
               depositReadiness={depositReadiness}
+              jobClosed={job.status === "completed" || job.status === "cancelled"}
               onRefresh={load}
             />
             {bill ? (

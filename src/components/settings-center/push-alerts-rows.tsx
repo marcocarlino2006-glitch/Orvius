@@ -117,7 +117,7 @@ export function PushAlertsRows() {
     state.kind === "unsupported"
       ? state.reason
       : state.kind === "unconfigured"
-        ? "Switches on from our side. Nothing to set up."
+        ? "Not live yet. Text alerts carry every lead until it is."
         : state.kind === "ready" && state.blocked
           ? "Notifications are blocked for Orvius in this browser's settings."
           : "New calls and urgent jobs on this phone or computer, as they happen. Texts still go out.";
@@ -133,7 +133,7 @@ export function PushAlertsRows() {
             onChange={(next) => void toggle(next)}
           />
         ) : state.kind === "loading" ? null : (
-          <ScStatus on={false}>Off</ScStatus>
+          <ScStatus on={false}>{state.kind === "unconfigured" ? "Coming soon" : "Unavailable"}</ScStatus>
         )}
       </ScRow>
       {state.kind === "ready" && state.on ? (
