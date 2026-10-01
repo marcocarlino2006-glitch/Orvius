@@ -140,6 +140,30 @@ What Orvius takes from it:
 4. **Integrate before replacing.** Jobber is done; Housecall Pro next (small shops), then ServiceTitan's marketplace (mid-market, which needs a partner application).
 5. **Money through the platform is the long game.** Invoices and deposits already run on Stripe; measure collected dollars weekly and grow them.
 
+## How the fastest AI companies grew (studied 2026-10-01)
+
+Sources: Manus co-founder Tao Zhang on Stripe's "The AI Boom" (May 2026, via Dealroom); Caixin on the Manus timeline (Jan 2026); Manus's $100M ARR post (Dec 17, 2025); Lovable growth breakdown (AI Funding Tracker); "Growth Machines: The Cursor Story" (Builderlab); the Leonis AI 100; Bessemer's 2026 AI pricing playbook.
+
+| Company | What happened | What made it work |
+|---|---|---|
+| Manus | Launched March 2025; $100M ARR in 8 months with no paid marketing; Meta bought it Dec 29, 2025 (reported $2–3B) | A raw, self-shot launch video of the agent actually doing the work — 2M waitlist signups in week one. **Session Replay**: users share a replay of the AI working, so friends watch it happen. Growth came from where users already were (Arabic Facebook posts, two Brazilian YouTubers). Power users paying far above the top plan showed what to build next. |
+| Lovable | $17M ARR in 90 days, $100M in 8 months, no paid marketing, 45 people | 12+ channels at once (X, Product Hunt, Reddit, GitHub, podcasts, partners, search). A public showcase of what users built. Sharing built into the product. |
+| Cursor | $100M ARR in about 12 months | Built on what people already used (VS Code). Served the most demanding user first; they told their teams. A free tier that's genuinely useful. |
+| The pattern (Leonis AI 100) | 80%+ of the top 100 AI startups launched self-serve | Value in the first minutes; sales comes after adoption, not before. |
+| Pricing (Bessemer) | Agents with hard ROI have pricing power | Charge for the outcome (Intercom: $0.99 per resolved ticket); base subscription plus outcome tiers. |
+
+What Orvius copies, in order:
+
+| # | Item | Status |
+|---|---|---|
+| I1 | **The raw launch video.** One unedited screen-and-audio recording: three businesses answered as themselves (HVAC at 11 PM, a salon, a law office), the owner's phone buzzing with the booking text, then "Try yours free." No studio. | open — needs `/try` live (G5) and toll-free texts (S6) |
+| I2 | **Call Replay, our Session Replay.** After a `/try` preview call, the owner gets a share link: the transcript playing line by line with the booking card appearing at the end. Preview calls are the owner's own, so they're safe to share; real customer calls are never shareable. | open |
+| I3 | **"Answered by Orvius" on every booking text** with a link to `/try`, so each customer who books sees it (Manus/Lovable sharing loop). Owner can turn it off on higher plans. | open |
+| I4 | **Go where owners already are:** one creator per industry (HVAC YouTubers, salon TikTok, dental Facebook groups), and posts in Spanish. | open — founder |
+| I5 | **Many channels at once:** Product Hunt, Reddit (r/smallbusiness, r/HVAC, r/sweatystartup), X, YouTube, Google search (done: #108), partner directories. | open — founder + content |
+| I6 | **Watch the power users.** On the scoreboard, list businesses over their included calls and what they use most; that picks the next pack and the next tier. | open |
+| I7 | **Price the outcome.** Test a per-booked-job tier next to the flat plans once booking rate is measured for 30 days. | later — needs data |
+
 ## Still needs Marco
 
 Where production actually stands is whatever `npm run prod:verify` says, not
