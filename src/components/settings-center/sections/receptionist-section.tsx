@@ -79,6 +79,28 @@ export function ReceptionistSection({
           </select>
         </ScRow>
       </ScGroup>
+      <ScGroup title="Reviews">
+        <ScRow
+          stack
+          label="Review link"
+          hint="Your Google, Yelp, or Facebook review page. Paste it once and every customer whose visit is marked done gets one short text asking for a review, an hour or more after the visit, 9am to 8pm. Once per customer every 90 days, never after a STOP."
+        >
+          <ScField
+            ariaLabel="Review link"
+            inputMode="url"
+            value={b.reviewUrl ?? ""}
+            placeholder="https://g.page/r/your-business/review"
+            onCommit={(v) => patch({ reviewUrl: v.trim() || null })}
+          />
+        </ScRow>
+        <ScRow label="Ask finished customers for a review" hint="Everyone gets the same link. Asking only happy customers breaks Google's rules.">
+          <ScSwitch
+            label="Ask for reviews"
+            checked={b.reviewRequestsOn ?? true}
+            onChange={(next) => void patch({ reviewRequestsOn: next })}
+          />
+        </ScRow>
+      </ScGroup>
       <ScGroup title="Your numbers">
         <ScRow label="Average ticket" hint="Estimates booked value on Command. Not money collected.">
           <span className="sc-affix">

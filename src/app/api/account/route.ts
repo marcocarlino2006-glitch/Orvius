@@ -3,6 +3,7 @@ import { isReceptionistVoice, resolveVoiceId } from "@/lib/voices";
 import { auth } from "@/auth";
 import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
 import { busyCalendarHost } from "@/lib/busy-calendar";
+import { normalizeReviewUrl } from "@/lib/review-requests";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
 import { jobberStatus } from "@/lib/jobber";
 import { getShopLineForBusiness } from "@/lib/demo-business";
@@ -68,6 +69,8 @@ const patchSchema = z.object({
   depositEnabled: z.boolean().optional(),
   autopilot: z.boolean().optional(),
   followUpMode: z.enum(["off", "ask", "auto"]).optional(),
+  reviewUrl: z.string().max(500).nullable().optional(),
+  reviewRequestsOn: z.boolean().optional(),
   depositAmountCents: z
     .number()
     .int()
@@ -150,6 +153,8 @@ export async function GET(request: Request) {
         depositEnabled: businessRecord.depositEnabled,
         autopilot: businessRecord.autopilot,
         followUpMode: businessRecord.followUpMode,
+        reviewUrl: businessRecord.reviewUrl,
+        reviewRequestsOn: businessRecord.reviewRequestsOn,
         depositAmountCents: businessRecord.depositAmountCents,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
           ? businessRecord.ownerSmsOptOutAt.toISOString()
@@ -262,6 +267,8 @@ const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
   depositAmountCents: { label: "deposit amount" },
   autopilot: { label: "routine work handling" },
   followUpMode: { label: "follow-up texts" },
+  reviewUrl: { label: "review link" },
+  reviewRequestsOn: { label: "review requests" },
 };
 
 function settingsChanges(before: Record<string, unknown>, after: Record<string, unknown>) {
@@ -370,6 +377,17 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: depositCheck.error }, { status: 400 });
     }
 
+    let reviewUrl: string | null | undefined;
+    if (body.reviewUrl !== undefined) {
+      if (!body.reviewUrl?.trim()) {
+        reviewUrl = null;
+      } else {
+        const checked = normalizeReviewUrl(body.reviewUrl);
+        if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
+        reviewUrl = checked.url;
+      }
+    }
+
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {
@@ -428,6 +446,8 @@ export async function PATCH(request: Request) {
           : {}),
         ...(body.autopilot !== undefined ? { autopilot: body.autopilot } : {}),
         ...(body.followUpMode !== undefined ? { followUpMode: body.followUpMode } : {}),
+        ...(reviewUrl !== undefined ? { reviewUrl } : {}),
+        ...(body.reviewRequestsOn !== undefined ? { reviewRequestsOn: body.reviewRequestsOn } : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
           : {}),
@@ -501,6 +521,8 @@ export async function PATCH(request: Request) {
         depositEnabled: saved.depositEnabled,
         autopilot: saved.autopilot,
         followUpMode: saved.followUpMode,
+        reviewUrl: saved.reviewUrl,
+        reviewRequestsOn: saved.reviewRequestsOn,
         depositAmountCents: saved.depositAmountCents,
       },
       deposits: depositsPayload(saved),

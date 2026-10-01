@@ -569,3 +569,8 @@ CREATE TABLE IF NOT EXISTS "Message" (
 CREATE UNIQUE INDEX IF NOT EXISTS "Message_businessId_sid_key" ON "Message"("businessId", "sid");
 CREATE INDEX IF NOT EXISTS "Message_businessId_phoneNormalized_createdAt_idx" ON "Message"("businessId", "phoneNormalized", "createdAt");
 CREATE INDEX IF NOT EXISTS "Message_businessId_createdAt_idx" ON "Message"("businessId", "createdAt");
+
+-- Review requests: one text with the shop's review link after a finished visit.
+ALTER TABLE "Business" ADD COLUMN "reviewUrl" TEXT;
+ALTER TABLE "Business" ADD COLUMN "reviewRequestsOn" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Job" ADD COLUMN "reviewRequestedAt" DATETIME;

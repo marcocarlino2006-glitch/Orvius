@@ -4,6 +4,7 @@ import { drainJobberSyncs } from "@/lib/jobber";
 import { runAutoFollowUps } from "@/lib/lead-follow-up";
 import { watchAllLines } from "@/lib/line-watch";
 import { logError } from "@/lib/logger";
+import { runReviewRequests } from "@/lib/review-requests";
 import { isProduction } from "@/lib/runtime";
 
 /*
@@ -28,11 +29,12 @@ export async function GET(request: NextRequest) {
     return null;
   };
   // On the 30-minute schedule: a Jobber retry waits minutes, and a caller hears back hours after calling, not the next day.
-  const [jobber, followUps] = await Promise.all([
+  const [jobber, followUps, reviews] = await Promise.all([
     drainJobberSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("jobber_sync")),
     runAutoFollowUps({ budgetMs: 25_000 }).catch(failed("follow_ups")),
+    runReviewRequests({ budgetMs: 25_000 }).catch(failed("review_requests")),
   ]);
-  return NextResponse.json({ ok: true, ...lines, jobber, followUps });
+  return NextResponse.json({ ok: true, ...lines, jobber, followUps, reviews });
 }
 
 export async function POST(request: NextRequest) {

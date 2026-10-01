@@ -69,6 +69,10 @@ model Business {
   weeklyReportSentAt DateTime?
   /// Owner's private iCal address; busy times there are never offered to callers.
   busyCalendarUrl      String?
+  /** Where a finished customer is asked to leave a review (Google, Yelp, Facebook…). */
+  reviewUrl            String?
+  /** Text each finished customer the review link once, the day of the visit. */
+  reviewRequestsOn     Boolean  @default(true)
   busyCalendarJson     String?
   busyCalendarSyncedAt DateTime?
   busyCalendarError    String?
@@ -347,6 +351,8 @@ model Job {
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?
+  /** The customer was texted the review link for this visit; claimed before the send. */
+  reviewRequestedAt DateTime?
   /** Structured field outcome — the label future intelligence learns from. */
   resolutionCode String?
   /** Short technician evidence, never generated or inferred. */
