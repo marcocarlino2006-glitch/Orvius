@@ -343,7 +343,7 @@ function DemoPanel({ onChange }: { onChange: () => void }) {
   );
 }
 
-function TryDemo() {
+function TryDemo({ empty }: { empty: boolean }) {
   const [busy, setBusy] = useState(false);
   async function open() {
     setBusy(true);
@@ -357,7 +357,9 @@ function TryDemo() {
   }
   return (
     <div className="cb-try">
-      <p className="cb-muted">No calls yet. Run the whole loop in your own demo shop first — your real line is untouched.</p>
+      <p className="cb-muted">
+        {empty ? "No calls yet. " : ""}Try a scenario in your own demo shop first — your real line and customers are untouched.
+      </p>
       <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void open()}>
         {busy ? "Opening…" : "Open a demo workspace"}
       </button>
@@ -444,7 +446,7 @@ export function CommandBoard({ onChange }: { onChange?: () => void }) {
       ) : (
         <p className="cb-muted">Reading the board…</p>
       )}
-      {empty && !demo ? <TryDemo /> : null}
+      {board && !demo ? <TryDemo empty={empty} /> : null}
     </section>
   );
 }
