@@ -19,6 +19,7 @@ import { sendOwnerNudges } from "@/lib/owner-nudges";
 import { purgeExpiredCallContent } from "@/lib/retention";
 import { voiceLatencyRollup } from "@/lib/call-latency";
 import { drainJobberSyncs } from "@/lib/jobber";
+import { purgeStaleVisitorShops } from "@/lib/public-demo";
 
 /*
   The daily sweep, not the thing that makes the retry ladder work.
@@ -110,6 +111,7 @@ export async function GET(request: NextRequest) {
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
   const jobber = await step("jobber_sync", () => drainJobberSyncs({ limit: 100, budgetMs: 60_000 }));
   const retention = await step("call_content_retention", () => purgeExpiredCallContent());
+  const visitorShops = await step("visitor_demo_purge", () => purgeStaleVisitorShops());
   const voiceLatency = await step("voice_latency", async () => {
     const rollup = await voiceLatencyRollup(new Date(Date.now() - 24 * 60 * 60 * 1000));
     logInfo("voice.latency_daily", rollup);
@@ -130,6 +132,7 @@ export async function GET(request: NextRequest) {
     lapsedLines,
     ownerNudges,
     retention,
+    visitorShops,
     jobber,
     voiceLatency,
     autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },

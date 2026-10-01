@@ -3,6 +3,7 @@ import type { Business } from "@prisma/client";
 import { DEMO_SCENARIOS, ensureDemoWorkspace, findDemoWorkspace, simulateCustomerConfirm, simulateDemoCall } from "@/lib/demo-workspace";
 import { processNotificationQueue } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { deleteWorkspace } from "@/lib/workspace-deletion";
 import { buildRequestTrace, type RequestTrace } from "@/lib/request-trace";
 
 export const VISITOR_COOKIE = "orvius_demo_visitor";
@@ -65,4 +66,20 @@ export async function confirmPublicJob(business: Business, jobId: string) {
   const result = await simulateCustomerConfirm(business, jobId);
   const job = await prisma.job.findFirst({ where: { id: jobId, businessId: business.id }, select: { leadId: true } });
   return { ok: result.ok, trace: job?.leadId ? await buildRequestTrace(business.id, job.leadId) : null };
+}
+
+/** Visitor shops are disposable: the cookie lasts a week, so the shop does too. */
+export async function purgeStaleVisitorShops(now = new Date(), maxAgeDays = 7, limit = 500) {
+  const cutoff = new Date(now.getTime() - maxAgeDays * 24 * 60 * 60_000);
+  const stale = await prisma.business.findMany({
+    where: { environment: "demo", ownerEmail: { endsWith: "@demo.invalid" }, slug: { startsWith: "demo-" }, createdAt: { lt: cutoff } },
+    select: { id: true, ownerEmail: true },
+    take: limit,
+  });
+  let purged = 0;
+  for (const shop of stale) {
+    await deleteWorkspace(shop.id, shop.ownerEmail);
+    purged += 1;
+  }
+  return { purged };
 }

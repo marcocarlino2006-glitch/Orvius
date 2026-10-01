@@ -14,6 +14,12 @@ type Run = { duplicate?: boolean; autoBooked?: boolean; skipReason?: string | nu
 
 const TONE_LABEL: Record<TraceEvent["tone"], string> = { ok: "Done", failed: "Failed", held: "Held for you", info: "Logged" };
 
+function isHighlight(e: TraceEvent) {
+  if (/^Queued the owner alert/.test(e.title)) return false;
+  if (e.tone !== "info") return true;
+  return /^Answered|playbook/i.test(e.title);
+}
+
 function when(iso: string) {
   return new Date(iso).toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" });
 }
@@ -34,6 +40,7 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const stage = useRef<HTMLElement>(null);
+  const [full, setFull] = useState(false);
 
   async function post(body: object) {
     setBusy(true);
@@ -54,6 +61,7 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
   async function play(s: Scenario) {
     setActive(s);
     setRun(null);
+    setFull(false);
     if (window.matchMedia("(max-width: 720px)").matches) stage.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     const result = await post({ scenario: s.id });
     if (result) setRun(result);
@@ -66,6 +74,8 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
 
   const result = run ? outcome(run) : null;
   const job = run?.trace?.job;
+  const events = run?.trace?.events ?? [];
+  const shown = full ? events : events.filter(isHighlight);
 
   return (
     <div className="pd-grid">
@@ -116,20 +126,25 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
               </button>
             ) : null}
 
-            {run?.trace?.events.length ? (
+            {events.length ? (
               <>
-                <p className="pd-kicker">What Orvius did, step by step</p>
+                <p className="pd-kicker">{full ? "Full audit trail" : "What Orvius did"}</p>
                 <ol className="pd-trace">
-                  {run.trace.events.map((e) => (
-                    <li key={e.id} data-tone={e.tone}>
-                      <span className="pd-trace-tag">{TONE_LABEL[e.tone]}</span>
+                  {shown.map((e) => (
+                    <li key={e.id} data-tone={!full && e.tone === "info" ? "ok" : e.tone}>
+                      <span className="pd-trace-tag">{TONE_LABEL[!full && e.tone === "info" ? "ok" : e.tone]}</span>
                       <span>
-                        {e.title}
+                        {e.simulated ? e.title.replace(/\s*\(simulated\)/, "") : e.title}
                         {e.simulated ? <em> · simulated</em> : null}
                       </span>
                     </li>
                   ))}
                 </ol>
+                {events.length > shown.length || full ? (
+                  <button type="button" className="pd-more" onClick={() => setFull((v) => !v)}>
+                    {full ? "Show the key steps" : `Show the full audit trail (${events.length} entries)`}
+                  </button>
+                ) : null}
               </>
             ) : null}
           </>

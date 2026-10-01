@@ -269,11 +269,11 @@ try {
     /ov-hero-actions/.test(hero) &&
     /ov-hero-liveline/.test(hero) &&
     /Call the live line/.test(hero) &&
-    /\/signin\?mode=signup|href="\/try"/.test(hero)
+    /\/signin\?mode=signup|href="\/try"|href="\/watch"/.test(hero)
   ) {
     pass(
       "Look hero P1",
-      "Claim + Call the live line + Get started / Try — two links, dialable proof",
+      "Claim + Call the live line + Watch / Get started / Try — two links, dialable proof",
     );
   } else {
     fail(

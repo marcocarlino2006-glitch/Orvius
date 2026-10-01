@@ -4091,3 +4091,16 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
     gap: 0.125rem;
   }
 }
+.pd-more {
+  margin-top: 0.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ov-accent-text);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.pd-more:hover {
+  text-decoration: underline;
+}
