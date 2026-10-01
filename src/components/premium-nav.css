@@ -1,0 +1,164 @@
+/* Click- or hover-to-open menus under Product and Resources. */
+
+.mkt-nav-links {
+  position: relative;
+}
+
+/* Panels center on the whole link row, so the right-hand menu stays on screen. */
+.mkt-nav-item {
+  position: static;
+}
+
+.mkt-nav-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.85rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ov-ink, #f6f6f6);
+  opacity: 0.9;
+  font-family: var(--ov-font, inherit);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.mkt-nav-trigger:hover,
+.mkt-nav-trigger.is-open {
+  opacity: 1;
+  background: color-mix(in srgb, var(--ov-ink, #fff) 8%, transparent);
+}
+
+.mkt-nav-trigger:focus-visible {
+  outline: 2px solid var(--ov-accent, #f5a524);
+  outline-offset: 2px;
+}
+
+.mkt-nav-caret {
+  opacity: 0.6;
+  transition: transform 180ms ease;
+}
+
+.mkt-nav-trigger.is-open .mkt-nav-caret {
+  transform: rotate(180deg);
+}
+
+.mkt-nav-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  z-index: 60;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15rem;
+  gap: 0.5rem;
+  width: min(44rem, calc(100vw - 2rem));
+  padding: 0.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--ov-hairline-strong, rgb(255 255 255 / 0.08));
+  background: var(--ov-paper-raised, rgb(24 24 27));
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.7);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  white-space: normal;
+  text-align: left;
+  opacity: 0;
+  transform: translate(-50%, -4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.mkt-nav-panel.is-open {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.mkt-nav-panel[hidden] {
+  display: none;
+}
+
+/* Bridge the gap so moving the mouse down to the panel does not close it. */
+.mkt-nav-panel::before {
+  content: "";
+  position: absolute;
+  inset: -12px 0 auto;
+  height: 12px;
+}
+
+.mkt-nav-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.ov-public .mkt-nav-links .mkt-nav-panel a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 9px;
+  color: inherit;
+  text-decoration: none;
+  /* The shared nav-link rule forces nowrap with !important. */
+  white-space: normal !important;
+  opacity: 1;
+}
+
+.ov-public .mkt-nav-links .mkt-nav-panel a::after {
+  display: none;
+}
+
+.ov-public .mkt-nav-links .mkt-nav-panel a:hover,
+.ov-public .mkt-nav-links .mkt-nav-panel a:focus-visible {
+  background: color-mix(in srgb, var(--ov-ink, #fff) 6%, transparent);
+  outline: none;
+}
+
+.mkt-nav-panel-label {
+  color: var(--ov-headline, #f6f6f6);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.mkt-nav-panel-detail {
+  color: var(--ov-muted, rgb(246 246 246 / 0.58));
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.ov-public .mkt-nav-links .mkt-nav-panel a.mkt-nav-panel-feature {
+  gap: 0.3rem;
+  padding: 0.6rem;
+  background: color-mix(in srgb, var(--ov-ink, #fff) 3%, transparent);
+  border: 1px solid var(--ov-hairline, rgb(255 255 255 / 0.06));
+}
+
+.mkt-nav-panel-feature-art {
+  display: block;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 0.4rem;
+  border-radius: 7px;
+  background-position: center;
+  background-size: cover;
+}
+
+.mkt-nav-panel-cta {
+  margin-top: 0.25rem;
+  color: var(--ov-accent-text, #f5a524);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-nav-panel {
+    transition: none;
+  }
+}

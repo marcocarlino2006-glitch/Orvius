@@ -31,10 +31,10 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Die Anrufe, die Sie nicht annehmen können — angenommen und gebucht.",
   },
   "hero.lead": {
-    en: "Orvius is the AI front desk for any business that runs on the phone. It answers the calls you can't take, offers an open time from your schedule, and texts you what happened.",
-    es: "Orvius es la recepción con IA para cualquier negocio que vive del teléfono. Contesta las llamadas que usted no puede, ofrece un horario libre de su agenda y le envía por mensaje lo que pasó.",
-    fr: "Orvius est l’accueil IA de toute entreprise qui vit du téléphone. Il répond aux appels que vous ne pouvez pas prendre, propose un créneau libre de votre planning et vous envoie un SMS avec ce qui s’est passé.",
-    de: "Orvius ist die KI-Rezeption für jedes Unternehmen, das vom Telefon lebt. Sie nimmt die Anrufe an, die Sie nicht annehmen können, bietet einen freien Termin aus Ihrem Kalender an und schickt Ihnen per SMS, was passiert ist.",
+    en: "The AI front desk for every business that runs on the phone.",
+    es: "La recepción con IA para todo negocio que vive del teléfono.",
+    fr: "L’accueil IA de toute entreprise qui vit du téléphone.",
+    de: "Die KI-Rezeption für jedes Unternehmen, das vom Telefon lebt.",
   },
   "hero.try": {
     en: "Hear it as your business",
