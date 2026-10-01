@@ -23,6 +23,7 @@ export async function sendCustomerSms(params: {
   businessId: string;
   to: string;
   body: string;
+  author?: "orvius" | "owner";
 }): Promise<CustomerSmsResult> {
   const normalized = normalizePhone(params.to);
   if (!normalized) {
@@ -47,6 +48,7 @@ export async function sendCustomerSms(params: {
     body: params.body,
     businessId: params.businessId,
     audience: "customer",
+    author: params.author,
   });
   if (!result) return { sent: false, reason: "sms_not_configured" };
   return { sent: true, sid: result.sid };

@@ -4,6 +4,7 @@ export const SHOW_SHORTCUTS_EVENT = "orvius:shortcuts";
 export const GO_TO: Array<{ key: string; href: string; label: string }> = [
   { key: "c", href: "/dashboard", label: "Command" },
   { key: "i", href: "/dashboard/inbox", label: "Inbox" },
+  { key: "m", href: "/dashboard/inbox/messages", label: "Messages" },
   { key: "l", href: "/dashboard/calls", label: "Calls" },
   { key: "u", href: "/dashboard/customers", label: "Customers" },
   { key: "j", href: "/dashboard/jobs", label: "Jobs" },

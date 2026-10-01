@@ -120,6 +120,7 @@ model Business {
   webhookEvents      WebhookEvent[]
   smsOptOuts         SmsOptOut[]
   outboundSms        OutboundSms[]
+  messages           Message[]
   auditEvents        AuditEvent[]
   memberships        Membership[]
   /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
@@ -151,6 +152,27 @@ model OutboundSms {
   createdAt    DateTime @default(now())
 
   @@index([toNormalized, createdAt])
+  @@index([businessId, createdAt])
+}
+
+/** Every customer text in and out, so the owner reads and answers one thread per phone. */
+model Message {
+  id              String   @id @default(cuid())
+  businessId      String
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  phoneNormalized String
+  /** in | out */
+  direction       String
+  /** customer | orvius | owner */
+  author          String
+  body            String
+  sid             String?
+  /** Set when the owner has read an inbound text. */
+  readAt          DateTime?
+  createdAt       DateTime @default(now())
+
+  @@unique([businessId, sid])
+  @@index([businessId, phoneNormalized, createdAt])
   @@index([businessId, createdAt])
 }
 

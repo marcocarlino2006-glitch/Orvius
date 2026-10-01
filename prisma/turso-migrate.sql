@@ -552,3 +552,20 @@ CREATE UNIQUE INDEX IF NOT EXISTS "PasswordLogin_email_key" ON "PasswordLogin"("
 
 -- Industry packs: /try previews answer as the business type the owner picked.
 ALTER TABLE "ShopPreview" ADD COLUMN "trade" TEXT NOT NULL DEFAULT 'HVAC';
+
+-- Unified inbox: every customer text in and out, one thread per phone.
+CREATE TABLE IF NOT EXISTS "Message" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "phoneNormalized" TEXT NOT NULL,
+  "direction" TEXT NOT NULL,
+  "author" TEXT NOT NULL,
+  "body" TEXT NOT NULL,
+  "sid" TEXT,
+  "readAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Message_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Message_businessId_sid_key" ON "Message"("businessId", "sid");
+CREATE INDEX IF NOT EXISTS "Message_businessId_phoneNormalized_createdAt_idx" ON "Message"("businessId", "phoneNormalized", "createdAt");
+CREATE INDEX IF NOT EXISTS "Message_businessId_createdAt_idx" ON "Message"("businessId", "createdAt");

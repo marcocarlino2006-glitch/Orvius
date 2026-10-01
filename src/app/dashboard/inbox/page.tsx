@@ -88,7 +88,12 @@ export default function InboxPage() {
     <OsShell
       title="Inbox"
       actions={
-        <ProShopLineCta label="Call your line" showNumber={false} />
+        <>
+          <Link href="/dashboard/inbox/messages" className="btn btn-secondary text-sm">
+            Messages
+          </Link>
+          <ProShopLineCta label="Call your line" showNumber={false} />
+        </>
       }
     >
       <ProLead
