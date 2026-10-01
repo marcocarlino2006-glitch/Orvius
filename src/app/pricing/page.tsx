@@ -44,7 +44,7 @@ export default function PricingPage() {
               <Link href="/pilot" className="underline underline-offset-2">
                 call audit
               </Link>{" "}
-              and we&apos;ll set up your shop line with you.
+              and we&apos;ll set up your business line with you.
             </p>
           ) : null}
         </div>

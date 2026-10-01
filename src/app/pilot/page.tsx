@@ -20,7 +20,7 @@ export default function PilotPage() {
             label="Live call audit"
             title="See what your missed calls are costing."
             subline="We walk through your after-hours and overflow calls, then set up your line if it fits."
-            description="No slide deck. A look at what Orvius would capture for your HVAC shop. If it fits, we set up your line with you and you choose a plan."
+            description="No slide deck. A look at what Orvius would capture for your business. If it fits, we set up your line with you and you choose a plan."
             actions={
               <>
                 <a href="#waitlist" className="ov-btn ov-btn--solid">

@@ -21,7 +21,7 @@ export const SETTINGS_SEARCH: Array<{ label: string; section: SettingsSectionId;
   { label: "Name and email", section: "account", keywords: "profile sign in login" },
   { label: "Setup checklist", section: "account", keywords: "getting started onboarding progress" },
   { label: "Business name", section: "business", keywords: "shop company rename" },
-  { label: "Trade", section: "business", keywords: "hvac plumbing electrical industry" },
+  { label: "Business type", section: "business", keywords: "trade industry hvac plumbing electrical salon dental medical law auto real estate" },
   { label: "Shop address", section: "business", keywords: "location" },
   { label: "Your Orvius line", section: "phone", keywords: "phone number" },
   { label: "Forwarding", section: "phone", keywords: "call forward carrier verizon att t-mobile missed calls" },

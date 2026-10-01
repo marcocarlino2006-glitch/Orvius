@@ -14,7 +14,7 @@ const steps = [
   {
     id: "01",
     title: "Answer every call.",
-    body: "After-hours and overflow calls are answered in your shop's name, in English or Spanish. Gas, carbon monoxide and smoke calls get safety instructions first.",
+    body: "After-hours and overflow calls are answered in your business's name, in English or Spanish. Emergencies — gas, smoke, a medical crisis — get safety instructions first.",
   },
   {
     id: "02",
@@ -40,9 +40,9 @@ export default function ProductPage() {
         <div className="editorial-wrap ov-product-hero-grid">
           <ShellPageIntro
             label="Product"
-            title="HVAC receptionist that turns missed calls into paid jobs."
-            subline="It answers the calls you can't take, after hours and when every tech is on a job."
-            description="It qualifies the caller, books a window, confirms by text and alerts you, so the morning starts with a short list instead of a voicemail box."
+            title="The AI receptionist that turns missed calls into booked customers."
+            subline="It answers the calls you can't take, after hours and when everyone is busy."
+            description="It understands what the caller needs, offers an open time, confirms by text and alerts you, so the morning starts with a short list instead of a voicemail box."
             actions={
               <>
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">
@@ -85,7 +85,7 @@ export default function ProductPage() {
               Hear it on a real line.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Dial the live line and play a customer, or book a call audit for your shop.
+              Dial the live line and play a customer, or book a call audit for your business.
             </p>
           </div>
           <div className="tier1-actions">

@@ -248,13 +248,13 @@ try {
   const company = read("src/lib/company.ts");
   const hero = read("src/components/home-line-hero.tsx");
   if (
-    /focused AI receptionist for HVAC/i.test(company) &&
-    /HVAC company will pay/i.test(company) &&
+    /front office of a Fortune 500 company/i.test(company) &&
+    /every business that runs on the phone/i.test(company) &&
     /DEMO_LINE_DISPLAY/.test(hero)
   ) {
-    pass("L8 Presence", "Company + hero own HVAC receptionist wedge with live line");
+    pass("L8 Presence", "Company + hero own the every-business front desk with live line");
   } else {
-    fail("L8 Presence", "Must claim HVAC AI receptionist wedge and lead with live line");
+    fail("L8 Presence", "Must state the every-business front desk mission and lead with live line");
   }
 } catch (e) {
   fail("L8 Presence", e instanceof Error ? e.message : String(e));

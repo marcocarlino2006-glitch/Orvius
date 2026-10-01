@@ -207,13 +207,13 @@ try {
     );
   }
   if (
-    /focused AI receptionist for HVAC/i.test(company) &&
-    /HVAC company will pay/i.test(company) &&
-    /completed and paid job/i.test(company)
+    /front office of a Fortune 500 company/i.test(company) &&
+    /every business that runs on the phone/i.test(company) &&
+    /call → cash/i.test(company)
   ) {
     pass(
       "Presence category",
-      "Company copy owns HVAC receptionist wedge — call→cash before OS",
+      "Company copy owns the mission and the every-business front desk — call→cash",
     );
   } else {
     fail(

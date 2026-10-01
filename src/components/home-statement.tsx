@@ -3,7 +3,7 @@
   something a visitor can check by dialing the live line.
 */
 const facts = [
-  { title: "Answers in your shop's name", body: "After hours and overflow, with your opening line." },
+  { title: "Answers in your business's name", body: "After hours and overflow, with your opening line." },
   { title: "English and Spanish", body: "It switches when the caller does. Records stay in English." },
   { title: "Safety first", body: "Gas, carbon monoxide and smoke callers are told to get safe before anything else." },
   { title: "Every call on the record", body: "Recorded, transcribed and graded, with the rough ones flagged." },

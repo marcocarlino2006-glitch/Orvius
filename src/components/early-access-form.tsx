@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { FormField } from "@/components/shell-primitives";
+import { TRADES } from "@/lib/trades";
 
 type FormProps = {
   variant?: "compact" | "full";
@@ -88,7 +89,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               className="input"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Summit HVAC"
+              placeholder="Your business name"
               autoComplete="organization"
             />
           </FormField>
@@ -117,18 +118,18 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               inputMode="tel"
             />
           </FormField>
-          <FormField label="Trade">
+          <FormField label="Business type">
             <select
               className="input"
               value={trade}
               onChange={(e) => setTrade(e.target.value)}
             >
-              <option value="">Select trade</option>
-              <option value="hvac">HVAC</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="electrical">Electrical</option>
-              <option value="roofing">Roofing</option>
-              <option value="other">Other home services</option>
+              <option value="">Select business type</option>
+              {TRADES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
             </select>
           </FormField>
         </div>

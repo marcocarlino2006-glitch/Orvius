@@ -64,7 +64,7 @@ const field: Surface = {
   id: "field",
   label: "In the field",
   title: "The tech and the customer each get one clean page.",
-  body: "No app to install. The tech gets the address and one tap to call; the customer gets the window and the shop's number.",
+  body: "No app to install. The tech gets the address and one tap to call; the customer gets the time and your number.",
 };
 
 export function HomeSurfaces() {
@@ -103,7 +103,7 @@ export function HomeSurfaces() {
           <div>
             <p className="mkt-manifesto-kicker font-sans">Inside the product</p>
             <h2 id="home-surfaces-heading" className="hx-title">
-              The board your shop runs on.
+              The board your business runs on.
             </h2>
           </div>
           <div className="hx-arrows">

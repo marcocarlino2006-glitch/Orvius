@@ -17,7 +17,7 @@ const rules: Rule[] = [
   {
     id: "greeting",
     title: "Your opening line",
-    body: "The first thing every caller hears, in your words and your shop's name.",
+    body: "The first thing every caller hears, in your words and your business's name.",
     src: "/marketing/product/s-receptionist.webp",
     focus: "right 14%",
     zoom: 1.36,

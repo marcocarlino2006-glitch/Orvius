@@ -8,19 +8,19 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Enterprise",
-  description: `${company.productName} for multi-shop HVAC operators: every location side by side, roles for owners, managers and dispatchers, and a record of every change.`,
+  description: `${company.productName} for multi-location businesses: every location side by side, roles for owners, managers and dispatchers, and a record of every change.`,
 };
 
 const pillars = [
   {
     id: "01",
     title: "Every location side by side.",
-    body: "Calls, leads, booked and completed jobs, money collected, and callers still waiting, per shop, over 7, 30 or 90 days. Sorted so the shop that needs attention is on top.",
+    body: "Calls, leads, booked and completed jobs, money collected, and callers still waiting, per location, over 7, 30 or 90 days. Sorted so the location that needs attention is on top.",
   },
   {
     id: "02",
     title: "Roles that match the job.",
-    body: "Owners add managers and dispatchers by email, on every plan. Managers can change settings and the team; dispatchers run calls, leads, jobs and dispatch. One sign-in switches between every shop it can open.",
+    body: "Owners add managers and dispatchers by email, on every plan. Managers can change settings and the team; dispatchers run calls, leads, jobs and dispatch. One sign-in switches between every location it can open.",
   },
   {
     id: "03",
@@ -30,7 +30,7 @@ const pillars = [
   {
     id: "04",
     title: "Rolled out with you.",
-    body: "Each shop’s services, hours, service area and escalation rules are set up with you before its line goes live. Card checkout takes one location at a time, so multi-shop billing is set up with you on an order form.",
+    body: "Each location’s services, hours, service area and escalation rules are set up with you before its line goes live. Card checkout takes one location at a time, so multi-location billing is set up with you on an order form.",
   },
 ] as const;
 
@@ -42,12 +42,12 @@ export default function EnterprisePage() {
           <ShellPageIntro
             label="Enterprise"
             title="Every location on one board."
-            subline="For franchises and multi-shop HVAC operators."
-            description="Each shop keeps its own line, hours and rules. You see all of them side by side, with every change recorded."
+            subline="For franchises, groups and multi-location businesses."
+            description="Each location keeps its own line, hours and rules. You see all of them side by side, with every change recorded."
             actions={
               <>
                 <a
-                  href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop%20HVAC"
+                  href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-location"
                   className="ov-btn ov-btn--solid"
                 >
                   Talk to us
@@ -88,13 +88,13 @@ export default function EnterprisePage() {
             <p className="tier1-section-lead font-sans">
               Multi-shop is ${multi.price} per location a month for {multi.limit?.toLowerCase()}, with
               Pro and {(multi.includedCalls ?? 0).toLocaleString("en-US")} answered calls at each location
-              ({OVERAGE_CENTS_PER_CALL}¢ per call past that). Tell us how many HVAC locations you run and
+              ({OVERAGE_CENTS_PER_CALL}¢ per call past that). Tell us how many locations you run and
               we&apos;ll set them up with you.
             </p>
           </div>
           <div className="tier1-actions">
             <a
-              href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop%20HVAC"
+              href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-location"
               className="ov-btn ov-btn--solid"
             >
               Talk to us

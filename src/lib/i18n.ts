@@ -94,9 +94,9 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
 
   "footer.tagline": {
-    en: "Focused AI receptionist for HVAC — missed calls to paid jobs.",
-    es: "Recepcionista de IA para HVAC — de llamadas perdidas a trabajos pagados.",
-    fr: "Réceptionniste IA pour le CVC — des appels manqués aux travaux payés.",
-    de: "KI-Rezeption für HVAC — von verpassten Anrufen zu bezahlten Jobs.",
+    en: "The AI front desk for every business that runs on the phone.",
+    es: "La recepción con IA para cada negocio que vive del teléfono.",
+    fr: "L’accueil IA de chaque entreprise qui vit du téléphone.",
+    de: "Die KI-Rezeption für jedes Unternehmen, das vom Telefon lebt.",
   },
 };
