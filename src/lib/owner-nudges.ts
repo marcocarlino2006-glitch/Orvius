@@ -37,7 +37,7 @@ function nudge(shop: NudgeShop, dedupeKey: string, message: string) {
 
 /** Sent when Stripe first reports the plan past due. */
 export async function alertPaymentFailed(shop: NudgeShop & { pastDueSince: Date | null; environment?: string | null }) {
-  if (shop.environment === "test" || !shop.pastDueSince) return;
+  if (shop.environment === "test" || shop.environment === "demo" || !shop.pastDueSince) return;
   await nudge(
     shop,
     `billing:past_due:${shop.id}:${day(shop.pastDueSince)}`,
@@ -60,7 +60,7 @@ async function pastDueReminders(now: Date) {
   const shops = await prisma.business.findMany({
     where: {
       billingStatus: "past_due",
-      environment: { not: "test" },
+      environment: { notIn: ["test", "demo"] },
       pastDueSince: { lte: new Date(now.getTime() - PAST_DUE_REMINDER_DAY * DAY_MS) },
     },
     select: { id: true, name: true, ownerPhone: true, ownerEmail: true, pastDueSince: true },
@@ -84,7 +84,7 @@ async function forwardingNudges(now: Date) {
   const shops = await prisma.business.findMany({
     where: {
       isActive: true,
-      environment: { not: "test" },
+      environment: { notIn: ["test", "demo"] },
       billingStatus: "active",
       overflowForwardConfirmedAt: null,
       lineVerifiedAt: {
@@ -117,7 +117,7 @@ async function usageAlerts(now: Date) {
   if (!busy.size) return 0;
 
   const shops = await prisma.business.findMany({
-    where: { id: { in: [...busy.keys()] }, billingStatus: "active", environment: { not: "test" } },
+    where: { id: { in: [...busy.keys()] }, billingStatus: "active", environment: { notIn: ["test", "demo"] } },
     select: { id: true, name: true, ownerPhone: true, ownerEmail: true, billingPlan: true },
   });
   const period = day(since).slice(0, 7);

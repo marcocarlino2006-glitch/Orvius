@@ -10,7 +10,7 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
   delete process.env[key];
 }
 
-const { newVisitorId, isVisitorId, visitorOwnerEmail, visitorWorkspace, runPublicScenario, confirmPublicJob, publicScenarios } =
+const { newVisitorId, isVisitorId, visitorOwnerEmail, visitorWorkspace, runPublicScenario, confirmPublicJob, publicScenarios, purgeStaleVisitorShops } =
   await import("../src/lib/public-demo.ts");
 
 test("visitor ids are strict and visitor shops can never be signed into", () => {
@@ -48,4 +48,21 @@ test("a gas smell books nothing and the bounced text shows as failed", async () 
   assert.equal(gas.trace?.job ?? null, null);
   const bounced = await runPublicScenario(shop, "bounced_text");
   assert.ok(bounced.trace.events.some((e) => e.tone === "failed"));
+});
+
+test("week-old visitor shops are purged with their jobs; owner demo shops are left alone", async () => {
+  const { PrismaClient } = await import("@prisma/client");
+  const { ensureDemoWorkspace } = await import("../src/lib/demo-workspace.ts");
+  const prisma = new PrismaClient();
+  const shop = await visitorWorkspace(newVisitorId(), true);
+  await runPublicScenario(shop, "no_cool");
+  const owned = (await ensureDemoWorkspace(`keep-${newVisitorId()}@orvius.test`)).business;
+  const later = new Date(Date.now() + 8 * 24 * 60 * 60_000);
+  const { purged } = await purgeStaleVisitorShops(later, 7, 10_000);
+  assert.ok(purged >= 1);
+  assert.equal(await prisma.business.count({ where: { id: shop.id } }), 0);
+  assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 0);
+  assert.equal(await prisma.lead.count({ where: { businessId: shop.id } }), 0);
+  assert.equal(await prisma.business.count({ where: { id: owned.id } }), 1);
+  await prisma.$disconnect();
 });

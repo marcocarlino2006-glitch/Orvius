@@ -31,10 +31,16 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Die Anrufe, die Sie nicht annehmen können — angenommen und gebucht.",
   },
   "hero.lead": {
-    en: "The AI front desk for every business that runs on the phone.",
-    es: "La recepción con IA para todo negocio que vive del teléfono.",
-    fr: "L’accueil IA de toute entreprise qui vit du téléphone.",
-    de: "Die KI-Rezeption für jedes Unternehmen, das vom Telefon lebt.",
+    en: "HVAC, plumbing, electrical — any shop that runs on the phone. Orvius answers, checks your real schedule, books the job and shows you every step.",
+    es: "HVAC, plomería, electricidad: cualquier negocio que vive del teléfono. Orvius contesta, revisa tu agenda real, agenda el trabajo y te muestra cada paso.",
+    fr: "CVC, plomberie, électricité : toute entreprise qui vit du téléphone. Orvius répond, vérifie votre vrai planning, réserve l’intervention et vous montre chaque étape.",
+    de: "HLK, Sanitär, Elektro – jeder Betrieb, der vom Telefon lebt. Orvius nimmt ab, prüft Ihren echten Kalender, bucht den Auftrag und zeigt Ihnen jeden Schritt.",
+  },
+  "hero.watch": {
+    en: "Watch it run a shop",
+    es: "Míralo llevar un negocio",
+    fr: "Regardez-le gérer une entreprise",
+    de: "Sehen Sie es einen Betrieb führen",
   },
   "hero.try": {
     en: "Hear it as your business",

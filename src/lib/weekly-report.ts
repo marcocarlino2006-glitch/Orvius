@@ -72,7 +72,7 @@ export function weeklyReportDue(business: Pick<Business, "weeklyReportSentAt" | 
 export async function sendDueWeeklyReports(now = new Date(), limit = 50) {
   if (!isEmailConfigured()) return { sent: 0, skipped: "email not configured" };
   const shops = await prisma.business.findMany({
-    where: { isActive: true, environment: { not: "test" }, ownerEmail: { not: null } },
+    where: { isActive: true, environment: { notIn: ["test", "demo"] }, ownerEmail: { not: null } },
     take: 500,
   });
   let sent = 0;

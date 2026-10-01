@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { HomeLiveCall } from "@/components/home-live-call";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
-import { isPreviewLive } from "@/lib/preview-live";
 
 /*
   Digits rise in on a stagger — the line comes up as an artifact, not a string.
@@ -41,7 +40,6 @@ function LiveLineDigits({ display }: { display: string }) {
  * Dialable live line stays as the proof Cursor can’t ship.
  */
 export function HomeLineHero() {
-  const previewLive = isPreviewLive();
   return (
     <section className="ov-hero ov-hero--atmosphere ov-hero--center" aria-labelledby="home-hero-heading">
       <div className="ov-hero-sky" aria-hidden>
@@ -58,34 +56,22 @@ export function HomeLineHero() {
             The calls you can&apos;t take, answered and booked.
           </h1>
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            The AI front desk for every business that runs on the phone.
+            HVAC, plumbing, electrical — any shop that runs on the phone. Orvius answers, checks your real schedule, books
+            the job and shows you every step.
           </p>
 
           <div className="ov-hero-actions">
+            <Link href="/watch" className="ov-btn ov-btn--solid ov-hero-cta-primary" data-i18n="hero.watch">
+              Watch it run a shop
+            </Link>
             <a
               href={demoLineHref()}
-              className="ov-btn ov-btn--solid ov-hero-cta-primary"
+              className="ov-btn ov-btn--quiet ov-hero-cta-secondary"
               aria-label={`Call the Orvius night shift line at ${DEMO_LINE_DISPLAY}`}
               data-i18n="hero.cta"
             >
               Call the live line
             </a>
-            {previewLive ? (
-              <Link href="/try" className="ov-btn ov-btn--quiet ov-hero-cta-secondary" data-i18n="hero.try">
-                Hear it as your business
-              </Link>
-            ) : (
-              <Link
-                href="/signin?mode=signup"
-                className="ov-btn ov-btn--quiet ov-hero-cta-secondary"
-                data-i18n="hero.start"
-              >
-                Get started
-              </Link>
-            )}
-            <Link href="/watch" className="ov-btn ov-btn--quiet ov-hero-cta-secondary">
-              Watch it run a shop
-            </Link>
           </div>
 
           <a
