@@ -171,26 +171,52 @@ export async function watchShopLine(
   return result;
 }
 
+const WATCH_WINDOW = 200;
+const WATCH_SLOT_MS = 30 * 60_000;
+const WATCH_CONCURRENCY = 5;
+const WATCH_BUDGET_MS = 40_000;
+
+/**
+ * Past one window of shops, each run watches a different slice, rotating on
+ * the 30-minute schedule so every line is reached; a fixed `take` would leave
+ * shop 201 onwards unwatched forever.
+ */
 export async function watchAllLines(now = new Date()) {
   if (!process.env.VAPI_API_KEY) return { shops: 0, recovered: 0, unrecovered: 0, lineProblems: 0, skipped: "no VAPI_API_KEY" };
+  const where = { isActive: true, vapiAssistantId: { not: null }, environment: { not: "test" } };
+  const total = await prisma.business.count({ where });
+  const windows = Math.max(1, Math.ceil(total / WATCH_WINDOW));
+  const window = Math.floor(now.getTime() / WATCH_SLOT_MS) % windows;
   const shops = await prisma.business.findMany({
-    where: { isActive: true, vapiAssistantId: { not: null }, environment: { not: "test" } },
-    take: 200,
+    where,
+    orderBy: { id: "asc" },
+    skip: window * WATCH_WINDOW,
+    take: WATCH_WINDOW,
   });
   let recovered = 0;
   let unrecovered = 0;
   let lineProblems = 0;
+  let watched = 0;
   const seen = new Set<string>();
-  for (const shop of shops) {
-    if (seen.has(shop.vapiAssistantId!)) continue;
+  const queue = shops.filter((shop) => {
+    if (seen.has(shop.vapiAssistantId!)) return false;
     seen.add(shop.vapiAssistantId!);
-    const r = await watchShopLine(shop, { now }).catch((error: unknown) => {
-      logWarn("line_watch.shop_failed", { businessId: shop.id, error: error instanceof Error ? error.message : String(error) });
-      return null;
-    });
-    recovered += r?.recovered.length ?? 0;
-    unrecovered += r?.unrecovered.length ?? 0;
-    lineProblems += r?.lineProblem ? 1 : 0;
-  }
-  return { shops: shops.length, recovered, unrecovered, lineProblems };
+    return true;
+  });
+  const started = Date.now();
+  const worker = async () => {
+    for (let shop = queue.shift(); shop; shop = queue.shift()) {
+      if (Date.now() - started > WATCH_BUDGET_MS) return;
+      const r = await watchShopLine(shop, { now }).catch((error: unknown) => {
+        logWarn("line_watch.shop_failed", { businessId: shop!.id, error: error instanceof Error ? error.message : String(error) });
+        return null;
+      });
+      watched += 1;
+      recovered += r?.recovered.length ?? 0;
+      unrecovered += r?.unrecovered.length ?? 0;
+      lineProblems += r?.lineProblem ? 1 : 0;
+    }
+  };
+  await Promise.all(Array.from({ length: WATCH_CONCURRENCY }, worker));
+  return { shops: shops.length, watched, window: `${window + 1}/${windows}`, recovered, unrecovered, lineProblems };
 }

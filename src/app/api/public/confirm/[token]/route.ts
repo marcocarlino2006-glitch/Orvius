@@ -23,7 +23,8 @@ export async function GET(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
 
-  const result = await confirmJobByCustomerToken(token.trim());
+  // Link unfurlers and prefetchers issue GETs; only the page's POST may confirm.
+  const result = await confirmJobByCustomerToken(token.trim(), new Date(), { readOnly: true });
   if (!result.ok) return failure(result);
 
   return NextResponse.json({

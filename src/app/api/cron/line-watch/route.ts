@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { refreshStaleBusyCalendars } from "@/lib/busy-calendar";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { drainJobberSyncs } from "@/lib/jobber";
 import { runAutoFollowUps } from "@/lib/lead-follow-up";
@@ -28,11 +29,12 @@ export async function GET(request: NextRequest) {
     return null;
   };
   // On the 30-minute schedule: a Jobber retry waits minutes, and a caller hears back hours after calling, not the next day.
-  const [jobber, followUps] = await Promise.all([
+  const [jobber, followUps, calendars] = await Promise.all([
     drainJobberSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("jobber_sync")),
     runAutoFollowUps({ budgetMs: 25_000 }).catch(failed("follow_ups")),
+    refreshStaleBusyCalendars({ budgetMs: 20_000 }).catch(failed("busy_calendars")),
   ]);
-  return NextResponse.json({ ok: true, ...lines, jobber, followUps });
+  return NextResponse.json({ ok: true, ...lines, jobber, followUps, calendars });
 }
 
 export async function POST(request: NextRequest) {

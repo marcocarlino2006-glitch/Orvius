@@ -238,6 +238,7 @@ model Call {
   @@index([businessId, createdAt])
   @@index([businessId, updatedAt])
   @@index([contentPurgedAt, createdAt])
+  @@index([businessId, heldSlotAt])
 }
 
 model Lead {
@@ -285,6 +286,7 @@ model Lead {
   @@index([businessId, categoryCode])
   @@index([businessId, postalCode])
   @@index([businessId, updatedAt])
+  @@index([businessId, status, createdAt])
 }
 
 model Job {
@@ -548,6 +550,7 @@ model OwnerNotification {
   @@index([businessId, status])
   @@index([status, nextRetryAt])
   @@index([businessId, processedAt])
+  @@index([deliveryId])
 }
 
 model WebhookEvent {
@@ -565,6 +568,7 @@ model WebhookEvent {
   @@unique([source, externalId, eventType])
   @@index([businessId, createdAt])
   @@index([source, createdAt])
+  @@index([source, eventType, status, createdAt])
 }
 
 /// Single-use sign-in link. Only the SHA-256 of the token is stored, so a leaked
