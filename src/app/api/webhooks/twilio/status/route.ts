@@ -5,6 +5,7 @@ import { applyDepositDeliveryReceipt } from "@/lib/deposit-delivery";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import { logInfo } from "@/lib/logger";
+import { applyMessageReceipt } from "@/lib/messages";
 import { applySmsDeliveryReceipt } from "@/lib/notification-queue";
 import {
   getTwilioStatusWebhookUrl,
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
     errorCode,
   });
   const confirmReceipt = await applyCustomerConfirmReceipt({ messageSid, messageStatus, errorCode });
+  const threadReceipt = await applyMessageReceipt({ messageSid, messageStatus });
   const depositReceipt = await applyDepositDeliveryReceipt({
     messageSid,
     messageStatus,
@@ -77,6 +79,7 @@ export async function POST(request: NextRequest) {
       depositMatched: depositReceipt.matched,
       depositReopened: depositReceipt.reopened,
       confirmAlerted: confirmReceipt.alerted,
+      threadUpdated: threadReceipt,
     },
   });
 

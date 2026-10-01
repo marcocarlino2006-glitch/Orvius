@@ -175,6 +175,8 @@ model Message {
   author          String
   body            String
   sid             String?
+  /** Carrier receipt for an outbound text: sent | delivered | undelivered | failed. */
+  deliveryStatus  String?
   /** Set when the owner has read an inbound text. */
   readAt          DateTime?
   createdAt       DateTime @default(now())

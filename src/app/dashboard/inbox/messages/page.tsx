@@ -28,6 +28,7 @@ type Entry =
       direction: "in" | "out";
       author: "customer" | "orvius" | "owner";
       body: string;
+      deliveryStatus?: string | null;
     }
   | {
       kind: "call";
@@ -324,6 +325,10 @@ function MessagesInner() {
                       <span className="msg-meta">
                         {entry.author === "owner" ? "You" : entry.author === "orvius" ? "Orvius" : "Customer"} ·{" "}
                         {stamp(entry.at)}
+                        {entry.direction === "out" && entry.deliveryStatus === "delivered" ? " · Delivered" : null}
+                        {entry.direction === "out" && (entry.deliveryStatus === "failed" || entry.deliveryStatus === "undelivered") ? (
+                          <span className="msg-failed"> · Not delivered. Call them instead.</span>
+                        ) : null}
                       </span>
                     </div>
                   ),

@@ -19,6 +19,7 @@ const {
   listThreads,
   markThreadRead,
   recordMessage,
+  applyMessageReceipt,
 } = await import("../src/lib/messages.ts");
 const { sendCustomerSms } = await import("../src/lib/customer-sms.ts");
 const { POST } = await import("../src/app/api/webhooks/twilio/sms/route.ts");
@@ -228,6 +229,29 @@ test("the owner's own number texting the line is not a customer thread", async (
   try {
     await text(business, business.ownerPhone, "testing the line");
     assert.equal(await prisma.message.count({ where: { businessId: business.id } }), 0);
+  } finally {
+    await drop(business.id);
+  }
+});
+
+test("carrier receipts move a sent text forward, never back", async () => {
+  const business = await shop();
+  try {
+    const phone = randomPhone();
+    const sid = `SM${stamp()}`;
+    await recordMessage({ businessId: business.id, phone, direction: "out", author: "owner", body: "On our way", sid });
+    assert.equal(await applyMessageReceipt({ messageSid: sid, messageStatus: "sent" }), 1);
+    assert.equal(await applyMessageReceipt({ messageSid: sid, messageStatus: "delivered" }), 1);
+    assert.equal(await applyMessageReceipt({ messageSid: sid, messageStatus: "sent" }), 0, "a late 'sent' doesn't undo 'delivered'");
+    assert.equal(await applyMessageReceipt({ messageSid: sid, messageStatus: "bogus" }), 0);
+    let entry = (await getThread(business.id, phone)).entries[0];
+    assert.equal(entry.deliveryStatus, "delivered");
+
+    const bad = `SM${stamp()}`;
+    await recordMessage({ businessId: business.id, phone, direction: "out", author: "owner", body: "Running late", sid: bad });
+    await applyMessageReceipt({ messageSid: bad, messageStatus: "undelivered" });
+    entry = (await getThread(business.id, phone)).entries.find((e) => e.body === "Running late");
+    assert.equal(entry.deliveryStatus, "undelivered");
   } finally {
     await drop(business.id);
   }

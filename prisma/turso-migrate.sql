@@ -589,3 +589,6 @@ ALTER TABLE "Business" ADD COLUMN "webChatOn" BOOLEAN NOT NULL DEFAULT false;
 
 -- Win-back: one check-in text to a lapsed customer every 90 days.
 ALTER TABLE "Customer" ADD COLUMN "winBackSentAt" DATETIME;
+
+-- Delivery receipts on inbox texts.
+ALTER TABLE "Message" ADD COLUMN "deliveryStatus" TEXT;
