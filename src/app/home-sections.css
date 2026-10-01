@@ -104,7 +104,7 @@
 
 .ov-public .hf-art {
   position: relative;
-  aspect-ratio: 16 / 11;
+  aspect-ratio: 16 / 11.5;
   border-radius: 14px;
   overflow: hidden;
   isolation: isolate;
@@ -120,40 +120,6 @@
 
 .ov-public .hf-row:hover .hf-art-bg {
   transform: scale(1.06);
-}
-
-/* The window sits inset from the top-left and bleeds off the bottom-right edge. */
-.ov-public .hf-shot {
-  position: absolute;
-  left: 8%;
-  top: 10%;
-  width: 104%;
-  height: auto;
-  border-radius: 10px;
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.1),
-    0 30px 80px -20px rgb(0 0 0 / 0.65);
-}
-
-.ov-public .hf-art--phones {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: clamp(1rem, 3vw, 2.5rem);
-  padding-top: 9%;
-}
-
-.ov-public .hf-art--phones .hf-shot {
-  position: relative;
-  left: auto;
-  top: auto;
-  width: 30%;
-  border-radius: 22px;
-  border: 6px solid #050506;
-}
-
-.ov-public .hf-art--phones .hf-shot + .hf-shot {
-  margin-top: 8%;
 }
 
 .ov-public .hf-industries {
@@ -204,6 +170,105 @@
   line-height: 1.5;
 }
 
+/* ---------- Shipping every week ---------- */
+
+.ov-public .hf-updates .hf-wrap {
+  gap: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.ov-public .hf-updates-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ov-public .hf-updates-head .hf-link {
+  margin-top: 0;
+}
+
+.ov-public .hf-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.ov-public .hf-cards a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+  padding: 1.4rem 1.4rem 1.6rem;
+  border: 1px solid var(--ov-hairline);
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.ov-public .hf-cards a:hover {
+  border-color: var(--ov-hairline-strong);
+  transform: translateY(-2px);
+}
+
+.ov-public .hf-cards time {
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+}
+
+.ov-public .hf-card-title {
+  color: var(--ov-headline);
+  font-family: var(--ov-font);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.ov-public .hf-card-body {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--ov-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* ---------- Hero: one line, one action, the live call on a painting ---------- */
+
+.ov-public .ov-hero--center .ov-hero-copy {
+  max-width: 48rem;
+  margin-inline: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ov-public .ov-hero--center .ov-hero-title {
+  max-width: 18ch;
+  margin-inline: auto;
+  font-size: clamp(2.5rem, 6vw, 4.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.ov-public .ov-hero--center .ov-hero-lead {
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+.ov-public .ov-hero--center .ov-hero-actions {
+  justify-content: center;
+}
+
+.ov-public .ov-hero--center .ov-hero-liveline {
+  justify-content: center;
+}
+
 /* Hero: the live call sits on a painting, like the rows below it. */
 .ov-public .ov-hero-stage.ov-hero-stage--art {
   position: relative;
@@ -233,6 +298,10 @@
   .ov-public .hf-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .ov-public .hf-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 560px) {
@@ -240,11 +309,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .ov-public .hf-art--phones .hf-shot {
-    width: 38%;
-    border-width: 4px;
-    border-radius: 16px;
-  }
 }
 
 /* ---------- Compare ---------- */
@@ -367,5 +431,25 @@ html.hx-motion [data-reveal-stagger].is-in > * {
 
   .ov-public .hx-table thead th {
     font-size: 0.75rem;
+  }
+}
+
+/* What every call gets: an open row like a logo strip, not a boxed table. */
+.ov-public .hx-facts .hx-facts-row {
+  gap: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.ov-public .hx-facts .hx-fact {
+  padding: 0.25rem 1.5rem 0.25rem 1.25rem;
+  background: none;
+  border-left: 1px solid var(--ov-hairline);
+}
+
+@media (max-width: 860px) {
+  .ov-public .hx-facts .hx-fact {
+    padding-block: 1rem;
   }
 }

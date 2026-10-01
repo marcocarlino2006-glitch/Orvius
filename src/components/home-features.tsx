@@ -1,5 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { BoardDemo, CallsDemo, PhonesDemo, ReceptionistDemo } from "@/components/home-demos";
+import { CHANGELOG } from "@/lib/changelog";
 
 type Feature = {
   id: string;
@@ -7,7 +10,8 @@ type Feature = {
   body: string;
   link: { href: string; label: string };
   art: string;
-  shots: { src: string; width: number; height: number; alt: string }[];
+  demo: ReactNode;
+  phones?: boolean;
 };
 
 const features: Feature[] = [
@@ -17,7 +21,7 @@ const features: Feature[] = [
     body: "Set the opening line, the voice, your hours and what it handles on its own. Gas, smoke and medical emergencies get safety steps first, then you.",
     link: { href: "/product", label: "See how the receptionist works" },
     art: "/marketing/art/dusk.webp",
-    shots: [{ src: "/marketing/product/s-receptionist.webp", width: 2400, height: 1780, alt: "Receptionist settings: opening line, voice and transfer number" }],
+    demo: <ReceptionistDemo />,
   },
   {
     id: "command",
@@ -25,7 +29,7 @@ const features: Feature[] = [
     body: "Overnight calls land as a short list, each with the dollar value at stake and the one thing to do next.",
     link: { href: "/product", label: "Explore the board" },
     art: "/marketing/art/dawn.webp",
-    shots: [{ src: "/marketing/product/command.webp", width: 1600, height: 1000, alt: "Command board with the morning queue and revenue at risk" }],
+    demo: <BoardDemo />,
   },
   {
     id: "calls",
@@ -33,7 +37,7 @@ const features: Feature[] = [
     body: "Recorded, transcribed and graded, with the rough ones flagged. Each caller becomes a lead with a written summary, so nobody plays back a voicemail to learn what they wanted.",
     link: { href: "/pilot", label: "Get a free call audit" },
     art: "/marketing/art/night.webp",
-    shots: [{ src: "/marketing/product/calls.webp", width: 1600, height: 1000, alt: "Calls list with grades and flagged calls" }],
+    demo: <CallsDemo />,
   },
   {
     id: "field",
@@ -41,10 +45,8 @@ const features: Feature[] = [
     body: "The customer gets the time and your number with one tap to confirm. Whoever is going gets the address and one tap to call. No app to install.",
     link: { href: "/help", label: "Read the help center" },
     art: "/marketing/art/morning.webp",
-    shots: [
-      { src: "/marketing/product/confirm.webp", width: 640, height: 1385, alt: "Customer confirmation page on a phone" },
-      { src: "/marketing/product/tech.webp", width: 640, height: 1385, alt: "Team member job page on a phone" },
-    ],
+    demo: <PhonesDemo />,
+    phones: true,
   },
 ];
 
@@ -83,19 +85,9 @@ export function HomeFeatures() {
                   {f.link.label} <Arrow />
                 </Link>
               </div>
-              <div className={`hf-art ${f.shots.length > 1 ? "hf-art--phones" : ""}`}>
+              <div className={`hf-art ${f.phones ? "hf-art--phones" : ""}`}>
                 <Image src={f.art} alt="" fill sizes="(max-width: 900px) 100vw, 60vw" className="hf-art-bg" />
-                {f.shots.map((s) => (
-                  <Image
-                    key={s.src}
-                    src={s.src}
-                    alt={s.alt}
-                    width={s.width}
-                    height={s.height}
-                    sizes={f.shots.length > 1 ? "14rem" : "(max-width: 900px) 92vw, 52rem"}
-                    className="hf-shot"
-                  />
-                ))}
+                {f.demo}
               </div>
             </article>
           ))}
@@ -118,6 +110,32 @@ export function HomeFeatures() {
               <li key={x.name}>
                 <p className="hf-grid-name">{x.name}</p>
                 <p className="hf-grid-detail font-sans">{x.detail}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="hf-section hf-updates" aria-labelledby="home-updates-heading">
+        <div className="hf-wrap">
+          <header className="hf-updates-head" data-reveal>
+            <h2 id="home-updates-heading" className="hf-title">
+              Shipping every week.
+            </h2>
+            <Link href="/changelog" className="hf-link font-sans">
+              Full changelog <Arrow />
+            </Link>
+          </header>
+          <ul className="hf-cards" data-reveal>
+            {CHANGELOG.slice(0, 3).map((entry) => (
+              <li key={entry.date + entry.title}>
+                <Link href="/changelog">
+                  <time dateTime={entry.date} className="font-sans">
+                    {new Date(`${entry.date}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
+                  </time>
+                  <span className="hf-card-title">{entry.title}</span>
+                  <span className="hf-card-body font-sans">{entry.items[0]}</span>
+                </Link>
               </li>
             ))}
           </ul>

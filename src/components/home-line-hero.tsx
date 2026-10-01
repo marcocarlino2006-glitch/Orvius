@@ -43,7 +43,7 @@ function LiveLineDigits({ display }: { display: string }) {
 export function HomeLineHero() {
   const previewLive = isPreviewLive();
   return (
-    <section className="ov-hero ov-hero--atmosphere" aria-labelledby="home-hero-heading">
+    <section className="ov-hero ov-hero--atmosphere ov-hero--center" aria-labelledby="home-hero-heading">
       <div className="ov-hero-sky" aria-hidden>
         <span className="ov-hero-sky-plane" />
         <span className="ov-hero-sky-bloom" />
@@ -58,8 +58,7 @@ export function HomeLineHero() {
             The calls you can&apos;t take, answered and booked.
           </h1>
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            Orvius is the AI front desk for any business that runs on the phone. It answers the calls you can&apos;t
-            take, offers an open time from your schedule, and texts you what happened.
+            The AI front desk for every business that runs on the phone.
           </p>
 
           <div className="ov-hero-actions">
