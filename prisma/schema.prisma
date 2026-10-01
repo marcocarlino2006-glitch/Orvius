@@ -73,6 +73,8 @@ model Business {
   reviewUrl            String?
   /** Text each finished customer the review link once, the day of the visit. */
   reviewRequestsOn     Boolean  @default(true)
+  /** Public booking page at /b/[slug]; off until the owner shares it. */
+  bookingPageOn        Boolean  @default(false)
   busyCalendarJson     String?
   busyCalendarSyncedAt DateTime?
   busyCalendarError    String?

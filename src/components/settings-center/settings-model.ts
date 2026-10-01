@@ -47,6 +47,8 @@ export type Account = {
     followUpMode?: "off" | "ask" | "auto";
     reviewUrl?: string | null;
     reviewRequestsOn?: boolean;
+    bookingPageOn?: boolean;
+    slug?: string;
     createdAt?: string;
     vapiPhoneNumber?: string | null;
     twilioPhone?: string | null;

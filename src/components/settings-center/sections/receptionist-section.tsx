@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import { VoiceSampleButton } from "../settings-controls";
 import { dollars, type Business, type PatchFn } from "../settings-model";
@@ -79,6 +80,19 @@ export function ReceptionistSection({
           </select>
         </ScRow>
       </ScGroup>
+      <ScGroup title="Online booking">
+        <ScRow
+          label="Let customers book themselves"
+          hint="A booking page with the same open times your receptionist offers on calls: your hours, your team, your busy calendar. Each booking lands on your schedule and the customer gets the usual confirmation text."
+        >
+          <ScSwitch
+            label="Online booking"
+            checked={b.bookingPageOn ?? false}
+            onChange={(next) => void patch({ bookingPageOn: next })}
+          />
+        </ScRow>
+        {b.bookingPageOn && b.slug ? <BookingLinkRow slug={b.slug} /> : null}
+      </ScGroup>
       <ScGroup title="Reviews">
         <ScRow
           stack
@@ -150,5 +164,36 @@ export function ReceptionistSection({
         </ScRow>
       </ScGroup>
     </>
+  );
+}
+
+function BookingLinkRow({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false);
+  const url = typeof window === "undefined" ? `/b/${slug}` : `${window.location.origin}/b/${slug}`;
+  return (
+    <ScRow
+      stack
+      label="Your booking link"
+      hint="Put it on your website, Google Business Profile, Instagram bio, and email signature."
+    >
+      <div className="sc-affix">
+        <input className="sc-input" readOnly value={url} aria-label="Booking link" onFocus={(e) => e.target.select()} />
+        <button
+          type="button"
+          className="btn btn-secondary text-sm"
+          onClick={() => {
+            void navigator.clipboard?.writeText(url).then(() => {
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            });
+          }}
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
+        <a className="btn btn-secondary text-sm" href={url} target="_blank" rel="noreferrer">
+          Open
+        </a>
+      </div>
+    </ScRow>
   );
 }

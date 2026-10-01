@@ -172,7 +172,7 @@ export default function InboxPage() {
                     service={lead.serviceType}
                     urgency={lead.urgency}
                     address={lead.address}
-                    channel={lead.source === "sms" ? "Text" : "Call"}
+                    channel={lead.source === "sms" ? "Text" : lead.source === "web" ? "Online" : lead.source === "chat" ? "Web chat" : "Call"}
                     status={lead.status}
                     createdAt={lead.createdAt}
                     customerId={lead.customer?.id ?? null}

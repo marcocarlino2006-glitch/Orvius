@@ -71,6 +71,7 @@ const patchSchema = z.object({
   followUpMode: z.enum(["off", "ask", "auto"]).optional(),
   reviewUrl: z.string().max(500).nullable().optional(),
   reviewRequestsOn: z.boolean().optional(),
+  bookingPageOn: z.boolean().optional(),
   depositAmountCents: z
     .number()
     .int()
@@ -155,6 +156,7 @@ export async function GET(request: Request) {
         followUpMode: businessRecord.followUpMode,
         reviewUrl: businessRecord.reviewUrl,
         reviewRequestsOn: businessRecord.reviewRequestsOn,
+        bookingPageOn: businessRecord.bookingPageOn,
         depositAmountCents: businessRecord.depositAmountCents,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
           ? businessRecord.ownerSmsOptOutAt.toISOString()
@@ -269,6 +271,7 @@ const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
   followUpMode: { label: "follow-up texts" },
   reviewUrl: { label: "review link" },
   reviewRequestsOn: { label: "review requests" },
+  bookingPageOn: { label: "online booking" },
 };
 
 function settingsChanges(before: Record<string, unknown>, after: Record<string, unknown>) {
@@ -448,6 +451,7 @@ export async function PATCH(request: Request) {
         ...(body.followUpMode !== undefined ? { followUpMode: body.followUpMode } : {}),
         ...(reviewUrl !== undefined ? { reviewUrl } : {}),
         ...(body.reviewRequestsOn !== undefined ? { reviewRequestsOn: body.reviewRequestsOn } : {}),
+        ...(body.bookingPageOn !== undefined ? { bookingPageOn: body.bookingPageOn } : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
           : {}),
@@ -523,6 +527,8 @@ export async function PATCH(request: Request) {
         followUpMode: saved.followUpMode,
         reviewUrl: saved.reviewUrl,
         reviewRequestsOn: saved.reviewRequestsOn,
+        bookingPageOn: saved.bookingPageOn,
+        slug: saved.slug,
         depositAmountCents: saved.depositAmountCents,
       },
       deposits: depositsPayload(saved),

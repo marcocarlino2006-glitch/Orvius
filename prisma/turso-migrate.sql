@@ -574,3 +574,6 @@ CREATE INDEX IF NOT EXISTS "Message_businessId_createdAt_idx" ON "Message"("busi
 ALTER TABLE "Business" ADD COLUMN "reviewUrl" TEXT;
 ALTER TABLE "Business" ADD COLUMN "reviewRequestsOn" BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE "Job" ADD COLUMN "reviewRequestedAt" DATETIME;
+
+-- Online booking page at /b/[slug].
+ALTER TABLE "Business" ADD COLUMN "bookingPageOn" BOOLEAN NOT NULL DEFAULT false;
