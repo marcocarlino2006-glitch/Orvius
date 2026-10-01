@@ -107,6 +107,37 @@ test("a call whose finishing died is booked and alerted by the sweep, once", asy
   }
 });
 
+test("calls that were never saved don't starve the sweep of newer calls behind them", async () => {
+  const shop = await makeShop();
+  const stuckIds = [];
+  try {
+    const old = new Date(Date.now() - 60 * 60_000);
+    for (let i = 0; i < 30; i += 1) {
+      const row = await prisma.webhookEvent.create({
+        data: {
+          source: "vapi",
+          eventType: "end-of-call-report",
+          externalId: `finish-stuck-${uid()}-${i}`,
+          status: "failed",
+          createdAt: new Date(old.getTime() + i),
+        },
+      });
+      stuckIds.push(row.id);
+    }
+    const vapiCallId = `finish-behind-${uid()}`;
+    await captureEndOfCallReport({ business: shop, vapiCallId, message: report(vapiCallId) });
+    const ev = await event(vapiCallId);
+    await prisma.webhookEvent.update({ where: { id: ev.id }, data: { createdAt: new Date(Date.now() - 6 * 60_000) } });
+
+    await sweepUnfinishedCallReports();
+    assert.equal((await event(vapiCallId)).status, "processed", "the real call behind 30 unsaved ones still finishes");
+    assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 1);
+  } finally {
+    await prisma.webhookEvent.deleteMany({ where: { id: { in: stuckIds } } });
+    await drop(shop.id);
+  }
+});
+
 test("the webhook answers Vapi before booking, and the drains run the sweep", () => {
   const route = read("src/app/api/webhooks/vapi/route.ts");
   assert.doesNotMatch(route, /await ingestEndOfCallReport/);

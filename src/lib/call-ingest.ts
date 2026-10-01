@@ -453,28 +453,50 @@ const FINISH_LOOKBACK_MS = 24 * 60 * 60_000;
  */
 export async function sweepUnfinishedCallReports(now = new Date()): Promise<number> {
   const eventType = "end-of-call-report";
-  const events = await prisma.webhookEvent.findMany({
-    where: {
-      source: "vapi",
-      eventType,
-      status: { in: [CAPTURED, "failed"] },
-      createdAt: { gte: new Date(now.getTime() - FINISH_LOOKBACK_MS), lte: new Date(now.getTime() - FINISH_GRACE_MS) },
-    },
-    select: { id: true, externalId: true, status: true },
-    orderBy: { createdAt: "asc" },
-    take: 25,
-  });
-  if (!events.length) return 0;
-  const calls = await prisma.call.findMany({
-    where: { vapiCallId: { in: events.map((e) => e.externalId) } },
-    include: { lead: true, business: true },
-  });
+  const where = {
+    source: "vapi",
+    eventType,
+    status: { in: [CAPTURED, "failed"] },
+    createdAt: { gte: new Date(now.getTime() - FINISH_LOOKBACK_MS), lte: new Date(now.getTime() - FINISH_GRACE_MS) },
+  };
+  // Events whose call was never saved are skipped but stay in the window for a
+  // day. Reading only the oldest 25 let a burst of those starve every newer
+  // call behind them, so scan past them until 25 finishable calls are found.
+  const FINISH_BATCH = 25;
+  const SCAN_PAGE = 100;
+  const SCAN_LIMIT = 1000;
+  const finishable: Array<{
+    event: { id: string; externalId: string; status: string };
+    call: Call & { lead: Lead; business: Business };
+  }> = [];
+  let cursor: string | undefined;
+  for (let scanned = 0; scanned < SCAN_LIMIT && finishable.length < FINISH_BATCH; ) {
+    const page = await prisma.webhookEvent.findMany({
+      where,
+      select: { id: true, externalId: true, status: true },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      take: SCAN_PAGE,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+    if (!page.length) break;
+    scanned += page.length;
+    cursor = page[page.length - 1]!.id;
+    const calls = await prisma.call.findMany({
+      where: { vapiCallId: { in: page.map((e) => e.externalId) } },
+      include: { lead: true, business: true },
+    });
+    for (const event of page) {
+      const call = calls.find((c) => c.vapiCallId === event.externalId);
+      // Failed before the call was saved: Vapi's redelivery or line watch recovers those.
+      if (call?.lead) finishable.push({ event, call: { ...call, lead: call.lead } });
+      if (finishable.length >= FINISH_BATCH) break;
+    }
+    if (page.length < SCAN_PAGE) break;
+  }
+  if (!finishable.length) return 0;
 
   let finished = 0;
-  for (const event of events) {
-    const call = calls.find((c) => c.vapiCallId === event.externalId);
-    // Failed before the call was saved: Vapi's redelivery or line watch recovers those.
-    if (!call?.lead) continue;
+  for (const { event, call } of finishable) {
     const claimed = await prisma.webhookEvent.updateMany({
       where: { id: event.id, status: event.status },
       data: { status: "processing" },
