@@ -72,6 +72,7 @@ const patchSchema = z.object({
   reviewUrl: z.string().max(500).nullable().optional(),
   reviewRequestsOn: z.boolean().optional(),
   bookingPageOn: z.boolean().optional(),
+  webChatOn: z.boolean().optional(),
   depositAmountCents: z
     .number()
     .int()
@@ -157,6 +158,7 @@ export async function GET(request: Request) {
         reviewUrl: businessRecord.reviewUrl,
         reviewRequestsOn: businessRecord.reviewRequestsOn,
         bookingPageOn: businessRecord.bookingPageOn,
+        webChatOn: businessRecord.webChatOn,
         depositAmountCents: businessRecord.depositAmountCents,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
           ? businessRecord.ownerSmsOptOutAt.toISOString()
@@ -272,6 +274,7 @@ const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
   reviewUrl: { label: "review link" },
   reviewRequestsOn: { label: "review requests" },
   bookingPageOn: { label: "online booking" },
+  webChatOn: { label: "website chat" },
 };
 
 function settingsChanges(before: Record<string, unknown>, after: Record<string, unknown>) {
@@ -452,6 +455,7 @@ export async function PATCH(request: Request) {
         ...(reviewUrl !== undefined ? { reviewUrl } : {}),
         ...(body.reviewRequestsOn !== undefined ? { reviewRequestsOn: body.reviewRequestsOn } : {}),
         ...(body.bookingPageOn !== undefined ? { bookingPageOn: body.bookingPageOn } : {}),
+        ...(body.webChatOn !== undefined ? { webChatOn: body.webChatOn } : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
           : {}),
@@ -528,6 +532,7 @@ export async function PATCH(request: Request) {
         reviewUrl: saved.reviewUrl,
         reviewRequestsOn: saved.reviewRequestsOn,
         bookingPageOn: saved.bookingPageOn,
+        webChatOn: saved.webChatOn,
         slug: saved.slug,
         depositAmountCents: saved.depositAmountCents,
       },

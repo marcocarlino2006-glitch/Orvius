@@ -577,3 +577,4 @@ ALTER TABLE "Job" ADD COLUMN "reviewRequestedAt" DATETIME;
 
 -- Online booking page at /b/[slug].
 ALTER TABLE "Business" ADD COLUMN "bookingPageOn" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "webChatOn" BOOLEAN NOT NULL DEFAULT false;

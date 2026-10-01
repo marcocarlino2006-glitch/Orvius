@@ -91,7 +91,18 @@ export function ReceptionistSection({
             onChange={(next) => void patch({ bookingPageOn: next })}
           />
         </ScRow>
-        {b.bookingPageOn && b.slug ? <BookingLinkRow slug={b.slug} /> : null}
+        {b.bookingPageOn && b.slug ? <CopyRow label="Your booking link" path={`/b/${b.slug}`} /> : null}
+        <ScRow
+          label="Chat on your website"
+          hint="A chat button for your own site. Visitors leave a message and their mobile number, Orvius texts them that it arrived, and you answer from Inbox → Messages."
+        >
+          <ScSwitch
+            label="Website chat"
+            checked={b.webChatOn ?? false}
+            onChange={(next) => void patch({ webChatOn: next })}
+          />
+        </ScRow>
+        {b.webChatOn && b.slug ? <CopyRow label="Paste before </body> on your website" path={`/embed.js?shop=${b.slug}`} snippet /> : null}
       </ScGroup>
       <ScGroup title="Reviews">
         <ScRow
@@ -167,22 +178,28 @@ export function ReceptionistSection({
   );
 }
 
-function BookingLinkRow({ slug }: { slug: string }) {
+function CopyRow({ label, path, snippet = false }: { label: string; path: string; snippet?: boolean }) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window === "undefined" ? `/b/${slug}` : `${window.location.origin}/b/${slug}`;
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const url = `${origin}${path}`;
+  const value = snippet ? `<script src="${url}" async></script>` : url;
   return (
     <ScRow
       stack
-      label="Your booking link"
-      hint="Put it on your website, Google Business Profile, Instagram bio, and email signature."
+      label={label}
+      hint={
+        snippet
+          ? "Works on Wix, Squarespace, WordPress, Shopify, or any site that lets you add code."
+          : "Put it on your website, Google Business Profile, Instagram bio, and email signature."
+      }
     >
       <div className="sc-affix">
-        <input className="sc-input" readOnly value={url} aria-label="Booking link" onFocus={(e) => e.target.select()} />
+        <input className="sc-input" readOnly value={value} aria-label={label} onFocus={(e) => e.target.select()} />
         <button
           type="button"
           className="btn btn-secondary text-sm"
           onClick={() => {
-            void navigator.clipboard?.writeText(url).then(() => {
+            void navigator.clipboard?.writeText(value).then(() => {
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
             });
@@ -190,9 +207,11 @@ function BookingLinkRow({ slug }: { slug: string }) {
         >
           {copied ? "Copied" : "Copy"}
         </button>
-        <a className="btn btn-secondary text-sm" href={url} target="_blank" rel="noreferrer">
-          Open
-        </a>
+        {snippet ? null : (
+          <a className="btn btn-secondary text-sm" href={url} target="_blank" rel="noreferrer">
+            Open
+          </a>
+        )}
       </div>
     </ScRow>
   );

@@ -33,6 +33,7 @@ import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
 import { answerFollowUpReply } from "@/lib/lead-follow-up";
 import { hasActiveOwnerConversation, recordMessage } from "@/lib/messages";
+import { hasOpenWebChat } from "@/lib/web-chat";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -185,7 +186,10 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (!fromOwner && (await hasActiveOwnerConversation(business.id, from))) {
+  if (
+    !fromOwner &&
+    ((await hasActiveOwnerConversation(business.id, from)) || (await hasOpenWebChat(business.id, from)))
+  ) {
     await alertOwnerOfReply({ business, from, body, messageSid });
     await recordWebhookEvent({
       source: "twilio-sms",

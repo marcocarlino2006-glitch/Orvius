@@ -48,6 +48,7 @@ export type Account = {
     reviewUrl?: string | null;
     reviewRequestsOn?: boolean;
     bookingPageOn?: boolean;
+    webChatOn?: boolean;
     slug?: string;
     createdAt?: string;
     vapiPhoneNumber?: string | null;

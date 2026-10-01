@@ -75,6 +75,8 @@ model Business {
   reviewRequestsOn     Boolean  @default(true)
   /** Public booking page at /b/[slug]; off until the owner shares it. */
   bookingPageOn        Boolean  @default(false)
+  /** Chat bubble for the shop's own website (/embed.js); visitors are answered by text. */
+  webChatOn            Boolean  @default(false)
   busyCalendarJson     String?
   busyCalendarSyncedAt DateTime?
   busyCalendarError    String?

@@ -33,6 +33,7 @@ type BookingShop = Pick<
   | "isActive"
   | "environment"
   | "bookingPageOn"
+  | "webChatOn"
   | "billingStatus"
   | "pilotEndsAt"
   | "pastDueSince"
@@ -54,6 +55,7 @@ const SHOP_SELECT = {
   isActive: true,
   environment: true,
   bookingPageOn: true,
+  webChatOn: true,
   billingStatus: true,
   pilotEndsAt: true,
   pastDueSince: true,
@@ -64,12 +66,19 @@ const SHOP_SELECT = {
   twilioPhone: true,
 } as const;
 
-export async function bookableShop(slug: string): Promise<BookingShop | null> {
+export type PublicShop = BookingShop;
+
+/** A shop's public page (booking or web chat), only when the owner turned it on and the workspace is paid. */
+export async function publicShop(slug: string, feature: "bookingPageOn" | "webChatOn"): Promise<PublicShop | null> {
   if (!/^[a-z0-9-]{2,80}$/.test(slug)) return null;
   const shop = await prisma.business.findUnique({ where: { slug }, select: SHOP_SELECT });
-  if (!shop || !shop.bookingPageOn || !shop.isActive || shop.environment === "test") return null;
+  if (!shop || !shop[feature] || !shop.isActive || shop.environment === "test") return null;
   if (!isBillingEntitled(shop)) return null;
   return shop;
+}
+
+export function bookableShop(slug: string) {
+  return publicShop(slug, "bookingPageOn");
 }
 
 export function bookingServices(shop: Pick<Business, "servicesJson" | "trade" | "name">): string[] {
