@@ -1,5 +1,4 @@
 import { OrviusMarkGraphic } from "@/lib/orvius-mark-graphic";
-import { orviusColors } from "@/lib/orvius-colors";
 import { ImageResponse } from "next/og";
 
 export const size = { width: 180, height: 180 };
@@ -15,7 +14,7 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: orviusColors.void,
+          background: "#000000",
           borderRadius: 36,
         }}
       >
