@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { HomeLiveCall } from "@/components/home-live-call";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
@@ -98,7 +99,15 @@ export function HomeLineHero() {
           </a>
         </div>
 
-        <div className="ov-hero-stage">
+        <div className="ov-hero-stage ov-hero-stage--art">
+          <Image
+            src="/marketing/art/dusk.webp"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 76rem"
+            className="ov-hero-art"
+          />
           <HomeLiveCall />
         </div>
       </div>
