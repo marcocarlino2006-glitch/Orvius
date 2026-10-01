@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ShellBadge } from "@/components/shell-primitives";
 import type { TimelineEvent } from "@/lib/customer";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
+import { formatWhen, statusWord } from "@/lib/when";
 
 /*
   Colour on this timeline means urgency, not what kind of record it is.
@@ -37,13 +38,7 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
                   {event.title}
                 </p>
                 <p className="mt-1 font-sans text-xs text-ash">
-                  {new Date(event.at).toLocaleString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
+                  {formatWhen(event.at)}
                   {/*
                     The source is only worth printing when it is not the type
                     said again. It is hardcoded to the type for calls, jobs,
@@ -54,18 +49,21 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
                     in on, so an SMS lead still says so.
                   */}
                   {event.source && event.source !== event.type
-                    ? ` · ${event.source}`
+                    ? ` · ${statusWord(event.source)}`
                     : ""}
-                  {event.status ? ` · ${event.status}` : ""}
+                  {event.status ? ` · ${statusWord(event.status)}` : ""}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <ShellBadge tone={badgeTone(event.type)}>{event.type}</ShellBadge>
+                {/* Money rows already open with their kind ("Invoice · $385"); the pill would say it twice. */}
+                {event.title.toLowerCase().startsWith(event.type) ? null : (
+                  <ShellBadge tone={badgeTone(event.type)}>{statusWord(event.type)}</ShellBadge>
+                )}
                 {isEmergency(event.urgency) ? (
                   <ShellBadge tone="flare">Emergency</ShellBadge>
                 ) : notableUrgency(event.urgency) ? (
                   <ShellBadge tone="neutral">
-                    {notableUrgency(event.urgency)}
+                    {statusWord(notableUrgency(event.urgency))}
                   </ShellBadge>
                 ) : null}
               </div>

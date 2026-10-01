@@ -552,6 +552,12 @@ export async function getAttentionQueue(
         sentAt: true,
         createdAt: true,
         lead: { select: { phone: true, name: true } },
+        job: {
+          select: {
+            status: true,
+            customer: { select: { phone: true, name: true } },
+          },
+        },
       },
     }),
     prisma.deposit.findMany({
@@ -587,9 +593,14 @@ export async function getAttentionQueue(
       rank: kindRank("open_invoice", null, afterHours),
       impact: "high",
       title: who
-        ? `${who} · $${Math.round(invoice.amountCents / 100)}`
-        : `Open invoice · $${Math.round(invoice.amountCents / 100)}`,
-      detail: `Status ${invoice.status} — collect before the work cools.`,
+        ? `${who} · invoice`
+        : "Open invoice",
+      detail:
+        invoice.status === "draft"
+          ? "Invoice drafted but never sent — send it while the visit is fresh."
+          : invoice.status === "overdue"
+            ? "Invoice is overdue — call to collect."
+            : "Invoice sent, not paid yet — follow up to collect.",
       recommendedAction: phone ? "Call to collect" : "Review invoice",
       href: invoice.jobId ? `/dashboard/jobs/${invoice.jobId}` : "/dashboard#shop-economics",
       entityType: "shop",
@@ -601,6 +612,19 @@ export async function getAttentionQueue(
   }
 
   for (const estimate of openMoney[1]) {
+    const jobStatus = estimate.job?.status ?? null;
+    if (jobStatus === "cancelled") continue;
+    // Quotes on a booked job are collected by the invoice at completion, not chased now.
+    if (
+      estimate.status !== "payment_failed" &&
+      jobStatus &&
+      jobStatus !== "completed"
+    ) {
+      continue;
+    }
+    const estimateWho = estimate.lead?.name ?? estimate.job?.customer?.name ?? null;
+    const estimatePhone =
+      estimate.lead?.phone ?? estimate.job?.customer?.phone ?? null;
     if (
       estimateNeedsOwnerFollowUp({
         status: estimate.status,
@@ -615,13 +639,15 @@ export async function getAttentionQueue(
         kind: "estimate_failed",
         rank: kindRank("estimate_failed", null, afterHours),
         impact: "critical",
-        title: estimate.lead?.name
-          ? `${estimate.lead.name} · $${Math.round(estimate.amountCents / 100)}`
-          : `Estimate · $${Math.round(estimate.amountCents / 100)}`,
+        title: estimateWho ? `${estimateWho} · estimate` : "Estimate",
         detail:
           estimate.status === "payment_failed"
             ? "Card checkout failed or expired — call to collect or resend."
-            : "Estimate still unpaid — call the customer before the work cools.",
+            : jobStatus === "completed"
+              ? "Work is done but never invoiced — send the invoice."
+              : estimate.status === "accepted"
+                ? "Accepted but not booked or paid — call to lock in the visit."
+                : "Quote sent, no answer yet — call before they pick someone else.",
         recommendedAction: "Call to collect",
         href: estimate.jobId
           ? `/dashboard/jobs/${estimate.jobId}`
@@ -632,7 +658,7 @@ export async function getAttentionQueue(
         entityId: estimate.leadId ?? businessId,
         createdAt: (estimate.sentAt ?? estimate.createdAt).toISOString(),
         estimatedRevenueCents: estimate.amountCents,
-        meta: { phone: estimate.lead?.phone ?? null, status: estimate.status },
+        meta: { phone: estimatePhone, status: estimate.status },
       });
       continue;
     }
@@ -642,11 +668,12 @@ export async function getAttentionQueue(
       kind: "open_estimate",
       rank: kindRank("open_estimate", null, afterHours),
       impact: "med",
-      title: estimate.lead?.name
-        ? `${estimate.lead.name} · $${Math.round(estimate.amountCents / 100)}`
-        : `Open estimate · $${Math.round(estimate.amountCents / 100)}`,
-      detail: `Status ${estimate.status} — convert or close before it goes cold.`,
-      recommendedAction: estimate.lead?.phone ? "Call to close" : "Review estimate",
+      title: estimateWho ? `${estimateWho} · estimate` : "Open estimate",
+      detail:
+        estimate.status === "draft"
+          ? "Estimate drafted but never sent — send it or close it out."
+          : "Quote is out — convert or close before it goes cold.",
+      recommendedAction: estimatePhone ? "Call to close" : "Review estimate",
       href: estimate.jobId
         ? `/dashboard/jobs/${estimate.jobId}`
         : estimate.leadId
@@ -682,7 +709,7 @@ export async function getAttentionQueue(
       kind: "deposit_failed",
       rank: kindRank("deposit_failed", null, afterHours),
       impact: "critical",
-      title: `${who} · $${Math.round(deposit.amountCents / 100)} deposit`,
+      title: `${who} · deposit`,
       detail: failed
         ? "Card checkout failed or expired — call to collect or resend the pay link."
         : unsent
@@ -1141,13 +1168,9 @@ export async function getAttentionQueue(
         rank: kindRank("tech_no_show", urgency, afterHours),
         impact: "critical",
         title: job.technician?.name ?? who,
-        detail: [
-          "Tech late / never rolled — call them",
-          job.title,
-          who !== job.technician?.name ? who : null,
-        ]
-          .filter(Boolean)
-          .join(" · "),
+        detail: `${job.technician?.name ? "Your tech" : "Nobody"} hasn't rolled on ${
+          who && who !== job.technician?.name ? `${who}'s` : "the"
+        } ${job.title} job — call ${job.technician?.name ? "them" : "the customer"}.`,
         recommendedAction: "Call tech",
         href: `/dashboard/jobs/${job.id}`,
         entityType: "job",

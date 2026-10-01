@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportEmail, supportMailto } from "@/lib/support";
+import { personInitials } from "@/components/record-avatar";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import { ROLE_LABELS, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
 
@@ -43,17 +44,6 @@ const accountLinks: MenuItem[] = [
   { href: "/dashboard?settings=integrations", label: "Integrations", hint: "Phone, SMS, email, Stripe" },
   { href: "/dashboard?settings=billing", label: "Billing", hint: "Plan and invoices" },
 ];
-
-function initials(name: string | null | undefined, email: string | null | undefined) {
-  if (name) {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-    }
-    return parts[0]?.slice(0, 2).toUpperCase() ?? "OR";
-  }
-  return email?.slice(0, 2).toUpperCase() ?? "OR";
-}
 
 function planDisplayLabel(account: AccountData | null): string {
   const status = account?.billing?.status ?? account?.business?.billingStatus ?? "none";
@@ -178,7 +168,7 @@ export function OsSidebarFooter() {
         >
           <div className="pm-identity">
             <span className="os-sidebar-avatar pm-avatar" aria-hidden>
-              {initials(session.user.name, session.user.email)}
+              {personInitials(session.user.name, session.user.email)}
             </span>
             <div className="pm-identity-copy">
               <p className="pm-name">{name}</p>
@@ -291,7 +281,7 @@ export function OsSidebarFooter() {
         onClick={() => setOpen((value) => !value)}
       >
         <span className="os-sidebar-avatar" aria-hidden>
-          {initials(session.user.name, session.user.email)}
+          {personInitials(session.user.name, session.user.email)}
         </span>
         <span className="os-sidebar-user-meta">
           <span className="os-sidebar-user-name">{name}</span>

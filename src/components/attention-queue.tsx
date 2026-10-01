@@ -322,7 +322,7 @@ function PrimaryAction({
   if (canCall(item)) {
     return (
       <a href={telHref(item.meta!.phone!)} className={primary}>
-        Call back
+        {item.kind === "tech_no_show" ? "Call tech" : "Call back"}
       </a>
     );
   }

@@ -65,7 +65,7 @@ export async function getOperatingMetrics(businessId: string, windowDays = 30): 
     revenue,
   ] = await Promise.all([
     prisma.call.count({ where: inWindow }),
-    prisma.call.count({ where: { ...inWindow, status: "completed" } }),
+    prisma.call.count({ where: { ...inWindow, status: { in: ["completed", "ended"] } } }),
     prisma.lead.count({ where: { ...inWindow, source: "call" } }),
     prisma.lead.count({
       where: { ...inWindow, source: "call", phone: { not: null }, address: { not: null }, serviceType: { not: null } },

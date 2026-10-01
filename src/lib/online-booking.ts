@@ -1,5 +1,6 @@
 import type { Business } from "@prisma/client";
 import { isBillingEntitled } from "@/lib/billing-entitlement";
+import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { createJobFromLead, findOpenSlots } from "@/lib/job";
@@ -172,6 +173,12 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
   }
 
   const name = input.name.trim().slice(0, 120);
+  const demand = deriveDemandSignal({
+    serviceType: input.serviceType,
+    notes: input.notes,
+    address: input.address,
+    trade: tradeForCapture(shop),
+  });
   const lead = await prisma.lead.create({
     data: {
       businessId: shop.id,
@@ -183,7 +190,8 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
       serviceType: input.serviceType,
       source: "web",
       status: "new",
-      categoryCode: null,
+      categoryCode: demand.categoryCode,
+      postalCode: demand.postalCode,
     },
   });
   await linkTouchToCustomer({

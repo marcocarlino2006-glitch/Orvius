@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { paymentMethodLabel } from "@/lib/when";
 
 export type ShiftEventKind =
   | "call_captured"
@@ -279,9 +280,7 @@ export async function getShiftTimeline(
       tone: "success",
       at: payment.createdAt.toISOString(),
       title: "Payment recorded",
-      detail: compact(payment.method)
-        ? `Method: ${payment.method}`
-        : null,
+      detail: compact(payment.method) ? paymentMethodLabel(payment.method) : null,
       href: payment.invoice.jobId
         ? `/dashboard/jobs/${payment.invoice.jobId}`
         : null,

@@ -12,6 +12,7 @@ import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { formatWhen } from "@/lib/when";
 
 type CustomerDetail = {
   id: string;
@@ -131,11 +132,11 @@ export default function CustomerDetailPage() {
             ) : null}
             <div>
               <dt>First seen</dt>
-              <dd>{new Date(customer.firstSeenAt).toLocaleString()}</dd>
+              <dd>{formatWhen(customer.firstSeenAt)}</dd>
             </div>
             <div>
               <dt>Last seen</dt>
-              <dd>{new Date(customer.lastSeenAt).toLocaleString()}</dd>
+              <dd>{formatWhen(customer.lastSeenAt)}</dd>
             </div>
           </dl>
 
