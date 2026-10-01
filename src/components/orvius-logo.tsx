@@ -3,13 +3,14 @@
 import type { CSSProperties } from "react";
 import { brandWordmark, logoSizes } from "@/lib/brand-typography";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
+import { WORDMARK_PATH, WORDMARK_VIEWBOX } from "@/lib/orvius-wordmark";
 
 type OrviusMarkProps = {
   size?: number;
   className?: string;
 };
 
-/** Signal-bridge insignia alone — favicon / avatar chrome only. */
+/** The O alone — favicon / avatar chrome only. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -22,12 +23,9 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
 type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
-  /**
-   * Text wordmark only (no mark). Default true — Stripe-style: the name is
-   * the brand until a mark earns its place.
-   */
+  /** The wordmark alone (no separate mark beside it). Default true: the name is the brand. */
   wordmarkOnly?: boolean;
-  /** Signal-bridge insignia alone — prefer OrviusMark for favicons. */
+  /** The O alone — prefer OrviusMark for favicons. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -35,7 +33,8 @@ type OrviusLogoProps = {
 };
 
 /**
- * Brand lockup = the word. No mark on product or marketing surfaces by default.
+ * Brand lockup = the wordmark artwork. It scales with the font-size of
+ * .orvius-logo-word, so every surface that sized the old text logo still sizes this one.
  */
 export function OrviusLogo({
   size = "md",
@@ -77,7 +76,8 @@ export function OrviusLogo({
       ]
         .filter(Boolean)
         .join(" ")}
-      aria-label={brandWordmark}
+      role="img"
+      aria-label="Orvius"
       style={
         {
           "--logo-mark-size": `${tokens.mark}px`,
@@ -89,7 +89,11 @@ export function OrviusLogo({
       {wordmarkOnly ? null : (
         <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
       )}
-      <span className="orvius-logo-word">{brandWordmark}</span>
+      <span className="orvius-logo-word">
+        <svg className="orvius-logo-svg" viewBox={WORDMARK_VIEWBOX} xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d={WORDMARK_PATH} fill="currentColor" />
+        </svg>
+      </span>
     </span>
   );
 }

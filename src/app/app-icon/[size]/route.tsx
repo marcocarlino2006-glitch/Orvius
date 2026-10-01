@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
 import { OrviusMarkGraphic } from "@/lib/orvius-mark-graphic";
-import { orviusColors } from "@/lib/orvius-colors";
 
 const SIZES = new Set([192, 512]);
 
@@ -19,7 +18,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ size
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: orviusColors.void,
+          background: "#000000",
         }}
       >
         <OrviusMarkGraphic size={mark} variant="dark" />

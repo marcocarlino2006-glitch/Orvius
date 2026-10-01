@@ -397,7 +397,7 @@ h3 {
 
 /* Shell header */
 
-/* Orvius brand — word alone (Stripe way). Mark is favicon chrome only. */
+/* Orvius brand — the wordmark artwork alone. The O is favicon chrome only. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -413,7 +413,7 @@ h3 {
 }
 
 .orvius-logo-mark {
-  color: var(--signal);
+  color: inherit;
 }
 
 /* Sizes come from logoSizes via --logo-word-*, so the lockup is tuned in one
@@ -427,11 +427,15 @@ h3 {
   line-height: 0.9;
   text-transform: lowercase;
   color: inherit;
-  margin-right: -0.075em;
 }
 
-.orvius-mark-beam {
-  color: var(--signal);
+/* Cap height of the artwork tracks the font-size every surface already sets. */
+.orvius-logo-svg {
+  display: block;
+  height: 0.7em;
+  width: auto;
+  aspect-ratio: 622 / 98.3;
+  overflow: visible;
 }
 
 .orvius-logo-void {
