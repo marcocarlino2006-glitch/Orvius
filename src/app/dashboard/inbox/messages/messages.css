@@ -219,6 +219,32 @@
   overflow-wrap: anywhere;
 }
 
+.msg-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 320px;
+}
+
+.msg-bubble-row.is-out .msg-photos {
+  justify-content: flex-end;
+}
+
+.msg-photo {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--ox-line);
+  border-radius: 12px;
+  background: var(--ox-s2);
+}
+
+.msg-photo img {
+  display: block;
+  width: 152px;
+  height: 152px;
+  object-fit: cover;
+}
+
 .msg-bubble--customer {
   background: var(--ox-s3);
   color: var(--ox-text);

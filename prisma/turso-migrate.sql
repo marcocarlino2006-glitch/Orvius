@@ -634,3 +634,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS "PlanMember_stripeSubscriptionId_key" ON "Plan
 CREATE INDEX IF NOT EXISTS "PlanMember_businessId_status_idx" ON "PlanMember"("businessId", "status");
 CREATE INDEX IF NOT EXISTS "PlanMember_businessId_phoneNormalized_idx" ON "PlanMember"("businessId", "phoneNormalized");
 CREATE INDEX IF NOT EXISTS "PlanMember_status_nextVisitDueAt_idx" ON "PlanMember"("status", "nextVisitDueAt");
+ALTER TABLE "Message" ADD COLUMN "mediaJson" TEXT;

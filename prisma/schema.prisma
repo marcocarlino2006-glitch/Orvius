@@ -228,6 +228,8 @@ model Message {
   sid             String?
   /** Carrier receipt for an outbound text: sent | delivered | undelivered | failed. */
   deliveryStatus  String?
+  /** Photos on an inbound text: JSON [{ url, type }], Twilio media URLs fetched only through the authed proxy. */
+  mediaJson       String?
   /** Set when the owner has read an inbound text. */
   readAt          DateTime?
   createdAt       DateTime @default(now())

@@ -20,6 +20,7 @@ const {
   markThreadRead,
   recordMessage,
   applyMessageReceipt,
+  inboundMediaFromForm,
 } = await import("../src/lib/messages.ts");
 const { sendCustomerSms } = await import("../src/lib/customer-sms.ts");
 const { POST } = await import("../src/app/api/webhooks/twilio/sms/route.ts");
@@ -255,6 +256,56 @@ test("carrier receipts move a sent text forward, never back", async () => {
   } finally {
     await drop(business.id);
   }
+});
+
+test("a photo-only text still reaches the shop, with the photos on the thread", async () => {
+  const business = await shop();
+  try {
+    const from = randomPhone();
+    const photo = "https://api.twilio.com/2010-04-01/Accounts/AC1/Messages/MM1/Media/ME1";
+    const res = await POST(
+      new NextRequest("http://localhost/api/webhooks/twilio/sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          From: from,
+          To: business.vapiPhoneNumber,
+          Body: "",
+          MessageSid: `SM${stamp()}`,
+          NumMedia: "3",
+          MediaUrl0: photo,
+          MediaContentType0: "image/jpeg",
+          MediaUrl1: "https://evil.example/x.jpg",
+          MediaContentType1: "image/jpeg",
+          MediaUrl2: "https://api.twilio.com/2010-04-01/Accounts/AC1/Messages/MM1/Media/ME3",
+          MediaContentType2: "text/vcard",
+        }),
+      }),
+    );
+    assert.equal(res.status, 200);
+    const lead = await prisma.lead.findFirst({ where: { businessId: business.id, phone: from } });
+    assert.ok(lead, "a photo with no words still opens a lead");
+    assert.match(lead.notes, /1 photo in Inbox/);
+    const thread = await getThread(business.id, from);
+    const inbound = thread.entries.find((e) => e.kind === "text" && e.direction === "in");
+    assert.equal(inbound.photos, 1, "only the Twilio-hosted image is kept");
+    assert.equal(inbound.body, "Sent a photo");
+  } finally {
+    await drop(business.id);
+  }
+});
+
+test("media parsing caps photos and rejects lookalike hosts", () => {
+  const form = { NumMedia: "8" };
+  for (let i = 0; i < 8; i += 1) {
+    form[`MediaUrl${i}`] = `https://api.twilio.com/2010-04-01/Accounts/AC1/Messages/MM1/Media/ME${i}`;
+    form[`MediaContentType${i}`] = "image/png";
+  }
+  assert.equal(inboundMediaFromForm(form).length, 5);
+  assert.deepEqual(
+    inboundMediaFromForm({ NumMedia: "1", MediaUrl0: "https://api.twilio.com.evil.example/2010-04-01/Accounts/x", MediaContentType0: "image/png" }),
+    [],
+  );
 });
 
 test.after(() => prisma.$disconnect());
