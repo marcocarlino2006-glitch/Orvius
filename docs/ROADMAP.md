@@ -1,8 +1,34 @@
 # Orvius business roadmap — the road to multi-billion
 
-Updated 2026-09-30. Stages end at gates, not dates: we move on when the numbers
+Updated 2026-10-01. Stages end at gates, not dates: we move on when the numbers
 are true on the weekly scoreboard (`/admin`, emailed every Monday). The work
 itself lives in `docs/BACKLOG.md`; this file sets direction.
+
+## The mission
+
+**Give every small business in the world the front office of a Fortune 500
+company.**
+
+A big company has a call center, a booking team, follow-up staff and a billing
+department. A plumber, a dentist or a salon owner has one phone and two hands.
+Orvius closes that gap — for the roughly 33 million small businesses in the US
+and the hundreds of millions worldwide.
+
+The dream, in three steps, each earned by the one before it:
+
+1. **The front desk for every business.** Orvius answers the phone for millions
+   of businesses, in any industry and any language, day and night.
+2. **The operating system for small business.** Once we hold the calls, we run
+   what comes after them: scheduling, follow-ups, payments, reviews and the
+   weekly numbers. The owner runs the business from their phone; Orvius runs
+   the office.
+3. **The network between customers and businesses.** When someone needs a
+   plumber at 2 a.m. or a dentist tomorrow, they — or their AI assistant — book
+   through Orvius, because we know who is open, who is nearby and who does good
+   work.
+
+The mission is the goal, not a claim about today. Public copy never says "never
+miss" or "every call answered"; calls can still fail, and we say what is true.
 
 ## The bet
 

@@ -18,28 +18,37 @@ export const company = {
   foundedYear: 2026,
   trades: ["HVAC"] as const,
   /**
-   * Wedge first (founder lock 2026-09-22): beginning = focused AI receptionist
-   * for HVAC after-hours/overflow — not the full OS. Expand only after one shop
-   * pays and call→cash is proven.
+   * Mission (founder decision 2026-10-01). Public copy states it as the goal
+   * we work toward, never as a guarantee about today's product: calls can
+   * still fail, so absolutist answer-rate copy stays banned (life-changing-check E).
    */
+  mission: "Give every small business in the world the front office of a Fortune 500 company.",
+  missionWhy:
+    "A big company has a call center, a booking team, follow-up staff and a billing department. A plumber, a dentist or a salon owner has one phone and two hands. Orvius closes that gap.",
+  /** Where the mission goes, in order. Each step is earned by the one before it. */
+  vision: [
+    {
+      title: "The front desk for every business",
+      body: "Orvius answers the phone for millions of businesses, in any industry and any language, day and night.",
+    },
+    {
+      title: "The operating system for small business",
+      body: "Once we hold the calls, we run what comes after them: scheduling, follow-ups, payments, reviews and the weekly numbers. The owner runs the business from their phone; Orvius runs the office.",
+    },
+    {
+      title: "The network between customers and businesses",
+      body: "When someone needs a plumber at 2 a.m. or a dentist tomorrow, they — or their AI assistant — book through Orvius, because we know who is open, who is nearby and who does good work.",
+    },
+  ],
   tagline: "The AI front desk for every business that runs on the phone.",
-  /** Category for the beginning — OS is earned after the wedge pays. */
   categoryClaim:
     "An AI front desk for trades, clinics, salons, shops and offices — answers, qualifies, books, confirms, and alerts the owner. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
-  /** Wedge proof — one missed call → one completed, paid job. */
   proofLine: "Missed calls become booked customers.",
-  vision:
-    "Prove that one local HVAC company will pay Orvius to turn one customer call into one completed and paid job. Only then expand recovery, follow-up, estimates, memberships, analytics — and only after that dispatch, tech workflows, equipment history, payments, and the broader OS.",
-  /**
-   * Product goal for the beginning — controlled pilot on overflow/after-hours.
-   * Dashboard north star: demand captured → completed work → money produced.
-   */
-  mission:
-    "Deploy with one local HVAC company on overflow or after-hours. Answer inbound calls, understand the problem, capture address and contact, identify urgency, check service area, book, confirm, and notify the shop. When the caller wants a person, take their name and number and transfer to the owner's phone if a transfer number is set; when unsure, or when the transfer does not go through, escalate to the owner on the board for a callback. Charge a controlled pilot. Track calls answered, leads captured, appointments booked, jobs completed, and revenue influenced — until the wedge pays.",
   strategy: [
-    "One HVAC shop first — overflow/after-hours pilot that pays.",
-    "Prove call → cash: demand captured, completed work, money produced.",
-    "Own context/workflow/data/transactions — use replaceable models; expand OS and trades only after the wedge compounds.",
+    "Win home services first — the deepest packs, the most urgent calls.",
+    "Add an industry only when its pack passes the voice simulator.",
+    "Prove call → cash for every business: demand captured, work done, money collected.",
+    "Own the workflow, data and transactions; use replaceable AI models.",
   ] as const,
   /**
    * Confirm with counsel against formation docs before relying on arbitration
