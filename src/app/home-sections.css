@@ -7,22 +7,13 @@
   border-top: 1px solid var(--ov-hairline);
 }
 
-.ov-public .hx-section.hx-night,
-.ov-public .hx-section.hx-surfaces {
+.ov-public .hx-section.hx-night {
   background: var(--ov-paper-raised);
 }
 
 .ov-public .hx-head {
   max-width: 44rem;
   margin: 0;
-}
-
-.ov-public .hx-head--row {
-  max-width: none;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem;
 }
 
 .ov-public .hx-title {
@@ -203,138 +194,149 @@
   background: var(--ov-amber);
 }
 
-/* ---------- Surfaces carousel ---------- */
+/* ---------- Product reel ---------- */
 
-.ov-public .hx-arrows {
-  display: flex;
-  gap: 0.5rem;
+.ov-public .hr-section {
+  --hr-h: clamp(15rem, 34vw, 30rem);
+  padding-block: clamp(3.5rem, 7vw, 6rem) clamp(4rem, 8vw, 6.5rem);
+  background: var(--ov-paper-raised);
+  border-top: 1px solid var(--ov-hairline);
+  overflow: hidden;
 }
 
-.ov-public .hx-arrows button {
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--ov-hairline);
-  background: rgb(255 255 255 / 0.04);
-  color: var(--ov-headline);
-  cursor: pointer;
-  transition: border-color 160ms ease, background 160ms ease, opacity 160ms ease;
+.ov-public .hr-pad {
+  padding-inline: max(20px, 5vw);
+  margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
-.ov-public .hx-arrows button:hover:not(:disabled) {
-  border-color: var(--ov-hairline-hover);
-  background: rgb(255 255 255 / 0.08);
+.ov-public .hr-head {
+  gap: 0;
 }
 
-.ov-public .hx-arrows button:disabled {
-  opacity: 0.35;
-  cursor: default;
+.ov-public .hr-sub {
+  margin: 1rem 0 0;
+  max-width: 54ch;
+  color: var(--ov-muted);
+  font-size: 1.0625rem;
+  line-height: 1.55;
 }
 
-.ov-public .hx-surfaces .hx-track {
-  --hx-rail: max(max(20px, 5vw), calc((100vw - 1240px) / 2));
-  display: flex;
-  gap: 20px;
-  margin: clamp(2rem, 4vw, 3rem) calc(-1 * max(20px, 5vw)) 0;
-  padding: 0 var(--hx-rail) 0.75rem;
-  scroll-padding-inline: var(--hx-rail);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
+.ov-public .hr-viewport {
+  position: relative;
   outline: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
 }
 
-.ov-public .hx-track::-webkit-scrollbar {
-  display: none;
+.ov-public .hr-viewport:focus-visible {
+  outline: 2px solid var(--ov-accent);
+  outline-offset: 4px;
 }
 
-.ov-public .hx-track:focus-visible {
-  outline: 2px solid var(--ov-copper);
-  outline-offset: -2px;
+.ov-public .hr-track {
+  display: flex;
+  width: max-content;
+  animation: hr-drift 90s linear infinite;
+  will-change: transform;
 }
 
-.ov-public .hx-surface {
-  flex: 0 0 min(46rem, 86vw);
-  scroll-snap-align: start;
+.ov-public .hr-viewport:hover .hr-track,
+.ov-public .hr-viewport:focus-within .hr-track {
+  animation-play-state: paused;
+}
+
+@keyframes hr-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.ov-public .hr-card {
+  /* Spacing as margin, not gap, so the doubled track is exactly two equal halves. */
+  margin: 0 clamp(1rem, 2vw, 1.75rem) 0 0;
+  flex: none;
   display: flex;
   flex-direction: column;
+  gap: 0.9rem;
 }
 
-.ov-public .hx-surface--field {
-  flex-basis: min(30rem, 86vw);
-}
-
-.ov-public .hx-surface-visual {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  border-radius: 16px;
+.ov-public .hr-frame {
+  height: var(--hr-h);
+  border-radius: 18px;
   border: 1px solid var(--ov-hairline-strong);
   background: #0c0c0e;
   overflow: hidden;
-  box-shadow: 0 30px 60px -36px rgb(0 0 0 / 0.55);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.04) inset,
+    0 40px 80px -48px rgb(0 0 0 / 0.7);
+  transition: transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 300ms ease;
 }
 
-.ov-public .hx-surface-visual > img {
+.ov-public .hr-card:hover .hr-frame {
+  transform: translateY(-4px);
+  border-color: var(--ov-accent);
+}
+
+.ov-public .hr-frame > img {
   display: block;
-  width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: top left;
-  transition: transform 900ms cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.ov-public .hx-surface:hover .hx-surface-visual > img {
-  transform: scale(1.02);
-}
-
-.ov-public .hx-surface-visual--phones {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.5rem 1.5rem 0;
-  aspect-ratio: auto;
-  height: calc(min(46rem, 86vw) * 10 / 16);
-  background:
-    #0c0c0e;
-}
-
-.ov-public .hx-surface-visual--phones > img {
   width: auto;
-  height: 118%;
-  object-fit: contain;
-  border-radius: 22px;
-  border: 1px solid rgb(255 255 255 / 0.14);
 }
 
-.ov-public .hx-surface-visual--phones > img + img {
-  margin-top: 2.25rem;
+.ov-public .hr-card--phone .hr-frame {
+  border-radius: 28px;
+  padding: 8px;
+  background: #050506;
 }
 
-.ov-public .hx-surface-label {
-  margin: 1.1rem 0 0.35rem;
+.ov-public .hr-card--phone .hr-frame > img {
+  border-radius: 20px;
+}
+
+.ov-public .hr-card figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: 26rem;
+}
+
+.ov-public .hr-card--phone figcaption {
+  max-width: calc(var(--hr-h) * 0.46);
+}
+
+.ov-public .hr-label {
   color: var(--ov-accent-text);
   font-size: 0.75rem;
   font-weight: 500;
 }
 
-.ov-public .hx-surface-title {
-  margin: 0 0 0.4rem;
+.ov-public .hr-title {
   color: var(--ov-headline);
   font-family: var(--ov-font);
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
-.ov-public .hx-surface-body {
-  margin: 0;
-  max-width: 52ch;
-  color: var(--ov-muted);
-  font-size: 0.9375rem;
-  line-height: 1.5;
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .hr-viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .ov-public .hr-track {
+    animation: none;
+  }
+
+  .ov-public .hr-card {
+    scroll-snap-align: start;
+  }
+
+  .ov-public .hr-card[aria-hidden="true"] {
+    display: none;
+  }
 }
 
 /* ---------- Compare ---------- */
@@ -739,9 +741,6 @@ html.hx-motion [data-reveal-stagger].is-in > * {
 }
 
 @media (max-width: 560px) {
-  .ov-public .hx-head--row .hx-arrows {
-    display: none;
-  }
 
   
 
