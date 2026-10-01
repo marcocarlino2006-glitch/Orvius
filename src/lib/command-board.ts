@@ -111,7 +111,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       where: { businessId, action: "sms.failed", createdAt: { gte: recent } },
       orderBy: { createdAt: "desc" },
       take: 10,
-      select: { id: true, summary: true, leadId: true, jobId: true, createdAt: true },
+      select: { id: true, summary: true, entityId: true, leadId: true, jobId: true, createdAt: true },
     }),
     prisma.takeover.findMany({ where: { businessId, releasedAt: null }, orderBy: { createdAt: "desc" }, take: 20 }),
     prisma.auditEvent.findMany({
@@ -183,7 +183,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
         exception: "stale",
         title: `${person} · ${job.title}`,
         detail: `Window was ${slot} and nobody is on the way — move it or close it.`,
-        at: job.scheduledAt.toISOString(),
+        at: job.createdAt.toISOString(),
       });
       continue;
     }
@@ -196,7 +196,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
         lane: "confirmed",
         title: `${person} · ${job.title}`,
         detail: `${slot} · ${crew}`,
-        at: (job.scheduledAt ?? job.createdAt).toISOString(),
+        at: job.createdAt.toISOString(),
         confirm: "confirmed",
       });
       continue;
@@ -215,7 +215,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       detail: `${slot} · ${crew} · ${
         confirm === "sent" ? "confirm text sent, waiting on the customer" : confirm === "failed" ? "confirm text failed — call them" : "confirm text not sent yet"
       }`,
-      at: (job.scheduledAt ?? job.createdAt).toISOString(),
+      at: job.createdAt.toISOString(),
       confirm,
     });
     if (confirm === "failed") {
@@ -236,7 +236,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
         exception: "unconfirmed_soon",
         title: `${person} · starts soon, not confirmed`,
         detail: `${slot} — the customer has not confirmed. Call before the tech rolls.`,
-        at: job.scheduledAt.toISOString(),
+        at: job.createdAt.toISOString(),
       });
     }
   }
@@ -309,7 +309,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     });
   }
   for (const a of smsFailures) {
-    if (a.jobId && exceptions.some((x) => x.id === `confirm-failed:${a.jobId}`)) continue;
+    if (exceptions.some((x) => x.exception === "failed_message" && x.phone && phoneKey(x.phone) === a.entityId)) continue;
     exceptions.push({
       id: `sms-failed:${a.id}`,
       lane: "exceptions",

@@ -19,6 +19,7 @@ type AccountBillingPayload = {
     billingPlan?: string | null;
     pilotEndsAt?: string | null;
     stripeCustomerId?: string | null;
+    environment?: string;
   } | null;
   billing?: {
     status?: string;
@@ -68,7 +69,7 @@ export function PayPromptModal() {
         setHasStripeCustomer(Boolean(data.business?.stripeCustomerId));
         setDecision(next);
 
-        if (!next?.show) {
+        if (!next?.show || data.business?.environment === "demo") {
           setOpen(false);
           return;
         }

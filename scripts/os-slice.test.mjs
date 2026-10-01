@@ -121,6 +121,7 @@ test("failed messages: a rejected confirmation is recorded, the owner is told, a
   assert.match(ownerAlert.message, /did not go through/);
   const board = await buildCommandBoard(shop.id);
   assert.ok(board.lanes.exceptions.some((i) => i.exception === "failed_message" && i.jobId === job.id));
+  assert.equal(board.lanes.exceptions.filter((i) => i.exception === "failed_message").length, 1, "one bounce, one exception");
   assert.equal(board.lanes.proposed.find((i) => i.jobId === job.id)?.confirm, "failed");
   const trace = await buildRequestTrace(shop.id, call.leadId);
   assert.ok(trace.events.some((e) => e.tone === "failed"), "the failure stays in the trace");

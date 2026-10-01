@@ -63,7 +63,7 @@ export function OsShell({
   const offHours = business?.signals.afterHoursNow ?? false;
   const onSettings = pathname.startsWith("/dashboard/settings");
   /* Shown only when the line is not simply answering; a normal day needs no banner. */
-  const lineAlert = businessLoading
+  const lineAlert = businessLoading || (business?.sample && !business.line)
     ? null
     : business?.line
       ? offHours
@@ -121,6 +121,8 @@ export function OsShell({
               <span className="os-ring-status-dot" aria-hidden />
               {displayPhone(business.line)}
             </>
+          ) : business?.sample ? (
+            "Demo — calls are simulated"
           ) : onSettings ? (
             "Set your line below"
           ) : (

@@ -5,10 +5,9 @@ import { isWindowOpen, openWindows, windowLabel } from "@/lib/copilot-propose";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { createJobFromLead, SlotTakenError } from "@/lib/job";
-import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
+import { notifyTechOnAssign, notifyTechOnReschedule } from "@/lib/notify-tech-assign";
 import { prisma } from "@/lib/prisma";
 import { loadTechCandidates } from "@/lib/technician-match";
-import { sendSms } from "@/lib/twilio-sms";
 
 export type ProposalParams = { jobId?: string; leadId?: string; technicianId?: string; at?: string };
 
@@ -255,14 +254,14 @@ async function runWindowProposal(
   });
   let techSent = false;
   if (job.technician?.phone) {
-    techSent = Boolean(
-      await sendSms({
-        to: job.technician.phone,
-        body: `${business.name}: ${job.title} moved to ${when}.${job.address ? ` ${job.address}.` : ""}`,
-        businessId: business.id,
-        audience: "tech",
-      }).catch(() => null),
-    );
+    techSent = await notifyTechOnReschedule({
+      businessId: business.id,
+      businessName: business.name,
+      techPhone: job.technician.phone,
+      title: job.title,
+      when,
+      address: job.address,
+    });
   }
   const who = job.customer?.name ?? job.lead?.name ?? "the customer";
   return {

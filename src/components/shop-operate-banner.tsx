@@ -31,6 +31,7 @@ type AccountPayload = {
     baselineMissedCallsPerWeek?: number | null;
     baselineJobsPerWeek?: number | null;
     lastWeeklyProofAt?: string | null;
+    environment?: string;
   } | null;
 };
 
@@ -69,7 +70,7 @@ export function ShopOperateBanner() {
     const accountRes = await fetchAccount();
     if (!accountRes.ok) return;
     const account = (await accountRes.json()) as AccountPayload;
-    if (!account.business) {
+    if (!account.business || account.business.environment === "demo") {
       setNext(null);
       return;
     }
