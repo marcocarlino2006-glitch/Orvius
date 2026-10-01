@@ -66,8 +66,8 @@ export default function OpenGraphImage() {
               color: "rgba(244,246,249,0.62)",
             }}
           >
-            Call the live product. Capture the request, propose an open window,
-            and alert the owner.
+            Answers the calls you can&apos;t take, books customers from your
+            schedule, and texts you what happened.
           </div>
         </div>
 

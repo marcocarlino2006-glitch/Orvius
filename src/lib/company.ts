@@ -41,6 +41,11 @@ export const company = {
     },
   ],
   tagline: "The AI front desk for every business that runs on the phone.",
+  /** The blue link in search results: brand first, then the words people search for. */
+  searchTitle: "Orvius — AI Receptionist for Small Business",
+  /** The caption under it. Google cuts at about 155 characters. */
+  searchDescription:
+    "Orvius is the AI receptionist that answers the calls you can't take, books customers from your schedule, and texts you what happened. For any business.",
   categoryClaim:
     "An AI front desk for trades, clinics, salons, shops and offices — answers, qualifies, books, confirms, and alerts the owner. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
   proofLine: "Missed calls become booked customers.",

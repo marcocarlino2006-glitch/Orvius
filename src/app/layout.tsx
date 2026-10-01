@@ -3,6 +3,7 @@ import { Archivo, IBM_Plex_Mono, Inter } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
+import { buildSiteStructuredData } from "@/lib/structured-data";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 import "./public-v2.css";
@@ -38,18 +39,19 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: `Orvius — ${company.tagline.replace(/\.$/, "")}`,
+    default: company.searchTitle,
     template: "%s · Orvius",
   },
-  description:
-    "Orvius answers after-hours and overflow calls for HVAC shops, captures the request, proposes an open window, and alerts the owner.",
+  description: company.searchDescription,
   metadataBase: new URL(`https://${company.domain}`),
   alternates: { canonical: "/" },
   appleWebApp: { capable: true, title: "Orvius", statusBarStyle: "black-translucent" },
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
   openGraph: {
-    title: `Orvius — ${company.tagline.replace(/\.$/, "")}`,
-    description:
-      "Call the live product. Orvius captures after-hours demand, proposes an open service window, and alerts the owner.",
+    title: company.searchTitle,
+    description: company.searchDescription,
     type: "website",
     url: `https://${company.domain}`,
     siteName: company.productName,
@@ -64,9 +66,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `Orvius — ${company.tagline.replace(/\.$/, "")}`,
-    description:
-      "Call the live product. After-hours intake, capacity-aware scheduling, confirmation, and owner alerts.",
+    title: company.searchTitle,
+    description: company.searchDescription,
     images: ["/opengraph-image"],
   },
 };
@@ -83,6 +84,12 @@ export default function RootLayout({
     <html lang="en" data-theme="night" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(buildSiteStructuredData()).replace(/</g, "\\u003c"),
+          }}
+        />
       </head>
       <body className={`${sans.variable} ${mono.variable} ${ui.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
