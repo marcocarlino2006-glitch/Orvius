@@ -635,3 +635,17 @@ CREATE INDEX IF NOT EXISTS "PlanMember_businessId_status_idx" ON "PlanMember"("b
 CREATE INDEX IF NOT EXISTS "PlanMember_businessId_phoneNormalized_idx" ON "PlanMember"("businessId", "phoneNormalized");
 CREATE INDEX IF NOT EXISTS "PlanMember_status_nextVisitDueAt_idx" ON "PlanMember"("status", "nextVisitDueAt");
 ALTER TABLE "Message" ADD COLUMN "mediaJson" TEXT;
+CREATE TABLE IF NOT EXISTS "Takeover" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "phoneNormalized" TEXT NOT NULL,
+  "leadId" TEXT,
+  "takenBy" TEXT NOT NULL,
+  "reason" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "releasedAt" DATETIME,
+  "releasedBy" TEXT,
+  CONSTRAINT "Takeover_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Takeover_businessId_phoneNormalized_key" ON "Takeover"("businessId", "phoneNormalized");
+CREATE INDEX IF NOT EXISTS "Takeover_businessId_releasedAt_idx" ON "Takeover"("businessId", "releasedAt");

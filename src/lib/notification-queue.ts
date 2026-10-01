@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getTwilioClient } from "@/lib/twilio-client";
 import { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
+import { isSimulatedWorkspace, simulatedSid, simulateSend } from "@/lib/sms-simulation";
 
 /*
   Each rung is the wait after the attempt of that number: a first failure is
@@ -250,6 +251,27 @@ async function deliverQueuedRow(row: {
     message,
     openUrl,
   });
+
+  if ((row.channel === "sms" || row.channel === "email") && (await isSimulatedWorkspace(row.businessId))) {
+    const to = row.channel === "sms" ? row.ownerPhone : row.ownerEmail;
+    if (!to) {
+      await markDeliveryFailure(row, `No owner ${row.channel === "sms" ? "phone" : "email"} on this demo workspace`, { exhaust: true });
+      return { status: "failed", error: "No owner contact on this demo workspace" };
+    }
+    let sid: string;
+    try {
+      sid = row.channel === "sms" ? simulateSend(to).sid : simulatedSid();
+    } catch (error) {
+      const why = error instanceof Error ? error.message : "Simulated send failed";
+      await markDeliveryFailure(row, why, { exhaust: true });
+      return { status: "failed", error: why };
+    }
+    await prisma.ownerNotification.update({
+      where: { id: row.id },
+      data: { status: "sent", deliveryId: sid, deliveryStatus: "simulated", processedAt: new Date(), error: null },
+    });
+    return { status: "sent", id: sid };
+  }
 
   if (row.channel === "sms") {
     if (
@@ -560,10 +582,11 @@ export async function applySmsDeliveryReceipt(params: {
   return { reopened, exhausted, delivered: 0 };
 }
 
-export async function processNotificationQueue(limit = 20) {
+export async function processNotificationQueue(limit = 20, scope: { businessId?: string } = {}) {
   const now = new Date();
   const rows = await prisma.ownerNotification.findMany({
     where: {
+      ...(scope.businessId ? { businessId: scope.businessId } : {}),
       attempts: { lt: MAX_ATTEMPTS },
       OR: [
         { status: "pending", nextRetryAt: null },
@@ -690,6 +713,18 @@ export async function notifyOwnerSync(params: {
   });
 
   const result: NotifyOwnerResult = {};
+
+  if (await isSimulatedWorkspace(params.businessId)) {
+    if (params.ownerPhone) {
+      try {
+        result.sms = { status: "sent", id: simulateSend(params.ownerPhone).sid };
+      } catch (error) {
+        result.sms = { status: "failed", error: error instanceof Error ? error.message : "Simulated send failed" };
+      }
+    }
+    if (params.ownerEmail) result.email = { status: "sent", id: simulatedSid() };
+    return result;
+  }
 
   if (
     process.env.ENABLE_OWNER_SMS === "true" &&

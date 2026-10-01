@@ -30,6 +30,7 @@ const SEND_ERRORS = {
     error: "This customer replied STOP. They have to text START before you can text them again.",
   },
   sms_not_configured: { status: 503, error: "Texting isn't set up for this workspace yet." },
+  human_takeover: { status: 409, error: "Someone took this conversation over. Hand it back to Orvius first." },
 } as const;
 
 export async function POST(request: NextRequest) {

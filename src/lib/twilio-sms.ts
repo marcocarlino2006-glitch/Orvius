@@ -4,6 +4,7 @@ import { getWebhookUrl } from "@/lib/env";
 import { logWarn } from "@/lib/logger";
 import { recordMessage, type MessageAuthor } from "@/lib/messages";
 import { prisma } from "@/lib/prisma";
+import { isSimulatedWorkspace, simulateSend } from "@/lib/sms-simulation";
 
 export type SmsAudience = "customer" | "owner" | "tech";
 
@@ -74,19 +75,21 @@ export async function sendSms(params: {
   /** Who wrote a customer text; only customer texts land in the inbox thread. */
   author?: Exclude<MessageAuthor, "customer">;
 }): Promise<{ sid: string } | null> {
+  const simulated = await isSimulatedWorkspace(params.businessId);
   const sender = smsSender();
-  if (!isSmsReady() || !sender) return null;
+  if (!simulated && (!isSmsReady() || !sender)) return null;
 
   const to = normalizePhone(params.to);
   if (!to || !params.body.trim()) return null;
 
-  const client = getTwilioClient();
-  const sms = await client.messages.create({
-    body: params.body.trim(),
-    ...sender,
-    to,
-    statusCallback: smsStatusCallback(),
-  });
+  const sms = simulated
+    ? simulateSend(to)
+    : await getTwilioClient().messages.create({
+        body: params.body.trim(),
+        ...sender!,
+        to,
+        statusCallback: smsStatusCallback(),
+      });
 
   if (params.businessId) {
     await recordOutboundSms({

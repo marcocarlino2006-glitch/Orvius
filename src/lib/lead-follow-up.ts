@@ -251,6 +251,7 @@ export async function sendLeadFollowUp(params: {
       customer_opted_out: "This customer texted STOP.",
       invalid_customer_phone: REASONS.no_phone,
       sms_not_configured: "Texting is not switched on for this shop yet.",
+      human_takeover: "Someone took this conversation over, so Orvius stayed quiet.",
     }[result.reason];
     return { sent: false, reason: why };
   }

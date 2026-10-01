@@ -939,3 +939,352 @@ a.dt-row:focus-visible,
   color: var(--ox-mute);
   font-variant-numeric: tabular-nums;
 }
+
+/* Command board — the daily workspace. */
+.cb {
+  display: grid;
+  gap: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.cb-ask-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cb-ask-input {
+  flex: 1;
+  min-width: 0;
+  height: 2.375rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s2);
+  color: var(--ox-text);
+  font-size: 0.875rem;
+}
+
+.cb-ask-input::placeholder {
+  color: var(--ox-mute);
+}
+
+.cb-ask-result {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+}
+
+.cb-ask-message,
+.cb-muted,
+.cb-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ox-text-2);
+}
+
+.cb-empty {
+  padding: 1.25rem 0;
+  color: var(--ox-mute);
+}
+
+.cb-error {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ox-red);
+}
+
+.cb-demo {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  border: 1px dashed var(--ox-line-strong);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+
+.cb-demo-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.cb-demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.5rem;
+}
+
+.cb-demo-btn {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s2);
+  color: var(--ox-text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--ox-dur-fast) ease, background var(--ox-dur-fast) ease;
+}
+
+.cb-demo-btn:hover:not(:disabled) {
+  border-color: var(--ox-line-strong);
+  background: var(--ox-s3);
+}
+
+.cb-demo-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.cb-demo-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.cb-demo-expect {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--ox-mute);
+}
+
+.cb-tabs {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--ox-line);
+}
+
+.cb-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--ox-mute);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cb-tab:hover {
+  color: var(--ox-text);
+}
+
+.cb-tab--on {
+  border-bottom-color: var(--ox-amber);
+  color: var(--ox-text);
+}
+
+.cb-tab-count {
+  min-width: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--ox-s3);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  text-align: center;
+  color: var(--ox-text-2);
+}
+
+.cb-tab--alert .cb-tab-count {
+  background: var(--ox-red-soft);
+  color: var(--ox-red);
+}
+
+.cb-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cb-item {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--ox-line);
+}
+
+.cb-item--urgent {
+  box-shadow: inset 2px 0 0 var(--ox-red);
+  padding-left: 0.75rem;
+}
+
+.cb-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cb-item-main {
+  min-width: 0;
+}
+
+.cb-item-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 550;
+  color: var(--ox-text);
+}
+
+.cb-item-detail {
+  margin: 0.2rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ox-text-2);
+}
+
+.cb-item-at,
+.cb-trace-at {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.cb-tag {
+  padding: 0.05rem 0.4rem;
+  border-radius: 0.25rem;
+  background: var(--ox-s3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ox-text-2);
+}
+
+.cb-tag--emergency,
+.cb-tag--failed_message {
+  background: var(--ox-red-soft);
+  color: var(--ox-red);
+}
+
+.cb-tag--stale,
+.cb-tag--unconfirmed_soon,
+.cb-tag--duplicate {
+  background: var(--ox-yellow-soft);
+  color: var(--ox-yellow);
+}
+
+.cb-tag--takeover {
+  background: var(--ox-amber-soft);
+  color: var(--ox-amber);
+}
+
+.cb-actions,
+.cb-slots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.cb-plan {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s1);
+}
+
+.cb-plan-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ox-amber);
+}
+
+.cb-plan-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre-line;
+  color: var(--ox-text);
+}
+
+.cb-trace {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.625rem 0 0.25rem 0.25rem;
+  list-style: none;
+}
+
+.cb-trace-row {
+  display: grid;
+  grid-template-columns: 0.5rem 1fr auto;
+  align-items: baseline;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ox-text-2);
+}
+
+.cb-trace-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--ox-s4);
+}
+
+.cb-tone-ok .cb-trace-dot {
+  background: var(--ox-green);
+}
+
+.cb-tone-held .cb-trace-dot {
+  background: var(--ox-yellow);
+}
+
+.cb-tone-failed .cb-trace-dot {
+  background: var(--ox-red);
+}
+
+.cb-tone-failed .cb-trace-title {
+  color: var(--ox-red);
+}
+
+.cb-sim {
+  font-style: normal;
+  color: var(--ox-mute);
+}
+
+.cb-try {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+}
+
+@media (max-width: 640px) {
+  .cb-ask-form {
+    flex-direction: column;
+  }
+
+  .cb-item-head {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .cb-trace-row {
+    grid-template-columns: 0.5rem 1fr;
+  }
+
+  .cb-trace-at {
+    grid-column: 2;
+  }
+}

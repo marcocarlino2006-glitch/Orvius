@@ -127,6 +127,7 @@ model Business {
   pushSubscriptions  PushSubscription[]
   webhookEvents      WebhookEvent[]
   smsOptOuts         SmsOptOut[]
+  takeovers          Takeover[]
   outboundSms        OutboundSms[]
   messages           Message[]
   servicePlans       ServicePlan[]
@@ -251,6 +252,24 @@ model SmsOptOut {
 
   @@unique([businessId, phoneNormalized])
   @@index([businessId, clearedAt])
+}
+
+/// A person took this conversation over: Orvius stops automated texts to the phone until released.
+model Takeover {
+  id              String    @id @default(cuid())
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  phoneNormalized String
+  leadId          String?
+  /// Sign-in email of the person who took over.
+  takenBy         String
+  reason          String?
+  createdAt       DateTime  @default(now())
+  releasedAt      DateTime?
+  releasedBy      String?
+
+  @@unique([businessId, phoneNormalized])
+  @@index([businessId, releasedAt])
 }
 
 model Customer {
