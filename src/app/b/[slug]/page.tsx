@@ -151,9 +151,8 @@ export default function BookPage() {
         <div className="pf-card pf-done">
           <p className="pf-muted">
             {done.confirmTextSent
-              ? "We just texted you a link to confirm. Tap it so we know you're coming."
-              : "We'll reach out to confirm."}{" "}
-            Need to change it? Reply to the text{phone ? ` or call ${formatPhone(phone)}` : ""}.
+              ? `We just texted you a link to confirm. Tap it so we know you're coming. Need to change it? Reply to the text${phone ? ` or call ${formatPhone(phone)}` : ""}.`
+              : `We'll reach out to confirm.${phone ? ` Need to change it? Call ${formatPhone(phone)}.` : ""}`}
           </p>
         </div>
       </main>

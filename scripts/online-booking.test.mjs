@@ -76,6 +76,11 @@ test("a booking lands as a job on the schedule, the customer on file, and the ow
     const slots = await bookingSlots(live, "Cleaning");
     assert.ok(slots.length > 3, "open times are offered");
     assert.ok(new Date(slots[0].at) > new Date());
+    const days = new Set(slots.map((s) => new Date(s.at).toLocaleDateString("en-CA", { timeZone: "America/Chicago" })));
+    assert.ok(days.size >= 5, "the page spans the week, not one morning");
+    for (const day of days) {
+      assert.ok(slots.filter((s) => new Date(s.at).toLocaleDateString("en-CA", { timeZone: "America/Chicago" }) === day).length <= 8);
+    }
 
     const phone = randomPhone();
     const result = await bookOnline(live, {

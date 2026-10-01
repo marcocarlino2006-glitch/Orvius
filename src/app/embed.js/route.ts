@@ -17,11 +17,13 @@ export async function GET(request: Request) {
   };
   if (!shop) return new Response("/* Orvius web chat is off for this business. */", { headers });
 
-  const chatUrl = `${url.origin}/w/${encodeURIComponent(shop.slug)}?embed=1`;
+  const chatPath = `/w/${encodeURIComponent(shop.slug)}?embed=1`;
   const label = JSON.stringify(`Message ${shop.name}`);
   const script = `(function(){
   if (window.__orviusChat) return; window.__orviusChat = true;
-  var base = ${JSON.stringify(chatUrl)};
+  var me = document.currentScript && document.currentScript.src;
+  var origin = me ? new URL(me).origin : ${JSON.stringify(url.origin)};
+  var base = origin + ${JSON.stringify(chatPath)};
   var btn = document.createElement("button");
   btn.type = "button";
   btn.setAttribute("aria-label", ${label});
@@ -39,7 +41,7 @@ export async function GET(request: Request) {
   }
   function close(){ if (frame) frame.style.display = "none"; }
   btn.addEventListener("click", function(){ frame && frame.style.display !== "none" ? close() : open(); });
-  window.addEventListener("message", function(e){ if (e.origin === ${JSON.stringify(url.origin)} && e.data && e.data.type === "orvius-chat:close") close(); });
+  window.addEventListener("message", function(e){ if (e.origin === origin && e.data && e.data.type === "orvius-chat:close") close(); });
   (document.body ? Promise.resolve() : new Promise(function(r){ document.addEventListener("DOMContentLoaded", r); })).then(function(){ document.body.appendChild(btn); });
 })();`;
   return new Response(script, { headers });

@@ -128,7 +128,8 @@ test("off means off: no API, an empty embed, and bad input refused", async () =>
     const live = await (await embed.GET(new Request(`https://app.example/embed.js?shop=${on.slug}`))).text();
     assert.match(live, /createElement\("iframe"\)/);
     assert.match(live, new RegExp(`/w/${on.slug}\\?embed=1`));
-    assert.match(live, /e\.origin === "https:\/\/app\.example"/, "only Orvius's own frame can close the panel");
+    assert.match(live, /var origin = me \? new URL\(me\)\.origin : "https:\/\/app\.example"/, "the script finds Orvius from its own src");
+    assert.match(live, /e\.origin === origin/, "only Orvius's own frame can close the panel");
 
     const post = (body) =>
       chatRoute.POST(

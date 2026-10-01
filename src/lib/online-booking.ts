@@ -7,7 +7,7 @@ import { logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { recordAudit } from "@/lib/audit";
-import { formatShopTime } from "@/lib/availability";
+import { formatShopTime, safeTimezone } from "@/lib/availability";
 import { classifyRequest, parseServiceOverrides, resolveTrade, TRADE_PLAYBOOKS } from "@/lib/trade-playbooks";
 
 /**
@@ -17,7 +17,10 @@ import { classifyRequest, parseServiceOverrides, resolveTrade, TRADE_PLAYBOOKS }
  * turns it on, and only while the workspace is paid up.
  */
 
-export const BOOKING_SLOT_COUNT = 24;
+/** Enough candidates to fill a week; then each day is capped so the page spans days, not one morning. */
+const BOOKING_SLOT_SCAN = 200;
+export const BOOKING_SLOTS_PER_DAY = 8;
+export const BOOKING_DAYS = 7;
 const BOOKING_SLOT_GAP_MIN = 30;
 const MAX_SERVICES = 12;
 
@@ -105,11 +108,25 @@ function shape(shop: BookingShop, serviceType: string) {
 }
 
 export async function bookingSlots(shop: BookingShop, serviceType: string) {
+  const timezone = shop.timezone ?? "America/New_York";
   const slots = await findOpenSlots(shape(shop, serviceType), {
-    count: BOOKING_SLOT_COUNT,
+    count: BOOKING_SLOT_SCAN,
     minGapMin: BOOKING_SLOT_GAP_MIN,
   });
-  return slots.map((at) => ({ at: at.toISOString(), label: formatShopTime(at, shop.timezone ?? "America/New_York") }));
+  const dayOf = new Intl.DateTimeFormat("en-CA", { timeZone: safeTimezone(timezone), year: "numeric", month: "2-digit", day: "2-digit" });
+  const byDay = new Map<string, Date[]>();
+  for (const at of slots) {
+    const day = dayOf.format(at);
+    if (!byDay.has(day) && byDay.size >= BOOKING_DAYS) break;
+    byDay.set(day, [...(byDay.get(day) ?? []), at]);
+  }
+  // Spread each day's picks from morning to close rather than the first hours only.
+  const picked = [...byDay.values()].flatMap((day) => {
+    if (day.length <= BOOKING_SLOTS_PER_DAY) return day;
+    const step = (day.length - 1) / (BOOKING_SLOTS_PER_DAY - 1);
+    return [...new Set(Array.from({ length: BOOKING_SLOTS_PER_DAY }, (_, i) => Math.round(i * step)))].map((i) => day[i]);
+  });
+  return picked.map((at) => ({ at: at.toISOString(), label: formatShopTime(at, timezone) }));
 }
 
 export type BookingInput = {
