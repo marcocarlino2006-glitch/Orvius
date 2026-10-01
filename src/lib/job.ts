@@ -6,6 +6,7 @@ import {
   DEFAULT_JOB_DURATION_MIN,
   findAvailableSchedules,
   MAX_SCHEDULE_DAYS,
+  SLOT_STEP_MIN,
   type SlotPreference,
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
@@ -231,6 +232,57 @@ export async function findOpenSlots(
   );
 }
 
+/** Thrown inside the booking transaction when the slot filled after it was chosen. */
+export class SlotTakenError extends Error {
+  constructor(at: Date) {
+    super(`Slot ${at.toISOString()} was taken before the booking landed`);
+    this.name = "SlotTakenError";
+  }
+}
+
+type BookingTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+/**
+ * Re-count the slot inside the booking transaction. The slot was chosen from
+ * an earlier read, so two bookings landing together could both see it free;
+ * reading again on the write path closes most of that gap.
+ */
+async function assertSlotOpen(
+  tx: BookingTx,
+  params: { businessId: string; at: Date; durationMin: number; skill: string },
+) {
+  const startMs = params.at.getTime();
+  const endMs = startMs + params.durationMin * 60_000;
+  const [jobs, technicians] = await Promise.all([
+    tx.job.findMany({
+      where: {
+        businessId: params.businessId,
+        status: { notIn: ["completed", "cancelled"] },
+        scheduledAt: { gte: new Date(startMs - 7 * 24 * 60 * 60 * 1000), lt: new Date(endMs) },
+      },
+      select: { scheduledAt: true, durationMin: true, technicianId: true },
+    }),
+    tx.technician.findMany({
+      where: { businessId: params.businessId, isActive: true },
+      select: { id: true, skillsJson: true },
+    }),
+  ]);
+  const eligible = technicians.filter((t) => {
+    const skills = parseSkills(t.skillsJson);
+    return params.skill === "general" || skills.length === 0 || skills.includes(params.skill);
+  });
+  const pool = eligible.length ? eligible : technicians;
+  const poolIds = new Set(pool.map((t) => t.id));
+  const overlapping = jobs.filter((job) => {
+    if (!job.scheduledAt) return false;
+    if (eligible.length && job.technicianId && !poolIds.has(job.technicianId)) return false;
+    const otherStart = job.scheduledAt.getTime();
+    const otherEnd = otherStart + Math.max(SLOT_STEP_MIN, job.durationMin ?? DEFAULT_JOB_DURATION_MIN) * 60_000;
+    return startMs < otherEnd && otherStart < endMs;
+  }).length;
+  if (overlapping >= Math.max(1, pool.length)) throw new SlotTakenError(params.at);
+}
+
 export async function createJobFromLead(params: {
   leadId: string;
   scheduledAt?: Date | string | null;
@@ -239,6 +291,11 @@ export async function createJobFromLead(params: {
   actor?: AuditActor;
   /** Skip automatic technician assignment (the caller assigns). */
   skipAutoAssign?: boolean;
+  /**
+   * Refuse a time that is already full instead of overbooking it. Owners may
+   * overbook on purpose; a time a caller was promised may not.
+   */
+  enforceCapacity?: boolean;
 }) {
   // Parallel instead of `include`, which Prisma runs as one query after another here.
   const [leadRow, existingJob, business] = await Promise.all([
@@ -327,15 +384,9 @@ export async function createJobFromLead(params: {
   });
   const durationMin = playbook.service.durationMin;
 
-  let scheduledAt: Date;
-  if (params.scheduledAt) {
-    scheduledAt = new Date(params.scheduledAt);
-    if (Number.isNaN(scheduledAt.getTime())) {
-      throw new Error("Invalid appointment time");
-    }
-  } else {
+  const pickSlot = async () => {
     const available = await findOpenSlot({
-      businessId: lead.businessId,
+      businessId: lead.businessId!,
       urgency: lead.urgency,
       durationMin,
       skill: playbook.service.skill,
@@ -347,8 +398,19 @@ export async function createJobFromLead(params: {
         "No appointment capacity in the next 14 days. Keep the lead open for manual scheduling.",
       );
     }
-    scheduledAt = available;
+    return available;
+  };
+
+  let scheduledAt: Date;
+  if (params.scheduledAt) {
+    scheduledAt = new Date(params.scheduledAt);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      throw new Error("Invalid appointment time");
+    }
+  } else {
+    scheduledAt = await pickSlot();
   }
+  const checkSlot = !params.scheduledAt || params.enforceCapacity === true;
 
   const extraNotes = params.notes?.trim();
   const notes = [lead.notes, extraNotes].filter(Boolean).join("\n") || null;
@@ -369,7 +431,41 @@ export async function createJobFromLead(params: {
   let createdNow = true;
   let job;
   try {
-    job = await prisma.$transaction(async (tx) => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        job = await bookInTransaction();
+        break;
+      } catch (error) {
+        // A time Orvius picked is re-picked; a promised or owner-chosen time is reported, never moved.
+        if (!(error instanceof SlotTakenError) || params.scheduledAt || attempt >= 2) throw error;
+        scheduledAt = await pickSlot();
+      }
+    }
+  } catch (error) {
+    // The database's unique Lead → Job edge is the final idempotency lock.
+    // Two webhook/view requests may both pass the earlier read; the loser of
+    // that race should receive the one real job, not turn a valid call into a
+    // 500 or send a second confirmation. The winner's job also fills the slot,
+    // so a slot-taken refusal is checked against it the same way.
+    if (!isUniqueConstraintError(error) && !(error instanceof SlotTakenError)) throw error;
+    const existing = await prisma.job.findUnique({
+      where: { leadId: lead.id },
+    });
+    if (!existing) throw error;
+    job = existing;
+    createdNow = false;
+  }
+
+  async function bookInTransaction() {
+    return prisma.$transaction(async (tx) => {
+      if (checkSlot) {
+        await assertSlotOpen(tx, {
+          businessId: lead.businessId!,
+          at: scheduledAt,
+          durationMin,
+          skill: playbook.service.skill,
+        });
+      }
       const created = await tx.job.create({
         data: {
           businessId: lead.businessId!,
@@ -409,18 +505,6 @@ export async function createJobFromLead(params: {
 
       return created;
     });
-  } catch (error) {
-    // The database's unique Lead → Job edge is the final idempotency lock.
-    // Two webhook/view requests may both pass the earlier read; the loser of
-    // that race should receive the one real job, not turn a valid call into a
-    // 500 or send a second confirmation.
-    if (!isUniqueConstraintError(error)) throw error;
-    const existing = await prisma.job.findUnique({
-      where: { leadId: lead.id },
-    });
-    if (!existing) throw error;
-    job = existing;
-    createdNow = false;
   }
 
   if (createdNow) {

@@ -408,3 +408,30 @@ export async function getBusyWindows(businessId: string, now = new Date()): Prom
   }
   return windows.filter((w) => w.end.getTime() > now.getTime());
 }
+
+/**
+ * Keep every connected calendar inside the serve-stale window so a live call
+ * never waits on a calendar server. Run from line-watch, which is every 30
+ * minutes — well inside BUSY_STALE_MAX_MS.
+ */
+export async function refreshStaleBusyCalendars({ now = new Date(), limit = 50, budgetMs = 15_000 } = {}) {
+  const started = Date.now();
+  const shops = await prisma.business.findMany({
+    where: {
+      busyCalendarUrl: { not: null },
+      OR: [{ busyCalendarSyncedAt: null }, { busyCalendarSyncedAt: { lt: new Date(now.getTime() - BUSY_REFRESH_MS) } }],
+    },
+    select: { id: true, timezone: true, busyCalendarUrl: true, busyCalendarJson: true, busyCalendarSyncedAt: true },
+    orderBy: { busyCalendarSyncedAt: "asc" },
+    take: limit,
+  });
+  let refreshed = 0;
+  let failed = 0;
+  for (const shop of shops) {
+    if (Date.now() - started > budgetMs) break;
+    const result = await refreshBusyCalendar(shop, now);
+    if (result.error) failed += 1;
+    else refreshed += 1;
+  }
+  return { due: shops.length, refreshed, failed };
+}

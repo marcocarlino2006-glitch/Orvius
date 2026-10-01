@@ -221,7 +221,9 @@ gate(
 const hasTransfer =
   /warmTransfer|coldTransfer|transferCall|vapi.*transfer|twilio.*call\.update/.test(
     `${wantsHuman}${attention}${read("src/lib/company.ts")}`,
-  ) || fileOk("src/lib/call-transfer.ts");
+  ) ||
+  fileOk("src/lib/call-transfer.ts") ||
+  /type: "transferCall"/.test(read("src/lib/vapi.ts"));
 const honestEscalate =
   /callback board|owner must dial|no live transfer/i.test(company);
 gate(

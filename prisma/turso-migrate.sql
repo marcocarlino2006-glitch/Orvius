@@ -552,3 +552,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS "PasswordLogin_email_key" ON "PasswordLogin"("
 
 -- Industry packs: /try previews answer as the business type the owner picked.
 ALTER TABLE "ShopPreview" ADD COLUMN "trade" TEXT NOT NULL DEFAULT 'HVAC';
+
+-- Indexes for hot paths: held-slot checks mid-call, follow-up scans, the unfinished-call sweep, Twilio status receipts.
+CREATE INDEX IF NOT EXISTS "Call_businessId_heldSlotAt_idx" ON "Call"("businessId", "heldSlotAt");
+CREATE INDEX IF NOT EXISTS "Lead_businessId_status_createdAt_idx" ON "Lead"("businessId", "status", "createdAt");
+CREATE INDEX IF NOT EXISTS "WebhookEvent_source_eventType_status_createdAt_idx" ON "WebhookEvent"("source", "eventType", "status", "createdAt");
+CREATE INDEX IF NOT EXISTS "OwnerNotification_deliveryId_idx" ON "OwnerNotification"("deliveryId");
+
+-- Call reports that fail to finish are retried by the 5-minute sweep before being abandoned.
+ALTER TABLE "WebhookEvent" ADD COLUMN "attempts" INTEGER NOT NULL DEFAULT 0;

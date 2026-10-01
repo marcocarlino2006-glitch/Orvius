@@ -54,6 +54,12 @@ export function isAfterHours(
   hoursJson: string,
   timezone = "America/New_York",
 ): boolean {
+  // A bad zone must fall back to the default zone, not to the server clock, which is UTC on Vercel.
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format(at);
+  } catch {
+    timezone = "America/New_York";
+  }
   const hours = parseJson<BusinessHours>(hoursJson, {});
   if (!hours || Object.keys(hours).length === 0) {
     // No hours configured — treat nights/weekends as after-hours signal.

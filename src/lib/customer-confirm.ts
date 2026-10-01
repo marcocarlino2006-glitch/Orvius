@@ -300,7 +300,11 @@ export function confirmLinkExpired(job: { status: string; scheduledAt: Date | nu
   return Boolean(job.scheduledAt && now.getTime() > job.scheduledAt.getTime() + CONFIRM_LINK_GRACE_MS);
 }
 
-export async function confirmJobByCustomerToken(token: string, now = new Date()) {
+export async function confirmJobByCustomerToken(
+  token: string,
+  now = new Date(),
+  { readOnly = false }: { readOnly?: boolean } = {},
+) {
   const job = await prisma.job.findFirst({
     where: { customerConfirmToken: token },
     include: {
@@ -321,10 +325,10 @@ export async function confirmJobByCustomerToken(token: string, now = new Date())
     return { ok: false as const, error: "expired" as const, ...shop };
   }
 
-  if (job.customerConfirmedAt) {
+  if (job.customerConfirmedAt || readOnly) {
     return {
       ok: true as const,
-      already: true as const,
+      already: Boolean(job.customerConfirmedAt),
       job: {
         id: job.id,
         title: job.title,

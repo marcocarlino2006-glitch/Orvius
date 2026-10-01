@@ -182,6 +182,9 @@ section("Closed doors");
 */
 const MUST_BE_CLOSED = [
   "/api/cron/notifications",
+  "/api/cron/line-watch",
+  "/api/cron/alert-drain",
+  "/api/waitlist/import",
   "/api/leads",
   "/api/calls",
   "/api/jobs",
@@ -234,7 +237,7 @@ for (const path of MUST_BE_CLOSED) {
 */
 section("Background work runs");
 
-for (const path of ["/api/cron/notifications", "/api/cron/line-watch"]) {
+for (const path of ["/api/cron/notifications", "/api/cron/line-watch", "/api/cron/alert-drain"]) {
   try {
     const { status, json } = await get(path);
     if (status === 503 && /CRON_SECRET/.test(json?.error ?? "")) {

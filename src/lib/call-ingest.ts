@@ -451,6 +451,8 @@ const FINISH_LOOKBACK_MS = 24 * 60 * 60_000;
  * it again. This finishes those. One try each: if finishing fails again the
  * owner still gets a plain alert under the same dedupe key.
  */
+const FINISH_MAX_ATTEMPTS = 12;
+
 export async function sweepUnfinishedCallReports(now = new Date()): Promise<number> {
   const eventType = "end-of-call-report";
   const where = {
@@ -466,14 +468,14 @@ export async function sweepUnfinishedCallReports(now = new Date()): Promise<numb
   const SCAN_PAGE = 100;
   const SCAN_LIMIT = 1000;
   const finishable: Array<{
-    event: { id: string; externalId: string; status: string };
+    event: { id: string; externalId: string; status: string; attempts: number };
     call: Call & { lead: Lead; business: Business };
   }> = [];
   let cursor: string | undefined;
   for (let scanned = 0; scanned < SCAN_LIMIT && finishable.length < FINISH_BATCH; ) {
     const page = await prisma.webhookEvent.findMany({
       where,
-      select: { id: true, externalId: true, status: true },
+      select: { id: true, externalId: true, status: true, attempts: true },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       take: SCAN_PAGE,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -513,7 +515,16 @@ export async function sweepUnfinishedCallReports(now = new Date()): Promise<numb
         vapiCallId: event.externalId,
         error: error instanceof Error ? error.message : "unknown",
       });
-      await prisma.webhookEvent.update({ where: { id: event.id }, data: { status: "abandoned" } });
+      // The owner hears on the first failure; the booking keeps retrying for about an hour of sweeps.
+      const attempts = event.attempts + 1;
+      await prisma.webhookEvent.update({
+        where: { id: event.id },
+        data: {
+          status: attempts >= FINISH_MAX_ATTEMPTS ? "abandoned" : "failed",
+          attempts,
+          error: (error instanceof Error ? error.message : "unknown").slice(0, 280),
+        },
+      });
       await enqueueOwnerAlert({
         businessId: business.id,
         ownerPhone: business.ownerPhone,

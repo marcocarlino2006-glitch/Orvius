@@ -196,10 +196,10 @@ try {
     fail("Presence marketing", "live-call console / atmosphere missing");
   }
   if (
-    /Night rules/.test(statement) &&
-    /How the shop runs when you/.test(statement)
+    /What every call gets/.test(statement) &&
+    /Safety first/.test(statement)
   ) {
-    pass("Presence doctrine", "Shop-floor night rules — not first-principles cosplay");
+    pass("Presence doctrine", "What every call gets — checkable facts, safety first");
   } else {
     fail(
       "Presence doctrine",
@@ -268,16 +268,17 @@ try {
     /ov-hero-title/.test(hero) &&
     /ov-hero-actions/.test(hero) &&
     /ov-hero-liveline/.test(hero) &&
-    /Request a demo/.test(hero)
+    /Call the live line/.test(hero) &&
+    /\/signin\?mode=signup|href="\/try"/.test(hero)
   ) {
     pass(
       "Look hero P1",
-      "Claim + Call + Request a demo — Cursor two-link pattern, dialable proof",
+      "Claim + Call the live line + Get started / Try — two links, dialable proof",
     );
   } else {
     fail(
       "Look hero P1",
-      "Hero must keep title, two CTAs (Call + Request a demo), and live line",
+      "Hero must keep title, two CTAs (Call the live line + Get started or Try), and live line",
     );
   }
   if (
@@ -327,14 +328,14 @@ try {
       "Primary nav must be multi-B trades set (Product · Enterprise · Pricing · Audit · Resources)",
     );
   }
-  const outcomes = read("src/components/ring1-command-center.tsx");
+  const outcomes = `${read("src/components/ring1-command-center.tsx")}${read("src/components/command-signals.tsx")}`;
   if (/exception requires|exceptions require/i.test(outcomes)) {
     fail(
       "Operate owner language",
       "Command outcomes still uses exception jargon for owners",
     );
   } else if (
-    /needs you/.test(outcomes)
+    /needs you/i.test(outcomes)
   ) {
     pass("Operate owner language", "Command pulse speaks owner language");
   } else {
