@@ -51,6 +51,8 @@ export async function GET(request: NextRequest) {
   // The open workspace, owned or shared — an invited dispatcher owns no shop but is not unprovisioned.
   const business = (await resolveShopAccess(email))?.business ?? null;
   const setup = business ? getOwnerSetupStatus(business) : null;
+  // A demo shop has no line to set up; it opens straight onto Command.
+  const ready = business?.environment === "demo" || (setup?.ready ?? false);
 
   // Setup asks on open so an owner who paid and left comes back to the form, not "Pay first".
   let checkoutSessionId: string | null = null;
@@ -63,8 +65,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     provisioned: Boolean(business),
-    complete: setup?.ready ?? false,
-    ready: setup?.ready ?? false,
+    complete: ready,
+    ready,
     setup,
     checkoutSessionId,
     business: business

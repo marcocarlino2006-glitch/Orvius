@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ApproveQueue } from "@/components/approve-queue";
 import { AttentionQueue } from "@/components/attention-queue";
+import { CommandBoard } from "@/components/command-board";
 import { CommandSignals } from "@/components/command-signals";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
@@ -33,8 +33,9 @@ function activityParts(h: Handled | undefined, counts: NonNullable<ReturnType<ty
 }
 
 /**
- * Command — the control room. Five signals, one dominant work queue, and a
- * quiet Pulse. The first failed load is a failure state; later failures keep
+ * Command — the daily workspace. The board (requests, proposals, confirmed
+ * work, exceptions, approvals) leads; signals, the money and crew queue, and a
+ * quiet Pulse follow. The first failed load is a failure state; later failures keep
  * the last good data on screen and mark it stale.
  */
 export function Ring1CommandCenter() {
@@ -109,6 +110,8 @@ export function Ring1CommandCenter() {
           </p>
         </header>
 
+        <CommandBoard onChange={() => void refresh()} />
+
         <CommandSignals signals={signals} loading={loading} />
 
         <AttentionQueue
@@ -117,8 +120,6 @@ export function Ring1CommandCenter() {
           technicians={data?.technicians ?? []}
           onAction={() => void refresh()}
         />
-
-        <ApproveQueue onChange={() => void refresh()} hideWhenEmpty />
       </div>
 
       <aside className="cc-rail" aria-label="System status">

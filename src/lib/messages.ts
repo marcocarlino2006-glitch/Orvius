@@ -98,16 +98,19 @@ export async function hasActiveOwnerConversation(
 ): Promise<boolean> {
   const phoneNormalized = normalizePhone(phone);
   if (!phoneNormalized) return false;
-  const last = await prisma.message.findFirst({
-    where: {
-      businessId,
-      phoneNormalized,
-      author: "owner",
-      createdAt: { gte: new Date(now.getTime() - OWNER_CONVERSATION_WINDOW_MS) },
-    },
-    select: { id: true },
-  });
-  return Boolean(last);
+  const [last, takeover] = await Promise.all([
+    prisma.message.findFirst({
+      where: {
+        businessId,
+        phoneNormalized,
+        author: "owner",
+        createdAt: { gte: new Date(now.getTime() - OWNER_CONVERSATION_WINDOW_MS) },
+      },
+      select: { id: true },
+    }),
+    prisma.takeover.findFirst({ where: { businessId, phoneNormalized, releasedAt: null }, select: { id: true } }),
+  ]);
+  return Boolean(last || takeover);
 }
 
 export type ThreadSummary = {

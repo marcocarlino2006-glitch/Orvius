@@ -2569,7 +2569,6 @@ h3 {
 }
 
 .public-money-error,
-.approve-queue-error,
 .job-money-error,
 .panel-action-error {
   color: #f97066;
@@ -3797,8 +3796,6 @@ label:has(> input[type="radio"]) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-shell-pro .call-record-card,
-.os-shell-pro .approve-queue,
-.os-shell-pro .approve-queue-item,
 .os-shell-pro .account-billing-plan,
 .os-shell-pro .pro-economics-panel,
 .os-shell-pro .owner-alert-card,
@@ -3812,8 +3809,7 @@ label:has(> input[type="radio"]) {
   background: var(--os-panel) !important;
 }
 
-.os-shell-pro .call-record-card:hover,
-.os-shell-pro .approve-queue-item:hover {
+.os-shell-pro .call-record-card:hover {
   transform: none !important;
   box-shadow: none !important;
   border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
@@ -3856,8 +3852,6 @@ label:has(> input[type="radio"]) {
 .os-shell-night .pro-signal-bar,
 .os-shell-night .post-lock-banner,
 .os-shell-night .live-status-bar,
-.os-shell-night .approve-queue,
-.os-shell-night .approve-queue-item,
 .os-shell-night .account-billing-plan,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .owner-alert-card,
@@ -4043,7 +4037,6 @@ label:has(> input[type="radio"]) {
 /* Panels / stats — Grok surfaces */
 .os-shell-night .pro-stat,
 .os-shell-night .pro-panel,
-.os-shell-night .approve-queue,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .account-billing-plan {
   background: var(--ox-day-surface, #1a1c20) !important;

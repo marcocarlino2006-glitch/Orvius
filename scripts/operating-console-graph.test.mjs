@@ -109,16 +109,15 @@ test("work age is human, not a timestamp", () => {
   assert.equal(formatAge("2026-09-22T12:00:00.000Z", now), "2d");
 });
 
-test("Command is signals → work queue → approvals, with Pulse in the rail", () => {
+test("Command is board → signals → work queue, with Pulse in the rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
   assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes/);
+  const boardIdx = command.indexOf("<CommandBoard");
   const signalsIdx = command.indexOf("<CommandSignals");
   const queueIdx = command.indexOf("<AttentionQueue");
-  const approveIdx = command.indexOf("<ApproveQueue");
   const pulseIdx = command.indexOf("<OrviusPulse");
-  assert.ok(signalsIdx >= 0 && queueIdx > signalsIdx);
-  assert.ok(approveIdx > queueIdx && pulseIdx > approveIdx);
+  assert.ok(boardIdx >= 0 && signalsIdx > boardIdx && queueIdx > signalsIdx && pulseIdx > queueIdx);
   assert.match(command, /groupWorkItems/);
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
 
@@ -140,11 +139,12 @@ test("work queue rows show severity, customer, request, age, impact, one action"
   assert.match(queue, /Queue is clear/);
 });
 
-test("ApproveQueue keeps an approval button and agent-control anchor", () => {
-  const approve = read("src/components/approve-queue.tsx");
-  assert.match(approve, /id="agent-control"/);
-  assert.match(approve, /"Approve"/);
-  assert.match(approve, /Needs your OK/);
+test("the board's approvals lane shows the plan and an approval button", () => {
+  const board = read("src/components/command-board.tsx");
+  assert.match(board, /Needs your OK/);
+  assert.match(board, /nothing changes until you approve/);
+  assert.match(board, /"Approve"/);
+  assert.match(board, /mode=\$\{mode\}/);
 });
 
 test("one record drawer walks the Call → … → Payment graph", () => {

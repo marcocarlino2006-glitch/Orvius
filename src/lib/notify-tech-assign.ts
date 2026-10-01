@@ -63,3 +63,26 @@ export async function notifyTechOnAssign(params: {
 }
 
 export { serializeJob };
+
+/** Tell the assigned technician their job moved. Never throws. */
+export async function notifyTechOnReschedule(params: {
+  businessId: string;
+  businessName: string;
+  techPhone: string;
+  title: string;
+  when: string;
+  address: string | null;
+}): Promise<boolean> {
+  try {
+    const result = await sendSms({
+      to: params.techPhone,
+      body: `${params.businessName}: ${params.title} moved to ${params.when}.${params.address ? ` ${params.address}.` : ""}`,
+      businessId: params.businessId,
+      audience: "tech",
+    });
+    return Boolean(result);
+  } catch (err) {
+    console.error("[tech-reschedule-sms]", err);
+    return false;
+  }
+}

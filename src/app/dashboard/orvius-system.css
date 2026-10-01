@@ -492,7 +492,6 @@ body:has(.os-shell.os-shell-night) {
 /* ── Surfaces ──────────────────────────────────────────────────────────── */
 
 .os-shell.os-shell-night .pro-panel,
-.os-shell.os-shell-night .approve-queue,
 .os-shell.os-shell-night .lead-inbox-card {
   background: var(--ox-s2) !important;
   border: 1px solid var(--ox-line) !important;
@@ -1010,28 +1009,6 @@ a.cs-card:hover {
 }
 
 /* Approvals under the queue */
-
-.os-shell.os-shell-night .approve-queue {
-  padding: 1.1rem 1.25rem !important;
-}
-
-.os-shell.os-shell-night .approve-queue-kicker {
-  font-size: 0.8125rem !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-  color: var(--ox-amber) !important;
-}
-
-.os-shell.os-shell-night .approve-queue-title {
-  font-size: 1.0625rem !important;
-  color: var(--ox-text) !important;
-}
-
-.os-shell.os-shell-night .approve-queue-lead,
-.os-shell.os-shell-night .approve-queue-preview {
-  font-size: 0.875rem !important;
-  color: var(--ox-text-2) !important;
-}
 
 /* Orvius Pulse */
 
@@ -3114,7 +3091,7 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.pro-filter-tab-active, .pro
   color: var(--ox-s1) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-banner, .pro-stat, .pro-panel, .approve-queue, .pro-economics-panel, .pro-signal-bar, .capture-setup-panel, .capture-setup-carrier, .account-billing-plan, .transcript-cinema, .owner-alert) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-banner, .pro-stat, .pro-panel, .pro-economics-panel, .pro-signal-bar, .capture-setup-panel, .capture-setup-carrier, .account-billing-plan, .transcript-cinema, .owner-alert) {
   border-color: var(--ox-line) !important;
   background: var(--ox-s1) !important;
   color: var(--ox-text) !important;

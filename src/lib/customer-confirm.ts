@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { recordAudit } from "@/lib/audit";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl } from "@/lib/domains";
@@ -351,6 +352,20 @@ export async function confirmJobByCustomerToken(
   logInfo("customer.confirm_accepted", {
     jobId: job.id,
     businessId: job.businessId,
+  });
+  await recordAudit({
+    businessId: job.businessId,
+    entityType: "job",
+    entityId: job.id,
+    action: "customer.confirmed",
+    actor: "system",
+    summary: `${job.customer?.name ?? job.lead?.name ?? "The customer"} confirmed the window${
+      job.scheduledAt ? ` for ${formatWindow(job.scheduledAt, job.business.timezone) ?? job.scheduledAt.toISOString()}` : ""
+    }`,
+    jobId: job.id,
+    leadId: job.leadId,
+    customerId: job.customerId,
+    idempotencyKey: `job:${job.id}:customer-confirmed:${job.scheduledAt?.getTime() ?? "none"}`,
   });
 
   return {

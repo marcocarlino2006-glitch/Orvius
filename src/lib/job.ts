@@ -5,6 +5,7 @@ import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import {
   DEFAULT_JOB_DURATION_MIN,
   findAvailableSchedules,
+  formatShopTime,
   MAX_SCHEDULE_DAYS,
   SLOT_STEP_MIN,
   type SlotPreference,
@@ -524,7 +525,7 @@ export async function createJobFromLead(params: {
       entityId: job.id,
       actor,
       action: "job.booked",
-      summary: `Booked ${playbook.service.label.toLowerCase()} for ${scheduledAt.toISOString()} (${durationMin} min)`,
+      summary: `Booked ${playbook.service.label.toLowerCase()} for ${formatShopTime(scheduledAt, lead.business?.timezone ?? "America/New_York")} (${durationMin} min)`,
       detail: {
         scheduledAt: scheduledAt.toISOString(),
         durationMin,

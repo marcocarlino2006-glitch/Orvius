@@ -88,17 +88,19 @@ export function OrviusPulse({
         <>
           <PulseRow
             label="Phone line"
-            value={health.line ? displayPhone(health.line) : "No line yet"}
+            value={health.line ? displayPhone(health.line) : referenceImplementation ? "Simulated" : "No line yet"}
             detail={
               !health.line
-                ? "Calls cannot reach Orvius until a line exists."
+                ? referenceImplementation
+                  ? "Demo calls run the real pipeline from the buttons on Command."
+                  : "Calls cannot reach Orvius until a line exists."
                 : health.lineVerified
                   ? health.lastCallAt
                     ? `Verified · last call ${formatAge(health.lastCallAt, now)} ago`
                     : "Verified"
                   : "Place one test call to verify."
             }
-            tone={!health.line ? "risk" : health.lineVerified ? "ok" : "attention"}
+            tone={!health.line ? (referenceImplementation ? "attention" : "risk") : health.lineVerified ? "ok" : "attention"}
             action={
               !health.lineVerified ? (
                 <Link href="/dashboard/onboarding" className="ox-btn ox-btn--quiet ox-btn--sm">
