@@ -592,3 +592,45 @@ ALTER TABLE "Customer" ADD COLUMN "winBackSentAt" DATETIME;
 
 -- Delivery receipts on inbox texts.
 ALTER TABLE "Message" ADD COLUMN "deliveryStatus" TEXT;
+
+-- Memberships / maintenance plans.
+CREATE TABLE IF NOT EXISTS "ServicePlan" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "priceCents" INTEGER NOT NULL,
+  "interval" TEXT NOT NULL,
+  "visitsPerYear" INTEGER NOT NULL DEFAULT 0,
+  "perks" TEXT,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "ServicePlan_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "ServicePlan_businessId_isActive_idx" ON "ServicePlan"("businessId", "isActive");
+CREATE TABLE IF NOT EXISTS "PlanMember" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "planId" TEXT NOT NULL,
+  "customerId" TEXT,
+  "name" TEXT,
+  "phone" TEXT NOT NULL,
+  "phoneNormalized" TEXT NOT NULL,
+  "email" TEXT,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "stripeSubscriptionId" TEXT,
+  "stripeCustomerId" TEXT,
+  "startedAt" DATETIME,
+  "currentPeriodEnd" DATETIME,
+  "canceledAt" DATETIME,
+  "nextVisitDueAt" DATETIME,
+  "visitReminderSentAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "PlanMember_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "PlanMember_planId_fkey" FOREIGN KEY ("planId") REFERENCES "ServicePlan" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PlanMember_stripeSubscriptionId_key" ON "PlanMember"("stripeSubscriptionId");
+CREATE INDEX IF NOT EXISTS "PlanMember_businessId_status_idx" ON "PlanMember"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "PlanMember_businessId_phoneNormalized_idx" ON "PlanMember"("businessId", "phoneNormalized");
+CREATE INDEX IF NOT EXISTS "PlanMember_status_nextVisitDueAt_idx" ON "PlanMember"("status", "nextVisitDueAt");

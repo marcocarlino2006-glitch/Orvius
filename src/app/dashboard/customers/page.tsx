@@ -13,6 +13,7 @@ import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
 import { WinBackCard } from "@/components/win-back-card";
+import { PlansCard } from "@/components/plans-card";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -115,6 +116,7 @@ export default function CustomersPage() {
           />
 
           {!query ? <WinBackCard /> : null}
+          {!query ? <PlansCard /> : null}
 
           <ProSearchBar
             value={query}
