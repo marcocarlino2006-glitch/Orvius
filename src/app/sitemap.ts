@@ -6,6 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = `https://${company.domain}`;
   const staticRoutes = [
     "",
+    "/watch",
     "/product",
     "/enterprise",
     "/pricing",

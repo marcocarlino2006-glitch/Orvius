@@ -83,6 +83,9 @@ export function HomeLineHero() {
                 Get started
               </Link>
             )}
+            <Link href="/watch" className="ov-btn ov-btn--quiet ov-hero-cta-secondary">
+              Watch it run a shop
+            </Link>
           </div>
 
           <a
