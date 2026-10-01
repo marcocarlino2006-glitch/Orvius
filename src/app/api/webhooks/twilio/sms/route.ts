@@ -34,6 +34,7 @@ import { recordAudit } from "@/lib/audit";
 import { answerFollowUpReply } from "@/lib/lead-follow-up";
 import { hasActiveOwnerConversation, inboundMediaFromForm, PHOTO_ONLY_BODY, recordMessage } from "@/lib/messages";
 import { hasOpenWebChat } from "@/lib/web-chat";
+import { handleOwnerText } from "@/lib/owner-text-commands";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -172,6 +173,23 @@ export async function POST(request: NextRequest) {
       messageSid,
     });
     return reply(keywordReply);
+  }
+
+  // The owner's own phone is a control line, not a customer: a reply runs a command.
+  if (fromOwner) {
+    const commandReply = await handleOwnerText({ shop: business, body });
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `${business.id}:${from}:owner:${Date.now()}`,
+      eventType: commandReply ? "owner-command" : "owner-text",
+      businessId: business.id,
+      status: "processed",
+      payload: { from, to },
+    });
+    return twimlResponse(
+      commandReply ??
+        "Reply to an alert with BOOK, TEXT <message>, CALLED or SPAM. Reply ? for the full list. (Testing as a customer? Text from another phone.)",
+    );
   }
 
   if (messageSid) {

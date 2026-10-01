@@ -1,6 +1,9 @@
 import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl, getLeadInboxUrl } from "@/lib/domains";
 
+/** Closes every new-lead text, so the owner learns the thread is a remote control. */
+export const OWNER_REPLY_HINT = "Reply BOOK, TEXT <message>, or ? for more.";
+
 export type OwnerAlertLead = {
   name?: string | null;
   phone?: string | null;
