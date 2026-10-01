@@ -7,6 +7,7 @@ import { logError, logInfo } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getTwilioClient } from "@/lib/twilio-client";
+import { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
 
 /*
   Each rung is the wait after the attempt of that number: a first failure is
@@ -172,7 +173,8 @@ export async function enqueueOwnerAlert(params: {
       });
       return false;
     }
-    return createQueueRow({ ...params, channel: "sms" });
+    const message = params.leadId ? `${params.message}\n${OWNER_REPLY_HINT}` : params.message;
+    return createQueueRow({ ...params, message, channel: "sms" });
   };
   const [sms, email] = await Promise.all([
     queueSms(),

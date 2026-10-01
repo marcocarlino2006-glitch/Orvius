@@ -60,6 +60,10 @@ export function NotificationsSection({
           <ScStatus on={account.alerts.emailConfigured}>{account.alerts.emailConfigured ? "On" : "Coming soon"}</ScStatus>
         </ScRow>
         <PushAlertsRows />
+        <ScRow
+          label="Run the shop by text"
+          hint="Reply to any lead alert: BOOK, BOOK FRI 2PM, MOVE THU 9AM, TECH ANA, TEXT <message>, CALLED, SPAM, or TODAY. Reply ? for the list."
+        />
         <ScRow label="Send a test alert" hint="Texts your mobile the way a real lead would.">
           <button type="button" className="sc-btn" disabled={testing} onClick={() => void sendTestAlert()}>
             {testing ? "Sending…" : "Send test"}
