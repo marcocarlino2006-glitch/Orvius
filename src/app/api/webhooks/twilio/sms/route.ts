@@ -32,7 +32,7 @@ import { twimlMessage as twimlResponse } from "@/lib/twiml";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
 import { answerFollowUpReply } from "@/lib/lead-follow-up";
-import { hasActiveOwnerConversation, recordMessage } from "@/lib/messages";
+import { hasActiveOwnerConversation, inboundMediaFromForm, PHOTO_ONLY_BODY, recordMessage } from "@/lib/messages";
 import { hasOpenWebChat } from "@/lib/web-chat";
 
 const SMS_REPLY =
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   const form = await request.formData();
   const from = String(form.get("From") ?? "");
   const to = String(form.get("To") ?? "");
-  const body = String(form.get("Body") ?? "").trim();
+  const typed = String(form.get("Body") ?? "").trim();
   const messageSid = String(form.get("MessageSid") ?? "").trim();
 
   const formEntries = Object.fromEntries(
@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid Twilio signature" }, { status: 403 });
   }
 
+  const media = inboundMediaFromForm(formEntries);
+  const body = typed || (media.length ? PHOTO_ONLY_BODY : "");
   if (!from || !to || !body) {
     return twimlResponse("");
   }
@@ -131,6 +133,7 @@ export async function POST(request: NextRequest) {
       author: "customer",
       body,
       sid: messageSid || null,
+      media,
     });
   }
   const reply = async (text: string) => {
@@ -224,7 +227,7 @@ export async function POST(request: NextRequest) {
         businessId: business.id,
         externalId: messageSid || null,
         phone: from,
-        notes: body,
+        notes: media.length ? `${body}\n[${media.length} photo${media.length === 1 ? "" : "s"} in Inbox → Messages]` : body,
         serviceType,
         urgency,
         source: "sms",

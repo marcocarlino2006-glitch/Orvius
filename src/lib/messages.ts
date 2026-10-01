@@ -11,6 +11,42 @@ export const OWNER_CONVERSATION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
  * Write one text to the thread. A failed write must never cost the send or the
  * capture, and a redelivered sid is the same text, not a second one.
  */
+export type InboundMedia = { url: string; type: string };
+
+export const MAX_MESSAGE_PHOTOS = 5;
+export const PHOTO_ONLY_BODY = "Sent a photo";
+
+/** Twilio's MMS fields, kept only when they are images hosted by Twilio itself. */
+export function inboundMediaFromForm(form: Record<string, string>): InboundMedia[] {
+  const count = Math.min(Number(form.NumMedia ?? 0) || 0, 10);
+  const media: InboundMedia[] = [];
+  for (let i = 0; i < count && media.length < MAX_MESSAGE_PHOTOS; i += 1) {
+    const url = form[`MediaUrl${i}`]?.trim();
+    const type = form[`MediaContentType${i}`]?.trim().toLowerCase() ?? "";
+    if (url && isTwilioMediaUrl(url) && /^image\/(jpeg|png|gif|webp|heic|heif)$/.test(type)) media.push({ url, type });
+  }
+  return media;
+}
+
+export function isTwilioMediaUrl(url: string) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && u.hostname === "api.twilio.com" && u.pathname.startsWith("/2010-04-01/Accounts/");
+  } catch {
+    return false;
+  }
+}
+
+export function parseMedia(raw: string | null | undefined): InboundMedia[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((m) => m && typeof m.url === "string" && isTwilioMediaUrl(m.url)) : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function recordMessage(params: {
   businessId: string;
   phone: string;
@@ -19,10 +55,12 @@ export async function recordMessage(params: {
   body: string;
   sid?: string | null;
   at?: Date;
+  media?: InboundMedia[];
 }): Promise<{ id: string } | null> {
   const phoneNormalized = normalizePhone(params.phone);
   const body = params.body.trim();
   if (!phoneNormalized || !body) return null;
+  const media = params.media?.length ? JSON.stringify(params.media) : null;
   try {
     return await prisma.message.create({
       data: {
@@ -32,6 +70,7 @@ export async function recordMessage(params: {
         author: params.author,
         body,
         sid: params.sid || null,
+        mediaJson: media,
         readAt: params.direction === "out" ? (params.at ?? new Date()) : null,
         ...(params.at ? { createdAt: params.at } : {}),
       },
@@ -170,6 +209,8 @@ export type ThreadEntry =
       author: MessageAuthor;
       body: string;
       deliveryStatus: string | null;
+      /** Count of photos, served by /api/messages/media?id=&i=. */
+      photos: number;
     }
   | {
       kind: "call";
@@ -231,6 +272,7 @@ export async function getThread(businessId: string, phone: string) {
         author: m.author as MessageAuthor,
         body: m.body,
         deliveryStatus: m.deliveryStatus,
+        photos: parseMedia(m.mediaJson).length,
       }),
     ),
     ...calls.map(

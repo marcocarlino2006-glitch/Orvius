@@ -29,6 +29,7 @@ type Entry =
       author: "customer" | "orvius" | "owner";
       body: string;
       deliveryStatus?: string | null;
+      photos?: number;
     }
   | {
       kind: "call";
@@ -321,7 +322,22 @@ function MessagesInner() {
                       key={`t-${entry.id}`}
                       className={`msg-bubble-row ${entry.direction === "out" ? "is-out" : "is-in"}`}
                     >
-                      <div className={`msg-bubble msg-bubble--${entry.author}`}>{entry.body}</div>
+                      {entry.photos ? (
+                        <div className="msg-photos">
+                          {Array.from({ length: entry.photos }, (_, i) => {
+                            const src = `/api/messages/media?id=${encodeURIComponent(entry.id)}&i=${i}`;
+                            return (
+                              <a key={i} href={src} target="_blank" rel="noreferrer" className="msg-photo">
+                                {/* eslint-disable-next-line @next/next/no-img-element -- authed proxy, not optimisable */}
+                                <img src={src} alt={`Photo ${i + 1} from the customer`} loading="lazy" />
+                              </a>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                      {entry.photos && entry.body === "Sent a photo" ? null : (
+                        <div className={`msg-bubble msg-bubble--${entry.author}`}>{entry.body}</div>
+                      )}
                       <span className="msg-meta">
                         {entry.author === "owner" ? "You" : entry.author === "orvius" ? "Orvius" : "Customer"} ·{" "}
                         {stamp(entry.at)}
