@@ -25,10 +25,10 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.contact": { en: "Talk to us", es: "Hablar con nosotros", fr: "Nous contacter", de: "Kontakt" },
 
   "hero.title": {
-    en: "Every call answered. Every customer booked.",
-    es: "Cada llamada contestada. Cada cliente agendado.",
-    fr: "Chaque appel répondu. Chaque client réservé.",
-    de: "Jeder Anruf angenommen. Jeder Kunde gebucht.",
+    en: "The calls you can't take, answered and booked.",
+    es: "Las llamadas que usted no puede tomar, contestadas y agendadas.",
+    fr: "Les appels que vous ne pouvez pas prendre, répondus et réservés.",
+    de: "Die Anrufe, die Sie nicht annehmen können — angenommen und gebucht.",
   },
   "hero.lead": {
     en: "Orvius is the AI front desk for any business that runs on the phone. It answers the calls you can't take, offers an open time from your schedule, and texts you what happened.",

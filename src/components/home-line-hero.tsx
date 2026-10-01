@@ -54,7 +54,7 @@ export function HomeLineHero() {
       <div className="ov-hero-inner ov-hero-inner--product ov-hero-inner--poster">
         <div className="ov-hero-copy">
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
-            Every call answered. Every customer booked.
+            The calls you can&apos;t take, answered and booked.
           </h1>
           <p className="ov-hero-lead" data-i18n="hero.lead">
             Orvius is the AI front desk for any business that runs on the phone. It answers the calls you can&apos;t

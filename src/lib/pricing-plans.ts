@@ -76,7 +76,7 @@ export const pricingPlans: readonly PricingPlan[] = [
   {
     id: "line",
     name: "Line",
-    tagline: "Every call answered, booked and texted to you, with the jobs to run it yourself.",
+    tagline: "Calls answered, booked and texted to you, with the jobs to run it yourself.",
     price: 199,
     annualPrice: 166,
     period: "per month",
