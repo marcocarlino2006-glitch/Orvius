@@ -2,6 +2,7 @@ import { getTwilioClient } from "@/lib/twilio-client";
 import { normalizePhone } from "@/lib/customer";
 import { getWebhookUrl } from "@/lib/env";
 import { logWarn } from "@/lib/logger";
+import { recordMessage, type MessageAuthor } from "@/lib/messages";
 import { prisma } from "@/lib/prisma";
 
 export type SmsAudience = "customer" | "owner" | "tech";
@@ -70,6 +71,8 @@ export async function sendSms(params: {
   /** Omitted only for texts that belong to no shop, such as a pre-purchase preview. */
   businessId?: string;
   audience: SmsAudience;
+  /** Who wrote a customer text; only customer texts land in the inbox thread. */
+  author?: Exclude<MessageAuthor, "customer">;
 }): Promise<{ sid: string } | null> {
   const sender = smsSender();
   if (!isSmsReady() || !sender) return null;
@@ -92,6 +95,16 @@ export async function sendSms(params: {
       audience: params.audience,
       sid: sms.sid,
     });
+    if (params.audience === "customer") {
+      await recordMessage({
+        businessId: params.businessId,
+        phone: to,
+        direction: "out",
+        author: params.author ?? "orvius",
+        body: params.body,
+        sid: sms.sid,
+      });
+    }
   }
 
   return { sid: sms.sid };

@@ -1,0 +1,66 @@
+.bk {
+  padding-bottom: 2.5rem;
+}
+.bk a {
+  color: #f7bb5c;
+  text-decoration: none;
+}
+.bk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.bk-chip,
+.bk-time {
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border-radius: 10px;
+  border: 1px solid #2c3139;
+  background: #0b0c0e;
+  color: #eceef1;
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bk-chip.is-on,
+.bk-time.is-on {
+  background: #f2a93b;
+  border-color: #f2a93b;
+  color: #1b1203;
+  font-weight: 600;
+}
+.bk-chip:focus-visible,
+.bk-time:focus-visible {
+  outline: 2px solid #f2a93b;
+  outline-offset: 2px;
+}
+.bk-day {
+  display: grid;
+  gap: 0.5rem;
+}
+.bk-day + .bk-day {
+  padding-top: 0.25rem;
+}
+.bk-day-label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #8b919a;
+}
+.bk-times {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.5rem;
+}
+.bk-hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.bk-foot {
+  text-align: center;
+  font-size: 0.75rem;
+}

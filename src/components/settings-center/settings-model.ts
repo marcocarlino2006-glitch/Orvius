@@ -45,6 +45,11 @@ export type Account = {
     billingStatus?: string;
     autopilot?: boolean;
     followUpMode?: "off" | "ask" | "auto";
+    reviewUrl?: string | null;
+    reviewRequestsOn?: boolean;
+    bookingPageOn?: boolean;
+    webChatOn?: boolean;
+    slug?: string;
     createdAt?: string;
     vapiPhoneNumber?: string | null;
     twilioPhone?: string | null;

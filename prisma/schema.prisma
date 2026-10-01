@@ -69,6 +69,14 @@ model Business {
   weeklyReportSentAt DateTime?
   /// Owner's private iCal address; busy times there are never offered to callers.
   busyCalendarUrl      String?
+  /** Where a finished customer is asked to leave a review (Google, Yelp, Facebook…). */
+  reviewUrl            String?
+  /** Text each finished customer the review link once, the day of the visit. */
+  reviewRequestsOn     Boolean  @default(true)
+  /** Public booking page at /b/[slug]; off until the owner shares it. */
+  bookingPageOn        Boolean  @default(false)
+  /** Chat bubble for the shop's own website (/embed.js); visitors are answered by text. */
+  webChatOn            Boolean  @default(false)
   busyCalendarJson     String?
   busyCalendarSyncedAt DateTime?
   busyCalendarError    String?
@@ -120,6 +128,7 @@ model Business {
   webhookEvents      WebhookEvent[]
   smsOptOuts         SmsOptOut[]
   outboundSms        OutboundSms[]
+  messages           Message[]
   auditEvents        AuditEvent[]
   memberships        Membership[]
   /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
@@ -154,6 +163,27 @@ model OutboundSms {
   @@index([businessId, createdAt])
 }
 
+/** Every customer text in and out, so the owner reads and answers one thread per phone. */
+model Message {
+  id              String   @id @default(cuid())
+  businessId      String
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  phoneNormalized String
+  /** in | out */
+  direction       String
+  /** customer | orvius | owner */
+  author          String
+  body            String
+  sid             String?
+  /** Set when the owner has read an inbound text. */
+  readAt          DateTime?
+  createdAt       DateTime @default(now())
+
+  @@unique([businessId, sid])
+  @@index([businessId, phoneNormalized, createdAt])
+  @@index([businessId, createdAt])
+}
+
 model SmsOptOut {
   id           String   @id @default(cuid())
   businessId   String
@@ -181,6 +211,8 @@ model Customer {
   address           String?
   notes             String?
   interactionCount  Int      @default(1)
+  /** Last "we miss you" text; one per customer every 90 days. */
+  winBackSentAt     DateTime?
   firstSeenAt       DateTime @default(now())
   lastSeenAt        DateTime @default(now())
   createdAt         DateTime @default(now())
@@ -327,6 +359,8 @@ model Job {
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?
+  /** The customer was texted the review link for this visit; claimed before the send. */
+  reviewRequestedAt DateTime?
   /** Structured field outcome — the label future intelligence learns from. */
   resolutionCode String?
   /** Short technician evidence, never generated or inferred. */

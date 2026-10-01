@@ -561,3 +561,31 @@ CREATE INDEX IF NOT EXISTS "OwnerNotification_deliveryId_idx" ON "OwnerNotificat
 
 -- Call reports that fail to finish are retried by the 5-minute sweep before being abandoned.
 ALTER TABLE "WebhookEvent" ADD COLUMN "attempts" INTEGER NOT NULL DEFAULT 0;
+-- Unified inbox: every customer text in and out, one thread per phone.
+CREATE TABLE IF NOT EXISTS "Message" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "phoneNormalized" TEXT NOT NULL,
+  "direction" TEXT NOT NULL,
+  "author" TEXT NOT NULL,
+  "body" TEXT NOT NULL,
+  "sid" TEXT,
+  "readAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Message_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Message_businessId_sid_key" ON "Message"("businessId", "sid");
+CREATE INDEX IF NOT EXISTS "Message_businessId_phoneNormalized_createdAt_idx" ON "Message"("businessId", "phoneNormalized", "createdAt");
+CREATE INDEX IF NOT EXISTS "Message_businessId_createdAt_idx" ON "Message"("businessId", "createdAt");
+
+-- Review requests: one text with the shop's review link after a finished visit.
+ALTER TABLE "Business" ADD COLUMN "reviewUrl" TEXT;
+ALTER TABLE "Business" ADD COLUMN "reviewRequestsOn" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Job" ADD COLUMN "reviewRequestedAt" DATETIME;
+
+-- Online booking page at /b/[slug].
+ALTER TABLE "Business" ADD COLUMN "bookingPageOn" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "webChatOn" BOOLEAN NOT NULL DEFAULT false;
+
+-- Win-back: one check-in text to a lapsed customer every 90 days.
+ALTER TABLE "Customer" ADD COLUMN "winBackSentAt" DATETIME;

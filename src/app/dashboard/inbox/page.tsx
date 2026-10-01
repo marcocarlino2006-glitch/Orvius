@@ -88,7 +88,12 @@ export default function InboxPage() {
     <OsShell
       title="Inbox"
       actions={
-        <ProShopLineCta label="Call your line" showNumber={false} />
+        <>
+          <Link href="/dashboard/inbox/messages" className="btn btn-secondary text-sm">
+            Messages
+          </Link>
+          <ProShopLineCta label="Call your line" showNumber={false} />
+        </>
       }
     >
       <ProLead
@@ -167,7 +172,7 @@ export default function InboxPage() {
                     service={lead.serviceType}
                     urgency={lead.urgency}
                     address={lead.address}
-                    channel={lead.source === "sms" ? "Text" : "Call"}
+                    channel={lead.source === "sms" ? "Text" : lead.source === "web" ? "Online" : lead.source === "chat" ? "Web chat" : "Call"}
                     status={lead.status}
                     createdAt={lead.createdAt}
                     customerId={lead.customer?.id ?? null}

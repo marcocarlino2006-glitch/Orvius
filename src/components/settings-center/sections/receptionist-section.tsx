@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import { VoiceSampleButton } from "../settings-controls";
 import { dollars, type Business, type PatchFn } from "../settings-model";
@@ -79,6 +80,52 @@ export function ReceptionistSection({
           </select>
         </ScRow>
       </ScGroup>
+      <ScGroup title="Online booking">
+        <ScRow
+          label="Let customers book themselves"
+          hint="A booking page with the same open times your receptionist offers on calls: your hours, your team, your busy calendar. Each booking lands on your schedule and the customer gets the usual confirmation text."
+        >
+          <ScSwitch
+            label="Online booking"
+            checked={b.bookingPageOn ?? false}
+            onChange={(next) => void patch({ bookingPageOn: next })}
+          />
+        </ScRow>
+        {b.bookingPageOn && b.slug ? <CopyRow label="Your booking link" path={`/b/${b.slug}`} /> : null}
+        <ScRow
+          label="Chat on your website"
+          hint="A chat button for your own site. Visitors leave a message and their mobile number, Orvius texts them that it arrived, and you answer from Inbox → Messages."
+        >
+          <ScSwitch
+            label="Website chat"
+            checked={b.webChatOn ?? false}
+            onChange={(next) => void patch({ webChatOn: next })}
+          />
+        </ScRow>
+        {b.webChatOn && b.slug ? <CopyRow label="Paste before </body> on your website" path={`/embed.js?shop=${b.slug}`} snippet /> : null}
+      </ScGroup>
+      <ScGroup title="Reviews">
+        <ScRow
+          stack
+          label="Review link"
+          hint="Your Google, Yelp, or Facebook review page. Paste it once and every customer whose visit is marked done gets one short text asking for a review, an hour or more after the visit, 9am to 8pm. Once per customer every 90 days, never after a STOP."
+        >
+          <ScField
+            ariaLabel="Review link"
+            inputMode="url"
+            value={b.reviewUrl ?? ""}
+            placeholder="https://g.page/r/your-business/review"
+            onCommit={(v) => patch({ reviewUrl: v.trim() || null })}
+          />
+        </ScRow>
+        <ScRow label="Ask finished customers for a review" hint="Everyone gets the same link. Asking only happy customers breaks Google's rules.">
+          <ScSwitch
+            label="Ask for reviews"
+            checked={b.reviewRequestsOn ?? true}
+            onChange={(next) => void patch({ reviewRequestsOn: next })}
+          />
+        </ScRow>
+      </ScGroup>
       <ScGroup title="Your numbers">
         <ScRow label="Average ticket" hint="Estimates booked value on Command. Not money collected.">
           <span className="sc-affix">
@@ -128,5 +175,44 @@ export function ReceptionistSection({
         </ScRow>
       </ScGroup>
     </>
+  );
+}
+
+function CopyRow({ label, path, snippet = false }: { label: string; path: string; snippet?: boolean }) {
+  const [copied, setCopied] = useState(false);
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const url = `${origin}${path}`;
+  const value = snippet ? `<script src="${url}" async></script>` : url;
+  return (
+    <ScRow
+      stack
+      label={label}
+      hint={
+        snippet
+          ? "Works on Wix, Squarespace, WordPress, Shopify, or any site that lets you add code."
+          : "Put it on your website, Google Business Profile, Instagram bio, and email signature."
+      }
+    >
+      <div className="sc-affix">
+        <input className="sc-input" readOnly value={value} aria-label={label} onFocus={(e) => e.target.select()} />
+        <button
+          type="button"
+          className="btn btn-secondary text-sm"
+          onClick={() => {
+            void navigator.clipboard?.writeText(value).then(() => {
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            });
+          }}
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
+        {snippet ? null : (
+          <a className="btn btn-secondary text-sm" href={url} target="_blank" rel="noreferrer">
+            Open
+          </a>
+        )}
+      </div>
+    </ScRow>
   );
 }
