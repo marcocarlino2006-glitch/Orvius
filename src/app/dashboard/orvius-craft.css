@@ -1260,14 +1260,27 @@ a.dt-row:focus-visible,
 }
 
 .cb-try {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.875rem;
-  border: 1px solid var(--ox-line);
-  border-radius: var(--ox-radius);
+  margin: 0.25rem 0 0;
+  color: var(--ox-text-2);
+  font-size: 0.8125rem;
+}
+
+.cb-try-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ox-text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.wq--bare {
+  border: 0;
+  border-radius: 0;
+  background: none;
 }
 
 @media (max-width: 640px) {
@@ -1287,4 +1300,45 @@ a.dt-row:focus-visible,
   .cb-trace-at {
     grid-column: 2;
   }
+}
+
+/* Signals in the Command rail: one quiet list, label left, number right. */
+.os-shell .cc-rail .cs-grid {
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin: 0 0 1rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+  overflow: hidden;
+}
+
+.os-shell .cc-rail .cs-card,
+.os-shell .cc-rail .cs-grid > li + li .cs-card {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  height: auto;
+  min-height: 0;
+  padding: 0.625rem 1rem;
+  border: 0;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+.os-shell .cc-rail .cs-grid > li + li .cs-card {
+  border-top: 1px solid var(--ox-line);
+}
+
+.os-shell .cc-rail .cs-value {
+  margin: 0;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+}
+
+.os-shell .cc-rail .cs-detail,
+.os-shell .cc-rail .cs-skel-detail {
+  display: none;
 }

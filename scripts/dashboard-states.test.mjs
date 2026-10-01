@@ -40,7 +40,7 @@ test("Command keeps one flagship hierarchy and one control rail", () => {
   assert.equal((command.match(/<aside className="cc-rail"/g) ?? []).length, 1);
   assert.doesNotMatch(command, /<ProCommandOutcomes|<ProLaunchControl/);
   assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
-  assert.match(command, /<CommandBoard onChange=\{/);
+  assert.match(command, /<CommandBoard\s+onChange=\{/);
 
   const queue = read("src/components/attention-queue.tsx");
   assert.match(queue, /rest\.slice\(0, /);

@@ -99,34 +99,11 @@
   color: var(--ash);
 }
 
-.account-plan-badge {
-  padding: 1rem 1.125rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--signal) 22%, var(--rule));
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--signal) 8%, transparent), transparent 70%), var(--white);
-}
-
 .account-plan-name {
   font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--void);
-}
-
-.account-plan-price {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--ash);
-}
-
-.account-legal-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 0.875rem;
 }
 
 /*
@@ -2485,18 +2462,6 @@
   letter-spacing: -0.018em;
 }
 
-.billing-settings .account-plan-badge {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.billing-settings .account-plan-price {
-  color: var(--ox-day-soft, #a3a9b2) !important;
-  font-size: 0.8125rem;
-}
-
 .billing-settings .onboarding-input {
   width: 8.5rem !important;
   max-width: 8.5rem !important;
@@ -2542,22 +2507,6 @@
   color: var(--ox-legacy-mute, #8f8d88) !important;
   font-size: 0.8125rem;
   line-height: 1.5;
-}
-
-.billing-settings .account-legal-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem 1rem;
-}
-
-.billing-settings .account-legal-links a {
-  color: var(--ox-day-soft, #a3a9b2) !important;
-  font-size: 0.75rem;
-  text-decoration: none;
-}
-
-.billing-settings .account-legal-links a:hover {
-  color: #f1f0ed !important;
 }
 
 .billing-settings .btn {

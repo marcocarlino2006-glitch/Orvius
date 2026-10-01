@@ -814,16 +814,6 @@ h3 {
   color: var(--ash);
 }
 
-.account-legal-links a {
-  color: var(--ash);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.account-legal-links a:hover {
-  color: var(--void);
-}
-
 .pro-stat {
   position: relative;
   overflow: hidden;
@@ -3013,11 +3003,6 @@ label:has(> input[type="radio"]) {
   criterion and are left at their line-height so the paragraph stays a
   paragraph.
 */
-.account-legal-links a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.5rem;
-}
 
 .mkt-page,
 .mkt-page * {
@@ -4211,7 +4196,6 @@ label:has(> input[type="radio"]) {
   font-size: 1rem !important;
 }
 
-.os-shell-night .account-plan-price,
 .os-shell-night .account-billing-plan-price {
   color: var(--ox-legacy-text, #e9e9e9) !important;
 }

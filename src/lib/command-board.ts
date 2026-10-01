@@ -9,7 +9,7 @@ import { findDuplicateJobs } from "@/lib/workspace-hygiene";
  */
 export type BoardLane = "requests" | "proposed" | "confirmed" | "exceptions" | "approvals";
 
-export type ExceptionKind = "emergency" | "stale" | "duplicate" | "failed_message" | "takeover" | "unconfirmed_soon";
+export type ExceptionKind = "emergency" | "stale" | "duplicate" | "failed_message" | "alert_setup" | "takeover" | "unconfirmed_soon";
 
 export type BoardItem = {
   id: string;
@@ -286,15 +286,19 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     });
   }
 
-  for (const n of failedAlerts) {
+  if (failedAlerts.length) {
+    const reasons = new Map<string, string>();
+    for (const n of failedAlerts) {
+      const channel = n.channel === "sms" ? "Text" : "Email";
+      if (!reasons.has(channel)) reasons.set(channel, n.error ?? "delivery failed");
+    }
     exceptions.push({
-      id: `alert-failed:${n.id}`,
+      id: `alert-setup:${failedAlerts[0]!.id}`,
       lane: "exceptions",
-      exception: "failed_message",
-      title: `Owner ${n.channel === "sms" ? "text" : "email"} alert failed`,
-      detail: n.error ?? "Delivery failed",
-      at: n.createdAt.toISOString(),
-      leadId: n.leadId,
+      exception: "alert_setup",
+      title: "Your alerts aren't reaching you",
+      detail: `${failedAlerts.length} failed in the last 2 days · ${[...reasons].map(([c, why]) => `${c}: ${why}`).join(" · ")}`,
+      at: failedAlerts[0]!.createdAt.toISOString(),
     });
   }
   for (const m of failedTexts) {
@@ -335,7 +339,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     });
   }
 
-  const order: Record<ExceptionKind, number> = { emergency: 0, failed_message: 1, unconfirmed_soon: 2, stale: 3, duplicate: 4, takeover: 5 };
+  const order: Record<ExceptionKind, number> = { emergency: 0, alert_setup: 1, failed_message: 2, unconfirmed_soon: 3, stale: 4, duplicate: 5, takeover: 6 };
   exceptions.sort((a, b) => order[a.exception!] - order[b.exception!] || b.at.localeCompare(a.at));
   requests.sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)) || b.at.localeCompare(a.at));
 

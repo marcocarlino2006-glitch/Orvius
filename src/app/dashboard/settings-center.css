@@ -1000,3 +1000,19 @@
   min-width: 8.5rem;
   flex: 0 0 auto;
 }
+
+.billing-legal {
+  margin: 1.5rem 0 0;
+  color: var(--ox-text-3, var(--ox-text-2));
+  font-size: 0.75rem;
+}
+
+.billing-legal a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sc-plan + .billing-usage {
+  margin-top: 1.25rem;
+}

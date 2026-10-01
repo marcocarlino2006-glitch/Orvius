@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "@/components/toaster";
 import type { BoardItem, BoardLane, CommandBoard as Board } from "@/lib/command-board";
 import type { RequestTrace } from "@/lib/request-trace";
+import { openSettings } from "@/lib/settings-center";
 import { formatWhen } from "@/lib/when";
 
 const LANES: { id: BoardLane; label: string; empty: string }[] = [
@@ -17,6 +18,7 @@ const LANES: { id: BoardLane; label: string; empty: string }[] = [
 const EXCEPTION_LABEL: Record<string, string> = {
   emergency: "Safety",
   failed_message: "Failed text",
+  alert_setup: "Alerts",
   unconfirmed_soon: "Unconfirmed",
   stale: "Stale",
   duplicate: "Duplicate",
@@ -149,7 +151,7 @@ function ItemRow({ item, demo, onChange }: { item: BoardItem; demo: boolean; onC
     });
 
   const canSchedule = (item.lane === "requests" && item.leadId) || ((item.lane === "proposed" || item.lane === "confirmed" || item.exception === "stale") && item.jobId);
-  const canTake = Boolean((item.leadId || item.phone) && item.lane !== "approvals");
+  const canTake = Boolean((item.leadId || item.phone) && item.lane !== "approvals" && item.exception !== "alert_setup");
 
   return (
     <li className={`cb-item${item.urgent ? " cb-item--urgent" : ""}`}>
@@ -178,6 +180,11 @@ function ItemRow({ item, demo, onChange }: { item: BoardItem; demo: boolean; onC
         />
       ) : (
         <div className="cb-actions">
+          {item.exception === "alert_setup" ? (
+            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" onClick={() => openSettings("notifications")}>
+              Fix setup
+            </button>
+          ) : null}
           {canSchedule ? (
             <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}>
               {item.jobId ? "Move" : "Propose a time"}
@@ -356,14 +363,13 @@ function TryDemo({ empty }: { empty: boolean }) {
     }
   }
   return (
-    <div className="cb-try">
-      <p className="cb-muted">
-        {empty ? "No calls yet. " : ""}Try a scenario in your own demo shop first — your real line and customers are untouched.
-      </p>
-      <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void open()}>
-        {busy ? "Opening…" : "Open a demo workspace"}
+    <p className="cb-try">
+      {empty ? "No calls yet. " : ""}
+      <button type="button" className="cb-try-link" disabled={busy} onClick={() => void open()}>
+        {busy ? "Opening the demo shop…" : "Try it in a demo shop"}
       </button>
-    </div>
+      {" "}— your real line and customers stay untouched.
+    </p>
   );
 }
 
@@ -372,10 +378,12 @@ function TryDemo({ empty }: { empty: boolean }) {
  * only ever produces a plan to approve, and — in a demo workspace — scripted
  * calls that drive the real pipeline.
  */
-export function CommandBoard({ onChange }: { onChange?: () => void }) {
+export type ExtraLane = { id: string; label: string; count: number; content: ReactNode };
+
+export function CommandBoard({ onChange, extra }: { onChange?: () => void; extra?: ExtraLane }) {
   const [board, setBoard] = useState<Board | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [lane, setLane] = useState<BoardLane | null>(null);
+  const [lane, setLane] = useState<BoardLane | "extra" | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -401,11 +409,11 @@ export function CommandBoard({ onChange }: { onChange?: () => void }) {
     onChange?.();
   }, [load, onChange]);
 
-  const active = useMemo(() => {
+  const active = useMemo<BoardLane | "extra">(() => {
     if (lane) return lane;
     if (!board) return "approvals";
-    return LANES.find((l) => board.lanes[l.id].length)?.id ?? "requests";
-  }, [lane, board]);
+    return LANES.find((l) => board.lanes[l.id].length)?.id ?? (extra?.count ? "extra" : "requests");
+  }, [lane, board, extra?.count]);
 
   const demo = board?.environment === "demo";
   const empty = board ? LANES.every((l) => board.lanes[l.id].length === 0) : false;
@@ -432,8 +440,22 @@ export function CommandBoard({ onChange }: { onChange?: () => void }) {
             </button>
           );
         })}
+        {extra ? (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={active === "extra"}
+            className={`cb-tab${active === "extra" ? " cb-tab--on" : ""}`}
+            onClick={() => setLane("extra")}
+          >
+            {extra.label}
+            <span className="cb-tab-count">{extra.count}</span>
+          </button>
+        ) : null}
       </div>
-      {board ? (
+      {active === "extra" ? (
+        <div role="tabpanel">{extra?.content}</div>
+      ) : board ? (
         board.lanes[active].length ? (
           <ul className="cb-list" role="tabpanel">
             {board.lanes[active].map((item) => (
