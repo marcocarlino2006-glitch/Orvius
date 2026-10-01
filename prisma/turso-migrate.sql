@@ -578,3 +578,6 @@ ALTER TABLE "Job" ADD COLUMN "reviewRequestedAt" DATETIME;
 -- Online booking page at /b/[slug].
 ALTER TABLE "Business" ADD COLUMN "bookingPageOn" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "Business" ADD COLUMN "webChatOn" BOOLEAN NOT NULL DEFAULT false;
+
+-- Win-back: one check-in text to a lapsed customer every 90 days.
+ALTER TABLE "Customer" ADD COLUMN "winBackSentAt" DATETIME;
