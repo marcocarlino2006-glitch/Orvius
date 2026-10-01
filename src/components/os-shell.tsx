@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { osCurrentRing, osProductNav } from "@/lib/os-nav";
 import { displayPhone } from "@/lib/customer";
 import { useBusiness } from "@/lib/use-business";
+import { industryTerms } from "@/lib/industry-terms";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
 import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
@@ -46,6 +47,9 @@ export function OsShell({
   const { business, loading: businessLoading } = useBusiness();
   const { access } = usePlanAccess();
   const businessName = businessNameProp ?? business?.name ?? "Your business";
+  const terms = industryTerms(business?.trade);
+  const navLabel = (item: { href: string; label: string }) =>
+    item.href === "/dashboard/jobs" ? terms.Jobs : item.href === "/dashboard/dispatch" ? terms.Dispatch : item.label;
   const newLeads = business?.metrics.newLeads ?? 0;
   const showAskDock = access?.canAccess("ask") ?? false;
   const unassignedJobs = business?.signals.unassignedJobs ?? 0;
@@ -108,7 +112,7 @@ export function OsShell({
       </Link>
 
       <div className="os-ring-status">
-        <p className="os-sidebar-label font-sans">Shop</p>
+        <p className="os-sidebar-label font-sans">Business</p>
         <p className="os-ring-status-title font-sans">{businessName}</p>
         <p className="os-ring-status-module font-sans">
           {businessLoading ? (
@@ -163,12 +167,12 @@ export function OsShell({
                     aria-current={active ? "page" : undefined}
                   >
                     <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{item.label}</span>
+                    <span className="os-nav-label">{navLabel(item)}</span>
                     {badge ? (
                       <span
                         className={`os-nav-badge ${badgeWarn ? "os-nav-badge-warn" : ""}`}
                         title={
-                          badgeWarn ? "Jobs with no tech assigned" : "New leads waiting"
+                          badgeWarn ? `${terms.Jobs} with no ${terms.worker} assigned` : "New leads waiting"
                         }
                       >
                         {badge}
@@ -184,7 +188,7 @@ export function OsShell({
                     title="Pay to continue"
                   >
                     <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{item.label}</span>
+                    <span className="os-nav-label">{navLabel(item)}</span>
                     <span className="os-nav-lock">Pay</span>
                   </Link>
                 ) : planAllowed === false && upgradePlan ? (
@@ -194,13 +198,13 @@ export function OsShell({
                     title={`Upgrade to ${upgradePlan.name}`}
                   >
                     <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{item.label}</span>
+                    <span className="os-nav-label">{navLabel(item)}</span>
                     <span className="os-nav-lock">Pro</span>
                   </Link>
                 ) : (
                   <span className="os-nav-link os-nav-link-disabled font-sans">
                     <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{item.label}</span>
+                    <span className="os-nav-label">{navLabel(item)}</span>
                   </span>
                 )}
               </li>

@@ -21,6 +21,7 @@ function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
   if (!data?.business?.name) return null;
   return {
     name: data.business.name,
+    trade: data.business.trade ?? null,
     line: data.business.line ?? null,
     ownerPhone: data.business.ownerPhone ?? null,
     metrics: data.metrics,

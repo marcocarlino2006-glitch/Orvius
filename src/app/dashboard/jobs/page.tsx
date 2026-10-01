@@ -11,6 +11,8 @@ import { jobRowFacts, type JobRowInput } from "@/lib/job-row";
 import { formatCents } from "@/lib/money";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { industryTerms } from "@/lib/industry-terms";
+import { useBusiness } from "@/lib/use-business";
 
 type JobRow = JobRowInput & {
   id: string;
@@ -62,6 +64,7 @@ const STAGES: PipelineStage[] = [
 ];
 
 export default function JobsPage() {
+  const terms = industryTerms(useBusiness().business?.trade);
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [newLeadCount, setNewLeadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -127,10 +130,10 @@ export default function JobsPage() {
 
   return (
     <OsShell
-      title="Jobs"
+      title={terms.Jobs}
       actions={
         <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
-          Dispatch
+          {terms.Dispatch}
         </Link>
       }
     >
@@ -189,7 +192,7 @@ export default function JobsPage() {
 
           {!jobs.length && !newLeadCount ? (
             <ProEmptyState
-              title="No jobs booked yet"
+              title={`No ${terms.jobs} booked yet`}
               body="Open a lead in the inbox, capture the details, and book the appointment."
               action={
                 <Link href="/dashboard/inbox" className="btn btn-void text-sm">

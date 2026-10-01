@@ -125,3 +125,29 @@ test("a preview answers as the business type the owner picked", () => {
   assert.match(legacy, /TRADE — HVAC/);
   assert.match(legacy, /Never say a technician is booked/);
 });
+
+test("the dashboard speaks each business's language", async () => {
+  const { industryTerms } = await import("../src/lib/industry-terms.ts");
+  assert.equal(industryTerms("HVAC").Jobs, "Jobs");
+  assert.equal(industryTerms("HVAC").Dispatch, "Dispatch");
+  assert.equal(industryTerms(null).worker, "tech", "a shop with no type keeps the words it had");
+  assert.equal(industryTerms("Dental office").Jobs, "Appointments");
+  assert.equal(industryTerms("Salon & spa").Dispatch, "Schedule");
+  assert.equal(industryTerms("Law office").worker, "team member");
+});
+
+test("public pages speak to every business, not only HVAC shops", async () => {
+  const { readFileSync } = await import("node:fs");
+  const pages = [
+    "src/components/marketing-shell.tsx",
+    "src/app/product/page.tsx",
+    "src/app/enterprise/page.tsx",
+    "src/app/pilot/page.tsx",
+    "src/components/home-line-hero.tsx",
+    "src/lib/i18n.ts",
+  ];
+  for (const file of pages) {
+    const text = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
+    assert.doesNotMatch(text, /receptionist for HVAC|HVAC receptionist|multi-shop HVAC|your HVAC shop/i, file);
+  }
+});

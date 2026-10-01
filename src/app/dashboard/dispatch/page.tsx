@@ -9,6 +9,7 @@ import { AssignTechButton } from "@/components/assign-tech-button";
 import type { DispatchSchedule, ScheduleBlock, UnassignedItem } from "@/lib/dispatch-schedule";
 import { skillOptions } from "@/lib/trade-playbooks";
 import type { Trade } from "@/lib/trades";
+import { industryTerms } from "@/lib/industry-terms";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -379,11 +380,12 @@ export default function DispatchPage() {
     day: "numeric",
   });
   const trade = (board?.trade ?? null) as Trade | null;
+  const terms = industryTerms(board?.trade);
   const decisions = schedule?.unassigned.length ?? 0;
   const conflicts = schedule?.conflicts ?? [];
 
   return (
-    <OsShell title="Dispatch">
+    <OsShell title={terms.Dispatch}>
       <PlanUpgradeGate module="dispatch">
         <ProLead
           loading={loading && !board}
@@ -462,7 +464,7 @@ export default function DispatchPage() {
             {!board.jobCount ? (
               <ProEmptyState
                 title="Nothing scheduled this day"
-                body="Calls Orvius books land here with a technician already picked. Pick another day, or book from the inbox."
+                body={`Calls Orvius books land here with a ${terms.worker} already picked. Pick another day, or book from the inbox.`}
                 action={
                   <Link href="/dashboard/inbox" className="ox-btn ox-btn--quiet ox-btn--sm">
                     Open inbox

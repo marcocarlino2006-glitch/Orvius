@@ -231,6 +231,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     business: {
       name: business.name,
+      trade: business.trade,
       line,
       ownerPhone: business.ownerPhone,
       billingStatus: business.billingStatus,

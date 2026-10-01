@@ -25,6 +25,7 @@ export type BusinessSignals = {
 
 export type BusinessSnapshot = {
   name: string;
+  trade: string | null;
   line: string | null;
   ownerPhone: string | null;
   metrics: BusinessMetrics;
