@@ -120,7 +120,9 @@ export function OrviusPulse({
               failed > 0
                 ? "Grouped as one incident in the work queue."
                 : health.lastAlertAt
-                  ? `Last delivered ${formatAge(health.lastAlertAt, now)} ago`
+                  ? `Last delivered ${formatAge(health.lastAlertAt, now)} ago${
+                      health.alertLatencyP95Sec != null ? ` · 95% within ${health.alertLatencyP95Sec}s` : ""
+                    }`
                   : null
             }
             tone={failed > 0 ? "risk" : stuck > 0 ? "attention" : health.lastAlertAt ? "ok" : "neutral"}

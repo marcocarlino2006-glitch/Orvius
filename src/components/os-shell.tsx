@@ -15,7 +15,7 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { OsIcon } from "@/components/os-icons";
 import { ASK_OPEN_EVENT, OsAskDock } from "@/components/os-ask-dock";
 import { OsCommandPalette } from "@/components/os-command-palette";
-import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-nav";
+import { OsMobileNavBackdrop, OsTabBar, type OsTab } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { Toaster } from "@/components/toaster";
@@ -29,6 +29,8 @@ type OsShellProps = {
   statusLabel?: string;
   actions?: React.ReactNode;
 };
+
+const TAB_HREFS = ["/dashboard", "/dashboard/inbox", "/dashboard/calls", "/dashboard/jobs"];
 
 function navActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
@@ -72,6 +74,20 @@ export function OsShell({
       : onSettings
         ? null
         : "Line not set up";
+
+  const tabs: OsTab[] = osProductNav
+    .filter((item) => TAB_HREFS.includes(item.href))
+    .filter((item) => {
+      const navModule = navHrefToModule(item.href);
+      return (item.ring ?? osCurrentRing) <= osCurrentRing + 1 && (navModule ? (access?.canAccess(navModule) ?? true) : true);
+    })
+    .map((item) => ({
+      href: item.href,
+      label: navLabel(item),
+      icon: item.icon,
+      active: navActive(pathname, item.href),
+      badge: item.href === "/dashboard/inbox" && newLeads > 0 ? String(newLeads) : undefined,
+    }));
 
   useEffect(() => {
     setNavOpen(false);
@@ -238,7 +254,6 @@ export function OsShell({
       <div className="os-main os-main-pro">
         <header className="os-topbar os-topbar-pro os-topbar-night">
           <div className="os-topbar-row">
-            <OsMobileNavButton open={navOpen} onToggle={() => setNavOpen((v) => !v)} />
             <div className="os-topbar-copy">
               <h1 className="os-topbar-title font-sans">{title}</h1>
               {subtitle ? (
@@ -282,6 +297,7 @@ export function OsShell({
         </header>
 
         <main className="os-content os-content-pro">{children}</main>
+        <OsTabBar tabs={tabs} moreOpen={navOpen} onMore={() => setNavOpen((v) => !v)} />
         {showAskDock ? <OsAskDock /> : null}
         <KeyboardShortcuts />
         <OsCommandPalette

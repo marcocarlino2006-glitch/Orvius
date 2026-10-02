@@ -397,3 +397,82 @@ html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void)
   background: var(--ox-btn-hover);
   color: var(--ox-text-2);
 }
+
+/* ── Phone tab bar ───────────────────────────────────────────────────── */
+
+.os-tabbar {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .os-shell .os-tabbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 30;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 0.25rem 0.25rem calc(0.25rem + env(safe-area-inset-bottom, 0px));
+    background: var(--ox-rail);
+    border-top: 1px solid var(--ox-line);
+  }
+
+  html .os-shell .os-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1875rem;
+    min-height: 3rem;
+    padding: 0.375rem 0 0.25rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--ox-mute) !important;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html .os-shell .os-tab.is-active {
+    color: var(--ox-text) !important;
+  }
+
+  .os-shell .os-tab-icon {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .os-shell .os-tab-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .os-shell .os-tab-badge {
+    position: absolute;
+    top: -0.3rem;
+    left: 0.9rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--ox-text);
+    color: var(--ox-bg);
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 1rem;
+    text-align: center;
+  }
+
+  html .os-shell.os-shell-pro .os-content {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html .os-shell:not(:has(.lead-detail-sticky)) .os-ask-dock {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .os-shell:has(.lead-detail-sticky) .os-tabbar {
+    display: none;
+  }
+}
