@@ -1,5 +1,6 @@
 "use client";
 
+import { displayPhone } from "@/lib/customer";
 import { useEffect, useState } from "react";
 
 type PortState = {
@@ -61,7 +62,7 @@ export function PortRequestForm() {
   if (state.request && state.request.status !== "failed") {
     return (
       <p className="account-settings-hint" role="status">
-        {state.request.number} from {state.request.carrier}: {state.request.copy}
+        {displayPhone(state.request.number)} from {state.request.carrier}: {state.request.copy}
       </p>
     );
   }

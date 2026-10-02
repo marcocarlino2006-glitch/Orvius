@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const checked = validatePortInput(body ?? {});
-  if (!checked.ok) return NextResponse.json({ error: "Fix the fields marked in red.", errors: checked.errors }, { status: 400 });
+  if (!checked.ok) return NextResponse.json({ error: "Fix the fields marked above.", errors: checked.errors }, { status: 400 });
   try {
     const row = await submitPortRequest(business, checked.value);
     return NextResponse.json({ ok: true, status: row.status, copy: PORT_STATUS_COPY[row.status] });

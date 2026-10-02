@@ -155,7 +155,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     const used = [shop.address ? "address" : null, shop.hoursJson ? "hours" : null].filter(Boolean).join(" and ");
     setLookupNote(
       used
-        ? `Filled from ${from}. Your receptionist will use your ${used}; change them anytime in Settings.`
+        ? `Filled from ${from}. Your receptionist will use your ${used}; you can change ${shop.address && shop.hoursJson ? "them" : "it"} anytime in Settings.`
         : `Filled your name from ${from}. Check the business type below.`,
     );
   }
