@@ -395,6 +395,8 @@ export type VapiWebhookMessage = {
     summary?: string;
     recordingUrl?: string;
     durationSeconds?: number;
+    cost?: number;
+    costBreakdown?: import("@/lib/call-cost").CostBreakdown & { total?: number };
     analysis?: {
       summary?: string;
       successEvaluation?: string | number | boolean | null;

@@ -334,6 +334,10 @@ model Call {
   replyP90Ms  Int?
   /** {turns, stages: {endpointing, transcriber, model, voice}} medians in ms. */
   latencyJson String?
+  /** Vapi's reported charge for this call in millionths of a dollar; the phone leg is not in it (lib/call-cost.ts). */
+  costMicros Int?
+  /** {stt, llm, tts, vapi, transport} in micros. */
+  costJson   String?
   /** Transcript and recording deleted here and at Vapi after the retention period (lib/retention.ts). */
   contentPurgedAt DateTime?
   createdAt        DateTime  @default(now())

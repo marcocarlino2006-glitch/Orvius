@@ -1,3 +1,5 @@
+import { unitEconomicsSince, type UnitEconomics } from "@/lib/call-cost";
+import { unitCostLines } from "@/lib/unit-cost-lines";
 import { company } from "@/lib/company";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/env";
@@ -41,6 +43,8 @@ export type CompanyScoreboard = {
   /** Median minutes from a shop's signup to its first booked job, shops from the last 30 days. */
   signupToFirstJobMinutes: number | null;
   shopsWithoutFirstJob: number;
+  /** Last 30 days of real calls that reported a cost; null until the first one does. */
+  unitCost: UnitEconomics | null;
 };
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : null);
@@ -91,7 +95,7 @@ function median(values: number[]): number | null {
 export async function getCompanyScoreboard(now = new Date()): Promise<CompanyScoreboard> {
   const thisStart = new Date(now.getTime() - WEEK_MS);
   const lastStart = new Date(now.getTime() - 2 * WEEK_MS);
-  const [payingShops, activeShops, thisWeek, lastWeek, recentShops] = await Promise.all([
+  const [payingShops, activeShops, thisWeek, lastWeek, recentShops, unitCost] = await Promise.all([
     prisma.business.count({
       where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
     }),
@@ -106,6 +110,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
       },
       take: 1000,
     }),
+    unitEconomicsSince(new Date(now.getTime() - 30 * DAY_MS)),
   ]);
 
   const minutes = recentShops
@@ -120,6 +125,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     lastWeek,
     signupToFirstJobMinutes: median(minutes),
     shopsWithoutFirstJob: recentShops.length - minutes.length,
+    unitCost,
   };
 }
 
@@ -144,8 +150,10 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     `Jobs booked: ${now.jobsBooked} (last week ${prev.jobsBooked})`,
     `Collected through Orvius: ${money(now.collectedCents)} (last week ${money(prev.collectedCents)})`,
     `Signup to first booked job: ${duration(board.signupToFirstJobMinutes)} median · ${board.shopsWithoutFirstJob} new shop(s) still without one`,
+    ...unitCostLines(board.unitCost),
   ];
 }
+
 
 export function buildScoreboardEmail(board: CompanyScoreboard) {
   return {

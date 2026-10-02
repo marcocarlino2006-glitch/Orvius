@@ -1,4 +1,5 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
+import { costColumns } from "@/lib/call-cost";
 import { latencyColumns, latencyFromReport } from "@/lib/call-latency";
 import { afterResponse } from "@/lib/after-response";
 import { createAuditQueue } from "@/lib/audit";
@@ -97,7 +98,7 @@ export async function captureEndOfCallReport(params: {
     const recordingUrl = message.recordingUrl ?? null;
     const successEvaluation =
       message.analysis?.successEvaluation == null ? null : String(message.analysis.successEvaluation);
-    const latency = latencyColumns(latencyFromReport(message));
+    const latency = { ...latencyColumns(latencyFromReport(message)), ...costColumns(message) };
     const extracted = extractLeadFromStructuredData(message.analysis?.structuredData);
     const spelled = withCallerSpelling(extracted, message.transcript);
     const structured = {

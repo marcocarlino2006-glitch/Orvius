@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
+import { unitCostLines } from "@/lib/unit-cost-lines";
 
 type Business = {
   id: string;
@@ -858,6 +859,13 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
           ))}
         </tbody>
       </table>
+      <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Unit cost">
+        {unitCostLines(board.unitCost ?? null).map((line) => (
+          <p key={line} className="py-0.5">
+            {line}
+          </p>
+        ))}
+      </div>
     </section>
   );
 }
