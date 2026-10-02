@@ -79,6 +79,7 @@ export function IntegrationsSection({
     on: boolean;
     mark: SettingsIconName;
     offLabel?: string;
+    hidden?: boolean;
     action?: { label: string; to: SettingsSectionId };
     copy?: string;
     reset?: boolean;
@@ -105,12 +106,10 @@ export function IntegrationsSection({
     },
     {
       name: "Email",
-      detail: account.alerts.emailConfigured
-        ? "Backup alerts"
-        : "Not live yet. Text alerts carry every lead until it is.",
+      detail: "Backup alerts",
       on: account.alerts.emailConfigured,
       mark: "mail",
-      offLabel: "Coming soon",
+      hidden: !account.alerts.emailConfigured,
     },
     {
       name: "Stripe",
@@ -125,8 +124,9 @@ export function IntegrationsSection({
         ? feedNote
         : feedUrl
           ? "See your jobs in Google, Apple, or Outlook Calendar. Updates about every 15 minutes. Anyone with the link can see them."
-          : "Not live yet for this shop.",
+          : "",
       on: Boolean(feedUrl),
+      hidden: !feedUrl && !feedNote,
       mark: "calendar",
       copy: feedUrl ?? undefined,
       reset: Boolean(feedUrl),
@@ -136,7 +136,7 @@ export function IntegrationsSection({
   return (
     <>
     <ScGroup>
-      {rows.map((row) => (
+      {rows.filter((row) => !row.hidden).map((row) => (
         <div key={row.name} className="sc-row sc-connector">
           <span className="sc-connector-mark" aria-hidden>
             <SettingsIcon name={row.mark} />
@@ -203,7 +203,7 @@ function jobberRow(jobber: JobberLink, note: string | null) {
     return { ...base, on: false, detail: note ?? "Jobber stopped accepting Orvius. Reconnect to keep calls flowing there.", href: { ...connect, label: "Reconnect" } };
   }
   if (!jobber?.available) {
-    return { ...base, on: false, detail: note ?? "Not live yet. Calls stay in Orvius until it is.", offLabel: "Coming soon" };
+    return { ...base, on: false, detail: note ?? "", hidden: !note };
   }
   return { ...base, on: false, detail: note ?? "Send every call to Jobber as a request, matched to the client by phone.", href: connect };
 }

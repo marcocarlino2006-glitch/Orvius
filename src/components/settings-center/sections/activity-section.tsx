@@ -33,6 +33,17 @@ const ACTORS = [
   ["system", "System"],
 ] as const;
 
+const KIND: Record<string, string> = {
+  shop: "Settings",
+  call: "Call",
+  lead: "Lead",
+  job: "Job",
+  customer: "Customer",
+  technician: "Technician",
+  notification: "Alert",
+  copilot: "Ask",
+};
+
 const who = (r: Row) => r.actorEmail ?? (r.actor === "orvius" ? "Orvius" : r.actor === "system" ? "System" : r.actor === "owner" ? "Owner" : "Teammate");
 
 const when = (iso: string) =>
@@ -148,7 +159,8 @@ export function ActivitySection({ role }: { role: "owner" | "manager" | "dispatc
                 <div className="sc-log-body">
                   <p className="sc-log-summary">{r.summary}</p>
                   <p className="sc-log-meta">
-                    {who(r)} · <code>{r.action}</code>
+                    {who(r)}
+                    {KIND[r.entityType] ? ` · ${KIND[r.entityType]}` : null}
                   </p>
                 </div>
               </li>

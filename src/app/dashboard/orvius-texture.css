@@ -28,6 +28,11 @@
   --ox-btn-on-fill: #000000e5;
   --ox-btn-hover: #ffffff0f;
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px #ffffff52;
+  --ox-day-surface: #1f1f1f;
+  --ox-day-sunk: #1a1a1a;
+  --ox-day-line: #ffffff14;
+  --ox-day-ink: #e6e6e6;
+  --ox-day-soft: #8c8c8c;
   --ox-face: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
@@ -351,4 +356,44 @@ html .os-shell .sc-dialog :is(.sc-btn--primary, .ox-btn--primary, .btn-void) {
 
 html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void):hover:not(:disabled) {
   filter: brightness(0.96);
+}
+
+/* Job money: sections, not boxes in a box. */
+.os-shell.os-shell-night .job-money > .job-money-share,
+.os-shell.os-shell-night .job-money-share.job-bill {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.os-shell.os-shell-night .job-money > .job-money-share + *,
+.os-shell.os-shell-night .job-money + .job-bill {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ox-line);
+}
+
+.os-shell.os-shell-night .job-money-share-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ox-text);
+}
+
+@media (max-width: 720px) {
+  .os-shell .dt--calls .dt-row > .dt-mono {
+    display: none;
+  }
+
+  .os-shell .dt--calls .dt-row > .dt-num {
+    margin-left: auto;
+  }
+}
+
+.os-shell.os-shell-night .pro-economics-stale {
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--ox-btn-hover);
+  color: var(--ox-text-2);
 }

@@ -423,11 +423,6 @@
   overflow-wrap: anywhere;
 }
 
-.sc-log-meta code {
-  font-family: var(--font-mono, ui-monospace), monospace;
-  font-size: 0.75rem;
-}
-
 @media (max-width: 640px) {
   .sc-log-row {
     grid-template-columns: minmax(0, 1fr);
