@@ -330,7 +330,8 @@ export default function CallDetailPage() {
                     </Link>
                     <span className="text-ash">
                       {" "}
-                      · {job.status.replace(/_/g, " ")}
+                      · {job.scheduledAt ? `${new Date(job.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })} · ` : ""}
+                      {job.status.replace(/_/g, " ")}
                     </span>
                   </li>
                 ))}

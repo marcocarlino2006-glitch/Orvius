@@ -1016,3 +1016,14 @@
 .sc-plan + .billing-usage {
   margin-top: 1.25rem;
 }
+
+@media (max-width: 640px) {
+  .sc-hours-times {
+    gap: 0.375rem;
+  }
+
+  .os-shell .sc-input.sc-time {
+    width: 8.25rem;
+    padding: 0 0.375rem;
+  }
+}
