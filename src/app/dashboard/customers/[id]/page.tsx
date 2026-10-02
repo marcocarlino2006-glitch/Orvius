@@ -92,9 +92,17 @@ export default function CustomerDetailPage() {
       title={customer.displayName}
       actions={
         customer.phone ? (
-          <a href={`tel:${customer.phone}`} className="btn btn-void text-sm">
-            Call
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/dashboard/inbox/messages?phone=${encodeURIComponent(customer.phone)}`}
+              className="btn btn-secondary text-sm"
+            >
+              Text
+            </Link>
+            <a href={`tel:${customer.phone}`} className="btn btn-void text-sm">
+              Call
+            </a>
+          </div>
         ) : null
       }
     >

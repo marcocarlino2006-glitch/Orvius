@@ -172,6 +172,10 @@ export default function JobDetailPage() {
 
   const next = nextJobStatus(job.status);
   const phone = job.customer?.phone ?? job.lead?.phone;
+  const hoursLate =
+    job.scheduledAt && (job.status === "scheduled" || job.status === "confirmed")
+      ? Math.floor((Date.now() - new Date(job.scheduledAt).getTime()) / 3_600_000)
+      : -1;
 
   return (
     <OsShell
@@ -197,6 +201,31 @@ export default function JobDetailPage() {
 
       <div className="os-detail-grid">
         <ShellPanel title="Field" dense>
+          {hoursLate >= 1 ? (
+            <div className="job-overdue font-sans" role="status">
+              <p>
+                The window passed {hoursLate < 24 ? `${hoursLate}h` : `${Math.floor(hoursLate / 24)}d`} ago and nobody is on
+                the way.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn btn-void text-sm"
+                  disabled={saving}
+                  onClick={() => patch({ status: "completed" })}
+                >
+                  Mark done
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary text-sm"
+                  onClick={() => document.getElementById("job-reschedule")?.focus()}
+                >
+                  Move it
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <ShellBadge
               tone={
@@ -248,6 +277,7 @@ export default function JobDetailPage() {
                   <label className="font-sans text-sm">
                     <span className="label">Reschedule</span>
                     <input
+                      id="job-reschedule"
                       type="datetime-local"
                       className="input mt-1.5"
                       disabled={saving}
