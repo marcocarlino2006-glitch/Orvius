@@ -428,7 +428,7 @@ html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void)
     border-radius: 0.5rem;
     background: transparent;
     color: var(--ox-mute) !important;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 500;
     line-height: 1;
     -webkit-tap-highlight-color: transparent;
@@ -452,15 +452,15 @@ html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void)
     position: absolute;
     top: -0.3rem;
     left: 0.9rem;
-    min-width: 1rem;
-    height: 1rem;
+    min-width: 1.125rem;
+    height: 1.125rem;
     padding: 0 0.25rem;
     border-radius: 999px;
     background: var(--ox-text);
     color: var(--ox-bg);
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    line-height: 1rem;
+    line-height: 1.125rem;
     text-align: center;
   }
 

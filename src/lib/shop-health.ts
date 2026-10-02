@@ -28,6 +28,8 @@ export type ShopHealth = {
   lastLeadAt: string | null;
   lastAlertAt: string | null;
   failedAlerts24h: number;
+  /** At least one channel (text or email) can actually reach the owner. */
+  alertsReachable: boolean;
   pendingAlerts: number;
   stuckPendingAlerts: number;
   alertLatencyP50Sec: number | null;
@@ -219,6 +221,8 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     lastLeadAt: lastLead?.createdAt.toISOString() ?? null,
     lastAlertAt: lastSuccess?.createdAt.toISOString() ?? null,
     failedAlerts24h: failedAlerts,
+    alertsReachable:
+      (smsEnabled && ownerPhoneOk && !ownerPhoneConflict) || (ownerEmailOk && emailReady),
     pendingAlerts: alertMetrics.pendingAlerts,
     stuckPendingAlerts: alertMetrics.stuckPendingAlerts,
     alertLatencyP50Sec: alertMetrics.alertLatencyP50Sec,
