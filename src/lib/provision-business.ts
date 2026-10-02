@@ -186,6 +186,9 @@ export type ProvisionInput = {
   ownerPhone: string;
   greeting?: string;
   timezone?: string;
+  /** From the shop's website or Google listing; defaults apply when absent. */
+  address?: string;
+  hoursJson?: string;
   line?: LineChoice;
   billing: {
     customerId: string;
@@ -509,7 +512,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   const greeting =
     input.greeting?.trim() ||
     `Thank you for calling ${name}. How can I help you today?`;
-  const hoursJson = DEFAULT_HOURS_JSON;
+  const hoursJson = input.hoursJson ?? DEFAULT_HOURS_JSON;
   const servicesJson = servicesForTrade(input.trade);
 
   const systemPrompt = buildAssistantSystemPrompt({
@@ -583,6 +586,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         ownerPhone: input.ownerPhone.trim(),
         trade: input.trade,
         timezone: input.timezone ?? "America/New_York",
+        address: input.address?.trim() || null,
         greeting,
         hoursJson,
         servicesJson,

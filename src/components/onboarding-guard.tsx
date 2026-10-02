@@ -74,7 +74,9 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
               router.replace("/dashboard?settings=notifications");
               return;
             }
-          } else if (next !== "done") {
+          } else if (next === "line") {
+            /* Only a shop with no line is sent back. An unproved line opens
+               Command, where "Prove your line" waits as the next move. */
             router.replace("/dashboard/onboarding");
             return;
           }

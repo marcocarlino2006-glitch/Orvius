@@ -65,12 +65,11 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
   }, [check, polling]);
 
   async function enterCommand(href = "/dashboard?live=1") {
-    if (!verified) return;
     setEntering(true);
     setError(null);
     try {
-      // Line is proved. Do not invent overflow/forward confirm — Settings owns that.
-      markFirstNightPending();
+      // Do not invent overflow/forward confirm — Settings owns that.
+      if (verified) markFirstNightPending();
       router.replace(href);
       router.refresh();
     } catch (err) {
@@ -195,6 +194,14 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
               onClick={() => void runOwnerTestCall()}
             >
               {testing ? "Running test…" : "Run a test call in-app"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost font-sans"
+              disabled={entering}
+              onClick={() => void enterCommand("/dashboard")}
+            >
+              {entering ? "Opening…" : "Open Command, call later"}
             </button>
           </>
         )}

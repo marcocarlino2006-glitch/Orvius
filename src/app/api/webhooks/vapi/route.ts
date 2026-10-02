@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { detectCallCapture } from "@/lib/capture-detect";
 import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
@@ -283,6 +284,18 @@ export async function POST(request: NextRequest) {
         }),
       );
       await drainOwnerAlerts({ at: "vapi.webhook", vapiCallId, businessId: business.id });
+      await detectCallCapture({
+        business: captured.business,
+        vapiCallId,
+        callerPhone: captured.call.callerPhone,
+        providerCallId: message.call?.phoneCallProviderId,
+      }).catch((error: unknown) =>
+        logError("vapi.capture_detect_failed", {
+          vapiCallId,
+          businessId: business.id,
+          error: error instanceof Error ? error.message : "unknown",
+        }),
+      );
     });
     return NextResponse.json({ ok: true, callId: captured.call.id, leadId: captured.lead.id, queued: true });
   }

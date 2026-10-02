@@ -153,9 +153,10 @@ test("voice gate runs on receptionist changes and says loudly when it was skippe
 });
 
 test("porting steps ask for what a carrier needs and promise no date", () => {
-  const panel = readFileSync("src/components/capture-setup-panel.tsx", "utf8");
-  assert.match(panel, /port-out PIN/);
-  assert.match(panel, /latest phone bill/);
+  assert.match(readFileSync("src/components/capture-setup-panel.tsx", "utf8"), /<PortRequestForm \/>/);
+  const panel = readFileSync("src/components/port-request-form.tsx", "utf8");
+  assert.match(panel, /port-out PIN/i);
+  assert.match(panel, /latest bill/);
   assert.match(panel, /Don&apos;t cancel your current service/);
   assert.doesNotMatch(panel, /\d+\s*(business )?days/);
 });

@@ -27,6 +27,19 @@ export const shopDraftSchema = z.object({
     .regex(/^\+1[2-9]\d{9}$/, "Pick a number from the list")
     .optional(),
   timezone: z.string().max(64).optional(),
+  /** From the shop's website or Google listing, when the owner picked a match. */
+  address: z.string().trim().max(200).optional(),
+  hoursJson: z
+    .string()
+    .max(480)
+    .refine((v) => {
+      try {
+        return typeof JSON.parse(v) === "object";
+      } catch {
+        return false;
+      }
+    }, "Hours could not be read")
+    .optional(),
 });
 
 export type ShopDraft = z.infer<typeof shopDraftSchema>;
@@ -45,6 +58,8 @@ export function shopDraftMetadata(draft: ShopDraft, consentAt: Date): Record<str
     shop_area_code: draft.areaCode ?? "",
     shop_phone_number: draft.phoneNumber ?? "",
     shop_timezone: draft.timezone ?? "",
+    shop_address: draft.address ?? "",
+    shop_hours: draft.hoursJson ?? "",
     shop_consent_at: consentAt.toISOString(),
   };
 }
@@ -58,6 +73,8 @@ export function shopDraftFromMetadata(metadata: Stripe.Metadata | null | undefin
     areaCode: metadata.shop_area_code || undefined,
     phoneNumber: metadata.shop_phone_number || undefined,
     timezone: metadata.shop_timezone || undefined,
+    address: metadata.shop_address || undefined,
+    hoursJson: metadata.shop_hours || undefined,
   });
   return parsed.success ? parsed.data : null;
 }
@@ -113,6 +130,8 @@ export async function provisionFromCheckout(params: {
       ownerEmail: email,
       ownerPhone: draft.ownerPhone,
       timezone: draft.timezone,
+      address: draft.address,
+      hoursJson: draft.hoursJson,
       line: {
         areaCode: draft.areaCode ? Number(draft.areaCode) : null,
         phoneNumber: draft.phoneNumber ?? null,
