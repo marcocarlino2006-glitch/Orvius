@@ -130,6 +130,7 @@ model Business {
   takeovers          Takeover[]
   outboundSms        OutboundSms[]
   texting            ShopTexting?
+  portRequest        PortRequest?
   messages           Message[]
   servicePlans       ServicePlan[]
   planMembers        PlanMember[]
@@ -156,6 +157,30 @@ model Business {
 /// routed by the number it was sent to. This is how a reply finds its shop.
 /// Carrier registration (A2P 10DLC) so a shop's customer and tech texts come
 /// from its own number. Until `status` is "approved" they use the shared sender.
+/// A shop asking to move its existing number onto Orvius. Orvius files it with
+/// the carriers; the owner fills one form instead of emailing a bill and a PIN.
+model PortRequest {
+  id             String    @id @default(cuid())
+  businessId     String    @unique
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  number         String
+  carrier        String
+  accountName    String
+  accountNumber  String
+  /// Port-out PIN, sealed with secret-box; null when sealing isn't configured.
+  pinSealed      String?
+  serviceAddress String
+  authorizedName String
+  /// received → filed → scheduled → done, or failed.
+  status         String    @default("received")
+  portDate       DateTime?
+  note           String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, createdAt])
+}
+
 model ShopTexting {
   id                  String    @id @default(cuid())
   businessId          String    @unique

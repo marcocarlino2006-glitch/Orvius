@@ -670,3 +670,23 @@ CREATE TABLE IF NOT EXISTS "ShopTexting" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "ShopTexting_businessId_key" ON "ShopTexting"("businessId");
 CREATE INDEX IF NOT EXISTS "ShopTexting_status_lastCheckedAt_idx" ON "ShopTexting"("status", "lastCheckedAt");
+
+CREATE TABLE IF NOT EXISTS "PortRequest" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "number" TEXT NOT NULL,
+  "carrier" TEXT NOT NULL,
+  "accountName" TEXT NOT NULL,
+  "accountNumber" TEXT NOT NULL,
+  "pinSealed" TEXT,
+  "serviceAddress" TEXT NOT NULL,
+  "authorizedName" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'received',
+  "portDate" DATETIME,
+  "note" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "PortRequest_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PortRequest_businessId_key" ON "PortRequest"("businessId");
+CREATE INDEX IF NOT EXISTS "PortRequest_status_createdAt_idx" ON "PortRequest"("status", "createdAt");

@@ -388,6 +388,8 @@ export type VapiWebhookMessage = {
       customer?: { number?: string };
       phoneNumber?: { number?: string };
       monitor?: { controlUrl?: string; listenUrl?: string };
+      /** The carrier-side call id; for Twilio lines, the CallSid. */
+      phoneCallProviderId?: string;
     };
     status?: string;
     toolCallList?: Array<{ id?: string; function?: { name?: string; arguments?: unknown } }>;

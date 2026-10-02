@@ -24,7 +24,21 @@ type ResumePayload = {
 const SETUP_DRAFT_KEY = "orvius:setup-draft";
 const PAID_PLANS: PaidPlanId[] = ["line", "pro", "fleet"];
 
-type SetupDraft = { name: string; trade: Trade; ownerPhone: string; areaCode: string };
+type SetupDraft = {
+  name: string;
+  trade: Trade;
+  ownerPhone: string;
+  areaCode: string;
+  found?: { address: string | null; hoursJson: string | null; source: string } | null;
+};
+
+type FoundShop = {
+  name: string;
+  address: string | null;
+  hoursJson: string | null;
+  trade: Trade | null;
+  source: "website" | "google";
+};
 
 function readSetupDraft(): SetupDraft | null {
   try {
@@ -51,6 +65,12 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   const interval: BillingInterval = searchParams.get("interval") === "year" ? "year" : "month";
   const canceled = searchParams.get("canceled") === "1";
   const [building, setBuilding] = useState(false);
+  const [lookupQuery, setLookupQuery] = useState("");
+  const [lookupGoogle, setLookupGoogle] = useState(false);
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookupResults, setLookupResults] = useState<FoundShop[] | null>(null);
+  const [lookupNote, setLookupNote] = useState<string | null>(null);
+  const [found, setFound] = useState<SetupDraft["found"]>(null);
   const [recoveredSessionId, setRecoveredSessionId] = useState("");
   const checkoutSessionId = urlSessionId || recoveredSessionId;
   const recoveredRef = useRef("");
@@ -98,6 +118,52 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
       setSearching(false);
     }
   }
+
+  useEffect(() => {
+    fetch("/api/onboarding/lookup")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { google?: boolean } | null) => setLookupGoogle(Boolean(json?.google)))
+      .catch(() => undefined);
+  }, []);
+
+  async function findShop() {
+    const q = lookupQuery.trim();
+    if (q.length < 3) return;
+    setLookingUp(true);
+    setLookupNote(null);
+    setLookupResults(null);
+    try {
+      const res = await fetch(`/api/onboarding/lookup?q=${encodeURIComponent(q)}`);
+      const json = (await res.json()) as { found?: FoundShop[]; reason?: string; error?: string };
+      const results = json.found ?? [];
+      if (results.length === 1) pickShop(results[0]!);
+      else setLookupResults(results);
+      if (!results.length) setLookupNote(json.reason ?? json.error ?? "No match. Fill it in below.");
+    } catch {
+      setLookupNote("Couldn't look that up. Fill it in below.");
+    } finally {
+      setLookingUp(false);
+    }
+  }
+
+  function pickShop(shop: FoundShop) {
+    setName(shop.name);
+    if (shop.trade) setTrade(shop.trade);
+    setFound({ address: shop.address, hoursJson: shop.hoursJson, source: shop.source });
+    setLookupResults(null);
+    const from = shop.source === "google" ? "your Google listing" : "your website";
+    const used = [shop.address ? "address" : null, shop.hoursJson ? "hours" : null].filter(Boolean).join(" and ");
+    setLookupNote(
+      used
+        ? `Filled from ${from}. Your receptionist will use your ${used}; you can change ${shop.address && shop.hoursJson ? "them" : "it"} anytime in Settings.`
+        : `Filled your name from ${from}. Check the business type below.`,
+    );
+  }
+
+  const foundFields = {
+    ...(found?.address ? { address: found.address } : {}),
+    ...(found?.hoursJson ? { hoursJson: found.hoursJson } : {}),
+  };
 
   const resumeExisting = useCallback(async () => {
     const res = await fetch("/api/onboarding?resume=1");
@@ -186,6 +252,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
         if (phone) setOwnerPhone((current) => current || phone);
         if (saved?.trade) setTrade(saved.trade);
         else if (draft?.trade) setTrade(draft.trade);
+        if (saved?.found) setFound(saved.found);
         if (saved?.areaCode) {
           setAreaCode(saved.areaCode);
           setAreaCodeTouched(true);
@@ -209,13 +276,14 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
       ...(/^[2-9]\d{2}$/.test(areaCode) ? { areaCode } : {}),
       ...(pickedNumber ? { phoneNumber: pickedNumber } : {}),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      ...foundFields,
       acceptedTerms,
       acceptedSms,
     };
     try {
       window.localStorage.setItem(
         SETUP_DRAFT_KEY,
-        JSON.stringify({ name: shop.name, trade, ownerPhone: shop.ownerPhone, areaCode }),
+        JSON.stringify({ name: shop.name, trade, ownerPhone: shop.ownerPhone, areaCode, found }),
       );
     } catch {
       /* Private mode: a canceled checkout just starts the form blank. */
@@ -259,6 +327,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
           trade,
           ownerPhone: ownerPhone.trim(),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          ...foundFields,
           checkoutSessionId,
           ...(/^[2-9]\d{2}$/.test(areaCode) ? { areaCode } : {}),
           ...(pickedNumber ? { phoneNumber: pickedNumber } : {}),
@@ -391,6 +460,54 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
               ) : null}
 
               <div className="onboarding-form">
+                <div className="onboarding-field font-sans">
+                  <label className="onboarding-label" htmlFor="onboarding-lookup">
+                    {lookupGoogle ? "Your website or Google listing" : "Your website"}{" "}
+                    <span className="onboarding-label-optional">optional</span>
+                  </label>
+                  <form
+                    className="onboarding-area-row"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void findShop();
+                    }}
+                  >
+                    <input
+                      id="onboarding-lookup"
+                      type="text"
+                      value={lookupQuery}
+                      onChange={(e) => setLookupQuery(e.target.value)}
+                      placeholder={lookupGoogle ? "raysheating.com or Ray's Heating, Austin" : "raysheating.com"}
+                      className="onboarding-input"
+                      autoComplete="url"
+                      autoFocus
+                    />
+                    <button type="submit" className="btn btn-ghost font-sans" disabled={lookupQuery.trim().length < 3 || lookingUp}>
+                      {lookingUp ? "Looking…" : "Fill in"}
+                    </button>
+                  </form>
+                  {lookupResults && lookupResults.length > 1 ? (
+                    <div className="onboarding-trade-grid" role="radiogroup" aria-label="Which one is your shop?">
+                      {lookupResults.map((shop) => (
+                        <button
+                          key={`${shop.name}-${shop.address}`}
+                          type="button"
+                          role="radio"
+                          aria-checked={false}
+                          className="onboarding-trade"
+                          onClick={() => pickShop(shop)}
+                        >
+                          {shop.name}
+                          {shop.address ? ` · ${shop.address}` : ""}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <span className="onboarding-hint" aria-live="polite">
+                    {lookupNote ?? "We fill in your name, hours and address so you don't type them."}
+                  </span>
+                </div>
+
                 <label className="onboarding-field font-sans">
                   <span className="onboarding-label">Shop name</span>
                   <input
@@ -399,7 +516,6 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your business name"
                     className="onboarding-input"
-                    autoFocus
                     autoComplete="organization"
                   />
                 </label>
