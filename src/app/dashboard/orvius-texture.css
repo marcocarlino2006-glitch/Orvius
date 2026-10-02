@@ -226,3 +226,109 @@ html[data-theme="day"] .os-shell.os-shell-night .os-nav-link-active {
   border-color: var(--ox-line);
   border-radius: 1rem;
 }
+
+/* ── Settings popup: Manus's own palette, type and controls ───────────── */
+
+.os-shell .sc-dialog {
+  --ox-tint: 255 255 255;
+  --ox-panel: #1a1a1a;
+  --ox-rail: #1a1a1a;
+  --ox-text: #e6e6e6;
+  --ox-text-2: #b3b3b3;
+  --ox-mute: #8c8c8c;
+  --m-line: #ffffff0f;
+  --m-card: #ffffff0f;
+  --m-pill: #ffffff14;
+  --m-hover: #ffffff0a;
+  --m-btn: #fffffff2;
+  --m-btn-ink: #000000e5;
+  --m-btn-2: #ffffff14;
+  --m-btn-2-line: #ffffff1f;
+  border-color: var(--m-line);
+  box-shadow: 0 0 0 1px #00000014, 0 24px 48px #0006;
+}
+
+html[data-theme="day"] .os-shell .sc-dialog {
+  --ox-tint: 55 53 47;
+  --ox-panel: #f8f8f7;
+  --ox-rail: #f8f8f7;
+  --ox-text: #1a1a1a;
+  --ox-text-2: #4d4d4d;
+  --ox-mute: #737373;
+  --m-line: #0000000f;
+  --m-card: #fff;
+  --m-pill: #fff;
+  --m-hover: #37352f0a;
+  --m-btn: #1a1a19;
+  --m-btn-ink: #fff;
+  --m-btn-2: #fff;
+  --m-btn-2-line: #0000001f;
+  box-shadow: 0 0 0 1px #16191d0a, 0 24px 48px #0000003d;
+}
+
+html[data-theme="day"] .os-shell.sc-overlay {
+  background: #0000004d;
+}
+
+.os-shell.sc-overlay {
+  background: #0009;
+  backdrop-filter: none;
+}
+
+.sc-dialog,
+.sc-dialog :is(.font-sans, button, input, select, textarea, h1, h2, h3, p, a, span, label) {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.os-shell .sc-dialog .sc-nav,
+.os-shell .sc-dialog .sc-head {
+  border-color: var(--m-line);
+}
+
+.os-shell .sc-dialog .sc-nav-item {
+  color: var(--ox-text);
+}
+
+.os-shell .sc-dialog .sc-nav-item:hover {
+  background: var(--m-hover);
+}
+
+.os-shell .sc-dialog .sc-nav-item.is-active {
+  background: var(--m-pill);
+}
+
+.os-shell .sc-dialog .sc-nav-heading,
+.os-shell .sc-dialog .sc-nav-help::before {
+  border-color: var(--m-line);
+}
+
+.os-shell .sc-dialog .sc-plan {
+  border-color: transparent;
+  background: var(--m-card);
+}
+
+.os-shell .sc-dialog .sc-rows > .sc-row + .sc-row {
+  border-color: var(--m-line);
+}
+
+html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void) {
+  min-height: 1.75rem !important;
+  height: 1.75rem;
+  padding: 0 0.875rem !important;
+  border: 1px solid var(--m-btn-2-line) !important;
+  border-radius: 999px !important;
+  background: var(--m-btn-2) !important;
+  color: var(--ox-text) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+}
+
+html .os-shell .sc-dialog :is(.sc-btn--primary, .ox-btn--primary, .btn-void) {
+  border-color: var(--m-btn) !important;
+  background: var(--m-btn) !important;
+  color: var(--m-btn-ink) !important;
+}
+
+html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void):hover:not(:disabled) {
+  filter: brightness(0.96);
+}
