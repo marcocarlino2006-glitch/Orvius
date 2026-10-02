@@ -326,7 +326,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
             <p className="onboarding-eyebrow font-sans">{company.productName} setup</p>
           </header>
           <div className="onboarding-panel" aria-busy="true">
-            <h1 className="onboarding-title font-sans">Paid. Building {name.trim() || "your shop"}&apos;s line.</h1>
+            <h1 className="onboarding-title font-sans">Setting up {name.trim() || "your shop"}&apos;s line.</h1>
             <p className="onboarding-lead font-sans" aria-live="polite">
               Getting your number and setting up your receptionist. This usually takes under a minute; nothing to fill in.
             </p>
