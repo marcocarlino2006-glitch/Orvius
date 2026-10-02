@@ -338,23 +338,6 @@ export default function CallDetailPage() {
               </ul>
             </ShellPanel>
           ) : null}
-
-          {situation?.timeline?.length ? (
-            <ShellPanel title="Customer timeline" dense>
-              <ul className="call-situation-list font-sans">
-                {situation.timeline.map((event) => (
-                  <li key={`${event.type}-${event.id}`}>
-                    <span className="text-ash">{event.type}</span>
-                    {" · "}
-                    {event.title}
-                    {event.summary ? (
-                      <span className="text-ash"> — {event.summary}</span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </ShellPanel>
-          ) : null}
         </div>
       </div>
     </OsShell>

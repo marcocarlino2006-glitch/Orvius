@@ -1,7 +1,6 @@
 "use client";
 
 import { LeadInboxCard, LeadTableHead } from "@/components/lead-inbox-card";
-import { ProLead } from "@/components/pro-lead";
 import { LEAD_STATUSES } from "@/components/lead-status-actions";
 import {
   ProFilterBar,
@@ -82,27 +81,16 @@ export default function InboxPage() {
     loadLeads(filter);
   }, [filter, loadLeads]);
 
-  const newCount = counts?.new ?? 0;
 
   return (
     <OsShell
       title="Inbox"
       actions={
-        <>
-          <Link href="/dashboard/inbox/messages" className="btn btn-secondary text-sm">
-            Messages
-          </Link>
-          <ProShopLineCta label="Call your line" showNumber={false} />
-        </>
+        <Link href="/dashboard/inbox/messages" className="btn btn-secondary text-sm">
+          Messages
+        </Link>
       }
     >
-      <ProLead
-        loading={loading && !counts}
-        figure={String(newCount)}
-        caption="Waiting on a callback"
-        facts={[{ label: "Booked", value: counts?.booked ?? 0 }]}
-      />
-
       <ProFilterBar
         className="pro-page-filters"
         value={filter}

@@ -389,13 +389,9 @@ export default function DispatchPage() {
       <PlanUpgradeGate module="dispatch">
         <ProLead
           loading={loading && !board}
-          figure={String(board?.jobCount ?? 0)}
-          caption="Scheduled"
-          facts={[
-            { label: "Unassigned", value: decisions, live: decisions > 0 },
-            { label: "Conflicts", value: conflicts.length, live: conflicts.length > 0 },
-            { label: "Crew", value: crew.length },
-          ]}
+          figure={String(decisions)}
+          caption="Unassigned"
+          facts={[{ label: "Conflicts", value: conflicts.length, live: conflicts.length > 0 }]}
         />
 
         <div className="dsp-toolbar">
