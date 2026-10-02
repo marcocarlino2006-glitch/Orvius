@@ -18,6 +18,7 @@ const PAST_DUE_REMINDER_DAY = 5;
 const FORWARD_NUDGE_AFTER_MS = DAY_MS;
 const FORWARD_NUDGE_WINDOW_MS = 14 * DAY_MS;
 const USAGE_THRESHOLDS = [0.8, 1] as const;
+const USAGE_CHUNK = 400;
 
 type NudgeShop = Pick<Business, "id" | "name" | "ownerPhone" | "ownerEmail">;
 
@@ -108,18 +109,27 @@ async function forwardingNudges(now: Date) {
 
 async function usageAlerts(now: Date) {
   const since = usagePeriodStart(now);
-  const counts = await prisma.call.groupBy({
-    by: ["businessId"],
-    where: { direction: "inbound", createdAt: { gte: since } },
-    _count: { _all: true },
-  });
-  const busy = new Map(counts.map((row) => [row.businessId, row._count._all]));
-  if (!busy.size) return 0;
-
   const shops = await prisma.business.findMany({
-    where: { id: { in: [...busy.keys()] }, billingStatus: "active", environment: { notIn: ["test", "demo"] } },
+    where: { billingStatus: "active", environment: { notIn: ["test", "demo"] } },
     select: { id: true, name: true, ownerPhone: true, ownerEmail: true, billingPlan: true },
   });
+  if (!shops.length) return 0;
+
+  /* Chunked because an id list as long as the customer base outgrows the
+     database's bound-parameter limit once enough shops are taking calls. */
+  const busy = new Map<string, number>();
+  for (let i = 0; i < shops.length; i += USAGE_CHUNK) {
+    const counts = await prisma.call.groupBy({
+      by: ["businessId"],
+      where: {
+        businessId: { in: shops.slice(i, i + USAGE_CHUNK).map((s) => s.id) },
+        direction: "inbound",
+        createdAt: { gte: since },
+      },
+      _count: { _all: true },
+    });
+    for (const row of counts) if (row.businessId) busy.set(row.businessId, row._count._all);
+  }
   const period = day(since).slice(0, 7);
   let queued = 0;
   for (const shop of shops) {
