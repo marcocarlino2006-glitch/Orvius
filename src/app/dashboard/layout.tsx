@@ -8,6 +8,7 @@ import "./orvius-system.css";
 import "./orvius-scale.css";
 import "./settings-center.css";
 import "./orvius-craft.css";
+import "./orvius-texture.css";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (

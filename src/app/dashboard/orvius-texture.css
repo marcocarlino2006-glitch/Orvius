@@ -1,0 +1,228 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Texture. Loaded after everything else in the app.
+
+   Neutral graphite instead of blue-grey, hairline edges instead of drawn
+   borders, one product face (Inter) at medium weight, and buttons that read as
+   controls rather than stickers: a light filled primary, outlined secondary,
+   8px corners. Amber stays the brand accent — focus, live counts, the
+   occasional emphasis — not the colour of every action.
+   ────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --ox-bg: #131313;
+  --ox-s1: #181818;
+  --ox-s2: #1d1d1d;
+  --ox-s3: #232323;
+  --ox-s4: #2b2b2b;
+  --ox-line: rgb(255 255 255 / 0.075);
+  --ox-line-strong: rgb(255 255 255 / 0.12);
+  --ox-text: #ededed;
+  --ox-text-2: #b8b8b8;
+  --ox-mute: #8c8c8c;
+  --ox-radius: 0.75rem;
+  --ox-radius-sm: 0.5rem;
+  --ox-panel: #181818;
+  --ox-rail: #151515;
+  --ox-btn-fill: #ededed;
+  --ox-btn-fill-hi: #ffffff;
+  --ox-btn-on-fill: #141414;
+  --ox-btn-hover: rgb(255 255 255 / 0.06);
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(255 255 255 / 0.38);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night,
+html[data-theme="day"] .os-shell-night {
+  --ox-line: rgb(0 0 0 / 0.08);
+  --ox-line-strong: rgb(0 0 0 / 0.14);
+  --ox-btn-fill: #141414;
+  --ox-btn-fill-hi: #000000;
+  --ox-btn-on-fill: #ffffff;
+  --ox-btn-hover: rgb(0 0 0 / 0.05);
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(0 0 0 / 0.3);
+}
+
+/* ── Type: one product face ───────────────────────────────────────────── */
+
+.os-shell,
+.os-shell :is(.font-sans, button, input, select, textarea, h1, h2, h3, h4, p, a, span, label, dt, dd, li, td, th),
+.sc-dialog,
+.sc-dialog :is(.font-sans, button, input, select, textarea, h1, h2, h3, p, a, span, label) {
+  font-family: var(--font-ui), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.os-shell :is(kbd, code, .dt-mono, .font-mono),
+.sc-dialog :is(kbd, code, .font-mono) {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.os-shell.os-shell-night {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.003em;
+}
+
+.os-shell.os-shell-night .os-topbar-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.os-shell.os-shell-night :is(h2, h3, .wq-title) {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn,
+html .os-shell.os-shell-night .btn,
+html .os-shell.os-shell-night .btn-void,
+html .os-shell.os-shell-night .btn-secondary,
+html .os-shell.os-shell-night .attention-item-btn,
+html .os-shell.os-shell-night .assign-tech-btn,
+html .os-shell.os-shell-night .job-status-advance-btn,
+html .os-shell .sc-btn,
+html .os-shell .inst-btn {
+  min-height: 2.25rem !important;
+  padding: 0 0.875rem !important;
+  border-radius: 0.5rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.003em !important;
+  box-shadow: none !important;
+  transition: background var(--ox-dur-fast) ease, border-color var(--ox-dur-fast) ease, color var(--ox-dur-fast) ease;
+}
+
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--sm {
+  min-height: 2rem !important;
+  padding: 0 0.75rem !important;
+}
+
+/* Primary: light fill, dark ink. */
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary,
+html .os-shell.os-shell-night .btn-void,
+html .os-shell.os-shell-night .attention-item-btn-primary,
+html .os-shell.os-shell-night .assign-tech-btn,
+html .os-shell.os-shell-night .job-status-advance-btn,
+html .os-shell .sc-btn--primary,
+html .os-shell .inst-btn-primary {
+  background: var(--ox-btn-fill) !important;
+  border: 1px solid var(--ox-btn-fill) !important;
+  color: var(--ox-btn-on-fill) !important;
+}
+
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary:hover:not(:disabled),
+html .os-shell.os-shell-night .btn-void:hover:not(:disabled),
+html .os-shell.os-shell-night .attention-item-btn-primary:hover:not(:disabled),
+html .os-shell.os-shell-night .assign-tech-btn:hover:not(:disabled),
+html .os-shell.os-shell-night .job-status-advance-btn:hover:not(:disabled),
+html .os-shell .sc-btn--primary:hover:not(:disabled),
+html .os-shell .inst-btn-primary:hover:not(:disabled) {
+  background: var(--ox-btn-fill-hi) !important;
+  border-color: var(--ox-btn-fill-hi) !important;
+  color: var(--ox-btn-on-fill) !important;
+}
+
+/* Secondary: outline on the surface. */
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet,
+html .os-shell.os-shell-night .btn-secondary,
+html .os-shell.os-shell-night .btn:not(.btn-void),
+html .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary),
+html .os-shell.os-shell-night .wq-row :is(.attention-item-btn-primary, .assign-tech-btn, .job-status-advance-btn),
+html .os-shell .sc-btn:not(.sc-btn--primary),
+html .os-shell .inst-btn-ghost {
+  background: transparent !important;
+  border: 1px solid var(--ox-line-strong) !important;
+  color: var(--ox-text) !important;
+}
+
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet:hover:not(:disabled),
+html .os-shell.os-shell-night .btn-secondary:hover:not(:disabled),
+html .os-shell.os-shell-night .btn:not(.btn-void):hover:not(:disabled),
+html .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary):hover:not(:disabled),
+html .os-shell.os-shell-night .wq-row :is(.attention-item-btn-primary, .assign-tech-btn, .job-status-advance-btn):hover:not(:disabled),
+html .os-shell .sc-btn:not(.sc-btn--primary):hover:not(:disabled),
+html .os-shell .inst-btn-ghost:hover:not(:disabled) {
+  background: var(--ox-btn-hover) !important;
+  border-color: var(--ox-line-strong) !important;
+}
+
+/* The top-bar search and ask chips: quiet, same corner. */
+html .os-shell.os-shell-night .os-topbar-search {
+  height: 2rem !important;
+  padding: 0 0.75rem !important;
+  border: 1px solid var(--ox-line-strong) !important;
+  border-radius: 0.5rem !important;
+  background: transparent !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500;
+}
+
+html .os-shell.os-shell-night .os-topbar-search:hover {
+  background: var(--ox-btn-hover) !important;
+}
+
+.os-shell.os-shell-night .os-line-alert {
+  height: 2rem;
+  border-color: var(--ox-line);
+  border-radius: 0.5rem;
+}
+
+/* ── Edges: hairlines, one radius family ──────────────────────────────── */
+
+.os-shell.os-shell-night :is(.dt, .wq, .ms-row, .cc-rail .cs-grid, .cb-ask-form) {
+  border-color: var(--ox-line) !important;
+  border-radius: var(--ox-radius) !important;
+  box-shadow: none !important;
+}
+
+.os-shell.os-shell-night :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  border-color: var(--ox-line-strong);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.02);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  background: #ffffff;
+}
+
+.os-shell.os-shell-night :is(input, select, textarea):focus-visible {
+  border-color: rgb(255 255 255 / 0.28);
+}
+
+/* Selected state is ink, not amber. */
+.os-shell.os-shell-night .os-nav-link-active::before {
+  display: none;
+}
+
+.os-shell.os-shell-night .os-sidebar-pro .os-nav-link-active,
+.os-shell.os-shell-night .os-nav-link-active {
+  background: rgb(255 255 255 / 0.07) !important;
+  border-radius: 0.5rem;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .os-nav-link-active {
+  background: rgb(0 0 0 / 0.06) !important;
+  color: #111111 !important;
+}
+
+.os-shell.os-shell-night .os-nav-link {
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
+.os-shell .cb-tab--on,
+.os-shell .jobs-pipeline-stage-active {
+  border-bottom-color: var(--ox-text);
+}
+
+.os-shell .jobs-pipeline-stage-active .jobs-pipeline-count {
+  color: var(--ox-text-2);
+}
+
+/* Settings popup: the same edge and surface as the app. */
+.os-shell .sc-dialog,
+.sc-dialog {
+  border-color: var(--ox-line);
+  border-radius: 1rem;
+}
