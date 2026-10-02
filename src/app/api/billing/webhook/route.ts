@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { afterResponse } from "@/lib/after-response";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
+import { provisionFromCheckout, shopDraftFromMetadata } from "@/lib/checkout-shop";
 import { fulfillDepositCheckoutSession, failDepositCheckoutSession } from "@/lib/booking-deposit";
 import { fulfillInvoiceCheckoutSession } from "@/lib/invoice-pay";
 import { fulfillEstimateCheckoutSession, failEstimateCheckoutSession } from "@/lib/estimate-pay";
@@ -9,6 +11,9 @@ import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import type Stripe from "stripe";
+
+/* A new shop's line is built after the response; buying a number takes seconds. */
+export const maxDuration = 60;
 
 export const runtime = "nodejs";
 
@@ -146,7 +151,16 @@ export async function POST(request: Request) {
           refreshed,
           session.customer_email ?? session.customer_details?.email,
         );
-        if ("unmatched" in result) {
+        const payer = (session.customer_email ?? session.customer_details?.email)?.toLowerCase();
+        if ("unmatched" in result && payer && shopDraftFromMetadata(session.metadata)) {
+          /* A new shop paid with its details attached: build the line now, so it
+             is often ready before the owner is back from Stripe. */
+          await afterResponse(() =>
+            provisionFromCheckout({ sessionId: session.id, email: payer }).catch((error: unknown) => {
+              console.error("[billing.webhook] checkout shop build failed", session.id, error);
+            }),
+          );
+        } else if ("unmatched" in result) {
           console.error(
             "[billing.webhook] checkout.session.completed unmatched",
             session.id,

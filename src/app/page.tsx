@@ -5,6 +5,7 @@ import { HomeReveal } from "@/components/home-reveal";
 import { HomeFeatures } from "@/components/home-features";
 import { HomeCompare } from "@/components/home-compare";
 import { HomeCallStory } from "@/components/home-call-story";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import "./home-sections.css";
 
 
@@ -15,7 +16,7 @@ import "./home-sections.css";
 export default function HomePage() {
   return (
     <MarketingShell premium>
-      <HomeLineHero />
+      <HomeLineHero signupOpen={getPublicLaunchReadiness().ready} />
       <HomeStatement />
       <HomeFeatures />
       <HomeCompare />

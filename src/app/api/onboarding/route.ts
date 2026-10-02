@@ -1,43 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ProvisionBusyError } from "@/lib/provision-attempt";
 import { auth } from "@/auth";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
-import {
-  findPaidCheckoutSessionId,
-  getPaidCheckoutActivation,
-  linkPaidCheckoutToBusiness,
-} from "@/lib/billing-sync";
+import { findPaidCheckoutSessionId } from "@/lib/billing-sync";
+import { CheckoutNotPaidError, provisionFromCheckout, shopDraftSchema } from "@/lib/checkout-shop";
 import { logWarn } from "@/lib/logger";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
-import {
-  isOnboardingComplete,
-  provisionBusiness,
-} from "@/lib/provision-business";
+import { isOnboardingComplete } from "@/lib/provision-business";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
-import { TRADES } from "@/lib/trades";
 import { resolveShopAccess } from "@/lib/workspace-access";
 import { z } from "zod";
 
-const createSchema = z.object({
-  name: z.string().min(2, "Shop name must be at least 2 characters"),
-  trade: z.enum(TRADES),
-  ownerPhone: z
-    .string()
-    .min(10, "Enter a valid mobile number for owner alerts"),
-  greeting: z.string().max(280).optional(),
-  timezone: z.string().optional(),
+/* Details are optional: a checkout that carried them builds the shop from Stripe. */
+const createSchema = shopDraftSchema.partial({ name: true, trade: true, ownerPhone: true }).extend({
   checkoutSessionId: z.string().min(8, "Paid checkout is required"),
-  areaCode: z
-    .string()
-    .regex(/^[2-9]\d{2}$/, "Area code must be three digits")
-    .optional(),
-  phoneNumber: z
-    .string()
-    .regex(/^\+1[2-9]\d{9}$/, "Pick a number from the list")
-    .optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -116,7 +94,7 @@ export async function POST(request: NextRequest) {
 
   const limit = await sharedRateLimit({
     key: `onboarding:${clientIp(request)}`,
-    limit: 3,
+    limit: 6,
     windowMs: 60 * 60 * 1000,
   });
   if (!limit.ok) {
@@ -136,54 +114,51 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const parsed = createSchema.safeParse(await request.json());
+  const parsed = createSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.errors.map((item) => item.message).join(", ") },
       { status: 400 },
     );
   }
-
-  let billing;
-  try {
-    billing = await getPaidCheckoutActivation(
-      parsed.data.checkoutSessionId,
-      email,
-    );
-  } catch (error) {
-    console.error("Paid checkout could not be verified:", error);
+  const { checkoutSessionId, ...typed } = parsed.data;
+  const draft = typed.name || typed.ownerPhone ? shopDraftSchema.safeParse(typed) : null;
+  if (draft && !draft.success) {
     return NextResponse.json(
-      {
-        error:
-          "We couldn't confirm your payment yet. If you just paid, wait a minute and try again — or email hello@orvius.im and we'll finish setup with you.",
-        code: "paid_checkout_required",
-      },
-      { status: 402 },
+      { error: draft.error.errors.map((item) => item.message).join(", ") },
+      { status: 400 },
     );
   }
 
   try {
-    const body = parsed.data;
-    const { business } = await provisionBusiness({
-      name: body.name,
-      trade: body.trade,
-      ownerEmail: email,
-      ownerPhone: body.ownerPhone,
-      greeting: body.greeting,
-      timezone: body.timezone,
-      line: {
-        areaCode: body.areaCode ? Number(body.areaCode) : null,
-        phoneNumber: body.phoneNumber ?? null,
-      },
-      billing,
-    });
-
+    let result;
     try {
-      await linkPaidCheckoutToBusiness(billing, business.id);
+      result = await provisionFromCheckout({ sessionId: checkoutSessionId, email, draft: draft?.data });
     } catch (error) {
-      console.error("Could not attach Stripe metadata after provisioning:", error);
+      if (!(error instanceof CheckoutNotPaidError)) throw error;
+      console.error("Paid checkout could not be verified:", error);
+      return NextResponse.json(
+        {
+          error:
+            "We couldn't confirm your payment yet. If you just paid, wait a minute and try again — or email hello@orvius.im and we'll finish setup with you.",
+          code: "paid_checkout_required",
+        },
+        { status: 402 },
+      );
     }
-
+    if (result.status === "needs_details") {
+      return NextResponse.json(
+        { error: "Tell us your shop name and mobile to finish.", code: "shop_details_needed" },
+        { status: 400 },
+      );
+    }
+    if (result.status === "busy") {
+      return NextResponse.json(
+        { error: "Your line is being set up. This takes a few seconds.", code: "provision_in_progress" },
+        { status: 409 },
+      );
+    }
+    const { business } = result;
     const line = business.vapiPhoneNumber ?? business.twilioPhone;
     const setup = getOwnerSetupStatus(business);
 
@@ -211,9 +186,6 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    if (error instanceof ProvisionBusyError) {
-      return NextResponse.json({ error: error.message, code: "provision_in_progress" }, { status: 409 });
-    }
     console.error("Onboarding provision failed:", error);
     const message =
       error instanceof z.ZodError

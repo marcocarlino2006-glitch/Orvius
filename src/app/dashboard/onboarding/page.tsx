@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description: `Complete onboarding for your ${company.productName} workspace.`,
 };
 
+/* Whether card checkout is open is read from the running environment, not the build. */
+export const dynamic = "force-dynamic";
+
 export default function DashboardOnboardingPage() {
   return <OnboardingWizard checkoutOpen={getBillingReadiness().checkoutReady} />;
 }
