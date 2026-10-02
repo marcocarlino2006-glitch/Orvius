@@ -4,12 +4,14 @@ import { getWebhookUrl } from "@/lib/env";
 import { logWarn } from "@/lib/logger";
 import { recordMessage, type MessageAuthor } from "@/lib/messages";
 import { prisma } from "@/lib/prisma";
+import { shopTextSender } from "@/lib/shop-texting";
 import { isSimulatedWorkspace, simulateSend } from "@/lib/sms-simulation";
 
 export type SmsAudience = "customer" | "owner" | "tech";
 
 /*
-  One registered sender for every shop. With TWILIO_MESSAGING_SERVICE_SID set,
+  The shared Orvius sender: owner alerts always, and a shop's customer and tech
+  texts until its own number is registered (lib/shop-texting.ts). With TWILIO_MESSAGING_SERVICE_SID set,
   Twilio spreads sends across the service's number pool (and queues past the
   per-number rate), so volume grows by adding numbers to the pool in Twilio
   rather than by changing code. Without it, the single TWILIO_PHONE_NUMBER sends.
@@ -76,20 +78,41 @@ export async function sendSms(params: {
   author?: Exclude<MessageAuthor, "customer">;
 }): Promise<{ sid: string } | null> {
   const simulated = await isSimulatedWorkspace(params.businessId);
-  const sender = smsSender();
+  /* A customer or tech hears from the shop's own number once carriers approve it;
+     owner alerts are Orvius talking, so they stay on the Orvius sender. */
+  const ownSender =
+    !simulated && params.businessId && params.audience !== "owner" ? await shopTextSender(params.businessId) : null;
+  const sender = ownSender ?? smsSender();
   if (!simulated && (!isSmsReady() || !sender)) return null;
 
   const to = normalizePhone(params.to);
   if (!to || !params.body.trim()) return null;
 
-  const sms = simulated
-    ? simulateSend(to)
-    : await getTwilioClient().messages.create({
-        body: params.body.trim(),
-        ...sender!,
-        to,
-        statusCallback: smsStatusCallback(),
+  const create = (from: NonNullable<typeof sender>) =>
+    getTwilioClient().messages.create({
+      body: params.body.trim(),
+      ...from,
+      to,
+      statusCallback: smsStatusCallback(),
+    });
+  let sms: { sid: string };
+  if (simulated) {
+    sms = simulateSend(to);
+  } else if (ownSender) {
+    try {
+      sms = await create(ownSender);
+    } catch (error) {
+      logWarn("sms.own_sender_failed", {
+        businessId: params.businessId,
+        error: error instanceof Error ? error.message : "unknown",
       });
+      const shared = smsSender();
+      if (!shared) throw error;
+      sms = await create(shared);
+    }
+  } else {
+    sms = await create(sender!);
+  }
 
   if (params.businessId) {
     await recordOutboundSms({

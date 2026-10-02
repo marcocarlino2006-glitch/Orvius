@@ -9,6 +9,7 @@ import { logError } from "@/lib/logger";
 import { runReviewRequests } from "@/lib/review-requests";
 import { isProduction } from "@/lib/runtime";
 import { runVisitReminders } from "@/lib/service-plans";
+import { advancePendingTexting } from "@/lib/shop-texting";
 
 /*
   Driven every 30 minutes by .github/workflows/line-watch.yml, not Vercel
@@ -32,15 +33,16 @@ export async function GET(request: NextRequest) {
     return null;
   };
   // On the 30-minute schedule: a Jobber retry waits minutes, and a caller hears back hours after calling, not the next day.
-  const [jobber, followUps, calendars, reviews, planVisits, confirmations] = await Promise.all([
+  const [jobber, followUps, calendars, reviews, planVisits, confirmations, texting] = await Promise.all([
     drainJobberSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("jobber_sync")),
     runAutoFollowUps({ budgetMs: 25_000 }).catch(failed("follow_ups")),
     refreshStaleBusyCalendars({ budgetMs: 20_000 }).catch(failed("busy_calendars")),
     runReviewRequests({ budgetMs: 25_000 }).catch(failed("review_requests")),
     runVisitReminders({ budgetMs: 20_000 }).catch(failed("plan_visits")),
     retryLostConfirmations().catch(failed("lost_confirmations")),
+    advancePendingTexting({ budgetMs: 20_000 }).catch(failed("shop_texting")),
   ]);
-  return NextResponse.json({ ok: true, ...lines, jobber, followUps, calendars, reviews, planVisits, confirmations });
+  return NextResponse.json({ ok: true, ...lines, jobber, followUps, calendars, reviews, planVisits, confirmations, texting });
 }
 
 export async function POST(request: NextRequest) {

@@ -651,3 +651,22 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Takeover_businessId_phoneNormalized_key" ON "
 CREATE INDEX IF NOT EXISTS "Takeover_businessId_releasedAt_idx" ON "Takeover"("businessId", "releasedAt");
 ALTER TABLE "Call" ADD COLUMN "costMicros" INTEGER;
 ALTER TABLE "Call" ADD COLUMN "costJson" TEXT;
+CREATE TABLE IF NOT EXISTS "ShopTexting" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'submitted',
+  "detailsJson" TEXT NOT NULL,
+  "customerProfileSid" TEXT,
+  "trustProductSid" TEXT,
+  "brandSid" TEXT,
+  "messagingServiceSid" TEXT,
+  "campaignSid" TEXT,
+  "failureReason" TEXT,
+  "submittedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "approvedAt" DATETIME,
+  "lastCheckedAt" DATETIME,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "ShopTexting_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopTexting_businessId_key" ON "ShopTexting"("businessId");
+CREATE INDEX IF NOT EXISTS "ShopTexting_status_lastCheckedAt_idx" ON "ShopTexting"("status", "lastCheckedAt");
