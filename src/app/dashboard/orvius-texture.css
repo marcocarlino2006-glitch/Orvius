@@ -476,3 +476,19 @@ html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void)
     display: none;
   }
 }
+
+.os-shell .job-overdue {
+  display: grid;
+  gap: 0.625rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid color-mix(in srgb, #e5484d 35%, transparent);
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, #e5484d 8%, transparent);
+  color: var(--ox-text);
+  font-size: 0.875rem;
+}
+
+.os-shell .job-overdue p {
+  margin: 0;
+}

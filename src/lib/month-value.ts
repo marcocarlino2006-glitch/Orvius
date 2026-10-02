@@ -18,7 +18,7 @@ export async function getMonthValue(businessId: string, now = new Date()): Promi
   const [callsAnswered, leadsCaptured, jobsBooked, deposits, invoices] = await Promise.all([
     prisma.call.count({ where: { businessId, direction: "inbound", createdAt: { gte: since } } }),
     prisma.lead.count({ where: { businessId, createdAt: { gte: since } } }),
-    prisma.job.count({ where: { businessId, createdAt: { gte: since } } }),
+    prisma.job.count({ where: { businessId, leadId: { not: null }, createdAt: { gte: since } } }),
     prisma.deposit.aggregate({
       where: { businessId, status: "paid", paidAt: { gte: since } },
       _sum: { amountCents: true },

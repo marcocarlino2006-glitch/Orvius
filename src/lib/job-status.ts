@@ -23,13 +23,13 @@ export function nextJobStatus(
 ): { label: string; status: JobStatus } | null {
   switch (status) {
     case "scheduled":
-      return { label: "Confirm", status: "confirmed" };
+      return { label: "Mark confirmed", status: "confirmed" };
     case "confirmed":
-      return { label: "En route", status: "en_route" };
+      return { label: "On the way", status: "en_route" };
     case "en_route":
-      return { label: "On site", status: "on_site" };
+      return { label: "Arrived", status: "on_site" };
     case "on_site":
-      return { label: "Complete", status: "completed" };
+      return { label: "Mark done", status: "completed" };
     default:
       return null;
   }

@@ -53,7 +53,11 @@ export async function GET(_request: Request, { params }: Params) {
       leadCount: customer._count.leads,
       callCount: customer._count.calls,
       jobCount: customer._count.jobs,
-      returning: customer.interactionCount > 1,
+      returning:
+        customer.interactionCount > 1 ||
+        customer._count.leads > 1 ||
+        customer._count.calls > 1 ||
+        customer._count.jobs > 1,
     },
     timeline,
     properties,

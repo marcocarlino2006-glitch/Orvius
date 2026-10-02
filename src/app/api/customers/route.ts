@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     take: limit,
     include: {
       business: { select: { name: true } },
-      _count: { select: { leads: true, calls: true } },
+      _count: { select: { leads: true, calls: true, jobs: true } },
     },
   });
 
@@ -52,7 +52,11 @@ export async function GET(request: Request) {
       business: customer.business,
       leadCount: customer._count.leads,
       callCount: customer._count.calls,
-      returning: customer.interactionCount > 1,
+      returning:
+        customer.interactionCount > 1 ||
+        customer._count.leads > 1 ||
+        customer._count.calls > 1 ||
+        customer._count.jobs > 1,
     })),
     total: customers.length,
   });
