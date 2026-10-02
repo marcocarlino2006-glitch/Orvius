@@ -29,33 +29,39 @@ type PipelineStage = {
   id: string;
   label: string;
   hint?: string;
+  empty: string;
   match: (job: JobRow) => boolean;
 };
 
 const STAGES: PipelineStage[] = [
   {
     id: "booked",
+    empty: "Nothing booked right now",
     label: "Booked",
     match: (j) => j.status === "scheduled" || j.status === "confirmed",
   },
   {
     id: "in_progress",
+    empty: "Nobody's on a job right now",
     label: "In progress",
     match: (j) => j.status === "en_route" || j.status === "on_site",
   },
   {
     id: "completed",
+    empty: "Nothing completed yet",
     label: "Completed",
     match: (j) => j.status === "completed",
   },
   {
     id: "estimate",
+    empty: "No estimates waiting",
     label: "Estimates",
     hint: "Drafts waiting for invoice",
     match: (j) => Boolean(j.estimate && !j.estimate.invoice),
   },
   {
     id: "invoice",
+    empty: "No invoices out",
     label: "Invoices",
     hint: "Invoices from estimates",
     match: (j) => Boolean(j.estimate?.invoice),
@@ -131,11 +137,19 @@ export default function JobsPage() {
     <OsShell
       title={terms.Jobs}
       actions={
-        unassigned > 0 ? (
-          <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
-            Assign {unassigned}
+        <>
+          {unassigned > 0 ? (
+            <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+              Assign {unassigned}
+            </Link>
+          ) : null}
+          <Link
+            href="/dashboard/jobs/new"
+            className={`btn text-sm ${unassigned > 0 ? "btn-secondary" : "btn-void"}`}
+          >
+            New {terms.job}
           </Link>
-        ) : null
+        </>
       }
     >
       <PlanUpgradeGate module="jobs">
@@ -178,32 +192,20 @@ export default function JobsPage() {
           {!jobs.length && !newLeadCount ? (
             <ProEmptyState
               title={`No ${terms.jobs} booked yet`}
-              body="Open a lead in the inbox, capture the details, and book the appointment."
+              body={`Calls Orvius books land here on their own. Took one yourself? Put it on the schedule.`}
               action={
-                <Link href="/dashboard/inbox" className="btn btn-void text-sm">
-                  Go to inbox
+                <Link href="/dashboard/jobs/new" className="btn btn-void text-sm">
+                  New {terms.job}
                 </Link>
               }
             />
           ) : !filtered.length ? (
             <ProEmptyState
-              title={
-                stageId === "booked"
-                  ? "No booked jobs right now"
-                  : stageId === "in_progress"
-                    ? "No jobs in progress right now"
-                    : stageId === "completed"
-                      ? "No completed jobs right now"
-                      : stageId === "estimates"
-                        ? "No estimates right now"
-                        : stageId === "invoices"
-                          ? "No invoices right now"
-                          : `No ${STAGES.find((s) => s.id === stageId)?.label.toLowerCase() ?? "jobs"} right now`
-              }
-              body="Switch stages or book from the inbox."
+              title={STAGES.find((s) => s.id === stageId)?.empty ?? "Nothing here right now"}
+              body="Switch stages, or book one yourself."
               action={
-                <Link href="/dashboard/inbox" className="btn btn-void text-sm">
-                  Inbox
+                <Link href="/dashboard/jobs/new" className="btn btn-void text-sm">
+                  New {terms.job}
                 </Link>
               }
             />

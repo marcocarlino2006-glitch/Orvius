@@ -99,6 +99,16 @@ export default function CustomerDetailPage() {
             >
               Text
             </Link>
+            <Link
+              href={`/dashboard/jobs/new?${new URLSearchParams({
+                phone: customer.phone,
+                ...(customer.name ? { name: customer.name } : {}),
+                ...(customer.address ? { address: customer.address } : {}),
+              })}`}
+              className="btn btn-secondary text-sm"
+            >
+              Book
+            </Link>
             <a href={`tel:${customer.phone}`} className="btn btn-void text-sm">
               Call
             </a>
