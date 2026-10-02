@@ -250,7 +250,7 @@ export function OsShell({
           </div>
           <div className="os-topbar-actions">
             {lineAlert ? (
-              <span className={`os-line-alert font-sans${business?.line ? "" : " is-off"}`}>{lineAlert}</span>
+              <span className={`os-line-alert font-sans${business?.line ? "" : " is-off"}`} title={lineAlert} aria-label={lineAlert}>{lineAlert}</span>
             ) : null}
             <button
               type="button"

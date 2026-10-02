@@ -27,6 +27,9 @@ export async function GET(_request: Request, { params }: Params) {
   const target = call.vapiCallId ? await vapiRecordingRedirect(call.vapiCallId) : call.recordingUrl;
   if (!target) return NextResponse.json({ error: "No recording for this call" }, { status: 404 });
 
+  if (target.startsWith("/")) {
+    return new Response(null, { status: 302, headers: { Location: target, "Cache-Control": "private, no-store" } });
+  }
   const response = NextResponse.redirect(target, 302);
   response.headers.set("Cache-Control", "private, no-store");
   return response;

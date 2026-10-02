@@ -1342,3 +1342,50 @@ a.dt-row:focus-visible,
 .os-shell .cc-rail .cs-skel-detail {
   display: none;
 }
+
+.os-line-alert {
+  white-space: nowrap;
+}
+
+/* Phones: one header row, and the summary strip swipes instead of stacking into a tall grid. */
+@media (max-width: 640px) {
+  .os-shell .os-topbar-actions {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .os-shell .os-line-alert {
+    width: 1.75rem;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .ms-row {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ms-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ms-cell,
+  .ms-cell:last-of-type {
+    flex: 1 0 auto;
+    min-width: 6.75rem;
+    padding: 0.625rem 0.875rem;
+    box-shadow: 1px 0 0 var(--ox-line);
+  }
+
+  .ms-cell dd {
+    font-size: 1.125rem;
+  }
+
+  .ms-action {
+    flex: 0 0 auto;
+    padding: 0.5rem 0.75rem;
+  }
+}

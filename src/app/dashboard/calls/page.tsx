@@ -82,7 +82,7 @@ export default function CallsPage() {
     <OsShell
       title="Calls"
       actions={
-        <Link href="/dashboard/inbox" className="btn btn-void text-sm">
+        <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
           Inbox
         </Link>
       }

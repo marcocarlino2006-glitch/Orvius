@@ -237,7 +237,9 @@ export default function JobDetailPage() {
                 <p className="os-kv-note">
                   {job.customerConfirmedAt
                     ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`
-                    : job.scheduledAt
+                    : job.status === "confirmed"
+                      ? "Confirmed with the customer"
+                      : job.scheduledAt
                       ? "Proposed window — awaiting customer confirm"
                       : "No window proposed yet"}
                 </p>
@@ -271,7 +273,7 @@ export default function JobDetailPage() {
                   >
                     Save window
                   </button>
-                  {job.scheduledAt && !job.customerConfirmedAt ? (
+                  {job.scheduledAt && !job.customerConfirmedAt && job.status !== "confirmed" ? (
                     <button
                       type="button"
                       className="btn btn-secondary text-sm"

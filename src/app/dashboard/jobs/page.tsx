@@ -132,7 +132,7 @@ export default function JobsPage() {
     <OsShell
       title={terms.Jobs}
       actions={
-        <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+        <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
           {terms.Dispatch}
         </Link>
       }
@@ -148,7 +148,7 @@ export default function JobsPage() {
         ]}
         action={
           unassigned > 0 ? (
-            <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+            <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
               Assign {unassigned}
             </Link>
           ) : null
