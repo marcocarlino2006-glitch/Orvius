@@ -22,7 +22,7 @@ export default async function ReferralPage({ params }: { params: Promise<{ code:
         <div className="editorial-wrap" style={{ maxWidth: "40rem" }}>
           <ShellPageIntro
             label={referrer ? `Sent by ${referrer.name}` : "Orvius"}
-            title={referrer ? `${referrer.name} answers every call with Orvius.` : "Answer every call with Orvius."}
+            title={referrer ? `${referrer.name} answers its phone with Orvius.` : "Your phone, answered by Orvius."}
             subline="Your own number and your own AI receptionist, set up in about five minutes."
             description={`It picks up when you can't, books the job on your calendar, and texts you what happened. Call ${DEMO_LINE_DISPLAY} to hear it answer first.${discount ? " Your discount from this link is applied at checkout." : ""}`}
           />
