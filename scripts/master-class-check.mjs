@@ -208,12 +208,12 @@ try {
   }
   if (
     /front office of a Fortune 500 company/i.test(company) &&
-    /every business that runs on the phone/i.test(company) &&
+    /operating system for businesses that run on the phone/i.test(company) &&
     /call → cash/i.test(company)
   ) {
     pass(
       "Presence category",
-      "Company copy owns the mission and the every-business front desk — call→cash",
+      "Company copy owns the mission and the operating system — call→cash",
     );
   } else {
     fail(
