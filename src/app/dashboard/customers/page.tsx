@@ -115,9 +115,6 @@ export default function CustomersPage() {
             }
           />
 
-          {!query ? <WinBackCard /> : null}
-          {!query ? <PlansCard /> : null}
-
           <ProSearchBar
             value={query}
             onChange={setQuery}
@@ -174,6 +171,8 @@ export default function CustomersPage() {
           {customers.length ? (
             <ProListEnd count={customers.length} noun="customer" />
           ) : null}
+          {!query ? <WinBackCard /> : null}
+          {!query ? <PlansCard /> : null}
         </>
       )}
       </PlanUpgradeGate>

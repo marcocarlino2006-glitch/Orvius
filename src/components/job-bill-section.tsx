@@ -97,11 +97,10 @@ export function JobBillSection({
       {error ? <p className="os-own-color job-money-error">{error}</p> : null}
       {!bill.cardPayReady ? (
         <p className="job-money-lead">
-          Connect a payout account on{" "}
           <Link href="/dashboard/billing#payouts" className="underline underline-offset-2">
-            Billing → payouts
+            Connect payouts
           </Link>{" "}
-          and customers can pay this bill by card from a text.
+          to let customers pay by card from a text.
         </p>
       ) : null}
       <label className="job-bill-field">

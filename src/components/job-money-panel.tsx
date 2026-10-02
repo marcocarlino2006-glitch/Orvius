@@ -2,7 +2,6 @@
 
 import { toast } from "@/components/toaster";
 import { formatCents, formatCentsExact } from "@/lib/money";
-import Link from "next/link";
 import { useState } from "react";
 import { formatDay, statusWord } from "@/lib/when";
 
@@ -57,7 +56,7 @@ export function JobMoneyPanel({
   onRefresh,
 }: JobMoneyPanelProps) {
   const settled = estimate?.invoice?.status === "paid";
-  const showDeposit = Boolean(deposit) || (!jobClosed && !settled);
+  const showDeposit = Boolean(deposit) || (!jobClosed && !settled && depositReadiness?.ready === true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -274,9 +273,7 @@ export function JobMoneyPanel({
               </>
             ) : null}
           </>
-        ) : !depositReadiness ? (
-          <p className="job-money-lead">Checking deposit settings…</p>
-        ) : depositReadiness.ready && leadId ? (
+        ) : depositReadiness?.ready && leadId ? (
           <>
             <p className="job-money-lead">
               {customerPhone
@@ -297,38 +294,7 @@ export function JobMoneyPanel({
             </button>
           </>
         ) : (
-          /*
-            Two different unmet conditions, and the owner can only fix one of
-            them per trip to Billing, so each says which one it is.
-          */
-          <p className="job-money-lead">
-            {!depositReadiness.ready &&
-            depositReadiness.reason === "connect_incomplete" ? (
-              <>
-                Connect a payout account on{" "}
-                <Link
-                  href="/dashboard/billing#payouts"
-                  className="underline underline-offset-2"
-                >
-                  Billing → payouts
-                </Link>{" "}
-                to take deposits by card.
-              </>
-            ) : !depositReadiness.ready ? (
-              <>
-                Booking deposits are off. Turn them on under{" "}
-                <Link
-                  href="/dashboard/billing"
-                  className="underline underline-offset-2"
-                >
-                  Billing
-                </Link>{" "}
-                to ask for one.
-              </>
-            ) : (
-              "Deposits attach to the call this job came from."
-            )}
-          </p>
+          <p className="job-money-lead">Deposits attach to the call this job came from.</p>
         )}
 
         {/*
@@ -352,10 +318,8 @@ export function JobMoneyPanel({
             otherwise is the fastest way to lose them.
           */}
           <p className="job-money-lead">
-            Draft an estimate, send a customer link to accept, then record
-            payment manually. If the customer pays by card, the funds settle to
-            your bank on Stripe&rsquo;s payout schedule — Orvius only takes its
-            fee and never holds your money.
+            Send the customer an estimate to accept. Card payments go straight
+            to your bank — Orvius never holds your money.
           </p>
           <label className="mt-4 block">
             <span className="label">Amount ($)</span>
@@ -368,11 +332,6 @@ export function JobMoneyPanel({
               disabled={busy}
             />
           </label>
-          {!avgTicketCents && !amountDollars.trim() ? (
-            <p className="mt-2 text-sm text-ash">
-              Set an average ticket in Settings or enter an amount here.
-            </p>
-          ) : null}
           <button
             type="button"
             className="btn btn-secondary mt-4 text-sm"

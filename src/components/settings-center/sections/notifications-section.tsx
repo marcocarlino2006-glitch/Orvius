@@ -39,7 +39,7 @@ export function NotificationsSection({
             onCommit={(v) => patch({ ownerPhone: v.trim() })}
           />
         </ScRow>
-        <ScRow label="Email" hint="Your sign-in email. Backup alerts go here when a text can't deliver.">
+        <ScRow label="Email" hint="Your sign-in email.">
           <span className="sc-value">{b.ownerEmail ?? email}</span>
         </ScRow>
       </ScGroup>
@@ -49,16 +49,11 @@ export function NotificationsSection({
             {account.alerts.ownerSmsOptedOut ? "Opted out" : account.alerts.smsEnabled ? "On" : "Off"}
           </ScStatus>
         </ScRow>
-        <ScRow
-          label="Email backup"
-          hint={
-            account.alerts.emailConfigured
-              ? `Sent to ${b.ownerEmail ?? email} when a text can't deliver.`
-              : "Not live yet. Text alerts carry every lead until it is."
-          }
-        >
-          <ScStatus on={account.alerts.emailConfigured}>{account.alerts.emailConfigured ? "On" : "Coming soon"}</ScStatus>
-        </ScRow>
+        {account.alerts.emailConfigured ? (
+          <ScRow label="Email backup" hint={`Sent to ${b.ownerEmail ?? email} when a text can't deliver.`}>
+            <ScStatus on>On</ScStatus>
+          </ScRow>
+        ) : null}
         <PushAlertsRows />
         <ScRow
           label="Run the shop by text"
