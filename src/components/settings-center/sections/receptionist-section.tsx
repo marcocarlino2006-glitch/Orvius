@@ -5,6 +5,7 @@ import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import { VoiceSampleButton } from "../settings-controls";
 import { dollars, type Business, type PatchFn } from "../settings-model";
 import { ScField, ScGroup, ScRow, ScSwitch } from "../settings-primitives";
+import { TextingGroup } from "../texting-group";
 
 export function ReceptionistSection({
   b,
@@ -126,6 +127,7 @@ export function ReceptionistSection({
           />
         </ScRow>
       </ScGroup>
+      <TextingGroup shopName={b.name} />
       <ScGroup title="Your numbers">
         <ScRow label="Average ticket" hint="Estimates booked value on Command. Not money collected.">
           <span className="sc-affix">

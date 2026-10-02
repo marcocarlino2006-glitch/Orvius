@@ -129,6 +129,7 @@ model Business {
   smsOptOuts         SmsOptOut[]
   takeovers          Takeover[]
   outboundSms        OutboundSms[]
+  texting            ShopTexting?
   messages           Message[]
   servicePlans       ServicePlan[]
   planMembers        PlanMember[]
@@ -153,6 +154,30 @@ model Business {
 /** Phone numbers that opted out of SMS on a shop line (STOP). */
 /// Every text Orvius sends goes out from one shared sender, so a reply cannot be
 /// routed by the number it was sent to. This is how a reply finds its shop.
+/// Carrier registration (A2P 10DLC) so a shop's customer and tech texts come
+/// from its own number. Until `status` is "approved" they use the shared sender.
+model ShopTexting {
+  id                  String    @id @default(cuid())
+  businessId          String    @unique
+  business            Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /// submitted → profile_review → brand_review → campaign_review → approved, or failed.
+  status              String    @default("submitted")
+  /// The legal details the carriers require, as the owner entered them.
+  detailsJson         String
+  customerProfileSid  String?
+  trustProductSid     String?
+  brandSid            String?
+  messagingServiceSid String?
+  campaignSid         String?
+  failureReason       String?
+  submittedAt         DateTime  @default(now())
+  approvedAt          DateTime?
+  lastCheckedAt       DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status, lastCheckedAt])
+}
+
 model OutboundSms {
   id           String   @id @default(cuid())
   businessId   String

@@ -730,6 +730,10 @@
   color: var(--ox-text-2);
 }
 
+.sc-field-error {
+  color: var(--ox-red);
+}
+
 .sc-banner--error {
   border-color: rgb(242 107 107 / 0.3);
   background: var(--ox-red-soft);
