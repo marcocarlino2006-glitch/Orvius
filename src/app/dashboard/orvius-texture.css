@@ -1,44 +1,64 @@
 /* ──────────────────────────────────────────────────────────────────────────
    Texture. Loaded after everything else in the app.
 
-   Neutral graphite instead of blue-grey, hairline edges instead of drawn
-   borders, one product face (Inter) at medium weight, and buttons that read as
-   controls rather than stickers: a light filled primary, outlined secondary,
-   8px corners. Amber stays the brand accent — focus, live counts, the
+   Manus's palette and face: their published surface, text, line and button
+   tokens for both themes, the system font stack, hairline edges, and buttons
+   that read as controls rather than stickers: a filled primary, outlined
+   secondary, 8px corners. Amber stays the brand accent — focus, live counts, the
    occasional emphasis — not the colour of every action.
    ────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --ox-bg: #131313;
-  --ox-s1: #181818;
-  --ox-s2: #1d1d1d;
-  --ox-s3: #232323;
-  --ox-s4: #2b2b2b;
-  --ox-line: rgb(255 255 255 / 0.075);
-  --ox-line-strong: rgb(255 255 255 / 0.12);
-  --ox-text: #ededed;
-  --ox-text-2: #b8b8b8;
+  --ox-bg: #1a1a1a;
+  --ox-s1: #1f1f1f;
+  --ox-s2: #242424;
+  --ox-s3: #2a2a2a;
+  --ox-s4: #313131;
+  --ox-line: #ffffff0f;
+  --ox-line-strong: #ffffff1f;
+  --ox-text: #e6e6e6;
+  --ox-text-2: #b3b3b3;
   --ox-mute: #8c8c8c;
   --ox-radius: 0.75rem;
   --ox-radius-sm: 0.5rem;
-  --ox-panel: #181818;
-  --ox-rail: #151515;
-  --ox-btn-fill: #ededed;
+  --ox-panel: #242424;
+  --ox-rail: #1f1f1f;
+  --ox-btn-fill: #fffffff2;
   --ox-btn-fill-hi: #ffffff;
-  --ox-btn-on-fill: #141414;
-  --ox-btn-hover: rgb(255 255 255 / 0.06);
-  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(255 255 255 / 0.38);
+  --ox-btn-on-fill: #000000e5;
+  --ox-btn-hover: #ffffff0f;
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px #ffffff52;
+  --ox-face: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
 html[data-theme="day"] .os-shell.os-shell-night,
 html[data-theme="day"] .os-shell-night {
-  --ox-line: rgb(0 0 0 / 0.08);
-  --ox-line-strong: rgb(0 0 0 / 0.14);
-  --ox-btn-fill: #141414;
+  --ox-bg: #f8f8f7;
+  --ox-s1: #ffffff;
+  --ox-s2: #f3f3f3;
+  --ox-s3: #f0f0f0;
+  --ox-s4: #e8e8e7;
+  --ox-line: #0000000f;
+  --ox-line-strong: #0000001f;
+  --ox-text: #1a1a1a;
+  --ox-text-2: #4d4d4d;
+  --ox-mute: #737373;
+  --ox-tint: 55 53 47;
+  --ox-legacy-text: #1a1a1a;
+  --ox-legacy-text-2: #4d4d4d;
+  --ox-legacy-mute: #737373;
+  --ox-day-surface: #ffffff;
+  --ox-day-sunk: #f8f8f7;
+  --ox-day-line: #0000000f;
+  --ox-day-ink: #1a1a1a;
+  --ox-day-soft: #737373;
+  --ox-panel: #ffffff;
+  --ox-rail: #f0f0f0;
+  --ox-btn-fill: #1a1a19;
   --ox-btn-fill-hi: #000000;
   --ox-btn-on-fill: #ffffff;
-  --ox-btn-hover: rgb(0 0 0 / 0.05);
-  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(0 0 0 / 0.3);
+  --ox-btn-hover: #37352f0a;
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px #0000004d;
 }
 
 /* ── Type: one product face ───────────────────────────────────────────── */
@@ -47,7 +67,7 @@ html[data-theme="day"] .os-shell-night {
 .os-shell :is(.font-sans, button, input, select, textarea, h1, h2, h3, h4, p, a, span, label, dt, dd, li, td, th),
 .sc-dialog,
 .sc-dialog :is(.font-sans, button, input, select, textarea, h1, h2, h3, p, a, span, label) {
-  font-family: var(--font-ui), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--ox-face);
 }
 
 .os-shell :is(kbd, code, .dt-mono, .font-mono),
@@ -277,7 +297,7 @@ html[data-theme="day"] .os-shell.sc-overlay {
 
 .sc-dialog,
 .sc-dialog :is(.font-sans, button, input, select, textarea, h1, h2, h3, p, a, span, label) {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family: var(--ox-face);
 }
 
 .os-shell .sc-dialog .sc-nav,
