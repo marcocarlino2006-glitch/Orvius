@@ -57,8 +57,8 @@ export default function OpenGraphImage() {
               color: "rgba(244,246,249,0.62)",
             }}
           >
-            Answers the calls you can&apos;t take, books customers from your
-            schedule, and texts you what happened.
+            Answers your calls, schedules the work, sends your people, follows
+            up and shows you what happened.
           </div>
         </div>
 

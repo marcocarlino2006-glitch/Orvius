@@ -53,11 +53,10 @@ export function HomeLineHero() {
       <div className="ov-hero-inner ov-hero-inner--product ov-hero-inner--poster">
         <div className="ov-hero-copy">
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
-            The calls you can&apos;t take, answered and booked.
+            Run your day in Orvius.
           </h1>
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            HVAC, plumbing, electrical — any shop that runs on the phone. Orvius answers, checks your real schedule, books
-            the job and shows you every step.
+            The receptionist answers your calls and brings in the work. Command schedules it, coordinates your people, follows up with customers and shows you what actually happened.
           </p>
 
           <div className="ov-hero-actions">

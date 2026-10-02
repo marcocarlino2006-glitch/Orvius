@@ -13,23 +13,23 @@ export const metadata: Metadata = {
 const steps = [
   {
     id: "01",
-    title: "Answer every call.",
-    body: "After-hours and overflow calls are answered in your business's name, in English or Spanish. Emergencies — gas, smoke, a medical crisis — get safety instructions first.",
+    title: "Bring in the work.",
+    body: "Calls are answered in your business's name, in English or Spanish. Problem, urgency, address and callback go on the customer record as the caller says them. Gas, smoke and medical emergencies get safety steps first, then you.",
   },
   {
     id: "02",
-    title: "Capture the job.",
-    body: "Problem, urgency, address and callback go on the customer record as the caller says them, not into a transcript you have to read.",
+    title: "Schedule it.",
+    body: "The job goes on your real calendar in an open window, with someone free who has the skill. If another call takes that person first, it moves to the next open slot instead of double-booking.",
   },
   {
     id: "03",
-    title: "Book, confirm, alert.",
-    body: "It offers an open window from your schedule, texts the customer to confirm, and alerts you. A caller who wants a person is transferred to your phone or put on your board for a callback.",
+    title: "Coordinate people and follow up.",
+    body: "Whoever is going gets the address and one tap to call. The customer gets the time with one tap to confirm. Callers nobody reached get a follow-up, and a caller who wants a person is transferred to you or put on your board for a callback.",
   },
   {
     id: "04",
-    title: "See what it earned.",
-    body: "Calls answered, jobs booked, jobs completed and money collected, every week, in numbers you can check against your own books.",
+    title: "Show what actually happened.",
+    body: "Every call recorded and graded, every booking and text in the activity log, and each week the calls answered, jobs booked, jobs done and money collected, in numbers you can check against your own books.",
   },
 ] as const;
 
@@ -40,9 +40,9 @@ export default function ProductPage() {
         <div className="editorial-wrap ov-product-hero-grid">
           <ShellPageIntro
             label="Product"
-            title="The AI receptionist that turns missed calls into booked customers."
-            subline="It answers the calls you can't take, after hours and when everyone is busy."
-            description="It understands what the caller needs, offers an open time, confirms by text and alerts you, so the morning starts with a short list instead of a voicemail box."
+            title="Run your day in Orvius."
+            subline="The receptionist brings in the work. Command runs it from there."
+            description="Calls are answered and booked on your real schedule. Command assigns the job to someone free with the right skill, texts them the address, confirms with the customer, follows up when nobody called back, and shows you each step."
             actions={
               <>
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">

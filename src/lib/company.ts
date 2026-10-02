@@ -40,14 +40,14 @@ export const company = {
       body: "When someone needs a plumber at 2 a.m. or a dentist tomorrow, they — or their AI assistant — book through Orvius, because we know who is open, who is nearby and who does good work.",
     },
   ],
-  tagline: "The AI front desk for every business that runs on the phone.",
+  tagline: "The operating system for businesses that run on the phone.",
   /** The blue link in search results: brand first, then the words people search for. */
-  searchTitle: "Orvius — AI Receptionist for Small Business",
+  searchTitle: "Orvius — AI Receptionist and Operating System for Business",
   /** The caption under it. Google cuts at about 155 characters. */
   searchDescription:
-    "Orvius is the AI receptionist that answers the calls you can't take, books customers from your schedule, and texts you what happened. For any business.",
+    "Orvius answers your calls, books the work on your real schedule, sends your people, follows up with customers and shows you what happened.",
   categoryClaim:
-    "An AI front desk for trades, clinics, salons, shops and offices — answers, qualifies, books, confirms, and alerts the owner. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
+    "The operating system for trades, clinics, salons, shops and offices — the receptionist answers and brings in the work; Command schedules it, assigns your people, follows up and shows the owner what happened. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
   proofLine: "Missed calls become booked customers.",
   strategy: [
     "Win home services first — the deepest packs, the most urgent calls.",

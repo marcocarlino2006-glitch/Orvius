@@ -25,16 +25,16 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.contact": { en: "Talk to us", es: "Hablar con nosotros", fr: "Nous contacter", de: "Kontakt" },
 
   "hero.title": {
-    en: "The calls you can't take, answered and booked.",
-    es: "Las llamadas que usted no puede tomar, contestadas y agendadas.",
-    fr: "Les appels que vous ne pouvez pas prendre, répondus et réservés.",
-    de: "Die Anrufe, die Sie nicht annehmen können — angenommen und gebucht.",
+    en: "Run your day in Orvius.",
+    es: "Lleva tu día en Orvius.",
+    fr: "Pilotez votre journée dans Orvius.",
+    de: "Führen Sie Ihren Tag in Orvius.",
   },
   "hero.lead": {
-    en: "HVAC, plumbing, electrical — any shop that runs on the phone. Orvius answers, checks your real schedule, books the job and shows you every step.",
-    es: "HVAC, plomería, electricidad: cualquier negocio que vive del teléfono. Orvius contesta, revisa tu agenda real, agenda el trabajo y te muestra cada paso.",
-    fr: "CVC, plomberie, électricité : toute entreprise qui vit du téléphone. Orvius répond, vérifie votre vrai planning, réserve l’intervention et vous montre chaque étape.",
-    de: "HLK, Sanitär, Elektro – jeder Betrieb, der vom Telefon lebt. Orvius nimmt ab, prüft Ihren echten Kalender, bucht den Auftrag und zeigt Ihnen jeden Schritt.",
+    en: "The receptionist answers your calls and brings in the work. Command schedules it, coordinates your people, follows up with customers and shows you what actually happened.",
+    es: "La recepcionista contesta tus llamadas y trae el trabajo. Command lo agenda, coordina a tu equipo, da seguimiento a los clientes y te muestra lo que de verdad pasó.",
+    fr: "La réceptionniste répond à vos appels et apporte le travail. Command le planifie, coordonne votre équipe, relance les clients et vous montre ce qui s’est vraiment passé.",
+    de: "Die Rezeption nimmt Ihre Anrufe an und bringt die Arbeit herein. Command plant sie ein, koordiniert Ihr Team, fasst bei Kunden nach und zeigt Ihnen, was wirklich passiert ist.",
   },
   "hero.watch": {
     en: "Watch it run a shop",
@@ -100,9 +100,9 @@ export const translations: Record<string, Record<Lang, string>> = {
   },
 
   "footer.tagline": {
-    en: "The AI front desk for every business that runs on the phone.",
-    es: "La recepción con IA para cada negocio que vive del teléfono.",
-    fr: "L’accueil IA de chaque entreprise qui vit du téléphone.",
-    de: "Die KI-Rezeption für jedes Unternehmen, das vom Telefon lebt.",
+    en: "The operating system for businesses that run on the phone.",
+    es: "El sistema operativo para los negocios que viven del teléfono.",
+    fr: "Le système d’exploitation des entreprises qui vivent du téléphone.",
+    de: "Das Betriebssystem für Unternehmen, die vom Telefon leben.",
   },
 };

@@ -4,12 +4,13 @@ This is the single ranked list of what is broken, what limits scale, and what
 separates Orvius from best in class. Work comes from here, top down. When an
 item ships, mark it done with the PR link; do not start new lists elsewhere.
 
-## What Orvius is (decided 2026-09-30)
+## What Orvius is (decided 2026-10-02)
 
-**Now:** the AI front office for any business that runs on the phone. It answers
-every call in the business's name, books the appointment, and texts the owner.
-One promise: *you never lose a customer to a missed call.* Home services
-(HVAC, plumbing, electrical) is the first industry pack, not the ceiling.
+**Now:** the operating system. Businesses run their day in Orvius. The
+receptionist brings in work; Command schedules it, coordinates people, handles
+follow-up, and shows the owner what actually happened. This is what launches
+publicly. Home services (HVAC, plumbing, electrical) is the first industry pack,
+not the ceiling.
 
 **Path:** see `docs/ROADMAP.md`: launch for everyone with industry packs,
 grow through referrals and partners, run the payments, then every office job.
