@@ -1,7 +1,6 @@
 "use client";
 
 import { JobTable } from "@/components/job-card";
-import { ProLead } from "@/components/pro-lead";
 import { ProEmptyState } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
@@ -132,27 +131,14 @@ export default function JobsPage() {
     <OsShell
       title={terms.Jobs}
       actions={
-        <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
-          {terms.Dispatch}
-        </Link>
+        unassigned > 0 ? (
+          <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+            Assign {unassigned}
+          </Link>
+        ) : null
       }
     >
       <PlanUpgradeGate module="jobs">
-      <ProLead
-        loading={loading}
-        figure={String(open.length)}
-        caption="Open jobs"
-        facts={[
-          { label: "Unassigned", value: unassigned, live: unassigned > 0 },
-        ]}
-        action={
-          unassigned > 0 ? (
-            <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
-              Assign {unassigned}
-            </Link>
-          ) : null
-        }
-      />
 
       {loading ? (
         <DashboardSkeleton />
