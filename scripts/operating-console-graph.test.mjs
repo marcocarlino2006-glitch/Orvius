@@ -73,7 +73,7 @@ test("work rows never repeat the customer name in the request line", () => {
   assert.equal(bare.kindLabel, "$99 deposit");
 });
 
-test("Command ships five truthful signals and never a bare $0", () => {
+test("Command ships three truthful signals and never a bare $0", () => {
   const work = groupWorkItems([
     item({ id: "l1", impact: "critical", estimatedRevenueCents: 45000 }),
     item({ id: "l2", estimatedRevenueCents: 30000 }),
@@ -81,12 +81,11 @@ test("Command ships five truthful signals and never a bare $0", () => {
   const signals = buildCommandSignals(counts, work);
   assert.deepEqual(
     signals.map((s) => s.label),
-    ["New demand", "Qualified", "Jobs in motion", "Needs you", "Revenue at risk"],
+    ["New demand", "Jobs in motion", "Revenue at risk"],
   );
   assert.equal(signals[0].value, "5");
-  assert.equal(signals[3].value, "2");
-  assert.equal(signals[3].tone, "risk");
-  assert.equal(signals[4].value, "$750");
+  assert.equal(signals[2].value, "$750");
+  assert.equal(signals[2].tone, "risk");
   assert.equal(revenueAtRiskCents(work), 75000);
   for (const s of signals) assert.ok(s.href, `${s.id} is clickable`);
 
@@ -94,11 +93,10 @@ test("Command ships five truthful signals and never a bare $0", () => {
     { ...counts, calls: 0, messagesAndWeb: 0, avgTicketSet: false },
     [],
   );
-  assert.equal(empty[4].value, "Not set");
+  assert.equal(empty[2].value, "Not set");
   assert.match(empty[0].detail, /No calls or messages/);
-  assert.equal(empty[3].detail, "Queue is clear");
   assert.ok(empty.every((s) => s.value !== "$0"));
-  assert.equal(buildCommandSignals(counts, [])[4].value, "None");
+  assert.equal(buildCommandSignals(counts, [])[2].value, "None");
 });
 
 test("work age is human, not a timestamp", () => {
@@ -123,7 +121,7 @@ test("Command is one board (work queue as its Follow-ups tab), with signals and 
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
 
   const pulse = read("src/components/orvius-pulse.tsx");
-  for (const row of ["Phone line", "Alert delivery", "Recent activity"]) {
+  for (const row of ["Phone line", "Alert delivery"]) {
     assert.match(pulse, new RegExp(row));
   }
   assert.match(pulse, /formatFreshness/);

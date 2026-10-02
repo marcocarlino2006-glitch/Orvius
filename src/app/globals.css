@@ -5458,7 +5458,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
    ============================================================ */
 
 /* Scoped through .os-shell to outrank the shell's own !important Archivo rules. */
-.os-shell .os-sidebar-label,
 .os-shell .pay-prompt-kicker,
 .os-shell .type-eyebrow,
 .os-shell .os-nav-badge {

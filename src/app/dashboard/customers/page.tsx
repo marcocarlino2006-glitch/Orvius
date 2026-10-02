@@ -69,10 +69,8 @@ export default function CustomersPage() {
 
   const tally = useMemo(() => {
     const returning = customers.filter((c) => c.returning).length;
-    const touchpoints = customers.reduce((sum, c) => sum + c.interactionCount, 0);
     return {
       returning,
-      touchpoints,
       /*
         Repeat rate is the number that decides whether a shop grows, so it leads
         this page rather than the headcount. Withheld below ten customers: one
@@ -106,12 +104,8 @@ export default function CustomersPage() {
                 ? [
                     { label: "Customers", value: customers.length },
                     { label: "Returning", value: tally.returning },
-                    { label: "Touchpoints", value: tally.touchpoints },
                   ]
-                : [
-                    { label: "Returning", value: tally.returning },
-                    { label: "Touchpoints", value: tally.touchpoints },
-                  ]
+                : [{ label: "Returning", value: tally.returning }]
             }
           />
 

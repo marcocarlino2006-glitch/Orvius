@@ -111,7 +111,6 @@ export function OsShell({
       </Link>
 
       <div className="os-ring-status">
-        <p className="os-sidebar-label font-sans">Business</p>
         <p className="os-ring-status-title font-sans">{businessName}</p>
         <p className="os-ring-status-module font-sans">
           {businessLoading ? (
@@ -137,7 +136,6 @@ export function OsShell({
       </div>
 
       <nav className="os-sidebar-nav" aria-label="Daily work">
-        <p className="os-sidebar-label font-sans">Daily work</p>
         <ul>
           {osProductNav.map((item) => {
             const ring = item.ring ?? osCurrentRing;
@@ -269,7 +267,7 @@ export function OsShell({
               <span className="os-topbar-search-label">Search</span>
               <kbd>⌘K</kbd>
             </button>
-            {showAskDock && !navActive(pathname, "/dashboard/ask") ? (
+            {showAskDock && pathname !== "/dashboard" && !navActive(pathname, "/dashboard/ask") ? (
               <button
                 type="button"
                 className="os-topbar-search os-topbar-ask font-sans"

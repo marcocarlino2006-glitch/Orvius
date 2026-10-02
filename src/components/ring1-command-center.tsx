@@ -83,7 +83,6 @@ export function Ring1CommandCenter() {
         <header className="cc-brief">
           {brief ? (
             <div className="cc-brief-personal">
-              <p className="cc-brief-greeting">{brief.greeting}</p>
               <p className="cc-brief-headline">{brief.headline}</p>
               {brief.detail.length ? (
                 <p className="cc-brief-detail">
@@ -94,10 +93,9 @@ export function Ring1CommandCenter() {
                   ))}
                 </p>
               ) : null}
-              {brief.pattern ? <p className="cc-brief-pattern">{brief.pattern}</p> : null}
             </div>
-          ) : null}
-          <p className={brief ? "cc-brief-text cc-brief-text--sub" : "cc-brief-text"}>
+          ) : (
+          <p className="cc-brief-text">
             {activity ? (
               <>
                 <span className="cc-brief-window">{activity.window}</span>
@@ -111,6 +109,7 @@ export function Ring1CommandCenter() {
               "Reading the shop…"
             )}
           </p>
+          )}
         </header>
 
         <CommandBoard
@@ -136,7 +135,6 @@ export function Ring1CommandCenter() {
         <CommandSignals signals={signals} loading={loading} />
         <OrviusPulse
           health={data?.health}
-          events={data?.shiftTimeline ?? []}
           lastUpdatedAt={lastUpdatedAt}
           stale={Boolean(loadError && data)}
           refreshing={refreshing}
