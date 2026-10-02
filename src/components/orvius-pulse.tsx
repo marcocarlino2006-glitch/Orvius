@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatAge, formatFreshness } from "@/lib/command-model";
 import { displayPhone } from "@/lib/customer";
-import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { ShopHealth } from "@/lib/shop-health";
 
 type Tone = "ok" | "attention" | "risk" | "neutral";
@@ -36,13 +35,12 @@ function PulseRow({
 }
 
 /**
- * Orvius Pulse — the quiet system panel. Line health, alert delivery, recent
- * proven events, and how fresh this screen is. Problems here also appear as
+ * Orvius Pulse — the quiet system panel. Line health, alert delivery, and
+ * how fresh this screen is. Problems here also appear as
  * one incident in the work queue; this panel states, it does not shout.
  */
 export function OrviusPulse({
   health,
-  events,
   lastUpdatedAt,
   stale,
   refreshing,
@@ -51,7 +49,6 @@ export function OrviusPulse({
   referenceImplementation,
 }: {
   health: ShopHealth | null | undefined;
-  events: ShiftEvent[];
   lastUpdatedAt: number | null;
   stale: boolean;
   refreshing: boolean;
@@ -67,7 +64,6 @@ export function OrviusPulse({
 
   const failed = health?.failedAlerts24h ?? 0;
   const stuck = health?.stuckPendingAlerts ?? 0;
-  const recent = events.filter((e) => e.tone === "success" || e.tone === "agent").slice(0, 3);
   const pastDue = (billingStatus ?? "").toLowerCase() === "past_due";
 
   return (
@@ -131,31 +127,6 @@ export function OrviusPulse({
           />
         </>
       )}
-
-      <div className="op-recent">
-        <p className="op-row-label">Recent activity</p>
-        {recent.length ? (
-          <ul>
-            {recent.map((event) => (
-              <li key={event.key}>
-                {event.href ? (
-                  <Link href={event.href} className="op-event">
-                    <span>{event.title}</span>
-                    <span className="op-event-age">{formatAge(event.at, now)}</span>
-                  </Link>
-                ) : (
-                  <span className="op-event">
-                    <span>{event.title}</span>
-                    <span className="op-event-age">{formatAge(event.at, now)}</span>
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="op-row-detail">No calls, bookings or payments in the last 24 hours.</p>
-        )}
-      </div>
 
       {stale ? (
         <div className="op-stale" role="status">

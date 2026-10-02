@@ -343,7 +343,7 @@ a.dt-row:focus-visible,
 
 /* Command: activity line, one metrics panel, the queue. */
 .os-shell.os-shell-night .cc-brief {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .os-shell.os-shell-night .cc-brief-text {
@@ -374,20 +374,14 @@ a.dt-row:focus-visible,
   display: grid;
   gap: 0.25rem;
   max-width: 46rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
 }
 
-.cc-brief-greeting,
-.cc-brief-detail,
-.cc-brief-pattern {
+.cc-brief-detail {
   margin: 0;
   font-size: var(--cr-body);
   line-height: 1.5;
   color: var(--ox-text-2);
-}
-
-.cc-brief-greeting {
-  color: var(--ox-mute);
 }
 
 .cc-brief-headline {
@@ -402,15 +396,6 @@ a.dt-row:focus-visible,
 .cc-brief-detail {
   display: flex;
   flex-wrap: wrap;
-}
-
-.cc-brief-pattern {
-  color: var(--ox-mute);
-}
-
-.os-shell.os-shell-night .cc-brief-text--sub {
-  font-size: var(--cr-label, 0.8125rem);
-  color: var(--ox-mute);
 }
 
 .os-shell.os-shell-night .cs-grid {

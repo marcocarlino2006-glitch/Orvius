@@ -12,7 +12,6 @@ const LANES: { id: BoardLane; label: string; empty: string }[] = [
   { id: "exceptions", label: "Exceptions", empty: "No emergencies, failed texts, stale or duplicate jobs." },
   { id: "requests", label: "Requests", empty: "No open requests without a job." },
   { id: "proposed", label: "Proposed", empty: "No windows waiting on a customer." },
-  { id: "confirmed", label: "Confirmed", empty: "No confirmed jobs in the next week." },
 ];
 
 const EXCEPTION_LABEL: Record<string, string> = {
@@ -374,7 +373,7 @@ function TryDemo({ empty }: { empty: boolean }) {
 }
 
 /**
- * Command's working surface: five lanes read from records, an ask bar that
+ * Command's working surface: four lanes read from records, an ask bar that
  * only ever produces a plan to approve, and — in a demo workspace — scripted
  * calls that drive the real pipeline.
  */

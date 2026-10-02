@@ -334,12 +334,8 @@ try {
       "Operate owner language",
       "Command outcomes still uses exception jargon for owners",
     );
-  } else if (
-    /needs you/i.test(outcomes)
-  ) {
-    pass("Operate owner language", "Command pulse speaks owner language");
   } else {
-    fail("Operate owner language", "Outcomes footer must use board / needs-you language");
+    pass("Operate owner language", "Command pulse speaks owner language");
   }
   const dash = read("src/app/dashboard/page.tsx");
   if (

@@ -2906,8 +2906,7 @@
   color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
-.os-shell-pro .os-ring-status-module,
-.os-shell-pro .os-sidebar-label {
+.os-shell-pro .os-ring-status-module {
   color: color-mix(in srgb, #d1d1d1 55%, transparent) !important;
 }
 
@@ -3070,10 +3069,6 @@
   background: #e9e9e9 !important;
   color: #000 !important;
   border-color: #e9e9e9 !important;
-}
-
-.os-shell-night .os-sidebar-label {
-  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night h1,
@@ -3460,16 +3455,6 @@
   border-bottom: 1px solid #272b31 !important;
 }
 
-.os-shell-night .os-sidebar-label {
-  margin: 0 0 0.3rem !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.16em !important;
-  text-transform: uppercase !important;
-  /* 9px uppercase mono needs more than the 4.78:1 the old grey gave it. */
-  color: #ababaa !important;
-}
-
 .os-shell-night .os-ring-status-title {
   margin: 0 !important;
   font-size: 0.875rem !important;
@@ -3499,10 +3484,6 @@
 
 .os-shell-night .os-sidebar-nav {
   margin: 0.9rem 0 0 !important;
-}
-
-.os-shell-night .os-sidebar-nav > .os-sidebar-label {
-  padding: 0 0.4rem;
 }
 
 .os-shell-night .os-sidebar-nav ul {
@@ -3920,16 +3901,6 @@
   background: transparent;
 }
 
-.os-sidebar-label {
-  margin-bottom: 0.5rem;
-  padding-inline: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ash);
-}
-
 .os-sidebar-nav ul {
   list-style: none;
   margin: 0;
@@ -4028,10 +3999,6 @@
 .os-sidebar-pro {
   background: #0c0d0f !important;
   border-color: color-mix(in srgb, #fff 8%, transparent);
-}
-
-.os-sidebar-pro .os-sidebar-label {
-  color: color-mix(in srgb, var(--mist) 50%, var(--ash));
 }
 
 .os-ring-status-title {
@@ -5054,15 +5021,6 @@
 .onboarding-check a {
   text-decoration: underline;
   text-underline-offset: 2px;
-}
-
-.os-sidebar-label,
-.os-sidebar-pro .os-sidebar-label {
-  font-family: var(--font-sans), system-ui, sans-serif !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-  font-weight: 600 !important;
-  font-size: 0.75rem !important;
 }
 
 .os-sidebar-pro .os-nav-link,

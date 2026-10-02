@@ -173,7 +173,6 @@ export function buildCommandSignals(
   work: WorkItem[],
 ): CommandSignal[] {
   const demand = counts.calls + counts.messagesAndWeb;
-  const critical = work.filter((w) => w.severity === "critical").length;
   const risk = revenueAtRiskCents(work);
   const window = `last ${counts.windowDays} days`;
 
@@ -190,17 +189,6 @@ export function buildCommandSignals(
       tone: "neutral",
     },
     {
-      id: "qualified",
-      label: "Qualified",
-      value: String(counts.qualified),
-      detail:
-        counts.qualified === 0
-          ? "None yet — service + contact not captured"
-          : `${counts.booked} booked into jobs`,
-      href: "/dashboard/inbox",
-      tone: counts.qualified > 0 ? "success" : "neutral",
-    },
-    {
       id: "motion",
       label: "Jobs in motion",
       value: String(counts.jobsInMotion),
@@ -212,19 +200,6 @@ export function buildCommandSignals(
             : "All assigned",
       href: counts.jobsUnassigned > 0 ? "/dashboard/dispatch" : "/dashboard/jobs",
       tone: counts.jobsUnassigned > 0 ? "attention" : "neutral",
-    },
-    {
-      id: "attention",
-      label: "Needs you",
-      value: String(work.length),
-      detail:
-        work.length === 0
-          ? "Queue is clear"
-          : critical > 0
-            ? `${critical} critical`
-            : "Nothing critical",
-      href: "#work-queue",
-      tone: critical > 0 ? "risk" : work.length > 0 ? "attention" : "success",
     },
     {
       id: "risk",

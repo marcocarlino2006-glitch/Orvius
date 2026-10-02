@@ -144,7 +144,6 @@ export default function JobsPage() {
         caption="Open jobs"
         facts={[
           { label: "Unassigned", value: unassigned, live: unassigned > 0 },
-          { label: "New leads", value: newLeadCount, live: newLeadCount > 0 },
         ]}
         action={
           unassigned > 0 ? (
