@@ -231,8 +231,43 @@ export async function enqueueOwnerAlert(params: {
   return { queued, duplicate: false };
 }
 
+type SmsLister = {
+  messages: {
+    list(params: { to: string; dateSentAfter: Date; limit: number }): Promise<
+      Array<{ sid: string; body: string; direction: string; dateCreated: Date | null; status: string }>
+    >;
+  };
+};
+
+/**
+ * A drain that died after Twilio accepted the text but before the row said
+ * "sent" leaves the lease to expire, and the next drain would text the owner
+ * again. Twilio's own log is the only record of what happened in between.
+ */
+export async function findAlreadySentSms(
+  client: SmsLister,
+  params: { to: string; body: string; since: Date },
+): Promise<string | null> {
+  const recent = await client.messages.list({
+    to: params.to,
+    dateSentAfter: new Date(params.since.getTime() - 60_000),
+    limit: 20,
+  });
+  const match = recent.find(
+    (m) =>
+      m.direction.startsWith("outbound") &&
+      m.body === params.body &&
+      m.status !== "failed" &&
+      m.status !== "undelivered" &&
+      (!m.dateCreated || m.dateCreated.getTime() >= params.since.getTime() - 60_000),
+  );
+  return match?.sid ?? null;
+}
+
 async function deliverQueuedRow(row: {
   id: string;
+  status: string;
+  nextRetryAt: Date | null;
   channel: string;
   businessName: string | null;
   message: string | null;
@@ -300,6 +335,20 @@ async function deliverQueuedRow(row: {
     }
 
     const client = getTwilioClient();
+    if (row.status === "sending" && row.nextRetryAt) {
+      const claimedAt = new Date(row.nextRetryAt.getTime() - CLAIM_LEASE_MINUTES * 60_000);
+      const prior = await findAlreadySentSms(client, { to: row.ownerPhone, body: smsBody, since: claimedAt }).catch(
+        () => null,
+      );
+      if (prior) {
+        await prisma.ownerNotification.update({
+          where: { id: row.id },
+          data: { status: "sent", deliveryId: prior, deliveryStatus: "queued", processedAt: new Date(), error: null },
+        });
+        logInfo("notification.sms_already_sent", { businessId: row.businessId, dedupeKey: row.dedupeKey, sid: prior });
+        return { status: "duplicate", id: prior };
+      }
+    }
     const sms = await client.messages.create({
       body: smsBody,
       ...smsSender()!,
