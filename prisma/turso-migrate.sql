@@ -690,3 +690,19 @@ CREATE TABLE IF NOT EXISTS "PortRequest" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "PortRequest_businessId_key" ON "PortRequest"("businessId");
 CREATE INDEX IF NOT EXISTS "PortRequest_status_createdAt_idx" ON "PortRequest"("status", "createdAt");
+
+ALTER TABLE "Business" ADD COLUMN "acquisitionJson" TEXT;
+ALTER TABLE "Business" ADD COLUMN "referredById" TEXT;
+CREATE TABLE IF NOT EXISTS "Referral" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "referrerId" TEXT NOT NULL,
+  "referredId" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "creditCents" INTEGER,
+  "creditedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Referral_referrerId_fkey" FOREIGN KEY ("referrerId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "Referral_referredId_fkey" FOREIGN KEY ("referredId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Referral_referredId_key" ON "Referral"("referredId");
+CREATE INDEX IF NOT EXISTS "Referral_referrerId_status_idx" ON "Referral"("referrerId", "status");

@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
+import { signupChannelText } from "@/lib/acquisition";
 import { unitCostLines } from "@/lib/unit-cost-lines";
 
 type Business = {
@@ -859,6 +860,9 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
           ))}
         </tbody>
       </table>
+      <p className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Where new shops came from">
+        New shops by source, 30 days: {signupChannelText(board.signupChannels ?? [])}
+      </p>
       <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Unit cost">
         {unitCostLines(board.unitCost ?? null).map((line) => (
           <p key={line} className="py-0.5">

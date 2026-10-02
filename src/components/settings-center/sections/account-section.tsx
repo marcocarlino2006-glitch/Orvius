@@ -7,6 +7,7 @@ import type { SettingsSectionId } from "@/lib/settings-center";
 import type { buildShopSetupChecklist } from "@/lib/shop-setup-checklist";
 import { planDetail, planLabel, type Account, type Business } from "../settings-model";
 import { AppearanceGroup } from "../appearance-group";
+import { ReferGroup } from "../refer-group";
 import { ScGroup, ScRow } from "../settings-primitives";
 
 export function AccountSection({
@@ -90,6 +91,8 @@ export function AccountSection({
           </ScRow>
         ) : null}
       </ScGroup>
+
+      {email && b.ownerEmail && email.toLowerCase() === b.ownerEmail.toLowerCase() ? <ReferGroup /> : null}
 
       <AppearanceGroup />
     </>

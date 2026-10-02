@@ -131,6 +131,12 @@ model Business {
   outboundSms        OutboundSms[]
   texting            ShopTexting?
   portRequest        PortRequest?
+  /// First touch before signup (ref, utm, referring site, landing page), as JSON.
+  acquisitionJson    String?
+  /// The shop whose link this one signed up from.
+  referredById       String?
+  referralsMade      Referral[] @relation("ReferralReferrer")
+  referredBy         Referral?  @relation("ReferralReferred")
   messages           Message[]
   servicePlans       ServicePlan[]
   planMembers        PlanMember[]
@@ -157,6 +163,23 @@ model Business {
 /// routed by the number it was sent to. This is how a reply finds its shop.
 /// Carrier registration (A2P 10DLC) so a shop's customer and tech texts come
 /// from its own number. Until `status` is "approved" they use the shared sender.
+/// One shop sending another. The referrer is credited a month of its plan
+/// when the referred shop's first paid invoice clears.
+model Referral {
+  id          String    @id @default(cuid())
+  referrerId  String
+  referrer    Business  @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId  String    @unique
+  referred    Business  @relation("ReferralReferred", fields: [referredId], references: [id], onDelete: Cascade)
+  /// pending → crediting → credited, or void when the referrer had stopped paying.
+  status      String    @default("pending")
+  creditCents Int?
+  creditedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([referrerId, status])
+}
+
 /// A shop asking to move its existing number onto Orvius. Orvius files it with
 /// the carriers; the owner fills one form instead of emailing a bill and a PIN.
 model PortRequest {

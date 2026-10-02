@@ -29,6 +29,8 @@ import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
 import { resolveShopAccess } from "@/lib/workspace-access";
+import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
+import { acquisitionMetadata, findReferrer } from "@/lib/referrals";
 
 const checkoutSchema = z.object({
   /** Defaults to the signed-in email; when sent it must match it. */
@@ -129,6 +131,9 @@ export async function POST(request: NextRequest) {
     }
     const shopMetadata =
       !business && body.shop ? shopDraftMetadata(shopDraftSchema.parse(body.shop), new Date()) : {};
+    const acquisition = business ? null : parseAcquisition(request.cookies.get(ACQUISITION_COOKIE)?.value);
+    const referralCoupon = process.env.ORVIUS_REFERRAL_COUPON_ID?.trim();
+    const referred = Boolean(referralCoupon && acquisition?.ref && (await findReferrer(acquisition.ref)));
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -145,7 +150,8 @@ export async function POST(request: NextRequest) {
         ? `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`
         : `${baseUrl}/dashboard/onboarding?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: business ? `${baseUrl}/pricing?canceled=1` : `${baseUrl}${setupPath}&canceled=1`,
-      allow_promotion_codes: true,
+      // Stripe takes either a fixed discount or a promo-code box, not both.
+      ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
       billing_address_collection: "auto",
       subscription_data: {
         metadata: {
@@ -162,6 +168,7 @@ export async function POST(request: NextRequest) {
         businessId: business?.id ?? "",
         legalEntity: company.legalName,
         ...shopMetadata,
+        ...acquisitionMetadata(acquisition),
       },
     });
 

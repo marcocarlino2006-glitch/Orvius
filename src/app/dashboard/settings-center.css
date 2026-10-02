@@ -308,6 +308,13 @@
   text-align: right;
 }
 
+.sc-refer-link {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
 .sc-mono {
   font-variant-numeric: tabular-nums;
 }

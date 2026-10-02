@@ -5,6 +5,8 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { ProvisionBusyError } from "@/lib/provision-attempt";
 import { findBusinessForOwner, provisionBusiness } from "@/lib/provision-business";
 import { getStripe } from "@/lib/stripe";
+import { parseAcquisition } from "@/lib/acquisition";
+import { attachAcquisition, creditReferralOnPayment } from "@/lib/referrals";
 import { TRADES } from "@/lib/trades";
 
 /*
@@ -141,6 +143,19 @@ export async function provisionFromCheckout(params: {
     await linkPaidCheckoutToBusiness(billing, business.id).catch((error: unknown) => {
       logWarn("checkout_shop.link_failed", { error: error instanceof Error ? error.message : "unknown" });
     });
+    await attachAcquisition(business, parseAcquisition(session.metadata?.acq))
+      .then(({ referred }) =>
+        // The first invoice is usually paid before the shop exists, so its webhook found no one to credit.
+        referred
+          ? creditReferralOnPayment({
+              customerId: typeof session.customer === "string" ? session.customer : (session.customer?.id ?? null),
+              amountPaidCents: session.amount_total ?? 0,
+            })
+          : null,
+      )
+      .catch((error: unknown) => {
+        logWarn("checkout_shop.acquisition_failed", { error: error instanceof Error ? error.message : "unknown" });
+      });
     logInfo("checkout_shop.created", { businessId: business.id, from: params.draft ? "form" : "checkout" });
     return { status: "created", business };
   } catch (error) {

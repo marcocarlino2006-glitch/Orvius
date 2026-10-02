@@ -312,7 +312,9 @@ export default function BookPage() {
         </p>
       ) : null}
 
-      <p className="pf-muted bk-foot">Booking by Orvius</p>
+      <p className="pf-muted bk-foot">
+        <a href={`/r/${encodeURIComponent(slug)}?via=booking`}>Booking by Orvius</a>
+      </p>
     </main>
   );
 }

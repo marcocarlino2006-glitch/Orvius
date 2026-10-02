@@ -5,6 +5,7 @@ import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/env";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { countChannels, signupChannelText } from "@/lib/acquisition";
 
 /**
  * The one board the company is run from, reviewed weekly. Real shops only:
@@ -45,6 +46,8 @@ export type CompanyScoreboard = {
   shopsWithoutFirstJob: number;
   /** Last 30 days of real calls that reported a cost; null until the first one does. */
   unitCost: UnitEconomics | null;
+  /** New shops from the last 30 days by the channel that brought them. */
+  signupChannels: Array<{ channel: string; count: number }>;
 };
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : null);
@@ -106,6 +109,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
       where: { ...realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } },
       select: {
         createdAt: true,
+        acquisitionJson: true,
         jobs: { orderBy: { createdAt: "asc" }, take: 1, select: { createdAt: true } },
       },
       take: 1000,
@@ -126,6 +130,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     signupToFirstJobMinutes: median(minutes),
     shopsWithoutFirstJob: recentShops.length - minutes.length,
     unitCost,
+    signupChannels: countChannels(recentShops.map((shop) => shop.acquisitionJson)),
   };
 }
 
@@ -150,6 +155,7 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     `Jobs booked: ${now.jobsBooked} (last week ${prev.jobsBooked})`,
     `Collected through Orvius: ${money(now.collectedCents)} (last week ${money(prev.collectedCents)})`,
     `Signup to first booked job: ${duration(board.signupToFirstJobMinutes)} median · ${board.shopsWithoutFirstJob} new shop(s) still without one`,
+    `New shops by source, 30 days: ${signupChannelText(board.signupChannels ?? [])}`,
     ...unitCostLines(board.unitCost),
   ];
 }

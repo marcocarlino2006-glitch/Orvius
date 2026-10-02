@@ -246,3 +246,15 @@
   max-width: 30rem;
   margin-inline: auto;
 }
+
+.pf-foot {
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.pf-foot a,
+.bk-foot a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
