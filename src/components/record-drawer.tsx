@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type DragEventHandler,
   type ReactNode,
 } from "react";
 import type { RecordType, RecordView } from "@/lib/record-types";
@@ -496,6 +497,8 @@ export function RecordLink({
   style,
   title,
   role,
+  onDragStart,
+  onDragEnd,
   children,
 }: {
   type: RecordType;
@@ -505,6 +508,8 @@ export function RecordLink({
   style?: CSSProperties;
   title?: string;
   role?: string;
+  onDragStart?: DragEventHandler<HTMLAnchorElement>;
+  onDragEnd?: DragEventHandler<HTMLAnchorElement>;
   children: ReactNode;
 }) {
   const drawer = useRecordDrawer();
@@ -515,6 +520,9 @@ export function RecordLink({
       style={style}
       title={title}
       role={role}
+      draggable={onDragStart ? true : undefined}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       onClick={(event) => {
         if (!drawer || event.metaKey || event.ctrlKey || event.shiftKey) return;
         event.preventDefault();

@@ -492,3 +492,29 @@ html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void)
 .os-shell .job-overdue p {
   margin: 0;
 }
+
+.new-job-form .new-job-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .new-job-form .new-job-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.new-job-form {
+  max-width: 40rem;
+}
+
+html .os-shell .dsp-track.is-drop {
+  outline: 1px dashed var(--ox-text-2) !important;
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--ox-text) 6%, transparent) !important;
+}
+
+html .os-shell .dsp-block[draggable="true"] {
+  cursor: grab;
+}
