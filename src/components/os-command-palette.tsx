@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { OsIcon, type OsIconName } from "@/components/os-icons";
 import { osProductNav, osWorkspaceNav } from "@/lib/os-nav";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
+import { SETTINGS_SECTIONS, openSettings, searchSettings } from "@/lib/settings-center";
 import type { SearchHit } from "@/app/api/search/route";
 
 type PaletteItem = {
@@ -114,6 +115,18 @@ export function OsCommandPalette({
       run: () => go(hit.href),
     }));
 
+    const settings: PaletteItem[] = searchSettings(q).slice(0, 6).map((hit) => ({
+      id: `settings:${hit.section}:${hit.label}`,
+      label: hit.label,
+      hint: SETTINGS_SECTIONS.find((s) => s.id === hit.section)?.label ?? "Settings",
+      group: "Settings",
+      icon: "settings",
+      run: () => {
+        onClose();
+        openSettings(hit.section);
+      },
+    }));
+
     const actions: PaletteItem[] = [
       ...(shopLine
         ? [
@@ -187,7 +200,7 @@ export function OsCommandPalette({
       item.label.toLowerCase().includes(q) ||
       (item.hint?.toLowerCase().includes(q) ?? false);
 
-    return [...records, ...screens.filter(matches), ...actions.filter(matches)];
+    return [...records, ...screens.filter(matches), ...settings, ...actions.filter(matches)];
   }, [hits, query, go, shopLine, onClose]);
 
   useEffect(() => {
