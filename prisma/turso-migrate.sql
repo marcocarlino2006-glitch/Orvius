@@ -649,3 +649,5 @@ CREATE TABLE IF NOT EXISTS "Takeover" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "Takeover_businessId_phoneNormalized_key" ON "Takeover"("businessId", "phoneNormalized");
 CREATE INDEX IF NOT EXISTS "Takeover_businessId_releasedAt_idx" ON "Takeover"("businessId", "releasedAt");
+ALTER TABLE "Call" ADD COLUMN "costMicros" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "costJson" TEXT;

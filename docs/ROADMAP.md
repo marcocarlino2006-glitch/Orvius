@@ -75,6 +75,52 @@ Square serves millions of sellers; Shopify millions of merchants. A million
 businesses is the scale of a horizontal leader, and a multi-billion valuation
 comes long before it.
 
+## First-principles check (2026-10-02)
+
+**The system's output is paying shops that stay.** Everything else is a
+component. Walking the chain a shop goes through, in order:
+
+| Step | What has to be true | Today |
+|---|---|---|
+| Hear it | A stranger hears Orvius answer as their business | Demo line answers as Summit HVAC; `/try` (as *your* business) is built but off until the Vapi server-URL switch |
+| Sign up and pay | Self-serve signup, Stripe live | Done (prod:verify, 2026-09-30) |
+| Go live | Line bought, forwarding set, one test call | Done; resumable; number now readable on the setup screen |
+| The owner finds out | The booking text reaches the owner's phone | **Blocked by carriers until toll-free verification passes.** Email works. |
+| Run the day | Command, jobs, dispatch, follow-up | Done enough to launch; owners can now book their own work and drag to reassign |
+| It pays for itself | Price above unit cost at real usage | **Unknown until now.** Pricing was set against competitors, never against cost |
+
+**The bottleneck is not the product.** Making a better dashboard raises a
+component, not the output. Two links cap the whole chain: (1) the owner text,
+a carrier rule we can't engineer around, only clear (S6); and (2) hearing it as
+your own business (G5), which is one switch in Vapi. Until both are true, more
+features don't create more paying shops.
+
+**Do the math before trusting the price.** At list prices a call costs roughly
+$0.25–0.90 (Vapi at ~$0.10–0.30/min plus the phone leg, 2–3 minute calls).
+Line charges $0.66 per included call, and overage is $0.50. At the high end,
+overage loses money on every call, and Line breaks even at its allowance. That
+was a guess, so every call now stores Vapi's reported cost, and the Monday
+board shows cost per call, overage margin, and each plan's margin if a shop
+uses every included call (`src/lib/call-cost.ts`). The price changes when the
+first 30 days of real calls say it should, not before.
+
+**The first buildable move, in order:**
+
+1. Clear the two blockers (toll-free verification, the Vapi switch). Founder,
+   no code.
+2. One real shop runs on Orvius for two weeks. Its numbers on the board are the
+   story: calls, booked jobs, money collected, cost per call.
+3. Record the raw launch video from that shop's real night (I1), then open
+   channels.
+4. Reprice from measured cost before scaling paid acquisition; money through the
+   platform (deposits, invoices) is what funds Stage 2.
+
+**What is known vs. hoped.** Known: the product answers, books, dispatches and
+bills in code and in tests; production checks pass daily. Not yet known:
+booking rate on real calls, cost per call, retention after two billing cycles,
+and whether owners pay for the operating system or only the receptionist. The
+stages below are a plan to test, not a forecast.
+
 ## Stage 1 — Launch for everyone
 
 **Goal:** any business can sign up, hear Orvius answer as itself, and go live
@@ -165,7 +211,7 @@ spend more each year than the last. **$500M–1B a year.**
 | Texts blocked by carriers | Toll-free verification now; 10DLC and dedicated numbers as volume grows |
 | Big platforms (Google, Square) building their own | Be faster and better on calls; partner with them where they'd rather bundle than build |
 | Regulated industries (medical, legal) | Front desk only: book and route, never give medical or legal advice, no health records |
-| Voice AI cost per call | Reply latency is tracked per call; add cost per call and switch models as prices fall |
+| Voice AI cost per call | Every call stores Vapi's reported cost; the Monday board shows cost per call and plan margins. Switch the most expensive stage's model first |
 | Overclaiming | The site claims only what is live; every claim is checked against production before a post |
 
 ## Rules
