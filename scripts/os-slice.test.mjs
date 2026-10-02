@@ -222,8 +222,11 @@ test("human takeover: Orvius goes quiet for that customer, the owner can still t
   assert.equal(owner.sent, true);
 
   const board = await buildCommandBoard(shop.id);
-  assert.ok(board.lanes.exceptions.some((i) => i.exception === "takeover"));
   assert.ok(board.lanes.requests.find((i) => i.leadId === call.leadId)?.takenOver);
+  assert.ok(
+    !board.lanes.exceptions.some((i) => i.exception === "takeover"),
+    "the customer's own card says it is taken over; a second card would be noise",
+  );
 
   await releaseConversation({ businessId: shop.id, phone: "+13125550144", by });
   assert.equal((await sendCustomerSms({ businessId: shop.id, to: "+13125550144", body: "Back to Orvius" })).sent, true);

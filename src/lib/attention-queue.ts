@@ -648,7 +648,8 @@ export async function getAttentionQueue(
               : estimate.status === "accepted"
                 ? "Accepted but not booked or paid — call to lock in the visit."
                 : "Quote sent, no answer yet — call before they pick someone else.",
-        recommendedAction: "Call to collect",
+        recommendedAction:
+          estimate.status !== "payment_failed" && jobStatus === "completed" && estimate.jobId ? "Send invoice" : "Call to collect",
         href: estimate.jobId
           ? `/dashboard/jobs/${estimate.jobId}`
           : estimate.leadId
@@ -1048,7 +1049,8 @@ export async function getAttentionQueue(
       !job.customerConfirmedAt &&
       !waitingOnCustomer &&
       (job.status === "scheduled" || job.status === "confirmed") &&
-      job.scheduledAt
+      job.scheduledAt &&
+      job.scheduledAt > now
     ) {
       items.push({
         id: `needs_customer_confirm:${job.id}`,

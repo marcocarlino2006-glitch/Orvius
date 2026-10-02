@@ -59,12 +59,12 @@ export default async function SignInPage({
           </div>
 
           <h2 className="ov-signin-pitch">
-            The night shift already ran. Here is what it did.
+            Run your day in Orvius.
           </h2>
           <p className="ov-signin-pitch-sub">
-            Orvius answers after-hours and overflow calls, captures the request,
-            proposes an open window, and alerts the owner — then writes one
-            record the shop can act on in the morning.
+            The receptionist answers your calls and brings in the work. Command
+            schedules it, coordinates your people, follows up with customers and
+            shows you what actually happened.
           </p>
 
           <SignInBoard />
