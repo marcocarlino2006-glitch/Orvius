@@ -632,12 +632,130 @@ export async function createJobFromLead(params: {
   return job;
 }
 
+/**
+ * Work the owner booked themselves — a call to their own cell, a walk-in, a
+ * repeat customer. It has no lead, so it never counts as work Orvius brought
+ * in, but it gets the same tech assignment and customer confirmation.
+ */
+export async function createOwnerJob(params: {
+  businessId: string;
+  name?: string | null;
+  phone: string;
+  serviceType: string;
+  address?: string | null;
+  notes?: string | null;
+  scheduledAt: Date;
+  technicianId?: string | null;
+}) {
+  const business = await prisma.business.findUniqueOrThrow({
+    where: { id: params.businessId },
+    select: { id: true, name: true, servicesJson: true, hoursJson: true, timezone: true, trade: true },
+  });
+  const name = params.name?.trim() || null;
+  const address = params.address?.trim() || null;
+  const notes = params.notes?.trim() || null;
+  const customer = await linkTouchToCustomer({
+    businessId: business.id,
+    phone: params.phone,
+    name,
+    address,
+    notes,
+  });
+  const playbook = classifyRequest({ business, serviceType: params.serviceType, notes, urgency: null });
+  const durationMin = playbook.service.durationMin;
+  const demand = deriveDemandSignal({
+    serviceType: params.serviceType,
+    notes,
+    address,
+    trade: tradeForCapture(business),
+  });
+
+  let job = await prisma.job.create({
+    data: {
+      businessId: business.id,
+      customerId: customer?.id ?? null,
+      technicianId: params.technicianId ?? null,
+      title: jobTitle({ serviceType: params.serviceType, name }),
+      serviceType: params.serviceType,
+      address,
+      notes,
+      status: "scheduled",
+      scheduledAt: params.scheduledAt,
+      durationMin,
+      categoryCode: demand.categoryCode,
+      postalCode: demand.postalCode,
+    },
+  });
+
+  const link = { businessId: business.id, callId: null, leadId: null, customerId: customer?.id ?? null, jobId: job.id };
+  const audit = createAuditQueue();
+  audit.add({
+    ...link,
+    entityType: "job",
+    entityId: job.id,
+    actor: "owner",
+    action: "job.booked",
+    summary: `Booked by the owner — ${params.serviceType}, ${formatShopTime(params.scheduledAt, business.timezone ?? "America/New_York")}`,
+    detail: { scheduledAt: params.scheduledAt.toISOString(), durationMin, chosenBy: "owner" },
+    idempotencyKey: `job:${job.id}:booked`,
+  });
+
+  if (params.technicianId) {
+    const techId = params.technicianId;
+    await afterResponse(async () => {
+      try {
+        await notifyTechOnAssign({ jobId: job.id, previousTechnicianId: null, nextTechnicianId: techId });
+      } catch (error) {
+        logWarn("job.owner_assign_notify_error", {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      }
+    });
+  } else {
+    job = (
+      await autoAssignTechnician({
+        job: { id: job.id, scheduledAt: params.scheduledAt, durationMin, technicianId: null },
+        skill: playbook.service.skill,
+        link,
+        audit,
+      })
+    ).job;
+  }
+  await audit.flush();
+
+  const bookedJobId = job.id;
+  await afterResponse(async () => {
+    try {
+      const confirm = await sendCustomerConfirmSms(bookedJobId, { firstOnly: true });
+      await recordAudit({
+        ...link,
+        entityType: "job",
+        entityId: bookedJobId,
+        action: confirm.sent ? "customer.confirmation_sent" : "customer.confirmation_skipped",
+        summary: confirm.sent
+          ? "Texted the customer the proposed window to confirm"
+          : `Customer confirmation not sent (${(confirm.reason ?? "unknown").replace(/_/g, " ")})`,
+        detail: { reason: confirm.reason ?? null },
+        idempotencyKey: `job:${bookedJobId}:confirmation`,
+      });
+    } catch (error) {
+      logWarn("job.customer_confirm_sms_error", {
+        jobId: bookedJobId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
+  });
+
+  return job;
+}
+
 async function autoAssignTechnician(params: {
   job: { id: string; scheduledAt: Date; durationMin: number; technicianId: string | null };
   skill: string;
   /** false while Orvius may still move the job to another slot. */
   recordUnassigned?: boolean;
-  link: { businessId: string; callId: string | null; leadId: string; customerId: string | null; jobId: string };
+  link: { businessId: string; callId: string | null; leadId: string | null; customerId: string | null; jobId: string };
   audit: AuditQueue;
 }) {
   const { job, link } = params;

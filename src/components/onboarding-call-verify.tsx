@@ -1,6 +1,6 @@
 "use client";
 
-import { telHref } from "@/lib/demo-line";
+import { displayLine, telHref } from "@/lib/demo-line";
 import { markFirstNightPending } from "@/components/first-night-handoff";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { useRouter } from "next/navigation";
@@ -134,7 +134,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
       <p className="onboarding-verify-shop font-sans">{shopName}</p>
 
       <a href={telHref(line)} className="onboarding-hero-line font-sans">
-        {line}
+        {displayLine(line)}
       </a>
 
       {!verified ? (

@@ -319,10 +319,21 @@ function PrimaryAction({
       <JobStatusAdvance jobId={item.entityId} status={item.meta!.status!} onAdvanced={() => onAction?.()} compact />
     );
   }
+  if (item.recommendedAction === "Send invoice") {
+    return (
+      <Link href={item.href} className={primary}>
+        Send invoice
+      </Link>
+    );
+  }
   if (canCall(item)) {
     return (
       <a href={telHref(item.meta!.phone!)} className={primary}>
-        {item.kind === "tech_no_show" ? "Call tech" : "Call back"}
+        {item.kind === "tech_no_show"
+          ? "Call tech"
+          : item.recommendedAction?.startsWith("Call")
+            ? item.recommendedAction
+            : "Call back"}
       </a>
     );
   }

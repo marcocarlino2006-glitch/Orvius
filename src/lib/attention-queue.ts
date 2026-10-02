@@ -648,7 +648,8 @@ export async function getAttentionQueue(
               : estimate.status === "accepted"
                 ? "Accepted but not booked or paid — call to lock in the visit."
                 : "Quote sent, no answer yet — call before they pick someone else.",
-        recommendedAction: "Call to collect",
+        recommendedAction:
+          estimate.status !== "payment_failed" && jobStatus === "completed" && estimate.jobId ? "Send invoice" : "Call to collect",
         href: estimate.jobId
           ? `/dashboard/jobs/${estimate.jobId}`
           : estimate.leadId
@@ -1048,7 +1049,8 @@ export async function getAttentionQueue(
       !job.customerConfirmedAt &&
       !waitingOnCustomer &&
       (job.status === "scheduled" || job.status === "confirmed") &&
-      job.scheduledAt
+      job.scheduledAt &&
+      job.scheduledAt > now
     ) {
       items.push({
         id: `needs_customer_confirm:${job.id}`,
@@ -1221,12 +1223,6 @@ export async function getAttentionQueue(
     }
   }
 
-  const busyTechIds = new Set(
-    activeJobs
-      .filter((j) => j.technicianId && j.status !== "completed")
-      .map((j) => j.technicianId as string),
-  );
-
   for (const tech of crew) {
     if (!tech.isActive) continue;
     if (!tech.phone?.trim()) {
@@ -1243,30 +1239,8 @@ export async function getAttentionQueue(
         entityId: tech.id,
         createdAt: now.toISOString(),
       });
-      continue;
     }
-    if (busyTechIds.has(tech.id)) continue;
-    items.push({
-      id: `available_tech:${tech.id}`,
-      kind: "available_tech",
-      rank: kindRank("available_tech", null, afterHours),
-      impact: "med",
-      title: tech.name,
-      detail: `Available · ${tech.phone}`,
-      recommendedAction: "Open dispatch",
-      href: "/dashboard/dispatch",
-      entityType: "technician",
-      entityId: tech.id,
-      createdAt: now.toISOString(),
-      meta: { phone: tech.phone },
-    });
   }
 
-  // Suppress "crew free" noise when unassigned jobs already need those techs
-  const hasUnassigned = items.some((i) => i.kind === "unassigned_job");
-  const filtered = hasUnassigned
-    ? items.filter((i) => i.kind !== "available_tech")
-    : items;
-
-  return rollUpByPerson(filtered.sort((a, b) => a.rank - b.rank)).slice(0, limit);
+  return rollUpByPerson(items.sort((a, b) => a.rank - b.rank)).slice(0, limit);
 }

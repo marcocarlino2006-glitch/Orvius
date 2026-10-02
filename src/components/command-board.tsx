@@ -142,6 +142,18 @@ function ItemRow({ item, demo, onChange }: { item: BoardItem; demo: boolean; onC
       onChange();
     });
 
+  const markDone = () =>
+    run(async () => {
+      const res = await fetch(`/api/jobs/${item.jobId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "completed" }),
+      });
+      if (!res.ok) throw new Error(((await res.json().catch(() => null)) as { error?: string } | null)?.error ?? "Could not close the job");
+      toast({ title: "Marked done" });
+      onChange();
+    });
+
   const confirmAsCustomer = () =>
     run(async () => {
       await post("/api/command/simulate", { confirmJobId: item.jobId });
@@ -188,6 +200,16 @@ function ItemRow({ item, demo, onChange }: { item: BoardItem; demo: boolean; onC
             <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}>
               {item.jobId ? "Move" : "Propose a time"}
             </button>
+          ) : null}
+          {item.exception === "stale" && item.jobId ? (
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void markDone()}>
+              Mark done
+            </button>
+          ) : null}
+          {item.exception === "stale" && item.techPhone ? (
+            <a href={`tel:${item.techPhone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+              Call tech
+            </a>
           ) : null}
           {demo && item.lane === "proposed" && item.jobId && item.confirm !== "failed" ? (
             <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void confirmAsCustomer()}>

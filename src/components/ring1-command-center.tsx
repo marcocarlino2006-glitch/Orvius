@@ -6,8 +6,19 @@ import { CommandSignals } from "@/components/command-signals";
 import { CommandBoard } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
+import type { AttentionItem } from "@/lib/attention-types";
 import type { Handled } from "@/lib/autopilot";
 import { useRing1 } from "@/lib/ring1-context";
+
+/* A late, unstarted job is already an Exceptions card with Move, Mark done and Call tech,
+   and unfinished line setup is already the banner above the board. */
+function shownElsewhere(item: AttentionItem) {
+  if (item.kind === "needs_capture") return true;
+  return (
+    (item.kind === "tech_no_show" || item.kind === "appointment_at_risk") &&
+    (item.meta?.status === "scheduled" || item.meta?.status === "confirmed")
+  );
+}
 
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
@@ -49,7 +60,10 @@ export function Ring1CommandCenter() {
   }
 
   const work = useMemo(
-    () => groupWorkItems(data?.attention ?? []).filter((w) => !w.id.startsWith("incident:")),
+    () =>
+      groupWorkItems((data?.attention ?? []).filter((item) => !shownElsewhere(item))).filter(
+        (w) => !w.id.startsWith("incident:"),
+      ),
     [data?.attention],
   );
   const signals = useMemo(

@@ -1,5 +1,5 @@
 import { recordAudit, type AuditActor } from "@/lib/audit";
-import { normalizePhone } from "@/lib/customer";
+import { displayPhone, normalizePhone } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 
 export type TakeoverActor = { email: string; actor: AuditActor };
@@ -42,7 +42,7 @@ export async function takeOverConversation(params: {
     action: "conversation.taken_over",
     actor: params.by.actor,
     actorEmail: params.by.email,
-    summary: `${params.by.email} took this conversation over — Orvius stopped automated texts to ${phoneNormalized}`,
+    summary: `${params.by.email} took this conversation over — Orvius stopped automated texts to ${displayPhone(phoneNormalized)}`,
     detail: { phone: phoneNormalized, reason: params.reason ?? null },
     leadId: params.leadId ?? null,
   });

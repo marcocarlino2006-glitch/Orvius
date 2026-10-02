@@ -22,6 +22,7 @@ export type BoardItem = {
   phone?: string | null;
   urgent?: boolean;
   takenOver?: boolean;
+  techPhone?: string | null;
   exception?: ExceptionKind;
   /** For proposed jobs: where the confirmation text stands. */
   confirm?: "not_sent" | "sent" | "failed" | "confirmed";
@@ -84,7 +85,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
         customerConfirmedAt: true,
         customerConfirmSentAt: true,
         customerConfirmFailedAt: true,
-        technician: { select: { name: true } },
+        technician: { select: { name: true, phone: true } },
         customer: { select: { name: true, phone: true } },
         lead: { select: { name: true, phone: true } },
         _count: { select: { deposits: true, invoices: true } },
@@ -171,6 +172,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       phone,
       urgent: job.urgency === "emergency",
       takenOver: takenPhones.has(phoneKey(phone)),
+      techPhone: job.technician?.phone ?? null,
     };
     const isConfirmed = Boolean(job.customerConfirmedAt) || job.status === "confirmed";
     const started = job.status === "en_route" || job.status === "on_site";
@@ -325,13 +327,25 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       jobId: a.jobId,
     });
   }
+  const onBoard = new Set(
+    [...requests, ...proposed, ...confirmed, ...exceptions].map((item) => phoneKey(item.phone)).filter(Boolean),
+  );
+  const nameFor = new Map<string, string>();
+  for (const lead of leads) if (lead.name) nameFor.set(phoneKey(lead.phone), lead.name);
+  for (const job of jobs) {
+    const name = job.customer?.name ?? job.lead?.name;
+    const phone = phoneKey(job.customer?.phone ?? job.lead?.phone);
+    if (name && phone && !nameFor.has(phone)) nameFor.set(phone, name);
+  }
   for (const t of takeovers) {
+    /* The person's own card already carries "You have it". */
+    if (onBoard.has(t.phoneNormalized)) continue;
     exceptions.push({
       id: `takeover:${t.id}`,
       lane: "exceptions",
       exception: "takeover",
-      title: `${t.takenBy} is handling ${t.phoneNormalized}`,
-      detail: "Orvius is holding automated texts to this customer until it's handed back.",
+      title: `${who(nameFor.get(t.phoneNormalized) ?? null, t.phoneNormalized)} · texts paused`,
+      detail: `${t.takenBy} took over this conversation. Orvius holds automated texts until it's handed back.`,
       at: t.createdAt.toISOString(),
       leadId: t.leadId,
       phone: t.phoneNormalized,
