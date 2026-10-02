@@ -4,10 +4,11 @@ import { OnboardingCallVerify } from "@/components/onboarding-call-verify";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { company } from "@/lib/company";
 import { readPreviewDraft } from "@/lib/preview-draft";
-import { TRADES, type Trade } from "@/lib/trades";
+import { getPlanById, type BillingInterval, type PaidPlanId } from "@/lib/pricing-plans";
+import { TRADES, isTrade, type Trade } from "@/lib/trades";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type ResumePayload = {
   provisioned?: boolean;
@@ -20,16 +21,39 @@ type ResumePayload = {
   } | null;
 };
 
+const SETUP_DRAFT_KEY = "orvius:setup-draft";
+const PAID_PLANS: PaidPlanId[] = ["line", "pro", "fleet"];
+
+type SetupDraft = { name: string; trade: Trade; ownerPhone: string; areaCode: string };
+
+function readSetupDraft(): SetupDraft | null {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(SETUP_DRAFT_KEY) ?? "null") as SetupDraft | null;
+    return parsed && typeof parsed.name === "string" ? { ...parsed, trade: isTrade(parsed.trade) ? parsed.trade : "HVAC" } : null;
+  } catch {
+    return null;
+  }
+}
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
- * Frictionless tunnel: one form → create line → one call → Command.
- * No welcome rings, no separate alerts/live screens, no capture teach-before-prove.
+ * One form, then the card, then the line. The shop details travel with the
+ * checkout, so coming back from Stripe builds the line with nothing to type;
+ * the form only reappears for a checkout that carried no details.
  */
 export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boolean } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlSessionId = searchParams.get("session_id")?.trim() ?? "";
+  const planParam = searchParams.get("plan") as PaidPlanId | null;
+  const planId: PaidPlanId = planParam && PAID_PLANS.includes(planParam) ? planParam : "pro";
+  const interval: BillingInterval = searchParams.get("interval") === "year" ? "year" : "month";
+  const canceled = searchParams.get("canceled") === "1";
+  const [building, setBuilding] = useState(false);
   const [recoveredSessionId, setRecoveredSessionId] = useState("");
   const checkoutSessionId = urlSessionId || recoveredSessionId;
+  const recoveredRef = useRef("");
   const [name, setName] = useState("");
   const [trade, setTrade] = useState<Trade>("HVAC");
   const [ownerPhone, setOwnerPhone] = useState("");
@@ -80,7 +104,10 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     if (!res.ok) return false;
     const json = (await res.json()) as ResumePayload;
     if (!json.provisioned || !json.business) {
-      if (json.checkoutSessionId) setRecoveredSessionId(json.checkoutSessionId);
+      if (json.checkoutSessionId) {
+        recoveredRef.current = json.checkoutSessionId;
+        setRecoveredSessionId(json.checkoutSessionId);
+      }
       return false;
     }
 
@@ -103,20 +130,121 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     return true;
   }, [router]);
 
+  /* Coming back from Stripe: build from the details on the checkout. The
+     webhook may already be building it, so busy or not-yet-paid means wait
+     and look again rather than fail. */
+  const buildFromCheckout = useCallback(
+    async (sessionId: string) => {
+      setBuilding(true);
+      setError(null);
+      try {
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          const res = await fetch("/api/onboarding", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ checkoutSessionId: sessionId }),
+          });
+          const json = (await res.json().catch(() => ({}))) as { error?: string; code?: string; line?: string | null };
+          if (res.ok) {
+            window.localStorage.removeItem(SETUP_DRAFT_KEY);
+            if (json.line) setProvisionedLine(json.line);
+            else router.replace("/dashboard");
+            return;
+          }
+          if (json.code === "shop_details_needed") return;
+          if (res.status !== 409 && res.status !== 402) {
+            setError(json.error ?? "Setup failed. Try again.");
+            return;
+          }
+          for (let look = 0; look < 12; look += 1) {
+            await wait(2500);
+            if (await resumeExisting()) {
+              window.localStorage.removeItem(SETUP_DRAFT_KEY);
+              return;
+            }
+          }
+          if (attempt === 1) setError(json.error ?? "Setup is taking longer than usual. Refresh in a minute.");
+        }
+      } catch {
+        setError("Network error. Check your connection and refresh.");
+      } finally {
+        setBuilding(false);
+      }
+    },
+    [resumeExisting, router],
+  );
+
   useEffect(() => {
     void resumeExisting()
       .then((resumed) => {
         if (resumed) return;
+        const saved = readSetupDraft();
         const draft = readPreviewDraft();
-        if (draft?.shopName) setName((current) => current || draft.shopName);
-        if (draft?.ownerPhone) setOwnerPhone((current) => current || draft.ownerPhone);
-        if (draft?.trade) setTrade(draft.trade);
+        const shopName = saved?.name || draft?.shopName;
+        const phone = saved?.ownerPhone || draft?.ownerPhone;
+        if (shopName) setName((current) => current || shopName);
+        if (phone) setOwnerPhone((current) => current || phone);
+        if (saved?.trade) setTrade(saved.trade);
+        else if (draft?.trade) setTrade(draft.trade);
+        if (saved?.areaCode) {
+          setAreaCode(saved.areaCode);
+          setAreaCodeTouched(true);
+        }
+        const paidSession = urlSessionId || recoveredRef.current;
+        if (paidSession) void buildFromCheckout(paidSession);
       })
       .catch(() => {
         /* New shops continue with the normal form. */
       })
       .finally(() => setResuming(false));
-  }, [resumeExisting]);
+  }, [resumeExisting, buildFromCheckout, urlSessionId]);
+
+  async function continueToPayment() {
+    setSubmitting(true);
+    setError(null);
+    const shop = {
+      name: name.trim(),
+      trade,
+      ownerPhone: ownerPhone.trim(),
+      ...(/^[2-9]\d{2}$/.test(areaCode) ? { areaCode } : {}),
+      ...(pickedNumber ? { phoneNumber: pickedNumber } : {}),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      acceptedTerms,
+      acceptedSms,
+    };
+    try {
+      window.localStorage.setItem(
+        SETUP_DRAFT_KEY,
+        JSON.stringify({ name: shop.name, trade, ownerPhone: shop.ownerPhone, areaCode }),
+      );
+    } catch {
+      /* Private mode: a canceled checkout just starts the form blank. */
+    }
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId, interval, shop }),
+      });
+      const json = (await res.json().catch(() => ({}))) as { url?: string; error?: string; code?: string; manageUrl?: string };
+      if (res.ok && json.url) {
+        window.location.href = json.url;
+        return;
+      }
+      if (res.status === 401) {
+        window.location.href = `/signin?mode=signup&callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return;
+      }
+      if (json.code === "already_subscribed" && json.manageUrl) {
+        window.location.href = json.manageUrl;
+        return;
+      }
+      setError(json.error ?? "Checkout isn't available right now. Try again.");
+    } catch {
+      setError("Network error. Check your connection and try again.");
+    }
+    setSubmitting(false);
+  }
 
   async function finish() {
     setSubmitting(true);
@@ -130,6 +258,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
           name: name.trim(),
           trade,
           ownerPhone: ownerPhone.trim(),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           checkoutSessionId,
           ...(/^[2-9]\d{2}$/.test(areaCode) ? { areaCode } : {}),
           ...(pickedNumber ? { phoneNumber: pickedNumber } : {}),
@@ -183,7 +312,31 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     );
   }
 
-  if (!checkoutSessionId && !provisionedLine) {
+  const paying = !checkoutSessionId && !provisionedLine;
+  const plan = getPlanById(planId);
+  const planPrice = interval === "year" ? (plan.annualPrice ?? plan.price) : plan.price;
+
+  if (building && !provisionedLine) {
+    return (
+      <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
+        <div className="onboarding-glow" aria-hidden />
+        <div className="onboarding-frame">
+          <header className="onboarding-header">
+            <OrviusLogo size="md" variant="void" />
+            <p className="onboarding-eyebrow font-sans">{company.productName} setup</p>
+          </header>
+          <div className="onboarding-panel" aria-busy="true">
+            <h1 className="onboarding-title font-sans">Paid. Building {name.trim() || "your shop"}&apos;s line.</h1>
+            <p className="onboarding-lead font-sans" aria-live="polite">
+              Getting your number and setting up your receptionist. This usually takes under a minute; nothing to fill in.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (paying && !checkoutOpen) {
     return (
       <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
         <div className="onboarding-glow" aria-hidden />
@@ -195,31 +348,15 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
             </p>
           </header>
           <div className="onboarding-panel">
-            {checkoutOpen ? (
-              <>
-                <h1 className="onboarding-title font-sans">Pay first, then your line.</h1>
-                <p className="onboarding-lead font-sans">
-                  One paid plan unlocks a dedicated number. No surprise phone charge.
-                </p>
-                <div className="onboarding-actions">
-                  <Link href="/pricing" className="btn btn-void font-sans">
-                    Pay with card
-                  </Link>
-                </div>
-              </>
-            ) : (
-              <>
-                <h1 className="onboarding-title font-sans">We set up new shops with you.</h1>
-                <p className="onboarding-lead font-sans">
-                  Card signup isn&apos;t open yet. Book a call audit and we&apos;ll get your line answering with you on the call.
-                </p>
-                <div className="onboarding-actions">
-                  <Link href="/pilot" className="btn btn-void font-sans">
-                    Book a call audit
-                  </Link>
-                </div>
-              </>
-            )}
+            <h1 className="onboarding-title font-sans">We set up new shops with you.</h1>
+            <p className="onboarding-lead font-sans">
+              Card signup isn&apos;t open yet. Book a call audit and we&apos;ll get your line answering with you on the call.
+            </p>
+            <div className="onboarding-actions">
+              <Link href="/pilot" className="btn btn-void font-sans">
+                Book a call audit
+              </Link>
+            </div>
           </div>
         </div>
       </main>
@@ -243,8 +380,15 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
             <>
               <h1 className="onboarding-title font-sans">Get your shop line.</h1>
               <p className="onboarding-lead font-sans">
-                Enter your shop name and mobile. We assign your number, then one test call lets you hear it answer.
+                {paying
+                  ? "Your shop name and mobile, then your card. Your number and receptionist are ready when you're back."
+                  : "Payment received. Enter your shop name and mobile to get your number."}
               </p>
+              {canceled && paying ? (
+                <p className="onboarding-hint font-sans" role="status">
+                  Checkout closed before payment. Nothing was charged; your details are still here.
+                </p>
+              ) : null}
 
               <div className="onboarding-form">
                 <label className="onboarding-field font-sans">
@@ -351,8 +495,14 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
               </div>
 
               <p className="onboarding-footnote font-sans">
-                Paid subscription · verified. We assign a dedicated local number —
-                callers hear your shop name.
+                {paying ? (
+                  <>
+                    {plan.name} · ${planPrice}/mo{interval === "year" ? ", billed yearly" : ""} ·{" "}
+                    <Link href="/pricing">Change plan</Link>. Callers hear your shop name on your own local number.
+                  </>
+                ) : (
+                  "Paid subscription · verified. We assign a dedicated local number — callers hear your shop name."
+                )}
               </p>
 
               <div className="onboarding-consent font-sans">
@@ -394,9 +544,15 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                   type="button"
                   className="btn btn-void onboarding-btn-primary font-sans"
                   disabled={!canCreate}
-                  onClick={() => void finish()}
+                  onClick={() => void (paying ? continueToPayment() : finish())}
                 >
-                  {submitting ? "Creating your line…" : "Create my shop line"}
+                  {paying
+                    ? submitting
+                      ? "Opening checkout…"
+                      : "Continue to payment"
+                    : submitting
+                      ? "Creating your line…"
+                      : "Create my shop line"}
                 </button>
               </div>
             </>

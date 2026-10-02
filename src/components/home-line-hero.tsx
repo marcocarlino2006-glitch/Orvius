@@ -39,7 +39,7 @@ function LiveLineDigits({ display }: { display: string }) {
  * Brand lives in the nav — not restated above the headline.
  * Dialable live line stays as the proof Cursor can’t ship.
  */
-export function HomeLineHero() {
+export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
   return (
     <section className="ov-hero ov-hero--atmosphere ov-hero--center" aria-labelledby="home-hero-heading">
       <div className="ov-hero-sky" aria-hidden>
@@ -60,17 +60,34 @@ export function HomeLineHero() {
           </p>
 
           <div className="ov-hero-actions">
-            <Link href="/watch" className="ov-btn ov-btn--solid ov-hero-cta-primary" data-i18n="hero.watch">
-              Watch it run a shop
-            </Link>
-            <a
-              href={demoLineHref()}
-              className="ov-btn ov-btn--quiet ov-hero-cta-secondary"
-              aria-label={`Call the Orvius night shift line at ${DEMO_LINE_DISPLAY}`}
-              data-i18n="hero.cta"
-            >
-              Call the live line
-            </a>
+            {signupOpen ? (
+              <>
+                <Link
+                  href="/signup?callbackUrl=%2Fdashboard%2Fonboarding"
+                  className="ov-btn ov-btn--solid ov-hero-cta-primary"
+                  data-i18n="hero.getLine"
+                >
+                  Get your line
+                </Link>
+                <Link href="/watch" className="ov-btn ov-btn--quiet ov-hero-cta-secondary" data-i18n="hero.watch">
+                  Watch it run a shop
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/watch" className="ov-btn ov-btn--solid ov-hero-cta-primary" data-i18n="hero.watch">
+                  Watch it run a shop
+                </Link>
+                <a
+                  href={demoLineHref()}
+                  className="ov-btn ov-btn--quiet ov-hero-cta-secondary"
+                  aria-label={`Call the Orvius night shift line at ${DEMO_LINE_DISPLAY}`}
+                  data-i18n="hero.cta"
+                >
+                  Call the live line
+                </a>
+              </>
+            )}
           </div>
 
           <a

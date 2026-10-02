@@ -42,6 +42,12 @@ export const translations: Record<string, Record<Lang, string>> = {
     fr: "Regardez-le gérer une entreprise",
     de: "Sehen Sie es einen Betrieb führen",
   },
+  "hero.getLine": {
+    en: "Get your line",
+    es: "Consigue tu línea",
+    fr: "Obtenez votre ligne",
+    de: "Ihre Leitung holen",
+  },
   "hero.try": {
     en: "Hear it as your business",
     es: "Escúchelo como su negocio",

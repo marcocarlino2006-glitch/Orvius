@@ -39,17 +39,13 @@ export function CheckoutButton({
   const [email, setEmail] = useState(emailProp);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [needsEmail, setNeedsEmail] = useState(false);
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
 
   const buttonLabel = label ?? "Pay with card";
 
   useEffect(() => {
-    if (emailProp) {
-      setEmail(emailProp);
-      setNeedsEmail(false);
-    }
+    if (emailProp) setEmail(emailProp);
   }, [emailProp]);
 
   useEffect(() => {
@@ -97,11 +93,7 @@ export function CheckoutButton({
 
   async function startCheckout(submittedEmail?: string) {
     const checkoutEmail = (submittedEmail ?? email).trim();
-    if (!checkoutEmail) {
-      setNeedsEmail(true);
-      setError("Enter the email on your Orvius account.");
-      return;
-    }
+    const setupUrl = `/dashboard/onboarding?plan=${planId}&interval=${interval}`;
 
     setLoading(true);
     setError(null);
@@ -110,14 +102,17 @@ export function CheckoutButton({
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: checkoutEmail, planId, interval }),
+        body: JSON.stringify({ ...(checkoutEmail ? { email: checkoutEmail } : {}), planId, interval }),
       });
       const data = await res.json();
 
       if (!res.ok) {
         if (res.status === 401) {
-          const callbackUrl = `/pricing?plan=${planId}&interval=${interval}`;
-          window.location.href = `/signin?mode=signup&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+          window.location.href = `/signin?mode=signup&callbackUrl=${encodeURIComponent(setupUrl)}`;
+          return;
+        }
+        if (res.status === 409 && data.code === "shop_details_needed") {
+          window.location.href = data.setupUrl ?? setupUrl;
           return;
         }
         if (res.status === 409 && data.code === "already_subscribed" && data.manageUrl) {
@@ -185,41 +180,16 @@ export function CheckoutButton({
 
   return (
     <div className={className}>
-      {needsEmail && !emailProp ? (
-        <div className="space-y-3">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
-            autoComplete="email"
-            inputMode="email"
-            className="input"
-          />
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => startCheckout()}
-            className={`inst-btn w-full justify-center ${
-              variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
-            } ${loading ? "opacity-70" : ""}`}
-          >
-            {loading ? "Opening checkout…" : buttonLabel}
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          disabled={loading}
-          onClick={() => startCheckout()}
-          className={`inst-btn w-full justify-center ${
-            variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
-          } ${loading ? "opacity-70" : ""}`}
-        >
-          {loading ? "Opening checkout…" : buttonLabel}
-        </button>
-      )}
+      <button
+        type="button"
+        disabled={loading}
+        onClick={() => startCheckout()}
+        className={`inst-btn w-full justify-center ${
+          variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
+        } ${loading ? "opacity-70" : ""}`}
+      >
+        {loading ? "Opening checkout…" : buttonLabel}
+      </button>
 
       {error ? (
         <p className="mt-3 font-sans text-sm text-flare-dim">

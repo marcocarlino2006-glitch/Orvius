@@ -76,7 +76,9 @@ test("self-serve activation has no implicit pilot", () => {
     "utf8",
   );
 
-  assert.match(onboarding, /getPaidCheckoutActivation/);
+  const checkoutShop = readFileSync(new URL("../src/lib/checkout-shop.ts", import.meta.url), "utf8");
+  assert.match(onboarding, /provisionFromCheckout\(/);
+  assert.match(checkoutShop, /resolvePaidCheckoutActivation\(session, subscription, email\)/);
   assert.match(onboarding, /paid_checkout_required/);
   assert.match(provision, /billingStatus: "active"/);
   assert.match(provision, /pilotEndsAt: null/);
