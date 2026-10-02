@@ -2609,33 +2609,6 @@
   background: color-mix(in srgb, var(--void, #12141a) 92%, #c45c26);
   color: #f4f6f9;
 }
-.first-night-handoff-kicker {
-  margin: 0;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, #f4f6f9 70%, transparent);
-}
-.first-night-handoff-title {
-  margin: 0.35rem 0 0;
-  font-size: 1.375rem;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-}
-.first-night-handoff-detail {
-  margin: 0.55rem 0 0;
-  max-width: 36rem;
-  font-size: 0.9375rem;
-  line-height: 1.45;
-  color: color-mix(in srgb, #f4f6f9 78%, transparent);
-}
-.first-night-handoff-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  margin-top: 1rem;
-}
 @media (max-width: 720px) {
   .shop-operate-banner {
     position: sticky;
@@ -4879,64 +4852,6 @@
   min-width: 0;
 }
 
-.os-mobile-nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin-top: 0.125rem;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--void) 10%, var(--rule));
-  border-radius: var(--radius-md);
-  background: var(--white);
-  cursor: pointer;
-  transition: border-color var(--ox-dur) ease, background var(--ox-dur) ease;
-}
-
-.os-mobile-nav-btn:hover {
-  border-color: color-mix(in srgb, var(--signal) 24%, var(--rule));
-  background: color-mix(in srgb, var(--signal) 4%, var(--white));
-}
-
-.os-mobile-nav-icon {
-  position: relative;
-  display: block;
-  width: 1rem;
-  height: 0.75rem;
-}
-
-.os-mobile-nav-icon span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1.5px;
-  border-radius: 0.125rem;
-  background: var(--void);
-  transition: transform var(--ox-dur-slow) ease, opacity var(--ox-dur-slow) ease, top var(--ox-dur-slow) ease;
-}
-
-.os-mobile-nav-icon span:nth-child(1) { top: 0; }
-
-.os-mobile-nav-icon span:nth-child(2) { top: 50%; transform: translateY(-50%); }
-
-.os-mobile-nav-icon span:nth-child(3) { bottom: 0; }
-
-.os-mobile-nav-icon-open span:nth-child(1) {
-  top: 50%;
-  transform: translateY(-50%) rotate(45deg);
-}
-
-.os-mobile-nav-icon-open span:nth-child(2) {
-  opacity: 0;
-}
-
-.os-mobile-nav-icon-open span:nth-child(3) {
-  bottom: 50%;
-  transform: translateY(50%) rotate(-45deg);
-}
-
 .os-mobile-nav-backdrop {
   position: fixed;
   inset: 0;
@@ -4949,9 +4864,6 @@
 
 /* Desktop: permanent sidebar, hamburger stays off. */
 @media (min-width: 1024px) {
-  .os-mobile-nav-btn {
-    display: none;
-  }
 
   .os-mobile-nav-backdrop {
     display: none;

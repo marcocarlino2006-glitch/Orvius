@@ -5618,13 +5618,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* Shop operate banner — owner next action above Command */
 
 /* P1 — onboarding → Command cliff closed */
-@media (max-width: 720px) {
-  .first-night-handoff-actions .btn {
-    flex: 1 1 auto;
-    min-height: 44px;
-    justify-content: center;
-  }
-}
 
 @media (max-width: 720px) {
   .shop-operate-banner .btn {

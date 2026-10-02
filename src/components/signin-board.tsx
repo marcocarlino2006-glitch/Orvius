@@ -100,10 +100,7 @@ export function SignInBoard() {
     <div className="ov-signin-board" aria-hidden>
       <div className="ov-signin-board-head">
         <span className="ov-signin-board-title">Dispatch activity</span>
-        <span className="ov-status-pill ov-status-pill--operational">
-          <span className="ov-status-dot" />
-          LIVE
-        </span>
+        <span className="ov-status-pill">Example</span>
       </div>
 
       <ul className="ov-signin-feed">

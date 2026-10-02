@@ -89,7 +89,8 @@ export function HomeCompare() {
         </div>
         <p className="hx-footnote font-sans">
           ◐ Varies by provider and plan. Answering services usually take a message that someone
-          still has to call back.
+          still has to call back. Orvius texting and tech dispatch work once your texting number is
+          verified and your techs are added in setup.
         </p>
       </div>
     </section>

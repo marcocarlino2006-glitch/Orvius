@@ -64,6 +64,7 @@ export function OrviusPulse({
 
   const failed = health?.failedAlerts24h ?? 0;
   const stuck = health?.stuckPendingAlerts ?? 0;
+  const unreachable = Boolean(health && !health.alertsReachable && !referenceImplementation);
   const pastDue = (billingStatus ?? "").toLowerCase() === "past_due";
 
   return (
@@ -108,22 +109,35 @@ export function OrviusPulse({
           <PulseRow
             label="Alert delivery"
             value={
-              failed > 0
-                ? `${failed} failed in 24h`
-                : stuck > 0
-                  ? `${stuck} waiting to send`
-                  : health.lastAlertAt
-                    ? "Delivering"
-                    : "No alerts sent yet"
+              unreachable
+                ? "Nowhere to send"
+                : failed > 0
+                  ? `${failed} failed in 24h`
+                  : stuck > 0
+                    ? `${stuck} waiting to send`
+                    : health.lastAlertAt
+                      ? "Delivering"
+                      : "No alerts sent yet"
             }
             detail={
-              failed > 0
-                ? "Grouped as one incident in the work queue."
-                : health.lastAlertAt
-                  ? `Last delivered ${formatAge(health.lastAlertAt, now)} ago`
+              unreachable
+                ? "No text or email can reach you yet."
+                : failed > 0
+                  ? "Grouped as one incident in the work queue."
+                  : health.lastAlertAt
+                  ? `Last delivered ${formatAge(health.lastAlertAt, now)} ago${
+                      health.alertLatencyP95Sec != null ? ` · 95% within ${health.alertLatencyP95Sec}s` : ""
+                    }`
                   : null
             }
-            tone={failed > 0 ? "risk" : stuck > 0 ? "attention" : health.lastAlertAt ? "ok" : "neutral"}
+            tone={unreachable || failed > 0 ? "risk" : stuck > 0 ? "attention" : health.lastAlertAt ? "ok" : "neutral"}
+            action={
+              unreachable ? (
+                <Link href="/dashboard?settings=notifications" className="ox-btn ox-btn--quiet ox-btn--sm">
+                  Fix
+                </Link>
+              ) : null
+            }
           />
         </>
       )}
