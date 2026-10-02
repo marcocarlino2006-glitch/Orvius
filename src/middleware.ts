@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { authConfig, isProtectedPath } from "@/auth.config";
 import { getDomainConfig } from "@/lib/domains";
+import { ACQUISITION_COOKIE, ACQUISITION_MAX_AGE, nextAcquisition, parseAcquisition } from "@/lib/acquisition";
 import { NextResponse } from "next/server";
 
 /**
@@ -37,7 +38,28 @@ export default auth((request) => {
     return NextResponse.redirect(signin);
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  if (request.method === "GET" && !pathname.startsWith("/api") && !pathname.startsWith("/dashboard")) {
+    const domains = getDomainConfig();
+    const acquisition = nextAcquisition({
+      url: request.nextUrl,
+      referer: request.headers.get("referer"),
+      existing: parseAcquisition(request.cookies.get(ACQUISITION_COOKIE)?.value),
+      ownHosts: [domains.primary, domains.app, domains.api, domains.marketing, ...(host ? [host] : [])],
+    });
+    if (acquisition) {
+      response.cookies.set(ACQUISITION_COOKIE, JSON.stringify(acquisition), {
+        maxAge: ACQUISITION_MAX_AGE,
+        path: "/",
+        sameSite: "lax",
+        httpOnly: true,
+        secure: request.nextUrl.protocol === "https:",
+        // Shared across orvius.im and app.orvius.im so checkout on either host sees it.
+        ...(host && (host === domains.primary || host.endsWith(`.${domains.primary}`)) ? { domain: domains.primary } : {}),
+      });
+    }
+  }
+  return response;
 });
 
 export const config = {

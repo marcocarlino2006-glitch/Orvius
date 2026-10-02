@@ -11,6 +11,7 @@ import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import type Stripe from "stripe";
+import { creditReferralOnPayment } from "@/lib/referrals";
 
 /* A new shop's line is built after the response; buying a number takes seconds. */
 export const maxDuration = 60;
@@ -221,6 +222,15 @@ export async function POST(request: Request) {
           subscription,
           invoice.customer_email,
         );
+        if (event.type === "invoice.paid") {
+          // A failed credit stays pending and is retried on the shop's next paid invoice.
+          await creditReferralOnPayment({
+            customerId: typeof invoice.customer === "string" ? invoice.customer : (invoice.customer?.id ?? null),
+            amountPaidCents: invoice.amount_paid,
+          }).catch((error: unknown) => {
+            console.error("[billing.webhook] referral credit failed", error instanceof Error ? error.message : error);
+          });
+        }
         break;
       }
       case "charge.refunded": {
