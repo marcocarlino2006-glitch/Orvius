@@ -4,6 +4,7 @@ import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { getShopOutcomes, type ShopOutcomes } from "@/lib/shop-outcomes";
+import { sendSms } from "@/lib/twilio-sms";
 
 /**
  * What the owner reads on Monday morning: what the line did last week, in
@@ -57,7 +58,7 @@ export function buildWeeklyReportEmail(outcomes: ShopOutcomes, shopName: string,
   }
 
   if (outcomes.unassignedJobs > 0) {
-    lines.push("", `${plural(outcomes.unassignedJobs, "job")} still need a technician.`);
+    lines.push("", `${plural(outcomes.unassignedJobs, "job")} still ${outcomes.unassignedJobs === 1 ? "needs" : "need"} a technician.`);
   }
 
   lines.push("", `See every call: ${dashboardUrl}`, "", "— Orvius");
@@ -96,6 +97,101 @@ export async function sendDueWeeklyReports(now = new Date(), limit = 50) {
         data: { weeklyReportSentAt: shop.weeklyReportSentAt },
       });
       logWarn("weekly_report.failed", { businessId: shop.id, error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  return { sent };
+}
+
+/**
+ * The same week in one text, because the owner reads texts and skims email.
+ * Only measured counts and money that actually moved — no estimates.
+ */
+export function buildWeeklyValueText(outcomes: ShopOutcomes, shopName: string) {
+  if (outcomes.calls === 0) {
+    return (
+      `Orvius · ${shopName}: no calls reached your line in the last ${outcomes.windowDays} days. ` +
+      "If that's wrong, check that your shop number forwards to Orvius (Settings → Phone)."
+    );
+  }
+  const parts = [`${plural(outcomes.calls, "call")} answered`, `${plural(outcomes.jobsBooked, "job")} booked`];
+  if (outcomes.afterHoursBooked > 0) parts.push(`${outcomes.afterHoursBooked} of them after hours`);
+  if (outcomes.collectedCents > 0) parts.push(`${money(outcomes.collectedCents)} collected`);
+  const lines = [`Orvius · ${shopName}, last ${outcomes.windowDays} days: ${parts.join(", ")}.`];
+  if (outcomes.openInvoiceCents > 0) lines.push(`${money(outcomes.openInvoiceCents)} in bills still unpaid.`);
+  if (outcomes.unassignedJobs > 0) lines.push(`${plural(outcomes.unassignedJobs, "job")} still ${outcomes.unassignedJobs === 1 ? "needs" : "need"} a tech.`);
+  lines.push("Reply TODAY for today's board.");
+  return lines.join(" ");
+}
+
+type WeeklyTexts = { toOwner: typeof sendSms };
+
+/** Monday, 8–11 AM where the shop is: the one window the weekly text goes out. */
+export function inWeeklyTextWindow(timezone: string, now = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: timezone, weekday: "short", hour: "numeric", hourCycle: "h23" }).formatToParts(now);
+    const weekday = parts.find((p) => p.type === "weekday")?.value;
+    const hour = Number(parts.find((p) => p.type === "hour")?.value);
+    return weekday === "Mon" && hour >= 8 && hour < 11;
+  } catch {
+    return false;
+  }
+}
+
+/*
+  Driven every 30 minutes. Only zones in their Monday-morning window are
+  queried, so shops elsewhere never crowd the batch, and a budget stops the run
+  before the cron's own deadline.
+*/
+export async function sendDueWeeklyTexts(
+  options: { now?: Date; limit?: number; budgetMs?: number; texts?: WeeklyTexts } = {},
+) {
+  const now = options.now ?? new Date();
+  const texts = options.texts ?? { toOwner: sendSms };
+  const started = Date.now();
+  const zones = await prisma.business.groupBy({ by: ["timezone"], where: { isActive: true, environment: "production" } });
+  const open = zones.map((z) => z.timezone).filter((tz) => inWeeklyTextWindow(tz, now));
+  if (!open.length) return { sent: 0 };
+
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60_000);
+  const lastDue = new Date(now.getTime() - WEEKLY_REPORT_INTERVAL_MS);
+  const shops = await prisma.business.findMany({
+    where: {
+      isActive: true,
+      environment: "production",
+      timezone: { in: open },
+      ownerPhone: { not: null },
+      ownerSmsOptOutAt: null,
+      createdAt: { lte: weekAgo },
+      OR: [{ weeklyTextSentAt: null }, { weeklyTextSentAt: { lte: lastDue } }],
+    },
+    orderBy: { weeklyTextSentAt: { sort: "asc", nulls: "first" } },
+    select: { id: true, name: true, ownerPhone: true, weeklyTextSentAt: true },
+    take: options.limit ?? 300,
+  });
+  let sent = 0;
+  for (const shop of shops) {
+    if (options.budgetMs && Date.now() - started > options.budgetMs) break;
+    const claimed = await prisma.business.updateMany({
+      where: { id: shop.id, weeklyTextSentAt: shop.weeklyTextSentAt },
+      data: { weeklyTextSentAt: now },
+    });
+    if (!claimed.count || !shop.ownerPhone) continue;
+    try {
+      const outcomes = await getShopOutcomes(shop.id, 7);
+      const result = await texts.toOwner({
+        to: shop.ownerPhone,
+        businessId: shop.id,
+        audience: "owner",
+        body: buildWeeklyValueText(outcomes, shop.name),
+      });
+      if (!result) throw new Error("sms not sent");
+      sent += 1;
+    } catch (error) {
+      await prisma.business.updateMany({
+        where: { id: shop.id, weeklyTextSentAt: now },
+        data: { weeklyTextSentAt: shop.weeklyTextSentAt },
+      });
+      logWarn("weekly_text.failed", { businessId: shop.id, error: error instanceof Error ? error.message : String(error) });
     }
   }
   return { sent };

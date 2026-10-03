@@ -746,3 +746,6 @@ CREATE INDEX IF NOT EXISTS "NetworkHandoff_toBusinessId_idx" ON "NetworkHandoff"
 
 -- Payments on by default: deposits switch on once, when card payments go live.
 ALTER TABLE "Business" ADD COLUMN "paymentsDefaultedAt" DATETIME;
+
+-- Weekly value text to the owner.
+ALTER TABLE "Business" ADD COLUMN "weeklyTextSentAt" DATETIME;
