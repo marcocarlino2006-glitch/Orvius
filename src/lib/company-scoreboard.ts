@@ -6,6 +6,7 @@ import { getAppUrl } from "@/lib/env";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { countChannels, signupChannelText } from "@/lib/acquisition";
+import { densityClusters, densityText, networkReadyAreas, zip3FromAddress, type DensityCluster } from "@/lib/network-density";
 
 /**
  * The one board the company is run from, reviewed weekly. Real shops only:
@@ -48,6 +49,11 @@ export type CompanyScoreboard = {
   unitCost: UnitEconomics | null;
   /** New shops from the last 30 days by the channel that brought them. */
   signupChannels: Array<{ channel: string; count: number }>;
+  /** Active shops per three-digit ZIP area and trade, densest first. */
+  density: DensityCluster[];
+  networkReadyAreas: number;
+  /** Jobs passed between shops and taken, last 30 days. */
+  networkJobs30d: number;
 };
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : null);
@@ -98,7 +104,7 @@ function median(values: number[]): number | null {
 export async function getCompanyScoreboard(now = new Date()): Promise<CompanyScoreboard> {
   const thisStart = new Date(now.getTime() - WEEK_MS);
   const lastStart = new Date(now.getTime() - 2 * WEEK_MS);
-  const [payingShops, activeShops, thisWeek, lastWeek, recentShops, unitCost] = await Promise.all([
+  const [payingShops, activeShops, thisWeek, lastWeek, recentShops, unitCost, located, networkJobs30d] = await Promise.all([
     prisma.business.count({
       where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
     }),
@@ -115,7 +121,20 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
       take: 1000,
     }),
     unitEconomicsSince(new Date(now.getTime() - 30 * DAY_MS)),
+    prisma.business.findMany({
+      where: { ...realShop, isActive: true },
+      select: { trade: true, address: true, networkZip3: true, networkOn: true },
+      take: 20_000,
+    }),
+    prisma.networkHandoff.count({ where: { status: "taken", takenAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
   ]);
+  const density = densityClusters(
+    located.map((shop) => ({
+      trade: shop.trade,
+      zip3: shop.networkZip3 ?? zip3FromAddress(shop.address),
+      networkOn: shop.networkOn,
+    })),
+  );
 
   const minutes = recentShops
     .filter((shop) => shop.jobs[0])
@@ -131,6 +150,9 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     shopsWithoutFirstJob: recentShops.length - minutes.length,
     unitCost,
     signupChannels: countChannels(recentShops.map((shop) => shop.acquisitionJson)),
+    density,
+    networkReadyAreas: networkReadyAreas(density),
+    networkJobs30d,
   };
 }
 
@@ -156,6 +178,8 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     `Collected through Orvius: ${money(now.collectedCents)} (last week ${money(prev.collectedCents)})`,
     `Signup to first booked job: ${duration(board.signupToFirstJobMinutes)} median · ${board.shopsWithoutFirstJob} new shop(s) still without one`,
     `New shops by source, 30 days: ${signupChannelText(board.signupChannels ?? [])}`,
+    `Densest areas: ${densityText(board.density ?? [])}`,
+    `Network: ${board.networkReadyAreas ?? 0} area(s) where a pass can land · ${board.networkJobs30d ?? 0} job(s) passed and taken, 30 days`,
     ...unitCostLines(board.unitCost),
   ];
 }
