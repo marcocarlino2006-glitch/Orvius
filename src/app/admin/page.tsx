@@ -863,6 +863,36 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
       <p className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Where new shops came from">
         New shops by source, 30 days: {signupChannelText(board.signupChannels ?? [])}
       </p>
+      <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Shop density">
+        <p className="py-0.5">
+          Network: {board.networkReadyAreas ?? 0} area(s) where a pass can land · {board.networkJobs30d ?? 0} job(s)
+          passed and taken, 30 days
+        </p>
+        {(board.density ?? []).length ? (
+          <table className="mt-2 w-full font-sans text-xs">
+            <thead>
+              <tr className="text-left text-ash">
+                <th className="py-1 font-normal">Area</th>
+                <th className="py-1 font-normal">Trade</th>
+                <th className="py-1 text-right font-normal">Shops</th>
+                <th className="py-1 text-right font-normal">On network</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(board.density ?? []).map((c) => (
+                <tr key={`${c.zip3}-${c.trade}`} className="border-t border-black/5">
+                  <td className="py-1 tabular-nums text-void">{c.zip3}xx</td>
+                  <td className="py-1 text-void">{c.trade}</td>
+                  <td className="py-1 text-right tabular-nums text-void">{c.shops}</td>
+                  <td className="py-1 text-right tabular-nums text-ash">{c.networkOn}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="py-0.5">No located shops yet.</p>
+        )}
+      </div>
       <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Unit cost">
         {unitCostLines(board.unitCost ?? null).map((line) => (
           <p key={line} className="py-0.5">

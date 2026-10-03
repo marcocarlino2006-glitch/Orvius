@@ -7,6 +7,7 @@ import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notifications";
 import { formatCentsExact } from "@/lib/money";
+import { zip3FromAddress } from "@/lib/network-density";
 import { NETWORK_FEE_BPS, networkSenderCreditCents } from "@/lib/platform-fee";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
@@ -26,11 +27,7 @@ const OFFER_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_OFFERS = 3;
 
 /** First three ZIP digits — one postal region, the network's unit of "nearby". */
-export function zip3From(text: string | null | undefined): string | null {
-  if (!text) return null;
-  const zips = [...text.matchAll(/\b(\d{5})(?:-\d{4})?\b/g)];
-  return zips.length ? zips[zips.length - 1][1].slice(0, 3) : null;
-}
+export const zip3From = zip3FromAddress;
 
 const WORD_END = "(?=$|[\\s,.!?])";
 const YES = new RegExp(`^\\s*(yes|y|yeah|yep|sure|ok|okay|please|si|sí)${WORD_END}`, "i");
