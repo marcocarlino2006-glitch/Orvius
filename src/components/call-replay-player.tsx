@@ -9,8 +9,8 @@ function delays(replay: Replay): number[] {
   return replay.turns.map((turn, i) => {
     const prev = replay.turns[i - 1];
     const real = prev && turn.at != null && prev.at != null ? (turn.at - prev.at) * 1000 : null;
-    const reading = Math.min(2600, 500 + (prev?.text.length ?? 0) * 22);
-    return i === 0 ? 400 : Math.max(600, Math.min(real ?? reading, 2600));
+    const reading = Math.min(2200, 500 + (prev?.text.length ?? 0) * 20);
+    return i === 0 ? 400 : Math.max(600, Math.min(real ?? reading, 2200));
   });
 }
 

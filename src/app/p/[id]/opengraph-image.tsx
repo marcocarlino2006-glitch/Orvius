@@ -24,14 +24,14 @@ export default async function ReplayImage({ params }: { params: Promise<{ id: st
           <div style={{ display: "flex", fontSize: 54, fontWeight: 600, color: "#f4f6f9", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
             {clip(`AI answered the phone as ${shop}.`, 70)}
           </div>
+          <div style={{ display: "flex", maxWidth: 860, fontSize: 28, color: "#f4f6f9", background: "#1b1e23", borderRadius: 22, padding: "16px 24px" }}>
+            {clip(firstAi, 110)}
+          </div>
           {firstCaller ? (
             <div style={{ display: "flex", alignSelf: "flex-end", maxWidth: 800, fontSize: 28, color: "#0b0d10", background: "#f4f6f9", borderRadius: 22, padding: "16px 24px" }}>
               {clip(firstCaller, 90)}
             </div>
           ) : null}
-          <div style={{ display: "flex", maxWidth: 860, fontSize: 28, color: "#f4f6f9", background: "#1b1e23", borderRadius: 22, padding: "16px 24px" }}>
-            {clip(firstAi, 110)}
-          </div>
         </div>
         <div style={{ display: "flex", fontSize: 26, color: "rgba(244,246,249,0.62)" }}>Hear yours at orvius.im/try</div>
       </div>
