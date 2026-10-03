@@ -1220,6 +1220,14 @@ h3 {
   gap: var(--space-1);
 }
 
+.shop-preview-share {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .shop-preview-actions {
   margin-top: var(--space-5);
   display: flex;

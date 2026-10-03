@@ -903,6 +903,8 @@ model ShopPreview {
   lastSummary    String?
   lastCaptureJson String?
   alertSentAt    DateTime?
+  /// The last preview call line by line, kept so the owner can share it as a Call Replay.
+  transcriptJson String?
   createdAt      DateTime  @default(now())
 
   @@index([ownerPhoneNormalized, expiresAt])
@@ -952,4 +954,19 @@ model JobberSync {
 
   @@index([status, nextAttemptAt])
   @@index([businessId, createdAt])
+}
+
+/// A preview call the owner chose to share. A copy, so a later preview call
+/// never changes a link that is already posted.
+model CallReplay {
+  id          String   @id
+  previewId   String
+  shopName    String
+  trade       String
+  turnsJson   String
+  captureJson String?
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([previewId])
 }

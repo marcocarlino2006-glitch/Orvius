@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { buildAssistantSystemPrompt } from "@/lib/business";
+import { isReplayable, replayTurns } from "@/lib/call-replay-copy";
 import { normalizePhone } from "@/lib/customer";
 import { getAppUrl, getWebhookUrl } from "@/lib/env";
 import { logWarn } from "@/lib/logger";
@@ -31,6 +32,8 @@ export type PreviewStatus = {
   summary: string | null;
   capture: PreviewCapture | null;
   alertSent: boolean;
+  /** The last call can be shared as a Call Replay. */
+  replayable: boolean;
 };
 
 function dailyCap(): number {
@@ -128,6 +131,7 @@ export async function claimPreviewCall(params: {
       lastCallAt: now,
       lastSummary: null,
       lastCaptureJson: null,
+      transcriptJson: null,
       alertSentAt: null,
     },
   });
@@ -213,7 +217,11 @@ export async function recordPreviewOutcome(
   const summary = message.summary ?? message.analysis?.summary ?? null;
   const stamped = await prisma.shopPreview.updateMany({
     where: { id: preview.id, lastVapiCallId: message.call?.id ?? preview.lastVapiCallId, lastCaptureJson: null },
-    data: { lastSummary: summary, lastCaptureJson: JSON.stringify(capture) },
+    data: {
+      lastSummary: summary,
+      lastCaptureJson: JSON.stringify(capture),
+      transcriptJson: JSON.stringify(replayTurns({ messages: message.artifact?.messages, transcript: message.transcript })),
+    },
   });
   if (stamped.count === 0) return;
 
@@ -243,5 +251,15 @@ export async function getPreviewStatus(token: string): Promise<PreviewStatus | n
     summary: row.lastSummary,
     capture,
     alertSent: Boolean(row.alertSentAt),
+    replayable: isReplayable(parseTurnsSafe(row.transcriptJson)),
   };
+}
+
+function parseTurnsSafe(raw: string | null) {
+  try {
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }

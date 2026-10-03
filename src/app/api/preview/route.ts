@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     const error =
       result.reason === "invalid_phone"
         ? "That mobile number doesn't look right. Use the phone you'll call from."
-        : "Previews are full for today. Call the live demo line instead.";
+        : "Previews are full for today. Watch Orvius take calls at orvius.im/watch, or call the live demo line.";
     return NextResponse.json({ error }, { status: result.reason === "invalid_phone" ? 400 : 503 });
   }
 

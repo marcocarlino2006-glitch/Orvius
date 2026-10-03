@@ -22,6 +22,7 @@ type Status = {
   summary: string | null;
   capture: { name?: string; phone?: string; serviceType?: string; urgency?: string; address?: string } | null;
   alertSent: boolean;
+  replayable?: boolean;
 };
 
 const POLL_MS = 4000;
@@ -53,6 +54,7 @@ export function ShopPreviewForm() {
   const [error, setError] = useState<string | null>(null);
   const [started, setStarted] = useState<Started | null>(null);
   const [status, setStatus] = useState<Status | null>(null);
+  const [share, setShare] = useState<{ url?: string; busy: boolean; note?: string }>({ busy: false });
 
   useEffect(() => {
     if (!started || started.token === "accepted") return;
@@ -113,6 +115,29 @@ export function ShopPreviewForm() {
     }
   }
 
+  async function shareCall() {
+    if (!started) return;
+    setShare({ busy: true });
+    try {
+      const res = await fetch(`/api/preview/${started.token}/share`, { method: "POST" });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        setShare({ busy: false, note: data.error ?? "The replay isn't ready yet. Try again in a moment." });
+        return;
+      }
+      const text = `I called my business and AI answered as ${shopName}. Watch the call:`;
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: "Call Replay", text, url: data.url }).catch(() => null);
+        setShare({ busy: false, url: data.url });
+        return;
+      }
+      await navigator.clipboard?.writeText(data.url).catch(() => null);
+      setShare({ busy: false, url: data.url, note: "Link copied." });
+    } catch {
+      setShare({ busy: false, note: "We couldn't reach Orvius. Try again." });
+    }
+  }
+
   if (started) {
     const capture = status?.capture;
     const left = status ? Math.max(0, status.maxCalls - status.callsUsed) : started.maxCalls;
@@ -143,6 +168,19 @@ export function ShopPreviewForm() {
               <p className="font-sans text-sm text-ash-soft">
                 {status?.alertSent ? "We texted this to your phone too." : "Your text is on its way."}
               </p>
+              {status?.replayable ? (
+                <div className="shop-preview-share">
+                  <button type="button" className="ov-btn ov-btn--quiet" onClick={() => void shareCall()} disabled={share.busy}>
+                    {share.busy ? "Making your replay…" : "Share this call"}
+                  </button>
+                  {share.url ? (
+                    <a className="font-sans text-sm" href={share.url} target="_blank" rel="noreferrer">
+                      {share.url.replace(/^https?:\/\//, "")}
+                    </a>
+                  ) : null}
+                  {share.note ? <span className="font-sans text-sm text-ash-soft">{share.note}</span> : null}
+                </div>
+              ) : null}
             </>
           ) : status?.lastCallAt ? (
             <p className="font-sans text-sm text-ash-soft">Call in progress. The job card appears when you hang up.</p>

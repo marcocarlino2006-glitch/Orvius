@@ -706,3 +706,16 @@ CREATE TABLE IF NOT EXISTS "Referral" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "Referral_referredId_key" ON "Referral"("referredId");
 CREATE INDEX IF NOT EXISTS "Referral_referrerId_status_idx" ON "Referral"("referrerId", "status");
+
+ALTER TABLE "ShopPreview" ADD COLUMN "transcriptJson" TEXT;
+CREATE TABLE IF NOT EXISTS "CallReplay" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "previewId" TEXT NOT NULL,
+  "shopName" TEXT NOT NULL,
+  "trade" TEXT NOT NULL,
+  "turnsJson" TEXT NOT NULL,
+  "captureJson" TEXT,
+  "views" INTEGER NOT NULL DEFAULT 0,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "CallReplay_previewId_idx" ON "CallReplay"("previewId");
