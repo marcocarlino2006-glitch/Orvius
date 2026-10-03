@@ -6,7 +6,7 @@ import type { SlotPreference } from "@/lib/availability";
  * assistant config can be built and tested anywhere.
  */
 
-export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now"] as const;
+export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "pass_to_network"] as const;
 export type InCallToolName = (typeof IN_CALL_TOOL_NAMES)[number];
 
 const URGENCY = ["emergency", "same-day", "this-week", "flexible"] as const;
@@ -94,6 +94,17 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
       },
       server,
     },
+    {
+      type: "function",
+      function: {
+        name: "pass_to_network",
+        description:
+          "Only after check_availability said a nearby Orvius Network shop can help and the caller said yes to being passed along. Records their yes; a nearby pro then reaches out. Never call it without a clear yes.",
+        parameters: { type: "object", properties: {} },
+      },
+      messages: [{ type: "request-start", content: "One moment." }],
+      server,
+    },
   ];
 }
 
@@ -153,6 +164,12 @@ export const OFFER_GAP_MIN = 180;
 export const SLOT_TAKEN_REPLY = "That time was just taken. Apologize briefly and call check_availability again for fresh times.";
 export const NO_SLOTS_REPLY =
   "No open times in the next two weeks. Do not offer a time. Take their details and say the office will call to schedule.";
+export const NETWORK_OFFER_REPLY =
+  "No open times here in the next two weeks. Do not offer a time. Ask once: \"We're booked up. Would you like me to pass your request to another trusted local pro who may be able to come sooner?\" If they say yes, call pass_to_network. If not, take their details and say the office will call to schedule.";
+export const PASSED_TO_NETWORK_REPLY =
+  "Done. Tell them a nearby pro will reach out shortly. Do not name a shop or promise a time. Make sure you have their name, callback number and service address before ending the call.";
+export const NETWORK_UNAVAILABLE_REPLY =
+  "Passing along is not available. Take their details and say the office will call to schedule.";
 export const BAD_SLOT_REPLY = "That slot id is not valid. Call check_availability again and use a slot id it returns.";
 export const NO_ALT_NOTE = "Nothing is open at the time they asked for. Say so, then offer these instead. ";
 

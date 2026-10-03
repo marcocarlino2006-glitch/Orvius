@@ -755,3 +755,6 @@ ALTER TABLE "NetworkHandoff" ADD COLUMN "creditStatus" TEXT;
 ALTER TABLE "NetworkHandoff" ADD COLUMN "creditCents" INTEGER;
 ALTER TABLE "NetworkHandoff" ADD COLUMN "creditedAt" DATETIME;
 CREATE INDEX IF NOT EXISTS "NetworkHandoff_toLeadId_idx" ON "NetworkHandoff"("toLeadId");
+
+-- In-call network handoff: the caller's yes, recorded during the call.
+ALTER TABLE "Call" ADD COLUMN "networkConsentAt" DATETIME;

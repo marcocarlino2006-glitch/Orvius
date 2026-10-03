@@ -409,6 +409,8 @@ model Call {
   heldSeq Int?
   /** "reschedule" when the held time is a new time for a visit the caller already has, never a new job. */
   heldIntent String?
+  /// The caller said yes, on the call, to being passed to a nearby Orvius Network shop.
+  networkConsentAt    DateTime?
   /** When the returning-caller note was handed to the live receptionist (once per call). */
   callerContextSentAt DateTime?
   /** Caller's wait for a reply on this call, from Vapi's turn timing (lib/call-latency.ts). */
