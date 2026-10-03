@@ -1,6 +1,7 @@
 import { recordAudit } from "@/lib/audit";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
+import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
@@ -224,6 +225,13 @@ export async function takeNetworkJob(
   });
   if (!source || !partner) return "That job is no longer available.";
 
+  const demand = deriveDemandSignal({
+    serviceType: source.serviceType,
+    notes: source.notes,
+    address: source.address,
+    categoryHint: source.categoryCode,
+    trade: tradeForCapture({ trade: open.trade }),
+  });
   const lead = await prisma.lead.create({
     data: {
       businessId: partner.id,
@@ -233,8 +241,8 @@ export async function takeNetworkJob(
       address: source.address,
       serviceType: source.serviceType,
       urgency: source.urgency,
-      categoryCode: source.categoryCode,
-      postalCode: source.postalCode,
+      categoryCode: demand.categoryCode,
+      postalCode: demand.postalCode ?? source.postalCode,
       notes: [`From the Orvius Network: ${sender?.name ?? "another shop"} couldn't take it and the customer asked for a pro.`, source.notes]
         .filter(Boolean)
         .join("\n"),

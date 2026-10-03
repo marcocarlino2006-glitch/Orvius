@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
-import { invoicePayUrl } from "@/lib/invoice-pay";
+import { invoiceCompletedJob, invoicePayUrl } from "@/lib/invoice-pay";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
 import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
+import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -209,6 +210,18 @@ export async function PATCH(request: Request, { params }: Params) {
     });
   }
 
+  let invoiceSent: boolean | undefined;
+  if (body.status === "completed" && existing.status !== "completed") {
+    const billed = await invoiceCompletedJob(id).catch((error) => {
+      logWarn("invoice.on_complete_failed", {
+        jobId: id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    });
+    invoiceSent = Boolean(billed && "sms" in billed && billed.sms?.sent);
+  }
+
   let techSms: { sent: boolean; reason?: string } | undefined;
   if (assigningTech) {
     techSms = await notifyTechOnAssign({
@@ -221,5 +234,6 @@ export async function PATCH(request: Request, { params }: Params) {
   return NextResponse.json({
     job: serializeJob(job),
     ...(techSms ? { techSms } : {}),
+    ...(invoiceSent !== undefined ? { invoiceSent } : {}),
   });
 }

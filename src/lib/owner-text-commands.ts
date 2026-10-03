@@ -2,11 +2,17 @@ import { recordAudit } from "@/lib/audit";
 import { safeTimezone, shopDayBounds, zonedWallToUtc } from "@/lib/availability";
 import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
-import { createJobFromLead } from "@/lib/job";
+import { isDepositAmountValid, MAX_DEPOSIT_CENTS } from "@/lib/booking-deposit";
+import { createJobFromLead, updateJobStatus } from "@/lib/job";
+import { invoiceCompletedJob } from "@/lib/invoice-pay";
 import { logError } from "@/lib/logger";
+import { formatCentsTidy } from "@/lib/money";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { passLeadToNetwork, takeNetworkJob } from "@/lib/orvius-network";
+import { DEFAULT_DEPOSIT_CENTS } from "@/lib/payments-default";
+import { STRIPE_MIN_CHARGE_CENTS } from "@/lib/platform-fee";
 import { prisma } from "@/lib/prisma";
+import { getConnectStatus } from "@/lib/stripe-connect";
 
 export { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
 
@@ -26,6 +32,8 @@ export type OwnerCommand =
   | { kind: "today" }
   | { kind: "pass" }
   | { kind: "take" }
+  | { kind: "done"; amountCents: number | null }
+  | { kind: "deposit"; on: boolean; amountCents: number | null }
   | { kind: "menu" };
 
 export const OWNER_MENU = [
@@ -38,8 +46,18 @@ export const OWNER_MENU = [
   "SPAM — not a job",
   "PASS — can't take it: offer it to a nearby Orvius shop",
   "TAKE — claim a job the Orvius Network offered you",
+  "DONE 450 — job finished: text them the $450 bill",
+  "DEPOSIT 75 / DEPOSIT OFF — deposit asked at booking",
   "TODAY — today's jobs",
 ].join("\n");
+
+/** "450", "$1,250", "89.50" → cents; null when it is not a sane job total. */
+export function parseDollarsToCents(raw: string): number | null {
+  const cleaned = raw.replace(/[$,\s]/g, "");
+  if (!/^\d+(?:\.\d{1,2})?$/.test(cleaned)) return null;
+  const cents = Math.round(Number(cleaned) * 100);
+  return cents > 0 && cents <= 5_000_000 ? cents : null;
+}
 
 /** What an owner's text asks for, or null when it is not a command. */
 export function parseOwnerCommand(raw: string): OwnerCommand | null {
@@ -54,6 +72,21 @@ export function parseOwnerCommand(raw: string): OwnerCommand | null {
   if (/^(spam|junk|not a job|wrong number|ignore)$/.test(lower)) return { kind: "spam" };
   if (/^(pass|pass it|refer|refer it|can'?t take it|cant take it)$/.test(lower)) return { kind: "pass" };
   if (/^(take|take it|i'?ll take it|mine)$/.test(lower)) return { kind: "take" };
+
+  const done = lower.match(/^(?:done|all done|job done|finished|complete|completed)(?:\s+(?:for\s+|at\s+)?(\$?[\d,]+(?:\.\d{1,2})?))?$/);
+  if (done) {
+    if (!done[1]) return { kind: "done", amountCents: null };
+    const amountCents = parseDollarsToCents(done[1]);
+    return amountCents ? { kind: "done", amountCents } : null;
+  }
+
+  const deposit = lower.match(/^deposits?\s+(off|stop|no|none|on|yes|\$?[\d,]+(?:\.\d{1,2})?)$/);
+  if (deposit) {
+    const word = deposit[1];
+    if (/^(off|stop|no|none)$/.test(word)) return { kind: "deposit", on: false, amountCents: null };
+    if (/^(on|yes)$/.test(word)) return { kind: "deposit", on: true, amountCents: null };
+    return { kind: "deposit", on: true, amountCents: parseDollarsToCents(word) ?? -1 };
+  }
 
   const textMatch = text.match(/^(?:text|reply|tell them|send)\s*:?\s+([\s\S]+)$/i);
   if (textMatch && !/^(?:invoice|pay link)/i.test(textMatch[1])) return { kind: "text", body: textMatch[1].trim() };
@@ -259,6 +292,9 @@ export async function handleOwnerText(params: {
     return (await takeNetworkJob(shop, now)) ?? "No Orvius Network job is on offer to you right now.";
   }
 
+  if (command.kind === "deposit") return await setDepositByText(shop, command);
+  if (command.kind === "done") return await finishJobByText(shop, command.amountCents, now);
+
   const lead = await targetLead(shop.id, now);
   if (!lead) {
     return "No recent lead to act on — this works as a reply to a new-lead alert. Reply ? for the list.";
@@ -413,4 +449,142 @@ export async function handleOwnerText(params: {
       : `That didn't go through for ${who}. Open the app to finish it.`;
   }
   return null;
+}
+
+const RECENT_JOB_MS = 24 * 60 * 60 * 1000;
+
+const DONE_JOB_SELECT = {
+  id: true,
+  status: true,
+  lead: { select: { name: true, phone: true } },
+  customer: { select: { name: true, phone: true } },
+} as const;
+
+/*
+  The job a bare DONE means: the one from the owner's latest alert if it is
+  still open (or being re-billed), else the job a tech is on right now, else
+  the most recent one that was due. The reply names the customer either way.
+*/
+async function jobToFinish(businessId: string, amountCents: number | null, now: Date) {
+  const lead = await targetLead(businessId, now);
+  const alertJob = lead?.job;
+  if (alertJob && alertJob.status !== "cancelled" && (alertJob.status !== "completed" || amountCents)) {
+    return prisma.job.findUnique({ where: { id: alertJob.id }, select: DONE_JOB_SELECT });
+  }
+  const working = await prisma.job.findFirst({
+    where: { businessId, status: { in: ["on_site", "en_route"] } },
+    orderBy: [{ onSiteAt: "desc" }, { dispatchedAt: "desc" }],
+    select: DONE_JOB_SELECT,
+  });
+  if (working) return working;
+  return prisma.job.findFirst({
+    where: {
+      businessId,
+      status: { notIn: ["completed", "cancelled"] },
+      scheduledAt: { gte: new Date(now.getTime() - RECENT_JOB_MS), lte: now },
+    },
+    orderBy: { scheduledAt: "desc" },
+    select: DONE_JOB_SELECT,
+  });
+}
+
+async function finishJobByText(shop: Shop, amountCents: number | null, now: Date): Promise<string> {
+  const job = await jobToFinish(shop.id, amountCents, now);
+  if (!job) return "No open job to finish right now. Reply TODAY to see the board.";
+  const who = job.customer?.name?.trim() || job.lead?.name?.trim() || job.lead?.phone || "the customer";
+
+  try {
+    if (job.status !== "completed") await updateJobStatus(job.id, "completed");
+    if (amountCents) await prisma.job.update({ where: { id: job.id }, data: { finalAmountCents: amountCents } });
+    await recordAudit({
+      businessId: shop.id,
+      entityType: "job",
+      entityId: job.id,
+      jobId: job.id,
+      actor: "owner",
+      action: "job.status_changed",
+      summary: `Owner marked the job done by text${amountCents ? ` at ${formatCentsTidy(amountCents)}` : ""}.`,
+      detail: { from: job.status, to: "completed", finalAmountCents: amountCents, via: "owner_sms" },
+    });
+
+    const billed = await invoiceCompletedJob(job.id, { ownerAsked: true });
+    if (!billed.invoiced) return `Marked ${who}'s job done. Reply DONE 450 with the total to text them the bill.`;
+    const owed = formatCentsTidy(billed.invoice.amountCents);
+    if (billed.sms?.sent) return `Done: ${who}. Texted them the ${owed} bill with a pay link. You'll get a text when it's paid.`;
+    switch (billed.reason) {
+      case "paid":
+        return `${who}'s job is already paid.`;
+      case "nothing_owed":
+        return `Marked ${who}'s job done. Their deposit covered it — nothing more to bill.`;
+      case "no_phone":
+        return `Marked ${who}'s job done. No number on file, so the ${owed} bill is waiting in the app.`;
+      case "connect_incomplete":
+        return `Marked ${who}'s job done (${owed}). Card payments aren't set up yet — finish them in the app under Billing and bills go out by text.`;
+      default:
+        return `Marked ${who}'s job done, but the ${owed} bill didn't send. The pay link is on the job in the app.`;
+    }
+  } catch (error) {
+    logError("owner_text.done_failed", {
+      businessId: shop.id,
+      jobId: job.id,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return `That didn't go through for ${who}. Open the app to finish it.`;
+  }
+}
+
+async function setDepositByText(
+  shop: Shop,
+  command: { on: boolean; amountCents: number | null },
+): Promise<string> {
+  const current = await prisma.business.findUnique({
+    where: { id: shop.id },
+    select: {
+      depositEnabled: true,
+      depositAmountCents: true,
+      stripeConnectAccountId: true,
+      stripeConnectChargesEnabled: true,
+      stripeConnectPayoutsEnabled: true,
+      stripeConnectDetailsSubmitted: true,
+    },
+  });
+  if (!current) return "That didn't go through. Open the app to change deposits.";
+
+  if (!command.on) {
+    if (current.depositEnabled) {
+      await prisma.business.update({ where: { id: shop.id }, data: { depositEnabled: false } });
+      await recordAudit({
+        businessId: shop.id,
+        entityType: "shop",
+        entityId: shop.id,
+        actor: "owner",
+        action: "settings.deposits_off",
+        summary: "Owner turned deposits off by text.",
+        detail: { via: "owner_sms" },
+      });
+    }
+    return "Deposits off. Booked customers won't be asked for one. Reply DEPOSIT 50 to turn them back on.";
+  }
+
+  const amountCents = command.amountCents ?? current.depositAmountCents ?? DEFAULT_DEPOSIT_CENTS;
+  if (!isDepositAmountValid(amountCents)) {
+    return `A deposit has to be between ${formatCentsTidy(STRIPE_MIN_CHARGE_CENTS)} and ${formatCentsTidy(MAX_DEPOSIT_CENTS)}. Try DEPOSIT 75.`;
+  }
+  await prisma.business.update({
+    where: { id: shop.id },
+    data: { depositEnabled: true, depositAmountCents: amountCents },
+  });
+  await recordAudit({
+    businessId: shop.id,
+    entityType: "shop",
+    entityId: shop.id,
+    actor: "owner",
+    action: "settings.deposits_on",
+    summary: `Owner set a ${formatCentsTidy(amountCents)} deposit by text.`,
+    detail: { amountCents, via: "owner_sms" },
+  });
+  const amount = formatCentsTidy(amountCents);
+  return getConnectStatus(current).canAcceptPayments
+    ? `Deposits on: booked customers get a ${amount} deposit link. Reply DEPOSIT OFF to stop.`
+    : `Deposits set to ${amount}. They start once card payments are set up in the app under Billing.`;
 }

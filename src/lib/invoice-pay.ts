@@ -10,6 +10,7 @@ import { mintPublicToken } from "@/lib/public-tokens";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
+import { sendSms } from "@/lib/twilio-sms";
 
 /*
   The invoice is where a shop's revenue actually changes hands — a deposit is
@@ -241,22 +242,50 @@ export async function fulfillInvoiceCheckoutSession(
       method: `stripe:${session.id}`,
     },
   });
+  await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents }).catch(() => null);
   return { ok: true };
 }
 
+/* Runs once per invoice: only the caller that won the paid claim gets here. */
+async function textOwnerPaid(params: { businessId: string; jobId: string | null; amountCents: number }) {
+  const business = await prisma.business.findUnique({
+    where: { id: params.businessId },
+    select: { ownerPhone: true },
+  });
+  if (!business?.ownerPhone) return;
+  const job = params.jobId
+    ? await prisma.job.findUnique({
+        where: { id: params.jobId },
+        select: { title: true, customer: { select: { name: true } }, lead: { select: { name: true } } },
+      })
+    : null;
+  const who = job?.customer?.name?.trim() || job?.lead?.name?.trim() || "A customer";
+  await sendSms({
+    to: business.ownerPhone,
+    businessId: params.businessId,
+    audience: "owner",
+    body: `Orvius: ${who} paid ${formatCentsExact(params.amountCents)}${job?.title ? ` for ${job.title}` : ""}. It's on its way to your bank.`,
+  });
+}
+
 /**
- * A job completed with a final amount becomes an open invoice at once, so the
- * bill exists while the customer is still standing in the kitchen. The text
- * goes out on its own only when the shop turned Autopilot on and can take a
- * card; otherwise the owner sends it with one tap from the job.
+ * A job completed with a final amount — or an accepted estimate — becomes an
+ * open invoice at once, so the bill exists while the customer is still
+ * standing in the kitchen. The text goes out on its own when the shop can take
+ * a card and Autopilot is on, and always when the owner asked for it by
+ * texting DONE with the total.
  */
-export async function invoiceCompletedJob(jobId: string) {
+export async function invoiceCompletedJob(
+  jobId: string,
+  options: { ownerAsked?: boolean } = {},
+) {
   const job = await prisma.job.findUnique({
     where: { id: jobId },
     select: {
       id: true,
       businessId: true,
       finalAmountCents: true,
+      estimate: { select: { amountCents: true, status: true } },
       lead: { select: { phone: true } },
       customer: { select: { phone: true } },
       business: {
@@ -272,24 +301,38 @@ export async function invoiceCompletedJob(jobId: string) {
       },
     },
   });
-  if (!job?.finalAmountCents) return { invoiced: false as const };
+  if (!job) return { invoiced: false as const, reason: "no_job" as const };
+  /* An accepted estimate is the price the customer already agreed to. */
+  const totalCents =
+    job.finalAmountCents ??
+    (job.estimate?.status === "accepted" ? job.estimate.amountCents : null);
+  if (!totalCents) return { invoiced: false as const, reason: "no_amount" as const };
 
   const { invoice } = await upsertJobInvoice({
     businessId: job.businessId,
     jobId: job.id,
-    totalCents: job.finalAmountCents,
+    totalCents,
   });
 
   const phone = job.lead?.phone ?? job.customer?.phone ?? null;
-  const autoSend =
-    job.business.autopilot &&
-    Boolean(phone) &&
-    invoice.status !== "paid" &&
-    !invoice.sentAt &&
-    isChargeableAmount(invoice.amountCents) &&
-    getConnectStatus(job.business).canAcceptPayments;
+  const blocked =
+    invoice.status === "paid"
+      ? "paid"
+      : !phone
+        ? "no_phone"
+        : !getConnectStatus(job.business).canAcceptPayments
+          ? "connect_incomplete"
+          : !isChargeableAmount(invoice.amountCents)
+            ? "nothing_owed"
+            : invoice.sentAt && !options.ownerAsked
+              ? "already_sent"
+              : !job.business.autopilot && !options.ownerAsked
+                ? "autopilot_off"
+                : null;
 
-  if (!autoSend || !phone) return { invoiced: true as const, invoice, sms: null };
+  if (blocked || !phone) {
+    return { invoiced: true as const, invoice, sms: null, reason: blocked };
+  }
 
   const sms = await sendInvoiceLink({ business: job.business, invoice, toPhone: phone });
   if (sms.sent) {
@@ -298,10 +341,11 @@ export async function invoiceCompletedJob(jobId: string) {
       entityType: "job",
       entityId: job.id,
       jobId: job.id,
-      action: "autopilot.invoice_sent",
+      ...(options.ownerAsked
+        ? { action: "invoice.sent", actor: "owner" as const }
+        : { action: "autopilot.invoice_sent", idempotencyKey: `autopilot:invoice:${invoice.id}` }),
       summary: `Texted the ${formatCentsExact(invoice.amountCents)} invoice link`,
-      idempotencyKey: `autopilot:invoice:${invoice.id}`,
     });
   }
-  return { invoiced: true as const, invoice, sms };
+  return { invoiced: true as const, invoice, sms, reason: null };
 }
