@@ -42,7 +42,7 @@ export function BusinessSection({ b, patch }: { b: Business; patch: PatchFn }) {
       <ScGroup title="Orvius Network">
         <ScRow
           label="Pass and receive jobs"
-          hint={`When you can't take a job, reply PASS to its alert and Orvius offers it to a nearby ${b.trade ? `${b.trade} shop` : "shop"} on Orvius. You get offered theirs, and the first to reply TAKE gets it. Callers are always asked before anything is shared.`}
+          hint={`When you can't take a job, reply PASS to its alert and Orvius offers it to a nearby ${b.trade ? `${b.trade} shop` : "shop"} on Orvius. You get offered theirs, and the first to reply TAKE gets it. Callers are always asked before anything is shared. A network job's card bill carries a 5% Orvius fee, and half of it comes back to the shop that passed the job as credit on its Orvius bill.`}
         >
           <ScSwitch
             label="Orvius Network"

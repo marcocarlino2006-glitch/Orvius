@@ -749,3 +749,9 @@ ALTER TABLE "Business" ADD COLUMN "paymentsDefaultedAt" DATETIME;
 
 -- Weekly value text to the owner.
 ALTER TABLE "Business" ADD COLUMN "weeklyTextSentAt" DATETIME;
+
+-- Network fee: the passing shop's credit when the job is paid.
+ALTER TABLE "NetworkHandoff" ADD COLUMN "creditStatus" TEXT;
+ALTER TABLE "NetworkHandoff" ADD COLUMN "creditCents" INTEGER;
+ALTER TABLE "NetworkHandoff" ADD COLUMN "creditedAt" DATETIME;
+CREATE INDEX IF NOT EXISTS "NetworkHandoff_toLeadId_idx" ON "NetworkHandoff"("toLeadId");

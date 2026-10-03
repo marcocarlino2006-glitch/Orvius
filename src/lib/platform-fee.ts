@@ -50,6 +50,26 @@ export function calculatePlatformFeeCents(amountCents: number) {
   return Math.round((amount * getPlatformFeeBps()) / 10_000);
 }
 
+/*
+  A job that came through the Orvius Network is a customer the receiving shop
+  never paid to find, so its card bill carries 5% instead of the usual fee —
+  still well under what a bought lead costs. Half of it goes back to the shop
+  that passed the job, as credit on its Orvius bill.
+*/
+export const NETWORK_FEE_BPS = 500;
+export const NETWORK_SENDER_SHARE_BPS = 250;
+
+export function calculateNetworkFeeCents(amountCents: number) {
+  if (!Number.isFinite(amountCents) || amountCents <= 0) return 0;
+  const amount = Math.floor(amountCents);
+  return Math.max(calculatePlatformFeeCents(amount), Math.round((amount * NETWORK_FEE_BPS) / 10_000));
+}
+
+export function networkSenderCreditCents(amountCents: number) {
+  if (!Number.isFinite(amountCents) || amountCents <= 0) return 0;
+  return Math.round((Math.floor(amountCents) * NETWORK_SENDER_SHARE_BPS) / 10_000);
+}
+
 /** What the shop keeps from one charge, before Stripe's own processing fee. */
 export function shopNetCents(amountCents: number) {
   if (!Number.isFinite(amountCents) || amountCents <= 0) return 0;

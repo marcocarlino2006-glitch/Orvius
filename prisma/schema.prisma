@@ -998,8 +998,13 @@ model NetworkHandoff {
   askedAt               DateTime  @default(now())
   offeredAt             DateTime?
   takenAt               DateTime?
+  /// The passing shop's share of the network fee: crediting → credited, or void when it could not be paid.
+  creditStatus          String?
+  creditCents           Int?
+  creditedAt            DateTime?
 
   @@index([callerPhoneNormalized, status])
+  @@index([toLeadId])
   @@index([status, offeredAt])
   @@index([toBusinessId])
 }
