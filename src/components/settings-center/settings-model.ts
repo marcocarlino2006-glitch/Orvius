@@ -49,6 +49,7 @@ export type Account = {
     reviewRequestsOn?: boolean;
     bookingPageOn?: boolean;
     webChatOn?: boolean;
+    networkOn?: boolean;
     slug?: string;
     createdAt?: string;
     vapiPhoneNumber?: string | null;

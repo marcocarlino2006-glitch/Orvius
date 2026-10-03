@@ -43,6 +43,7 @@ import {
 } from "@/lib/platform-fee";
 import { normalizePhone } from "@/lib/customer";
 import { z } from "zod";
+import { zip3From } from "@/lib/orvius-network";
 
 const patchSchema = z.object({
   name: z.string().min(2).max(120).optional(),
@@ -73,6 +74,7 @@ const patchSchema = z.object({
   reviewRequestsOn: z.boolean().optional(),
   bookingPageOn: z.boolean().optional(),
   webChatOn: z.boolean().optional(),
+  networkOn: z.boolean().optional(),
   depositAmountCents: z
     .number()
     .int()
@@ -125,6 +127,7 @@ export async function GET(request: Request) {
         trade: businessRecord.trade,
         environment: businessRecord.environment,
         address: businessRecord.address,
+        networkOn: businessRecord.networkOn,
         ownerPhone: businessRecord.ownerPhone,
         ownerEmail: businessRecord.ownerEmail,
         twilioPhone: businessRecord.twilioPhone,
@@ -275,6 +278,7 @@ const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
   reviewRequestsOn: { label: "review requests" },
   bookingPageOn: { label: "online booking" },
   webChatOn: { label: "website chat" },
+  networkOn: { label: "Orvius Network" },
 };
 
 function settingsChanges(before: Record<string, unknown>, after: Record<string, unknown>) {
@@ -284,6 +288,18 @@ function settingsChanges(before: Record<string, unknown>, after: Record<string, 
     .map(([key, { label, value }]) =>
       value === false ? { field: key, label } : { field: key, label, from: norm(before[key]), to: norm(after[key]) },
     );
+}
+
+/** The shop's region for the Orvius Network: its address ZIP, else the first ZIP it serves. */
+function networkZip3For(address: string | null, serviceZipsJson: string | null) {
+  const fromAddress = zip3From(address);
+  if (fromAddress) return fromAddress;
+  try {
+    const zips = JSON.parse(serviceZipsJson ?? "[]") as unknown[];
+    return zip3From(zips.map(String).join(" "));
+  } catch {
+    return null;
+  }
 }
 
 const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "servicesJson"] as const;
@@ -394,6 +410,20 @@ export async function PATCH(request: Request) {
       }
     }
 
+    const networkOn = body.networkOn ?? existing.networkOn;
+    const networkZip3 = networkOn
+      ? networkZip3For(
+          body.address !== undefined ? body.address : existing.address,
+          body.serviceZipsJson !== undefined ? body.serviceZipsJson : existing.serviceZipsJson,
+        )
+      : existing.networkZip3;
+    if (body.networkOn === true && !networkZip3) {
+      return NextResponse.json(
+        { error: "Add your shop address with its ZIP code first, so nearby shops can be matched." },
+        { status: 400 },
+      );
+    }
+
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {
@@ -456,6 +486,8 @@ export async function PATCH(request: Request) {
         ...(body.reviewRequestsOn !== undefined ? { reviewRequestsOn: body.reviewRequestsOn } : {}),
         ...(body.bookingPageOn !== undefined ? { bookingPageOn: body.bookingPageOn } : {}),
         ...(body.webChatOn !== undefined ? { webChatOn: body.webChatOn } : {}),
+        ...(body.networkOn !== undefined ? { networkOn: body.networkOn } : {}),
+        ...(networkZip3 !== existing.networkZip3 ? { networkZip3 } : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
           : {}),
@@ -533,6 +565,7 @@ export async function PATCH(request: Request) {
         reviewRequestsOn: saved.reviewRequestsOn,
         bookingPageOn: saved.bookingPageOn,
         webChatOn: saved.webChatOn,
+        networkOn: saved.networkOn,
         slug: saved.slug,
         depositAmountCents: saved.depositAmountCents,
       },

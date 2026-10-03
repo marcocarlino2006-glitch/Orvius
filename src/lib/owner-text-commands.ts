@@ -5,6 +5,7 @@ import { sendCustomerSms } from "@/lib/customer-sms";
 import { createJobFromLead } from "@/lib/job";
 import { logError } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
+import { passLeadToNetwork, takeNetworkJob } from "@/lib/orvius-network";
 import { prisma } from "@/lib/prisma";
 
 export { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
@@ -23,6 +24,8 @@ export type OwnerCommand =
   | { kind: "spam" }
   | { kind: "assign"; tech: string }
   | { kind: "today" }
+  | { kind: "pass" }
+  | { kind: "take" }
   | { kind: "menu" };
 
 export const OWNER_MENU = [
@@ -33,6 +36,8 @@ export const OWNER_MENU = [
   "TEXT <message> — text the customer",
   "CALLED — mark handled",
   "SPAM — not a job",
+  "PASS — can't take it: offer it to a nearby Orvius shop",
+  "TAKE — claim a job the Orvius Network offered you",
   "TODAY — today's jobs",
 ].join("\n");
 
@@ -47,6 +52,8 @@ export function parseOwnerCommand(raw: string): OwnerCommand | null {
   if (/^(book|book it|book them|yes|y|ok book)$/.test(lower)) return { kind: "book", when: null };
   if (/^(called|handled|got it|on it|i called|called them|talked to them)$/.test(lower)) return { kind: "contacted" };
   if (/^(spam|junk|not a job|wrong number|ignore)$/.test(lower)) return { kind: "spam" };
+  if (/^(pass|pass it|refer|refer it|can'?t take it|cant take it)$/.test(lower)) return { kind: "pass" };
+  if (/^(take|take it|i'?ll take it|mine)$/.test(lower)) return { kind: "take" };
 
   const textMatch = text.match(/^(?:text|reply|tell them|send)\s*:?\s+([\s\S]+)$/i);
   if (textMatch && !/^(?:invoice|pay link)/i.test(textMatch[1])) return { kind: "text", body: textMatch[1].trim() };
@@ -173,7 +180,15 @@ function when(at: Date | null, timezone: string) {
 
 const LEAD_WINDOW_MS = 48 * 60 * 60 * 1000;
 
-type Shop = { id: string; name: string; timezone: string; ownerPhone: string | null };
+type Shop = {
+  id: string;
+  name: string;
+  timezone: string;
+  ownerPhone: string | null;
+  trade?: string | null;
+  address?: string | null;
+  networkOn?: boolean;
+};
 
 /** The lead the owner's latest alert was about, if it is recent enough to be what they mean. */
 async function targetLead(businessId: string, now: Date) {
@@ -238,6 +253,10 @@ export async function handleOwnerText(params: {
         return `${time(j.scheduledAt)} ${who} · ${j.title} (${tech})${done}`;
       }),
     ].join("\n");
+  }
+
+  if (command.kind === "take") {
+    return (await takeNetworkJob(shop, now)) ?? "No Orvius Network job is on offer to you right now.";
   }
 
   const lead = await targetLead(shop.id, now);
@@ -360,6 +379,12 @@ export async function handleOwnerText(params: {
         });
         return `Marked ${who} handled. Reply BOOK if it turned into a job.`;
       }
+
+      case "pass":
+        return await passLeadToNetwork(
+          { id: shop.id, name: shop.name, trade: shop.trade ?? null, address: shop.address ?? null, networkOn: Boolean(shop.networkOn) },
+          lead,
+        );
 
       case "spam": {
         if (lead.job) return `${who} already has a job on the board, so it stays. Cancel it in the app if it's not real.`;
