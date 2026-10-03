@@ -69,6 +69,8 @@ model Business {
   lastWeeklyProofAt    DateTime?
   /** Last automatic Monday results email. */
   weeklyReportSentAt DateTime?
+  /** Last weekly value text to the owner's phone. */
+  weeklyTextSentAt   DateTime?
   /// Owner's private iCal address; busy times there are never offered to callers.
   busyCalendarUrl      String?
   /** Where a finished customer is asked to leave a review (Google, Yelp, Facebook…). */
