@@ -1,10 +1,15 @@
+import type Stripe from "stripe";
 import { recordAudit } from "@/lib/audit";
+import { shopHasLivePlan } from "@/lib/billing-sync";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notifications";
+import { formatCentsExact } from "@/lib/money";
+import { NETWORK_FEE_BPS, networkSenderCreditCents } from "@/lib/platform-fee";
 import { prisma } from "@/lib/prisma";
+import { getStripe } from "@/lib/stripe";
 import { sendSms } from "@/lib/twilio-sms";
 
 /*
@@ -183,7 +188,7 @@ export async function answerNetworkConsent(params: {
         to: partner.ownerPhone!,
         businessId: partner.id,
         audience: "owner",
-        body: `Orvius Network job near ${handoff.zip3}xx: ${what}${first ? ` for ${first}` : ""}. Another shop couldn't take it and the customer asked for a pro. Reply TAKE to get it. First to reply gets it.`,
+        body: `Orvius Network job near ${handoff.zip3}xx: ${what}${first ? ` for ${first}` : ""}. Another shop couldn't take it and the customer asked for a pro. Reply TAKE to get it. First to reply gets it. Network jobs carry a ${NETWORK_FEE_BPS / 100}% Orvius fee when the customer pays the bill by card.`,
       }).catch((error: unknown) => {
         logWarn("network.offer_sms_failed", { handoffId: handoff.id, partnerId: partner.id, error: error instanceof Error ? error.message : "unknown" });
         return null;
@@ -298,4 +303,83 @@ export async function takeNetworkJob(
     }).catch(() => null);
   }
   return `It's yours: ${who}. The details are in your next text. Reply BOOK to book it.`;
+}
+
+type CreditStripe = { customers: Pick<Stripe.CustomersResource, "createBalanceTransaction"> };
+
+/**
+ * The receiving shop was paid for a network job: the shop that passed it gets
+ * its share of the network fee as credit on its Orvius bill. Claimed before the
+ * Stripe call, so a retried webhook cannot credit twice.
+ */
+export async function creditNetworkSender(
+  params: { jobId: string; amountCents: number },
+  deps: { stripe?: CreditStripe; notify?: typeof sendSms } = {},
+) {
+  const job = await prisma.job.findUnique({
+    where: { id: params.jobId },
+    select: { leadId: true, business: { select: { name: true } } },
+  });
+  if (!job?.leadId) return { status: "skipped" as const };
+  const handoff = await prisma.networkHandoff.findFirst({
+    where: { toLeadId: job.leadId, status: "taken", creditStatus: null },
+  });
+  if (!handoff) return { status: "skipped" as const };
+
+  const sender = await prisma.business.findUnique({
+    where: { id: handoff.fromBusinessId },
+    select: { id: true, name: true, ownerPhone: true, stripeCustomerId: true, stripeSubscriptionId: true, billingStatus: true, billingPlan: true },
+  });
+  const creditCents = networkSenderCreditCents(params.amountCents);
+  if (!sender || !sender.stripeCustomerId || !shopHasLivePlan(sender) || creditCents < 100) {
+    await prisma.networkHandoff.updateMany({ where: { id: handoff.id, creditStatus: null }, data: { creditStatus: "void" } });
+    return { status: "void" as const };
+  }
+
+  const claimed = await prisma.networkHandoff.updateMany({
+    where: { id: handoff.id, creditStatus: null },
+    data: { creditStatus: "crediting" },
+  });
+  if (claimed.count === 0) return { status: "skipped" as const };
+
+  try {
+    await (deps.stripe ?? getStripe()).customers.createBalanceTransaction(
+      sender.stripeCustomerId,
+      {
+        amount: -creditCents,
+        currency: "usd",
+        description: `Orvius Network credit: a job you passed to ${job.business.name}`,
+        metadata: { networkHandoffId: handoff.id },
+      },
+      { idempotencyKey: `network-credit:${handoff.id}` },
+    );
+  } catch (error) {
+    await prisma.networkHandoff.update({ where: { id: handoff.id }, data: { creditStatus: null } });
+    throw error;
+  }
+
+  await prisma.networkHandoff.update({
+    where: { id: handoff.id },
+    data: { creditStatus: "credited", creditCents, creditedAt: new Date() },
+  });
+  const credit = formatCentsExact(creditCents);
+  await recordAudit({
+    businessId: sender.id,
+    entityType: "shop",
+    entityId: sender.id,
+    action: "network.credited",
+    actor: "system",
+    summary: `${job.business.name} was paid for a job you passed. ${credit} credited to your next bill.`,
+    detail: { networkHandoffId: handoff.id, creditCents },
+    idempotencyKey: `network-credit:${handoff.id}`,
+  });
+  if (sender.ownerPhone) {
+    await (deps.notify ?? sendSms)({
+      to: sender.ownerPhone,
+      businessId: sender.id,
+      audience: "owner",
+      body: `Orvius Network: ${job.business.name} finished the job you passed and got paid. ${credit} is credited to your next Orvius bill.`,
+    }).catch(() => null);
+  }
+  return { status: "credited" as const, creditCents };
 }

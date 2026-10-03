@@ -4,7 +4,9 @@ import type Stripe from "stripe";
 import { recordAudit } from "@/lib/audit";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { formatCentsExact } from "@/lib/money";
-import { calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
+import { logWarn } from "@/lib/logger";
+import { creditNetworkSender } from "@/lib/orvius-network";
+import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { prisma } from "@/lib/prisma";
 import { mintPublicToken } from "@/lib/public-tokens";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
@@ -151,8 +153,15 @@ export async function getInvoiceByToken(token: string) {
   });
 }
 
+/** Whether a job's customer came through the Orvius Network, which sets its fee. */
+export async function isNetworkJob(jobId: string | null | undefined) {
+  if (!jobId) return false;
+  const job = await prisma.job.findUnique({ where: { id: jobId }, select: { lead: { select: { source: true } } } });
+  return job?.lead?.source === "network";
+}
+
 export async function createInvoiceCheckoutSession(params: {
-  invoice: Pick<Invoice, "id" | "amountCents" | "publicToken">;
+  invoice: Pick<Invoice, "id" | "amountCents" | "publicToken"> & { jobId?: string | null };
   business: Pick<Business, "id" | "name"> & ConnectableShop;
   jobTitle?: string | null;
 }) {
@@ -167,11 +176,17 @@ export async function createInvoiceCheckoutSession(params: {
 
   const token = params.invoice.publicToken;
   const baseUrl = getAppBaseUrl();
+  const network = await isNetworkJob(params.invoice.jobId);
+  const applicationFeeCents = network
+    ? calculateNetworkFeeCents(params.invoice.amountCents)
+    : calculatePlatformFeeCents(params.invoice.amountCents);
   const metadata = {
     kind: "invoice_pay",
     invoiceId: params.invoice.id,
     businessId: params.business.id,
     publicToken: token,
+    applicationFeeCents: String(applicationFeeCents),
+    ...(network ? { network: "1" } : {}),
   };
 
   return getStripe().checkout.sessions.create(
@@ -193,7 +208,7 @@ export async function createInvoiceCheckoutSession(params: {
       cancel_url: `${baseUrl}/i/${token}?canceled=1`,
       metadata,
       payment_intent_data: {
-        application_fee_amount: calculatePlatformFeeCents(params.invoice.amountCents),
+        application_fee_amount: applicationFeeCents,
         metadata,
       },
     },
@@ -222,13 +237,19 @@ export async function fulfillInvoiceCheckoutSession(
   if (invoice.status === "paid") return { ok: true, reason: "already_paid" };
 
   const amountCents = session.amount_total ?? invoice.amountCents;
+  const network = session.metadata.network === "1";
+  const chargedFee = Number(session.metadata.applicationFeeCents);
   const claimed = await prisma.invoice.updateMany({
     where: { id: invoice.id, status: { not: "paid" } },
     data: {
       status: "paid",
       paidAt: new Date(),
       stripeSessionId: session.id,
-      applicationFeeCents: calculatePlatformFeeCents(amountCents),
+      applicationFeeCents: Number.isInteger(chargedFee) && chargedFee >= 0
+        ? chargedFee
+        : network
+          ? calculateNetworkFeeCents(amountCents)
+          : calculatePlatformFeeCents(amountCents),
     },
   });
   if (claimed.count === 0) return { ok: true, reason: "already_paid" };
@@ -243,6 +264,14 @@ export async function fulfillInvoiceCheckoutSession(
     },
   });
   await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents }).catch(() => null);
+  if (network && invoice.jobId) {
+    await creditNetworkSender({ jobId: invoice.jobId, amountCents }).catch((error) =>
+      logWarn("network.credit_failed", {
+        invoiceId: invoice.id,
+        error: error instanceof Error ? error.message : "unknown",
+      }),
+    );
+  }
   return { ok: true };
 }
 
