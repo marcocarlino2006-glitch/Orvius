@@ -61,6 +61,8 @@ model Business {
   /** Deposit asked for at booking. Null amount or false means deposits off. */
   depositEnabled                Boolean  @default(false)
   depositAmountCents            Int?
+  /** When card payments first went live and deposits were switched on by default. Set once. */
+  paymentsDefaultedAt           DateTime?
   /** When the free design-partner window ends. After this, subscribe or lock. */
   pilotEndsAt          DateTime?
   /** Last time owner copied/exported weekly economics proof. */

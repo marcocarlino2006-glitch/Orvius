@@ -1,6 +1,8 @@
 import type { Business } from "@prisma/client";
 import type Stripe from "stripe";
 
+import { logWarn } from "@/lib/logger";
+import { applyPaymentsDefault } from "@/lib/payments-default";
 import { prisma } from "@/lib/prisma";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 
@@ -194,7 +196,16 @@ export async function syncConnectAccount(
     },
   });
 
-  return { business: updated, status: getConnectStatus(updated) };
+  const status = getConnectStatus(updated);
+  if (status.canAcceptPayments && !updated.paymentsDefaultedAt) {
+    await applyPaymentsDefault(updated.id).catch((error) =>
+      logWarn("connect.payments_default_failed", {
+        businessId: updated.id,
+        error: error instanceof Error ? error.message : "unknown",
+      }),
+    );
+  }
+  return { business: updated, status };
 }
 
 /**

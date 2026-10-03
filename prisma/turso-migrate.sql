@@ -743,3 +743,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS "NetworkHandoff_leadId_key" ON "NetworkHandoff
 CREATE INDEX IF NOT EXISTS "NetworkHandoff_callerPhoneNormalized_status_idx" ON "NetworkHandoff"("callerPhoneNormalized", "status");
 CREATE INDEX IF NOT EXISTS "NetworkHandoff_status_offeredAt_idx" ON "NetworkHandoff"("status", "offeredAt");
 CREATE INDEX IF NOT EXISTS "NetworkHandoff_toBusinessId_idx" ON "NetworkHandoff"("toBusinessId");
+
+-- Payments on by default: deposits switch on once, when card payments go live.
+ALTER TABLE "Business" ADD COLUMN "paymentsDefaultedAt" DATETIME;

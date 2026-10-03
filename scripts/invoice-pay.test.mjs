@@ -106,7 +106,7 @@ test("completion with a final amount opens the invoice; without Autopilot nothin
 
 test("completion without a final amount creates no invoice", async () => {
   const { job } = await makeJob();
-  assert.deepEqual(await invoiceCompletedJob(job.id), { invoiced: false });
+  assert.deepEqual(await invoiceCompletedJob(job.id), { invoiced: false, reason: "no_amount" });
 });
 
 test.after(async () => {
