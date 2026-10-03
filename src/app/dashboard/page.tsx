@@ -13,10 +13,13 @@ import { Suspense } from "react";
 export default function DashboardPage() {
   return (
     <OsShell title="Command">
-      <Suspense fallback={null}>
-        <ShopOperateBanner />
-      </Suspense>
-      <Ring1CommandCenter />
+      <Ring1CommandCenter
+        setup={
+          <Suspense fallback={null}>
+            <ShopOperateBanner />
+          </Suspense>
+        }
+      />
     </OsShell>
   );
 }

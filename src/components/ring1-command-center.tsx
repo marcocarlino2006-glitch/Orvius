@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AttentionQueue } from "@/components/attention-queue";
 import { CommandSignals } from "@/components/command-signals";
-import { CommandBoard } from "@/components/command-board";
+import { AskBar, CommandBoard } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
 import type { AttentionItem } from "@/lib/attention-types";
@@ -49,9 +49,10 @@ function activityParts(h: Handled | undefined, counts: NonNullable<ReturnType<ty
  * tab. The rail holds the numbers and a quiet Pulse. The first failed load is a failure state; later failures keep
  * the last good data on screen and mark it stale.
  */
-export function Ring1CommandCenter() {
+export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const { data, loading, loadError, lastUpdatedAt, refresh } = useRing1();
   const [refreshing, setRefreshing] = useState(false);
+  const [boardKey, setBoardKey] = useState(0);
 
   async function retry() {
     setRefreshing(true);
@@ -92,71 +93,86 @@ export function Ring1CommandCenter() {
   const brief = data?.personalBrief ?? null;
 
   return (
-    <section className="cc" aria-label="Command">
-      <div className="cc-main">
-        <header className="cc-brief">
-          {brief ? (
-            <div className="cc-brief-personal">
-              <p className="cc-brief-headline">{brief.headline}</p>
-              {brief.detail.length ? (
-                <p className="cc-brief-detail">
-                  {brief.detail.map((line) => (
-                    <span key={line} className="cc-brief-part">
-                      {line}
+    <div className="cc-page">
+      <section className="cc-hero" aria-labelledby="cc-hero-title">
+        <h2 id="cc-hero-title" className="cc-hero-title">
+          What can I do for you?
+        </h2>
+        <AskBar
+          onChange={() => {
+            setBoardKey((k) => k + 1);
+            void refresh();
+          }}
+          below={setup}
+        />
+      </section>
+      <section className="cc" aria-label="Command">
+        <div className="cc-main">
+          <header className="cc-brief">
+            {brief ? (
+              <div className="cc-brief-personal">
+                <p className="cc-brief-headline">{brief.headline}</p>
+                {brief.detail.length ? (
+                  <p className="cc-brief-detail">
+                    {brief.detail.map((line) => (
+                      <span key={line} className="cc-brief-part">
+                        {line}
+                      </span>
+                    ))}
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+            <p className="cc-brief-text">
+              {activity ? (
+                <>
+                  <span className="cc-brief-window">{activity.window}</span>
+                  {activity.parts.map((part) => (
+                    <span key={part} className="cc-brief-part">
+                      {part}
                     </span>
                   ))}
-                </p>
-              ) : null}
-            </div>
-          ) : (
-          <p className="cc-brief-text">
-            {activity ? (
-              <>
-                <span className="cc-brief-window">{activity.window}</span>
-                {activity.parts.map((part) => (
-                  <span key={part} className="cc-brief-part">
-                    {part}
-                  </span>
-                ))}
-              </>
-            ) : (
-              "Reading the shop…"
+                </>
+              ) : (
+                "Reading the shop…"
+              )}
+            </p>
             )}
-          </p>
-          )}
-        </header>
+          </header>
 
-        <CommandBoard
-          onChange={() => void refresh()}
-          extra={{
-            id: "follow-ups",
-            label: "Follow-ups",
-            count: work.length,
-            content: (
-              <AttentionQueue
-                bare
-                work={work}
-                loading={loading && !data}
-                technicians={data?.technicians ?? []}
-                onAction={() => void refresh()}
-              />
-            ),
-          }}
-        />
-      </div>
+          <CommandBoard
+            onChange={() => void refresh()}
+            refreshKey={boardKey}
+            extra={{
+              id: "follow-ups",
+              label: "Follow-ups",
+              count: work.length,
+              content: (
+                <AttentionQueue
+                  bare
+                  work={work}
+                  loading={loading && !data}
+                  technicians={data?.technicians ?? []}
+                  onAction={() => void refresh()}
+                />
+              ),
+            }}
+          />
+        </div>
 
-      <aside className="cc-rail" aria-label="System status">
-        <CommandSignals signals={signals} loading={loading} />
-        <OrviusPulse
-          health={data?.health}
-          lastUpdatedAt={lastUpdatedAt}
-          stale={Boolean(loadError && data)}
-          refreshing={refreshing}
-          onRetry={() => void retry()}
-          billingStatus={data?.business?.billingStatus}
-          referenceImplementation={data?.business?.referenceImplementation}
-        />
-      </aside>
-    </section>
+        <aside className="cc-rail" aria-label="System status">
+          <CommandSignals signals={signals} loading={loading} />
+          <OrviusPulse
+            health={data?.health}
+            lastUpdatedAt={lastUpdatedAt}
+            stale={Boolean(loadError && data)}
+            refreshing={refreshing}
+            onRetry={() => void retry()}
+            billingStatus={data?.business?.billingStatus}
+            referenceImplementation={data?.business?.referenceImplementation}
+          />
+        </aside>
+      </section>
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "@/components/toaster";
 import type { BoardItem, BoardLane, CommandBoard as Board } from "@/lib/command-board";
 import type { RequestTrace } from "@/lib/request-trace";
@@ -252,14 +253,44 @@ function ItemRow({ item, demo, onChange }: { item: BoardItem; demo: boolean; onC
   );
 }
 
-function AskBar({ onChange }: { onChange: () => void }) {
+const ASK_STARTERS: { label: string; text: string; icon: string }[] = [
+  { label: "Book a job", text: "Book ", icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM12 14v4M10 16h4" },
+  { label: "Move a job", text: "Move ", icon: "M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4" },
+  { label: "Send a tech", text: "Send ", icon: "M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" },
+];
+
+function AskIcon({ d }: { d: string }) {
+  return (
+    <svg className="cb-ask-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d={d} />
+    </svg>
+  );
+}
+
+/**
+ * The composer at the top of Command. Every ask ends in a plan to approve or a
+ * plain question; nothing on the schedule changes from typing alone.
+ */
+export function AskBar({ onChange, below }: { onChange: () => void; below?: ReactNode }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<AskResult | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  async function ask(event: React.FormEvent) {
-    event.preventDefault();
-    if (text.trim().length < 2) return;
+  function start(prefix: string) {
+    setText(prefix);
+    setResult(null);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(prefix.length, prefix.length);
+    });
+  }
+
+  async function ask(event?: React.FormEvent) {
+    event?.preventDefault();
+    if (busy || text.trim().length < 2) return;
     setBusy(true);
     try {
       setResult(await post("/api/command/ask", { text }));
@@ -284,22 +315,45 @@ function AskBar({ onChange }: { onChange: () => void }) {
 
   return (
     <div className="cb-ask">
-      <form className="cb-ask-form" onSubmit={(e) => void ask(e)}>
-        <label className="sr-only" htmlFor="cb-ask-input">
-          Ask Orvius to act
-        </label>
-        <input
-          id="cb-ask-input"
-          className="cb-ask-input"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Ask Orvius to act — “book Maria tomorrow at 2”, “move Carter to Friday 9am”"
-          autoComplete="off"
-        />
-        <button type="submit" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy || text.trim().length < 2}>
-          {busy ? "Checking…" : "Plan it"}
-        </button>
-      </form>
+      <div className="cb-ask-stack">
+        <form className="cb-ask-form" onSubmit={(e) => void ask(e)}>
+          <label className="sr-only" htmlFor="cb-ask-input">
+            Ask Orvius to act
+          </label>
+          <textarea
+            id="cb-ask-input"
+            ref={inputRef}
+            className="cb-ask-input"
+            rows={2}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                void ask();
+              }
+            }}
+            placeholder="Book, move or assign a job — “book Maria tomorrow at 2”"
+            autoComplete="off"
+          />
+          <div className="cb-ask-bar">
+            <span className="cb-ask-note">
+              <AskIcon d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+              Nothing changes until you approve
+            </span>
+            <button
+              type="submit"
+              className="cb-ask-send"
+              aria-label={busy ? "Checking…" : "Plan it"}
+              title="Plan it"
+              disabled={busy || text.trim().length < 2}
+            >
+              <AskIcon d="M12 19V5M5 12l7-7 7 7" />
+            </button>
+          </div>
+        </form>
+        {below}
+      </div>
       {result ? (
         <div className="cb-ask-result" role="status">
           <p className="cb-ask-message">{result.message}</p>
@@ -324,6 +378,21 @@ function AskBar({ onChange }: { onChange: () => void }) {
           ) : null}
         </div>
       ) : null}
+      <div className="cb-ask-chips" aria-label="Start with">
+        {ASK_STARTERS.map((s) => (
+          <button key={s.label} type="button" className="cb-ask-chip" onClick={() => start(s.text)}>
+            <AskIcon d={s.icon} />
+            {s.label}
+          </button>
+        ))}
+        <Link href="/dashboard/inbox" className="cb-ask-chip">
+          <AskIcon d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+          Open inbox
+        </Link>
+        <Link href="/dashboard/ask" className="cb-ask-chip">
+          More
+        </Link>
+      </div>
     </div>
   );
 }
@@ -401,7 +470,7 @@ function TryDemo({ empty }: { empty: boolean }) {
  */
 export type ExtraLane = { id: string; label: string; count: number; content: ReactNode };
 
-export function CommandBoard({ onChange, extra }: { onChange?: () => void; extra?: ExtraLane }) {
+export function CommandBoard({ onChange, extra, refreshKey = 0 }: { onChange?: () => void; extra?: ExtraLane; refreshKey?: number }) {
   const [board, setBoard] = useState<Board | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lane, setLane] = useState<BoardLane | "extra" | null>(null);
@@ -423,7 +492,7 @@ export function CommandBoard({ onChange, extra }: { onChange?: () => void; extra
       if (document.visibilityState === "visible") void load();
     }, 20_000);
     return () => clearInterval(id);
-  }, [load]);
+  }, [load, refreshKey]);
 
   const refresh = useCallback(() => {
     void load();
@@ -441,7 +510,6 @@ export function CommandBoard({ onChange, extra }: { onChange?: () => void; extra
 
   return (
     <section className="cb font-sans" aria-label="Today's board">
-      <AskBar onChange={refresh} />
       {demo ? <DemoPanel onChange={refresh} /> : null}
       {error && !board ? <p className="cb-error" role="alert">{error}</p> : null}
       <div className="cb-tabs" role="tablist" aria-label="Board lanes">
