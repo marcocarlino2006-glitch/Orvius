@@ -1523,15 +1523,6 @@ button.rd-path-btn:hover {
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.55) !important;
 }
 
-.pm-identity {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.95rem 1rem;
-  border-bottom: 1px solid var(--ox-line);
-}
-
 .os-shell.os-shell-night .os-sidebar-avatar {
   width: 2.25rem;
   height: 2.25rem;
@@ -1539,46 +1530,6 @@ button.rd-path-btn:hover {
   color: var(--ox-amber);
   border: 1px solid rgb(242 169 59 / 0.35);
   font-size: 0.8125rem;
-}
-
-.pm-name {
-  margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 650;
-  color: var(--ox-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pm-email {
-  margin: 0.1rem 0 0;
-  font-size: 0.8125rem;
-  color: var(--ox-mute);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pm-role {
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  background: var(--ox-s4);
-  font-size: 0.75rem;
-  font-weight: 650;
-  color: var(--ox-text-2);
-}
-
-.pm-section {
-  padding: 0.5rem 0.5rem;
-  border-bottom: 1px solid var(--ox-line);
-}
-
-.pm-section-label {
-  margin: 0.2rem 0.5rem 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 650;
-  color: var(--ox-mute);
 }
 
 .pm-workspace {
@@ -1650,48 +1601,6 @@ button.rd-path-btn:hover {
   color: var(--ox-text);
 }
 
-.os-shell.os-shell-night .os-profile-menu-links {
-  padding: 0.35rem 0.5rem !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-link {
-  display: grid !important;
-  gap: 0.05rem;
-  min-height: 2.75rem;
-  padding: 0.45rem 0.5rem !important;
-  border-radius: var(--ox-radius-sm);
-  font-size: 0.9375rem !important;
-  font-weight: 550 !important;
-  color: var(--ox-text) !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-link:hover {
-  background: var(--ox-s3) !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-hint {
-  font-size: 0.75rem !important;
-  color: var(--ox-mute) !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-footer {
-  padding: 0.4rem 0.5rem 0.5rem !important;
-  border-top: none !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-signout {
-  margin: 0 !important;
-  min-height: 2.5rem;
-  padding: 0 0.5rem !important;
-  font-size: 0.9375rem !important;
-  color: var(--ox-text-2) !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-signout:hover {
-  background: var(--ox-red-soft) !important;
-  color: var(--ox-red) !important;
-}
-
 .os-shell.os-shell-night .os-sidebar-user-name {
   font-size: 0.875rem;
   color: var(--ox-text);
@@ -1719,9 +1628,237 @@ button.rd-path-btn:hover {
   letter-spacing: 0.01em;
 }
 
-.os-shell.os-shell-night .os-profile-menu-link.is-attention .os-profile-menu-hint {
-  color: var(--ox-amber);
+/* Account menu, on Manus's geometry: identity, a plan card, then short icon rows in divided groups. */
+.os-shell.os-shell-night .pm-panel {
+  width: 18.5rem;
+  padding: 0.75rem;
+  border-radius: 1rem !important;
+  border: 1px solid var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.16), 0 2px 8px rgb(0 0 0 / 0.06) !important;
+  color: var(--ox-text);
+}
+
+.pm-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.pm-icon-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.pm-icon-xs {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.pm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem 0.75rem;
+}
+
+.pm-head-id {
+  position: relative;
+  display: inline-flex;
+}
+
+.os-shell.os-shell-night .pm-head-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.125rem;
+}
+
+.pm-head-badge {
+  position: absolute;
+  right: -0.125rem;
+  bottom: -0.125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 2px solid var(--ox-s1);
+  border-radius: 999px;
+  background: var(--ox-text);
+  color: var(--ox-s1);
+}
+
+.pm-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ox-mute);
+  cursor: pointer;
+}
+
+.pm-switch:hover,
+.pm-switch:focus-visible {
+  background: var(--ox-s3);
+  color: var(--ox-text);
+}
+
+.pm-plan {
+  overflow: hidden;
+  margin-bottom: 0.375rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.75rem;
+  background: var(--ox-s2);
+}
+
+.pm-plan-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 0.875rem;
+  border-bottom: 1px dashed var(--ox-line-strong);
+}
+
+.os-shell.os-shell-night .pm-plan-name {
+  min-width: 0;
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", "DejaVu Serif", serif !important;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--ox-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-shell.os-shell-night .pm-plan-cta {
+  flex-shrink: 0;
+  padding: 0.3125rem 0.75rem;
+  border-radius: 999px;
+  background: var(--ox-text);
+  color: var(--ox-s1);
+  font-size: 0.8125rem;
   font-weight: 600;
+  text-decoration: none;
+}
+
+.os-shell.os-shell-night .pm-plan-cta:hover {
+  opacity: 0.86;
+}
+
+.os-shell.os-shell-night .pm-plan-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem 0 0.875rem;
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.pm-plan-info {
+  display: inline-flex;
+  color: var(--ox-mute);
+}
+
+.pm-plan-value {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .pm-plan-explore {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.25rem;
+  padding: 0 0.75rem 0 0.875rem;
+  background: var(--ox-s3);
+  color: var(--ox-mute);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.os-shell.os-shell-night .pm-plan-row:hover,
+.os-shell.os-shell-night .pm-plan-explore:hover {
+  background: var(--ox-s4);
+}
+
+.pm-group {
+  display: grid;
+  padding: 0.375rem 0;
+}
+
+.pm-group + .pm-group {
+  border-top: 1px solid var(--ox-line);
+}
+
+.os-shell.os-shell-night .pm-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.375rem;
+  padding: 0 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .pm-item:hover,
+.os-shell.os-shell-night .pm-item:focus-visible {
+  background: var(--ox-s2);
+}
+
+.pm-item-end {
+  margin-left: auto;
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .pm-signout {
+  color: var(--ox-red);
+}
+
+.os-shell.os-shell-night .pm-signout:hover {
+  background: var(--ox-red-soft);
+}
+
+.pm-locations {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.os-shell.os-shell-night .pm-back {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0 0.375rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .pm-back:hover {
+  background: var(--ox-s2);
 }
 
 /* ── Ask ───────────────────────────────────────────────────────────────── */

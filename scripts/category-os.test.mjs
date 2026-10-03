@@ -46,12 +46,14 @@ test("Calendar step is honest: it needs a real crew to book against", () => {
   assert.equal(buildShopSetupChecklist({ ...base, crewCount: 2 }).next?.id, "owner_alerts");
 });
 
-test("profile popover carries identity, workspace, and the full account menu", () => {
+test("account menu follows Manus: identity, plan card, then Knowledge, Account, Settings, Homepage, Get help, Sign out", () => {
   const footer = read("src/components/os-sidebar-footer.tsx");
-  for (const item of ["Profile", "Settings", "Integrations", "Billing", "Help", "Sign out", "Workspace"]) {
-    assert.match(footer, new RegExp(item));
-  }
-  assert.match(footer, /pm-identity/);
+  const order = ['className="pm-head"', 'className="pm-plan"', ...["Knowledge", "Account", "Settings", "Homepage", "Get help", "Sign out"].map((label) => `<span>${label}</span>`)];
+  const at = order.map((item) => footer.indexOf(item));
+  assert.ok(at.every((i) => i > 0), "every Manus row is present");
+  assert.deepEqual([...at].sort((a, b) => a - b), at, "in Manus's order");
+  assert.match(footer, /Switch location/);
+  assert.match(footer, /settings=billing/);
   assert.match(footer, /aria-expanded/);
 });
 
