@@ -8,6 +8,7 @@ import {
   heldReply,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
+  PASSED_TO_NETWORK_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
   parseSlotPreference,
@@ -100,6 +101,7 @@ function answer(call: ToolCall, now: Date, transferring: boolean) {
     return call.name === "hold_new_time" ? heldNewTimeReply(at, tz) : heldReply(at, tz);
   }
   if (call.name === "alert_team_now") return safetyAlertReply({ texted: true, transferring });
+  if (call.name === "pass_to_network") return PASSED_TO_NETWORK_REPLY;
   return "Unknown tool. Continue the call without it.";
 }
 

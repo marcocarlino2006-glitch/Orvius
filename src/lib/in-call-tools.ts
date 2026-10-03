@@ -5,6 +5,7 @@ import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { findOpenSlots } from "@/lib/job";
 import { logError, logInfo } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
+import { findNetworkPartners, zip3From } from "@/lib/orvius-network";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import {
@@ -13,11 +14,14 @@ import {
   dangerRefusal,
   heldNewTimeReply,
   heldReply,
+  NETWORK_OFFER_REPLY,
+  NETWORK_UNAVAILABLE_REPLY,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
   parseSlotPreference,
+  PASSED_TO_NETWORK_REPLY,
   safetyAlertReply,
   SLOT_TAKEN_REPLY,
   type ToolCall,
@@ -36,7 +40,7 @@ import {
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
 type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name"> &
-  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone">>;
+  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone" | "networkOn" | "networkZip3" | "address">>;
 
 type CallForTools = { id: string; vapiCallId?: string | null; callerPhone?: string | null };
 
@@ -69,8 +73,24 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
     slots = await findOpenSlots(base, { count: OFFERED_SLOTS, minGapMin: OFFER_GAP_MIN });
     if (slots.length) note = NO_ALT_NOTE;
   }
-  if (!slots.length) return NO_SLOTS_REPLY;
+  if (!slots.length) return (await networkCanHelp(shop)) ? NETWORK_OFFER_REPLY : NO_SLOTS_REPLY;
   return availabilityReply(slots, timezone, note);
+}
+
+/* A fully booked shop on the network can still get the caller help today. */
+async function networkCanHelp(shop: ShopForTools) {
+  if (!shop.networkOn || !shop.trade) return false;
+  const zip3 = shop.networkZip3 ?? zip3From(shop.address);
+  if (!zip3) return false;
+  const partners = await findNetworkPartners({ trade: shop.trade, zip3, excludeBusinessId: shop.id });
+  return partners.length > 0;
+}
+
+async function passToNetwork(shop: ShopForTools, callId: string) {
+  if (!(await networkCanHelp(shop))) return NETWORK_UNAVAILABLE_REPLY;
+  await prisma.call.update({ where: { id: callId }, data: { networkConsentAt: new Date() } });
+  logInfo("in_call.network_consent", { businessId: shop.id, callId });
+  return PASSED_TO_NETWORK_REPLY;
 }
 
 async function holdAppointment(
@@ -207,6 +227,9 @@ export async function handleInCallToolCalls(params: {
         }
         if (call.name === "hold_appointment") {
           return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args) };
+        }
+        if (call.name === "pass_to_network") {
+          return { toolCallId: call.id, result: await passToNetwork(params.shop, params.callId) };
         }
         if (call.name === "hold_new_time") {
           return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "reschedule") };

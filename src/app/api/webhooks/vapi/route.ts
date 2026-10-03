@@ -190,6 +190,9 @@ export async function POST(request: NextRequest) {
           ownerPhone: true,
           ownerEmail: true,
           transferPhone: true,
+          networkOn: true,
+          networkZip3: true,
+          address: true,
         },
       }),
     ]);

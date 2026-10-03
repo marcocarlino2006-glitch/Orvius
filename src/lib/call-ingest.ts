@@ -12,6 +12,7 @@ import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
+import { passConsentedCallLead } from "@/lib/orvius-network";
 import { prisma } from "@/lib/prisma";
 import { callerWords } from "@/lib/transcript";
 import { withCallerSpelling } from "@/lib/spelled-name";
@@ -338,7 +339,24 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
       });
     }
 
-    const ownerMessage = safety
+    const network =
+      call.networkConsentAt && !safety && !autoBook.jobId && !nonService
+        ? await passConsentedCallLead(
+            { id: business.id, name: business.name, trade: business.trade, address: business.address, networkOn: business.networkOn },
+            { ...freshLead, job: null },
+          ).catch((error) => {
+            logWarn("network.call_pass_failed", { leadId: lead.id, error: error instanceof Error ? error.message : String(error) });
+            return null;
+          })
+        : null;
+    const networkNote =
+      network && "offered" in network
+        ? network.offered
+          ? `\nYou were booked solid, so the caller agreed to a nearby pro. Offered to ${network.offered} Orvius Network shop${network.offered === 1 ? "" : "s"}.`
+          : "\nYou were booked solid and the caller agreed to a nearby pro, but no Orvius Network shop nearby was free. Call them back."
+        : "";
+
+    const baseOwnerMessage = safety
       ? `SAFETY — ${safety.label}. ${freshLead.name ?? "A caller"} ${freshLead.phone ?? ""} at ${
           freshLead.address ?? "an unknown address"
         }. ${safety.instruction}`
@@ -365,6 +383,7 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
             summary,
           },
         });
+    const ownerMessage = `${baseOwnerMessage}${networkNote}`;
 
     if (!nonService) {
       await enqueueOwnerAlert({

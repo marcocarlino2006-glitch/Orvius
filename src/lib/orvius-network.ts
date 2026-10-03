@@ -163,6 +163,22 @@ export async function answerNetworkConsent(params: {
   }
   if (!isYes(params.body)) return null;
 
+  const offered = await offerHandoff(handoff, now, texts);
+  if (offered === null) return null;
+  if (offered === 0) return `Sorry, no nearby shop is free right now. ${params.business.name} has your details.`;
+  return "Thanks. A nearby pro from the Orvius Network will reach out shortly.";
+}
+
+/*
+  Offer an "asking" handoff to the nearby shops, once: whoever moves it out of
+  "asking" first does the texting. Returns how many shops were offered it, or
+  null when another path already did.
+*/
+async function offerHandoff(
+  handoff: { id: string; leadId: string; trade: string; zip3: string; fromBusinessId: string },
+  now: Date,
+  texts: NetworkTexts,
+): Promise<number | null> {
   const partners = await findNetworkPartners({ trade: handoff.trade, zip3: handoff.zip3, excludeBusinessId: handoff.fromBusinessId });
   const claimed = await prisma.networkHandoff.updateMany({
     where: { id: handoff.id, status: "asking" },
@@ -171,7 +187,7 @@ export async function answerNetworkConsent(params: {
       : { status: "none" },
   });
   if (claimed.count === 0) return null;
-  if (!partners.length) return `Sorry, no nearby shop is free right now. ${params.business.name} has your details.`;
+  if (!partners.length) return 0;
 
   const lead = await prisma.lead.findUnique({
     where: { id: handoff.leadId },
@@ -192,7 +208,45 @@ export async function answerNetworkConsent(params: {
       }),
     ),
   );
-  return "Thanks. A nearby pro from the Orvius Network will reach out shortly.";
+  return partners.length;
+}
+
+/**
+ * The caller said yes on the call itself, when the shop was booked solid. No
+ * second question by text: the job goes straight to nearby shops, and the
+ * shop's owner alert still arrives as usual.
+ */
+export async function passConsentedCallLead(
+  shop: SenderShop,
+  lead: PassLead,
+  now = new Date(),
+  texts: NetworkTexts = liveTexts,
+): Promise<{ offered: number } | { skipped: string }> {
+  if (!shop.networkOn || !shop.trade) return { skipped: "network_off" };
+  if (lead.job) return { skipped: "booked" };
+  const callerPhone = normalizePhone(lead.phone);
+  if (!callerPhone || !lead.phone) return { skipped: "no_phone" };
+  const zip3 = zip3From(lead.postalCode) ?? zip3From(lead.address) ?? zip3From(shop.address);
+  if (!zip3) return { skipped: "no_zip" };
+  if (await prisma.networkHandoff.findUnique({ where: { leadId: lead.id } })) return { skipped: "already" };
+
+  const handoff = await prisma.networkHandoff.create({
+    data: { fromBusinessId: shop.id, leadId: lead.id, callerPhone: lead.phone, callerPhoneNormalized: callerPhone, trade: shop.trade, zip3 },
+  });
+  const offered = await offerHandoff(handoff, now, texts);
+  await recordAudit({
+    businessId: shop.id,
+    entityType: "lead",
+    entityId: lead.id,
+    leadId: lead.id,
+    action: "network.offered",
+    actor: "orvius",
+    summary: offered
+      ? `Booked solid, so the caller agreed on the call to a nearby pro. Offered to ${offered} Orvius shop${offered === 1 ? "" : "s"}.`
+      : "Booked solid and the caller agreed to a nearby pro, but no Orvius shop nearby was free.",
+    detail: { zip3, offered, via: "call" },
+  });
+  return { offered: offered ?? 0 };
 }
 
 /** Partner owner replied TAKE: the first one gets the customer as a new lead. Null when nothing is on offer. */
