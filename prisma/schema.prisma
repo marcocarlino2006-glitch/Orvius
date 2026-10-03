@@ -133,6 +133,10 @@ model Business {
   portRequest        PortRequest?
   /// First touch before signup (ref, utm, referring site, landing page), as JSON.
   acquisitionJson    String?
+  /// Orvius Network: passes jobs it can't take to nearby shops in its trade and receives theirs.
+  networkOn          Boolean  @default(false)
+  /// First three digits of the shop's ZIP; the network matches shops within the same region.
+  networkZip3        String?
   /// The shop whose link this one signed up from.
   referredById       String?
   referralsMade      Referral[] @relation("ReferralReferrer")
@@ -156,6 +160,7 @@ model Business {
   @@index([vapiPhoneNumber])
   @@index([vapiAssistantId])
   @@index([stripeCustomerId])
+  @@index([networkOn, trade, networkZip3])
 }
 
 /** Phone numbers that opted out of SMS on a shop line (STOP). */
@@ -969,4 +974,28 @@ model CallReplay {
   createdAt   DateTime @default(now())
 
   @@index([previewId])
+}
+
+/// A job one shop could not take, passed to a nearby shop in the same trade.
+/// The caller is always asked first; nothing is shared until they say yes.
+model NetworkHandoff {
+  id                    String    @id @default(cuid())
+  fromBusinessId        String
+  leadId                String    @unique
+  callerPhone           String
+  callerPhoneNormalized String
+  trade                 String
+  zip3                  String
+  /// asking → offered → taken; or declined (caller said no), none (no shop free), expired.
+  status                String    @default("asking")
+  offeredToJson         String    @default("[]")
+  toBusinessId          String?
+  toLeadId              String?
+  askedAt               DateTime  @default(now())
+  offeredAt             DateTime?
+  takenAt               DateTime?
+
+  @@index([callerPhoneNormalized, status])
+  @@index([status, offeredAt])
+  @@index([toBusinessId])
 }

@@ -15,6 +15,9 @@ const SHOP_LINE_SELECT = {
   lineVerifiedAt: true,
   billingStatus: true,
   createdAt: true,
+  trade: true,
+  address: true,
+  networkOn: true,
 } as const;
 
 /** A reply this long after our last text to that phone is a new conversation. */
@@ -32,6 +35,9 @@ type ShopLineMatch = {
   lineVerifiedAt: Date | null;
   billingStatus: string;
   createdAt: Date;
+  trade: string | null;
+  address: string | null;
+  networkOn: boolean;
 };
 
 /**
@@ -58,19 +64,7 @@ export async function resolveBusinessByInboundPhone(
         { vapiPhoneNumber: value },
       ]),
     },
-    select: {
-      id: true,
-      name: true,
-      timezone: true,
-      ownerPhone: true,
-      ownerEmail: true,
-      twilioPhone: true,
-      vapiPhoneNumber: true,
-      vapiAssistantId: true,
-      lineVerifiedAt: true,
-      billingStatus: true,
-      createdAt: true,
-    },
+    select: SHOP_LINE_SELECT,
     orderBy: { createdAt: "asc" },
   });
 

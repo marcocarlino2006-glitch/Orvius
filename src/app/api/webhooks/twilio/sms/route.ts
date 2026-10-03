@@ -35,6 +35,7 @@ import { answerFollowUpReply } from "@/lib/lead-follow-up";
 import { hasActiveOwnerConversation, inboundMediaFromForm, PHOTO_ONLY_BODY, recordMessage } from "@/lib/messages";
 import { hasOpenWebChat } from "@/lib/web-chat";
 import { handleOwnerText } from "@/lib/owner-text-commands";
+import { answerNetworkConsent } from "@/lib/orvius-network";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -191,6 +192,9 @@ export async function POST(request: NextRequest) {
         "Reply to an alert with BOOK, TEXT <message>, CALLED or SPAM. Reply ? for the full list. (Testing as a customer? Text from another phone.)",
     );
   }
+
+  const networkReply = await answerNetworkConsent({ business, from, body });
+  if (networkReply) return reply(networkReply);
 
   if (messageSid) {
     const existing = await prisma.lead.findFirst({

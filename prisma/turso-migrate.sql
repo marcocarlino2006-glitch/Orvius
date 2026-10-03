@@ -719,3 +719,27 @@ CREATE TABLE IF NOT EXISTS "CallReplay" (
   "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS "CallReplay_previewId_idx" ON "CallReplay"("previewId");
+
+ALTER TABLE "Business" ADD COLUMN "networkOn" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "networkZip3" TEXT;
+CREATE INDEX IF NOT EXISTS "Business_networkOn_trade_networkZip3_idx" ON "Business"("networkOn", "trade", "networkZip3");
+CREATE TABLE IF NOT EXISTS "NetworkHandoff" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "fromBusinessId" TEXT NOT NULL,
+  "leadId" TEXT NOT NULL,
+  "callerPhone" TEXT NOT NULL,
+  "callerPhoneNormalized" TEXT NOT NULL,
+  "trade" TEXT NOT NULL,
+  "zip3" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'asking',
+  "offeredToJson" TEXT NOT NULL DEFAULT '[]',
+  "toBusinessId" TEXT,
+  "toLeadId" TEXT,
+  "askedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "offeredAt" DATETIME,
+  "takenAt" DATETIME
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "NetworkHandoff_leadId_key" ON "NetworkHandoff"("leadId");
+CREATE INDEX IF NOT EXISTS "NetworkHandoff_callerPhoneNormalized_status_idx" ON "NetworkHandoff"("callerPhoneNormalized", "status");
+CREATE INDEX IF NOT EXISTS "NetworkHandoff_status_offeredAt_idx" ON "NetworkHandoff"("status", "offeredAt");
+CREATE INDEX IF NOT EXISTS "NetworkHandoff_toBusinessId_idx" ON "NetworkHandoff"("toBusinessId");
