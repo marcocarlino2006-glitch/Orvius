@@ -195,7 +195,7 @@ html .os-shell.os-shell-night .os-topbar-search:hover {
 
 /* ── Edges: hairlines, one radius family ──────────────────────────────── */
 
-.os-shell.os-shell-night :is(.dt, .wq, .ms-row, .cc-rail .cs-grid, .cb-ask-form) {
+.os-shell.os-shell-night :is(.dt, .wq, .ms-row, .cc-rail .cs-grid) {
   border-color: var(--ox-line) !important;
   border-radius: var(--ox-radius) !important;
   box-shadow: none !important;

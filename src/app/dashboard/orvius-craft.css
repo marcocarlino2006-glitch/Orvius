@@ -935,27 +935,6 @@ a.dt-row:focus-visible,
   margin-bottom: 1.5rem;
 }
 
-.cb-ask-form {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.cb-ask-input {
-  flex: 1;
-  min-width: 0;
-  height: 2.375rem;
-  padding: 0 0.875rem;
-  border: 1px solid var(--ox-line-strong);
-  border-radius: var(--ox-radius-sm);
-  background: var(--ox-s2);
-  color: var(--ox-text);
-  font-size: 0.875rem;
-}
-
-.cb-ask-input::placeholder {
-  color: var(--ox-mute);
-}
-
 .cb-ask-result {
   display: grid;
   gap: 0.5rem;
@@ -1272,10 +1251,6 @@ a.dt-row:focus-visible,
 }
 
 @media (max-width: 640px) {
-  .cb-ask-form {
-    flex-direction: column;
-  }
-
   .cb-item-head {
     flex-direction: column;
     gap: 0.25rem;

@@ -57,6 +57,19 @@ test("account menu follows Manus: identity, plan card, then Knowledge, Account, 
   assert.match(footer, /aria-expanded/);
 });
 
+test("Command home follows Manus: serif greeting, one composer, starter chips, then the board", () => {
+  const command = read("src/components/ring1-command-center.tsx");
+  const board = read("src/components/command-board.tsx");
+  const page = read("src/app/dashboard/page.tsx");
+  const hero = command.indexOf("What can I do for you?");
+  assert.ok(hero > 0 && hero < command.indexOf("<AskBar") && command.indexOf("<AskBar") < command.indexOf("<CommandBoard"));
+  assert.match(page, /setup=\{/);
+  assert.match(board, /<textarea/);
+  assert.match(board, /Nothing changes until you approve/);
+  for (const chip of ["Book a job", "Move a job", "Send a tech", "Open inbox", "More"]) assert.match(board, new RegExp(chip));
+  assert.doesNotMatch(board.slice(board.indexOf("export function CommandBoard")), /<AskBar/, "the board no longer carries its own ask bar");
+});
+
 test("Ask is one composer with grounded evidence and explained approvals", () => {
   const ask = read("src/app/dashboard/ask/page.tsx");
   assert.match(ask, /ask-composer/);

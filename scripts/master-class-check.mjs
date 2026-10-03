@@ -340,7 +340,8 @@ try {
   const dash = read("src/app/dashboard/page.tsx");
   if (
     /ShopOperateBanner/.test(dash) &&
-    dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
+    (dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") ||
+      /setup=\{[\s\S]*<ShopOperateBanner[\s\S]*\}/.test(dash)) &&
     !/<FounderNextGate/.test(dash) &&
     !/<FirstNightHandoff/.test(dash)
   ) {
