@@ -406,6 +406,7 @@ export type VapiWebhookMessage = {
     };
     endedReason?: string;
     artifact?: {
+      messages?: Array<{ role?: string; message?: string; secondsFromStart?: number }>;
       performanceMetrics?: { turnLatencies?: import("@/lib/call-latency").TurnLatency[] };
     };
   };
