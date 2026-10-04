@@ -92,7 +92,7 @@ export function UtilityDock() {
   const current = LANGS.find((entry) => entry.code === lang) ?? LANGS[0];
 
   return (
-    <div className="fixed right-6 bottom-4 z-50 print:hidden">
+    <div className="flex justify-center pt-2 pb-6 sm:fixed sm:right-6 sm:bottom-4 sm:z-50 sm:block sm:p-0 print:hidden">
       <div
         ref={dockRef}
         className="relative inline-flex items-center gap-2 rounded-[0.25rem] border border-ui-border bg-ui-surface p-1.5 shadow-[var(--ui-dock-shadow)]"
