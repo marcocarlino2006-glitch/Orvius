@@ -1567,3 +1567,43 @@ a.dt-row:focus-visible,
 .pro-loading-bar-short {
   width: 60%;
 }
+
+/* Legacy light-theme utilities inside the shell resolve to the shell's tokens. */
+.os-shell.os-shell-night .card,
+.os-shell.os-shell-night .bg-white {
+  border: 1px solid var(--ox-line) !important;
+  border-radius: 0.75rem !important;
+  background: var(--ox-s2) !important;
+  box-shadow: none !important;
+}
+
+.os-shell.os-shell-night [class*="bg-fog"] {
+  background: var(--ox-s3) !important;
+}
+
+.os-shell.os-shell-night .border-rule,
+.os-shell.os-shell-night [class*="border-black"] {
+  border-color: var(--ox-line) !important;
+}
+
+.os-shell.os-shell-night .text-void {
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .text-ash {
+  color: var(--ox-mute) !important;
+}
+
+.os-shell.os-shell-night .font-serif {
+  font-family: inherit !important;
+  font-weight: 600;
+  letter-spacing: -0.015em !important;
+}
+
+.os-shell.os-shell-night .home-os-kicker {
+  color: var(--ox-mute) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}

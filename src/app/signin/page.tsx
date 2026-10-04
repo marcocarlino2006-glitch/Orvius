@@ -62,9 +62,7 @@ export default async function SignInPage({
             Run your day in Orvius.
           </h2>
           <p className="ov-signin-pitch-sub">
-            The receptionist answers your calls and brings in the work. Command
-            schedules it, coordinates your people, follows up with customers and
-            shows you what actually happened.
+            Answers every call, books the work, and shows you what happened.
           </p>
 
           <SignInBoard />

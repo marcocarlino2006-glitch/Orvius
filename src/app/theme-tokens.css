@@ -15,26 +15,25 @@
   invisible against white, so selection inverts to ink. Same token, same
   meaning, different execution per canvas.
 
-  The neutrals here are warm, not gray: they are the same near-black-under-warm
-  -paper ladder the marketing skin runs on, so a --ui-* surface placed next to
-  an --ov-* one does not read as a slightly blue patch.
+  The dark neutrals are the same graphite ladder the marketing page and the
+  dashboard paint, so a --ui-* surface never reads as a brown patch beside them.
 */
 
 :root,
 [data-theme="night"] {
   color-scheme: dark;
 
-  --ui-bg: #14120b;
-  --ui-surface: #201e18;
-  --ui-surface-hover: #2b2923;
+  --ui-bg: #18181a;
+  --ui-surface: #1f1f22;
+  --ui-surface-hover: #2a2a2d;
   --ui-text: #edecec;
-  --ui-text-muted: #8a8880;
-  --ui-border: #26241e;
+  --ui-text-muted: #8c8c90;
+  --ui-border: #2a2a2d;
 
-  --ui-selected: #26241e;
+  --ui-selected: #2a2a2d;
   --ui-on-selected: #ffffff;
   --ui-cta: #ffffff;
-  --ui-on-cta: #14120b;
+  --ui-on-cta: #111113;
 
   /* Metallic top edge — a lit 1px lip, not a soft SaaS elevation blur. */
   --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
@@ -47,7 +46,7 @@
     >= 4.6:1 against every backdrop the page actually paints —
     scripts/verify-dock.cjs scans the whole scroll range and asserts it.
   */
-  --ui-dock-glass: rgb(32 30 24 / 0.9);
+  --ui-dock-glass: rgb(31 31 34 / 0.9);
 }
 
 [data-theme="day"] {

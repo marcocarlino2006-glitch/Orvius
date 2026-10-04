@@ -34,7 +34,6 @@ export function MarketingShell({ children }: MarketingShellProps) {
           <div className="mkt-footer-grid">
             <div className="mkt-footer-brand">
               <OrviusLogo variant="void" size="sm" />
-              <p className="mkt-footer-entity font-sans">Solution Development LLC</p>
               <p className="mkt-footer-tagline font-sans" data-i18n="footer.tagline">
                 The operating system for businesses that run on the phone.
               </p>

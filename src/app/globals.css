@@ -5096,7 +5096,7 @@ html[data-theme="night"] .mkt-page .call-demo-void,
 html[data-theme="night"] .mkt-page .pricing-wizard,
 html[data-theme="night"] .mkt-page .pricing-needs-picker,
 html[data-theme="night"] .mkt-page .pricing-needs-option {
-  background: #1c1a14 !important;
+  background: #1f1f22 !important;
   border-color: #2a2a2e !important;
   color: #edecec !important;
 }
@@ -5111,7 +5111,7 @@ html[data-theme="night"] .mkt-page input,
 html[data-theme="night"] .mkt-page select,
 html[data-theme="night"] .mkt-page textarea,
 html[data-theme="night"] .mkt-page .input {
-  background: #1c1a14 !important;
+  background: #1f1f22 !important;
   color: #edecec !important;
   border-color: #2a2a2e !important;
 }
@@ -5124,7 +5124,7 @@ html[data-theme="night"] .mkt-page .inst-btn-primary {
 }
 
 html[data-theme="night"] .mkt-page .inst-btn-ghost {
-  background: #1c1a14 !important;
+  background: #1f1f22 !important;
   color: #edecec !important;
   border-color: #2a2a2e !important;
 }

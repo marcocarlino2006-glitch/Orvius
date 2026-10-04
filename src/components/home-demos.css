@@ -49,8 +49,8 @@
   display: grid;
   grid-template-columns: 11em minmax(0, 1fr);
   border-radius: 0.8em;
-  background: #101012;
-  color: #ecebe8;
+  background: #1a1a1a;
+  color: #e6e6e6;
   font-family: var(--ov-font, system-ui);
   font-size: max(8px, 1.5cqi);
   line-height: 1.4;
@@ -65,14 +65,19 @@
   flex-direction: column;
   gap: 0.3em;
   padding: 1.1em 0.8em;
-  border-right: 1px solid rgb(255 255 255 / 0.07);
-  background: #0c0c0e;
+  border-right: 1px solid rgb(255 255 255 / 0.06);
+  background: #1f1f1f;
 }
 
 .hd-logo {
-  font-weight: 700;
-  font-size: 1.15em;
-  letter-spacing: -0.02em;
+  display: block;
+  color: #fff;
+}
+
+.hd-logo svg {
+  display: block;
+  width: 5.2em;
+  height: auto;
 }
 
 .hd-shop {
@@ -96,9 +101,8 @@
 }
 
 .hd-side li.is-on {
-  background: rgb(255 255 255 / 0.07);
+  background: #2a2a2a;
   color: #fff;
-  box-shadow: inset 2px 0 0 #f5a524;
 }
 
 .hd-main {
@@ -197,7 +201,7 @@
   height: 1em;
   margin-left: 1px;
   vertical-align: -0.15em;
-  background: #f5a524;
+  background: #e6e6e6;
   animation: hd-blink 1s steps(1) infinite;
 }
 
@@ -214,8 +218,8 @@
 .hd-chips span {
   padding: 0.3em 0.7em;
   border-radius: 999px;
-  background: rgb(245 165 36 / 0.12);
-  color: #f7c46c;
+  background: rgb(255 255 255 / 0.06);
+  color: #e6e6e6;
   font-size: 0.9em;
   animation: hd-in 400ms ease both;
 }
@@ -237,7 +241,7 @@
 }
 
 .hd-toggle.is-on {
-  background: #f5a524;
+  background: #3b82f6;
 }
 
 .hd-toggle::after {
@@ -374,8 +378,7 @@
 }
 
 .hd-calls li.is-on {
-  background: rgb(255 255 255 / 0.05);
-  box-shadow: inset 2px 0 0 #f5a524;
+  background: rgb(255 255 255 / 0.06);
 }
 
 .hd-transcript {
@@ -410,11 +413,11 @@
   margin-top: 0.4em;
   padding: 0.7em 0.8em;
   border-radius: 0.45em;
-  background: rgb(245 165 36 / 0.1);
+  background: rgb(255 255 255 / 0.05);
 }
 
 .hd-transcript .hd-summary > span {
-  color: #f7c46c;
+  color: #b3b3b3;
 }
 
 /* Phones */
@@ -514,7 +517,7 @@
 }
 
 .hd-job-actions span:first-child {
-  background: #f5a524;
+  background: rgb(255 255 255 / 0.95);
   color: #111;
 }
 

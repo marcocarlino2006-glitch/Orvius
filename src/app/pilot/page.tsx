@@ -42,11 +42,10 @@ export default function PilotPage() {
         <div className="editorial-wrap" style={{ maxWidth: "36rem" }}>
           <p className="tier1-eyebrow type-eyebrow">Request</p>
           <h2 className="tier1-section-title type-headline">
-            Book the audit. We&apos;ll email to schedule.
+            Book a call audit.
           </h2>
           <p className="tier1-section-lead font-sans">
-            Leave shop details. We schedule a short call, review after-hours
-            traffic, and configure the line if you want to proceed.
+            A short call. We review your missed calls and set up your line.
           </p>
           <div className="tier1-form-slot" style={{ marginTop: "1.25rem" }}>
             <EarlyAccessForm variant="full" />
