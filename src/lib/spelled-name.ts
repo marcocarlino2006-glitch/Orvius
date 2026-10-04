@@ -87,6 +87,27 @@ function bestSplit(letters: string, words: string[]): { parts: string[]; cost: n
   return best;
 }
 
+/** Cut `letters` into one piece per word so the pieces fit two wordings of the same words at once. */
+function jointSplit(letters: string, spoken: string[], captured: string[]): string[] | null {
+  if (spoken.length !== captured.length || !spoken.length) return null;
+  if (spoken.length === 1) return [letters];
+  let best: { parts: string[]; cost: number } | null = null;
+  const walk = (rest: string, i: number, parts: string[], cost: number) => {
+    if (best && cost >= best.cost) return;
+    if (i === spoken.length - 1) {
+      const total = cost + pieceCost(rest, spoken[i]) + pieceCost(rest, captured[i]);
+      if (!best || total < best.cost) best = { parts: [...parts, rest], cost: total };
+      return;
+    }
+    for (let k = 1; k <= rest.length - (spoken.length - 1 - i); k++) {
+      const piece = rest.slice(0, k);
+      walk(rest.slice(k), i + 1, [...parts, piece], cost + pieceCost(piece, spoken[i]) + pieceCost(piece, captured[i]));
+    }
+  };
+  walk(letters, 0, [], 0);
+  return best ? (best as { parts: string[] }).parts : null;
+}
+
 type Match = { start: number; len: number; parts: string[]; cost: number };
 
 /** The run of consecutive words the letters spell best, cost per letter. */
@@ -129,7 +150,8 @@ export function applySpelledRuns(
   const applied: SpelledRun[] = [];
 
   for (const run of runs) {
-    const spoken = bestMatch(run.letters, run.before.filter((w) => /^[A-Za-z\u00C0-\u024F']{2,}$/.test(w)));
+    const said = run.before.filter((w) => /^[A-Za-z\u00C0-\u024F']{2,}$/.test(w));
+    const spoken = bestMatch(run.letters, said);
     const anchored = spoken && spoken.cost <= MAX_COST ? spoken : null;
     const words = wordAt.map((i) => pieces[i]);
     const skip = (n: number) => used.has(wordAt[n]);
@@ -137,7 +159,10 @@ export function applySpelledRuns(
     if (!best) continue;
     const trusted = anchored && best.len === anchored.len;
     if (best.cost > (trusted ? ANCHORED_MAX_COST : MAX_COST)) continue;
-    const parts = trusted ? anchored.parts : best.parts;
+    /* Two mishearings rarely agree on where a name breaks, so the split must fit both what was said and what was captured. */
+    const parts = trusted
+      ? (jointSplit(run.letters, said.slice(anchored.start, anchored.start + anchored.len), words.slice(best.start, best.start + best.len)) ?? anchored.parts)
+      : best.parts;
     applied.push(run);
     parts.forEach((part, n) => {
       const i = wordAt[best!.start + n];

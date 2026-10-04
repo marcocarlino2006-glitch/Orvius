@@ -34,6 +34,8 @@ test("a misheard spoken name does not move where the spelling splits (real call 
   ].join("\n");
   assert.equal(withCallerSpelling({ name: "Siobhan Nguyen" }, t).name, "Siobhan Nguyen");
   assert.equal(withCallerSpelling({ name: "Siobhan Gouyan" }, t).name, "Siobhan Nguyen");
+  const said = "User: It's Shivan Anguyen. That's spelled s I o b h a n n g u y e n.";
+  assert.equal(withCallerSpelling({ name: "Siobhann Nguyen" }, said).name, "Siobhan Nguyen");
 });
 
 test("a spelled last name or street fixes just that word", () => {
