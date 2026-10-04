@@ -67,17 +67,8 @@ function planDisplayLabel(account: AccountData | null): string {
   return "No plan";
 }
 
-function needsPayCta(account: AccountData | null): boolean {
-  const status = (
-    account?.billing?.status ??
-    account?.business?.billingStatus ??
-    "none"
-  ).toLowerCase();
-  if (status === "active") return false;
-  if (status === "past_due" || status === "canceled") return true;
-  if (account?.billing?.entitled === false) return true;
-  if (status === "pilot" || status === "none") return true;
-  return false;
+function workspaceLabel(role: "Owner" | "Member" | null): string {
+  return role === "Member" ? "Member" : "Personal";
 }
 
 export function OsSidebarFooter() {
@@ -124,15 +115,16 @@ export function OsSidebarFooter() {
   const email = session.user.email ?? "";
   const planLabel = planDisplayLabel(account);
   const ownerEmail = account?.business?.ownerEmail?.toLowerCase() ?? null;
-  const role = ownerEmail && email.toLowerCase() === ownerEmail ? "Owner" : "Member";
-  const showPay = needsPayCta(account);
-  const payLabel =
-    (account?.billing?.status ?? "").toLowerCase() === "past_due"
-      ? "Fix payment"
-      : "Pay with card";
+  const role: "Owner" | "Member" | null = !account
+    ? null
+    : ownerEmail && email.toLowerCase() === ownerEmail
+      ? "Owner"
+      : "Member";
   const environment = account?.business?.environment ?? "production";
   const sampleWorkspace = environment === "demo" || environment === "test";
-  const upgradeLabel = showPay ? payLabel : "Upgrade";
+  const billingStatus = (account?.billing?.status ?? account?.business?.billingStatus ?? "").toLowerCase();
+  const upgradeLabel = billingStatus === "past_due" ? "Fix payment" : "Upgrade";
+  const workspace = workspaceLabel(role);
 
   return (
     <div
@@ -158,7 +150,7 @@ export function OsSidebarFooter() {
             </span>
             <div className="pm-identity-copy">
               <p className="pm-name">{name}</p>
-              <p className="pm-email">{role === "Owner" ? "Personal" : role}</p>
+              <p className="pm-email">{workspace}</p>
             </div>
           </div>
 
@@ -242,7 +234,7 @@ export function OsSidebarFooter() {
         </span>
         <span className="os-sidebar-user-meta">
           <span className="os-sidebar-user-name">{name}</span>
-          <span className="os-sidebar-user-plan">{planLabel}</span>
+          <span className="os-sidebar-user-plan">{workspace}</span>
         </span>
         <span className="os-profile-menu-chevron" aria-hidden>
           <svg viewBox="0 0 12 12" aria-hidden>
