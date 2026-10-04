@@ -1,5 +1,6 @@
 "use client";
 
+import { Libre_Baskerville } from "next/font/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -7,6 +8,14 @@ import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportMailto } from "@/lib/support";
 import { fetchAccount } from "@/lib/account-client";
+
+const planSerif = Libre_Baskerville({
+  weight: "700",
+  subsets: ["latin"],
+  variable: "--font-plan-serif",
+  display: "swap",
+  preload: false,
+});
 
 type AccountData = {
   business: {
@@ -181,7 +190,7 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
 
           <div className="mx-plan">
             <div className="mx-plan-head">
-              <span className="mx-plan-name">{planDisplayLabel(account)}</span>
+              <span className={`mx-plan-name ${planSerif.variable}`}>{planDisplayLabel(account)}</span>
               <Link href="/dashboard?settings=billing" role="menuitem" className="mx-upgrade" onClick={close}>
                 {upgradeLabel}
               </Link>
