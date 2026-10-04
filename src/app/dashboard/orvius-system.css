@@ -1510,8 +1510,8 @@ button.rd-path-btn:hover {
 /* ── Profile popover ───────────────────────────────────────────────────── */
 
 .os-shell.os-shell-night .mn-menu {
-  width: 16.5rem;
-  padding: 0.35rem 0 0.4rem;
+  width: auto;
+  padding: 0.35rem 0 0.3rem;
 }
 
 .os-shell.os-shell-night .mn-identity {
@@ -1563,9 +1563,13 @@ button.rd-path-btn:hover {
   display: flex !important;
   grid-template-columns: none !important;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.6rem;
   min-height: 2.15rem !important;
-  color: var(--ox-text) !important;
+  margin: 0 0.35rem;
+  padding: 0 0.5rem !important;
+  border-radius: 0.4rem;
+  font-size: 0.875rem !important;
+  color: #f2f2f2 !important;
 }
 
 .os-shell.os-shell-night .mn-link .mn-icon:last-child {
@@ -1594,12 +1598,12 @@ button.rd-path-btn:hover {
 
 .os-shell.os-shell-night .os-profile-menu-panel {
   left: 0;
-  right: auto;
-  width: max(100%, 17.5rem);
-  border-radius: var(--ox-radius) !important;
-  border: 1px solid var(--ox-line-strong) !important;
-  background: var(--ox-s2) !important;
-  box-shadow: 0 24px 60px rgb(0 0 0 / 0.55) !important;
+  right: 0;
+  width: auto;
+  border-radius: 0.75rem !important;
+  border: 1px solid rgb(255 255 255 / 0.08) !important;
+  background: #2a2a2a !important;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.5) !important;
 }
 
 .pm-identity {
@@ -1612,12 +1616,12 @@ button.rd-path-btn:hover {
 }
 
 .os-shell.os-shell-night .os-sidebar-avatar {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2rem;
+  height: 2rem;
   background: #2f6fed;
   color: #fff;
   border: 0;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
 }
 
 .pm-name {
