@@ -14,16 +14,21 @@
    ────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --ox-bg: #0c0d0f;
-  --ox-s1: #121316;
-  --ox-s2: #181a1e;
-  --ox-s3: #202328;
-  --ox-s4: #2a2e34;
-  --ox-line: #262a30;
-  --ox-line-strong: #363b43;
-  --ox-text: #f3f4f6;
-  --ox-text-2: #c9cdd3;
-  --ox-mute: #9aa1ab;
+  --ox-bg: #1a1a1a;
+  --ox-s1: #1f1f1f;
+  --ox-s2: #222222;
+  --ox-s3: #2a2a2a;
+  --ox-s4: #313131;
+  --ox-line: rgb(255 255 255 / 0.06);
+  --ox-line-strong: rgb(255 255 255 / 0.12);
+  --ox-text: #e6e6e6;
+  --ox-text-2: #b3b3b3;
+  --ox-mute: #8c8c8c;
+  --ox-primary: rgb(255 255 255 / 0.95);
+  --ox-on-primary: rgb(0 0 0 / 0.9);
+  --ox-fill: rgb(255 255 255 / 0.06);
+  --ox-fill-hover: rgb(255 255 255 / 0.08);
+  --ox-fill-light: rgb(255 255 255 / 0.04);
   --ox-amber: #f2a93b;
   --ox-amber-hi: #f7bb5c;
   --ox-amber-soft: rgb(242 169 59 / 0.14);
@@ -36,7 +41,7 @@
   --ox-red-soft: rgb(242 107 107 / 0.12);
   --ox-radius: 0.625rem;
   --ox-radius-sm: 0.4375rem;
-  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px var(--ox-amber);
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(255 255 255 / 0.32);
 }
 
 .os-shell.os-shell-night {
@@ -126,46 +131,35 @@
 }
 
 .os-shell.os-shell-night .os-nav-link {
-  min-height: 2.5rem !important;
-  padding: 0 0.7rem !important;
-  border-radius: var(--ox-radius-sm) !important;
-  color: var(--ox-text-2) !important;
-  font-size: 0.9375rem !important;
-  font-weight: 500 !important;
+  min-height: 36px !important;
+  padding: 0 8px !important;
+  border-radius: 10px !important;
+  color: var(--ox-text) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
 }
 
 .os-shell.os-shell-night .os-nav-link:hover {
-  background: var(--ox-s3) !important;
+  background: var(--ox-fill-light) !important;
   color: var(--ox-text) !important;
 }
 
 .os-shell.os-shell-night .os-sidebar-pro .os-nav-link-active,
 .os-shell.os-shell-night .os-nav-link-active {
   position: relative;
-  background: rgb(255 255 255 / 0.06) !important;
+  background: var(--ox-fill) !important;
   color: var(--ox-text) !important;
-  font-weight: 600 !important;
-}
-
-.os-shell.os-shell-night .os-nav-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.55rem;
-  bottom: 0.55rem;
-  width: 3px;
-  border-radius: 3px;
-  background: var(--ox-amber);
+  font-weight: 500 !important;
 }
 
 .os-shell.os-shell-night .os-nav-link-active .os-nav-icon {
-  color: var(--ox-amber);
+  color: var(--ox-text);
   opacity: 1;
 }
 
 .os-shell.os-shell-night .os-nav-link-disabled,
 .os-shell.os-shell-night .os-nav-link-disabled:hover {
-  color: #6f7680 !important;
+  color: #595959 !important;
 }
 
 .os-shell.os-shell-night .os-nav-badge {
@@ -202,7 +196,7 @@
 .os-shell.os-shell-night .os-topbar,
 .os-shell.os-shell-night .os-topbar-pro,
 .os-shell.os-shell-night .os-topbar-night {
-  background: rgb(12 13 15 / 0.88) !important;
+  background: rgb(26 26 26 / 0.86) !important;
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--ox-line) !important;
   padding: 0.85rem 2rem !important;
@@ -221,17 +215,17 @@
 }
 
 .os-shell.os-shell-night .os-topbar-search {
-  height: 2.375rem !important;
-  padding: 0 0.8rem !important;
-  border: 1px solid var(--ox-line-strong) !important;
-  border-radius: var(--ox-radius-sm) !important;
-  background: var(--ox-s2) !important;
+  height: 36px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--ox-fill) !important;
   color: var(--ox-text-2) !important;
   font-size: 0.875rem !important;
 }
 
 .os-shell.os-shell-night .os-topbar-search:hover {
-  background: var(--ox-s3) !important;
+  background: var(--ox-fill-hover) !important;
   color: var(--ox-text) !important;
 }
 
@@ -287,17 +281,17 @@ body:has(.os-shell.os-shell-night) {
   align-items: center !important;
   justify-content: center !important;
   gap: 0.4rem;
-  min-height: 2.375rem !important;
-  padding: 0 1rem !important;
-  border-radius: var(--ox-radius-sm) !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.005em !important;
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   white-space: nowrap;
   text-decoration: none !important;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition: background 120ms ease, opacity 120ms ease, color 120ms ease;
 }
 
 :is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary,
@@ -305,9 +299,9 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night .attention-item-btn-primary,
 .os-shell.os-shell-night .assign-tech-btn,
 .os-shell.os-shell-night .job-status-advance-btn {
-  background: var(--ox-amber) !important;
-  border: 1px solid var(--ox-amber) !important;
-  color: var(--ox-on-amber) !important;
+  background: var(--ox-primary) !important;
+  border: 0 !important;
+  color: var(--ox-on-primary) !important;
 }
 
 :is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary:hover:not(:disabled),
@@ -315,17 +309,17 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night .attention-item-btn-primary:hover:not(:disabled),
 .os-shell.os-shell-night .assign-tech-btn:hover:not(:disabled),
 .os-shell.os-shell-night .job-status-advance-btn:hover:not(:disabled) {
-  background: var(--ox-amber-hi) !important;
-  border-color: var(--ox-amber-hi) !important;
-  color: var(--ox-on-amber) !important;
+  background: var(--ox-primary) !important;
+  opacity: 0.9;
+  color: var(--ox-on-primary) !important;
 }
 
 :is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet,
 .os-shell.os-shell-night .btn-secondary,
 .os-shell.os-shell-night .btn:not(.btn-void),
 .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary) {
-  background: var(--ox-s3) !important;
-  border: 1px solid var(--ox-line-strong) !important;
+  background: var(--ox-fill) !important;
+  border: 0 !important;
   color: var(--ox-text) !important;
 }
 
@@ -333,7 +327,7 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night .btn-secondary:hover:not(:disabled),
 .os-shell.os-shell-night .btn:not(.btn-void):hover:not(:disabled),
 .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary):hover:not(:disabled) {
-  background: var(--ox-s4) !important;
+  background: var(--ox-fill-hover) !important;
   color: var(--ox-text) !important;
 }
 
@@ -346,9 +340,9 @@ body:has(.os-shell.os-shell-night) {
 }
 
 :is(.os-shell.os-shell-night, .rd-root) .ox-btn--sm {
-  min-height: 2.125rem !important;
-  padding: 0 0.8rem !important;
-  font-size: 0.8125rem !important;
+  min-height: 32px !important;
+  padding: 0 8px !important;
+  font-size: 14px !important;
 }
 
 :is(.os-shell.os-shell-night, .rd-root) .ox-btn--block {
@@ -365,21 +359,21 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night .assign-tech-select,
 .os-shell.os-shell-night select,
 .os-shell.os-shell-night textarea {
-  min-height: 2.5rem;
+  min-height: 36px;
   border: 1px solid var(--ox-line-strong) !important;
-  border-radius: var(--ox-radius-sm) !important;
-  background: var(--ox-s1) !important;
+  border-radius: 8px !important;
+  background: var(--ox-fill-light) !important;
   color: var(--ox-text) !important;
-  font-size: 0.9375rem !important;
+  font-size: 14px !important;
 }
 
 .os-shell.os-shell-night .input:focus,
 .os-shell.os-shell-night .onboarding-input:focus {
-  border-color: var(--ox-amber) !important;
+  border-color: rgb(255 255 255 / 0.32) !important;
 }
 
 .os-shell.os-shell-night ::placeholder {
-  color: #737a84 !important;
+  color: #595959 !important;
 }
 
 .os-shell.os-shell-night .label,
