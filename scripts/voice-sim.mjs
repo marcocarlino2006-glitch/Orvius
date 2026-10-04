@@ -61,10 +61,16 @@ async function vapi(path, init = {}) {
   const retryable = (init.method ?? "GET") === "GET";
   let res;
   for (let attempt = 1; ; attempt++) {
-    res = await fetch(`https://api.vapi.ai${path}`, {
-      ...init,
-      headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json", ...(init.headers ?? {}) },
-    });
+    try {
+      res = await fetch(`https://api.vapi.ai${path}`, {
+        ...init,
+        headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json", ...(init.headers ?? {}) },
+      });
+    } catch (err) {
+      if (!retryable || attempt >= 4) throw err;
+      await sleep(1500 * attempt);
+      continue;
+    }
     if (!retryable || attempt >= 4 || (res.status < 500 && res.status !== 429)) break;
     await sleep(1500 * attempt);
   }
