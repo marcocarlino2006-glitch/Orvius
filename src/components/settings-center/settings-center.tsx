@@ -117,11 +117,9 @@ const FOUNDER_CERT = [
 ] as const;
 
 const GROUP_LABELS: Record<string, string | null> = {
-  account: "Account",
-  settings: "Settings",
-  capabilities: "Capabilities",
-  assets: "Assets",
-  data: "Data & Integrations",
+  you: "You",
+  shop: "Shop",
+  workspace: "Workspace",
   founder: "Founder",
 };
 

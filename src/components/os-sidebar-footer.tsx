@@ -35,7 +35,7 @@ type MenuItem = {
 
 const accountLinks: MenuItem[] = [
   { href: "/dashboard?settings=account", label: "Account", icon: "account" },
-  { href: "/dashboard?settings=receptionist", label: "Personalization", icon: "personalization" },
+  { href: "/dashboard?settings=receptionist", label: "Receptionist", icon: "personalization" },
   { href: "/dashboard?settings=general", label: "Settings", icon: "settings" },
 ];
 

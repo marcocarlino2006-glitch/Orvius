@@ -50,7 +50,7 @@ test("profile popover carries identity and the account menu", () => {
   const footer = read("src/components/os-sidebar-footer.tsx");
   for (const item of [
     "Account",
-    "Personalization",
+    "Receptionist",
     "Settings",
     "Homepage",
     "Get help",
