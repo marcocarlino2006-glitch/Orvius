@@ -1,7 +1,19 @@
 import type { SettingsSectionId } from "@/lib/settings-center";
 
-const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external", string[]> = {
+const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external" | "search", string[]> = {
   account: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z", "M4.5 20a7.5 7.5 0 0 1 15 0"],
+  general: [
+    "M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z",
+    "M12 3v1.5",
+    "M12 19.5V21",
+    "M4.9 6.4l1.1 1.1",
+    "M18 16.5l1.1 1.1",
+    "M3 12h1.5",
+    "M19.5 12H21",
+    "M4.9 17.6l1.1-1.1",
+    "M18 7.5l1.1-1.1",
+  ],
+  search: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z", "M16.5 16.5 21 21"],
   business: ["M4 20V8l8-4 8 4v12", "M9 20v-6h6v6", "M3 20h18"],
   phone: [
     "M6.6 3.5h2.6l1.3 4-2 1.3a11 11 0 0 0 6.7 6.7l1.3-2 4 1.3v2.6A2.1 2.1 0 0 1 18.4 20 14.9 14.9 0 0 1 4 5.6a2.1 2.1 0 0 1 2.6-2.1Z",

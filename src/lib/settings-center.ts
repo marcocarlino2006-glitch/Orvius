@@ -1,4 +1,5 @@
 export const SETTINGS_SECTIONS = [
+  { id: "general", label: "General", group: "you" },
   { id: "account", label: "Account", group: "you" },
   { id: "business", label: "Business", group: "shop" },
   { id: "phone", label: "Phone line", group: "shop" },
