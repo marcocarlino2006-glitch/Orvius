@@ -1509,121 +1509,333 @@ button.rd-path-btn:hover {
 
 /* ── Profile popover ───────────────────────────────────────────────────── */
 
-.os-shell.os-shell-night .mn-menu {
-  width: auto;
-  padding: 0.35rem 0 0.3rem;
+/*
+  Account menu and the chip under it. Sizes are px on purpose: they are taken
+  1:1 from the reference menu this is modelled on. Everything hangs off .mx-*
+  classes so the older .os-profile-menu-* rules in dashboard.css never reach it.
+*/
+
+.os-shell.os-shell-night .mx-footer {
+  position: relative;
+  margin-top: auto !important;
+  padding: 6px 0 0 !important;
+  border-top: 0 !important;
 }
 
-.os-shell.os-shell-night .mn-identity {
-  border-bottom: 0;
-  padding: 12px 12px 6px;
+.os-shell.os-shell-night .mx-env {
+  margin: 0 4px 6px;
+  color: var(--ox-amber);
+  font-size: 11px;
+  font-weight: 500;
 }
 
-.os-shell.os-shell-night .mn-plan {
+.os-shell.os-shell-night .mx-menu {
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: calc(100% - 2px);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  border-radius: 12px;
+  background: #242424;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
+  color: #e8e8e8;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  animation: mx-in 120ms ease-out both;
+  transform-origin: bottom left;
+}
+
+@keyframes mx-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
+}
+
+.os-shell.os-shell-night .mx-menu a,
+.os-shell.os-shell-night .mx-menu button {
+  text-decoration: none;
+}
+
+.os-shell.os-shell-night .mx-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.os-shell.os-shell-night .mx-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #1a8ad4;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.os-shell.os-shell-night .mx-menu .mx-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 11px 0 6px;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+}
+
+.os-shell.os-shell-night .mx-identity:hover {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.os-shell.os-shell-night .mx-identity-copy {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.os-shell.os-shell-night .mx-name {
+  overflow: hidden;
+  color: #ececec;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-shell.os-shell-night .mx-sub {
+  color: #8c8c8c;
+  font-size: 11px;
+}
+
+.os-shell.os-shell-night .mx-updown {
+  width: 14px;
+  height: 14px;
+  color: #a3a3a3;
+}
+
+.os-shell.os-shell-night .mx-plan {
+  margin: 2px 0 4px;
+  padding: 0 6px 0 8px;
+  border-radius: 8px;
+  background: #2c2c2c;
+}
+
+.os-shell.os-shell-night .mx-plan-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin: 6px 8px 8px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: rgb(255 255 255 / 0.05);
+  height: 30px;
+  padding-top: 2px;
 }
 
-.os-shell.os-shell-night .mn-plan-name {
+.os-shell.os-shell-night .mx-plan-name {
+  overflow: hidden;
+  color: #f2f2f2;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif !important;
   font-size: 14px;
-  font-weight: 600;
-  color: #f5f5f5;
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.os-shell.os-shell-night .mn-upgrade {
+.os-shell.os-shell-night .mx-upgrade {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  height: 28px;
-  padding: 0 10px;
+  height: 20px;
+  padding: 0 8px;
   border-radius: 6px;
   background: #fff;
-  color: #111;
-  font-size: 13px;
-  font-weight: 600;
+  color: #141414;
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1;
-  text-decoration: none;
 }
 
-.os-shell.os-shell-night .mn-links {
-  padding: 2px 6px !important;
+.os-shell.os-shell-night .mx-upgrade:hover {
+  background: #e6e6e6;
 }
 
-.os-shell.os-shell-night .mn-links-more {
-  border-top: 1px solid rgb(255 255 255 / 0.08);
-  margin-top: 4px;
-  padding-top: 4px !important;
-}
-
-.os-shell.os-shell-night .mn-menu .mn-link {
-  display: flex !important;
-  grid-template-columns: none !important;
-  align-items: center;
-  gap: 10px;
-  min-height: 36px !important;
-  margin: 0;
-  padding: 0 8px !important;
-  border-radius: 8px;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  color: #f2f2f2 !important;
-}
-
-.os-shell.os-shell-night .mn-menu .mn-link:hover {
-  background: rgb(255 255 255 / 0.06) !important;
-}
-
-.os-shell.os-shell-night .mn-link .mn-icon:last-child {
-  margin-left: auto;
-  width: 14px;
-  height: 14px;
-  opacity: 0.45;
-}
-
-.os-shell.os-shell-night .mn-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.os-shell.os-shell-night .mn-menu .mn-signout {
+.os-shell.os-shell-night .mx-plan-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: auto;
-  min-height: 36px;
-  margin: 4px 6px 6px !important;
-  padding: 0 8px !important;
-  border-radius: 8px;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  color: #f05252 !important;
+  gap: 6px;
+  height: 28px;
+  margin: 0 -6px 0 -8px;
+  padding: 0 7px 0 11px;
+  border-radius: 0 0 8px 8px;
+  color: #e3e3e3;
 }
 
-.os-shell.os-shell-night .mn-menu .mn-signout:hover {
-  background: rgb(240 82 82 / 0.1) !important;
-  color: #f05252 !important;
+.os-shell.os-shell-night .mx-plan-row:hover {
+  background: rgb(255 255 255 / 0.03);
 }
 
-.os-shell.os-shell-night .mn-menu .os-profile-menu-footer {
-  border-top: 1px solid rgb(255 255 255 / 0.08);
+.os-shell.os-shell-night .mx-plan-row .mx-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.os-shell.os-shell-night .mx-plan-value {
+  margin-left: auto;
+  color: #9a9a9a;
+}
+
+.os-shell.os-shell-night .mx-plan-row .mx-plan-chevron {
+  width: 14px;
+  height: 14px;
+  margin-left: -2px;
+  color: #b3b3b3;
+}
+
+.os-shell.os-shell-night .mx-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.os-shell.os-shell-night .mx-group--rule {
+  position: relative;
   margin-top: 4px;
-  padding: 4px 0 2px !important;
+  padding-top: 4px;
 }
 
-.os-shell.os-shell-night .os-profile-menu-panel {
-  left: 0;
-  right: 0;
-  width: auto;
-  border-radius: 12px !important;
-  border: 1px solid rgb(255 255 255 / 0.08) !important;
-  background: #2c2c2c !important;
-  box-shadow: 0 16px 40px rgb(0 0 0 / 0.45) !important;
+.os-shell.os-shell-night .mx-group--rule::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 5px;
+  right: 5px;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.os-shell.os-shell-night .mx-menu .mx-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 26px;
+  margin: 0;
+  padding: 0 11px 0 7px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #e8e8e8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .mx-menu .mx-link:hover,
+.os-shell.os-shell-night .mx-menu .mx-link:focus-visible {
+  background: rgb(255 255 255 / 0.05);
+  outline: none;
+}
+
+.os-shell.os-shell-night .mx-link > .mx-icon:first-child {
+  color: #e6e6e6;
+}
+
+.os-shell.os-shell-night .mx-link .mx-trail {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  margin-right: -2px;
+  color: #ababab;
+}
+
+.os-shell.os-shell-night .mx-menu .mx-signout,
+.os-shell.os-shell-night .mx-menu .mx-signout > .mx-icon:first-child {
+  color: #e5484d;
+}
+
+.os-shell.os-shell-night .mx-menu .mx-signout:hover {
+  background: rgb(229 72 77 / 0.08);
+}
+
+.os-shell.os-shell-night .mx-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+}
+
+.os-shell.os-shell-night .mx-chip {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  height: 30px;
+  padding: 0 6px 0 2px;
+  border: 0;
+  border-radius: 8px !important;
+  background: transparent;
+  color: #bdbdbd;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .mx-chip:hover {
+  background: rgb(255 255 255 / 0.05);
+  color: #e8e8e8;
+}
+
+.os-shell.os-shell-night .mx-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-shell.os-shell-night .mx-bar-icon {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  color: #bdbdbd;
+}
+
+.os-shell.os-shell-night .mx-bar-icon:hover {
+  background: rgb(255 255 255 / 0.05);
+  color: #ececec;
+}
+
+.os-shell.os-shell-night .mx-bar-icon .mx-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.os-shell.os-shell-night .mx-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--ox-bg, #1f1f1f);
+  border-radius: 999px;
+  background: #ef4444;
+  box-sizing: content-box;
 }
 
 .pm-identity {
@@ -1743,7 +1955,7 @@ button.rd-path-btn:hover {
   padding: 0.35rem 0.5rem !important;
 }
 
-.os-shell.os-shell-night .os-profile-menu-link:not(.mn-link) {
+.os-shell.os-shell-night .os-profile-menu-link {
   display: grid !important;
   gap: 0.05rem;
   min-height: 2.75rem;
@@ -1768,7 +1980,7 @@ button.rd-path-btn:hover {
   border-top: none !important;
 }
 
-.os-shell.os-shell-night .os-profile-menu-signout:not(.mn-signout) {
+.os-shell.os-shell-night .os-profile-menu-signout {
   margin: 0 !important;
   min-height: 2.5rem;
   padding: 0 0.5rem !important;
@@ -1776,7 +1988,7 @@ button.rd-path-btn:hover {
   color: var(--ox-text-2) !important;
 }
 
-.os-shell.os-shell-night .os-profile-menu-signout:not(.mn-signout):hover {
+.os-shell.os-shell-night .os-profile-menu-signout:hover {
   background: var(--ox-red-soft) !important;
   color: var(--ox-red) !important;
 }

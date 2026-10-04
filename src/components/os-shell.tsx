@@ -204,7 +204,7 @@ export function OsShell({
         Profile and Billing, and directly beneath it a profile button whose
         menu listed the same three. Every shop we watched picked one.
       */}
-      <OsSidebarFooter />
+      <OsSidebarFooter newLeads={newLeads} />
     </div>
   );
 
