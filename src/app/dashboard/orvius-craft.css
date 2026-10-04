@@ -1351,6 +1351,8 @@ a.dt-row:focus-visible,
     flex: 0 0 auto;
     padding: 0.5rem 0.75rem;
   }
+}
+
 /* ── Jobs pipeline: same segmented control as the inbox filters ───────── */
 
 .os-shell.os-shell-night .jobs-pipeline {

@@ -973,42 +973,6 @@
   }
 }
 
-.sc-voice-play {
-  flex: none;
-  min-width: 4rem;
-  margin-left: 0.5rem;
-}
-
-.os-shell .sc-dialog .sc-team-role {
-  width: auto;
-  min-width: 8.5rem;
-  flex: 0 0 auto;
-}
-
-.billing-legal {
-  margin: 1.5rem 0 0;
-  color: var(--ox-text-3, var(--ox-text-2));
-  font-size: 0.75rem;
-}
-
-.billing-legal a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.sc-plan + .billing-usage {
-  margin-top: 1.25rem;
-}
-
-@media (max-width: 640px) {
-  .sc-hours-times {
-    gap: 0.375rem;
-  }
-
-  .os-shell .sc-input.sc-time {
-    width: 8.25rem;
-    padding: 0 0.375rem;
 /*
   Reference frame. Measured 1:1 from the settings screenshot this dialog is
   modelled on (818×652, 216px rail, 56px content gutters), so sizes are in px
@@ -1503,5 +1467,44 @@
 
   .os-shell .sc-dialog .sc-body {
     padding: 0 16px calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.sc-voice-play {
+  flex: none;
+  min-width: 4rem;
+  margin-left: 0.5rem;
+}
+
+.os-shell .sc-dialog .sc-team-role {
+  width: auto;
+  min-width: 8.5rem;
+  flex: 0 0 auto;
+}
+
+.billing-legal {
+  margin: 1.5rem 0 0;
+  color: var(--ox-text-3, var(--ox-text-2));
+  font-size: 0.75rem;
+}
+
+.billing-legal a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sc-plan + .billing-usage {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .sc-hours-times {
+    gap: 0.375rem;
+  }
+
+  .os-shell .sc-input.sc-time {
+    width: 8.25rem;
+    padding: 0 0.375rem;
   }
 }
