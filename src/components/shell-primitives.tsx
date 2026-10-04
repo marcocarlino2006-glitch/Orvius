@@ -84,9 +84,13 @@ export function ShellEmpty({
  */
 export function ShellLoading({ label = "Loading…" }: { label?: string }) {
   return (
-    <p className="pro-loading-text font-sans" aria-busy="true">
-      {label}
-    </p>
+    <div className="pro-loading-text font-sans" aria-busy="true">
+      <span className="sr-only" role="status">
+        {label}
+      </span>
+      <span className="skeleton pro-loading-bar" aria-hidden />
+      <span className="skeleton pro-loading-bar pro-loading-bar-short" aria-hidden />
+    </div>
   );
 }
 

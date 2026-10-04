@@ -633,3 +633,218 @@ a.dt-row:focus-visible {
     margin-left: auto;
   }
 }
+
+/* ── Jobs pipeline: same segmented control as the inbox filters ───────── */
+
+.os-shell.os-shell-night .jobs-pipeline {
+  gap: 0.25rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 1rem;
+  padding: 0.2rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.6rem;
+  background: var(--ox-s1);
+}
+
+.os-shell.os-shell-night .jobs-pipeline-stage {
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  border-radius: 0.45rem;
+  color: var(--ox-mute);
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.os-shell.os-shell-night .jobs-pipeline-stage:hover {
+  color: var(--ox-text);
+  background: var(--ox-fill-light);
+}
+
+.os-shell.os-shell-night .jobs-pipeline-stage-active,
+.os-shell.os-shell-night .jobs-pipeline-stage-active:hover {
+  color: var(--ox-text);
+  background: var(--ox-s3);
+}
+
+.os-shell.os-shell-night .jobs-pipeline-label {
+  font-size: 0.8125rem;
+}
+
+.os-shell.os-shell-night .jobs-pipeline-count,
+.os-shell.os-shell-night .jobs-pipeline-stage-active .jobs-pipeline-count {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+/* ── Row actions: borderless fills, white only for the one primary ────── */
+
+.os-shell.os-shell-night .lead-quick-btn,
+.os-shell.os-shell-night .lead-quick-actions .lead-quick-btn {
+  border: 0 !important;
+  border-radius: 0.5rem !important;
+  background: var(--ox-fill) !important;
+  color: var(--ox-text) !important;
+  transition: background-color 0.12s ease;
+}
+
+.os-shell.os-shell-night .lead-quick-btn:hover {
+  background: var(--ox-fill-hover) !important;
+}
+
+.os-shell.os-shell-night .lead-quick-btn-primary {
+  background: var(--ox-primary) !important;
+  color: var(--ox-on-primary) !important;
+  font-weight: 500 !important;
+}
+
+.os-shell.os-shell-night .lead-quick-btn-primary:hover {
+  background: #ffffff !important;
+}
+
+/* ── Empty states: quiet, centred, no dashed outline ──────────────────── */
+
+.os-shell.os-shell-night .pro-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 2.5rem 1.5rem !important;
+  border: 1px solid var(--ox-line) !important;
+  border-radius: 0.75rem !important;
+  background: var(--ox-s2) !important;
+  text-align: center;
+}
+
+.os-shell.os-shell-night .pro-empty-state-compact {
+  padding: 1.5rem 1.25rem !important;
+}
+
+.os-shell.os-shell-night .pro-empty-state-title {
+  margin: 0;
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .pro-empty-state-text {
+  max-width: 26rem;
+  margin: 0;
+  font-size: 0.8125rem !important;
+  line-height: 1.5;
+  color: var(--ox-mute) !important;
+}
+
+.os-shell.os-shell-night .pro-empty-state-action {
+  margin-top: 0.75rem;
+}
+
+/* ── Error boundary: renders outside OsShell, so it carries its own tokens ─ */
+
+.os-shell-night.os-error-page {
+  background: #1a1a1a !important;
+  color-scheme: dark !important;
+}
+
+.os-shell-night.os-error-page .plan-upgrade-gate-inner {
+  max-width: 28rem !important;
+  padding: 1.75rem !important;
+  border: 1px solid rgb(255 255 255 / 0.06) !important;
+  border-radius: 0.75rem !important;
+  background: #222222 !important;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 0.35) !important;
+}
+
+.os-shell-night.os-error-page .plan-upgrade-gate-kicker {
+  margin: 0 0 0.5rem !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #8c8c8c !important;
+}
+
+.os-shell-night.os-error-page .plan-upgrade-gate-title {
+  margin: 0 0 0.75rem !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+  color: #e6e6e6 !important;
+}
+
+.os-shell-night.os-error-page .plan-upgrade-gate-detail {
+  margin: 0 0 0.5rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.55 !important;
+  color: #b3b3b3 !important;
+}
+
+.os-shell-night.os-error-page .os-error-lead {
+  color: #e6e6e6 !important;
+}
+
+.os-shell-night.os-error-page .os-error-lead b {
+  font-weight: 600 !important;
+}
+
+.os-shell-night.os-error-page .plan-upgrade-gate-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  margin-top: 1.25rem !important;
+}
+
+.os-shell-night.os-error-page .btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 2.25rem !important;
+  padding: 0 0.875rem !important;
+  border: 0 !important;
+  border-radius: 0.5rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  background: rgb(255 255 255 / 0.06) !important;
+  color: #e6e6e6 !important;
+  box-shadow: none !important;
+  transition: background-color 0.12s ease !important;
+}
+
+.os-shell-night.os-error-page .btn:hover {
+  background: rgb(255 255 255 / 0.1) !important;
+}
+
+.os-shell-night.os-error-page .btn-void {
+  background: rgb(255 255 255 / 0.95) !important;
+  color: rgb(0 0 0 / 0.9) !important;
+}
+
+.os-shell-night.os-error-page .btn-void:hover {
+  background: #ffffff !important;
+}
+
+.os-shell-night.os-error-page .os-error-meta {
+  margin-top: 1.25rem !important;
+  font-size: 0.75rem !important;
+  color: #8c8c8c !important;
+}
+
+.pro-loading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(18rem, 100%);
+  margin: 0;
+}
+
+.pro-loading-bar {
+  height: 0.625rem;
+  width: 100%;
+}
+
+.pro-loading-bar-short {
+  width: 60%;
+}
