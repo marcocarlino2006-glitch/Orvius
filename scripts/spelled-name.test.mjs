@@ -27,6 +27,15 @@ test("rebuilds the name from the caller's spelling (real call from Sep 26)", () 
   assert.equal(withCallerSpelling({ name: "Siobhan Nguyen" }, realCall).name, "Siobhan Nguyen");
 });
 
+test("a misheard spoken name does not move where the spelling splits (real call from Oct 4)", () => {
+  const t = [
+    "AI: Thanks. Could you please provide your full name,",
+    "User: Sure. It's Siobhan Gouyan. That's s I o b h a n n g u y e n.",
+  ].join("\n");
+  assert.equal(withCallerSpelling({ name: "Siobhan Nguyen" }, t).name, "Siobhan Nguyen");
+  assert.equal(withCallerSpelling({ name: "Siobhan Gouyan" }, t).name, "Siobhan Nguyen");
+});
+
 test("a spelled last name or street fixes just that word", () => {
   const t = "User: My name is Mike Nuyen, that's N G U Y E N.\nUser: The street is Noise, N O Y E S.";
   assert.deepEqual(withCallerSpelling({ name: "Mike Nuyen", address: "830 Noise Street" }, t), {

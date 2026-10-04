@@ -70,8 +70,8 @@ function distance(a: string, b: string) {
 function pieceCost(piece: string, word: string) {
   const w = word.toLowerCase();
   /* A silent first letter is dropped from what was heard: Nguyen → "Guyen", Knight → "Night", Tsai → "Sai". */
-  if (piece.length > 1 && piece.slice(1) === w) return 0.5;
-  return distance(piece, w) + (piece[0] === w[0] ? 0 : 0.5);
+  const dropped = piece.length > 1 ? 0.5 + distance(piece.slice(1), w) : Infinity;
+  return Math.min(dropped, distance(piece, w) + (piece[0] === w[0] ? 0 : 0.5));
 }
 
 /** Cheapest way to cut `letters` into one piece per word, and what it costs. */
