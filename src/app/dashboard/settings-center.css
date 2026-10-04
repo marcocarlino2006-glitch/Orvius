@@ -29,12 +29,12 @@
 
 .sc-dialog {
   display: grid;
-  grid-template-columns: 13.25rem minmax(0, 1fr);
-  width: min(52rem, calc(100vw - 2.5rem));
-  height: min(40.5rem, calc(100vh - 2.5rem));
+  grid-template-columns: 200px minmax(0, 1fr);
+  width: min(820px, calc(100vw - 40px));
+  height: min(652px, calc(100dvh - 40px));
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: 0.875rem;
+  border-radius: 16px;
   background: #1e1e1e;
   box-shadow: 0 24px 80px rgb(0 0 0 / 0.55);
   color: #f2f2f2;
@@ -929,7 +929,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 5.25rem;
+  min-height: 92px;
   border-radius: 0.75rem;
   border: 1px solid rgb(255 255 255 / 0.14);
   background: #242424;
