@@ -45,15 +45,9 @@ const moreLinks: MenuItem[] = [
   { href: "/resources", label: "Docs", icon: "docs" },
 ];
 
-function initials(name: string | null | undefined, email: string | null | undefined) {
-  if (name) {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-    }
-    return parts[0]?.slice(0, 2).toUpperCase() ?? "OR";
-  }
-  return email?.slice(0, 2).toUpperCase() ?? "OR";
+function mark(name: string | null | undefined) {
+  const letter = name?.trim()?.[0];
+  return letter ? letter.toUpperCase() : "O";
 }
 
 function planDisplayLabel(account: AccountData | null): string {
@@ -146,7 +140,7 @@ export function OsSidebarFooter() {
         >
           <div className="pm-identity mn-identity">
             <span className="mn-avatar" aria-hidden>
-              {initials(session.user.name, session.user.email)}
+              {mark(session.user.name)}
             </span>
             <div className="pm-identity-copy">
               <p className="pm-name">{name}</p>
@@ -230,7 +224,7 @@ export function OsSidebarFooter() {
         onClick={() => setOpen((value) => !value)}
       >
         <span className="os-sidebar-avatar" aria-hidden>
-          {initials(session.user.name, session.user.email)}
+          {mark(session.user.name)}
         </span>
         <span className="os-sidebar-user-meta">
           <span className="os-sidebar-user-name">{name}</span>

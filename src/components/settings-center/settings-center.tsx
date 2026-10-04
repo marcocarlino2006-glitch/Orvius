@@ -975,6 +975,11 @@ export function SettingsCenter({
               <span className="sc-nav-user-name">{name}</span>
               <span className="sc-nav-user-sub">Personal</span>
             </span>
+            <span className="sc-nav-user-chevron" aria-hidden>
+              <svg viewBox="0 0 12 12">
+                <path d="M2.5 4.25 6 7.75l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
             <button type="button" className="sc-icon-btn sc-mobile-only" aria-label="Close settings" onClick={onClose}>
               <SettingsIcon name="close" />
             </button>
