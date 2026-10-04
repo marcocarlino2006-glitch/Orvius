@@ -8,6 +8,7 @@ import {
   heldReply,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
+  URGENT_NO_BOOK_REPLY,
   PASSED_TO_NETWORK_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
@@ -69,6 +70,7 @@ function answer(call: ToolCall, now: Date, transferring: boolean) {
   if (call.name === "check_availability") {
     const { playbook, durationMin } = shape(str(call.args.serviceType), str(call.args.urgency));
     if (playbook.safety) return dangerRefusal(playbook.safety.instruction);
+    if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
     const base = {
       now,
       urgency: (playbook.urgency ?? str(call.args.urgency) ?? undefined) as Parameters<typeof findAvailableSchedules>[0]["urgency"],
@@ -93,6 +95,7 @@ function answer(call: ToolCall, now: Date, transferring: boolean) {
     if (!at || Number.isNaN(at.getTime())) return BAD_SLOT_REPLY;
     const { playbook, durationMin } = shape(str(call.args.serviceType), null);
     if (playbook.safety) return dangerRefusal(playbook.safety.instruction);
+    if (playbook.urgency === "emergency" && call.name === "hold_appointment") return URGENT_NO_BOOK_REPLY;
     const open = findAvailableSchedules(
       { now, hoursJson: VOICE_SIM_SHOP.hoursJson, timezone: tz, existing: [], capacity: 1, durationMin },
       { count: 1, onlyAt: at },

@@ -18,6 +18,7 @@ import {
   NETWORK_UNAVAILABLE_REPLY,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
+  URGENT_NO_BOOK_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
   parseSlotPreference,
@@ -57,6 +58,7 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   if (playbook.safety) {
     return dangerRefusal(playbook.safety.instruction);
   }
+  if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
   const base = {
     businessId: shop.id,
     urgency: playbook.urgency ?? urgency,
@@ -109,6 +111,7 @@ async function holdAppointment(
   if (playbook.safety) {
     return dangerRefusal(playbook.safety.instruction);
   }
+  if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
   const slot = {
     businessId: shop.id,
     urgency: null,

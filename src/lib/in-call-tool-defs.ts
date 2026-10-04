@@ -170,6 +170,8 @@ export const PASSED_TO_NETWORK_REPLY =
   "Done. Tell them a nearby pro will reach out shortly. Do not name a shop or promise a time. Make sure you have their name, callback number and service address before ending the call.";
 export const NETWORK_UNAVAILABLE_REPLY =
   "Passing along is not available. Take their details and say the office will call to schedule.";
+export const URGENT_NO_BOOK_REPLY =
+  "This is an emergency: do not offer or book a time. Say \"I'm marking this urgent so the team calls you right back.\" Then take their name, callback number and address if you don't have them.";
 export const BAD_SLOT_REPLY = "That slot id is not valid. Call check_availability again and use a slot id it returns.";
 export const NO_ALT_NOTE = "Nothing is open at the time they asked for. Say so, then offer these instead. ";
 
