@@ -58,10 +58,16 @@ const concurrency = Math.max(1, Number(flag("--concurrency") ?? 1));
 const minPass = flag("--min-pass") != null ? Number(flag("--min-pass")) : 1;
 
 async function vapi(path, init = {}) {
-  const res = await fetch(`https://api.vapi.ai${path}`, {
-    ...init,
-    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json", ...(init.headers ?? {}) },
-  });
+  const retryable = (init.method ?? "GET") === "GET";
+  let res;
+  for (let attempt = 1; ; attempt++) {
+    res = await fetch(`https://api.vapi.ai${path}`, {
+      ...init,
+      headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json", ...(init.headers ?? {}) },
+    });
+    if (!retryable || attempt >= 4 || (res.status < 500 && res.status !== 429)) break;
+    await sleep(1500 * attempt);
+  }
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
   if (!res.ok) throw new Error(`Vapi ${init.method ?? "GET"} ${path} → ${res.status}: ${text.slice(0, 300)}`);
