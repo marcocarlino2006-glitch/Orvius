@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ScRow, ScStatus, ScSwitch } from "@/components/settings-center/settings-primitives";
+import { ScReadonlySwitch, ScRow, ScSwitch } from "@/components/settings-center/settings-primitives";
 
 type State =
   | { kind: "loading" }
@@ -133,7 +133,7 @@ export function PushAlertsRows() {
             onChange={(next) => void toggle(next)}
           />
         ) : state.kind === "loading" ? null : (
-          <ScStatus on={false}>Off</ScStatus>
+          <ScReadonlySwitch on={false} label="Push alerts on this device" />
         )}
       </ScRow>
       {state.kind === "ready" && state.on ? (

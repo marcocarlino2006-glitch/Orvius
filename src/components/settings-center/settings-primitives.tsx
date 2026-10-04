@@ -61,6 +61,22 @@ export function ScSwitch({
   );
 }
 
+/** A switch that shows state set elsewhere (env or ops), so it never takes input. */
+export function ScReadonlySwitch({ on, label }: { on: boolean; label: string }) {
+  return (
+    <span
+      role="switch"
+      aria-checked={on}
+      aria-readonly
+      aria-label={label}
+      title={on ? "On" : "Off"}
+      className={`sc-switch sc-switch--readonly${on ? " is-on" : ""}`}
+    >
+      <span className="sc-switch-knob" />
+    </span>
+  );
+}
+
 export function ScStatus({ on, children }: { on: boolean; children: ReactNode }) {
   return <span className={`sc-pill${on ? " is-on" : ""}`}>{children}</span>;
 }

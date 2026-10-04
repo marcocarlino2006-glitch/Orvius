@@ -1,18 +1,16 @@
 import type { SettingsSectionId } from "@/lib/settings-center";
 
-const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external" | "search", string[]> = {
+const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external" | "search" | "updown", string[]> = {
   account: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z", "M4.5 20a7.5 7.5 0 0 1 15 0"],
   general: [
-    "M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z",
-    "M12 3v1.5",
-    "M12 19.5V21",
-    "M4.9 6.4l1.1 1.1",
-    "M18 16.5l1.1 1.1",
-    "M3 12h1.5",
-    "M19.5 12H21",
-    "M4.9 17.6l1.1-1.1",
-    "M18 7.5l1.1-1.1",
+    "M4 7h9",
+    "M19 7h1",
+    "M16 9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z",
+    "M4 17h1",
+    "M11 17h9",
+    "M8 19.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z",
   ],
+  updown: ["M8.5 9.5 12 6l3.5 3.5", "M8.5 14.5 12 18l3.5-3.5"],
   search: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z", "M16.5 16.5 21 21"],
   business: ["M4 20V8l8-4 8 4v12", "M9 20v-6h6v6", "M3 20h18"],
   phone: [
@@ -39,7 +37,7 @@ const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external" |
   help: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M9.5 9.5a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.7-.8 1.2v.4", "M12 16.8v.2"],
   close: ["M6 6l12 12", "M18 6 6 18"],
   back: ["M15 5l-7 7 7 7"],
-  external: ["M14 4h6v6", "M20 4l-9 9", "M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"],
+  external: ["M7.5 16.5 16.5 7.5", "M9 7.5h7.5V15"],
 };
 
 export function SettingsIcon({ name }: { name: keyof typeof PATHS }) {

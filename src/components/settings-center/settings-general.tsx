@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PushAlertsRows } from "@/components/settings-center/push-alerts-rows";
-import { ScGroup, ScRow, ScStatus } from "@/components/settings-center/settings-primitives";
+import { ScGroup, ScReadonlySwitch, ScRow, ScStatus } from "@/components/settings-center/settings-primitives";
 import { LANGS, type Lang } from "@/lib/i18n";
 import {
   DARK_QUERY,
@@ -72,7 +72,7 @@ export function SettingsGeneral({
   return (
     <>
       <ScGroup title="Appearance">
-        <ScRow label="Language">
+        <ScRow label="Language" stack>
           <select
             className="sc-select"
             aria-label="Language"
@@ -114,10 +114,14 @@ export function SettingsGeneral({
           label="Text alerts"
           hint="Your cell gets a text when a call becomes a lead. This is the shop line setting, not a browser switch."
         >
-          <ScStatus on={smsOn && !smsOptedOut}>{textLabel}</ScStatus>
+          {smsOptedOut ? (
+            <ScStatus on={false}>{textLabel}</ScStatus>
+          ) : (
+            <ScReadonlySwitch on={smsOn} label="Text alerts" />
+          )}
         </ScRow>
         <ScRow label="Email backup" hint="Backup alerts go to your sign-in email when a text cannot be delivered.">
-          <ScStatus on={emailOn}>{emailOn ? "On" : "Off"}</ScStatus>
+          <ScReadonlySwitch on={emailOn} label="Email backup" />
         </ScRow>
       </ScGroup>
     </>
@@ -125,25 +129,32 @@ export function SettingsGeneral({
 }
 
 function ThemeMark({ choice }: { choice: ThemeChoice }) {
+  const stroke = {
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
   if (choice === "day") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden>
-        <circle cx="12" cy="12" r="3.5" />
-        <path d="M12 3.5v2.2M12 18.3v2.2M4.8 4.8l1.6 1.6M17.6 17.6l1.6 1.6M3.5 12h2.2M18.3 12h2.2M4.8 19.2l1.6-1.6M17.6 6.4l1.6-1.6" />
+        <circle cx="12" cy="12" r="3.6" {...stroke} />
+        <path d="M12 3v1.8M12 19.2V21M5.6 5.6l1.3 1.3M17.1 17.1l1.3 1.3M3 12h1.8M19.2 12H21M5.6 18.4l1.3-1.3M17.1 6.9l1.3-1.3" {...stroke} />
       </svg>
     );
   }
   if (choice === "night") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden>
-        <path d="M15.5 3.5a8.2 8.2 0 1 0 5 12.6A8.5 8.5 0 0 1 15.5 3.5Z" />
+        <path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1Z" {...stroke} />
       </svg>
     );
   }
   return (
     <svg viewBox="0 0 24 24" aria-hidden>
-      <rect x="4" y="5" width="16" height="11" rx="1.5" />
-      <path d="M9 19.5h6M12 16v3.5" />
+      <circle cx="12" cy="12" r="8" {...stroke} />
+      <path d="M12 7a5 5 0 0 1 0 10Z" fill="currentColor" />
     </svg>
   );
 }
