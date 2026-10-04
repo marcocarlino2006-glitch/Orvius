@@ -227,20 +227,21 @@ try {
   fail("L6 Demand capture", e instanceof Error ? e.message : String(e));
 }
 
-// ── L7 Exception control — ApproveQueue + audit ──
+// ── L7 Exception control — Command board approvals + request trace ──
 try {
-  const approve = read("src/components/approve-queue.tsx");
+  const board = read("src/components/command-board.tsx");
   if (
-    /audit trail/i.test(approve) &&
-    /activity/.test(approve) &&
-    /execute|cancel/.test(approve)
+    /\/api\/command\/trace/.test(board) &&
+    /approvals/.test(board) &&
+    /execute/.test(board) &&
+    /cancel/.test(board)
   ) {
-    pass("L7 Exception control", "ApproveQueue keeps audit trail after decisions");
+    pass("L7 Exception control", "Command board: approve/dismiss proposals, full trace per request");
   } else {
-    fail("L7 Exception control", "ApproveQueue must expose audit trail + execute/cancel");
+    fail("L7 Exception control", "Command board must expose approvals, execute/cancel and the request trace");
   }
 } catch {
-  fail("L7 Exception control", "approve-queue.tsx missing");
+  fail("L7 Exception control", "command-board.tsx missing");
 }
 
 // ── L8 Presence — night-shift category ──
@@ -248,13 +249,13 @@ try {
   const company = read("src/lib/company.ts");
   const hero = read("src/components/home-line-hero.tsx");
   if (
-    /focused AI receptionist for HVAC/i.test(company) &&
-    /HVAC company will pay/i.test(company) &&
+    /front office of a Fortune 500 company/i.test(company) &&
+    /operating system for businesses that run on the phone/i.test(company) &&
     /DEMO_LINE_DISPLAY/.test(hero)
   ) {
-    pass("L8 Presence", "Company + hero own HVAC receptionist wedge with live line");
+    pass("L8 Presence", "Company + hero own the operating system with live line");
   } else {
-    fail("L8 Presence", "Must claim HVAC AI receptionist wedge and lead with live line");
+    fail("L8 Presence", "Must state the operating-system mission and lead with live line");
   }
 } catch (e) {
   fail("L8 Presence", e instanceof Error ? e.message : String(e));

@@ -4,6 +4,7 @@
  * Shop setup → inbound call → lead → auto job → assign tech → dispatch → ask
  */
 import { encode } from "@auth/core/jwt";
+import { waitForCallReport } from "./lib/call-report-outcome.mjs";
 import { createScriptPrisma, loadEnvFile } from "./lib/db.mjs";
 
 loadEnvFile();
@@ -148,6 +149,7 @@ async function main() {
       });
       const data = await res.json();
       if (!res.ok) return { ok: false, message: JSON.stringify(data) };
+      Object.assign(data, await waitForCallReport(prisma, vapiCallId));
       leadId = data.leadId;
       jobId = data.jobId;
       return {

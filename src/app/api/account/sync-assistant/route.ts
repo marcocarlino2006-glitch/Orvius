@@ -1,25 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { ensureDedicatedShopLine } from "@/lib/provision-business";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
-import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/tenant";
 
 export async function POST() {
-  const session = await auth();
-  const email = session?.user?.email?.toLowerCase();
-
-  if (!email || !session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const business = await prisma.business.findFirst({
-    where: { ownerEmail: email, isActive: true },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (!business) {
-    return NextResponse.json({ error: "No shop linked" }, { status: 404 });
-  }
+  const authResult = await requirePermission("settings.edit", { entitled: false });
+  if ("error" in authResult) return authResult.error;
+  const { business } = authResult;
 
   try {
     const { business: updated, repaired, dedicatedLine } =

@@ -1,7 +1,6 @@
 "use client";
 
 import { JobTable } from "@/components/job-card";
-import { ProLead } from "@/components/pro-lead";
 import { ProEmptyState } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
@@ -11,6 +10,8 @@ import { jobRowFacts, type JobRowInput } from "@/lib/job-row";
 import { formatCents } from "@/lib/money";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { industryTerms } from "@/lib/industry-terms";
+import { useBusiness } from "@/lib/use-business";
 
 type JobRow = JobRowInput & {
   id: string;
@@ -28,33 +29,39 @@ type PipelineStage = {
   id: string;
   label: string;
   hint?: string;
+  empty: string;
   match: (job: JobRow) => boolean;
 };
 
 const STAGES: PipelineStage[] = [
   {
     id: "booked",
+    empty: "Nothing booked right now",
     label: "Booked",
     match: (j) => j.status === "scheduled" || j.status === "confirmed",
   },
   {
     id: "in_progress",
+    empty: "Nobody's on a job right now",
     label: "In progress",
     match: (j) => j.status === "en_route" || j.status === "on_site",
   },
   {
     id: "completed",
+    empty: "Nothing completed yet",
     label: "Completed",
     match: (j) => j.status === "completed",
   },
   {
     id: "estimate",
+    empty: "No estimates waiting",
     label: "Estimates",
     hint: "Drafts waiting for invoice",
     match: (j) => Boolean(j.estimate && !j.estimate.invoice),
   },
   {
     id: "invoice",
+    empty: "No invoices out",
     label: "Invoices",
     hint: "Invoices from estimates",
     match: (j) => Boolean(j.estimate?.invoice),
@@ -62,11 +69,13 @@ const STAGES: PipelineStage[] = [
 ];
 
 export default function JobsPage() {
+  const terms = industryTerms(useBusiness().business?.trade);
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [newLeadCount, setNewLeadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stageId, setStageId] = useState("booked");
+  const [timeZone, setTimeZone] = useState<string | undefined>();
 
   useEffect(() => {
     Promise.all([
@@ -80,6 +89,7 @@ export default function JobsPage() {
     ])
       .then(([jobData, leadData]) => {
         setJobs(jobData.jobs ?? []);
+        setTimeZone(jobData.timezone ?? undefined);
         setNewLeadCount(leadData.counts?.new ?? 0);
       })
       .catch((err) => setError(err.message))
@@ -125,30 +135,24 @@ export default function JobsPage() {
 
   return (
     <OsShell
-      title="Jobs"
+      title={terms.Jobs}
       actions={
-        <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
-          Dispatch
-        </Link>
-      }
-    >
-      <PlanUpgradeGate module="jobs">
-      <ProLead
-        loading={loading}
-        figure={String(open.length)}
-        caption="Open jobs"
-        facts={[
-          { label: "Unassigned", value: unassigned, live: unassigned > 0 },
-          { label: "New leads", value: newLeadCount, live: newLeadCount > 0 },
-        ]}
-        action={
-          unassigned > 0 ? (
+        <>
+          {unassigned > 0 ? (
             <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
               Assign {unassigned}
             </Link>
-          ) : null
-        }
-      />
+          ) : null}
+          <Link
+            href="/dashboard/jobs/new"
+            className={`btn text-sm ${unassigned > 0 ? "btn-secondary" : "btn-void"}`}
+          >
+            New {terms.job}
+          </Link>
+        </>
+      }
+    >
+      <PlanUpgradeGate module="jobs">
 
       {loading ? (
         <DashboardSkeleton />
@@ -187,39 +191,28 @@ export default function JobsPage() {
 
           {!jobs.length && !newLeadCount ? (
             <ProEmptyState
-              title="No jobs booked yet"
-              body="Open a lead in the inbox, capture the details, and book the appointment."
+              title={`No ${terms.jobs} booked yet`}
+              body={`Calls Orvius books land here on their own. Took one yourself? Put it on the schedule.`}
               action={
-                <Link href="/dashboard/inbox" className="btn btn-void text-sm">
-                  Go to inbox
+                <Link href="/dashboard/jobs/new" className="btn btn-void text-sm">
+                  New {terms.job}
                 </Link>
               }
             />
           ) : !filtered.length ? (
             <ProEmptyState
-              title={
-                stageId === "booked"
-                  ? "No booked jobs right now"
-                  : stageId === "in_progress"
-                    ? "No jobs in progress right now"
-                    : stageId === "completed"
-                      ? "No completed jobs right now"
-                      : stageId === "estimates"
-                        ? "No estimates right now"
-                        : stageId === "invoices"
-                          ? "No invoices right now"
-                          : `No ${STAGES.find((s) => s.id === stageId)?.label.toLowerCase() ?? "jobs"} right now`
-              }
-              body="Switch stages or book from the inbox."
+              title={STAGES.find((s) => s.id === stageId)?.empty ?? "Nothing here right now"}
+              body="Switch stages, or book one yourself."
               action={
-                <Link href="/dashboard/inbox" className="btn btn-void text-sm">
-                  Inbox
+                <Link href="/dashboard/jobs/new" className="btn btn-void text-sm">
+                  New {terms.job}
                 </Link>
               }
             />
           ) : (
             <>
             <JobTable
+              timeZone={timeZone}
               rows={filtered.map(({ job, facts }) => ({
                 id: job.id,
                 title: job.title,

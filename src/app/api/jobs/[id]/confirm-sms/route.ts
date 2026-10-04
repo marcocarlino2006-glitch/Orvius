@@ -3,6 +3,7 @@ import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { JOB_INCLUDE, serializeJob } from "@/lib/job";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
+import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
@@ -20,6 +21,8 @@ export async function POST(_request: Request, { params }: Params) {
   if ("error" in planGate) return planGate.error;
 
   const { id } = await params;
+  const limited = await sharedRateLimit({ key: `confirm-sms:${business.id}:${id}`, limit: 3, windowMs: 10 * 60_000 });
+  if (!limited.ok) return tooManyRequests(limited.retryAfterSec, "This customer was just texted. Wait a few minutes before resending.");
   const existing = await prisma.job.findFirst({
     where: { id, businessId: business.id },
     select: { id: true },
@@ -29,7 +32,7 @@ export async function POST(_request: Request, { params }: Params) {
   const result = await sendCustomerConfirmSms(id);
   if (!result.sent) {
     const status =
-      result.reason === "already_confirmed"
+      result.reason === "already_confirmed" || result.reason === "already_sending_or_sent"
         ? 409
         : result.reason === "not_found"
           ? 404
@@ -39,6 +42,8 @@ export async function POST(_request: Request, { params }: Params) {
         error:
           result.reason === "already_confirmed"
             ? "Customer already confirmed"
+            : result.reason === "already_sending_or_sent"
+              ? "A confirmation text is going out to this customer right now"
             : result.reason === "no_customer_phone"
               ? "No customer phone on this job"
               : result.reason === "sms_not_configured"

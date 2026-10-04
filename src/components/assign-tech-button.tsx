@@ -3,8 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "@/components/toaster";
 
 export type TechOption = { id: string; name: string };
+
+/** Crews seeded before the owner row was named "Owner" carry "<Shop name> owner". */
+function buttonName(name: string) {
+  return /\sowner$/i.test(name) ? "owner" : name;
+}
 
 type AssignTechButtonProps = {
   jobId: string;
@@ -58,8 +64,12 @@ export function AssignTechButton({
       if (!res.ok) {
         throw new Error(data?.error ?? "Assign failed");
       }
+      const name = technicians.find((t) => t.id === techId)?.name ?? "Tech";
       if (data?.techSms && !data.techSms.sent && data.techSms.reason === "no_phone") {
         setError("Assigned — add mobile on Dispatch so they get SMS");
+        toast({ title: `${name} assigned. No mobile on file, so no text went out.` });
+      } else {
+        toast({ title: data?.techSms?.sent ? `${name} assigned and texted` : `${name} assigned` });
       }
       onAssigned?.();
       router.refresh();
@@ -99,7 +109,7 @@ export function AssignTechButton({
           {loading
             ? "…"
             : technicians.length === 1
-              ? `Assign ${technicians[0]!.name}`
+              ? `Assign ${buttonName(technicians[0]!.name)}`
               : "Assign"}
         </button>
         {error ? <span className="assign-tech-error font-sans">{error}</span> : null}

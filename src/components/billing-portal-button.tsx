@@ -4,11 +4,13 @@ import { useState } from "react";
 
 type BillingPortalButtonProps = {
   className?: string;
+  buttonClassName?: string;
   label?: string;
 };
 
 export function BillingPortalButton({
   className = "",
+  buttonClassName,
   label = "Manage subscription",
 }: BillingPortalButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,7 @@ export function BillingPortalButton({
         type="button"
         disabled={loading}
         onClick={openPortal}
-        className={`inst-btn inst-btn-ghost w-full justify-center ${loading ? "opacity-70" : ""}`}
+        className={buttonClassName ?? `inst-btn inst-btn-ghost w-full justify-center ${loading ? "opacity-70" : ""}`}
       >
         {loading ? "Opening…" : label}
       </button>

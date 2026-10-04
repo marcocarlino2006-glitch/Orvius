@@ -21,6 +21,7 @@ import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import {
   canProvisionDedicatedLine,
   configureSmsWebhook,
+  findLineByFriendlyName,
   purchaseLocalNumber,
   releasePhoneNumber,
 } from "@/lib/twilio-phone";
@@ -31,7 +32,18 @@ import {
   createAssistant,
   deleteAssistant,
 } from "@/lib/vapi";
-import type { Business } from "@prisma/client";
+import type { Business, ProvisionAttempt } from "@prisma/client";
+import {
+  claimProvisionAttempt,
+  finishProvisionAttempt,
+  lineFriendlyName,
+  onboardingAttemptKey,
+  ProvisionBusyError,
+  recordProvisionStep,
+  reopenProvisionAttempt,
+  shopLineAttemptKey,
+} from "@/lib/provision-attempt";
+import { resolveShopAccess, type ShopAccess } from "@/lib/workspace-access";
 
 export type { Trade } from "@/lib/trades";
 export { TRADES } from "@/lib/trades";
@@ -65,6 +77,85 @@ const TRADE_SERVICES: Record<Trade, ServiceOffering[]> = {
     { name: "Emergency electrical", description: "No power and safety issues" },
     { name: "Lighting", description: "Fixtures and dimmer installs" },
   ],
+  Roofing: [
+    { name: "Leak repair", description: "Active roof leaks" },
+    { name: "Storm damage", description: "Hail, wind and tree damage" },
+    { name: "Inspection", description: "Roof and gutter inspections" },
+    { name: "Replacement", description: "New roof quotes" },
+  ],
+  "Pest control": [
+    { name: "General pest", description: "Ants, roaches and spiders" },
+    { name: "Rodents", description: "Mice and rats" },
+    { name: "Termites", description: "Inspection and treatment" },
+    { name: "Recurring service", description: "Monthly or quarterly plans" },
+  ],
+  Cleaning: [
+    { name: "Standard clean", description: "Recurring home cleaning" },
+    { name: "Deep clean", description: "Top-to-bottom cleaning" },
+    { name: "Move-in / move-out", description: "Empty home cleaning" },
+    { name: "Office cleaning", description: "Commercial spaces" },
+  ],
+  Moving: [
+    { name: "Local move", description: "Moves within the area" },
+    { name: "Long-distance move", description: "Out-of-area moves" },
+    { name: "Packing", description: "Packing and unpacking" },
+    { name: "Large items", description: "Single heavy items" },
+  ],
+  Locksmith: [
+    { name: "Lockout", description: "Home, car and business lockouts" },
+    { name: "Rekey", description: "Rekeying existing locks" },
+    { name: "Lock change", description: "New locks installed" },
+    { name: "Car keys", description: "Replacement and programming" },
+  ],
+  "Garage doors": [
+    { name: "Door repair", description: "Won't open, close or stay on track" },
+    { name: "Spring replacement", description: "Broken torsion and extension springs" },
+    { name: "Opener repair", description: "Openers and remotes" },
+    { name: "New door", description: "Replacement door quotes" },
+  ],
+  "Appliance repair": [
+    { name: "Refrigerator", description: "Not cooling or leaking" },
+    { name: "Washer & dryer", description: "Laundry appliance repair" },
+    { name: "Dishwasher", description: "Not draining or cleaning" },
+    { name: "Oven & range", description: "Cooking appliance repair" },
+  ],
+  "Auto repair": [
+    { name: "Diagnostics", description: "Check engine and warning lights" },
+    { name: "Brakes", description: "Pads, rotors and inspections" },
+    { name: "Oil change", description: "Routine maintenance" },
+    { name: "Tires", description: "Tires, rotation and alignment" },
+  ],
+  "Salon & spa": [
+    { name: "Haircut", description: "Cuts and styling" },
+    { name: "Color", description: "Color, highlights and treatments" },
+    { name: "Nails", description: "Manicures and pedicures" },
+    { name: "Spa", description: "Facials, massage and waxing" },
+  ],
+  "Dental office": [
+    { name: "Cleaning", description: "Routine cleaning and exam" },
+    { name: "New patient", description: "First visit and exam" },
+    { name: "Tooth pain", description: "Urgent visits" },
+    { name: "Consultation", description: "Treatment consultations" },
+  ],
+  "Medical office": [
+    { name: "New patient", description: "First visit" },
+    { name: "Sick visit", description: "Same-day or next-day visits" },
+    { name: "Follow-up", description: "Follow-up appointments" },
+    { name: "Annual physical", description: "Routine checkups" },
+  ],
+  "Law office": [
+    { name: "Consultation", description: "New matter consultations" },
+    { name: "Existing client", description: "Updates for current clients" },
+  ],
+  "Real estate": [
+    { name: "Buying", description: "Buyer consultations and showings" },
+    { name: "Selling", description: "Home valuations and listings" },
+    { name: "Renting", description: "Rental inquiries" },
+  ],
+  "Other business": [
+    { name: "Appointment", description: "Book a time with the team" },
+    { name: "Question", description: "General questions and messages" },
+  ],
 };
 
 export function servicesForTrade(trade: Trade): string {
@@ -83,6 +174,11 @@ export async function isOnboardingComplete(email: string): Promise<boolean> {
   return Boolean(business);
 }
 
+export type LineChoice = {
+  areaCode?: number | null;
+  phoneNumber?: string | null;
+};
+
 export type ProvisionInput = {
   name: string;
   trade: Trade;
@@ -90,6 +186,10 @@ export type ProvisionInput = {
   ownerPhone: string;
   greeting?: string;
   timezone?: string;
+  /** From the shop's website or Google listing; defaults apply when absent. */
+  address?: string;
+  hoursJson?: string;
+  line?: LineChoice;
   billing: {
     customerId: string;
     subscriptionId: string;
@@ -115,12 +215,33 @@ async function uniqueSlug(name: string): Promise<string> {
   return candidate;
 }
 
+/**
+ * The number this run owns: one an earlier try already bought (recorded, or
+ * found in Twilio by its tag when the purchase response was lost), else a new
+ * purchase that is recorded before anything else can fail.
+ */
 async function provisionDedicatedLine(params: {
+  attempt: ProvisionAttempt;
   shopName: string;
   ownerPhone: string;
   assistantId: string;
+  line?: LineChoice;
 }) {
-  const phone = await purchaseLocalNumber(params.ownerPhone);
+  const friendlyName = lineFriendlyName(params.attempt.tag);
+  let phone =
+    params.attempt.phoneNumber ??
+    (params.attempt.attempts > 1 ? await findLineByFriendlyName(friendlyName) : null);
+  if (!phone) {
+    phone = (
+      await purchaseLocalNumber({
+        ownerPhone: params.ownerPhone,
+        areaCode: params.line?.areaCode ?? null,
+        phoneNumber: params.line?.phoneNumber ?? null,
+        friendlyName,
+      })
+    ).phoneNumber;
+  }
+  await recordProvisionStep(params.attempt.key, { phoneNumber: phone });
   await configureSmsWebhook(phone);
   await attachAssistantToShopLine({
     phone,
@@ -130,14 +251,17 @@ async function provisionDedicatedLine(params: {
   return phone;
 }
 
+/** Undo a failed run. Whatever could not be undone is returned so the retry reuses it instead of buying again. */
 async function rollbackProvision(params: {
   vapiAssistantId: string | null;
   shopLine: string | null;
   releaseLine: boolean;
-}) {
+}): Promise<{ phoneNumber: string | null; vapiAssistantId: string | null }> {
+  const kept = { phoneNumber: params.shopLine, vapiAssistantId: params.vapiAssistantId };
   if (params.shopLine && params.releaseLine) {
     try {
       await releasePhoneNumber(params.shopLine);
+      kept.phoneNumber = null;
     } catch (error) {
       logError("provision.rollback.phone_failed", {
         shopLine: params.shopLine,
@@ -149,6 +273,7 @@ async function rollbackProvision(params: {
   if (params.vapiAssistantId) {
     try {
       await deleteAssistant(params.vapiAssistantId);
+      kept.vapiAssistantId = null;
     } catch (error) {
       logError("provision.rollback.assistant_failed", {
         vapiAssistantId: params.vapiAssistantId,
@@ -156,6 +281,7 @@ async function rollbackProvision(params: {
       });
     }
   }
+  return kept;
 }
 
 export function shopNeedsAutoLine(business: {
@@ -165,8 +291,16 @@ export function shopNeedsAutoLine(business: {
   vapiPhoneNumber?: string | null;
   vapiAssistantId?: string | null;
   ownerPhone?: string | null;
+  billingStatus?: string | null;
 }): boolean {
   if (!shopMustNotUseDemoLine(business)) return false;
+  /*
+    This runs on every signed-in request, ahead of the billing check. A
+    canceled shop whose number was released would otherwise buy a new one the
+    next time its owner opened the dashboard. Paying again makes it active,
+    and the line comes back then.
+  */
+  if (business.billingStatus === "canceled") return false;
   if (!business.vapiAssistantId?.trim() || !business.ownerPhone?.trim()) {
     return false;
   }
@@ -189,6 +323,7 @@ export async function autoEnsureCustomerShopLine(
     const result = await ensureDedicatedShopLine(business);
     return { business: result.business, provisioned: true };
   } catch (error) {
+    if (error instanceof ProvisionBusyError) return { business, provisioned: false };
     logError("autoEnsureCustomerShopLine.failed", {
       businessId: business.id,
       name: business.name,
@@ -198,16 +333,16 @@ export async function autoEnsureCustomerShopLine(
   }
 }
 
+/** The shop this person has open (owned or shared with them), with their role in it. */
+export async function getShopAccessWithAutoLine(email: string): Promise<ShopAccess | null> {
+  const access = await resolveShopAccess(email);
+  if (!access) return null;
+  const { business: ready } = await autoEnsureCustomerShopLine(access.business);
+  return { business: ready, role: access.role };
+}
+
 export async function getBusinessForOwnerWithAutoLine(email: string) {
-  const business = await prisma.business.findFirst({
-    where: { ownerEmail: email.toLowerCase(), isActive: true },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (!business) return null;
-
-  const { business: ready } = await autoEnsureCustomerShopLine(business);
-  return ready;
+  return (await getShopAccessWithAutoLine(email))?.business ?? null;
 }
 
 /**
@@ -255,19 +390,41 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
     throw new Error("Add your owner mobile in Settings before provisioning a shop line");
   }
 
-  const shopLine = await provisionDedicatedLine({
-    shopName: business.name,
-    ownerPhone,
-    assistantId: business.vapiAssistantId,
-  });
-
-  const updated = await prisma.business.update({
-    where: { id: business.id },
-    data: {
-      twilioPhone: shopLine,
-      vapiPhoneNumber: shopLine,
-    },
-  });
+  const key = shopLineAttemptKey(business.id);
+  await reopenProvisionAttempt(key);
+  const attempt = await claimProvisionAttempt(key);
+  const fresh = await prisma.business.findUniqueOrThrow({ where: { id: business.id } });
+  const freshLine = fresh.vapiPhoneNumber ?? fresh.twilioPhone;
+  if (freshLine && !(shopMustNotUseDemoLine(fresh) && isDemoPlatformLine(freshLine))) {
+    // Another request bought this shop's line while this one waited for the lease.
+    await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
+    return { business: fresh, repaired: false, dedicatedLine: true };
+  }
+  let updated: Business;
+  try {
+    const shopLine = await provisionDedicatedLine({
+      attempt,
+      shopName: business.name,
+      ownerPhone,
+      assistantId: business.vapiAssistantId,
+    });
+    updated = await prisma.business.update({
+      where: { id: business.id },
+      data: {
+        twilioPhone: shopLine,
+        vapiPhoneNumber: shopLine,
+      },
+    });
+  } catch (error) {
+    const current = await prisma.provisionAttempt.findUnique({ where: { key } });
+    await finishProvisionAttempt(key, {
+      status: "failed",
+      error: error instanceof Error ? error.message : "unknown",
+      keep: { phoneNumber: current?.phoneNumber ?? null, vapiAssistantId: null },
+    });
+    throw error;
+  }
+  await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
 
   await syncBusinessAssistant(updated);
 
@@ -355,7 +512,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   const greeting =
     input.greeting?.trim() ||
     `Thank you for calling ${name}. How can I help you today?`;
-  const hoursJson = DEFAULT_HOURS_JSON;
+  const hoursJson = input.hoursJson ?? DEFAULT_HOURS_JSON;
   const servicesJson = servicesForTrade(input.trade);
 
   const systemPrompt = buildAssistantSystemPrompt({
@@ -365,26 +522,40 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
     servicesJson,
   });
 
-  let vapiAssistantId: string | null = null;
-  let shopLine: string | null = null;
+  const key = onboardingAttemptKey(email);
+  let attempt = await claimProvisionAttempt(key);
+  if (attempt.status === "succeeded") {
+    // A run that finished while this request waited already made the shop.
+    if (await findBusinessForOwner(email)) throw new Error("A shop is already linked to this account");
+    await reopenProvisionAttempt(key);
+    attempt = await claimProvisionAttempt(key);
+  }
+
+  let vapiAssistantId: string | null = attempt.vapiAssistantId;
+  let shopLine: string | null = attempt.phoneNumber;
 
   try {
-    const assistant = await createAssistant(
-      buildVapiAssistantConfig({
-        businessName: name,
-        systemPrompt,
-        greeting,
-        webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-        webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
-      }),
-    );
-    vapiAssistantId = assistant.id;
+    if (!vapiAssistantId) {
+      const assistant = await createAssistant(
+        buildVapiAssistantConfig({
+          businessName: name,
+          systemPrompt,
+          greeting,
+          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+        }),
+      );
+      vapiAssistantId = assistant.id;
+      await recordProvisionStep(key, { vapiAssistantId });
+    }
 
     try {
       shopLine = await provisionDedicatedLine({
+        attempt: { ...attempt, phoneNumber: shopLine },
         shopName: name,
         ownerPhone: input.ownerPhone,
         assistantId: vapiAssistantId,
+        line: input.line,
       });
     } catch (error) {
       logError("provision.dedicated_line_failed", {
@@ -415,6 +586,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         ownerPhone: input.ownerPhone.trim(),
         trade: input.trade,
         timezone: input.timezone ?? "America/New_York",
+        address: input.address?.trim() || null,
         greeting,
         hoursJson,
         servicesJson,
@@ -429,14 +601,21 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
       },
     });
 
+    await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
     await syncBusinessAssistant(business);
 
     return { business, dedicatedLine: true };
   } catch (error) {
-    await rollbackProvision({
+    const recorded = await prisma.provisionAttempt.findUnique({ where: { key } });
+    const kept = await rollbackProvision({
       vapiAssistantId,
-      shopLine,
-      releaseLine: Boolean(shopLine),
+      shopLine: shopLine ?? recorded?.phoneNumber ?? null,
+      releaseLine: Boolean(shopLine ?? recorded?.phoneNumber),
+    });
+    await finishProvisionAttempt(key, {
+      status: "failed",
+      error: error instanceof Error ? error.message : "unknown",
+      keep: kept,
     });
     throw error;
   }

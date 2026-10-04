@@ -1,7 +1,8 @@
 "use client";
 
-import { telHref } from "@/lib/demo-line";
+import { displayLine, telHref } from "@/lib/demo-line";
 import { markFirstNightPending } from "@/components/first-night-handoff";
+import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -19,8 +20,8 @@ type OnboardingCallVerifyProps = {
 const POLL_MS = 3_000;
 
 /**
- * One job after the line exists: Call → Enter Command.
- * Capture (forward/publish) stays on Settings — never stamp overflow here.
+ * One job after the line exists: call it. Then forwarding is offered first;
+ * capture is confirmed in Settings, never stamped here.
  */
 export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyProps) {
   const router = useRouter();
@@ -30,6 +31,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
   const [error, setError] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
+  const [testRan, setTestRan] = useState(false);
 
   const check = useCallback(async () => {
     try {
@@ -62,14 +64,13 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
     return () => clearInterval(interval);
   }, [check, polling]);
 
-  async function enterCommand() {
-    if (!verified) return;
+  async function enterCommand(href = "/dashboard?live=1") {
     setEntering(true);
     setError(null);
     try {
-      // Line is proved. Do not invent overflow/forward confirm — Settings owns that.
-      markFirstNightPending();
-      router.replace("/dashboard?live=1");
+      // Do not invent overflow/forward confirm — Settings owns that.
+      if (verified) markFirstNightPending();
+      router.replace(href);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not finish setup");
@@ -93,8 +94,8 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         setError(json.error ?? "Test call failed. Try dialing the live line.");
         return;
       }
+      setTestRan(true);
       await check();
-      setPolling(false);
     } catch {
       setError("Network error while running the test call.");
     } finally {
@@ -119,13 +120,11 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         )}
         <div>
           <h1 className="onboarding-title font-sans">
-            {verified ? "Line works. You’re in." : "Call your line once."}
+            {verified ? "Your Orvius line answers." : "Call your line once."}
           </h1>
           <p className="onboarding-lead font-sans">
             {verified
-              ? leadName
-                ? `${shopName} caught a lead from ${leadName}. Open Command and clear the board.`
-                : `${shopName} is answering. Open Command — the banner at the top is always your next move.`
+              ? `${leadName ? `It caught a lead from ${leadName}. ` : ""}Your customers still call your main number, so forward it here (or put this number on your trucks) before you count on it.`
               : `Tap Call. Orvius answers as ${shopName} and texts you. Stay on this screen — we watch for the call.`}
           </p>
         </div>
@@ -134,7 +133,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
       <p className="onboarding-verify-shop font-sans">{shopName}</p>
 
       <a href={telHref(line)} className="onboarding-hero-line font-sans">
-        {line}
+        {displayLine(line)}
       </a>
 
       {!verified ? (
@@ -165,14 +164,24 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
 
       <div className="onboarding-actions">
         {verified ? (
-          <button
-            type="button"
-            className="btn btn-void font-sans"
-            disabled={entering}
-            onClick={() => void enterCommand()}
-          >
-            {entering ? "Opening…" : "Enter Command"}
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn btn-void font-sans"
+              disabled={entering}
+              onClick={() => void enterCommand(ownerSetupHref("capture"))}
+            >
+              {entering ? "Opening…" : "Forward my main number"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary font-sans"
+              disabled={entering}
+              onClick={() => void enterCommand()}
+            >
+              Enter Command
+            </button>
+          </>
         ) : (
           <>
             <a href={telHref(line)} className="btn btn-void font-sans">
@@ -186,15 +195,23 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
             >
               {testing ? "Running test…" : "Run a test call in-app"}
             </button>
+            <button
+              type="button"
+              className="btn btn-ghost font-sans"
+              disabled={entering}
+              onClick={() => void enterCommand("/dashboard")}
+            >
+              {entering ? "Opening…" : "Open Command, call later"}
+            </button>
           </>
         )}
       </div>
 
       {!verified ? (
         <p className="onboarding-footnote font-sans">
-          Prefer the real line when you can. The in-app test still creates a
-          Call, Lead, and Customer so Inbox and Command light up — then finish
-          capture in Settings.
+          {testRan
+            ? "Test lead added to your Inbox so you can see the alert. It didn't use the phone network, so call your line to prove it works."
+            : "The in-app test shows what an alert looks like. Only a real call to your line proves it works."}
         </p>
       ) : null}
     </div>

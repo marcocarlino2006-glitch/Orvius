@@ -292,8 +292,8 @@ test("fulfilment marks the deposit paid and stamps what Orvius earned", async ()
   assert.equal(stored.status, "paid");
   assert.ok(stored.paidAt, "paidAt anchors the appointment hold");
   assert.equal(stored.stripePaymentIntentId, `pi_test_${deposit.id}`);
-  // 2% of $450.
-  assert.equal(stored.applicationFeeCents, 900);
+  // 1% of $450.
+  assert.equal(stored.applicationFeeCents, 450);
 });
 
 test("a replayed webhook is a no-op, not a second payment", async () => {

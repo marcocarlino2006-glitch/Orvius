@@ -25,9 +25,9 @@ export async function ensureCrew(businessId: string) {
 
   const business = await prisma.business.findUnique({
     where: { id: businessId },
-    select: { name: true, ownerPhone: true },
+    select: { ownerPhone: true },
   });
-  const name = business?.name ? `${business.name} owner` : "Owner";
+  const name = "Owner";
 
   /*
     Upsert, because the read above is not a lock. The dispatch page fetches the

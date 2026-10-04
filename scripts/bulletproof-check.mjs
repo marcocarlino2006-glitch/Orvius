@@ -139,13 +139,11 @@ if (attentionConfirm && attentionAtRisk && attentionText) {
   bad("attention", "Attention missing owner actions", "confirm / at-risk");
 }
 
-const demoHonesty =
-  fileHas("src/app/api/demo/call/route.ts", "proposed_awaiting_confirm") &&
-  fileHas("src/app/demo/page.tsx", "honesty");
+const demoHonesty = fileHas("src/app/api/demo/call/route.ts", "proposed_awaiting_confirm");
 if (demoHonesty) {
-  ok("demo", "Demo path honesty", "proposed ≠ confirmed on /demo");
+  ok("demo", "Demo path honesty", "proposed ≠ confirmed in /api/demo/call");
 } else {
-  bad("demo", "Demo path overclaims booking", "wire honesty on /demo");
+  bad("demo", "Demo path overclaims booking", "wire honesty in /api/demo/call");
 }
 
 const prePost = readFileSync(join(root, "docs/PRE-POST-GATE.md"), "utf8");

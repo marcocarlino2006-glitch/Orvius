@@ -236,6 +236,46 @@ async function main() {
       },
     });
 
+    await prisma.auditEvent.create({
+      data: {
+        businessId: business.id,
+        entityType: "lead",
+        entityId: lead.id,
+        action: "lead.captured",
+        actor: "orvius",
+        summary: `Captured ${r.name} · ${r.service}`,
+        leadId: lead.id,
+        customerId: customer.id,
+        callId: call?.id ?? null,
+        createdAt: created,
+      },
+    });
+
+    if (!viaCall || i % 3 === 0) {
+      const thread = [
+        { direction: "in", author: "customer", body: `Hi, ${r.service.toLowerCase()}. Can someone come out?`, at: 0 },
+        { direction: "out", author: "orvius", body: `Thanks ${r.name.split(" ")[0]} — ${business.name} got it. We'll text you a time shortly.`, at: 40_000 },
+        ...(r.job
+          ? [{ direction: "out", author: "owner", body: "You're booked. Your tech will text when they're on the way.", at: 20 * 60_000 }]
+          : []),
+      ];
+      for (const [n, m] of thread.entries()) {
+        await prisma.message.create({
+          data: {
+            businessId: business.id,
+            phoneNormalized: r.phone,
+            direction: m.direction,
+            author: m.author,
+            body: m.body,
+            sid: `demo_msg_${i}_${n}`,
+            deliveryStatus: m.direction === "out" ? "delivered" : null,
+            readAt: m.direction === "in" && r.contacted ? new Date(created.getTime() + 5 * 60_000) : null,
+            createdAt: new Date(created.getTime() + m.at),
+          },
+        });
+      }
+    }
+
     if (!r.job) continue;
     const scheduledAt = at(r.job.when);
     const tech = techs[r.job.tech];
@@ -270,6 +310,36 @@ async function main() {
         createdAt: created,
       },
     });
+
+    await prisma.auditEvent.create({
+      data: {
+        businessId: business.id,
+        entityType: "job",
+        entityId: job.id,
+        action: "job.booked",
+        actor: "orvius",
+        summary: `Booked ${job.title} with ${tech.name}`,
+        leadId: lead.id,
+        customerId: customer.id,
+        jobId: job.id,
+        createdAt: new Date(created.getTime() + 2 * 60_000),
+      },
+    });
+    if (done) {
+      await prisma.auditEvent.create({
+        data: {
+          businessId: business.id,
+          entityType: "job",
+          entityId: job.id,
+          action: "job.completed",
+          actor: "teammate",
+          summary: `${tech.name} completed ${job.title}`,
+          jobId: job.id,
+          customerId: customer.id,
+          createdAt: new Date(scheduledAt.getTime() + 80 * 60_000),
+        },
+      });
+    }
 
     if (done) {
       const paidAt = new Date(scheduledAt.getTime() + 90 * 60_000);

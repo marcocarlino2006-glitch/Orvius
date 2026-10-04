@@ -7,10 +7,11 @@ import { prisma } from "@/lib/prisma";
 
 /*
   The feed URL is the credential: calendar apps poll it with no session. It is
-  signed rather than stored so it needs no schema change, which means it cannot
-  be revoked per shop without rotating AUTH_SECRET.
+  signed rather than stored, over the shop's calendarFeedVersion, so an owner
+  who shared the link too widely resets it by bumping the version — every old
+  link stops verifying and nothing else about the shop changes. Version 1
+  signs exactly as the links issued before the reset existed.
 */
-const FEED_VERSION = "v1";
 const PAST_DAYS = 30;
 const FUTURE_DAYS = 180;
 
@@ -18,30 +19,50 @@ function feedSecret() {
   return process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || null;
 }
 
-function sign(businessId: string, secret: string) {
-  return createHmac("sha256", secret).update(`calendar:${FEED_VERSION}:${businessId}`).digest("base64url").slice(0, 32);
+function sign(businessId: string, version: number, secret: string) {
+  return createHmac("sha256", secret).update(`calendar:v${version}:${businessId}`).digest("base64url").slice(0, 32);
 }
 
-export function calendarFeedToken(businessId: string) {
+export function calendarFeedToken(businessId: string, version = 1) {
   const secret = feedSecret();
-  return secret ? `${businessId}.${sign(businessId, secret)}` : null;
+  return secret ? `${businessId}.${sign(businessId, version, secret)}` : null;
 }
 
-export function calendarFeedUrl(businessId: string) {
-  const token = calendarFeedToken(businessId);
+export function calendarFeedUrl(businessId: string, version = 1) {
+  const token = calendarFeedToken(businessId, version);
   return token ? `${getAppUrl().replace(/\/$/, "")}/api/public/calendar/${token}.ics` : null;
 }
 
-export function verifyCalendarFeedToken(raw: string): string | null {
+async function currentFeedVersion(businessId: string) {
+  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { calendarFeedVersion: true } });
+  return shop?.calendarFeedVersion ?? null;
+}
+
+export async function verifyCalendarFeedToken(
+  raw: string,
+  feedVersion: (businessId: string) => Promise<number | null> = currentFeedVersion,
+): Promise<string | null> {
   const secret = feedSecret();
   const token = raw.replace(/\.ics$/, "");
   const dot = token.lastIndexOf(".");
   if (!secret || dot <= 0) return null;
   const businessId = token.slice(0, dot);
+  const version = await feedVersion(businessId);
+  if (version == null) return null;
   const presented = Buffer.from(token.slice(dot + 1));
-  const expected = Buffer.from(sign(businessId, secret));
+  const expected = Buffer.from(sign(businessId, version, secret));
   if (presented.length !== expected.length || !timingSafeEqual(presented, expected)) return null;
   return businessId;
+}
+
+/** Invalidates every copy of the shop's feed link and returns the new one. */
+export async function resetCalendarFeed(businessId: string) {
+  const shop = await prisma.business.update({
+    where: { id: businessId },
+    data: { calendarFeedVersion: { increment: 1 } },
+    select: { calendarFeedVersion: true },
+  });
+  return calendarFeedUrl(businessId, shop.calendarFeedVersion);
 }
 
 function icsDate(at: Date) {

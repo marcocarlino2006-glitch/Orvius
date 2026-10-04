@@ -116,11 +116,11 @@ export function PushAlertsRows() {
   const hint =
     state.kind === "unsupported"
       ? state.reason
-      : state.kind === "unconfigured"
-        ? "Switches on from our side. Nothing to set up."
-        : state.kind === "ready" && state.blocked
+      : state.kind === "ready" && state.blocked
           ? "Notifications are blocked for Orvius in this browser's settings."
           : "New calls and urgent jobs on this phone or computer, as they happen. Texts still go out.";
+
+  if (state.kind === "unconfigured") return null;
 
   return (
     <>

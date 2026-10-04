@@ -1,6 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
 import { HomeLiveCall } from "@/components/home-live-call";
-import { StageWorld } from "@/components/stage-world";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 
 /*
@@ -39,9 +39,9 @@ function LiveLineDigits({ display }: { display: string }) {
  * Brand lives in the nav — not restated above the headline.
  * Dialable live line stays as the proof Cursor can’t ship.
  */
-export function HomeLineHero() {
+export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
   return (
-    <section className="ov-hero ov-hero--atmosphere" aria-labelledby="home-hero-heading">
+    <section className="ov-hero ov-hero--atmosphere ov-hero--center" aria-labelledby="home-hero-heading">
       <div className="ov-hero-sky" aria-hidden>
         <span className="ov-hero-sky-plane" />
         <span className="ov-hero-sky-bloom" />
@@ -53,25 +53,41 @@ export function HomeLineHero() {
       <div className="ov-hero-inner ov-hero-inner--product ov-hero-inner--poster">
         <div className="ov-hero-copy">
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
-            After-hours calls become qualified jobs.
+            Run your day in Orvius.
           </h1>
+          <p className="ov-hero-lead" data-i18n="hero.lead">
+            The receptionist answers your calls and brings in the work. Command schedules it, coordinates your people, follows up with customers and shows you what actually happened.
+          </p>
 
           <div className="ov-hero-actions">
-            <a
-              href={demoLineHref()}
-              className="ov-btn ov-btn--solid ov-hero-cta-primary"
-              aria-label={`Call the Orvius night shift line at ${DEMO_LINE_DISPLAY}`}
-              data-i18n="hero.cta"
-            >
-              Call the live line
-            </a>
-            <Link
-              href="/pilot"
-              className="ov-btn ov-btn--quiet ov-hero-cta-secondary"
-              data-i18n="hero.demo"
-            >
-              Request a demo
-            </Link>
+            {signupOpen ? (
+              <>
+                <Link
+                  href="/signup?callbackUrl=%2Fdashboard%2Fonboarding"
+                  className="ov-btn ov-btn--solid ov-hero-cta-primary"
+                  data-i18n="hero.getLine"
+                >
+                  Get your line
+                </Link>
+                <Link href="/watch" className="ov-btn ov-btn--quiet ov-hero-cta-secondary" data-i18n="hero.watch">
+                  Watch it run a shop
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/watch" className="ov-btn ov-btn--solid ov-hero-cta-primary" data-i18n="hero.watch">
+                  Watch it run a shop
+                </Link>
+                <a
+                  href={demoLineHref()}
+                  className="ov-btn ov-btn--quiet ov-hero-cta-secondary"
+                  aria-label={`Call the Orvius night shift line at ${DEMO_LINE_DISPLAY}`}
+                  data-i18n="hero.cta"
+                >
+                  Call the live line
+                </a>
+              </>
+            )}
           </div>
 
           <a
@@ -87,8 +103,15 @@ export function HomeLineHero() {
           </a>
         </div>
 
-        <div className="ov-hero-stage">
-          <StageWorld />
+        <div className="ov-hero-stage ov-hero-stage--art">
+          <Image
+            src="/marketing/art/dusk.webp"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 76rem"
+            className="ov-hero-art"
+          />
           <HomeLiveCall />
         </div>
       </div>

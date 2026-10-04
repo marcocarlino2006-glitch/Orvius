@@ -1,3 +1,11 @@
+import { OVERAGE_CENTS_PER_CALL, annualChargeDollars, getPlanById, type PaidPlanId } from "@/lib/pricing-plans";
+
+const calls = (id: PaidPlanId) => (getPlanById(id).includedCalls ?? 0).toLocaleString("en-US");
+const annualLine = (id: PaidPlanId) => {
+  const plan = getPlanById(id);
+  return `${plan.name} $${annualChargeDollars(plan).toLocaleString("en-US")}/yr ($${plan.annualPrice}/mo)`;
+};
+
 export type PricingFaqItem = {
   id: string;
   question: string;
@@ -9,13 +17,25 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "line-vs-pro",
     question: "What's the difference between Line and Pro?",
     answer:
-      "Line is the front door — after-hours and overflow calls answered, qualified, and alerted on a configured line. Pro adds the shop OS: customer records, jobs, dispatch board, and Ask. If leads aren't becoming booked jobs, you need Pro.",
+      "Both plans answer, qualify and book your calls, and both include the lead inbox, customer records, jobs, text-to-pay and Ask. Line is for one person running the work, with one technician. Pro adds the dispatch board and up to 15 technicians, so you need it once you're sending a crew.",
   },
   {
     id: "annual",
     question: "Can I pay annually?",
     answer:
-      "Yes. Annual billing saves about 17% compared to monthly — Line from $124/mo, Pro from $249/mo, Fleet from $429/mo when billed yearly. Toggle annual on the pricing page before subscribing.",
+      `Yes. A year costs ten months: ${annualLine("line")}, ${annualLine("pro")}, ${annualLine("fleet")}. It is charged once a year. Included calls still reset every month.`,
+  },
+  {
+    id: "calls",
+    question: "What if we get more calls than the plan includes?",
+    answer:
+      `Every call is still answered; the line never stops at a limit. Line includes ${calls("line")} answered calls a month, Pro ${calls("pro")}, Fleet ${calls("fleet")}. The count resets on the 1st. Each answered call past the allowance is ${OVERAGE_CENTS_PER_CALL}¢, invoiced to your card after the month ends, and Billing shows the running count.`,
+  },
+  {
+    id: "payments-fee",
+    question: "Do you take a cut of deposits and payments?",
+    answer:
+      "1% of each deposit or final bill a customer pays by card through Orvius, on top of Stripe's standard processing on your own Stripe account. The money settles to your bank, never to us. Cash and checks you record by hand carry no fee.",
   },
   {
     id: "cancel",
@@ -33,7 +53,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "fleet",
     question: "When do I need Fleet?",
     answer:
-      "Fleet is built for 6+ trucks — unlimited technicians on dispatch and the multi-truck dispatch workflows. Pro caps technicians at 15. Growing shops with 3–5 trucks are usually on Pro. Support is the same on every plan: email us and you get a person, normally within a business day.",
+      `When you run more than 15 technicians on dispatch, or answer more than ${calls("pro")} calls a month. Fleet has the same workspace as Pro with no technician cap and ${calls("fleet")} included calls. Support is the same on every plan: email us and a person answers, normally within a business day.`,
   },
   {
     id: "launch",

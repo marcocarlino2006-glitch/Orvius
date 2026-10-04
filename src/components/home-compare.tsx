@@ -22,7 +22,7 @@ const groups: { title: string; rows: Row[] }[] = [
     title: "Follow-through",
     rows: [
       { label: "Pages the owner on emergencies", voicemail: "no", service: "yes", orvius: "yes" },
-      { label: "Call lands on the customer record", voicemail: "no", service: "no", orvius: "yes" },
+      { label: "Call lands on the customer record", voicemail: "no", service: "some", orvius: "yes" },
       { label: "Tech gets the job on their phone", voicemail: "no", service: "no", orvius: "yes" },
       { label: "Weekly summary of booked value", voicemail: "no", service: "no", orvius: "yes" },
     ],
@@ -89,7 +89,8 @@ export function HomeCompare() {
         </div>
         <p className="hx-footnote font-sans">
           ◐ Varies by provider and plan. Answering services usually take a message that someone
-          still has to call back.
+          still has to call back. Orvius texting and tech dispatch work once your texting number is
+          verified and your techs are added in setup.
         </p>
       </div>
     </section>

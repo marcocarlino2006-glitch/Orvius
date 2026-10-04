@@ -1,0 +1,29 @@
+name: Alert drain
+
+# Every 5 minutes: advance the owner-alert retry ladder, finish captured call
+# reports, and alert on leads saved without one. Webhooks do this on busy lines;
+# on a quiet line this is the only thing that runs before the daily cron.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: alert-drain
+  cancel-in-progress: false
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      APP_URL: ${{ secrets.LINE_WATCH_URL || 'https://api.orvius.im' }}
+    steps:
+      - name: Drain owner alerts
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET is not set in repo secrets; owner-alert retries on quiet lines wait for the daily cron."
+            exit 1
+          fi
+          curl -fsS --max-time 60 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/alert-drain"

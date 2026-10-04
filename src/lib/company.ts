@@ -16,30 +16,44 @@ export const company = {
   legalEmail: "hello@orvius.im",
   dmcaEmail: "hello@orvius.im",
   foundedYear: 2026,
-  trades: ["HVAC", "Plumbing", "Electrical"] as const,
+  trades: ["HVAC"] as const,
   /**
-   * Wedge first (founder lock 2026-09-22): beginning = focused AI receptionist
-   * for HVAC after-hours/overflow — not the full OS. Expand only after one shop
-   * pays and call→cash is proven.
+   * Mission (founder decision 2026-10-01). Public copy states it as the goal
+   * we work toward, never as a guarantee about today's product: calls can
+   * still fail, so absolutist answer-rate copy stays banned (life-changing-check E).
    */
-  tagline: "After-hours HVAC receptionist that turns missed calls into paid jobs.",
-  /** Category for the beginning — OS is earned after the wedge pays. */
+  mission: "Give every small business in the world the front office of a Fortune 500 company.",
+  missionWhy:
+    "A big company has a call center, a booking team, follow-up staff and a billing department. A plumber, a dentist or a salon owner has one phone and two hands. Orvius closes that gap.",
+  /** Where the mission goes, in order. Each step is earned by the one before it. */
+  vision: [
+    {
+      title: "The front desk for every business",
+      body: "Orvius answers the phone for millions of businesses, in any industry and any language, day and night.",
+    },
+    {
+      title: "The operating system for small business",
+      body: "Once we hold the calls, we run what comes after them: scheduling, follow-ups, payments, reviews and the weekly numbers. The owner runs the business from their phone; Orvius runs the office.",
+    },
+    {
+      title: "The network between customers and businesses",
+      body: "When someone needs a plumber at 2 a.m. or a dentist tomorrow, they — or their AI assistant — book through Orvius, because we know who is open, who is nearby and who does good work.",
+    },
+  ],
+  tagline: "The operating system for businesses that run on the phone.",
+  /** The blue link in search results: brand first, then the words people search for. */
+  searchTitle: "Orvius — AI Receptionist and Operating System for Business",
+  /** The caption under it. Google cuts at about 155 characters. */
+  searchDescription:
+    "Orvius answers your calls, books the work on your real schedule, sends your people, follows up with customers and shows you what happened.",
   categoryClaim:
-    "A focused AI receptionist for HVAC — answers, qualifies, books, confirms, and alerts the owner. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
-  /** Wedge proof — one missed call → one completed, paid job. */
-  proofLine: "Missed HVAC calls become booked, completed, paid jobs.",
-  vision:
-    "Prove that one local HVAC company will pay Orvius to turn one customer call into one completed and paid job. Only then expand recovery, follow-up, estimates, memberships, analytics — and only after that dispatch, tech workflows, equipment history, payments, and the broader OS.",
-  /**
-   * Product goal for the beginning — controlled pilot on overflow/after-hours.
-   * Dashboard north star: demand captured → completed work → money produced.
-   */
-  mission:
-    "Deploy with one local HVAC company on overflow or after-hours. Answer inbound calls, understand the problem, capture address and contact, identify urgency, check service area, book, confirm, and notify the shop. When the caller wants a person, take their name and number and transfer to the owner's phone if a transfer number is set; when unsure, or when the transfer does not go through, escalate to the owner on the board for a callback. Charge a controlled pilot. Track calls answered, leads captured, appointments booked, jobs completed, and revenue influenced — until the wedge pays.",
+    "The operating system for trades, clinics, salons, shops and offices — the receptionist answers and brings in the work; Command schedules it, assigns your people, follows up and shows the owner what happened. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
+  proofLine: "Missed calls become booked customers.",
   strategy: [
-    "One HVAC shop first — overflow/after-hours pilot that pays.",
-    "Prove call → cash: demand captured, completed work, money produced.",
-    "Own context/workflow/data/transactions — use replaceable models; expand OS and trades only after the wedge compounds.",
+    "Win home services first — the deepest packs, the most urgent calls.",
+    "Add an industry only when its pack passes the voice simulator.",
+    "Prove call → cash for every business: demand captured, work done, money collected.",
+    "Own the workflow, data and transactions; use replaceable AI models.",
   ] as const,
   /**
    * Confirm with counsel against formation docs before relying on arbitration
@@ -55,7 +69,7 @@ export const company = {
     "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",
   copyrightNotice: "All rights reserved.",
   smsProgramName: "Orvius Owner Alerts",
-  legalUpdated: "September 4, 2026",
+  legalUpdated: "September 29, 2026",
 } as const;
 
 /**

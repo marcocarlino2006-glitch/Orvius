@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { shopVersion } from "@/lib/shop-version";
 import { requireEntitledSession } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
@@ -7,25 +7,6 @@ export const maxDuration = 60;
 const CHECK_MS = 3_000;
 /** Serverless functions are capped; the browser's EventSource reconnects on its own. */
 const STREAM_MS = 50_000;
-
-async function shopVersion(businessId: string) {
-  const where = { businessId };
-  const [call, lead, job, alert] = await Promise.all([
-    prisma.call.aggregate({ where, _max: { updatedAt: true } }),
-    prisma.lead.aggregate({ where, _max: { updatedAt: true } }),
-    prisma.job.aggregate({ where, _max: { updatedAt: true } }),
-    prisma.ownerNotification.aggregate({ where, _max: { processedAt: true, createdAt: true } }),
-  ]);
-  return [
-    call._max.updatedAt,
-    lead._max.updatedAt,
-    job._max.updatedAt,
-    alert._max.processedAt,
-    alert._max.createdAt,
-  ]
-    .map((at) => at?.getTime() ?? 0)
-    .join(".");
-}
 
 /**
  * Tells Command the moment a call, lead, job or alert changes, so a booked

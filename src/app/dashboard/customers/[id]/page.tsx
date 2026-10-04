@@ -12,6 +12,7 @@ import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { formatWhen } from "@/lib/when";
 
 type CustomerDetail = {
   id: string;
@@ -91,9 +92,27 @@ export default function CustomerDetailPage() {
       title={customer.displayName}
       actions={
         customer.phone ? (
-          <a href={`tel:${customer.phone}`} className="btn btn-void text-sm">
-            Call
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/dashboard/inbox/messages?phone=${encodeURIComponent(customer.phone)}`}
+              className="btn btn-secondary text-sm"
+            >
+              Text
+            </Link>
+            <Link
+              href={`/dashboard/jobs/new?${new URLSearchParams({
+                phone: customer.phone,
+                ...(customer.name ? { name: customer.name } : {}),
+                ...(customer.address ? { address: customer.address } : {}),
+              })}`}
+              className="btn btn-secondary text-sm"
+            >
+              Book
+            </Link>
+            <a href={`tel:${customer.phone}`} className="btn btn-void text-sm">
+              Call
+            </a>
+          </div>
         ) : null
       }
     >
@@ -131,11 +150,11 @@ export default function CustomerDetailPage() {
             ) : null}
             <div>
               <dt>First seen</dt>
-              <dd>{new Date(customer.firstSeenAt).toLocaleString()}</dd>
+              <dd>{formatWhen(customer.firstSeenAt)}</dd>
             </div>
             <div>
               <dt>Last seen</dt>
-              <dd>{new Date(customer.lastSeenAt).toLocaleString()}</dd>
+              <dd>{formatWhen(customer.lastSeenAt)}</dd>
             </div>
           </dl>
 

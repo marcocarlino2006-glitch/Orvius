@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
-import { recordAudit } from "@/lib/audit";
+import { invoiceCompletedJob, invoicePayUrl } from "@/lib/invoice-pay";
+import { getConnectStatus } from "@/lib/stripe-connect";
+import { personActor, recordAudit } from "@/lib/audit";
 import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
+import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -45,6 +48,11 @@ export async function GET(_request: Request, { params }: Params) {
     orderBy: { createdAt: "desc" },
   });
 
+  const invoice = await prisma.invoice.findFirst({
+    where: { businessId: business.id, jobId: job.id },
+    orderBy: { createdAt: "desc" },
+  });
+
   return NextResponse.json({
     job: serializeJob(job),
     deposit: deposit
@@ -61,6 +69,18 @@ export async function GET(_request: Request, { params }: Params) {
         }
       : null,
     depositReadiness: getDepositReadiness(business),
+    invoice: invoice
+      ? {
+          id: invoice.id,
+          amountCents: invoice.amountCents,
+          status: invoice.status,
+          payUrl: invoice.publicToken ? invoicePayUrl(invoice.publicToken) : null,
+          sentAt: invoice.sentAt?.toISOString() ?? null,
+          paidAt: invoice.paidAt?.toISOString() ?? null,
+        }
+      : null,
+    finalAmountCents: job.finalAmountCents,
+    cardPayReady: getConnectStatus(business).canAcceptPayments,
   });
 }
 
@@ -153,7 +173,7 @@ export async function PATCH(request: Request, { params }: Params) {
     businessId: business.id,
     entityType: "job" as const,
     entityId: id,
-    actor: "owner" as const,
+    ...personActor(authResult),
     jobId: id,
     leadId: existing.leadId,
     customerId: existing.customerId,
@@ -190,6 +210,18 @@ export async function PATCH(request: Request, { params }: Params) {
     });
   }
 
+  let invoiceSent: boolean | undefined;
+  if (body.status === "completed" && existing.status !== "completed") {
+    const billed = await invoiceCompletedJob(id).catch((error) => {
+      logWarn("invoice.on_complete_failed", {
+        jobId: id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    });
+    invoiceSent = Boolean(billed && "sms" in billed && billed.sms?.sent);
+  }
+
   let techSms: { sent: boolean; reason?: string } | undefined;
   if (assigningTech) {
     techSms = await notifyTechOnAssign({
@@ -202,5 +234,6 @@ export async function PATCH(request: Request, { params }: Params) {
   return NextResponse.json({
     job: serializeJob(job),
     ...(techSms ? { techSms } : {}),
+    ...(invoiceSent !== undefined ? { invoiceSent } : {}),
   });
 }

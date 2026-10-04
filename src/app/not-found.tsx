@@ -10,16 +10,16 @@ export default function NotFound() {
           <BrandIntro
             brand
             title="Page not found."
-            subline="This route doesn't exist in Orvius."
-            description="Head back — every call, every customer, every job."
+            subline="We couldn't find that page. It may have moved, or the link may be mistyped."
+            description="Try the home page, or search the help center."
             align="center"
           />
           <div className="tier1-actions justify-center font-sans mt-8">
             <Link href="/" className="ov-btn ov-btn--solid">
               Back to home
             </Link>
-            <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Book a call audit
+            <Link href="/help" className="ov-btn ov-btn--quiet">
+              Help center
             </Link>
           </div>
         </div>

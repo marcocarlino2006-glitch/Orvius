@@ -133,7 +133,6 @@ export default function AskPage() {
           <div className="ask-thread" aria-live="polite">
             {!turns.length ? (
               <div className="ask-intro">
-                <p className="ask-intro-kicker">Shop intelligence</p>
                 <h2 className="ask-intro-title">Ask what happened, what matters, and what to do next.</h2>
                 <p className="ask-intro-copy">
                   Every answer cites the records it used. When Orvius proposes an action, it tells you exactly

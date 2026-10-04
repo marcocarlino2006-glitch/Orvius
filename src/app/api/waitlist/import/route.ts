@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { parseProspectCsv } from "@/lib/prospect-csv";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminRequest } from "@/lib/env";
+import { isFounderEmail } from "@/lib/founder";
 import { z } from "zod";
 
 function allowedEmails(): Set<string> {
@@ -19,8 +20,8 @@ async function canManageProspects(request: Request) {
   const email = session?.user?.email?.toLowerCase();
   if (!email) return false;
   const allowed = allowedEmails();
-  if (allowed.size === 0) return true;
-  return allowed.has(email);
+  if (allowed.size === 0) return isFounderEmail(email);
+  return allowed.has(email) || isFounderEmail(email);
 }
 
 const bodySchema = z.object({

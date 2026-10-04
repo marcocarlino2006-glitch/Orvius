@@ -39,7 +39,7 @@ export default function TermsPage() {
           {company.productName} provides AI-assisted call and text handling and related workspace
           tools for home-service businesses, including qualification, summaries, owner
           notifications, jobs, dispatch, and related features we make available. The Service is
-          designed for {company.trades.join(", ")}, and related trades we approve.
+          designed for {company.trades.join(", ")} shops and related trades we approve.
         </p>
         <p>
           We improve the Service continuously. Features, providers, and integrations may change.
@@ -73,7 +73,7 @@ export default function TermsPage() {
         </p>
         <p>
           Continued use after the pilot requires a paid plan (for example, {company.productName}{" "}
-          Pro at ${pro?.price ?? 299}/month, unless otherwise agreed in writing). We will notify you
+          Pro at ${pro?.price ?? 399}/month, unless otherwise agreed in writing). We will notify you
           before any charge begins. Pilot access may be revoked for abuse or material breach.
         </p>
       </LegalSection>
@@ -84,6 +84,11 @@ export default function TermsPage() {
           interval you select. Fees are non-refundable except where required by law or stated in our{" "}
           <Link href="/refunds">Refunds &amp; Cancellation</Link> policy. You authorize recurring
           charges to your payment method on file.
+        </p>
+        <p>
+          Each paid plan includes the number of answered calls per billing month shown on our{" "}
+          <Link href="/pricing">pricing page</Link>. Calls beyond that allowance are still answered
+          and are billed at the per-call rate shown there, in arrears, on a separate invoice after each calendar month. Calls answered before a paid plan begins are not billed.
         </p>
         <p>
           Failure to pay may result in suspension. You remain responsible for charges incurred

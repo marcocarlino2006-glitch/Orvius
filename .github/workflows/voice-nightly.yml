@@ -12,11 +12,15 @@ on:
 jobs:
   voice:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     env:
       VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
       VOICE_SIM_RECEPTIONIST_PHONE_ID: ${{ secrets.VOICE_SIM_RECEPTIONIST_PHONE_ID }}
       VOICE_SIM_CALLER_PHONE_ID: ${{ secrets.VOICE_SIM_CALLER_PHONE_ID }}
+      # Optional: where warm transfers ring during the sim. Unset runs with transfers off.
+      VOICE_SIM_TRANSFER_NUMBER: ${{ secrets.VOICE_SIM_TRANSFER_NUMBER }}
+      # Optional: replays scenarios learned from last fortnight's real calls that went wrong.
+      ORVIUS_ADMIN_KEY: ${{ secrets.ORVIUS_ADMIN_KEY }}
     steps:
       - name: Check secrets
         id: gate
@@ -38,13 +42,18 @@ jobs:
         run: npm ci
       - if: steps.gate.outputs.run == 'true'
         name: Run voice simulator
-        run: npm run sim:voice -- --json voice-results.json
-      # Results hold synthetic callers only — the receptionist runs with no
-      # server URL, so no shop or customer data is ever in these transcripts.
+        run: npm run sim:voice -- --learned --min-pass 0.9 --json voice-results.json --report voice-report.md
+      - if: always() && steps.gate.outputs.run == 'true'
+        run: cat voice-report.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+      # Results hold synthetic callers only — the receptionist's tools answer
+      # from the app's database-free sandbox and call reports go nowhere, so no
+      # shop or customer data is ever in these transcripts.
       - if: always() && steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: voice-results
-          path: voice-results.json
+          path: |
+            voice-results.json
+            voice-report.md
           if-no-files-found: ignore
           retention-days: 30

@@ -1,28 +1,36 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { company } from "@/lib/company";
+import { OVERAGE_CENTS_PER_CALL, getPlanById } from "@/lib/pricing-plans";
+
+const multi = getPlanById("multi");
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Enterprise",
-  description: `${company.productName} for multi-shop HVAC operators — after one location proves call→cash.`,
+  description: `${company.productName} for multi-location businesses: every location side by side, roles for owners, managers and dispatchers, and a record of every change.`,
 };
 
 const pillars = [
   {
     id: "01",
-    title: "Prove one location first.",
-    body: "Start with one live overflow/after-hours line. Expand only after calls become booked, completed, paid work.",
+    title: "Every location side by side.",
+    body: "Calls, leads, booked and completed jobs, money collected, and callers still waiting, per location, over 7, 30 or 90 days. Sorted so the location that needs attention is on top.",
   },
   {
     id: "02",
-    title: "Align hours, services, escalation.",
-    body: "Document each shop’s services, hours, escalation rules, and capacity before software proposes windows across the footprint.",
+    title: "Roles that match the job.",
+    body: "Owners add managers and dispatchers by email, on every plan. Managers can change settings and the team; dispatchers run calls, leads, jobs and dispatch. One sign-in switches between every location it can open.",
   },
   {
     id: "03",
-    title: "Multi-location with us — not self-serve theater.",
-    body: "Portfolio roles, consolidated billing, and cross-location reporting ship per deal after the wedge holds.",
+    title: "A record of every change.",
+    body: "Settings, team access, jobs, invoices and exports are logged with who made the change and when. Search it, filter it, and download it as CSV.",
+  },
+  {
+    id: "04",
+    title: "Rolled out with you.",
+    body: "Each location’s services, hours, service area and escalation rules are set up with you before its line goes live. Card checkout takes one location at a time, so multi-location billing is set up with you on an order form.",
   },
 ] as const;
 
@@ -33,16 +41,16 @@ export default function EnterprisePage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Enterprise"
-            title="One standard after one shop pays."
-            subline="For franchises and multi-shop HVAC operators who want overflow covered without platform vapor."
-            description={`${company.productName} earns multi-location only after a single site proves demand → completed work → money. We set the footprint up with you.`}
+            title="Every location on one board."
+            subline="For franchises, groups and multi-location businesses."
+            description="Each location keeps its own line, hours and rules. You see all of them side by side, with every change recorded."
             actions={
               <>
                 <a
-                  href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop%20HVAC"
+                  href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-location"
                   className="ov-btn ov-btn--solid"
                 >
-                  Contact sales
+                  Talk to us
                 </a>
                 <Link href="/pricing" className="ov-btn ov-btn--quiet">
                   View pricing
@@ -78,19 +86,21 @@ export default function EnterprisePage() {
               Talk through your footprint.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Multi-shop pricing is custom. Tell us how many HVAC locations you
-              run and we&apos;ll set the standard up with you.
+              Multi-shop is ${multi.price} per location a month for {multi.limit?.toLowerCase()}, with
+              Pro and {(multi.includedCalls ?? 0).toLocaleString("en-US")} answered calls at each location
+              ({OVERAGE_CENTS_PER_CALL}¢ per call past that). Tell us how many locations you run and
+              we&apos;ll set them up with you.
             </p>
           </div>
           <div className="tier1-actions">
             <a
-              href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-shop%20HVAC"
+              href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-location"
               className="ov-btn ov-btn--solid"
             >
-              Contact sales
+              Talk to us
             </a>
             <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Request a demo
+              Book a call audit
             </Link>
           </div>
         </div>

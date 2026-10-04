@@ -11,6 +11,8 @@ type CheckoutButtonProps = {
   className?: string;
   variant?: "primary" | "secondary";
   email?: string;
+  /** The page already explains that card signup isn't open. */
+  quietWhenClosed?: boolean;
 };
 
 type PlanBillingStatus = {
@@ -32,21 +34,18 @@ export function CheckoutButton({
   className = "",
   variant = "secondary",
   email: emailProp = "",
+  quietWhenClosed = false,
 }: CheckoutButtonProps) {
   const [email, setEmail] = useState(emailProp);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [needsEmail, setNeedsEmail] = useState(false);
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
 
   const buttonLabel = label ?? "Pay with card";
 
   useEffect(() => {
-    if (emailProp) {
-      setEmail(emailProp);
-      setNeedsEmail(false);
-    }
+    if (emailProp) setEmail(emailProp);
   }, [emailProp]);
 
   useEffect(() => {
@@ -94,11 +93,7 @@ export function CheckoutButton({
 
   async function startCheckout(submittedEmail?: string) {
     const checkoutEmail = (submittedEmail ?? email).trim();
-    if (!checkoutEmail) {
-      setNeedsEmail(true);
-      setError("Enter the email on your Orvius account.");
-      return;
-    }
+    const setupUrl = `/dashboard/onboarding?plan=${planId}&interval=${interval}`;
 
     setLoading(true);
     setError(null);
@@ -107,14 +102,21 @@ export function CheckoutButton({
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: checkoutEmail, planId, interval }),
+        body: JSON.stringify({ ...(checkoutEmail ? { email: checkoutEmail } : {}), planId, interval }),
       });
       const data = await res.json();
 
       if (!res.ok) {
         if (res.status === 401) {
-          const callbackUrl = `/pricing?plan=${planId}&interval=${interval}`;
-          window.location.href = `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+          window.location.href = `/signin?mode=signup&callbackUrl=${encodeURIComponent(setupUrl)}`;
+          return;
+        }
+        if (res.status === 409 && data.code === "shop_details_needed") {
+          window.location.href = data.setupUrl ?? setupUrl;
+          return;
+        }
+        if (res.status === 409 && data.code === "already_subscribed" && data.manageUrl) {
+          window.location.href = data.manageUrl;
           return;
         }
         throw new Error(data.error ?? "Checkout unavailable");
@@ -151,7 +153,8 @@ export function CheckoutButton({
 
   if (!planReady) {
     const annualMissing = interval === "year" && planStatus?.checkoutReady;
-    const anyReady = Boolean(billing?.checkoutReady);
+    // Stripe can be configured with no plan price attached yet; only a payable plan is worth sending someone to.
+    const anyReady = Object.values(billing?.plans ?? {}).some((plan) => plan.checkoutReady);
     return (
       <div className={className}>
         <Link
@@ -162,54 +165,31 @@ export function CheckoutButton({
         >
           {anyReady ? "Open billing to pay" : "Book a call audit"}
         </Link>
-        <p className="mt-3 font-sans text-sm text-ash">
-          {annualMissing
-            ? "Annual checkout isn’t open for this plan yet — pay monthly on Billing."
-            : anyReady
-              ? "This plan isn’t on card checkout yet. Open Billing and pay with the plan that’s ready."
-              : "Card signup isn’t open yet. Book a call audit and we’ll set up your line with you."}
-        </p>
+        {quietWhenClosed && !anyReady ? null : (
+          <p className="mt-3 font-sans text-sm text-ash">
+            {annualMissing
+              ? "Annual checkout isn’t open for this plan yet — pay monthly on Billing."
+              : anyReady
+                ? "This plan isn’t on card checkout yet. Open Billing and pay with the plan that’s ready."
+                : "Card signup isn’t open yet. Book a call audit and we’ll set up your line with you."}
+          </p>
+        )}
       </div>
     );
   }
 
   return (
     <div className={className}>
-      {needsEmail && !emailProp ? (
-        <div className="space-y-3">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
-            autoComplete="email"
-            inputMode="email"
-            className="input"
-          />
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => startCheckout()}
-            className={`inst-btn w-full justify-center ${
-              variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
-            } ${loading ? "opacity-70" : ""}`}
-          >
-            {loading ? "Opening checkout…" : buttonLabel}
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          disabled={loading}
-          onClick={() => startCheckout()}
-          className={`inst-btn w-full justify-center ${
-            variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
-          } ${loading ? "opacity-70" : ""}`}
-        >
-          {loading ? "Opening checkout…" : buttonLabel}
-        </button>
-      )}
+      <button
+        type="button"
+        disabled={loading}
+        onClick={() => startCheckout()}
+        className={`inst-btn w-full justify-center ${
+          variant === "primary" ? "inst-btn-primary" : "inst-btn-ghost"
+        } ${loading ? "opacity-70" : ""}`}
+      >
+        {loading ? "Opening checkout…" : buttonLabel}
+      </button>
 
       {error ? (
         <p className="mt-3 font-sans text-sm text-flare-dim">

@@ -1,5 +1,6 @@
 "use client";
 
+import { JobBillSection, type JobBill } from "@/components/job-bill-section";
 import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
 import {
@@ -8,7 +9,8 @@ import {
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
-import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
+import { nextJobStatus } from "@/lib/job-status";
+import { statusWord } from "@/lib/when";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -82,6 +84,7 @@ export default function JobDetailPage() {
   const [deposit, setDeposit] = useState<DepositState>(null);
   const [depositReadiness, setDepositReadiness] =
     useState<DepositReadiness | null>(null);
+  const [bill, setBill] = useState<JobBill | null>(null);
   const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,6 +106,11 @@ export default function JobDetailPage() {
         setJob(jobData.job);
         setDeposit(jobData.deposit ?? null);
         setDepositReadiness(jobData.depositReadiness ?? null);
+        setBill({
+          invoice: jobData.invoice ?? null,
+          finalAmountCents: jobData.finalAmountCents ?? null,
+          cardPayReady: Boolean(jobData.cardPayReady),
+        });
         setCrew(techData.technicians ?? []);
         if (jobData.job?.scheduledAt) {
           const d = new Date(jobData.job.scheduledAt);
@@ -164,6 +172,10 @@ export default function JobDetailPage() {
 
   const next = nextJobStatus(job.status);
   const phone = job.customer?.phone ?? job.lead?.phone;
+  const hoursLate =
+    job.scheduledAt && (job.status === "scheduled" || job.status === "confirmed")
+      ? Math.floor((Date.now() - new Date(job.scheduledAt).getTime()) / 3_600_000)
+      : -1;
 
   return (
     <OsShell
@@ -189,6 +201,31 @@ export default function JobDetailPage() {
 
       <div className="os-detail-grid">
         <ShellPanel title="Field" dense>
+          {hoursLate >= 1 ? (
+            <div className="job-overdue font-sans" role="status">
+              <p>
+                The window passed {hoursLate < 24 ? `${hoursLate}h` : `${Math.floor(hoursLate / 24)}d`} ago and nobody is on
+                the way.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn btn-void text-sm"
+                  disabled={saving}
+                  onClick={() => patch({ status: "completed" })}
+                >
+                  Mark done
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary text-sm"
+                  onClick={() => document.getElementById("job-reschedule")?.focus()}
+                >
+                  Move it
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <ShellBadge
               tone={
@@ -199,10 +236,10 @@ export default function JobDetailPage() {
                     : "neutral"
               }
             >
-              {jobStatusLabel(job.status)}
+              {statusWord(job.status)}
             </ShellBadge>
             {job.urgency ? (
-              <ShellBadge tone="neutral">{job.urgency.replace(/-/g, " ")}</ShellBadge>
+              <ShellBadge tone="neutral">{statusWord(job.urgency)}</ShellBadge>
             ) : null}
             {job.technician ? (
               <ShellBadge tone="live">{job.technician.name}</ShellBadge>
@@ -228,15 +265,19 @@ export default function JobDetailPage() {
                 </p>
                 <p className="os-kv-note">
                   {job.customerConfirmedAt
-                    ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString()}`
-                    : job.scheduledAt
+                    ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`
+                    : job.status === "confirmed"
+                      ? "Confirmed with the customer"
+                      : job.scheduledAt
                       ? "Proposed window — awaiting customer confirm"
                       : "No window proposed yet"}
                 </p>
+                {job.status !== "completed" && job.status !== "cancelled" ? (
                 <div className="os-kv-actions">
                   <label className="font-sans text-sm">
                     <span className="label">Reschedule</span>
                     <input
+                      id="job-reschedule"
                       type="datetime-local"
                       className="input mt-1.5"
                       disabled={saving}
@@ -262,7 +303,7 @@ export default function JobDetailPage() {
                   >
                     Save window
                   </button>
-                  {job.scheduledAt && !job.customerConfirmedAt ? (
+                  {job.scheduledAt && !job.customerConfirmedAt && job.status !== "confirmed" ? (
                     <button
                       type="button"
                       className="btn btn-secondary text-sm"
@@ -297,6 +338,7 @@ export default function JobDetailPage() {
                     </button>
                   ) : null}
                 </div>
+                ) : null}
                 {confirmMsg ? (
                   <p className="os-kv-note">{confirmMsg}</p>
                 ) : null}
@@ -399,8 +441,20 @@ export default function JobDetailPage() {
               customerPhone={job.lead?.phone ?? job.customer?.phone ?? null}
               deposit={deposit}
               depositReadiness={depositReadiness}
+              jobClosed={job.status === "completed" || job.status === "cancelled"}
               onRefresh={load}
             />
+            {bill ? (
+              <JobBillSection
+                key={bill.invoice?.id ?? "new"}
+                jobId={job.id}
+                bill={bill}
+                defaultCents={job.estimate?.amountCents ?? null}
+                depositPaidCents={deposit?.status === "paid" ? deposit.amountCents : 0}
+                customerPhone={job.lead?.phone ?? job.customer?.phone ?? null}
+                onRefresh={load}
+              />
+            ) : null}
           </ShellPanel>
 
           {job.notes ? (

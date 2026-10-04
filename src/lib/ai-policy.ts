@@ -6,7 +6,7 @@
  * system. A model change is now a policy change with an environment override,
  * not a search-and-replace.
  */
-export const AI_POLICY_VERSION = "2026-09-09";
+export const AI_POLICY_VERSION = "2026-09-26";
 
 export type AiTask = "receptionist" | "shop_answer";
 
@@ -22,9 +22,9 @@ export type AiModelPolicy = {
 const DEFAULTS: Record<AiTask, Omit<AiModelPolicy, "task">> = {
   receptionist: {
     provider: "openai",
-    // Keep the currently certified voice model until a candidate beats it in
-    // the receptionist eval. "Newest" is not a safety or conversion metric.
-    model: "gpt-4o",
+    // Replaced gpt-4o after passing the same voice-sim scenarios with ~85ms
+    // faster replies. Change only when a candidate passes `npm run sim:voice`.
+    model: "gpt-4.1-mini",
     risk: "customer_voice",
     envOverride: "ORVIUS_AI_RECEPTIONIST_MODEL",
   },

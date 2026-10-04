@@ -214,7 +214,7 @@ button,
 .btn,
 .label {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
-  letter-spacing: var(--tracking-snug);
+  letter-spacing: 0;
 }
 
 /* ── Type system ── */
@@ -222,7 +222,7 @@ button,
 .type-eyebrow {
   /* SpaceX mission label */
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: var(--tracking-mission);
   text-transform: uppercase;
@@ -231,7 +231,7 @@ button,
 
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  font-size: var(--fs-display-md);
   font-weight: 400;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
@@ -241,7 +241,7 @@ button,
 
 .type-phone {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+  font-size: var(--fs-display-xs);
   font-weight: 500;
   line-height: var(--leading-tight);
   letter-spacing: 0.06em;
@@ -278,7 +278,7 @@ h3 {
 }
 
 .eyebrow {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -331,7 +331,7 @@ h3 {
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1;
-  letter-spacing: -0.011em;
+  letter-spacing: 0;
   border: 1px solid transparent;
   box-shadow: none;
   transition:
@@ -387,19 +387,6 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
-.product-float-none {
-  animation: none;
-}
-
-.demo-preset-scroll {
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.demo-preset-scroll::-webkit-scrollbar {
-  display: none;
-}
-
 .live-status-bar {
   border-radius: 0.5rem;
   border: 1px solid var(--rule);
@@ -408,20 +395,9 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
-@media (prefers-reduced-motion: reduce) {
-
-  .transcript-line {
-    animation: none;
-  }
-
-  .transcript-line {
-    opacity: 1;
-  }
-}
-
 /* Shell header */
 
-/* Orvius brand — word alone (Stripe way). Mark is favicon chrome only. */
+/* Orvius brand — the wordmark artwork alone. The O is favicon chrome only. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -437,7 +413,7 @@ h3 {
 }
 
 .orvius-logo-mark {
-  color: var(--signal);
+  color: inherit;
 }
 
 /* Sizes come from logoSizes via --logo-word-*, so the lockup is tuned in one
@@ -451,15 +427,19 @@ h3 {
   line-height: 0.9;
   text-transform: lowercase;
   color: inherit;
-  margin-right: -0.075em;
 }
 
-.orvius-mark-beam {
-  color: var(--signal);
+/* Cap height of the artwork tracks the font-size every surface already sets. */
+.orvius-logo-svg {
+  display: block;
+  height: 0.7em;
+  width: auto;
+  aspect-ratio: 622 / 98.3;
+  overflow: visible;
 }
 
 .orvius-logo-void {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .orvius-logo-chalk {
@@ -483,16 +463,6 @@ h3 {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.transcript-line {
-  opacity: 0;
-}
-
-.preview-crossfade {
-  transition:
-    opacity 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes backdrop-fade {
@@ -586,6 +556,11 @@ h3 {
   list-style: disc;
 }
 
+.legal-prose ol {
+  margin: 0.75rem 0 0.75rem 1.25rem;
+  list-style: decimal;
+}
+
 .legal-prose li {
   margin-bottom: 0.35rem;
 }
@@ -677,7 +652,7 @@ h3 {
 
 .home-os-kicker {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -783,7 +758,7 @@ h3 {
 
 /* Platform rings */
 .home-platform-kicker {
-  font-size: 0.6875rem; font-weight: 700;
+  font-size: 0.75rem; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--signal-dim);
 }
@@ -839,16 +814,6 @@ h3 {
   color: var(--ash);
 }
 
-.account-legal-links a {
-  color: var(--ash);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.account-legal-links a:hover {
-  color: var(--void);
-}
-
 .pro-stat {
   position: relative;
   overflow: hidden;
@@ -895,7 +860,7 @@ h3 {
 
 .pro-list-end-text {
   flex: none;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -912,7 +877,7 @@ h3 {
 .pro-empty-state-title {
   font-size: 1rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: var(--void);
 }
 
@@ -993,7 +958,7 @@ h3 {
 
 .pro-list-item-meta {
   flex-shrink: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1010,7 +975,7 @@ h3 {
 }
 
 .pro-section-kicker {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1019,7 +984,7 @@ h3 {
 
 .pro-section-title {
   margin-top: 0.35rem;
-  font-size: clamp(1.5rem, 2.5vw, 1.875rem);
+  font-size: var(--fs-display-sm);
   line-height: 1.08;
   letter-spacing: -0.035em;
 }
@@ -1035,23 +1000,6 @@ h3 {
   box-shadow: var(--shadow-soft);
 }
 
-.os-shell-pro .btn-void {
-  background: var(--void);
-  color: var(--chalk);
-  border: 1px solid var(--void);
-  box-shadow: none;
-}
-
-.os-shell-pro .btn-void:hover {
-  background: var(--void-deep);
-  border-color: var(--void-deep);
-}
-
-.os-shell-pro .btn-secondary {
-  background: var(--white);
-  border-color: color-mix(in srgb, var(--void) 12%, var(--rule));
-}
-
 /* Ring 1 — Front door mastery */
 
 .call-ai-confidence strong {
@@ -1059,7 +1007,7 @@ h3 {
 }
 
 .pro-economics-grid dt {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ash);
@@ -1067,39 +1015,12 @@ h3 {
 
 .pro-economics-grid dd {
   margin: 0.15rem 0 0;
-  font-size: 1.15rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--void);
   letter-spacing: -0.02em;
 }
 
-.tier1-strategy-list {
-  list-style: none;
-  margin: 1.5rem 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.tier1-strategy-list li {
-  position: relative;
-  padding-left: 1.25rem;
-  font-size: 0.9375rem;
-  line-height: 1.55;
-  color: var(--ash);
-}
-
-.tier1-strategy-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.55rem;
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 999px;
-  background: var(--signal);
-}
 @keyframes ring1-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -1128,7 +1049,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1191,30 +1112,6 @@ h3 {
   border-color: color-mix(in srgb, var(--live) 25%, transparent);
   background: color-mix(in srgb, var(--live) 8%, var(--white));
   color: var(--live);
-}
-
-.demo-pro-grid {
-  display: grid;
-  gap: 2rem;
-  align-items: start;
-}
-
-@media (min-width: 1024px) {
-  .demo-pro-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
-  }
-}
-
-.demo-pro-preview {
-  position: sticky;
-  top: 6rem;
-}
-
-.demo-pro-preview-note {
-  margin-top: 1rem;
-  font-size: 0.75rem;
-  line-height: 1.55;
-  color: var(--ash);
 }
 
 .pro-filter-bar .btn {
@@ -1304,6 +1201,40 @@ h3 {
   margin-top: var(--space-6);
 }
 
+.shop-preview-card {
+  margin-top: var(--space-5);
+  padding: var(--space-5);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.shop-preview-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.shop-preview-card-lines {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.shop-preview-share {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.shop-preview-actions {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .tier1-page-title {
   margin-top: var(--space-4);
   max-width: 22ch;
@@ -1333,7 +1264,7 @@ h3 {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 400;
-  letter-spacing: -0.011em;
+  letter-spacing: 0;
   line-height: 1;
   border: 1px solid transparent;
   text-decoration: none;
@@ -1379,7 +1310,6 @@ h3 {
 .tier1-story-muted {
   background: var(--chalk);
 }
-
 
 .tier1-story-grid {
   display: grid;
@@ -1483,7 +1413,7 @@ h3 {
 
 .pricing-needs-result-kicker {
   margin: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1554,7 +1484,7 @@ h3 {
 }
 
 .pricing-billing-save {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1707,7 +1637,7 @@ h3 {
 
 .pricing-matrix-category-row th {
   text-align: left !important;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1738,12 +1668,6 @@ h3 {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--void);
-}
-
-.pricing-matrix-footnote {
-  margin: 0.75rem 0 0;
-  font-size: 0.75rem;
-  color: var(--ash);
 }
 
 /* ── Pricing FAQ ── */
@@ -1826,12 +1750,6 @@ h3 {
   }
 }
 
-@media (min-width: 1400px) {
-  .tier1-pricing-plans {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
 .tier1-plan {
   display: flex;
   flex-direction: column;
@@ -1850,7 +1768,7 @@ h3 {
 }
 
 .tier1-plan-price {
-  font-size: clamp(2.25rem, 4vw, 3rem);
+  font-size: var(--fs-display-lg);
   line-height: 1;
   letter-spacing: -0.04em;
   font-weight: 600;
@@ -1952,9 +1870,9 @@ h3 {
   align-items: center;
   padding: 0.2rem 0.5rem;
   border-radius: 0.25rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: -0.002em;
+  letter-spacing: 0;
   text-transform: none;
   white-space: nowrap;
   border: 1px solid color-mix(in srgb, var(--void) 12%, var(--rule));
@@ -2102,7 +2020,7 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-brand .orvius-logo {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-nav--elevated .mkt-nav-brand .orvius-logo {
@@ -2142,7 +2060,7 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-links a:hover {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   background: color-mix(in srgb, #fff 8%, transparent);
 }
 
@@ -2151,13 +2069,13 @@ h3 {
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-login:hover {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   background: color-mix(in srgb, #fff 8%, transparent);
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-cta {
   background: transparent !important;
-  color: #f6f6f6 !important;
+  color: var(--ox-day-ink, #f6f6f6) !important;
   border-color: color-mix(in srgb, #f6f6f6 36%, transparent) !important;
   box-shadow: none;
 }
@@ -2170,7 +2088,7 @@ h3 {
 
 .mkt-nav--elevated .mkt-nav-cta {
   background: var(--void) !important;
-  color: #f6f6f6 !important;
+  color: var(--ox-day-ink, #f6f6f6) !important;
   border-color: var(--void) !important;
 }
 
@@ -2180,7 +2098,7 @@ h3 {
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-toggle {
   border-color: color-mix(in srgb, #f6f6f6 28%, transparent);
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-icon span {
@@ -2349,7 +2267,7 @@ h3 {
 
 .mkt-kicker {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2399,7 +2317,7 @@ h3 {
 
 .mkt-section-title {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+  font-size: var(--fs-display-md);
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.035em;
@@ -2415,7 +2333,7 @@ h3 {
 
 .mkt-section-lead {
   margin: 1rem 0 0;
-  font-size: clamp(1rem, 1.4vw, 1.125rem);
+  font-size: var(--fs-lead);
   line-height: 1.65;
   color: var(--ash);
   max-width: 52ch;
@@ -2506,31 +2424,13 @@ h3 {
   background: rgba(255, 255, 255, 0.9);
 }
 
-/* ── Manifesto — first principles ── */
-
-.mkt-manifesto {
-  padding-block: clamp(4.5rem, 12vh, 7rem);
-  background: var(--void-deep);
-  border-block: 1px solid color-mix(in srgb, #fff 6%, transparent);
-}
-
 .mkt-manifesto-kicker {
   margin: 0 0 1rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--signal) 85%, #fff);
-}
-
-.mkt-manifesto-title {
-  margin: 0;
-  font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(2.25rem, 5vw, 3.75rem);
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  color: #f6f6f6;
 }
 
 .mkt-laws {
@@ -2556,17 +2456,17 @@ h3 {
 .mkt-law-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  font-size: var(--fs-display-sm);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.015em;
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-law-body {
   margin: 0.55rem 0 0;
   max-width: 44ch;
-  font-size: 0.9875rem;
+  font-size: 1rem;
   line-height: 1.55;
   color: color-mix(in srgb, #ececec 68%, transparent);
 }
@@ -2603,11 +2503,10 @@ h3 {
 /* Legal fortress UI */
 .mkt-footer-mark {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   opacity: 0.7;
   max-width: 28rem;
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Mastery layer — densify every section to hero weight
@@ -2618,7 +2517,7 @@ h3 {
 .public-shell {
   min-height: 100vh;
   background: #100d07;
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   padding: 2rem 1.25rem 3rem;
 }
 
@@ -2639,7 +2538,7 @@ h3 {
 .public-money-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-size: var(--fs-display-md);
   font-weight: 700;
   line-height: 1.1;
 }
@@ -2668,7 +2567,6 @@ h3 {
 }
 
 .public-money-error,
-.approve-queue-error,
 .job-money-error,
 .panel-action-error {
   color: #f97066;
@@ -2689,7 +2587,7 @@ h3 {
 /* Approve-first queue on Command */
 
 .public-money {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .public-money-shop {
@@ -2704,7 +2602,7 @@ h3 {
 .public-money-title {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-size: var(--fs-display-md);
   font-weight: 700;
   line-height: 1.1;
 }
@@ -2765,7 +2663,7 @@ h3 {
 }
 
 .mkt-kicker {
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   font-weight: 600 !important;
   letter-spacing: var(--tracking-mission) !important;
   text-transform: uppercase !important;
@@ -2795,7 +2693,7 @@ button.btn {
 .mkt-nav-login {
   font-family: var(--font-sans), system-ui, sans-serif !important;
   text-transform: none !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
   font-weight: 600 !important;
 }
 
@@ -2808,7 +2706,7 @@ button.btn {
 .inst-btn-primary {
   font-family: var(--font-sans), system-ui, sans-serif !important;
   font-weight: 400 !important;
-  letter-spacing: -0.011em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   border-radius: 0.5rem !important;
   box-shadow: none !important;
@@ -2820,7 +2718,6 @@ button.btn {
   font-family: var(--font-sans), system-ui, sans-serif !important;
   font-weight: 400 !important;
 }
-
 
 /* ── LOGO LOCK — never inherit button DIN / gothic onto the letterset ── */
 .orvius-logo,
@@ -2840,7 +2737,7 @@ button.btn {
 .mkt-proof-section--company .mkt-proof-title {
   margin: 0;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+  font-size: var(--fs-display-md);
   font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1.08;
@@ -2860,41 +2757,7 @@ button.btn {
   animation: none !important;
 }
 
-
 /* Manus bar — fail-closed founder post lock */
-.post-lock-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 0.85rem;
-  margin: 0 0 1rem;
-  padding: 0.55rem 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--void) 10%, transparent);
-  background: color-mix(in srgb, var(--void) 3%, var(--chalk, #f3f3f3));
-  border-radius: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--ash);
-}
-.post-lock-strip-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--void);
-}
-.post-lock-strip-copy {
-  flex: 1 1 12rem;
-}
-.post-lock-strip-link {
-  font-weight: 600;
-  color: var(--void);
-  text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--void) 22%, transparent);
-}
-.post-lock-strip-link:hover {
-  color: var(--signal);
-  border-bottom-color: color-mix(in srgb, var(--signal) 40%, transparent);
-}
 
 .post-lock-banner {
   margin: 0 0 1rem;
@@ -2903,37 +2766,6 @@ button.btn {
   background: color-mix(in srgb, var(--void) 3%, var(--white));
   border-radius: var(--radius-sm);
   padding: 0.9rem 1.1rem;
-}
-.post-lock-kicker {
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--void);
-  margin: 0 0 0.35rem;
-  font-weight: 700;
-}
-.post-lock-message {
-  margin: 0;
-  font-size: 0.92rem;
-  color: var(--void, #0a0b0a);
-  font-weight: 600;
-}
-.post-lock-gates {
-  margin: 0.6rem 0 0;
-  padding-left: 1.1rem;
-  font-size: 0.82rem;
-  color: var(--ash, #5c5a55);
-}
-.post-lock-actions {
-  margin-top: 0.75rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  align-items: center;
-}
-.post-lock-hint {
-  font-size: 0.78rem;
-  color: var(--ash, #5c5a55);
 }
 
 /* —— Frictionless owner setup —— */
@@ -2967,7 +2799,7 @@ button.btn {
 }
 
 .mkt-nav--institution .mkt-nav-links a {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.14em;
   font-weight: 600;
 }
@@ -2980,7 +2812,7 @@ button.btn {
 
 .mkt-nav--institution .mkt-nav-brand .orvius-logo,
 .mkt-nav--institution.mkt-nav--elevated .mkt-nav-brand .orvius-logo {
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .mkt-nav--institution .mkt-nav-links a,
@@ -3000,7 +2832,7 @@ button.btn {
   border-radius: 0.25rem !important;
   min-height: 2.35rem;
   padding: 0.55rem 1.1rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.1em !important;
   background: transparent !important;
   color: #f1f1f1 !important;
@@ -3023,7 +2855,7 @@ button.btn {
   margin-inline: auto;
   display: grid;
   gap: 2.5rem 3rem;
-  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
 }
 
 .mkt-footer-brand {
@@ -3057,7 +2889,7 @@ button.btn {
 
 .mkt-footer-heading {
   margin: 0 0 0.35rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -3179,18 +3011,12 @@ label:has(> input[type="radio"]) {
   criterion and are left at their line-height so the paragraph stays a
   paragraph.
 */
-.account-legal-links a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.5rem;
-}
 
 .mkt-page,
 .mkt-page * {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-.mkt-manifesto-title,
 .mkt-law-title,
 .mkt-proof-title,
 .type-headline {
@@ -3218,7 +3044,7 @@ label:has(> input[type="radio"]) {
 }
 
 .mkt-nav-brand .orvius-logo-word {
-  font-size: 1.65rem;
+  font-size: 1.625rem;
 }
 
 .mkt-nav-links a,
@@ -3231,7 +3057,6 @@ label:has(> input[type="radio"]) {
 }
 
 /* Template / surface boxes — identical material language */
-
 
 /* Login craft — same Archivo + same box language as marketing */
 
@@ -3255,7 +3080,6 @@ label:has(> input[type="radio"]) {
 }
 
 /* Quiet details — never paint setup/dev chrome as product CTAs */
-
 
 /* Kill leftover pills on auth + pricing surfaces */
 .tier1-login-dev-btn,
@@ -3303,8 +3127,7 @@ label:has(> input[type="radio"]) {
 }
 
 .pay-prompt-modal,
-.post-lock-banner,
-.post-lock-strip {
+.post-lock-banner {
   border-radius: var(--radius-box, var(--radius-lg)) !important;
   font-family: var(--font-sans), system-ui, sans-serif !important;
 }
@@ -3335,7 +3158,6 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .job-card,
 .os-shell-pro .customer-record-card,
 .os-shell-pro .pro-signal-bar,
-.os-shell-pro .post-lock-strip,
 .os-shell-pro .post-lock-banner,
 .os-shell-pro .live-status-bar {
   border-radius: var(--os-radius) !important;
@@ -3355,8 +3177,6 @@ label:has(> input[type="radio"]) {
 
 /* —— Controls: hard geometry, never sausages —— */
 .os-shell-pro .btn,
-.os-shell-pro .btn-void,
-.os-shell-pro .btn-secondary,
 .os-shell-pro .inst-btn,
 .os-shell-pro button.btn,
 .os-shell-pro .attention-item-btn,
@@ -3466,7 +3286,7 @@ label:has(> input[type="radio"]) {
   display: flex;
   flex-direction: column;
   background: #0a0701;
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   padding:
     max(0.75rem, env(safe-area-inset-top))
     clamp(1.25rem, 5vw, 1.75rem)
@@ -3484,7 +3304,7 @@ label:has(> input[type="radio"]) {
 
 .mkt-nav-sheet-bar .mkt-nav-brand,
 .mkt-nav-sheet-bar .orvius-logo {
-  color: #f6f6f6 !important;
+  color: var(--ox-day-ink, #f6f6f6) !important;
 }
 
 .mkt-nav-sheet-nav {
@@ -3500,10 +3320,10 @@ label:has(> input[type="radio"]) {
   justify-content: space-between;
   padding: 1.15rem 0;
   border-bottom: 1px solid color-mix(in srgb, #f1f1f1 10%, transparent);
-  color: #f6f6f6;
+  color: var(--ox-day-ink, #f6f6f6);
   text-decoration: none;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.35rem, 5vw, 1.65rem);
+  font-size: var(--fs-display-xs);
   font-weight: 500;
   letter-spacing: -0.025em;
 }
@@ -3657,7 +3477,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .tier1-section-title,
 .mkt-page .type-headline,
 .mkt-page .brand-intro .tier1-page-title {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .mkt-page a.underline,
@@ -3671,7 +3491,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .inst-btn {
   border-radius: 0.25rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
 }
 
 .mkt-page .inst-btn-primary {
@@ -3749,7 +3569,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .tier1-form-slot select,
 .mkt-page .tier1-form-slot textarea {
   background: #100d07 !important;
-  color: #f4f4f4 !important;
+  color: var(--ox-day-ink, #f4f4f4) !important;
   border: 1px solid color-mix(in srgb, #fff 12%, transparent) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
@@ -3803,12 +3623,6 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .live-status-bar {
   border-radius: var(--os-radius) !important;
   box-shadow: none !important;
-}
-
-.os-shell-pro .btn-void {
-  background: var(--os-ink) !important;
-  color: #fff !important;
-  border-radius: var(--os-radius) !important;
 }
 
 /* Public estimate / tech field keep void; tighten radii */
@@ -3881,7 +3695,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .pricing-needs-option-label,
 .mkt-page .pricing-faq-question,
 .mkt-page .pricing-matrix-feature-label {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .mkt-page .pricing-needs-option,
@@ -3898,7 +3712,7 @@ label:has(> input[type="radio"]) {
 }
 
 .mkt-page .pricing-needs-result-plan {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .mkt-page .pricing-needs-result-reason,
@@ -3975,8 +3789,6 @@ label:has(> input[type="radio"]) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .os-shell-pro .call-record-card,
-.os-shell-pro .approve-queue,
-.os-shell-pro .approve-queue-item,
 .os-shell-pro .account-billing-plan,
 .os-shell-pro .pro-economics-panel,
 .os-shell-pro .owner-alert-card,
@@ -3990,15 +3802,10 @@ label:has(> input[type="radio"]) {
   background: var(--os-panel) !important;
 }
 
-.os-shell-pro .call-record-card:hover,
-.os-shell-pro .approve-queue-item:hover {
+.os-shell-pro .call-record-card:hover {
   transform: none !important;
   box-shadow: none !important;
   border-color: color-mix(in srgb, var(--os-ink) 22%, transparent) !important;
-}
-
-.os-shell-pro .pro-filter-bar .btn-void {
-  box-shadow: none !important;
 }
 
 .os-shell-pro .account-billing-plan,
@@ -4010,7 +3817,7 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-pro .os-sidebar-brand .orvius-logo {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .os-shell-pro .lead-inbox-card,
@@ -4036,22 +3843,19 @@ label:has(> input[type="radio"]) {
 .os-shell-night .customer-record-card,
 .os-shell-night .call-record-card,
 .os-shell-night .pro-signal-bar,
-.os-shell-night .post-lock-strip,
 .os-shell-night .post-lock-banner,
 .os-shell-night .live-status-bar,
-.os-shell-night .approve-queue,
-.os-shell-night .approve-queue-item,
 .os-shell-night .account-billing-plan,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .owner-alert-card,
 .os-shell-night .os-shell-night .os-ask-dock-panel,
 .os-shell-night .pro-empty-state,
 .os-shell-night .capture-setup-panel {
-  background: #14120c !important;
+  background: var(--ox-day-sunk, #14120c) !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #ececec !important;
+  color: var(--ox-day-ink, #ececec) !important;
 }
 
 /* Dense attention board — Cursor row density */
@@ -4059,30 +3863,26 @@ label:has(> input[type="radio"]) {
 .os-shell-night .attention-item-btn,
 .os-shell-night .attention-item-btn-primary,
 .os-shell-night .btn,
-.os-shell-night .btn-void,
-.os-shell-night .btn-secondary,
 .os-shell-night button.btn {
   border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0.25rem 0.55rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.04em !important;
   text-transform: uppercase !important;
   font-weight: 600 !important;
   box-shadow: none !important;
 }
 
-.os-shell-night .attention-item-btn-primary,
-.os-shell-night .btn-void {
+.os-shell-night .attention-item-btn-primary {
   background: #f6f6f6 !important;
   color: #0c0903 !important;
   border: 1px solid #f6f6f6 !important;
 }
 
-.os-shell-night .attention-item-btn,
-.os-shell-night .btn-secondary {
+.os-shell-night .attention-item-btn {
   background: transparent !important;
-  color: #ececec !important;
+  color: var(--ox-day-ink, #ececec) !important;
   border: 1px solid color-mix(in srgb, #fff 18%, transparent) !important;
 }
 
@@ -4091,7 +3891,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .job-card,
 .os-shell-night .call-record-card,
 .os-shell-night .customer-record-card {
-  background: #14120c !important;
+  background: var(--ox-day-sunk, #14120c) !important;
 }
 
 /*
@@ -4128,9 +3928,6 @@ label:has(> input[type="radio"]) {
   padding: 0.65rem 0.75rem !important;
 }
 
-
-
-
 .os-shell-night .status-pill,
 .os-shell-night .os-nav-badge,
 .os-shell-night .status-pill-live,
@@ -4142,7 +3939,7 @@ label:has(> input[type="radio"]) {
   color: color-mix(in srgb, #ececec 78%, transparent) !important;
   border: 1px solid color-mix(in srgb, #fff 16%, transparent) !important;
   padding: 0.12rem 0.35rem !important;
-  font-size: 0.625rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   font-weight: 700 !important;
@@ -4150,7 +3947,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .status-pill-live {
   border-color: color-mix(in srgb, #f6f6f6 40%, transparent) !important;
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 .os-shell-night .status-pill-flare {
@@ -4164,7 +3961,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .lead-quick-actions a {
   border-radius: 0.125rem !important;
   min-height: 1.7rem !important;
-  font-size: 0.625rem !important;
+  font-size: 0.75rem !important;
   padding: 0.2rem 0.45rem !important;
 }
 
@@ -4172,13 +3969,13 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .pro-stat {
   border-radius: 0.125rem !important;
-  background: #17191d !important;
+  background: var(--ox-day-surface, #17191d) !important;
 }
 
 .os-shell-night .pro-stat.is-active {
   border-top: 2px solid #d8a15a !important;
   border-color: color-mix(in srgb, #fff 14%, transparent) !important;
-  background: #14120c !important;
+  background: var(--ox-day-sunk, #14120c) !important;
 }
 
 .os-shell-night .pro-filter-bar .btn {
@@ -4189,13 +3986,13 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-night .post-lock-banner {
-  background: #14120c !important;
+  background: var(--ox-day-sunk, #14120c) !important;
   border-left: 2px solid var(--signal) !important;
 }
 
 .os-shell-night .home-platform-link,
 .os-shell-night .customer-timeline-link {
-  color: #f7f7f7 !important;
+  color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
 /* Kill soft hover lift forever on night OS */
@@ -4219,19 +4016,13 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
   min-height: 1.7rem !important;
   padding: 0.2rem 0.5rem !important;
-  font-size: 0.625rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
   background: transparent !important;
-  color: #e9e9e9 !important;
-  border: 1px solid #2a2e35 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   box-shadow: none !important;
-}
-
-.os-shell-night .lead-quick-actions .btn-void {
-  background: #e9e9e9 !important;
-  color: #000 !important;
-  border-color: #e9e9e9 !important;
 }
 
 /* Attention board = Cursor IN PROGRESS rail */
@@ -4239,41 +4030,30 @@ label:has(> input[type="radio"]) {
 /* Panels / stats — Grok surfaces */
 .os-shell-night .pro-stat,
 .os-shell-night .pro-panel,
-.os-shell-night .approve-queue,
 .os-shell-night .pro-economics-panel,
 .os-shell-night .account-billing-plan {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
-.os-shell-night .btn-void {
-  background: #e9e9e9 !important;
-  color: #000 !important;
-  border: 1px solid #e9e9e9 !important;
-  border-radius: 0.25rem !important;
-}
-
-.os-shell-night .btn-secondary,
 .os-shell-night .btn {
   background: transparent !important;
-  color: #e9e9e9 !important;
-  border: 1px solid #2a2e35 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
 }
 
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn {
   background: transparent !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
   border: 1px solid transparent !important;
   border-radius: 0.25rem !important;
 }
 
-.os-shell-night .pro-filter-bar .btn-void,
-.os-shell-night .pro-page-filters .btn-void,
 .os-shell-night .pro-page-filters button[aria-pressed="true"] {
   background: #e9e9e9 !important;
   color: #000 !important;
@@ -4286,10 +4066,10 @@ label:has(> input[type="radio"]) {
 .os-shell-night .status-pill-muted,
 .os-shell-night .status-pill-flare {
   background: transparent !important;
-  border: 1px solid #2a2e35 !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.125rem !important;
-  color: #9aa1ab !important;
-  font-size: 0.625rem !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   padding: 0.1rem 0.3rem !important;
@@ -4297,22 +4077,21 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .status-pill-flare {
   color: #f87171 !important;
-  border-color: color-mix(in srgb, #f87171 45%, #2a2e35) !important;
+  border-color: color-mix(in srgb, #f87171 45%, var(--ox-day-line, #2a2e35)) !important;
 }
 
 .os-shell-night .pro-page-filters {
   margin-bottom: 0.65rem !important;
 }
 
-
 /* Marketing void → Grok true black */
 .mkt-page {
-  background: #16181b !important;
+  background: var(--ox-day-sunk, #16181b) !important;
 }
 
 .mkt-footer--institution {
-  background: #16181b !important;
-  border-top-color: #2a2e35 !important;
+  background: var(--ox-day-sunk, #16181b) !important;
+  border-top-color: var(--ox-day-line, #2a2e35) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4326,7 +4105,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .pro-stat {
   border-top: none !important;
   border-radius: 0.125rem !important;
-  background: #1a1c20 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
 }
 
 .os-shell-night .pro-stat::before {
@@ -4335,7 +4114,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .pro-stat.is-active,
 .os-shell-night .pro-stat[data-highlight="true"] {
-  border-color: #2a2e35 !important;
+  border-color: var(--ox-day-line, #2a2e35) !important;
   border-left: 2px solid #e9e9e9 !important;
   background: #25282e !important;
   box-shadow: none !important;
@@ -4343,7 +4122,7 @@ label:has(> input[type="radio"]) {
 
 /* Kill copper top accents on stats forever */
 .os-shell-night .pro-stat {
-  border-top-color: #2a2e35 !important;
+  border-top-color: var(--ox-day-line, #2a2e35) !important;
   background-image: none !important;
 }
 
@@ -4353,15 +4132,15 @@ label:has(> input[type="radio"]) {
 
 /* Marketing: kill leftover white mastery cards if any */
 .mkt-page .tier1-plan {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
-  color: #e9e9e9 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .capture-setup-panel {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   padding: 0.75rem !important;
   box-shadow: none !important;
@@ -4370,19 +4149,17 @@ label:has(> input[type="radio"]) {
 .os-shell-night .cookie-consent,
 .cookie-consent {
   border-radius: 0.25rem !important;
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
 }
 
-.os-shell-night .post-lock-banner,
-.os-shell-night .post-lock-strip {
+.os-shell-night .post-lock-banner {
   padding: 0.5rem 0.7rem !important;
   border-radius: 0.25rem !important;
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-left: 2px solid #e9e9e9 !important;
 }
-
 
 /* Detail pages: denser panel stacks */
 
@@ -4398,7 +4175,7 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .os-kv dd,
 .os-shell-night .os-kv .text-void {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 /* The dim red is tuned for paper; the night shell needs the lighter step. */
@@ -4423,13 +4200,12 @@ label:has(> input[type="radio"]) {
 
 .os-shell-night .account-plan-name,
 .os-shell-night .account-billing-plan-name {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   font-size: 1rem !important;
 }
 
-.os-shell-night .account-plan-price,
 .os-shell-night .account-billing-plan-price {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 /* Night onboarding — Grok void */
@@ -4443,51 +4219,37 @@ label:has(> input[type="radio"]) {
 
 .onboarding-shell--night .btn-ghost {
   background: transparent !important;
-  color: #e9e9e9 !important;
-  border: 1px solid #2a2e35 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
 }
 
 .onboarding-shell--night .orvius-logo {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 /* Owner alert / transcript on night details */
 .os-shell-night .owner-alert-card,
 .os-shell-night .transcript-cinema {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
-.os-shell-night .post-lock-strip,
 .os-shell-night .post-lock-banner {
-  background: #121316 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-sunk, #121316) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-left: 2px solid #767572 !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.45rem 0.65rem !important;
 }
 
-.os-shell-night .post-lock-strip-label,
-.os-shell-night .post-lock-kicker {
-  font-size: 0.625rem !important;
-  letter-spacing: 0.14em !important;
-  color: #9aa1ab !important;
-}
-
-.os-shell-night .post-lock-strip-copy,
-.os-shell-night .post-lock-message {
-  color: #e9e9e9 !important;
-  font-size: 0.75rem !important;
-}
-
 .os-shell-night .pro-signal-bar {
-  background: #121316 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-sunk, #121316) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
   padding: 0.4rem 0.55rem !important;
@@ -4507,9 +4269,9 @@ label:has(> input[type="radio"]) {
   gap: 0 !important;
   margin-bottom: 0.65rem !important;
   padding: 0 !important;
-  border: 1px solid #2a2e35 !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
-  background: #121316 !important;
+  background: var(--ox-day-sunk, #121316) !important;
   overflow-x: auto;
   overflow-y: hidden;
   width: fit-content;
@@ -4522,11 +4284,11 @@ label:has(> input[type="radio"]) {
   margin: 0 !important;
   padding: 0.4rem 0.7rem !important;
   border: 0 !important;
-  border-right: 1px solid #2a2e35 !important;
+  border-right: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: #9aa1ab !important;
-  font-size: 0.6875rem !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
+  font-size: 0.75rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
@@ -4538,8 +4300,8 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-night .pro-filter-tab:hover {
-  color: #e9e9e9 !important;
-  background: #1a1c20 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
 }
 
 .os-shell-night .pro-filter-tab-active,
@@ -4551,17 +4313,17 @@ label:has(> input[type="radio"]) {
 
 /* Owner alert — instrument, not soft product surface */
 .owner-alert {
-  background: #1a1c20;
-  border: 1px solid #2a2e35;
+  background: var(--ox-day-surface, #1a1c20);
+  border: 1px solid var(--ox-day-line, #2a2e35);
   border-radius: 0.25rem;
   box-shadow: none;
   overflow: hidden;
-  color: #e9e9e9;
+  color: var(--ox-legacy-text, #e9e9e9);
 }
 
 .owner-alert--chalk {
-  background: #1a1c20;
-  color: #e9e9e9;
+  background: var(--ox-day-surface, #1a1c20);
+  color: var(--ox-legacy-text, #e9e9e9);
 }
 
 .owner-alert--critical {
@@ -4574,8 +4336,8 @@ label:has(> input[type="radio"]) {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.45rem 0.65rem;
-  border-bottom: 1px solid #2a2e35;
-  background: #121316;
+  border-bottom: 1px solid var(--ox-day-line, #2a2e35);
+  background: var(--ox-day-sunk, #121316);
 }
 
 .owner-alert-kicker {
@@ -4583,11 +4345,11 @@ label:has(> input[type="radio"]) {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .owner-alert--critical .owner-alert-kicker {
@@ -4603,11 +4365,11 @@ label:has(> input[type="radio"]) {
 }
 
 .owner-alert-time {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .owner-alert-body {
@@ -4620,21 +4382,42 @@ label:has(> input[type="radio"]) {
 
 .owner-alert-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.0625rem;
   font-weight: 650;
   letter-spacing: -0.02em;
-  color: #e9e9e9;
+  color: var(--ox-legacy-text, #e9e9e9);
   line-height: 1.25;
 }
 
 .owner-alert-channel {
   margin: 0.2rem 0 0;
   font-size: 0.75rem;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .owner-alert-kv {
-  margin-top: 0.55rem !important;
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.4rem 0.75rem;
+  margin: 0.75rem 0 0 !important;
+}
+
+.owner-alert-kv > div {
+  display: contents;
+}
+
+.owner-alert-kv dt {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--ox-day-soft, #9aa1ab);
+}
+
+.owner-alert-kv dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ox-legacy-text, #e9e9e9);
 }
 
 .owner-alert-kv-accent dd {
@@ -4644,34 +4427,16 @@ label:has(> input[type="radio"]) {
 .owner-alert-foot {
   margin: 0.55rem 0 0;
   padding-top: 0.45rem;
-  border-top: 1px solid #2a2e35;
-  font-size: 0.6875rem;
-  color: #9aa1ab;
+  border-top: 1px solid var(--ox-day-line, #2a2e35);
+  font-size: 0.75rem;
+  color: var(--ox-day-soft, #9aa1ab);
   line-height: 1.4;
-}
-
-.owner-alert-transcript {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.owner-alert-transcript .transcript-line {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: #9aa1ab;
-}
-
-.owner-alert-transcript .transcript-line span {
-  color: #e9e9e9;
-  font-weight: 600;
 }
 
 .os-shell-night .owner-alert,
 .os-shell-night .owner-alert-card {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
@@ -4680,8 +4445,7 @@ label:has(> input[type="radio"]) {
 
 .pay-prompt-primary,
 .pay-prompt-checkout .inst-btn,
-.pay-prompt-checkout .btn,
-.os-shell-night .pay-prompt .btn-void {
+.pay-prompt-checkout .btn {
   border-radius: 0.25rem !important;
   background: #e9e9e9 !important;
   color: #000 !important;
@@ -4692,8 +4456,8 @@ label:has(> input[type="radio"]) {
 .pay-prompt-secondary .btn-secondary {
   border-radius: 0.25rem !important;
   background: transparent !important;
-  color: #e9e9e9 !important;
-  border: 1px solid #2a2e35 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
 }
 
 .billing-lock-cta,
@@ -4705,10 +4469,10 @@ label:has(> input[type="radio"]) {
 /* Ask page densify */
 
 .os-shell-night .ask-input {
-  background: #121316 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-sunk, #121316) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   min-height: 2.35rem;
 }
 
@@ -4719,7 +4483,7 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0.25rem 0.55rem !important;
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 700;
@@ -4770,15 +4534,15 @@ label:has(> input[type="radio"]) {
 /* Transcript cinema denser instrument */
 .os-shell-night .transcript-cinema {
   border-radius: 0.25rem !important;
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   box-shadow: none !important;
 }
 
 .os-shell-night .transcript-cinema-head {
   padding: 0.4rem 0.65rem !important;
-  border-bottom: 1px solid #2a2e35 !important;
-  background: #121316 !important;
+  border-bottom: 1px solid var(--ox-day-line, #2a2e35) !important;
+  background: var(--ox-day-sunk, #121316) !important;
 }
 
 .os-shell-night .transcript-cinema-body {
@@ -4789,19 +4553,19 @@ label:has(> input[type="radio"]) {
 .os-shell-night .transcript-cinema-line {
   margin-top: 0.45rem !important;
   font-size: 0.75rem !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .transcript-cinema-line-ai,
 .os-shell-night .transcript-cinema-speaker {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 .os-shell-night .transcript-cinema-foot {
   padding: 0.4rem 0.65rem !important;
-  border-top: 1px solid #2a2e35 !important;
-  font-size: 0.6875rem !important;
-  color: #9aa1ab !important;
+  border-top: 1px solid var(--ox-day-line, #2a2e35) !important;
+  font-size: 0.75rem !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 /* Force canvas true black everywhere in shell */
@@ -4823,17 +4587,17 @@ label:has(> input[type="radio"]) {
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid #2a2e35;
+  border: 1px solid var(--ox-day-line, #2a2e35);
   border-radius: 0.25rem;
   overflow: hidden;
-  background: #121316;
+  background: var(--ox-day-sunk, #121316);
 }
 
 .os-shell-night .customer-timeline-item {
   display: block;
   margin: 0;
   padding: 0;
-  border-bottom: 1px solid #2a2e35;
+  border-bottom: 1px solid var(--ox-day-line, #2a2e35);
 }
 
 .os-shell-night .customer-timeline-item:last-child {
@@ -4855,15 +4619,15 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-night .customer-timeline-card .text-void {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 .os-shell-night .customer-timeline-card .text-ash {
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .customer-timeline-link {
-  color: #e9e9e9 !important;
+  color: var(--ox-legacy-text, #e9e9e9) !important;
   font-size: 0.75rem !important;
 }
 
@@ -4877,8 +4641,8 @@ label:has(> input[type="radio"]) {
 .mkt-page .call-demo-void,
 .mkt-page .call-demo-section {
   border-radius: 0.25rem !important;
-  border: 1px solid #2a2e35 !important;
-  background: #1a1c20 !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
   box-shadow: none !important;
   padding: 0.85rem 0.95rem !important;
   gap: 0.6rem !important;
@@ -4893,15 +4657,15 @@ label:has(> input[type="radio"]) {
 
 /* Marketing pro-panel (demo simulate) → dark head, X palette, no cream */
 .mkt-page .pro-panel {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
 
 .mkt-page .pro-panel-head {
   
-  border-bottom: 1px solid #2a2e35 !important;
+  border-bottom: 1px solid var(--ox-day-line, #2a2e35) !important;
   padding: 0.65rem 0.9rem !important;
 }
 
@@ -4922,8 +4686,8 @@ label:has(> input[type="radio"]) {
 .mkt-page .pricing-wizard,
 .mkt-page .pricing-matrix-scroll,
 .mkt-page .pricing-page-controls {
-  background: #1a1c20 !important;
-  border: 1px solid #2a2e35 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
+  border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
   box-shadow: none !important;
 }
@@ -5160,7 +4924,7 @@ label:has(> input[type="radio"]) {
 
 .mkt-nav:not(.mkt-nav--elevated) .mkt-nav-menu-icon span,
 .mkt-nav .mkt-nav-menu-icon span {
-  background: #26251e !important;
+  background: currentColor !important;
 }
 
 .mkt-nav .mkt-nav-cta,
@@ -5214,7 +4978,7 @@ label:has(> input[type="radio"]) {
 }
 
 .mkt-nav--institution .mkt-nav-menu-icon span {
-  background: #26251e !important;
+  background: currentColor !important;
 }
 
 /* Pricing plan-finder — light option tiles inside the white card */
@@ -5260,15 +5024,25 @@ label:has(> input[type="radio"]) {
   color: var(--ov-headline, #f4f4f4) !important;
 }
 
-
 /* Legal footer clearance (utility dock + cookie) */
 .mkt-footer-bottom--legal {
   align-items: center;
   justify-content: flex-start !important;
-  padding-bottom: 4rem;
+  padding-bottom: 1.5rem;
 }
 .mkt-footer-bottom--legal .mkt-footer-mark {
   margin-left: auto !important;
+}
+
+@media (max-width: 720px) {
+  .mkt-footer-bottom--legal {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .mkt-footer-bottom--legal .mkt-footer-mark {
+    margin-left: 0 !important;
+  }
 }
 
 /* ============================================================
@@ -5278,22 +5052,20 @@ label:has(> input[type="radio"]) {
 html[data-theme="night"] .mkt-page,
 html[data-theme="night"] .mkt-page .tier1-hero,
 html[data-theme="night"] .mkt-page .tier1-close {
-  background: #14120b !important;
+  background: #18181a !important;
   color: #edecec !important;
 }
 
 html[data-theme="night"] .mkt-page .tier1-story,
 html[data-theme="night"] .mkt-page .tier1-story-muted,
 html[data-theme="night"] .mkt-page .marketing-section,
-html[data-theme="night"] .mkt-page .mkt-manifesto,
 html[data-theme="night"] .mkt-page .mkt-proof-section {
-  background: #1b1913 !important;
+  background: #1f1f22 !important;
   color: #edecec !important;
-  border-color: #26241e !important;
+  border-color: #2a2a2e !important;
 }
 
 /* Ink → light */
-html[data-theme="night"] .mkt-page .mkt-manifesto-title,
 html[data-theme="night"] .mkt-page .mkt-law-title,
 html[data-theme="night"] .mkt-page .mkt-proof-title,
 html[data-theme="night"] .mkt-page .tier1-page-title,
@@ -5313,7 +5085,7 @@ html[data-theme="night"] .mkt-page .brand-intro-description,
 html[data-theme="night"] .mkt-page .text-ash,
 html[data-theme="night"] .mkt-page .mkt-law-body,
 html[data-theme="night"] .mkt-page .mkt-proof-lead {
-  color: #8a8880 !important;
+  color: var(--ov-muted, #9d9da4) !important;
 }
 
 /* Cards / panels → dark */
@@ -5325,13 +5097,13 @@ html[data-theme="night"] .mkt-page .pricing-wizard,
 html[data-theme="night"] .mkt-page .pricing-needs-picker,
 html[data-theme="night"] .mkt-page .pricing-needs-option {
   background: #1c1a14 !important;
-  border-color: #26241e !important;
+  border-color: #2a2a2e !important;
   color: #edecec !important;
 }
 
 html[data-theme="night"] .mkt-page .pro-panel-head {
-  background: #14120b !important;
-  border-color: #26241e !important;
+  background: #18181a !important;
+  border-color: #2a2a2e !important;
 }
 
 /* Inputs → dark */
@@ -5341,27 +5113,27 @@ html[data-theme="night"] .mkt-page textarea,
 html[data-theme="night"] .mkt-page .input {
   background: #1c1a14 !important;
   color: #edecec !important;
-  border-color: #26241e !important;
+  border-color: #2a2a2e !important;
 }
 
 /* Primary pills invert to light on dark */
 html[data-theme="night"] .mkt-page .inst-btn-primary {
   background: #edecec !important;
-  color: #14120b !important;
+  color: #18181a !important;
   border-color: #edecec !important;
 }
 
 html[data-theme="night"] .mkt-page .inst-btn-ghost {
   background: #1c1a14 !important;
   color: #edecec !important;
-  border-color: #26241e !important;
+  border-color: #2a2a2e !important;
 }
 
 /* Nav → dark */
 html[data-theme="night"] .mkt-nav--institution,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
-  background: color-mix(in srgb, #14120b 88%, transparent) !important;
-  border-bottom-color: #26241e !important;
+  background: color-mix(in srgb, #18181a 88%, transparent) !important;
+  border-bottom-color: #2a2a2e !important;
 }
 
 html[data-theme="night"] .mkt-nav-brand .orvius-logo,
@@ -5377,7 +5149,7 @@ html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login 
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-cta,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-cta {
   background: #edecec !important;
-  color: #14120b !important;
+  color: #18181a !important;
   border-color: #edecec !important;
 }
 
@@ -5399,8 +5171,8 @@ html[data-theme="night"] .mkt-page .tier1-plan-badge {
 /* Footer → dark */
 html[data-theme="night"] .mkt-footer,
 html[data-theme="night"] .mkt-footer--institution {
-  background: #14120b !important;
-  border-top-color: #26241e !important;
+  background: #18181a !important;
+  border-top-color: #2a2a2e !important;
 }
 
 html[data-theme="night"] .mkt-footer-entity,
@@ -5415,11 +5187,11 @@ html[data-theme="night"] .mkt-footer-tagline,
 html[data-theme="night"] .mkt-footer-col a,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-copy,
 html[data-theme="night"] .mkt-footer--institution .mkt-footer-mark {
-  color: #8a8880 !important;
+  color: var(--ov-muted, #9d9da4) !important;
 }
 
 html[data-theme="night"] .mkt-footer-bottom {
-  border-top-color: #26241e !important;
+  border-top-color: #2a2a2e !important;
 }
 
 /* Resources hub links */
@@ -5468,7 +5240,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .account-settings-hint {
   font-size: 0.8125rem !important;
   line-height: 1.5 !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .pro-founder-cert-item {
@@ -5479,7 +5251,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-radius: 0.25rem;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #c7c7c7;
+  color: var(--ox-legacy-text-2, #c7c7c7);
   cursor: pointer;
   transition: background 110ms ease;
 }
@@ -5506,62 +5278,11 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-radius: 0.25rem !important;
   font-size: 0.8125rem !important;
   font-weight: 550 !important;
-  letter-spacing: -0.003em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
 }
 
-.os-shell-night .btn-void {
-  background: #f7f9f9 !important;
-  border: 1px solid #f7f9f9 !important;
-  color: #000000 !important;
-  font-weight: 600 !important;
-}
-
-.os-shell-night .btn-void:hover:not(:disabled) {
-  background: #ffffff !important;
-  border-color: #ffffff !important;
-}
-
-.os-shell-night .btn-void:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.os-shell-night .btn-secondary {
-  background: transparent !important;
-  border: 1px solid #2a2e35 !important;
-  color: #c7c7c7 !important;
-}
-
-.os-shell-night .btn-secondary:hover:not(:disabled) {
-  background: #25282e !important;
-  border-color: #3a3f47 !important;
-  color: #ffffff !important;
-}
-
 /* One column width for the whole settings surface */
-
-.os-shell-night button.btn-void,
-.os-shell-night a.btn-void {
-  background: #f7f9f9 !important;
-  border: 1px solid #f7f9f9 !important;
-  color: #000000 !important;
-  font-weight: 600 !important;
-}
-
-.os-shell-night button.btn-secondary,
-.os-shell-night a.btn-secondary {
-  background: transparent !important;
-  border: 1px solid #2a2e35 !important;
-  color: #c7c7c7 !important;
-}
-
-.os-shell-night button.btn-secondary:hover:not(:disabled),
-.os-shell-night a.btn-secondary:hover {
-  background: #25282e !important;
-  border-color: #3a3f47 !important;
-  color: #ffffff !important;
-}
 
 /* Panel titles read as headings, not micro-labels */
 
@@ -5574,7 +5295,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-filter-tab {
   font-size: 0.75rem !important;
   font-weight: 500 !important;
-  letter-spacing: -0.002em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
@@ -5609,11 +5330,10 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* Opaque topbar: content must not ghost through while scrolling */
 
-
 /* ── Mastery round 5 — numbers become numbers ── */
 .os-shell-night .shop-outcomes,
 .os-shell-night .pro-economics {
-  background: #1a1c20 !important;
+  background: var(--ox-day-surface, #1a1c20) !important;
   border: 1px solid #272b31 !important;
   border-radius: 0.5rem !important;
   padding: 0.9rem !important;
@@ -5638,11 +5358,11 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-economics-grid dt {
   margin: 0 0 0.2rem;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #adadac;
+  color: var(--ox-day-soft, #adadac);
 }
 
 .os-shell-night .pro-economics-grid dd {
@@ -5660,7 +5380,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 0.75rem !important;
   line-height: 1.5 !important;
   text-wrap: balance;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .pro-economics-actions {
@@ -5746,7 +5466,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
    ============================================================ */
 
 /* Scoped through .os-shell to outrank the shell's own !important Archivo rules. */
-.os-shell .os-sidebar-label,
 .os-shell .pay-prompt-kicker,
 .os-shell .type-eyebrow,
 .os-shell .os-nav-badge {
@@ -5802,9 +5521,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin: 0 0 0.15rem !important;
   font-size: 0.9375rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
-  color: #f4f4f4 !important;
+  color: var(--ox-day-ink, #f4f4f4) !important;
 }
 
 .os-shell-night .pro-economics-title::before {
@@ -5850,8 +5569,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-economics-funnel dt {
   order: 2;
-  font-size: 0.6875rem;
-  color: #9aa1ab;
+  font-size: 0.75rem;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .os-shell-night .pro-economics-funnel dd {
@@ -5860,7 +5579,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 1.125rem;
   font-weight: 600;
   line-height: 1;
-  color: #f4f4f4;
+  color: var(--ox-day-ink, #f4f4f4);
   font-variant-numeric: tabular-nums;
 }
 
@@ -5871,9 +5590,9 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   line-height: 1.45;
-  color: #9aa1ab;
+  color: var(--ox-day-soft, #9aa1ab);
 }
 
 .os-shell-night .pro-economics-notes strong {
@@ -5895,11 +5614,11 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   are sentence case made one section look like two.
 */
 .os-shell-night .pro-economics-grid dt {
-  font-size: 0.6875rem !important;
+  font-size: 0.75rem !important;
   font-weight: 400 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
-  color: #9aa1ab !important;
+  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 /* Founder next-gate — operate O1: impossible to miss */
@@ -5907,13 +5626,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 /* Shop operate banner — owner next action above Command */
 
 /* P1 — onboarding → Command cliff closed */
-@media (max-width: 720px) {
-  .first-night-handoff-actions .btn {
-    flex: 1 1 auto;
-    min-height: 44px;
-    justify-content: center;
-  }
-}
 
 @media (max-width: 720px) {
   .shop-operate-banner .btn {

@@ -29,7 +29,7 @@ export async function sendOwnerForwardGuide(params: {
     carrier: params.carrier,
   });
 
-  const result = await sendSms({ to, body });
+  const result = await sendSms({ to, body, businessId: params.business.id, audience: "owner" });
   if (!result) return { sent: false, reason: "sms_unavailable" };
   return { sent: true };
 }

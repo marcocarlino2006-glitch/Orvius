@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { releaseShopLine } from "@/lib/line-lifecycle";
 import { buildAssistantSystemPrompt, slugify } from "@/lib/business";
 import { assertCustomerShopLine } from "@/lib/demo-business";
 import { getWebhookUrl, verifyAdminRequest } from "@/lib/env";
@@ -10,7 +11,6 @@ import { prisma } from "@/lib/prisma";
 import {
   buildVapiAssistantConfig,
   createAssistant,
-  deleteAssistant,
   updateAssistant,
 } from "@/lib/vapi";
 import { z } from "zod";
@@ -132,16 +132,10 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Business not found" }, { status: 404 });
   }
 
-  if (business.vapiAssistantId) {
-    try {
-      await deleteAssistant(business.vapiAssistantId);
-    } catch (error) {
-      console.error("Failed to delete Vapi assistant:", error);
-    }
-  }
+  const line = await releaseShopLine(business);
 
   await prisma.business.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, line });
 }
 
 export async function PATCH(request: NextRequest) {

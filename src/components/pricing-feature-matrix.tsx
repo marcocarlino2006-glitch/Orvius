@@ -27,18 +27,26 @@ function CellValue({ value }: { value: FeatureCell }) {
   return <span className="pricing-matrix-text">{value}</span>;
 }
 
-export function PricingFeatureMatrix() {
+function cell(row: (typeof pricingFeatureMatrix)[number], planId: PlanId, selfServeReady: boolean): FeatureCell {
+  if (row.id === "onboarding" && !selfServeReady) return "Guided";
+  return row.values[planId];
+}
+
+export function PricingFeatureMatrix({ selfServeReady = true }: { selfServeReady?: boolean }) {
+  const rows = pricingFeatureMatrix.filter((row) =>
+    pricingCompareColumns.some((planId) => row.values[planId] !== false),
+  );
   return (
     <section className="pricing-matrix" aria-label="Plan comparison">
       <div className="pricing-matrix-head font-sans">
         <p className="pricing-matrix-kicker type-eyebrow">Compare plans</p>
-        <h2 className="pricing-matrix-title type-headline">Everything included.</h2>
+        <h2 className="pricing-matrix-title type-headline">What each plan includes.</h2>
         <p className="pricing-matrix-lead type-lead">
           Pick the plan you need today. Upgrade when the shop grows.
         </p>
       </div>
 
-      <div className="pricing-matrix-scroll">
+      <div className="pricing-matrix-scroll" role="region" aria-label="Plan comparison table, scrolls sideways" tabIndex={0}>
         <table className="pricing-matrix-table font-sans">
           <thead>
             <tr>
@@ -63,7 +71,7 @@ export function PricingFeatureMatrix() {
                     {category}
                   </th>
                 </tr>
-                {pricingFeatureMatrix
+                {rows
                   .filter((row) => row.category === category)
                   .map((row) => (
                     <tr key={row.id}>
@@ -72,7 +80,7 @@ export function PricingFeatureMatrix() {
                       </th>
                       {pricingCompareColumns.map((planId) => (
                         <td key={`${row.id}-${planId}`} className="pricing-matrix-cell">
-                          <CellValue value={row.values[planId as PlanId]} />
+                          <CellValue value={cell(row, planId, selfServeReady)} />
                         </td>
                       ))}
                     </tr>
@@ -82,10 +90,6 @@ export function PricingFeatureMatrix() {
           </tbody>
         </table>
       </div>
-
-      <p className="pricing-matrix-footnote font-sans">
-        Call-audit shops get full Pro during setup (30 days).
-      </p>
     </section>
   );
 }

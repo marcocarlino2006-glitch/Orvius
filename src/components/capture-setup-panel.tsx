@@ -7,6 +7,7 @@ import {
 } from "@/lib/carrier-forward";
 import { displayPhone } from "@/lib/customer";
 import { telHref } from "@/lib/demo-line";
+import { PortRequestForm } from "@/components/port-request-form";
 import { useEffect, useMemo, useState } from "react";
 
 type CaptureSetupPanelProps = {
@@ -219,27 +220,7 @@ export function CaptureSetupPanel({
       {mode === "publish" ? (
         <details className="capture-setup-more mt-4 font-sans">
           <summary>Keep your existing number instead (port it)</summary>
-          <div className="mt-3 text-sm">
-            <p className="account-settings-hint">
-              Porting moves the number customers already know to Orvius, so
-              nothing printed has to change. Email{" "}
-              <a href="mailto:hello@orvius.im?subject=Port%20my%20shop%20number" className="home-platform-link">
-                hello@orvius.im
-              </a>{" "}
-              with:
-            </p>
-            <ol className="capture-setup-steps mt-2">
-              <li>Your latest phone bill (PDF or photo) showing the account name and service address.</li>
-              <li>Your account number and port-out PIN — your carrier gives you the PIN on request.</li>
-              <li>The name of the person authorized on the account.</li>
-            </ol>
-            <p className="account-settings-hint mt-2">
-              Don&apos;t cancel your current service — that can release the
-              number. Keep it forwarded to Orvius until we confirm the port is
-              done. Your carrier sets the date; we tell you as soon as it&apos;s
-              scheduled.
-            </p>
-          </div>
+          <PortRequestForm />
         </details>
       ) : null}
 
@@ -274,6 +255,14 @@ export function CaptureSetupPanel({
           </p>
         ) : null}
       </div>
+
+      {line && !overflowConfirmed ? (
+        <p className="account-settings-hint mt-2">
+          {mode === "forward"
+            ? "No need to confirm by hand: when the first call forwarded from your number reaches Orvius, it marks this done and texts you. Some carriers don't pass the forwarding number along; if yours doesn't, confirm here."
+            : "No need to confirm by hand: once two different customers call this number, Orvius marks this done and texts you."}
+        </p>
+      ) : null}
 
       <details className="capture-setup-more mt-4 font-sans">
         <summary>More</summary>

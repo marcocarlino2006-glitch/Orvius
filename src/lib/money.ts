@@ -36,6 +36,12 @@ export function formatCentsExact(
   }).format(centsToDollars(cents));
 }
 
+/** Real money, shown as $2,211 when whole and $49.02 when it is not, so a row of figures reads one way. */
+export function formatCentsTidy(cents: number | null | undefined): string | null {
+  if (cents == null || !Number.isFinite(cents)) return null;
+  return Math.round(cents) % 100 === 0 ? formatCents(cents) : formatCentsExact(cents);
+}
+
 export function estimatedRevenueCents(
   avgTicketCents: number | null | undefined,
   count: number,

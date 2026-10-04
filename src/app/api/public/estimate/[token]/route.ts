@@ -9,6 +9,7 @@ import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { z } from "zod";
+import { publicTokenLimited } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -63,7 +64,9 @@ function serializePublic(estimate: NonNullable<Awaited<ReturnType<typeof loadEst
   };
 }
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "estimate", "GET");
+  if (limited) return limited;
   const { token } = await params;
   const estimate = await loadEstimate(token);
   if (!estimate?.publicToken) {
@@ -85,6 +88,8 @@ const actionSchema = z.object({
  * confirm_card → verify Checkout session after redirect
  */
 export async function POST(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "estimate", "POST");
+  if (limited) return limited;
   const { token } = await params;
   const estimate = await loadEstimate(token);
   if (!estimate?.publicToken) {

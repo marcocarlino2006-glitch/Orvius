@@ -1,7 +1,6 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { EarlyAccessForm } from "@/components/early-access-form";
 import { HomeCallDemo } from "@/components/home-call-demo";
-import { company } from "@/lib/company";
 import { demoLineHref } from "@/lib/demo-line";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -9,7 +8,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Book a live call audit",
   description:
-    "Book a live Orvius call audit — we review your after-hours and overflow pattern, then set up your shop line. HVAC, plumbing, and electrical.",
+    "Book a live Orvius call audit — we review your after-hours and overflow pattern, then set up your shop line.",
 };
 
 export default function PilotPage() {
@@ -20,12 +19,12 @@ export default function PilotPage() {
           <ShellPageIntro
             label="Live call audit"
             title="See what your missed calls are costing."
-            subline="We walk your after-hours and overflow pattern — then go live if it is a fit"
-            description={`No slide deck. A real look at what Orvius would capture for your ${company.trades.join(" / ")} shop. If it fits, choose a paid plan through verified Stripe checkout.`}
+            subline="We walk through your after-hours and overflow calls, then set up your line if it fits."
+            description="No slide deck. A look at what Orvius would capture for your business. If it fits, we set up your line with you and you choose a plan."
             actions={
               <>
                 <a href="#waitlist" className="ov-btn ov-btn--solid">
-                  Request a demo
+                  Book a call audit
                 </a>
                 <a href={demoLineHref()} className="ov-btn ov-btn--quiet">
                   Call the live line

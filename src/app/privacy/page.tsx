@@ -198,6 +198,13 @@ export default function PrivacyPage() {
           marketing waitlist entries).
         </p>
         <p>
+          Call recordings, call transcripts, and voicemail recordings are deleted 24 months after
+          the call, both in Orvius and at the voice and telephony providers that hold copies. The
+          call&apos;s summary and the resulting lead and job history stay with the shop&apos;s account.
+          Appointment confirmation links stop working a day after the visit or once the job is
+          closed, and technician job links a week after the visit.
+        </p>
+        <p>
           Request deletion of account data at {company.legalEmail}. We will verify the request and
           delete or de-identify where feasible. Some records may be retained where required by law,
           for legitimate security purposes, or until backup cycles rotate.

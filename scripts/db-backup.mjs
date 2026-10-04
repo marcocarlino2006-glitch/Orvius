@@ -5,6 +5,7 @@
  *   node scripts/db-backup.mjs backup  [--out backups/orvius-<time>.json]
  *   node scripts/db-backup.mjs restore-drill <backup.json>
  *   node scripts/db-backup.mjs drill                        # backup, then drill it
+ *   … --encrypt                                             # gzip + AES-256-GCM with BACKUP_ENCRYPTION_KEY
  *
  * `backup` writes every table's schema and rows from DATABASE_URL (local
  * SQLite or Turso) to one JSON file. `restore-drill` rebuilds that file into a
@@ -14,9 +15,12 @@
  * Backups hold customer names, phone numbers, and addresses. Keep them off
  * GitHub (backups/ is gitignored) and out of CI artifacts; store them where
  * you would store the database itself. On Turso, point-in-time restore is the
- * first line of recovery; this is the copy you control.
+ * first line of recovery; this is the copy you control. The nightly workflow
+ * only ever stores the --encrypt form.
  */
 import { createClient } from "@libsql/client";
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
+import { gunzipSync, gzipSync } from "node:zlib";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -40,6 +44,41 @@ export function resolveDatabaseUrl(raw) {
     return { url: `file:${path.startsWith("/") ? path : join(ROOT, "prisma", path)}` };
   }
   throw new Error(`Unsupported DATABASE_URL scheme: ${url.split(":")[0]}`);
+}
+
+const MAGIC = Buffer.from("ORVB1");
+
+function encryptionKey(passphrase, salt) {
+  if (!passphrase || passphrase.length < 32) throw new Error("BACKUP_ENCRYPTION_KEY must be at least 32 characters");
+  return scryptSync(passphrase, salt, 32);
+}
+
+export function encryptDump(dump, passphrase) {
+  const salt = randomBytes(16);
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", encryptionKey(passphrase, salt), iv);
+  const body = Buffer.concat([cipher.update(gzipSync(JSON.stringify(dump))), cipher.final()]);
+  return Buffer.concat([MAGIC, salt, iv, cipher.getAuthTag(), body]);
+}
+
+export function isEncrypted(buf) {
+  return buf.subarray(0, MAGIC.length).equals(MAGIC);
+}
+
+export function decryptDump(buf, passphrase) {
+  if (!isEncrypted(buf)) throw new Error("Not an encrypted Orvius backup");
+  let o = MAGIC.length;
+  const salt = buf.subarray(o, (o += 16));
+  const iv = buf.subarray(o, (o += 12));
+  const tag = buf.subarray(o, (o += 16));
+  const decipher = createDecipheriv("aes-256-gcm", encryptionKey(passphrase, salt), iv);
+  decipher.setAuthTag(tag);
+  return JSON.parse(gunzipSync(Buffer.concat([decipher.update(buf.subarray(o)), decipher.final()])).toString("utf8"));
+}
+
+export function readDump(file, passphrase = process.env.BACKUP_ENCRYPTION_KEY) {
+  const buf = readFileSync(file);
+  return isEncrypted(buf) ? decryptDump(buf, passphrase) : JSON.parse(buf.toString("utf8"));
 }
 
 export async function listTables(db) {
@@ -121,22 +160,28 @@ async function main() {
   loadEnvFile();
   const [cmd = "drill", file] = process.argv.slice(2);
   const outArg = process.argv.includes("--out") ? process.argv[process.argv.indexOf("--out") + 1] : null;
+  const encrypt = process.argv.includes("--encrypt");
 
   let dump;
   if (cmd === "restore-drill") {
     if (!file) throw new Error("Usage: db-backup.mjs restore-drill <backup.json>");
-    dump = JSON.parse(readFileSync(file, "utf8"));
+    dump = readDump(file);
   } else if (cmd === "backup" || cmd === "drill") {
+    const passphrase = process.env.BACKUP_ENCRYPTION_KEY;
+    if (encrypt) encryptionKey(passphrase, Buffer.alloc(16));
     const db = createClient(resolveDatabaseUrl(process.env.DATABASE_URL));
     const started = Date.now();
-    dump = await backup(db);
+    const taken = await backup(db);
     db.close();
-    const out = outArg ?? join(ROOT, "backups", `orvius-${dump.at.replace(/[:.]/g, "-")}.json`);
+    const ext = encrypt ? "json.enc" : "json";
+    const out = outArg ?? join(ROOT, "backups", `orvius-${taken.at.replace(/[:.]/g, "-")}.${ext}`);
     mkdirSync(dirname(out), { recursive: true });
-    writeFileSync(out, JSON.stringify(dump), { mode: 0o600 });
-    const rows = dump.tables.reduce((n, t) => n + t.rows.length, 0);
-    console.log(`💾 Backed up ${dump.tables.length} tables, ${rows} rows in ${Date.now() - started}ms → ${out}`);
+    writeFileSync(out, encrypt ? encryptDump(taken, passphrase) : JSON.stringify(taken), { mode: 0o600 });
+    const rows = taken.tables.reduce((n, t) => n + t.rows.length, 0);
+    console.log(`💾 Backed up ${taken.tables.length} tables, ${rows} rows in ${Date.now() - started}ms → ${out}`);
     if (cmd === "backup") return;
+    // Drill what was written, not what is in memory: a file that cannot be read back is no backup.
+    dump = readDump(out, passphrase);
   } else {
     throw new Error(`Unknown command: ${cmd}`);
   }

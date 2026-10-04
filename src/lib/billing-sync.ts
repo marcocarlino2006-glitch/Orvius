@@ -1,3 +1,6 @@
+import { logInfo, logWarn } from "@/lib/logger";
+import { alertPaymentFailed } from "@/lib/owner-nudges";
+import { resumeShopLine, suspendShopLine } from "@/lib/line-lifecycle";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { isPaidPlanId, planIdForStripePriceId } from "@/lib/pricing-plans";
@@ -48,6 +51,11 @@ export function mapStripeStatusToBilling(
   if (status === "canceled" || status === "unpaid") return "canceled";
   // incomplete / incomplete_expired / paused — not entitled, not a free pilot revival
   return "incomplete";
+}
+
+/** A shop already on a plan changes it in the billing portal; a second checkout would charge twice. */
+export function shopHasLivePlan(business: { stripeSubscriptionId: string | null; billingStatus: string | null }) {
+  return Boolean(business.stripeSubscriptionId) && (business.billingStatus === "active" || business.billingStatus === "past_due");
 }
 
 export type PaidCheckoutActivation = {
@@ -112,6 +120,20 @@ export async function getPaidCheckoutActivation(
   return resolvePaidCheckoutActivation(session, subscription, expectedEmail);
 }
 
+/**
+ * The owner's completed plan checkout, for coming back to setup without the
+ * success page's link. getPaidCheckoutActivation still verifies it on use.
+ */
+export async function findPaidCheckoutSessionId(email: string): Promise<string | null> {
+  const stripe = getStripe();
+  const sessions = await stripe.checkout.sessions.list({
+    customer_details: { email: email.toLowerCase() },
+    status: "complete",
+    limit: 10,
+  });
+  return sessions.data.find((s) => s.mode === "subscription" && s.subscription)?.id ?? null;
+}
+
 export async function linkPaidCheckoutToBusiness(
   activation: PaidCheckoutActivation,
   businessId: string,
@@ -133,7 +155,7 @@ export async function linkPaidCheckoutToBusiness(
 export async function syncSubscriptionToBusiness(
   subscription: Stripe.Subscription,
   customerEmail?: string | null,
-): Promise<{ businessId: string } | { unmatched: true }> {
+): Promise<{ businessId: string; ignored?: true } | { unmatched: true }> {
   const businessId = subscription.metadata.businessId?.trim();
   let business = businessId
     ? await prisma.business.findUnique({ where: { id: businessId } })
@@ -161,16 +183,36 @@ export async function syncSubscriptionToBusiness(
     return { unmatched: true };
   }
 
+  /*
+    Only the shop's current subscription may move its billing. A second
+    subscription on the same shop (a repeat checkout, a dashboard comp) used
+    to overwrite the first, so cancelling the old one in the portal marked a
+    paying shop canceled and suspended its line. A different subscription is
+    adopted only once it is paying; until then its events are recorded and
+    left alone.
+  */
+  const mapped = mapStripeStatusToBilling(subscription.status);
+  if (business.stripeSubscriptionId && business.stripeSubscriptionId !== subscription.id && mapped !== "active") {
+    logInfo("billing.other_subscription_ignored", {
+      businessId: business.id,
+      currentSubscriptionId: business.stripeSubscriptionId,
+      subscriptionId: subscription.id,
+      status: subscription.status,
+    });
+    return { businessId: business.id, ignored: true as const };
+  }
+
   const customerId =
     typeof subscription.customer === "string"
       ? subscription.customer
       : subscription.customer.id;
 
-  const mapped = mapStripeStatusToBilling(subscription.status);
   const billingStatus =
     mapped === "incomplete" ? "canceled" : mapped;
 
-  await prisma.business.update({
+  const now = new Date();
+  const previous = business.billingStatus;
+  const updated = await prisma.business.update({
     where: { id: business.id },
     data: {
       stripeCustomerId: customerId,
@@ -178,8 +220,21 @@ export async function syncSubscriptionToBusiness(
       billingStatus,
       billingPlan: resolveBillingPlan(subscription),
       ownerEmail: business.ownerEmail ?? customerEmail?.toLowerCase() ?? undefined,
+      pastDueSince: billingStatus === "past_due" ? (business.pastDueSince ?? now) : null,
+      canceledAt: billingStatus === "canceled" ? (business.canceledAt ?? now) : null,
     },
   });
+
+  if (billingStatus === "past_due" && previous !== "past_due") {
+    await alertPaymentFailed(updated).catch((error: unknown) =>
+      logWarn("billing.past_due_alert_failed", { businessId: updated.id, error: error instanceof Error ? error.message : "unknown" }),
+    );
+  }
+  if (billingStatus === "canceled" && previous !== "canceled") {
+    await suspendShopLine(updated);
+  } else if (billingStatus === "active" && previous === "canceled" && !updated.lineReleasedAt) {
+    await resumeShopLine(updated);
+  }
 
   return { businessId: business.id };
 }

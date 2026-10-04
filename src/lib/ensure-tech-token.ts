@@ -16,3 +16,11 @@ export async function ensureJobTechToken(jobId: string): Promise<string> {
   });
   return techToken;
 }
+
+/* The link shows a customer's name, phone and address, so it closes once the visit is well behind the shop. */
+export const TECH_LINK_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+
+export function techLinkExpired(job: { status: string; scheduledAt: Date | null }, now = new Date()) {
+  if (job.status === "cancelled") return true;
+  return Boolean(job.scheduledAt && now.getTime() > job.scheduledAt.getTime() + TECH_LINK_GRACE_MS);
+}

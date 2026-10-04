@@ -14,6 +14,7 @@ import type { CallGrade } from "@/lib/call-quality";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { formatWhen, statusWord } from "@/lib/when";
 
 type CallDetail = {
   id: string;
@@ -23,6 +24,7 @@ type CallDetail = {
   transcript: string | null;
   durationSec: number | null;
   recordingUrl: string | null;
+  contentPurgedAt: string | null;
   booked: boolean;
   ownerNotifiedAt: string | null;
   successEvaluation: string | null;
@@ -72,8 +74,7 @@ type Situation = {
 };
 
 function formatUrgency(value: string | null) {
-  if (!value) return undefined;
-  return value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return value ? statusWord(value) : undefined;
 }
 
 export default function CallDetailPage() {
@@ -170,7 +171,7 @@ export default function CallDetailPage() {
           ) : (
             <ShellPanel title="Call summary" dense>
               <div className="flex flex-wrap gap-2">
-                <ShellBadge tone="live">{call.status}</ShellBadge>
+                <ShellBadge tone="live">{call.status === "ended" ? "Completed" : statusWord(call.status)}</ShellBadge>
                 {call.durationSec ? (
                   <ShellBadge tone="neutral">{call.durationSec}s</ShellBadge>
                 ) : null}
@@ -199,11 +200,17 @@ export default function CallDetailPage() {
             screen on any call longer than a minute.
           */}
           {call.recordingUrl ? (
-            <CallPlayer src={call.recordingUrl} durationSec={call.durationSec} />
+            <CallPlayer src={`/api/calls/${callId}/recording`} durationSec={call.durationSec} />
           ) : null}
 
           {call.transcript ? (
             <TranscriptCinema transcript={call.transcript} variant="void" />
+          ) : null}
+
+          {call.contentPurgedAt ? (
+            <p className="font-sans text-sm leading-relaxed text-void">
+              The recording and transcript were deleted 24 months after the call. The summary and job history stay.
+            </p>
           ) : null}
         </div>
 
@@ -213,13 +220,9 @@ export default function CallDetailPage() {
               <p className="call-ai-confidence font-sans">
                 AI confidence{" "}
                 <strong>{call.successEvaluation}</strong>
-                <span className="text-ash"> / 10 (VAPI)</span>
+                <span className="text-ash"> / 10</span>
               </p>
-            ) : (
-              <p className="call-ai-confidence call-ai-confidence-muted font-sans">
-                AI confidence not captured on this call yet.
-              </p>
-            )}
+            ) : null}
             {situation?.actionsTaken?.length ? (
               <ul className="call-situation-list font-sans">
                 {situation.actionsTaken.map((item) => (
@@ -309,9 +312,9 @@ export default function CallDetailPage() {
                 {call.lead.job.title} →
               </Link>
               <p className="mt-2 font-sans text-sm text-ash">
-                {call.lead.job.status.replace(/_/g, " ")}
+                {statusWord(call.lead.job.status)}
                 {call.lead.job.scheduledAt
-                  ? ` · ${new Date(call.lead.job.scheduledAt).toLocaleString()}`
+                  ? ` · ${formatWhen(call.lead.job.scheduledAt)}`
                   : ""}
               </p>
             </ShellPanel>
@@ -327,25 +330,9 @@ export default function CallDetailPage() {
                     </Link>
                     <span className="text-ash">
                       {" "}
-                      · {job.status.replace(/_/g, " ")}
+                      · {job.scheduledAt ? `${new Date(job.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })} · ` : ""}
+                      {job.status.replace(/_/g, " ")}
                     </span>
-                  </li>
-                ))}
-              </ul>
-            </ShellPanel>
-          ) : null}
-
-          {situation?.timeline?.length ? (
-            <ShellPanel title="Customer timeline" dense>
-              <ul className="call-situation-list font-sans">
-                {situation.timeline.map((event) => (
-                  <li key={`${event.type}-${event.id}`}>
-                    <span className="text-ash">{event.type}</span>
-                    {" · "}
-                    {event.title}
-                    {event.summary ? (
-                      <span className="text-ash"> — {event.summary}</span>
-                    ) : null}
                   </li>
                 ))}
               </ul>

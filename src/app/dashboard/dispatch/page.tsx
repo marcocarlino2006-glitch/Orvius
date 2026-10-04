@@ -9,6 +9,8 @@ import { AssignTechButton } from "@/components/assign-tech-button";
 import type { DispatchSchedule, ScheduleBlock, UnassignedItem } from "@/lib/dispatch-schedule";
 import { skillOptions } from "@/lib/trade-playbooks";
 import type { Trade } from "@/lib/trades";
+import { industryTerms } from "@/lib/industry-terms";
+import { toast } from "@/components/toaster";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -60,17 +62,25 @@ function parseSkills(json?: string): string[] {
 
 const label = (skill: string) => skill.replace(/_/g, " ");
 
+type Drag = { jobId: string; fromLane: string | null };
+
 function Block({
   block,
   window,
   unassigned,
+  lane = null,
+  onDrag,
 }: {
   block: Pick<ScheduleBlock, "id" | "title" | "startMin" | "endMin" | "urgency" | "customerName"> & {
     conflict?: string | null;
+    status?: string;
   };
   window: { startMin: number; endMin: number };
   unassigned?: boolean;
+  lane?: string | null;
+  onDrag?: (drag: Drag | null) => void;
 }) {
+  const movable = Boolean(onDrag) && block.status !== "completed" && block.status !== "cancelled";
   const span = window.endMin - window.startMin;
   const left = ((block.startMin - window.startMin) / span) * 100;
   const width = Math.max(((block.endMin - block.startMin) / span) * 100, 2.5);
@@ -83,6 +93,16 @@ function Block({
       className={`dsp-block ${tone}`}
       style={{ left: `${left}%`, width: `${width}%` }}
       title={block.conflict ?? `${block.title} · ${clock(block.startMin)}–${clock(block.endMin)}`}
+      onDragStart={
+        movable
+          ? (event) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("text/plain", block.id);
+              onDrag?.({ jobId: block.id, fromLane: lane });
+            }
+          : undefined
+      }
+      onDragEnd={movable ? () => onDrag?.(null) : undefined}
     >
       <span className="dsp-block-time">{clock(block.startMin)}</span>
       <span className="dsp-block-title">{block.title}</span>
@@ -360,6 +380,59 @@ export default function DispatchPage() {
     load();
   }, [load]);
 
+  const [drag, setDrag] = useState<Drag | null>(null);
+  const [dropLane, setDropLane] = useState<string | null>(null);
+
+  async function reassign(jobId: string, technicianId: string | null, name: string, undoTo?: string | null) {
+    try {
+      const res = await fetch(`/api/jobs/${jobId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ technicianId }),
+      });
+      if (!res.ok) throw new Error();
+      const data = (await res.json().catch(() => ({}))) as { techSms?: { sent: boolean } };
+      toast({
+        title: !technicianId
+          ? "Moved to unassigned"
+          : data.techSms?.sent
+            ? `Moved to ${name} — they got a text`
+            : `Moved to ${name} — no text went out, tell them yourself`,
+        ...(undoTo !== undefined
+          ? {
+              action: {
+                label: "Undo",
+                run: () =>
+                  reassign(jobId, undoTo, crew.find((t) => t.id === undoTo)?.name ?? "Unassigned"),
+              },
+            }
+          : {}),
+      });
+    } catch {
+      toast({ title: "That move didn't save. Try again.", tone: "error" });
+    }
+    load();
+  }
+
+  /* The time stays put: dropping on a row changes who goes, not when. */
+  const dropTarget = (laneId: string | null, name: string) => ({
+    onDragOver: (event: React.DragEvent) => {
+      if (!drag || drag.fromLane === laneId) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      if (dropLane !== (laneId ?? "")) setDropLane(laneId ?? "");
+    },
+    onDragLeave: () => setDropLane(null),
+    onDrop: (event: React.DragEvent) => {
+      event.preventDefault();
+      setDropLane(null);
+      const current = drag;
+      setDrag(null);
+      if (!current || current.fromLane === laneId) return;
+      void reassign(current.jobId, laneId, name, current.fromLane);
+    },
+  });
+
   const crew = useMemo(() => board?.crew ?? [], [board]);
   const schedule = board?.schedule;
   const axis = schedule?.window ?? { startMin: 7 * 60, endMin: 19 * 60 };
@@ -379,21 +452,18 @@ export default function DispatchPage() {
     day: "numeric",
   });
   const trade = (board?.trade ?? null) as Trade | null;
+  const terms = industryTerms(board?.trade);
   const decisions = schedule?.unassigned.length ?? 0;
   const conflicts = schedule?.conflicts ?? [];
 
   return (
-    <OsShell title="Dispatch">
+    <OsShell title={terms.Dispatch}>
       <PlanUpgradeGate module="dispatch">
         <ProLead
           loading={loading && !board}
-          figure={String(board?.jobCount ?? 0)}
-          caption="Scheduled"
-          facts={[
-            { label: "Unassigned", value: decisions, live: decisions > 0 },
-            { label: "Conflicts", value: conflicts.length, live: conflicts.length > 0 },
-            { label: "Crew", value: crew.length },
-          ]}
+          figure={String(decisions)}
+          caption="Unassigned"
+          facts={[{ label: "Conflicts", value: conflicts.length, live: conflicts.length > 0 }]}
         />
 
         <div className="dsp-toolbar">
@@ -462,10 +532,10 @@ export default function DispatchPage() {
             {!board.jobCount ? (
               <ProEmptyState
                 title="Nothing scheduled this day"
-                body="Calls Orvius books land here with a technician already picked. Pick another day, or book from the inbox."
+                body={`Calls Orvius books land here with a ${terms.worker} already picked. Pick another day, or book one yourself.`}
                 action={
-                  <Link href="/dashboard/inbox" className="ox-btn ox-btn--quiet ox-btn--sm">
-                    Open inbox
+                  <Link href="/dashboard/jobs/new" className="ox-btn ox-btn--quiet ox-btn--sm">
+                    New {terms.job}
                   </Link>
                 }
               />
@@ -495,13 +565,14 @@ export default function DispatchPage() {
                         <span className="dsp-lane-tech">Unassigned</span>
                         <span className="dsp-lane-meta">{openScheduled.length} waiting</span>
                       </div>
-                      <div className="dsp-track">
+                      <div className={`dsp-track ${dropLane === "" ? "is-drop" : ""}`} {...dropTarget(null, "Unassigned")}>
                         {openScheduled.map((u) => (
                           <Block
                             key={u.id}
                             block={{ ...u, startMin: u.startMin!, endMin: u.endMin! }}
                             window={axis}
                             unassigned
+                            onDrag={setDrag}
                           />
                         ))}
                       </div>
@@ -516,7 +587,10 @@ export default function DispatchPage() {
                           {lane.technician.skills.length ? ` · ${lane.technician.skills.map(label).join(", ")}` : ""}
                         </span>
                       </div>
-                      <div className="dsp-track">
+                      <div
+                        className={`dsp-track ${dropLane === lane.technician.id ? "is-drop" : ""}`}
+                        {...dropTarget(lane.technician.id, lane.technician.name)}
+                      >
                         {ticks.map((t) => (
                           <span
                             key={t}
@@ -526,7 +600,7 @@ export default function DispatchPage() {
                           />
                         ))}
                         {lane.blocks.map((b) => (
-                          <Block key={b.id} block={b} window={axis} />
+                          <Block key={b.id} block={b} window={axis} lane={lane.technician.id} onDrag={setDrag} />
                         ))}
                       </div>
                     </div>

@@ -43,13 +43,21 @@ export async function GET(_request: Request, { params }: Params) {
       address: customer.address,
       notes: customer.notes,
       interactionCount: customer.interactionCount,
-      firstSeenAt: customer.firstSeenAt.toISOString(),
+      // Records backfilled onto a customer can predate the customer row itself.
+      firstSeenAt: timeline.reduce(
+        (earliest, event) => (event.at < earliest ? event.at : earliest),
+        customer.firstSeenAt.toISOString(),
+      ),
       lastSeenAt: customer.lastSeenAt.toISOString(),
       business: customer.business,
       leadCount: customer._count.leads,
       callCount: customer._count.calls,
       jobCount: customer._count.jobs,
-      returning: customer.interactionCount > 1,
+      returning:
+        customer.interactionCount > 1 ||
+        customer._count.leads > 1 ||
+        customer._count.calls > 1 ||
+        customer._count.jobs > 1,
     },
     timeline,
     properties,

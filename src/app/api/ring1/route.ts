@@ -13,6 +13,7 @@ import { loadPersonalBrief } from "@/lib/personal-brief-data";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
+import { commandVersion, shopVersion } from "@/lib/shop-version";
 import { getShiftTimeline } from "@/lib/shift-timeline";
 import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
@@ -24,13 +25,22 @@ const LAST_SEEN_WRITE_MS = 60_000;
 export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business, session } = authResult;
+  const { business, session, role, email } = authResult;
   const now = new Date();
   // A tab that already pinned its anchor sends it; a fresh visit uses the account's last look.
   const sinceParam = new URL(request.url).searchParams.get("since");
   const previousLook = sinceParam ?? business.ownerLastSeenAt?.toISOString() ?? null;
   const since = parseSince(previousLook, now);
-  if (!business.ownerLastSeenAt || now.getTime() - business.ownerLastSeenAt.getTime() > LAST_SEEN_WRITE_MS) {
+  if (role !== "owner") {
+    after(() =>
+      prisma.membership
+        .updateMany({
+          where: { businessId: business.id, email, OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: new Date(now.getTime() - LAST_SEEN_WRITE_MS) } }] },
+          data: { lastSeenAt: now },
+        })
+        .catch(() => null),
+    );
+  } else if (!business.ownerLastSeenAt || now.getTime() - business.ownerLastSeenAt.getTime() > LAST_SEEN_WRITE_MS) {
     after(() =>
       prisma.business
         .update({ where: { id: business.id }, data: { ownerLastSeenAt: now } })
@@ -38,9 +48,17 @@ export async function GET(request: Request) {
     );
   }
 
+  after(() => runAutopilot(business.id).catch(() => null));
+
+  // The 30s poll mostly finds nothing new; answer that from four indexed reads.
+  const versionP = shopVersion(business.id).then((data) => commandVersion(data, now, since));
+  const haveVersion = new URL(request.url).searchParams.get("v");
+  if (haveVersion && haveVersion === (await versionP)) {
+    return NextResponse.json({ unchanged: true, version: haveVersion, sinceUsed: since?.toISOString() ?? null });
+  }
+
   const today = shopDayBounds(null, business.timezone ?? "America/New_York").start;
   const businessFilter = { businessId: business.id };
-  after(() => runAutopilot(business.id).catch(() => null));
   const windowStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const healthP = getShopHealth(business.id);
 
@@ -213,6 +231,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     business: {
       name: business.name,
+      trade: business.trade,
       line,
       ownerPhone: business.ownerPhone,
       billingStatus: business.billingStatus,
@@ -302,5 +321,7 @@ export async function GET(request: Request) {
     personalBrief,
     /** The anchor this response used, so the tab can keep it for the session. */
     sinceUsed: since?.toISOString() ?? null,
+    /** Sent back as `v` on the next poll to skip the rebuild when nothing changed. */
+    version: await versionP,
   });
 }

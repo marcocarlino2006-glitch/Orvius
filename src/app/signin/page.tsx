@@ -3,7 +3,7 @@ import Link from "next/link";
 import { DevSignInButton } from "@/components/dev-sign-in-button";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { SignInBoard } from "@/components/signin-board";
-import { SignInPanel } from "@/components/signin-panel";
+import { SignInPanel, type SignInMode } from "@/components/signin-panel";
 import { SystemStatusPill } from "@/components/system-status-pill";
 import { company } from "@/lib/company";
 import { getDevAuthEmail, isDevAuthBypassEnabled } from "@/lib/dev-auth";
@@ -11,16 +11,21 @@ import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: `Sign in to ${company.productName} with Google or a single-use email link.`,
+  description: `Sign in to ${company.productName} with Google or your email and password.`,
   robots: { index: false, follow: true },
 };
 
 const ERRORS: Record<string, string> = {
   Configuration: "Sign-in is temporarily unavailable. Try again shortly.",
   AccessDenied: "That account is not authorized for this workspace.",
-  CredentialsSignin:
-    "That sign-in link is no longer valid. Links work once and expire after 10 minutes.",
+  CredentialsSignin: "That sign-in didn’t work. Check your email and password, or reset your password below.",
   Verification: "That sign-in link has expired. Request a new one below.",
+  OAuthAccountNotLinked:
+    "That email already signs in another way. Use the method you used first.",
+  OAuthSignin: "Google sign-in didn’t finish. Try again, or use your email and password below.",
+  OAuthCallback: "Google sign-in didn’t finish. Try again, or use your email and password below.",
+  OAuthCallbackError: "Google sign-in didn’t finish. Try again, or use your email and password below.",
+  Default: "Sign-in didn’t finish. Try again below.",
 };
 
 /**
@@ -32,14 +37,15 @@ const ERRORS: Record<string, string> = {
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string; error?: string; dev?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; error?: string; dev?: string; mode?: string }>;
 }) {
   const params = await searchParams;
   const callbackUrl = params.callbackUrl ?? "/dashboard";
-  const error = params.error ? (ERRORS[params.error] ?? ERRORS.CredentialsSignin) : null;
+  const error = params.error ? (ERRORS[params.error] ?? ERRORS.Default) : null;
   const showDevChrome =
     isDevAuthBypassEnabled() && (params.dev === "1" || params.dev === "true");
   const selfServeEnabled = getPublicLaunchReadiness().ready;
+  const mode: SignInMode = params.mode === "signup" ? "signup" : "signin";
 
   return (
     <main className="ov-signin">
@@ -53,12 +59,12 @@ export default async function SignInPage({
           </div>
 
           <h2 className="ov-signin-pitch">
-            The night shift already ran. Here is what it did.
+            Run your day in Orvius.
           </h2>
           <p className="ov-signin-pitch-sub">
-            Orvius answers after-hours and overflow calls, captures the request,
-            proposes an open window, and alerts the owner — then writes one
-            record the shop can act on in the morning.
+            The receptionist answers your calls and brings in the work. Command
+            schedules it, coordinates your people, follows up with customers and
+            shows you what actually happened.
           </p>
 
           <SignInBoard />
@@ -84,6 +90,7 @@ export default async function SignInPage({
           <SignInPanel
             callbackUrl={callbackUrl}
             selfServeEnabled={selfServeEnabled}
+            initialMode={mode}
           />
 
           {showDevChrome ? (

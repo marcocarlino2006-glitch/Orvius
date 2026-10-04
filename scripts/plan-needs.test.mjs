@@ -52,7 +52,7 @@ test("the recommendation carries the price the shop will be quoted", () => {
   assert.equal(recommendation.price, plan.price);
   assert.equal(recommendation.matchedNeed, "lead-to-job");
   assert.equal(recommendation.matchedSize, "growing");
-  assert.match(recommendation.reason, /Growing shop \(3–5 trucks\)/);
+  assert.match(recommendation.reason, /Growing shop \(2–15 trucks\)/);
 });
 
 test("every need and size resolves to a real plan", () => {

@@ -5,6 +5,9 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+/* ORVIUS_QUERY_LOG=1 prints every query, which is how a slow screen gets its round trips counted. */
+const queryLog = process.env.ORVIUS_QUERY_LOG === "1" ? (["query"] as const) : [];
+
 function createPrismaClient() {
   const databaseUrl = process.env.DATABASE_URL?.trim() ?? "";
 
@@ -31,7 +34,7 @@ function createPrismaClient() {
 
     return new PrismaClient({
       adapter,
-      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      log: [...queryLog, ...(process.env.NODE_ENV === "development" ? (["error", "warn"] as const) : (["error"] as const))],
     });
   }
 
@@ -46,12 +49,12 @@ function createPrismaClient() {
     */
     return new PrismaClient({
       adapter: new ConcurrentPrismaLibSql({ url: resolveSqliteUrl(databaseUrl) }),
-      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      log: [...queryLog, ...(process.env.NODE_ENV === "development" ? (["error", "warn"] as const) : (["error"] as const))],
     });
   }
 
   return new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    log: [...queryLog, ...(process.env.NODE_ENV === "development" ? (["error", "warn"] as const) : (["error"] as const))],
   });
 }
 

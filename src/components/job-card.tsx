@@ -25,16 +25,19 @@ const STATUS: Record<string, { label: string; tone: "live" | "good" | "neutral" 
   cancelled: { label: "Cancelled", tone: "muted" },
 };
 
-function whenParts(iso: string | null) {
+/** Times read in the shop's zone, the same clock Dispatch and the owner's texts use. */
+function whenParts(iso: string | null, timeZone?: string) {
   if (!iso) return { day: "Unscheduled", time: "" };
   const at = new Date(iso);
-  const today = new Date();
-  const sameDay = at.toDateString() === today.toDateString();
-  const day = sameDay ? "Today" : at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-  return { day, time: at.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) };
+  const dayKey = (d: Date) => d.toLocaleDateString("en-CA", { timeZone });
+  const sameDay = dayKey(at) === dayKey(new Date());
+  const day = sameDay
+    ? "Today"
+    : at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone });
+  return { day, time: at.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZone }) };
 }
 
-export function JobTable({ rows }: { rows: JobTableRow[] }) {
+export function JobTable({ rows, timeZone }: { rows: JobTableRow[]; timeZone?: string }) {
   return (
     <div className="dt dt--jobs font-sans" role="table" aria-label="Jobs">
       <div className="dt-head" role="row">
@@ -46,16 +49,16 @@ export function JobTable({ rows }: { rows: JobTableRow[] }) {
       </div>
       {rows.map((row) => {
         const status = STATUS[row.status] ?? { label: row.status, tone: "neutral" as const };
-        const when = whenParts(row.scheduledAt);
+        const when = whenParts(row.scheduledAt, timeZone);
         const phone = row.phone ? displayPhone(normalizePhone(row.phone) ?? row.phone) : null;
         const { facts } = row;
         return (
-          <RecordLink key={row.id} type="job" id={row.id} href={`/dashboard/jobs/${row.id}`} className="dt-row" role="row">
+          <div key={row.id} className="dt-row dt-row--link" role="row">
             <span role="cell" className="dt-primary">
-              <span className="dt-title">
+              <RecordLink type="job" id={row.id} href={`/dashboard/jobs/${row.id}`} className="dt-title dt-row-link">
                 {isEmergency(row.urgency) ? <span className="dt-flag">Emergency</span> : null}
                 {row.title}
-              </span>
+              </RecordLink>
               <span className="dt-sub">
                 {[row.customerName, phone, row.address].filter(Boolean).join(", ") || "No customer details yet"}
               </span>
@@ -92,7 +95,7 @@ export function JobTable({ rows }: { rows: JobTableRow[] }) {
                 </>
               )}
             </span>
-          </RecordLink>
+          </div>
         );
       })}
     </div>

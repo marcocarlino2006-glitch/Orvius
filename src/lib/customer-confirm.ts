@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { recordAudit } from "@/lib/audit";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl } from "@/lib/domains";
@@ -47,17 +48,26 @@ export async function ensureCustomerConfirmToken(jobId: string): Promise<string>
  * Ask the customer to confirm the proposed window.
  * Until they confirm, the job is a proposed schedule — not a locked appointment.
  */
+type ConfirmSendOptions = {
+  reminder?: boolean;
+  /** Automatic sends: skip a job whose first confirmation already went out. The owner's resend doesn't set this. */
+  firstOnly?: boolean;
+};
+
+/** A send that crashed mid-flight frees the job after this. */
+const CONFIRM_CLAIM_MS = 2 * 60_000;
+
 export async function sendCustomerConfirmSms(jobId: string): Promise<{
   sent: boolean;
   reason?: string;
 }>;
 export async function sendCustomerConfirmSms(
   jobId: string,
-  options: { reminder?: boolean },
+  options: ConfirmSendOptions,
 ): Promise<{ sent: boolean; reason?: string }>;
 export async function sendCustomerConfirmSms(
   jobId: string,
-  options: { reminder?: boolean } = {},
+  options: ConfirmSendOptions = {},
 ): Promise<{ sent: boolean; reason?: string }> {
   const job = await prisma.job.findUnique({
     where: { id: jobId },
@@ -98,13 +108,36 @@ export async function sendCustomerConfirmSms(
     ].join("\n"),
   );
 
+  const claimAt = new Date();
+  const claimed = await prisma.job.updateMany({
+    where: {
+      id: jobId,
+      customerConfirmedAt: null,
+      OR: [{ customerConfirmClaimAt: null }, { customerConfirmClaimAt: { lt: new Date(claimAt.getTime() - CONFIRM_CLAIM_MS) } }],
+      ...(options.reminder
+        ? { customerConfirmReminderSentAt: null }
+        : options.firstOnly
+          ? { customerConfirmSentAt: null }
+          : {}),
+    },
+    data: { customerConfirmClaimAt: claimAt },
+  });
+  if (!claimed.count) return { sent: false, reason: "already_sending_or_sent" };
+  const release = () =>
+    prisma.job
+      .updateMany({ where: { id: jobId, customerConfirmClaimAt: claimAt }, data: { customerConfirmClaimAt: null } })
+      .catch(() => undefined);
+
   try {
     const result = await sendCustomerSms({
       businessId: job.businessId,
       to,
       body,
     });
-    if (!result.sent) return result;
+    if (!result.sent) {
+      await release();
+      return result;
+    }
     const sentAt = new Date();
     await prisma.job.update({
       where: { id: jobId },
@@ -113,6 +146,7 @@ export async function sendCustomerConfirmSms(
           ? { customerConfirmReminderSentAt: sentAt }
           : { customerConfirmSentAt: sentAt }),
         customerConfirmSid: result.sid ?? null,
+        customerConfirmClaimAt: null,
       },
     });
     logInfo("customer.confirm_sms_sent", {
@@ -123,6 +157,7 @@ export async function sendCustomerConfirmSms(
     });
     return { sent: true };
   } catch (error) {
+    await release();
     logWarn("customer.confirm_sms_failed", {
       jobId,
       error: error instanceof Error ? error.message : "send failed",
@@ -258,11 +293,23 @@ export async function sendDueCustomerConfirmationReminders(
   return { checked: candidates.length, sent, skipped };
 }
 
-export async function confirmJobByCustomerToken(token: string) {
+/** A confirm link stops working a day after the visit, or once the job is closed. */
+export const CONFIRM_LINK_GRACE_MS = 24 * 60 * 60 * 1000;
+
+export function confirmLinkExpired(job: { status: string; scheduledAt: Date | null }, now: Date) {
+  if (job.status === "cancelled" || job.status === "completed") return true;
+  return Boolean(job.scheduledAt && now.getTime() > job.scheduledAt.getTime() + CONFIRM_LINK_GRACE_MS);
+}
+
+export async function confirmJobByCustomerToken(
+  token: string,
+  now = new Date(),
+  { readOnly = false }: { readOnly?: boolean } = {},
+) {
   const job = await prisma.job.findFirst({
     where: { customerConfirmToken: token },
     include: {
-      business: { select: { id: true, name: true, timezone: true, vapiPhoneNumber: true, twilioPhone: true, phone: true } },
+      business: { select: { id: true, name: true, slug: true, timezone: true, vapiPhoneNumber: true, twilioPhone: true, phone: true } },
       customer: { select: { name: true, phone: true } },
       lead: { select: { name: true, phone: true } },
     },
@@ -271,14 +318,19 @@ export async function confirmJobByCustomerToken(token: string) {
   if (!job) return { ok: false as const, error: "not_found" as const };
   const shop = {
     businessName: job.business.name,
+    businessSlug: job.business.slug,
     businessPhone: job.business.vapiPhoneNumber ?? job.business.twilioPhone ?? job.business.phone ?? null,
     timezone: job.business.timezone,
   };
 
-  if (job.customerConfirmedAt) {
+  if (confirmLinkExpired(job, now)) {
+    return { ok: false as const, error: "expired" as const, ...shop };
+  }
+
+  if (job.customerConfirmedAt || readOnly) {
     return {
       ok: true as const,
-      already: true as const,
+      already: Boolean(job.customerConfirmedAt),
       job: {
         id: job.id,
         title: job.title,
@@ -301,6 +353,20 @@ export async function confirmJobByCustomerToken(token: string) {
   logInfo("customer.confirm_accepted", {
     jobId: job.id,
     businessId: job.businessId,
+  });
+  await recordAudit({
+    businessId: job.businessId,
+    entityType: "job",
+    entityId: job.id,
+    action: "customer.confirmed",
+    actor: "system",
+    summary: `${job.customer?.name ?? job.lead?.name ?? "The customer"} confirmed the window${
+      job.scheduledAt ? ` for ${formatWindow(job.scheduledAt, job.business.timezone) ?? job.scheduledAt.toISOString()}` : ""
+    }`,
+    jobId: job.id,
+    leadId: job.leadId,
+    customerId: job.customerId,
+    idempotencyKey: `job:${job.id}:customer-confirmed:${job.scheduledAt?.getTime() ?? "none"}`,
   });
 
   return {

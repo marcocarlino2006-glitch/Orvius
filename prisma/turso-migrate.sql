@@ -356,3 +356,405 @@ CREATE INDEX IF NOT EXISTS "Job_customerConfirmSid_idx" ON "Job"("customerConfir
 
 -- Live booking: holds ordered by a database-assigned sequence, so a later hold can never miss an earlier one.
 ALTER TABLE "Call" ADD COLUMN "heldSeq" INTEGER;
+
+-- Weekly results email to the owner.
+ALTER TABLE "Business" ADD COLUMN "weeklyReportSentAt" DATETIME;
+
+-- Owner's own calendar blocks booking.
+ALTER TABLE "Business" ADD COLUMN "busyCalendarUrl" TEXT;
+ALTER TABLE "Business" ADD COLUMN "busyCalendarJson" TEXT;
+ALTER TABLE "Business" ADD COLUMN "busyCalendarSyncedAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "busyCalendarError" TEXT;
+
+-- Rate limits shared across server instances, instead of per-instance memory.
+CREATE TABLE IF NOT EXISTS "RateLimitBucket" (
+    "key" TEXT NOT NULL PRIMARY KEY,
+    "count" INTEGER NOT NULL,
+    "resetAtMs" BIGINT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS "RateLimitBucket_resetAtMs_idx" ON "RateLimitBucket"("resetAtMs");
+
+-- Teammates and multi-location access: people other than the owner who can sign in to a shop.
+CREATE TABLE IF NOT EXISTS "Membership" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'dispatcher',
+    "invitedBy" TEXT,
+    "lastSeenAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Membership_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Membership_businessId_email_key" ON "Membership"("businessId", "email");
+CREATE INDEX IF NOT EXISTS "Membership_email_idx" ON "Membership"("email");
+
+-- Monthly call metering counts inbound calls per shop since the 1st.
+CREATE INDEX IF NOT EXISTS "Call_businessId_createdAt_idx" ON "Call"("businessId", "createdAt");
+
+-- Invoice pay links: customers pay finished work by card on the shop's account.
+ALTER TABLE "Invoice" ADD COLUMN "publicToken" TEXT;
+ALTER TABLE "Invoice" ADD COLUMN "sentAt" DATETIME;
+ALTER TABLE "Invoice" ADD COLUMN "paidAt" DATETIME;
+ALTER TABLE "Invoice" ADD COLUMN "stripeSessionId" TEXT;
+ALTER TABLE "Invoice" ADD COLUMN "applicationFeeCents" INTEGER;
+CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_publicToken_key" ON "Invoice"("publicToken");
+CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_stripeSessionId_key" ON "Invoice"("stripeSessionId");
+CREATE INDEX IF NOT EXISTS "Invoice_jobId_idx" ON "Invoice"("jobId");
+
+-- Monthly call overage is invoiced once per shop per calendar month.
+ALTER TABLE "Business" ADD COLUMN "overageBilledPeriod" TEXT;
+
+-- Enterprise audit log: who acted, and filtering by action.
+ALTER TABLE "AuditEvent" ADD COLUMN "actorEmail" TEXT;
+CREATE INDEX IF NOT EXISTS "AuditEvent_businessId_action_createdAt_idx" ON "AuditEvent"("businessId", "action", "createdAt");
+
+-- Shared-sender reply routing: which shop last texted which phone.
+CREATE TABLE IF NOT EXISTS "OutboundSms" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "toNormalized" TEXT NOT NULL,
+    "audience" TEXT NOT NULL,
+    "sid" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "OutboundSms_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "OutboundSms_toNormalized_createdAt_idx" ON "OutboundSms"("toNormalized", "createdAt");
+CREATE INDEX IF NOT EXISTS "OutboundSms_businessId_createdAt_idx" ON "OutboundSms"("businessId", "createdAt");
+
+-- Pre-purchase "hear your shop" previews; never linked to a Business.
+CREATE TABLE IF NOT EXISTS "ShopPreview" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "token" TEXT NOT NULL,
+    "shopName" TEXT NOT NULL,
+    "serviceArea" TEXT,
+    "servicesJson" TEXT NOT NULL DEFAULT '[]',
+    "hoursJson" TEXT NOT NULL DEFAULT '{}',
+    "ownerPhone" TEXT NOT NULL,
+    "ownerPhoneNormalized" TEXT NOT NULL,
+    "ip" TEXT,
+    "callsUsed" INTEGER NOT NULL DEFAULT 0,
+    "maxCalls" INTEGER NOT NULL DEFAULT 2,
+    "expiresAt" DATETIME NOT NULL,
+    "lastVapiCallId" TEXT,
+    "lastCallAt" DATETIME,
+    "lastSummary" TEXT,
+    "lastCaptureJson" TEXT,
+    "alertSentAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopPreview_token_key" ON "ShopPreview"("token");
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopPreview_lastVapiCallId_key" ON "ShopPreview"("lastVapiCallId");
+CREATE INDEX IF NOT EXISTS "ShopPreview_ownerPhoneNormalized_expiresAt_idx" ON "ShopPreview"("ownerPhoneNormalized", "expiresAt");
+CREATE INDEX IF NOT EXISTS "ShopPreview_createdAt_idx" ON "ShopPreview"("createdAt");
+-- Paid provisioning runs: a lease so concurrent setup can't buy two numbers, and a record so retries reuse the purchase.
+CREATE TABLE IF NOT EXISTS "ProvisionAttempt" (
+    "key" TEXT NOT NULL PRIMARY KEY,
+    "tag" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "leaseUntil" DATETIME NOT NULL,
+    "attempts" INTEGER NOT NULL DEFAULT 1,
+    "phoneNumber" TEXT,
+    "vapiAssistantId" TEXT,
+    "businessId" TEXT,
+    "error" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ProvisionAttempt_tag_key" ON "ProvisionAttempt"("tag");
+
+-- Every call, text and sign-in looks a shop up by one of these.
+CREATE INDEX IF NOT EXISTS "Business_ownerEmail_idx" ON "Business"("ownerEmail");
+CREATE INDEX IF NOT EXISTS "Business_twilioPhone_idx" ON "Business"("twilioPhone");
+CREATE INDEX IF NOT EXISTS "Business_vapiPhoneNumber_idx" ON "Business"("vapiPhoneNumber");
+CREATE INDEX IF NOT EXISTS "Business_vapiAssistantId_idx" ON "Business"("vapiAssistantId");
+CREATE INDEX IF NOT EXISTS "Business_stripeCustomerId_idx" ON "Business"("stripeCustomerId");
+
+-- Billing lifecycle clocks: grace after a failed payment, retention after cancel.
+ALTER TABLE "Business" ADD COLUMN "pastDueSince" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "canceledAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "lineReleasedAt" DATETIME;
+
+-- Command's change stamp reads the newest row per shop every few seconds.
+CREATE INDEX IF NOT EXISTS "Call_businessId_updatedAt_idx" ON "Call"("businessId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "Lead_businessId_updatedAt_idx" ON "Lead"("businessId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "Job_businessId_updatedAt_idx" ON "Job"("businessId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "OwnerNotification_businessId_processedAt_idx" ON "OwnerNotification"("businessId", "processedAt");
+
+-- A send in flight holds the job so concurrent autopilot runs can't text the customer twice.
+ALTER TABLE "Job" ADD COLUMN "customerConfirmClaimAt" DATETIME;
+
+-- Call recordings and transcripts are deleted after 24 months; a shop can reset its calendar feed link.
+ALTER TABLE "Call" ADD COLUMN "contentPurgedAt" DATETIME;
+CREATE INDEX IF NOT EXISTS "Call_contentPurgedAt_createdAt_idx" ON "Call"("contentPurgedAt", "createdAt");
+ALTER TABLE "Business" ADD COLUMN "calendarFeedVersion" INTEGER NOT NULL DEFAULT 1;
+
+-- Caller wait per call, from Vapi's turn timing.
+ALTER TABLE "Call" ADD COLUMN "replyP50Ms" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "replyP90Ms" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "latencyJson" TEXT;
+
+-- A time held on the call as the new time for an existing visit.
+ALTER TABLE "Call" ADD COLUMN "heldIntent" TEXT;
+
+-- Jobber: a shop's connection, and each lead's one-time trip into Jobber.
+ALTER TABLE "Customer" ADD COLUMN "jobberClientId" TEXT;
+CREATE TABLE IF NOT EXISTS "JobberConnection" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "accountId" TEXT NOT NULL,
+  "accountName" TEXT,
+  "accessTokenEnc" TEXT,
+  "refreshTokenEnc" TEXT,
+  "accessExpiresAt" DATETIME,
+  "refreshClaimAt" DATETIME,
+  "status" TEXT NOT NULL DEFAULT 'active',
+  "lastError" TEXT,
+  "connectedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "disconnectedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "JobberConnection_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "JobberConnection_businessId_key" ON "JobberConnection"("businessId");
+CREATE INDEX IF NOT EXISTS "JobberConnection_accountId_idx" ON "JobberConnection"("accountId");
+CREATE TABLE IF NOT EXISTS "JobberSync" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "leadId" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "attempts" INTEGER NOT NULL DEFAULT 0,
+  "nextAttemptAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "claimedAt" DATETIME,
+  "requestSentAt" DATETIME,
+  "jobberClientId" TEXT,
+  "jobberRequestId" TEXT,
+  "lastError" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "JobberSync_leadId_key" ON "JobberSync"("leadId");
+CREATE INDEX IF NOT EXISTS "JobberSync_status_nextAttemptAt_idx" ON "JobberSync"("status", "nextAttemptAt");
+CREATE INDEX IF NOT EXISTS "JobberSync_businessId_createdAt_idx" ON "JobberSync"("businessId", "createdAt");
+ALTER TABLE "Business" ADD COLUMN "followUpMode" TEXT NOT NULL DEFAULT 'ask';
+ALTER TABLE "Lead" ADD COLUMN "followUpSentAt" DATETIME;
+ALTER TABLE "Lead" ADD COLUMN "followUpRepliedAt" DATETIME;
+CREATE TABLE IF NOT EXISTS "PasswordLogin" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "email" TEXT NOT NULL,
+  "passwordHash" TEXT NOT NULL,
+  "verifiedAt" DATETIME,
+  "failedCount" INTEGER NOT NULL DEFAULT 0,
+  "lockedUntil" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PasswordLogin_email_key" ON "PasswordLogin"("email");
+
+-- Industry packs: /try previews answer as the business type the owner picked.
+ALTER TABLE "ShopPreview" ADD COLUMN "trade" TEXT NOT NULL DEFAULT 'HVAC';
+
+-- Indexes for hot paths: held-slot checks mid-call, follow-up scans, the unfinished-call sweep, Twilio status receipts.
+CREATE INDEX IF NOT EXISTS "Call_businessId_heldSlotAt_idx" ON "Call"("businessId", "heldSlotAt");
+CREATE INDEX IF NOT EXISTS "Lead_businessId_status_createdAt_idx" ON "Lead"("businessId", "status", "createdAt");
+CREATE INDEX IF NOT EXISTS "WebhookEvent_source_eventType_status_createdAt_idx" ON "WebhookEvent"("source", "eventType", "status", "createdAt");
+CREATE INDEX IF NOT EXISTS "OwnerNotification_deliveryId_idx" ON "OwnerNotification"("deliveryId");
+
+-- Call reports that fail to finish are retried by the 5-minute sweep before being abandoned.
+ALTER TABLE "WebhookEvent" ADD COLUMN "attempts" INTEGER NOT NULL DEFAULT 0;
+-- Unified inbox: every customer text in and out, one thread per phone.
+CREATE TABLE IF NOT EXISTS "Message" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "phoneNormalized" TEXT NOT NULL,
+  "direction" TEXT NOT NULL,
+  "author" TEXT NOT NULL,
+  "body" TEXT NOT NULL,
+  "sid" TEXT,
+  "readAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Message_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Message_businessId_sid_key" ON "Message"("businessId", "sid");
+CREATE INDEX IF NOT EXISTS "Message_businessId_phoneNormalized_createdAt_idx" ON "Message"("businessId", "phoneNormalized", "createdAt");
+CREATE INDEX IF NOT EXISTS "Message_businessId_createdAt_idx" ON "Message"("businessId", "createdAt");
+
+-- Review requests: one text with the shop's review link after a finished visit.
+ALTER TABLE "Business" ADD COLUMN "reviewUrl" TEXT;
+ALTER TABLE "Business" ADD COLUMN "reviewRequestsOn" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Job" ADD COLUMN "reviewRequestedAt" DATETIME;
+
+-- Online booking page at /b/[slug].
+ALTER TABLE "Business" ADD COLUMN "bookingPageOn" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "webChatOn" BOOLEAN NOT NULL DEFAULT false;
+
+-- Win-back: one check-in text to a lapsed customer every 90 days.
+ALTER TABLE "Customer" ADD COLUMN "winBackSentAt" DATETIME;
+
+-- Delivery receipts on inbox texts.
+ALTER TABLE "Message" ADD COLUMN "deliveryStatus" TEXT;
+
+-- Memberships / maintenance plans.
+CREATE TABLE IF NOT EXISTS "ServicePlan" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "priceCents" INTEGER NOT NULL,
+  "interval" TEXT NOT NULL,
+  "visitsPerYear" INTEGER NOT NULL DEFAULT 0,
+  "perks" TEXT,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "ServicePlan_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "ServicePlan_businessId_isActive_idx" ON "ServicePlan"("businessId", "isActive");
+CREATE TABLE IF NOT EXISTS "PlanMember" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "planId" TEXT NOT NULL,
+  "customerId" TEXT,
+  "name" TEXT,
+  "phone" TEXT NOT NULL,
+  "phoneNormalized" TEXT NOT NULL,
+  "email" TEXT,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "stripeSubscriptionId" TEXT,
+  "stripeCustomerId" TEXT,
+  "startedAt" DATETIME,
+  "currentPeriodEnd" DATETIME,
+  "canceledAt" DATETIME,
+  "nextVisitDueAt" DATETIME,
+  "visitReminderSentAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "PlanMember_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "PlanMember_planId_fkey" FOREIGN KEY ("planId") REFERENCES "ServicePlan" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PlanMember_stripeSubscriptionId_key" ON "PlanMember"("stripeSubscriptionId");
+CREATE INDEX IF NOT EXISTS "PlanMember_businessId_status_idx" ON "PlanMember"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "PlanMember_businessId_phoneNormalized_idx" ON "PlanMember"("businessId", "phoneNormalized");
+CREATE INDEX IF NOT EXISTS "PlanMember_status_nextVisitDueAt_idx" ON "PlanMember"("status", "nextVisitDueAt");
+ALTER TABLE "Message" ADD COLUMN "mediaJson" TEXT;
+CREATE TABLE IF NOT EXISTS "Takeover" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "phoneNormalized" TEXT NOT NULL,
+  "leadId" TEXT,
+  "takenBy" TEXT NOT NULL,
+  "reason" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "releasedAt" DATETIME,
+  "releasedBy" TEXT,
+  CONSTRAINT "Takeover_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Takeover_businessId_phoneNormalized_key" ON "Takeover"("businessId", "phoneNormalized");
+CREATE INDEX IF NOT EXISTS "Takeover_businessId_releasedAt_idx" ON "Takeover"("businessId", "releasedAt");
+ALTER TABLE "Call" ADD COLUMN "costMicros" INTEGER;
+ALTER TABLE "Call" ADD COLUMN "costJson" TEXT;
+CREATE TABLE IF NOT EXISTS "ShopTexting" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'submitted',
+  "detailsJson" TEXT NOT NULL,
+  "customerProfileSid" TEXT,
+  "trustProductSid" TEXT,
+  "brandSid" TEXT,
+  "messagingServiceSid" TEXT,
+  "campaignSid" TEXT,
+  "failureReason" TEXT,
+  "submittedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "approvedAt" DATETIME,
+  "lastCheckedAt" DATETIME,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "ShopTexting_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopTexting_businessId_key" ON "ShopTexting"("businessId");
+CREATE INDEX IF NOT EXISTS "ShopTexting_status_lastCheckedAt_idx" ON "ShopTexting"("status", "lastCheckedAt");
+
+CREATE TABLE IF NOT EXISTS "PortRequest" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "number" TEXT NOT NULL,
+  "carrier" TEXT NOT NULL,
+  "accountName" TEXT NOT NULL,
+  "accountNumber" TEXT NOT NULL,
+  "pinSealed" TEXT,
+  "serviceAddress" TEXT NOT NULL,
+  "authorizedName" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'received',
+  "portDate" DATETIME,
+  "note" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "PortRequest_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PortRequest_businessId_key" ON "PortRequest"("businessId");
+CREATE INDEX IF NOT EXISTS "PortRequest_status_createdAt_idx" ON "PortRequest"("status", "createdAt");
+
+ALTER TABLE "Business" ADD COLUMN "acquisitionJson" TEXT;
+ALTER TABLE "Business" ADD COLUMN "referredById" TEXT;
+CREATE TABLE IF NOT EXISTS "Referral" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "referrerId" TEXT NOT NULL,
+  "referredId" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "creditCents" INTEGER,
+  "creditedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Referral_referrerId_fkey" FOREIGN KEY ("referrerId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "Referral_referredId_fkey" FOREIGN KEY ("referredId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Referral_referredId_key" ON "Referral"("referredId");
+CREATE INDEX IF NOT EXISTS "Referral_referrerId_status_idx" ON "Referral"("referrerId", "status");
+
+ALTER TABLE "ShopPreview" ADD COLUMN "transcriptJson" TEXT;
+CREATE TABLE IF NOT EXISTS "CallReplay" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "previewId" TEXT NOT NULL,
+  "shopName" TEXT NOT NULL,
+  "trade" TEXT NOT NULL,
+  "turnsJson" TEXT NOT NULL,
+  "captureJson" TEXT,
+  "views" INTEGER NOT NULL DEFAULT 0,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "CallReplay_previewId_idx" ON "CallReplay"("previewId");
+
+ALTER TABLE "Business" ADD COLUMN "networkOn" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "networkZip3" TEXT;
+CREATE INDEX IF NOT EXISTS "Business_networkOn_trade_networkZip3_idx" ON "Business"("networkOn", "trade", "networkZip3");
+CREATE TABLE IF NOT EXISTS "NetworkHandoff" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "fromBusinessId" TEXT NOT NULL,
+  "leadId" TEXT NOT NULL,
+  "callerPhone" TEXT NOT NULL,
+  "callerPhoneNormalized" TEXT NOT NULL,
+  "trade" TEXT NOT NULL,
+  "zip3" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'asking',
+  "offeredToJson" TEXT NOT NULL DEFAULT '[]',
+  "toBusinessId" TEXT,
+  "toLeadId" TEXT,
+  "askedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "offeredAt" DATETIME,
+  "takenAt" DATETIME
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "NetworkHandoff_leadId_key" ON "NetworkHandoff"("leadId");
+CREATE INDEX IF NOT EXISTS "NetworkHandoff_callerPhoneNormalized_status_idx" ON "NetworkHandoff"("callerPhoneNormalized", "status");
+CREATE INDEX IF NOT EXISTS "NetworkHandoff_status_offeredAt_idx" ON "NetworkHandoff"("status", "offeredAt");
+CREATE INDEX IF NOT EXISTS "NetworkHandoff_toBusinessId_idx" ON "NetworkHandoff"("toBusinessId");
+
+-- Payments on by default: deposits switch on once, when card payments go live.
+ALTER TABLE "Business" ADD COLUMN "paymentsDefaultedAt" DATETIME;
+
+-- Weekly value text to the owner.
+ALTER TABLE "Business" ADD COLUMN "weeklyTextSentAt" DATETIME;
+
+-- Network fee: the passing shop's credit when the job is paid.
+ALTER TABLE "NetworkHandoff" ADD COLUMN "creditStatus" TEXT;
+ALTER TABLE "NetworkHandoff" ADD COLUMN "creditCents" INTEGER;
+ALTER TABLE "NetworkHandoff" ADD COLUMN "creditedAt" DATETIME;
+CREATE INDEX IF NOT EXISTS "NetworkHandoff_toLeadId_idx" ON "NetworkHandoff"("toLeadId");
+
+-- In-call network handoff: the caller's yes, recorded during the call.
+ALTER TABLE "Call" ADD COLUMN "networkConsentAt" DATETIME;

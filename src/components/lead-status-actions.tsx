@@ -1,6 +1,7 @@
 "use client";
 
 import { ShellBadge } from "@/components/shell-primitives";
+import { toast } from "@/components/toaster";
 import { useState } from "react";
 
 export const LEAD_STATUSES = [
@@ -37,21 +38,37 @@ export function LeadStatusActions({
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  async function saveStatus(next: string) {
+    const res = await fetch(`/api/leads/${leadId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: next }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? "Update failed");
+    setCurrent(next);
+    onUpdated?.(next);
+  }
+
   async function updateStatus(next: string) {
     if (next === current) return;
     setLoading(next);
     setError(null);
+    const previous = current;
 
     try {
-      const res = await fetch(`/api/leads/${leadId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: next }),
+      await saveStatus(next);
+      const label = LEAD_STATUSES.find((item) => item.value === next)?.label ?? next;
+      toast({
+        title: `Lead marked ${label}`,
+        action: {
+          label: "Undo",
+          run: () =>
+            saveStatus(previous).catch(() =>
+              toast({ title: "Could not undo. The lead keeps its new status.", tone: "error" }),
+            ),
+        },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Update failed");
-      setCurrent(next);
-      onUpdated?.(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
     } finally {

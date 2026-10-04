@@ -47,15 +47,15 @@ const FEED: Entry[] = [
   {
     id: "d",
     at: "01:07",
-    shop: "Ridgeline Plumbing",
-    line: "No hot water · Pine Ave",
+    shop: "Ridgeline Air",
+    line: "No heat · Pine Ave",
     detail: "After-hours intake, callback number read back and confirmed.",
     tag: "INTAKE",
   },
   {
     id: "e",
     at: "01:09",
-    shop: "Ridgeline Plumbing",
+    shop: "Ridgeline Air",
     line: "Customer confirmed by text",
     detail: "Reply logged on the job; no price or arrival time quoted.",
     tag: "CONFIRM",
@@ -100,10 +100,7 @@ export function SignInBoard() {
     <div className="ov-signin-board" aria-hidden>
       <div className="ov-signin-board-head">
         <span className="ov-signin-board-title">Dispatch activity</span>
-        <span className="ov-status-pill ov-status-pill--operational">
-          <span className="ov-status-dot" />
-          LIVE
-        </span>
+        <span className="ov-status-pill">Example</span>
       </div>
 
       <ul className="ov-signin-feed">

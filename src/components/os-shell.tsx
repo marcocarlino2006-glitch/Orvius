@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { osCurrentRing, osProductNav } from "@/lib/os-nav";
 import { displayPhone } from "@/lib/customer";
 import { useBusiness } from "@/lib/use-business";
+import { industryTerms } from "@/lib/industry-terms";
 import { usePlanAccess } from "@/lib/use-plan-access";
 import { getPlanById } from "@/lib/pricing-plans";
 import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
@@ -14,10 +15,11 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { OsIcon } from "@/components/os-icons";
 import { ASK_OPEN_EVENT, OsAskDock } from "@/components/os-ask-dock";
 import { OsCommandPalette } from "@/components/os-command-palette";
-import { OsMobileNavBackdrop, OsMobileNavButton } from "@/components/os-mobile-nav";
+import { OsMobileNavBackdrop, OsTabBar, type OsTab } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
-import { PostLockBanner } from "@/components/post-lock-banner";
+import { Toaster } from "@/components/toaster";
+import { DARK_QUERY, applyResolvedTheme, readThemeChoice, resolveTheme } from "@/lib/theme";
 
 type OsShellProps = {
   children: React.ReactNode;
@@ -27,6 +29,8 @@ type OsShellProps = {
   statusLabel?: string;
   actions?: React.ReactNode;
 };
+
+const TAB_HREFS = ["/dashboard", "/dashboard/inbox", "/dashboard/calls", "/dashboard/jobs"];
 
 function navActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
@@ -44,6 +48,9 @@ export function OsShell({
   const { business, loading: businessLoading } = useBusiness();
   const { access } = usePlanAccess();
   const businessName = businessNameProp ?? business?.name ?? "Your business";
+  const terms = industryTerms(business?.trade);
+  const navLabel = (item: { href: string; label: string }) =>
+    item.href === "/dashboard/jobs" ? terms.Jobs : item.href === "/dashboard/dispatch" ? terms.Dispatch : item.label;
   const newLeads = business?.metrics.newLeads ?? 0;
   const showAskDock = access?.canAccess("ask") ?? false;
   const unassignedJobs = business?.signals.unassignedJobs ?? 0;
@@ -58,7 +65,7 @@ export function OsShell({
   const offHours = business?.signals.afterHoursNow ?? false;
   const onSettings = pathname.startsWith("/dashboard/settings");
   /* Shown only when the line is not simply answering; a normal day needs no banner. */
-  const lineAlert = businessLoading
+  const lineAlert = businessLoading || (business?.sample && !business.line)
     ? null
     : business?.line
       ? offHours
@@ -68,9 +75,32 @@ export function OsShell({
         ? null
         : "Line not set up";
 
+  const tabs: OsTab[] = osProductNav
+    .filter((item) => TAB_HREFS.includes(item.href))
+    .filter((item) => {
+      const navModule = navHrefToModule(item.href);
+      return (item.ring ?? osCurrentRing) <= osCurrentRing + 1 && (navModule ? (access?.canAccess(navModule) ?? true) : true);
+    })
+    .map((item) => ({
+      href: item.href,
+      label: navLabel(item),
+      icon: item.icon,
+      active: navActive(pathname, item.href),
+      badge: item.href === "/dashboard/inbox" && newLeads > 0 ? String(newLeads) : undefined,
+    }));
+
   useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
+
+  /* "System" keeps following the OS while the app is open, not just at first paint. */
+  useEffect(() => {
+    if (readThemeChoice() !== "system") return;
+    const query = window.matchMedia(DARK_QUERY);
+    const onChange = () => applyResolvedTheme(resolveTheme("system"));
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -97,7 +127,6 @@ export function OsShell({
       </Link>
 
       <div className="os-ring-status">
-        <p className="os-sidebar-label font-sans">Shop</p>
         <p className="os-ring-status-title font-sans">{businessName}</p>
         <p className="os-ring-status-module font-sans">
           {businessLoading ? (
@@ -107,6 +136,8 @@ export function OsShell({
               <span className="os-ring-status-dot" aria-hidden />
               {displayPhone(business.line)}
             </>
+          ) : business?.sample ? (
+            "Demo — calls are simulated"
           ) : onSettings ? (
             "Set your line below"
           ) : (
@@ -121,7 +152,6 @@ export function OsShell({
       </div>
 
       <nav className="os-sidebar-nav" aria-label="Daily work">
-        <p className="os-sidebar-label font-sans">Daily work</p>
         <ul>
           {osProductNav.map((item) => {
             const ring = item.ring ?? osCurrentRing;
@@ -152,12 +182,12 @@ export function OsShell({
                     aria-current={active ? "page" : undefined}
                   >
                     <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{item.label}</span>
+                    <span className="os-nav-label">{navLabel(item)}</span>
                     {badge ? (
                       <span
                         className={`os-nav-badge ${badgeWarn ? "os-nav-badge-warn" : ""}`}
                         title={
-                          badgeWarn ? "Jobs with no tech assigned" : "New leads waiting"
+                          badgeWarn ? `${terms.Jobs} with no ${terms.worker} assigned` : "New leads waiting"
                         }
                       >
                         {badge}
@@ -173,7 +203,7 @@ export function OsShell({
                     title="Pay to continue"
                   >
                     <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{item.label}</span>
+                    <span className="os-nav-label">{navLabel(item)}</span>
                     <span className="os-nav-lock">Pay</span>
                   </Link>
                 ) : planAllowed === false && upgradePlan ? (
@@ -183,13 +213,13 @@ export function OsShell({
                     title={`Upgrade to ${upgradePlan.name}`}
                   >
                     <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{item.label}</span>
+                    <span className="os-nav-label">{navLabel(item)}</span>
                     <span className="os-nav-lock">Pro</span>
                   </Link>
                 ) : (
                   <span className="os-nav-link os-nav-link-disabled font-sans">
                     <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{item.label}</span>
+                    <span className="os-nav-label">{navLabel(item)}</span>
                   </span>
                 )}
               </li>
@@ -211,9 +241,11 @@ export function OsShell({
   return (
     <div className="os-shell os-shell-pro os-shell-night min-h-screen">
       <OsMobileNavBackdrop open={navOpen} onClose={() => setNavOpen(false)} />
+      <Toaster />
 
       <aside
         className={`os-sidebar os-sidebar-pro ${navOpen ? "os-sidebar-open" : ""}`}
+        aria-label="Workspace"
         aria-hidden={!navOpen ? undefined : false}
       >
         {sidebar}
@@ -222,7 +254,6 @@ export function OsShell({
       <div className="os-main os-main-pro">
         <header className="os-topbar os-topbar-pro os-topbar-night">
           <div className="os-topbar-row">
-            <OsMobileNavButton open={navOpen} onToggle={() => setNavOpen((v) => !v)} />
             <div className="os-topbar-copy">
               <h1 className="os-topbar-title font-sans">{title}</h1>
               {subtitle ? (
@@ -232,7 +263,7 @@ export function OsShell({
           </div>
           <div className="os-topbar-actions">
             {lineAlert ? (
-              <span className={`os-line-alert font-sans${business?.line ? "" : " is-off"}`}>{lineAlert}</span>
+              <span className={`os-line-alert font-sans${business?.line ? "" : " is-off"}`} title={lineAlert} aria-label={lineAlert}>{lineAlert}</span>
             ) : null}
             <button
               type="button"
@@ -251,7 +282,7 @@ export function OsShell({
               <span className="os-topbar-search-label">Search</span>
               <kbd>⌘K</kbd>
             </button>
-            {showAskDock ? (
+            {showAskDock && pathname !== "/dashboard" && !navActive(pathname, "/dashboard/ask") ? (
               <button
                 type="button"
                 className="os-topbar-search os-topbar-ask font-sans"
@@ -265,8 +296,8 @@ export function OsShell({
           </div>
         </header>
 
-        <PostLockBanner />
         <main className="os-content os-content-pro">{children}</main>
+        <OsTabBar tabs={tabs} moreOpen={navOpen} onMore={() => setNavOpen((v) => !v)} />
         {showAskDock ? <OsAskDock /> : null}
         <KeyboardShortcuts />
         <OsCommandPalette

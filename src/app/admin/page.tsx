@@ -10,6 +10,9 @@ import {
 } from "@/lib/outreach-templates";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
+import { signupChannelText } from "@/lib/acquisition";
+import { unitCostLines } from "@/lib/unit-cost-lines";
 
 type Business = {
   id: string;
@@ -35,6 +38,12 @@ type HealthStatus = {
   smsWebhookUrl: string;
   stats: { businessCount: number; leadCount: number; callCount: number };
   config: Array<{ name: string; configured: boolean; optional: boolean }>;
+};
+
+type LaunchGate = {
+  signupOpen: boolean;
+  blockers: number;
+  items: Array<{ key: string; label: string; ready: boolean; blocksSignup: boolean; fix: string[] }>;
 };
 
 const PIPELINE_STATUSES = [
@@ -92,6 +101,8 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
+  const [gate, setGate] = useState<LaunchGate | null>(null);
+  const [board, setBoard] = useState<CompanyScoreboard | null>(null);
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
@@ -153,6 +164,14 @@ export default function AdminPage() {
     fetch("/api/health")
       .then((res) => res.json())
       .then(setHealth)
+      .catch(() => null);
+    fetch("/api/admin/launch-gate")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setGate)
+      .catch(() => null);
+    fetch("/api/admin/scoreboard")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setBoard)
       .catch(() => null);
   }, []);
 
@@ -332,6 +351,9 @@ export default function AdminPage() {
     >
       <LiveStatusBar />
 
+      {board ? <ScoreboardCard board={board} /> : null}
+      {gate ? <LaunchGateCard gate={gate} /> : null}
+
       <section className="card mb-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -407,8 +429,8 @@ export default function AdminPage() {
           <Link href="/pilot" className="btn btn-secondary text-xs">
             Pilot page
           </Link>
-          <Link href="/demo" className="btn btn-secondary text-xs">
-            Demo
+          <Link href="/product" className="btn btn-secondary text-xs">
+            Product tour
           </Link>
         </div>
         {importNote ? (
@@ -447,8 +469,8 @@ export default function AdminPage() {
               <Link href="/pilot" className="btn btn-secondary text-sm">
                 Open pilot form
               </Link>
-              <Link href="/demo" className="btn btn-secondary text-sm">
-                Share demo
+              <Link href="/product" className="btn btn-secondary text-sm">
+                Share product tour
               </Link>
               <button
                 type="button"
@@ -782,5 +804,134 @@ export default function AdminPage() {
         </section>
       </div>
     </OsShell>
+  );
+}
+
+const pctText = (value: number | null) => (value == null ? "—" : `${value}%`);
+const dollars = (cents: number) => `$${Math.round(cents / 100).toLocaleString("en-US")}`;
+
+function firstJobText(minutes: number | null) {
+  if (minutes == null) return "—";
+  if (minutes < 120) return `${minutes} min`;
+  if (minutes < 2 * 24 * 60) return `${Math.round(minutes / 60)} h`;
+  return `${Math.round(minutes / (24 * 60))} days`;
+}
+
+/** The weekly board: the same numbers every Monday, this week against last. */
+function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
+  const rows: Array<{ label: string; value: (week: ScoreboardWeek) => string }> = [
+    { label: "New shops", value: (w) => String(w.newShops) },
+    { label: "Canceled", value: (w) => String(w.churnedShops) },
+    { label: "Calls", value: (w) => String(w.calls) },
+    { label: "Finished cleanly", value: (w) => pctText(w.answeredCleanPct) },
+    { label: "Booking rate", value: (w) => pctText(w.bookingRate) },
+    { label: "Jobs booked", value: (w) => String(w.jobsBooked) },
+    { label: "Collected", value: (w) => dollars(w.collectedCents) },
+  ];
+  return (
+    <section className="card mb-8 p-6" aria-label="Weekly scoreboard">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="home-os-kicker">Scoreboard</p>
+          <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+            {board.payingShops} paying {board.payingShops === 1 ? "shop" : "shops"} · {board.activeShops} active
+          </h2>
+        </div>
+        <p className="font-sans text-xs text-ash">
+          Signup to first booked job: {firstJobText(board.signupToFirstJobMinutes)} median
+          {board.shopsWithoutFirstJob ? ` · ${board.shopsWithoutFirstJob} new without one` : ""}
+        </p>
+      </div>
+      <table className="mt-4 w-full font-sans text-sm">
+        <thead>
+          <tr className="text-left text-xs text-ash">
+            <th className="py-1 font-normal">Last 7 days</th>
+            <th className="py-1 text-right font-normal">This week</th>
+            <th className="py-1 text-right font-normal">Week before</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label} className="border-t border-black/5">
+              <td className="py-1.5 text-void">{row.label}</td>
+              <td className="py-1.5 text-right tabular-nums text-void">{row.value(board.thisWeek)}</td>
+              <td className="py-1.5 text-right tabular-nums text-ash">{row.value(board.lastWeek)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Where new shops came from">
+        New shops by source, 30 days: {signupChannelText(board.signupChannels ?? [])}
+      </p>
+      <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Shop density">
+        <p className="py-0.5">
+          Network: {board.networkReadyAreas ?? 0} area(s) where a pass can land · {board.networkJobs30d ?? 0} job(s)
+          passed and taken, 30 days
+        </p>
+        {(board.density ?? []).length ? (
+          <table className="mt-2 w-full font-sans text-xs">
+            <thead>
+              <tr className="text-left text-ash">
+                <th className="py-1 font-normal">Area</th>
+                <th className="py-1 font-normal">Trade</th>
+                <th className="py-1 text-right font-normal">Shops</th>
+                <th className="py-1 text-right font-normal">On network</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(board.density ?? []).map((c) => (
+                <tr key={`${c.zip3}-${c.trade}`} className="border-t border-black/5">
+                  <td className="py-1 tabular-nums text-void">{c.zip3}xx</td>
+                  <td className="py-1 text-void">{c.trade}</td>
+                  <td className="py-1 text-right tabular-nums text-void">{c.shops}</td>
+                  <td className="py-1 text-right tabular-nums text-ash">{c.networkOn}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="py-0.5">No located shops yet.</p>
+        )}
+      </div>
+      <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Unit cost">
+        {unitCostLines(board.unitCost ?? null).map((line) => (
+          <p key={line} className="py-0.5">
+            {line}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** What stands between today and public signup, each with the exact fix. */
+function LaunchGateCard({ gate }: { gate: LaunchGate }) {
+  return (
+    <section className="card mb-8 p-6" aria-label="Launch gate">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="home-os-kicker">Launch</p>
+          <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+            {gate.signupOpen ? "Signup is open" : `${gate.blockers} ${gate.blockers === 1 ? "step" : "steps"} before signup opens`}
+          </h2>
+        </div>
+        <ShellBadge tone={gate.signupOpen ? "live" : "flare"}>{gate.signupOpen ? "Open" : "Closed"}</ShellBadge>
+      </div>
+      <ul className="mt-4 space-y-3">
+        {gate.items.map((item) => (
+          <li key={item.key} className="font-sans text-sm">
+            <p className={item.ready ? "text-live" : "text-void"}>
+              {item.ready ? "✓" : "○"} {item.label}
+              {!item.ready && !item.blocksSignup ? " · does not block signup, but alerts may not arrive" : ""}
+            </p>
+            {item.fix.map((step) => (
+              <p key={step} className="ml-5 mt-1 text-xs text-ash">
+                {step}
+              </p>
+            ))}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

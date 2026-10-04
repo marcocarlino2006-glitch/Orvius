@@ -12,6 +12,8 @@ import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
+import { WinBackCard } from "@/components/win-back-card";
+import { PlansCard } from "@/components/plans-card";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -67,10 +69,8 @@ export default function CustomersPage() {
 
   const tally = useMemo(() => {
     const returning = customers.filter((c) => c.returning).length;
-    const touchpoints = customers.reduce((sum, c) => sum + c.interactionCount, 0);
     return {
       returning,
-      touchpoints,
       /*
         Repeat rate is the number that decides whether a shop grows, so it leads
         this page rather than the headcount. Withheld below ten customers: one
@@ -104,12 +104,8 @@ export default function CustomersPage() {
                 ? [
                     { label: "Customers", value: customers.length },
                     { label: "Returning", value: tally.returning },
-                    { label: "Touchpoints", value: tally.touchpoints },
                   ]
-                : [
-                    { label: "Returning", value: tally.returning },
-                    { label: "Touchpoints", value: tally.touchpoints },
-                  ]
+                : [{ label: "Returning", value: tally.returning }]
             }
           />
 
@@ -169,6 +165,8 @@ export default function CustomersPage() {
           {customers.length ? (
             <ProListEnd count={customers.length} noun="customer" />
           ) : null}
+          {!query ? <WinBackCard /> : null}
+          {!query ? <PlansCard /> : null}
         </>
       )}
       </PlanUpgradeGate>

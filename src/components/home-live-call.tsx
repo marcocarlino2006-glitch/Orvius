@@ -75,7 +75,8 @@ const SCRIPT: Beat[] = [
     who: "orvius",
     text: "Your window will arrive by text to confirm. The owner has your request.",
     duration: 4.6,
-    gap: 0.9,
+    // Long enough to read the owner's text before the loop restarts.
+    gap: 5,
     stage: 4,
   },
 ];
@@ -125,7 +126,7 @@ const BARS = Array.from({ length: BAR_COUNT }, (_, i) => {
 });
 
 /** Everything the player conveys, written out for assistive technology. */
-const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then alerts the owner. The customer confirms the window by text — Orvius never quotes a price or an arrival time.`;
+const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then texts the owner the job: same day, AC not cooling, the callback number, the address, and the proposed window awaiting the customer's confirmation. The customer confirms the window by text — Orvius never quotes a price or an arrival time.`;
 
 function clock(seconds: number) {
   const whole = Math.max(0, Math.floor(seconds));
@@ -417,6 +418,26 @@ export function HomeLiveCall() {
             ))}
           </footer>
         </div>
+
+        {/* Same line order as buildOwnerLeadAlertMessage in owner-alert-message.ts. */}
+        {view.stage >= STAGES.length ? (
+          <div className="ov-owner-text" aria-hidden>
+            <p className="ov-owner-text-head">
+              <span className="ov-owner-text-app">Messages</span>
+              <span>now</span>
+            </p>
+            <p className="ov-owner-text-from">Orvius · Summit HVAC</p>
+            <p className="ov-owner-text-body">
+              <strong>Same day · AC not cooling</strong>
+              <br />
+              512-555-0123
+              <br />
+              1842 Oak Street
+              <br />
+              Proposed window · Today 4–6 PM (awaiting customer confirm)
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {/* The player is a visual timeline; this is the whole call in prose. */}

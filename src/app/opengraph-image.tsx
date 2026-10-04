@@ -2,6 +2,7 @@ import { brandWordmark } from "@/lib/brand-typography";
 import { company } from "@/lib/company";
 import { DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { ImageResponse } from "next/og";
+import { OrviusWordmarkGraphic } from "@/lib/orvius-mark-graphic";
 
 export const alt = `Orvius — ${company.tagline.replace(/\.$/, "")}`;
 export const size = { width: 1200, height: 630 };
@@ -17,22 +18,12 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#23262b",
+          background: "#000000",
           padding: "72px 80px",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            fontSize: 42,
-            fontWeight: 800,
-            color: "#f4f6f9",
-            letterSpacing: "-0.08em",
-            textTransform: "lowercase",
-            lineHeight: 0.9,
-          }}
-        >
-          {brandWordmark}
+        <div style={{ display: "flex" }} aria-label={brandWordmark}>
+          <OrviusWordmarkGraphic width={300} />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -66,8 +57,8 @@ export default function OpenGraphImage() {
               color: "rgba(244,246,249,0.62)",
             }}
           >
-            Call the live product. Capture the request, propose an open window,
-            and alert the owner.
+            Answers your calls, schedules the work, sends your people, follows
+            up and shows you what happened.
           </div>
         </div>
 

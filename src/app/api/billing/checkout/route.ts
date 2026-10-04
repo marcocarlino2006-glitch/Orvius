@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAllowedEmails } from "@/lib/auth-allowlist";
+import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { auth } from "@/auth";
 import { isPrivilegedRequest } from "@/lib/admin-access";
 import { company } from "@/lib/company";
@@ -22,14 +24,22 @@ import {
   isPlanCheckoutReady,
   type PaidPlanId,
 } from "@/lib/pricing-plans";
+import { shopHasLivePlan } from "@/lib/billing-sync";
 import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
+import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
+import { resolveShopAccess } from "@/lib/workspace-access";
+import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
+import { acquisitionMetadata, findReferrer } from "@/lib/referrals";
 
 const checkoutSchema = z.object({
-  email: z.string().email(),
+  /** Defaults to the signed-in email; when sent it must match it. */
+  email: z.string().email().optional(),
   businessId: z.string().optional(),
   planId: z.enum(["line", "pro", "fleet"]).default("pro"),
   interval: z.enum(["month", "year"]).default("month"),
+  /** A new shop's details, so paying is the last step before the line exists. */
+  shop: shopDraftSchema.merge(consentSchema).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -61,7 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Sign in to subscribe" }, { status: 401 });
     }
 
-    if (sessionEmail !== body.email.toLowerCase()) {
+    if (body.email && sessionEmail !== body.email.toLowerCase()) {
       return forbiddenResponse();
     }
 
@@ -73,25 +83,75 @@ export async function POST(request: NextRequest) {
       ? await prisma.business.findFirst({
           where: { id: body.businessId, ownerEmail: sessionEmail },
         })
-      : await prisma.business.findFirst({
+      : ((await resolveShopAccess(sessionEmail).then((a) => (a?.role === "owner" ? a.business : null))) ??
+        (await prisma.business.findFirst({
           where: { ownerEmail: sessionEmail },
           orderBy: { createdAt: "asc" },
-        });
+        })));
+
+    /*
+      A shop that is already paying changes plans in the billing portal. A
+      second checkout would open a second subscription and charge twice.
+    */
+    if (business && shopHasLivePlan(business)) {
+      return NextResponse.json(
+        {
+          error: `${business.name} already has a plan. Change or update it in Settings → Billing.`,
+          code: "already_subscribed",
+          manageUrl: "/dashboard?settings=billing",
+        },
+        { status: 409 },
+      );
+    }
+
+    // Paying must lead to a shop: someone who can't create one yet is not charged.
+    if (
+      !business &&
+      !canCreateShopForEmail(
+        sessionEmail,
+        (normalized) => getAllowedEmails().includes(normalized),
+        getPublicLaunchReadiness().ready,
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error: "Card signup isn't open yet. Book a call audit at orvius.im/pilot and we'll set up your shop with you.",
+          code: "self_serve_signup_disabled",
+        },
+        { status: 403 },
+      );
+    }
+
+    const setupPath = `/dashboard/onboarding?plan=${body.planId}&interval=${body.interval}`;
+    if (!business && !body.shop) {
+      return NextResponse.json(
+        { error: "Tell us about your shop first.", code: "shop_details_needed", setupUrl: setupPath },
+        { status: 409 },
+      );
+    }
+    const shopMetadata =
+      !business && body.shop ? shopDraftMetadata(shopDraftSchema.parse(body.shop), new Date()) : {};
+    const acquisition = business ? null : parseAcquisition(request.cookies.get(ACQUISITION_COOKIE)?.value);
+    const referralCoupon = process.env.ORVIUS_REFERRAL_COUPON_ID?.trim();
+    const referred = Boolean(referralCoupon && acquisition?.ref && (await findReferrer(acquisition.ref)));
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       ...(business?.stripeCustomerId
         ? { customer: business.stripeCustomerId }
-        : { customer_email: body.email }),
+        : { customer_email: sessionEmail }),
       line_items: [
         {
           price: requireStripePriceIdForPlan(body.planId, body.interval),
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/pricing?canceled=1`,
-      allow_promotion_codes: true,
+      success_url: business
+        ? `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`
+        : `${baseUrl}/dashboard/onboarding?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: business ? `${baseUrl}/pricing?canceled=1` : `${baseUrl}${setupPath}&canceled=1`,
+      // Stripe takes either a fixed discount or a promo-code box, not both.
+      ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
       billing_address_collection: "auto",
       subscription_data: {
         metadata: {
@@ -107,6 +167,8 @@ export async function POST(request: NextRequest) {
         interval: body.interval,
         businessId: business?.id ?? "",
         legalEntity: company.legalName,
+        ...shopMetadata,
+        ...acquisitionMetadata(acquisition),
       },
     });
 

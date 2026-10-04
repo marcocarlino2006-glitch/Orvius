@@ -7,7 +7,8 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportMailto } from "@/lib/support";
-import { fetchAccount } from "@/lib/account-client";
+import { fetchAccount, invalidateAccount } from "@/lib/account-client";
+import { ROLE_LABELS, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
 
 const planSerif = Libre_Baskerville({
   weight: "700",
@@ -25,7 +26,10 @@ type AccountData = {
     ownerEmail?: string | null;
     trade?: string | null;
     environment?: string | null;
+    id?: string;
   } | null;
+  role?: ShopRole | null;
+  shops?: ShopSummary[];
   billing: {
     status: string;
     planId: string | null;
@@ -49,7 +53,9 @@ type IconName =
   | "sparkle"
   | "chevron"
   | "phone"
-  | "bell";
+  | "bell"
+  | "back"
+  | "check";
 
 type MenuItem = {
   href: string;
@@ -105,14 +111,22 @@ function billingValue(account: AccountData | null): string {
   return "See plans";
 }
 
-function workspaceLabel(role: "Owner" | "Member" | null): string {
-  return role === "Member" ? "Member" : "Personal";
+/** Per-tab state that belongs to the shop being left: its setup verdict and "since you looked" anchor. */
+function clearWorkspaceSessionState() {
+  try {
+    for (const key of ["orvius:workspace-ready", "orvius.command.since"]) sessionStorage.removeItem(key);
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<"menu" | "locations">("menu");
+  const [switching, setSwitching] = useState<string | null>(null);
+  const [shopQuery, setShopQuery] = useState("");
   const [account, setAccount] = useState<AccountData | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -127,7 +141,10 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setView("menu");
+      return;
+    }
 
     function onPointerDown(event: PointerEvent) {
       if (!rootRef.current?.contains(event.target as Node)) {
@@ -151,16 +168,31 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
 
   const name = session.user.name ?? "User";
   const email = session.user.email ?? "";
-  const ownerEmail = account?.business?.ownerEmail?.toLowerCase() ?? null;
-  const role: "Owner" | "Member" | null = !account
-    ? null
-    : ownerEmail && email.toLowerCase() === ownerEmail
-      ? "Owner"
-      : "Member";
+  const role = account?.role ? ROLE_LABELS[account.role] : null;
+  const currentId = account?.business?.id ?? null;
+  const otherShops = (account?.shops ?? []).filter((shop) => shop.id !== currentId);
+  const needle = shopQuery.trim().toLowerCase();
+  const shownShops = needle ? otherShops.filter((shop) => shop.name.toLowerCase().includes(needle)) : otherShops;
   const environment = account?.business?.environment ?? "production";
   const sampleWorkspace = environment === "demo" || environment === "test";
   const upgradeLabel = billingStatusOf(account) === "past_due" ? "Fix payment" : "Upgrade";
   const close = () => setOpen(false);
+
+  async function openShop(id: string) {
+    setSwitching(id);
+    const res = await fetch("/api/shop/switch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessId: id }),
+    }).catch(() => null);
+    if (res?.ok) {
+      invalidateAccount();
+      clearWorkspaceSessionState();
+      window.location.assign("/dashboard");
+      return;
+    }
+    setSwitching(null);
+  }
 
   return (
     <div ref={rootRef} className="os-sidebar-footer mx-footer font-sans">
@@ -172,21 +204,82 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
 
       {open ? (
         <div id={menuId} className="mx-menu" role="menu" aria-label="Account menu">
-          <Link
-            href="/dashboard?settings=account"
+          {view === "locations" ? (
+            <div className="mx-locations">
+              <button type="button" className="mx-link mx-back" onClick={() => setView("menu")}>
+                <MenuIcon name="back" />
+                <span>Locations</span>
+              </button>
+              <div className="mx-ws is-current" aria-current="true">
+                <span className="mx-ws-mark" aria-hidden>
+                  {mark(account?.business?.name)}
+                </span>
+                <span className="mx-identity-copy">
+                  <span className="mx-name">{account?.business?.name ?? "Your business"}</span>
+                  <span className="mx-sub">{[account?.business?.trade, role].filter(Boolean).join(" · ")}</span>
+                </span>
+                <MenuIcon name="check" className="mx-ws-check" />
+              </div>
+              {otherShops.length > 6 ? (
+                <input
+                  className="mx-ws-filter"
+                  type="search"
+                  aria-label="Find a location"
+                  placeholder={`Find one of ${otherShops.length + 1} locations`}
+                  value={shopQuery}
+                  onChange={(e) => setShopQuery(e.target.value)}
+                />
+              ) : null}
+              <div className="mx-ws-list">
+                {shownShops.map((shop) => (
+                  <button
+                    key={shop.id}
+                    type="button"
+                    role="menuitem"
+                    className="mx-ws"
+                    disabled={switching !== null}
+                    onClick={() => void openShop(shop.id)}
+                  >
+                    <span className="mx-ws-mark" aria-hidden>
+                      {mark(shop.name)}
+                    </span>
+                    <span className="mx-identity-copy">
+                      <span className="mx-name">{shop.name}</span>
+                      <span className="mx-sub">
+                        {switching === shop.id ? "Opening…" : [shop.trade, ROLE_LABELS[shop.role]].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+                {needle && !shownShops.length ? <p className="mx-ws-note">No location matches.</p> : null}
+              </div>
+              {otherShops.length ? (
+                <Link href="/dashboard/portfolio" role="menuitem" className="mx-ws-all" onClick={close}>
+                  All {otherShops.length + 1} locations side by side
+                </Link>
+              ) : (
+                <p className="mx-ws-note">This sign-in has one workspace.</p>
+              )}
+            </div>
+          ) : (
+          <>
+          <button
+            type="button"
             role="menuitem"
             className="pm-identity mx-identity"
-            onClick={close}
+            aria-label="Switch location"
+            title="Switch location"
+            onClick={() => setView("locations")}
           >
             <span className="mx-avatar" aria-hidden>
               {mark(session.user.name)}
             </span>
             <span className="mx-identity-copy">
               <span className="mx-name">{name}</span>
-              <span className="mx-sub">{workspaceLabel(role)}</span>
+              <span className="mx-sub">{account?.business?.name ?? role ?? "Personal"}</span>
             </span>
             <MenuIcon name="updown" className="mx-updown" />
-          </Link>
+          </button>
 
           <div className="mx-plan">
             <div className="mx-plan-head">
@@ -247,6 +340,8 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
               <span>Sign out</span>
             </button>
           </div>
+          </>
+          )}
         </div>
       ) : null}
 
@@ -312,6 +407,8 @@ const MENU_PATHS: Record<IconName, string[]> = {
     "M18.5 15.5v4M16.5 17.5h4",
   ],
   chevron: ["M10 7.5 14.5 12 10 16.5"],
+  back: ["M14 7.5 9.5 12l4.5 4.5"],
+  check: ["m6.5 12.5 3.5 3.5 7.5-8"],
   phone: [
     "M8.2 4.5H6.3A1.8 1.8 0 0 0 4.5 6.4C4.9 13.8 10.2 19.1 17.6 19.5a1.8 1.8 0 0 0 1.9-1.8v-1.9a1 1 0 0 0-.7-1l-2.6-.9a1 1 0 0 0-1.1.3l-1 1.2a11 11 0 0 1-5.5-5.5l1.2-1a1 1 0 0 0 .3-1.1l-.9-2.6a1 1 0 0 0-1-.7Z",
   ],

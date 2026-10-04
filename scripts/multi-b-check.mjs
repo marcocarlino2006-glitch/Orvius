@@ -12,6 +12,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveFormationStateConfirmed } from "./lib/formation-state.mjs";
 import { probeProdBillingSync } from "./lib/prod-billing.mjs";
+import { readSettingsSource } from "./lib/settings-source.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const skipCash = process.env.MULTI_B_SKIP_CASH === "1";
@@ -178,7 +179,7 @@ gate(
   "Founder cert reaches Settings",
   (() => {
     try {
-      const settings = readFileSync(join(root, "src/components/settings-center/settings-center.tsx"), "utf8");
+      const settings = readSettingsSource(root);
       const account = readFileSync(join(root, "src/app/api/account/route.ts"), "utf8");
       const schema = readFileSync(join(root, "prisma/schema.prisma"), "utf8");
       return (

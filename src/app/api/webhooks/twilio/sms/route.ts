@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { after } from "next/server";
+import { afterResponse } from "@/lib/after-response";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { inferExplicitUrgency, maybeAutoBookLead } from "@/lib/auto-job";
@@ -27,10 +27,15 @@ import {
   validateTwilioRequest,
 } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
-import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { resolveBusinessForInboundSms } from "@/lib/resolve-shop-line";
 import { twimlMessage as twimlResponse } from "@/lib/twiml";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
+import { answerFollowUpReply } from "@/lib/lead-follow-up";
+import { hasActiveOwnerConversation, inboundMediaFromForm, PHOTO_ONLY_BODY, recordMessage } from "@/lib/messages";
+import { hasOpenWebChat } from "@/lib/web-chat";
+import { handleOwnerText } from "@/lib/owner-text-commands";
+import { answerNetworkConsent } from "@/lib/orvius-network";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -39,7 +44,7 @@ export async function POST(request: NextRequest) {
   const form = await request.formData();
   const from = String(form.get("From") ?? "");
   const to = String(form.get("To") ?? "");
-  const body = String(form.get("Body") ?? "").trim();
+  const typed = String(form.get("Body") ?? "").trim();
   const messageSid = String(form.get("MessageSid") ?? "").trim();
 
   const formEntries = Object.fromEntries(
@@ -58,11 +63,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid Twilio signature" }, { status: 403 });
   }
 
+  const media = inboundMediaFromForm(formEntries);
+  const body = typed || (media.length ? PHOTO_ONLY_BODY : "");
   if (!from || !to || !body) {
     return twimlResponse("");
   }
 
-  const business = await resolveBusinessByInboundPhone(to);
+  const business = await resolveBusinessForInboundSms({ to, from });
 
   if (!business) {
     /*
@@ -119,9 +126,35 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const fromOwner = phonesEqual(from, business.ownerPhone);
+  if (!fromOwner) {
+    await recordMessage({
+      businessId: business.id,
+      phone: from,
+      direction: "in",
+      author: "customer",
+      body,
+      sid: messageSid || null,
+      media,
+    });
+  }
+  const reply = async (text: string) => {
+    if (!fromOwner && text) {
+      await recordMessage({
+        businessId: business.id,
+        phone: from,
+        direction: "out",
+        author: "orvius",
+        body: text,
+        sid: messageSid ? `reply:${messageSid}` : null,
+      });
+    }
+    return twimlResponse(text);
+  };
+
   const keyword = parseSmsKeyword(body);
   if (keyword) {
-    const reply = await handleSmsKeyword({
+    const keywordReply = await handleSmsKeyword({
       keyword,
       businessId: business.id,
       from,
@@ -140,8 +173,28 @@ export async function POST(request: NextRequest) {
       businessId: business.id,
       messageSid,
     });
-    return twimlResponse(reply);
+    return reply(keywordReply);
   }
+
+  // The owner's own phone is a control line, not a customer: a reply runs a command.
+  if (fromOwner) {
+    const commandReply = await handleOwnerText({ shop: business, body });
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `${business.id}:${from}:owner:${Date.now()}`,
+      eventType: commandReply ? "owner-command" : "owner-text",
+      businessId: business.id,
+      status: "processed",
+      payload: { from, to },
+    });
+    return twimlResponse(
+      commandReply ??
+        "Reply to an alert with BOOK, TEXT <message>, CALLED or SPAM. Reply ? for the full list. (Testing as a customer? Text from another phone.)",
+    );
+  }
+
+  const networkReply = await answerNetworkConsent({ business, from, body });
+  if (networkReply) return reply(networkReply);
 
   if (messageSid) {
     const existing = await prisma.lead.findFirst({
@@ -157,6 +210,26 @@ export async function POST(request: NextRequest) {
       return twimlResponse(SMS_REPLY);
     }
   }
+
+  if (
+    !fromOwner &&
+    ((await hasActiveOwnerConversation(business.id, from)) || (await hasOpenWebChat(business.id, from)))
+  ) {
+    await alertOwnerOfReply({ business, from, body, messageSid });
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `${business.id}:${from}:conversation:${Date.now()}`,
+      eventType: "inbound-conversation",
+      businessId: business.id,
+      status: "processed",
+      payload: { from, to },
+    });
+    await afterResponse(() => drainOwnerAlerts({ at: "twilio.sms.conversation", messageSid, businessId: business.id }));
+    return twimlResponse("");
+  }
+
+  const followUpReply = await answerFollowUpReply({ business, from, to, body, messageSid });
+  if (followUpReply) return reply(followUpReply);
 
   // A text says "SMS inquiry" in serviceType and everything real in the body,
   // so the widened pass is what classifies these.
@@ -176,7 +249,7 @@ export async function POST(request: NextRequest) {
         businessId: business.id,
         externalId: messageSid || null,
         phone: from,
-        notes: body,
+        notes: media.length ? `${body}\n[${media.length} photo${media.length === 1 ? "" : "s"} in Inbox → Messages]` : body,
         serviceType,
         urgency,
         source: "sms",
@@ -194,31 +267,50 @@ export async function POST(request: NextRequest) {
     throw error;
   }
 
-  await recordAudit({
-    businessId: business.id,
-    entityType: "lead",
-    entityId: lead.id,
-    action: "lead.captured",
-    summary: `Text captured — ${serviceType}${urgency ? ` · ${urgency}` : ""}`,
-    detail: { channel: "sms", categoryCode: demand.categoryCode },
-    leadId: lead.id,
-    idempotencyKey: `sms:${messageSid || lead.id}:captured`,
-  });
+  /*
+    Twilio never redelivers an inbound text, so once the lead exists nothing
+    after it may stop the owner alert. A failure here costs the booking, not
+    the alert; the stranded-lead sweep covers a function that dies outright.
+  */
+  let autoBook: Awaited<ReturnType<typeof maybeAutoBookLead>> = {
+    jobId: null,
+    created: false,
+    qualified: false,
+  };
+  let bookedJob: { id: string; scheduledAt: Date | null; customerConfirmedAt: Date | null } | null = null;
+  try {
+    await recordAudit({
+      businessId: business.id,
+      entityType: "lead",
+      entityId: lead.id,
+      action: "lead.captured",
+      summary: `Text captured — ${serviceType}${urgency ? ` · ${urgency}` : ""}`,
+      detail: { channel: "sms", categoryCode: demand.categoryCode },
+      leadId: lead.id,
+      idempotencyKey: `sms:${messageSid || lead.id}:captured`,
+    });
 
-  await linkTouchToCustomer({
-    businessId: business.id,
-    leadId: lead.id,
-    phone: from,
-    notes: body,
-  });
+    await linkTouchToCustomer({
+      businessId: business.id,
+      leadId: lead.id,
+      phone: from,
+      notes: body,
+    });
 
-  const autoBook = await maybeAutoBookLead(lead.id);
-  const bookedJob = autoBook.jobId
-    ? await prisma.job.findUnique({
-        where: { id: autoBook.jobId },
-        select: { id: true, scheduledAt: true, customerConfirmedAt: true },
-      })
-    : null;
+    autoBook = await maybeAutoBookLead(lead.id);
+    bookedJob = autoBook.jobId
+      ? await prisma.job.findUnique({
+          where: { id: autoBook.jobId },
+          select: { id: true, scheduledAt: true, customerConfirmedAt: true },
+        })
+      : null;
+  } catch (error) {
+    logError("twilio.sms.post_capture_failed", {
+      messageSid,
+      leadId: lead.id,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+  }
 
   logInfo("twilio.sms.auto_book", {
     messageSid,
@@ -276,7 +368,7 @@ export async function POST(request: NextRequest) {
     payload: { from, to, leadId: lead.id },
   });
 
-  after(() => drainOwnerAlerts({ at: "twilio.sms", messageSid, businessId: business.id }));
+  await afterResponse(() => drainOwnerAlerts({ at: "twilio.sms", messageSid, businessId: business.id }));
 
   const safetyReply =
     autoBook.skipReason === "safety_escalation" ||
@@ -284,7 +376,23 @@ export async function POST(request: NextRequest) {
     demand.categoryCode === "elec.hazard"
       ? "If there is immediate danger, leave the area and call 911. We received your service request and will follow up shortly."
       : SMS_REPLY;
-  return twimlResponse(safetyReply);
+  return reply(safetyReply);
+}
+
+async function alertOwnerOfReply(params: {
+  business: { id: string; name: string; ownerPhone: string | null; ownerEmail: string | null };
+  from: string;
+  body: string;
+  messageSid: string;
+}) {
+  await enqueueOwnerAlert({
+    businessId: params.business.id,
+    ownerPhone: params.business.ownerPhone,
+    ownerEmail: params.business.ownerEmail,
+    businessName: params.business.name,
+    message: `Reply from ${params.from}: ${params.body}\nAnswer it in Inbox → Messages.`,
+    dedupeKey: `sms-reply:${params.messageSid || `${params.from}:${Date.now()}`}`,
+  });
 }
 
 async function handleSmsKeyword(params: {

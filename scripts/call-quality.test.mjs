@@ -174,3 +174,30 @@ test("summary counts verdicts and names the most common problem", () => {
   assert.equal(summary.fix, 1);
   assert.deepEqual(summary.top[0], { key: "missing_capture", label: "missed caller details", count: 2 });
 });
+
+test("over-talking is flagged: stacked questions and long turns, not the disclosure or danger line", () => {
+  const long = Array.from({ length: 50 }, (_, i) => `word${i}`).join(" ");
+  const transcript = [
+    "AI: Thanks for calling Summit Heating and Air. This call may be recorded and assisted by an automated receptionist for Summit Heating and Air, and I am here to help you today with anything you need for your heating or cooling system at home or work.",
+    "User: My AC is not cooling.",
+    "AI: What's the address? And what's your name?",
+    "User: 18 Oak Street. Dana.",
+    `AI: ${long}.`,
+  ].join("\n");
+  const grade = gradeCall({ call: call({ transcript, booked: true }), lead: lead(), business: hvac });
+  const stacked = grade.findings.find((f) => f.key === "stacked_questions");
+  const longReply = grade.findings.find((f) => f.key === "long_reply");
+  assert.equal(stacked.quote, "What's the address? And what's your name?");
+  assert.ok(longReply.quote.startsWith("word0"));
+  assert.equal(grade.verdict, "listen");
+
+  const transcribed = gradeCall({
+    call: call({ booked: true, transcript: "AI: Got it? No heat with a baby at home is urgent. What is the full address?\nUser: 18 Oak Street." }),
+    lead: lead(),
+    business: hvac,
+  });
+  assert.ok(!transcribed.findings.some((f) => f.key === "stacked_questions"));
+
+  const clean = gradeCall({ call: call({ booked: true }), lead: lead(), business: hvac });
+  assert.ok(!clean.findings.some((f) => f.key === "stacked_questions" || f.key === "long_reply"));
+});

@@ -2,12 +2,19 @@ import { NextResponse } from "next/server";
 import { isReceptionistVoice, resolveVoiceId } from "@/lib/voices";
 import { auth } from "@/auth";
 import { company, getPlanById, pricing, pricingPlans } from "@/lib/company";
+import { busyCalendarHost } from "@/lib/busy-calendar";
+import { normalizeReviewUrl } from "@/lib/review-requests";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
+import { jobberStatus } from "@/lib/jobber";
 import { getShopLineForBusiness } from "@/lib/demo-business";
-import { getBusinessForOwnerWithAutoLine } from "@/lib/provision-business";
+import { getShopAccessWithAutoLine } from "@/lib/provision-business";
+import { recordAudit } from "@/lib/audit";
+import { roleForbiddenResponse } from "@/lib/tenant";
+import { can, listShopAccess, resolveShopAccess, summarizeShops } from "@/lib/workspace-access";
 import { isEmailConfigured } from "@/lib/email";
 import { isFounderEmail } from "@/lib/founder";
 import { prisma } from "@/lib/prisma";
+import { TRADES } from "@/lib/trades";
 import {
   getShopLines,
   validateOwnerPhoneForAlerts,
@@ -20,6 +27,8 @@ import {
   resolvePilotEndsAt,
 } from "@/lib/billing-entitlement";
 import { getShopHealth } from "@/lib/shop-health";
+import { summarizeCallUsage } from "@/lib/call-usage";
+import { getMonthValue, monthValueLine } from "@/lib/month-value";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import {
   MAX_DEPOSIT_CENTS,
@@ -34,10 +43,11 @@ import {
 } from "@/lib/platform-fee";
 import { normalizePhone } from "@/lib/customer";
 import { z } from "zod";
+import { zip3From } from "@/lib/orvius-network";
 
 const patchSchema = z.object({
   name: z.string().min(2).max(120).optional(),
-  trade: z.enum(["HVAC", "Plumbing", "Electrical"]).nullable().optional(),
+  trade: z.enum(TRADES).nullable().optional(),
   address: z.string().max(280).nullable().optional(),
   ownerPhone: z.string().min(10).optional(),
   ownerEmail: z.string().email().optional(),
@@ -59,6 +69,12 @@ const patchSchema = z.object({
   serviceZipsJson: z.string().max(2000).optional(),
   depositEnabled: z.boolean().optional(),
   autopilot: z.boolean().optional(),
+  followUpMode: z.enum(["off", "ask", "auto"]).optional(),
+  reviewUrl: z.string().max(500).nullable().optional(),
+  reviewRequestsOn: z.boolean().optional(),
+  bookingPageOn: z.boolean().optional(),
+  webChatOn: z.boolean().optional(),
+  networkOn: z.boolean().optional(),
   depositAmountCents: z
     .number()
     .int()
@@ -99,7 +115,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const businessRecord = await getBusinessForOwnerWithAutoLine(email);
+  const [access, shops] = await Promise.all([getShopAccessWithAutoLine(email), listShopAccess(email)]);
+  const businessRecord = access?.business ?? null;
+  const role = access?.role ?? null;
 
   const business = businessRecord
     ? {
@@ -109,6 +127,7 @@ export async function GET(request: Request) {
         trade: businessRecord.trade,
         environment: businessRecord.environment,
         address: businessRecord.address,
+        networkOn: businessRecord.networkOn,
         ownerPhone: businessRecord.ownerPhone,
         ownerEmail: businessRecord.ownerEmail,
         twilioPhone: businessRecord.twilioPhone,
@@ -138,6 +157,11 @@ export async function GET(request: Request) {
         serviceZipsJson: businessRecord.serviceZipsJson ?? "[]",
         depositEnabled: businessRecord.depositEnabled,
         autopilot: businessRecord.autopilot,
+        followUpMode: businessRecord.followUpMode,
+        reviewUrl: businessRecord.reviewUrl,
+        reviewRequestsOn: businessRecord.reviewRequestsOn,
+        bookingPageOn: businessRecord.bookingPageOn,
+        webChatOn: businessRecord.webChatOn,
         depositAmountCents: businessRecord.depositAmountCents,
         ownerSmsOptOutAt: businessRecord.ownerSmsOptOutAt
           ? businessRecord.ownerSmsOptOutAt.toISOString()
@@ -147,7 +171,10 @@ export async function GET(request: Request) {
 
   /* Readiness costs three round trips and no screen reads it from here; Command gets it from ring1. */
   const withReadiness = new URL(request.url).searchParams.get("include") === "readiness";
-  const health = business && withReadiness ? await getShopHealth(business.id) : null;
+  const [health, monthValue] = await Promise.all([
+    business && withReadiness ? getShopHealth(business.id) : null,
+    business ? getMonthValue(business.id) : null,
+  ]);
   const wedge = business && health ? await getWedgeReadiness(business.id, health) : null;
 
   const currentPlanId = business?.billingPlan ?? null;
@@ -182,6 +209,8 @@ export async function GET(request: Request) {
       image: session.user.image ?? null,
     },
     business,
+    role,
+    shops: summarizeShops(shops),
     line: business ? getShopLineForBusiness(business) : null,
     health,
     wedge,
@@ -191,7 +220,15 @@ export async function GET(request: Request) {
       ownerSmsOptedOut: Boolean(businessRecord?.ownerSmsOptOutAt),
     },
     founder,
-    calendarFeedUrl: business ? calendarFeedUrl(business.id) : null,
+    calendarFeedUrl: businessRecord ? calendarFeedUrl(businessRecord.id, businessRecord.calendarFeedVersion) : null,
+    busyCalendar: businessRecord?.busyCalendarUrl
+      ? {
+          source: busyCalendarHost(businessRecord.busyCalendarUrl),
+          syncedAt: businessRecord.busyCalendarSyncedAt?.toISOString() ?? null,
+          error: businessRecord.busyCalendarError,
+        }
+      : null,
+    jobber: businessRecord ? await jobberStatus(businessRecord.id).catch(() => null) : null,
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),
@@ -207,9 +244,62 @@ export async function GET(request: Request) {
       hasSubscription: Boolean(business?.stripeSubscriptionId),
       entitled,
       pilotEndsAt: pilotEnds?.toISOString() ?? null,
+      usage: monthValue ? summarizeCallUsage({ used: monthValue.callsAnswered, planId: currentPlanId }) : null,
+      valueLine: monthValue ? monthValueLine(monthValue) : null,
     },
     deposits: businessRecord ? depositsPayload(businessRecord) : null,
   });
+}
+
+/** Settings an owner can change, as the activity log names them. Long JSON fields are logged as changed, not by value. */
+const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
+  name: { label: "shop name" },
+  trade: { label: "trade" },
+  address: { label: "shop address" },
+  ownerPhone: { label: "owner mobile" },
+  ownerEmail: { label: "owner email" },
+  greeting: { label: "opening line" },
+  transferPhone: { label: "transfer number" },
+  voiceId: { label: "receptionist voice" },
+  avgTicketCents: { label: "average ticket" },
+  baselineMissedCallsPerWeek: { label: "missed calls baseline" },
+  baselineJobsPerWeek: { label: "jobs baseline" },
+  overflowForwardConfirmedAt: { label: "call capture confirmation", value: false },
+  captureMode: { label: "capture mode" },
+  forwardCarrier: { label: "carrier" },
+  hoursJson: { label: "open hours", value: false },
+  servicesJson: { label: "services", value: false },
+  serviceZipsJson: { label: "service ZIPs", value: false },
+  depositEnabled: { label: "deposits" },
+  depositAmountCents: { label: "deposit amount" },
+  autopilot: { label: "routine work handling" },
+  followUpMode: { label: "follow-up texts" },
+  reviewUrl: { label: "review link" },
+  reviewRequestsOn: { label: "review requests" },
+  bookingPageOn: { label: "online booking" },
+  webChatOn: { label: "website chat" },
+  networkOn: { label: "Orvius Network" },
+};
+
+function settingsChanges(before: Record<string, unknown>, after: Record<string, unknown>) {
+  const norm = (v: unknown) => (v instanceof Date ? v.toISOString() : v ?? null);
+  return Object.entries(SETTING_LABELS)
+    .filter(([key]) => JSON.stringify(norm(before[key])) !== JSON.stringify(norm(after[key])))
+    .map(([key, { label, value }]) =>
+      value === false ? { field: key, label } : { field: key, label, from: norm(before[key]), to: norm(after[key]) },
+    );
+}
+
+/** The shop's region for the Orvius Network: its address ZIP, else the first ZIP it serves. */
+function networkZip3For(address: string | null, serviceZipsJson: string | null) {
+  const fromAddress = zip3From(address);
+  if (fromAddress) return fromAddress;
+  try {
+    const zips = JSON.parse(serviceZipsJson ?? "[]") as unknown[];
+    return zip3From(zips.map(String).join(" "));
+  } catch {
+    return null;
+  }
 }
 
 const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "servicesJson"] as const;
@@ -225,14 +315,12 @@ export async function PATCH(request: Request) {
   try {
     const body = patchSchema.parse(await request.json());
 
-    const existing = await prisma.business.findFirst({
-      where: { ownerEmail: email, isActive: true },
-      orderBy: { createdAt: "asc" },
-    });
-
-    if (!existing) {
+    const access = await resolveShopAccess(email);
+    if (!access) {
       return NextResponse.json({ error: "No shop linked" }, { status: 404 });
     }
+    if (!can(access.role, "settings.edit")) return roleForbiddenResponse("settings.edit");
+    const existing = access.business;
 
     if (body.ownerPhone !== undefined) {
       const phoneCheck = validateOwnerPhoneForAlerts({
@@ -311,6 +399,31 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: depositCheck.error }, { status: 400 });
     }
 
+    let reviewUrl: string | null | undefined;
+    if (body.reviewUrl !== undefined) {
+      if (!body.reviewUrl?.trim()) {
+        reviewUrl = null;
+      } else {
+        const checked = normalizeReviewUrl(body.reviewUrl);
+        if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
+        reviewUrl = checked.url;
+      }
+    }
+
+    const networkOn = body.networkOn ?? existing.networkOn;
+    const networkZip3 = networkOn
+      ? networkZip3For(
+          body.address !== undefined ? body.address : existing.address,
+          body.serviceZipsJson !== undefined ? body.serviceZipsJson : existing.serviceZipsJson,
+        )
+      : existing.networkZip3;
+    if (body.networkOn === true && !networkZip3) {
+      return NextResponse.json(
+        { error: "Add your shop address with its ZIP code first, so nearby shops can be matched." },
+        { status: 400 },
+      );
+    }
+
     const business = await prisma.business.update({
       where: { id: existing.id },
       data: {
@@ -320,7 +433,7 @@ export async function PATCH(request: Request) {
           ? { address: body.address?.trim() || null }
           : {}),
         ...(body.ownerPhone !== undefined
-          ? { ownerPhone: body.ownerPhone.trim() }
+          ? { ownerPhone: normalizePhone(body.ownerPhone) ?? body.ownerPhone.trim() }
           : {}),
         ...(body.ownerEmail !== undefined
           ? { ownerEmail: body.ownerEmail.trim().toLowerCase() }
@@ -368,6 +481,13 @@ export async function PATCH(request: Request) {
           ? { depositEnabled: body.depositEnabled }
           : {}),
         ...(body.autopilot !== undefined ? { autopilot: body.autopilot } : {}),
+        ...(body.followUpMode !== undefined ? { followUpMode: body.followUpMode } : {}),
+        ...(reviewUrl !== undefined ? { reviewUrl } : {}),
+        ...(body.reviewRequestsOn !== undefined ? { reviewRequestsOn: body.reviewRequestsOn } : {}),
+        ...(body.bookingPageOn !== undefined ? { bookingPageOn: body.bookingPageOn } : {}),
+        ...(body.webChatOn !== undefined ? { webChatOn: body.webChatOn } : {}),
+        ...(body.networkOn !== undefined ? { networkOn: body.networkOn } : {}),
+        ...(networkZip3 !== existing.networkZip3 ? { networkZip3 } : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
           : {}),
@@ -375,6 +495,20 @@ export async function PATCH(request: Request) {
     });
 
     const { business: saved } = await autoEnsureCustomerShopLine(business);
+
+    const changed = settingsChanges(existing as unknown as Record<string, unknown>, business as unknown as Record<string, unknown>);
+    if (changed.length) {
+      await recordAudit({
+        businessId: existing.id,
+        entityType: "shop",
+        entityId: existing.id,
+        action: "settings.changed",
+        actor: access.role === "owner" ? "owner" : "teammate",
+        actorEmail: email,
+        summary: `${email} changed ${changed.map((c) => c.label).join(", ")}.`,
+        detail: { changes: changed },
+      });
+    }
 
     let assistantSynced = true;
     let syncError: string | null = null;
@@ -426,6 +560,13 @@ export async function PATCH(request: Request) {
         vapiPhoneNumber: saved.vapiPhoneNumber,
         depositEnabled: saved.depositEnabled,
         autopilot: saved.autopilot,
+        followUpMode: saved.followUpMode,
+        reviewUrl: saved.reviewUrl,
+        reviewRequestsOn: saved.reviewRequestsOn,
+        bookingPageOn: saved.bookingPageOn,
+        webChatOn: saved.webChatOn,
+        networkOn: saved.networkOn,
+        slug: saved.slug,
         depositAmountCents: saved.depositAmountCents,
       },
       deposits: depositsPayload(saved),

@@ -2,10 +2,12 @@
 
 import {
   isBillingEntitled,
+  PAST_DUE_GRACE_DAYS,
   isPilotExpired,
   resolvePilotEndsAt,
   type BusinessBillingFields,
 } from "@/lib/billing-entitlement";
+import { pricing } from "@/lib/pricing-plans";
 
 export type PayPromptTone = "trial" | "required" | "past_due" | "locked";
 
@@ -54,7 +56,7 @@ export function getPayPromptDecision(
       show: true,
       tone: "past_due",
       headline: "Payment failed — keep your line live",
-      body: "Update billing now so after-hours calls keep converting into qualified jobs. Access stays locked until payment succeeds.",
+      body: `Your line keeps answering. Update your card within ${PAST_DUE_GRACE_DAYS} days of the failed payment or the workspace locks until it succeeds.`,
       primaryCta: "Fix payment",
       snoozeMs: 0,
       hard: true,
@@ -93,8 +95,8 @@ export function getPayPromptDecision(
         ? "Pay to run Orvius for your shop"
         : "Keep Orvius for your shop",
     body: endingSoon
-      ? "Pay with card now so after-hours calls keep becoming qualified jobs without interruption. Pro is $299/mo — cancel anytime."
-      : "Shop access is temporary. Pro is $299/mo — one tap opens Stripe Checkout. We’ll ask again soon.",
+      ? `Pay with card now so after-hours calls keep becoming qualified jobs without interruption. Pro is $${pricing.pro.price}/mo — cancel anytime.`
+      : `Shop access is temporary. Pro is $${pricing.pro.price}/mo — one tap opens Stripe Checkout. We’ll ask again soon.`,
     primaryCta: "Pay with card",
     snoozeMs: endingSoon || status === "none" ? 2 * HOUR : 4 * HOUR,
     hard: false,

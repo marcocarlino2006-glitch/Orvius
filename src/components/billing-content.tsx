@@ -16,6 +16,8 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { fetchAccount } from "@/lib/account-client";
+import { callUsageLine, type CallUsage } from "@/lib/call-usage";
+import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
 
 type BillingChecklistItem = {
   id: string;
@@ -54,6 +56,8 @@ type BillingAccount = {
     hasSubscription: boolean;
     entitled?: boolean;
     pilotEndsAt?: string | null;
+    usage?: CallUsage | null;
+    valueLine?: string | null;
   };
 };
 
@@ -137,13 +141,9 @@ export function BillingContent() {
   const otherPlans = paidPlans.filter((plan) => plan.id !== featuredId);
   const checkoutReady = account?.billing.configured ?? false;
   const founder = account?.founder ?? false;
-  const fullyReady = account?.billing.fullyReady ?? false;
-  const readiness = account?.billing.readiness;
-  const checklist = readiness?.checklist ?? [];
   const loading = loadState === "loading";
   const locked = !entitled;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
-  const openCount = checklist.filter((item) => !item.ok).length;
 
   return (
     <>
@@ -162,143 +162,58 @@ export function BillingContent() {
         </div>
       ) : (
         <div className="billing-settings">
-          {founder ? (
-            <ShellPanel title="Money setup" dense>
-              {loading ? (
-                <ShellLoading />
-              ) : (
-                <div className="billing-money-setup font-sans">
-                  <p className="billing-money-setup-lead">
-                    {fullyReady
-                      ? "Checkout is live. Run one test Pay with card below, then flip to live keys when you’re ready for real cards."
-                      : checkoutReady
-                        ? "Pay can open — finish the open items so webhooks and every plan stay honest."
-                        : "One checklist. Paste on Vercel, redeploy, then Pay with card appears for shops."}
-                  </p>
-                  <ul className="billing-money-checklist" aria-label="Money setup checklist">
-                    {(checklist.length
-                      ? checklist
-                      : [
-                          {
-                            id: "secret",
-                            label: "Stripe secret key",
-                            detail: "STRIPE_SECRET_KEY on Vercel",
-                            ok: false,
-                          },
-                          {
-                            id: "publishable",
-                            label: "Publishable key",
-                            detail: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-                            ok: false,
-                          },
-                          {
-                            id: "prices",
-                            label: "Plan prices",
-                            detail: "Line, Pro, Fleet price IDs",
-                            ok: false,
-                          },
-                          {
-                            id: "webhook",
-                            label: "Webhook",
-                            detail: "STRIPE_WEBHOOK_SECRET",
-                            ok: false,
-                          },
-                        ]
-                    ).map((item) => (
-                      <li
-                        key={item.id}
-                        className={`billing-money-check ${item.ok ? "is-ok" : "is-open"}`}
-                      >
-                        <span className="billing-money-check-mark" aria-hidden>
-                          {item.ok ? "✓" : "○"}
-                        </span>
-                        <span className="billing-money-check-copy">
-                          <strong>{item.label}</strong>
-                          <span>{item.detail}</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  {!fullyReady && openCount > 0 ? (
-                    <p className="billing-money-setup-foot">
-                      {openCount} open · Redeploy after each Vercel paste ·{" "}
-                      <code>docs/BILLING-SETUP.md</code>
-                    </p>
-                  ) : null}
-                  {fullyReady ? (
-                    <p className="billing-money-setup-foot billing-money-setup-foot--live">
-                      All green · Owners see Pay with card · You can take a test card now
-                    </p>
-                  ) : null}
-                </div>
-              )}
-            </ShellPanel>
-          ) : null}
-
-          <ShellPanel title="Current plan" dense>
-            {loading ? (
-              <ShellLoading />
-            ) : (
-              <>
-                <div className="account-plan-badge font-sans">
-                  <p className="account-plan-name">
+          {loading ? (
+            <ShellLoading />
+          ) : (
+            <>
+              <div className="sc-plan">
+                <div>
+                  <p className="sc-plan-kicker">Plan</p>
+                  <p className="sc-plan-name">
                     {locked
                       ? "Locked"
                       : status === "pilot"
                         ? pricing.pilot.name
                         : status === "active" || status === "past_due"
-                          ? account?.billing.plan.name ?? "Orvius"
+                          ? `${account?.billing.plan.name ?? "Orvius"} · $${account?.billing.plan.price} ${account?.billing.plan.period}`
                           : "No plan"}
                   </p>
-                  <p className="account-plan-price">
-                    {status === "active" || status === "past_due"
-                      ? `$${account?.billing.plan.price}/${account?.billing.plan.period}`
-                      : status === "pilot" && entitled
-                        ? pricing.pilot.period
-                        : locked
-                          ? "Pay required"
-                          : "—"}
-                  </p>
+                  <p className="sc-plan-detail">{statusCopy(status, entitled, pilotEndsAt)}</p>
                 </div>
-                <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
-                  {statusCopy(status, entitled, pilotEndsAt)}
-                </p>
-                {account?.business ? (
-                  <p className="mt-2 font-sans text-xs text-ash">
-                    Billed to {account.business.name}
-                  </p>
-                ) : null}
                 {(status === "active" || status === "past_due") && hasStripeCustomer ? (
-                  <div className="mt-5">
-                    <BillingPortalButton />
+                  <BillingPortalButton
+                    label={status === "past_due" ? "Fix payment" : "Manage"}
+                    buttonClassName={status === "past_due" ? "sc-btn sc-btn--primary" : "sc-btn"}
+                  />
+                ) : null}
+              </div>
+              {account?.billing.usage ? (
+                <div className={`billing-usage billing-usage--${account.billing.usage.tone} font-sans`}>
+                  <p className="billing-usage-line">{callUsageLine(account.billing.usage)}</p>
+                  <div
+                    className="billing-usage-meter"
+                    role="meter"
+                    aria-label="Included calls used this month"
+                    aria-valuemin={0}
+                    aria-valuemax={account.billing.usage.included}
+                    aria-valuenow={Math.min(account.billing.usage.used, account.billing.usage.included)}
+                  >
+                    <span style={{ width: `${Math.round(account.billing.usage.fraction * 100)}%` }} />
                   </div>
-                ) : null}
-              </>
-            )}
-          </ShellPanel>
-
-          <ShellPanel title={status === "active" ? "Subscription" : "Pay"} dense>
-            {loading ? (
-              <ShellLoading />
-            ) : status === "active" ? (
-              <p className="font-sans text-sm text-live">
-                Subscription active. Receipts are sent to your email from Stripe.
-                {hasStripeCustomer ? (
-                  <span className="mt-4 block">
-                    <BillingPortalButton label="Update payment method" />
-                  </span>
-                ) : null}
-              </p>
-            ) : status === "past_due" && hasStripeCustomer ? (
-              <>
-                <p className="font-sans text-sm leading-relaxed text-ash">
-                  Fix your payment method to keep Orvius running.
-                </p>
-                <div className="mt-5">
-                  <BillingPortalButton label="Update payment method" />
+                  <p className="billing-usage-foot">
+                    {account.billing.usage.overCalls > 0
+                      ? `${account.billing.usage.overCalls.toLocaleString("en-US")} × ${OVERAGE_CENTS_PER_CALL}¢ = $${(account.billing.usage.overageCents / 100).toFixed(2)} so far. Calls never stop at the limit.`
+                      : `Past the allowance every call is still answered, at ${OVERAGE_CENTS_PER_CALL}¢ each. Resets on the 1st.`}
+                  </p>
                 </div>
-              </>
-            ) : checkoutReady ? (
+              ) : null}
+              {account?.billing.valueLine ? <p className="billing-value-line font-sans">{account.billing.valueLine}</p> : null}
+            </>
+          )}
+
+          {loading || status === "active" || (status === "past_due" && hasStripeCustomer) ? null : (
+          <ShellPanel title="Pay" dense>
+            {checkoutReady ? (
               <>
                 <div className="account-billing-pay-hero font-sans">
                   <p className="account-billing-pay-kicker">
@@ -349,7 +264,7 @@ export function BillingContent() {
               <>
                 <p className="font-sans text-sm leading-relaxed text-ash">
                   {founder
-                    ? "Pay with card unlocks when the Money setup checklist is green. Finish the open items above, redeploy, then refresh."
+                    ? "Pay with card unlocks when the Stripe launch gates in Settings → Internal are green."
                     : "Card checkout isn’t open yet. Your shop access stays active — we’ll notify you before billing begins. Need to pay now?"}{" "}
                   {!founder ? (
                     <a
@@ -364,6 +279,7 @@ export function BillingContent() {
               </>
             )}
           </ShellPanel>
+          )}
 
           <div id="payouts">
             <ConnectPayoutsPanel />
@@ -371,22 +287,10 @@ export function BillingContent() {
 
           <DepositSettingsPanel />
 
-          <ShellPanel title="Legal" dense>
-            <ul className="account-legal-links font-sans">
-              <li>
-                <Link href="/terms">Terms of Service</Link>
-              </li>
-              <li>
-                <Link href="/refunds">Refunds & cancellation</Link>
-              </li>
-              <li>
-                <Link href="/privacy">Privacy Policy</Link>
-              </li>
-              <li>
-                <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
-              </li>
-            </ul>
-          </ShellPanel>
+          <p className="billing-legal font-sans">
+            Receipts come from Stripe. <Link href="/terms">Terms</Link> · <Link href="/refunds">Refunds</Link> ·{" "}
+            <Link href="/privacy">Privacy</Link> · <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
+          </p>
         </div>
       )}
     </>

@@ -7,8 +7,7 @@ import { ProShopLineCta } from "@/components/pro-shop-line-cta";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
-import type { CallQualitySummary, CallVerdict } from "@/lib/call-quality";
-import Link from "next/link";
+import type { CallVerdict } from "@/lib/call-quality";
 import { useEffect, useMemo, useState } from "react";
 
 type CallRow = {
@@ -32,23 +31,10 @@ type CallRow = {
   quality: { score: number; verdict: CallVerdict; headline: string };
 };
 
-function qualityDetail(summary: CallQualitySummary | null) {
-  if (!summary?.graded) return "Every one transcribed, qualified, and filed against a customer.";
-  const review = summary.listen + summary.fix;
-  if (!review) {
-    return `Every call reviewed. All ${summary.graded} went cleanly.`;
-  }
-  const top = summary.top[0];
-  return `${summary.clean} of ${summary.graded} went cleanly. ${review} ${
-    review === 1 ? "is" : "are"
-  } worth a listen${top ? `, most often for ${top.label}` : ""}.`;
-}
-
 export default function CallsPage() {
   const [calls, setCalls] = useState<CallRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [quality, setQuality] = useState<CallQualitySummary | null>(null);
   const [filter, setFilter] = useState<"" | "review">("");
 
   useEffect(() => {
@@ -59,7 +45,6 @@ export default function CallsPage() {
       })
       .then((data) => {
         setCalls(data.calls ?? []);
-        setQuality(data.quality ?? null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -69,9 +54,6 @@ export default function CallsPage() {
     () => ({
       afterHours: calls.filter((call) => call.afterHours).length,
       booked: calls.filter((call) => call.booked).length,
-      returning: calls.filter(
-        (call) => (call.customer?.interactionCount ?? 0) > 1,
-      ).length,
     }),
     [calls],
   );
@@ -81,25 +63,17 @@ export default function CallsPage() {
   return (
     <OsShell
       title="Calls"
-      actions={
-        <Link href="/dashboard/inbox" className="btn btn-void text-sm">
-          Inbox
-        </Link>
-      }
     >
       <ProLead
         loading={loading}
         figure={String(calls.length)}
         caption="Answered"
-        detail={qualityDetail(quality)}
         facts={[
           {
             label: "After hours",
             value: tally.afterHours,
           },
           { label: "Booked", value: tally.booked },
-          { label: "Returning", value: tally.returning },
-          { label: "To review", value: toReview.length, live: toReview.length > 0 },
         ]}
         action={<ProShopLineCta label="Test call" showNumber={false} />}
       />

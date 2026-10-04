@@ -1,0 +1,153 @@
+.rp-wrap {
+  max-width: 40rem;
+}
+
+.rp {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rp-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.rp-kicker {
+  margin: 0;
+  font-family: var(--ov-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ov-muted);
+}
+
+.rp-title {
+  margin: 0;
+  font-family: var(--ov-font);
+  font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--ov-headline);
+}
+
+.rp-sub {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ov-muted);
+}
+
+.rp-call {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 12rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ov-line);
+  border-radius: 1.1rem;
+  background: var(--ov-paper-raised);
+}
+
+.rp-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 85%;
+  animation: rp-in 220ms ease-out both;
+}
+
+.rp-turn--ai {
+  align-self: flex-start;
+}
+
+.rp-turn--caller {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.rp-who {
+  font-family: var(--ov-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ov-muted);
+}
+
+.rp-text {
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ov-ink);
+  background: var(--ov-paper);
+  border: 1px solid var(--ov-line);
+}
+
+.rp-turn--caller .rp-text {
+  color: var(--ov-paper);
+  background: var(--ov-ink);
+  border-color: var(--ov-ink);
+}
+
+.rp-typing {
+  margin: 0;
+  color: var(--ov-muted);
+  letter-spacing: 0.2em;
+}
+
+.rp-card {
+  margin-top: 0.5rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ov-line);
+  border-radius: 0.9rem;
+  background: var(--ov-paper);
+  animation: rp-in 260ms ease-out both;
+}
+
+.rp-card-kicker {
+  margin: 0 0 0.35rem;
+  font-family: var(--ov-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ov-muted);
+}
+
+.rp-card-line {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ov-ink);
+}
+
+.rp-card-meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: var(--ov-muted);
+}
+
+.rp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@keyframes rp-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-turn,
+  .rp-card {
+    animation: none;
+  }
+}

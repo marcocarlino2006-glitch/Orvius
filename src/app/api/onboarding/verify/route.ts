@@ -2,6 +2,7 @@ import { getShopLineForBusiness } from "@/lib/demo-business";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
+import { OWNER_TEST_CALL_PREFIX } from "@/lib/owner-test-call";
 
 /**
  * Poll after the owner dials their new line.
@@ -16,7 +17,8 @@ export async function GET() {
 
   const [completedCall, recentLead] = await Promise.all([
     prisma.call.findFirst({
-      where: { businessId: business.id, status: "completed" },
+      // The in-app test call never touches the phone network, so it cannot prove the line.
+      where: { businessId: business.id, status: "completed", NOT: { vapiCallId: { startsWith: OWNER_TEST_CALL_PREFIX } } },
       orderBy: { createdAt: "desc" },
       select: { id: true, createdAt: true, callerPhone: true },
     }),

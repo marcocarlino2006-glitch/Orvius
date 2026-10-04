@@ -15,6 +15,10 @@ model Business {
   environment          String   @default("production")
   /** Orvius sends confirmations and assigns clear-cut jobs itself; the owner can turn this off. */
   autopilot            Boolean  @default(true)
+  /** Texting callers who did not book: "off", "ask" (owner taps send) or "auto". */
+  followUpMode         String   @default("ask")
+  /** Bumped when the owner resets their calendar feed link; old links stop working. */
+  calendarFeedVersion  Int      @default(1)
   phone                String?
   ownerPhone           String?
   ownerEmail           String?
@@ -57,10 +61,29 @@ model Business {
   /** Deposit asked for at booking. Null amount or false means deposits off. */
   depositEnabled                Boolean  @default(false)
   depositAmountCents            Int?
+  /** When card payments first went live and deposits were switched on by default. Set once. */
+  paymentsDefaultedAt           DateTime?
   /** When the free design-partner window ends. After this, subscribe or lock. */
   pilotEndsAt          DateTime?
   /** Last time owner copied/exported weekly economics proof. */
   lastWeeklyProofAt    DateTime?
+  /** Last automatic Monday results email. */
+  weeklyReportSentAt DateTime?
+  /** Last weekly value text to the owner's phone. */
+  weeklyTextSentAt   DateTime?
+  /// Owner's private iCal address; busy times there are never offered to callers.
+  busyCalendarUrl      String?
+  /** Where a finished customer is asked to leave a review (Google, Yelp, Facebook…). */
+  reviewUrl            String?
+  /** Text each finished customer the review link once, the day of the visit. */
+  reviewRequestsOn     Boolean  @default(true)
+  /** Public booking page at /b/[slug]; off until the owner shares it. */
+  bookingPageOn        Boolean  @default(false)
+  /** Chat bubble for the shop's own website (/embed.js); visitors are answered by text. */
+  webChatOn            Boolean  @default(false)
+  busyCalendarJson     String?
+  busyCalendarSyncedAt DateTime?
+  busyCalendarError    String?
   /** Founder phone cert checklist JSON — boolean[] matching Settings scenarios. */
   founderCertJson      String?
   /** Owner confirmed missed/busy/after-hours forward to Orvius line. */
@@ -97,6 +120,7 @@ model Business {
   leads            Lead[]
   customers        Customer[]
   jobs             Job[]
+  jobberConnection JobberConnection?
   technicians      Technician[]
   estimates        Estimate[]
   invoices         Invoice[]
@@ -107,10 +131,197 @@ model Business {
   pushSubscriptions  PushSubscription[]
   webhookEvents      WebhookEvent[]
   smsOptOuts         SmsOptOut[]
+  takeovers          Takeover[]
+  outboundSms        OutboundSms[]
+  texting            ShopTexting?
+  portRequest        PortRequest?
+  /// First touch before signup (ref, utm, referring site, landing page), as JSON.
+  acquisitionJson    String?
+  /// Orvius Network: passes jobs it can't take to nearby shops in its trade and receives theirs.
+  networkOn          Boolean  @default(false)
+  /// First three digits of the shop's ZIP; the network matches shops within the same region.
+  networkZip3        String?
+  /// The shop whose link this one signed up from.
+  referredById       String?
+  referralsMade      Referral[] @relation("ReferralReferrer")
+  referredBy         Referral?  @relation("ReferralReferred")
+  messages           Message[]
+  servicePlans       ServicePlan[]
+  planMembers        PlanMember[]
   auditEvents        AuditEvent[]
+  memberships        Membership[]
+  /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
+  overageBilledPeriod String?
+  /** When Stripe first reported the subscription past due; the grace period runs from here. */
+  pastDueSince       DateTime?
+  /** When the subscription ended; the line is suspended now and released after the retention window. */
+  canceledAt         DateTime?
+  /** When a lapsed shop's number was given back to Twilio. */
+  lineReleasedAt     DateTime?
+
+  @@index([ownerEmail])
+  @@index([twilioPhone])
+  @@index([vapiPhoneNumber])
+  @@index([vapiAssistantId])
+  @@index([stripeCustomerId])
+  @@index([networkOn, trade, networkZip3])
 }
 
 /** Phone numbers that opted out of SMS on a shop line (STOP). */
+/// Every text Orvius sends goes out from one shared sender, so a reply cannot be
+/// routed by the number it was sent to. This is how a reply finds its shop.
+/// Carrier registration (A2P 10DLC) so a shop's customer and tech texts come
+/// from its own number. Until `status` is "approved" they use the shared sender.
+/// One shop sending another. The referrer is credited a month of its plan
+/// when the referred shop's first paid invoice clears.
+model Referral {
+  id          String    @id @default(cuid())
+  referrerId  String
+  referrer    Business  @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId  String    @unique
+  referred    Business  @relation("ReferralReferred", fields: [referredId], references: [id], onDelete: Cascade)
+  /// pending → crediting → credited, or void when the referrer had stopped paying.
+  status      String    @default("pending")
+  creditCents Int?
+  creditedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([referrerId, status])
+}
+
+/// A shop asking to move its existing number onto Orvius. Orvius files it with
+/// the carriers; the owner fills one form instead of emailing a bill and a PIN.
+model PortRequest {
+  id             String    @id @default(cuid())
+  businessId     String    @unique
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  number         String
+  carrier        String
+  accountName    String
+  accountNumber  String
+  /// Port-out PIN, sealed with secret-box; null when sealing isn't configured.
+  pinSealed      String?
+  serviceAddress String
+  authorizedName String
+  /// received → filed → scheduled → done, or failed.
+  status         String    @default("received")
+  portDate       DateTime?
+  note           String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model ShopTexting {
+  id                  String    @id @default(cuid())
+  businessId          String    @unique
+  business            Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /// submitted → profile_review → brand_review → campaign_review → approved, or failed.
+  status              String    @default("submitted")
+  /// The legal details the carriers require, as the owner entered them.
+  detailsJson         String
+  customerProfileSid  String?
+  trustProductSid     String?
+  brandSid            String?
+  messagingServiceSid String?
+  campaignSid         String?
+  failureReason       String?
+  submittedAt         DateTime  @default(now())
+  approvedAt          DateTime?
+  lastCheckedAt       DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status, lastCheckedAt])
+}
+
+model OutboundSms {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  toNormalized String
+  audience     String
+  sid          String?
+  createdAt    DateTime @default(now())
+
+  @@index([toNormalized, createdAt])
+  @@index([businessId, createdAt])
+}
+
+/** A membership or maintenance plan customers pay for monthly or yearly. */
+model ServicePlan {
+  id            String   @id @default(cuid())
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name          String
+  priceCents    Int
+  /** month | year */
+  interval      String
+  /** Included visits a year; drives the "your visit is due" text. 0 means none. */
+  visitsPerYear Int      @default(0)
+  perks         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  members PlanMember[]
+
+  @@index([businessId, isActive])
+}
+
+model PlanMember {
+  id                   String      @id @default(cuid())
+  businessId           String
+  business             Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  planId               String
+  plan                 ServicePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  customerId           String?
+  name                 String?
+  phone                String
+  phoneNormalized      String
+  email                String?
+  /** pending | active | past_due | canceled */
+  status               String      @default("pending")
+  stripeSubscriptionId String?     @unique
+  stripeCustomerId     String?
+  startedAt            DateTime?
+  currentPeriodEnd     DateTime?
+  canceledAt           DateTime?
+  nextVisitDueAt       DateTime?
+  visitReminderSentAt  DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, phoneNormalized])
+  @@index([status, nextVisitDueAt])
+}
+
+/** Every customer text in and out, so the owner reads and answers one thread per phone. */
+model Message {
+  id              String   @id @default(cuid())
+  businessId      String
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  phoneNormalized String
+  /** in | out */
+  direction       String
+  /** customer | orvius | owner */
+  author          String
+  body            String
+  sid             String?
+  /** Carrier receipt for an outbound text: sent | delivered | undelivered | failed. */
+  deliveryStatus  String?
+  /** Photos on an inbound text: JSON [{ url, type }], Twilio media URLs fetched only through the authed proxy. */
+  mediaJson       String?
+  /** Set when the owner has read an inbound text. */
+  readAt          DateTime?
+  createdAt       DateTime @default(now())
+
+  @@unique([businessId, sid])
+  @@index([businessId, phoneNormalized, createdAt])
+  @@index([businessId, createdAt])
+}
+
 model SmsOptOut {
   id           String   @id @default(cuid())
   businessId   String
@@ -125,6 +336,24 @@ model SmsOptOut {
   @@index([businessId, clearedAt])
 }
 
+/// A person took this conversation over: Orvius stops automated texts to the phone until released.
+model Takeover {
+  id              String    @id @default(cuid())
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  phoneNormalized String
+  leadId          String?
+  /// Sign-in email of the person who took over.
+  takenBy         String
+  reason          String?
+  createdAt       DateTime  @default(now())
+  releasedAt      DateTime?
+  releasedBy      String?
+
+  @@unique([businessId, phoneNormalized])
+  @@index([businessId, releasedAt])
+}
+
 model Customer {
   id                String   @id @default(cuid())
   businessId        String
@@ -132,10 +361,14 @@ model Customer {
   name              String?
   phone             String
   phoneNormalized   String
+  /** The same person in the shop's Jobber, once Orvius has matched or created them. */
+  jobberClientId    String?
   email             String?
   address           String?
   notes             String?
   interactionCount  Int      @default(1)
+  /** Last "we miss you" text; one per customer every 90 days. */
+  winBackSentAt     DateTime?
   firstSeenAt       DateTime @default(now())
   lastSeenAt        DateTime @default(now())
   createdAt         DateTime @default(now())
@@ -174,12 +407,32 @@ model Call {
   heldClaimedAt       DateTime?
   /** Database-assigned order of hold writes; commit order and sequence order always agree. */
   heldSeq Int?
+  /** "reschedule" when the held time is a new time for a visit the caller already has, never a new job. */
+  heldIntent String?
+  /// The caller said yes, on the call, to being passed to a nearby Orvius Network shop.
+  networkConsentAt    DateTime?
   /** When the returning-caller note was handed to the live receptionist (once per call). */
   callerContextSentAt DateTime?
+  /** Caller's wait for a reply on this call, from Vapi's turn timing (lib/call-latency.ts). */
+  replyP50Ms  Int?
+  replyP90Ms  Int?
+  /** {turns, stages: {endpointing, transcriber, model, voice}} medians in ms. */
+  latencyJson String?
+  /** Vapi's reported charge for this call in millionths of a dollar; the phone leg is not in it (lib/call-cost.ts). */
+  costMicros Int?
+  /** {stt, llm, tts, vapi, transport} in micros. */
+  costJson   String?
+  /** Transcript and recording deleted here and at Vapi after the retention period (lib/retention.ts). */
+  contentPurgedAt DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
   lead Lead?
+
+  @@index([businessId, createdAt])
+  @@index([businessId, updatedAt])
+  @@index([contentPurgedAt, createdAt])
+  @@index([businessId, heldSlotAt])
 }
 
 model Lead {
@@ -210,6 +463,9 @@ model Lead {
   postalCode   String?
   /** First time the shop worked this lead, for speed-to-lead vs. win rate. */
   firstContactedAt DateTime?
+  /** The one follow-up text to an unbooked caller; stamped before sending so it can never go twice. */
+  followUpSentAt    DateTime?
+  followUpRepliedAt DateTime?
   /** When the lead reached a terminal status (booked, lost, spam). */
   closedAt         DateTime?
   createdAt   DateTime  @default(now())
@@ -223,6 +479,8 @@ model Lead {
   @@index([businessId, createdAt])
   @@index([businessId, categoryCode])
   @@index([businessId, postalCode])
+  @@index([businessId, updatedAt])
+  @@index([businessId, status, createdAt])
 }
 
 model Job {
@@ -252,6 +510,8 @@ model Job {
   customerConfirmSentAt DateTime?
   /** One retry only; stamped only after Twilio accepts it. */
   customerConfirmReminderSentAt DateTime?
+  /** Held while a confirmation text is being sent, so two runs can't both send it. */
+  customerConfirmClaimAt DateTime?
   /** Twilio sid of the latest confirmation text, matched against the carrier's delivery receipt. */
   customerConfirmSid String?
   /** The carrier rejected the confirmation text; the owner was asked to call instead. */
@@ -261,6 +521,8 @@ model Job {
   dispatchedAt  DateTime?
   onSiteAt      DateTime?
   completedAt   DateTime?
+  /** The customer was texted the review link for this visit; claimed before the send. */
+  reviewRequestedAt DateTime?
   /** Structured field outcome — the label future intelligence learns from. */
   resolutionCode String?
   /** Short technician evidence, never generated or inferred. */
@@ -286,6 +548,7 @@ model Job {
   @@index([technicianId, scheduledAt])
   @@index([businessId, categoryCode])
   @@index([customerConfirmSid])
+  @@index([businessId, updatedAt])
 }
 
 model Technician {
@@ -343,7 +606,7 @@ model Estimate {
   @@index([businessId, createdAt])
 }
 
-/** Thin Money stub — status tracking only, no payment rails yet. */
+/** What the customer owes for finished work; paid by card on the shop's own Stripe account or recorded by hand. */
 model Invoice {
   id          String    @id @default(cuid())
   businessId  String
@@ -354,11 +617,20 @@ model Invoice {
   job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   amountCents Int
   status      String    @default("draft")
+  /** Public magic-link token for the customer pay page (/i/[token]). */
+  publicToken String?   @unique
+  sentAt      DateTime?
+  paidAt      DateTime?
+  /** Direct-charge Checkout session on the connected account; unique so a replay cannot pay twice. */
+  stripeSessionId     String? @unique
+  /** What Orvius earned here, stamped at fulfilment and never recomputed. */
+  applicationFeeCents Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   payments    Payment[]
 
   @@index([businessId, status])
+  @@index([jobId])
 }
 
 model Payment {
@@ -473,6 +745,8 @@ model OwnerNotification {
   @@index([businessId, createdAt])
   @@index([businessId, status])
   @@index([status, nextRetryAt])
+  @@index([businessId, processedAt])
+  @@index([deliveryId])
 }
 
 model WebhookEvent {
@@ -485,15 +759,32 @@ model WebhookEvent {
   status      String
   payloadJson String?
   error       String?
+  /// Sweep retries of a call report that failed to finish.
+  attempts    Int       @default(0)
   createdAt   DateTime  @default(now())
 
   @@unique([source, externalId, eventType])
   @@index([businessId, createdAt])
   @@index([source, createdAt])
+  @@index([source, eventType, status, createdAt])
 }
 
 /// Single-use sign-in link. Only the SHA-256 of the token is stored, so a leaked
 /// database row cannot be replayed as a login.
+/// Email + password sign-in. verifiedAt stays null until the owner proves the
+/// address (Google, an emailed link, or a reset); an unverified login is
+/// dropped the moment someone else proves it.
+model PasswordLogin {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  verifiedAt   DateTime?
+  failedCount  Int       @default(0)
+  lockedUntil  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
 model LoginToken {
   id         String    @id @default(cuid())
   email      String
@@ -520,8 +811,10 @@ model AuditEvent {
   entityId       String
   /** Stable machine code, e.g. lead.captured, technician.assigned. */
   action         String
-  /** orvius | owner | system */
+  /** orvius | owner | teammate | system */
   actor          String   @default("orvius")
+  /** Sign-in email of the person who acted, when a person did. */
+  actorEmail     String?
   summary        String
   detailJson     String?
   callId         String?
@@ -534,6 +827,7 @@ model AuditEvent {
   @@unique([businessId, idempotencyKey])
   @@index([businessId, createdAt])
   @@index([businessId, entityType, entityId])
+  @@index([businessId, action, createdAt])
   @@index([leadId])
   @@index([jobId])
   @@index([customerId])
@@ -552,4 +846,167 @@ model PushSubscription {
   createdAt   DateTime  @default(now())
 
   @@index([businessId])
+}
+
+/// One paid provisioning run (a shop's number and assistant), leased so two
+/// requests can't both buy, and remembered so a retry reuses what was bought.
+model ProvisionAttempt {
+  key             String   @id
+  /// Written into the Twilio number's friendly name, so a purchase whose
+  /// response was lost can still be found before buying again.
+  tag             String   @unique
+  status          String
+  leaseUntil      DateTime
+  attempts        Int      @default(1)
+  phoneNumber     String?
+  vapiAssistantId String?
+  businessId      String?
+  error           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// Rate-limit counters shared by every server instance.
+model RateLimitBucket {
+  key       String @id
+  count     Int
+  resetAtMs BigInt
+
+  @@index([resetAtMs])
+}
+
+/// Someone other than the owner with access to a shop. The owner is Business.ownerEmail.
+model Membership {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /// Lowercased sign-in email.
+  email      String
+  /// manager | dispatcher
+  role       String   @default("dispatcher")
+  invitedBy  String?
+  lastSeenAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([businessId, email])
+  @@index([email])
+}
+
+/// "Hear your shop" preview: before paying, the owner calls the demo line from
+/// their own phone and it answers as their shop. Never tied to a Business, so a
+/// preview call can never land in a real shop's records.
+model ShopPreview {
+  id             String    @id @default(cuid())
+  token          String    @unique
+  shopName       String
+  trade          String    @default("HVAC")
+  serviceArea    String?
+  servicesJson   String    @default("[]")
+  hoursJson      String    @default("{}")
+  ownerPhone     String
+  ownerPhoneNormalized String
+  ip             String?
+  callsUsed      Int       @default(0)
+  maxCalls       Int       @default(2)
+  expiresAt      DateTime
+  lastVapiCallId String?   @unique
+  lastCallAt     DateTime?
+  lastSummary    String?
+  lastCaptureJson String?
+  alertSentAt    DateTime?
+  /// The last preview call line by line, kept so the owner can share it as a Call Replay.
+  transcriptJson String?
+  createdAt      DateTime  @default(now())
+
+  @@index([ownerPhoneNormalized, expiresAt])
+  @@index([createdAt])
+}
+
+
+/** A shop's Jobber account. Tokens are sealed with ORVIUS_TOKEN_KEY (secret-box.ts), never stored in the clear. */
+model JobberConnection {
+  id              String    @id @default(cuid())
+  businessId      String    @unique
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  accountId       String
+  accountName     String?
+  accessTokenEnc  String?
+  refreshTokenEnc String?
+  accessExpiresAt DateTime?
+  /** Held while one worker refreshes: Jobber rotates refresh tokens, so two refreshes at once would disconnect the shop. */
+  refreshClaimAt  DateTime?
+  /** active | disconnected | reconnect (Jobber refused our tokens) */
+  status          String    @default("active")
+  lastError       String?
+  connectedAt     DateTime  @default(now())
+  disconnectedAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([accountId])
+}
+
+/** One lead on its way into the shop's Jobber as a request. At most one per lead, and never sent twice. */
+model JobberSync {
+  id              String    @id @default(cuid())
+  businessId      String
+  leadId          String    @unique
+  /** pending | done | skipped | failed | check (sent, reply lost: look in Jobber before resending) */
+  status          String    @default("pending")
+  attempts        Int       @default(0)
+  nextAttemptAt   DateTime  @default(now())
+  claimedAt       DateTime?
+  requestSentAt   DateTime?
+  jobberClientId  String?
+  jobberRequestId String?
+  lastError       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([businessId, createdAt])
+}
+
+/// A preview call the owner chose to share. A copy, so a later preview call
+/// never changes a link that is already posted.
+model CallReplay {
+  id          String   @id
+  previewId   String
+  shopName    String
+  trade       String
+  turnsJson   String
+  captureJson String?
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([previewId])
+}
+
+/// A job one shop could not take, passed to a nearby shop in the same trade.
+/// The caller is always asked first; nothing is shared until they say yes.
+model NetworkHandoff {
+  id                    String    @id @default(cuid())
+  fromBusinessId        String
+  leadId                String    @unique
+  callerPhone           String
+  callerPhoneNormalized String
+  trade                 String
+  zip3                  String
+  /// asking → offered → taken; or declined (caller said no), none (no shop free), expired.
+  status                String    @default("asking")
+  offeredToJson         String    @default("[]")
+  toBusinessId          String?
+  toLeadId              String?
+  askedAt               DateTime  @default(now())
+  offeredAt             DateTime?
+  takenAt               DateTime?
+  /// The passing shop's share of the network fee: crediting → credited, or void when it could not be paid.
+  creditStatus          String?
+  creditCents           Int?
+  creditedAt            DateTime?
+
+  @@index([callerPhoneNormalized, status])
+  @@index([toLeadId])
+  @@index([status, offeredAt])
+  @@index([toBusinessId])
 }

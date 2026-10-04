@@ -109,7 +109,7 @@ export function LiveBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border border-ui-border bg-ui-surface px-2.5 py-1 font-mono text-[11px] tracking-wide text-ui-muted uppercase ${className}`.trim()}
+      className={`inline-flex items-center gap-2 rounded-full border border-ui-border bg-ui-surface px-2.5 py-1 font-mono text-xs tracking-wide text-ui-muted uppercase ${className}`.trim()}
     >
       <LiveDot />
       {label}

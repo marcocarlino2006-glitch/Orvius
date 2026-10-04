@@ -11,6 +11,7 @@ type ConfirmState =
       status: "ok";
       already: boolean;
       businessName: string;
+      businessSlug: string | null;
       businessPhone: string | null;
       timezone: string | null;
       title: string;
@@ -66,6 +67,7 @@ export default function CustomerConfirmPage() {
           status: "ok",
           already: Boolean(data.already),
           businessName: data.job.businessName,
+          businessSlug: data.job.businessSlug ?? null,
           businessPhone: data.job.businessPhone ?? null,
           timezone: data.job.timezone ?? null,
           title: data.job.title,
@@ -129,6 +131,11 @@ export default function CustomerConfirmPage() {
           ) : (
             <p className="pf-muted">The shop has your confirmation. Reply to their text if plans change.</p>
           )}
+          {state.businessSlug ? (
+            <p className="pf-muted pf-foot">
+              <a href={`/r/${encodeURIComponent(state.businessSlug)}?via=confirm`}>Answered by Orvius</a>
+            </p>
+          ) : null}
         </>
       ) : null}
     </main>

@@ -1,12 +1,14 @@
 import { afterResponse } from "@/lib/after-response";
 import { getOwnerAlertOpenUrl } from "@/lib/owner-alert-message";
 import { pushFromAlert, sendOwnerPush } from "@/lib/web-push";
-import { getWebhookUrl } from "@/lib/env";
+import { recordOutboundSms, smsSender, smsStatusCallback } from "@/lib/twilio-sms";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { logError, logInfo } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getTwilioClient } from "@/lib/twilio-client";
+import { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
+import { isSimulatedWorkspace, simulatedSid, simulateSend } from "@/lib/sms-simulation";
 
 /*
   Each rung is the wait after the attempt of that number: a first failure is
@@ -172,7 +174,8 @@ export async function enqueueOwnerAlert(params: {
       });
       return false;
     }
-    return createQueueRow({ ...params, channel: "sms" });
+    const message = params.leadId ? `${params.message}\n${OWNER_REPLY_HINT}` : params.message;
+    return createQueueRow({ ...params, message, channel: "sms" });
   };
   const [sms, email] = await Promise.all([
     queueSms(),
@@ -228,8 +231,43 @@ export async function enqueueOwnerAlert(params: {
   return { queued, duplicate: false };
 }
 
+type SmsLister = {
+  messages: {
+    list(params: { to: string; dateSentAfter: Date; limit: number }): Promise<
+      Array<{ sid: string; body: string; direction: string; dateCreated: Date | null; status: string }>
+    >;
+  };
+};
+
+/**
+ * A drain that died after Twilio accepted the text but before the row said
+ * "sent" leaves the lease to expire, and the next drain would text the owner
+ * again. Twilio's own log is the only record of what happened in between.
+ */
+export async function findAlreadySentSms(
+  client: SmsLister,
+  params: { to: string; body: string; since: Date },
+): Promise<string | null> {
+  const recent = await client.messages.list({
+    to: params.to,
+    dateSentAfter: new Date(params.since.getTime() - 60_000),
+    limit: 20,
+  });
+  const match = recent.find(
+    (m) =>
+      m.direction.startsWith("outbound") &&
+      m.body === params.body &&
+      m.status !== "failed" &&
+      m.status !== "undelivered" &&
+      (!m.dateCreated || m.dateCreated.getTime() >= params.since.getTime() - 60_000),
+  );
+  return match?.sid ?? null;
+}
+
 async function deliverQueuedRow(row: {
   id: string;
+  status: string;
+  nextRetryAt: Date | null;
   channel: string;
   businessName: string | null;
   message: string | null;
@@ -249,11 +287,32 @@ async function deliverQueuedRow(row: {
     openUrl,
   });
 
+  if ((row.channel === "sms" || row.channel === "email") && (await isSimulatedWorkspace(row.businessId))) {
+    const to = row.channel === "sms" ? row.ownerPhone : row.ownerEmail;
+    if (!to) {
+      await markDeliveryFailure(row, `No owner ${row.channel === "sms" ? "phone" : "email"} on this demo workspace`, { exhaust: true });
+      return { status: "failed", error: "No owner contact on this demo workspace" };
+    }
+    let sid: string;
+    try {
+      sid = row.channel === "sms" ? simulateSend(to).sid : simulatedSid();
+    } catch (error) {
+      const why = error instanceof Error ? error.message : "Simulated send failed";
+      await markDeliveryFailure(row, why, { exhaust: true });
+      return { status: "failed", error: why };
+    }
+    await prisma.ownerNotification.update({
+      where: { id: row.id },
+      data: { status: "sent", deliveryId: sid, deliveryStatus: "simulated", processedAt: new Date(), error: null },
+    });
+    return { status: "sent", id: sid };
+  }
+
   if (row.channel === "sms") {
     if (
       process.env.ENABLE_OWNER_SMS !== "true" ||
       !row.ownerPhone ||
-      !process.env.TWILIO_PHONE_NUMBER
+      !smsSender()
     ) {
       await markDeliveryFailure(
         row,
@@ -276,13 +335,31 @@ async function deliverQueuedRow(row: {
     }
 
     const client = getTwilioClient();
+    if (row.status === "sending" && row.nextRetryAt) {
+      const claimedAt = new Date(row.nextRetryAt.getTime() - CLAIM_LEASE_MINUTES * 60_000);
+      const prior = await findAlreadySentSms(client, { to: row.ownerPhone, body: smsBody, since: claimedAt }).catch(
+        () => null,
+      );
+      if (prior) {
+        await prisma.ownerNotification.update({
+          where: { id: row.id },
+          data: { status: "sent", deliveryId: prior, deliveryStatus: "queued", processedAt: new Date(), error: null },
+        });
+        logInfo("notification.sms_already_sent", { businessId: row.businessId, dedupeKey: row.dedupeKey, sid: prior });
+        return { status: "duplicate", id: prior };
+      }
+    }
     const sms = await client.messages.create({
       body: smsBody,
-      from: process.env.TWILIO_PHONE_NUMBER,
+      ...smsSender()!,
       to: row.ownerPhone,
-      statusCallback:
-        process.env.TWILIO_STATUS_CALLBACK_URL?.trim() ||
-        getWebhookUrl("/api/webhooks/twilio/status"),
+      statusCallback: smsStatusCallback(),
+    });
+    await recordOutboundSms({
+      businessId: row.businessId,
+      to: row.ownerPhone,
+      audience: "owner",
+      sid: sms.sid,
     });
 
     await prisma.ownerNotification.update({
@@ -554,10 +631,11 @@ export async function applySmsDeliveryReceipt(params: {
   return { reopened, exhausted, delivered: 0 };
 }
 
-export async function processNotificationQueue(limit = 20) {
+export async function processNotificationQueue(limit = 20, scope: { businessId?: string } = {}) {
   const now = new Date();
   const rows = await prisma.ownerNotification.findMany({
     where: {
+      ...(scope.businessId ? { businessId: scope.businessId } : {}),
       attempts: { lt: MAX_ATTEMPTS },
       OR: [
         { status: "pending", nextRetryAt: null },
@@ -685,18 +763,39 @@ export async function notifyOwnerSync(params: {
 
   const result: NotifyOwnerResult = {};
 
+  if (await isSimulatedWorkspace(params.businessId)) {
+    if (params.ownerPhone) {
+      try {
+        result.sms = { status: "sent", id: simulateSend(params.ownerPhone).sid };
+      } catch (error) {
+        result.sms = { status: "failed", error: error instanceof Error ? error.message : "Simulated send failed" };
+      }
+    }
+    if (params.ownerEmail) result.email = { status: "sent", id: simulatedSid() };
+    return result;
+  }
+
   if (
     process.env.ENABLE_OWNER_SMS === "true" &&
     params.ownerPhone &&
-    process.env.TWILIO_PHONE_NUMBER
+    smsSender()
   ) {
     try {
       const client = getTwilioClient();
       const sms = await client.messages.create({
         body: smsBody,
-        from: process.env.TWILIO_PHONE_NUMBER,
+        ...smsSender()!,
         to: params.ownerPhone,
+        statusCallback: smsStatusCallback(),
       });
+      if (params.businessId) {
+        await recordOutboundSms({
+          businessId: params.businessId,
+          to: params.ownerPhone,
+          audience: "owner",
+          sid: sms.sid,
+        });
+      }
       result.sms = { status: "sent", id: sms.sid };
     } catch (error) {
       result.sms = {

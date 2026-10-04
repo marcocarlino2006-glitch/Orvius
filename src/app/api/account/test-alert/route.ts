@@ -4,6 +4,7 @@ import {
   getShopLines,
   validateOwnerPhoneForAlerts,
 } from "@/lib/owner-alerts";
+import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { requireEntitledSession } from "@/lib/tenant";
 
 export async function POST() {
@@ -11,6 +12,8 @@ export async function POST() {
   if ("error" in authResult) return authResult.error;
 
   const business = authResult.business;
+  const limited = await sharedRateLimit({ key: `test-alert:${business.id}`, limit: 5, windowMs: 10 * 60_000 });
+  if (!limited.ok) return tooManyRequests(limited.retryAfterSec, "That's a lot of test alerts. Wait a few minutes and try again.");
   const phoneCheck = validateOwnerPhoneForAlerts({
     ownerPhone: business.ownerPhone,
     shopLines: getShopLines(business),

@@ -2,80 +2,118 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import type { MagicLinkResponse } from "@/app/api/auth/magic-link/route";
+import type { PasswordResetResponse } from "@/app/api/auth/password-reset/route";
+import type { SignUpResponse } from "@/app/api/auth/signup/route";
+
+export type SignInMode = "signup" | "signin" | "forgot";
 
 type Status =
   | { kind: "idle" }
-  | { kind: "sending" }
-  | { kind: "sent"; message: string; devLink?: string }
+  | { kind: "working" }
+  | { kind: "sent"; message: string }
   | { kind: "error"; message: string };
 
+const COPY: Record<SignInMode, { title: string; submit: string; working: string }> = {
+  signup: { title: "Create your Orvius account.", submit: "Create account", working: "Creating…" },
+  signin: { title: "Sign in to Orvius.", submit: "Sign in", working: "Signing in…" },
+  forgot: { title: "Reset your password.", submit: "Email me a reset link", working: "Sending…" },
+};
+
 /**
- * The auth card. Two ways in, both real: Google OAuth, and a single-use email
- * link issued by /api/auth/magic-link. There is no third button for an SSO
- * vendor we have not integrated — a control that cannot complete a sign-in is
- * worse than an absent one.
+ * The auth card: Google, or email and password. Signing up puts the owner
+ * straight into the workspace; email is only used to reset a forgotten password.
  */
 export function SignInPanel({
   callbackUrl,
   selfServeEnabled = false,
+  initialMode = "signin",
 }: {
   callbackUrl: string;
   selfServeEnabled?: boolean;
+  initialMode?: SignInMode;
 }) {
+  const [mode, setMode] = useState<SignInMode>(
+    initialMode === "signup" && !selfServeEnabled ? "signin" : initialMode,
+  );
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const copy = COPY[mode];
 
-  async function requestLink(event: React.FormEvent) {
+  function switchTo(next: SignInMode) {
+    setMode(next);
+    setStatus({ kind: "idle" });
+  }
+
+  async function signInWithPassword() {
+    const result = await signIn("password", { email, password, redirect: false });
+    if (result?.error || !result?.ok) {
+      setStatus({ kind: "error", message: "Wrong email or password." });
+      return;
+    }
+    window.location.href = callbackUrl;
+  }
+
+  async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (status.kind === "sending") return;
-    setStatus({ kind: "sending" });
+    if (status.kind === "working") return;
+    setStatus({ kind: "working" });
     try {
-      const res = await fetch("/api/auth/magic-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const body = (await res.json()) as MagicLinkResponse;
-      setStatus(
-        body.sent
-          ? { kind: "sent", message: body.message, devLink: body.devLink }
-          : { kind: "error", message: body.message },
-      );
+      if (mode === "signup") {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const body = (await res.json()) as SignUpResponse;
+        if (!body.ok) {
+          setStatus({ kind: "error", message: body.message ?? "Couldn't create the account." });
+          return;
+        }
+        await signInWithPassword();
+      } else if (mode === "signin") {
+        await signInWithPassword();
+      } else {
+        const res = await fetch("/api/auth/password-reset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const body = (await res.json()) as PasswordResetResponse;
+        setStatus(body.ok ? { kind: "sent", message: body.message } : { kind: "error", message: body.message });
+      }
     } catch {
-      setStatus({
-        kind: "error",
-        message: "Network error. Check your connection and try again.",
-      });
+      setStatus({ kind: "error", message: "Network error. Check your connection and try again." });
     }
   }
 
   return (
     <div className="ov-signin-card">
       <p className="ov-signin-eyebrow">Shop workspace</p>
-      <h1 className="ov-signin-title">Sign in to Orvius.</h1>
-      <p className="ov-signin-sub">
-        {selfServeEnabled
-          ? "New shop or returning owner? Continue to your workspace."
-          : "Use the account connected to your shop. "}
-        {!selfServeEnabled ? <a href="/pilot">Book a call audit</a> : null}
-        {!selfServeEnabled ? "." : null}
-      </p>
+      <h1 className="ov-signin-title">{copy.title}</h1>
+      {!selfServeEnabled && mode !== "forgot" ? (
+        <p className="ov-signin-sub">
+          Use the account connected to your shop. <a href="/pilot">Book a call audit</a>.
+        </p>
+      ) : null}
 
-      <button
-        type="button"
-        className="ov-signin-sso"
-        onClick={() => signIn("google", { callbackUrl })}
-      >
-        <GoogleMark />
-        Continue with Google
-      </button>
+      {mode !== "forgot" ? (
+        <>
+          <button
+            type="button"
+            className="ov-signin-sso"
+            onClick={() => signIn("google", { callbackUrl })}
+          >
+            <GoogleMark />
+            Continue with Google
+          </button>
+          <div className="ov-signin-or">
+            <span>or</span>
+          </div>
+        </>
+      ) : null}
 
-      <div className="ov-signin-or">
-        <span>or</span>
-      </div>
-
-      <form className="ov-signin-form" onSubmit={requestLink}>
+      <form className="ov-signin-form" onSubmit={submit}>
         <label className="ov-signin-label" htmlFor="signin-email">
           Work email
         </label>
@@ -85,7 +123,7 @@ export function SignInPanel({
           type="email"
           name="email"
           value={email}
-          autoComplete="email"
+          autoComplete={mode === "signup" ? "email" : "username"}
           placeholder="you@yourshop.com"
           required
           onChange={(event) => {
@@ -93,35 +131,63 @@ export function SignInPanel({
             if (status.kind !== "idle") setStatus({ kind: "idle" });
           }}
         />
-        <button
-          type="submit"
-          className="ov-signin-submit"
-          disabled={status.kind === "sending" || email.trim().length === 0}
-        >
-          {status.kind === "sending" ? "Sending…" : "Email me a sign-in link"}
+        {mode !== "forgot" ? (
+          <>
+            <label className="ov-signin-label ov-signin-label--gap" htmlFor="signin-password">
+              Password
+            </label>
+            <input
+              id="signin-password"
+              className="ov-signin-input"
+              type="password"
+              name="password"
+              value={password}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              placeholder={mode === "signup" ? "At least 8 characters" : ""}
+              minLength={mode === "signup" ? 8 : undefined}
+              required
+              onChange={(event) => {
+                setPassword(event.target.value);
+                if (status.kind !== "idle") setStatus({ kind: "idle" });
+              }}
+            />
+          </>
+        ) : null}
+        <button type="submit" className="ov-signin-submit" disabled={status.kind === "working"}>
+          {status.kind === "working" ? copy.working : copy.submit}
         </button>
       </form>
 
       <div className="ov-signin-status" role="status" aria-live="polite">
-        {status.kind === "sent" ? (
-          <p className="ov-signin-sent">
-            {status.message}
-            {status.devLink ? (
-              <>
-                {" "}
-                <a href={status.devLink}>Open the link (local build only)</a>
-              </>
-            ) : null}
-          </p>
-        ) : null}
-        {status.kind === "error" ? (
-          <p className="ov-signin-error">{status.message}</p>
-        ) : null}
+        {status.kind === "sent" ? <p className="ov-signin-sent">{status.message}</p> : null}
+        {status.kind === "error" ? <p className="ov-signin-error">{status.message}</p> : null}
       </div>
 
+      <p className="ov-signin-switch">
+        {mode === "signup" ? (
+          <>
+            Already have an account?{" "}
+            <button type="button" onClick={() => switchTo("signin")}>Sign in</button>
+          </>
+        ) : mode === "signin" ? (
+          <>
+            <button type="button" onClick={() => switchTo("forgot")}>Forgot password?</button>
+            {selfServeEnabled ? (
+              <>
+                {" · "}
+                New shop?{" "}
+                <button type="button" onClick={() => switchTo("signup")}>Create an account</button>
+              </>
+            ) : null}
+          </>
+        ) : (
+          <button type="button" onClick={() => switchTo("signin")}>Back to sign in</button>
+        )}
+      </p>
+
       <p className="ov-signin-legal">
-        Single-use link, expires in 10 minutes. By signing in you agree to the{" "}
-        <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
+        By continuing you agree to the <a href="/terms">Terms</a> and{" "}
+        <a href="/privacy">Privacy Policy</a>.
       </p>
     </div>
   );

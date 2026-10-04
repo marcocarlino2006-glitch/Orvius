@@ -8,14 +8,17 @@ const { buildCalendar, calendarFeedToken, calendarFeedUrl, verifyCalendarFeedTok
   "../src/lib/calendar-feed.ts"
 );
 
-test("calendar feed token round-trips and rejects tampering", () => {
+test("calendar feed token round-trips and rejects tampering", async () => {
   const token = calendarFeedToken("biz_123");
   assert.ok(token);
-  assert.equal(verifyCalendarFeedToken(token), "biz_123");
-  assert.equal(verifyCalendarFeedToken(`${token}.ics`), "biz_123");
-  assert.equal(verifyCalendarFeedToken(token.replace("biz_123", "biz_999")), null);
-  assert.equal(verifyCalendarFeedToken(`${token.slice(0, -1)}x`), null);
-  assert.equal(verifyCalendarFeedToken("biz_123"), null);
+  const v1 = async () => 1;
+  assert.equal(await verifyCalendarFeedToken(token, v1), "biz_123");
+  assert.equal(await verifyCalendarFeedToken(`${token}.ics`, v1), "biz_123");
+  assert.equal(await verifyCalendarFeedToken(token.replace("biz_123", "biz_999"), v1), null);
+  assert.equal(await verifyCalendarFeedToken(`${token.slice(0, -1)}x`, v1), null);
+  assert.equal(await verifyCalendarFeedToken("biz_123", v1), null);
+  assert.equal(await verifyCalendarFeedToken(token, async () => 2), null);
+  assert.equal(await verifyCalendarFeedToken(token, async () => null), null);
   assert.match(calendarFeedUrl("biz_123"), /^https:\/\/app\.example\.com\/api\/public\/calendar\/biz_123\.[\w-]{32}\.ics$/);
 });
 

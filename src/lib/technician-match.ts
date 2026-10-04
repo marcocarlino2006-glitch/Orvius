@@ -111,7 +111,15 @@ export function rankTechnicians(input: {
   };
 }
 
-export async function loadTechCandidates(businessId: string, excludeJobId?: string): Promise<TechCandidate[]> {
+/**
+ * Each tech's open jobs near `around` — enough to see clashes and that day's
+ * load without reading the shop's whole history on every assignment.
+ */
+export async function loadTechCandidates(
+  businessId: string,
+  excludeJobId?: string,
+  around?: Date,
+): Promise<TechCandidate[]> {
   const techs = await prisma.technician.findMany({
     where: { businessId, isActive: true },
     select: {
@@ -121,7 +129,7 @@ export async function loadTechCandidates(businessId: string, excludeJobId?: stri
       jobs: {
         where: {
           status: { notIn: ["completed", "cancelled"] },
-          scheduledAt: { not: null },
+          scheduledAt: around ? jobsNear(around) : { not: null },
           ...(excludeJobId ? { id: { not: excludeJobId } } : {}),
         },
         select: { id: true, scheduledAt: true, durationMin: true },
@@ -147,11 +155,17 @@ export async function recommendTechnician(params: {
   skill: string | null;
   excludeJobId?: string;
 }): Promise<TechRanking> {
-  const candidates = await loadTechCandidates(params.businessId, params.excludeJobId);
+  const candidates = await loadTechCandidates(params.businessId, params.excludeJobId, params.scheduledAt);
   return rankTechnicians({
     candidates,
     scheduledAt: params.scheduledAt,
     durationMin: params.durationMin ?? DEFAULT_JOB_DURATION_MIN,
     skill: params.skill,
   });
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** Started up to a week before (long installs) through two days after. */
+export function jobsNear(at: Date) {
+  return { gte: new Date(at.getTime() - 7 * DAY_MS), lte: new Date(at.getTime() + 2 * DAY_MS) };
 }

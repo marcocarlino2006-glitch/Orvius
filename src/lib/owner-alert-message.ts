@@ -1,6 +1,9 @@
 import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl, getLeadInboxUrl } from "@/lib/domains";
 
+/** Closes every new-lead text, so the owner learns the thread is a remote control. */
+export const OWNER_REPLY_HINT = "Reply BOOK, TEXT <message>, or ? for more.";
+
 export type OwnerAlertLead = {
   name?: string | null;
   phone?: string | null;
@@ -75,7 +78,9 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
     line = "Unhappy about a past visit or bill · call them yourself — not booked";
   } else if (skipReason === "existing_job" && existingJob) {
     if (intent === "cancel") line = `Wants to cancel the ${jobRef}. Not cancelled yet — call to confirm.`;
-    else if (intent === "reschedule") line = `Wants to move the ${jobRef}. Not moved yet — call to pick a time.`;
+    else if (intent === "reschedule" && context.heldSlotAt) {
+      line = `Wants to move the ${jobRef} to ${formatSchedule(context.heldSlotAt, context.timezone)}. That time is held for them for 2 hours — move the job and confirm with them. Not moved yet.`;
+    } else if (intent === "reschedule") line = `Wants to move the ${jobRef}. Not moved yet — call to pick a time.`;
     else if (intent === "status") line = `Asking about their ${jobRef}. No new job created.`;
     else line = `Called again about the job already booked (${jobRef}). No new job created.`;
   } else if (skipReason === "follow_up") {
@@ -85,11 +90,16 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
     line = "Outside your service area · not booked";
   } else if (skipReason === "missing_address") {
     line = "No address yet · call back to finish booking";
+  } else if (skipReason === "info_only") {
+    line = "Question about the shop, not a service request · nothing booked";
   } else if (skipReason === "capacity_unavailable") {
     line = "No open slot on the board · call back to schedule";
+  } else if (skipReason === "held_slot_taken") {
+    line = "The time they picked on the call was taken before it booked · call to pick a new time";
   }
 
-  if (context.heldSlotAt) {
+  const heldForMove = skipReason === "existing_job" && existingJob && intent === "reschedule";
+  if (context.heldSlotAt && !heldForMove) {
     const took = `Caller was offered and took ${formatSchedule(context.heldSlotAt, context.timezone)} on the call — they expect that time`;
     line = line ? `${line}\n${took}` : took;
   }

@@ -127,3 +127,13 @@ test("job outcome codes are stable labels, not inferred diagnoses", () => {
     },
   );
 });
+
+test("shops on a retired ElevenLabs voice keep a matching voice", async () => {
+  const { resolveVoiceId, RECEPTIONIST_VOICES, DEFAULT_VOICE_ID } = await import("../src/lib/voices.ts");
+  assert.equal(resolveVoiceId("pNInz6obpgDQGcFmaJgB"), RECEPTIONIST_VOICES[3].id);
+  assert.equal(resolveVoiceId(RECEPTIONIST_VOICES[4].id), RECEPTIONIST_VOICES[4].id);
+  assert.equal(resolveVoiceId("unknown"), DEFAULT_VOICE_ID);
+  const config = buildVapiAssistantConfig({ businessName: "A", systemPrompt: "x", greeting: "hi", webhookUrl: "" });
+  assert.equal(config.voice.provider, "cartesia");
+  assert.equal(config.startSpeakingPlan.waitSeconds, 0.3);
+});

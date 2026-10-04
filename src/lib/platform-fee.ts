@@ -5,7 +5,7 @@
 
   That distinction is the whole economics of this file. On a destination charge
   the platform is the merchant of record, so Stripe's processing fee (2.9% + 30c)
-  comes out of *our* side while we collect a 2% application fee: every
+  comes out of *our* side while we collect a 1% application fee: every
   transaction would lose money. On a direct charge the shop is the merchant, the
   shop pays processing exactly as it would with any other card processor, and the
   application fee arrives whole. It also puts chargeback liability and the
@@ -15,7 +15,13 @@
 /** Stripe rejects card charges under 50c outright. */
 export const STRIPE_MIN_CHARGE_CENTS = 50;
 
-const DEFAULT_PLATFORM_FEE_BPS = 200;
+/*
+  1%, because the shop already pays Stripe 2.9% + 30c on the same charge. At 2% the
+  total lands near 5% — enough for a shop to keep its old card reader and skip the
+  deposit link, which loses the booking it was meant to lock in. Subscriptions carry
+  the margin; the fee only has to be too small to argue with.
+*/
+const DEFAULT_PLATFORM_FEE_BPS = 100;
 
 /*
   A fee above 10% would mean a misconfigured env var rather than a pricing
@@ -25,7 +31,7 @@ const DEFAULT_PLATFORM_FEE_BPS = 200;
 */
 const MAX_PLATFORM_FEE_BPS = 1000;
 
-/** Orvius take rate in basis points. 200 bps = 2% of the charge. */
+/** Orvius take rate in basis points. 100 bps = 1% of the charge. */
 export function getPlatformFeeBps() {
   const raw = process.env.ORVIUS_PLATFORM_FEE_BPS?.trim();
   if (!raw) return DEFAULT_PLATFORM_FEE_BPS;
@@ -44,6 +50,26 @@ export function calculatePlatformFeeCents(amountCents: number) {
   return Math.round((amount * getPlatformFeeBps()) / 10_000);
 }
 
+/*
+  A job that came through the Orvius Network is a customer the receiving shop
+  never paid to find, so its card bill carries 5% instead of the usual fee —
+  still well under what a bought lead costs. Half of it goes back to the shop
+  that passed the job, as credit on its Orvius bill.
+*/
+export const NETWORK_FEE_BPS = 500;
+export const NETWORK_SENDER_SHARE_BPS = 250;
+
+export function calculateNetworkFeeCents(amountCents: number) {
+  if (!Number.isFinite(amountCents) || amountCents <= 0) return 0;
+  const amount = Math.floor(amountCents);
+  return Math.max(calculatePlatformFeeCents(amount), Math.round((amount * NETWORK_FEE_BPS) / 10_000));
+}
+
+export function networkSenderCreditCents(amountCents: number) {
+  if (!Number.isFinite(amountCents) || amountCents <= 0) return 0;
+  return Math.round((Math.floor(amountCents) * NETWORK_SENDER_SHARE_BPS) / 10_000);
+}
+
 /** What the shop keeps from one charge, before Stripe's own processing fee. */
 export function shopNetCents(amountCents: number) {
   if (!Number.isFinite(amountCents) || amountCents <= 0) return 0;
@@ -51,7 +77,7 @@ export function shopNetCents(amountCents: number) {
   return amount - calculatePlatformFeeCents(amount);
 }
 
-/** Take rate as a percentage string for owner-facing copy, e.g. "2%". */
+/** Take rate as a percentage string for owner-facing copy, e.g. "1%". */
 export function formatPlatformFeeRate() {
   const pct = getPlatformFeeBps() / 100;
   return `${Number.isInteger(pct) ? pct : pct.toFixed(2)}%`;

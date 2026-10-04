@@ -1,5 +1,7 @@
+import { invoiceCompletedJob } from "@/lib/invoice-pay";
+import { logWarn } from "@/lib/logger";
 import { NextResponse } from "next/server";
-import { ensureJobTechToken } from "@/lib/ensure-tech-token";
+import { ensureJobTechToken, techLinkExpired } from "@/lib/ensure-tech-token";
 import {
   completeJobWithOutcome,
   isJobStatus,
@@ -8,14 +10,18 @@ import {
 import { isJobOutcomeCode } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { publicTokenLimited } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ token: string }> };
+
+const expiredResponse = () =>
+  NextResponse.json({ error: "This job link has expired. Ask the shop for the job details." }, { status: 410 });
 
 async function loadJob(token: string) {
   return prisma.job.findFirst({
     where: { techToken: token },
     include: {
-      business: { select: { name: true } },
+      business: { select: { name: true, timezone: true } },
       customer: { select: { name: true, phone: true } },
       lead: { select: { name: true, phone: true } },
       technician: { select: { name: true, phone: true } },
@@ -37,6 +43,7 @@ function serializeTechJob(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>)
     finalAmountCents: job.finalAmountCents,
     scheduledAt: job.scheduledAt?.toISOString() ?? null,
     shopName: job.business.name,
+    shopTimezone: job.business.timezone,
     customerName:
       job.customer?.name ?? job.lead?.name ?? job.customer?.phone ?? job.lead?.phone ?? null,
     customerPhone: job.customer?.phone ?? job.lead?.phone ?? null,
@@ -44,12 +51,15 @@ function serializeTechJob(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>)
   };
 }
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "tech", "GET");
+  if (limited) return limited;
   const { token } = await params;
   const job = await loadJob(token);
   if (!job) {
     return NextResponse.json({ error: "Job link not found" }, { status: 404 });
   }
+  if (techLinkExpired(job)) return expiredResponse();
   return NextResponse.json({ job: serializeTechJob(job) });
 }
 
@@ -62,11 +72,14 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(request: Request, { params }: Params) {
+  const limited = await publicTokenLimited(request, "tech", "PATCH");
+  if (limited) return limited;
   const { token } = await params;
   const job = await loadJob(token);
   if (!job) {
     return NextResponse.json({ error: "Job link not found" }, { status: 404 });
   }
+  if (techLinkExpired(job)) return expiredResponse();
 
   try {
     const body = patchSchema.parse(await request.json());
@@ -94,6 +107,12 @@ export async function PATCH(request: Request, { params }: Params) {
           resolutionSummary: body.resolutionSummary,
           finalAmountCents: body.finalAmountCents,
         });
+        await invoiceCompletedJob(job.id).catch((error) =>
+          logWarn("invoice.on_complete_failed", {
+            jobId: job.id,
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        );
       } else {
         await updateJobStatus(job.id, body.status);
       }

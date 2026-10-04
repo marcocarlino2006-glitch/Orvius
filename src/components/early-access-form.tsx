@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { FormField } from "@/components/shell-primitives";
+import { TRADES } from "@/lib/trades";
 
 type FormProps = {
   variant?: "compact" | "full";
@@ -40,11 +41,14 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Signup failed");
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? "We couldn't save your request. Try again, or email hello@orvius.im.");
+        return;
+      }
       setSubmitted(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+    } catch {
+      setError("We couldn't reach Orvius. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -91,7 +95,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               className="input"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Summit HVAC"
+              placeholder="Your business name"
               autoComplete="organization"
             />
           </FormField>
@@ -120,18 +124,18 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               inputMode="tel"
             />
           </FormField>
-          <FormField label="Trade">
+          <FormField label="Business type">
             <select
               className="input"
               value={trade}
               onChange={(e) => setTrade(e.target.value)}
             >
-              <option value="">Select trade</option>
-              <option value="hvac">HVAC</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="electrical">Electrical</option>
-              <option value="roofing">Roofing</option>
-              <option value="other">Other home services</option>
+              <option value="">Select business type</option>
+              {TRADES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
             </select>
           </FormField>
         </div>
@@ -144,7 +148,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
           />
         </FormField>
         {error ? (
-          <p className="font-sans text-sm text-flare-dim">{error}</p>
+          <p role="alert" className="font-sans text-sm text-flare-dim">{error}</p>
         ) : null}
         <label className="flex items-start gap-3 font-sans text-sm leading-relaxed text-ash-soft">
           <input
@@ -167,7 +171,8 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
           </span>
         </label>
         <button
-          disabled={loading || !acceptedTerms}
+          type="submit"
+          disabled={loading}
           className={`btn btn-void w-full sm:w-auto ${loading ? "btn-loading" : ""}`}
         >
           {loading ? "Submitting..." : "Request call audit"}
@@ -194,7 +199,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
         {loading ? "..." : "Request call audit"}
       </button>
       {error ? (
-        <p className="w-full font-sans text-sm text-flare-dim sm:order-3">
+        <p role="alert" className="w-full font-sans text-sm text-flare-dim sm:order-3">
           {error}
         </p>
       ) : null}

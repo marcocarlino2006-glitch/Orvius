@@ -1,0 +1,96 @@
+.wb {
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+.wb-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.wb-figure {
+  margin: 0;
+  color: var(--ox-text);
+  font-size: 16px;
+  font-weight: 600;
+}
+.wb-select {
+  margin-left: 2px;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-bg);
+  color: var(--ox-text);
+  font: inherit;
+  font-size: 15px;
+  padding: 2px 6px;
+}
+.wb-sub {
+  margin: 4px 0 0;
+  color: var(--ox-mute);
+  font-size: 13px;
+}
+.wb-ok {
+  margin: 12px 0 0;
+  color: var(--ox-green);
+  font-size: 14px;
+}
+.wb-compose {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ox-line);
+}
+.wb-label {
+  color: var(--ox-text-2);
+  font-size: 13px;
+}
+.wb-compose textarea {
+  width: 100%;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-bg);
+  color: var(--ox-text);
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+.wb-preview {
+  display: grid;
+  gap: 4px;
+}
+.wb-preview span {
+  color: var(--ox-mute);
+  font-size: 12px;
+}
+.wb-preview p {
+  justify-self: start;
+  max-width: 520px;
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 14px 14px 14px 4px;
+  background: var(--ox-s3);
+  color: var(--ox-text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.wb-error {
+  margin: 0;
+  color: var(--ox-red);
+  font-size: 13px;
+}
+.wb-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.wb-fine {
+  margin: 0;
+  color: var(--ox-mute);
+  font-size: 12px;
+}

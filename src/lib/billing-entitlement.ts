@@ -4,13 +4,22 @@
  */
 
 export const PILOT_DAYS = 30;
+/** Days a shop keeps the product after a failed payment while Stripe retries the card. */
+export const PAST_DUE_GRACE_DAYS = 7;
 
 export type BusinessBillingFields = {
   billingStatus?: string | null;
   billingPlan?: string | null;
   pilotEndsAt?: Date | string | null;
   createdAt?: Date | string | null;
+  pastDueSince?: Date | string | null;
 };
+
+export function isPastDueGraceOver(business: BusinessBillingFields, now = new Date()): boolean {
+  if (!business.pastDueSince) return false;
+  const since = new Date(business.pastDueSince).getTime();
+  return !Number.isNaN(since) && now.getTime() - since > PAST_DUE_GRACE_DAYS * 24 * 60 * 60 * 1000;
+}
 
 export function resolvePilotEndsAt(business: BusinessBillingFields): Date | null {
   if (business.pilotEndsAt) {
@@ -35,7 +44,8 @@ export function isPilotExpired(business: BusinessBillingFields, now = new Date()
 /**
  * Entitled to run the product (APIs + dashboard).
  * - active: yes
- * - past_due: yes (urgent pay prompt; Stripe may recover)
+ * - past_due: yes for PAST_DUE_GRACE_DAYS (urgent pay prompt; Stripe retries), then no.
+ *   Calls are still answered and alerted either way; only the product locks.
  * - pilot / none: yes only while pilot window open
  * - canceled / expired pilot: no
  */
@@ -45,9 +55,8 @@ export function isBillingEntitled(
 ): boolean {
   const status = (business.billingStatus ?? "none").toLowerCase();
 
-  if (status === "active" || status === "past_due") {
-    return true;
-  }
+  if (status === "active") return true;
+  if (status === "past_due") return !isPastDueGraceOver(business, now);
 
   if (status === "canceled") {
     return false;
@@ -71,6 +80,7 @@ export function billingLockReason(
     return null;
   }
   const status = (business.billingStatus ?? "none").toLowerCase();
+  if (status === "past_due") return "past_due";
   if (status === "canceled") return "canceled";
   if (isPilotExpired(business, now)) return "trial_ended";
   return "unpaid";

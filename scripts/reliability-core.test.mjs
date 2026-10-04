@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { readSettingsSource } from "./lib/settings-source.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
@@ -52,7 +53,7 @@ test("shop setup checklist exposes progress and one next action", () => {
   assert.match(lib, /buildShopSetupChecklist/);
   assert.match(lib, /readyForNight/);
   assert.match(lib, /Booked or Escalated|hours_area|owner_alerts|capture/);
-  const ui = read("src/components/settings-center/settings-center.tsx");
+  const ui = readSettingsSource();
   assert.match(ui, /buildShopSetupChecklist/);
   assert.match(ui, /sc-meter/);
 });

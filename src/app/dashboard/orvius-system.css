@@ -42,6 +42,65 @@
   --ox-radius: 0.625rem;
   --ox-radius-sm: 0.4375rem;
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(255 255 255 / 0.32);
+  /* Motion: hover and press are fast, state changes base, panels slow. */
+  --ox-dur-fast: 120ms;
+  --ox-dur: 160ms;
+  --ox-dur-slow: 200ms;
+  --ox-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ox-tint: 255 255 255;
+  --ox-legacy-text: #e9e9e9;
+  --ox-legacy-text-2: #c7c7c7;
+  --ox-legacy-mute: #8f8d88;
+  --ox-panel: #1b1c1f;
+  --ox-rail: #151618;
+}
+
+/*
+  Light colorway: the same graphite ladder inverted, not the marketing paper.
+  Amber darkens because it is also used as text — #f2a93b on white is 2:1 —
+  and on the darker amber, button labels flip to white to keep 4.5:1.
+*/
+html[data-theme="day"] .os-shell.os-shell-night,
+html[data-theme="day"] .os-shell-night {
+  color-scheme: light;
+  --ox-bg: #f5f6f7;
+  --ox-s1: #ffffff;
+  --ox-s2: #f0f1f3;
+  --ox-s3: #e8eaed;
+  --ox-s4: #dde0e4;
+  --ox-line: #e1e3e7;
+  --ox-line-strong: #c9cdd3;
+  --ox-text: #111316;
+  --ox-text-2: #363b42;
+  --ox-mute: #5c636d;
+  --ox-amber: #9a5b00;
+  --ox-amber-hi: #b36a00;
+  --ox-amber-soft: rgb(154 91 0 / 0.1);
+  --ox-on-amber: #ffffff;
+  --ox-green: #0b7a53;
+  --ox-green-soft: rgb(11 122 83 / 0.1);
+  --ox-yellow: #7d6200;
+  --ox-yellow-soft: rgb(125 98 0 / 0.1);
+  --ox-red: #c0282d;
+  --ox-red-soft: rgb(192 40 45 / 0.09);
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(0 0 0 / 0.28);
+  --ox-tint: 17 19 22;
+  --ox-legacy-text: #111316;
+  --ox-legacy-text-2: #363b42;
+  --ox-legacy-mute: #5c636d;
+  /* Day-only: legacy night rules read these with their original hex as fallback. */
+  --ox-day-surface: #ffffff;
+  --ox-day-sunk: #f5f6f7;
+  --ox-day-line: #e1e3e7;
+  --ox-day-ink: #111316;
+  --ox-day-soft: #5c636d;
+  --ox-panel: #ffffff;
+  --ox-rail: #f5f6f7;
+  --ox-primary: #111316;
+  --ox-on-primary: #ffffff;
+  --ox-fill: rgb(0 0 0 / 0.05);
+  --ox-fill-hover: rgb(0 0 0 / 0.08);
+  --ox-fill-light: rgb(0 0 0 / 0.03);
 }
 
 .os-shell.os-shell-night {
@@ -101,14 +160,6 @@
 
 .os-shell.os-shell-night .os-ring-status {
   border-bottom: 1px solid var(--ox-line) !important;
-}
-
-.os-shell.os-shell-night .os-sidebar-label {
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.02em !important;
-  text-transform: none !important;
-  color: var(--ox-mute) !important;
 }
 
 .os-shell.os-shell-night .os-ring-status-title {
@@ -196,7 +247,7 @@
 .os-shell.os-shell-night .os-topbar,
 .os-shell.os-shell-night .os-topbar-pro,
 .os-shell.os-shell-night .os-topbar-night {
-  background: rgb(26 26 26 / 0.86) !important;
+  background: color-mix(in srgb, var(--ox-bg) 88%, transparent) !important;
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--ox-line) !important;
   padding: 0.85rem 2rem !important;
@@ -291,7 +342,7 @@ body:has(.os-shell.os-shell-night) {
   white-space: nowrap;
   text-decoration: none !important;
   cursor: pointer;
-  transition: background 120ms ease, opacity 120ms ease, color 120ms ease;
+  transition: background var(--ox-dur-fast) ease, border-color var(--ox-dur-fast) ease, color var(--ox-dur-fast) ease;
 }
 
 :is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary,
@@ -328,6 +379,23 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night .btn:not(.btn-void):hover:not(:disabled),
 .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary):hover:not(:disabled) {
   background: var(--ox-fill-hover) !important;
+  color: var(--ox-text) !important;
+}
+
+/* One filled action per view: only the top queue item keeps amber. */
+.os-shell.os-shell-night .wq-row .attention-item-btn-primary,
+.os-shell.os-shell-night .wq-row .assign-tech-btn,
+.os-shell.os-shell-night .wq-row .job-status-advance-btn {
+  background: transparent !important;
+  border: 1px solid var(--ox-line-strong) !important;
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .wq-row .attention-item-btn-primary:hover:not(:disabled),
+.os-shell.os-shell-night .wq-row .assign-tech-btn:hover:not(:disabled),
+.os-shell.os-shell-night .wq-row .job-status-advance-btn:hover:not(:disabled) {
+  background: var(--ox-s3) !important;
+  border-color: var(--ox-line-strong) !important;
   color: var(--ox-text) !important;
 }
 
@@ -415,7 +483,6 @@ body:has(.os-shell.os-shell-night) {
 /* ── Surfaces ──────────────────────────────────────────────────────────── */
 
 .os-shell.os-shell-night .pro-panel,
-.os-shell.os-shell-night .approve-queue,
 .os-shell.os-shell-night .lead-inbox-card {
   background: var(--ox-s2) !important;
   border: 1px solid var(--ox-line) !important;
@@ -430,7 +497,7 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night .pro-panel-title {
   font-size: 1rem !important;
   font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
   text-transform: none !important;
   color: var(--ox-text) !important;
 }
@@ -584,7 +651,7 @@ body:has(.os-shell.os-shell-night) {
 .cc-brief-text {
   margin: 0;
   max-width: 46rem;
-  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+  font-size: var(--fs-display-xs);
   font-weight: 550;
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -634,7 +701,7 @@ body:has(.os-shell.os-shell-night) {
   background: var(--ox-s2);
   color: inherit;
   text-decoration: none;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--ox-dur-fast) ease, border-color var(--ox-dur-fast) ease;
 }
 
 a.cs-card:hover {
@@ -703,7 +770,7 @@ a.cs-card:hover {
 
 .wq-title {
   margin: 0;
-  font-size: 1.1875rem;
+  font-size: 1.25rem;
   font-weight: 650;
   letter-spacing: -0.015em;
   color: var(--ox-text);
@@ -812,7 +879,7 @@ a.cs-card:hover {
 }
 
 .wq-subject--lg {
-  font-size: 1.1875rem;
+  font-size: 1.25rem;
   letter-spacing: -0.01em;
 }
 
@@ -934,28 +1001,6 @@ a.cs-card:hover {
 
 /* Approvals under the queue */
 
-.os-shell.os-shell-night .approve-queue {
-  padding: 1.1rem 1.25rem !important;
-}
-
-.os-shell.os-shell-night .approve-queue-kicker {
-  font-size: 0.8125rem !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-  color: var(--ox-amber) !important;
-}
-
-.os-shell.os-shell-night .approve-queue-title {
-  font-size: 1.0625rem !important;
-  color: var(--ox-text) !important;
-}
-
-.os-shell.os-shell-night .approve-queue-lead,
-.os-shell.os-shell-night .approve-queue-preview {
-  font-size: 0.875rem !important;
-  color: var(--ox-text-2) !important;
-}
-
 /* Orvius Pulse */
 
 .op-panel {
@@ -1037,42 +1082,6 @@ a.cs-card:hover {
   font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--ox-mute);
-}
-
-.op-recent {
-  padding: 0.75rem 0 0.25rem;
-  border-top: 1px solid var(--ox-line);
-}
-
-.op-recent ul {
-  display: grid;
-  gap: 0.15rem;
-  margin: 0.4rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.op-event {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.45rem 0.5rem;
-  margin: 0 -0.5rem;
-  border-radius: var(--ox-radius-sm);
-  font-size: 0.875rem;
-  color: var(--ox-text-2);
-  text-decoration: none;
-}
-
-a.op-event:hover {
-  background: var(--ox-s3);
-  color: var(--ox-text);
-}
-
-.op-event-age {
-  flex-shrink: 0;
-  color: var(--ox-mute);
-  font-variant-numeric: tabular-nums;
 }
 
 .op-stale {
@@ -1526,7 +1535,7 @@ button.rd-path-btn:hover {
 .os-shell.os-shell-night .mx-env {
   margin: 0 5.5px 8px;
   color: var(--ox-amber);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -1859,46 +1868,6 @@ button.rd-path-btn:hover {
   font-weight: 650;
 }
 
-.pm-name {
-  margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 650;
-  color: var(--ox-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pm-email {
-  margin: 0.1rem 0 0;
-  font-size: 0.8125rem;
-  color: var(--ox-mute);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pm-role {
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  background: var(--ox-s4);
-  font-size: 0.75rem;
-  font-weight: 650;
-  color: var(--ox-text-2);
-}
-
-.pm-section {
-  padding: 0.5rem 0.5rem;
-  border-bottom: 1px solid var(--ox-line);
-}
-
-.pm-section-label {
-  margin: 0.2rem 0.5rem 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 650;
-  color: var(--ox-mute);
-}
-
 .pm-workspace {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -1952,46 +1921,20 @@ button.rd-path-btn:hover {
   color: var(--ox-mute);
 }
 
-.os-shell.os-shell-night .os-profile-menu-links {
-  padding: 0.35rem 0.5rem !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-link {
-  display: grid !important;
-  gap: 0.05rem;
-  min-height: 2.75rem;
-  padding: 0.45rem 0.5rem !important;
+.os-shell.os-shell-night .pm-ws-all {
+  display: block;
+  margin: 0.25rem 0.25rem 0;
+  padding: 0.5rem;
   border-radius: var(--ox-radius-sm);
-  font-size: 0.9375rem !important;
-  font-weight: 550 !important;
-  color: var(--ox-text) !important;
+  font-size: 0.8125rem;
+  color: var(--ox-text-2);
+  text-decoration: none;
 }
 
-.os-shell.os-shell-night .os-profile-menu-link:hover {
-  background: var(--ox-s3) !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-hint {
-  font-size: 0.75rem !important;
-  color: var(--ox-mute) !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-footer {
-  padding: 0.4rem 0.5rem 0.5rem !important;
-  border-top: none !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-signout {
-  margin: 0 !important;
-  min-height: 2.5rem;
-  padding: 0 0.5rem !important;
-  font-size: 0.9375rem !important;
-  color: var(--ox-text-2) !important;
-}
-
-.os-shell.os-shell-night .os-profile-menu-signout:hover {
-  background: var(--ox-red-soft) !important;
-  color: var(--ox-red) !important;
+.os-shell.os-shell-night .pm-ws-all:hover,
+.os-shell.os-shell-night .pm-ws-all:focus-visible {
+  background: var(--ox-s3);
+  color: var(--ox-text);
 }
 
 .os-shell.os-shell-night .os-sidebar-user-name {
@@ -2021,9 +1964,460 @@ button.rd-path-btn:hover {
   letter-spacing: 0.01em;
 }
 
-.os-shell.os-shell-night .os-profile-menu-link.is-attention .os-profile-menu-hint {
-  color: var(--ox-amber);
+/* Command home, on Manus's geometry: serif greeting, one large composer, starter chips, then the work. */
+.cc-page {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.cc-hero {
+  display: grid;
+  justify-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 12vh, 8rem) 0 0;
+}
+
+.os-shell.os-shell-night .cc-hero-title {
+  margin: 0;
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", "DejaVu Serif", serif !important;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 400 !important;
+  line-height: 1.2;
+  letter-spacing: -0.005em !important;
+  text-align: center;
+  color: var(--ox-text);
+}
+
+.cc-hero .cb-ask {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.cb-ask-stack {
+  overflow: hidden;
+  border: 1px solid var(--ox-line);
+  border-radius: 1.25rem;
+  background: var(--ox-s2);
+}
+
+.cb-ask-form {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.875rem 0.875rem 0.625rem 1rem;
+  border-radius: 1.25rem;
+  background: var(--ox-s1);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.04);
+}
+
+.cb-ask-stack > .cb-ask-form:only-child {
+  box-shadow: none;
+}
+
+.os-shell.os-shell-night .cb-ask-input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+  resize: none;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ox-text);
+}
+
+.os-shell.os-shell-night .cb-ask-input::placeholder {
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .cb-ask-input:focus,
+.os-shell.os-shell-night .cb-ask-input:focus-visible {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.cb-ask-stack:focus-within {
+  border-color: var(--ox-text-2);
+}
+
+.cb-ask-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.cb-ask-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.cb-ask-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.os-shell.os-shell-night .cb-ask-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ox-text);
+  color: var(--ox-s1);
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .cb-ask-send:disabled {
+  background: var(--ox-s3);
+  color: var(--ox-mute);
+  cursor: default;
+}
+
+.cb-ask-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.os-shell.os-shell-night .cb-ask-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 999px;
+  background: var(--ox-s1);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ox-text-2);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .cb-ask-chip:hover,
+.os-shell.os-shell-night .cb-ask-chip:focus-visible {
+  border-color: var(--ox-line-strong);
+  background: var(--ox-s2);
+  color: var(--ox-text);
+}
+
+.cc-hero .cb-ask-result {
+  margin-top: 0;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 1rem;
+  background: var(--ox-s1);
+}
+
+/* The next setup step rides under the composer as one quiet strip. */
+.os-shell.os-shell-night .cb-ask-stack .shop-operate-banner {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.5rem 0.625rem 0.5rem 1rem;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  position: static;
+}
+
+.cb-ask-stack .shop-operate-banner-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.cb-ask-stack .shop-operate-banner-kicker {
+  display: none;
+}
+
+.os-shell.os-shell-night .cb-ask-stack .shop-operate-banner-title {
+  margin: 0;
+  font-size: 0.8125rem;
   font-weight: 600;
+  color: var(--ox-text);
+}
+
+.os-shell.os-shell-night .cb-ask-stack .shop-operate-banner-detail {
+  margin: 0;
+  max-width: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .cb-ask-stack .shop-operate-banner .btn {
+  flex-shrink: 0;
+  min-height: 2rem;
+  padding: 0 0.875rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 640px) {
+  .cc-hero {
+    padding-top: 1.5rem;
+  }
+
+  .os-shell.os-shell-night .cb-ask-stack .shop-operate-banner {
+    flex-wrap: wrap;
+  }
+}
+
+/* Account menu, on Manus's geometry: identity, a plan card, then short icon rows in divided groups. */
+.os-shell.os-shell-night .pm-panel {
+  width: 18.5rem;
+  padding: 0.75rem;
+  border-radius: 1rem !important;
+  border: 1px solid var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.16), 0 2px 8px rgb(0 0 0 / 0.06) !important;
+  color: var(--ox-text);
+}
+
+.pm-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.pm-icon-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.pm-icon-xs {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.pm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem 0.75rem;
+}
+
+.pm-head-id {
+  position: relative;
+  display: inline-flex;
+}
+
+.os-shell.os-shell-night .pm-head-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.125rem;
+}
+
+.pm-head-badge {
+  position: absolute;
+  right: -0.125rem;
+  bottom: -0.125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 2px solid var(--ox-s1);
+  border-radius: 999px;
+  background: var(--ox-text);
+  color: var(--ox-s1);
+}
+
+.pm-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ox-mute);
+  cursor: pointer;
+}
+
+.pm-switch:hover,
+.pm-switch:focus-visible {
+  background: var(--ox-s3);
+  color: var(--ox-text);
+}
+
+.pm-plan {
+  overflow: hidden;
+  margin-bottom: 0.375rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.75rem;
+  background: var(--ox-s2);
+}
+
+.pm-plan-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 0.875rem;
+  border-bottom: 1px dashed var(--ox-line-strong);
+}
+
+.os-shell.os-shell-night .pm-plan-name {
+  min-width: 0;
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", "DejaVu Serif", serif !important;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--ox-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-shell.os-shell-night .pm-plan-cta {
+  flex-shrink: 0;
+  padding: 0.3125rem 0.75rem;
+  border-radius: 999px;
+  background: var(--ox-text);
+  color: var(--ox-s1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.os-shell.os-shell-night .pm-plan-cta:hover {
+  opacity: 0.86;
+}
+
+.os-shell.os-shell-night .pm-plan-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem 0 0.875rem;
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.pm-plan-info {
+  display: inline-flex;
+  color: var(--ox-mute);
+}
+
+.pm-plan-value {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .pm-plan-explore {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.25rem;
+  padding: 0 0.75rem 0 0.875rem;
+  background: var(--ox-s3);
+  color: var(--ox-mute);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.os-shell.os-shell-night .pm-plan-row:hover,
+.os-shell.os-shell-night .pm-plan-explore:hover {
+  background: var(--ox-s4);
+}
+
+.pm-group {
+  display: grid;
+  padding: 0.375rem 0;
+}
+
+.pm-group + .pm-group {
+  border-top: 1px solid var(--ox-line);
+}
+
+.os-shell.os-shell-night .pm-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.375rem;
+  padding: 0 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .pm-item:hover,
+.os-shell.os-shell-night .pm-item:focus-visible {
+  background: var(--ox-s2);
+}
+
+.pm-item-end {
+  margin-left: auto;
+  color: var(--ox-mute);
+}
+
+.os-shell.os-shell-night .pm-signout {
+  color: var(--ox-red);
+}
+
+.os-shell.os-shell-night .pm-signout:hover {
+  background: var(--ox-red-soft);
+}
+
+.pm-locations {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.os-shell.os-shell-night .pm-back {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0 0.375rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .pm-back:hover {
+  background: var(--ox-s2);
 }
 
 /* ── Ask ───────────────────────────────────────────────────────────────── */
@@ -2048,17 +2442,10 @@ button.rd-path-btn:hover {
   padding: 2.5rem 0 0.5rem;
 }
 
-.ask-intro-kicker {
-  margin: 0 0 0.6rem;
-  font-size: 0.8125rem;
-  font-weight: 650;
-  color: var(--ox-amber);
-}
-
 .ask-intro-title {
   margin: 0;
   max-width: 34ch;
-  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  font-size: var(--fs-display-sm);
   font-weight: 650;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -2082,8 +2469,13 @@ button.rd-path-btn:hover {
   list-style: none;
 }
 
+.ask-suggest-grid > li {
+  display: flex;
+}
+
 .ask-suggest {
   width: 100%;
+  height: 100%;
   min-height: 3.25rem;
   padding: 0.8rem 1rem;
   border: 1px solid var(--ox-line);
@@ -2418,6 +2810,11 @@ button.rd-path-btn:hover {
 .os-shell.os-shell-night .dsp-date {
   width: auto;
   min-height: 2.25rem;
+  color-scheme: dark;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .dsp-date {
+  color-scheme: light;
 }
 
 .dsp-refreshing {
@@ -2569,7 +2966,7 @@ button.rd-path-btn:hover {
   position: absolute;
   top: 0;
   transform: translateX(-50%);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--ox-mute);
   white-space: nowrap;
 }
@@ -2619,7 +3016,7 @@ button.rd-path-btn:hover {
 }
 
 .dsp-block-time {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--ox-mute);
 }
 
@@ -2722,7 +3119,29 @@ button.rd-path-btn:hover {
 }
 
 .dsp-crew summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   cursor: pointer;
+  list-style: none;
+}
+
+.dsp-crew summary::-webkit-details-marker {
+  display: none;
+}
+
+.dsp-crew summary::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--ox-dur-fast) var(--ox-ease);
+}
+
+.dsp-crew[open] > summary::before {
+  transform: rotate(45deg);
 }
 
 .dsp-crew-help {
@@ -2991,7 +3410,7 @@ button.rd-path-btn:hover {
 }
 
 .cp-ev-kind {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--ox-mute);
 }
 
@@ -3149,4 +3568,293 @@ button.rd-path-btn:hover {
   letter-spacing: 0 !important;
   text-transform: none !important;
   border-radius: var(--ox-radius-sm) !important;
+}
+
+/* Toasts: one quiet confirmation surface for every in-app action. */
+.os-toaster {
+  position: fixed;
+  left: 50%;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.os-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+  max-width: min(92vw, 28rem);
+  padding: 0.375rem 0.375rem 0.375rem 0.875rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s3);
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
+  pointer-events: auto;
+  animation: os-toast-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.os-toast-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--ox-green);
+}
+
+.os-toast--error .os-toast-dot {
+  background: var(--ox-red);
+}
+
+.os-toast-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.os-toast-action,
+.os-toast-close {
+  flex: none;
+  min-height: 2rem;
+  padding: 0 0.625rem;
+  border-radius: var(--ox-radius-sm);
+  color: var(--ox-text);
+  font-weight: 600;
+}
+
+.os-toast-action {
+  color: var(--ox-amber-hi);
+}
+
+.os-toast-close {
+  color: var(--ox-mute);
+  font-size: 1.125rem;
+  font-weight: 400;
+}
+
+.os-toast-action:hover,
+.os-toast-close:hover {
+  background: var(--ox-s4);
+}
+
+.os-toast-action:focus-visible,
+.os-toast-close:focus-visible {
+  outline: none;
+  box-shadow: var(--ox-focus);
+}
+
+@keyframes os-toast-in {
+  from { opacity: 0; transform: translateY(0.5rem) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-toast { animation: none; }
+}
+
+.os-shell.os-shell-night :is(button, .btn, [role="button"]):not(:disabled, [aria-disabled="true"]):active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .os-shell.os-shell-night :is(button, .btn, [role="button"]):active {
+    transform: none;
+  }
+}
+
+.pm-ws-list {
+  display: grid;
+  gap: 2px;
+  max-height: min(16rem, 38vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.os-shell.os-shell-night .pm-ws-filter {
+  width: 100%;
+  margin: 0 0 0.375rem;
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid var(--os-line);
+  border-radius: 0.375rem;
+  background: var(--ox-s2, transparent);
+  color: var(--os-ink);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
+.os-shell.os-shell-night button.pm-workspace {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night button.pm-workspace:hover:not(:disabled) {
+  background: var(--ox-s3);
+}
+
+/*
+  Light colorway, legacy repaint. Older night rules in globals.css and
+  dashboard.css hard-code dark surfaces with !important; these re-point the
+  ones still on screen to tokens until those rules are retired.
+*/
+html[data-theme="day"] .os-shell.os-shell-night :is(.os-main, .os-topbar, .os-content, .dt, .cc, .wq, .sc-dialog) {
+  color: var(--ox-text) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.orvius-logo-word, .orvius-logo-void, h2, .wq-title) {
+  color: var(--ox-text) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.pro-page-filters, .pro-filter-bar) {
+  border-color: var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .pro-filter-tab {
+  border-color: var(--ox-line) !important;
+  color: var(--ox-mute) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .pro-filter-tab:hover {
+  background: var(--ox-s2) !important;
+  color: var(--ox-text) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.pro-filter-tab-active, .pro-filter-tab[aria-selected="true"], .pro-page-filters button[aria-pressed="true"]) {
+  background: var(--ox-text) !important;
+  color: var(--ox-s1) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-banner, .pro-stat, .pro-panel, .pro-economics-panel, .pro-signal-bar, .capture-setup-panel, .capture-setup-carrier, .account-billing-plan, .transcript-cinema, .owner-alert) {
+  border-color: var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+  color: var(--ox-text) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.account-billing-plan-name, .account-billing-plan-price) {
+  color: var(--ox-text-2) !important;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn, .lead-quick-actions a, .btn:not(.btn-void)) {
+  border-color: var(--ox-line-strong) !important;
+  color: var(--ox-text-2) !important;
+}
+
+/* Motion is decoration here, never information: honor the OS setting everywhere in the app. */
+@media (prefers-reduced-motion: reduce) {
+  .os-shell *,
+  .os-shell *::before,
+  .os-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Account menu: location switcher ───────────────────────────────────── */
+
+.os-shell.os-shell-night .mx-menu button.mx-identity {
+  width: 100%;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .mx-locations {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.os-shell.os-shell-night .mx-menu .mx-back {
+  color: #b3b3b3;
+  font-weight: 500;
+}
+
+.os-shell.os-shell-night .mx-ws {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 10.5px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night button.mx-ws:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.06);
+}
+
+.os-shell.os-shell-night .mx-ws.is-current {
+  cursor: default;
+  background: rgb(255 255 255 / 0.04);
+}
+
+.os-shell.os-shell-night .mx-ws-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #313131;
+  color: #e6e6e6;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.os-shell.os-shell-night .mx-ws-check {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  color: #e6e6e6;
+}
+
+.os-shell.os-shell-night .mx-ws-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.os-shell.os-shell-night .mx-ws-filter {
+  height: 32px;
+  margin: 4px 0;
+  padding: 0 10px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 8px;
+  background: transparent;
+  color: #e6e6e6;
+  font-size: 14px;
+}
+
+.os-shell.os-shell-night .mx-ws-all,
+.os-shell.os-shell-night .mx-ws-note {
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  border-top: 1px solid rgb(255 255 255 / 0.06);
+  color: #8c8c8c;
+  font-size: 13px;
+}
+
+.os-shell.os-shell-night .mx-ws-all:hover {
+  color: #e6e6e6;
 }

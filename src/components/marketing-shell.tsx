@@ -23,15 +23,20 @@ export function MarketingShell({ children }: MarketingShellProps) {
   return (
     <>
       <div className="ov-public mkt-page mkt-page--craft">
+        <a href="#main" className="ov-skip-link">
+          Skip to content
+        </a>
         <PremiumNav />
-        <main>{children}</main>
+        <main id="main" tabIndex={-1}>
+          {children}
+        </main>
         <footer className="mkt-footer mkt-footer--institution">
           <div className="mkt-footer-grid">
             <div className="mkt-footer-brand">
               <OrviusLogo variant="void" size="sm" />
               <p className="mkt-footer-entity font-sans">Solution Development LLC</p>
               <p className="mkt-footer-tagline font-sans" data-i18n="footer.tagline">
-                Focused AI receptionist for HVAC — missed calls to paid jobs.
+                The operating system for businesses that run on the phone.
               </p>
             </div>
             <nav className="mkt-footer-col" aria-label="Product">
@@ -41,14 +46,14 @@ export function MarketingShell({ children }: MarketingShellProps) {
               <Link href="/enterprise">Enterprise</Link>
               <Link href="/pilot">Call audit</Link>
               <Link href="/resources">Resources</Link>
+              <Link href="/help">Help center</Link>
               <Link href="/changelog">Changelog</Link>
-              <Link href="/signin">Log in</Link>
+              <Link href="/signin">Sign in</Link>
             </nav>
             <nav className="mkt-footer-col" aria-label="Company">
               <p className="mkt-footer-heading font-sans">Company</p>
               <Link href="/about">About</Link>
               <Link href="/security">Security</Link>
-              <Link href="/pilot">Call audit</Link>
               <a href="mailto:hello@orvius.im">Contact</a>
             </nav>
             <nav className="mkt-footer-col" aria-label="Legal">
@@ -73,11 +78,11 @@ export function MarketingShell({ children }: MarketingShellProps) {
             <p className="mkt-footer-mark">
               Orvius™ is a trademark of Solution Development LLC.
             </p>
+            <UtilityDock placement="inline" />
           </div>
         </footer>
         <I18nRuntime />
       </div>
-      <UtilityDock />
     </>
   );
 }

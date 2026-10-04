@@ -1,0 +1,44 @@
+.mp-plans {
+  display: grid;
+  gap: 0.625rem;
+}
+.mp-plan {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid #2c3139;
+  border-radius: 12px;
+  background: #0b0c0e;
+  color: #eceef1;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mp-plan.is-on {
+  border-color: #f2a93b;
+  box-shadow: inset 0 0 0 1px #f2a93b;
+}
+.mp-plan:focus-visible {
+  outline: 2px solid #f2a93b;
+  outline-offset: 2px;
+}
+.mp-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.mp-price {
+  font-size: 1.5rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.mp-price small {
+  margin-left: 2px;
+  color: #8b919a;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.mp-line {
+  color: #b7bcc4;
+  font-size: 0.875rem;
+}

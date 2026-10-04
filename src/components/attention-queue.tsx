@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/toaster";
 import Link from "next/link";
 import {
   attentionActionStrategy,
@@ -109,6 +110,7 @@ function MarkNotAJobButton({
       });
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) throw new Error(data?.error ?? "Could not clear lead");
+      toast({ title: "Cleared as spam" });
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not clear");
@@ -153,6 +155,7 @@ function TestAlertButton({ onDone, quiet = false }: { onDone?: () => void; quiet
             "Alert queued but not delivered. Check Settings.",
         );
       }
+      toast({ title: "Test alert sent. Check your phone." });
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not send");
@@ -186,6 +189,7 @@ function CopyProofButton({ onDone }: { onDone?: () => void }) {
     setErr(false);
     try {
       await copyWeeklyProofRitual();
+      toast({ title: "Copied" });
       onDone?.();
     } catch {
       setErr(true);
@@ -234,6 +238,7 @@ function TextConfirmButton({
         error?: string;
       } | null;
       if (!res.ok) throw new Error(data?.error ?? "Could not send");
+      toast({ title: "Confirmation text sent" });
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not send");
@@ -314,10 +319,21 @@ function PrimaryAction({
       <JobStatusAdvance jobId={item.entityId} status={item.meta!.status!} onAdvanced={() => onAction?.()} compact />
     );
   }
+  if (item.recommendedAction === "Send invoice") {
+    return (
+      <Link href={item.href} className={primary}>
+        Send invoice
+      </Link>
+    );
+  }
   if (canCall(item)) {
     return (
       <a href={telHref(item.meta!.phone!)} className={primary}>
-        Call back
+        {item.kind === "tech_no_show"
+          ? "Call tech"
+          : item.recommendedAction?.startsWith("Call")
+            ? item.recommendedAction
+            : "Call back"}
       </a>
     );
   }
@@ -349,11 +365,13 @@ export function AttentionQueue({
   loading,
   technicians = [],
   onAction,
+  bare = false,
 }: {
   work: WorkItem[];
   loading?: boolean;
   technicians?: TechOption[];
   onAction?: () => void;
+  bare?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -380,7 +398,7 @@ export function AttentionQueue({
 
   if (!work.length) {
     return (
-      <section id="work-queue" className="wq wq--clear" aria-label="Work queue">
+      <section id="work-queue" className={bare ? "wq wq--clear wq--bare" : "wq wq--clear"} aria-label="Work queue">
         <div className="ox-state ox-state--success">
           <p className="ox-state-title">Queue is clear</p>
           <p className="ox-state-copy">
@@ -395,12 +413,14 @@ export function AttentionQueue({
   const visible = expanded ? rest : rest.slice(0, 6);
 
   return (
-    <section id="work-queue" className="wq" aria-label="Work queue">
-      <header className="wq-head">
-        <h2 className="wq-title">
-          Queue <span className="wq-title-count">{work.length}</span>
-        </h2>
-      </header>
+    <section id="work-queue" className={bare ? "wq wq--bare" : "wq"} aria-label="Work queue">
+      {bare ? null : (
+        <header className="wq-head">
+          <h2 className="wq-title">
+            Queue <span className="wq-title-count">{work.length}</span>
+          </h2>
+        </header>
+      )}
 
       <article className={`wq-recommend wq-sev--${top!.severity}`} aria-label="Top priority">
         <div className="wq-recommend-copy">

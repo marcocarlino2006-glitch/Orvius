@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { paymentMethodLabel } from "@/lib/when";
 
 export type CustomerTouch = {
   businessId: string;
@@ -354,9 +355,7 @@ export async function getCustomerTimeline(
             type: "payment",
             at: payment.createdAt.toISOString(),
             title: `Payment · ${formatMoney(payment.amountCents)}`,
-            summary: payment.method
-              ? `Method: ${payment.method}`
-              : "Recorded payment",
+            summary: paymentMethodLabel(payment.method),
             source: "payment",
             urgency: null,
             status: payment.status,
@@ -385,9 +384,7 @@ export async function getCustomerTimeline(
         type: "payment",
         at: payment.createdAt.toISOString(),
         title: `Payment · ${formatMoney(payment.amountCents)}`,
-        summary: payment.method
-          ? `Method: ${payment.method}`
-          : "Recorded payment",
+        summary: paymentMethodLabel(payment.method),
         source: "payment",
         urgency: null,
         status: payment.status,

@@ -2,10 +2,12 @@ import Link from "next/link";
 import { CheckoutButton } from "@/components/checkout-button";
 import { ShellPanel } from "@/components/shell-primitives";
 import {
+  ANNUAL_DISCOUNT_LABEL,
   getPlanPrice,
   type BillingInterval,
   type PaidPlanId,
   type PricingPlan,
+  annualChargeDollars,
 } from "@/lib/pricing-plans";
 
 type PricingPlanCardProps = {
@@ -37,7 +39,8 @@ export function PricingPlanCard({
     </p>
   ) : isMulti ? (
     <p className="font-sans text-2xl font-semibold tracking-[-0.03em] text-void">
-      Custom
+      {plan.price ? `$${plan.price}` : "Custom"}
+      {plan.price ? <span className="text-base font-medium text-ash"> / location / mo</span> : null}
     </p>
   ) : (
     <p className="font-sans text-2xl font-semibold tracking-[-0.03em] text-void">
@@ -78,6 +81,7 @@ export function PricingPlanCard({
       }
       variant={featured || recommended ? "primary" : "secondary"}
       email={email}
+      quietWhenClosed={layout !== "dashboard"}
     />
   );
 
@@ -100,24 +104,36 @@ export function PricingPlanCard({
         <p className="tier1-plan-badge type-caption">Recommended</p>
       ) : featured ? (
         <p className="tier1-plan-badge type-caption">Lead to job</p>
-      ) : null}
+      ) : (
+        <p className="tier1-plan-badge tier1-plan-badge--empty type-caption" aria-hidden>
+          &nbsp;
+        </p>
+      )}
       <p className="tier1-eyebrow type-eyebrow">{plan.name}</p>
       {isPilot ? (
         <p className="tier1-plan-price font-sans">{plan.period}</p>
       ) : isMulti ? (
-        <p className="tier1-plan-price font-sans">Custom</p>
+        <p className="tier1-plan-price font-sans">
+          {plan.price ? `$${plan.price}` : "Custom"}
+          {plan.price ? <span className="tier1-plan-period">/location/mo</span> : null}
+        </p>
       ) : (
         <p className="tier1-plan-price font-sans">
           ${displayPrice}
           <span className="tier1-plan-period">/mo</span>
         </p>
       )}
-      {!isPilot && !isMulti && interval === "year" && monthlyPrice ? (
+      {!isPilot && !isMulti && monthlyPrice ? (
         <p className="tier1-plan-annual-note font-sans">
-          ${monthlyPrice}/mo if billed monthly · save ~17% annually
+          {interval === "year"
+            ? `$${annualChargeDollars(plan).toLocaleString("en-US")} a year · $${monthlyPrice}/mo if billed monthly`
+            : `Or $${plan.annualPrice}/mo billed annually · ${ANNUAL_DISCOUNT_LABEL.toLowerCase()}`}
         </p>
       ) : null}
       <p className="tier1-section-lead font-sans">{plan.tagline}</p>
+      {isMulti && plan.limit ? (
+        <p className="tier1-plan-annual-note font-sans">{plan.limit}</p>
+      ) : null}
       {!isPilot && !isMulti && plan.idealFor ? (
         <p className="tier1-plan-ideal font-sans">Built for: {plan.idealFor}</p>
       ) : null}

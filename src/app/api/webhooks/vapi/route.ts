@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { detectCallCapture } from "@/lib/capture-detect";
 import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import type { VapiWebhookMessage } from "@/lib/vapi";
-import { ingestEndOfCallReport } from "@/lib/call-ingest";
+import { captureEndOfCallReport, finishCallReport } from "@/lib/call-ingest";
 import { linkTouchToCustomer } from "@/lib/customer";
-import { logWarn } from "@/lib/logger";
+import { logError, logInfo, logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import {
+  buildPreviewAssistant,
+  claimPreviewCall,
+  findPreviewByVapiCallId,
+  recordPreviewOutcome,
+} from "@/lib/shop-preview";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { handleInCallToolCalls } from "@/lib/in-call-tools";
 import { readToolCalls } from "@/lib/in-call-tool-defs";
@@ -55,6 +62,29 @@ async function findBusinessForCall(
   return null;
 }
 
+/**
+ * Vapi asks which assistant should take a call on a line with no fixed
+ * assistant. An owner with an active preview hears their own shop; everyone
+ * else hears the shop that owns the line, exactly as before.
+ */
+async function answerAssistantRequest(params: {
+  vapiCallId: string;
+  callerPhone?: string;
+  inboundNumber?: string;
+}) {
+  const preview = await claimPreviewCall({ callerPhone: params.callerPhone, vapiCallId: params.vapiCallId });
+  if (preview) return { assistant: buildPreviewAssistant(preview) };
+
+  const owner = params.inboundNumber ? await resolveBusinessByInboundPhone(params.inboundNumber) : null;
+  if (owner?.billingStatus === "canceled") {
+    return { error: `Thanks for calling ${owner.name}. This line isn't taking calls right now. Please reach the business directly.` };
+  }
+  if (owner?.vapiAssistantId) return { assistantId: owner.vapiAssistantId };
+
+  logWarn("vapi.assistant_request.unrouted", { vapiCallId: params.vapiCallId, inboundNumber: params.inboundNumber });
+  return { error: "Sorry, this line isn't taking calls right now. Please try again later." };
+}
+
 export async function POST(request: NextRequest) {
   if (!verifyVapiWebhookSecret(request.headers.get("x-vapi-secret"))) {
     const limited = webhookAuthFailureLimited(request, "vapi");
@@ -73,6 +103,23 @@ export async function POST(request: NextRequest) {
 
   const inboundNumber = message.call?.phoneNumber?.number;
   const assistantId = message.call?.assistantId;
+
+  if (type === "assistant-request") {
+    return NextResponse.json(
+      await answerAssistantRequest({
+        vapiCallId,
+        callerPhone: message.call?.customer?.number,
+        inboundNumber,
+      }),
+    );
+  }
+
+  // Preview calls belong to no shop: they must never reach findBusinessForCall's number fallback.
+  const preview = await findPreviewByVapiCallId(vapiCallId);
+  if (preview) {
+    if (type === "end-of-call-report") await recordPreviewOutcome(preview, message);
+    return NextResponse.json({ ok: true, preview: true });
+  }
 
   const business = await findBusinessForCall(
     vapiCallId,
@@ -117,21 +164,50 @@ export async function POST(request: NextRequest) {
   }
 
   if (type === "tool-calls") {
+    /*
+      The caller is waiting on this reply mid-sentence, so the two reads run
+      together and the time is logged per tool: it is the one part of a turn's
+      latency that is ours rather than Vapi's.
+    */
+    const startedAt = Date.now();
     const callerPhone = message.call?.customer?.number ?? null;
-    const call = await prisma.call.upsert({
-      where: { vapiCallId },
-      create: { businessId: business.id, vapiCallId, callerPhone, status: "in-progress" },
-      update: {},
-      select: { id: true },
-    });
-    const shop = await prisma.business.findUniqueOrThrow({
-      where: { id: business.id },
-      select: { id: true, name: true, hoursJson: true, timezone: true, trade: true, servicesJson: true },
-    });
+    const [call, shop] = await Promise.all([
+      prisma.call.upsert({
+        where: { vapiCallId },
+        create: { businessId: business.id, vapiCallId, callerPhone, status: "in-progress" },
+        update: {},
+        select: { id: true, vapiCallId: true, callerPhone: true },
+      }),
+      prisma.business.findUniqueOrThrow({
+        where: { id: business.id },
+        select: {
+          id: true,
+          name: true,
+          hoursJson: true,
+          timezone: true,
+          trade: true,
+          servicesJson: true,
+          ownerPhone: true,
+          ownerEmail: true,
+          transferPhone: true,
+          networkOn: true,
+          networkZip3: true,
+          address: true,
+        },
+      }),
+    ]);
+    const toolCalls = readToolCalls(message);
     const results = await handleInCallToolCalls({
       shop,
       callId: call.id,
-      toolCalls: readToolCalls(message),
+      call: { ...call, callerPhone: call.callerPhone ?? callerPhone },
+      toolCalls,
+    });
+    logInfo("in_call.tool_ms", {
+      businessId: business.id,
+      vapiCallId,
+      tools: toolCalls.map((t) => t.name).join(","),
+      ms: Date.now() - startedAt,
     });
     return NextResponse.json({ results });
   }
@@ -197,21 +273,34 @@ export async function POST(request: NextRequest) {
   }
 
   if (type === "end-of-call-report") {
-    const result = await ingestEndOfCallReport({ business, message, vapiCallId });
-    if (result.duplicate) {
+    // Booking can take several rounds; Vapi only needs to know the call is saved.
+    const captured = await captureEndOfCallReport({ business, message, vapiCallId });
+    if (captured.duplicate) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
-    after(() => drainOwnerAlerts({ at: "vapi.webhook", vapiCallId, businessId: business.id }));
-    return NextResponse.json({
-      ok: true,
-      callId: result.callId,
-      leadId: result.leadId,
-      jobId: result.jobId,
-      autoBooked: result.autoBooked,
-      qualified: result.qualified,
-      skipReason: result.skipReason,
-      queued: true,
+    after(async () => {
+      await finishCallReport(captured).catch((error: unknown) =>
+        logError("vapi.call_report_finish_failed", {
+          vapiCallId,
+          businessId: business.id,
+          error: error instanceof Error ? error.message : "unknown",
+        }),
+      );
+      await drainOwnerAlerts({ at: "vapi.webhook", vapiCallId, businessId: business.id });
+      await detectCallCapture({
+        business: captured.business,
+        vapiCallId,
+        callerPhone: captured.call.callerPhone,
+        providerCallId: message.call?.phoneCallProviderId,
+      }).catch((error: unknown) =>
+        logError("vapi.capture_detect_failed", {
+          vapiCallId,
+          businessId: business.id,
+          error: error instanceof Error ? error.message : "unknown",
+        }),
+      );
     });
+    return NextResponse.json({ ok: true, callId: captured.call.id, leadId: captured.lead.id, queued: true });
   }
 
   return NextResponse.json({ ok: true, type });

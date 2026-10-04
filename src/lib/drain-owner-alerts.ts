@@ -1,5 +1,10 @@
+import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
 import { logError } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
+import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
+
+const STRANDED_SWEEP_EVERY_MS = 60_000;
+let lastStrandedSweep = 0;
 
 /**
  * Advance the owner-alert retry ladder from a request that is already running.
@@ -34,6 +39,10 @@ export async function drainOwnerAlerts(context: Record<string, unknown> = {}) {
     do {
       followUpRequested = false;
       try {
+        if (Date.now() - lastStrandedSweep >= STRANDED_SWEEP_EVERY_MS) {
+          lastStrandedSweep = Date.now();
+          await Promise.all([alertStrandedTextLeads(), sweepUnfinishedCallReports()]);
+        }
         await processNotificationQueue(10);
       } catch (error) {
         logError("notifications.request_drain_failed", {

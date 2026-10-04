@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/toaster";
 import Link from "next/link";
 import {
   createContext,
@@ -10,6 +11,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type DragEventHandler,
   type ReactNode,
 } from "react";
 import type { RecordType, RecordView } from "@/lib/record-types";
@@ -376,6 +378,7 @@ function LeadMoreActions({ record }: { record: RecordView }) {
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) throw new Error(data?.error ?? "Update failed");
       setStatus("contacted");
+      toast({ title: "Marked contacted" });
     } catch (err) {
       setError(err instanceof Error ? `${err.message}. Nothing was changed.` : "Update failed.");
     } finally {
@@ -385,6 +388,8 @@ function LeadMoreActions({ record }: { record: RecordView }) {
 
   if (!phone && status !== "new") return null;
   return (
+    <>
+    {phone && status === "new" ? <FollowUpText leadId={record.id} /> : null}
     <section className="rd-section" aria-label="More actions">
       <p className="rd-section-label">More actions</p>
       <div className="rd-actions">
@@ -410,6 +415,72 @@ function LeadMoreActions({ record }: { record: RecordView }) {
         </p>
       ) : null}
     </section>
+    </>
+  );
+}
+
+type FollowUpPreview = { mode: "off" | "ask" | "auto"; message: string; sentAt: string | null; canSend: boolean; reason: string | null };
+
+/** The one follow-up text Orvius drafts for a caller nobody has reached. */
+function FollowUpText({ leadId }: { leadId: string }) {
+  const [preview, setPreview] = useState<FollowUpPreview | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/leads/${leadId}/follow-up`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: FollowUpPreview | null) => {
+        if (live) setPreview(data);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [leadId]);
+
+  async function send() {
+    setBusy(true);
+    setNote(null);
+    try {
+      const res = await fetch(`/api/leads/${leadId}/follow-up`, { method: "POST" });
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(data?.error ?? "The text did not go out. Try again.");
+      setPreview((prev) => (prev ? { ...prev, canSend: false, sentAt: new Date().toISOString(), reason: null } : prev));
+      toast({ title: "Follow-up sent" });
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : "The text did not go out. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!preview || preview.mode === "off") return null;
+  if (!preview.sentAt && !preview.canSend && !preview.reason) return null;
+  return (
+    <section className="rd-section" aria-label="Follow-up text">
+      <p className="rd-section-label">Follow-up text</p>
+      <p className="rd-meta">{preview.message}</p>
+      {preview.sentAt ? (
+        <p className="rd-meta">
+          Sent <time dateTime={preview.sentAt}>{formatWhen(preview.sentAt)}</time>. Replies come to you.
+        </p>
+      ) : preview.canSend ? (
+        <div className="rd-actions">
+          <button type="button" className="ox-btn ox-btn--sm" disabled={busy} onClick={() => void send()}>
+            {busy ? "Sending…" : "Send follow-up text"}
+          </button>
+        </div>
+      ) : (
+        <p className="rd-meta">{preview.reason}</p>
+      )}
+      {note ? (
+        <p className="rd-missing" role="alert">
+          {note}
+        </p>
+      ) : null}
+    </section>
   );
 }
 
@@ -426,6 +497,8 @@ export function RecordLink({
   style,
   title,
   role,
+  onDragStart,
+  onDragEnd,
   children,
 }: {
   type: RecordType;
@@ -435,6 +508,8 @@ export function RecordLink({
   style?: CSSProperties;
   title?: string;
   role?: string;
+  onDragStart?: DragEventHandler<HTMLAnchorElement>;
+  onDragEnd?: DragEventHandler<HTMLAnchorElement>;
   children: ReactNode;
 }) {
   const drawer = useRecordDrawer();
@@ -445,6 +520,9 @@ export function RecordLink({
       style={style}
       title={title}
       role={role}
+      draggable={onDragStart ? true : undefined}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       onClick={(event) => {
         if (!drawer || event.metaKey || event.ctrlKey || event.shiftKey) return;
         event.preventDefault();

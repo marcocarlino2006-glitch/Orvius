@@ -1,0 +1,520 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Texture. Loaded after everything else in the app.
+
+   Manus's palette and face: their published surface, text, line and button
+   tokens for both themes, the system font stack, hairline edges, and buttons
+   that read as controls rather than stickers: a filled primary, outlined
+   secondary, 8px corners. Amber stays the brand accent — focus, live counts, the
+   occasional emphasis — not the colour of every action.
+   ────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --ox-bg: #1a1a1a;
+  --ox-s1: #1f1f1f;
+  --ox-s2: #242424;
+  --ox-s3: #2a2a2a;
+  --ox-s4: #313131;
+  --ox-line: #ffffff0f;
+  --ox-line-strong: #ffffff1f;
+  --ox-text: #e6e6e6;
+  --ox-text-2: #b3b3b3;
+  --ox-mute: #8c8c8c;
+  --ox-radius: 0.75rem;
+  --ox-radius-sm: 0.5rem;
+  --ox-panel: #242424;
+  --ox-rail: #1f1f1f;
+  --ox-btn-fill: #fffffff2;
+  --ox-btn-fill-hi: #ffffff;
+  --ox-btn-on-fill: #000000e5;
+  --ox-btn-hover: #ffffff0f;
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px #ffffff52;
+  --ox-day-surface: #1f1f1f;
+  --ox-day-sunk: #1a1a1a;
+  --ox-day-line: #ffffff14;
+  --ox-day-ink: #e6e6e6;
+  --ox-day-soft: #8c8c8c;
+  --ox-face: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night,
+html[data-theme="day"] .os-shell-night {
+  --ox-bg: #f8f8f7;
+  --ox-s1: #ffffff;
+  --ox-s2: #f3f3f3;
+  --ox-s3: #f0f0f0;
+  --ox-s4: #e8e8e7;
+  --ox-line: #0000000f;
+  --ox-line-strong: #0000001f;
+  --ox-text: #1a1a1a;
+  --ox-text-2: #4d4d4d;
+  --ox-mute: #737373;
+  --ox-tint: 55 53 47;
+  --ox-legacy-text: #1a1a1a;
+  --ox-legacy-text-2: #4d4d4d;
+  --ox-legacy-mute: #737373;
+  --ox-day-surface: #ffffff;
+  --ox-day-sunk: #f8f8f7;
+  --ox-day-line: #0000000f;
+  --ox-day-ink: #1a1a1a;
+  --ox-day-soft: #737373;
+  --ox-panel: #ffffff;
+  --ox-rail: #f0f0f0;
+  --ox-btn-fill: #1a1a19;
+  --ox-btn-fill-hi: #000000;
+  --ox-btn-on-fill: #ffffff;
+  --ox-btn-hover: #37352f0a;
+  --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px #0000004d;
+}
+
+/* ── Type: one product face ───────────────────────────────────────────── */
+
+.os-shell,
+.os-shell :is(.font-sans, button, input, select, textarea, h1, h2, h3, h4, p, a, span, label, dt, dd, li, td, th),
+.sc-dialog,
+.sc-dialog :is(.font-sans, button, input, select, textarea, h1, h2, h3, p, a, span, label) {
+  font-family: var(--ox-face);
+}
+
+.os-shell :is(kbd, code, .dt-mono, .font-mono),
+.sc-dialog :is(kbd, code, .font-mono) {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.os-shell.os-shell-night {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.003em;
+}
+
+.os-shell.os-shell-night .os-topbar-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.os-shell.os-shell-night :is(h2, h3, .wq-title) {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn,
+html .os-shell.os-shell-night .btn,
+html .os-shell.os-shell-night .btn-void,
+html .os-shell.os-shell-night .btn-secondary,
+html .os-shell.os-shell-night .attention-item-btn,
+html .os-shell.os-shell-night .assign-tech-btn,
+html .os-shell.os-shell-night .job-status-advance-btn,
+html .os-shell .sc-btn,
+html .os-shell .inst-btn {
+  min-height: 2.25rem !important;
+  padding: 0 0.875rem !important;
+  border-radius: 0.5rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.003em !important;
+  box-shadow: none !important;
+  transition: background var(--ox-dur-fast) ease, border-color var(--ox-dur-fast) ease, color var(--ox-dur-fast) ease;
+}
+
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--sm {
+  min-height: 2rem !important;
+  padding: 0 0.75rem !important;
+}
+
+/* Primary: light fill, dark ink. */
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary,
+html .os-shell.os-shell-night .btn-void,
+html .os-shell.os-shell-night .attention-item-btn-primary,
+html .os-shell.os-shell-night .assign-tech-btn,
+html .os-shell.os-shell-night .job-status-advance-btn,
+html .os-shell .sc-btn--primary,
+html .os-shell .inst-btn-primary {
+  background: var(--ox-btn-fill) !important;
+  border: 1px solid var(--ox-btn-fill) !important;
+  color: var(--ox-btn-on-fill) !important;
+}
+
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary:hover:not(:disabled),
+html .os-shell.os-shell-night .btn-void:hover:not(:disabled),
+html .os-shell.os-shell-night .attention-item-btn-primary:hover:not(:disabled),
+html .os-shell.os-shell-night .assign-tech-btn:hover:not(:disabled),
+html .os-shell.os-shell-night .job-status-advance-btn:hover:not(:disabled),
+html .os-shell .sc-btn--primary:hover:not(:disabled),
+html .os-shell .inst-btn-primary:hover:not(:disabled) {
+  background: var(--ox-btn-fill-hi) !important;
+  border-color: var(--ox-btn-fill-hi) !important;
+  color: var(--ox-btn-on-fill) !important;
+}
+
+/* Secondary: outline on the surface. */
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet,
+html .os-shell.os-shell-night .btn-secondary,
+html .os-shell.os-shell-night .btn:not(.btn-void),
+html .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary),
+html .os-shell.os-shell-night .wq-row :is(.attention-item-btn-primary, .assign-tech-btn, .job-status-advance-btn),
+html .os-shell .sc-btn:not(.sc-btn--primary),
+html .os-shell .inst-btn-ghost {
+  background: transparent !important;
+  border: 1px solid var(--ox-line-strong) !important;
+  color: var(--ox-text) !important;
+}
+
+html :is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet:hover:not(:disabled),
+html .os-shell.os-shell-night .btn-secondary:hover:not(:disabled),
+html .os-shell.os-shell-night .btn:not(.btn-void):hover:not(:disabled),
+html .os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary):hover:not(:disabled),
+html .os-shell.os-shell-night .wq-row :is(.attention-item-btn-primary, .assign-tech-btn, .job-status-advance-btn):hover:not(:disabled),
+html .os-shell .sc-btn:not(.sc-btn--primary):hover:not(:disabled),
+html .os-shell .inst-btn-ghost:hover:not(:disabled) {
+  background: var(--ox-btn-hover) !important;
+  border-color: var(--ox-line-strong) !important;
+}
+
+/* The top-bar search and ask chips: quiet, same corner. */
+html .os-shell.os-shell-night .os-topbar-search {
+  height: 2rem !important;
+  padding: 0 0.75rem !important;
+  border: 1px solid var(--ox-line-strong) !important;
+  border-radius: 0.5rem !important;
+  background: transparent !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500;
+}
+
+html .os-shell.os-shell-night .os-topbar-search:hover {
+  background: var(--ox-btn-hover) !important;
+}
+
+.os-shell.os-shell-night .os-line-alert {
+  height: 2rem;
+  border-color: var(--ox-line);
+  border-radius: 0.5rem;
+}
+
+/* ── Edges: hairlines, one radius family ──────────────────────────────── */
+
+.os-shell.os-shell-night :is(.dt, .wq, .ms-row, .cc-rail .cs-grid) {
+  border-color: var(--ox-line) !important;
+  border-radius: var(--ox-radius) !important;
+  box-shadow: none !important;
+}
+
+.os-shell.os-shell-night :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  border-color: var(--ox-line-strong);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.02);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  background: #ffffff;
+}
+
+.os-shell.os-shell-night :is(input, select, textarea):focus-visible {
+  border-color: rgb(255 255 255 / 0.28);
+}
+
+/* Selected state is ink, not amber. */
+.os-shell.os-shell-night .os-nav-link-active::before {
+  display: none;
+}
+
+.os-shell.os-shell-night .os-sidebar-pro .os-nav-link-active,
+.os-shell.os-shell-night .os-nav-link-active {
+  background: rgb(255 255 255 / 0.07) !important;
+  border-radius: 0.5rem;
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .os-nav-link-active {
+  background: rgb(0 0 0 / 0.06) !important;
+  color: #111111 !important;
+}
+
+.os-shell.os-shell-night .os-nav-link {
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
+.os-shell .cb-tab--on,
+.os-shell .jobs-pipeline-stage-active {
+  border-bottom-color: var(--ox-text);
+}
+
+.os-shell .jobs-pipeline-stage-active .jobs-pipeline-count {
+  color: var(--ox-text-2);
+}
+
+/* Settings popup: the same edge and surface as the app. */
+.os-shell .sc-dialog,
+.sc-dialog {
+  border-color: var(--ox-line);
+  border-radius: 1rem;
+}
+
+/* ── Settings popup: Manus's own palette, type and controls ───────────── */
+
+.os-shell .sc-dialog {
+  --ox-tint: 255 255 255;
+  --ox-panel: #1a1a1a;
+  --ox-rail: #1a1a1a;
+  --ox-text: #e6e6e6;
+  --ox-text-2: #b3b3b3;
+  --ox-mute: #8c8c8c;
+  --m-line: #ffffff0f;
+  --m-card: #ffffff0f;
+  --m-pill: #ffffff14;
+  --m-hover: #ffffff0a;
+  --m-btn: #fffffff2;
+  --m-btn-ink: #000000e5;
+  --m-btn-2: #ffffff14;
+  --m-btn-2-line: #ffffff1f;
+  border-color: var(--m-line);
+  box-shadow: 0 0 0 1px #00000014, 0 24px 48px #0006;
+}
+
+html[data-theme="day"] .os-shell .sc-dialog {
+  --ox-tint: 55 53 47;
+  --ox-panel: #f8f8f7;
+  --ox-rail: #f8f8f7;
+  --ox-text: #1a1a1a;
+  --ox-text-2: #4d4d4d;
+  --ox-mute: #737373;
+  --m-line: #0000000f;
+  --m-card: #fff;
+  --m-pill: #fff;
+  --m-hover: #37352f0a;
+  --m-btn: #1a1a19;
+  --m-btn-ink: #fff;
+  --m-btn-2: #fff;
+  --m-btn-2-line: #0000001f;
+  box-shadow: 0 0 0 1px #16191d0a, 0 24px 48px #0000003d;
+}
+
+html[data-theme="day"] .os-shell.sc-overlay {
+  background: #0000004d;
+}
+
+.os-shell.sc-overlay {
+  background: #0009;
+  backdrop-filter: none;
+}
+
+.sc-dialog,
+.sc-dialog :is(.font-sans, button, input, select, textarea, h1, h2, h3, p, a, span, label) {
+  font-family: var(--ox-face);
+}
+
+.os-shell .sc-dialog .sc-nav,
+.os-shell .sc-dialog .sc-head {
+  border-color: var(--m-line);
+}
+
+.os-shell .sc-dialog .sc-nav-item {
+  color: var(--ox-text);
+}
+
+.os-shell .sc-dialog .sc-nav-item:hover {
+  background: var(--m-hover);
+}
+
+.os-shell .sc-dialog .sc-nav-item.is-active {
+  background: var(--m-pill);
+}
+
+.os-shell .sc-dialog .sc-nav-heading,
+.os-shell .sc-dialog .sc-nav-help::before {
+  border-color: var(--m-line);
+}
+
+.os-shell .sc-dialog .sc-plan {
+  border-color: transparent;
+  background: var(--m-card);
+}
+
+.os-shell .sc-dialog .sc-rows > .sc-row + .sc-row {
+  border-color: var(--m-line);
+}
+
+html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void) {
+  min-height: 1.75rem !important;
+  height: 1.75rem;
+  padding: 0 0.875rem !important;
+  border: 1px solid var(--m-btn-2-line) !important;
+  border-radius: 999px !important;
+  background: var(--m-btn-2) !important;
+  color: var(--ox-text) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+}
+
+html .os-shell .sc-dialog :is(.sc-btn--primary, .ox-btn--primary, .btn-void) {
+  border-color: var(--m-btn) !important;
+  background: var(--m-btn) !important;
+  color: var(--m-btn-ink) !important;
+}
+
+html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void):hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+/* Job money: sections, not boxes in a box. */
+.os-shell.os-shell-night .job-money > .job-money-share,
+.os-shell.os-shell-night .job-money-share.job-bill {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.os-shell.os-shell-night .job-money > .job-money-share + *,
+.os-shell.os-shell-night .job-money + .job-bill {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ox-line);
+}
+
+.os-shell.os-shell-night .job-money-share-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ox-text);
+}
+
+@media (max-width: 720px) {
+  .os-shell .dt--calls .dt-row > .dt-mono {
+    display: none;
+  }
+
+  .os-shell .dt--calls .dt-row > .dt-num {
+    margin-left: auto;
+  }
+}
+
+.os-shell.os-shell-night .pro-economics-stale {
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--ox-btn-hover);
+  color: var(--ox-text-2);
+}
+
+/* ── Phone tab bar ───────────────────────────────────────────────────── */
+
+.os-tabbar {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .os-shell .os-tabbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 30;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 0.25rem 0.25rem calc(0.25rem + env(safe-area-inset-bottom, 0px));
+    background: var(--ox-rail);
+    border-top: 1px solid var(--ox-line);
+  }
+
+  html .os-shell .os-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1875rem;
+    min-height: 3rem;
+    padding: 0.375rem 0 0.25rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--ox-mute) !important;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html .os-shell .os-tab.is-active {
+    color: var(--ox-text) !important;
+  }
+
+  .os-shell .os-tab-icon {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .os-shell .os-tab-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .os-shell .os-tab-badge {
+    position: absolute;
+    top: -0.3rem;
+    left: 0.9rem;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--ox-text);
+    color: var(--ox-bg);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.125rem;
+    text-align: center;
+  }
+
+  html .os-shell.os-shell-pro .os-content {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html .os-shell:not(:has(.lead-detail-sticky)) .os-ask-dock {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .os-shell:has(.lead-detail-sticky) .os-tabbar {
+    display: none;
+  }
+}
+
+.os-shell .job-overdue {
+  display: grid;
+  gap: 0.625rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid color-mix(in srgb, #e5484d 35%, transparent);
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, #e5484d 8%, transparent);
+  color: var(--ox-text);
+  font-size: 0.875rem;
+}
+
+.os-shell .job-overdue p {
+  margin: 0;
+}
+
+.new-job-form .new-job-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .new-job-form .new-job-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.new-job-form {
+  max-width: 40rem;
+}
+
+html .os-shell .dsp-track.is-drop {
+  outline: 1px dashed var(--ox-text-2) !important;
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--ox-text) 6%, transparent) !important;
+}
+
+html .os-shell .dsp-block[draggable="true"] {
+  cursor: grab;
+}

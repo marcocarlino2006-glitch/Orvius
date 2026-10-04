@@ -14,6 +14,7 @@
  *   APP_URL=http://127.0.0.1:3000 VAPI_WEBHOOK_SECRET=… node scripts/live-booking-load.mjs [--callers 30] [--techs 2] [--json out.json]
  */
 import { writeFileSync } from "node:fs";
+import { waitForCallReport } from "./lib/call-report-outcome.mjs";
 import { createScriptPrisma, loadEnvFile } from "./lib/db.mjs";
 
 loadEnvFile();
@@ -153,7 +154,7 @@ async function main() {
       }),
     );
     const endErrors = endings.filter((e) => e.status === "rejected").length;
-    await new Promise((r) => setTimeout(r, 3000));
+    await Promise.allSettled(results.map((r) => waitForCallReport(prisma, callOf(r.i).id, 60_000)));
 
     const jobs = await prisma.job.findMany({
       where: { businessId: business.id, scheduledAt: { not: null } },

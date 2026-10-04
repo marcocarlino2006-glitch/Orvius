@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
 import { executeProposal, type ProposalParams } from "@/lib/copilot-execute";
+import { COPILOT_ACTIONS, proposeAction } from "@/lib/copilot-propose";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { recordAudit } from "@/lib/audit";
-import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { personActor, recordAudit } from "@/lib/audit";
+import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { requireEntitledSession } from "@/lib/tenant";
 import { z } from "zod";
 
 const proposeSchema = z.object({
-  action: z.enum(["assign_tech", "mark_contacted", "sms_followup"]),
+  action: z.enum(COPILOT_ACTIONS),
   jobId: z.string().optional(),
   leadId: z.string().optional(),
   technicianId: z.string().optional(),
+  at: z.string().datetime().optional(),
 });
 
 const executeSchema = z.object({
@@ -74,7 +76,7 @@ export async function POST(request: Request) {
   const planGate = requirePlanModule(business, "ask");
   if ("error" in planGate) return planGate.error;
 
-  const limited = rateLimit({ key: `copilot:${business.id}`, limit: 30, windowMs: 60_000 });
+  const limited = await sharedRateLimit({ key: `copilot:${business.id}`, limit: 30, windowMs: 60_000 });
   if (!limited.ok) return tooManyRequests(limited.retryAfterSec);
 
   const url = new URL(request.url);
@@ -103,7 +105,7 @@ export async function POST(request: Request) {
         entityType: params.jobId ? "job" : params.leadId ? "lead" : "copilot",
         entityId: params.jobId ?? params.leadId ?? proposal.id,
         action: "copilot.declined",
-        actor: "owner",
+        ...personActor(authResult),
         summary: `Declined: ${proposal.preview}`,
         jobId: params.jobId ?? null,
         leadId: params.leadId ?? null,
@@ -114,7 +116,7 @@ export async function POST(request: Request) {
 
     if (mode === "execute") {
       const body = executeSchema.parse(await request.json());
-      const outcome = await executeProposal({ business, proposalId: body.proposalId });
+      const outcome = await executeProposal({ business, proposalId: body.proposalId, by: authResult });
       if (!outcome.ok) {
         return NextResponse.json({ error: outcome.error, reason: outcome.reason }, { status: outcome.status });
       }
@@ -122,73 +124,18 @@ export async function POST(request: Request) {
     }
 
     const body = proposeSchema.parse(await request.json());
-    let preview = "";
-    const params: Record<string, string> = {};
-
-    if (body.action === "assign_tech") {
-      if (!body.jobId || !body.technicianId) {
-        return NextResponse.json(
-          { error: "jobId and technicianId required" },
-          { status: 400 },
-        );
-      }
-      const job = await prisma.job.findFirst({
-        where: { id: body.jobId, businessId: business.id },
-        include: { customer: true, lead: true },
-      });
-      const tech = await prisma.technician.findFirst({
-        where: { id: body.technicianId, businessId: business.id },
-      });
-      if (!job || !tech) {
-        return NextResponse.json({ error: "Job or technician not found" }, { status: 404 });
-      }
-      params.jobId = job.id;
-      params.technicianId = tech.id;
-      const slot = job.scheduledAt
-        ? ` for ${job.scheduledAt.toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit", timeZone: business.timezone ?? undefined })}`
-        : "";
-      preview = `Assign ${tech.name} to “${job.title}”${slot}${tech.phone ? " and text them the job details" : ""}.`;
-    } else if (body.action === "mark_contacted") {
-      if (!body.leadId) {
-        return NextResponse.json({ error: "leadId required" }, { status: 400 });
-      }
-      const lead = await prisma.lead.findFirst({
-        where: { id: body.leadId, businessId: business.id },
-      });
-      if (!lead) {
-        return NextResponse.json({ error: "Lead not found" }, { status: 404 });
-      }
-      params.leadId = lead.id;
-      preview = `Mark lead “${lead.name ?? lead.phone ?? lead.id}” as contacted.`;
-    } else if (body.action === "sms_followup") {
-      if (!body.leadId) {
-        return NextResponse.json({ error: "leadId required" }, { status: 400 });
-      }
-      const lead = await prisma.lead.findFirst({
-        where: { id: body.leadId, businessId: business.id },
-      });
-      if (!lead?.phone) {
-        return NextResponse.json({ error: "Lead has no phone" }, { status: 400 });
-      }
-      params.leadId = lead.id;
-      preview = `Text ${lead.name ?? lead.phone} a follow-up from ${business.name}.`;
+    const outcome = await proposeAction(business, body);
+    if (!outcome.ok) {
+      return NextResponse.json(
+        { error: outcome.error, reason: outcome.reason, alternatives: outcome.alternatives },
+        { status: outcome.status },
+      );
     }
-
-    const proposal = await prisma.copilotAction.create({
-      data: {
-        businessId: business.id,
-        action: body.action,
-        paramsJson: JSON.stringify(params),
-        preview,
-        status: "proposed",
-      },
-    });
-
     return NextResponse.json({
-      proposalId: proposal.id,
-      action: proposal.action,
-      preview: proposal.preview,
-      params,
+      proposalId: outcome.proposalId,
+      action: outcome.action,
+      preview: outcome.preview,
+      params: outcome.params,
       risk: "high",
     });
   } catch (error) {

@@ -114,7 +114,7 @@ test("deposit figures are shown to the cent, not rounded", () => {
   /*
     formatCents rounds to whole dollars, which is right for the pipeline
     estimates it was written for. On a deposit it hides the fee: the shop's
-    net on $49 reads back as the full $49, and on a $1 deposit the 2% cut
+    net on $49 reads back as the full $49, and on a $1 deposit the 1% cut
     rounds away to nothing.
   */
   assert.equal(formatCents(4802), "$48");

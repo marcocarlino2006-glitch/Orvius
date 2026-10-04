@@ -1,6 +1,7 @@
+import { isInformationOnlyRequest } from "@/lib/info-request";
 import { recordAudit, type AuditQueue } from "@/lib/audit";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
-import { createJobFromLead } from "@/lib/job";
+import { createJobFromLead, findOpenSlots, SlotTakenError } from "@/lib/job";
 import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
 import { callerWords } from "@/lib/transcript";
 import { getEffectivePlanId } from "@/lib/plan-features";
@@ -51,6 +52,7 @@ export type AutoBookSkipReason =
   | "unqualified"
   | "non_service"
   | "capacity_unavailable"
+  | "held_slot_taken"
   | "plan_blocked"
   | "out_of_area"
   | "safety_escalation"
@@ -58,6 +60,7 @@ export type AutoBookSkipReason =
   | "existing_job"
   | "follow_up"
   | "complaint"
+  | "info_only"
   | "not_found";
 
 export type ExistingJobRef = { id: string; title: string | null; scheduledAt: Date | null };
@@ -118,7 +121,7 @@ async function loadLeadForBooking(leadId: string) {
   const [lead, job, call, business] = await Promise.all([
     prisma.lead.findUnique({ where: { id: leadId } }),
     prisma.job.findUnique({ where: { leadId }, select: { id: true } }),
-    prisma.call.findFirst({ where: { lead: { is: { id: leadId } } }, select: { transcript: true, heldSlotAt: true } }),
+    prisma.call.findFirst({ where: { lead: { is: { id: leadId } } }, select: { id: true, transcript: true, heldSlotAt: true, heldIntent: true } }),
     prisma.business.findFirst({
       where: { leads: { some: { id: leadId } } },
       select: {
@@ -130,6 +133,8 @@ async function loadLeadForBooking(leadId: string) {
         trade: true,
         servicesJson: true,
         name: true,
+        hoursJson: true,
+        timezone: true,
       },
     }),
   ]);
@@ -181,7 +186,10 @@ export async function maybeAutoBookLead(
     callerWords: spoken,
     urgency: lead.urgency,
   });
-  const intent = detectCallIntent(lead.serviceType, lead.notes, spoken);
+  const detected = detectCallIntent(lead.serviceType, lead.notes, spoken);
+  // "Can you come Friday instead?" reads as new work to the phrase detector; a
+  // time held with hold_new_time is a move of an existing visit, never a job.
+  const intent: CallIntent = detected !== "complaint" && call?.heldIntent === "reschedule" ? "reschedule" : detected;
   const link = {
     businessId,
     callId: lead.callId,
@@ -287,6 +295,23 @@ export async function maybeAutoBookLead(
     return { jobId: null, created: false, qualified: true, skipReason: "follow_up", classification, intent };
   }
 
+  if (
+    isInformationOnlyRequest({
+      serviceType: lead.serviceType,
+      categoryCode: lead.categoryCode,
+      address: lead.address,
+      notes: lead.notes,
+      callerWords: spoken,
+    })
+  ) {
+    await decide(
+      "lead.answered",
+      "Caller asked a question about the shop, not for service — nothing to book",
+      { intent: "info" },
+    );
+    return { jobId: null, created: false, qualified: false, skipReason: "info_only", classification, intent };
+  }
+
   const repeat = openJobs.find(
     (job) =>
       Date.now() - job.createdAt.getTime() < REPEAT_WINDOW_MS &&
@@ -381,6 +406,37 @@ export async function maybeAutoBookLead(
   );
 
   const held = call?.heldSlotAt && call.heldSlotAt.getTime() > Date.now() ? call.heldSlotAt : null;
+  /*
+    The hold kept the slot while the call was live, but the owner or another
+    booking can take it before the end-of-call report lands. The caller was told
+    this exact time, so a taken slot goes to the owner instead of a silent move.
+  */
+  if (held && call) {
+    const stillOpen = await findOpenSlots(
+      {
+        businessId,
+        urgency: null,
+        durationMin: classification.service.durationMin,
+        skill: classification.service.skill,
+        hoursJson: lead.business.hoursJson ?? "{}",
+        timezone: lead.business.timezone ?? "America/New_York",
+        excludeCallId: call.id,
+      },
+      { count: 1, onlyAt: held },
+    );
+    if (!stillOpen.length) {
+      await decide("lead.held", "The time held on the call was taken before booking — held for the owner to reschedule the caller", {
+        heldSlotAt: held.toISOString(),
+      });
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "held_slot_taken",
+        classification,
+      };
+    }
+  }
   // Booking writes its own audit rows directly; the decisions before it land first.
   await options.audit?.flush();
   let job;
@@ -388,9 +444,22 @@ export async function maybeAutoBookLead(
     job = await createJobFromLead({
       leadId,
       scheduledAt: held,
+      enforceCapacity: Boolean(held),
       notes: held ? "Booked on the call — the caller picked this time" : "Auto-booked from inbound lead",
     });
   } catch (error) {
+    if (error instanceof SlotTakenError) {
+      await decide("lead.held", "The time held on the call filled while booking — held for the owner to reschedule the caller", {
+        heldSlotAt: held?.toISOString() ?? null,
+      });
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "held_slot_taken",
+        classification,
+      };
+    }
     if (
       error instanceof Error &&
       error.message.startsWith("No appointment capacity")

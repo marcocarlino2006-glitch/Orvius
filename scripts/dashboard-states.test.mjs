@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { readSettingsSource } from "./lib/settings-source.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
@@ -39,7 +40,7 @@ test("Command keeps one flagship hierarchy and one control rail", () => {
   assert.equal((command.match(/<aside className="cc-rail"/g) ?? []).length, 1);
   assert.doesNotMatch(command, /<ProCommandOutcomes|<ProLaunchControl/);
   assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
-  assert.match(command, /<ApproveQueue onChange=\{/);
+  assert.match(command, /<CommandBoard\s+onChange=\{/);
 
   const queue = read("src/components/attention-queue.tsx");
   assert.match(queue, /rest\.slice\(0, /);
@@ -67,7 +68,7 @@ test("Dashboard shares one Ring1 pulse across shell and Command", () => {
 });
 
 test("Settings and loading states use the same owner-system language", () => {
-  const settings = read("src/components/settings-center/settings-center.tsx");
+  const settings = readSettingsSource();
   assert.doesNotMatch(settings, /<ProSetupHub/);
   assert.match(settings, /role="dialog"/);
   assert.match(settings, /className="sc-nav"/);

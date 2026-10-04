@@ -14,6 +14,7 @@
  *   APP_URL=http://127.0.0.1:3000 VAPI_WEBHOOK_SECRET=… node scripts/call-sim.mjs [--json out.json] [--only id,id]
  */
 import { writeFileSync } from "node:fs";
+import { waitForCallReport } from "./lib/call-report-outcome.mjs";
 import { createScriptPrisma, loadEnvFile } from "./lib/db.mjs";
 
 loadEnvFile();
@@ -527,7 +528,7 @@ async function postCall(callId, phone, call) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`webhook ${res.status}: ${JSON.stringify(data).slice(0, 200)}`);
-  return data;
+  return data.duplicate ? data : { ...data, ...(await waitForCallReport(prisma, callId)) };
 }
 
 function matchesUrgency(actual, expected) {

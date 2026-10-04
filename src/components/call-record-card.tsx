@@ -87,13 +87,13 @@ export function CallRecordCard({
       : { tone: "neutral", label: "Answered" };
 
   return (
-    <RecordLink type="call" id={id} href={`/dashboard/calls/${id}`} className="dt-row" role="row">
+    <div className="dt-row dt-row--link" role="row">
       <span role="cell" className="dt-primary">
-        <span className="dt-title">
+        <RecordLink type="call" id={id} href={`/dashboard/calls/${id}`} className="dt-title dt-row-link">
           {emergency ? <span className="dt-flag">Emergency</span> : null}
           {leadName ?? phone ?? "Unknown caller"}
           {returning ? <span className="dt-tag">Returning</span> : null}
-        </span>
+        </RecordLink>
         {need ? <span className="dt-sub">{need}</span> : null}
         {quality && quality.verdict !== "clean" ? (
           <span className={quality.verdict === "fix" ? "dt-sub is-risk" : "dt-attention"}>
@@ -111,7 +111,7 @@ export function CallRecordCard({
       <span role="cell" className="dt-num">
         {durationSec ? formatDuration(durationSec) : <span className="dt-muted">—</span>}
       </span>
-    </RecordLink>
+    </div>
   );
 }
 

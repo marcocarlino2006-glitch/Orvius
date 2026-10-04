@@ -25,8 +25,11 @@ export type BusinessSignals = {
 
 export type BusinessSnapshot = {
   name: string;
+  trade: string | null;
   line: string | null;
   ownerPhone: string | null;
+  /** Demo or reference workspace: calls are simulated, so no line is owed. */
+  sample?: boolean;
   metrics: BusinessMetrics;
   signals: BusinessSignals;
 };

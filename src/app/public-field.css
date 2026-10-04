@@ -59,9 +59,9 @@
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(96, 165, 250, 0.14);
-  color: #93c5fd;
-  border: 1px solid rgba(96, 165, 250, 0.28);
+  background: rgba(242, 169, 59, 0.12);
+  color: #f7bb5c;
+  border: 1px solid rgba(242, 169, 59, 0.3);
 }
 .pf-pill.is-risk {
   background: rgba(248, 113, 113, 0.14);
@@ -133,7 +133,7 @@
   word-break: break-word;
 }
 .pf-row a {
-  color: #93c5fd;
+  color: #f7bb5c;
   text-decoration: none;
 }
 .pf-h2,
@@ -171,7 +171,7 @@
 .pf-input:focus,
 .pf select:focus,
 .pf textarea:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #f2a93b;
   outline-offset: 1px;
   border-color: transparent;
 }
@@ -201,11 +201,12 @@
   min-height: 3.375rem;
   border: 0;
   border-radius: 14px;
-  background: #3b82f6;
+  background: #f2a93b;
+  color: #1b1203;
   font-size: 1.0625rem;
 }
 .pf-btn--primary:active {
-  background: #2563eb;
+  background: #f7bb5c;
 }
 
 .pf-error {
@@ -244,4 +245,16 @@
 .pf-dock > * {
   max-width: 30rem;
   margin-inline: auto;
+}
+
+.pf-foot {
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.pf-foot a,
+.bk-foot a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

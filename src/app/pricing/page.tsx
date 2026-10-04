@@ -4,6 +4,7 @@ import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
 import { demoLineHref } from "@/lib/demo-line";
 import { getFeaturedPlan, getLowestPaidPrice } from "@/lib/company";
+import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 const featured = getFeaturedPlan();
@@ -11,7 +12,7 @@ const featured = getFeaturedPlan();
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Orvius plans from $124/mo (annual) — Line, Pro, and Fleet. Monthly or annual billing.",
+    `Orvius Line, Pro and Fleet: from $${getLowestPaidPrice("month")} a month, or $${getLowestPaidPrice("year")} a month billed annually. Answered calls included; ${OVERAGE_CENTS_PER_CALL}¢ per call past the allowance.`,
 };
 
 export default function PricingPage() {
@@ -23,34 +24,34 @@ export default function PricingPage() {
         <div className="editorial-wrap">
           <ShellPageIntro
             label="Pricing"
-            title={`From $${getLowestPaidPrice("year")} per month. Flat.`}
-            subline="Monthly or annual — pick the plan that matches your shop."
-            description="Line for missed calls. Pro for lead-to-job. Fleet for 6+ trucks."
+            title={`Plans from $${getLowestPaidPrice("month")} a month.`}
+            subline={`Or $${getLowestPaidPrice("year")} a month when you pay for the year up front, which is two months free.`}
+            description={`Each plan includes a set number of answered calls every month. Past that, the line keeps answering and each extra call is ${OVERAGE_CENTS_PER_CALL}¢.`}
             actions={
               <>
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">
                   Call the live line
                 </a>
                 <Link href="/pilot" className="ov-btn ov-btn--quiet">
-                  Request a demo
+                  Book a call audit
                 </Link>
               </>
             }
           />
           {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
-              Card signup opens soon. Until then, book a{" "}
+              Card signup isn&apos;t open yet. Until it is, book a{" "}
               <Link href="/pilot" className="underline underline-offset-2">
                 call audit
               </Link>{" "}
-              and we&apos;ll set up your shop line with you.
+              and we&apos;ll set up your business line with you.
             </p>
           ) : null}
         </div>
       </section>
 
       <section className="tier1-story">
-        <PricingPagePlans />
+        <PricingPagePlans selfServeReady={selfServeReady} />
       </section>
 
       <section className="tier1-close">

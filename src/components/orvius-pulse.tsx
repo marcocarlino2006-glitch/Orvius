@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatAge, formatFreshness } from "@/lib/command-model";
 import { displayPhone } from "@/lib/customer";
-import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { ShopHealth } from "@/lib/shop-health";
 
 type Tone = "ok" | "attention" | "risk" | "neutral";
@@ -36,13 +35,12 @@ function PulseRow({
 }
 
 /**
- * Orvius Pulse — the quiet system panel. Line health, alert delivery, recent
- * proven events, and how fresh this screen is. Problems here also appear as
+ * Orvius Pulse — the quiet system panel. Line health, alert delivery, and
+ * how fresh this screen is. Problems here also appear as
  * one incident in the work queue; this panel states, it does not shout.
  */
 export function OrviusPulse({
   health,
-  events,
   lastUpdatedAt,
   stale,
   refreshing,
@@ -51,7 +49,6 @@ export function OrviusPulse({
   referenceImplementation,
 }: {
   health: ShopHealth | null | undefined;
-  events: ShiftEvent[];
   lastUpdatedAt: number | null;
   stale: boolean;
   refreshing: boolean;
@@ -67,7 +64,7 @@ export function OrviusPulse({
 
   const failed = health?.failedAlerts24h ?? 0;
   const stuck = health?.stuckPendingAlerts ?? 0;
-  const recent = events.filter((e) => e.tone === "success" || e.tone === "agent").slice(0, 3);
+  const unreachable = Boolean(health && !health.alertsReachable && !referenceImplementation);
   const pastDue = (billingStatus ?? "").toLowerCase() === "past_due";
 
   return (
@@ -88,17 +85,19 @@ export function OrviusPulse({
         <>
           <PulseRow
             label="Phone line"
-            value={health.line ? displayPhone(health.line) : "No line yet"}
+            value={health.line ? displayPhone(health.line) : referenceImplementation ? "Simulated" : "No line yet"}
             detail={
               !health.line
-                ? "Calls cannot reach Orvius until a line exists."
+                ? referenceImplementation
+                  ? "Demo calls run the real pipeline from the buttons on Command."
+                  : "Calls cannot reach Orvius until a line exists."
                 : health.lineVerified
                   ? health.lastCallAt
                     ? `Verified · last call ${formatAge(health.lastCallAt, now)} ago`
                     : "Verified"
                   : "Place one test call to verify."
             }
-            tone={!health.line ? "risk" : health.lineVerified ? "ok" : "attention"}
+            tone={!health.line ? (referenceImplementation ? "attention" : "risk") : health.lineVerified ? "ok" : "attention"}
             action={
               !health.lineVerified ? (
                 <Link href="/dashboard/onboarding" className="ox-btn ox-btn--quiet ox-btn--sm">
@@ -110,50 +109,38 @@ export function OrviusPulse({
           <PulseRow
             label="Alert delivery"
             value={
-              failed > 0
-                ? `${failed} failed in 24h`
-                : stuck > 0
-                  ? `${stuck} waiting to send`
-                  : health.lastAlertAt
-                    ? "Delivering"
-                    : "No alerts sent yet"
+              unreachable
+                ? "Nowhere to send"
+                : failed > 0
+                  ? `${failed} failed in 24h`
+                  : stuck > 0
+                    ? `${stuck} waiting to send`
+                    : health.lastAlertAt
+                      ? "Delivering"
+                      : "No alerts sent yet"
             }
             detail={
-              failed > 0
-                ? "Grouped as one incident in the work queue."
-                : health.lastAlertAt
-                  ? `Last delivered ${formatAge(health.lastAlertAt, now)} ago`
+              unreachable
+                ? "No text or email can reach you yet."
+                : failed > 0
+                  ? "Grouped as one incident in the work queue."
+                  : health.lastAlertAt
+                  ? `Last delivered ${formatAge(health.lastAlertAt, now)} ago${
+                      health.alertLatencyP95Sec != null ? ` · 95% within ${health.alertLatencyP95Sec}s` : ""
+                    }`
                   : null
             }
-            tone={failed > 0 ? "risk" : stuck > 0 ? "attention" : health.lastAlertAt ? "ok" : "neutral"}
+            tone={unreachable || failed > 0 ? "risk" : stuck > 0 ? "attention" : health.lastAlertAt ? "ok" : "neutral"}
+            action={
+              unreachable ? (
+                <Link href="/dashboard?settings=notifications" className="ox-btn ox-btn--quiet ox-btn--sm">
+                  Fix
+                </Link>
+              ) : null
+            }
           />
         </>
       )}
-
-      <div className="op-recent">
-        <p className="op-row-label">Recent activity</p>
-        {recent.length ? (
-          <ul>
-            {recent.map((event) => (
-              <li key={event.key}>
-                {event.href ? (
-                  <Link href={event.href} className="op-event">
-                    <span>{event.title}</span>
-                    <span className="op-event-age">{formatAge(event.at, now)}</span>
-                  </Link>
-                ) : (
-                  <span className="op-event">
-                    <span>{event.title}</span>
-                    <span className="op-event-age">{formatAge(event.at, now)}</span>
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="op-row-detail">Nothing proven in the last 24 hours.</p>
-        )}
-      </div>
 
       {stale ? (
         <div className="op-stale" role="status">

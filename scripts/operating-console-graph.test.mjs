@@ -73,7 +73,7 @@ test("work rows never repeat the customer name in the request line", () => {
   assert.equal(bare.kindLabel, "$99 deposit");
 });
 
-test("Command ships five truthful signals and never a bare $0", () => {
+test("Command ships three truthful signals and never a bare $0", () => {
   const work = groupWorkItems([
     item({ id: "l1", impact: "critical", estimatedRevenueCents: 45000 }),
     item({ id: "l2", estimatedRevenueCents: 30000 }),
@@ -81,12 +81,11 @@ test("Command ships five truthful signals and never a bare $0", () => {
   const signals = buildCommandSignals(counts, work);
   assert.deepEqual(
     signals.map((s) => s.label),
-    ["New demand", "Qualified", "Jobs in motion", "Needs you", "Revenue at risk"],
+    ["New demand", "Jobs in motion", "Revenue at risk"],
   );
   assert.equal(signals[0].value, "5");
-  assert.equal(signals[3].value, "2");
-  assert.equal(signals[3].tone, "risk");
-  assert.equal(signals[4].value, "$750");
+  assert.equal(signals[2].value, "$750");
+  assert.equal(signals[2].tone, "risk");
   assert.equal(revenueAtRiskCents(work), 75000);
   for (const s of signals) assert.ok(s.href, `${s.id} is clickable`);
 
@@ -94,11 +93,10 @@ test("Command ships five truthful signals and never a bare $0", () => {
     { ...counts, calls: 0, messagesAndWeb: 0, avgTicketSet: false },
     [],
   );
-  assert.equal(empty[4].value, "Not set");
+  assert.equal(empty[2].value, "Not set");
   assert.match(empty[0].detail, /No calls or messages/);
-  assert.equal(empty[3].detail, "Queue is clear");
   assert.ok(empty.every((s) => s.value !== "$0"));
-  assert.equal(buildCommandSignals(counts, [])[4].value, "None");
+  assert.equal(buildCommandSignals(counts, [])[2].value, "None");
 });
 
 test("work age is human, not a timestamp", () => {
@@ -109,21 +107,21 @@ test("work age is human, not a timestamp", () => {
   assert.equal(formatAge("2026-09-22T12:00:00.000Z", now), "2d");
 });
 
-test("Command is signals → work queue → approvals, with Pulse in the rail", () => {
+test("Command is one board (work queue as its Follow-ups tab), with signals and Pulse in the rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
   assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes/);
+  const boardIdx = command.indexOf("<CommandBoard");
   const signalsIdx = command.indexOf("<CommandSignals");
   const queueIdx = command.indexOf("<AttentionQueue");
-  const approveIdx = command.indexOf("<ApproveQueue");
   const pulseIdx = command.indexOf("<OrviusPulse");
-  assert.ok(signalsIdx >= 0 && queueIdx > signalsIdx);
-  assert.ok(approveIdx > queueIdx && pulseIdx > approveIdx);
+  assert.ok(boardIdx >= 0 && queueIdx > boardIdx && signalsIdx > queueIdx && pulseIdx > signalsIdx);
+  assert.ok(command.indexOf('<aside className="cc-rail"') < signalsIdx, "signals live in the rail");
   assert.match(command, /groupWorkItems/);
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
 
   const pulse = read("src/components/orvius-pulse.tsx");
-  for (const row of ["Phone line", "Alert delivery", "Recent activity"]) {
+  for (const row of ["Phone line", "Alert delivery"]) {
     assert.match(pulse, new RegExp(row));
   }
   assert.match(pulse, /formatFreshness/);
@@ -140,11 +138,12 @@ test("work queue rows show severity, customer, request, age, impact, one action"
   assert.match(queue, /Queue is clear/);
 });
 
-test("ApproveQueue keeps an approval button and agent-control anchor", () => {
-  const approve = read("src/components/approve-queue.tsx");
-  assert.match(approve, /id="agent-control"/);
-  assert.match(approve, /"Approve"/);
-  assert.match(approve, /Needs your OK/);
+test("the board's approvals lane shows the plan and an approval button", () => {
+  const board = read("src/components/command-board.tsx");
+  assert.match(board, /Needs your OK/);
+  assert.match(board, /nothing changes until you approve/);
+  assert.match(board, /"Approve"/);
+  assert.match(board, /mode=\$\{mode\}/);
 });
 
 test("one record drawer walks the Call → … → Payment graph", () => {

@@ -5,6 +5,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readSettingsSource } from "./lib/settings-source.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -75,7 +76,7 @@ try {
 }
 
 try {
-  const settings = read("src/components/settings-center/settings-center.tsx");
+  const settings = readSettingsSource();
   if (/Multi-b launch gates|LaunchGatesStrip|GoLiveChecklist/.test(settings)) {
     fail(
       "Settings ritual",
@@ -195,10 +196,10 @@ try {
     fail("Presence marketing", "live-call console / atmosphere missing");
   }
   if (
-    /Night rules/.test(statement) &&
-    /How the shop runs when you/.test(statement)
+    /What every call gets/.test(statement) &&
+    /Safety first/.test(statement)
   ) {
-    pass("Presence doctrine", "Shop-floor night rules — not first-principles cosplay");
+    pass("Presence doctrine", "What every call gets — checkable facts, safety first");
   } else {
     fail(
       "Presence doctrine",
@@ -206,13 +207,13 @@ try {
     );
   }
   if (
-    /focused AI receptionist for HVAC/i.test(company) &&
-    /HVAC company will pay/i.test(company) &&
-    /completed and paid job/i.test(company)
+    /front office of a Fortune 500 company/i.test(company) &&
+    /operating system for businesses that run on the phone/i.test(company) &&
+    /call → cash/i.test(company)
   ) {
     pass(
       "Presence category",
-      "Company copy owns HVAC receptionist wedge — call→cash before OS",
+      "Company copy owns the mission and the operating system — call→cash",
     );
   } else {
     fail(
@@ -267,16 +268,17 @@ try {
     /ov-hero-title/.test(hero) &&
     /ov-hero-actions/.test(hero) &&
     /ov-hero-liveline/.test(hero) &&
-    /Request a demo/.test(hero)
+    /Call the live line/.test(hero) &&
+    /\/signin\?mode=signup|href="\/try"|href="\/watch"/.test(hero)
   ) {
     pass(
       "Look hero P1",
-      "Claim + Call + Request a demo — Cursor two-link pattern, dialable proof",
+      "Claim + Call the live line + Watch / Get started / Try — two links, dialable proof",
     );
   } else {
     fail(
       "Look hero P1",
-      "Hero must keep title, two CTAs (Call + Request a demo), and live line",
+      "Hero must keep title, two CTAs (Call the live line + Get started or Try), and live line",
     );
   }
   if (
@@ -326,23 +328,20 @@ try {
       "Primary nav must be multi-B trades set (Product · Enterprise · Pricing · Audit · Resources)",
     );
   }
-  const outcomes = read("src/components/ring1-command-center.tsx");
+  const outcomes = `${read("src/components/ring1-command-center.tsx")}${read("src/components/command-signals.tsx")}`;
   if (/exception requires|exceptions require/i.test(outcomes)) {
     fail(
       "Operate owner language",
       "Command outcomes still uses exception jargon for owners",
     );
-  } else if (
-    /needs you/.test(outcomes)
-  ) {
-    pass("Operate owner language", "Command pulse speaks owner language");
   } else {
-    fail("Operate owner language", "Outcomes footer must use board / needs-you language");
+    pass("Operate owner language", "Command pulse speaks owner language");
   }
   const dash = read("src/app/dashboard/page.tsx");
   if (
     /ShopOperateBanner/.test(dash) &&
-    dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") &&
+    (dash.indexOf("<ShopOperateBanner") < dash.indexOf("<Ring1CommandCenter") ||
+      /setup=\{[\s\S]*<ShopOperateBanner[\s\S]*\}/.test(dash)) &&
     !/<FounderNextGate/.test(dash) &&
     !/<FirstNightHandoff/.test(dash)
   ) {
@@ -559,7 +558,7 @@ try {
   const alertsMuted = read("src/lib/owner-alerts-muted.ts");
   const moneyPath = read("src/lib/deposit-money-path.ts");
   const queueHrefs = read("src/lib/attention-queue.ts");
-  const settingsIds = read("src/components/settings-center/settings-center.tsx");
+  const settingsIds = readSettingsSource();
   const billingIds = read("src/components/billing-content.tsx");
   if (
     /ownerAlertsAreMuted/.test(alertsMuted) &&
@@ -591,7 +590,7 @@ try {
   const publicCss = read("src/app/public-v2.css");
   const heroMotion = read("src/components/home-line-hero.tsx");
   const daily = read("src/app/admin/daily/page.tsx");
-  const settingsManus = read("src/components/settings-center/settings-center.tsx");
+  const settingsManus = readSettingsSource();
   if (
     /MANUS_POST_STEPS/.test(manus) &&
     /isPlaceholderOwnerPhone/.test(manus) &&

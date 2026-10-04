@@ -1,25 +1,58 @@
 "use client";
 
-type OsMobileNavProps = {
-  open: boolean;
-  onToggle: () => void;
+import Link from "next/link";
+import { OsIcon, type OsIconName } from "@/components/os-icons";
+
+export type OsTab = {
+  href: string;
+  label: string;
+  icon: OsIconName;
+  active: boolean;
+  badge?: string;
 };
 
-export function OsMobileNavButton({ open, onToggle }: OsMobileNavProps) {
+/** Phone and tablet only: the daily screens under the thumb, everything else behind More. */
+export function OsTabBar({
+  tabs,
+  moreOpen,
+  onMore,
+}: {
+  tabs: OsTab[];
+  moreOpen: boolean;
+  onMore: () => void;
+}) {
   return (
-    <button
-      type="button"
-      className="os-mobile-nav-btn"
-      onClick={onToggle}
-      aria-expanded={open}
-      aria-label={open ? "Close menu" : "Open menu"}
-    >
-      <span className={`os-mobile-nav-icon ${open ? "os-mobile-nav-icon-open" : ""}`}>
-        <span />
-        <span />
-        <span />
-      </span>
-    </button>
+    <nav className="os-tabbar font-sans" aria-label="Main">
+      {tabs.map((tab) => (
+        <Link
+          key={tab.href}
+          href={tab.href}
+          className={`os-tab${tab.active && !moreOpen ? " is-active" : ""}`}
+          aria-current={tab.active ? "page" : undefined}
+        >
+          <span className="os-tab-icon">
+            <OsIcon name={tab.icon} />
+            {tab.badge ? <span className="os-tab-badge">{tab.badge}</span> : null}
+          </span>
+          <span className="os-tab-label">{tab.label}</span>
+        </Link>
+      ))}
+      <button
+        type="button"
+        className={`os-tab${moreOpen ? " is-active" : ""}`}
+        onClick={onMore}
+        aria-expanded={moreOpen}
+      >
+        <span className="os-tab-icon">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+            <circle cx="3" cy="8" r="1.4" />
+            <circle cx="8" cy="8" r="1.4" />
+            <circle cx="13" cy="8" r="1.4" />
+          </svg>
+        </span>
+        <span className="os-tab-label">More</span>
+      </button>
+    </nav>
   );
 }
 

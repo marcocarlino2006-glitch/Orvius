@@ -1,6 +1,8 @@
 import type { SettingsSectionId } from "@/lib/settings-center";
 
-const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external" | "search" | "updown", string[]> = {
+type IconName = SettingsSectionId | "help" | "close" | "back" | "external" | "search" | "updown" | "sms" | "mail" | "calendar" | "jobs";
+
+const PATHS: Record<IconName, string[]> = {
   account: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z", "M4.5 20a7.5 7.5 0 0 1 15 0"],
   general: [
     "M4 7h9",
@@ -33,12 +35,19 @@ const PATHS: Record<SettingsSectionId | "help" | "close" | "back" | "external" |
     "M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6",
     "M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6",
   ],
+  activity: ["M4 5h16", "M4 12h10", "M4 19h13", "M18 10l3 2-3 2"],
   internal: ["M12 3 4 6v5c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6l-8-3Z"],
   help: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M9.5 9.5a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.7-.8 1.2v.4", "M12 16.8v.2"],
   close: ["M6 6l12 12", "M18 6 6 18"],
   back: ["M15 5l-7 7 7 7"],
   external: ["M7.5 16.5 16.5 7.5", "M9 7.5h7.5V15"],
+  sms: ["M4 5h16v11H9l-5 4V5Z", "M8 9.5h8", "M8 12.5h5"],
+  mail: ["M3.5 6h17v12h-17z", "M3.5 7l8.5 6 8.5-6"],
+  calendar: ["M4 6h16v14H4z", "M4 10h16", "M8 3.5v4", "M16 3.5v4"],
+  jobs: ["M4 8h16v11H4z", "M9 8V5.5h6V8", "M4 13h16"],
 };
+
+export type { IconName as SettingsIconName };
 
 export function SettingsIcon({ name }: { name: keyof typeof PATHS }) {
   return (

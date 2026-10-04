@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
+import { afterResponse } from "@/lib/after-response";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
+import { provisionFromCheckout, shopDraftFromMetadata } from "@/lib/checkout-shop";
 import { fulfillDepositCheckoutSession, failDepositCheckoutSession } from "@/lib/booking-deposit";
+import { fulfillInvoiceCheckoutSession } from "@/lib/invoice-pay";
 import { fulfillEstimateCheckoutSession, failEstimateCheckoutSession } from "@/lib/estimate-pay";
+import { applyChargeRefund } from "@/lib/payment-refund";
+import { activatePlanMember, applyPlanInvoice, cancelPendingPlanJoin, syncPlanSubscription } from "@/lib/service-plans";
 import { getStripe } from "@/lib/stripe";
 import { syncConnectAccount } from "@/lib/stripe-connect";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import type Stripe from "stripe";
+import { creditReferralOnPayment } from "@/lib/referrals";
+
+/* A new shop's line is built after the response; buying a number takes seconds. */
+export const maxDuration = 60;
 
 export const runtime = "nodejs";
 
@@ -100,6 +109,18 @@ export async function POST(request: Request) {
           break;
         }
 
+        if (session.mode === "payment" && session.metadata?.kind === "invoice_pay") {
+          await fulfillInvoiceCheckoutSession(session);
+          break;
+        }
+
+        if (session.mode === "subscription" && session.metadata?.kind === "plan_join") {
+          await activatePlanMember(session);
+          break;
+        }
+        // Any other connected-account checkout is never the shop's own Orvius subscription.
+        if (event.account) break;
+
         if (session.mode !== "subscription" || !session.subscription) break;
 
         const subscription = await stripe.subscriptions.retrieve(
@@ -131,7 +152,16 @@ export async function POST(request: Request) {
           refreshed,
           session.customer_email ?? session.customer_details?.email,
         );
-        if ("unmatched" in result) {
+        const payer = (session.customer_email ?? session.customer_details?.email)?.toLowerCase();
+        if ("unmatched" in result && payer && shopDraftFromMetadata(session.metadata)) {
+          /* A new shop paid with its details attached: build the line now, so it
+             is often ready before the owner is back from Stripe. */
+          await afterResponse(() =>
+            provisionFromCheckout({ sessionId: session.id, email: payer }).catch((error: unknown) => {
+              console.error("[billing.webhook] checkout shop build failed", session.id, error);
+            }),
+          );
+        } else if ("unmatched" in result) {
           console.error(
             "[billing.webhook] checkout.session.completed unmatched",
             session.id,
@@ -143,6 +173,11 @@ export async function POST(request: Request) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+        // A customer's maintenance plan on the shop's account, not the shop's Orvius plan.
+        if (event.account) {
+          await syncPlanSubscription(subscription);
+          break;
+        }
         const customer =
           typeof subscription.customer === "string"
             ? await stripe.customers.retrieve(subscription.customer)
@@ -178,11 +213,42 @@ export async function POST(request: Request) {
         const invoice = event.data.object as Stripe.Invoice;
         const subId = resolveInvoiceSubscriptionId(invoice);
         if (!subId) break;
+        if (event.account) {
+          await applyPlanInvoice(subId, event.type === "invoice.paid");
+          break;
+        }
         const subscription = await stripe.subscriptions.retrieve(subId);
         await syncSubscriptionToBusiness(
           subscription,
           invoice.customer_email,
         );
+        if (event.type === "invoice.paid") {
+          // A failed credit stays pending and is retried on the shop's next paid invoice.
+          await creditReferralOnPayment({
+            customerId: typeof invoice.customer === "string" ? invoice.customer : (invoice.customer?.id ?? null),
+            amountPaidCents: invoice.amount_paid,
+          }).catch((error: unknown) => {
+            console.error("[billing.webhook] referral credit failed", error instanceof Error ? error.message : error);
+          });
+        }
+        break;
+      }
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const intentId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+        if (!intentId) break;
+        // Customer payments are direct charges, so the intent lives on the shop's connected account.
+        const intent = await stripe.paymentIntents.retrieve(
+          intentId,
+          undefined,
+          event.account ? { stripeAccount: event.account } : undefined,
+        );
+        await applyChargeRefund({
+          metadata: intent.metadata,
+          amountRefundedCents: charge.amount_refunded,
+          fullyRefunded: charge.refunded,
+          chargeId: charge.id,
+        });
         break;
       }
       case "checkout.session.expired": {
@@ -191,6 +257,8 @@ export async function POST(request: Request) {
           await failDepositCheckoutSession(session);
         } else if (session.metadata?.kind === "estimate_pay") {
           await failEstimateCheckoutSession(session);
+        } else if (session.metadata?.kind === "plan_join") {
+          await cancelPendingPlanJoin(session);
         }
         break;
       }

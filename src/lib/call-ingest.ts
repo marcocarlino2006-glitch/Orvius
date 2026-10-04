@@ -1,16 +1,27 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
+import { costColumns } from "@/lib/call-cost";
+import { latencyColumns, latencyFromReport } from "@/lib/call-latency";
+import { afterResponse } from "@/lib/after-response";
 import { createAuditQueue } from "@/lib/audit";
 import { maybeAutoBookLead, type AutoBookResult } from "@/lib/auto-job";
 import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
+import { isInformationOnlyRequest } from "@/lib/info-request";
+import { drainJobberSyncs, enqueueJobberSync } from "@/lib/jobber";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
-import { logInfo } from "@/lib/logger";
+import { logError, logInfo, logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
+import { passConsentedCallLead } from "@/lib/orvius-network";
 import { prisma } from "@/lib/prisma";
 import { callerWords } from "@/lib/transcript";
+import { withCallerSpelling } from "@/lib/spelled-name";
 import { extractLeadFromStructuredData, type VapiWebhookMessage } from "@/lib/vapi";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
+import type { Business, Call, Lead } from "@prisma/client";
+
+/** Call and lead saved, the rest not yet done. */
+const CAPTURED = "captured";
 
 export type IngestResult =
   | { duplicate: true }
@@ -36,6 +47,23 @@ export async function ingestEndOfCallReport(params: {
   message: VapiWebhookMessage["message"];
   vapiCallId: string;
 }): Promise<IngestResult> {
+  const captured = await captureEndOfCallReport(params);
+  if (captured.duplicate) return captured;
+  return finishCallReport(captured);
+}
+
+type Captured = { duplicate: false; business: Business; vapiCallId: string; call: Call; lead: Lead };
+
+/**
+ * The part of a report that must be saved before Vapi gets its answer: the
+ * call and its lead. Everything after reads only those rows, so it can run
+ * after the response and be re-run by sweepUnfinishedCallReports.
+ */
+export async function captureEndOfCallReport(params: {
+  business: { id: string };
+  message: VapiWebhookMessage["message"];
+  vapiCallId: string;
+}): Promise<{ duplicate: true } | Captured> {
   const { message, vapiCallId } = params;
   // Callers resolve the shop from different partial rows; the playbook needs
   // trade and services, so read the whole row once here.
@@ -71,7 +99,14 @@ export async function ingestEndOfCallReport(params: {
     const recordingUrl = message.recordingUrl ?? null;
     const successEvaluation =
       message.analysis?.successEvaluation == null ? null : String(message.analysis.successEvaluation);
-    const structured = extractLeadFromStructuredData(message.analysis?.structuredData);
+    const latency = { ...latencyColumns(latencyFromReport(message)), ...costColumns(message) };
+    const extracted = extractLeadFromStructuredData(message.analysis?.structuredData);
+    const spelled = withCallerSpelling(extracted, message.transcript);
+    const structured = {
+      ...extracted,
+      name: spelled.name ?? extracted.name,
+      address: spelled.address ?? extracted.address,
+    };
     const demand = deriveDemandSignal({
       serviceType: structured.serviceType,
       notes: structured.notes,
@@ -94,6 +129,7 @@ export async function ingestEndOfCallReport(params: {
           durationSec,
           recordingUrl,
           successEvaluation,
+          ...latency,
         },
         update: {
           status: "completed",
@@ -103,6 +139,7 @@ export async function ingestEndOfCallReport(params: {
           recordingUrl,
           successEvaluation: successEvaluation ?? undefined,
           callerPhone: message.call?.customer?.number ?? structured.phone ?? undefined,
+          ...latency,
         },
       });
 
@@ -145,6 +182,28 @@ export async function ingestEndOfCallReport(params: {
       return { call, lead };
     });
 
+    await completeWebhookEvent({ source: "vapi", externalId: vapiCallId, eventType, status: CAPTURED });
+    return { duplicate: false, business, vapiCallId, call, lead };
+  } catch (error) {
+    await completeWebhookEvent({
+      source: "vapi",
+      externalId: vapiCallId,
+      eventType,
+      status: "failed",
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    throw error;
+  }
+}
+
+/** Customer match, booking and the owner alert for a captured call. Safe to re-run. */
+export async function finishCallReport(input: Omit<Captured, "duplicate">): Promise<IngestResult> {
+  const { business, vapiCallId, call, lead } = input;
+  const eventType = "end-of-call-report";
+  const { summary, transcript, durationSec, successEvaluation } = call;
+  // Stored from the caller ID when Vapi had one, which is all the mismatch check needs.
+  const callerId = call.callerPhone;
+  try {
     const key = (step: string) => `call:${vapiCallId}:${step}`;
     const audit = createAuditQueue();
     audit.add({
@@ -168,9 +227,12 @@ export async function ingestEndOfCallReport(params: {
       callback: lead.phone,
       name: lead.name,
     };
-    const missing = Object.entries(captured)
-      .filter(([, v]) => !v)
-      .map(([k]) => k);
+    const question = isInformationOnlyRequest({ ...lead, callerWords: callerWords(transcript) });
+    const missing = question
+      ? []
+      : Object.entries(captured)
+          .filter(([, v]) => !v)
+          .map(([k]) => k);
     audit.add({
       businessId: business.id,
       entityType: "lead",
@@ -178,7 +240,9 @@ export async function ingestEndOfCallReport(params: {
       callId: call.id,
       leadId: lead.id,
       action: "lead.captured",
-      summary: missing.length
+      summary: question
+        ? "Captured a question about the shop — no service intake needed"
+        : missing.length
         ? `Captured ${lead.serviceType ?? "the request"} — missing ${missing.join(", ")}`
         : `Captured ${lead.serviceType}, ${lead.urgency}, address and callback number`,
       detail: { captured, missing },
@@ -235,7 +299,6 @@ export async function ingestEndOfCallReport(params: {
 
     const safety = autoBook.classification?.safety;
     const spoken = callerWords(transcript);
-    const callerId = message.call?.customer?.number ?? null;
     const phoneMismatch =
       Boolean(callerId && freshLead.phone) && normalizePhone(callerId) !== normalizePhone(freshLead.phone);
     const wantsHuman = leadWantsHuman({ notes: `${freshLead.notes ?? ""} ${spoken}`, serviceType: freshLead.serviceType });
@@ -276,7 +339,24 @@ export async function ingestEndOfCallReport(params: {
       });
     }
 
-    const ownerMessage = safety
+    const network =
+      call.networkConsentAt && !safety && !autoBook.jobId && !nonService
+        ? await passConsentedCallLead(
+            { id: business.id, name: business.name, trade: business.trade, address: business.address, networkOn: business.networkOn },
+            { ...freshLead, job: null },
+          ).catch((error) => {
+            logWarn("network.call_pass_failed", { leadId: lead.id, error: error instanceof Error ? error.message : String(error) });
+            return null;
+          })
+        : null;
+    const networkNote =
+      network && "offered" in network
+        ? network.offered
+          ? `\nYou were booked solid, so the caller agreed to a nearby pro. Offered to ${network.offered} Orvius Network shop${network.offered === 1 ? "" : "s"}.`
+          : "\nYou were booked solid and the caller agreed to a nearby pro, but no Orvius Network shop nearby was free. Call them back."
+        : "";
+
+    const baseOwnerMessage = safety
       ? `SAFETY — ${safety.label}. ${freshLead.name ?? "A caller"} ${freshLead.phone ?? ""} at ${
           freshLead.address ?? "an unknown address"
         }. ${safety.instruction}`
@@ -303,6 +383,7 @@ export async function ingestEndOfCallReport(params: {
             summary,
           },
         });
+    const ownerMessage = `${baseOwnerMessage}${networkNote}`;
 
     if (!nonService) {
       await enqueueOwnerAlert({
@@ -330,6 +411,17 @@ export async function ingestEndOfCallReport(params: {
         idempotencyKey: key("owner-alert"),
       });
     }
+
+    const toJobber = await enqueueJobberSync({
+      businessId: business.id,
+      leadId: lead.id,
+      skipReason: autoBook.skipReason,
+      nonService,
+    }).catch((error) => {
+      logWarn("jobber.enqueue_failed", { leadId: lead.id, error: error instanceof Error ? error.message : String(error) });
+      return false;
+    });
+    if (toJobber) await afterResponse(() => drainJobberSyncs({ businessId: business.id, limit: 5 }));
 
     await Promise.all([
       audit.flush(),
@@ -368,4 +460,103 @@ export async function ingestEndOfCallReport(params: {
     });
     throw error;
   }
+}
+
+const FINISH_GRACE_MS = 5 * 60_000;
+const FINISH_LOOKBACK_MS = 24 * 60 * 60_000;
+
+/**
+ * Vapi is answered once the call is saved, so a function that dies before
+ * finishing leaves a call nobody booked or alerted on, and Vapi will not send
+ * it again. This finishes those. One try each: if finishing fails again the
+ * owner still gets a plain alert under the same dedupe key.
+ */
+const FINISH_MAX_ATTEMPTS = 12;
+
+export async function sweepUnfinishedCallReports(now = new Date()): Promise<number> {
+  const eventType = "end-of-call-report";
+  const where = {
+    source: "vapi",
+    eventType,
+    status: { in: [CAPTURED, "failed"] },
+    createdAt: { gte: new Date(now.getTime() - FINISH_LOOKBACK_MS), lte: new Date(now.getTime() - FINISH_GRACE_MS) },
+  };
+  // Events whose call was never saved are skipped but stay in the window for a
+  // day. Reading only the oldest 25 let a burst of those starve every newer
+  // call behind them, so scan past them until 25 finishable calls are found.
+  const FINISH_BATCH = 25;
+  const SCAN_PAGE = 100;
+  const SCAN_LIMIT = 1000;
+  const finishable: Array<{
+    event: { id: string; externalId: string; status: string; attempts: number };
+    call: Call & { lead: Lead; business: Business };
+  }> = [];
+  let cursor: string | undefined;
+  for (let scanned = 0; scanned < SCAN_LIMIT && finishable.length < FINISH_BATCH; ) {
+    const page = await prisma.webhookEvent.findMany({
+      where,
+      select: { id: true, externalId: true, status: true, attempts: true },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      take: SCAN_PAGE,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+    if (!page.length) break;
+    scanned += page.length;
+    cursor = page[page.length - 1]!.id;
+    const calls = await prisma.call.findMany({
+      where: { vapiCallId: { in: page.map((e) => e.externalId) } },
+      include: { lead: true, business: true },
+    });
+    for (const event of page) {
+      const call = calls.find((c) => c.vapiCallId === event.externalId);
+      // Failed before the call was saved: Vapi's redelivery or line watch recovers those.
+      if (call?.lead) finishable.push({ event, call: { ...call, lead: call.lead } });
+      if (finishable.length >= FINISH_BATCH) break;
+    }
+    if (page.length < SCAN_PAGE) break;
+  }
+  if (!finishable.length) return 0;
+
+  let finished = 0;
+  for (const { event, call } of finishable) {
+    const claimed = await prisma.webhookEvent.updateMany({
+      where: { id: event.id, status: event.status },
+      data: { status: "processing" },
+    });
+    if (!claimed.count) continue;
+    const { business, lead, ...row } = call;
+    try {
+      await finishCallReport({ business, vapiCallId: event.externalId, call: row, lead });
+      finished += 1;
+      logWarn("vapi.call_report_finished_late", { businessId: business.id, vapiCallId: event.externalId });
+    } catch (error) {
+      logError("vapi.call_report_unfinished", {
+        businessId: business.id,
+        vapiCallId: event.externalId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      // The owner hears on the first failure; the booking keeps retrying for about an hour of sweeps.
+      const attempts = event.attempts + 1;
+      await prisma.webhookEvent.update({
+        where: { id: event.id },
+        data: {
+          status: attempts >= FINISH_MAX_ATTEMPTS ? "abandoned" : "failed",
+          attempts,
+          error: (error instanceof Error ? error.message : "unknown").slice(0, 280),
+        },
+      });
+      await enqueueOwnerAlert({
+        businessId: business.id,
+        ownerPhone: business.ownerPhone,
+        ownerEmail: business.ownerEmail,
+        businessName: business.name,
+        message: [`New call · ${lead.serviceType ?? "needs review"}`, lead.phone, lead.address, call.summary]
+          .filter(Boolean)
+          .join("\n"),
+        leadId: lead.id,
+        dedupeKey: buildLeadAlertDedupeKey({ vapiCallId: event.externalId }),
+      }).catch(() => undefined);
+    }
+  }
+  return finished;
 }
