@@ -46,13 +46,24 @@ test("Calendar step is honest: it needs a real crew to book against", () => {
   assert.equal(buildShopSetupChecklist({ ...base, crewCount: 2 }).next?.id, "owner_alerts");
 });
 
-test("profile popover carries identity, workspace, and the full account menu", () => {
+test("profile popover carries identity and the account menu", () => {
   const footer = read("src/components/os-sidebar-footer.tsx");
-  for (const item of ["Profile", "Settings", "Integrations", "Billing", "Help", "Sign out", "Workspace"]) {
+  for (const item of [
+    "Account",
+    "Personalization",
+    "Settings",
+    "Homepage",
+    "Get help",
+    "Docs",
+    "Sign out",
+    "Upgrade",
+  ]) {
     assert.match(footer, new RegExp(item));
   }
   assert.match(footer, /pm-identity/);
   assert.match(footer, /aria-expanded/);
+  assert.match(footer, /settings=general/);
+  assert.match(footer, /settings=billing/);
 });
 
 test("Ask is one composer with grounded evidence and explained approvals", () => {

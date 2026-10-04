@@ -837,3 +837,126 @@
     align-items: flex-start;
   }
 }
+
+.sc-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.15rem 0.45rem 0.85rem;
+}
+
+.sc-nav-user-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.sc-nav-user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ox-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-nav-user-sub {
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.sc-nav-search {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0.35rem 0.65rem;
+  padding: 0 0.65rem;
+  height: 2.125rem;
+  border-radius: 0.55rem;
+  background: rgb(255 255 255 / 0.05);
+  color: var(--ox-mute);
+}
+
+.sc-nav-search .sc-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.sc-nav-search input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ox-text);
+  font: inherit;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.sc-nav-search input::placeholder {
+  color: var(--ox-mute);
+}
+
+.sc-select {
+  min-width: 9rem;
+  height: 2.125rem;
+  padding: 0 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.04);
+  color: var(--ox-text);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.sc-theme {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.sc-theme button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 4.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.03);
+  color: var(--ox-text-2);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.sc-theme button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sc-theme button.is-active {
+  border-color: rgb(255 255 255 / 0.55);
+  color: var(--ox-text);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+}
+
+.mn-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: #2f6fed;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
