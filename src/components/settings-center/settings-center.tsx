@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BillingContent } from "@/components/billing-content";
 import { CaptureSetupPanel } from "@/components/capture-setup-panel";
 import { OperatingMetricsPanel } from "@/components/operating-metrics-panel";
-import { OrviusLogo } from "@/components/orvius-logo";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
@@ -20,7 +19,9 @@ import {
   type HoursForm,
 } from "@/lib/shop-hours-form";
 import { buildShopSetupChecklist } from "@/lib/shop-setup-checklist";
-import type { Trade } from "@/lib/trades";
+import { supportMailto } from "@/lib/support";
+import { TRADES, type Trade } from "@/lib/trades";
+import { SettingsGeneral } from "./settings-general";
 import { SettingsIcon } from "./settings-icons";
 import { ScGroup, ScRow } from "./settings-primitives";
 import { FOUNDER_CERT, parseCert, type Account, type Patch, type Technician } from "./settings-model";
@@ -36,7 +37,7 @@ import { ReceptionistSection } from "./sections/receptionist-section";
 import { TeamSection } from "./sections/team-section";
 
 const GROUP_LABELS: Record<string, string | null> = {
-  you: null,
+  you: "You",
   shop: "Shop",
   workspace: "Workspace",
   founder: "Founder",
@@ -64,6 +65,7 @@ export function SettingsCenter({
   const [testing, setTesting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [pane, setPane] = useState<"nav" | "pane">("pane");
+  const [navQuery, setNavQuery] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
   const hoursTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -254,7 +256,10 @@ export function SettingsCenter({
     [account?.line, b, crew, hours],
   );
 
-  const sections = SETTINGS_SECTIONS.filter((s) => s.id !== "internal" || account?.founder);
+  const query = navQuery.trim().toLowerCase();
+  const sections = SETTINGS_SECTIONS.filter((s) => s.id !== "internal" || account?.founder).filter(
+    (s) => !query || s.label.toLowerCase().includes(query),
+  );
   const current = SETTINGS_SECTIONS.find((s) => s.id === section) ?? SETTINGS_SECTIONS[0];
   const name = account?.user?.name ?? b?.name ?? "Owner";
   const email = account?.user?.email ?? b?.ownerEmail ?? "";
@@ -265,6 +270,15 @@ export function SettingsCenter({
   }
 
   function renderSection() {
+    if (section === "general") {
+      return (
+        <SettingsGeneral
+          smsOn={Boolean(account?.alerts.smsEnabled)}
+          emailOn={Boolean(account?.alerts.emailConfigured)}
+          smsOptedOut={Boolean(account?.alerts.ownerSmsOptedOut)}
+        />
+      );
+    }
     if (!account || !b) return null;
     switch (section) {
       case "account":
@@ -378,12 +392,30 @@ export function SettingsCenter({
         tabIndex={-1}
       >
         <aside className="sc-nav" aria-label="Settings sections">
-          <div className="sc-nav-brand">
-            <OrviusLogo size="sm" />
+          <div className="sc-nav-user">
+            <button type="button" className="sc-nav-user-btn" onClick={() => go("account")}>
+              <span className="mn-avatar" aria-hidden>
+                {(name || "O").slice(0, 1).toUpperCase()}
+              </span>
+              <span className="sc-nav-user-copy">
+                <span className="sc-nav-user-name">{name}</span>
+                <span className="sc-nav-user-sub">Personal</span>
+              </span>
+              <SettingsIcon name="updown" />
+            </button>
             <button type="button" className="sc-icon-btn sc-mobile-only" aria-label="Close settings" onClick={onClose}>
               <SettingsIcon name="close" />
             </button>
           </div>
+          <label className="sc-nav-search">
+            <SettingsIcon name="search" />
+            <input
+              value={navQuery}
+              onChange={(event) => setNavQuery(event.target.value)}
+              placeholder="Search"
+              aria-label="Search settings"
+            />
+          </label>
           <nav className="sc-nav-list">
             {sections.map((item, index) => {
               const heading = GROUP_LABELS[item.group];
@@ -451,7 +483,7 @@ export function SettingsCenter({
                 <span className="skeleton" />
                 <span className="skeleton" />
               </div>
-            ) : !b ? (
+            ) : !b && section !== "general" ? (
               <p className="sc-muted">
                 No shop linked yet. <Link href="/dashboard/onboarding">Finish setup</Link> to connect your line.
               </p>

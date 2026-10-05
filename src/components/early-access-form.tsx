@@ -56,12 +56,18 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
 
   if (submitted) {
     return (
-      <div role="status" className="success-pop rounded-md border border-live/30 bg-live/10 p-6 text-center">
-        <p className="font-sans text-lg font-medium text-live">
-          Audit request received.
-        </p>
-        <p className="mt-2 font-sans text-sm text-ash-soft">
-          Next, we&apos;ll email you to schedule the call audit.
+      <div
+        className="success-pop flex flex-col items-center gap-3 rounded-lg border border-ui-border bg-ui-surface p-6 text-center"
+        role="status"
+      >
+        <span className="inline-flex size-9 items-center justify-center rounded-full bg-live/15 text-live" aria-hidden>
+          <svg viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="m5 10.5 3.2 3.2L15 7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <p className="font-sans text-lg font-medium text-ui-text">Audit request received.</p>
+        <p className="font-sans text-sm text-ui-muted">
+          We&apos;ll email you to schedule the call audit.
         </p>
       </div>
     );

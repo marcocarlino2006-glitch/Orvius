@@ -66,12 +66,11 @@ export default function DashboardError({
             owner goes back to sleep or starts calling customers themselves.
           */}
           <p className="plan-upgrade-gate-detail os-own-color os-error-lead">
-            <b>Your shop line is unaffected.</b> Calls are still being answered
-            and your alerts are still being sent — this is the dashboard only.
+            <b>Your shop line is unaffected.</b> Calls and alerts are still
+            going out — only the dashboard is down.
           </p>
           <p className="plan-upgrade-gate-detail">
-            Try again, and if it keeps failing send us this screen and we will
-            look at it.
+            Try again. If it keeps failing, email us this screen.
           </p>
 
           <div className="plan-upgrade-gate-actions">

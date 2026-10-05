@@ -46,15 +46,26 @@ test("Calendar step is honest: it needs a real crew to book against", () => {
   assert.equal(buildShopSetupChecklist({ ...base, crewCount: 2 }).next?.id, "owner_alerts");
 });
 
-test("account menu follows Manus: identity, plan card, then Knowledge, Account, Settings, Homepage, Get help, Sign out", () => {
+test("profile popover carries identity and the account menu", () => {
   const footer = read("src/components/os-sidebar-footer.tsx");
-  const order = ['className="pm-head"', 'className="pm-plan"', ...["Knowledge", "Account", "Settings", "Homepage", "Get help", "Sign out"].map((label) => `<span>${label}</span>`)];
-  const at = order.map((item) => footer.indexOf(item));
-  assert.ok(at.every((i) => i > 0), "every Manus row is present");
-  assert.deepEqual([...at].sort((a, b) => a - b), at, "in Manus's order");
+  for (const item of [
+    "Account",
+    "Receptionist",
+    "Settings",
+    "Homepage",
+    "Get help",
+    "Docs",
+    "Sign out",
+    "Upgrade",
+  ]) {
+    assert.match(footer, new RegExp(item));
+  }
+  assert.match(footer, /pm-identity/);
   assert.match(footer, /Switch location/);
-  assert.match(footer, /settings=billing/);
+  assert.match(footer, /api\/shop\/switch/);
   assert.match(footer, /aria-expanded/);
+  assert.match(footer, /settings=general/);
+  assert.match(footer, /settings=billing/);
 });
 
 test("Command home follows Manus: serif greeting, one composer, starter chips, then the board", () => {

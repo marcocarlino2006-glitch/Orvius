@@ -113,8 +113,9 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
         </aside>
         <div className="onboarding-loading-main">
           <div className="onboarding-loading-inner font-sans">
-            <p className="onboarding-loading-kicker type-eyebrow">Orvius</p>
-            <p className="onboarding-loading-copy">Opening command…</p>
+            <p className="sr-only" role="status">
+              Opening command…
+            </p>
             <div className="onboarding-loading-skel" aria-hidden>
               <span className="skeleton attention-skel-line attention-skel-line-lg" />
               <span className="skeleton attention-skel-line attention-skel-line-md" />

@@ -28,16 +28,27 @@
 }
 
 .sc-dialog {
+  --sc-bg: #1a1a1a;
+  --sc-text: #e6e6e6;
+  --sc-text-2: #b3b3b3;
+  --sc-mute: #8c8c8c;
+  --sc-faint: #595959;
+  --sc-line: rgb(255 255 255 / 0.06);
+  --sc-line-strong: rgb(255 255 255 / 0.12);
+  --sc-hover: rgb(255 255 255 / 0.04);
+  --sc-fill: rgb(255 255 255 / 0.07);
+  --sc-active: #2a2a2a;
+  --sc-switch-off: #3a3a3a;
   display: grid;
-  grid-template-columns: 12.5rem minmax(0, 1fr);
-  width: min(51.75rem, 100%);
-  height: min(37.875rem, 100%);
+  grid-template-columns: 200px minmax(0, 1fr);
+  width: min(820px, calc(100vw - 40px));
+  height: min(652px, calc(100dvh - 40px));
   overflow: hidden;
-  border: 1px solid rgb(var(--ox-tint) / 0.08);
-  border-radius: 1rem;
-  background: var(--ox-panel);
+  border: 1px solid var(--sc-line);
+  border-radius: 16px;
+  background: var(--sc-bg);
   box-shadow: 0 24px 80px rgb(0 0 0 / 0.55);
-  color: var(--ox-text);
+  color: var(--sc-text);
   outline: none;
   animation: sc-rise 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -54,9 +65,9 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 1.25rem 0.5rem 0.625rem;
-  border-right: 1px solid rgb(var(--ox-tint) / 0.06);
-  background: var(--ox-rail);
+  padding: 0.85rem 0.5rem 0.6rem;
+  border-right: 1px solid var(--sc-line);
+  background: var(--sc-bg);
 }
 
 .sc-nav-brand {
@@ -75,28 +86,30 @@
 }
 
 .sc-nav-heading {
-  margin: 0.5rem 0.5rem 0.25rem;
-  padding: 0.625rem 0.25rem 0;
-  border-top: 1px solid rgb(var(--ox-tint) / 0.08);
-  font-size: 0.75rem;
+  margin: 14px 0 4px;
+  padding: 0 8px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--ox-mute);
+  color: #8d8d8d;
+}
+
+.sc-nav-list .sc-nav-item-wrap:first-child .sc-nav-heading {
+  margin-top: 4px;
 }
 
 .sc-nav-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   width: 100%;
-  height: 1.75rem;
-  margin-bottom: 0.125rem;
-  padding: 0 0.75rem;
+  height: 34px;
+  padding: 0 8px;
   border: 0;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   background: transparent;
-  color: var(--ox-text-2);
-  font-size: 0.875rem;
-  font-weight: 400;
+  color: var(--sc-text-2);
+  font-size: 14px;
+  font-weight: 500;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
@@ -114,8 +127,13 @@
 }
 
 .sc-nav-item.is-active {
-  background: rgb(var(--ox-tint) / 0.08);
-  color: var(--ox-text);
+  background: var(--sc-active);
+  color: #fff;
+}
+
+.sc-nav-item .sc-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .sc-nav-item:focus-visible,
@@ -174,17 +192,16 @@
   align-items: center;
   gap: 0.625rem;
   flex-shrink: 0;
-  height: 3.875rem;
-  padding: 0 0.625rem 0 1.25rem;
-  border-bottom: 1px solid rgb(var(--ox-tint) / 0.06);
+  height: 3.5rem;
+  padding: 0 1.1rem 0 1.75rem;
 }
 
 .sc-title {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--ox-text);
+  letter-spacing: -0.02em;
+  color: #f5f5f5;
 }
 
 .sc-save {
@@ -229,10 +246,10 @@
 }
 
 .sc-group-title {
-  margin: 0 0 0.25rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--ox-mute);
+  margin: 0 0 0.15rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #f0f0f0;
 }
 
 .sc-row {
@@ -254,17 +271,17 @@
 
 .sc-row-label {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--ox-text);
+  color: #f3f3f3;
 }
 
 .sc-row-hint {
-  margin: 0.125rem 0 0;
+  margin: 2px 0 0;
   max-width: 34rem;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--ox-mute);
+  font-size: 13px;
+  line-height: 1.4;
+  color: #8d8d8d;
 }
 
 .sc-row-control {
@@ -495,18 +512,18 @@
 .sc-switch {
   position: relative;
   flex-shrink: 0;
-  width: 2.25rem;
-  height: 1.25rem;
+  width: 40px;
+  height: 22px;
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgb(var(--ox-tint) / 0.16);
+  background: var(--sc-switch-off);
   cursor: pointer;
   transition: background var(--ox-dur) ease;
 }
 
 .sc-switch.is-on {
-  background: var(--ox-amber);
+  background: #3b82f6;
 }
 
 .sc-switch:disabled {
@@ -515,10 +532,10 @@
 
 .sc-switch-knob {
   position: absolute;
-  top: 0.125rem;
-  left: 0.125rem;
-  width: 1rem;
-  height: 1rem;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
   background: #fff;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
@@ -526,7 +543,7 @@
 }
 
 .sc-switch.is-on .sc-switch-knob {
-  transform: translateX(1rem);
+  transform: translateX(18px);
 }
 
 .sc-segment {
@@ -840,12 +857,17 @@
 .os-shell .sc-dialog .sc-plan-name,
 .os-shell .sc-dialog .sc-title,
 .os-shell .sc-dialog .sc-log-summary {
-  color: var(--ox-text) !important;
+  color: var(--sc-text) !important;
+  font-size: 24px !important;
+  line-height: 30px;
+  letter-spacing: 0;
 }
 
 .os-shell .sc-dialog .sc-row-label {
-  font-size: 0.875rem !important;
+  font-size: 14px !important;
   font-weight: 500 !important;
+  line-height: 20px;
+  color: var(--sc-text) !important;
 }
 
 .os-shell .sc-dialog .sc-row-hint,
@@ -854,24 +876,33 @@
 .os-shell .sc-dialog .sc-plan-kicker,
 .os-shell .sc-dialog .sc-log-meta,
 .os-shell .sc-dialog .sc-muted {
-  color: var(--ox-mute) !important;
+  color: #8d8d8d !important;
+  font-size: 13px !important;
 }
 
-.os-shell .sc-dialog .sc-group-title,
-.os-shell .sc-dialog .sc-nav-heading {
-  color: var(--ox-mute) !important;
-  font-size: 0.8125rem !important;
-  font-weight: 500 !important;
+.os-shell .sc-dialog .sc-group-title {
+  color: var(--sc-text) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
+  line-height: 22px;
+  margin: 0 0 16px;
 }
 
 .os-shell .sc-dialog .sc-nav-heading {
-  font-size: 0.75rem !important;
+  color: var(--sc-mute) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  padding: 0 12px 0 14px;
+  margin: 12px 0 4px !important;
 }
 
 .os-shell .sc-dialog .sc-value {
   color: var(--ox-text-2) !important;
+  font-size: 14px;
 }
 
 .os-shell .sc-row--stack .sc-input {
@@ -953,6 +984,503 @@
   }
 }
 
+/*
+  Reference frame. Measured 1:1 from the settings screenshot this dialog is
+  modelled on (818×652, 216px rail, 56px content gutters), so sizes are in px
+  on purpose. Scoped under .os-shell .sc-dialog to out-rank the shell's broad
+  type rules and the base rules above.
+*/
+
+.os-shell .sc-dialog {
+  position: relative;
+  grid-template-columns: 221px minmax(0, 1fr);
+  width: min(max(80vw, 720px), 1440px, calc(100vw - 32px));
+  height: min(90vh, calc(100dvh - 32px));
+  border: 0;
+  border-radius: 16px;
+  background: var(--sc-bg);
+  color: var(--sc-text);
+  -webkit-font-smoothing: antialiased;
+  box-shadow: 0 0 0 1px #ffffff24, 0 0 0 1px #00000047, 0 24px 24px -12px #00000029, 0 3px 3px -1.5px #00000047, 0 10px 20px 1px #00000029;
+}
+
+.os-shell .sc-dialog .sc-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.os-shell .sc-dialog .sc-icon path {
+  stroke-width: 1.5;
+}
+
+/* Rail */
+
+.os-shell .sc-dialog .sc-nav {
+  padding: 16px 12px 6px;
+  border-right: 1px solid var(--sc-line);
+  background: var(--sc-bg);
+}
+
+.os-shell .sc-dialog .sc-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 5.5px;
+  padding: 0 0 10px;
+}
+
+.os-shell .sc-dialog .sc-nav-user-btn {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 9.5px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.os-shell .sc-dialog .sc-nav-user-btn:hover {
+  background: var(--sc-hover);
+}
+
+.os-shell .sc-dialog .sc-nav-user-btn > .sc-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--sc-text-2);
+}
+
+.os-shell .sc-dialog .sc-nav-user .mn-avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.os-shell .sc-dialog .sc-nav-user-copy {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 1.5px;
+}
+
+.os-shell .sc-dialog .sc-nav-user-name {
+  overflow: hidden;
+  color: var(--sc-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-shell .sc-dialog .sc-nav-user-sub {
+  color: var(--sc-mute);
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.os-shell .sc-dialog .sc-nav-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  margin: 0 0 2.5px;
+  padding: 0 8px 0 11px;
+  border: 1px solid var(--sc-line-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sc-mute);
+}
+
+.os-shell .sc-dialog .sc-nav-search:focus-within {
+  border-color: var(--sc-line-strong);
+}
+
+.os-shell .sc-dialog .sc-nav-search .sc-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.os-shell .sc-dialog .sc-nav-search input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--sc-text) !important;
+  font-size: 14px;
+  outline: none;
+  box-shadow: none !important;
+}
+
+.os-shell .sc-dialog .sc-nav-search input::placeholder {
+  color: var(--sc-faint);
+}
+
+.os-shell .sc-dialog .sc-nav-list {
+  margin-right: -3px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sc-faint) transparent;
+}
+
+.os-shell .sc-dialog .sc-nav-heading {
+  margin: 13.5px 0 4px !important;
+  padding: 0 13.5px;
+  color: var(--sc-mute) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.os-shell .sc-dialog .sc-nav-list .sc-nav-item-wrap:first-child .sc-nav-heading {
+  margin-top: 8px !important;
+}
+
+.os-shell .sc-dialog .sc-nav-item {
+  gap: 8px;
+  height: 32px;
+  margin-bottom: 2px;
+  padding: 0 16px 0 14px;
+  border-radius: 8px;
+  color: var(--sc-text);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.os-shell .sc-dialog .sc-nav-item:hover {
+  background: var(--sc-hover);
+  color: var(--sc-text);
+}
+
+.os-shell .sc-dialog .sc-nav-item.is-active {
+  background: var(--sc-line);
+  color: var(--sc-text);
+  font-weight: 500;
+}
+
+.os-shell .sc-dialog .sc-nav-item .sc-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--sc-text-2);
+}
+
+.os-shell .sc-dialog .sc-nav-badge {
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 21.5px;
+}
+
+.os-shell .sc-dialog .sc-nav-help {
+  margin: 10.5px 0 0;
+  padding-top: 0;
+  color: var(--sc-text);
+  position: relative;
+}
+
+.os-shell .sc-dialog .sc-nav-help::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 4px;
+  right: 4px;
+  border-top: 1px solid var(--sc-fill);
+}
+
+.os-shell .sc-dialog .sc-nav-help .sc-icon:last-child {
+  width: 16px;
+  height: 16px;
+  color: var(--sc-mute);
+  opacity: 1;
+}
+
+/* Content */
+
+.os-shell .sc-dialog .sc-head {
+  height: auto;
+  padding-top: 34px !important;
+  margin: 0 max(24px, calc((100% - 768px) / 2));
+  padding: 0;
+  border-bottom: 1px solid var(--sc-line);
+  padding-bottom: 16px !important;
+}
+
+.os-shell .sc-dialog .sc-title {
+  color: var(--sc-text) !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em;
+}
+
+.os-shell .sc-dialog .sc-save {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--sc-mute);
+}
+
+.os-shell .sc-dialog .sc-head > .sc-icon-btn:last-child {
+  position: absolute;
+  top: 20px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  border-radius: 8px;
+  color: var(--sc-text-2);
+}
+
+.os-shell .sc-dialog .sc-head > .sc-icon-btn:last-child .sc-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.os-shell .sc-dialog .sc-body {
+  padding: 0 max(24px, calc((100% - 768px) / 2)) 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sc-faint) transparent;
+}
+
+.os-shell .sc-dialog .sc-group {
+  padding: 24px 0;
+}
+
+.os-shell .sc-dialog .sc-group + .sc-group {
+  margin-top: 0;
+  border-top: 1px solid var(--sc-line);
+}
+
+.os-shell .sc-dialog .sc-group-title {
+  margin: 0 0 16px;
+  color: var(--sc-text) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.os-shell .sc-dialog .sc-rows {
+  display: grid;
+  gap: 24px;
+}
+
+.os-shell .sc-dialog .sc-row {
+  gap: 16px;
+  padding: 0;
+}
+
+.os-shell .sc-dialog .sc-rows > .sc-row + .sc-row {
+  border-top: 0;
+}
+
+.os-shell .sc-dialog .sc-row--stack {
+  gap: 8px;
+}
+
+.os-shell .sc-dialog .sc-row-label {
+  color: var(--sc-text) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1.35;
+}
+
+.os-shell .sc-dialog .sc-row-hint {
+  margin-top: 1.5px;
+  max-width: none;
+  color: var(--sc-mute) !important;
+  font-size: 13px !important;
+  line-height: 18px;
+}
+
+.os-shell .sc-dialog .sc-value {
+  font-size: 13px;
+  color: var(--sc-text-2) !important;
+}
+
+/* Controls */
+
+.os-shell .sc-dialog .sc-select {
+  appearance: none;
+  width: 208px;
+  min-width: 0;
+  height: 36px;
+  min-height: 0 !important;
+  padding: 0 36px 0 12px !important;
+  border: 1px solid #00000014 !important;
+  border-radius: 8px !important;
+  background: var(--sc-hover) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.75 6 7.75l3-3' fill='none' stroke='%23e6e6e6' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center / 16px !important;
+  color: var(--sc-text) !important;
+  font-size: 14px !important;
+  line-height: 34px;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.os-shell .sc-dialog .sc-select:focus-visible {
+  outline: 2.5px solid rgb(96 165 250 / 0.6);
+  outline-offset: 1.5px;
+}
+
+.os-shell .sc-dialog .sc-theme {
+  display: grid;
+  grid-template-columns: repeat(3, 110px);
+  gap: 8px;
+  width: auto;
+}
+
+.os-shell .sc-dialog .sc-theme button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: auto;
+  min-height: 32px;
+  padding: 12px 8px 8px;
+  border: 1px solid var(--sc-line-strong);
+  border-radius: 10px !important;
+  background: transparent;
+  color: var(--sc-text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: none;
+  line-height: 20px;
+}
+
+.os-shell .sc-dialog .sc-theme button:hover {
+  border-color: var(--sc-line-strong);
+  color: var(--sc-text);
+  background: var(--sc-hover);
+}
+
+.os-shell .sc-dialog .sc-theme button svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.5;
+}
+
+.os-shell .sc-dialog .sc-theme button.is-active {
+  border: 1.5px solid var(--sc-text);
+  color: var(--sc-text);
+  font-weight: 500;
+}
+
+.os-shell .sc-dialog .sc-switch {
+  width: 26px;
+  height: 16px;
+  background: var(--sc-faint);
+  border-radius: 16px !important;
+}
+
+.os-shell .sc-dialog .sc-switch.is-on {
+  background: #1a93fe;
+}
+
+.os-shell .sc-dialog .sc-switch--readonly {
+  display: inline-block;
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 1332px;
+  cursor: default;
+}
+
+.os-shell .sc-dialog .sc-switch-knob {
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 14px;
+  box-shadow: none;
+}
+
+.os-shell .sc-dialog .sc-switch.is-on .sc-switch-knob {
+  transform: translateX(10px);
+}
+
+.os-shell .sc-dialog .sc-pill {
+  gap: 6.5px;
+  padding: 2.5px 9.5px;
+  font-size: 13px;
+}
+
+.os-shell .sc-dialog .sc-pill::before {
+  width: 6.5px;
+  height: 6.5px;
+}
+
+.os-shell .sc-dialog .sc-btn {
+  height: 32px;
+  padding: 0 13.5px;
+  border-radius: 9.5px;
+  font-size: 14px;
+}
+
+.os-shell .sc-dialog .sc-input {
+  height: 36px;
+  border-radius: 9.5px;
+  font-size: 14px;
+}
+
+.os-shell .sc-dialog textarea.sc-input {
+  height: auto;
+}
+
+.mn-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 29.5px;
+  height: 29.5px;
+  flex-shrink: 0;
+  border-radius: 1332px;
+  background: #1a8ad4;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.os-shell .sc-dialog .sc-row--stack .sc-row-label {
+  font-weight: 400 !important;
+}
+
+@media (max-width: 720px) {
+  .os-shell .sc-dialog {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .os-shell .sc-dialog .sc-nav {
+    padding: 14px 12px;
+  }
+
+  .os-shell .sc-dialog .sc-nav-item {
+    height: 40px;
+    font-size: 15px;
+  }
+
+  .os-shell .sc-dialog .sc-head {
+    margin: 0 16px;
+  }
+
+  .os-shell .sc-dialog .sc-head > .sc-icon-btn:last-child {
+    top: 16px;
+    right: 12px;
+  }
+
+  .os-shell .sc-dialog .sc-body {
+    padding: 0 16px calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .sc-voice-play {
   flex: none;
   min-width: 4rem;
@@ -990,4 +1518,22 @@
     width: 8.25rem;
     padding: 0 0.375rem;
   }
+}
+
+html[data-theme="day"] .sc-dialog {
+  --sc-bg: #ffffff;
+  --sc-text: #111316;
+  --sc-text-2: #363b42;
+  --sc-mute: #5c636d;
+  --sc-faint: #9aa0a8;
+  --sc-line: rgb(0 0 0 / 0.07);
+  --sc-line-strong: rgb(0 0 0 / 0.14);
+  --sc-hover: rgb(0 0 0 / 0.04);
+  --sc-fill: rgb(0 0 0 / 0.05);
+  --sc-active: #eceef1;
+  --sc-switch-off: #d5d8dd;
+}
+
+html[data-theme="day"] .os-shell .sc-dialog {
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08), 0 24px 48px -12px rgb(0 0 0 / 0.18);
 }

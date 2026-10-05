@@ -1,9 +1,19 @@
 import type { SettingsSectionId } from "@/lib/settings-center";
 
-type IconName = SettingsSectionId | "help" | "close" | "back" | "external" | "search" | "sms" | "mail" | "calendar" | "jobs";
+type IconName = SettingsSectionId | "help" | "close" | "back" | "external" | "search" | "updown" | "sms" | "mail" | "calendar" | "jobs";
 
 const PATHS: Record<IconName, string[]> = {
   account: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z", "M4.5 20a7.5 7.5 0 0 1 15 0"],
+  general: [
+    "M4 7h9",
+    "M19 7h1",
+    "M16 9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z",
+    "M4 17h1",
+    "M11 17h9",
+    "M8 19.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z",
+  ],
+  updown: ["M8.5 9.5 12 6l3.5 3.5", "M8.5 14.5 12 18l3.5-3.5"],
+  search: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z", "M16.5 16.5 21 21"],
   business: ["M4 20V8l8-4 8 4v12", "M9 20v-6h6v6", "M3 20h18"],
   phone: [
     "M6.6 3.5h2.6l1.3 4-2 1.3a11 11 0 0 0 6.7 6.7l1.3-2 4 1.3v2.6A2.1 2.1 0 0 1 18.4 20 14.9 14.9 0 0 1 4 5.6a2.1 2.1 0 0 1 2.6-2.1Z",
@@ -30,8 +40,7 @@ const PATHS: Record<IconName, string[]> = {
   help: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z", "M9.5 9.5a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.7-.8 1.2v.4", "M12 16.8v.2"],
   close: ["M6 6l12 12", "M18 6 6 18"],
   back: ["M15 5l-7 7 7 7"],
-  external: ["M14 4h6v6", "M20 4l-9 9", "M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"],
-  search: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z", "M20 20l-4-4"],
+  external: ["M7.5 16.5 16.5 7.5", "M9 7.5h7.5V15"],
   sms: ["M4 5h16v11H9l-5 4V5Z", "M8 9.5h8", "M8 12.5h5"],
   mail: ["M3.5 6h17v12h-17z", "M3.5 7l8.5 6 8.5-6"],
   calendar: ["M4 6h16v14H4z", "M4 10h16", "M8 3.5v4", "M16 3.5v4"],

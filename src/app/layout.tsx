@@ -8,6 +8,7 @@ import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 import "./public-v2.css";
 import "./theme-tokens.css";
+import "./public-polish.css";
 
 /**
  * Archivo speaks for the brand on public pages; Inter runs the product; Plex Mono speaks

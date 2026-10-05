@@ -113,7 +113,7 @@ export function SignInBoard() {
           >
             <span className="ov-signin-row-time">{entry.at}</span>
             <span className={`ov-signin-row-tag ov-signin-row-tag--${entry.tag.toLowerCase()}`}>
-              {entry.tag}
+              {entry.tag.charAt(0) + entry.tag.slice(1).toLowerCase()}
             </span>
             <span className="ov-signin-row-body">
               <span className="ov-signin-row-line">{entry.line}</span>
@@ -125,7 +125,7 @@ export function SignInBoard() {
       </ul>
 
       <p className="ov-signin-board-foot">
-        Illustrative activity from labeled reference shops — not customer data.
+        Example activity from reference shops.
       </p>
     </div>
   );

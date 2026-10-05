@@ -426,7 +426,7 @@ function DemoPanel({ onChange }: { onChange: () => void }) {
     <section className="cb-demo" aria-label="Simulate a call">
       <p className="cb-demo-title">Demo workspace — place a call</p>
       <p className="cb-muted">
-        Each call runs the real pipeline. Texts are simulated and every number is fictional; nothing reaches a real phone.
+        Runs the real pipeline. Texts are simulated — nothing reaches a real phone.
       </p>
       <div className="cb-demo-grid">
         {scenarios.map((s) => (
