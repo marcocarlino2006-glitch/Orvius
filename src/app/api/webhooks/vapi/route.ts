@@ -20,7 +20,7 @@ import {
 } from "@/lib/shop-preview";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { handleInCallToolCalls } from "@/lib/in-call-tools";
-import { readToolCalls } from "@/lib/in-call-tool-defs";
+import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
 import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
 
 async function findBusinessForCall(
@@ -202,6 +202,7 @@ export async function POST(request: NextRequest) {
       callId: call.id,
       call: { ...call, callerPhone: call.callerPhone ?? callerPhone },
       toolCalls,
+      callerWords: callerWordsSoFar(message),
     });
     logInfo("in_call.tool_ms", {
       businessId: business.id,

@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const { answerVoiceSimToolCalls, voiceSimSecretMatches, voiceSimToolSecret } = await import("../src/lib/voice-sim-tools.ts");
-const { BAD_SLOT_REPLY, URGENT_NO_BOOK_REPLY } = await import("../src/lib/in-call-tool-defs.ts");
+const { BAD_SLOT_REPLY, URGENT_NO_BOOK_REPLY, callerWordsSoFar } = await import("../src/lib/in-call-tool-defs.ts");
 const { gradeScenario, scenarios } = await import("./voice-scenarios.mjs");
 
 const byId = Object.fromEntries(scenarios.map((s) => [s.id, s]));
@@ -39,6 +39,25 @@ test("an emergency gets no times even when the model calls it same-day (real cal
   assert.equal(ask("hold_appointment", { slot: "2026-09-28T14:00:00.000Z", serviceType: heatwave }), URGENT_NO_BOOK_REPLY);
   assert.match(ask("check_availability", { serviceType: "AC not working", urgency: "same-day" }), /Open times/);
   assert.match(ask("check_availability", { serviceType: "AC tune-up for my elderly mother" }), /Open times/);
+});
+
+test("the caller's own words make it an emergency when the model's summary drops the detail (real call from Oct 4)", () => {
+  const message = {
+    artifact: {
+      messages: [
+        { role: "bot", message: "Is there a baby, an elderly or a sick person at home?" },
+        { role: "user", message: "Hi. My AC stopped working, and it's really hot outside. Can you help with that?" },
+        { role: "user", message: "Yes. My 88 year old mother lives with me." },
+      ],
+    },
+  };
+  const callerWords = callerWordsSoFar(message);
+  assert.doesNotMatch(callerWords, /Is there a baby/, "only the caller's lines count");
+  const args = { serviceType: "AC not working in hot weather", urgency: "same-day" };
+  assert.equal(ask("check_availability", args, { callerWords }), URGENT_NO_BOOK_REPLY);
+  assert.match(ask("check_availability", args), /Open times/, "the summary alone reads as routine");
+  const declined = callerWordsSoFar({ artifact: { messages: [{ role: "user", message: "My AC is not working. No, no babies or elderly here." }] } });
+  assert.match(ask("check_availability", args, { callerWords: declined }), /Open times/);
 });
 
 test("the sandbox answers only a caller holding the Vapi key", async () => {

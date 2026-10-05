@@ -200,6 +200,16 @@ export function safetyAlertReply(params: { texted: boolean; transferring: boolea
 }
 
 /** Vapi sends arguments as an object, some providers as a JSON string. */
+/** What the caller has said so far on this call, from the conversation Vapi sends with each tool request. */
+export function callerWordsSoFar(message: unknown) {
+  const msgs = (message as { artifact?: { messages?: Array<{ role?: string; message?: string }> } } | null)?.artifact?.messages;
+  const said = (Array.isArray(msgs) ? msgs : [])
+    .filter((m) => m.role === "user" && typeof m.message === "string")
+    .map((m) => m.message)
+    .join(" \n ");
+  return said || null;
+}
+
 export function readToolCalls(message: {
   toolCallList?: Array<{ id?: string; function?: { name?: string; arguments?: unknown } }>;
 }): ToolCall[] {

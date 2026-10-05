@@ -50,7 +50,7 @@ const HVAC_DOWN =
   "\\b(ac|a/c|air condition\\w*|cooling|heat|heating|furnace|heat pump)\\b.{0,30}\\b(not working|stopped|died|dead|is out|broke\\w*|quit|won'?t (turn on|start|cool|heat)|not (cooling|heating|blowing|turning on))";
 /** Someone who can't ride out a dead system, or weather nobody can. */
 const AT_RISK =
-  "\\b(baby|infant|newborn|elderly|senior|\\d{2}[- ]year[- ]old (mother|father|mom|dad|parent|grandm\\w*|grandf\\w*)|oxygen|pregnan\\w*|disabled|very hot|extremely hot|heat ?wave|(9\\d|1[01]\\d) ?degrees|freezing|below zero)";
+  "(?<!\\b(no|without|nobody)\\s+(\\w+\\s+){0,2})\\b(baby|infant|newborn|elderly|senior|\\d{2}[- ]year[- ]old (mother|father|mom|dad|parent|grandm\\w*|grandf\\w*)|oxygen|pregnan\\w*|disabled|very hot|extremely hot|heat ?wave|(9\\d|1[01]\\d) ?degrees|freezing|below zero)";
 
 const HVAC: TradePlaybook = {
   trade: "HVAC",
@@ -74,8 +74,8 @@ const HVAC: TradePlaybook = {
     /(sin|no (tengo|hay)) calefacci[oó]n.{0,80}(beb[eé]|fr[ií]o|congel|anciano|mayor)/,
     /(beb[eé]|anciano|congel).{0,80}(sin|no (tengo|hay)) calefacci[oó]n/,
     /\b(no (ac|a\/c|cooling)|(ac|a\/c|air conditioner) (died|is dead|is out|quit|stopped))\b.{0,80}\b(baby|infant|elderly|oxygen|heat ?stroke)/,
-    new RegExp(`${HVAC_DOWN}.{0,120}${AT_RISK}`),
-    new RegExp(`${AT_RISK}.{0,120}${HVAC_DOWN}`),
+    new RegExp(`${HVAC_DOWN}[\\s\\S]{0,120}${AT_RISK}`),
+    new RegExp(`${AT_RISK}[\\s\\S]{0,120}${HVAC_DOWN}`),
   ],
   sameDay: [
     /\b(ac|a\/c|air conditioner|air conditioning)\b.{0,20}\b(died|dead|out|quit|stopped|not working|broke)/,
