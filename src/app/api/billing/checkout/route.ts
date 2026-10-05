@@ -25,6 +25,7 @@ import {
   type PaidPlanId,
 } from "@/lib/pricing-plans";
 import { shopHasLivePlan } from "@/lib/billing-sync";
+import { stripeKeyMode } from "@/lib/stripe-mode";
 import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
@@ -222,6 +223,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     configured: isStripeConfigured(),
     checkoutReady: isStripeCheckoutConfigured(),
+    stripeMode: stripeKeyMode(),
     selfServeAvailable: publicLaunch.ready,
     plans,
     currency: "usd",
