@@ -104,7 +104,6 @@ function Block({
       }
       onDragEnd={movable ? () => onDrag?.(null) : undefined}
     >
-      <span className="dsp-block-time">{clock(block.startMin)}</span>
       <span className="dsp-block-title">{block.title}</span>
       {block.customerName ? <span className="dsp-block-who">{block.customerName}</span> : null}
     </RecordLink>
@@ -455,22 +454,40 @@ export default function DispatchPage() {
   const terms = industryTerms(board?.trade);
   const decisions = schedule?.unassigned.length ?? 0;
   const conflicts = schedule?.conflicts ?? [];
+  const bookedMin = schedule?.lanes.reduce((sum, lane) => sum + lane.bookedMin, 0) ?? 0;
 
   return (
     <OsShell title={terms.Dispatch}>
       <PlanUpgradeGate module="dispatch">
         <ProLead
           loading={loading && !board}
-          figure={String(decisions)}
-          caption="Unassigned"
-          facts={[{ label: "Conflicts", value: conflicts.length, live: conflicts.length > 0 }]}
+          figure={String(board?.jobCount ?? 0)}
+          caption={day === today ? `${terms.Jobs} today` : `${terms.Jobs} this day`}
+          facts={[
+            { label: "Booked", value: hours(bookedMin) },
+            { label: "Unassigned", value: decisions, live: decisions > 0 },
+            { label: "Conflicts", value: conflicts.length, live: conflicts.length > 0 },
+          ]}
         />
 
         <div className="dsp-toolbar">
           <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setDay((d) => shiftDay(d, -1))} aria-label="Previous day">
             ←
           </button>
-          <input type="date" className="input dsp-date" value={day} onChange={(e) => setDay(e.target.value)} aria-label="Day" />
+          <label className="dsp-day">
+            <span className="dsp-day-label">
+              {day === today ? <span className="dsp-day-today">Today</span> : null}
+              {dayLabel}
+            </span>
+            <input
+              type="date"
+              className="dsp-date"
+              value={day}
+              onChange={(e) => e.target.value && setDay(e.target.value)}
+              onClick={(e) => e.currentTarget.showPicker?.()}
+              aria-label="Day"
+            />
+          </label>
           <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setDay((d) => shiftDay(d, 1))} aria-label="Next day">
             →
           </button>

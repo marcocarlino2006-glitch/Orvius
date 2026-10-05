@@ -794,6 +794,40 @@ a.dt-row:focus-visible,
   .dt-row > .dt-actions {
     margin-left: auto;
   }
+
+  /* A lead's one action sits beside the caller's name instead of on a line of its own. */
+  .dt--leads .dt-row > .dt-primary {
+    flex: 1 1 calc(100% - 7.5rem);
+    min-width: 0;
+  }
+
+  .dt--leads .dt-row > .dt-actions {
+    order: 1;
+    align-self: flex-start;
+  }
+
+  .dt--leads .dt-row > [role="cell"]:not(.dt-primary):not(.dt-actions) {
+    order: 2;
+  }
+
+  /* Call back and the lead page carry the number; the row keeps status and time on one line. */
+  .dt--leads .dt-row > .dt-mono {
+    display: none;
+  }
+
+  /* Tabs that run past the edge fade out there, so the rest reads as a swipe away. */
+  .os-shell .cb-tabs,
+  .os-shell.os-shell-night .pro-filter-bar {
+    padding-right: 2rem;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  }
+
+  .os-shell .cb-tabs::-webkit-scrollbar,
+  .os-shell.os-shell-night .pro-filter-bar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Billing page: every section is the same flat label | content row. The global
@@ -1398,11 +1432,12 @@ a.dt-row:focus-visible,
     display: none;
   }
 
+  /* Four cells share a phone's width; only a fifth makes the strip swipe. */
   .ms-cell,
   .ms-cell:last-of-type {
-    flex: 1 0 auto;
-    min-width: 6.75rem;
-    padding: 0.625rem 0.875rem;
+    flex: 1 1 0;
+    min-width: 5.25rem;
+    padding: 0.625rem 0.75rem;
     box-shadow: 1px 0 0 var(--ox-line);
   }
 
