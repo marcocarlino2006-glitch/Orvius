@@ -225,4 +225,10 @@ test("Dispatch names the day in words and leads with the day's jobs", () => {
   assert.match(dispatch, /label: "Unassigned", value: decisions, live: decisions > 0/);
 });
 
+test("on a page reached through More, the phone tab bar lights More", () => {
+  const nav = read("src/components/os-mobile-nav.tsx");
+  assert.match(nav, /const underMore = !tabs\.some\(\(tab\) => tab\.active\)/);
+  assert.match(nav, /moreOpen \|\| underMore \? " is-active" : ""/);
+});
+
 test.after(() => prisma.$disconnect());

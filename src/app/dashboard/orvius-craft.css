@@ -815,6 +815,12 @@ a.dt-row:focus-visible,
     display: none;
   }
 
+  .os-shell.os-shell-night .cp-row .lead-rail-sub {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   /* Tabs that run past the edge fade out there, so the rest reads as a swipe away. */
   .os-shell .cb-tabs,
   .os-shell.os-shell-night .pro-filter-bar {
