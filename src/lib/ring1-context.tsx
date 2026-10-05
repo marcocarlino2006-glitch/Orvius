@@ -162,7 +162,7 @@ export function Ring1Provider({
   const version = useRef<string | null>(null);
 
   /** `ifChanged` lets the server skip the rebuild when nothing moved; a refresh someone asked for never does. */
-  const load = useCallback(async (ifChanged: boolean) => {
+  const load = useCallback(async (ifChanged: boolean): Promise<"ok" | "no-shop" | "error"> => {
     try {
       const params = new URLSearchParams();
       const since = pinnedSince();
@@ -170,6 +170,12 @@ export function Ring1Provider({
       if (ifChanged && version.current) params.set("v", version.current);
       const query = params.toString();
       const res = await fetch(query ? `/api/ring1?${query}` : "/api/ring1");
+      /* No shop yet (signed up, not paid): there is nothing to refresh, so this is not an error. */
+      if (res.status === 404) {
+        setData(null);
+        setLoadError(null);
+        return "no-shop";
+      }
       if (!res.ok) {
         throw new Error(
           res.status === 401
@@ -183,6 +189,7 @@ export function Ring1Provider({
       pinSince(json.sinceUsed);
       setLoadError(null);
       setLastUpdatedAt(Date.now());
+      return "ok";
     } catch (err) {
       const message =
         err instanceof TypeError
@@ -198,57 +205,69 @@ export function Ring1Provider({
         );
         return current;
       });
+      return "error";
     } finally {
       setLoading(false);
     }
   }, []);
-  const refresh = useCallback(() => load(false), [load]);
+  const refresh = useCallback(() => load(false).then(() => undefined), [load]);
 
   useEffect(() => {
-    void load(false);
-    if (!refreshMs) return;
-    let lastRun = Date.now();
-    const tick = () => {
-      if (document.visibilityState !== "visible") return;
-      lastRun = Date.now();
-      void load(true);
-    };
-    const interval = setInterval(tick, refreshMs);
-
-    /* The stream says when something changed; polling stays as the fallback when it can't connect. */
+    let stopped = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
     let stream: EventSource | null = null;
     let pending: ReturnType<typeof setTimeout> | null = null;
+    let lastRun = Date.now();
+
+    const closeStream = () => {
+      stream?.close();
+      stream = null;
+    };
+    const stop = () => {
+      stopped = true;
+      if (interval) clearInterval(interval);
+      interval = null;
+      if (pending) clearTimeout(pending);
+      closeStream();
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+    const tick = () => {
+      if (stopped || document.visibilityState !== "visible") return;
+      lastRun = Date.now();
+      void load(true).then((result) => {
+        if (result === "no-shop") stop();
+      });
+    };
+
+    /* The stream says when something changed; polling stays as the fallback when it can't connect. */
     const openStream = () => {
-      if (stream || typeof EventSource === "undefined") return;
+      if (stopped || stream || typeof EventSource === "undefined") return;
       stream = new EventSource("/api/ring1/stream");
       stream.addEventListener("change", () => {
         if (pending) clearTimeout(pending);
         pending = setTimeout(tick, 400);
       });
     };
-    const closeStream = () => {
-      stream?.close();
-      stream = null;
-    };
-    openStream();
 
     /* A backgrounded tab stops polling; coming back refreshes at once if the data is stale. */
-    const onVisible = () => {
+    function onVisible() {
       if (document.visibilityState !== "visible") {
         closeStream();
         return;
       }
       openStream();
       if (Date.now() - lastRun >= AWAY_MS) unpinSince();
-      if (Date.now() - lastRun >= refreshMs) tick();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      clearInterval(interval);
-      if (pending) clearTimeout(pending);
-      closeStream();
-      document.removeEventListener("visibilitychange", onVisible);
-    };
+      if (refreshMs && Date.now() - lastRun >= refreshMs) tick();
+    }
+
+    void load(false).then((result) => {
+      if (stopped || result === "no-shop" || !refreshMs) return;
+      interval = setInterval(tick, refreshMs);
+      openStream();
+      document.addEventListener("visibilitychange", onVisible);
+    });
+
+    return stop;
   }, [load, refreshMs]);
 
   const value = useMemo<Ring1ContextValue>(
