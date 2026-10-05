@@ -622,19 +622,23 @@ body:has(.os-shell.os-shell-night) {
   container-type: inline-size;
 }
 
-/* On a phone the owner opens Command to act, so the decisions come before the numbers. */
-@media (max-width: 720px) {
-  .cc-main > .cc-brief {
-    order: -1;
-  }
-
-  .cc-main > .cs-grid {
-    order: 1;
-  }
-}
-
 .cc-rail {
   min-width: 0;
+}
+
+/* Without room for the rail, the answers (brief, numbers, Recovered) come before the board
+   and System health goes last instead of the whole rail landing under a long board. */
+@media (max-width: 1239px) {
+  .cc-main,
+  .cc-rail {
+    display: contents;
+  }
+
+  .cc > * > .cc-brief { order: 0; }
+  .cc > * > .cs-grid { order: 1; }
+  .cc > * > .rw-panel { order: 2; }
+  .cc > * > .cb { order: 3; }
+  .cc > * > .op-panel:not(.rw-panel) { order: 4; }
 }
 
 @media (min-width: 1240px) {

@@ -10,9 +10,9 @@ import { formatWhen } from "@/lib/when";
 
 const LANES: { id: BoardLane; label: string; empty: string }[] = [
   { id: "approvals", label: "Needs your OK", empty: "Nothing is waiting on you." },
-  { id: "exceptions", label: "Exceptions", empty: "No emergencies, failed texts, stale or duplicate jobs." },
+  { id: "exceptions", label: "Problems", empty: "No emergencies, failed texts, stale or duplicate jobs." },
   { id: "requests", label: "Requests", empty: "No open requests without a job." },
-  { id: "proposed", label: "Proposed", empty: "No windows waiting on a customer." },
+  { id: "proposed", label: "Waiting on customer", empty: "No windows waiting on a customer." },
 ];
 
 const EXCEPTION_LABEL: Record<string, string> = {
