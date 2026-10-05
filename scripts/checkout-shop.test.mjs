@@ -22,7 +22,7 @@ const draft = shopDraftSchema.parse({
   timezone: "America/Chicago",
 });
 
-function fakeStripe({ email, metadata, status = "active" }) {
+function fakeStripe({ email, metadata, status = "active", livemode }) {
   const subscription = {
     id: "sub_1",
     status,
@@ -33,7 +33,7 @@ function fakeStripe({ email, metadata, status = "active" }) {
   return {
     checkout: {
       sessions: {
-        retrieve: async () => ({ id: "cs_1", mode: "subscription", customer_email: email, metadata, subscription }),
+        retrieve: async () => ({ id: "cs_1", mode: "subscription", livemode, customer_email: email, metadata, subscription }),
       },
     },
     subscriptions: { retrieve: async () => subscription },
@@ -99,4 +99,42 @@ test("a paid checkout with details goes straight to building the line", async ()
     /Voice AI is not configured/,
     "with voice unset here, reaching the build step is the proof the details were used",
   );
+});
+
+test("on the production deployment a test-mode checkout builds nothing, so the public test card cannot buy a line", async () => {
+  const email = `testmode-${stamp()}@example.test`;
+  const metadata = shopDraftMetadata(draft, new Date());
+  const before = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "production";
+  try {
+    await assert.rejects(
+      provisionFromCheckout({ sessionId: "cs_1", email, stripe: fakeStripe({ email, metadata, livemode: false }) }),
+      (error) => error instanceof CheckoutNotPaidError && /Test-mode checkout/.test(error.message),
+    );
+    await assert.rejects(
+      provisionFromCheckout({ sessionId: "cs_1", email, stripe: fakeStripe({ email, metadata, livemode: true }) }),
+      /Voice AI is not configured/,
+      "a live checkout still reaches the build step",
+    );
+  } finally {
+    if (before === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = before;
+  }
+  assert.equal(await prisma.business.count({ where: { ownerEmail: email } }), 0);
+});
+
+test("previews and local runs still accept test-mode checkouts", async () => {
+  const email = `preview-${stamp()}@example.test`;
+  const metadata = shopDraftMetadata(draft, new Date());
+  const before = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "preview";
+  try {
+    await assert.rejects(
+      provisionFromCheckout({ sessionId: "cs_1", email, stripe: fakeStripe({ email, metadata, livemode: false }) }),
+      /Voice AI is not configured/,
+    );
+  } finally {
+    if (before === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = before;
+  }
 });

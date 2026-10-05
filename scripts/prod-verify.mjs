@@ -298,8 +298,12 @@ try {
     pass("/api/billing/checkout", "plan availability only, no environment detail");
   }
 
-  if (json?.checkoutReady) {
+  if (json?.stripeMode === "test") {
+    fail("Checkout", "Stripe is in test mode on production — the test card would buy a real line; swap in live keys");
+  } else if (json?.checkoutReady && json?.stripeMode === "live") {
     pass("Checkout", "Stripe live — the site can take money");
+  } else if (json?.checkoutReady) {
+    warn("Checkout", "checkout is open but this deploy does not report a Stripe key mode");
   } else {
     /*
       Not a failure. The pricing page reads checkoutReady and offers a call

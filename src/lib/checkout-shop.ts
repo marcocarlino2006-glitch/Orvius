@@ -5,6 +5,7 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { ProvisionBusyError } from "@/lib/provision-attempt";
 import { findBusinessForOwner, provisionBusiness } from "@/lib/provision-business";
 import { getStripe } from "@/lib/stripe";
+import { isProductionDeployment } from "@/lib/stripe-mode";
 import { parseAcquisition } from "@/lib/acquisition";
 import { attachAcquisition, creditReferralOnPayment } from "@/lib/referrals";
 import { TRADES } from "@/lib/trades";
@@ -115,6 +116,9 @@ export async function provisionFromCheckout(params: {
   let billing: ReturnType<typeof resolvePaidCheckoutActivation>;
   try {
     session = await stripe.checkout.sessions.retrieve(params.sessionId, { expand: ["subscription"] });
+    if (session.livemode === false && isProductionDeployment()) {
+      throw new Error("Test-mode checkout cannot open a production line");
+    }
     const subRef = session.subscription;
     if (!subRef) throw new Error("Checkout has no subscription");
     const subscription = typeof subRef === "string" ? await stripe.subscriptions.retrieve(subRef) : subRef;

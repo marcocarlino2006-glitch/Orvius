@@ -5,9 +5,11 @@ import {
   isPlanCheckoutReady,
   type PaidPlanId,
 } from "@/lib/pricing-plans";
+import { isStripeTestModeInProduction, stripeKeyMode, type StripeKeyMode } from "@/lib/stripe-mode";
 
 export type BillingConfig = {
   secretKey: boolean;
+  keyMode: StripeKeyMode;
   webhookSecret: boolean;
   publishableKey: boolean;
   planPriceIds: Record<PaidPlanId, boolean>;
@@ -38,6 +40,7 @@ export function getBillingConfig(): BillingConfig {
 
   return {
     secretKey: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
+    keyMode: stripeKeyMode(),
     webhookSecret: Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim()),
     publishableKey: Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim()),
     planPriceIds,
@@ -58,6 +61,12 @@ export function getBillingReadiness(): BillingReadiness {
       label: "Stripe secret key",
       detail: "Paste STRIPE_SECRET_KEY from Stripe → Developers → API keys",
       ok: config.secretKey,
+    },
+    {
+      id: "live",
+      label: "Live mode",
+      detail: "Production needs sk_live_ keys — a test key lets the public test card buy a real line",
+      ok: !isStripeTestModeInProduction(),
     },
     {
       id: "publishable",
@@ -92,6 +101,13 @@ export function getBillingReadiness(): BillingReadiness {
     nextSteps.push("Add STRIPE_SECRET_KEY from Stripe → Developers → API keys");
   }
 
+  if (isStripeTestModeInProduction()) {
+    missing.push("STRIPE_SECRET_KEY (live)");
+    nextSteps.push(
+      "Swap STRIPE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET and the price IDs for live-mode values on Vercel Production",
+    );
+  }
+
   for (const plan of paidPlans) {
     if (!config.planPriceIds[plan.id]) {
       missing.push(plan.stripePriceEnvKey ?? `STRIPE_PRICE_ID_${plan.id.toUpperCase()}`);
@@ -123,7 +139,8 @@ export function getBillingReadiness(): BillingReadiness {
     nextSteps.push("Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY from Stripe API keys");
   }
 
-  const checkoutReady = config.secretKey && configuredPlans.length > 0;
+  const checkoutReady =
+    config.secretKey && !isStripeTestModeInProduction() && configuredPlans.length > 0;
   const fullyReady =
     checkoutReady &&
     config.webhookSecret &&

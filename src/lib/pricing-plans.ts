@@ -1,3 +1,5 @@
+import { isStripeTestModeInProduction } from "@/lib/stripe-mode";
+
 /** Single source of truth for Orvius plans — copy, Stripe env keys, checkout. */
 
 export type BillingInterval = "month" | "year";
@@ -249,6 +251,7 @@ export function isPlanCheckoutReady(
 ): boolean {
   return Boolean(
     process.env.STRIPE_SECRET_KEY?.trim() &&
+      !isStripeTestModeInProduction() &&
       getStripePriceIdForPlan(planId, interval),
   );
 }
