@@ -206,7 +206,7 @@ function VisitView({ v }: { v: Visit }) {
     <>
       <header className="pf-head">
         <p className="pf-kicker">{v.businessName}</p>
-        <span className={`pf-pill${live ? "" : " is-done"}`}>{head.kicker}</span>
+        <span className={`pf-pill${v.jobStatus === "en_route" ? "" : " is-done"}`}>{head.kicker}</span>
         <h1 className="pf-title">{head.title}</h1>
         {v.jobStatus === "en_route" && v.etaText ? <p className="pf-sub">Arriving in about {v.etaText}</p> : null}
       </header>
