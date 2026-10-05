@@ -18,6 +18,12 @@ function formatWindow(iso: Date | string | null | undefined, timezone: string): 
   return formatShopTime(date, timezone);
 }
 
+/** Customers are told who is coming by first name only. */
+export function firstName(name: string | null | undefined): string | null {
+  const first = name?.trim().split(/\s+/)[0];
+  return first ? first : null;
+}
+
 export function customerConfirmUrl(token: string): string {
   return `${getAppBaseUrl()}/c/${token}`;
 }
@@ -298,6 +304,8 @@ export const CONFIRM_LINK_GRACE_MS = 24 * 60 * 60 * 1000;
 
 export function confirmLinkExpired(job: { status: string; scheduledAt: Date | null }, now: Date) {
   if (job.status === "cancelled" || job.status === "completed") return true;
+  /* A late tech is exactly when the customer opens the link to see where they are. */
+  if (job.status === "en_route" || job.status === "on_site") return false;
   return Boolean(job.scheduledAt && now.getTime() > job.scheduledAt.getTime() + CONFIRM_LINK_GRACE_MS);
 }
 
@@ -312,6 +320,7 @@ export async function confirmJobByCustomerToken(
       business: { select: { id: true, name: true, slug: true, timezone: true, vapiPhoneNumber: true, twilioPhone: true, phone: true } },
       customer: { select: { name: true, phone: true } },
       lead: { select: { name: true, phone: true } },
+      technician: { select: { name: true } },
     },
   });
 
@@ -321,6 +330,10 @@ export async function confirmJobByCustomerToken(
     businessSlug: job.business.slug,
     businessPhone: job.business.vapiPhoneNumber ?? job.business.twilioPhone ?? job.business.phone ?? null,
     timezone: job.business.timezone,
+    technicianName: firstName(job.technician?.name),
+    etaText: job.etaText?.trim() || null,
+    dispatchedAt: job.dispatchedAt?.toISOString() ?? null,
+    onSiteAt: job.onSiteAt?.toISOString() ?? null,
   };
 
   if (confirmLinkExpired(job, now)) {
