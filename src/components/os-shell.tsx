@@ -268,6 +268,7 @@ export function OsShell({
             <button
               type="button"
               className="os-topbar-search font-sans"
+              aria-label="Search"
               onClick={() => setPaletteOpen(true)}
             >
               <svg viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -286,8 +287,10 @@ export function OsShell({
               <button
                 type="button"
                 className="os-topbar-search os-topbar-ask font-sans"
+                aria-label="Ask"
                 onClick={() => window.dispatchEvent(new Event(ASK_OPEN_EVENT))}
               >
+                <OsIcon name="ask" />
                 <span className="os-topbar-search-label">Ask</span>
                 <kbd>⌘J</kbd>
               </button>
