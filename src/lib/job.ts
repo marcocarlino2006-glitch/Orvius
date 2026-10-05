@@ -242,6 +242,9 @@ export class SlotTakenError extends Error {
   }
 }
 
+/** A cold snap lands dozens of calls at once; each losing race re-picks. */
+const AUTO_PICK_ATTEMPTS = 8;
+
 type BookingTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 /**
@@ -439,7 +442,9 @@ export async function createJobFromLead(params: {
         break;
       } catch (error) {
         // A time Orvius picked is re-picked; a promised or owner-chosen time is reported, never moved.
-        if (!(error instanceof SlotTakenError) || params.scheduledAt || attempt >= 2) throw error;
+        if (!(error instanceof SlotTakenError) || params.scheduledAt || attempt >= AUTO_PICK_ATTEMPTS - 1) throw error;
+        // Concurrent bookings re-pick the same earliest time; jitter spreads them across the next ones.
+        await new Promise((resolve) => setTimeout(resolve, 15 + Math.random() * 60 * (attempt + 1)));
         scheduledAt = await pickSlot();
       }
     }

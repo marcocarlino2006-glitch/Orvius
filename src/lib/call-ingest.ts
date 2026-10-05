@@ -113,6 +113,7 @@ export async function captureEndOfCallReport(params: {
       summary,
       address: structured.address,
       categoryHint: structured.jobCategory,
+      callerWords: callerWords(transcript),
       trade: tradeForCapture(business),
     });
 

@@ -26,6 +26,8 @@ export function deriveDemandSignal(input: {
   /** Call summary, used only when the shorter fields say nothing useful. */
   summary?: string | null;
   address?: string | null;
+  /** The caller's side of the transcript; read only to recognise noise. */
+  callerWords?: string | null;
   /** Category the voice agent chose from the enum, when it offered one. */
   categoryHint?: string | null;
   trade?: Trade | null;
@@ -54,7 +56,15 @@ export function deriveDemandSignal(input: {
     .filter(Boolean)
     .join(" ");
 
-  return { categoryCode: classifyDemand({ text: widened, trade }), postalCode };
+  const fromFields = classifyDemand({ text: widened, trade });
+  if (fromFields || input.address?.trim() || !input.callerWords?.trim()) return { categoryCode: fromFields, postalCode };
+
+  // An extractor that says nothing useful still leaves what the caller said. Only
+  // noise is read from it: a caller who gave no address and said "wrong number"
+  // or played a funding robocall is not a lead, but a real request stays unread
+  // here so it is never thrown out on a stray phrase.
+  const spoken = classifyDemand({ text: input.callerWords, trade });
+  return { categoryCode: spoken === "other.non_service" ? spoken : null, postalCode };
 }
 
 /** Trade prior for a shop, so its own vocabulary resolves inside its trade. */

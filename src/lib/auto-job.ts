@@ -448,6 +448,16 @@ export async function maybeAutoBookLead(
       notes: held ? "Booked on the call — the caller picked this time" : "Auto-booked from inbound lead",
     });
   } catch (error) {
+    if (error instanceof SlotTakenError && !held) {
+      await decide("lead.held", "Every open time Orvius tried filled while booking — held for the owner to schedule");
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "capacity_unavailable",
+        classification,
+      };
+    }
     if (error instanceof SlotTakenError) {
       await decide("lead.held", "The time held on the call filled while booking — held for the owner to reschedule the caller", {
         heldSlotAt: held?.toISOString() ?? null,
