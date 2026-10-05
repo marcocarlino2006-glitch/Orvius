@@ -394,6 +394,11 @@ async function main() {
     prisma.customer.findMany({ where: { businessId: { in: bizIds } }, select: { id: true, businessId: true, phone: true } }),
   ]);
 
+  const held = await prisma.auditEvent.findMany({
+    where: { businessId: { in: bizIds }, action: "lead.held" },
+    select: { leadId: true, summary: true },
+  });
+  const heldWhy = new Map(held.map((h) => [h.leadId, h.summary]));
   const callByVapi = new Map(calls.map((c) => [c.vapiCallId, c]));
   const leadByCall = new Map(leads.filter((l) => l.callId).map((l) => [l.callId, l]));
   const customerById = new Map(customers.map((c) => [c.id, c]));
@@ -430,7 +435,10 @@ async function main() {
     const texts = lead ? notesByLead.get(lead.id) ?? [] : [];
     const e = c.expect;
 
-    if (e.jobs != null && mine.length !== e.jobs) fail(c.kind, `${e.jobs} job(s)`, `${last.callId}: got ${mine.length} (${outcome.skipReason ?? "booked"})`);
+    if (e.jobs != null && mine.length !== e.jobs) {
+      const why = lead ? heldWhy.get(lead.id) : null;
+      fail(c.kind, `${e.jobs} job(s)`, `${last.callId}: got ${mine.length} (${outcome.skipReason ?? "booked"}${why ? ` — ${why}` : ""})`);
+    }
     if (e.skip && outcome.skipReason !== e.skip) fail(c.kind, `skip ${e.skip}`, `${last.callId}: got ${outcome.skipReason ?? "none"}`);
     if (e.alert === true && !texts.length) fail(c.kind, "owner told", last.callId);
     if (e.alert instanceof RegExp && !texts.some((t) => e.alert.test(t.message))) fail(c.kind, `owner text ${e.alert}`, `${last.callId}: ${texts[0]?.message?.slice(0, 120) ?? "no text"}`);

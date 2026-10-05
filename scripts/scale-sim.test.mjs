@@ -67,3 +67,38 @@ test("water reaching the electrical panel is a safety call, a plain leak is not"
   assert.equal(heard("The basement is flooding and the breaker box is wet."), "water_on_electrical");
   assert.equal(heard("The kitchen sink is leaking under the cabinet."), null);
 });
+
+test("a call report that hits the database lock retries in place, and only for that", async () => {
+  const { isDatabaseBusy } = await import("../src/lib/webhook-events.ts");
+  assert.equal(isDatabaseBusy(new Error("Raw query failed. Code: `InvalidArg`. Message: `unknown variant `SocketTimeout`")), true);
+  assert.equal(isDatabaseBusy(new Error("Transaction API error: Transaction already closed: expired")), true);
+  assert.equal(isDatabaseBusy(new Error("Lead not found")), false);
+  const route = read("src/app/api/webhooks/vapi/route.ts");
+  assert.match(route, /if \(attempt >= 2 \|\| !isDatabaseBusy\(error\)\) throw error;/);
+});
+
+test("a dropped call and its callback booking together leave one job", async () => {
+  const { createScriptPrisma, loadEnvFile } = await import("./lib/db.mjs");
+  loadEnvFile();
+  const prisma = createScriptPrisma();
+  const { createJobFromLead, RepeatCallerError } = await import("../src/lib/job.ts");
+  const shop = await prisma.business.create({
+    data: { name: "Callback Air", slug: `callback-${Date.now()}`, environment: "test", timezone: "America/Chicago", hoursJson: "{}", servicesJson: "[]" },
+  });
+  try {
+    const lead = (n) =>
+      prisma.lead.create({ data: { businessId: shop.id, phone: "+15555550199", status: "new", serviceType: "AC not cooling", address: `${n} Main St` } });
+    const repeatSince = { at: new Date(Date.now() - 86_400_000), statuses: ["scheduled", "confirmed"] };
+    const first = await createJobFromLead({ leadId: (await lead(1)).id, skipAutoAssign: true, repeatSince });
+    await assert.rejects(
+      createJobFromLead({ leadId: (await lead(2)).id, skipAutoAssign: true, repeatSince }),
+      (error) => error instanceof RepeatCallerError && error.job.id === first.id,
+    );
+    assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 1);
+    // The owner booking a second visit on purpose is not stopped.
+    await createJobFromLead({ leadId: (await lead(3)).id, skipAutoAssign: true });
+    assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 2);
+  } finally {
+    await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
+  }
+});
