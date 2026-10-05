@@ -202,7 +202,8 @@ test("without the rail, Command puts the numbers above the board and System last
   assert.ok(order("\\.cc-brief") < order("\\.cs-grid"), "brief before the numbers");
   assert.ok(order("\\.cs-grid") < order("\\.rw-panel"), "numbers before Recovered");
   assert.ok(order("\\.rw-panel") < order("\\.cb"), "Recovered before the board");
-  assert.ok(order("\\.cb") < order("\\.op-panel:not\\(\\.rw-panel\\)"), "System health last");
+  assert.ok(order("\\.cb") < order("\\.rc-panel"), "the receptionist's week follows the board");
+  assert.ok(order("\\.rc-panel") < order("\\.op-panel:not\\(\\.rw-panel\\):not\\(\\.rc-panel\\)"), "System health last");
 });
 
 test("Command's board tabs use plain words", () => {

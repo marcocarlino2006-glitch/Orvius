@@ -16,6 +16,7 @@ import type { AttentionItem } from "@/lib/attention-types";
 import type { CommandCounts } from "@/lib/command-model";
 import type { PersonalBrief } from "@/lib/personal-brief";
 import type { ShopHealth } from "@/lib/shop-health";
+import type { ReceptionistWeek } from "@/lib/receptionist-week";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -37,6 +38,7 @@ export type Ring1Data = {
   } | null;
   metrics: BusinessMetrics;
   outcomes?: ShopOutcomes;
+  receptionist?: ReceptionistWeek;
   commandCounts?: CommandCounts;
   shiftTimeline?: ShiftEvent[];
   attention?: AttentionItem[];

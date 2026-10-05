@@ -12,6 +12,7 @@ import { parseSince } from "@/lib/personal-brief";
 import { loadPersonalBrief } from "@/lib/personal-brief-data";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
+import { getReceptionistWeek } from "@/lib/receptionist-week";
 import { getShopOutcomes } from "@/lib/shop-outcomes";
 import { commandVersion, shopVersion } from "@/lib/shop-version";
 import { getShiftTimeline } from "@/lib/shift-timeline";
@@ -88,6 +89,7 @@ export async function GET(request: Request) {
     bookedInWindow,
     jobsInMotion,
     jobsUnassigned,
+    receptionist,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -161,6 +163,7 @@ export async function GET(request: Request) {
         technicianId: null,
       },
     }),
+    getReceptionistWeek(business.id, 7, now),
   ]);
   const crew = dispatchBoard.crew;
   const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
@@ -268,6 +271,7 @@ export async function GET(request: Request) {
       lastCaller: lastCall?.callerPhone ?? null,
     },
     outcomes,
+    receptionist,
     commandCounts: {
       windowDays: outcomes.windowDays,
       calls: outcomes.calls,
