@@ -139,6 +139,21 @@
   grid-template-columns: minmax(0, 2.6fr) minmax(6.5rem, 0.8fr) minmax(8.5rem, 0.9fr) minmax(7.5rem, 0.8fr) 6.5rem;
 }
 
+/* Beside the sidebar on a tablet the fixed columns leave the title ~140px; let it wrap. */
+@media (min-width: 721px) and (max-width: 1199px) {
+  .dt--jobs .dt-head,
+  .dt--jobs .dt-row {
+    column-gap: 0.75rem;
+    grid-template-columns: minmax(0, 2.3fr) minmax(5.75rem, 0.8fr) minmax(5.25rem, 0.7fr) minmax(8.5rem, 0.9fr) minmax(4.5rem, 0.6fr);
+  }
+
+  .dt--jobs .dt-title {
+    flex-wrap: wrap;
+    row-gap: 0.125rem;
+    white-space: normal;
+  }
+}
+
 .dt-head {
   height: 2.25rem;
   border-bottom: 1px solid var(--ox-line);
