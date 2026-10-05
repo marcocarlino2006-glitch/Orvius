@@ -24,7 +24,11 @@ const LAST_SEEN_WRITE_MS = 60_000;
 
 export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
-  if ("error" in authResult) return authResult.error;
+  if ("error" in authResult) {
+    // Signed up, not paid yet: the shell renders that state, so it is not a failed request.
+    if (authResult.error?.status === 404) return NextResponse.json({ noShop: true });
+    return authResult.error;
+  }
   const { business, session, role, email } = authResult;
   const now = new Date();
   // A tab that already pinned its anchor sends it; a fresh visit uses the account's last look.

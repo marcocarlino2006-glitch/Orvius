@@ -170,7 +170,7 @@ export function Ring1Provider({
       if (ifChanged && version.current) params.set("v", version.current);
       const query = params.toString();
       const res = await fetch(query ? `/api/ring1?${query}` : "/api/ring1");
-      /* No shop yet (signed up, not paid): there is nothing to refresh, so this is not an error. */
+      /* No shop yet (signed up, not paid): nothing to refresh. Older deploys answer 404 for it. */
       if (res.status === 404) {
         setData(null);
         setLoadError(null);
@@ -183,7 +183,15 @@ export function Ring1Provider({
             : "Command could not refresh.",
         );
       }
-      const json = (await res.json()) as Ring1Data | { unchanged: true; version: string; sinceUsed?: string | null };
+      const json = (await res.json()) as
+        | Ring1Data
+        | { unchanged: true; version: string; sinceUsed?: string | null }
+        | { noShop: true };
+      if ("noShop" in json) {
+        setData(null);
+        setLoadError(null);
+        return "no-shop";
+      }
       if (!("unchanged" in json)) setData(json);
       version.current = json.version ?? null;
       pinSince(json.sinceUsed);
