@@ -12,6 +12,7 @@ import {
   buildVapiAssistantConfig,
   updateAssistant,
   vapiRequest,
+  listVapiNumbers,
 } from "@/lib/vapi";
 import { resolveVoiceId } from "@/lib/voices";
 import type { Business } from "@prisma/client";
@@ -107,7 +108,7 @@ export async function syncBusinessAssistant(
 async function claimDemoLineIfOrphaned(assistantId: string, shopName: string) {
   const demoLine = getDemoPlatformLine();
   if (!demoLine) return;
-  const numbers = await vapiRequest<Array<{ number?: string; assistantId?: string | null }>>("/phone-number?limit=100");
+  const numbers = await listVapiNumbers();
   const entry = numbers.find((n) => isDemoPlatformLine(n.number));
   if (!entry || entry.assistantId === assistantId) return;
   if (entry.assistantId) {

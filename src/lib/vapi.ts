@@ -145,9 +145,7 @@ export async function importTwilioPhoneToVapi(params: {
     throw new Error("Twilio credentials are not configured");
   }
 
-  const list = await vapiRequest<Array<{ id: string; number?: string }>>(
-    "/phone-number?limit=100",
-  );
+  const list = await listVapiNumbers();
 
   const normalized = params.number.replace(/\s/g, "");
   // A number imported more than once must not leave a copy routing to an old assistant.
@@ -185,8 +183,34 @@ export async function importTwilioPhoneToVapi(params: {
   return { id: created.id, number: params.number };
 }
 
+export type VapiNumber = { id: string; number?: string; assistantId?: string | null; createdAt?: string };
+
+const VAPI_PAGE = 100;
+
+/**
+ * Every number on the Vapi account. One page holds 100, and a platform past
+ * 100 shops that read only the first page could not find most shops' numbers:
+ * suspending a canceled shop left its assistant answering, and a repair
+ * imported a second copy. Pages walk back by creation time.
+ */
+export async function listVapiNumbers(): Promise<VapiNumber[]> {
+  const all: VapiNumber[] = [];
+  const seen = new Set<string>();
+  let before: string | null = null;
+  for (let page = 0; page < 1000; page++) {
+    const query: string = `limit=${VAPI_PAGE}${before ? `&createdAtLt=${encodeURIComponent(before)}` : ""}`;
+    const rows: VapiNumber[] = await vapiRequest<VapiNumber[]>(`/phone-number?${query}`);
+    if (!Array.isArray(rows) || !rows.length) break;
+    for (const row of rows) if (!seen.has(row.id)) (seen.add(row.id), all.push(row));
+    const oldest: string | undefined = rows.map((r) => r.createdAt).filter((c): c is string => Boolean(c)).sort()[0];
+    if (rows.length < VAPI_PAGE || !oldest || oldest === before) break;
+    before = oldest;
+  }
+  return all;
+}
+
 async function vapiNumbersMatching(number: string) {
-  const list = await vapiRequest<Array<{ id: string; number?: string }>>("/phone-number?limit=100");
+  const list = await listVapiNumbers();
   const normalized = number.replace(/\s/g, "");
   return Array.isArray(list) ? list.filter((entry) => entry.number?.replace(/\s/g, "") === normalized) : [];
 }

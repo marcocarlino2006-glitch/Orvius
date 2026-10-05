@@ -5,7 +5,7 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
-import { vapiRequest, type VapiWebhookMessage } from "@/lib/vapi";
+import { listVapiNumbers, vapiRequest, type VapiNumber, type VapiWebhookMessage } from "@/lib/vapi";
 
 /**
  * Vapi finishing a call and Orvius having it are two different facts. When
@@ -80,11 +80,22 @@ const defaultDeps: Deps = {
   lineProblem: detectLineProblem,
 };
 
+/* One sweep checks many shops; they share one walk of the account's numbers. */
+let numbersCache: { at: number; list: Promise<VapiNumber[]> } | null = null;
+function accountNumbers() {
+  if (!numbersCache || Date.now() - numbersCache.at > 60_000) {
+    const list = listVapiNumbers();
+    numbersCache = { at: Date.now(), list };
+    list.catch(() => (numbersCache = null));
+  }
+  return numbersCache.list;
+}
+
 async function detectLineProblem(business: Business): Promise<string | null> {
   const line = business.vapiPhoneNumber ?? business.twilioPhone;
   if (!business.vapiAssistantId || !line) return null;
   const [numbers, assistant] = await Promise.all([
-    vapiRequest<Array<{ number?: string; assistantId?: string | null }>>("/phone-number?limit=100"),
+    accountNumbers(),
     vapiRequest<{ serverUrl?: string; server?: { url?: string } }>(`/assistant/${business.vapiAssistantId}`),
   ]);
   const entry = numbers.find((n) => n.number === line);

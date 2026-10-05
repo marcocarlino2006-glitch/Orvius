@@ -23,11 +23,15 @@ export async function suspendShopLine(shop: LineShop): Promise<boolean> {
   const line = ownLine(shop);
   if (!line) return false;
   try {
-    await routeVapiNumberToServer({
+    const routed = await routeVapiNumberToServer({
       number: line,
       serverUrl: getWebhookUrl("/api/webhooks/vapi"),
       serverUrlSecret: process.env.VAPI_WEBHOOK_SECRET,
     });
+    if (!routed) {
+      logError("line.suspend_not_found", { businessId: shop.id, line });
+      return false;
+    }
     await recordAudit({
       businessId: shop.id,
       entityType: "shop",
