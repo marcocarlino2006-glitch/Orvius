@@ -236,7 +236,9 @@ export function TechFieldClient({ token }: { token: string }) {
           }}
         >
           <label className="pf-label" htmlFor="pf-eta">
-            Arrival time for the customer
+            {job.status === "confirmed"
+              ? "How long until you get there? It goes in the customer's \"on the way\" text."
+              : "Arrival time — updates the customer's tracking page"}
           </label>
           <div className="pf-inline">
             <input
@@ -339,7 +341,14 @@ export function TechFieldClient({ token }: { token: string }) {
             type="button"
             className="pf-btn pf-btn--primary"
             disabled={busy}
-            onClick={() => (job.status === "on_site" ? completeWithOutcome() : void patch({ status: next!.status }))}
+            onClick={() =>
+              job.status === "on_site"
+                ? completeWithOutcome()
+                : void patch({
+                    status: next!.status,
+                    ...(next!.status === "en_route" && etaText.trim() ? { etaText: etaText.trim() } : {}),
+                  })
+            }
           >
             {busy ? "Updating…" : job.status === "on_site" ? "Complete job" : next!.label}
           </button>

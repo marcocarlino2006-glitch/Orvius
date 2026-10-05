@@ -15,6 +15,7 @@ import { getBusyWindows } from "@/lib/busy-calendar";
 import { createAuditQueue, recordAudit, type AuditActor, type AuditQueue } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
+import { notifyCustomerOnTheWay } from "@/lib/on-the-way";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { parseSkills, recommendTechnician } from "@/lib/technician-match";
 import { prisma } from "@/lib/prisma";
@@ -861,10 +862,28 @@ export async function updateJobStatus(jobId: string, status: JobStatus) {
   if (status === "on_site") data.onSiteAt = new Date();
   if (status === "completed") data.completedAt = new Date();
 
-  return prisma.job.update({
-    where: { id: jobId },
+  if (status !== "en_route") {
+    return prisma.job.update({
+      where: { id: jobId },
+      data,
+    });
+  }
+
+  /* Only the request that moves the job into en_route texts the customer, so a double tap
+     or the owner and the tech marking it together send one "on the way". */
+  const moved = await prisma.job.updateMany({
+    where: { id: jobId, status: { not: "en_route" } },
     data,
   });
+  if (moved.count) {
+    await notifyCustomerOnTheWay(jobId).catch((error) =>
+      logWarn("customer.on_the_way_failed", {
+        jobId,
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
+  }
+  return prisma.job.findUniqueOrThrow({ where: { id: jobId } });
 }
 
 export async function completeJobWithOutcome(
