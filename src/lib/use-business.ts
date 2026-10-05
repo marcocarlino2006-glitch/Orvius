@@ -54,8 +54,8 @@ export function useBusiness(_refreshMs?: number) {
         setBusiness(null);
         return;
       }
-      const json = (await res.json()) as Ring1Data;
-      setBusiness(toBusiness(json));
+      const json = (await res.json()) as Ring1Data | { noShop: true };
+      setBusiness("noShop" in json ? null : toBusiness(json));
     } catch {
       setBusiness(null);
     } finally {
