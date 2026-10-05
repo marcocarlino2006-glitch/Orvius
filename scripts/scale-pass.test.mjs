@@ -179,4 +179,16 @@ test("the Command poll answers 'unchanged' before running any of the heavy loade
   assert.match(client, /const refresh = useCallback\(\(\) => load\(false\)/, "an asked-for refresh is always full");
 });
 
+test("an account with no shop yet stops polling Command instead of failing every 30 seconds", () => {
+  const client = read("src/lib/ring1-context.tsx");
+  assert.match(client, /res\.status === 404[\s\S]{0,120}return "no-shop"/, "a 404 is the no-shop state, not an error");
+  assert.match(client, /result === "no-shop"\) stop\(\)/, "a tick that finds no shop stops the loop");
+  assert.match(client, /result === "no-shop" \|\| !refreshMs\) return;[\s\S]{0,120}openStream\(\)/, "the stream opens only once a shop answered");
+});
+
+test("the top bar Ask button keeps an icon when its label is hidden", () => {
+  const shell = read("src/components/os-shell.tsx");
+  assert.match(shell, /os-topbar-ask[\s\S]{0,200}aria-label="Ask"[\s\S]{0,200}<OsIcon name="ask" \/>/);
+});
+
 test.after(() => prisma.$disconnect());
