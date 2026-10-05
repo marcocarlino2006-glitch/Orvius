@@ -58,10 +58,22 @@ const concurrency = Math.max(1, Number(flag("--concurrency") ?? 1));
 const minPass = flag("--min-pass") != null ? Number(flag("--min-pass")) : 1;
 
 async function vapi(path, init = {}) {
-  const res = await fetch(`https://api.vapi.ai${path}`, {
-    ...init,
-    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json", ...(init.headers ?? {}) },
-  });
+  const retryable = (init.method ?? "GET") === "GET";
+  let res;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      res = await fetch(`https://api.vapi.ai${path}`, {
+        ...init,
+        headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json", ...(init.headers ?? {}) },
+      });
+    } catch (err) {
+      if (!retryable || attempt >= 4) throw err;
+      await sleep(1500 * attempt);
+      continue;
+    }
+    if (!retryable || attempt >= 4 || (res.status < 500 && res.status !== 429)) break;
+    await sleep(1500 * attempt);
+  }
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
   if (!res.ok) throw new Error(`Vapi ${init.method ?? "GET"} ${path} → ${res.status}: ${text.slice(0, 300)}`);
@@ -201,11 +213,18 @@ async function findReceptionistLeg(personaId, placedAt, callerNumber, claimed) {
   while (endedAt == null ? Date.now() - placedAt < 20 * 60_000 : Date.now() - endedAt < 90_000) {
     const persona = await vapi(`/call/${personaId}`);
     if (persona.status === "ended" && /busy|no-answer|failed/i.test(persona.endedReason ?? "")) throw new LineBusy(persona.endedReason);
-    if (persona.status === "ended" && endedAt == null) endedAt = Date.now();
+    if (persona.status !== "ended") {
+      await sleep(2000);
+      continue;
+    }
+    if (endedAt == null) endedAt = Date.now();
+    // Concurrent personas all dial from one number, so pair legs by when both started and ended, not by creation order.
+    const t = (v) => (v ? Date.parse(v) : NaN);
     const calls = await vapi(`/call?phoneNumberId=${FROM_ID}&createdAtGt=${encodeURIComponent(new Date(placedAt - 5_000).toISOString())}&limit=50`);
     const match = calls
-      .filter((c) => c.type === "inboundPhoneCall" && !claimed.has(c.id) && c.customer?.number === callerNumber)
-      .map((c) => ({ c, d: Math.abs(Date.parse(c.createdAt) - placedAt) }))
+      .filter((c) => c.type === "inboundPhoneCall" && c.status === "ended" && !claimed.has(c.id) && c.customer?.number === callerNumber)
+      .map((c) => ({ c, d: Math.abs(t(c.startedAt) - t(persona.startedAt)) + Math.abs(t(c.endedAt) - t(persona.endedAt)) }))
+      .filter((m) => m.d < 15_000)
       .sort((a, b) => a.d - b.d)[0];
     if (match) {
       claimed.add(match.c.id);

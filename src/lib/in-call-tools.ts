@@ -18,6 +18,7 @@ import {
   NETWORK_UNAVAILABLE_REPLY,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
+  URGENT_NO_BOOK_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
   parseSlotPreference,
@@ -44,19 +45,26 @@ type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "
 
 type CallForTools = { id: string; vapiCallId?: string | null; callerPhone?: string | null };
 
-function jobShape(shop: ShopForTools, serviceType: string | null, urgency: string | null) {
+/* The model's summary can drop the detail that makes a call dangerous or urgent, so those come from the caller's own words too. */
+function jobShape(shop: ShopForTools, serviceType: string | null, urgency: string | null, callerWords?: string | null) {
   const playbook = classifyRequest({ business: shop, serviceType, urgency });
-  return { playbook, durationMin: playbook.service.durationMin, skill: playbook.service.skill };
+  const heard = callerWords ? classifyRequest({ business: shop, serviceType, urgency, callerWords }) : playbook;
+  return {
+    playbook: { ...playbook, safety: playbook.safety ?? heard.safety, urgency: heard.urgency },
+    durationMin: playbook.service.durationMin,
+    skill: playbook.service.skill,
+  };
 }
 
-async function checkAvailability(shop: ShopForTools, callId: string, args: Record<string, unknown>) {
+async function checkAvailability(shop: ShopForTools, callId: string, args: Record<string, unknown>, callerWords?: string | null) {
   const timezone = shop.timezone ?? "America/New_York";
   const serviceType = str(args.serviceType);
   const urgency = str(args.urgency);
-  const { playbook, durationMin, skill } = jobShape(shop, serviceType, urgency);
+  const { playbook, durationMin, skill } = jobShape(shop, serviceType, urgency, callerWords);
   if (playbook.safety) {
     return dangerRefusal(playbook.safety.instruction);
   }
+  if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
   const base = {
     businessId: shop.id,
     urgency: playbook.urgency ?? urgency,
@@ -98,6 +106,7 @@ async function holdAppointment(
   callId: string,
   args: Record<string, unknown>,
   intent: "new" | "reschedule" = "new",
+  callerWords?: string | null,
 ) {
   const timezone = shop.timezone ?? "America/New_York";
   const raw = str(args.slot);
@@ -105,10 +114,11 @@ async function holdAppointment(
   if (!at || Number.isNaN(at.getTime())) {
     return BAD_SLOT_REPLY;
   }
-  const { durationMin, skill, playbook } = jobShape(shop, str(args.serviceType), null);
+  const { durationMin, skill, playbook } = jobShape(shop, str(args.serviceType), null, callerWords);
   if (playbook.safety) {
     return dangerRefusal(playbook.safety.instruction);
   }
+  if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
   const slot = {
     businessId: shop.id,
     urgency: null,
@@ -201,6 +211,7 @@ export async function handleInCallToolCalls(params: {
   callId: string;
   call?: CallForTools;
   toolCalls: ToolCall[];
+  callerWords?: string | null;
 }): Promise<Array<{ toolCallId: string; result: string }>> {
   return Promise.all(
     params.toolCalls.map(async (call) => {
@@ -223,10 +234,10 @@ export async function handleInCallToolCalls(params: {
       }
       try {
         if (call.name === "check_availability") {
-          return { toolCallId: call.id, result: await checkAvailability(params.shop, params.callId, call.args) };
+          return { toolCallId: call.id, result: await checkAvailability(params.shop, params.callId, call.args, params.callerWords) };
         }
         if (call.name === "hold_appointment") {
-          return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args) };
+          return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "new", params.callerWords) };
         }
         if (call.name === "pass_to_network") {
           return { toolCallId: call.id, result: await passToNetwork(params.shop, params.callId) };

@@ -8,6 +8,7 @@ import {
   heldReply,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
+  URGENT_NO_BOOK_REPLY,
   PASSED_TO_NETWORK_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
@@ -59,16 +60,18 @@ export function voiceSimSecretMatches(presented: string | null, vapiApiKey: stri
 
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
-function shape(serviceType: string | null, urgency: string | null) {
+function shape(serviceType: string | null, urgency: string | null, callerWords?: string | null) {
   const playbook = classifyRequest({ business: VOICE_SIM_SHOP, serviceType, urgency });
-  return { playbook, durationMin: playbook.service.durationMin };
+  const heard = callerWords ? classifyRequest({ business: VOICE_SIM_SHOP, serviceType, urgency, callerWords }) : playbook;
+  return { playbook: { ...playbook, safety: playbook.safety ?? heard.safety, urgency: heard.urgency }, durationMin: playbook.service.durationMin };
 }
 
-function answer(call: ToolCall, now: Date, transferring: boolean) {
+function answer(call: ToolCall, now: Date, transferring: boolean, callerWords: string | null) {
   const tz = VOICE_SIM_SHOP.timezone;
   if (call.name === "check_availability") {
-    const { playbook, durationMin } = shape(str(call.args.serviceType), str(call.args.urgency));
+    const { playbook, durationMin } = shape(str(call.args.serviceType), str(call.args.urgency), callerWords);
     if (playbook.safety) return dangerRefusal(playbook.safety.instruction);
+    if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
     const base = {
       now,
       urgency: (playbook.urgency ?? str(call.args.urgency) ?? undefined) as Parameters<typeof findAvailableSchedules>[0]["urgency"],
@@ -91,8 +94,9 @@ function answer(call: ToolCall, now: Date, transferring: boolean) {
     const raw = str(call.args.slot);
     const at = raw ? new Date(raw) : null;
     if (!at || Number.isNaN(at.getTime())) return BAD_SLOT_REPLY;
-    const { playbook, durationMin } = shape(str(call.args.serviceType), null);
+    const { playbook, durationMin } = shape(str(call.args.serviceType), null, callerWords);
     if (playbook.safety) return dangerRefusal(playbook.safety.instruction);
+    if (playbook.urgency === "emergency" && call.name === "hold_appointment") return URGENT_NO_BOOK_REPLY;
     const open = findAvailableSchedules(
       { now, hoursJson: VOICE_SIM_SHOP.hoursJson, timezone: tz, existing: [], capacity: 1, durationMin },
       { count: 1, onlyAt: at },
@@ -105,7 +109,10 @@ function answer(call: ToolCall, now: Date, transferring: boolean) {
   return "Unknown tool. Continue the call without it.";
 }
 
-export function answerVoiceSimToolCalls(toolCalls: ToolCall[], options: { now?: Date; transferring?: boolean } = {}) {
+export function answerVoiceSimToolCalls(
+  toolCalls: ToolCall[],
+  options: { now?: Date; transferring?: boolean; callerWords?: string | null } = {},
+) {
   const now = options.now ?? new Date();
-  return toolCalls.map((call) => ({ toolCallId: call.id, result: answer(call, now, Boolean(options.transferring)) }));
+  return toolCalls.map((call) => ({ toolCallId: call.id, result: answer(call, now, Boolean(options.transferring), options.callerWords ?? null) }));
 }

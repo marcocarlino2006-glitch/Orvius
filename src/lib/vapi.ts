@@ -343,7 +343,7 @@ export function buildVapiAssistantConfig(params: {
               type: "string",
               enum: ["emergency", "same-day", "this-week", "flexible"],
               description:
-                "How urgent the request is. emergency: gas smell, no heat or AC in extreme weather or with a baby, elderly or sick person at home, active water leak (including water pouring or dripping from a unit or ceiling), flooding, no power, burning smell or sparking. Otherwise same-day, this-week, or flexible.",
+                "How urgent the request is. emergency: gas smell, no heat or AC in extreme weather (90°F or hotter, or freezing) or with a baby, elderly or sick person at home, active water leak (including water pouring or dripping from a unit or ceiling), flooding, no power, burning smell or sparking. Otherwise same-day, this-week, or flexible.",
             },
             address: {
               type: "string",
