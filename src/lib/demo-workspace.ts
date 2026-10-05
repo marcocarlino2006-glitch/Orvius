@@ -84,7 +84,7 @@ export const DEMO_SCENARIOS: Scenario[] = [
   {
     id: "gas_smell",
     label: "Gas smell (emergency)",
-    expect: "Safety script, no booking, owner alerted as SAFETY, shows under Exceptions.",
+    expect: "Safety script, no booking, owner alerted as SAFETY, shows under Problems.",
     name: "Tom Becker",
     phone: "+13125550144",
     serviceType: "Smells gas near the furnace",

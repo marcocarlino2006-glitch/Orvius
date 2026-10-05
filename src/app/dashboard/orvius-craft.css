@@ -1312,13 +1312,61 @@ a.dt-row:focus-visible,
 
 .os-shell .cc-rail .cs-value {
   margin: 0;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
+  font-size: 1.375rem !important;
+  font-weight: 650 !important;
+  line-height: 1.1;
 }
 
 .os-shell .cc-rail .cs-detail,
 .os-shell .cc-rail .cs-skel-detail {
   display: none;
+}
+
+/* Above the board the signals are a row of tiles the owner reads at a glance. */
+@media (max-width: 1239px) {
+  .os-shell .cc-rail .cs-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .os-shell .cc-rail .cs-card,
+  .os-shell .cc-rail .cs-grid > li + li .cs-card {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    height: 100%;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .os-shell .cc-rail .cs-grid > li + li .cs-card {
+    border-top: 0;
+    border-left: 1px solid var(--ox-line);
+  }
+
+  .os-shell .cc-rail .cs-value {
+    order: -1;
+    font-size: 1.75rem !important;
+  }
+
+  .os-shell .cc-rail .cs-label {
+    line-height: 1.25;
+  }
+}
+
+/* A phone shows the board's work first; the call simulator follows it, one line per scenario. */
+@media (max-width: 720px) {
+  .cb > .cb-demo {
+    order: 1;
+  }
+
+  .cb-demo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cb-demo-expect {
+    display: none;
+  }
 }
 
 .os-line-alert {

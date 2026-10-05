@@ -194,4 +194,22 @@ test("the top bar Ask button keeps an icon when its label is hidden", () => {
   assert.match(shell, /os-topbar-ask[\s\S]{0,200}aria-label="Ask"[\s\S]{0,200}<OsIcon name="ask" \/>/);
 });
 
+test("without the rail, Command puts the numbers above the board and System last", () => {
+  const css = read("src/app/dashboard/orvius-system.css");
+  const block = css.match(/@media \(max-width: 1239px\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(block, /\.cc-main,\s*\.cc-rail \{\s*display: contents;/);
+  const order = (sel) => Number(block.match(new RegExp(`${sel} \\{ order: (\\d+); \\}`))?.[1]);
+  assert.ok(order("\\.cc-brief") < order("\\.cs-grid"), "brief before the numbers");
+  assert.ok(order("\\.cs-grid") < order("\\.rw-panel"), "numbers before Recovered");
+  assert.ok(order("\\.rw-panel") < order("\\.cb"), "Recovered before the board");
+  assert.ok(order("\\.cb") < order("\\.op-panel:not\\(\\.rw-panel\\)"), "System health last");
+});
+
+test("Command's board tabs use plain words", () => {
+  const board = read("src/components/command-board.tsx");
+  assert.match(board, /label: "Problems"/);
+  assert.match(board, /label: "Waiting on customer"/);
+  assert.doesNotMatch(board, /label: "(Exceptions|Proposed)"/);
+});
+
 test.after(() => prisma.$disconnect());

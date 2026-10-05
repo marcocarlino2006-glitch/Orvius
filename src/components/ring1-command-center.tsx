@@ -11,7 +11,7 @@ import type { AttentionItem } from "@/lib/attention-types";
 import type { Handled } from "@/lib/autopilot";
 import { useRing1 } from "@/lib/ring1-context";
 
-/* A late, unstarted job is already an Exceptions card with Move, Mark done and Call tech,
+/* A late, unstarted job is already a Problems card with Move, Mark done and Call tech,
    and unfinished line setup is already the banner above the board. */
 function shownElsewhere(item: AttentionItem) {
   if (item.kind === "needs_capture") return true;
