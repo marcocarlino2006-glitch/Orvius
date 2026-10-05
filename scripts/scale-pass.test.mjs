@@ -184,6 +184,9 @@ test("an account with no shop yet stops polling Command instead of failing every
   assert.match(client, /res\.status === 404[\s\S]{0,120}return "no-shop"/, "a 404 is the no-shop state, not an error");
   assert.match(client, /result === "no-shop"\) stop\(\)/, "a tick that finds no shop stops the loop");
   assert.match(client, /result === "no-shop" \|\| !refreshMs\) return;[\s\S]{0,120}openStream\(\)/, "the stream opens only once a shop answered");
+  const route = read("src/app/api/ring1/route.ts");
+  assert.match(route, /status === 404\) return NextResponse\.json\(\{ noShop: true \}\)/, "no shop answers 200, so the browser logs no failed request");
+  assert.match(client, /"noShop" in json[\s\S]{0,80}return "no-shop"/);
 });
 
 test("the top bar Ask button keeps an icon when its label is hidden", () => {
