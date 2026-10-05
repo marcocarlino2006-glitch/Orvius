@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { AttentionQueue } from "@/components/attention-queue";
+import { CommandRecovered } from "@/components/command-recovered";
 import { CommandSignals } from "@/components/command-signals";
 import { AskBar, CommandBoard } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
@@ -162,6 +163,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
 
         <aside className="cc-rail" aria-label="System status">
           <CommandSignals signals={signals} loading={loading} />
+          <CommandRecovered outcomes={data?.outcomes} />
           <OrviusPulse
             health={data?.health}
             lastUpdatedAt={lastUpdatedAt}

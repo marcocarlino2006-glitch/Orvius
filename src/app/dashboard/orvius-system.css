@@ -1084,6 +1084,73 @@ a.cs-card:hover {
   color: var(--ox-mute);
 }
 
+.rw-headline {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0 0 0.6rem;
+}
+
+.rw-headline-value {
+  font-size: 1.75rem;
+  font-weight: 650;
+  line-height: 1.1;
+  color: var(--ox-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.rw-headline-label,
+.rw-empty {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ox-mute);
+}
+
+.rw-empty {
+  margin: 0 0 0.6rem;
+}
+
+.rw-rows {
+  display: grid;
+  margin: 0;
+}
+
+.rw-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--ox-line);
+}
+
+.rw-row dt {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-mute);
+}
+
+.rw-row dd {
+  display: grid;
+  justify-items: end;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ox-text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rw-detail {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+.rw-action {
+  justify-self: start;
+  margin-top: 0.4rem;
+}
+
 .op-stale {
   display: flex;
   align-items: center;
