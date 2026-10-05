@@ -21,6 +21,7 @@ export function OsTabBar({
   moreOpen: boolean;
   onMore: () => void;
 }) {
+  const underMore = !tabs.some((tab) => tab.active);
   return (
     <nav className="os-tabbar font-sans" aria-label="Main">
       {tabs.map((tab) => (
@@ -39,7 +40,7 @@ export function OsTabBar({
       ))}
       <button
         type="button"
-        className={`os-tab${moreOpen ? " is-active" : ""}`}
+        className={`os-tab${moreOpen || underMore ? " is-active" : ""}`}
         onClick={onMore}
         aria-expanded={moreOpen}
       >

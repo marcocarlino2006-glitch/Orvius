@@ -2048,7 +2048,7 @@ button.rd-path-btn:hover {
   width: 100%;
   max-width: 48rem;
   margin: 0 auto;
-  padding: clamp(2rem, 12vh, 8rem) 0 0;
+  padding: clamp(1.5rem, 6vh, 4rem) 0 0;
 }
 
 .os-shell.os-shell-night .cc-hero-title {
@@ -2878,13 +2878,51 @@ button.rd-path-btn:hover {
   margin: 0 0 1rem;
 }
 
-.os-shell.os-shell-night .dsp-date {
-  width: auto;
+/* The day reads as words; the native date input sits invisibly on top so a tap opens the picker. */
+.dsp-day {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   min-height: 2.25rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s1);
+  cursor: pointer;
+}
+
+.dsp-day:hover,
+.dsp-day:focus-within {
+  border-color: var(--ox-line-strong);
+}
+
+.dsp-day-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ox-text);
+  white-space: nowrap;
+}
+
+.dsp-day-today {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ox-amber);
+}
+
+.os-shell .dsp-date {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
   color-scheme: dark;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night .dsp-date {
+html[data-theme="day"] .os-shell .dsp-date {
   color-scheme: light;
 }
 
@@ -2983,7 +3021,8 @@ html[data-theme="day"] .os-shell.os-shell-night .dsp-date {
   display: grid;
   gap: 0.35rem;
   overflow-x: auto;
-  padding-bottom: 0.25rem;
+  /* Room on the right for the last hour label, which centers on the track's edge. */
+  padding: 0 1.25rem 0.25rem 0;
 }
 
 .dsp-lane {
@@ -3015,7 +3054,7 @@ html[data-theme="day"] .os-shell.os-shell-night .dsp-date {
 
 .dsp-track {
   position: relative;
-  height: 3.25rem;
+  height: 3.75rem;
   border: 1px solid var(--ox-line);
   border-radius: var(--ox-radius-sm);
   background: var(--ox-s1);
@@ -3103,6 +3142,15 @@ html[data-theme="day"] .os-shell.os-shell-night .dsp-date {
   font-weight: 600;
 }
 
+/* Blocks are as wide as the job is long, so the title gets two lines before it cuts off. */
+.dsp-track .dsp-block-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .dsp-block-who {
   color: var(--ox-text-2);
 }
@@ -3186,7 +3234,7 @@ html[data-theme="day"] .os-shell.os-shell-night .dsp-date {
 }
 
 .dsp-skel-track {
-  height: 3.25rem;
+  height: 3.75rem;
 }
 
 .dsp-crew summary {
@@ -3367,8 +3415,8 @@ html[data-theme="day"] .os-shell.os-shell-night .dsp-date {
   }
 
   .os-shell.os-shell-night .cp-row.is-selected .lead-rail-row {
-    border-color: var(--ox-amber);
-    background: var(--ox-s2);
+    background: var(--ox-s3) !important;
+    box-shadow: inset 2px 0 0 var(--ox-amber);
   }
 }
 

@@ -112,7 +112,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           <header className="cc-brief">
             {brief ? (
               <div className="cc-brief-personal">
-                <p className="cc-brief-headline">{brief.headline}</p>
+                <p className="cc-brief-headline os-own-color">{brief.headline}</p>
                 {brief.detail.length ? (
                   <p className="cc-brief-detail">
                     {brief.detail.map((line) => (
@@ -124,7 +124,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
                 ) : null}
               </div>
             ) : (
-            <p className="cc-brief-text">
+            <p className="cc-brief-text os-own-color">
               {activity ? (
                 <>
                   <span className="cc-brief-window">{activity.window}</span>

@@ -212,4 +212,23 @@ test("Command's board tabs use plain words", () => {
   assert.doesNotMatch(board, /label: "(Exceptions|Proposed)"/);
 });
 
+test("Command's headline keeps its own color past the night theme's muted paragraphs", () => {
+  const command = read("src/components/ring1-command-center.tsx");
+  assert.match(command, /className="cc-brief-headline os-own-color"/);
+  assert.match(command, /className="cc-brief-text os-own-color"/);
+});
+
+test("Dispatch names the day in words and leads with the day's jobs", () => {
+  const dispatch = read("src/app/dashboard/dispatch/page.tsx");
+  assert.match(dispatch, /<label className="dsp-day">[\s\S]{0,200}\{dayLabel\}[\s\S]{0,200}type="date"/);
+  assert.match(dispatch, /figure=\{String\(board\?\.jobCount \?\? 0\)\}/);
+  assert.match(dispatch, /label: "Unassigned", value: decisions, live: decisions > 0/);
+});
+
+test("on a page reached through More, the phone tab bar lights More", () => {
+  const nav = read("src/components/os-mobile-nav.tsx");
+  assert.match(nav, /const underMore = !tabs\.some\(\(tab\) => tab\.active\)/);
+  assert.match(nav, /moreOpen \|\| underMore \? " is-active" : ""/);
+});
+
 test.after(() => prisma.$disconnect());
