@@ -53,5 +53,5 @@ test("an empty week has no headline, and callers alone still count", () => {
 test("Command shows the card between the signals and System", async () => {
   const { readFileSync } = await import("node:fs");
   const src = readFileSync(new URL("../src/components/ring1-command-center.tsx", import.meta.url), "utf8");
-  assert.match(src, /<CommandSignals[\s\S]{0,80}<CommandRecovered outcomes=\{data\?\.outcomes\} \/>[\s\S]{0,40}<OrviusPulse/);
+  assert.match(src, /<CommandSignals[\s\S]{0,160}<CommandRecovered outcomes=\{data\?\.outcomes\} \/>[\s\S]{0,40}<OrviusPulse/);
 });
