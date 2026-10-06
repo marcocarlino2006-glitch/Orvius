@@ -1,5 +1,8 @@
 import type { Business } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
+import { isLineEntitled, PAST_DUE_LINE_DAYS } from "@/lib/billing-entitlement";
+import { getAppUrl } from "@/lib/env";
+import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { getShopLineForBusiness, isDemoPlatformLine } from "@/lib/demo-business";
 import { getWebhookUrl } from "@/lib/env";
 import { logError, logInfo, logWarn } from "@/lib/logger";
@@ -32,6 +35,7 @@ export async function suspendShopLine(shop: LineShop): Promise<boolean> {
       logError("line.suspend_not_found", { businessId: shop.id, line });
       return false;
     }
+    await prisma.business.update({ where: { id: shop.id }, data: { lineSuspendedAt: new Date() } });
     await recordAudit({
       businessId: shop.id,
       entityType: "shop",
@@ -52,6 +56,7 @@ export async function resumeShopLine(shop: LineShop): Promise<boolean> {
   if (!line || !shop.vapiAssistantId) return false;
   try {
     await attachAssistantToShopLine({ phone: line, assistantId: shop.vapiAssistantId, shopName: shop.name });
+    await prisma.business.update({ where: { id: shop.id }, data: { lineSuspendedAt: null } });
     await recordAudit({
       businessId: shop.id,
       entityType: "shop",
@@ -96,6 +101,48 @@ export async function releaseShopLine(shop: LineShop): Promise<{ line: string | 
     }
   }
   return { line, released, assistantDeleted };
+}
+
+/**
+ * A canceled plan suspends its line at once, from the Stripe webhook. A plan
+ * that stays past due (Stripe can be set to leave it there) or a pilot that
+ * ended unpaid never sends that event, so without this sweep their lines
+ * answered for free indefinitely. Paying again resumes the line from the
+ * same webhook that marks the plan active.
+ */
+export async function suspendUnpaidLines(now = new Date(), { limit = 100 } = {}) {
+  const candidates = await prisma.business.findMany({
+    where: {
+      environment: "production",
+      lineSuspendedAt: null,
+      lineReleasedAt: null,
+      billingStatus: { in: ["past_due", "pilot", "none"] },
+      OR: [{ twilioPhone: { not: null } }, { vapiPhoneNumber: { not: null } }],
+    },
+    orderBy: { id: "asc" },
+    take: 2_000,
+  });
+  const due = candidates.filter((shop) => !isLineEntitled(shop, now)).slice(0, limit);
+  let suspended = 0;
+  for (const shop of due) {
+    if (!(await suspendShopLine(shop))) continue;
+    suspended += 1;
+    const why =
+      shop.billingStatus === "past_due"
+        ? `the card payment has failed for ${PAST_DUE_LINE_DAYS} days`
+        : "the free pilot ended without a plan";
+    await enqueueOwnerAlert({
+      businessId: shop.id,
+      businessName: shop.name,
+      ownerPhone: shop.ownerPhone,
+      ownerEmail: shop.ownerEmail,
+      dedupeKey: `billing:line_suspended:${shop.id}:${now.toISOString().slice(0, 10)}`,
+      message: `Orvius: ${shop.name}'s line has stopped answering because ${why}. Callers hear a short message to reach you directly. Pay and it answers again within a minute: ${getAppUrl().replace(/\/$/, "")}/dashboard?settings=billing`,
+    }).catch((error: unknown) =>
+      logWarn("line.suspend_alert_failed", { businessId: shop.id, error: error instanceof Error ? error.message : "unknown" }),
+    );
+  }
+  return { due: due.length, suspended };
 }
 
 /**

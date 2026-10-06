@@ -773,3 +773,6 @@ CREATE TABLE IF NOT EXISTS "CronRun" (
 -- Retention sweeps delete oldest-first across every shop.
 CREATE INDEX IF NOT EXISTS "WebhookEvent_createdAt_idx" ON "WebhookEvent"("createdAt");
 CREATE INDEX IF NOT EXISTS "OwnerNotification_createdAt_idx" ON "OwnerNotification"("createdAt");
+
+-- A line stops answering once payment is long overdue or a pilot ended unpaid; the stamp drives resume.
+ALTER TABLE "Business" ADD COLUMN "lineSuspendedAt" DATETIME;

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
-import { releaseLapsedLines } from "@/lib/line-lifecycle";
+import { releaseLapsedLines, suspendUnpaidLines } from "@/lib/line-lifecycle";
 import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
 import { sendFounderScoreboard } from "@/lib/company-scoreboard";
@@ -117,6 +117,7 @@ export async function GET(request: NextRequest) {
   ]);
 
   const overage = await step("overage_billing", () => billPreviousMonthOverage());
+  const unpaidLines = await step("unpaid_lines", () => suspendUnpaidLines());
   const lapsedLines = await step("lapsed_lines", () => releaseLapsedLines());
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
   const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
@@ -175,6 +176,7 @@ export async function GET(request: NextRequest) {
     strandedTextLeads,
     lateCallReports,
     lapsedLines,
+    unpaidLines,
     ownerNudges,
     retention,
     prunedLogs,

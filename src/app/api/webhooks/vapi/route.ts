@@ -25,6 +25,7 @@ import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { callSpendCut, endCallWith } from "@/lib/call-spend-guard";
+import { isLineEntitled } from "@/lib/billing-entitlement";
 
 /* Room for a made-up line-watch run after the response (cron-backstop.ts). */
 export const maxDuration = 60;
@@ -82,7 +83,7 @@ async function answerAssistantRequest(params: {
   if (preview) return { assistant: buildPreviewAssistant(preview) };
 
   const owner = params.inboundNumber ? await resolveBusinessByInboundPhone(params.inboundNumber) : null;
-  if (owner?.billingStatus === "canceled") {
+  if (owner && !isLineEntitled(owner)) {
     return { error: `Thanks for calling ${owner.name}. This line isn't taking calls right now. Please reach the business directly.` };
   }
   if (owner?.vapiAssistantId) return { assistantId: owner.vapiAssistantId };

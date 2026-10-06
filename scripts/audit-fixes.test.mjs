@@ -744,3 +744,76 @@ test("22. the Vapi bill has a ceiling: a caller dialing on repeat and a runaway 
   assert.equal(config.maxDurationSeconds, 600, "a stuck line stops billing at ten minutes");
   assert.equal(config.silenceTimeoutSeconds, 30);
 });
+
+test("23. a line stops answering three weeks into a failed payment or a week after an unpaid pilot, the owner is told, and paying turns it back on", async () => {
+  const { suspendUnpaidLines } = await import("../src/lib/line-lifecycle.ts");
+  const { syncSubscriptionToBusiness } = await import("../src/lib/billing-sync.ts");
+  const { POST } = await import("../src/app/api/webhooks/vapi/route.ts");
+  const days = (n) => new Date(Date.now() + n * 86_400_000);
+  const number = () => `+1720557${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const shopWith = (data) =>
+    makeShop({ environment: "production", ownerPhone: "+13035550170", vapiAssistantId: `asst-${uid()}`, twilioPhone: number(), ...data });
+  const longPastDue = await shopWith({ billingStatus: "past_due", pastDueSince: days(-22) });
+  const freshPastDue = await shopWith({ billingStatus: "past_due", pastDueSince: days(-10) });
+  const endedPilot = await shopWith({ billingStatus: "pilot", pilotEndsAt: days(-8), createdAt: days(-40) });
+  const compedPilot = await shopWith({ billingStatus: "pilot", pilotEndsAt: days(365), createdAt: days(-400) });
+  const paying = await shopWith({ billingStatus: "active", createdAt: days(-400) });
+  const mine = [longPastDue, freshPastDue, endedPilot, compedPilot, paying];
+
+  const env = { ...process.env };
+  Object.assign(process.env, { VAPI_API_KEY: "vapi-test", TWILIO_ACCOUNT_SID: "ACtest", TWILIO_AUTH_TOKEN: "secret" });
+  const realFetch = globalThis.fetch;
+  const patches = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const u = String(url);
+    if (!u.startsWith("https://api.vapi.ai/")) return realFetch(url, init);
+    if (u.includes("/phone-number?")) {
+      return Response.json(u.includes("createdAtLt") ? [] : mine.map((s, i) => ({ id: `pn-${s.id}`, number: s.twilioPhone, createdAt: new Date(2026, 0, i + 1).toISOString() })));
+    }
+    if (init.method === "PATCH") patches.push({ url: u, body: JSON.parse(init.body) });
+    return Response.json({});
+  };
+  try {
+    const result = await suspendUnpaidLines(new Date());
+    assert.ok(result.suspended >= 2);
+    const state = Object.fromEntries(
+      await Promise.all(mine.map(async (s) => [s.id, (await prisma.business.findUnique({ where: { id: s.id } })).lineSuspendedAt])),
+    );
+    assert.ok(state[longPastDue.id], "22 days past due: stopped");
+    assert.ok(state[endedPilot.id], "pilot ended 8 days ago: stopped");
+    assert.equal(state[freshPastDue.id], null, "10 days past due still answers while Stripe retries");
+    assert.equal(state[compedPilot.id], null, "a comped shop with a far pilot end keeps answering");
+    assert.equal(state[paying.id], null);
+    assert.ok(patches.some((p) => p.url.endsWith(`pn-${longPastDue.id}`) && p.body.assistantId === null), "the assistant came off the number");
+    const told = await prisma.ownerNotification.findFirst({ where: { businessId: longPastDue.id, dedupeKey: { startsWith: "billing:line_suspended:" } } });
+    assert.match(told.message, /stopped answering because the card payment has failed/);
+
+    const ask = async (shop) =>
+      (await POST(new Request("http://localhost/api/webhooks/vapi", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-vapi-secret": process.env.VAPI_WEBHOOK_SECRET ?? "" },
+        body: JSON.stringify({ message: { type: "assistant-request", call: { id: `ar-${uid()}`, phoneNumber: { number: shop.twilioPhone }, customer: { number: "+13035550199" } } } }),
+      }))).json();
+    assert.match((await ask(longPastDue)).error, /isn't taking calls right now/, "the routed number does not hand back the assistant");
+    assert.equal((await ask(compedPilot)).assistantId, compedPilot.vapiAssistantId);
+
+    patches.length = 0;
+    await syncSubscriptionToBusiness({
+      id: `sub_${uid()}`,
+      status: "active",
+      customer: `cus_${uid()}`,
+      metadata: { businessId: longPastDue.id },
+      items: { data: [] },
+    });
+    const resumed = await prisma.business.findUnique({ where: { id: longPastDue.id } });
+    assert.equal(resumed.billingStatus, "active");
+    assert.equal(resumed.lineSuspendedAt, null, "paying turns the line back on");
+    assert.ok(patches.some((p) => p.body.assistantId === longPastDue.vapiAssistantId));
+  } finally {
+    globalThis.fetch = realFetch;
+    for (const key of ["VAPI_API_KEY", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN"]) {
+      if (env[key] === undefined) delete process.env[key];
+      else process.env[key] = env[key];
+    }
+  }
+});

@@ -15,6 +15,8 @@ const SHOP_LINE_SELECT = {
   vapiAssistantId: true,
   lineVerifiedAt: true,
   billingStatus: true,
+  pilotEndsAt: true,
+  pastDueSince: true,
   createdAt: true,
   trade: true,
   address: true,
@@ -36,6 +38,8 @@ type ShopLineMatch = {
   vapiAssistantId: string | null;
   lineVerifiedAt: Date | null;
   billingStatus: string;
+  pilotEndsAt: Date | null;
+  pastDueSince: Date | null;
   createdAt: Date;
   trade: string | null;
   address: string | null;
