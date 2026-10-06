@@ -790,3 +790,7 @@ CREATE INDEX IF NOT EXISTS "ModelUsage_day_idx" ON "ModelUsage"("day");
 
 -- Owner corrections the receptionist follows on every call.
 ALTER TABLE "Business" ADD COLUMN "receptionistRulesJson" TEXT NOT NULL DEFAULT '[]';
+
+-- Work: the teammate responsible for a request or a job.
+ALTER TABLE "Lead" ADD COLUMN "assigneeEmail" TEXT;
+ALTER TABLE "Job" ADD COLUMN "assigneeEmail" TEXT;

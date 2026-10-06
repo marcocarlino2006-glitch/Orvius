@@ -518,6 +518,7 @@ export async function createJobFromLead(params: {
           businessId: lead.businessId!,
           customerId: customerId,
           leadId: lead.id,
+          assigneeEmail: lead.assigneeEmail,
           title: jobTitle({ serviceType: lead.serviceType, name: lead.name }),
           serviceType: lead.serviceType,
           urgency: lead.urgency,
