@@ -5,12 +5,12 @@ import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
 import {
   ShellAlert,
-  ShellBadge,
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
+import { WorkPanel } from "@/components/work-panel";
 import { nextJobStatus } from "@/lib/job-status";
-import { statusWord } from "@/lib/when";
+import { formatShopTime, shopWallInput } from "@/lib/when";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -46,7 +46,7 @@ type JobDetail = {
   completedAt: string | null;
   technicianId: string | null;
   technician: Tech | null;
-  business: { id: string; name: string; avgTicketCents: number | null } | null;
+  business: { id: string; name: string; timezone: string | null; avgTicketCents: number | null } | null;
   estimate: {
     id: string;
     amountCents: number;
@@ -92,6 +92,7 @@ export default function JobDetailPage() {
   const [scheduleDraft, setScheduleDraft] = useState("");
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [confirmMsg, setConfirmMsg] = useState<string | null>(null);
+  const [workVersion, setWorkVersion] = useState(0);
 
   const load = useCallback(() => {
     if (!jobId) return;
@@ -112,15 +113,7 @@ export default function JobDetailPage() {
           cardPayReady: Boolean(jobData.cardPayReady),
         });
         setCrew(techData.technicians ?? []);
-        if (jobData.job?.scheduledAt) {
-          const d = new Date(jobData.job.scheduledAt);
-          const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-            .toISOString()
-            .slice(0, 16);
-          setScheduleDraft(local);
-        } else {
-          setScheduleDraft("");
-        }
+        setScheduleDraft(shopWallInput(jobData.job?.scheduledAt, jobData.job?.business?.timezone));
         setConfirmMsg(null);
       })
       .catch((err) => setError(err.message))
@@ -144,6 +137,7 @@ export default function JobDetailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Update failed");
       setJob(data.job);
+      setWorkVersion((v) => v + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -163,8 +157,8 @@ export default function JobDetailPage() {
     return (
       <OsShell title="Job" subtitle="Not found">
         <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/jobs" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Jobs
+        <Link href="/dashboard/work" className="customer-timeline-link mt-4 inline-block font-sans">
+          ← Work
         </Link>
       </OsShell>
     );
@@ -172,24 +166,29 @@ export default function JobDetailPage() {
 
   const next = nextJobStatus(job.status);
   const phone = job.customer?.phone ?? job.lead?.phone;
-  const hoursLate =
-    job.scheduledAt && (job.status === "scheduled" || job.status === "confirmed")
-      ? Math.floor((Date.now() - new Date(job.scheduledAt).getTime()) / 3_600_000)
-      : -1;
+  const who = job.customer?.name ?? job.lead?.name ?? phone ?? null;
+  const refreshWork = () => load();
 
   return (
     <OsShell
       title={job.title}
+      subtitle={[who, job.address].filter(Boolean).join(" · ") || "Job"}
+      businessName={job.business?.name ?? undefined}
       actions={
         <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/dispatch" className="btn btn-secondary text-sm">
-            Dispatch
-          </Link>
           {phone ? (
-            <a href={`tel:${phone}`} className="btn btn-void text-sm">
-              Call customer
-            </a>
+            <>
+              <a href={`tel:${phone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+                Call
+              </a>
+              <a href={`sms:${phone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+                Text
+              </a>
+            </>
           ) : null}
+          <Link href="/dashboard/dispatch" className="ox-btn ox-btn--quiet ox-btn--sm">
+            Schedule
+          </Link>
         </div>
       }
     >
@@ -200,72 +199,19 @@ export default function JobDetailPage() {
       ) : null}
 
       <div className="os-detail-grid">
-        <ShellPanel title="Field" dense>
-          {hoursLate >= 1 ? (
-            <div className="job-overdue font-sans" role="status">
-              <p>
-                The window passed {hoursLate < 24 ? `${hoursLate}h` : `${Math.floor(hoursLate / 24)}d`} ago and nobody is on
-                the way.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="btn btn-void text-sm"
-                  disabled={saving}
-                  onClick={() => patch({ status: "completed" })}
-                >
-                  Mark done
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary text-sm"
-                  onClick={() => document.getElementById("job-reschedule")?.focus()}
-                >
-                  Move it
-                </button>
-              </div>
-            </div>
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            <ShellBadge
-              tone={
-                job.status === "en_route" || job.status === "on_site"
-                  ? "live"
-                  : job.status === "cancelled"
-                    ? "flare"
-                    : "neutral"
-              }
-            >
-              {statusWord(job.status)}
-            </ShellBadge>
-            {job.urgency ? (
-              <ShellBadge tone="neutral">{statusWord(job.urgency)}</ShellBadge>
-            ) : null}
-            {job.technician ? (
-              <ShellBadge tone="live">{job.technician.name}</ShellBadge>
-            ) : (
-              <ShellBadge tone="neutral">Unassigned</ShellBadge>
-            )}
-          </div>
-
+        <div className="os-detail-primary">
+        <WorkPanel kind="job" id={job.id} onChange={refreshWork} refreshKey={workVersion}>
+        <ShellPanel title="Details" dense>
           <dl className="os-kv font-sans">
             <div className="os-kv-block">
               <dt>When</dt>
               <dd>
                 <p>
-                  {job.scheduledAt
-                    ? new Date(job.scheduledAt).toLocaleString(undefined, {
-                        weekday: "long",
-                        month: "long",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })
-                    : "Not scheduled"}
+                  {job.scheduledAt ? formatShopTime(job.scheduledAt, job.business?.timezone) : "Not scheduled"}
                 </p>
                 <p className="os-kv-note">
                   {job.customerConfirmedAt
-                    ? `Customer confirmed ${new Date(job.customerConfirmedAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`
+                    ? `Customer confirmed ${formatShopTime(job.customerConfirmedAt, job.business?.timezone)}`
                     : job.status === "confirmed"
                       ? "Confirmed with the customer"
                       : job.scheduledAt
@@ -275,7 +221,7 @@ export default function JobDetailPage() {
                 {job.status !== "completed" && job.status !== "cancelled" ? (
                 <div className="os-kv-actions">
                   <label className="font-sans text-sm">
-                    <span className="label">Reschedule</span>
+                    <span className="label">Move to (shop clock)</span>
                     <input
                       id="job-reschedule"
                       type="datetime-local"
@@ -290,11 +236,7 @@ export default function JobDetailPage() {
                     className="btn btn-secondary text-sm"
                     disabled={saving || !scheduleDraft}
                     onClick={() =>
-                      void patch({
-                        scheduledAt: scheduleDraft
-                          ? new Date(scheduleDraft).toISOString()
-                          : null,
-                      }).then(() => {
+                      void patch({ scheduledLocal: scheduleDraft }).then(() => {
                         setConfirmMsg(
                           "Window updated — send confirm so the customer locks it in.",
                         );
@@ -398,6 +340,8 @@ export default function JobDetailPage() {
             ) : null}
           </div>
         </ShellPanel>
+        </WorkPanel>
+        </div>
 
         <div className="os-detail-side">
           {job.customer ? (
@@ -419,15 +363,15 @@ export default function JobDetailPage() {
           ) : null}
 
           {job.lead ? (
-            <ShellPanel title="From lead" dense>
+            <ShellPanel title="Where it came from" dense>
               <p className="font-sans text-sm text-ash">
-                Booked from {job.lead.name ?? job.lead.phone ?? "inbox lead"}.
+                {job.lead.name ? `Booked from ${job.lead.name}’s request.` : "Booked from a request."}
               </p>
               <Link
                 href={`/dashboard/inbox/${job.lead.id}`}
                 className="customer-timeline-link mt-3 inline-block font-sans"
               >
-                View lead →
+                Open the request and call →
               </Link>
             </ShellPanel>
           ) : null}

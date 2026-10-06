@@ -10,9 +10,9 @@ export async function GET(request: Request) {
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
   const url = new URL(request.url);
-  const kind = url.searchParams.get("kind") === "job" ? "job" : "request";
+  const kind = url.searchParams.get("kind");
   const id = url.searchParams.get("id")?.trim() ?? "";
-  if (!id) return NextResponse.json({ error: "Which work?" }, { status: 400 });
+  if ((kind !== "job" && kind !== "request") || !id) return NextResponse.json({ error: "Which work?" }, { status: 400 });
 
   const item = await getWorkItem(business.id, kind, id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });

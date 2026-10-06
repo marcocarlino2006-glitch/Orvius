@@ -307,3 +307,90 @@ test("Command, the nav badge and the Work screen read the same count", async () 
   assert.deepEqual(command.work.items.map((i) => i.key).sort(), listed.items.filter((i) => i.needsYou).map((i) => i.key).sort());
   assert.match(command.personalBrief?.headline ?? "", /2 things|2 need|One step left|line is live/);
 });
+
+test("a booked request opens as its job, and its history runs from the call to the technician's text", async () => {
+  const { workHistory } = await import("../src/lib/work-history.ts");
+  const shop = await makeShop();
+  const caller = phone();
+  const techPhone = phone();
+  const tech = await prisma.technician.create({ data: { businessId: shop.id, name: "Ray Diaz", phone: techPhone } });
+  const request = await prisma.lead.create({ data: { businessId: shop.id, phone: caller, name: "Ana", serviceType: "Leak repair", status: "booked" } });
+  const booked = await prisma.job.create({ data: { businessId: shop.id, leadId: request.id, technicianId: tech.id, title: "Leak repair", status: "scheduled", scheduledAt: new Date(Date.now() + 86_400_000) } });
+  const t0 = booked.createdAt.getTime() + 5000;
+  await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: caller, direction: "in", author: "customer", body: "Pipe burst under the sink", createdAt: new Date(t0 - 3000) } });
+  await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: caller, direction: "out", author: "orvius", body: "You're booked", deliveryStatus: "failed", createdAt: new Date(t0 - 2000) } });
+  await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: techPhone, direction: "out", author: "orvius", body: "New job: Ana, Leak repair", createdAt: new Date(t0 - 1000) } });
+  await prisma.auditEvent.create({ data: { businessId: shop.id, actor: "owner", actorEmail: shop.ownerEmail, action: "job.status", entityType: "job", entityId: booked.id, summary: "Moved to tomorrow" } });
+
+  const item = await work.getWorkItem(shop.id, "request", request.id);
+  assert.equal(item.key, `job:${booked.id}`, "a request that was booked is the job now");
+  assert.equal(await work.getWorkItem(shop.id, "request", "not-a-lead"), null);
+
+  const fromRequest = await workHistory(shop.id, { kind: "request", id: request.id });
+  const fromJob = await workHistory(shop.id, { kind: "job", id: booked.id });
+  assert.deepEqual(fromRequest.map((e) => e.id), fromJob.map((e) => e.id), "the request and its job tell one story");
+  const titles = fromJob.map((e) => e.title);
+  assert.ok(titles.includes("Customer texted"));
+  assert.ok(titles.includes("Texted Ray Diaz"), "the proof the technician was told");
+  assert.ok(titles.includes("Moved to tomorrow"));
+  assert.equal(fromJob.find((e) => e.title === "Texted the customer").tone, "failed");
+  assert.equal(fromJob.find((e) => e.title === "Moved to tomorrow").who, "person");
+  const at = fromJob.map((e) => new Date(e.at).getTime());
+  assert.deepEqual(at, [...at].sort((a, b) => a - b), "in the order it happened");
+
+  const other = await makeShop();
+  assert.equal(await workHistory(other.id, { kind: "job", id: booked.id }), null, "another shop sees nothing");
+});
+
+test("/api/work/item returns the work, its history and who can take it — only for the shop's own work", async () => {
+  const route = await import("../src/app/api/work/item/route.ts");
+  const shop = await makeShop();
+  const request = await prisma.lead.create({ data: { businessId: shop.id, phone: phone(), status: "new", name: "Bo" } });
+  const get = (q) => route.GET(new Request(`http://localhost/api/work/item?${q}`));
+
+  signedInAs = shop.ownerEmail;
+  const res = await get(`kind=request&id=${request.id}`);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.item.id, request.id);
+  assert.ok(Array.isArray(body.history));
+  assert.ok(body.assignees.some((a) => a.role === "owner"));
+  assert.equal((await get(`kind=nope&id=${request.id}`)).status, 400);
+
+  const other = await makeShop();
+  signedInAs = other.ownerEmail;
+  assert.equal((await get(`kind=request&id=${request.id}`)).status, 404);
+});
+
+test("a time typed on a request or a job is read on the shop's clock, not the browser's", async () => {
+  const { shopWallInputToUtc } = await import("../src/lib/availability.ts");
+  const { shopWallInput, formatShopTime } = await import("../src/lib/when.ts");
+  assert.equal(shopWallInputToUtc("2026-10-07T11:30", "America/Chicago").toISOString(), "2026-10-07T16:30:00.000Z");
+  assert.equal(shopWallInputToUtc("next tuesday", "America/Chicago"), null);
+  assert.equal(shopWallInput("2026-10-07T16:30:00.000Z", "America/Chicago"), "2026-10-07T11:30");
+  assert.match(formatShopTime("2026-10-07T16:30:00.000Z", "America/Chicago"), /Wednesday, October 7 at 11:30\sAM CDT/);
+
+  const jobs = await import("../src/app/api/jobs/route.ts");
+  const jobRoute = await import("../src/app/api/jobs/[id]/route.ts");
+  const shop = await makeShop();
+  await prisma.business.update({ where: { id: shop.id }, data: { timezone: "America/Chicago" } });
+  const request = await prisma.lead.create({ data: { businessId: shop.id, phone: phone(), name: "Cy", serviceType: "Leak repair", address: "1 Main St", status: "new" } });
+  signedInAs = shop.ownerEmail;
+  const res = await jobs.POST(new Request("http://localhost/api/jobs", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ leadId: request.id, scheduledLocal: "2026-11-03T09:00" }) }));
+  const body = await res.json();
+  assert.equal(res.status, 200, JSON.stringify(body));
+  assert.equal(new Date(body.job.scheduledAt).toISOString(), "2026-11-03T15:00:00.000Z", "9 AM Chicago, after the clocks change");
+
+  const moved = await jobRoute.PATCH(
+    new Request(`http://localhost/api/jobs/${body.job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ scheduledLocal: "2026-11-04T14:15" }) }),
+    { params: Promise.resolve({ id: body.job.id }) },
+  );
+  assert.equal(moved.status, 200);
+  const row = await prisma.job.findUnique({ where: { id: body.job.id } });
+  assert.equal(row.scheduledAt.toISOString(), "2026-11-04T20:15:00.000Z");
+  const bad = await jobRoute.PATCH(
+    new Request(`http://localhost/api/jobs/${body.job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ scheduledLocal: "soon" }) }),
+    { params: Promise.resolve({ id: body.job.id }) },
+  );
+  assert.equal(bad.status, 422);
+});
