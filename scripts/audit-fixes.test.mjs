@@ -344,3 +344,35 @@ test("19. cron routes refuse unsigned requests against a live database, not only
     if (saved.secret) process.env.CRON_SECRET = saved.secret;
   }
 });
+
+test("8. the daily sweep runs money first, stops at its deadline instead of being killed, and its shop loops wrap from a random start", async () => {
+  const { forEachShop } = await import("../src/lib/for-each-shop.ts");
+  const tag = uid();
+  await prisma.business.createMany({
+    data: Array.from({ length: 250 }, (_, i) => ({ name: `Loop ${i}`, slug: `loop-${tag}-${i}`, environment: "test", ownerEmail: `loop-${tag}-${i}@example.test` })),
+  });
+  const ids = (await prisma.business.findMany({ where: { slug: { startsWith: `loop-${tag}-` } }, select: { id: true } })).map((s) => s.id);
+  made.push(...ids);
+  const where = { slug: { startsWith: `loop-${tag}-` } };
+
+  for (let run = 0; run < 3; run++) {
+    const seen = [];
+    assert.equal(await forEachShop(where, () => false, async (shop) => void seen.push(shop.id)), true);
+    assert.equal(seen.length, 250);
+    assert.equal(new Set(seen).size, 250, "every shop exactly once, wherever it started");
+  }
+  const starts = new Set();
+  for (let run = 0; run < 6; run++) {
+    let first = null;
+    await forEachShop(where, () => first !== null, async (shop) => void (first ??= shop.id));
+    starts.add(first);
+  }
+  assert.ok(starts.size > 1, "a cut-off day starts somewhere new tomorrow");
+  let n = 0;
+  assert.equal(await forEachShop(where, () => n >= 40, async () => void n++), false, "reports that it stopped early");
+
+  const route = readFileSync(new URL("../src/app/api/cron/notifications/route.ts", import.meta.url), "utf8");
+  assert.match(route, /export const maxDuration = 60;/);
+  assert.ok(route.indexOf('"overage_billing"') < route.indexOf("autopilot: true"), "billing runs before the per-shop loops");
+  assert.ok(route.indexOf('"lapsed_lines"') < route.indexOf("vapiAssistantId: { not: null }"));
+});
