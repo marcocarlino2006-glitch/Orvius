@@ -1,6 +1,6 @@
 /** Inbound SMS keyword handling — STOP / HELP / START (TCPA / carrier norms). */
 
-export type SmsKeyword = "stop" | "help" | "start" | null;
+export type SmsKeyword = "stop" | "help" | "start" | "join" | null;
 
 const STOP_WORDS = new Set([
   "stop",
@@ -31,6 +31,7 @@ export function parseSmsKeyword(body: string): SmsKeyword {
   }
   if (HELP_WORDS.has(token)) return "help";
   if (START_WORDS.has(token)) return "start";
+  if (normalized === "join") return "join";
   return null;
 }
 

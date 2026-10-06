@@ -9,7 +9,8 @@ import { prisma } from "@/lib/prisma";
 /**
  * Win-back: the owner texts customers who haven't been back in a while. It is
  * always the owner's send, never automatic, so replies land as the owner's
- * conversation in Inbox → Messages. One text per customer per 90 days, never
+ * conversation in Inbox → Messages. Only to customers who said yes to
+ * promotional texts in writing (marketing-consent.ts). One text per customer per 90 days, never
  * to someone with a visit already booked, never past a STOP, daytime only.
  */
 
@@ -44,6 +45,7 @@ export function renderWinBack(template: string, values: { name: string | null; b
 function audienceWhere(businessId: string, months: number, now: Date) {
   return {
     businessId,
+    marketingOptInAt: { not: null },
     lastSeenAt: { lt: new Date(now.getTime() - months * MONTH_MS) },
     OR: [{ winBackSentAt: null }, { winBackSentAt: { lt: new Date(now.getTime() - WIN_BACK_GAP_MS) } }],
     jobs: {

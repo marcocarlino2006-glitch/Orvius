@@ -32,6 +32,7 @@ const BookBody = z.object({
   email: z.string().email().max(200).optional().or(z.literal("")),
   address: z.string().max(300).optional(),
   notes: z.string().max(1000).optional(),
+  marketingOptIn: z.boolean().optional(),
   /** Hidden from people; bots fill it. */
   website: z.string().max(200).optional(),
 });

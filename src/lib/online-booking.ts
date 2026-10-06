@@ -3,6 +3,7 @@ import { isBillingEntitled } from "@/lib/billing-entitlement";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
+import { recordMarketingOptIn } from "@/lib/marketing-consent";
 import { createJobFromLead, findOpenSlots } from "@/lib/job";
 import { logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
@@ -138,6 +139,8 @@ export type BookingInput = {
   email?: string | null;
   address?: string | null;
   notes?: string | null;
+  /** The optional, unticked-by-default promotional texts box. */
+  marketingOptIn?: boolean;
 };
 
 export type BookingResult =
@@ -203,6 +206,9 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
     address: lead.address,
     notes: lead.notes,
   });
+  if (input.marketingOptIn === true) {
+    await recordMarketingOptIn({ businessId: shop.id, phone, source: "booking_page" });
+  }
   const job = await createJobFromLead({ leadId: lead.id, scheduledAt: at, actor: "system" });
 
   /*

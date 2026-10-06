@@ -177,3 +177,51 @@ test("3. no new dental or medical shop: patient calls need a HIPAA agreement Orv
   assert.doesNotMatch(read("src/components/home-features.tsx"), /Dental and medical/);
   assert.doesNotMatch(read("src/components/home-demos.tsx"), /Dental/);
 });
+
+test("4. promotional texts need a written yes: JOIN or the booking-page box opts in, STOP opts out, and win-back skips everyone else", async () => {
+  const { POST: sms } = await import("../src/app/api/webhooks/twilio/sms/route.ts");
+  const { winBackAudience } = await import("../src/lib/win-back.ts");
+  const line = `+1720556${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const shop = await makeShop({ name: "Join Air", twilioPhone: line, ownerPhone: "+13035550102" });
+  const phone = `+1303556${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const smsForm = (Body) => {
+    const r = twilioForm({ From: phone, To: line, Body, MessageSid: `SM${uid()}` });
+    return new (nextServer.NextRequest)(r.url, { method: "POST", headers: r.headers, body: r.body, duplex: "half" });
+  };
+
+  const old = new Date(Date.now() - 200 * 86_400_000);
+  const c = await prisma.customer.create({ data: { businessId: shop.id, name: "Ann Cole", phone, phoneNormalized: phone, lastSeenAt: old } });
+  await prisma.job.create({ data: { businessId: shop.id, customerId: c.id, title: "Tune-up", status: "completed", completedAt: old } });
+  assert.equal((await winBackAudience(shop.id, 3)).length, 0, "a past customer who never said yes gets no win-back");
+
+  const joined = await (await sms(smsForm("Join"))).text();
+  assert.match(joined, /you&apos;re in for occasional reminders and offers/);
+  const after = await prisma.customer.findUnique({ where: { id: c.id } });
+  assert.ok(after.marketingOptInAt);
+  assert.equal(after.marketingOptInSource, "sms_join");
+  assert.equal((await winBackAudience(shop.id, 3)).length, 1);
+
+  await sms(smsForm("STOP"));
+  assert.equal((await prisma.customer.findUnique({ where: { id: c.id } })).marketingOptInAt, null, "STOP ends promotional consent too");
+
+  const { bookableShop, bookingSlots, bookOnline } = await import("../src/lib/online-booking.ts");
+  const allDay = JSON.stringify(Object.fromEntries(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((d) => [d, { open: "00:00", close: "23:59" }])));
+  const booking = await makeShop({ environment: "live", bookingPageOn: true, hoursJson: allDay, servicesJson: JSON.stringify([{ name: "Tune-up", durationMin: 60 }]) });
+  const live = await bookableShop(booking.slug);
+  const slots = await bookingSlots(live, "Tune-up");
+  const [first, second] = [slots[0], slots.at(-1)];
+  const yes = `+1303557${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const no = `+1303558${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const ticked = await bookOnline(live, { serviceType: "Tune-up", at: first.at, name: "Box Ticked", phone: yes, marketingOptIn: true });
+  assert.equal(ticked.ok, true, JSON.stringify(ticked));
+  const left = await bookOnline(live, { serviceType: "Tune-up", at: second.at, name: "Box Left", phone: no });
+  assert.equal(left.ok, true, JSON.stringify(left));
+  const byPhone = async (p) => prisma.customer.findFirst({ where: { businessId: booking.id, phoneNormalized: p } });
+  assert.equal((await byPhone(yes)).marketingOptInSource, "booking_page");
+  assert.equal((await byPhone(no)).marketingOptInAt, null);
+
+  const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+  assert.match(read("src/app/b/[slug]/page.tsx"), /marketingOptIn: false/, "the box starts unticked");
+  assert.match(read("src/app/sms-terms/page.tsx"), /only to\s+customers who opted in/);
+  assert.doesNotMatch(read("src/app/sms-terms/page.tsx"), /No marketing messages are sent/);
+});

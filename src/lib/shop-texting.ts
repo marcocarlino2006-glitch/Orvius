@@ -273,8 +273,8 @@ async function createTrustProduct(client: TextingTwilio, shop: Shop, d: TextingD
 /** What the campaign says the shop texts; carriers approve against these exact words. */
 export function campaignFor(shopName: string) {
   return {
-    description: `${shopName} texts its own customers about appointments they booked by phone, text or online: confirming the time, the technician on the way, reminders, estimates and invoices, and replies to questions they asked.`,
-    messageFlow: `Customers give their mobile number to ${shopName} when they call, text or book online, and are told they will get texts about their appointment. Every message names ${shopName}; replying STOP opts out and HELP gets help.`,
+    description: `${shopName} texts its own customers about appointments they booked by phone, text or online: confirming the time, the technician on the way, reminders, estimates and invoices, replies to questions they asked, and one review request after a completed visit. Customers who opt in separately (an unticked box on the booking page, or texting JOIN) also get occasional reminders and offers, up to 2 a month.`,
+    messageFlow: `Customers give their mobile number to ${shopName} when they call, text or book online, and are told they will get texts about their appointment. Promotional texts go only to customers who tick the optional, unticked box on the booking page or text JOIN; giving a number on a call is never treated as consent to them. Every message names ${shopName}; replying STOP opts out of all texts and HELP gets help.`,
     messageSamples: [
       `${shopName}: we have you down for Tue Oct 6, 9–11am. Confirm here: https://app.orvius.im/c/abc123 Reply STOP to opt out.`,
       `${shopName}: Ray is on the way and should arrive in about 25 minutes. Reply STOP to opt out.`,

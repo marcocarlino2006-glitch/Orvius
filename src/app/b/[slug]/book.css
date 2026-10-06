@@ -64,3 +64,14 @@
   text-align: center;
   font-size: 0.75rem;
 }
+.bk-optin {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.bk-optin input {
+  margin-top: 0.2rem;
+  accent-color: #f2a93b;
+  flex: none;
+}

@@ -758,3 +758,7 @@ CREATE INDEX IF NOT EXISTS "NetworkHandoff_toLeadId_idx" ON "NetworkHandoff"("to
 
 -- In-call network handoff: the caller's yes, recorded during the call.
 ALTER TABLE "Call" ADD COLUMN "networkConsentAt" DATETIME;
+
+-- Marketing texts (win-back) only to customers who said yes in writing.
+ALTER TABLE "Customer" ADD COLUMN "marketingOptInAt" DATETIME;
+ALTER TABLE "Customer" ADD COLUMN "marketingOptInSource" TEXT;

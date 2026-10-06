@@ -369,6 +369,9 @@ model Customer {
   interactionCount  Int      @default(1)
   /** Last "we miss you" text; one per customer every 90 days. */
   winBackSentAt     DateTime?
+  /** Written yes to promotional texts (booking-page box or texting JOIN). Win-back only goes to these. STOP clears it. */
+  marketingOptInAt     DateTime?
+  marketingOptInSource String?
   firstSeenAt       DateTime @default(now())
   lastSeenAt        DateTime @default(now())
   createdAt         DateTime @default(now())

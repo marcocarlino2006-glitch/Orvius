@@ -43,7 +43,7 @@ export default function BookPage() {
   const [service, setService] = useState<string | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slot, setSlot] = useState<Slot | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", notes: "", website: "" });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", notes: "", website: "", marketingOptIn: false });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<Done | null>(null);
@@ -294,6 +294,14 @@ export default function BookPage() {
             onChange={(e) => setForm({ ...form, website: e.target.value })}
             name="website"
           />
+          <label className="pf-muted bk-optin">
+            <input
+              type="checkbox"
+              checked={form.marketingOptIn}
+              onChange={(e) => setForm({ ...form, marketingOptIn: e.target.checked })}
+            />{" "}
+            Also text me occasional reminders and offers from {info.business.name}, up to 2 a month. Optional.
+          </label>
           <p className="pf-muted">
             By booking you agree to get texts about this appointment from {info.business.name}. Reply STOP to opt out.
           </p>
