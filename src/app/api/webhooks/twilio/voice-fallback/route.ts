@@ -11,7 +11,7 @@ import {
 } from "@/lib/notifications";
 import { pagePlatform } from "@/lib/platform-pager";
 import { escapeXml, twimlResponse } from "@/lib/twiml";
-import { getWebhookUrl } from "@/lib/env";
+import { getAppUrl, getWebhookUrl } from "@/lib/env";
 import { validateTwilioRequest } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
@@ -483,7 +483,7 @@ async function attachVoicemail(params: {
     businessName: params.businessName,
     message: [
       `Voicemail from ${params.from || "an unknown number"} (${params.recordingSeconds}s).`,
-      `Listen: ${params.recordingUrl}.mp3`,
+      `Listen: ${getAppUrl().replace(/\/$/, "")}/api/leads/${target.id}/voicemail`,
     ].join(" "),
     leadId: target.id,
     dedupeKey: `${buildLeadAlertDedupeKey({
