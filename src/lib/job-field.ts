@@ -1,3 +1,4 @@
+import { recordAudit, type AuditActor } from "@/lib/audit";
 import { upsertJobInvoice } from "@/lib/invoice-pay";
 import { prisma } from "@/lib/prisma";
 
@@ -284,4 +285,21 @@ export function cleanPriceBookEntry(body: Record<string, unknown>) {
   const kind = (LINE_KINDS as readonly string[]).includes(String(body.kind)) ? String(body.kind) : "service";
   const description = typeof body.description === "string" ? body.description.trim().slice(0, 300) || null : null;
   return { name, unitCents, kind, description };
+}
+
+/**
+ * One history entry per editing burst: a technician tapping a quantity up
+ * three times is one change to the work, ending at the last total.
+ */
+export async function recordLinesChange(params: { businessId: string; jobId: string; actor: AuditActor; actorEmail?: string | null; summary: string }) {
+  const recent = await prisma.auditEvent.findFirst({
+    where: { businessId: params.businessId, jobId: params.jobId, action: "job.lines", actor: params.actor, actorEmail: params.actorEmail?.toLowerCase() ?? null, createdAt: { gte: new Date(Date.now() - 2 * 60_000) } },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+  if (recent) {
+    await prisma.auditEvent.update({ where: { id: recent.id }, data: { summary: params.summary, createdAt: new Date() } });
+    return;
+  }
+  await recordAudit({ businessId: params.businessId, entityType: "job", entityId: params.jobId, jobId: params.jobId, action: "job.lines", actor: params.actor, actorEmail: params.actorEmail ?? null, summary: params.summary });
 }

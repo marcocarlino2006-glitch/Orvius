@@ -177,6 +177,16 @@ test("the work, photos and notes from the field are the office's record too", as
   assert.equal(put.status, 200);
   assert.equal(put.data.linesTotalCents, 16900);
   assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: job.id } })).finalAmountCents, 16900, "the job is billed the line total");
+  await call(linesRoute.PUT, "PUT", { token, jobId: job.id }, {
+    lines: [
+      { name: "Diagnostic", kind: "service", quantity: 1, unitCents: 8900 },
+      { name: "Capacitor", kind: "part", quantity: 3, unitCents: 4500 },
+      { name: "Member discount", kind: "discount", quantity: 1, unitCents: 1000 },
+    ],
+  });
+  const lineAudits = await prisma.auditEvent.findMany({ where: { businessId: shop.id, jobId: job.id, action: "job.lines" } });
+  assert.equal(lineAudits.length, 1, "a burst of edits is one history entry");
+  assert.match(lineAudits[0].summary, /3 lines, \$214\.00/, "ending at the last total");
 
   const form = new FormData();
   form.append("photo", new Blob([PNG], { type: "image/png" }), "a.png");

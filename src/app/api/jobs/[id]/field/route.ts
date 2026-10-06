@@ -1,5 +1,5 @@
-import { personActor, recordAudit } from "@/lib/audit";
-import { FieldError, jobField, priceBook, setJobLines } from "@/lib/job-field";
+import { personActor } from "@/lib/audit";
+import { FieldError, jobField, priceBook, recordLinesChange, setJobLines } from "@/lib/job-field";
 import { formatCentsExact } from "@/lib/money";
 import { withOffice } from "@/lib/office-route";
 import { prisma } from "@/lib/prisma";
@@ -22,12 +22,9 @@ export async function PUT(request: Request, { params }: Params) {
   return withOffice("jobs", async (session) => {
     const body = (await request.json().catch(() => ({}))) as { lines?: unknown };
     const { lines, totalCents } = await setJobLines(session.business.id, id, body.lines);
-    await recordAudit({
+    await recordLinesChange({
       businessId: session.business.id,
-      entityType: "job",
-      entityId: id,
       jobId: id,
-      action: "job.lines",
       ...personActor(session),
       summary: `Set the work: ${lines.length} line${lines.length === 1 ? "" : "s"}, ${formatCentsExact(totalCents)}`,
     });
