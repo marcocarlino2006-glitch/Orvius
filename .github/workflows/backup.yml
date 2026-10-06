@@ -34,8 +34,9 @@ jobs:
           if [ -n "$DATABASE_URL" ] && [ -n "$BACKUP_ENCRYPTION_KEY" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::No backup taken — set BACKUP_DATABASE_URL, BACKUP_TURSO_AUTH_TOKEN and BACKUP_ENCRYPTION_KEY in repo secrets."
+            # A green run with no backup is how a shop's data is lost without anyone knowing: fail and open the issue.
+            echo "::error::No backup taken — set BACKUP_DATABASE_URL, BACKUP_TURSO_AUTH_TOKEN and BACKUP_ENCRYPTION_KEY in repo secrets."
+            exit 1
           fi
       - if: steps.gate.outputs.run == 'true'
         uses: actions/checkout@v4
@@ -61,13 +62,13 @@ jobs:
           retention-days: 30
 
       - name: Open or update the backup issue
-        if: failure() && steps.gate.outputs.run == 'true'
+        if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh label create backup --color B60205 --description "Automated backup alert" -R "$GITHUB_REPOSITORY" 2>/dev/null || true
           open=$(gh issue list -R "$GITHUB_REPOSITORY" --label backup --state open --json number --jq '.[0].number')
-          note=$(printf "Backup or restore drill failed at %s UTC.\n\nRun: %s/%s/actions/runs/%s" "$(date -u '+%Y-%m-%d %H:%M')" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+          note=$(printf "Backup or restore drill failed (or no backup secrets are set) at %s UTC.\n\nRun: %s/%s/actions/runs/%s" "$(date -u '+%Y-%m-%d %H:%M')" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
           if [ -n "$open" ]; then
             gh issue comment "$open" -R "$GITHUB_REPOSITORY" --body "$note"
           else
