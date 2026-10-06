@@ -112,3 +112,79 @@ test("every Prisma scalar column exists in the Turso base schema or a migration"
   }
   assert.deepEqual(missing, [], `production would 500 selecting: ${missing.join(", ")}`);
 });
+
+/*
+  Drift: a database built the way production was (baseline, then every
+  migration the build replays) must match prisma/schema.prisma. A column added
+  to the schema but not to turso-migrate.sql passes every local test, since
+  `prisma db push` builds the local database from the schema, and then 500s
+  on the first production query that selects it.
+
+  Three tables carry known drift that only a table rebuild can fix, because
+  SQLite cannot add a foreign key in place: Estimate has no leadId foreign key
+  and Invoice has no jobId foreign key, so deleting a lead or job leaves the id
+  behind instead of nulling it, and the baseline gave updatedAt a default.
+  Prisma reports each as a whole-table redefinition. Those three are allowed
+  only while the rebuilt table has exactly the columns the live one already
+  has, so a missing column hidden inside a rebuild still fails.
+*/
+const KNOWN_REBUILDS = new Set(["Deposit", "Estimate", "Invoice"]);
+
+test("a database built from the baseline plus every migration matches schema.prisma", async () => {
+  const { execFileSync } = await import("node:child_process");
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { createClient } = await import("@libsql/client");
+
+  const dir = mkdtempSync(join(tmpdir(), "drift-"));
+  const dbPath = join(dir, "drift.db");
+  try {
+    const client = createClient({ url: `file:${dbPath}` });
+    for (const file of ["prisma/turso-schema.sql", "prisma/turso-migrate.sql"]) {
+      for (const statement of splitStatements(readFileSync(join(repoRoot, file), "utf8"))) {
+        try {
+          await client.execute(statement);
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          if (msg.includes("duplicate column") || msg.includes("already exists")) continue;
+          throw new Error(`${file}: ${msg}\n${statement.slice(0, 200)}`);
+        }
+      }
+    }
+    client.close();
+
+    const diff = execFileSync(
+      "npx",
+      ["prisma", "migrate", "diff", "--from-url", `file:${dbPath}`, "--to-schema-datamodel", "prisma/schema.prisma", "--script"],
+      { cwd: repoRoot, encoding: "utf8" },
+    );
+
+    const rebuilt = new Set();
+    const problems = [];
+    for (const statement of splitStatements(diff)) {
+      if (/^PRAGMA /.test(statement)) continue;
+      const create = statement.match(/^CREATE TABLE "new_(\w+)" \(([\s\S]*)\)$/);
+      if (create) {
+        rebuilt.add(create[1]);
+        if (!KNOWN_REBUILDS.has(create[1])) problems.push(`new table rebuild: ${create[1]}`);
+        continue;
+      }
+      const insert = statement.match(/^INSERT INTO "new_(\w+)" \(([^)]*)\) SELECT/);
+      if (insert) {
+        const kept = new Set(insert[2].split(",").map((c) => c.trim().replace(/"/g, "")));
+        const create = splitStatements(diff).find((s) => s.startsWith(`CREATE TABLE "new_${insert[1]}"`));
+        const declared = [...create.matchAll(/^\s+"(\w+)" /gm)].map((m) => m[1]);
+        const missing = declared.filter((c) => !kept.has(c));
+        if (missing.length) problems.push(`${insert[1]} is missing columns: ${missing.join(", ")}`);
+        continue;
+      }
+      const table = statement.match(/^(?:DROP TABLE|ALTER TABLE) "(?:new_)?(\w+)"|^CREATE (?:UNIQUE )?INDEX "\w+" ON "(\w+)"/);
+      const name = table && (table[1] ?? table[2]);
+      if (name && rebuilt.has(name)) continue;
+      problems.push(statement.split("\n")[0]);
+    }
+    assert.deepEqual(problems, [], `schema.prisma and the production migrations disagree:\n${diff}`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
