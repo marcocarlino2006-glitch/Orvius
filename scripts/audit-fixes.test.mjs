@@ -9,6 +9,12 @@ import { mock, test } from "node:test";
 
 delete process.env.RESEND_API_KEY;
 
+const nextServer = await import("next/server");
+const deferred = [];
+mock.module("next/server", {
+  namedExports: { ...nextServer, after: (task) => deferred.push(task) },
+});
+
 let signedInAs = null;
 mock.module(new URL("../src/auth.ts", import.meta.url).href, {
   namedExports: {
@@ -77,4 +83,60 @@ test("1. a manager cannot take the shop by changing the owner email; the owner s
   assert.equal(transfer.status, 200);
   assert.equal((await prisma.business.findUnique({ where: { id: shop.id } })).ownerEmail, next);
   signedInAs = null;
+});
+
+function twilioForm(fields) {
+  const form = new URLSearchParams(fields);
+  return new Request("http://localhost/api/webhooks/twilio/voice-fallback", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: form.toString(),
+  });
+}
+
+test("2. AI down: the owner's phone rings live first, voicemail if nobody answers, and a database outage still gets the recorder", async () => {
+  const { POST } = await import("../src/app/api/webhooks/twilio/voice-fallback/route.ts");
+  const line = `+1720555${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const shop = await makeShop({ name: "Fallback Air", twilioPhone: line, ownerPhone: "+13035550101" });
+  const sid = `CA${uid()}`;
+  const caller = `+1303555${String(Math.floor(Math.random() * 9000) + 1000)}`;
+
+  const first = await (await POST(twilioForm({ From: caller, To: line, CallSid: sid }))).text();
+  assert.match(first, /<Dial [^>]*timeout="18"/);
+  assert.match(first, /<Number>\+13035550101<\/Number>/);
+  const lead = await prisma.lead.findFirst({ where: { businessId: shop.id, externalId: `voice-fallback:${sid}` } });
+  assert.ok(lead, "the missed call is a lead before anyone answers");
+  const alert = await prisma.ownerNotification.findFirst({ where: { businessId: shop.id, leadId: lead.id } });
+  assert.match(alert.message, /ringing your phone now/);
+
+  const noAnswer = await (await POST(twilioForm({ From: caller, To: line, CallSid: sid, DialCallStatus: "no-answer" }))).text();
+  assert.match(noAnswer, /<Record /);
+  assert.match(noAnswer, /Thanks for calling Fallback Air/);
+
+  const answered = await (await POST(twilioForm({ From: caller, To: line, CallSid: sid, DialCallStatus: "completed" }))).text();
+  assert.match(answered, /<Hangup \/>/);
+  assert.match((await prisma.lead.findUnique({ where: { id: lead.id } })).notes, /answered live/);
+
+  // The owner's phone bounced the ring back to this line: straight to the recorder, no second ring.
+  const bounced = await (await POST(twilioForm({ From: caller, To: line, CallSid: `CA${uid()}`, ForwardedFrom: "+13035550101" }))).text();
+  assert.doesNotMatch(bounced, /<Dial/);
+  assert.match(bounced, /<Record /);
+  const bouncedNoHeader = await (await POST(twilioForm({ From: caller, To: line, CallSid: `CA${uid()}` }))).text();
+  assert.doesNotMatch(bouncedNoHeader, /<Dial/, "a repeat within two minutes is a bounce even without ForwardedFrom");
+
+  const findMany = prisma.business.findMany;
+  prisma.business.findMany = async () => {
+    throw new Error("SQLITE_BUSY: database is locked");
+  };
+  try {
+    const dbDown = await POST(twilioForm({ From: caller, To: line, CallSid: `CA${uid()}` }));
+    assert.equal(dbDown.status, 200);
+    const twiml = await dbDown.text();
+    assert.match(twiml, /Thanks for calling\. We can&apos;t take your call live/);
+    assert.match(twiml, /<Record /);
+    const recDown = await (await POST(twilioForm({ From: caller, To: line, CallSid: sid, RecordingUrl: "https://api.twilio.com/rec/RE1", RecordingDuration: "12" }))).text();
+    assert.match(recDown, /we&apos;ve got your message/);
+  } finally {
+    prisma.business.findMany = findMany;
+  }
 });
