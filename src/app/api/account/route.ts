@@ -28,8 +28,9 @@ import {
   resolvePilotEndsAt,
 } from "@/lib/billing-entitlement";
 import { getShopHealth } from "@/lib/shop-health";
-import { summarizeCallUsage } from "@/lib/call-usage";
+import { summarizeCallUsage, usagePeriodStart } from "@/lib/call-usage";
 import { getMonthValue, monthValueLine } from "@/lib/month-value";
+import { countBillableCalls } from "@/lib/billable-calls";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import {
   MAX_DEPOSIT_CENTS,
@@ -172,9 +173,10 @@ export async function GET(request: Request) {
 
   /* Readiness costs three round trips and no screen reads it from here; Command gets it from ring1. */
   const withReadiness = new URL(request.url).searchParams.get("include") === "readiness";
-  const [health, monthValue] = await Promise.all([
+  const [health, monthValue, billableCalls] = await Promise.all([
     business && withReadiness ? getShopHealth(business.id) : null,
     business ? getMonthValue(business.id) : null,
+    businessRecord ? countBillableCalls(businessRecord, { gte: usagePeriodStart() }) : null,
   ]);
   const wedge = business && health ? await getWedgeReadiness(business.id, health) : null;
 
@@ -245,7 +247,7 @@ export async function GET(request: Request) {
       hasSubscription: Boolean(business?.stripeSubscriptionId),
       entitled,
       pilotEndsAt: pilotEnds?.toISOString() ?? null,
-      usage: monthValue ? summarizeCallUsage({ used: monthValue.callsAnswered, planId: currentPlanId }) : null,
+      usage: billableCalls !== null ? summarizeCallUsage({ used: billableCalls, planId: currentPlanId }) : null,
       valueLine: monthValue ? monthValueLine(monthValue) : null,
     },
     deposits: businessRecord ? depositsPayload(businessRecord) : null,

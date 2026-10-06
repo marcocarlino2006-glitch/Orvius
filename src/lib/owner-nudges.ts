@@ -1,5 +1,6 @@
 import type { Business } from "@prisma/client";
 import { PAST_DUE_GRACE_DAYS } from "@/lib/billing-entitlement";
+import { countBillableCalls } from "@/lib/billable-calls";
 import { includedCallsForPlan, usagePeriodStart } from "@/lib/call-usage";
 import { getAppUrl } from "@/lib/env";
 import { logInfo } from "@/lib/logger";
@@ -111,7 +112,7 @@ async function usageAlerts(now: Date) {
   const since = usagePeriodStart(now);
   const shops = await prisma.business.findMany({
     where: { billingStatus: "active", environment: { notIn: ["test", "demo"] } },
-    select: { id: true, name: true, ownerPhone: true, ownerEmail: true, billingPlan: true },
+    select: { id: true, name: true, ownerPhone: true, ownerEmail: true, transferPhone: true, billingPlan: true },
   });
   if (!shops.length) return 0;
 
@@ -133,9 +134,11 @@ async function usageAlerts(now: Date) {
   const period = day(since).slice(0, 7);
   let queued = 0;
   for (const shop of shops) {
-    const used = busy.get(shop.id) ?? 0;
     const included = includedCallsForPlan(shop.billingPlan);
     if (!included) continue;
+    // The grouped count is every inbound call; only a shop it puts near a threshold pays for the exact billable count.
+    if ((busy.get(shop.id) ?? 0) < included * USAGE_THRESHOLDS[0]) continue;
+    const used = await countBillableCalls(shop, { gte: since });
     const crossed = USAGE_THRESHOLDS.filter((t) => used >= included * t).at(-1);
     if (!crossed) continue;
     const result = await nudge(

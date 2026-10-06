@@ -1,4 +1,5 @@
 import { recordAudit } from "@/lib/audit";
+import { countBillableCalls } from "@/lib/billable-calls";
 import { summarizeCallUsage } from "@/lib/call-usage";
 import { logWarn } from "@/lib/logger";
 import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
@@ -62,6 +63,8 @@ const overageSelect = {
   stripeCustomerId: true,
   stripeSubscriptionId: true,
   overageBilledPeriod: true,
+  ownerPhone: true,
+  transferPhone: true,
 } as const;
 
 /**
@@ -103,10 +106,7 @@ export async function billPreviousMonthOverage(now = new Date(), { budgetMs = 40
 
   for (const shop of shops) {
     if (Date.now() - started > budgetMs) break;
-    const countSince = (since: Date) =>
-      prisma.call.count({
-        where: { businessId: shop.id, direction: "inbound", createdAt: { gte: since, lt: period.end } },
-      });
+    const countSince = (since: Date) => countBillableCalls(shop, { gte: since, lt: period.end });
     let decision = decideOverage({ ...shop, periodKey: period.key, callsInPeriod: await countSince(period.start) });
 
     /* Calls answered during a pilot, before the paid plan began, are never billed. */

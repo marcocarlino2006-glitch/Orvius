@@ -849,3 +849,27 @@ test("24. lapsed numbers are released by default after a week's notice, suspende
     else process.env.ORVIUS_RELEASE_LAPSED_LINES = prev;
   }
 });
+
+test("25/26. the meter, the usage texts and the overage invoice count the same billable calls: no owner tests, hang-ups or spam", async () => {
+  const { countBillableCalls } = await import("../src/lib/billable-calls.ts");
+  const shop = await makeShop({ ownerPhone: "+13035550180", transferPhone: "(303) 555-0181" });
+  const since = new Date(Date.now() - 86_400_000);
+  const call = (data) => prisma.call.create({ data: { businessId: shop.id, vapiCallId: `bill-${uid()}`, direction: "inbound", ...data } });
+  await call({ callerPhone: "+17205550101", durationSec: 95 });
+  await call({ callerPhone: "+17205550102", durationSec: null });
+  await call({ callerPhone: null, durationSec: 40 });
+  await call({ callerPhone: "+13035550180", durationSec: 120 });
+  await call({ callerPhone: "+13035550181", durationSec: 60 });
+  await call({ callerPhone: "+17205550103", durationSec: 8 });
+  await call({ callerPhone: "+17205550104", durationSec: 30, direction: "outbound" });
+  const spam = await call({ callerPhone: "+17205550105", durationSec: 45 });
+  await prisma.lead.create({ data: { businessId: shop.id, callId: spam.id, phone: "+17205550105", status: "spam" } });
+  const real = await call({ callerPhone: "+17205550106", durationSec: 45 });
+  await prisma.lead.create({ data: { businessId: shop.id, callId: real.id, phone: "+17205550106", status: "booked" } });
+
+  assert.equal(await countBillableCalls(shop, { gte: since }), 4, "customer, unknown length, withheld number, and the booked caller");
+
+  for (const file of ["src/lib/overage-billing.ts", "src/lib/owner-nudges.ts", "src/app/api/account/route.ts"]) {
+    assert.match(readFileSync(new URL(`../${file}`, import.meta.url), "utf8"), /countBillableCalls\(/, `${file} meters through the billable count`);
+  }
+});
