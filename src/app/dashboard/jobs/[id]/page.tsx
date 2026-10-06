@@ -1,6 +1,7 @@
 "use client";
 
 import { JobBillSection, type JobBill } from "@/components/job-bill-section";
+import { JobFieldPanel } from "@/components/job-field-panel";
 import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
 import {
@@ -339,6 +340,9 @@ export default function JobDetailPage() {
               </button>
             ) : null}
           </div>
+        </ShellPanel>
+        <ShellPanel title="The work" dense>
+          <JobFieldPanel jobId={job.id} locked={bill?.invoice?.status === "paid"} onChange={load} />
         </ShellPanel>
         </WorkPanel>
         </div>

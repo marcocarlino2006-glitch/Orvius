@@ -24,11 +24,12 @@ export const osProductNav: OsNavItem[] = [
 
 /** Screens that belong to a nav item without living under its path. */
 export const OS_NAV_ALIASES: Record<string, string[]> = {
-  "/dashboard/work": ["/dashboard/inbox", "/dashboard/jobs"],
+  "/dashboard/work": ["/dashboard/inbox", "/dashboard/jobs", "/dashboard/price-book"],
 };
 
 export const osWorkspaceNav: OsNavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: "settings" },
+  { href: "/dashboard/price-book", label: "Price book", icon: "billing" },
   { href: "/dashboard/profile", label: "Profile", icon: "profile" },
   { href: "/dashboard/billing", label: "Billing", icon: "billing" },
 ];

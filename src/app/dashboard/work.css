@@ -1010,3 +1010,326 @@ a.cmd-feed-text:hover {
 .wh-event--held .wh-event-title {
   color: var(--ox-amber);
 }
+
+/* ── The work on a job: lines, photos, notes (same record as the tech app) ── */
+
+.jf {
+  display: grid;
+  gap: 0.75rem;
+  font-family: var(--font-sans, inherit);
+}
+
+.jf-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.jf-head--rule {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ox-line);
+}
+
+.jf-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: var(--ox-text);
+}
+
+.jf-total {
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-text);
+}
+
+.jf-muted {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ox-mute);
+}
+
+.jf-lines {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.jf-lines td {
+  padding: 0.5rem 0.375rem;
+  border-bottom: 1px solid var(--ox-line);
+  vertical-align: middle;
+}
+
+.jf-lines tr:last-child td {
+  border-bottom: 0;
+}
+
+.jf-line-name {
+  display: block;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.jf-line-kind {
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.jf-num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-text-2);
+}
+
+.jf-line-total {
+  font-weight: 650;
+  color: var(--ox-text);
+}
+
+.jf-qty {
+  width: 4rem;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s1);
+  font: inherit;
+  text-align: right;
+}
+
+.jf-x {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: var(--ox-mute);
+  cursor: pointer;
+}
+
+.jf-x:hover {
+  background: var(--ox-fill-light);
+  color: var(--ox-text);
+}
+
+.jf-add {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.jf-custom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 6rem auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.jf-custom .input {
+  margin: 0;
+}
+
+.jf-link {
+  justify-self: start;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text-2);
+}
+
+.jf-label {
+  margin: 0 0 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ox-mute);
+}
+
+.jf-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.jf-thumb {
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-fill-light);
+  cursor: zoom-in;
+}
+
+.jf-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.jf-notes {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jf-note {
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-fill-light);
+}
+
+.jf-note--field {
+  background: var(--ox-green-soft);
+}
+
+.jf-note-who {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.jf-note-body {
+  margin: 0;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  color: var(--ox-text);
+}
+
+.jf-note-form {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.jf-note-form .input {
+  width: 100%;
+}
+
+.jf-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: rgb(0 0 0 / 0.86);
+}
+
+.jf-viewer img {
+  justify-self: center;
+  align-self: center;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.jf-viewer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .jf-custom {
+    grid-template-columns: minmax(0, 1fr) 5.5rem;
+  }
+  .jf-custom select {
+    grid-column: 1;
+  }
+}
+
+/* ── Price book ─────────────────────────────────────────────────────────── */
+
+.pb-form {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) auto minmax(6rem, 0.6fr);
+  gap: 0.5rem;
+  align-items: center;
+  font-family: var(--font-sans, inherit);
+}
+
+.pb-form .input {
+  margin: 0;
+}
+
+.pb-desc {
+  grid-column: 1 / -1;
+}
+
+.pb-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+}
+
+.pb-search {
+  margin-bottom: 0.75rem;
+}
+
+.pb-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-sans, inherit);
+}
+
+.pb-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--ox-line);
+}
+
+.pb-row:last-child {
+  border-bottom: 0;
+}
+
+.pb-row--editing {
+  display: block;
+}
+
+.pb-row-main {
+  min-width: 0;
+}
+
+.pb-row-price {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-text);
+}
+
+.pb-row-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .pb-form {
+    grid-template-columns: minmax(0, 1fr) 6rem;
+  }
+  .pb-form select {
+    grid-column: 1 / -1;
+  }
+  .pb-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .pb-row-actions {
+    grid-column: 1 / -1;
+  }
+}
