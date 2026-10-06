@@ -600,8 +600,9 @@ test("21. no customer data on open links or in logs: voicemail plays only signed
   signedInAs = other.ownerEmail;
   assert.equal((await playVoicemail(new Request("http://localhost/"), { params: Promise.resolve({ id: lead.id }) })).status, 404);
   signedInAs = shop.ownerEmail;
-  process.env.TWILIO_ACCOUNT_SID ||= "ACtest";
-  process.env.TWILIO_AUTH_TOKEN ||= "secret";
+  const twilioEnv = { sid: process.env.TWILIO_ACCOUNT_SID, token: process.env.TWILIO_AUTH_TOKEN };
+  process.env.TWILIO_ACCOUNT_SID = "ACtest";
+  process.env.TWILIO_AUTH_TOKEN = "secret";
   const realFetch = globalThis.fetch;
   let fetched = null;
   globalThis.fetch = async (url, init) => {
@@ -618,6 +619,10 @@ test("21. no customer data on open links or in logs: voicemail plays only signed
   } finally {
     globalThis.fetch = realFetch;
     signedInAs = null;
+    for (const [key, value] of [["TWILIO_ACCOUNT_SID", twilioEnv.sid], ["TWILIO_AUTH_TOKEN", twilioEnv.token]]) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
   }
 
   const { GET: health } = await import("../src/app/api/health/route.ts");
@@ -671,4 +676,71 @@ test("21. no customer data on open links or in logs: voicemail plays only signed
     console.warn = realWarn;
   }
   assert.doesNotMatch(lines.join(""), /3035550199/);
+});
+
+test("22. the Vapi bill has a ceiling: a caller dialing on repeat and a runaway shop line are cut on connect, the owner's own phone never is", async () => {
+  const { POST } = await import("../src/app/api/webhooks/vapi/route.ts");
+  const shop = await makeShop({ ownerPhone: "+13035550160", vapiAssistantId: `asst-${uid()}` });
+  const realFetch = globalThis.fetch;
+  const control = [];
+  globalThis.fetch = async (url, init) => {
+    if (String(url).startsWith("https://control.test/")) {
+      control.push({ url: String(url), body: JSON.parse(init.body) });
+      return new Response("{}");
+    }
+    return realFetch(url, init);
+  };
+  const connect = async (caller) => {
+    const id = `vc-${uid()}`;
+    deferred.length = 0;
+    const res = await POST(
+      new Request("http://localhost/api/webhooks/vapi", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-vapi-secret": process.env.VAPI_WEBHOOK_SECRET ?? "" },
+        body: JSON.stringify({
+          message: {
+            type: "status-update",
+            status: "in-progress",
+            call: { id, assistantId: shop.vapiAssistantId, customer: caller ? { number: caller } : undefined, monitor: { controlUrl: `https://control.test/${id}` } },
+          },
+        }),
+      }),
+    );
+    assert.equal(res.status, 200);
+    for (const task of deferred.splice(0)) await task().catch(() => {});
+    return control.filter((c) => c.url.endsWith(id)).map((c) => c.body);
+  };
+  const ceiling = process.env.ORVIUS_SHOP_DAILY_CALL_CEILING;
+  try {
+    const robo = `+1720555${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    const ago = (m) => new Date(Date.now() - m * 60_000);
+    await prisma.call.createMany({ data: Array.from({ length: 10 }, (_, i) => ({ businessId: shop.id, vapiCallId: `old-${uid()}-${i}`, callerPhone: robo, createdAt: ago(5 + i) })) });
+    const cut = await connect(robo);
+    assert.equal(cut.length, 1);
+    assert.equal(cut[0].type, "say");
+    assert.equal(cut[0].endCallAfterSpoken, true);
+    assert.match(cut[0].content, /several calls from this number/);
+
+    await prisma.call.createMany({ data: Array.from({ length: 12 }, (_, i) => ({ businessId: shop.id, vapiCallId: `own-${uid()}-${i}`, callerPhone: "+13035550160", createdAt: ago(1 + i) })) });
+    assert.deepEqual(await connect("+13035550160"), [], "the owner testing their own line is never cut");
+
+    const fresh = `+1720556${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    assert.deepEqual(await connect(fresh), [], "a new caller on a normal day goes straight through");
+
+    process.env.ORVIUS_SHOP_DAILY_CALL_CEILING = "20";
+    await prisma.cronRun.deleteMany({ where: { name: "page:spend_ceiling" } });
+    const flood = await connect(null);
+    assert.equal(flood.length, 1, "past the shop's daily ceiling even a withheld number is cut");
+    assert.match(flood[0].content, /unusual number of calls/);
+    assert.ok(await prisma.cronRun.findUnique({ where: { name: "page:spend_ceiling" } }), "and the founder is paged");
+  } finally {
+    globalThis.fetch = realFetch;
+    if (ceiling === undefined) delete process.env.ORVIUS_SHOP_DAILY_CALL_CEILING;
+    else process.env.ORVIUS_SHOP_DAILY_CALL_CEILING = ceiling;
+  }
+
+  const { buildVapiAssistantConfig } = await import("../src/lib/vapi.ts");
+  const config = buildVapiAssistantConfig({ businessName: "X", systemPrompt: "p", greeting: "g", webhookUrl: "https://x" });
+  assert.equal(config.maxDurationSeconds, 600, "a stuck line stops billing at ten minutes");
+  assert.equal(config.silenceTimeoutSeconds, 30);
 });

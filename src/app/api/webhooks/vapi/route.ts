@@ -24,6 +24,7 @@ import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
 import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
+import { callSpendCut, endCallWith } from "@/lib/call-spend-guard";
 
 /* Room for a made-up line-watch run after the response (cron-backstop.ts). */
 export const maxDuration = 60;
@@ -254,13 +255,20 @@ export async function POST(request: NextRequest) {
 
     const controlUrl = message.call?.monitor?.controlUrl;
     const connected = type === "call-started" || message.status === "in-progress";
-    if (callerPhone && controlUrl && connected) {
+    if (controlUrl && connected) {
       after(async () => {
         const claimed = await prisma.call.updateMany({
           where: { id: call.id, callerContextSentAt: null },
           data: { callerContextSentAt: new Date() },
         });
         if (!claimed.count) return;
+        const cut = await callSpendCut({ shop: business, callerPhone });
+        if (cut) {
+          await endCallWith(controlUrl, cut.say);
+          if (cut.reason === "shop_ceiling") await pagePlatform("spend_ceiling", { businessId: business.id, vapiCallId });
+          return;
+        }
+        if (!callerPhone) return;
         const note = await loadCallerContextNote({
           businessId: business.id,
           phone: callerPhone,
