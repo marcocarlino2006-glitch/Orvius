@@ -16,10 +16,13 @@ const DEFAULT_HEALTH =
   "https://api.orvius.im/api/health";
 
 function parseHealth(json, source) {
+  // Anonymous callers get only whether a line is configured, not the number.
   const phone =
     typeof json?.twilioPhone === "string" && json.twilioPhone.trim()
       ? json.twilioPhone.trim()
-      : null;
+      : json?.twilioLineConfigured
+        ? "configured"
+        : null;
   return {
     ok: Boolean(json?.configured && phone),
     phone,

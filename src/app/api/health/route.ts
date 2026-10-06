@@ -5,7 +5,7 @@ import { getConfigStatus } from "@/lib/env";
 import { isEmailConfigured } from "@/lib/email";
 import { company } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
-import { isProduction } from "@/lib/runtime";
+import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 
 export async function GET(request: NextRequest) {
   const config = getConfigStatus();
@@ -15,13 +15,19 @@ export async function GET(request: NextRequest) {
     for. And since the public answer carries no counts, it must not pay for
     them — five Turso round trips made the uptime probe take three seconds.
   */
-  if (isProduction() && !(await isPrivilegedRequest(request))) {
+  /*
+    A preview deployment pointed at the live database is not "production" but
+    holds the same shops, so the guard is about the data, not the deploy. The
+    shared sender number stays private too: published, it is a target for spam
+    and for pumping texts at it.
+  */
+  if (!isUnauthenticatedAccessAllowed() && !(await isPrivilegedRequest(request))) {
     return NextResponse.json({
       ok: true,
       service: "orvius",
       configured: config.ready,
       ownerSmsEnabled: config.ownerSmsEnabled,
-      twilioPhone: config.twilioPhone,
+      twilioLineConfigured: Boolean(config.twilioPhone),
       appUrl: config.appUrl,
     });
   }
