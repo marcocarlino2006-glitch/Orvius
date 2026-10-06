@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: "17 13 * * *"
   workflow_dispatch:
+  # Vercel reports each deploy back to GitHub; a broken production deploy is
+  # caught minutes after it goes live, not at the next daily run.
+  deployment_status:
 
 permissions:
   contents: read
@@ -19,6 +22,7 @@ concurrency:
 
 jobs:
   verify:
+    if: github.event_name != 'deployment_status' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
