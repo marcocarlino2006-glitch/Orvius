@@ -274,6 +274,10 @@ test("the office can copy the current link without breaking it, and lists never 
     const row = body.technicians.find((t) => t.id === tech.id);
     assert.equal(row.hasAppLink, true);
     assert.equal(JSON.stringify(body).includes(token), false);
+    const dispatch = await import("../src/app/api/dispatch/route.ts");
+    const board = await (await dispatch.GET(new Request("http://localhost/api/dispatch"))).json();
+    assert.ok(board.crew.some((t) => t.id === tech.id));
+    assert.equal(JSON.stringify(board).includes(token), false, "the dispatch board never carries the token");
   } finally {
     signedInAs = null;
   }

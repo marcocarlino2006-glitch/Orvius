@@ -191,7 +191,7 @@ async function runWindowProposal(
   if (!params.jobId) return { error: "Invalid reschedule params", status: 400 };
   const job = await prisma.job.findFirst({
     where: { id: params.jobId, businessId: business.id },
-    include: { technician: true, customer: { select: { name: true } }, lead: { select: { name: true } } },
+    include: { technician: { omit: { appToken: true } }, customer: { select: { name: true } }, lead: { select: { name: true } } },
   });
   if (!job) return { error: "Job not found", status: 404 };
   if (job.status === "completed" || job.status === "cancelled") {

@@ -713,7 +713,7 @@ export default function DispatchPage() {
             )}
 
             <details className="dsp-section dsp-crew" open={!crew.length}>
-              <summary className="dsp-h">Crew and skills · {crew.length}</summary>
+              <summary className="dsp-h">Crew, skills and app links · {crew.length}</summary>
               <p className="dsp-crew-help">
                 Orvius sends each booking to someone with the right skill. Leave a technician without skills to let them take
                 any job.

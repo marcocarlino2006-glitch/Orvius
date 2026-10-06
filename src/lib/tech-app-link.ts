@@ -17,8 +17,12 @@ export async function ensureTechAppToken(technicianId: string): Promise<string> 
   return raced?.appToken ?? appToken;
 }
 
-/** A technician row for the browser or an export: whether they have an app link, never the link itself. */
+/**
+ * A technician row for the browser or an export: whether they have an app
+ * link, never the link itself. `appTokenAt` is set and cleared with the token,
+ * so rows that never selected the token still answer.
+ */
 export function publicTechnician<T extends { appToken?: string | null; appTokenAt?: Date | null }>(tech: T) {
   const { appToken, appTokenAt, ...rest } = tech;
-  return { ...rest, hasAppLink: Boolean(appToken), appLinkAt: appTokenAt?.toISOString() ?? null };
+  return { ...rest, hasAppLink: Boolean(appToken ?? appTokenAt), appLinkAt: appTokenAt?.toISOString() ?? null };
 }

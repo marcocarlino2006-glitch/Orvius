@@ -100,7 +100,7 @@ export async function proposeAction(shop: Shop, input: ProposeInput): Promise<Pr
     if (!input.jobId || !input.technicianId) return { ok: false, error: "jobId and technicianId required", status: 400 };
     const [job, tech] = await Promise.all([
       prisma.job.findFirst({ where: { id: input.jobId, businessId: shop.id } }),
-      prisma.technician.findFirst({ where: { id: input.technicianId, businessId: shop.id } }),
+      prisma.technician.findFirst({ where: { id: input.technicianId, businessId: shop.id }, omit: { appToken: true } }),
     ]);
     if (!job || !tech) return { ok: false, error: "Job or technician not found", status: 404 };
     params.jobId = job.id;
