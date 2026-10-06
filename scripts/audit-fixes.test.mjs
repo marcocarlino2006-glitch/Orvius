@@ -906,3 +906,30 @@ test("30. pricing shows the per-call price, and the payback line uses the entry 
   assert.match(page, /perCallCents\(entry, "month"\)/);
   assert.match(readFileSync(new URL("../src/components/pricing-plan-card.tsx", import.meta.url), "utf8"), /perCallCents\(plan, interval\)/);
 });
+
+test("31. with card signup closed, a would-be shop lands on the waitlist instead of a dead end", async () => {
+  const prevSignup = process.env.ORVIUS_SELF_SERVE_SIGNUP;
+  const prevAllowed = process.env.ORVIUS_AUTH_ALLOWED_EMAILS;
+  process.env.ORVIUS_SELF_SERVE_SIGNUP = "0";
+  process.env.ORVIUS_AUTH_ALLOWED_EMAILS = "";
+  const email = `closed-${Date.now()}@example.test`;
+  signedInAs = email;
+  try {
+    const { POST } = await import("../src/app/api/onboarding/route.ts");
+    const req = () => new Request("http://localhost/api/onboarding", { method: "POST", body: "{}", headers: { "content-type": "application/json", "x-real-ip": `10.31.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` } });
+    const res = await POST(req());
+    assert.equal(res.status, 403);
+    assert.match((await res.json()).error, /on the list/);
+    await POST(req());
+    const rows = await prisma.waitlistEntry.findMany({ where: { email } });
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].plan, "self-serve");
+  } finally {
+    signedInAs = null;
+    await prisma.waitlistEntry.deleteMany({ where: { email } });
+    if (prevSignup === undefined) delete process.env.ORVIUS_SELF_SERVE_SIGNUP;
+    else process.env.ORVIUS_SELF_SERVE_SIGNUP = prevSignup;
+    if (prevAllowed === undefined) delete process.env.ORVIUS_AUTH_ALLOWED_EMAILS;
+    else process.env.ORVIUS_AUTH_ALLOWED_EMAILS = prevAllowed;
+  }
+});

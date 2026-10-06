@@ -9,6 +9,7 @@ import { isStripeCheckoutConfigured } from "@/lib/stripe";
 import { isOnboardingComplete } from "@/lib/provision-business";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
+import { prisma } from "@/lib/prisma";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
 import { resolveShopAccess } from "@/lib/workspace-access";
@@ -84,9 +85,16 @@ export async function POST(request: NextRequest) {
       publicSignupReady,
     )
   ) {
+    await prisma.waitlistEntry
+      .upsert({
+        where: { email },
+        create: { email, plan: "self-serve", notes: "Signed in to start a shop while card signup was closed." },
+        update: {},
+      })
+      .catch(() => {});
     return NextResponse.json(
       {
-        error: "Card signup isn't open yet. Book a call audit at orvius.im/pilot and we'll set up your shop with you.",
+        error: "Card signup isn't open yet. You're on the list and we'll reach out to set up your shop — or book a call audit at orvius.im/pilot.",
         code: "self_serve_signup_disabled",
       },
       { status: 403 },
