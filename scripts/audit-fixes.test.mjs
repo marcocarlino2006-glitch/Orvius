@@ -1029,3 +1029,42 @@ test("39. a port nobody filed, or a carrier sitting on one, pages the founder on
     await prisma.cronRun.deleteMany({ where: { name: { startsWith: `page:shop:port_stalled:${stale.id}` } } });
   }
 });
+
+test("40. no page or component makes an absolutist answer claim, sign-in included", async () => {
+  const { readdirSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const root = new URL("../src/", import.meta.url).pathname;
+  const files = [];
+  const walk = (dir) => {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) walk(path);
+      else if (/\.tsx$/.test(name)) files.push(path);
+    }
+  };
+  walk(join(root, "app"));
+  walk(join(root, "components"));
+  const banned = /never miss|never-miss|answers every call|guaranteed jobs|guaranteed revenue|100%\s*answer|always.?answers/i;
+  const hits = [];
+  for (const file of files) {
+    readFileSync(file, "utf8")
+      .split("\n")
+      .forEach((line, i) => {
+        // The pilot page lists what Orvius will not promise.
+        if (banned.test(line) && !/Guarantee “zero missed jobs”/.test(line)) hits.push(`${file.slice(root.length)}:${i + 1}: ${line.trim()}`);
+      });
+  }
+  assert.deepEqual(hits, []);
+});
+
+test("40b. each home-service trade has a public page built from the receptionist's own trade pack, listed in the sitemap", async () => {
+  const { TRADE_PAGES, tradePage } = await import("../src/lib/trade-pages.ts");
+  assert.match(readFileSync(new URL("../src/app/sitemap.ts", import.meta.url), "utf8"), /TRADE_PAGES\.map\(\(p\) => `\/for\/\$\{p\.slug\}`\)[\s\S]*\.\.\.trades/);
+  for (const { slug } of TRADE_PAGES) {
+    const page = tradePage(slug);
+    assert.ok(page.commonCalls.length >= 3, `${slug} lists the calls it handles`);
+    assert.ok(page.services.length >= 1, `${slug} lists starting services`);
+  }
+  assert.equal(tradePage("hvac").article, "an");
+  assert.equal(tradePage("law-office"), null, "no page for the trades outside home services");
+});
