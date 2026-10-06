@@ -404,3 +404,20 @@ test("9/10. a platform-wide failure pages the founder once per quarter hour: Vap
   for (const task of deferred.splice(0)) await task();
   assert.ok(await prisma.cronRun.findUnique({ where: { name: "page:vapi_unreachable" } }), "fallback call paged the founder");
 });
+
+test("11. an owner no channel can reach is escalated to the founder, once per shop per day", async () => {
+  const { applySmsDeliveryReceipt } = await import("../src/lib/notification-queue.ts");
+  const shop = await makeShop({ name: "Landline Plumbing", ownerPhone: "+13035550144", ownerEmail: null });
+  const sid = `SM${uid()}`;
+  const row = await prisma.ownerNotification.create({
+    data: { businessId: shop.id, channel: "sms", dedupeKey: `t:${uid()}`, status: "sent", deliveryId: sid, attempts: 1, ownerPhone: shop.ownerPhone, businessName: shop.name, message: "Missed call" },
+  });
+  // 30006: landline or unreachable carrier — a verdict, and no email to fall back to.
+  await applySmsDeliveryReceipt({ messageSid: sid, messageStatus: "undelivered", errorCode: "30006" });
+  assert.equal((await prisma.ownerNotification.findUnique({ where: { id: row.id } })).status, "failed");
+  const day = new Date().toISOString().slice(0, 10);
+  assert.ok(await prisma.cronRun.findUnique({ where: { name: `page:owner_unreachable:${shop.id}:${day}` } }), "founder paged");
+
+  const { pageOwnerUnreachable } = await import("../src/lib/platform-pager.ts");
+  assert.equal((await pageOwnerUnreachable(shop.id, "sms")).paged, false, "once a day per shop");
+});

@@ -80,3 +80,23 @@ export function isTwilioAccountFailure(error: unknown) {
   const code = Number((error as { code?: unknown })?.code);
   return TWILIO_ACCOUNT_CODES.has(code);
 }
+
+/**
+ * A shop whose alerts reach nobody: the text failed for good and there is no
+ * email to fall back to (or the email failed too). Someone at Orvius has to
+ * phone the shop, so the founder gets one text per shop per day.
+ */
+export async function pageOwnerUnreachable(businessId: string, lastChannel: "sms" | "email", now = new Date()) {
+  const name = `page:owner_unreachable:${businessId}:${now.toISOString().slice(0, 10)}`;
+  const first = await prisma.cronRun
+    .create({ data: { name, lastClaimAt: now } })
+    .then(() => true)
+    .catch(() => false);
+  if (!first) return { paged: false as const };
+  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { name: true, ownerPhone: true, ownerEmail: true } });
+  const text = `Orvius: ${shop?.name ?? "a shop"}'s owner alerts can't be delivered (${lastChannel === "sms" ? "text failed, no email backup" : "text and email both failed"}). Call them: ${shop?.ownerPhone ?? "no phone"}${shop?.ownerEmail ? `, ${shop.ownerEmail}` : ""}.`;
+  const phone = process.env.ORVIUS_FOUNDER_PHONE?.trim();
+  const sms = phone ? Boolean(await sendSms({ to: phone, body: text, audience: "owner" }).catch(() => null)) : false;
+  if (!sms) logError("platform.owner_unreachable", { businessId, lastChannel });
+  return { paged: true as const, sms };
+}

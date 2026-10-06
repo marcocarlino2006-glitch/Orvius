@@ -1,5 +1,5 @@
 import { afterResponse } from "@/lib/after-response";
-import { isTwilioAccountFailure, pagePlatform } from "@/lib/platform-pager";
+import { isTwilioAccountFailure, pageOwnerUnreachable, pagePlatform } from "@/lib/platform-pager";
 import { getOwnerAlertOpenUrl } from "@/lib/owner-alert-message";
 import { pushFromAlert, sendOwnerPush } from "@/lib/web-push";
 import { recordOutboundSms, smsSender, smsStatusCallback } from "@/lib/twilio-sms";
@@ -434,8 +434,8 @@ async function escalateSmsFailureToEmail(row: {
   businessName: string | null;
   message: string | null;
   ownerEmail: string | null;
-}) {
-  if (!isEmailConfigured()) return;
+}): Promise<"enqueued" | "already_emailed" | "no_email"> {
+  if (!isEmailConfigured()) return "no_email";
 
   /*
     The address is read off the shop when the queue row does not carry one.
@@ -452,7 +452,7 @@ async function escalateSmsFailureToEmail(row: {
     });
     ownerEmail = shop?.ownerEmail ?? null;
   }
-  if (!ownerEmail) return;
+  if (!ownerEmail) return "no_email";
 
   /* Nothing to fall back to if this same alert already reached them by email. */
   const alreadyEmailed = await prisma.ownerNotification.findFirst({
@@ -465,7 +465,7 @@ async function escalateSmsFailureToEmail(row: {
     },
     select: { id: true },
   });
-  if (alreadyEmailed) return;
+  if (alreadyEmailed) return "already_emailed";
 
   await createQueueRow({
     businessId: row.businessId,
@@ -482,6 +482,7 @@ async function escalateSmsFailureToEmail(row: {
     businessId: row.businessId,
     dedupeKey: row.dedupeKey,
   });
+  return "enqueued";
 }
 
 async function markDeliveryFailure(
@@ -521,9 +522,14 @@ async function markDeliveryFailure(
     },
   });
 
+  if (exhausted && row.channel === "email") {
+    await pageOwnerUnreachable(row.businessId, "email").catch(() => null);
+  }
   if (exhausted && row.channel === "sms") {
     try {
-      await escalateSmsFailureToEmail(row);
+      if ((await escalateSmsFailureToEmail(row)) === "no_email") {
+        await pageOwnerUnreachable(row.businessId, "sms").catch(() => null);
+      }
     } catch (escalateError) {
       logError("notification.sms_failover_email_failed", {
         businessId: row.businessId,
