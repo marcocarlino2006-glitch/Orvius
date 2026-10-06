@@ -776,3 +776,14 @@ CREATE INDEX IF NOT EXISTS "OwnerNotification_createdAt_idx" ON "OwnerNotificati
 
 -- A line stops answering once payment is long overdue or a pilot ended unpaid; the stamp drives resume.
 ALTER TABLE "Business" ADD COLUMN "lineSuspendedAt" DATETIME;
+
+-- Ask's model calls per shop per day: a daily cap and a real cost line.
+CREATE TABLE IF NOT EXISTS "ModelUsage" (
+  "businessId" TEXT NOT NULL,
+  "day" TEXT NOT NULL,
+  "kind" TEXT NOT NULL,
+  "calls" INTEGER NOT NULL DEFAULT 0,
+  "micros" INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY ("businessId", "day", "kind")
+);
+CREATE INDEX IF NOT EXISTS "ModelUsage_day_idx" ON "ModelUsage"("day");

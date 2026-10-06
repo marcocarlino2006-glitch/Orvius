@@ -874,6 +874,18 @@ model ProvisionAttempt {
 }
 
 /// Rate-limit counters shared by every server instance.
+/// Paid model calls made on a shop's behalf outside the phone line (Ask), per UTC day. Drives the daily cap and the cost model.
+model ModelUsage {
+  businessId String
+  day        String
+  kind       String
+  calls      Int    @default(0)
+  micros     Int    @default(0)
+
+  @@id([businessId, day, kind])
+  @@index([day])
+}
+
 model RateLimitBucket {
   key       String @id
   count     Int

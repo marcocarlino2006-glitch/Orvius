@@ -123,3 +123,33 @@ test("instructions hidden in a record stay inside the untrusted data block", () 
   assert.match(system, /untrusted business data/);
   assert.match(user, /SHOP_CONTEXT:[\s\S]*IGNORE PREVIOUS/);
 });
+
+test("each shop gets a daily number of model answers, and each one's token cost is metered", async () => {
+  const { PrismaClient } = await import("@prisma/client");
+  const prisma = new PrismaClient();
+  const businessId = `ask-cap-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, body: JSON.parse(init.body) });
+    const text = JSON.stringify({ answer: "Chris Lee is due at Dana's at 1:00 PM.", cited: ["job_duct"], unsure: null });
+    return Response.json({ content: [{ type: "text", text }], usage: { input_tokens: 2_000, output_tokens: 100 } });
+  };
+  const env = { ANTHROPIC_API_KEY: "ak", ORVIUS_ASK_MODEL_DAILY_LIMIT: "2" };
+  try {
+    const ask = () => answerWithModel({ question: "Dana?", memory, brief, businessId, env, fetchImpl });
+    assert.ok(await ask());
+    assert.ok(await ask());
+    assert.equal(await ask(), null, "past the cap Ask answers from the records alone");
+    assert.equal(calls.length, 2, "the capped question never reaches the model");
+    const row = await prisma.modelUsage.findFirst({ where: { businessId } });
+    assert.equal(row.calls, 2);
+    assert.equal(row.micros, 2 * (2_000 * 3 + 100 * 15), "Sonnet list price on the reported tokens");
+    const raced = await Promise.all(
+      Array.from({ length: 6 }, () => answerWithModel({ question: "Dana?", memory, brief, businessId: `${businessId}-race`, env, fetchImpl })),
+    );
+    assert.equal(raced.filter(Boolean).length, 2, "a burst cannot slip past the cap");
+  } finally {
+    await prisma.modelUsage.deleteMany({ where: { businessId: { startsWith: businessId } } });
+    await prisma.$disconnect();
+  }
+});
