@@ -933,3 +933,25 @@ test("31. with card signup closed, a would-be shop lands on the waitlist instead
     else process.env.ORVIUS_AUTH_ALLOWED_EMAILS = prevAllowed;
   }
 });
+
+test("36. an owner's listed prices are quoted as written; an unlisted price is never given", async () => {
+  const { serializeServicesForm, parseServicesForm } = await import("../src/lib/shop-hours-form.ts");
+  const { buildAssistantSystemPrompt } = await import("../src/lib/business.ts");
+  const previous = JSON.stringify([{ name: "Diagnostic visit", description: "Any system", estimatedDurationMin: 60, price: "$79" }]);
+  const json = serializeServicesForm("Diagnostic visit — $89\nDrain clearing: from $149\nWater heater install\nRe-pipe - quote on site", previous);
+  const services = JSON.parse(json);
+  assert.deepEqual(services[0], { name: "Diagnostic visit", description: "Any system", estimatedDurationMin: 60, price: "$89" }, "the new price replaces the old, the rest is kept");
+  assert.deepEqual(services[1], { name: "Drain clearing", price: "from $149" });
+  assert.deepEqual(services[2], { name: "Water heater install" });
+  assert.deepEqual(services[3], { name: "Re-pipe - quote on site" }, "a dash without a dollar figure is part of the name");
+  assert.equal(parseServicesForm(json).split("\n")[0], "Diagnostic visit — $89", "the editor shows the price back");
+  assert.equal(serializeServicesForm(parseServicesForm(json), json), json, "saving the editor unchanged changes nothing");
+
+  const base = { name: "Pipe Pros", greeting: null, hoursJson: "{}", trade: "Plumbing" };
+  const priced = buildAssistantSystemPrompt({ ...base, servicesJson: json });
+  assert.match(priced, /Diagnostic visit — Any system \(listed price: \$89\)/);
+  assert.match(priced, /LISTED PRICES[\s\S]*only exception/);
+  assert.ok(priced.indexOf("LISTED PRICES") > priced.indexOf("Never quote"), "the exception comes after the industry rule it overrides");
+  const unpriced = buildAssistantSystemPrompt({ ...base, servicesJson: JSON.stringify([{ name: "Drain clearing" }]) });
+  assert.doesNotMatch(unpriced, /LISTED PRICES|listed price/);
+});

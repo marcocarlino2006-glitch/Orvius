@@ -7,6 +7,8 @@ export type ServiceOffering = {
   name: string;
   description?: string;
   estimatedDurationMin?: number;
+  /** The owner's own words for what it costs, e.g. "$89 diagnostic". The receptionist may quote it as written. */
+  price?: string;
 };
 
 export function parseJson<T>(value: string, fallback: T): T {
@@ -139,9 +141,21 @@ export function formatServicesForPrompt(servicesJson: string): string {
   return services
     .map((service) => {
       const desc = service.description ? ` — ${service.description}` : "";
-      return `- ${service.name}${desc}`;
+      const price = service.price?.trim() ? ` (listed price: ${service.price.trim()})` : "";
+      return `- ${service.name}${desc}${price}`;
     })
     .join("\n");
+}
+
+/** Placed after the industry rules, because it is the one exception to their "never quote a price". */
+export function formatPricesRule(servicesJson: string): string {
+  const services = parseJson<ServiceOffering[]>(servicesJson, []);
+  if (!Array.isArray(services) || !services.some((s) => typeof s?.price === "string" && s.price.trim())) return "";
+  return `
+
+LISTED PRICES
+- The owner listed a price next to some services above. If a caller asks what one of those costs, say the listed price exactly as written, then add that the team confirms the final price once they see the job.
+- This is the only exception to any rule about not quoting prices. For a service without a listed price, or anything beyond what is listed, never give a number: say the team will go over pricing when they call back.`;
 }
 
 import {
@@ -255,7 +269,7 @@ ${formatHoursForPrompt(business.hoursJson)}
 After hours: still take the message and mark urgency. Emergency calls get priority callback.
 
 SERVICES
-${formatServicesForPrompt(business.servicesJson)}${tradeBlock}
+${formatServicesForPrompt(business.servicesJson)}${tradeBlock}${formatPricesRule(business.servicesJson)}
 
 BEFORE ENDING EVERY CALL
 Confirm: name, callback number (read it back), service needed, urgency, address.
@@ -345,7 +359,7 @@ After hours: still take the message and mark urgency. Urgent calls get a priorit
 SERVICES
 ${formatServicesForPrompt(business.servicesJson)}
 
-${tradePromptPack(trade)}
+${tradePromptPack(trade)}${formatPricesRule(business.servicesJson)}
 
 BEFORE ENDING EVERY CALL
 Confirm: name, callback number (read it back), what they need, urgency.

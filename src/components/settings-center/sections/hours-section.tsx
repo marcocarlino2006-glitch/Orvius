@@ -68,14 +68,14 @@ export function HoursSection({
         })}
       </ScGroup>
       <ScGroup title="Work you take">
-        <ScRow stack label="Services" hint="One per line. Written into the receptionist's service list.">
+        <ScRow stack label="Services" hint="One per line. Add a price after a dash, like “Diagnostic visit — $89”, and the receptionist can quote it; without one it never gives a number.">
           <ScField
             multiline
             rows={4}
             ariaLabel="Services"
             value={parseServicesForm(b.servicesJson)}
             placeholder={"AC repair\nHeating repair\nMaintenance"}
-            onCommit={(v) => patch({ servicesJson: serializeServicesForm(v) })}
+            onCommit={(v) => patch({ servicesJson: serializeServicesForm(v, b.servicesJson) })}
           />
         </ScRow>
         <ScRow
