@@ -3,6 +3,7 @@ import { afterResponse } from "@/lib/after-response";
 import { displayPhone } from "@/lib/customer";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { findOpenSlots } from "@/lib/job";
+import { recordAudit } from "@/lib/audit";
 import { logError, logInfo } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { findNetworkPartners, zip3From } from "@/lib/orvius-network";
@@ -23,6 +24,8 @@ import {
   OFFERED_SLOTS,
   parseSlotPreference,
   PASSED_TO_NETWORK_REPLY,
+  NETWORK_NOT_A_YES_REPLY,
+  isClearYes,
   safetyAlertReply,
   SLOT_TAKEN_REPLY,
   type ToolCall,
@@ -94,9 +97,23 @@ async function networkCanHelp(shop: ShopForTools) {
   return partners.length > 0;
 }
 
-async function passToNetwork(shop: ShopForTools, callId: string) {
+async function passToNetwork(shop: ShopForTools, callId: string, args: Record<string, unknown>) {
+  const callerSaid = str(args.callerSaid)?.slice(0, 200) ?? null;
+  if (!isClearYes(callerSaid)) {
+    logInfo("in_call.network_consent_refused", { businessId: shop.id, callId });
+    return NETWORK_NOT_A_YES_REPLY;
+  }
   if (!(await networkCanHelp(shop))) return NETWORK_UNAVAILABLE_REPLY;
   await prisma.call.update({ where: { id: callId }, data: { networkConsentAt: new Date() } });
+  await recordAudit({
+    businessId: shop.id,
+    entityType: "call",
+    entityId: callId,
+    action: "network.consent",
+    actor: "system",
+    summary: `Caller agreed to be passed to a nearby shop: "${callerSaid}"`,
+    idempotencyKey: `network-consent:${callId}`,
+  });
   logInfo("in_call.network_consent", { businessId: shop.id, callId });
   return PASSED_TO_NETWORK_REPLY;
 }
@@ -240,7 +257,7 @@ export async function handleInCallToolCalls(params: {
           return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "new", params.callerWords) };
         }
         if (call.name === "pass_to_network") {
-          return { toolCallId: call.id, result: await passToNetwork(params.shop, params.callId) };
+          return { toolCallId: call.id, result: await passToNetwork(params.shop, params.callId, call.args) };
         }
         if (call.name === "hold_new_time") {
           return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "reschedule") };

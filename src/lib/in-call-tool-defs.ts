@@ -99,8 +99,14 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
       function: {
         name: "pass_to_network",
         description:
-          "Only after check_availability said a nearby Orvius Network shop can help and the caller said yes to being passed along. Records their yes; a nearby pro then reaches out. Never call it without a clear yes.",
-        parameters: { type: "object", properties: {} },
+          "Only after check_availability said a nearby Orvius Network shop can help, you told the caller their name, number and problem would be shared with another local company, and they said yes. Records their yes; a nearby pro then reaches out. Never call it without a clear yes.",
+        parameters: {
+          type: "object",
+          properties: {
+            callerSaid: { type: "string", description: "The caller's own words agreeing to be passed along, as they said them." },
+          },
+          required: ["callerSaid"],
+        },
       },
       messages: [{ type: "request-start", content: "One moment." }],
       server,
@@ -165,7 +171,20 @@ export const SLOT_TAKEN_REPLY = "That time was just taken. Apologize briefly and
 export const NO_SLOTS_REPLY =
   "No open times in the next two weeks. Do not offer a time. Take their details and say the office will call to schedule.";
 export const NETWORK_OFFER_REPLY =
-  "No open times here in the next two weeks. Do not offer a time. Ask once: \"We're booked up. Would you like me to pass your request to another trusted local pro who may be able to come sooner?\" If they say yes, call pass_to_network. If not, take their details and say the office will call to schedule.";
+  "No open times here in the next two weeks. Do not offer a time. Ask once: \"We're booked up. I can share your name, number and what you need with another local company we work with, so they can call you sooner. Is that okay?\" If they say yes, call pass_to_network with their words. If not, take their details and say the office will call to schedule.";
+export const NETWORK_NOT_A_YES_REPLY =
+  "That was not a clear yes, so nothing was shared. Take their details and say the office will call to schedule.";
+
+/*
+  Passing a caller to another business is only theirs to direct, so the yes is
+  checked in their own words rather than taken from the model's say-so.
+*/
+export function isClearYes(words: string | null | undefined): boolean {
+  const t = words?.toLowerCase().trim() ?? "";
+  if (!t) return false;
+  if (/\b(no|nope|nah|don'?t|do not|not really|rather not|i'?ll wait|never mind)\b/.test(t)) return false;
+  return /\b(yes|yeah|yep|yup|sure|ok|okay|please|go ahead|that'?s fine|fine|do it|sounds good|absolutely|s[ií]|claro|por favor)\b/.test(t);
+}
 export const PASSED_TO_NETWORK_REPLY =
   "Done. Tell them a nearby pro will reach out shortly. Do not name a shop or promise a time. Make sure you have their name, callback number and service address before ending the call.";
 export const NETWORK_UNAVAILABLE_REPLY =

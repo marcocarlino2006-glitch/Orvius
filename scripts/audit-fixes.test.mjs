@@ -225,3 +225,14 @@ test("4. promotional texts need a written yes: JOIN or the booking-page box opts
   assert.match(read("src/app/sms-terms/page.tsx"), /only to\s+customers who opted in/);
   assert.doesNotMatch(read("src/app/sms-terms/page.tsx"), /No marketing messages are sent/);
 });
+
+test("5. a caller's details go to another shop only on their own yes, and the privacy policy says so", async () => {
+  const { isClearYes } = await import("../src/lib/in-call-tool-defs.ts");
+  for (const yes of ["Yes", "yeah go ahead", "Sure, that's fine", "okay please", "Sí, por favor"]) assert.ok(isClearYes(yes), yes);
+  for (const no of ["", "no", "No thanks", "I'd rather not", "I'll wait for you guys", "don't share my number", "hmm"]) assert.ok(!isClearYes(no), no);
+
+  const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+  const privacy = read("src/app/privacy/page.tsx");
+  assert.match(privacy, /Orvius Network, at the caller&apos;s request/);
+  assert.match(privacy, /referral credit/);
+});

@@ -10,6 +10,8 @@ import {
   NO_SLOTS_REPLY,
   URGENT_NO_BOOK_REPLY,
   PASSED_TO_NETWORK_REPLY,
+  NETWORK_NOT_A_YES_REPLY,
+  isClearYes,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
   parseSlotPreference,
@@ -105,7 +107,9 @@ function answer(call: ToolCall, now: Date, transferring: boolean, callerWords: s
     return call.name === "hold_new_time" ? heldNewTimeReply(at, tz) : heldReply(at, tz);
   }
   if (call.name === "alert_team_now") return safetyAlertReply({ texted: true, transferring });
-  if (call.name === "pass_to_network") return PASSED_TO_NETWORK_REPLY;
+  if (call.name === "pass_to_network") {
+    return isClearYes(typeof call.args.callerSaid === "string" ? call.args.callerSaid : null) ? PASSED_TO_NETWORK_REPLY : NETWORK_NOT_A_YES_REPLY;
+  }
   return "Unknown tool. Continue the call without it.";
 }
 
