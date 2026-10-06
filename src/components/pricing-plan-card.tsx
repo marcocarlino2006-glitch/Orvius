@@ -4,6 +4,7 @@ import { ShellPanel } from "@/components/shell-primitives";
 import {
   ANNUAL_DISCOUNT_LABEL,
   getPlanPrice,
+  perCallCents,
   type BillingInterval,
   type PaidPlanId,
   type PricingPlan,
@@ -50,6 +51,7 @@ export function PricingPlanCard({
   );
 
   const detail = plan.limit ?? plan.tagline;
+  const callCents = perCallCents(plan, interval);
 
   const highlights = (
     <ul className={layout === "dashboard" ? "account-plan-list font-sans" : "tier1-plan-list font-sans"}>
@@ -128,6 +130,11 @@ export function PricingPlanCard({
           {interval === "year"
             ? `$${annualChargeDollars(plan).toLocaleString("en-US")} a year · $${monthlyPrice}/mo if billed monthly`
             : `Or $${plan.annualPrice}/mo billed annually · ${ANNUAL_DISCOUNT_LABEL.toLowerCase()}`}
+        </p>
+      ) : null}
+      {callCents != null ? (
+        <p className="tier1-plan-annual-note font-sans">
+          {plan.includedCalls!.toLocaleString("en-US")} answered calls included · {callCents}¢ a call, not by the minute
         </p>
       ) : null}
       <p className="tier1-section-lead font-sans">{plan.tagline}</p>

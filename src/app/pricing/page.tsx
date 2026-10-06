@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
 import { demoLineHref } from "@/lib/demo-line";
-import { getFeaturedPlan, getLowestPaidPrice } from "@/lib/company";
-import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
+import { getLowestPaidPrice } from "@/lib/company";
+import { getPaidPlans, OVERAGE_CENTS_PER_CALL, perCallCents } from "@/lib/pricing-plans";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
-const featured = getFeaturedPlan();
+const entry = getPaidPlans().reduce((low, plan) => (plan.price < low.price ? plan : low));
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -60,9 +60,11 @@ export default function PricingPage() {
             Built to pay back with one additional job.
           </h2>
           <p className="tier1-section-lead font-sans">
-            If your gross profit on an additional booked job exceeds ${featured.price},
-            that job can cover a month of the featured plan. Your ticket,
-            close rate, and margin determine the actual payback.
+            {entry.name} is ${entry.price} a month for {entry.includedCalls} answered calls, about{" "}
+            {perCallCents(entry, "month")}¢ each. An answered call reaches you booked, or as a text with
+            the caller&apos;s details, and is priced per call, not by the minute. If one more booked job a month earns
+            you more than ${entry.price} in gross profit, the plan has paid for itself. Your ticket,
+            close rate and margin decide the actual payback.
           </p>
           <div className="tier1-actions tier1-close-actions">
             <a href={demoLineHref()} className="ov-btn ov-btn--solid">

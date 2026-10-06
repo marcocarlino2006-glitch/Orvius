@@ -893,3 +893,16 @@ test("27. Orvius's own plan and overage collect sales tax once Stripe Tax is swi
   assert.match(readFileSync(new URL("../src/app/api/billing/checkout/route.ts", import.meta.url), "utf8"), /\.\.\.checkoutTaxParams\(/);
   assert.match(readFileSync(new URL("../src/lib/overage-billing.ts", import.meta.url), "utf8"), /isAutomaticTaxEnabled\(\) \? \{ automatic_tax: \{ enabled: true \} \}/);
 });
+
+test("30. pricing shows the per-call price, and the payback line uses the entry plan, not the featured one", async () => {
+  const { getPlanById, perCallCents } = await import("../src/lib/pricing-plans.ts");
+  const line = getPlanById("line");
+  assert.equal(perCallCents(line, "month"), Math.round((line.price * 100) / line.includedCalls));
+  assert.equal(perCallCents(line, "year"), Math.round((line.annualPrice * 100) / line.includedCalls));
+  assert.equal(perCallCents(getPlanById("pilot"), "month"), null);
+  assert.equal(perCallCents(getPlanById("multi"), "month"), null);
+  const page = readFileSync(new URL("../src/app/pricing/page.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(page, /getFeaturedPlan/);
+  assert.match(page, /perCallCents\(entry, "month"\)/);
+  assert.match(readFileSync(new URL("../src/components/pricing-plan-card.tsx", import.meta.url), "utf8"), /perCallCents\(plan, interval\)/);
+});
