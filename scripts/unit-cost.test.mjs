@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { costColumns, unitEconomics, PHONE_MICROS_PER_MIN } from "../src/lib/call-cost.ts";
+import {
+  costColumns,
+  unitEconomics,
+  NUMBER_CENTS_PER_MONTH,
+  PHONE_MICROS_PER_MIN,
+  SMS_MICROS_PER_TEXT,
+  STRIPE_FEE_FIXED_CENTS,
+  STRIPE_FEE_PCT,
+} from "../src/lib/call-cost.ts";
 import { unitCostLines } from "../src/lib/unit-cost-lines.ts";
 
 test("the Vapi report's cost is stored in micros with its breakdown; junk is ignored", () => {
@@ -28,7 +36,8 @@ test("cost per call adds the phone leg, and margins follow from the plan allowan
   assert.equal(unit.overageMarginCents, Math.round((50 - perCall) * 10) / 10);
   const line = unit.plans.find((p) => p.id === "line");
   assert.equal(line.includedCalls, 300);
-  assert.equal(line.marginAtAllowancePct, Math.round(((19_900 - 300 * perCall) / 19_900) * 100));
+  const fixed = NUMBER_CENTS_PER_MONTH + 19_900 * (STRIPE_FEE_PCT / 100) + STRIPE_FEE_FIXED_CENTS;
+  assert.equal(line.marginAtAllowancePct, Math.round(((19_900 - 300 * perCall - fixed) / 19_900) * 100));
   assert.ok(!unit.plans.some((p) => p.id === "pilot" || p.id === "multi"), "free and sales-only plans are not priced here");
 });
 
@@ -37,4 +46,15 @@ test("the board says when overage is priced below cost, and says so when there i
   assert.match(unitCostLines(expensive).join("\n"), /overage is priced below cost/);
   assert.deepEqual(unitCostLines(null), ["Cost per call: no call has reported a cost yet"]);
   assert.equal(unitEconomics([]), null);
+});
+
+test("each call carries its texts, and every plan its number and card fee", () => {
+  const calls = [{ costMicros: 400_000, durationSec: 120, costJson: null }];
+  const bare = unitEconomics(calls);
+  const texting = unitEconomics(calls, { textsPerCall: 3 });
+  assert.equal(texting.textsPerCall, 3);
+  assert.equal(Math.round((texting.costPerCallCents - bare.costPerCallCents) * 10) / 10, Math.round(((3 * SMS_MICROS_PER_TEXT) / 10_000) * 10) / 10);
+  const line = texting.plans.find((p) => p.id === "line");
+  assert.equal(line.fixedCents, Math.round(NUMBER_CENTS_PER_MONTH + 19_900 * (STRIPE_FEE_PCT / 100) + STRIPE_FEE_FIXED_CENTS));
+  assert.ok(line.marginAtAllowancePct < bare.plans.find((p) => p.id === "line").marginAtAllowancePct);
 });
