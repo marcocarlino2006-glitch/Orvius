@@ -376,3 +376,31 @@ test("8. the daily sweep runs money first, stops at its deadline instead of bein
   assert.ok(route.indexOf('"overage_billing"') < route.indexOf("autopilot: true"), "billing runs before the per-shop loops");
   assert.ok(route.indexOf('"lapsed_lines"') < route.indexOf("vapiAssistantId: { not: null }"));
 });
+
+test("9/10. a platform-wide failure pages the founder once per quarter hour: Vapi down or out of credit, database gone, Twilio account blocked", async () => {
+  const pager = await import("../src/lib/platform-pager.ts");
+  assert.ok(pager.isVapiBillingRefusal("call.start.error-subscription-insufficient-credits"));
+  assert.ok(pager.isVapiBillingRefusal("call.start.error-subscription-frozen"));
+  assert.ok(!pager.isVapiBillingRefusal("customer-ended-call"));
+  assert.ok(!pager.isVapiBillingRefusal(null));
+  assert.ok(pager.isTwilioAccountFailure({ code: 30002 }), "account suspended");
+  assert.ok(pager.isTwilioAccountFailure({ code: 20003 }), "bad credentials");
+  assert.ok(!pager.isTwilioAccountFailure({ code: 21610 }), "one customer's STOP is not a platform failure");
+
+  await prisma.cronRun.deleteMany({ where: { name: { startsWith: "page:" } } });
+  const now = new Date();
+  assert.equal((await pager.pagePlatform("vapi_billing", {}, now)).paged, true);
+  assert.equal((await pager.pagePlatform("vapi_billing", {}, new Date(now.getTime() + 60_000))).paged, false, "a burst of refused calls is one page");
+  assert.equal((await pager.pagePlatform("vapi_billing", {}, new Date(now.getTime() + 16 * 60_000))).paged, true, "still broken a quarter hour later pages again");
+  assert.equal((await pager.pagePlatform("twilio_account", {}, now)).paged, true, "kinds page independently");
+
+  // The voice fallback answering a call is itself the page that Vapi is down.
+  const { POST } = await import("../src/app/api/webhooks/twilio/voice-fallback/route.ts");
+  await prisma.cronRun.deleteMany({ where: { name: "page:vapi_unreachable" } });
+  const line = `+1720559${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  await makeShop({ twilioPhone: line });
+  deferred.length = 0;
+  await POST(twilioForm({ From: "+13035550111", To: line, CallSid: `CA${uid()}` }));
+  for (const task of deferred.splice(0)) await task();
+  assert.ok(await prisma.cronRun.findUnique({ where: { name: "page:vapi_unreachable" } }), "fallback call paged the founder");
+});

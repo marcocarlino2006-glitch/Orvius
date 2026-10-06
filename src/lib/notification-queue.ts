@@ -1,4 +1,5 @@
 import { afterResponse } from "@/lib/after-response";
+import { isTwilioAccountFailure, pagePlatform } from "@/lib/platform-pager";
 import { getOwnerAlertOpenUrl } from "@/lib/owner-alert-message";
 import { pushFromAlert, sendOwnerPush } from "@/lib/web-push";
 import { recordOutboundSms, smsSender, smsStatusCallback } from "@/lib/twilio-sms";
@@ -687,6 +688,9 @@ export async function processNotificationQueue(limit = 20, scope: { businessId?:
       failed += 1;
       const errMsg = error instanceof Error ? error.message : "Delivery failed";
       await markDeliveryFailure(row, errMsg);
+      if (row.channel === "sms" && isTwilioAccountFailure(error)) {
+        await pagePlatform("twilio_account", { code: (error as { code?: unknown }).code, notificationId: row.id }).catch(() => null);
+      }
       logError("notification.queue_delivery_failed", {
         notificationId: row.id,
         businessId: row.businessId,

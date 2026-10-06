@@ -9,7 +9,7 @@ import {
   buildLeadAlertDedupeKey,
   enqueueOwnerAlert,
 } from "@/lib/notifications";
-import { captureServerMessage } from "@/lib/sentry-report";
+import { pagePlatform } from "@/lib/platform-pager";
 import { escapeXml, twimlResponse } from "@/lib/twiml";
 import { getWebhookUrl } from "@/lib/env";
 import { validateTwilioRequest } from "@/lib/webhook-auth";
@@ -160,13 +160,7 @@ export async function POST(request: NextRequest) {
       callSid,
       error: error instanceof Error ? error.message : "unknown",
     });
-    after(() => {
-      captureServerMessage(
-        "Voice fallback could not look up the shop — database unreachable",
-        { surface: "voice", reason: "db_unreachable" },
-        { level: "error", extra: { callSid } },
-      );
-    });
+    after(() => pagePlatform("db_unreachable", { callSid, at: "voice_fallback" }));
     return recordingUrl ? signOffTwiml() : voicemailTwiml(null);
   }
 
@@ -239,16 +233,7 @@ export async function POST(request: NextRequest) {
     Reported on the first leg only, so one failed call is one event rather than
     two, and inside `after` so the caller's greeting is never waiting on it.
   */
-  after(() => {
-    captureServerMessage(
-      "Voice fallback answered a call — primary line failed",
-      { surface: "voice", reason: "vapi_unreachable" },
-      {
-        level: "error",
-        extra: { callSid, businessId: business.id },
-      },
-    );
-  });
+  after(() => pagePlatform("vapi_unreachable", { callSid, businessId: business.id }));
 
   const ringTarget = (await ringedMomentsAgo(business.id, from, callSid)) ? null : liveRingTarget(business, { to, forwardedFrom });
 
