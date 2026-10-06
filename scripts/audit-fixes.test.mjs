@@ -236,3 +236,64 @@ test("5. a caller's details go to another shop only on their own yes, and the pr
   assert.match(privacy, /Orvius Network, at the caller&apos;s request/);
   assert.match(privacy, /referral credit/);
 });
+
+test("6. lost-call recovery covers every shop in one run, at 3,000 shops", { timeout: 180_000 }, async () => {
+  const { recoverLostCallsAccountWide } = await import("../src/lib/line-watch.ts");
+  const SHOPS = 3000;
+  const tag = uid();
+  const rows = Array.from({ length: SHOPS }, (_, i) => ({
+    name: `Sweep ${i}`,
+    slug: `sweep-${tag}-${i}`,
+    environment: "test",
+    trade: "HVAC",
+    ownerEmail: `sweep-${tag}-${i}@example.test`,
+    ownerPhone: "+13035550199",
+    vapiAssistantId: `asst_${tag}_${String(i).padStart(4, "0")}`,
+  }));
+  await prisma.business.createMany({ data: rows });
+  const shops = await prisma.business.findMany({ where: { slug: { startsWith: `sweep-${tag}-` } }, select: { id: true, vapiAssistantId: true } });
+  made.push(...shops.map((s) => s.id));
+
+  const now = new Date();
+  const at = (min) => new Date(now.getTime() - min * 60_000).toISOString();
+  // 1,000 calls in the last two hours across the account, all saved but three.
+  const calls = Array.from({ length: 1000 }, (_, i) => ({
+    id: `vc_${tag}_${i}`,
+    assistantId: `asst_${tag}_${String((i * 7) % SHOPS).padStart(4, "0")}`,
+    type: "inboundPhoneCall",
+    status: "ended",
+    createdAt: at(110 - i * 0.09),
+    startedAt: at(110 - i * 0.09),
+    endedAt: at(108 - i * 0.09),
+    customer: { number: `+1312555${String(1000 + (i % 9000)).padStart(4, "0")}` },
+    analysis: { summary: "No heat.", structuredData: { name: "Caller", serviceType: "No heat", urgency: "same-day" } },
+  }));
+  const lostIdx = [3, 500, 997];
+  calls[3].assistantId = `asst_${tag}_0001`;
+  calls[500].assistantId = `asst_${tag}_2999`;
+  calls[997].assistantId = `asst_${tag}_1500`;
+  const byAssistant = new Map(shops.map((s) => [s.vapiAssistantId, s.id]));
+  await prisma.call.createMany({
+    data: calls.filter((_, i) => !lostIdx.includes(i)).map((c) => ({ businessId: byAssistant.get(c.assistantId), vapiCallId: c.id, status: "ended" })),
+  });
+
+  const newestFirst = [...calls].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  let pagesServed = 0;
+  const list = async ({ since, before, limit }) => {
+    pagesServed += 1;
+    return newestFirst.filter((c) => c.createdAt > since.toISOString() && (!before || c.createdAt < before)).slice(0, limit);
+  };
+
+  const result = await recoverLostCallsAccountWide({ now, list });
+  assert.equal(result.checked, 1000);
+  assert.equal(pagesServed, 11, "ten pages of 100, then the empty page that ends the walk");
+  assert.deepEqual(result.recovered.sort(), lostIdx.map((i) => calls[i].id).sort());
+  for (const [i, shopNo] of [[3, "0001"], [500, "2999"], [997, "1500"]]) {
+    const saved = await prisma.call.findUnique({ where: { vapiCallId: calls[i].id } });
+    assert.equal(saved.businessId, byAssistant.get(`asst_${tag}_${shopNo}`), "recovered into the right shop");
+  }
+  assert.equal(result.truncated, false);
+
+  const again = await recoverLostCallsAccountWide({ now, list });
+  assert.deepEqual(again.recovered, [], "a second pass changes nothing");
+});
