@@ -809,6 +809,10 @@ a.cmd-feed-text:hover {
   color: var(--ox-amber);
 }
 
+.wh-who--technician {
+  color: var(--ox-text);
+}
+
 .wh-body {
   min-width: 0;
 }
