@@ -4,7 +4,7 @@ import { summarizeCallUsage } from "@/lib/call-usage";
 import { logWarn } from "@/lib/logger";
 import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
 import { prisma } from "@/lib/prisma";
-import { getStripe } from "@/lib/stripe";
+import { getStripe, isAutomaticTaxEnabled } from "@/lib/stripe";
 
 /*
   Overage is billed as its own Stripe invoice for the month just ended, not as
@@ -147,6 +147,7 @@ export async function billPreviousMonthOverage(now = new Date(), { budgetMs = 40
           collection_method: "charge_automatically",
           pending_invoice_items_behavior: "include",
           auto_advance: true,
+          ...(isAutomaticTaxEnabled() ? { automatic_tax: { enabled: true } } : {}),
           description: `Orvius call overage — ${period.key}`,
           metadata: { orvius: "call_overage", businessId: shop.id, period: period.key },
         },

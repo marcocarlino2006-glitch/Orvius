@@ -13,6 +13,7 @@ import {
   getAppBaseUrl,
   getBillingReadiness,
   getStripe,
+  checkoutTaxParams,
   isStripeCheckoutConfigured,
   isStripeConfigured,
   isStripePlanConfigured,
@@ -157,7 +158,7 @@ export async function POST(request: NextRequest) {
       cancel_url: business ? `${baseUrl}/pricing?canceled=1` : `${baseUrl}${setupPath}&canceled=1`,
       // Stripe takes either a fixed discount or a promo-code box, not both.
       ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
-      billing_address_collection: "auto",
+      ...checkoutTaxParams(Boolean(business?.stripeCustomerId)),
       subscription_data: {
         metadata: {
           product: plan.stripeProductKey ?? `orvius-${body.planId}`,

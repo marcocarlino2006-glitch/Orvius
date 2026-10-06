@@ -873,3 +873,23 @@ test("25/26. the meter, the usage texts and the overage invoice count the same b
     assert.match(readFileSync(new URL(`../${file}`, import.meta.url), "utf8"), /countBillableCalls\(/, `${file} meters through the billable count`);
   }
 });
+
+test("27. Orvius's own plan and overage collect sales tax once Stripe Tax is switched on", async () => {
+  const { checkoutTaxParams } = await import("../src/lib/stripe.ts");
+  const prev = process.env.STRIPE_AUTOMATIC_TAX;
+  try {
+    delete process.env.STRIPE_AUTOMATIC_TAX;
+    assert.deepEqual(checkoutTaxParams(false), { billing_address_collection: "auto" }, "off until registrations exist");
+    process.env.STRIPE_AUTOMATIC_TAX = "1";
+    const fresh = checkoutTaxParams(false);
+    assert.deepEqual(fresh.automatic_tax, { enabled: true });
+    assert.equal(fresh.billing_address_collection, "required");
+    assert.equal(fresh.customer_update, undefined, "Stripe refuses customer_update without a customer");
+    assert.deepEqual(checkoutTaxParams(true).customer_update, { address: "auto", name: "auto" });
+  } finally {
+    if (prev === undefined) delete process.env.STRIPE_AUTOMATIC_TAX;
+    else process.env.STRIPE_AUTOMATIC_TAX = prev;
+  }
+  assert.match(readFileSync(new URL("../src/app/api/billing/checkout/route.ts", import.meta.url), "utf8"), /\.\.\.checkoutTaxParams\(/);
+  assert.match(readFileSync(new URL("../src/lib/overage-billing.ts", import.meta.url), "utf8"), /isAutomaticTaxEnabled\(\) \? \{ automatic_tax: \{ enabled: true \} \}/);
+});
