@@ -535,3 +535,41 @@ test("18. public forms cannot pump texts: only US and Canadian mobiles are texte
   assert.deepEqual(statuses, [200, 200, 200, 200, 429, 429], "a fresh address per request still stops at four texts to one number");
   assert.equal(await prisma.lead.count({ where: { businessId: shop.id } }), 4);
 });
+
+test("20. a technician link closes on jobs never scheduled, a week after completion, and for the technician taken off the job", async () => {
+  const { techLinkExpired } = await import("../src/lib/ensure-tech-token.ts");
+  const { notifyTechOnAssign } = await import("../src/lib/notify-tech-assign.ts");
+  const { GET } = await import("../src/app/api/public/tech/[token]/route.ts");
+  const now = new Date();
+  const days = (n) => new Date(now.getTime() + n * 86_400_000);
+  assert.equal(techLinkExpired({ status: "new", scheduledAt: null, createdAt: days(-29) }, now), false);
+  assert.equal(techLinkExpired({ status: "new", scheduledAt: null, createdAt: days(-31) }, now), true);
+  assert.equal(techLinkExpired({ status: "completed", scheduledAt: days(2), completedAt: days(-8) }, now), true);
+
+  const shop = await makeShop();
+  const open = (token) =>
+    GET(new Request(`http://localhost/api/public/tech/${token}`, { headers: { "x-real-ip": `192.0.2.${Math.floor(Math.random() * 200)}` } }), {
+      params: Promise.resolve({ token }),
+    });
+  const stale = await prisma.job.create({
+    data: { businessId: shop.id, title: "Never booked", status: "new", techToken: `tt-${uid()}`, createdAt: days(-40) },
+  });
+  assert.equal((await open(stale.techToken)).status, 410);
+
+  const [first, second] = await Promise.all(
+    ["First Tech", "Second Tech"].map((name) => prisma.technician.create({ data: { businessId: shop.id, name, phone: `+1512555${2000 + Math.floor(Math.random() * 7000)}` } })),
+  );
+  const job = await prisma.job.create({
+    data: { businessId: shop.id, title: "Furnace", status: "scheduled", scheduledAt: days(1), technicianId: first.id, techToken: `tt-${uid()}` },
+  });
+  assert.equal((await open(job.techToken)).status, 200);
+  await prisma.job.update({ where: { id: job.id }, data: { technicianId: second.id } });
+  const handed = await notifyTechOnAssign({ jobId: job.id, previousTechnicianId: first.id, nextTechnicianId: second.id });
+  assert.notEqual(handed.techToken, job.techToken);
+  assert.equal((await open(job.techToken)).status, 404, "the first technician's link no longer opens the job");
+  assert.equal((await open(handed.techToken)).status, 200);
+
+  await prisma.job.update({ where: { id: job.id }, data: { technicianId: null } });
+  await notifyTechOnAssign({ jobId: job.id, previousTechnicianId: second.id, nextTechnicianId: null });
+  assert.equal((await open(handed.techToken)).status, 404, "unassigning retires the link too");
+});

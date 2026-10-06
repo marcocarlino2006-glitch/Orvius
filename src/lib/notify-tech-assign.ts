@@ -1,4 +1,4 @@
-import { ensureJobTechToken } from "@/lib/ensure-tech-token";
+import { ensureJobTechToken, retireTechLink } from "@/lib/ensure-tech-token";
 import { JOB_INCLUDE, serializeJob } from "@/lib/job";
 import { prisma } from "@/lib/prisma";
 import { buildTechJobAssignMessage } from "@/lib/tech-assign-sms";
@@ -15,6 +15,10 @@ export async function notifyTechOnAssign(params: {
   nextTechnicianId: string | null;
 }): Promise<{ sent: boolean; reason?: string; techToken?: string }> {
   const { jobId, previousTechnicianId, nextTechnicianId } = params;
+
+  if (previousTechnicianId && previousTechnicianId !== nextTechnicianId) {
+    await retireTechLink(jobId).catch((err) => console.error("[tech-assign-sms] retire link", err));
+  }
 
   if (!nextTechnicianId || nextTechnicianId === previousTechnicianId) {
     return { sent: false, reason: "no_change" };
