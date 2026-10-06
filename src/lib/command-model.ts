@@ -198,7 +198,7 @@ export function buildCommandSignals(
           : counts.jobsUnassigned > 0
             ? `${counts.jobsUnassigned} unassigned`
             : "All assigned",
-      href: counts.jobsUnassigned > 0 ? "/dashboard/dispatch" : "/dashboard/jobs",
+      href: counts.jobsUnassigned > 0 ? "/dashboard/dispatch" : "/dashboard/work",
       tone: counts.jobsUnassigned > 0 ? "attention" : "neutral",
     },
     {
@@ -211,7 +211,7 @@ export function buildCommandSignals(
           : counts.avgTicketSet
             ? "No open work carries value"
             : "Add average ticket in Settings",
-      href: risk > 0 ? "#work-queue" : counts.avgTicketSet ? "#work-queue" : "/dashboard/settings#economics-baseline",
+      href: risk > 0 || counts.avgTicketSet ? "/dashboard/work" : "/dashboard/settings#economics-baseline",
       tone: risk > 0 ? "risk" : "neutral",
     },
   ];

@@ -7,6 +7,9 @@
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
 
+const nextServer = await import("next/server");
+mock.module("next/server", { namedExports: { ...nextServer, after: () => {} } });
+
 let signedInAs = null;
 mock.module(new URL("../src/auth.ts", import.meta.url).href, {
   namedExports: {
@@ -120,7 +123,11 @@ test("a job's stage and next action follow the visit", () => {
   assert.equal(paid.open, false);
   const owes = work.jobWorkItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 100 }] }));
   assert.equal(owes.open, true);
-  assert.equal(owes.nextAction, "Collect payment");
+  assert.equal(owes.nextAction, "Waiting on Dana to pay");
+  assert.equal(owes.waitingOn, "customer");
+  const draft = work.jobWorkItem(job({ status: "completed", invoices: [{ status: "draft", paidAt: null, amountCents: 100 }] }));
+  assert.equal(draft.nextAction, "Send the invoice");
+  assert.equal(draft.needsYou, true);
   assert.equal(work.jobWorkItem(job({ status: "completed", invoices: [{ status: "void", paidAt: null, amountCents: 1 }] })).open, false);
   assert.equal(work.jobWorkItem(job({ status: "cancelled" })).open, false);
 });
@@ -227,4 +234,76 @@ test("/api/work lists the shop's work for any teammate and records who assigned 
   const audit = await prisma.auditEvent.findFirst({ where: { businessId: shop.id, action: "work.assigned" } });
   assert.equal(audit.entityId, request.id);
   assert.match(audit.summary, new RegExp(`made ${dispatcher} responsible`));
+});
+
+test("problems found by the paging rules land on the work they are about; shop problems stay apart", () => {
+  const board = {
+    exceptions: [
+      { id: "stale:j1", lane: "exceptions", exception: "stale", title: "t", detail: "Window was Mon and nobody is on the way", at: "", jobId: "j1" },
+      { id: "alert-setup:x", lane: "exceptions", exception: "alert_setup", title: "Your alerts aren't reaching you", detail: "2 failed", at: "" },
+      { id: "text-failed:m", lane: "exceptions", exception: "failed_message", title: "t", detail: "body", at: "", phone: "+17205550100" },
+    ],
+    approvals: [],
+  };
+  const attention = [
+    { id: "a", kind: "open_invoice", rank: 1, impact: "high", title: "Dana · invoice", detail: "Invoice sent, not paid yet", recommendedAction: "Call", href: "/dashboard/jobs/j2", entityType: "shop", entityId: "b", createdAt: "" },
+    { id: "b", kind: "new_lead", rank: 1, impact: "high", title: "x", detail: "x", recommendedAction: "x", href: "/dashboard/inbox/l1", entityType: "lead", entityId: "l1", createdAt: "" },
+    { id: "c", kind: "billing_action", rank: 1, impact: "critical", title: "Payment failed", detail: "d", recommendedAction: "Open billing", href: "/dashboard/billing", entityType: "shop", entityId: "b", createdAt: "" },
+  ];
+  const out = work.problemsFrom(board, attention);
+  assert.deepEqual(out.byJob.get("j1").map((p) => p.label), ["Window passed"]);
+  assert.deepEqual(out.byJob.get("j2").map((p) => p.label), ["Invoice unpaid"]);
+  assert.equal(out.byLead.has("l1"), false, "a new request is its stage, not a problem");
+  assert.deepEqual(out.byPhone.get("7205550100").map((p) => p.kind), ["failed_message"]);
+  assert.deepEqual(out.shop.map((i) => i.title).sort(), ["Payment failed", "Your alerts aren't reaching you"]);
+});
+
+test("a job whose window passed is one problem that needs you; a job waiting on the customer does not", async () => {
+  const shop = await makeShop();
+  const tech = await prisma.technician.create({ data: { businessId: shop.id, name: "Ray Diaz", phone: phone() } });
+  const customerPhone = phone();
+  const customer = await prisma.customer.create({ data: { businessId: shop.id, name: "Kim", phone: customerPhone, phoneNormalized: customerPhone } });
+  const hour = 60 * 60 * 1000;
+  const late = await prisma.job.create({
+    data: {
+      businessId: shop.id, customerId: customer.id, technicianId: tech.id, title: "Tune-up", status: "confirmed",
+      scheduledAt: new Date(Date.now() - 3 * hour), customerConfirmedAt: new Date(Date.now() - 20 * hour),
+    },
+  });
+  const waiting = await prisma.job.create({
+    data: {
+      businessId: shop.id, customerId: customer.id, technicianId: tech.id, title: "Filter swap", status: "scheduled",
+      scheduledAt: new Date(Date.now() + 30 * hour), customerConfirmSentAt: new Date(),
+    },
+  });
+
+  const board = await work.listWork(shop.id, "open");
+  const lateItem = board.items.find((i) => i.id === late.id);
+  assert.deepEqual(lateItem.problems.map((p) => p.label), ["Window passed"], "tech late, at risk and no-show are folded into the one fact");
+  assert.equal(lateItem.needsYou, true);
+  assert.doesNotMatch(lateItem.problems[0].detail, /Tech: /);
+
+  const waitingItem = board.items.find((i) => i.id === waiting.id);
+  assert.equal(waitingItem.waitingOn, "customer");
+  assert.equal(waitingItem.nextAction, "Waiting on Kim to confirm");
+  assert.equal(waitingItem.needsYou, false);
+
+  assert.equal(board.needsYou, board.items.filter((i) => i.needsYou).length);
+  assert.equal(board.items[0].id, late.id, "what needs you sorts first");
+});
+
+test("Command, the nav badge and the Work screen read the same count", async () => {
+  const ring1 = await import("../src/app/api/ring1/route.ts");
+  const route = await import("../src/app/api/work/route.ts");
+  const shop = await makeShop();
+  await prisma.lead.create({ data: { businessId: shop.id, phone: phone(), status: "new", name: "One" } });
+  await prisma.lead.create({ data: { businessId: shop.id, phone: phone(), status: "contacted", name: "Two" } });
+  signedInAs = shop.ownerEmail;
+
+  const command = await (await ring1.GET(new Request("http://localhost/api/ring1"))).json();
+  const listed = await (await route.GET(new Request("http://localhost/api/work"))).json();
+  assert.equal(command.work.needsYou, 2);
+  assert.equal(listed.needsYou, command.work.needsYou);
+  assert.deepEqual(command.work.items.map((i) => i.key).sort(), listed.items.filter((i) => i.needsYou).map((i) => i.key).sort());
+  assert.match(command.personalBrief?.headline ?? "", /2 things|2 need|One step left|line is live/);
 });

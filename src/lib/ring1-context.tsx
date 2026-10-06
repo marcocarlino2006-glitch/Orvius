@@ -20,6 +20,8 @@ import type { ReceptionistWeek } from "@/lib/receptionist-week";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
+import type { BoardItem } from "@/lib/command-board";
+import type { ShopIssue, WorkItem } from "@/lib/work";
 import type {
   BusinessMetrics,
   BusinessSignals,
@@ -42,6 +44,8 @@ export type Ring1Data = {
   commandCounts?: CommandCounts;
   shiftTimeline?: ShiftEvent[];
   attention?: AttentionItem[];
+  /** Work waiting on a person, read by the same rules as the Work screen. */
+  work?: { needsYou: number; open: number; items: WorkItem[]; approvals: BoardItem[]; shopIssues: ShopIssue[] };
   /** What Orvius did on its own in the last 24 hours. */
   handled?: Handled;
   dispatchToday?: {
@@ -142,6 +146,7 @@ function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
       lineVerified: Boolean(data.health?.lineVerified),
       alertsFailed24h: data.health?.failedAlerts24h ?? 0,
       afterHoursNow: Boolean(data.coverage?.afterHoursNow),
+      needsYou: data.work?.needsYou ?? 0,
     } satisfies BusinessSignals,
   };
 }

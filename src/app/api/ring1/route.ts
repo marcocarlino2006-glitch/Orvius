@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { after } from "next/server";
-import { getAttentionQueue } from "@/lib/attention-queue";
+import { collectAttention } from "@/lib/attention-queue";
+import { rollUpByPerson } from "@/lib/attention-rollup";
 import { isPriorityUrgency } from "@/lib/auto-job";
 import { listHandled, runAutopilot } from "@/lib/autopilot";
 import { shopDayBounds } from "@/lib/availability";
@@ -18,6 +19,7 @@ import { commandVersion, shopVersion } from "@/lib/shop-version";
 import { getShiftTimeline } from "@/lib/shift-timeline";
 import { requireEntitledSession } from "@/lib/tenant";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
+import { listWork } from "@/lib/work";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
 
 /** Polling every 30s would otherwise write the shop row every 30s. */
@@ -66,6 +68,7 @@ export async function GET(request: Request) {
   const businessFilter = { businessId: business.id };
   const windowStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const healthP = getShopHealth(business.id);
+  const attentionP = collectAttention(business.id, now);
 
   const [
     callsToday,
@@ -90,6 +93,7 @@ export async function GET(request: Request) {
     jobsInMotion,
     jobsUnassigned,
     receptionist,
+    work,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -130,7 +134,7 @@ export async function GET(request: Request) {
     getDispatchBoard(business.id, null, business),
     healthP,
     getShopOutcomes(business.id, 7),
-    getAttentionQueue(business.id, 12),
+    attentionP.then((rows) => rollUpByPerson(rows).slice(0, 12)),
     getShiftTimeline(business.id),
     listHandled(business.id),
     healthP.then((health) => getWedgeReadiness(business.id, health)),
@@ -164,6 +168,7 @@ export async function GET(request: Request) {
       },
     }),
     getReceptionistWeek(business.id, 7, now),
+    listWork(business.id, "open", now, { attention: attentionP }),
   ]);
   const crew = dispatchBoard.crew;
   const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
@@ -176,7 +181,7 @@ export async function GET(request: Request) {
     todayStart: today,
     boardJobs,
     unassigned: dispatchBoard.unassigned.length,
-    attention,
+    work,
     totalCalls,
     lineVerified: health.lineVerified,
     afterHoursNow,
@@ -283,6 +288,13 @@ export async function GET(request: Request) {
       avgTicketSet: Boolean(business.avgTicketCents),
     },
     attention,
+    work: {
+      needsYou: work.needsYou,
+      open: work.items.length,
+      items: work.items.filter((item) => item.needsYou),
+      approvals: work.approvals,
+      shopIssues: work.shopIssues,
+    },
     handled,
     shiftTimeline,
     lastWeeklyProofAt: business.lastWeeklyProofAt?.toISOString() ?? null,

@@ -52,6 +52,7 @@ export function OsShell({
   const navLabel = (item: { href: string; label: string }) =>
     item.href === "/dashboard/jobs" ? terms.Jobs : item.href === "/dashboard/dispatch" ? terms.Dispatch : item.label;
   const newLeads = business?.metrics.newLeads ?? 0;
+  const needsYou = business?.signals.needsYou ?? 0;
   const showAskDock = access?.canAccess("ask") ?? false;
   const unassignedJobs = business?.signals.unassignedJobs ?? 0;
   const [navOpen, setNavOpen] = useState(false);
@@ -86,7 +87,7 @@ export function OsShell({
       label: navLabel(item),
       icon: item.icon,
       active: navActive(pathname, item.href),
-      badge: item.href === "/dashboard/work" && newLeads > 0 ? String(newLeads) : undefined,
+      badge: item.href === "/dashboard/work" && needsYou > 0 ? String(needsYou) : undefined,
     }));
 
   useEffect(() => {
@@ -163,8 +164,8 @@ export function OsShell({
             const enabled = ringEnabled && planAllowed;
             const active = navActive(pathname, item.href);
             const badge =
-              item.href === "/dashboard/work" && newLeads > 0
-                ? String(newLeads)
+              item.href === "/dashboard/work" && needsYou > 0
+                ? String(needsYou)
                 : item.href === "/dashboard/dispatch" && unassignedJobs > 0
                   ? String(unassignedJobs)
                   : item.badge;
@@ -187,7 +188,7 @@ export function OsShell({
                       <span
                         className={`os-nav-badge ${badgeWarn ? "os-nav-badge-warn" : ""}`}
                         title={
-                          badgeWarn ? `${terms.Jobs} with no ${terms.worker} assigned` : "New leads waiting"
+                          badgeWarn ? `${terms.Jobs} with no ${terms.worker} assigned` : "Work waiting on you"
                         }
                       >
                         {badge}

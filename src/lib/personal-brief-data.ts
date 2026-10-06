@@ -1,6 +1,5 @@
 import type { Business } from "@prisma/client";
-import type { AttentionItem } from "@/lib/attention-types";
-import { groupWorkItems } from "@/lib/command-model";
+import type { WorkBoard } from "@/lib/work";
 import { prisma } from "@/lib/prisma";
 import {
   composePersonalBrief,
@@ -27,7 +26,8 @@ export async function loadPersonalBrief(input: {
   todayStart: Date;
   boardJobs: BoardJob[];
   unassigned: number;
-  attention: AttentionItem[];
+  /** What needs a person, from the same Work read as Command and the Work screen. */
+  work: WorkBoard;
   totalCalls: number;
   lineVerified: boolean;
   afterHoursNow: boolean;
@@ -62,8 +62,8 @@ export async function loadPersonalBrief(input: {
     .sort((a, b) => a.scheduledAt!.localeCompare(b.scheduledAt!));
   const first = scheduled[0];
 
-  const work = groupWorkItems(input.attention);
-  const needsYou = since ? work.filter((item) => new Date(item.createdAt) >= since).length : 0;
+  const waiting = input.work.items.filter((item) => item.needsYou);
+  const needsYou = since ? waiting.filter((item) => new Date(item.createdAt) >= since).length : 0;
 
   return composePersonalBrief({
     now,
@@ -78,7 +78,7 @@ export async function loadPersonalBrief(input: {
       completed: completedToday,
       bookedToday,
     },
-    openNeedsYou: work.length,
+    openNeedsYou: input.work.needsYou,
     totalCalls: input.totalCalls,
     lineVerified: input.lineVerified,
     afterHoursNow: input.afterHoursNow,

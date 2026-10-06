@@ -182,7 +182,11 @@ export async function getAttentionQueue(
   businessId: string,
   limit = 12,
 ): Promise<AttentionItem[]> {
-  const now = new Date();
+  return rollUpByPerson(await collectAttention(businessId)).slice(0, limit);
+}
+
+/** Every attention row, ranked, before rows for the same person are folded together. */
+export async function collectAttention(businessId: string, now = new Date()): Promise<AttentionItem[]> {
   const followupCutoff = new Date(now.getTime() - FOLLOWUP_HOURS * 60 * 60 * 1000);
 
   const weekAgo = new Date(now.getTime() - WEEK_MS);
@@ -1242,5 +1246,5 @@ export async function getAttentionQueue(
     }
   }
 
-  return rollUpByPerson(items.sort((a, b) => a.rank - b.rank)).slice(0, limit);
+  return items.sort((a, b) => a.rank - b.rank);
 }

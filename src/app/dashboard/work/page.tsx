@@ -10,14 +10,16 @@ import { formatWhen } from "@/lib/when";
 import type { WorkItem, WorkStage } from "@/lib/work";
 
 type Assignee = { email: string; role: string };
-type Payload = { items: WorkItem[]; truncated: boolean; assignees: Assignee[] };
+type Payload = { items: WorkItem[]; truncated: boolean; assignees: Assignee[]; needsYou: number };
 
 const FILTERS: Array<{ id: string; label: string; match: (i: WorkItem) => boolean }> = [
+  { id: "you", label: "Needs you", match: (i) => i.needsYou },
   { id: "all", label: "All open", match: () => true },
   { id: "callback", label: "Needs a callback", match: (i) => i.stage === "needs_callback" },
   { id: "time", label: "Needs a time", match: (i) => i.stage === "needs_time" },
   { id: "scheduled", label: "Scheduled", match: (i) => i.stage === "scheduled" || i.stage === "confirmed" },
   { id: "field", label: "In the field", match: (i) => i.stage === "on_the_way" || i.stage === "on_site" },
+  { id: "customer", label: "Waiting on customer", match: (i) => i.waitingOn === "customer" },
   { id: "payment", label: "Payment due", match: (i) => i.stage === "done" },
 ];
 
@@ -35,7 +37,7 @@ const TONE: Record<WorkStage, "live" | "flare" | "neutral" | "muted"> = {
 
 export default function WorkPage() {
   const [view, setView] = useState<"open" | "closed">("open");
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("you");
   const [data, setData] = useState<Payload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,7 +124,7 @@ export default function WorkPage() {
         <DashboardSkeleton />
       ) : rows.length === 0 ? (
         <ProEmptyState
-          title={view === "open" ? "Nothing waiting on you" : "Nothing closed in the last 30 days"}
+          title={view === "closed" ? "Nothing closed in the last 30 days" : filter === "you" ? "Nothing needs you" : "Nothing here"}
           body={
             view === "open"
               ? "Calls, texts and bookings land here as work, each with who's on it and what happens next."
@@ -153,7 +155,16 @@ export default function WorkPage() {
                 <ShellBadge tone={TONE[item.stage]}>{item.stageLabel}</ShellBadge>
               </div>
               <div role="cell" className="work-next">
-                {item.nextAction ?? <span className="text-ash">Nothing to do</span>}
+                {item.problems.length ? (
+                  <span className="work-problems">
+                    {item.problems.map((p) => (
+                      <span key={p.kind} className={`wc-tag wc-tag--${p.severity}`} title={p.detail}>
+                        {p.label}
+                      </span>
+                    ))}
+                  </span>
+                ) : null}
+                {item.problems[0]?.detail ?? item.nextAction ?? <span className="text-ash">Nothing to do</span>}
               </div>
               <div role="cell">
                 <select
@@ -180,7 +191,7 @@ export default function WorkPage() {
         </div>
       )}
       {data?.truncated ? (
-        <p className="mt-3 font-sans text-sm text-ash">Showing the 300 newest requests and jobs. Older ones are on the Jobs and Inbox screens.</p>
+        <p className="mt-3 font-sans text-sm text-ash">Showing the 300 newest requests and jobs. Search finds anything older.</p>
       ) : null}
     </OsShell>
   );
