@@ -104,7 +104,6 @@ try {
 
 try {
   const queue = read("src/lib/attention-queue.ts");
-  const ui = read("src/components/attention-queue.tsx");
   const hasCapture =
     /needs_capture/.test(queue) &&
     /Prove your line/.test(queue) &&
@@ -118,11 +117,9 @@ try {
       "needs_capture must be critical with prove + confirm copy",
     );
   }
-  if (
-    /TestAlertButton/.test(ui) &&
-    (/alert_failed/.test(ui) ||
-      (/attentionActionStrategy/.test(ui) && /canTestAlert/.test(ui)))
-  ) {
+  const card = read("src/components/work-card.tsx");
+  const command = read("src/components/ring1-command-center.tsx");
+  if (/<TestAlertButton/.test(card) && /alert_failed/.test(card) && /<TestAlertButton/.test(command) && /alert_failed/.test(command)) {
     pass("Attention alert action", "Failed alerts expose Send test alert");
   } else {
     fail(
@@ -385,7 +382,7 @@ try {
   } else {
     fail("Operate next resolver", "src/lib/shop-operate.ts missing load-bearing next logic");
   }
-  const board = read("src/components/attention-queue.tsx");
+  const board = read("src/components/ring1-command-center.tsx");
   if (/exception|exceptions/.test(board) && /attention-queue-title/.test(board)) {
     const titleBlock = board.match(/attention-queue-title[\s\S]{0,120}/)?.[0] ?? "";
     if (/exception/i.test(titleBlock)) {
@@ -393,7 +390,7 @@ try {
     } else {
       pass("Operate board language", "Board title uses items / need you");
     }
-  } else if (/items need you|Board is clear|items need"|Queue is clear/.test(board)) {
+  } else if (/items need you|Board is clear|items need"|Queue is clear|Needs you/.test(board)) {
     pass("Operate board language", "Board title uses items / need you");
   } else {
     fail("Operate board language", "Attention board must speak owner language");

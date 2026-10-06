@@ -107,15 +107,14 @@ test("work age is human, not a timestamp", () => {
   assert.equal(formatAge("2026-09-22T12:00:00.000Z", now), "2d");
 });
 
-test("Command is one board (work queue as its Follow-ups tab), with signals and Pulse in the rail", () => {
+test("Command is one list of what needs you, read from Work, with signals and Pulse in the rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
   assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes/);
-  const boardIdx = command.indexOf("<CommandBoard");
+  const workIdx = command.indexOf("<WorkCard");
   const signalsIdx = command.indexOf("<CommandSignals");
-  const queueIdx = command.indexOf("<AttentionQueue");
   const pulseIdx = command.indexOf("<OrviusPulse");
-  assert.ok(boardIdx >= 0 && queueIdx > boardIdx && signalsIdx > queueIdx && pulseIdx > signalsIdx);
+  assert.ok(workIdx >= 0 && signalsIdx > workIdx && pulseIdx > signalsIdx);
   assert.ok(command.indexOf('<aside className="cc-rail"') < signalsIdx, "signals live in the rail");
   assert.match(command, /groupWorkItems/);
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
@@ -127,20 +126,20 @@ test("Command is one board (work queue as its Follow-ups tab), with signals and 
   assert.match(pulse, /formatFreshness/);
 });
 
-test("work queue rows show severity, customer, request, age, impact, one action", () => {
-  const queue = read("src/components/attention-queue.tsx");
-  assert.match(queue, /id="work-queue"/);
-  assert.match(queue, /Top priority/);
-  assert.match(queue, /formatAge/);
-  assert.match(queue, /at stake/);
-  assert.match(queue, /No value estimate/);
-  assert.match(queue, /<PrimaryAction/);
-  assert.match(queue, /Queue is clear/);
+test("work cards show the problem, the customer, the work, when, who has it, and the action", () => {
+  const card = read("src/components/work-card.tsx");
+  assert.match(card, /wc--\$\{top\.severity\}/);
+  assert.match(card, /item\.customer/);
+  assert.match(card, /item\.title/);
+  assert.match(card, /formatWhen/);
+  assert.match(card, /item\.responsible\.label/);
+  assert.match(card, /ox-btn--primary/);
+  assert.match(read("src/components/ring1-command-center.tsx"), /You&apos;re clear/);
 });
 
 test("the board's approvals lane shows the plan and an approval button", () => {
   const board = read("src/components/command-board.tsx");
-  assert.match(board, /Needs your OK/);
+  assert.match(read("src/components/ring1-command-center.tsx"), /Orvius wants your OK/);
   assert.match(board, /nothing changes until you approve/);
   assert.match(board, /"Approve"/);
   assert.match(board, /mode=\$\{mode\}/);

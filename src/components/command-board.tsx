@@ -1,32 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "@/components/toaster";
-import type { BoardItem, BoardLane, CommandBoard as Board } from "@/lib/command-board";
 import type { RequestTrace } from "@/lib/request-trace";
-import { openSettings } from "@/lib/settings-center";
 import { formatWhen } from "@/lib/when";
 
-const LANES: { id: BoardLane; label: string; empty: string }[] = [
-  { id: "approvals", label: "Needs your OK", empty: "Nothing is waiting on you." },
-  { id: "exceptions", label: "Problems", empty: "No emergencies, failed texts, stale or duplicate jobs." },
-  { id: "requests", label: "Requests", empty: "No open requests without a job." },
-  { id: "proposed", label: "Waiting on customer", empty: "No windows waiting on a customer." },
-];
-
-const EXCEPTION_LABEL: Record<string, string> = {
-  emergency: "Safety",
-  failed_message: "Failed text",
-  alert_setup: "Alerts",
-  unconfirmed_soon: "Unconfirmed",
-  stale: "Stale",
-  duplicate: "Duplicate",
-  takeover: "You have it",
-};
-
 type Scenario = { id: string; label: string; expect: string };
-type Proposal = { proposalId: string; preview: string };
+export type Proposal = { proposalId: string; preview: string };
 type AskResult =
   | { kind: "proposal"; proposal: Proposal; message: string }
   | { kind: "choices"; message: string; options: { label: string; action: string; at: string; leadId?: string; jobId?: string }[] }
@@ -39,7 +20,7 @@ async function post(url: string, body: unknown) {
   return data;
 }
 
-function PlanCard({ proposal, onDone }: { proposal: Proposal; onDone: () => void }) {
+export function PlanCard({ proposal, onDone }: { proposal: Proposal; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function act(mode: "execute" | "cancel") {
@@ -72,7 +53,7 @@ function PlanCard({ proposal, onDone }: { proposal: Proposal; onDone: () => void
   );
 }
 
-function TraceView({ leadId }: { leadId: string }) {
+export function TraceView({ leadId }: { leadId: string }) {
   const [trace, setTrace] = useState<RequestTrace | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -97,159 +78,6 @@ function TraceView({ leadId }: { leadId: string }) {
         </li>
       ))}
     </ol>
-  );
-}
-
-function ItemRow({ item, demo, onChange }: { item: BoardItem; demo: boolean; onChange: () => void }) {
-  const [open, setOpen] = useState<"trace" | "slots" | null>(null);
-  const [slots, setSlots] = useState<{ action: string; windows: { at: string; label: string }[] } | null>(null);
-  const [proposal, setProposal] = useState<Proposal | null>(item.proposalId ? { proposalId: item.proposalId, preview: item.preview ?? item.title } : null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function run(fn: () => Promise<void>) {
-    setBusy(true);
-    setError(null);
-    try {
-      await fn();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "That did not work");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const loadSlots = () =>
-    run(async () => {
-      const q = item.jobId ? `jobId=${item.jobId}` : `leadId=${item.leadId}`;
-      const res = await fetch(`/api/command/slots?${q}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not read the schedule");
-      setSlots(data);
-      setOpen("slots");
-    });
-
-  const propose = (at: string) =>
-    run(async () => {
-      const data = await post("/api/copilot", { action: slots!.action, at, ...(item.jobId ? { jobId: item.jobId } : { leadId: item.leadId }) });
-      setProposal({ proposalId: data.proposalId, preview: data.preview });
-      setOpen(null);
-    });
-
-  const takeover = (release: boolean) =>
-    run(async () => {
-      await post("/api/command/takeover", { leadId: item.leadId ?? undefined, phone: item.leadId ? undefined : item.phone, release });
-      toast({ title: release ? "Handed back to Orvius" : "You have this conversation — Orvius stopped texting them" });
-      onChange();
-    });
-
-  const markDone = () =>
-    run(async () => {
-      const res = await fetch(`/api/jobs/${item.jobId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "completed" }),
-      });
-      if (!res.ok) throw new Error(((await res.json().catch(() => null)) as { error?: string } | null)?.error ?? "Could not close the job");
-      toast({ title: "Marked done" });
-      onChange();
-    });
-
-  const confirmAsCustomer = () =>
-    run(async () => {
-      await post("/api/command/simulate", { confirmJobId: item.jobId });
-      toast({ title: "Customer confirmed (simulated)" });
-      onChange();
-    });
-
-  const canSchedule = (item.lane === "requests" && item.leadId) || ((item.lane === "proposed" || item.lane === "confirmed" || item.exception === "stale") && item.jobId);
-  const canTake = Boolean((item.leadId || item.phone) && item.lane !== "approvals" && item.exception !== "alert_setup");
-
-  return (
-    <li className={`cb-item${item.urgent ? " cb-item--urgent" : ""}`}>
-      <div className="cb-item-head">
-        <div className="cb-item-main">
-          <p className="cb-item-title">
-            {item.exception ? <span className={`cb-tag cb-tag--${item.exception}`}>{EXCEPTION_LABEL[item.exception]}</span> : null}
-            {item.urgent && !item.exception ? <span className="cb-tag cb-tag--emergency">Urgent</span> : null}
-            {item.takenOver && item.exception !== "takeover" ? <span className="cb-tag cb-tag--takeover">You have it</span> : null}
-            {item.title}
-          </p>
-          {item.lane !== "approvals" ? <p className="cb-item-detail">{item.detail}</p> : null}
-        </div>
-        <time className="cb-item-at" dateTime={item.at}>
-          {formatWhen(item.at)}
-        </time>
-      </div>
-
-      {proposal ? (
-        <PlanCard
-          proposal={proposal}
-          onDone={() => {
-            setProposal(null);
-            onChange();
-          }}
-        />
-      ) : (
-        <div className="cb-actions">
-          {item.exception === "alert_setup" ? (
-            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" onClick={() => openSettings("notifications")}>
-              Fix setup
-            </button>
-          ) : null}
-          {canSchedule ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}>
-              {item.jobId ? "Move" : "Propose a time"}
-            </button>
-          ) : null}
-          {item.exception === "stale" && item.jobId ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void markDone()}>
-              Mark done
-            </button>
-          ) : null}
-          {item.exception === "stale" && item.techPhone ? (
-            <a href={`tel:${item.techPhone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
-              Call tech
-            </a>
-          ) : null}
-          {demo && item.lane === "proposed" && item.jobId && item.confirm !== "failed" ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void confirmAsCustomer()}>
-              Customer confirms
-            </button>
-          ) : null}
-          {canTake ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void takeover(Boolean(item.takenOver))}>
-              {item.takenOver ? "Hand back" : "Take over"}
-            </button>
-          ) : null}
-          {item.leadId ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOpen(open === "trace" ? null : "trace")}>
-              {open === "trace" ? "Hide trace" : "Trace"}
-            </button>
-          ) : null}
-        </div>
-      )}
-
-      {error ? <p className="cb-error" role="alert">{error}</p> : null}
-
-      {open === "slots" && slots ? (
-        <div className="cb-slots">
-          {slots.windows.length ? (
-            <>
-              <p className="cb-muted">Open on the real schedule:</p>
-              {slots.windows.map((w) => (
-                <button key={w.at} type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void propose(w.at)}>
-                  {w.label}
-                </button>
-              ))}
-            </>
-          ) : (
-            <p className="cb-muted">Nothing is open in the next two weeks for this job.</p>
-          )}
-        </div>
-      ) : null}
-      {open === "trace" && item.leadId ? <TraceView leadId={item.leadId} /> : null}
-    </li>
   );
 }
 
@@ -397,7 +225,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
   );
 }
 
-function DemoPanel({ onChange }: { onChange: () => void }) {
+export function DemoPanel({ onChange }: { onChange: () => void }) {
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   useEffect(() => {
@@ -440,7 +268,7 @@ function DemoPanel({ onChange }: { onChange: () => void }) {
   );
 }
 
-function TryDemo({ empty }: { empty: boolean }) {
+export function TryDemo({ empty }: { empty: boolean }) {
   const [busy, setBusy] = useState(false);
   async function open() {
     setBusy(true);
@@ -460,104 +288,5 @@ function TryDemo({ empty }: { empty: boolean }) {
       </button>
       {" "}— your real line and customers stay untouched.
     </p>
-  );
-}
-
-/**
- * Command's working surface: four lanes read from records, an ask bar that
- * only ever produces a plan to approve, and — in a demo workspace — scripted
- * calls that drive the real pipeline.
- */
-export type ExtraLane = { id: string; label: string; count: number; content: ReactNode };
-
-export function CommandBoard({ onChange, extra, refreshKey = 0 }: { onChange?: () => void; extra?: ExtraLane; refreshKey?: number }) {
-  const [board, setBoard] = useState<Board | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [lane, setLane] = useState<BoardLane | "extra" | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/command/board");
-      if (!res.ok) throw new Error();
-      setBoard(await res.json());
-      setError(null);
-    } catch {
-      setError("The board could not load. Your line keeps answering.");
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-    const id = setInterval(() => {
-      if (document.visibilityState === "visible") void load();
-    }, 20_000);
-    return () => clearInterval(id);
-  }, [load, refreshKey]);
-
-  const refresh = useCallback(() => {
-    void load();
-    onChange?.();
-  }, [load, onChange]);
-
-  const active = useMemo<BoardLane | "extra">(() => {
-    if (lane) return lane;
-    if (!board) return "approvals";
-    return LANES.find((l) => board.lanes[l.id].length)?.id ?? (extra?.count ? "extra" : "requests");
-  }, [lane, board, extra?.count]);
-
-  const demo = board?.environment === "demo";
-  const empty = board ? LANES.every((l) => board.lanes[l.id].length === 0) : false;
-
-  return (
-    <section className="cb font-sans" aria-label="Today's board">
-      {demo ? <DemoPanel onChange={refresh} /> : null}
-      {error && !board ? <p className="cb-error" role="alert">{error}</p> : null}
-      <div className="cb-tabs" role="tablist" aria-label="Board lanes">
-        {LANES.map((l) => {
-          const count = board?.lanes[l.id].length ?? 0;
-          return (
-            <button
-              key={l.id}
-              type="button"
-              role="tab"
-              aria-selected={active === l.id}
-              className={`cb-tab${active === l.id ? " cb-tab--on" : ""}${l.id === "exceptions" && count ? " cb-tab--alert" : ""}`}
-              onClick={() => setLane(l.id)}
-            >
-              {l.label}
-              <span className="cb-tab-count">{board ? count : "–"}</span>
-            </button>
-          );
-        })}
-        {extra ? (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={active === "extra"}
-            className={`cb-tab${active === "extra" ? " cb-tab--on" : ""}`}
-            onClick={() => setLane("extra")}
-          >
-            {extra.label}
-            <span className="cb-tab-count">{extra.count}</span>
-          </button>
-        ) : null}
-      </div>
-      {active === "extra" ? (
-        <div role="tabpanel">{extra?.content}</div>
-      ) : board ? (
-        board.lanes[active].length ? (
-          <ul className="cb-list" role="tabpanel">
-            {board.lanes[active].map((item) => (
-              <ItemRow key={item.id} item={item} demo={demo} onChange={refresh} />
-            ))}
-          </ul>
-        ) : (
-          <p className="cb-empty">{LANES.find((l) => l.id === active)!.empty}</p>
-        )
-      ) : (
-        <p className="cb-muted">Reading the board…</p>
-      )}
-      {board && !demo ? <TryDemo empty={empty} /> : null}
-    </section>
   );
 }

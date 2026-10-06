@@ -1,0 +1,572 @@
+/* ── Command, read from Work ───────────────────────────────────────────── */
+
+.cmd {
+  display: grid;
+  gap: 1.75rem;
+  font-family: var(--font-sans, inherit);
+}
+
+.cmd-head {
+  display: grid;
+  gap: 0.375rem;
+  padding-top: clamp(0.5rem, 3vh, 1.75rem);
+}
+
+.cmd-greeting {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ox-mute);
+}
+
+.cmd-headline {
+  margin: 0;
+  font-size: var(--fs-display-sm);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ox-text);
+}
+
+.cmd-sub {
+  margin: 0;
+  max-width: 62rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ox-text-2);
+}
+
+.cmd-ask .cb-ask {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cmd-section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cmd-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cmd-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  color: var(--ox-text);
+}
+
+.cmd-count {
+  min-width: 1.5rem;
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 999px;
+  background: var(--ox-fill);
+  font-size: 0.75rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--ox-text-2);
+}
+
+.cmd-section-link,
+.cmd-section-note {
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+  text-decoration: none;
+}
+
+.cmd-section-link:hover {
+  color: var(--ox-text);
+}
+
+.cmd-empty {
+  margin: 0;
+  padding: 1rem 1.125rem;
+  border: 1px dashed var(--ox-line-strong);
+  border-radius: var(--ox-radius);
+  font-size: 0.875rem;
+  color: var(--ox-mute);
+}
+
+.cmd-clear {
+  padding: 1.25rem 1.25rem 1.125rem;
+  border: 1px solid var(--ox-line);
+  border-left: 3px solid var(--ox-green);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+
+.cmd-clear-title {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--ox-text);
+}
+
+.cmd-clear-copy {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ox-text-2);
+}
+
+.cmd-more {
+  justify-self: start;
+  padding: 0.375rem 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text-2);
+  cursor: pointer;
+}
+
+.cmd-more:hover {
+  color: var(--ox-text);
+}
+
+/* Today: one lane per technician. */
+.cmd-today {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.75rem;
+}
+
+.cmd-today-lane {
+  overflow: hidden;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+
+.cmd-today-lane--open {
+  border-color: rgb(242 169 59 / 0.35);
+}
+
+.cmd-today-tech {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--ox-line);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--ox-text);
+}
+
+.cmd-today-tech span {
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+.cmd-today-lane ul,
+.cmd-feed,
+.cmd-issues ul,
+.wc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cmd-today-job {
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--ox-text);
+  text-decoration: none;
+  transition: background var(--ox-dur-fast) var(--ox-ease);
+}
+
+.cmd-today-lane li + li .cmd-today-job {
+  border-top: 1px solid var(--ox-line);
+}
+
+.cmd-today-job:hover {
+  background: var(--ox-fill-light);
+}
+
+.cmd-today-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-text-2);
+}
+
+.cmd-today-title {
+  display: grid;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.cmd-today-title,
+.cmd-today-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmd-today-title span {
+  font-weight: 450;
+  color: var(--ox-mute);
+}
+
+.cmd-today-status {
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--ox-mute);
+}
+
+.cmd-today-status--confirmed,
+.cmd-today-status--en_route,
+.cmd-today-status--on_site {
+  color: var(--ox-green);
+}
+
+/* What Orvius did on its own. */
+.cmd-feed {
+  overflow: hidden;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+
+.cmd-feed li {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6875rem 1rem;
+  font-size: 0.8125rem;
+}
+
+.cmd-feed li + li {
+  border-top: 1px solid var(--ox-line);
+}
+
+.cmd-feed-dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--ox-green);
+}
+
+.cmd-feed-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ox-text);
+  text-decoration: none;
+}
+
+a.cmd-feed-text:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cmd-feed-at {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-mute);
+}
+
+/* Shop-level problems, above the numbers in the rail. */
+.cmd-issues {
+  margin-bottom: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgb(242 107 107 / 0.3);
+  border-radius: var(--ox-radius);
+  background: var(--ox-red-soft);
+}
+
+.cmd-issues-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--ox-text);
+}
+
+.cmd-issue + .cmd-issue {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ox-line);
+}
+
+.cmd-issue-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.cmd-issue-detail {
+  margin: 0.125rem 0 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ox-text-2);
+}
+
+.cmd-issue-action {
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--ox-text);
+}
+
+.cc-rail > * + * {
+  margin-top: 1rem;
+}
+
+/* ── Work card: one piece of work, its problem, its next step ───────────── */
+
+.wc-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.wc {
+  position: relative;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9375rem 1.125rem 0.875rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+
+.wc::before {
+  content: "";
+  position: absolute;
+  inset: -1px auto -1px -1px;
+  width: 3px;
+  border-radius: var(--ox-radius) 0 0 var(--ox-radius);
+  background: transparent;
+}
+
+.wc--critical::before {
+  background: var(--ox-red);
+}
+
+.wc--high::before {
+  background: var(--ox-amber);
+}
+
+.wc--med::before,
+.wc--approval::before {
+  background: var(--ox-line-strong);
+}
+
+.wc--loading {
+  gap: 0.5rem;
+}
+
+.wc-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+}
+
+.wc-main {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.wc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0 0 0.125rem;
+}
+
+.wc-tag {
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+.wc-tag--critical {
+  background: var(--ox-red-soft);
+  color: var(--ox-red);
+}
+
+.wc-tag--high {
+  background: var(--ox-amber-soft);
+  color: var(--ox-amber);
+}
+
+.wc-tag--med,
+.wc-tag--you {
+  background: var(--ox-fill);
+  color: var(--ox-text-2);
+}
+
+.wc-stage {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ox-mute);
+}
+
+.wc-title {
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ox-text);
+  text-decoration: none;
+}
+
+.wc-title:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.wc-who {
+  font-weight: 450;
+  color: var(--ox-text-2);
+}
+
+.wc-detail,
+.wc-next {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ox-text-2);
+}
+
+.wc-next {
+  color: var(--ox-mute);
+}
+
+.wc-meta {
+  display: grid;
+  justify-items: end;
+  align-content: start;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+  white-space: nowrap;
+}
+
+.wc-owner {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ox-text-2);
+}
+
+.wc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.wc-select {
+  height: 2rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius-sm);
+  background: var(--ox-s2);
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--ox-text);
+}
+
+.wc .cb-plan {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .wc-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wc-meta {
+    grid-auto-flow: column;
+    justify-content: start;
+    gap: 0.75rem;
+  }
+  .wc-title {
+    white-space: normal;
+  }
+}
+
+.wc-more {
+  position: relative;
+}
+
+.wc-more > summary {
+  list-style: none;
+}
+
+.wc-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wc-more-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  display: grid;
+  min-width: 14rem;
+  padding: 0.25rem;
+  border: 1px solid var(--ox-line-strong);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s2);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+}
+
+.wc-more-item {
+  padding: 0.5rem 0.625rem;
+  border: 0;
+  border-radius: var(--ox-radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  color: var(--ox-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.wc-more-item:hover {
+  background: var(--ox-fill-hover);
+}
+
+.work-problems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.dt--work .work-next {
+  display: grid;
+  align-content: center;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.cmd-issue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}

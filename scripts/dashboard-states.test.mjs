@@ -35,15 +35,16 @@ test("Command keeps one flagship hierarchy and one control rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
   assert.match(command, /<CommandSignals/);
-  assert.match(command, /<AttentionQueue/);
+  assert.match(command, /<WorkCard/);
   assert.match(command, /<OrviusPulse/);
   assert.equal((command.match(/<aside className="cc-rail"/g) ?? []).length, 1);
   assert.doesNotMatch(command, /<ProCommandOutcomes|<ProLaunchControl/);
   assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
-  assert.match(command, /<CommandBoard\s+onChange=\{/);
+  assert.match(command, /data\?\.work/, "Command reads what needs you from Work");
 
-  const queue = read("src/components/attention-queue.tsx");
-  assert.match(queue, /rest\.slice\(0, /);
+  const card = read("src/components/work-card.tsx");
+  assert.match(card, /Text a confirmation/);
+  assert.match(card, /<JobStatusAdvance/);
 
   const banner = read("src/components/shop-operate-banner.tsx");
   assert.match(banner, /alert_failed/);
