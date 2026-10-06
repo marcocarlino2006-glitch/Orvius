@@ -91,6 +91,30 @@ test("a proved line that isn't forwarded after a day gets one nudge; a fresh or 
   }
 });
 
+test("an unforwarded line escalates: a second text on day four, a person from Orvius at a week; a line already taking calls is left alone", async () => {
+  const day4 = await makeShop({ lineVerifiedAt: ago(4.5) });
+  const week = await makeShop({ lineVerifiedAt: ago(8) });
+  const busy = await makeShop({ lineVerifiedAt: ago(8) });
+  await prisma.call.create({
+    data: { businessId: busy.id, vapiCallId: `nudge-${stamp()}`, direction: "inbound", callerPhone: "+15125553001", durationSec: 90, createdAt: ago(3) },
+  });
+  try {
+    await sendOwnerNudges();
+    await sendOwnerNudges();
+    const reminder = (await alerts(day4.id)).filter((a) => a.dedupeKey.endsWith(":reminder"));
+    assert.equal(reminder.length, 1);
+    assert.match(reminder[0].message, /hasn't had a customer call yet/);
+    assert.equal((await alerts(week.id)).filter((a) => a.dedupeKey.endsWith(":reminder")).length, 1);
+    assert.ok(await prisma.cronRun.findUnique({ where: { name: `page:shop:no_forwarding:${week.id}` } }), "the founder is paged once for the week-old shop");
+    assert.equal(await prisma.cronRun.count({ where: { name: `page:shop:no_forwarding:${day4.id}` } }), 0);
+    assert.equal((await alerts(busy.id)).filter((a) => a.dedupeKey.startsWith("setup:forward:")).length, 0);
+  } finally {
+    await prisma.cronRun.deleteMany({ where: { name: { in: [day4.id, week.id].map((id) => `page:shop:no_forwarding:${id}`) } } });
+    await prisma.call.deleteMany({ where: { businessId: busy.id } });
+    await Promise.all([drop(day4.id), drop(week.id), drop(busy.id)]);
+  }
+});
+
 test("usage alerts fire at 80% and at the allowance, once each, and say calls are still answered", async () => {
   const shop = await makeShop();
   try {

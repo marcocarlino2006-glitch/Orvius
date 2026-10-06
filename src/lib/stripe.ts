@@ -82,3 +82,26 @@ export function getStripePriceId(planId: PaidPlanId = "pro") {
 }
 
 export { requireStripePriceIdForPlan };
+
+/*
+  Orvius's own sales (the plan and its overage) collect US sales tax through
+  Stripe Tax once it is switched on and the registrations exist in the Stripe
+  dashboard; SaaS is taxable in a growing list of states. Off until then,
+  because enabling it with no registrations fails every checkout. Payments a
+  shop takes from its own customers run on the shop's connected account and
+  are the shop's to tax.
+*/
+export function isAutomaticTaxEnabled() {
+  return process.env.STRIPE_AUTOMATIC_TAX?.trim() === "1";
+}
+
+/** Checkout fields for a plan purchase: a taxable address and tax ID when tax is on, the light form otherwise. */
+export function checkoutTaxParams(existingCustomer: boolean) {
+  if (!isAutomaticTaxEnabled()) return { billing_address_collection: "auto" as const };
+  return {
+    automatic_tax: { enabled: true },
+    billing_address_collection: "required" as const,
+    tax_id_collection: { enabled: true },
+    ...(existingCustomer ? { customer_update: { address: "auto" as const, name: "auto" as const } } : {}),
+  };
+}

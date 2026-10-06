@@ -70,5 +70,6 @@ test("the nightly workflow stores only the encrypted file and alerts on failure"
   assert.match(wf, /path: encrypted\/\*\.json\.enc/);
   assert.doesNotMatch(wf, /path: .*backups\//);
   assert.match(wf, /failure\(\)[\s\S]*--label backup/);
-  assert.match(wf, /::warning::No backup taken/);
+  assert.match(wf, /::error::No backup taken[^\n]*\n\s*exit 1/);
+  assert.doesNotMatch(wf, /if: failure\(\) && steps\.gate/, "missing secrets open the issue too");
 });

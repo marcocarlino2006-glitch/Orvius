@@ -16,7 +16,7 @@ const read = (path) => readFileSync(join(root, path), "utf8");
 test("production health publishes readiness but keeps operational detail privileged", () => {
   const source = read("src/app/api/health/route.ts");
   const publicGuard = source.indexOf(
-    "if (isProduction() && !(await isPrivilegedRequest(request)))",
+    "if (!isUnauthenticatedAccessAllowed() && !(await isPrivilegedRequest(request)))",
   );
   const detailedResponse = source.indexOf('version: "1.0.0"');
 
@@ -32,6 +32,7 @@ test("production health publishes readiness but keeps operational detail privile
     "anonymous health checks must answer before any database round trip",
   );
   assert.doesNotMatch(publicResponse, /\bstats\b/);
+  assert.doesNotMatch(publicResponse, /twilioPhone:/, "the shared sender number is not published");
   assert.doesNotMatch(publicResponse, /\bauth\b\s*:/);
   assert.doesNotMatch(publicResponse, /\bconfig\b\s*:/);
 });

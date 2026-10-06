@@ -88,7 +88,7 @@ export function WinBackCard() {
       <div className="wb-top">
         <div>
           <p className="wb-figure">
-            {audience.count} customer{audience.count === 1 ? "" : "s"} haven&apos;t been back in{" "}
+            {audience.count} customer{audience.count === 1 ? "" : "s"} who said yes to offers haven&apos;t been back in{" "}
             <select
               className="wb-select"
               aria-label="Months since last visit"
@@ -163,8 +163,9 @@ export function WinBackCard() {
             )}
           </div>
           <p className="wb-fine">
-            Sent from your business line 9am to 8pm, at most once per customer every 90 days. Never to anyone who
-            replied STOP or already has a visit booked.
+            Only to customers who said yes to offers in writing (the box on your booking page, or texting JOIN to
+            your line). Sent 9am to 8pm, at most once per customer every 90 days. Never to anyone who replied STOP
+            or already has a visit booked.
           </p>
         </div>
       ) : null}

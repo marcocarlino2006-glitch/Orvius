@@ -9,11 +9,14 @@ const SHOP_LINE_SELECT = {
   timezone: true,
   ownerPhone: true,
   ownerEmail: true,
+  transferPhone: true,
   twilioPhone: true,
   vapiPhoneNumber: true,
   vapiAssistantId: true,
   lineVerifiedAt: true,
   billingStatus: true,
+  pilotEndsAt: true,
+  pastDueSince: true,
   createdAt: true,
   trade: true,
   address: true,
@@ -29,11 +32,14 @@ type ShopLineMatch = {
   timezone: string;
   ownerPhone: string | null;
   ownerEmail: string | null;
+  transferPhone: string | null;
   twilioPhone: string | null;
   vapiPhoneNumber: string | null;
   vapiAssistantId: string | null;
   lineVerifiedAt: Date | null;
   billingStatus: string;
+  pilotEndsAt: Date | null;
+  pastDueSince: Date | null;
   createdAt: Date;
   trade: string | null;
   address: string | null;

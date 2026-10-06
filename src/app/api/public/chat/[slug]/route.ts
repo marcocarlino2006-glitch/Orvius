@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { publicShop } from "@/lib/online-booking";
-import { clientIp, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { clientIp, publicTextLimited, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { startWebChat } from "@/lib/web-chat";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -30,7 +30,7 @@ const ChatBody = z.object({
 export async function POST(request: Request, { params }: Params) {
   const limited = await publicTokenLimited(request, "chat", "POST");
   if (limited) return limited;
-  const perIp = await sharedRateLimit({ key: `chat:ip:${clientIp(request)}`, limit: 5, windowMs: 60 * 60_000 });
+  const perIp = await sharedRateLimit({ key: `chat:ip:${clientIp(request)}`, limit: 5, windowMs: 60 * 60_000, failClosed: true });
   if (!perIp.ok) return tooManyRequests(perIp.retryAfterSec, "Too many messages from this connection. Call the business instead.");
 
   const shop = await publicShop((await params).slug, "webChatOn");
@@ -40,6 +40,8 @@ export async function POST(request: Request, { params }: Params) {
   if (!parsed.success) return NextResponse.json({ error: "Add a message and your mobile number." }, { status: 400 });
   if (parsed.data.website) return NextResponse.json({ error: "Something went wrong. Call the business instead." }, { status: 400 });
 
+  const toNumber = await publicTextLimited(parsed.data.phone);
+  if (toNumber) return toNumber;
   const perShop = await sharedRateLimit({ key: `chat:shop:${shop.id}`, limit: 120, windowMs: 60 * 60_000 });
   if (!perShop.ok) return tooManyRequests(perShop.retryAfterSec, "Chat is busy right now. Call the business instead.");
 

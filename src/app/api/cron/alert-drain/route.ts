@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { markCronRan } from "@/lib/cron-runs";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
+  await markCronRan("alert-drain");
   await drainOwnerAlerts({ at: "cron.alert_drain" });
   return NextResponse.json({ ok: true });
 }

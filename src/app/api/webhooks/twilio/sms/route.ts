@@ -22,6 +22,7 @@ import {
   smsStartConfirmation,
   smsStopConfirmation,
 } from "@/lib/sms-keywords";
+import { clearMarketingOptIn, marketingJoinConfirmation, recordMarketingOptIn } from "@/lib/marketing-consent";
 import {
   getTwilioSmsWebhookUrl,
   validateTwilioRequest,
@@ -157,6 +158,7 @@ export async function POST(request: NextRequest) {
     const keywordReply = await handleSmsKeyword({
       keyword,
       businessId: business.id,
+      businessName: business.name,
       from,
       ownerPhone: business.ownerPhone,
     });
@@ -396,8 +398,9 @@ async function alertOwnerOfReply(params: {
 }
 
 async function handleSmsKeyword(params: {
-  keyword: "stop" | "help" | "start";
+  keyword: "stop" | "help" | "start" | "join";
   businessId: string;
+  businessName: string;
   from: string;
   ownerPhone: string | null;
 }) {
@@ -412,7 +415,13 @@ async function handleSmsKeyword(params: {
     });
   }
 
+  if (params.keyword === "join") {
+    await recordMarketingOptIn({ businessId: params.businessId, phone: params.from, source: "sms_join" });
+    return marketingJoinConfirmation(params.businessName);
+  }
+
   if (params.keyword === "stop") {
+    await clearMarketingOptIn(params.businessId, params.from);
     if (fromNorm && ownerNorm && fromNorm === ownerNorm) {
       await prisma.business.update({
         where: { id: params.businessId },

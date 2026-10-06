@@ -17,6 +17,8 @@ import { listVapiNumbers, vapiRequest, type VapiNumber, type VapiWebhookMessage 
 
 export type VapiCallRecord = {
   id: string;
+  assistantId?: string;
+  createdAt?: string;
   type?: string;
   status?: string;
   startedAt?: string;
@@ -33,6 +35,11 @@ export type VapiCallRecord = {
 /** Long enough for Vapi's own end-of-call delivery and its retries to land first. */
 export const LOST_CALL_GRACE_MS = 10 * 60_000;
 export const LOOKBACK_MS = 6 * 60 * 60_000;
+/** The account-wide sweep runs every 30 minutes; two hours covers three missed runs. */
+export const ACCOUNT_SWEEP_LOOKBACK_MS = 2 * 60 * 60_000;
+const ACCOUNT_SWEEP_PAGE = 100;
+const ACCOUNT_SWEEP_MAX_PAGES = 400;
+const ACCOUNT_SWEEP_BUDGET_MS = 25_000;
 
 export function findLostCalls(calls: VapiCallRecord[], savedIds: Set<string>, now: Date, graceMs = LOST_CALL_GRACE_MS) {
   return calls.filter(
@@ -110,6 +117,98 @@ function callerLabel(call: VapiCallRecord) {
   return call.customer?.number ?? "an unknown number";
 }
 
+async function recoverLostCall(business: Business, call: VapiCallRecord, result: { recovered: string[]; unrecovered: string[] }) {
+  const recovered = await ingestEndOfCallReport({ business, vapiCallId: call.id, message: reportFromVapiCall(call) })
+    .then((r) => !r.duplicate)
+    .catch((error: unknown) => {
+      logWarn("line_watch.recover_failed", {
+        businessId: business.id,
+        vapiCallId: call.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    });
+  if (recovered) {
+    result.recovered.push(call.id);
+    logInfo("line_watch.recovered", { businessId: business.id, vapiCallId: call.id });
+    return;
+  }
+  result.unrecovered.push(call.id);
+  await enqueueOwnerAlert({
+    businessId: business.id,
+    dedupeKey: `lost-call:${call.id}`,
+    businessName: business.name,
+    message: `A call from ${callerLabel(call)} reached your line but was not saved. Call them back.`,
+    ownerPhone: business.ownerPhone,
+    ownerEmail: business.ownerEmail,
+  });
+}
+
+type ListAccountCalls = (query: { since: Date; before: string | null; limit: number }) => Promise<VapiCallRecord[]>;
+
+const listAccountCalls: ListAccountCalls = ({ since, before, limit }) =>
+  vapiRequest<VapiCallRecord[]>(
+    `/call?createdAtGt=${encodeURIComponent(since.toISOString())}${before ? `&createdAtLt=${encodeURIComponent(before)}` : ""}&limit=${limit}`,
+  );
+
+/**
+ * Every lost call on the account, whatever the shop count: one paged walk of
+ * Vapi's call list, newest first, matched to shops by assistant. Asking shop by
+ * shop meant a slice of 200 shops per run, and past ~2,400 shops a lost call
+ * aged out of the lookback before its shop's turn came round.
+ */
+export async function recoverLostCallsAccountWide(
+  options: { now?: Date; list?: ListAccountCalls; budgetMs?: number } = {},
+) {
+  const now = options.now ?? new Date();
+  const list = options.list ?? listAccountCalls;
+  const since = new Date(now.getTime() - ACCOUNT_SWEEP_LOOKBACK_MS);
+  const started = Date.now();
+  const result = { pages: 0, checked: 0, lost: 0, recovered: [] as string[], unrecovered: [] as string[], unmatched: 0, truncated: false };
+  let before: string | null = null;
+  const seen = new Set<string>();
+
+  for (let page = 0; page < ACCOUNT_SWEEP_MAX_PAGES; page++) {
+    if (Date.now() - started > (options.budgetMs ?? ACCOUNT_SWEEP_BUDGET_MS)) {
+      result.truncated = true;
+      break;
+    }
+    const rows = await list({ since, before, limit: ACCOUNT_SWEEP_PAGE });
+    result.pages += 1;
+    if (!Array.isArray(rows) || !rows.length) break;
+    const fresh = rows.filter((r) => !seen.has(r.id));
+    fresh.forEach((r) => seen.add(r.id));
+    result.checked += fresh.length;
+
+    const saved = await prisma.call.findMany({
+      where: { vapiCallId: { in: fresh.map((c) => c.id) } },
+      select: { vapiCallId: true },
+    });
+    const lost = findLostCalls(fresh, new Set(saved.flatMap((s) => (s.vapiCallId ? [s.vapiCallId] : []))), now);
+    result.lost += lost.length;
+    if (lost.length) {
+      const assistantIds = [...new Set(lost.map((c) => c.assistantId).filter((id): id is string => Boolean(id)))];
+      const shops = await prisma.business.findMany({ where: { vapiAssistantId: { in: assistantIds }, isActive: true } });
+      const byAssistant = new Map(shops.map((b) => [b.vapiAssistantId!, b]));
+      for (const call of lost) {
+        const business = call.assistantId ? byAssistant.get(call.assistantId) : undefined;
+        if (!business) {
+          result.unmatched += 1;
+          continue;
+        }
+        await recoverLostCall(business, call, result);
+      }
+    }
+
+    const oldest = rows.map((r) => r.createdAt).filter((c): c is string => Boolean(c)).sort()[0];
+    if (rows.length < ACCOUNT_SWEEP_PAGE || !oldest || oldest === before) break;
+    before = oldest;
+    if (page === ACCOUNT_SWEEP_MAX_PAGES - 1) result.truncated = true;
+  }
+  if (result.truncated) logWarn("line_watch.account_sweep_truncated", { pages: result.pages, checked: result.checked });
+  return result;
+}
+
 export async function watchShopLine(
   business: Business,
   options: { now?: Date; deps?: Partial<Deps> } = {},
@@ -134,32 +233,7 @@ export async function watchShopLine(
   });
   const lost = findLostCalls(calls, new Set(saved.flatMap((s) => (s.vapiCallId ? [s.vapiCallId] : []))), now);
 
-  for (const call of lost) {
-    const recovered = await ingestEndOfCallReport({ business, vapiCallId: call.id, message: reportFromVapiCall(call) })
-      .then((r) => !r.duplicate)
-      .catch((error: unknown) => {
-        logWarn("line_watch.recover_failed", {
-          businessId: business.id,
-          vapiCallId: call.id,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return false;
-      });
-    if (recovered) {
-      result.recovered.push(call.id);
-      logInfo("line_watch.recovered", { businessId: business.id, vapiCallId: call.id });
-      continue;
-    }
-    result.unrecovered.push(call.id);
-    await enqueueOwnerAlert({
-      businessId: business.id,
-      dedupeKey: `lost-call:${call.id}`,
-      businessName: business.name,
-      message: `A call from ${callerLabel(call)} reached your line but was not saved. Call them back.`,
-      ownerPhone: business.ownerPhone,
-      ownerEmail: business.ownerEmail,
-    });
-  }
+  for (const call of lost) await recoverLostCall(business, call, result);
 
   const problem = await deps.lineProblem(business).catch(() => null);
   if (problem) {
@@ -188,12 +262,16 @@ const WATCH_CONCURRENCY = 5;
 const WATCH_BUDGET_MS = 40_000;
 
 /**
- * Past one window of shops, each run watches a different slice, rotating on
- * the 30-minute schedule so every line is reached; a fixed `take` would leave
- * shop 201 onwards unwatched forever.
+ * Lost calls first, account-wide, so recovery never depends on shop count.
+ * Then line health, which changes rarely: past one window of shops each run
+ * checks a different slice, rotating on the 30-minute schedule.
  */
 export async function watchAllLines(now = new Date()) {
   if (!process.env.VAPI_API_KEY) return { shops: 0, recovered: 0, unrecovered: 0, lineProblems: 0, skipped: "no VAPI_API_KEY" };
+  const sweep = await recoverLostCallsAccountWide({ now }).catch((error: unknown) => {
+    logWarn("line_watch.account_sweep_failed", { error: error instanceof Error ? error.message : String(error) });
+    return null;
+  });
   const where = { isActive: true, vapiAssistantId: { not: null }, environment: { not: "test" } };
   const total = await prisma.business.count({ where });
   const windows = Math.max(1, Math.ceil(total / WATCH_WINDOW));
@@ -218,7 +296,7 @@ export async function watchAllLines(now = new Date()) {
   const worker = async () => {
     for (let shop = queue.shift(); shop; shop = queue.shift()) {
       if (Date.now() - started > WATCH_BUDGET_MS) return;
-      const r = await watchShopLine(shop, { now }).catch((error: unknown) => {
+      const r = await watchShopLine(shop, { now, deps: sweep ? { listCalls: async () => [] } : {} }).catch((error: unknown) => {
         logWarn("line_watch.shop_failed", { businessId: shop!.id, error: error instanceof Error ? error.message : String(error) });
         return null;
       });
@@ -229,5 +307,13 @@ export async function watchAllLines(now = new Date()) {
     }
   };
   await Promise.all(Array.from({ length: WATCH_CONCURRENCY }, worker));
-  return { shops: shops.length, watched, window: `${window + 1}/${windows}`, recovered, unrecovered, lineProblems };
+  return {
+    shops: shops.length,
+    watched,
+    window: `${window + 1}/${windows}`,
+    recovered: recovered + (sweep?.recovered.length ?? 0),
+    unrecovered: unrecovered + (sweep?.unrecovered.length ?? 0),
+    lineProblems,
+    sweep: sweep ? { pages: sweep.pages, checked: sweep.checked, unmatched: sweep.unmatched, truncated: sweep.truncated } : "failed",
+  };
 }

@@ -25,6 +25,7 @@ const SendBody = z.object({
 
 const SEND_ERRORS = {
   invalid_customer_phone: { status: 400, error: "That phone number can't receive texts." },
+  unsupported_destination: { status: 400, error: "Orvius only texts US and Canadian numbers." },
   customer_opted_out: {
     status: 409,
     error: "This customer replied STOP. They have to text START before you can text them again.",

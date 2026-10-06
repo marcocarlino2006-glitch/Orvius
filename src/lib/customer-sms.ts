@@ -1,6 +1,7 @@
 import { recordAudit } from "@/lib/audit";
 import { normalizePhone } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
+import { isTextableNumber } from "@/lib/sms-destination";
 import { sendSms } from "@/lib/twilio-sms";
 
 export type CustomerSmsResult =
@@ -9,6 +10,7 @@ export type CustomerSmsResult =
       sent: false;
       reason:
         | "invalid_customer_phone"
+        | "unsupported_destination"
         | "customer_opted_out"
         | "human_takeover"
         | "sms_not_configured";
@@ -32,6 +34,9 @@ export async function sendCustomerSms(params: {
   const normalized = normalizePhone(params.to);
   if (!normalized) {
     return { sent: false, reason: "invalid_customer_phone" };
+  }
+  if (!isTextableNumber(normalized)) {
+    return { sent: false, reason: "unsupported_destination" };
   }
 
   const key = { businessId_phoneNormalized: { businessId: params.businessId, phoneNormalized: normalized } };

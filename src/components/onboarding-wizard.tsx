@@ -5,7 +5,7 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { company } from "@/lib/company";
 import { readPreviewDraft } from "@/lib/preview-draft";
 import { getPlanById, type BillingInterval, type PaidPlanId } from "@/lib/pricing-plans";
-import { TRADES, isTrade, type Trade } from "@/lib/trades";
+import { HIPAA_TRADE_REFUSAL, OFFERED_TRADES, isHipaaTrade, isTrade, type Trade } from "@/lib/trades";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -148,6 +148,11 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
 
   function pickShop(shop: FoundShop) {
     setName(shop.name);
+    if (shop.trade && isHipaaTrade(shop.trade)) {
+      setLookupResults(null);
+      setLookupNote(HIPAA_TRADE_REFUSAL);
+      return;
+    }
     if (shop.trade) setTrade(shop.trade);
     setFound({ address: shop.address, hoursJson: shop.hoursJson, source: shop.source });
     setLookupResults(null);
@@ -523,7 +528,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                 <fieldset className="onboarding-field font-sans">
                   <legend className="onboarding-label">Business type</legend>
                   <div className="onboarding-trade-grid" role="radiogroup" aria-label="Business type">
-                    {TRADES.map((item) => (
+                    {OFFERED_TRADES.map((item) => (
                       <button
                         key={item}
                         type="button"

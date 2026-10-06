@@ -215,6 +215,12 @@ export function getPlanPrice(
   return plan.price;
 }
 
+/** What one included call costs the shop when it uses its allowance: the honest unit next to per-minute receptionist apps. */
+export function perCallCents(plan: PricingPlan, interval: BillingInterval): number | null {
+  if (!plan.includedCalls || plan.contactSales || plan.id === "pilot") return null;
+  return Math.round((getPlanPrice(plan, interval) * 100) / plan.includedCalls);
+}
+
 export function getStripePriceEnvKey(
   planId: PaidPlanId,
   interval: BillingInterval = "month",

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { lateCrons } from "@/lib/cron-runs";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,14 @@ export type PublicStatus = {
     verdict is what keeps a green badge from being a promise about the phone.
   */
   scope: string;
+  /** Whether the background sweeps (owner-alert retries, lost-call recovery) are keeping their schedule. */
+  sweeps: "on_time" | "late" | "unknown";
+  /**
+   * Whether the database answers from the functions' own region. Every call
+   * turn reads the shop, so a database in another region adds its round trip
+   * to what the caller hears as silence; "far" means the two were placed apart.
+   */
+  database: "near" | "far" | "unknown";
   checkedAt: string;
 };
 
@@ -35,19 +44,36 @@ const SCOPE_COPY = {
  * `npm run standard:check`; a public badge that flipped red over a missing
  * optional key would be noise, not status.
  */
+/* Same-region Turso answers in single-digit milliseconds; across the country it is 60ms or more. */
+const FAR_ROUND_TRIP_MS = 40;
+
 export async function GET() {
   let databaseUp = false;
+  let fastestMs = Infinity;
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    // The first ping pays for the connection, so the fastest of three is the round trip itself.
+    for (let i = 0; i < 3; i += 1) {
+      const sent = performance.now();
+      await prisma.$queryRaw`SELECT 1`;
+      fastestMs = Math.min(fastestMs, performance.now() - sent);
+    }
     databaseUp = true;
   } catch {
     databaseUp = false;
   }
 
+  const sweeps: PublicStatus["sweeps"] = databaseUp
+    ? await lateCrons()
+        .then((late) => (late.length ? "late" : "on_time"))
+        .catch(() => "unknown" as const)
+    : "unknown";
+
   const status = databaseUp ? "operational" : "degraded";
   const body: PublicStatus = {
     status,
     scope: SCOPE_COPY[status],
+    sweeps,
+    database: databaseUp ? (fastestMs > FAR_ROUND_TRIP_MS ? "far" : "near") : "unknown",
     checkedAt: new Date().toISOString(),
   };
 

@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FormField } from "@/components/shell-primitives";
 import { savePreviewDraft } from "@/lib/preview-draft";
-import { industryKind, TRADES, type IndustryKind, type Trade } from "@/lib/trades";
+import { industryKind, OFFERED_TRADES, type IndustryKind, type Trade } from "@/lib/trades";
 
-const PLACEHOLDER_NAME: Record<IndustryKind, string> = { field: "Summit HVAC", office: "Bright Smile Dental" };
+const PLACEHOLDER_NAME: Record<IndustryKind, string> = { field: "Summit HVAC", office: "Luxe Hair Studio" };
 const PLACEHOLDER_SERVICES: Record<IndustryKind, string> = {
   field: "AC repair, furnace repair, tune-ups",
-  office: "Cleanings, new patients, consultations",
+  office: "Cuts, color, consultations",
 };
 
 type Started = { token: string; callNumber: string; callTel: string; maxCalls: number };
@@ -221,7 +221,7 @@ export function ShopPreviewForm() {
         </FormField>
         <FormField label="Business type" required>
           <select className="input" value={trade} onChange={(e) => setTrade(e.target.value as Trade)}>
-            {TRADES.map((item) => (
+            {OFFERED_TRADES.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>

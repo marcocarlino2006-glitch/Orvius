@@ -1,5 +1,6 @@
 import type { AskBrief } from "@/lib/ask-brief";
 import { logInfo, logWarn } from "@/lib/logger";
+import { askModelDailyLimit, claimModelCall, modelCallMicros, recordModelCost } from "@/lib/model-usage";
 import { buildShopContextPacket } from "@/lib/shop-context";
 import type { ShopMemory } from "@/lib/shop-memory";
 
@@ -140,7 +141,7 @@ async function callProvider(
   prompt: { system: string; user: string },
   fetchImpl: Fetch,
   signal: AbortSignal,
-): Promise<string | null> {
+): Promise<{ text: string | null; tokens: { input?: number; output?: number } | null }> {
   if (target.provider === "anthropic") {
     const res = await fetchImpl("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -155,8 +156,14 @@ async function callProvider(
       }),
     });
     if (!res.ok) throw new Error(`anthropic_${res.status}`);
-    const data = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
-    return data.content?.find((c) => c.type === "text")?.text ?? null;
+    const data = (await res.json()) as {
+      content?: Array<{ type: string; text?: string }>;
+      usage?: { input_tokens?: number; output_tokens?: number };
+    };
+    return {
+      text: data.content?.find((c) => c.type === "text")?.text ?? null,
+      tokens: data.usage ? { input: data.usage.input_tokens, output: data.usage.output_tokens } : null,
+    };
   }
   if (target.provider === "openai") {
     const res = await fetchImpl("https://api.openai.com/v1/chat/completions", {
@@ -175,8 +182,14 @@ async function callProvider(
       }),
     });
     if (!res.ok) throw new Error(`openai_${res.status}`);
-    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    return data.choices?.[0]?.message?.content ?? null;
+    const data = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
+    };
+    return {
+      text: data.choices?.[0]?.message?.content ?? null,
+      tokens: data.usage ? { input: data.usage.prompt_tokens, output: data.usage.completion_tokens } : null,
+    };
   }
   const res = await fetchImpl("https://api.vapi.ai/chat", {
     method: "POST",
@@ -194,7 +207,7 @@ async function callProvider(
   if (!res.ok) throw new Error(`vapi_${res.status}`);
   const data = (await res.json()) as { output?: Array<{ content?: string } | string> };
   const first = data.output?.[data.output.length - 1];
-  return typeof first === "string" ? first : first?.content ?? null;
+  return { text: typeof first === "string" ? first : first?.content ?? null, tokens: null };
 }
 
 /**
@@ -217,13 +230,20 @@ export async function answerWithModel(params: {
   if (!providers.length) return null;
   const prompt = buildAskPrompt(params);
   const fetchImpl = params.fetchImpl ?? fetch;
+  const businessId = params.businessId;
 
   for (const target of providers) {
+    if (businessId && !(await claimModelCall({ businessId, kind: "ask", limit: askModelDailyLimit(params.env), now: params.now }))) {
+      logInfo("ask.model.capped", { businessId });
+      return null;
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     const started = Date.now();
     try {
-      const parsed = parseModelJson(await callProvider(target, prompt, fetchImpl, controller.signal));
+      const reply = await callProvider(target, prompt, fetchImpl, controller.signal);
+      if (businessId) await recordModelCost({ businessId, kind: "ask", micros: modelCallMicros(target.model, reply.tokens), now: params.now });
+      const parsed = parseModelJson(reply.text);
       if (!parsed) {
         logWarn("ask.model.unparseable", { provider: target.provider, businessId: params.businessId });
         continue;

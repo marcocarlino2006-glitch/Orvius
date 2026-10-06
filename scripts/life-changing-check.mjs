@@ -457,6 +457,9 @@ const publicCopy = [
   "src/app/product/page.tsx",
   "src/app/pricing/page.tsx",
   "src/app/about/page.tsx",
+  "src/app/signin/page.tsx",
+  "src/app/signup/page.tsx",
+  "src/app/login/page.tsx",
 ]
   .filter(fileOk)
   .map(read)

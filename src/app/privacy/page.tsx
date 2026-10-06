@@ -109,7 +109,9 @@ export default function PrivacyPage() {
         </ul>
         <p>
           <strong>No sale / no ads sharing.</strong> We do not sell personal information. We do not
-          share personal information for cross-context behavioral advertising. We do not use
+          share personal information for cross-context behavioral advertising. The one time a
+          caller&apos;s details go to another business is the Orvius Network, described in §5, and
+          only when the caller asks for it. We do not use
           Customer Content to train unrelated third-party foundation models outside what is required
           to operate the Service through our subprocessors under their terms and our configuration.
         </p>
@@ -142,6 +144,15 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>With your direction</strong> — integrations or exports you initiate
+          </li>
+          <li>
+            <strong>Orvius Network, at the caller&apos;s request</strong> — when a business that
+            uses the Service is fully booked and has the Network turned on, the receptionist (or a
+            text) asks the caller whether their name, phone number, address and the problem they
+            described may be shared with another nearby business on the Network so it can call them.
+            Their details are shared with that one business only if they say yes, and are never
+            shared if they say no or have replied STOP. The business that passed the request may
+            receive a referral credit from that business; the caller is not charged for it.
           </li>
         </ul>
         <p>

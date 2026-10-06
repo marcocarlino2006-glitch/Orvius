@@ -17,7 +17,7 @@ const route = await import("../src/app/api/public/book/[slug]/route.ts");
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 const drop = (id) => prisma.business.delete({ where: { id } }).catch(() => {});
 const ALL_DAY = JSON.stringify(
   Object.fromEntries(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((d) => [d, { open: "00:00", close: "23:59" }])),

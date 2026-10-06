@@ -22,8 +22,8 @@ async function shopWithBookedCustomer() {
   const shop = await prisma.business.create({
     data: { name: "Move Air", slug: `move-${stamp()}`, trade: "HVAC", hoursJson: "{}", timezone: "America/Chicago", servicesJson: "[]", environment: "test" },
   });
-  await prisma.technician.create({ data: { businessId: shop.id, name: "Only Tech", phone: `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`, skillsJson: "[]" } });
-  const phone = `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
+  await prisma.technician.create({ data: { businessId: shop.id, name: "Only Tech", phone: `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`, skillsJson: "[]" } });
+  const phone = `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
   const customer = await prisma.customer.create({ data: { businessId: shop.id, name: "Ann Cole", phone, phoneNormalized: phone } });
   const booked = await prisma.job.create({
     data: {

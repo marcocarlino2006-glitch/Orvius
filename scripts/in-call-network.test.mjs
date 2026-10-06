@@ -13,7 +13,7 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
   delete process.env[key];
 }
 
-const { buildInCallTools, NETWORK_OFFER_REPLY, NO_SLOTS_REPLY, PASSED_TO_NETWORK_REPLY, NETWORK_UNAVAILABLE_REPLY } = await import(
+const { buildInCallTools, NETWORK_OFFER_REPLY, NO_SLOTS_REPLY, PASSED_TO_NETWORK_REPLY, NETWORK_UNAVAILABLE_REPLY, NETWORK_NOT_A_YES_REPLY } = await import(
   "../src/lib/in-call-tool-defs.ts"
 );
 const { handleInCallToolCalls } = await import("../src/lib/in-call-tools.ts");
@@ -22,7 +22,7 @@ const { answerVoiceSimToolCalls } = await import("../src/lib/voice-sim-tools.ts"
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 const ZIP3 = String(800 + Math.floor(Math.random() * 99));
 const CLOSED = JSON.stringify(
   Object.fromEntries(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((d) => [d, { closed: true }])),
@@ -75,8 +75,10 @@ const ask = (s, callId, name, args = {}) =>
 
 test("the receptionist has the tool, and the sim answers it with the production words", () => {
   assert.ok(buildInCallTools({ webhookUrl: "https://x" }).some((t) => t.function.name === "pass_to_network"));
-  const [r] = answerVoiceSimToolCalls([{ id: "p", name: "pass_to_network", args: {} }]);
+  const [r] = answerVoiceSimToolCalls([{ id: "p", name: "pass_to_network", args: { callerSaid: "Yes please" } }]);
   assert.equal(r.result, PASSED_TO_NETWORK_REPLY);
+  const [none] = answerVoiceSimToolCalls([{ id: "p", name: "pass_to_network", args: {} }]);
+  assert.equal(none.result, NETWORK_NOT_A_YES_REPLY, "no words, no yes");
 });
 
 test("booked solid: offer a nearby pro only when one is on the network", async () => {
@@ -84,13 +86,17 @@ test("booked solid: offer a nearby pro only when one is on the network", async (
   const call = await prisma.call.create({ data: { businessId: booked.id, vapiCallId: `icn-${stamp()}`, status: "in-progress" } });
 
   assert.equal(await ask(booked, call.id, "check_availability", { serviceType: "leaky faucet", urgency: "flexible" }), NO_SLOTS_REPLY, "no partner yet");
-  assert.equal(await ask(booked, call.id, "pass_to_network"), NETWORK_UNAVAILABLE_REPLY);
+  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "yes" }), NETWORK_UNAVAILABLE_REPLY);
   assert.equal((await prisma.call.findUnique({ where: { id: call.id } })).networkConsentAt, null);
 
   await shop({ hoursJson: "{}" });
   assert.equal(await ask(booked, call.id, "check_availability", { serviceType: "leaky faucet", urgency: "flexible" }), NETWORK_OFFER_REPLY);
   assert.match(NETWORK_OFFER_REPLY, /Ask once/);
-  assert.equal(await ask(booked, call.id, "pass_to_network"), PASSED_TO_NETWORK_REPLY);
+  assert.match(NETWORK_OFFER_REPLY, /share your name, number and what you need with another local company/);
+  assert.equal(await ask(booked, call.id, "pass_to_network"), NETWORK_NOT_A_YES_REPLY);
+  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "No thanks, I'll wait" }), NETWORK_NOT_A_YES_REPLY);
+  assert.equal((await prisma.call.findUnique({ where: { id: call.id } })).networkConsentAt, null, "a no is never recorded as a yes");
+  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "Yeah, go ahead" }), PASSED_TO_NETWORK_REPLY);
   assert.ok((await prisma.call.findUnique({ where: { id: call.id } })).networkConsentAt, "the caller's yes is on the call");
 
   const off = await shop({ networkOn: false });

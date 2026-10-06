@@ -17,7 +17,7 @@ const { normalizeReviewUrl, reviewBlock, reviewMessage, runReviewRequests, sendR
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 /* 2pm in Chicago. */
 const AFTERNOON = new Date("2026-09-29T19:00:00Z");
 const hoursBefore = (h) => new Date(AFTERNOON.getTime() - h * 3_600_000);

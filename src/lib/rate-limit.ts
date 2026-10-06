@@ -34,10 +34,30 @@ export function rateLimit(params: {
   };
 }
 
+/*
+  Vercel sets x-vercel-forwarded-for and x-real-ip itself, so they cannot be
+  forged; the first x-forwarded-for entry is whatever the client sent, and
+  keying a limit on it lets a bot claim a fresh address per request.
+*/
 export function clientIp(request: Request): string {
+  const vercel = request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
+  if (vercel) return vercel;
+  const real = request.headers.get("x-real-ip")?.trim();
+  if (real) return real;
   const xf = request.headers.get("x-forwarded-for");
-  if (xf) return xf.split(",")[0]?.trim() || "unknown";
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
+  return xf?.split(",").at(-1)?.trim() || "unknown";
+}
+
+/**
+ * Public forms text whatever number is typed. Capping texts per destination
+ * means rotating addresses or shops still cannot turn one number into a
+ * revenue stream, while a real customer booking twice is unaffected.
+ */
+export async function publicTextLimited(phone: string): Promise<Response | null> {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return null;
+  const limited = await sharedRateLimit({ key: `public-text:${digits}`, limit: 4, windowMs: 24 * 60 * 60_000, failClosed: true });
+  return limited.ok ? null : tooManyRequests(limited.retryAfterSec, "Too many messages to this number today. Call the business instead.");
 }
 
 export function tooManyRequests(retryAfterSec: number, message = "Too many requests. Wait a moment and retry.") {
@@ -61,9 +81,17 @@ type RateLimitResult = { ok: boolean; remaining: number; retryAfterSec: number }
 /**
  * Rate limit counted in the database, so every server instance sees the same
  * count. One atomic upsert per request. Falls back to the in-memory limiter if
- * the database is unreachable, so an outage never blocks real requests.
+ * the database is unreachable, so an outage never blocks real requests —
+ * unless `failClosed`: a route that sends a text or an email refuses instead,
+ * because a per-instance count is no limit at all across hundreds of
+ * instances, and the send costs money whether or not the record saves.
  */
-export async function sharedRateLimit(params: { key: string; limit: number; windowMs: number }): Promise<RateLimitResult> {
+export async function sharedRateLimit(params: {
+  key: string;
+  limit: number;
+  windowMs: number;
+  failClosed?: boolean;
+}): Promise<RateLimitResult> {
   const now = Date.now();
   const resetAt = now + params.windowMs;
   try {
@@ -74,7 +102,7 @@ export async function sharedRateLimit(params: { key: string; limit: number; wind
         "resetAtMs" = CASE WHEN "RateLimitBucket"."resetAtMs" <= ${now} THEN ${resetAt} ELSE "RateLimitBucket"."resetAtMs" END
       RETURNING "count", "resetAtMs"`;
     const row = rows[0];
-    if (!row) return rateLimit(params);
+    if (!row) return params.failClosed ? STORE_DOWN : rateLimit(params);
     const count = Number(row.count);
     if (Math.random() < 0.01) {
       void prisma.rateLimitBucket.deleteMany({ where: { resetAtMs: { lt: BigInt(now) } } }).catch(() => {});
@@ -84,9 +112,11 @@ export async function sharedRateLimit(params: { key: string; limit: number; wind
     }
     return { ok: true, remaining: params.limit - count, retryAfterSec: 0 };
   } catch {
-    return rateLimit(params);
+    return params.failClosed ? STORE_DOWN : rateLimit(params);
   }
 }
+
+const STORE_DOWN: RateLimitResult = { ok: false, remaining: 0, retryAfterSec: 30 };
 
 /**
  * Customer links (confirm, deposit, estimate, tech, calendar) are public and

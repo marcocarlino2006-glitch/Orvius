@@ -22,6 +22,13 @@ import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { handleInCallToolCalls } from "@/lib/in-call-tools";
 import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
 import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
+import { backstopLateSweeps } from "@/lib/cron-backstop";
+import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
+import { callSpendCut, endCallWith } from "@/lib/call-spend-guard";
+import { isLineEntitled } from "@/lib/billing-entitlement";
+
+/* Room for a made-up line-watch run after the response (cron-backstop.ts). */
+export const maxDuration = 60;
 
 async function findBusinessForCall(
   vapiCallId: string,
@@ -76,7 +83,7 @@ async function answerAssistantRequest(params: {
   if (preview) return { assistant: buildPreviewAssistant(preview) };
 
   const owner = params.inboundNumber ? await resolveBusinessByInboundPhone(params.inboundNumber) : null;
-  if (owner?.billingStatus === "canceled") {
+  if (owner && !isLineEntitled(owner)) {
     return { error: `Thanks for calling ${owner.name}. This line isn't taking calls right now. Please reach the business directly.` };
   }
   if (owner?.vapiAssistantId) return { assistantId: owner.vapiAssistantId };
@@ -249,13 +256,20 @@ export async function POST(request: NextRequest) {
 
     const controlUrl = message.call?.monitor?.controlUrl;
     const connected = type === "call-started" || message.status === "in-progress";
-    if (callerPhone && controlUrl && connected) {
+    if (controlUrl && connected) {
       after(async () => {
         const claimed = await prisma.call.updateMany({
           where: { id: call.id, callerContextSentAt: null },
           data: { callerContextSentAt: new Date() },
         });
         if (!claimed.count) return;
+        const cut = await callSpendCut({ shop: business, callerPhone });
+        if (cut) {
+          await endCallWith(controlUrl, cut.say);
+          if (cut.reason === "shop_ceiling") await pagePlatform("spend_ceiling", { businessId: business.id, vapiCallId });
+          return;
+        }
+        if (!callerPhone) return;
         const note = await loadCallerContextNote({
           businessId: business.id,
           phone: callerPhone,
@@ -278,6 +292,10 @@ export async function POST(request: NextRequest) {
     const captured = await captureEndOfCallReport({ business, message, vapiCallId });
     if (captured.duplicate) {
       return NextResponse.json({ ok: true, duplicate: true });
+    }
+    after(() => backstopLateSweeps("vapi.end_of_call"));
+    if (isVapiBillingRefusal(message.endedReason)) {
+      after(() => pagePlatform("vapi_billing", { vapiCallId, businessId: business.id, endedReason: message.endedReason }));
     }
     after(async () => {
       // A burst queues writers on the one SQLite lock; a short retry books the caller now instead of on the next sweep.

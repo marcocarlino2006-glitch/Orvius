@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
 import { findPaidCheckoutSessionId } from "@/lib/billing-sync";
+import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { CheckoutNotPaidError, provisionFromCheckout, shopDraftSchema } from "@/lib/checkout-shop";
 import { logWarn } from "@/lib/logger";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
 import { isOnboardingComplete } from "@/lib/provision-business";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
+import { prisma } from "@/lib/prisma";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
 import { resolveShopAccess } from "@/lib/workspace-access";
@@ -83,9 +85,16 @@ export async function POST(request: NextRequest) {
       publicSignupReady,
     )
   ) {
+    await prisma.waitlistEntry
+      .upsert({
+        where: { email },
+        create: { email, plan: "self-serve", notes: "Signed in to start a shop while card signup was closed." },
+        update: {},
+      })
+      .catch(() => {});
     return NextResponse.json(
       {
-        error: "Card signup isn't open yet. Book a call audit at orvius.im/pilot and we'll set up your shop with you.",
+        error: "Card signup isn't open yet. You're on the list and we'll reach out to set up your shop — or book a call audit at orvius.im/pilot.",
         code: "self_serve_signup_disabled",
       },
       { status: 403 },
@@ -122,6 +131,9 @@ export async function POST(request: NextRequest) {
     );
   }
   const { checkoutSessionId, ...typed } = parsed.data;
+  if (isHipaaTrade(typed.trade)) {
+    return NextResponse.json({ error: HIPAA_TRADE_REFUSAL, code: "trade_not_offered" }, { status: 400 });
+  }
   const draft = typed.name || typed.ownerPhone ? shopDraftSchema.safeParse(typed) : null;
   if (draft && !draft.success) {
     return NextResponse.json(

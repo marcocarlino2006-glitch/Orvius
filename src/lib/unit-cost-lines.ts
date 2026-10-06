@@ -7,8 +7,8 @@ const cents = (value: number) => (Math.abs(value) >= 100 ? money(value) : `${val
 export function unitCostLines(unit: UnitEconomics | null): string[] {
   if (!unit) return ["Cost per call: no call has reported a cost yet"];
   return [
-    `Cost per call: ${cents(unit.costPerCallCents)} (${cents(unit.costPerMinuteCents)}/min, phone leg estimated) over ${unit.calls} calls · biggest part: ${unit.biggestStage ?? "—"}`,
+    `Cost per call: ${cents(unit.costPerCallCents)} (${cents(unit.costPerMinuteCents)}/min, phone leg estimated, ${unit.textsPerCall} texts a call${unit.askCentsPerCall ? `, ${cents(unit.askCentsPerCall)} of Ask` : ""}) over ${unit.calls} calls · biggest part: ${unit.biggestStage ?? "—"}`,
     `Overage margin: ${cents(unit.overageMarginCents)} a call${unit.overageMarginCents < 0 ? " — overage is priced below cost" : ""}`,
-    `Gross margin if a shop uses every included call: ${unit.plans.map((p) => `${p.name} ${p.marginAtAllowancePct}%`).join(" · ")}`,
+    `Gross margin if a shop uses every included call (number and card fee included): ${unit.plans.map((p) => `${p.name} ${p.marginAtAllowancePct}%`).join(" · ")}`,
   ];
 }

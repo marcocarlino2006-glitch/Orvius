@@ -18,8 +18,9 @@ export default function SmsTermsPage() {
     >
       <LegalSection title="1. Program description">
         <p>
-          {company.legalName} operates {company.productName}, which sends two
-          kinds of transactional text messages. No marketing messages are sent.
+          {company.legalName} operates {company.productName}, which sends
+          owner alerts and service texts, and promotional texts only to
+          customers who opted in to them in writing.
         </p>
         <p>
           <strong>Owner alerts.</strong> Business owners and authorized staff
@@ -33,7 +34,16 @@ export default function SmsTermsPage() {
           them about that request: that the request was received, a proposed or
           booked appointment and a request to confirm it, a reminder, a single
           follow-up if nobody from the shop has reached them yet, and a link to
-          pay a deposit or invoice. Replies go to the shop.
+          pay a deposit or invoice. After a completed visit the business may
+          send one text asking for a review. Replies go to the shop.
+        </p>
+        <p>
+          <strong>Promotional texts.</strong> Occasional reminders and offers
+          from a business (for example, &ldquo;it&apos;s been a while, want to
+          book?&rdquo;), up to two a month, sent only to customers who ticked
+          the optional box on that business&apos;s booking page or texted{" "}
+          <strong>JOIN</strong> to its number. Giving a number on a call is
+          never treated as a yes to promotional texts.
         </p>
         <p>
           Message frequency varies with the request, typically one to five
@@ -54,6 +64,8 @@ export default function SmsTermsPage() {
           number on the call or in their text so the business can reach them
           about the service they asked for. Texts are sent only about that
           request, and the first text says who it is from and how to opt out.
+          Promotional texts need a separate written yes, described above, and
+          that yes is not a condition of any purchase. Replying STOP ends both.
         </p>
         <p>
           <strong>Customer responsibility.</strong> Business customers are

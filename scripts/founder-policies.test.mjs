@@ -56,10 +56,10 @@ test("Stripe status changes start and clear the grace and cancel clocks", async 
   }
 });
 
-test("lapsed lines are only reported until release is switched on", async () => {
+test("lapsed lines are only reported while release is held off", async () => {
   const prev = process.env.ORVIUS_RELEASE_LAPSED_LINES;
-  delete process.env.ORVIUS_RELEASE_LAPSED_LINES;
-  const line = `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
+  process.env.ORVIUS_RELEASE_LAPSED_LINES = "0";
+  const line = `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
   const lapsed = await prisma.business.create({
     data: {
       name: "Lapsed Air",
@@ -87,7 +87,7 @@ test("lapsed lines are only reported until release is switched on", async () => 
 
 test("a canceled shop's number answers with a message, not its assistant", () => {
   const route = read("src/app/api/webhooks/vapi/route.ts");
-  const canceled = route.indexOf('owner?.billingStatus === "canceled"');
+  const canceled = route.indexOf("if (owner && !isLineEntitled(owner))");
   assert.ok(canceled > 0 && canceled < route.indexOf("return { assistantId: owner.vapiAssistantId }"));
   const sync = read("src/lib/billing-sync.ts");
   assert.match(sync, /await suspendShopLine\(updated\)/);

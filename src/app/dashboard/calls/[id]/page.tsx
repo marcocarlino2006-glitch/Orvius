@@ -1,6 +1,7 @@
 "use client";
 
 import { CallPlayer } from "@/components/call-player";
+import { CorrectReceptionist } from "@/components/correct-receptionist";
 import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
@@ -286,6 +287,8 @@ export default function CallDetailPage() {
             </ShellPanel>
             </div>
           ) : null}
+
+          <CorrectReceptionist callId={call.id} />
 
           {call.customer ? (
             <ShellPanel title="Customer" dense>

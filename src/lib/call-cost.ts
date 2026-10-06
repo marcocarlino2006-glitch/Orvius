@@ -1,4 +1,5 @@
 import { OVERAGE_CENTS_PER_CALL, pricingPlans } from "@/lib/pricing-plans";
+import { productionModelMicrosSince } from "@/lib/model-usage";
 import { prisma } from "@/lib/prisma";
 
 /*
@@ -13,6 +14,25 @@ import { prisma } from "@/lib/prisma";
 
 /** Twilio inbound to a US local number, per minute (list price). */
 export const PHONE_MICROS_PER_MIN = 8_500;
+/** One outbound text segment: Twilio's US rate plus the carriers' A2P pass-through fee. */
+export const SMS_MICROS_PER_TEXT = 11_300;
+/** A shop's own local number, rented from Twilio every month whether it rings or not. */
+export const NUMBER_CENTS_PER_MONTH = 115;
+/** Each shop's own low-volume A2P campaign, monthly, plus its one-time brand and vetting fees spread over a year. */
+export const A2P_CAMPAIGN_CENTS_PER_MONTH = 150;
+export const A2P_ONE_TIME_CENTS = 1_900;
+const A2P_CENTS_PER_MONTH = A2P_CAMPAIGN_CENTS_PER_MONTH + A2P_ONE_TIME_CENTS / 12;
+/** Stripe's card fee on the plan charge. */
+export const STRIPE_FEE_PCT = 2.9;
+export const STRIPE_FEE_FIXED_CENTS = 30;
+
+/*
+  A call's cost does not end when it hangs up: each one sends texts (the
+  owner's alert, the caller's confirmation, reminders), Ask's model answers
+  are paid for out of the same plan, and every plan pays
+  for its number and for Stripe taking the card. Margins that left those out
+  read several points better than the business they described.
+*/
 
 export type CostBreakdown = { stt?: number; llm?: number; tts?: number; vapi?: number; transport?: number };
 
@@ -40,8 +60,20 @@ export type UnitEconomics = {
   costPerMinuteCents: number;
   /** Which part of Vapi's charge is largest, e.g. "llm". */
   biggestStage: string | null;
+  /** Outbound texts per answered call, included in costPerCallCents. */
+  textsPerCall: number;
+  /** Ask's model spend spread over answered calls, included in costPerCallCents. */
+  askCentsPerCall: number;
   overageMarginCents: number;
-  plans: Array<{ id: string; name: string; priceCents: number; includedCalls: number; marginAtAllowancePct: number }>;
+  plans: Array<{
+    id: string;
+    name: string;
+    priceCents: number;
+    includedCalls: number;
+    /** Number rental, texting registration and the Stripe fee: owed every month at any call volume. */
+    fixedCents: number;
+    marginAtAllowancePct: number;
+  }>;
 };
 
 const tenth = (n: number) => Math.round(n * 10) / 10;
@@ -49,6 +81,7 @@ const tenth = (n: number) => Math.round(n * 10) / 10;
 /** Pure: unit economics from per-call costs and durations. */
 export function unitEconomics(
   calls: Array<{ costMicros: number; durationSec: number | null; costJson: string | null }>,
+  extras: { textsPerCall?: number; askMicrosPerCall?: number } = {},
 ): UnitEconomics | null {
   if (!calls.length) return null;
   let micros = 0;
@@ -66,6 +99,9 @@ export function unitEconomics(
       /* A malformed breakdown still has its total counted above. */
     }
   }
+  const textsPerCall = Math.max(0, extras.textsPerCall ?? 0);
+  const askMicrosPerCall = Math.max(0, extras.askMicrosPerCall ?? 0);
+  micros += Math.round((textsPerCall * SMS_MICROS_PER_TEXT + askMicrosPerCall) * calls.length);
   const perCallCents = micros / calls.length / 10_000;
   const biggestStage = Object.entries(stages).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
   return {
@@ -73,15 +109,19 @@ export function unitEconomics(
     costPerCallCents: tenth(perCallCents),
     costPerMinuteCents: seconds ? tenth(micros / (seconds / 60) / 10_000) : 0,
     biggestStage,
+    textsPerCall: tenth(textsPerCall),
+    askCentsPerCall: tenth(askMicrosPerCall / 10_000),
     overageMarginCents: tenth(OVERAGE_CENTS_PER_CALL - perCallCents),
     plans: pricingPlans.filter((p) => p.price > 0 && p.includedCalls && !p.contactSales).map((p) => {
       const priceCents = p.price * 100;
-      const cost = p.includedCalls! * perCallCents;
+      const fixedCents = NUMBER_CENTS_PER_MONTH + A2P_CENTS_PER_MONTH + (priceCents * STRIPE_FEE_PCT) / 100 + STRIPE_FEE_FIXED_CENTS;
+      const cost = p.includedCalls! * perCallCents + fixedCents;
       return {
         id: p.id,
         name: p.name,
         priceCents,
         includedCalls: p.includedCalls!,
+        fixedCents: Math.round(fixedCents),
         marginAtAllowancePct: Math.round(((priceCents - cost) / priceCents) * 100),
       };
     }),
@@ -90,11 +130,24 @@ export function unitEconomics(
 
 /** Real shops' calls since a date that carry a reported cost. */
 export async function unitEconomicsSince(since: Date) {
-  const calls = await prisma.call.findMany({
-    where: { createdAt: { gte: since }, costMicros: { not: null }, business: { environment: "production" } },
-    select: { costMicros: true, durationSec: true, costJson: true },
-    take: 5_000,
-    orderBy: { createdAt: "desc" },
-  });
-  return unitEconomics(calls.map((c) => ({ ...c, costMicros: c.costMicros! })));
+  const production = { business: { environment: "production" } };
+  const [calls, answered, customerTexts, ownerTexts, askMicros] = await Promise.all([
+    prisma.call.findMany({
+      where: { createdAt: { gte: since }, costMicros: { not: null }, ...production },
+      select: { costMicros: true, durationSec: true, costJson: true },
+      take: 5_000,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.call.count({ where: { createdAt: { gte: since }, direction: "inbound", ...production } }),
+    prisma.message.count({ where: { createdAt: { gte: since }, direction: "out", ...production } }),
+    prisma.ownerNotification.count({ where: { createdAt: { gte: since }, channel: "sms", status: "sent", ...production } }),
+    productionModelMicrosSince(since).catch(() => 0),
+  ]);
+  return unitEconomics(
+    calls.map((c) => ({ ...c, costMicros: c.costMicros! })),
+    {
+      textsPerCall: answered ? (customerTexts + ownerTexts) / answered : 0,
+      askMicrosPerCall: answered ? askMicros / answered : 0,
+    },
+  );
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { FormField } from "@/components/shell-primitives";
-import { TRADES } from "@/lib/trades";
+import { OFFERED_TRADES } from "@/lib/trades";
 
 type FormProps = {
   variant?: "compact" | "full";
@@ -131,7 +131,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               onChange={(e) => setTrade(e.target.value)}
             >
               <option value="">Select business type</option>
-              {TRADES.map((item) => (
+              {OFFERED_TRADES.map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>

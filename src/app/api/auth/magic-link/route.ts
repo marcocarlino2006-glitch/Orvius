@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
     key: `magic-link:${clientIp(request)}`,
     limit: 10,
     windowMs: 60 * 60 * 1000,
+    failClosed: true,
   });
   if (!limit.ok) {
     return NextResponse.json(

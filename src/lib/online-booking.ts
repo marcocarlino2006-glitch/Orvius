@@ -2,7 +2,9 @@ import type { Business } from "@prisma/client";
 import { isBillingEntitled } from "@/lib/billing-entitlement";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
+import { isTextableNumber } from "@/lib/sms-destination";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
+import { recordMarketingOptIn } from "@/lib/marketing-consent";
 import { createJobFromLead, findOpenSlots } from "@/lib/job";
 import { logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
@@ -138,6 +140,8 @@ export type BookingInput = {
   email?: string | null;
   address?: string | null;
   notes?: string | null;
+  /** The optional, unticked-by-default promotional texts box. */
+  marketingOptIn?: boolean;
 };
 
 export type BookingResult =
@@ -146,8 +150,8 @@ export type BookingResult =
 
 export async function bookOnline(shop: BookingShop, input: BookingInput): Promise<BookingResult> {
   const phone = normalizePhone(input.phone);
-  if (!phone || phone.replace(/\D/g, "").length < 10) {
-    return { ok: false, reason: "bad_phone", message: "Enter a mobile number we can text the confirmation to." };
+  if (!phone || !isTextableNumber(phone)) {
+    return { ok: false, reason: "bad_phone", message: "Enter a US or Canadian mobile number we can text the confirmation to." };
   }
   const services = bookingServices(shop);
   if (!services.includes(input.serviceType)) {
@@ -203,6 +207,9 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
     address: lead.address,
     notes: lead.notes,
   });
+  if (input.marketingOptIn === true) {
+    await recordMarketingOptIn({ businessId: shop.id, phone, source: "booking_page" });
+  }
   const job = await createJobFromLead({ leadId: lead.id, scheduledAt: at, actor: "system" });
 
   /*

@@ -19,6 +19,23 @@ export const TRADES = [
 ] as const;
 export type Trade = (typeof TRADES)[number];
 
+/*
+  Patient calls carry protected health information, and Orvius has no BAA with
+  its voice, text and AI vendors. Shops already on these trades keep working;
+  no new one can pick them until that exists.
+*/
+export const HIPAA_TRADES: readonly Trade[] = ["Dental office", "Medical office"];
+
+export function isHipaaTrade(trade: string | null | undefined): boolean {
+  return HIPAA_TRADES.includes(trade as Trade);
+}
+
+/** The trades a new shop can pick. */
+export const OFFERED_TRADES: readonly Trade[] = TRADES.filter((t) => !isHipaaTrade(t));
+
+export const HIPAA_TRADE_REFUSAL =
+  "Orvius isn't set up for patient calls yet (no HIPAA agreement), so dental and medical offices can't sign up.";
+
 /**
  * Field businesses go to the customer: the call needs a service address and a
  * technician goes out. Office businesses see the customer at their place: the

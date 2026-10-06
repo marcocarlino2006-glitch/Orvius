@@ -20,34 +20,6 @@ type Biz = {
 
 const BIZ: Biz[] = [
   {
-    id: "dental",
-    name: "Bright Smile Dental",
-    kind: "Dental office",
-    owner: "Dr. Patel",
-    greeting: "Bright Smile Dental, this is Orvius. Are you a new or returning patient?",
-    asks: ["Reason for visit", "New or returning", "Insurance", "Best time"],
-    safety: "Trouble breathing or heavy bleeding: told to call 911 first",
-    queue: [
-      { who: "Maya Chen", what: "Cracked molar, pain since lunch", tag: "Emergency", when: "8:30 AM", value: "$420" },
-      { who: "Luis Ortega", what: "New patient cleaning", tag: "Booked", when: "Thu 10:00", value: "$180" },
-      { who: "Priya Shah", what: "Crown follow-up, asked for a callback", tag: "Call back", when: "Today", value: "$950" },
-      { who: "Ben Ward", what: "Invisalign consult", tag: "New", when: "—", value: "$3,500" },
-    ],
-    calls: [
-      { who: "Maya Chen", what: "Cracked molar", grade: "Clean" },
-      { who: "Luis Ortega", what: "New patient cleaning", grade: "Clean" },
-      { who: "Unknown", what: "Hung up after greeting", grade: "Worth a listen" },
-      { who: "Priya Shah", what: "Crown follow-up", grade: "Clean" },
-    ],
-    transcript: [
-      ["Caller", "I cracked a tooth at lunch and it really hurts."],
-      ["Orvius", "I'm sorry. Is there swelling or trouble breathing?"],
-      ["Caller", "No, just the pain."],
-      ["Orvius", "I can hold 8:30 tomorrow morning with Dr. Patel. Does that work?"],
-    ],
-    confirm: { when: "Tue 8:30 AM", with: "Dr. Patel", service: "Cracked molar", place: "Room 2" },
-  },
-  {
     id: "salon",
     name: "Luxe Hair Studio",
     kind: "Salon & spa",

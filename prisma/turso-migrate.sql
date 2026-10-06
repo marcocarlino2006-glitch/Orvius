@@ -758,3 +758,35 @@ CREATE INDEX IF NOT EXISTS "NetworkHandoff_toLeadId_idx" ON "NetworkHandoff"("to
 
 -- In-call network handoff: the caller's yes, recorded during the call.
 ALTER TABLE "Call" ADD COLUMN "networkConsentAt" DATETIME;
+
+-- Marketing texts (win-back) only to customers who said yes in writing.
+ALTER TABLE "Customer" ADD COLUMN "marketingOptInAt" DATETIME;
+ALTER TABLE "Customer" ADD COLUMN "marketingOptInSource" TEXT;
+
+-- Scheduled sweeps: last run, so a late GitHub schedule is caught and made up.
+CREATE TABLE IF NOT EXISTS "CronRun" (
+  "name" TEXT NOT NULL PRIMARY KEY,
+  "lastRunAt" DATETIME,
+  "lastClaimAt" DATETIME
+);
+
+-- Retention sweeps delete oldest-first across every shop.
+CREATE INDEX IF NOT EXISTS "WebhookEvent_createdAt_idx" ON "WebhookEvent"("createdAt");
+CREATE INDEX IF NOT EXISTS "OwnerNotification_createdAt_idx" ON "OwnerNotification"("createdAt");
+
+-- A line stops answering once payment is long overdue or a pilot ended unpaid; the stamp drives resume.
+ALTER TABLE "Business" ADD COLUMN "lineSuspendedAt" DATETIME;
+
+-- Ask's model calls per shop per day: a daily cap and a real cost line.
+CREATE TABLE IF NOT EXISTS "ModelUsage" (
+  "businessId" TEXT NOT NULL,
+  "day" TEXT NOT NULL,
+  "kind" TEXT NOT NULL,
+  "calls" INTEGER NOT NULL DEFAULT 0,
+  "micros" INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY ("businessId", "day", "kind")
+);
+CREATE INDEX IF NOT EXISTS "ModelUsage_day_idx" ON "ModelUsage"("day");
+
+-- Owner corrections the receptionist follows on every call.
+ALTER TABLE "Business" ADD COLUMN "receptionistRulesJson" TEXT NOT NULL DEFAULT '[]';

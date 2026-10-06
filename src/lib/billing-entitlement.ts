@@ -15,6 +15,29 @@ export type BusinessBillingFields = {
   pastDueSince?: Date | string | null;
 };
 
+/*
+  The line is the last thing to go, after the dashboard: a shop that misses a
+  payment keeps every call answered while Stripe retries for three weeks, and
+  a pilot that ended keeps answering a week past the end while the owner
+  decides. Past that, an AI receptionist answering for free is the business
+  paying Vapi minutes for nobody.
+*/
+export const PAST_DUE_LINE_DAYS = 21;
+export const PILOT_LINE_GRACE_DAYS = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export function isLineEntitled(business: BusinessBillingFields, now = new Date()): boolean {
+  const status = (business.billingStatus ?? "none").toLowerCase();
+  if (status === "active") return true;
+  if (status === "canceled") return false;
+  if (status === "past_due") {
+    if (!business.pastDueSince) return true;
+    return now.getTime() - new Date(business.pastDueSince).getTime() <= PAST_DUE_LINE_DAYS * DAY_MS;
+  }
+  const ends = resolvePilotEndsAt(business);
+  return !ends || now.getTime() <= ends.getTime() + PILOT_LINE_GRACE_DAYS * DAY_MS;
+}
+
 export function isPastDueGraceOver(business: BusinessBillingFields, now = new Date()): boolean {
   if (!business.pastDueSince) return false;
   const since = new Date(business.pastDueSince).getTime();

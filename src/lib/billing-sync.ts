@@ -232,7 +232,7 @@ export async function syncSubscriptionToBusiness(
   }
   if (billingStatus === "canceled" && previous !== "canceled") {
     await suspendShopLine(updated);
-  } else if (billingStatus === "active" && previous === "canceled" && !updated.lineReleasedAt) {
+  } else if (billingStatus === "active" && (previous === "canceled" || updated.lineSuspendedAt) && !updated.lineReleasedAt) {
     await resumeShopLine(updated);
   }
 

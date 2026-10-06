@@ -13,6 +13,7 @@ import {
   getAppBaseUrl,
   getBillingReadiness,
   getStripe,
+  checkoutTaxParams,
   isStripeCheckoutConfigured,
   isStripeConfigured,
   isStripePlanConfigured,
@@ -28,6 +29,7 @@ import { shopHasLivePlan } from "@/lib/billing-sync";
 import { stripeKeyMode } from "@/lib/stripe-mode";
 import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
+import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
 import { resolveShopAccess } from "@/lib/workspace-access";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
@@ -46,6 +48,9 @@ const checkoutSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = checkoutSchema.parse(await request.json());
+    if (body.shop && isHipaaTrade(body.shop.trade)) {
+      return NextResponse.json({ error: HIPAA_TRADE_REFUSAL, code: "trade_not_offered" }, { status: 400 });
+    }
 
     if (!isPlanCheckoutReady(body.planId, body.interval)) {
       /*
@@ -153,7 +158,7 @@ export async function POST(request: NextRequest) {
       cancel_url: business ? `${baseUrl}/pricing?canceled=1` : `${baseUrl}${setupPath}&canceled=1`,
       // Stripe takes either a fixed discount or a promo-code box, not both.
       ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
-      billing_address_collection: "auto",
+      ...checkoutTaxParams(Boolean(business?.stripeCustomerId)),
       subscription_data: {
         metadata: {
           product: plan.stripeProductKey ?? `orvius-${body.planId}`,

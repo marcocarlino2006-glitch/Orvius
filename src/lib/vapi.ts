@@ -42,6 +42,8 @@ type VapiAssistantPayload = {
   /** Live call control lets the webhook hand the receptionist a returning-caller note. */
   monitorPlan?: { controlEnabled?: boolean; listenEnabled?: boolean };
   endCallFunctionEnabled?: boolean;
+  maxDurationSeconds?: number;
+  silenceTimeoutSeconds?: number;
   analysisPlan?: {
     summaryPlan?: { enabled: boolean };
     successEvaluationPlan?: {
@@ -330,6 +332,9 @@ export function buildVapiAssistantConfig(params: {
     serverUrlSecret: params.webhookSecret,
     monitorPlan: { controlEnabled: true },
     endCallFunctionEnabled: true,
+    // Pinned rather than left to Vapi's defaults: a stuck or silent line is billed by the minute.
+    maxDurationSeconds: 600,
+    silenceTimeoutSeconds: 30,
     analysisPlan: {
       summaryPlan: { enabled: true },
       successEvaluationPlan: {

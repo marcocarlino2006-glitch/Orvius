@@ -59,8 +59,8 @@ try {
     warn("Owner SMS", "Set ENABLE_OWNER_SMS=true and owner phone in settings");
   }
 
-  if (health.twilioPhone) {
-    pass("Live line", health.twilioPhone);
+  if (health.twilioPhone || health.twilioLineConfigured) {
+    pass("Live line", health.twilioPhone ?? "configured");
   } else {
     fail("Live line", "TWILIO_PHONE_NUMBER not set");
   }

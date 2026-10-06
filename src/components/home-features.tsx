@@ -53,7 +53,6 @@ const features: Feature[] = [
 const industries = [
   { name: "Home services", detail: "HVAC, plumbing, electrical, roofing, garage doors, appliance repair" },
   { name: "On-site services", detail: "Pest control, cleaning, moving, locksmiths" },
-  { name: "Health", detail: "Dental and medical offices" },
   { name: "Beauty", detail: "Salons and spas" },
   { name: "Professional", detail: "Law offices and real estate" },
   { name: "Auto", detail: "Repair shops and service bays" },

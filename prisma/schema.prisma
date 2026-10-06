@@ -158,6 +158,10 @@ model Business {
   canceledAt         DateTime?
   /** When a lapsed shop's number was given back to Twilio. */
   lineReleasedAt     DateTime?
+  /// Owner corrections the receptionist follows on every call: [{ id, text, createdAt, callId? }].
+  receptionistRulesJson String @default("[]")
+  /** When the line stopped answering for non-payment; cleared when it answers again. */
+  lineSuspendedAt    DateTime?
 
   @@index([ownerEmail])
   @@index([twilioPhone])
@@ -369,6 +373,9 @@ model Customer {
   interactionCount  Int      @default(1)
   /** Last "we miss you" text; one per customer every 90 days. */
   winBackSentAt     DateTime?
+  /** Written yes to promotional texts (booking-page box or texting JOIN). Win-back only goes to these. STOP clears it. */
+  marketingOptInAt     DateTime?
+  marketingOptInSource String?
   firstSeenAt       DateTime @default(now())
   lastSeenAt        DateTime @default(now())
   createdAt         DateTime @default(now())
@@ -747,6 +754,7 @@ model OwnerNotification {
   @@index([status, nextRetryAt])
   @@index([businessId, processedAt])
   @@index([deliveryId])
+  @@index([createdAt])
 }
 
 model WebhookEvent {
@@ -767,6 +775,7 @@ model WebhookEvent {
   @@index([businessId, createdAt])
   @@index([source, createdAt])
   @@index([source, eventType, status, createdAt])
+  @@index([createdAt])
 }
 
 /// Single-use sign-in link. Only the SHA-256 of the token is stored, so a leaked
@@ -867,6 +876,18 @@ model ProvisionAttempt {
 }
 
 /// Rate-limit counters shared by every server instance.
+/// Paid model calls made on a shop's behalf outside the phone line (Ask), per UTC day. Drives the daily cap and the cost model.
+model ModelUsage {
+  businessId String
+  day        String
+  kind       String
+  calls      Int    @default(0)
+  micros     Int    @default(0)
+
+  @@id([businessId, day, kind])
+  @@index([day])
+}
+
 model RateLimitBucket {
   key       String @id
   count     Int
@@ -1009,4 +1030,11 @@ model NetworkHandoff {
   @@index([toLeadId])
   @@index([status, offeredAt])
   @@index([toBusinessId])
+}
+
+/// When each scheduled sweep last ran, so a missed schedule is noticed and made up.
+model CronRun {
+  name        String    @id
+  lastRunAt   DateTime?
+  lastClaimAt DateTime?
 }

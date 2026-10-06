@@ -16,7 +16,7 @@ const { renderWinBack, defaultWinBackMessage, winBackAudience, sendWinBack, WIN_
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 const drop = (id) => prisma.business.delete({ where: { id } }).catch(() => {});
 /* 2pm in Chicago. */
 const AFTERNOON = new Date("2026-09-29T19:00:00Z");
@@ -37,7 +37,7 @@ async function shop(overrides = {}) {
 async function customer(business, { name = "Ann Cole", seen = 8, completed = true, upcoming = false, ...data } = {}) {
   const phone = randomPhone();
   const c = await prisma.customer.create({
-    data: { businessId: business.id, name, phone, phoneNormalized: phone, lastSeenAt: monthsAgo(seen), ...data },
+    data: { businessId: business.id, name, phone, phoneNormalized: phone, lastSeenAt: monthsAgo(seen), marketingOptInAt: monthsAgo(seen + 1), ...data },
   });
   if (completed) {
     await prisma.job.create({ data: { businessId: business.id, customerId: c.id, title: "Cut", status: "completed", completedAt: monthsAgo(seen) } });
@@ -67,6 +67,7 @@ test("who is in the audience", async () => {
     await customer(business, { name: "Recent Visit", seen: 1 });
     await customer(business, { name: "Never Booked", seen: 8, completed: false });
     await customer(business, { name: "Already Booked", seen: 8, upcoming: true });
+    await customer(business, { name: "Never Said Yes", seen: 8, marketingOptInAt: null });
     await customer(business, { name: "Asked Lately", seen: 8, winBackSentAt: new Date(AFTERNOON.getTime() - WIN_BACK_GAP_MS / 3) });
     const stopped = await customer(business, { name: "Said Stop", seen: 8 });
     await prisma.smsOptOut.create({ data: { businessId: business.id, phone: stopped.phone, phoneNormalized: stopped.phoneNormalized, source: "inbound-sms" } });

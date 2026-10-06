@@ -9,12 +9,13 @@ import {
   buildLeadAlertDedupeKey,
   enqueueOwnerAlert,
 } from "@/lib/notifications";
-import { captureServerMessage } from "@/lib/sentry-report";
+import { pagePlatform } from "@/lib/platform-pager";
 import { escapeXml, twimlResponse } from "@/lib/twiml";
-import { getWebhookUrl } from "@/lib/env";
+import { getAppUrl, getWebhookUrl } from "@/lib/env";
 import { validateTwilioRequest } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { liveRingTarget } from "@/lib/voice-fallback";
 
 /*
   What a homeowner hears when the AI cannot answer.
@@ -41,6 +42,9 @@ import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 /** Two minutes is long enough to describe a flooded basement, short enough to read. */
 const MAX_VOICEMAIL_SECONDS = 120;
 
+/** Long enough for an owner to dig a phone out of a pocket, short enough that the caller stays for voicemail. */
+const LIVE_RING_SECONDS = 18;
+
 function fallbackUrl() {
   return getWebhookUrl("/api/webhooks/twilio/voice-fallback");
 }
@@ -51,15 +55,15 @@ function fallbackUrl() {
   It never claims the shop is "closed" — the line reaching here means our side
   broke, and a homeowner told the shop is shut may stop calling.
 */
-function greeting(shopName: string) {
+function greeting(shopName: string | null) {
   return [
-    `Thanks for calling ${shopName}.`,
+    shopName ? `Thanks for calling ${shopName}.` : "Thanks for calling.",
     "We can't take your call live right now, but this line is recording and the owner is being notified.",
     "Please leave your name, your number, and what you need after the beep. If this is a gas leak or you're in immediate danger, hang up and call 9 1 1.",
   ].join(" ");
 }
 
-function voicemailTwiml(shopName: string) {
+function voicemailTwiml(shopName: string | null) {
   /*
     `action` is this same route, which is what lets one handler cover both legs
     of the call: the greeting, then the recording Twilio posts back.
@@ -75,6 +79,22 @@ function voicemailTwiml(shopName: string) {
         failure this route exists to remove.
       */
       `<Say voice="Polly.Joanna">${escapeXml("We couldn't record your message. Please call again shortly.")}</Say>`,
+    ].join(""),
+  );
+}
+
+/*
+  A person beats a voicemail. With the AI down, the caller is rung through to
+  the shop's own phone first and only lands on the recorder if nobody picks up;
+  Twilio posts the outcome back here as DialCallStatus.
+*/
+function ringOwnerTwiml(shopName: string, target: string) {
+  return twimlResponse(
+    [
+      `<Say voice="Polly.Joanna">${escapeXml(`Thanks for calling ${shopName}. Connecting you to the team now.`)}</Say>`,
+      `<Dial action="${escapeXml(fallbackUrl())}" method="POST" timeout="${LIVE_RING_SECONDS}" answerOnBridge="true">`,
+      `<Number>${escapeXml(target)}</Number>`,
+      `</Dial>`,
     ].join(""),
   );
 }
@@ -106,6 +126,8 @@ export async function POST(request: NextRequest) {
   const callSid = String(form.get("CallSid") ?? "").trim();
   const recordingUrl = String(form.get("RecordingUrl") ?? "").trim();
   const recordingSeconds = Number(form.get("RecordingDuration") ?? 0) || 0;
+  const dialStatus = String(form.get("DialCallStatus") ?? "").trim();
+  const forwardedFrom = String(form.get("ForwardedFrom") ?? "").trim();
 
   const formEntries = Object.fromEntries(
     [...form.entries()].map(([key, value]) => [key, String(value)]),
@@ -124,7 +146,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const business = await resolveBusinessByInboundPhone(to);
+  /*
+    The caller is on the line while this runs, and the shop lookup is a
+    database read. If the database is the thing that is down, they still get
+    the recorder; the recording leg comes back here and is filed once the shop
+    can be found again.
+  */
+  let business: Awaited<ReturnType<typeof resolveBusinessByInboundPhone>>;
+  try {
+    business = await resolveBusinessByInboundPhone(to);
+  } catch (error) {
+    logError("twilio.voice_fallback.lookup_failed", {
+      callSid,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    after(() => pagePlatform("db_unreachable", { callSid, at: "voice_fallback" }));
+    return recordingUrl ? signOffTwiml() : voicemailTwiml(null);
+  }
 
   if (!business) {
     logWarn("twilio.voice_fallback.shop_not_found", { to, from, callSid });
@@ -134,26 +172,50 @@ export async function POST(request: NextRequest) {
   /*
     Second leg: the recording Twilio posts back to `action`. The lead already
     exists from the first leg, so this attaches what the caller said to it.
+    The caller has finished talking by now, so a failure here still ends with
+    the sign-off rather than an error tone over their message.
   */
   if (recordingUrl) {
-    await attachVoicemail({
-      businessId: business.id,
-      businessName: business.name,
-      ownerPhone: business.ownerPhone,
-      ownerEmail: business.ownerEmail,
-      callSid,
-      from,
-      recordingUrl,
-      recordingSeconds,
-    });
-    after(() =>
-      drainOwnerAlerts({
-        at: "twilio.voice_fallback.recording",
+    try {
+      await attachVoicemail({
+        businessId: business.id,
+        businessName: business.name,
+        ownerPhone: business.ownerPhone,
+        ownerEmail: business.ownerEmail,
+        callSid,
+        from,
+        recordingUrl,
+        recordingSeconds,
+      });
+      after(() =>
+        drainOwnerAlerts({
+          at: "twilio.voice_fallback.recording",
+          callSid,
+          businessId: business.id,
+        }),
+      );
+    } catch (error) {
+      logError("twilio.voice_fallback.voicemail_failed", {
         callSid,
         businessId: business.id,
-      }),
-    );
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
     return signOffTwiml();
+  }
+
+  /* Leg after the live ring: someone answered, or the caller goes to the recorder. */
+  if (dialStatus) {
+    if (dialStatus === "completed") {
+      await noteLiveAnswer(business.id, callSid).catch((error) =>
+        logError("twilio.voice_fallback.live_note_failed", {
+          callSid,
+          error: error instanceof Error ? error.message : "unknown",
+        }),
+      );
+      return twimlResponse("<Hangup />");
+    }
+    return voicemailTwiml(business.name);
   }
 
   /*
@@ -171,16 +233,9 @@ export async function POST(request: NextRequest) {
     Reported on the first leg only, so one failed call is one event rather than
     two, and inside `after` so the caller's greeting is never waiting on it.
   */
-  after(() => {
-    captureServerMessage(
-      "Voice fallback answered a call — primary line failed",
-      { surface: "voice", reason: "vapi_unreachable" },
-      {
-        level: "error",
-        extra: { callSid, businessId: business.id },
-      },
-    );
-  });
+  after(() => pagePlatform("vapi_unreachable", { callSid, businessId: business.id }));
+
+  const ringTarget = (await ringedMomentsAgo(business.id, from, callSid)) ? null : liveRingTarget(business, { to, forwardedFrom });
 
   try {
     await openMissedCall({
@@ -190,6 +245,7 @@ export async function POST(request: NextRequest) {
       ownerEmail: business.ownerEmail,
       callSid,
       from,
+      ringing: Boolean(ringTarget),
     });
     after(() =>
       drainOwnerAlerts({
@@ -206,7 +262,44 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  return voicemailTwiml(business.name);
+  return ringTarget ? ringOwnerTwiml(business.name, ringTarget) : voicemailTwiml(business.name);
+}
+
+/*
+  Carriers do not always say a call was forwarded. A second fallback call from
+  the same caller within two minutes is the owner's phone bouncing the first
+  ring back to this line, so that one goes straight to the recorder.
+*/
+async function ringedMomentsAgo(businessId: string, from: string, callSid: string) {
+  if (!from) return false;
+  try {
+    const recent = await prisma.lead.findFirst({
+      where: {
+        businessId,
+        source: "voice-fallback",
+        phone: from,
+        createdAt: { gte: new Date(Date.now() - 2 * 60_000) },
+        NOT: { externalId: `voice-fallback:${callSid}` },
+      },
+      select: { id: true },
+    });
+    return Boolean(recent);
+  } catch {
+    return true;
+  }
+}
+
+async function noteLiveAnswer(businessId: string, callSid: string) {
+  if (!callSid) return;
+  const lead = await prisma.lead.findFirst({
+    where: { businessId, externalId: `voice-fallback:${callSid}` },
+    select: { id: true, notes: true },
+  });
+  if (!lead) return;
+  await prisma.lead.update({
+    where: { id: lead.id },
+    data: { notes: [lead.notes, "Rung through to the shop's phone and answered live."].filter(Boolean).join("\n") },
+  });
 }
 
 /**
@@ -223,6 +316,7 @@ async function openMissedCall(params: {
   ownerEmail: string | null;
   callSid: string;
   from: string;
+  ringing?: boolean;
 }) {
   const externalId = params.callSid ? `voice-fallback:${params.callSid}` : null;
 
@@ -280,8 +374,9 @@ async function openMissedCall(params: {
     businessName: params.businessName,
     message: [
       `Missed call from ${params.from || "an unknown number"}.`,
-      "Our AI line could not answer, so they were sent to voicemail.",
-      "Call them back — they were not spoken to.",
+      ...(params.ringing
+        ? ["Our AI line could not answer, so we're ringing your phone now.", "If you miss it, call them back."]
+        : ["Our AI line could not answer, so they were sent to voicemail.", "Call them back — they were not spoken to."]),
     ].join(" "),
     leadId: lead.id,
     dedupeKey: buildLeadAlertDedupeKey({
@@ -388,7 +483,7 @@ async function attachVoicemail(params: {
     businessName: params.businessName,
     message: [
       `Voicemail from ${params.from || "an unknown number"} (${params.recordingSeconds}s).`,
-      `Listen: ${params.recordingUrl}.mp3`,
+      `Listen: ${getAppUrl().replace(/\/$/, "")}/api/leads/${target.id}/voicemail`,
     ].join(" "),
     leadId: target.id,
     dedupeKey: `${buildLeadAlertDedupeKey({

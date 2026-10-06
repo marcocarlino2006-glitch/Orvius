@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { bookableShop, bookingServices, bookingSlots, bookOnline } from "@/lib/online-booking";
-import { clientIp, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { clientIp, publicTextLimited, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -32,6 +32,7 @@ const BookBody = z.object({
   email: z.string().email().max(200).optional().or(z.literal("")),
   address: z.string().max(300).optional(),
   notes: z.string().max(1000).optional(),
+  marketingOptIn: z.boolean().optional(),
   /** Hidden from people; bots fill it. */
   website: z.string().max(200).optional(),
 });
@@ -39,7 +40,7 @@ const BookBody = z.object({
 export async function POST(request: Request, { params }: Params) {
   const limited = await publicTokenLimited(request, "book", "POST");
   if (limited) return limited;
-  const perIp = await sharedRateLimit({ key: `book:ip:${clientIp(request)}`, limit: 5, windowMs: 60 * 60_000 });
+  const perIp = await sharedRateLimit({ key: `book:ip:${clientIp(request)}`, limit: 5, windowMs: 60 * 60_000, failClosed: true });
   if (!perIp.ok) return tooManyRequests(perIp.retryAfterSec, "Too many bookings from this connection. Call the business instead.");
 
   const shop = await bookableShop((await params).slug);
@@ -52,6 +53,8 @@ export async function POST(request: Request, { params }: Params) {
   if (parsed.data.website) {
     return NextResponse.json({ error: "Something went wrong. Call the business to book." }, { status: 400 });
   }
+  const toNumber = await publicTextLimited(parsed.data.phone);
+  if (toNumber) return toNumber;
   const perShop = await sharedRateLimit({ key: `book:shop:${shop.id}`, limit: 60, windowMs: 60 * 60_000 });
   if (!perShop.ok) return tooManyRequests(perShop.retryAfterSec, "Online booking is busy. Call the business to book.");
 
