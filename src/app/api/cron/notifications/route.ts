@@ -15,7 +15,7 @@ import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 import { billPreviousMonthOverage } from "@/lib/overage-billing";
 import { sendOwnerNudges } from "@/lib/owner-nudges";
-import { purgeExpiredCallContent } from "@/lib/retention";
+import { pruneOperationalLogs, purgeExpiredCallContent } from "@/lib/retention";
 import { voiceLatencyRollup } from "@/lib/call-latency";
 import { drainJobberSyncs } from "@/lib/jobber";
 import { purgeStaleVisitorShops } from "@/lib/public-demo";
@@ -121,7 +121,8 @@ export async function GET(request: NextRequest) {
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
   const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
   const founderScoreboard = await step("founder_scoreboard", () => sendFounderScoreboard());
-  const retention = await step("call_content_retention", () => purgeExpiredCallContent());
+  const retention = await step("call_content_retention", () => purgeExpiredCallContent({ budgetMs: 10_000 }));
+  const prunedLogs = await step("log_retention", () => pruneOperationalLogs({ budgetMs: 5_000 }));
   const visitorShops = await step("visitor_demo_purge", () => purgeStaleVisitorShops());
   const jobber = await step("jobber_sync", () => drainJobberSyncs({ limit: 100, budgetMs: 10_000 }));
   const voiceLatency = await step("voice_latency", async () => {
@@ -176,6 +177,7 @@ export async function GET(request: NextRequest) {
     lapsedLines,
     ownerNudges,
     retention,
+    prunedLogs,
     visitorShops,
     jobber,
     voiceLatency,

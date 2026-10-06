@@ -421,3 +421,60 @@ test("11. an owner no channel can reach is escalated to the founder, once per sh
   const { pageOwnerUnreachable } = await import("../src/lib/platform-pager.ts");
   assert.equal((await pageOwnerUnreachable(shop.id, "sms")).paged, false, "once a day per shop");
 });
+
+test("15. retention keeps up at scale: expired call content drains past one batch without looping on failures, old logs are pruned, once-per-shop alerts stay", async () => {
+  const { purgeExpiredCallContent, pruneOperationalLogs } = await import("../src/lib/retention.ts");
+  const shop = await makeShop();
+  const now = new Date();
+  const old = new Date(now.getTime() - 26 * 31 * 86_400_000);
+
+  await prisma.call.createMany({
+    data: Array.from({ length: 450 }, (_, i) => ({
+      businessId: shop.id,
+      vapiCallId: `ret-${shop.id}-${i}`,
+      transcript: "old words",
+      createdAt: new Date(old.getTime() + i * 1000),
+    })),
+  });
+  let vapiDeletes = 0;
+  const result = await purgeExpiredCallContent({
+    now,
+    deleteTwilio: null,
+    deleteVapi: async (id) => {
+      vapiDeletes += 1;
+      if (id.endsWith("-7")) throw new Error("Vapi 503");
+      return "deleted";
+    },
+  });
+  const left = await prisma.call.findMany({ where: { businessId: shop.id, contentPurgedAt: null }, select: { vapiCallId: true, transcript: true } });
+  assert.deepEqual(left.map((c) => c.vapiCallId), [`ret-${shop.id}-7`], "only the call Vapi refused waits for tomorrow");
+  assert.equal(left[0].transcript, null, "our copy is gone even while Vapi's is pending");
+  assert.ok(vapiDeletes >= 450 && vapiDeletes < 900, `each call tried once per run, got ${vapiDeletes}`);
+  assert.ok(result.purged >= 449);
+
+  const ago = (days) => new Date(now.getTime() - days * 86_400_000);
+  const hook = (externalId, createdAt) =>
+    prisma.webhookEvent.create({ data: { source: "test", externalId, eventType: "t", status: "processed", businessId: shop.id, createdAt } });
+  const oldHook = await hook(`old-${uid()}`, ago(91));
+  const freshHook = await hook(`new-${uid()}`, ago(89));
+  const alert = (dedupeKey, status, createdAt) =>
+    prisma.ownerNotification.create({ data: { businessId: shop.id, channel: "sms", dedupeKey, status, createdAt } });
+  const oldSent = await alert(`call:${uid()}`, "sent", ago(181));
+  const oldSkipped = await alert(`call:${uid()}`, "skipped", ago(181));
+  const oldPending = await alert(`call:${uid()}`, "pending", ago(181));
+  const setupNudge = await alert(`setup:forward:${shop.id}`, "sent", ago(400));
+  const testAlert = await alert(`test-alert:${uid()}`, "sent", ago(400));
+  const recentSent = await alert(`call:${uid()}`, "sent", ago(170));
+
+  const pruned = await pruneOperationalLogs({ now });
+  assert.equal(pruned.finished, true);
+  const hooks = await prisma.webhookEvent.findMany({ where: { id: { in: [oldHook.id, freshHook.id] } }, select: { id: true } });
+  assert.deepEqual(hooks.map((h) => h.id), [freshHook.id]);
+  const alerts = await prisma.ownerNotification.findMany({ where: { businessId: shop.id }, select: { id: true } });
+  assert.deepEqual(
+    new Set(alerts.map((a) => a.id)),
+    new Set([oldPending.id, setupNudge.id, testAlert.id, recentSent.id]),
+    "finished alerts past 180 days go; undelivered ones and once-per-shop keys stay",
+  );
+  assert.ok(![oldSent.id, oldSkipped.id].some((id) => alerts.some((a) => a.id === id)));
+});

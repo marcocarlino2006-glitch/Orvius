@@ -769,3 +769,7 @@ CREATE TABLE IF NOT EXISTS "CronRun" (
   "lastRunAt" DATETIME,
   "lastClaimAt" DATETIME
 );
+
+-- Retention sweeps delete oldest-first across every shop.
+CREATE INDEX IF NOT EXISTS "WebhookEvent_createdAt_idx" ON "WebhookEvent"("createdAt");
+CREATE INDEX IF NOT EXISTS "OwnerNotification_createdAt_idx" ON "OwnerNotification"("createdAt");

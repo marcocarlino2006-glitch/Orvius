@@ -750,6 +750,7 @@ model OwnerNotification {
   @@index([status, nextRetryAt])
   @@index([businessId, processedAt])
   @@index([deliveryId])
+  @@index([createdAt])
 }
 
 model WebhookEvent {
@@ -770,6 +771,7 @@ model WebhookEvent {
   @@index([businessId, createdAt])
   @@index([source, createdAt])
   @@index([source, eventType, status, createdAt])
+  @@index([createdAt])
 }
 
 /// Single-use sign-in link. Only the SHA-256 of the token is stored, so a leaked
