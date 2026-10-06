@@ -996,3 +996,14 @@ test("37. an owner's correction from a call is followed on every later call, can
     await prisma.call.deleteMany({ where: { id: { in: [call.id, foreign.id] } } });
   }
 });
+
+test("38. the receptionist's prompt has a size budget: a full price list and every correction still fit", async () => {
+  const { buildAssistantSystemPrompt } = await import("../src/lib/business.ts");
+  const { DEFAULT_HOURS_JSON } = await import("../src/lib/provision-business.ts");
+  const { MAX_RULES, MAX_RULE_CHARS } = await import("../src/lib/receptionist-rules.ts");
+  const servicesJson = JSON.stringify(Array.from({ length: 12 }, (_, i) => ({ name: `Service number ${i} with a long name`, price: "from $149 plus parts" })));
+  const rulesJson = JSON.stringify(Array.from({ length: MAX_RULES }, (_, i) => ({ id: String(i), text: "x".repeat(MAX_RULE_CHARS), createdAt: "" })));
+  const prompt = buildAssistantSystemPrompt({ name: "Pipe Pros Plumbing & Drain", greeting: null, hoursJson: DEFAULT_HOURS_JSON, trade: "Plumbing", canBook: true, canTransfer: true, servicesJson, rulesJson });
+  // Every token here is read before the first word of each reply; raise this only with a voice-sim latency run.
+  assert.ok(prompt.length < 14_500, `worst-case prompt is ${prompt.length} characters`);
+});
