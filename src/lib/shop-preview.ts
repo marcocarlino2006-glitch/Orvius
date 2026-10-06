@@ -6,6 +6,7 @@ import { getAppUrl, getWebhookUrl } from "@/lib/env";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_HOURS_JSON, servicesForTrade } from "@/lib/provision-business";
+import { isTextableNumber } from "@/lib/sms-destination";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { industryKind, isTrade, type Trade } from "@/lib/trades";
 import { sendSms } from "@/lib/twilio-sms";
@@ -14,6 +15,9 @@ import { buildVapiAssistantConfig, extractLeadFromStructuredData, type VapiWebho
 export const PREVIEW_MAX_CALLS = 2;
 const PREVIEW_TTL_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_DAILY_CAP = 300;
+/** Fresh previews one phone may start in PHONE_WINDOW_MS; each expires after a day, so this bounds free calls per phone. */
+export const PREVIEW_MAX_PER_PHONE = 3;
+const PHONE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 export type PreviewCapture = {
   name?: string;
@@ -43,7 +47,7 @@ function dailyCap(): number {
 
 export type CreatePreviewResult =
   | { ok: true; token: string; reused: boolean }
-  | { ok: false; reason: "invalid_phone" | "daily_cap" };
+  | { ok: false; reason: "invalid_phone" | "unsupported_destination" | "phone_cap" | "daily_cap" };
 
 /**
  * One active preview per phone: a second submit from the same mobile updates
@@ -61,6 +65,7 @@ export async function createShopPreview(input: {
   const now = input.now ?? new Date();
   const phone = normalizePhone(input.ownerPhone);
   if (!phone) return { ok: false, reason: "invalid_phone" };
+  if (!isTextableNumber(phone)) return { ok: false, reason: "unsupported_destination" };
 
   const trade = input.trade ?? "HVAC";
   const servicesJson = input.services?.length
@@ -81,6 +86,11 @@ export async function createShopPreview(input: {
     await prisma.shopPreview.update({ where: { id: active.id }, data: details });
     return { ok: true, token: active.token, reused: true };
   }
+
+  const recentForPhone = await prisma.shopPreview.count({
+    where: { ownerPhoneNormalized: phone, createdAt: { gte: new Date(now.getTime() - PHONE_WINDOW_MS) } },
+  });
+  if (recentForPhone >= PREVIEW_MAX_PER_PHONE) return { ok: false, reason: "phone_cap" };
 
   const today = await prisma.shopPreview.count({
     where: { createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) } },

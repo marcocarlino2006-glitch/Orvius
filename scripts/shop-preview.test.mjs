@@ -14,6 +14,7 @@ import {
   createShopPreview,
   getPreviewStatus,
   PREVIEW_MAX_CALLS,
+  PREVIEW_MAX_PER_PHONE,
   recordPreviewOutcome,
 } from "../src/lib/shop-preview.ts";
 
@@ -57,6 +58,35 @@ test("a preview keeps the business type and starts with that industry's services
 
 test("rejects a phone that cannot be normalized", async () => {
   assert.deepEqual(await createShopPreview({ shopName: "X Air", ownerPhone: "12" }), { ok: false, reason: "invalid_phone" });
+});
+
+test("one phone gets a few fresh previews a month, not a free line forever", async () => {
+  const phone = uniquePhone();
+  try {
+    const start = Date.now() - 10 * 24 * 60 * 60 * 1000;
+    for (let i = 0; i < PREVIEW_MAX_PER_PHONE; i += 1) {
+      const made = await createShopPreview({ shopName: "Daily Air", ownerPhone: phone, now: new Date(start + i * 2 * 24 * 60 * 60 * 1000) });
+      assert.ok(made.ok && !made.reused, `preview ${i + 1} is fresh because the last one expired`);
+    }
+    assert.deepEqual(await createShopPreview({ shopName: "Daily Air", ownerPhone: phone }), { ok: false, reason: "phone_cap" });
+    const later = new Date(Date.now() + 31 * 24 * 60 * 60 * 1000);
+    assert.ok((await createShopPreview({ shopName: "Daily Air", ownerPhone: phone, now: later })).ok, "the window rolls over");
+  } finally {
+    await cleanup(phone);
+  }
+});
+
+test("a preview alert is never sent to a premium or offshore number", async () => {
+  for (const phone of ["+19005550123", "+18765550123"]) {
+    assert.deepEqual(await createShopPreview({ shopName: "Toll Air", ownerPhone: phone }), { ok: false, reason: "unsupported_destination" });
+    assert.equal(await prisma.shopPreview.count({ where: { ownerPhoneNormalized: phone } }), 0);
+  }
+});
+
+test("the preview route caps each network per day, not just per hour", () => {
+  const route = readFileSync(new URL("../src/app/api/preview/route.ts", import.meta.url), "utf8");
+  assert.match(route, /preview-day:\$\{ip\}/);
+  assert.match(route, /phone_cap/);
 });
 
 test("the daily cap stops new previews", async () => {
