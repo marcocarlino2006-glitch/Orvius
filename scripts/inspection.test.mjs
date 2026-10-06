@@ -96,7 +96,7 @@ test("line watch rotates through every shop and keeps calendars warm for live ca
   const watch = read("src/lib/line-watch.ts");
   assert.doesNotMatch(watch.slice(watch.indexOf("export async function watchAllLines")), /take: 200/);
   assert.match(watch, /skip: window \* WATCH_WINDOW/);
-  assert.match(read("src/app/api/cron/line-watch/route.ts"), /refreshStaleBusyCalendars\(/);
+  assert.match(read("src/lib/line-watch-sweep.ts"), /refreshStaleBusyCalendars\(/);
 });
 
 test("hot-path indexes ship to Turso as well as the Prisma schema", () => {
