@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { bookableShop, bookingServices, bookingSlots, bookOnline } from "@/lib/online-booking";
-import { clientIp, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { clientIp, publicTextLimited, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -53,6 +53,8 @@ export async function POST(request: Request, { params }: Params) {
   if (parsed.data.website) {
     return NextResponse.json({ error: "Something went wrong. Call the business to book." }, { status: 400 });
   }
+  const toNumber = await publicTextLimited(parsed.data.phone);
+  if (toNumber) return toNumber;
   const perShop = await sharedRateLimit({ key: `book:shop:${shop.id}`, limit: 60, windowMs: 60 * 60_000 });
   if (!perShop.ok) return tooManyRequests(perShop.retryAfterSec, "Online booking is busy. Call the business to book.");
 

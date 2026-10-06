@@ -153,7 +153,7 @@ async function bookableLead(shop) {
     data: {
       businessId: shop.id,
       name: "Held Caller",
-      phone: `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`,
+      phone: `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`,
       serviceType: "AC not cooling",
       address: "400 Congress Ave, Austin TX 78701",
       status: "new",

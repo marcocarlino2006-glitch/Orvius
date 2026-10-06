@@ -1,5 +1,6 @@
 import { recordAudit } from "@/lib/audit";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
+import { isTextableNumber, UNTEXTABLE_PHONE_MESSAGE } from "@/lib/sms-destination";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { recordMessage } from "@/lib/messages";
@@ -33,8 +34,8 @@ export async function startWebChat(
   send: typeof sendCustomerSms = sendCustomerSms,
 ): Promise<WebChatResult> {
   const phone = normalizePhone(input.phone);
-  if (!phone || phone.replace(/\D/g, "").length < 10) {
-    return { ok: false, reason: "bad_phone", message: "Enter a mobile number so we can text you back." };
+  if (!phone || !isTextableNumber(phone)) {
+    return { ok: false, reason: "bad_phone", message: UNTEXTABLE_PHONE_MESSAGE };
   }
   const body = input.message.trim().slice(0, 1000);
   if (!body) return { ok: false, reason: "empty", message: "Write a message first." };

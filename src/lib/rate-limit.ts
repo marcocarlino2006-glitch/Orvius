@@ -34,10 +34,30 @@ export function rateLimit(params: {
   };
 }
 
+/*
+  Vercel sets x-vercel-forwarded-for and x-real-ip itself, so they cannot be
+  forged; the first x-forwarded-for entry is whatever the client sent, and
+  keying a limit on it lets a bot claim a fresh address per request.
+*/
 export function clientIp(request: Request): string {
+  const vercel = request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
+  if (vercel) return vercel;
+  const real = request.headers.get("x-real-ip")?.trim();
+  if (real) return real;
   const xf = request.headers.get("x-forwarded-for");
-  if (xf) return xf.split(",")[0]?.trim() || "unknown";
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
+  return xf?.split(",").at(-1)?.trim() || "unknown";
+}
+
+/**
+ * Public forms text whatever number is typed. Capping texts per destination
+ * means rotating addresses or shops still cannot turn one number into a
+ * revenue stream, while a real customer booking twice is unaffected.
+ */
+export async function publicTextLimited(phone: string): Promise<Response | null> {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return null;
+  const limited = await sharedRateLimit({ key: `public-text:${digits}`, limit: 4, windowMs: 24 * 60 * 60_000 });
+  return limited.ok ? null : tooManyRequests(limited.retryAfterSec, "Too many messages to this number today. Call the business instead.");
 }
 
 export function tooManyRequests(retryAfterSec: number, message = "Too many requests. Wait a moment and retry.") {

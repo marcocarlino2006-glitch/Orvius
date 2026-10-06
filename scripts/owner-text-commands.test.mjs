@@ -15,7 +15,7 @@ const { parseOwnerCommand, parseShopTime, handleOwnerText, OWNER_MENU } = await 
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
 const TZ = "America/Chicago";
 /* Thursday Oct 1 2026, 10:00 AM in Chicago. */
 const NOW = new Date("2026-10-01T15:00:00Z");

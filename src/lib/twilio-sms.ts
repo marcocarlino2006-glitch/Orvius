@@ -6,6 +6,7 @@ import { recordMessage, type MessageAuthor } from "@/lib/messages";
 import { prisma } from "@/lib/prisma";
 import { shopTextSender } from "@/lib/shop-texting";
 import { isSimulatedWorkspace, simulateSend } from "@/lib/sms-simulation";
+import { isTextableNumber } from "@/lib/sms-destination";
 
 export type SmsAudience = "customer" | "owner" | "tech";
 
@@ -87,6 +88,10 @@ export async function sendSms(params: {
 
   const to = normalizePhone(params.to);
   if (!to || !params.body.trim()) return null;
+  if (!isTextableNumber(to)) {
+    logWarn("sms.destination_refused", { businessId: params.businessId, audience: params.audience, prefix: to.slice(0, 5) });
+    return null;
+  }
 
   const create = (from: NonNullable<typeof sender>) =>
     getTwilioClient().messages.create({

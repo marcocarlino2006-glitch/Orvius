@@ -498,3 +498,40 @@ test("17. the status probe says whether the database answers from the functions'
   const workflow = readFileSync(new URL("../.github/workflows/uptime.yml", import.meta.url), "utf8");
   assert.match(workflow, /"database":"near"/);
 });
+
+test("18. public forms cannot pump texts: only US and Canadian mobiles are texted, one number caps out for the day, and a forged forwarding header is not a new address", async () => {
+  const { isTextableNumber } = await import("../src/lib/sms-destination.ts");
+  const { clientIp } = await import("../src/lib/rate-limit.ts");
+  for (const ok of ["+15125550177", "(416) 555-0199", "+17875550100"]) assert.equal(isTextableNumber(ok), true, ok);
+  for (const bad of ["+447700900123", "+18765550100", "+18095550100", "+19005550100", "+14115550100", "+15129765555", "+15120551234"]) {
+    assert.equal(isTextableNumber(bad), false, bad);
+  }
+
+  const forged = new Request("http://localhost/", { headers: { "x-forwarded-for": "6.6.6.6, 203.0.113.9", "x-real-ip": "203.0.113.9" } });
+  assert.equal(clientIp(forged), "203.0.113.9");
+  assert.equal(clientIp(new Request("http://localhost/", { headers: { "x-forwarded-for": "6.6.6.6, 198.51.100.4" } })), "198.51.100.4");
+
+  const shop = await makeShop({ webChatOn: true, environment: "demo" });
+  const { POST } = await import("../src/app/api/public/chat/[slug]/route.ts");
+  let n = 0;
+  const chat = (phone) =>
+    POST(
+      new Request(`http://localhost/api/public/chat/${shop.slug}`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-real-ip": `198.51.100.${(n += 1)}` },
+        body: JSON.stringify({ name: "Bot", phone, message: "hi" }),
+      }),
+      { params: Promise.resolve({ slug: shop.slug }) },
+    );
+  const abroad = await chat("+447700900123");
+  assert.equal(abroad.status, 400);
+  assert.match((await abroad.json()).error, /US or Canadian/);
+  const caribbean = await chat("+18765550100");
+  assert.equal(caribbean.status, 400);
+
+  const target = `+1512555${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const statuses = [];
+  for (let i = 0; i < 6; i += 1) statuses.push((await chat(target)).status);
+  assert.deepEqual(statuses, [200, 200, 200, 200, 429, 429], "a fresh address per request still stops at four texts to one number");
+  assert.equal(await prisma.lead.count({ where: { businessId: shop.id } }), 4);
+});

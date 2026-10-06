@@ -28,7 +28,7 @@ const { NextRequest } = await import("next/server");
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
 const drop = (id) => prisma.business.delete({ where: { id } }).catch(() => {});
 
 async function shop() {
