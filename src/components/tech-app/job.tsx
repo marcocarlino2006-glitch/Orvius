@@ -47,7 +47,7 @@ type Detail = {
 
 const KIND_WORD: Record<string, string> = { service: "Service", labor: "Labor", part: "Part", discount: "Discount" };
 
-function Photos({ base, detail, onChange }: { base: string; detail: Detail; onChange: (photos: Photo[]) => void }) {
+function Photos({ base, detail, onChange }: { base: string; detail: Detail; onChange: (update: (photos: Photo[]) => Photo[]) => void }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<Photo | null>(null);
@@ -57,7 +57,6 @@ function Photos({ base, detail, onChange }: { base: string; detail: Detail; onCh
   async function upload(kind: "before" | "after", files: FileList | null) {
     if (!files?.length) return;
     setError(null);
-    let photos = detail.photos;
     for (const [i, file] of [...files].entries()) {
       setBusy(`Adding photo ${i + 1} of ${files.length}…`);
       try {
@@ -68,8 +67,7 @@ function Photos({ base, detail, onChange }: { base: string; detail: Detail; onCh
         form.append("width", String(width));
         form.append("height", String(height));
         const { photo } = await techFetch<{ photo: Photo }>(`${base}/photos`, { method: "POST", body: form });
-        photos = [...photos, photo];
-        onChange(photos);
+        onChange((photos) => [...photos, photo]);
       } catch (err) {
         setError(err instanceof Error ? err.message : "That photo didn't upload.");
       }
@@ -80,7 +78,7 @@ function Photos({ base, detail, onChange }: { base: string; detail: Detail; onCh
   async function remove(photo: Photo) {
     try {
       await techFetch(`${base}/photos/${photo.id}`, { method: "DELETE" });
-      onChange(detail.photos.filter((p) => p.id !== photo.id));
+      onChange((photos) => photos.filter((p) => p.id !== photo.id));
       setOpen(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't remove it.");
@@ -152,7 +150,7 @@ function Photos({ base, detail, onChange }: { base: string; detail: Detail; onCh
   );
 }
 
-function Notes({ base, detail, onChange }: { base: string; detail: Detail; onChange: (notes: Note[]) => void }) {
+function Notes({ base, detail, onChange }: { base: string; detail: Detail; onChange: (update: (notes: Note[]) => Note[]) => void }) {
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,7 +161,7 @@ function Notes({ base, detail, onChange }: { base: string; detail: Detail; onCha
     setError(null);
     try {
       const { note } = await techFetch<{ note: Note }>(`${base}/notes`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body }) });
-      onChange([...detail.notes, note]);
+      onChange((notes) => [...notes, note]);
       setBody("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save the note.");
@@ -619,8 +617,8 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
       ) : null}
 
       <Work base={base} detail={detail} onSaved={setDetail} />
-      <Photos base={base} detail={detail} onChange={(photos) => setDetail({ ...detail, photos })} />
-      <Notes base={base} detail={detail} onChange={(notes) => setDetail({ ...detail, notes })} />
+      <Photos base={base} detail={detail} onChange={(update) => setDetail((d) => (d ? { ...d, photos: update(d.photos) } : d))} />
+      <Notes base={base} detail={detail} onChange={(update) => setDetail((d) => (d ? { ...d, notes: update(d.notes) } : d))} />
       {job.status === "on_site" || job.status === "completed" || hasLines ? <Pay base={base} detail={detail} onPaid={setDetail} /> : null}
 
       {job.status === "on_site" ? (

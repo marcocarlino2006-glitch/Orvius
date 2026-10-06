@@ -576,6 +576,10 @@ textarea.ta-input {
   border-color: rgb(62 207 142 / 0.4);
 }
 
+/* Focused fields and scrolled-to cards stop above the dock, not under it. */
+html:has(.ta-dock) {
+  scroll-padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
 .ta-dock {
   position: fixed;
   right: 0;

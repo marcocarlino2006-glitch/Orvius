@@ -10,7 +10,8 @@ const DEFER_MS = 14000;
 export function CookieConsent() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
-  const onOperate = pathname?.startsWith("/dashboard") ?? false;
+  /* The technician app sets no cookies, and the bar would sit on its action dock. */
+  const onOperate = (pathname?.startsWith("/dashboard") || pathname?.startsWith("/tech/")) ?? false;
 
   useEffect(() => {
     if (onOperate) return;
