@@ -11,6 +11,7 @@ import { getShopAccessWithAutoLine } from "@/lib/provision-business";
 import { recordAudit } from "@/lib/audit";
 import { roleForbiddenResponse } from "@/lib/tenant";
 import { can, listShopAccess, resolveShopAccess, summarizeShops } from "@/lib/workspace-access";
+import { ownerEmailChangeAllowed } from "@/lib/workspace-access-labels";
 import { isEmailConfigured } from "@/lib/email";
 import { isFounderEmail } from "@/lib/founder";
 import { prisma } from "@/lib/prisma";
@@ -321,6 +322,9 @@ export async function PATCH(request: Request) {
     }
     if (!can(access.role, "settings.edit")) return roleForbiddenResponse("settings.edit");
     const existing = access.business;
+    if (!ownerEmailChangeAllowed(access.role, existing.ownerEmail, body.ownerEmail)) {
+      return roleForbiddenResponse("ownership.transfer");
+    }
 
     if (body.ownerPhone !== undefined) {
       const phoneCheck = validateOwnerPhoneForAlerts({

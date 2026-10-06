@@ -25,10 +25,11 @@ export type Permission =
   | "data.export"
   | "billing.manage"
   | "workspace.delete"
+  | "ownership.transfer"
   | "audit.view";
 
 const GRANTS: Record<ShopRole, ReadonlySet<Permission>> = {
-  owner: new Set(["settings.edit", "team.manage", "data.export", "billing.manage", "workspace.delete", "audit.view"]),
+  owner: new Set(["settings.edit", "team.manage", "data.export", "billing.manage", "workspace.delete", "ownership.transfer", "audit.view"]),
   manager: new Set(["settings.edit", "team.manage", "data.export", "audit.view"]),
   dispatcher: new Set(),
 };
@@ -42,3 +43,10 @@ export function isMemberRole(value: unknown): value is MemberRole {
 }
 
 export type ShopSummary = { id: string; name: string; role: ShopRole; trade: string | null };
+
+/** Business.ownerEmail is who owns the shop, so changing it hands the shop over. */
+export function ownerEmailChangeAllowed(role: ShopRole, current: string | null, next: string | undefined): boolean {
+  if (next === undefined) return true;
+  if (next.trim().toLowerCase() === (current ?? "").trim().toLowerCase()) return true;
+  return can(role, "ownership.transfer");
+}
