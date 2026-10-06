@@ -101,3 +101,22 @@ export async function pageOwnerUnreachable(businessId: string, lastChannel: "sms
   if (!sms) logError("platform.owner_unreachable", { businessId, lastChannel });
   return { paged: true as const, sms };
 }
+
+/** A paying shop that needs a person from Orvius, once per shop per reason. */
+export async function pageFounderForShop(businessId: string, reason: string, text: string, now = new Date()) {
+  const first = await prisma.cronRun
+    .create({ data: { name: `page:shop:${reason}:${businessId}`, lastClaimAt: now } })
+    .then(() => true)
+    .catch(() => false);
+  if (!first) return { paged: false as const };
+  const phone = process.env.ORVIUS_FOUNDER_PHONE?.trim();
+  const sms = phone ? Boolean(await sendSms({ to: phone, body: text, audience: "owner" }).catch(() => null)) : false;
+  let email = 0;
+  if (isEmailConfigured()) {
+    for (const to of founderEmails()) {
+      if (await sendOwnerEmail({ to, subject: `Orvius: a shop needs a hand (${reason})`, text }).then(() => true).catch(() => false)) email += 1;
+    }
+  }
+  if (!sms && !email) logError("platform.shop_page_undelivered", { businessId, reason });
+  return { paged: true as const, sms, email };
+}

@@ -5,6 +5,7 @@ import { includedCallsForPlan, usagePeriodStart } from "@/lib/call-usage";
 import { getAppUrl } from "@/lib/env";
 import { logInfo } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
+import { pageFounderForShop } from "@/lib/platform-pager";
 import { prisma } from "@/lib/prisma";
 
 /*
@@ -17,6 +18,8 @@ import { prisma } from "@/lib/prisma";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PAST_DUE_REMINDER_DAY = 5;
 const FORWARD_NUDGE_AFTER_MS = DAY_MS;
+const FORWARD_REMINDER_DAY = 4;
+const FORWARD_FOUNDER_DAY = 7;
 const FORWARD_NUDGE_WINDOW_MS = 14 * DAY_MS;
 const USAGE_THRESHOLDS = [0.8, 1] as const;
 const USAGE_CHUNK = 400;
@@ -82,6 +85,12 @@ async function pastDueReminders(now: Date) {
   return queued;
 }
 
+/*
+  A paid line nobody forwards to takes no calls, and the owner cancels a month
+  later for a product that never rang. Day one is a text, day four a second
+  one, and at a week a person from Orvius calls to do it with them. A shop that
+  is already getting real calls (forwarded or published) is left alone.
+*/
 async function forwardingNudges(now: Date) {
   const shops = await prisma.business.findMany({
     where: {
@@ -94,16 +103,28 @@ async function forwardingNudges(now: Date) {
         lte: new Date(now.getTime() - FORWARD_NUDGE_AFTER_MS),
       },
     },
-    select: { id: true, name: true, ownerPhone: true, ownerEmail: true },
+    select: { id: true, name: true, ownerPhone: true, ownerEmail: true, transferPhone: true, lineVerifiedAt: true },
   });
   let queued = 0;
   for (const shop of shops) {
+    if ((await countBillableCalls(shop, { gte: shop.lineVerifiedAt! })) > 0) continue;
+    const days = Math.floor((now.getTime() - shop.lineVerifiedAt!.getTime()) / DAY_MS);
     const result = await nudge(
       shop,
-      `setup:forward:${shop.id}`,
-      `Orvius: ${shop.name}'s line works, but calls to your main number don't reach it yet. Forwarding takes about 2 minutes: ${link("/dashboard?settings=phone")}`,
+      days >= FORWARD_REMINDER_DAY ? `setup:forward:${shop.id}:reminder` : `setup:forward:${shop.id}`,
+      days >= FORWARD_REMINDER_DAY
+        ? `Orvius: ${shop.name} hasn't had a customer call yet, because your main number still doesn't forward to your Orvius line. It takes about 2 minutes, and if it's not done in a few days we'll call to do it with you: ${link("/dashboard?settings=phone")}`
+        : `Orvius: ${shop.name}'s line works, but calls to your main number don't reach it yet. Forwarding takes about 2 minutes: ${link("/dashboard?settings=phone")}`,
     );
     if (result.queued.length) queued += 1;
+    if (days >= FORWARD_FOUNDER_DAY) {
+      await pageFounderForShop(
+        shop.id,
+        "no_forwarding",
+        `Orvius: ${shop.name} has paid for a week and taken no customer calls; forwarding was never set up. Call them to do it together: ${shop.ownerPhone ?? "no phone"}${shop.ownerEmail ? `, ${shop.ownerEmail}` : ""}.`,
+        now,
+      ).catch(() => null);
+    }
   }
   return queued;
 }
