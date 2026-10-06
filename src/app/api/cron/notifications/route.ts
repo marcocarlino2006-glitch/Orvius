@@ -13,7 +13,7 @@ import { sendFounderScoreboard } from "@/lib/company-scoreboard";
 import { logError, logInfo } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
 import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
-import { isProduction } from "@/lib/runtime";
+import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 import { billPreviousMonthOverage } from "@/lib/overage-billing";
 import { sendOwnerNudges } from "@/lib/owner-nudges";
 import { purgeExpiredCallContent } from "@/lib/retention";
@@ -37,7 +37,7 @@ import { purgeStaleVisitorShops } from "@/lib/public-demo";
   processNotificationQueue claims each row under a lease before sending.
 */
 export async function GET(request: NextRequest) {
-  if (isProduction()) {
+  if (!isUnauthenticatedAccessAllowed()) {
     const cronSecret = process.env.CRON_SECRET?.trim();
 
     /*
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     */
     if (!cronSecret) {
       logError("cron.secret_missing", {
-        detail: "CRON_SECRET is unset in production; refusing to drain",
+        detail: "CRON_SECRET is unset against a live database; refusing to drain",
       });
       return NextResponse.json(
         { error: "CRON_SECRET is not configured" },

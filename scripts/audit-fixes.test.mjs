@@ -297,3 +297,50 @@ test("6. lost-call recovery covers every shop in one run, at 3,000 shops", { tim
   const again = await recoverLostCallsAccountWide({ now, list });
   assert.deepEqual(again.recovered, [], "a second pass changes nothing");
 });
+
+test("7. a late GitHub schedule is caught: sweeps stamp their runs, the status probe says late, and live traffic makes up a missed line watch exactly once", async () => {
+  const runs = await import("../src/lib/cron-runs.ts");
+  const backstop = await import("../src/lib/cron-backstop.ts");
+  const { GET: status } = await import("../src/app/api/status/route.ts");
+  await prisma.cronRun.deleteMany({});
+
+  const now = new Date();
+  assert.deepEqual((await runs.lateCrons(now)).sort(), ["alert-drain", "line-watch"], "never ran is late");
+  assert.equal((await (await status()).json()).sweeps, "late");
+
+  await runs.markCronRan("alert-drain", now);
+  await runs.markCronRan("line-watch", now);
+  assert.deepEqual(await runs.lateCrons(now), []);
+  assert.equal((await (await status()).json()).sweeps, "on_time");
+
+  // GitHub stopped firing line-watch two hours ago.
+  await prisma.cronRun.update({ where: { name: "line-watch" }, data: { lastRunAt: new Date(now.getTime() - 2 * 3600_000) } });
+  assert.deepEqual(await runs.lateCrons(now), ["line-watch"]);
+  const claims = await Promise.all(Array.from({ length: 8 }, () => runs.claimLateCron("line-watch", now)));
+  assert.equal(claims.filter(Boolean).length, 1, "eight requests notice; one runs it");
+
+  await prisma.cronRun.update({ where: { name: "line-watch" }, data: { lastRunAt: new Date(now.getTime() - 2 * 3600_000), lastClaimAt: null } });
+  backstop.resetBackstopThrottleForTests();
+  const madeUp = await backstop.backstopLateSweeps("test", now);
+  assert.ok(madeUp, "the made-up run happened");
+  const row = await prisma.cronRun.findUnique({ where: { name: "line-watch" } });
+  assert.ok(now.getTime() - row.lastRunAt.getTime() < 60_000, "and it stamped itself");
+  assert.equal(await backstop.backstopLateSweeps("test", now), null, "throttled: the next request doesn't look again");
+});
+
+test("19. cron routes refuse unsigned requests against a live database, not only in production", async () => {
+  const saved = { db: process.env.DATABASE_URL, secret: process.env.CRON_SECRET };
+  process.env.DATABASE_URL = "libsql://orvius-prod.turso.io";
+  delete process.env.CRON_SECRET;
+  try {
+    const { NextRequest } = await import("next/server");
+    for (const name of ["line-watch", "notifications", "alert-drain"]) {
+      const { GET } = await import(`../src/app/api/cron/${name}/route.ts`);
+      const res = await GET(new NextRequest(`http://localhost/api/cron/${name}`));
+      assert.equal(res.status, 503, `${name} must not run unsigned against Turso`);
+    }
+  } finally {
+    process.env.DATABASE_URL = saved.db;
+    if (saved.secret) process.env.CRON_SECRET = saved.secret;
+  }
+});

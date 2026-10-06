@@ -762,3 +762,10 @@ ALTER TABLE "Call" ADD COLUMN "networkConsentAt" DATETIME;
 -- Marketing texts (win-back) only to customers who said yes in writing.
 ALTER TABLE "Customer" ADD COLUMN "marketingOptInAt" DATETIME;
 ALTER TABLE "Customer" ADD COLUMN "marketingOptInSource" TEXT;
+
+-- Scheduled sweeps: last run, so a late GitHub schedule is caught and made up.
+CREATE TABLE IF NOT EXISTS "CronRun" (
+  "name" TEXT NOT NULL PRIMARY KEY,
+  "lastRunAt" DATETIME,
+  "lastClaimAt" DATETIME
+);

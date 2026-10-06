@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { lateCrons } from "@/lib/cron-runs";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,8 @@ export type PublicStatus = {
     verdict is what keeps a green badge from being a promise about the phone.
   */
   scope: string;
+  /** Whether the background sweeps (owner-alert retries, lost-call recovery) are keeping their schedule. */
+  sweeps: "on_time" | "late" | "unknown";
   checkedAt: string;
 };
 
@@ -44,10 +47,17 @@ export async function GET() {
     databaseUp = false;
   }
 
+  const sweeps: PublicStatus["sweeps"] = databaseUp
+    ? await lateCrons()
+        .then((late) => (late.length ? "late" : "on_time"))
+        .catch(() => "unknown" as const)
+    : "unknown";
+
   const status = databaseUp ? "operational" : "degraded";
   const body: PublicStatus = {
     status,
     scope: SCOPE_COPY[status],
+    sweeps,
     checkedAt: new Date().toISOString(),
   };
 

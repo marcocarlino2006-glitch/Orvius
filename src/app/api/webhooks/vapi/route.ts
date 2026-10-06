@@ -22,6 +22,10 @@ import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { handleInCallToolCalls } from "@/lib/in-call-tools";
 import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
 import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
+import { backstopLateSweeps } from "@/lib/cron-backstop";
+
+/* Room for a made-up line-watch run after the response (cron-backstop.ts). */
+export const maxDuration = 60;
 
 async function findBusinessForCall(
   vapiCallId: string,
@@ -279,6 +283,7 @@ export async function POST(request: NextRequest) {
     if (captured.duplicate) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
+    after(() => backstopLateSweeps("vapi.end_of_call"));
     after(async () => {
       // A burst queues writers on the one SQLite lock; a short retry books the caller now instead of on the next sweep.
       const finish = async (attempt = 0): Promise<unknown> =>

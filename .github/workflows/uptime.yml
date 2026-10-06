@@ -43,6 +43,8 @@ jobs:
             out=$(check "Home page" "https://orvius.im/" 200) || failed="$failed\n- $out"
             out=$(check "Sign in" "https://orvius.im/signin" 200) || failed="$failed\n- $out"
             out=$(check "App domain" "https://app.orvius.im/api/status" 200 '"operational"') || failed="$failed\n- $out"
+            # Owner-alert retries and lost-call recovery run on a best-effort schedule; three missed runs is an outage.
+            out=$(check "Background sweeps" "https://orvius.im/api/status" 200 '"sweeps":"on_time"') || failed="$failed\n- $out"
             # GET is rejected by design; a 405 proves the route is deployed and answering.
             out=$(check "Call webhook" "https://orvius.im/api/webhooks/vapi" 405) || failed="$failed\n- $out"
             printf "%b" "$failed"
