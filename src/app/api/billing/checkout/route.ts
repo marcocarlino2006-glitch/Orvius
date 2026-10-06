@@ -28,6 +28,7 @@ import { shopHasLivePlan } from "@/lib/billing-sync";
 import { stripeKeyMode } from "@/lib/stripe-mode";
 import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
+import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
 import { resolveShopAccess } from "@/lib/workspace-access";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
@@ -46,6 +47,9 @@ const checkoutSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = checkoutSchema.parse(await request.json());
+    if (body.shop && isHipaaTrade(body.shop.trade)) {
+      return NextResponse.json({ error: HIPAA_TRADE_REFUSAL, code: "trade_not_offered" }, { status: 400 });
+    }
 
     if (!isPlanCheckoutReady(body.planId, body.interval)) {
       /*

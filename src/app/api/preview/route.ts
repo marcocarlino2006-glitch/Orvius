@@ -3,7 +3,7 @@ import { z } from "zod";
 import { DEMO_LINE_DISPLAY, DEMO_LINE_TEL } from "@/lib/demo-line";
 import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 import { createShopPreview, PREVIEW_MAX_CALLS } from "@/lib/shop-preview";
-import { TRADES } from "@/lib/trades";
+import { HIPAA_TRADE_REFUSAL, isHipaaTrade, TRADES } from "@/lib/trades";
 
 const previewSchema = z.object({
   shopName: z.string().trim().min(2).max(80),
@@ -29,6 +29,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Add your shop name, your mobile number, and agree to the text." }, { status: 400 });
   }
   const body = parsed.data;
+  if (isHipaaTrade(body.trade)) {
+    return NextResponse.json({ error: HIPAA_TRADE_REFUSAL }, { status: 400 });
+  }
   if (body.website?.trim()) {
     return NextResponse.json({ ok: true, token: "accepted", callNumber: DEMO_LINE_DISPLAY, callTel: DEMO_LINE_TEL });
   }

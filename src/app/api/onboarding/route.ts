@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
 import { findPaidCheckoutSessionId } from "@/lib/billing-sync";
+import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { CheckoutNotPaidError, provisionFromCheckout, shopDraftSchema } from "@/lib/checkout-shop";
 import { logWarn } from "@/lib/logger";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
@@ -122,6 +123,9 @@ export async function POST(request: NextRequest) {
     );
   }
   const { checkoutSessionId, ...typed } = parsed.data;
+  if (isHipaaTrade(typed.trade)) {
+    return NextResponse.json({ error: HIPAA_TRADE_REFUSAL, code: "trade_not_offered" }, { status: 400 });
+  }
   const draft = typed.name || typed.ownerPhone ? shopDraftSchema.safeParse(typed) : null;
   if (draft && !draft.success) {
     return NextResponse.json(

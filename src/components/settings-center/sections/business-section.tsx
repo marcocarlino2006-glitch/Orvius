@@ -1,6 +1,6 @@
 "use client";
 
-import { TRADES, type Trade } from "@/lib/trades";
+import { OFFERED_TRADES, type Trade } from "@/lib/trades";
 import type { Business, PatchFn } from "../settings-model";
 import { ScField, ScGroup, ScRow, ScSwitch } from "../settings-primitives";
 
@@ -22,7 +22,7 @@ export function BusinessSection({ b, patch }: { b: Business; patch: PatchFn }) {
             value={b.trade ?? "HVAC"}
             onChange={(e) => void patch({ trade: e.target.value as Trade })}
           >
-            {TRADES.map((item) => (
+            {(b.trade && !OFFERED_TRADES.includes(b.trade as Trade) ? [b.trade as Trade, ...OFFERED_TRADES] : OFFERED_TRADES).map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>

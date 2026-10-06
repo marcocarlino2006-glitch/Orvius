@@ -6,6 +6,7 @@
  */
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
+import { readFileSync } from "node:fs";
 
 delete process.env.RESEND_API_KEY;
 
@@ -139,4 +140,40 @@ test("2. AI down: the owner's phone rings live first, voicemail if nobody answer
   } finally {
     prisma.business.findMany = findMany;
   }
+});
+
+test("3. no new dental or medical shop: patient calls need a HIPAA agreement Orvius doesn't have", async () => {
+  const trades = await import("../src/lib/trades.ts");
+  assert.ok(!trades.OFFERED_TRADES.includes("Dental office"));
+  assert.ok(!trades.OFFERED_TRADES.includes("Medical office"));
+  assert.ok(trades.OFFERED_TRADES.includes("HVAC"));
+
+  const { NextRequest } = await import("next/server");
+  const { POST: checkout } = await import("../src/app/api/billing/checkout/route.ts");
+  const res = await checkout(
+    new NextRequest("http://localhost/api/billing/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        planId: "line",
+        shop: { name: "Bright Smile Dental", trade: "Dental office", ownerPhone: "+13035550188", acceptedTerms: true, acceptedSms: true },
+      }),
+    }),
+  );
+  assert.equal(res.status, 400);
+  assert.equal((await res.json()).code, "trade_not_offered");
+
+  // A shop already on a health trade keeps it; nobody new can switch into one.
+  const { PATCH } = await import("../src/app/api/account/route.ts");
+  const legacy = await makeShop({ trade: "Dental office" });
+  signedInAs = legacy.ownerEmail;
+  assert.equal((await PATCH(patch({ trade: "Dental office", name: "Still a dentist" }))).status, 200);
+  const hvac = await makeShop();
+  signedInAs = hvac.ownerEmail;
+  assert.equal((await PATCH(patch({ trade: "Medical office" }))).status, 400);
+  signedInAs = null;
+
+  const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+  assert.doesNotMatch(read("src/components/home-features.tsx"), /Dental and medical/);
+  assert.doesNotMatch(read("src/components/home-demos.tsx"), /Dental/);
 });

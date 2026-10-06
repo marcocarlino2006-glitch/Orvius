@@ -15,7 +15,7 @@ import { ownerEmailChangeAllowed } from "@/lib/workspace-access-labels";
 import { isEmailConfigured } from "@/lib/email";
 import { isFounderEmail } from "@/lib/founder";
 import { prisma } from "@/lib/prisma";
-import { TRADES } from "@/lib/trades";
+import { HIPAA_TRADE_REFUSAL, isHipaaTrade, TRADES } from "@/lib/trades";
 import {
   getShopLines,
   validateOwnerPhoneForAlerts,
@@ -322,6 +322,9 @@ export async function PATCH(request: Request) {
     }
     if (!can(access.role, "settings.edit")) return roleForbiddenResponse("settings.edit");
     const existing = access.business;
+    if (body.trade && body.trade !== existing.trade && isHipaaTrade(body.trade)) {
+      return NextResponse.json({ error: HIPAA_TRADE_REFUSAL }, { status: 400 });
+    }
     if (!ownerEmailChangeAllowed(access.role, existing.ownerEmail, body.ownerEmail)) {
       return roleForbiddenResponse("ownership.transfer");
     }
