@@ -29,7 +29,7 @@ const {
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 const drop = (id) => prisma.business.delete({ where: { id } }).catch(() => {});
 /* 2pm in Chicago. */
 const AFTERNOON = new Date("2026-09-29T19:00:00Z");

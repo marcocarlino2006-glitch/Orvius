@@ -20,7 +20,7 @@ const { invoiceCompletedJob, fulfillInvoiceCheckoutSession } = await import("../
 const prisma = new PrismaClient();
 const PREFIX = "pay-default";
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 const NOW = new Date("2026-10-01T15:00:00Z");
 
 function makeShop(overrides = {}) {

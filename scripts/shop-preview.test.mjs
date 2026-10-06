@@ -19,7 +19,7 @@ import {
 } from "../src/lib/shop-preview.ts";
 
 const prisma = new PrismaClient();
-const uniquePhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
+const uniquePhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 const callId = () => `preview-test-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 const cleanup = (phone) => prisma.shopPreview.deleteMany({ where: { ownerPhoneNormalized: phone } });
 

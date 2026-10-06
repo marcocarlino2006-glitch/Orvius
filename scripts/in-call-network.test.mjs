@@ -22,7 +22,7 @@ const { answerVoiceSimToolCalls } = await import("../src/lib/voice-sim-tools.ts"
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 const ZIP3 = String(800 + Math.floor(Math.random() * 99));
 const CLOSED = JSON.stringify(
   Object.fromEntries(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((d) => [d, { closed: true }])),

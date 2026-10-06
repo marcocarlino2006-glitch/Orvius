@@ -33,7 +33,7 @@ process.env.JOBBER_CLIENT_SECRET = "my app's OAuth client secret";
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 
 /* ── A fake Jobber: OAuth token endpoint + the GraphQL calls Orvius makes ── */
 const fake = {

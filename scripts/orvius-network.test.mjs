@@ -19,7 +19,7 @@ const { parseOwnerCommand } = await import("../src/lib/owner-text-commands.ts");
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
+const randomPhone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 const ZIP3 = String(900 + Math.floor(Math.random() * 99));
 const created = [];
 

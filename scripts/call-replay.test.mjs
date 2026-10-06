@@ -14,7 +14,7 @@ const { getReplay, shareReplay } = await import("../src/lib/call-replay.ts");
 const { claimPreviewCall, createShopPreview, getPreviewStatus, recordPreviewOutcome } = await import("../src/lib/shop-preview.ts");
 
 const prisma = new PrismaClient();
-const phone = () => `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
+const phone = () => `+1555${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
 
 test("turns come from Vapi's messages, merged per speaker, with the transcript as fallback", () => {
   const turns = replayTurns({
