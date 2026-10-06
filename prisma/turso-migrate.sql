@@ -787,3 +787,6 @@ CREATE TABLE IF NOT EXISTS "ModelUsage" (
   PRIMARY KEY ("businessId", "day", "kind")
 );
 CREATE INDEX IF NOT EXISTS "ModelUsage_day_idx" ON "ModelUsage"("day");
+
+-- Owner corrections the receptionist follows on every call.
+ALTER TABLE "Business" ADD COLUMN "receptionistRulesJson" TEXT NOT NULL DEFAULT '[]';

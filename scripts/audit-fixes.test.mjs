@@ -955,3 +955,44 @@ test("36. an owner's listed prices are quoted as written; an unlisted price is n
   const unpriced = buildAssistantSystemPrompt({ ...base, servicesJson: JSON.stringify([{ name: "Drain clearing" }]) });
   assert.doesNotMatch(unpriced, /LISTED PRICES|listed price/);
 });
+
+test("37. an owner's correction from a call is followed on every later call, can be removed, and never outranks safety", async () => {
+  const shop = await makeShop();
+  const other = await makeShop();
+  const call = await prisma.call.create({ data: { businessId: shop.id, vapiCallId: `rule-${uid()}`, direction: "inbound" } });
+  const foreign = await prisma.call.create({ data: { businessId: other.id, vapiCallId: `rule-${uid()}`, direction: "inbound" } });
+  const { POST, DELETE, GET } = await import("../src/app/api/account/receptionist-rules/route.ts");
+  const { buildBusinessAssistantConfig } = await import("../src/lib/sync-business-assistant.ts");
+  const { MAX_RULES } = await import("../src/lib/receptionist-rules.ts");
+  const post = (body) =>
+    POST(new Request("http://localhost/api/account/receptionist-rules", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }));
+  signedInAs = shop.ownerEmail;
+  try {
+    const res = await post({ text: "  We don't do gas lines.\nTell callers to call the gas company first. ", callId: call.id });
+    assert.equal(res.status, 200);
+    const { rule } = await res.json();
+    assert.equal(rule.text, "We don't do gas lines. Tell callers to call the gas company first.");
+    assert.equal(rule.callId, call.id);
+    assert.equal((await (await post({ text: "we don't do gas lines. tell callers to call the gas company first." })).json()).rules.length, 1, "the same correction twice is kept once");
+    const crossShop = await (await post({ text: "Say we're closed Sundays.", callId: foreign.id })).json();
+    assert.equal(crossShop.rule.callId, undefined, "another shop's call is not linked");
+
+    const saved = await prisma.business.findUnique({ where: { id: shop.id } });
+    const prompt = buildBusinessAssistantConfig(saved).model.messages[0].content;
+    assert.match(prompt, /OWNER'S CORRECTIONS[\s\S]*never override the danger[\s\S]*- We don't do gas lines\. Tell callers to call the gas company first\./);
+    assert.ok(prompt.indexOf("OWNER'S CORRECTIONS") > prompt.indexOf("DANGER"), "corrections sit under the safety rules");
+
+    const del = await DELETE(new Request(`http://localhost/api/account/receptionist-rules?id=${rule.id}`, { method: "DELETE" }));
+    assert.deepEqual((await del.json()).rules.map((r) => r.text), ["Say we're closed Sundays."]);
+    assert.equal((await (await GET()).json()).rules.length, 1);
+
+    for (let i = 1; i < MAX_RULES; i += 1) await post({ text: `Rule number ${i}` });
+    const full = await post({ text: "One too many" });
+    assert.equal(full.status, 400);
+    assert.match((await full.json()).error, /Up to 20/);
+    assert.equal((await post({ text: "ok" })).status, 400, "an empty-ish correction is refused");
+  } finally {
+    signedInAs = null;
+    await prisma.call.deleteMany({ where: { id: { in: [call.id, foreign.id] } } });
+  }
+});

@@ -158,6 +158,7 @@ LISTED PRICES
 - This is the only exception to any rule about not quoting prices. For a service without a listed price, or anything beyond what is listed, never give a number: say the team will go over pricing when they call back.`;
 }
 
+import { formatRulesForPrompt } from "@/lib/receptionist-rules";
 import {
   industryKind,
   inferTradeFromBusiness,
@@ -176,6 +177,8 @@ type AssistantPromptInput = {
   canTransfer?: boolean;
   /** check_availability and hold_appointment are on the assistant. */
   canBook?: boolean;
+  /** Business.receptionistRulesJson: the owner's corrections from past calls. */
+  rulesJson?: string | null;
 };
 
 export function buildAssistantSystemPrompt(business: AssistantPromptInput): string {
@@ -269,7 +272,7 @@ ${formatHoursForPrompt(business.hoursJson)}
 After hours: still take the message and mark urgency. Emergency calls get priority callback.
 
 SERVICES
-${formatServicesForPrompt(business.servicesJson)}${tradeBlock}${formatPricesRule(business.servicesJson)}
+${formatServicesForPrompt(business.servicesJson)}${tradeBlock}${formatPricesRule(business.servicesJson)}${formatRulesForPrompt(business.rulesJson)}
 
 BEFORE ENDING EVERY CALL
 Confirm: name, callback number (read it back), service needed, urgency, address.
@@ -359,7 +362,7 @@ After hours: still take the message and mark urgency. Urgent calls get a priorit
 SERVICES
 ${formatServicesForPrompt(business.servicesJson)}
 
-${tradePromptPack(trade)}${formatPricesRule(business.servicesJson)}
+${tradePromptPack(trade)}${formatPricesRule(business.servicesJson)}${formatRulesForPrompt(business.rulesJson)}
 
 BEFORE ENDING EVERY CALL
 Confirm: name, callback number (read it back), what they need, urgency.

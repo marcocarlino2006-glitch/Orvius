@@ -158,6 +158,8 @@ model Business {
   canceledAt         DateTime?
   /** When a lapsed shop's number was given back to Twilio. */
   lineReleasedAt     DateTime?
+  /// Owner corrections the receptionist follows on every call: [{ id, text, createdAt, callId? }].
+  receptionistRulesJson String @default("[]")
   /** When the line stopped answering for non-payment; cleared when it answers again. */
   lineSuspendedAt    DateTime?
 
