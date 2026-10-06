@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
-import { safeTimezone, zonedWallToUtc } from "@/lib/availability";
+import { safeTimezone, shopWallInputToUtc, zonedWallToUtc } from "@/lib/availability";
 import { normalizePhone } from "@/lib/customer";
 import { JOB_INCLUDE, createJobFromLead, createOwnerJob, serializeJob } from "@/lib/job";
 import { requirePlanModule } from "@/lib/plan-gate";
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
   try {
     const job = await createJobFromLead({
       leadId: body.leadId.trim(),
-      scheduledAt: body.scheduledAt,
+      scheduledAt: body.scheduledLocal ? shopWallInputToUtc(body.scheduledLocal, business.timezone) : body.scheduledAt,
       notes: body.notes,
     });
 

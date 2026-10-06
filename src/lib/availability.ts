@@ -299,6 +299,13 @@ export function zonedWallToUtc(
   return new Date(guess - zoneOffsetMs(new Date(first), timezone));
 }
 
+/** "2026-10-07T11:30" typed by the owner, read as wall time in the shop's timezone. */
+export function shopWallInputToUtc(local: string | null | undefined, timezone: string | null | undefined): Date | null {
+  const wall = local?.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+  if (!wall) return null;
+  return zonedWallToUtc(+wall[1], +wall[2], +wall[3], +wall[4], +wall[5], 0, safeTimezone(timezone ?? "America/New_York"));
+}
+
 function shopMidnight(year: number, month: number, day: number, timezone: string) {
   return zonedWallToUtc(year, month, day, 0, 0, 0, timezone);
 }
