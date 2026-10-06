@@ -62,7 +62,7 @@ export default async function SignInPage({
             Run your day in Orvius.
           </h2>
           <p className="ov-signin-pitch-sub">
-            Answers every call, books the work, and shows you what happened.
+            Answers your calls, books the work, and shows you what happened.
           </p>
 
           <SignInBoard />
