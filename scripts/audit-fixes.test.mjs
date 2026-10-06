@@ -1007,3 +1007,25 @@ test("38. the receptionist's prompt has a size budget: a full price list and eve
   // Every token here is read before the first word of each reply; raise this only with a voice-sim latency run.
   assert.ok(prompt.length < 14_500, `worst-case prompt is ${prompt.length} characters`);
 });
+
+test("39. a port nobody filed, or a carrier sitting on one, pages the founder once per stage", async () => {
+  const { pageStalledPorts } = await import("../src/lib/port-request.ts");
+  const shop = await makeShop({ environment: "production" });
+  const fresh = await makeShop({ environment: "production" });
+  const base = { number: "+15125550100", carrier: "AT&T", accountName: "A", accountNumber: "1", serviceAddress: "1 Main", authorizedName: "A" };
+  const stale = await prisma.portRequest.create({ data: { businessId: shop.id, ...base, status: "received" } });
+  await prisma.portRequest.update({ where: { id: stale.id }, data: { updatedAt: new Date(Date.now() - 3 * 86_400_000) } });
+  await prisma.portRequest.create({ data: { businessId: fresh.id, ...base, status: "received" } });
+  const key = (status) => `page:shop:port_stalled:${stale.id}:${status}:${shop.id}`;
+  try {
+    await pageStalledPorts();
+    await pageStalledPorts();
+    assert.equal(await prisma.cronRun.count({ where: { name: key("received") } }), 1);
+    assert.equal(await prisma.cronRun.count({ where: { name: { startsWith: "page:shop:port_stalled:" }, NOT: { name: { contains: stale.id } } } }), 0, "a request filed yesterday is not chased");
+    await prisma.portRequest.update({ where: { id: stale.id }, data: { status: "filed" } });
+    await pageStalledPorts();
+    assert.equal(await prisma.cronRun.count({ where: { name: key("filed") } }), 0, "a just-filed port has ten days");
+  } finally {
+    await prisma.cronRun.deleteMany({ where: { name: { startsWith: `page:shop:port_stalled:${stale.id}` } } });
+  }
+});

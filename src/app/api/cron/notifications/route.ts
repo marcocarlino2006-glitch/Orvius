@@ -1,3 +1,4 @@
+import { pageStalledPorts } from "@/lib/port-request";
 import { NextRequest, NextResponse } from "next/server";
 import { runAutopilot } from "@/lib/autopilot";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
@@ -120,6 +121,7 @@ export async function GET(request: NextRequest) {
   const unpaidLines = await step("unpaid_lines", () => suspendUnpaidLines());
   const lapsedLines = await step("lapsed_lines", () => releaseLapsedLines());
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
+  const stalledPorts = await step("stalled_ports", () => pageStalledPorts());
   const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
   const founderScoreboard = await step("founder_scoreboard", () => sendFounderScoreboard());
   const retention = await step("call_content_retention", () => purgeExpiredCallContent({ budgetMs: 10_000 }));
@@ -171,6 +173,7 @@ export async function GET(request: NextRequest) {
     lines,
     weeklyReports,
     founderScoreboard,
+    stalledPorts,
     overage,
     customerConfirmations,
     strandedTextLeads,

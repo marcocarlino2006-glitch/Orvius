@@ -2,6 +2,7 @@ import { recordAudit } from "@/lib/audit";
 import { company } from "@/lib/company";
 import { normalizePhone } from "@/lib/customer";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
+import { pageFounderForShop } from "@/lib/platform-pager";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { sealSecret, secretBoxConfigured } from "@/lib/secret-box";
@@ -155,4 +156,38 @@ export async function updatePortRequest(params: { id: string; status: PortStatus
     );
   }
   return row;
+}
+
+const STALL_DAYS: Partial<Record<PortStatus, number>> = { received: 2, filed: 10 };
+
+/*
+  Porting is a person filing with the losing carrier. A request nobody filed,
+  or one the carrier is sitting on, leaves the owner forwarding forever and
+  is invisible if the ops email never went out, so each stalled stage pages
+  the founder once.
+*/
+export async function pageStalledPorts(now = new Date()) {
+  let paged = 0;
+  for (const [status, days] of Object.entries(STALL_DAYS) as Array<[PortStatus, number]>) {
+    const rows = await prisma.portRequest.findMany({
+      where: {
+        status,
+        updatedAt: { lte: new Date(now.getTime() - days * 24 * 60 * 60 * 1000) },
+        business: { environment: { notIn: ["test", "demo"] } },
+      },
+      include: { business: { select: { name: true } } },
+      orderBy: { updatedAt: "desc" },
+      take: 50,
+    });
+    for (const row of rows) {
+      const result = await pageFounderForShop(
+        row.businessId,
+        `port_stalled:${row.id}:${status}`,
+        `Orvius: ${row.business.name}'s port of ${row.number} from ${row.carrier} has been "${status}" for ${days}+ days. ${status === "received" ? "File it with the carrier" : "Chase the carrier"}, then mark its status through /api/admin/port-requests.`,
+        now,
+      );
+      if (result.paged) paged += 1;
+    }
+  }
+  return { paged };
 }
