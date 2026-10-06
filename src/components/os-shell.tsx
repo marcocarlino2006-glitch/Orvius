@@ -4,7 +4,7 @@ import Link from "next/link";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { osCurrentRing, osProductNav } from "@/lib/os-nav";
+import { OS_NAV_ALIASES, osCurrentRing, osProductNav } from "@/lib/os-nav";
 import { displayPhone } from "@/lib/customer";
 import { useBusiness } from "@/lib/use-business";
 import { industryTerms } from "@/lib/industry-terms";
@@ -30,11 +30,11 @@ type OsShellProps = {
   actions?: React.ReactNode;
 };
 
-const TAB_HREFS = ["/dashboard", "/dashboard/inbox", "/dashboard/calls", "/dashboard/jobs"];
+const TAB_HREFS = ["/dashboard", "/dashboard/work", "/dashboard/calls", "/dashboard/dispatch"];
 
 function navActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return [href, ...(OS_NAV_ALIASES[href] ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`));
 }
 
 export function OsShell({
@@ -86,7 +86,7 @@ export function OsShell({
       label: navLabel(item),
       icon: item.icon,
       active: navActive(pathname, item.href),
-      badge: item.href === "/dashboard/inbox" && newLeads > 0 ? String(newLeads) : undefined,
+      badge: item.href === "/dashboard/work" && newLeads > 0 ? String(newLeads) : undefined,
     }));
 
   useEffect(() => {
@@ -163,7 +163,7 @@ export function OsShell({
             const enabled = ringEnabled && planAllowed;
             const active = navActive(pathname, item.href);
             const badge =
-              item.href === "/dashboard/inbox" && newLeads > 0
+              item.href === "/dashboard/work" && newLeads > 0
                 ? String(newLeads)
                 : item.href === "/dashboard/dispatch" && unassignedJobs > 0
                   ? String(unassignedJobs)

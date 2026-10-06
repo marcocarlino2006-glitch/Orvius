@@ -18,6 +18,7 @@ const STATIC = [
      it is left out for the same reason /login is left out of the public list. */
   "/dashboard/profile",
   "/dashboard/settings",
+  "/dashboard/work",
 ];
 
 function dashboardPages(fixture) {

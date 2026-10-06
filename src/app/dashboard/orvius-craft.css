@@ -139,6 +139,35 @@
   grid-template-columns: minmax(0, 2.6fr) minmax(6.5rem, 0.8fr) minmax(8.5rem, 0.9fr) minmax(7.5rem, 0.8fr) 6.5rem;
 }
 
+.dt--work .dt-head,
+.dt--work .dt-row {
+  grid-template-columns: minmax(0, 2.2fr) minmax(7.5rem, 0.8fr) minmax(0, 1.6fr) minmax(9rem, 1fr) minmax(4.5rem, 0.5fr);
+}
+
+/* The responsible picker sits above the row's stretched link so it can be used without opening the item. */
+.dt--work .work-assignee {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  border: 1px solid var(--ox-line);
+  border-radius: 6px;
+  background: var(--ox-s1);
+  color: var(--ox-text-2);
+  font: inherit;
+  font-size: var(--cr-label);
+  padding: 0.25rem 0.375rem;
+}
+
+.dt--work .work-next {
+  color: var(--ox-text);
+}
+
+.dt--work .work-urgent {
+  color: var(--ox-amber);
+  font-size: var(--cr-label);
+  font-weight: 600;
+}
+
 /* Beside the sidebar on a tablet the fixed columns leave the title ~140px; let it wrap. */
 @media (min-width: 721px) and (max-width: 1199px) {
   .dt--jobs .dt-head,
@@ -770,6 +799,7 @@ a.dt-row:focus-visible,
 
   .dt--jobs .dt-row,
   .dt--leads .dt-row,
+  .dt--work .dt-row,
   .dt--calls .dt-row {
     display: flex;
     flex-wrap: wrap;
