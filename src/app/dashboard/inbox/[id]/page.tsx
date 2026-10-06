@@ -1,21 +1,19 @@
 "use client";
 
-import { BookJobForm } from "@/components/book-job-form";
-import { AssignTechButton } from "@/components/assign-tech-button";
+import { BookRequest } from "@/components/book-request";
 import { LeadStatusActions } from "@/components/lead-status-actions";
 import { LeadQualificationForm } from "@/components/lead-qualification-form";
-import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
+import { WorkPanel } from "@/components/work-panel";
 import {
   ShellAlert,
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { formatWhen, statusWord } from "@/lib/when";
 
 type LeadDetail = {
   id: string;
@@ -47,39 +45,27 @@ type LeadDetail = {
   } | null;
 };
 
-type Tech = { id: string; name: string };
-
 export default function LeadDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const leadId = params.id;
   const [lead, setLead] = useState<LeadDetail | null>(null);
-  const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [manualBookingAvailable, setManualBookingAvailable] = useState(false);
   const [showBookedLeadRepair, setShowBookedLeadRepair] = useState(false);
+  const [workVersion, setWorkVersion] = useState(0);
 
   const loadLead = useCallback(async () => {
     if (!leadId) return;
 
     try {
-      const [data, techData] = await Promise.all([
-        fetch(`/api/leads/${leadId}`).then(async (res) => {
-        if (!res.ok) throw new Error("Lead not found");
-        return res.json();
-      }),
-        fetch("/api/technicians").then((res) => res.json()),
-      ]);
+      const res = await fetch(`/api/leads/${leadId}`);
+      if (!res.ok) throw new Error("Request not found");
+      const data = await res.json();
       setLead(data.lead);
-      setCrew(
-        (techData.technicians ?? []).map((t: Tech) => ({
-          id: t.id,
-          name: t.name,
-        })),
-      );
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Lead not found");
+      setError(err instanceof Error ? err.message : "Request not found");
     } finally {
       setLoading(false);
     }
@@ -91,7 +77,7 @@ export default function LeadDetailPage() {
 
   if (loading) {
     return (
-      <OsShell title="Lead" subtitle="Loading…">
+      <OsShell title="Request" subtitle="Loading…">
         <ShellLoading />
       </OsShell>
     );
@@ -99,10 +85,10 @@ export default function LeadDetailPage() {
 
   if (error || !lead) {
     return (
-      <OsShell title="Lead" subtitle="Not found">
+      <OsShell title="Request" subtitle="Not found">
         <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/inbox" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Inbox
+        <Link href="/dashboard/work" className="customer-timeline-link mt-4 inline-block font-sans">
+          ← Work
         </Link>
       </OsShell>
     );
@@ -117,81 +103,49 @@ export default function LeadDetailPage() {
     notes: string;
   }) =>
     setLead((current) => (current ? { ...current, ...values } : current));
-  const finishRepair = (booked: boolean) => {
-    setManualBookingAvailable(!booked);
+  const refresh = () => {
+    setWorkVersion((v) => v + 1);
     void loadLead();
   };
+  const booked = (jobId: string) => router.push(`/dashboard/jobs/${jobId}`);
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
+      subtitle={[lead.serviceType, lead.address].filter(Boolean).join(" · ") || "Request"}
       businessName={lead.business?.name ?? undefined}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {lead.phone ? (
             <>
-              <a href={`tel:${lead.phone}`} className="btn btn-void text-sm">
-                Call lead
+              <a href={`tel:${lead.phone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+                Call
               </a>
-              <a href={`sms:${lead.phone}`} className="btn btn-secondary text-sm">
-                Text lead
+              <a href={`sms:${lead.phone}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+                Text
               </a>
             </>
           ) : null}
+          {!lead.job ? <BookRequest leadId={lead.id} onBooked={booked} className="book-request--head" /> : null}
         </div>
       }
     >
-      <div className="ring1-lead-status mb-3">
-        <LeadStatusActions
-          leadId={lead.id}
-          status={lead.status}
-          onUpdated={(status) => setLead({ ...lead, status })}
-        />
-      </div>
-
       <div className="os-detail-grid">
         <div className="os-detail-primary">
+          <WorkPanel kind="request" id={lead.id} onChange={() => void loadLead()} refreshKey={workVersion}>
           {!lead.job ? (
-            <ShellPanel title="Complete lead" dense>
+            <ShellPanel title="What the call captured" dense>
               <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
-                Correct anything the call missed. Saving retries qualification
-                and books automatically when the lead is ready.
+                Fix anything the call missed. Saving books it automatically once
+                the phone and the job are known.
               </p>
               <LeadQualificationForm
                 leadId={lead.id}
                 lead={lead}
                 onDraftChange={updateDraft}
-                onSaved={finishRepair}
+                onSaved={refresh}
               />
             </ShellPanel>
           ) : null}
-
-          {lead.job ? (
-            <ShellPanel title="Job on dispatch" dense>
-              <p className="font-sans text-sm text-ash">
-                {lead.job.title} · {statusWord(lead.job.status)}
-                {lead.job.scheduledAt
-                  ? ` · ${formatWhen(lead.job.scheduledAt)}`
-                  : ""}
-                {!lead.job.technicianId ? " · needs a tech" : ""}
-              </p>
-              {!lead.job.technicianId && crew.length ? (
-                <div className="mt-4">
-                  <AssignTechButton
-                    jobId={lead.job.id}
-                    technicians={crew}
-                    onAssigned={() => void loadLead()}
-                  />
-                </div>
-              ) : null}
-              <Link
-                href={`/dashboard/jobs/${lead.job.id}`}
-                className="customer-timeline-link mt-3 inline-block font-sans"
-              >
-                Open job →
-              </Link>
-            </ShellPanel>
-          ) : null}
-
 
           {lead.job ? (
             <ShellPanel title="Captured details" dense>
@@ -213,7 +167,7 @@ export default function LeadDetailPage() {
                     leadId={lead.id}
                     lead={lead}
                     onDraftChange={updateDraft}
-                    onSaved={finishRepair}
+                    onSaved={refresh}
                   />
                 </div>
               ) : null}
@@ -227,17 +181,21 @@ export default function LeadDetailPage() {
               className="mt-3"
             />
           ) : null}
+          </WorkPanel>
         </div>
 
         <div className="os-detail-side">
-          {!lead.job && manualBookingAvailable ? (
-            <ShellPanel title="Book this lead" dense>
-              <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
-                Schedule this lead on your calendar and assign crew on dispatch.
-              </p>
-              <BookJobForm leadId={lead.id} urgency={lead.urgency} />
-            </ShellPanel>
-          ) : null}
+          <ShellPanel title="Status" dense>
+            <LeadStatusActions
+              leadId={lead.id}
+              status={lead.status}
+              compact
+              onUpdated={(status) => {
+                setLead({ ...lead, status });
+                setWorkVersion((v) => v + 1);
+              }}
+            />
+          </ShellPanel>
 
           {lead.customer ? (
             <ShellPanel title="Customer" dense>
@@ -297,16 +255,7 @@ export default function LeadDetailPage() {
                 </a>
               </>
             ) : null}
-            <BookJobQuickButton
-              leadId={lead.id}
-              className="lead-detail-sticky-btn lead-detail-sticky-btn-primary"
-              onBooked={() => {
-                window.location.reload();
-              }}
-            />
-            <Link href="/dashboard/dispatch" className="lead-detail-sticky-btn lead-detail-sticky-btn-muted">
-              Dispatch
-            </Link>
+            <BookRequest leadId={lead.id} onBooked={booked} className="book-request--sticky" />
           </div>
         </div>
       ) : null}

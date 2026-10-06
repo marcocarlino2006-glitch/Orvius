@@ -87,7 +87,7 @@ results.push(
 
 const workMode = /workMode/.test(commandSrc);
 const signalsLead = commandSrc.indexOf("<CommandSignals");
-const exceptionBoard = commandSrc.indexOf("<AttentionQueue");
+const exceptionBoard = commandSrc.indexOf("<WorkCard");
 const pulse = commandSrc.indexOf("<OrviusPulse");
 results.push(
   !workMode &&

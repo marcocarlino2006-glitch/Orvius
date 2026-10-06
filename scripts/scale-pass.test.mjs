@@ -171,7 +171,7 @@ test("the Command poll answers 'unchanged' before running any of the heavy loade
   const route = read("src/app/api/ring1/route.ts");
   const early = route.indexOf("unchanged: true");
   assert.ok(early > 0);
-  for (const heavy of ["getDispatchBoard(", "getShopHealth(", "getAttentionQueue(", "loadPersonalBrief("]) {
+  for (const heavy of ["getDispatchBoard(", "getShopHealth(", "collectAttention(", "listWork(", "loadPersonalBrief("]) {
     assert.ok(route.indexOf(heavy) > early, `${heavy} runs after the version check`);
   }
   const client = read("src/lib/ring1-context.tsx");
@@ -206,17 +206,17 @@ test("without the rail, Command puts the numbers above the board and System last
   assert.ok(order("\\.rc-panel") < order("\\.op-panel:not\\(\\.rw-panel\\):not\\(\\.rc-panel\\)"), "System health last");
 });
 
-test("Command's board tabs use plain words", () => {
-  const board = read("src/components/command-board.tsx");
-  assert.match(board, /label: "Problems"/);
-  assert.match(board, /label: "Waiting on customer"/);
-  assert.doesNotMatch(board, /label: "(Exceptions|Proposed)"/);
+test("Work's tabs use plain words", () => {
+  const work = read("src/app/dashboard/work/page.tsx");
+  assert.match(work, /label: "Needs you"/);
+  assert.match(work, /label: "Waiting on customer"/);
+  assert.doesNotMatch(work, /label: "(Exceptions|Proposed|Lanes)"/);
 });
 
 test("Command's headline keeps its own color past the night theme's muted paragraphs", () => {
   const command = read("src/components/ring1-command-center.tsx");
-  assert.match(command, /className="cc-brief-headline os-own-color"/);
-  assert.match(command, /className="cc-brief-text os-own-color"/);
+  assert.match(command, /className="cmd-headline os-own-color"/);
+  assert.match(command, /className="cmd-sub os-own-color"/);
 });
 
 test("Dispatch names the day in words and leads with the day's jobs", () => {

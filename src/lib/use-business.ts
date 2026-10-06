@@ -32,6 +32,7 @@ function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
       lineVerified: Boolean(data.health?.lineVerified),
       alertsFailed24h: data.health?.failedAlerts24h ?? 0,
       afterHoursNow: Boolean(data.coverage?.afterHoursNow),
+      needsYou: data.work?.needsYou ?? 0,
     } satisfies BusinessSignals,
   };
 }

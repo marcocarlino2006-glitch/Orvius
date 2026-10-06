@@ -475,6 +475,8 @@ model Lead {
   followUpRepliedAt DateTime?
   /** When the lead reached a terminal status (booked, lost, spam). */
   closedAt         DateTime?
+  /** The teammate responsible for this request (owner or member email); null means the shop owner. */
+  assigneeEmail    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -543,6 +545,8 @@ model Job {
   etaText       String?
   /** Appointment length from the trade playbook; null means the shop default. */
   durationMin   Int?
+  /** The teammate responsible for this job (owner or member email); null means the technician, then the owner. */
+  assigneeEmail String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 

@@ -122,17 +122,17 @@ if (overflowUi && overflowPage && overflowSheet) {
 }
 
 const attentionUi = readFileSync(
-  join(root, "src/components/attention-queue.tsx"),
+  join(root, "src/components/work-card.tsx"),
   "utf8",
 );
 const attentionKinds = readFileSync(join(root, "src/lib/attention-types.ts"), "utf8");
 const attentionConfirm =
   /needs_customer_confirm/.test(attentionKinds) &&
-  /TextConfirmButton|Text confirm/.test(attentionUi);
+  /Text a confirmation/.test(attentionUi);
 const attentionAtRisk =
   /appointment_at_risk/.test(attentionKinds) &&
   /canAdvanceStatus|JobStatusAdvance/.test(attentionUi);
-const attentionText = /Text confirm/.test(attentionUi);
+const attentionText = /confirm-sms/.test(attentionUi);
 if (attentionConfirm && attentionAtRisk && attentionText) {
   ok("attention", "Attention owner actions", "confirm + at-risk + Text confirm");
 } else {

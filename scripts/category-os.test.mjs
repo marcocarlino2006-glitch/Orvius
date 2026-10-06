@@ -68,17 +68,17 @@ test("profile popover carries identity and the account menu", () => {
   assert.match(footer, /settings=billing/);
 });
 
-test("Command home follows Manus: serif greeting, one composer, starter chips, then the board", () => {
+test("Command opens with what needs you, one composer with starter chips, then the work itself", () => {
   const command = read("src/components/ring1-command-center.tsx");
   const board = read("src/components/command-board.tsx");
   const page = read("src/app/dashboard/page.tsx");
-  const hero = command.indexOf("What can I do for you?");
-  assert.ok(hero > 0 && hero < command.indexOf("<AskBar") && command.indexOf("<AskBar") < command.indexOf("<CommandBoard"));
+  const headline = command.indexOf("cmd-headline");
+  assert.ok(headline > 0 && headline < command.indexOf("<AskBar") && command.indexOf("<AskBar") < command.indexOf("<WorkCard"));
   assert.match(page, /setup=\{/);
   assert.match(board, /<textarea/);
   assert.match(board, /Nothing changes until you approve/);
-  for (const chip of ["Book a job", "Move a job", "Send a tech", "Open inbox", "More"]) assert.match(board, new RegExp(chip));
-  assert.doesNotMatch(board.slice(board.indexOf("export function CommandBoard")), /<AskBar/, "the board no longer carries its own ask bar");
+  for (const chip of ["Book a job", "Move a job", "Send a tech", "Open Work", "More"]) assert.match(board, new RegExp(chip));
+  assert.doesNotMatch(board, /export function CommandBoard/, "Command's lanes are gone; what needs you is read from Work");
 });
 
 test("Ask is one composer with grounded evidence and explained approvals", () => {

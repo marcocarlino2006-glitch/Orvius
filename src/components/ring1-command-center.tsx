@@ -1,60 +1,99 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import { AttentionQueue } from "@/components/attention-queue";
 import { CommandReceptionist } from "@/components/command-receptionist";
 import { CommandRecovered } from "@/components/command-recovered";
 import { CommandSignals } from "@/components/command-signals";
-import { AskBar, CommandBoard } from "@/components/command-board";
+import { AskBar, DemoPanel, PlanCard, TryDemo } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
+import { TestAlertButton } from "@/components/test-alert-button";
+import { WorkCard } from "@/components/work-card";
 import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
-import type { AttentionItem } from "@/lib/attention-types";
 import type { Handled } from "@/lib/autopilot";
-import { useRing1 } from "@/lib/ring1-context";
+import { useRing1, type Ring1Data } from "@/lib/ring1-context";
+import { formatWhen } from "@/lib/when";
 
-/* A late, unstarted job is already a Problems card with Move, Mark done and Call tech,
-   and unfinished line setup is already the banner above the board. */
-function shownElsewhere(item: AttentionItem) {
-  if (item.kind === "needs_capture") return true;
-  return (
-    (item.kind === "tech_no_show" || item.kind === "appointment_at_risk") &&
-    (item.meta?.status === "scheduled" || item.meta?.status === "confirmed")
-  );
-}
+const NEEDS_YOU_SHOWN = 8;
+
+/* Shop problems a test alert proves fixed. */
+const ALERT_KINDS = new Set<string>(["alert_failed", "alert_setup", "alerts_muted"]);
 
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
 
-function activityParts(h: Handled | undefined, counts: NonNullable<ReturnType<typeof useRing1>["data"]>["commandCounts"]) {
-  const parts = h
-    ? [
-        h.calls ? plural(h.calls, "call") + " answered" : null,
-        h.booked ? plural(h.booked, "job") + " booked" : null,
-        h.assigned ? plural(h.assigned, "technician") + " assigned" : null,
-        h.confirmations ? plural(h.confirmations, "confirmation") + " sent" : null,
-        h.escalated ? plural(h.escalated, "call") + " flagged" : null,
-      ].filter((p): p is string => Boolean(p))
-    : [];
-  if (parts.length) return { window: "Last 24 hours", parts };
-  if (!counts) return null;
-  const requests = counts.calls + counts.messagesAndWeb;
-  return {
-    window: `Last ${counts.windowDays} days`,
-    parts: requests ? [plural(requests, "request"), plural(counts.booked, "job") + " booked"] : ["No calls or messages"],
-  };
+function handledLine(h: Handled | undefined) {
+  if (!h) return null;
+  const parts = [
+    h.calls ? `answered ${plural(h.calls, "call")}` : null,
+    h.booked ? `booked ${plural(h.booked, "job")}` : null,
+    h.assigned ? `assigned ${plural(h.assigned, "technician")}` : null,
+    h.confirmations ? `sent ${plural(h.confirmations, "confirmation")}` : null,
+    h.escalated ? `flagged ${plural(h.escalated, "call")} for you` : null,
+  ].filter(Boolean);
+  return parts.length ? `In the last 24 hours Orvius ${parts.join(", ")}.` : "Orvius hasn't had to act in the last 24 hours.";
+}
+
+type TodayJob = NonNullable<Ring1Data["dispatchToday"]>["jobs"][number];
+
+const JOB_STATUS: Record<string, string> = {
+  scheduled: "Scheduled",
+  confirmed: "Confirmed",
+  en_route: "On the way",
+  on_site: "On site",
+  completed: "Done",
+};
+
+function TodaySchedule({ jobs }: { jobs: TodayJob[] }) {
+  const byTech = useMemo(() => {
+    const groups = new Map<string, TodayJob[]>();
+    for (const job of jobs) {
+      const key = job.technician?.name ?? "Unassigned";
+      groups.set(key, [...(groups.get(key) ?? []), job]);
+    }
+    return [...groups.entries()].sort(([a], [b]) => (a === "Unassigned" ? -1 : b === "Unassigned" ? 1 : a.localeCompare(b)));
+  }, [jobs]);
+
+  if (!jobs.length) return <p className="cmd-empty">Nothing on the schedule today.</p>;
+  return (
+    <div className="cmd-today">
+      {byTech.map(([tech, list]) => (
+        <div key={tech} className={`cmd-today-lane${tech === "Unassigned" ? " cmd-today-lane--open" : ""}`}>
+          <p className="cmd-today-tech">
+            {tech}
+            <span>{plural(list.length, "job")}</span>
+          </p>
+          <ul>
+            {list.map((job) => (
+              <li key={job.id}>
+                <Link href={`/dashboard/jobs/${job.id}`} className="cmd-today-job">
+                  <span className="cmd-today-time">{job.scheduledAt ? formatWhen(job.scheduledAt).replace(/^Today,?\s*/i, "") : "No time"}</span>
+                  <span className="cmd-today-title">
+                    {job.title}
+                    <span>{job.customer?.name ?? job.lead?.name ?? "Customer"}</span>
+                  </span>
+                  <span className={`cmd-today-status cmd-today-status--${job.status}`}>{JOB_STATUS[job.status] ?? job.status}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 /**
- * Command — the daily workspace. One board: approvals, exceptions, requests,
- * proposals, confirmed work, and the money and crew follow-ups as its last
- * tab. The rail holds the numbers and a quiet Pulse. The first failed load is a failure state; later failures keep
- * the last good data on screen and mark it stale.
+ * Command: open it in the morning and run the shop. What needs you comes
+ * from Work — the same items, problems and count as the Work screen and the
+ * nav badge — then today's schedule, then what Orvius did on its own. The
+ * rail holds the numbers and the health of the line.
  */
 export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const { data, loading, loadError, lastUpdatedAt, refresh } = useRing1();
   const [refreshing, setRefreshing] = useState(false);
-  const [boardKey, setBoardKey] = useState(0);
+  const [showAll, setShowAll] = useState(false);
 
   async function retry() {
     setRefreshing(true);
@@ -62,16 +101,9 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
     setRefreshing(false);
   }
 
-  const work = useMemo(
-    () =>
-      groupWorkItems((data?.attention ?? []).filter((item) => !shownElsewhere(item))).filter(
-        (w) => !w.id.startsWith("incident:"),
-      ),
-    [data?.attention],
-  );
   const signals = useMemo(
-    () => (data?.commandCounts ? buildCommandSignals(data.commandCounts, work) : null),
-    [data?.commandCounts, work],
+    () => (data?.commandCounts ? buildCommandSignals(data.commandCounts, groupWorkItems(data.attention ?? [])) : null),
+    [data?.commandCounts, data?.attention],
   );
 
   if (!data && loadError && !loading) {
@@ -79,9 +111,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       <section className="cc" aria-label="Command">
         <div className="ox-state ox-state--failure" role="alert">
           <p className="ox-state-title">Command could not load</p>
-          <p className="ox-state-copy">
-            {loadError} Your line keeps answering calls while this screen reconnects.
-          </p>
+          <p className="ox-state-copy">{loadError} Your line keeps answering calls while this screen reconnects.</p>
           <button type="button" className="ox-btn ox-btn--primary" disabled={refreshing} onClick={() => void retry()}>
             {refreshing ? "Retrying…" : "Retry"}
           </button>
@@ -90,79 +120,154 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
     );
   }
 
-  const counts = data?.commandCounts;
-  const activity = counts ? activityParts(data?.handled, counts) : null;
+  const work = data?.work;
+  const approvals = work?.approvals ?? [];
+  const items = work?.items ?? [];
+  const attached = new Set(items.map((i) => i.approvalId).filter(Boolean));
+  const looseApprovals = approvals.filter((a) => a.proposalId && !attached.has(a.proposalId));
+  const approvalFor = (id: string | null) => (id ? approvals.find((a) => a.proposalId === id) ?? null : null);
+  const shown = showAll ? items : items.slice(0, NEEDS_YOU_SHOWN);
   const brief = data?.personalBrief ?? null;
+  const demo = Boolean(data?.business?.referenceImplementation);
+  const needsYou = work?.needsYou ?? 0;
+  const shopIssues = work?.shopIssues ?? [];
+  const handled = data?.handled;
 
   return (
-    <div className="cc-page">
-      <section className="cc-hero" aria-labelledby="cc-hero-title">
-        <h2 id="cc-hero-title" className="cc-hero-title">
-          What can I do for you?
+    <div className="cmd">
+      <header className="cmd-head">
+        <p className="cmd-greeting os-own-color">{brief?.greeting ?? "Command"}</p>
+        <h2 className="cmd-headline os-own-color" aria-live="polite">
+          {!data ? "Reading the shop…" : needsYou ? `${plural(needsYou, "thing")} ${needsYou === 1 ? "needs" : "need"} you` : "Nothing needs you right now"}
         </h2>
-        <AskBar
-          onChange={() => {
-            setBoardKey((k) => k + 1);
-            void refresh();
-          }}
-          below={setup}
-        />
-      </section>
+        <p className="cmd-sub os-own-color">
+          {data ? handledLine(handled) : null}
+          {brief?.detail.map((line) => (
+            <span key={line}> {line}</span>
+          ))}
+        </p>
+      </header>
+
+      <div className="cmd-ask">
+        <AskBar onChange={() => void refresh()} below={setup} />
+      </div>
+
       <section className="cc" aria-label="Command">
         <div className="cc-main">
-          <header className="cc-brief">
-            {brief ? (
-              <div className="cc-brief-personal">
-                <p className="cc-brief-headline os-own-color">{brief.headline}</p>
-                {brief.detail.length ? (
-                  <p className="cc-brief-detail">
-                    {brief.detail.map((line) => (
-                      <span key={line} className="cc-brief-part">
-                        {line}
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
-              </div>
+          <section className="cmd-section" aria-labelledby="cmd-needs">
+            <div className="cmd-section-head">
+              <h3 id="cmd-needs" className="cmd-section-title">
+                Needs you <span className="cmd-count">{data ? needsYou : "–"}</span>
+              </h3>
+              <Link href="/dashboard/work" className="cmd-section-link">
+                All work{work ? ` · ${work.open} open` : ""} →
+              </Link>
+            </div>
+            {!data ? (
+              <ul className="wc-list" aria-busy>
+                {[0, 1, 2].map((i) => (
+                  <li key={i} className="wc wc--loading">
+                    <span className="skeleton" style={{ width: "40%", height: 12 }} />
+                    <span className="skeleton" style={{ width: "70%", height: 16 }} />
+                  </li>
+                ))}
+              </ul>
+            ) : items.length || looseApprovals.length ? (
+              <ul className="wc-list">
+                {looseApprovals.map((a) => (
+                  <li key={a.id} className="wc wc--approval">
+                    <p className="wc-tags">
+                      <span className="wc-tag wc-tag--you">Orvius wants your OK</span>
+                    </p>
+                    <PlanCard proposal={{ proposalId: a.proposalId!, preview: a.preview ?? a.title }} onDone={() => void refresh()} />
+                  </li>
+                ))}
+                {shown.map((item) => (
+                  <WorkCard key={item.key} item={item} approval={approvalFor(item.approvalId)} technicians={data.technicians ?? []} onChange={() => void refresh()} />
+                ))}
+              </ul>
             ) : (
-            <p className="cc-brief-text os-own-color">
-              {activity ? (
-                <>
-                  <span className="cc-brief-window">{activity.window}</span>
-                  {activity.parts.map((part) => (
-                    <span key={part} className="cc-brief-part">
-                      {part}
-                    </span>
-                  ))}
-                </>
-              ) : (
-                "Reading the shop…"
-              )}
-            </p>
+              <div className="cmd-clear">
+                <p className="cmd-clear-title">You&apos;re clear.</p>
+                <p className="cmd-clear-copy">Every open request and job is with Orvius, a technician or the customer. Anything that needs a person lands here first.</p>
+              </div>
             )}
-          </header>
+            {items.length > NEEDS_YOU_SHOWN ? (
+              <button type="button" className="cmd-more" onClick={() => setShowAll((v) => !v)}>
+                {showAll ? "Show fewer" : `Show all ${items.length}`}
+              </button>
+            ) : null}
+          </section>
 
-          <CommandBoard
-            onChange={() => void refresh()}
-            refreshKey={boardKey}
-            extra={{
-              id: "follow-ups",
-              label: "Follow-ups",
-              count: work.length,
-              content: (
-                <AttentionQueue
-                  bare
-                  work={work}
-                  loading={loading && !data}
-                  technicians={data?.technicians ?? []}
-                  onAction={() => void refresh()}
-                />
-              ),
-            }}
-          />
+          <section className="cmd-section" aria-labelledby="cmd-today">
+            <div className="cmd-section-head">
+              <h3 id="cmd-today" className="cmd-section-title">
+                Today <span className="cmd-count">{data?.dispatchToday?.jobCount ?? "–"}</span>
+              </h3>
+              <Link href="/dashboard/dispatch" className="cmd-section-link">
+                Dispatch →
+              </Link>
+            </div>
+            {data ? <TodaySchedule jobs={data.dispatchToday?.jobs ?? []} /> : <p className="cmd-empty">Reading the schedule…</p>}
+          </section>
+
+          <section className="cmd-section" aria-labelledby="cmd-handled">
+            <div className="cmd-section-head">
+              <h3 id="cmd-handled" className="cmd-section-title">
+                Orvius handled
+              </h3>
+              <span className="cmd-section-note">Last 24 hours</span>
+            </div>
+            {handled?.events.length ? (
+              <ul className="cmd-feed">
+                {handled.events.map((e) => (
+                  <li key={e.id}>
+                    <span className="cmd-feed-dot" aria-hidden />
+                    {e.jobId || e.leadId ? (
+                      <Link href={e.jobId ? `/dashboard/jobs/${e.jobId}` : `/dashboard/inbox/${e.leadId}`} className="cmd-feed-text">
+                        {e.summary}
+                      </Link>
+                    ) : (
+                      <span className="cmd-feed-text">{e.summary}</span>
+                    )}
+                    <time className="cmd-feed-at" dateTime={e.at}>
+                      {formatWhen(e.at)}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="cmd-empty">{data ? "Nothing Orvius did on its own in the last day." : "Reading…"}</p>
+            )}
+          </section>
+
+          {demo ? <DemoPanel onChange={() => void refresh()} /> : data && !data.metrics.totalCalls ? <TryDemo empty /> : null}
         </div>
 
-        <aside className="cc-rail" aria-label="System status">
+        <aside className="cc-rail" aria-label="The shop">
+          {shopIssues.length ? (
+            <section className="cmd-issues" aria-labelledby="cmd-issues">
+              <h3 id="cmd-issues" className="cmd-issues-title">
+                Shop setup needs you
+              </h3>
+              <ul>
+                {shopIssues.map((issue) => (
+                  <li key={issue.id} className={`cmd-issue cmd-issue--${issue.severity}`}>
+                    <p className="cmd-issue-title">{issue.title}</p>
+                    <p className="cmd-issue-detail">{issue.detail}</p>
+                    <div className="cmd-issue-actions">
+                      {ALERT_KINDS.has(issue.kind) ? <TestAlertButton onDone={() => void refresh()} /> : null}
+                      {issue.href ? (
+                        <Link href={issue.href} className="cmd-issue-action">
+                          {issue.action} →
+                        </Link>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           <CommandSignals signals={signals} loading={loading} />
           <CommandReceptionist week={data?.receptionist} />
           <CommandRecovered outcomes={data?.outcomes} />

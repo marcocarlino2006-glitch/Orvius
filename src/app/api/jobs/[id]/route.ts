@@ -3,6 +3,7 @@ import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
 import { invoiceCompletedJob, invoicePayUrl } from "@/lib/invoice-pay";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
+import { shopWallInputToUtc } from "@/lib/availability";
 import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -96,9 +97,16 @@ export async function PATCH(request: Request, { params }: Params) {
   const body = (await request.json()) as {
     status?: string;
     scheduledAt?: string | null;
+    /** The time as the owner typed it, read on the shop's clock rather than the browser's. */
+    scheduledLocal?: string | null;
     notes?: string | null;
     technicianId?: string | null;
   };
+  if (body.scheduledLocal) {
+    const at = shopWallInputToUtc(body.scheduledLocal, business.timezone);
+    if (!at) return NextResponse.json({ error: "Pick a time." }, { status: 422 });
+    body.scheduledAt = at.toISOString();
+  }
 
   const existing = await prisma.job.findFirst({
     where: { id, businessId: business.id },

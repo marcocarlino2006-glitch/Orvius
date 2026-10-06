@@ -60,12 +60,12 @@ export function LeadStatusActions({
       await saveStatus(next);
       const label = LEAD_STATUSES.find((item) => item.value === next)?.label ?? next;
       toast({
-        title: `Lead marked ${label}`,
+        title: `Request marked ${label}`,
         action: {
           label: "Undo",
           run: () =>
             saveStatus(previous).catch(() =>
-              toast({ title: "Could not undo. The lead keeps its new status.", tone: "error" }),
+              toast({ title: "Could not undo. The request keeps its new status.", tone: "error" }),
             ),
         },
       });
@@ -76,12 +76,8 @@ export function LeadStatusActions({
     }
   }
 
-  const actions =
-    current === "booked"
-      ? LEAD_STATUSES.filter((item) =>
-          ["contacted", "lost", "spam"].includes(item.value),
-        )
-      : LEAD_STATUSES.filter((item) => item.value !== current);
+  /* "Booked" only comes from making the job, so it is never offered as a bare status. */
+  const actions = LEAD_STATUSES.filter((item) => item.value !== current && item.value !== "booked" && item.value !== "new");
 
   return (
     <div className={`lead-status-actions${compact ? " lead-status-actions--compact" : ""}`}>

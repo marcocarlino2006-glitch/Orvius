@@ -9,16 +9,23 @@ export type OsNavItem = {
   badge?: string;
 };
 
-/** Wedge-first nav. Deeper rings stay reachable but Command/Inbox/Calls are primary. */
+/**
+ * Command, then Work: every request and job in one list. The inbox and jobs
+ * screens still hold each item's detail page, so Work stays lit on them.
+ */
 export const osProductNav: OsNavItem[] = [
   { href: "/dashboard", label: "Command", icon: "command", ring: 1 },
-  { href: "/dashboard/inbox", label: "Inbox", icon: "inbox", ring: 1 },
+  { href: "/dashboard/work", label: "Work", icon: "jobs", ring: 1 },
   { href: "/dashboard/calls", label: "Calls", icon: "calls", ring: 1 },
   { href: "/dashboard/customers", label: "Customers", icon: "customers", ring: 2 },
-  { href: "/dashboard/jobs", label: "Jobs", icon: "jobs", ring: 3 },
   { href: "/dashboard/dispatch", label: "Dispatch", icon: "dispatch", ring: 4 },
   { href: "/dashboard/ask", label: "Ask", icon: "ask" },
 ];
+
+/** Screens that belong to a nav item without living under its path. */
+export const OS_NAV_ALIASES: Record<string, string[]> = {
+  "/dashboard/work": ["/dashboard/inbox", "/dashboard/jobs"],
+};
 
 export const osWorkspaceNav: OsNavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: "settings" },

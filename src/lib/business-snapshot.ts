@@ -21,6 +21,8 @@ export type BusinessSignals = {
     shop that answers until eight should not be told it is after hours at six.
   */
   afterHoursNow: boolean;
+  /** Work waiting on a person — the same number Command and the Work screen show. */
+  needsYou: number;
 };
 
 export type BusinessSnapshot = {

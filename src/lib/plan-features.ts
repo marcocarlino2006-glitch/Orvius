@@ -145,7 +145,7 @@ export function moduleLabel(module: PlanModule): string {
 
 export function navHrefToModule(href: string): PlanModule | null {
   if (href === "/dashboard") return "today";
-  if (href.startsWith("/dashboard/inbox")) return "inbox";
+  if (href.startsWith("/dashboard/inbox") || href.startsWith("/dashboard/work")) return "inbox";
   if (href.startsWith("/dashboard/calls")) return "calls";
   if (href.startsWith("/dashboard/customers")) return "customers";
   if (href.startsWith("/dashboard/jobs")) return "jobs";
