@@ -56,9 +56,9 @@ test("Stripe status changes start and clear the grace and cancel clocks", async 
   }
 });
 
-test("lapsed lines are only reported until release is switched on", async () => {
+test("lapsed lines are only reported while release is held off", async () => {
   const prev = process.env.ORVIUS_RELEASE_LAPSED_LINES;
-  delete process.env.ORVIUS_RELEASE_LAPSED_LINES;
+  process.env.ORVIUS_RELEASE_LAPSED_LINES = "0";
   const line = `+1555${2_000_000 + Math.floor(Math.random() * 8e6)}`;
   const lapsed = await prisma.business.create({
     data: {

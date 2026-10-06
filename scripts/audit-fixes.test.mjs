@@ -817,3 +817,35 @@ test("23. a line stops answering three weeks into a failed payment or a week aft
     }
   }
 });
+
+test("24. lapsed numbers are released by default after a week's notice, suspended-for-non-payment lines included", async () => {
+  const { releaseLapsedLines } = await import("../src/lib/line-lifecycle.ts");
+  const prev = process.env.ORVIUS_RELEASE_LAPSED_LINES;
+  delete process.env.ORVIUS_RELEASE_LAPSED_LINES;
+  const days = (n) => new Date(Date.now() + n * 86_400_000);
+  const number = () => `+1720558${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const soon = await makeShop({ environment: "production", billingStatus: "canceled", canceledAt: days(-25), twilioPhone: number() });
+  const suspended = await makeShop({ environment: "production", billingStatus: "pilot", lineSuspendedAt: days(-31), twilioPhone: number() });
+  const fresh = await makeShop({ environment: "production", billingStatus: "canceled", canceledAt: days(-5), twilioPhone: number() });
+  const found = [];
+  const findMany = prisma.business.findMany;
+  prisma.business.findMany = async (args) => {
+    const rows = await findMany.call(prisma.business, args);
+    found.push(rows.map((r) => r.id));
+    return rows;
+  };
+  try {
+    const result = await releaseLapsedLines();
+    assert.equal(result.mode, "live", "release is on without anyone setting a variable");
+    const [noticed, due] = found;
+    assert.ok(noticed.includes(soon.id) && !noticed.includes(fresh.id), "25 days canceled gets the week's notice");
+    assert.ok(due.includes(suspended.id), "a line suspended for non-payment 31 days ago is due for release");
+    assert.ok(!due.includes(soon.id) && !due.includes(fresh.id));
+    const notice = await prisma.ownerNotification.findFirst({ where: { businessId: soon.id, dedupeKey: { startsWith: "billing:line_release_notice:" } } });
+    assert.match(notice.message, /goes back to the carrier in about 7 days/);
+  } finally {
+    prisma.business.findMany = findMany;
+    if (prev === undefined) delete process.env.ORVIUS_RELEASE_LAPSED_LINES;
+    else process.env.ORVIUS_RELEASE_LAPSED_LINES = prev;
+  }
+});
