@@ -513,20 +513,22 @@ test("18. public forms cannot pump texts: only US and Canadian mobiles are texte
 
   const shop = await makeShop({ webChatOn: true, environment: "demo" });
   const { POST } = await import("../src/app/api/public/chat/[slug]/route.ts");
+  const net = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`;
   let n = 0;
   const chat = (phone) =>
     POST(
       new Request(`http://localhost/api/public/chat/${shop.slug}`, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-real-ip": `198.51.100.${(n += 1)}` },
+        headers: { "content-type": "application/json", "x-real-ip": `${net}.${(n += 1)}` },
         body: JSON.stringify({ name: "Bot", phone, message: "hi" }),
       }),
       { params: Promise.resolve({ slug: shop.slug }) },
     );
-  const abroad = await chat("+447700900123");
+  const tail = () => String(Math.floor(Math.random() * 9000) + 1000);
+  const abroad = await chat(`+4477009${tail()}`);
   assert.equal(abroad.status, 400);
   assert.match((await abroad.json()).error, /US or Canadian/);
-  const caribbean = await chat("+18765550100");
+  const caribbean = await chat(`+1876555${tail()}`);
   assert.equal(caribbean.status, 400);
 
   const target = `+1512555${String(Math.floor(Math.random() * 9000) + 1000)}`;
@@ -572,4 +574,101 @@ test("20. a technician link closes on jobs never scheduled, a week after complet
   await prisma.job.update({ where: { id: job.id }, data: { technicianId: null } });
   await notifyTechOnAssign({ jobId: job.id, previousTechnicianId: second.id, nextTechnicianId: null });
   assert.equal((await open(handed.techToken)).status, 404, "unassigning retires the link too");
+});
+
+test("21. no customer data on open links or in logs: voicemail plays only signed in, health keeps the line private, known-email probing stops, message routes fail closed, phones are masked", async () => {
+  const { POST } = await import("../src/app/api/webhooks/twilio/voice-fallback/route.ts");
+  const { GET: playVoicemail } = await import("../src/app/api/leads/[id]/voicemail/route.ts");
+  const line = `+1720555${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const shop = await makeShop({ name: "Private Air", twilioPhone: line, ownerPhone: "+13035550102" });
+  const sid = `CA${uid()}`;
+  const caller = `+1303555${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const recording = `https://api.twilio.com/2010-04-01/Accounts/AC${"a".repeat(32)}/Recordings/RE${"b".repeat(32)}`;
+  await POST(twilioForm({ From: caller, To: line, CallSid: sid, DialCallStatus: "no-answer" }));
+  await POST(twilioForm({ From: caller, To: line, CallSid: sid, RecordingUrl: recording, RecordingDuration: "9" }));
+  const lead = await prisma.lead.findFirst({ where: { businessId: shop.id, externalId: `voice-fallback:${sid}` } });
+  const alerts = await prisma.ownerNotification.findMany({ where: { businessId: shop.id, leadId: lead.id } });
+  const voicemailAlert = alerts.find((a) => /Voicemail from/.test(a.message ?? ""));
+  assert.ok(voicemailAlert);
+  assert.doesNotMatch(voicemailAlert.message, /api\.twilio\.com/, "the owner's text does not carry the open recording URL");
+  assert.match(voicemailAlert.message, new RegExp(`/api/leads/${lead.id}/voicemail`));
+
+  const ctx = { params: Promise.resolve({ id: lead.id }) };
+  signedInAs = null;
+  assert.equal((await playVoicemail(new Request("http://localhost/"), ctx)).status, 401);
+  const other = await makeShop();
+  signedInAs = other.ownerEmail;
+  assert.equal((await playVoicemail(new Request("http://localhost/"), { params: Promise.resolve({ id: lead.id }) })).status, 404);
+  signedInAs = shop.ownerEmail;
+  process.env.TWILIO_ACCOUNT_SID ||= "ACtest";
+  process.env.TWILIO_AUTH_TOKEN ||= "secret";
+  const realFetch = globalThis.fetch;
+  let fetched = null;
+  globalThis.fetch = async (url, init) => {
+    fetched = { url: String(url), auth: init?.headers?.Authorization };
+    return new Response("ID3audio", { headers: { "content-type": "audio/mpeg" } });
+  };
+  try {
+    const played = await playVoicemail(new Request("http://localhost/"), ctx);
+    assert.equal(played.status, 200);
+    assert.equal(played.headers.get("content-type"), "audio/mpeg");
+    assert.equal(await played.text(), "ID3audio");
+    assert.equal(fetched.url, `${recording}.mp3`);
+    assert.match(fetched.auth, /^Basic /);
+  } finally {
+    globalThis.fetch = realFetch;
+    signedInAs = null;
+  }
+
+  const { GET: health } = await import("../src/app/api/health/route.ts");
+  const localUrl = process.env.DATABASE_URL;
+  process.env.DATABASE_URL = "libsql://orvius-prod.turso.io";
+  try {
+    const shape = await (await health(new Request("http://localhost/api/health"))).json();
+    assert.equal(shape.stats, undefined, "a preview on the live database publishes no counts");
+    assert.equal(shape.twilioPhone, undefined);
+    assert.equal(typeof shape.twilioLineConfigured, "boolean");
+  } finally {
+    process.env.DATABASE_URL = localUrl;
+  }
+
+  const { POST: signup } = await import("../src/app/api/auth/signup/route.ts");
+  const known = `known-${uid()}@example.test`;
+  await prisma.passwordLogin.create({ data: { email: known, passwordHash: "x" } });
+  const ip = `203.0.113.${Math.floor(Math.random() * 250)}`;
+  const probe = () =>
+    signup(new Request("http://localhost/api/auth/signup", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-real-ip": ip },
+      body: JSON.stringify({ email: known, password: "a-long-enough-password-1" }),
+    }));
+  const codes = [];
+  for (let i = 0; i < 5; i += 1) codes.push((await probe()).status);
+  await prisma.passwordLogin.delete({ where: { email: known } });
+  assert.deepEqual(codes, [409, 409, 409, 429, 429], "three honest answers, then a connection checking known addresses is refused");
+
+  const { sharedRateLimit } = await import("../src/lib/rate-limit.ts");
+  const raw = prisma.$queryRaw;
+  prisma.$queryRaw = async () => {
+    throw new Error("database unreachable");
+  };
+  try {
+    assert.equal((await sharedRateLimit({ key: `k-${uid()}`, limit: 5, windowMs: 1000 })).ok, true, "reads fall back to memory");
+    assert.equal((await sharedRateLimit({ key: `k-${uid()}`, limit: 5, windowMs: 1000, failClosed: true })).ok, false, "senders refuse");
+  } finally {
+    prisma.$queryRaw = raw;
+  }
+
+  const { redactPhones } = await import("../src/lib/logger.ts");
+  assert.equal(redactPhones('{"from":"+15125550177","error":"Text to +447700900123 failed"}'), '{"from":"+1512•••0177","error":"Text to +4477••••0123 failed"}');
+  const lines = [];
+  const realWarn = console.warn;
+  console.warn = (line) => lines.push(line);
+  try {
+    const { logWarn } = await import("../src/lib/logger.ts");
+    logWarn("test.phone", { to: "+13035550199" });
+  } finally {
+    console.warn = realWarn;
+  }
+  assert.doesNotMatch(lines.join(""), /3035550199/);
 });
