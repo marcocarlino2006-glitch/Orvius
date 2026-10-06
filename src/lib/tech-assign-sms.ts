@@ -21,6 +21,8 @@ export type TechAssignJob = {
   business?: { name?: string | null; timezone?: string | null } | null;
   /** Prefer magic field link when present. */
   techToken?: string | null;
+  /** The technician's own app, opened on this job. */
+  openUrl?: string | null;
 };
 
 /** Short SMS for a tech when a job is assigned to them. */
@@ -38,7 +40,9 @@ export function buildTechJobAssignMessage(job: TechAssignJob): string {
   const urgency = job.urgency?.toLowerCase().includes("emergency")
     ? "Emergency"
     : null;
-  const openUrl = job.techToken
+  const openUrl = job.openUrl
+    ? job.openUrl
+    : job.techToken
     ? `${getAppBaseUrl()}/t/${job.techToken}`
     : `${getAppBaseUrl()}/dashboard/jobs/${job.id}`;
 

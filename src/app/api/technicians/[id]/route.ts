@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicTechnician } from "@/lib/tech-app-link";
 import { normalizePhone } from "@/lib/customer";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -68,5 +69,5 @@ export async function PATCH(request: Request, { params }: Params) {
     data,
   });
 
-  return NextResponse.json({ technician });
+  return NextResponse.json({ technician: publicTechnician(technician) });
 }

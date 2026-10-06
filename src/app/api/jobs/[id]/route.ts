@@ -7,6 +7,7 @@ import { shopWallInputToUtc } from "@/lib/availability";
 import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
+import { notifyTechJobChanged } from "@/lib/tech-app";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
@@ -239,9 +240,26 @@ export async function PATCH(request: Request, { params }: Params) {
     });
   }
 
+  /* The technician who had it hears about it: moved, cancelled, or handed to someone else. */
+  let techChange: Awaited<ReturnType<typeof notifyTechJobChanged>> | undefined;
+  if (previousTechnicianId && assigningTech) {
+    techChange = await notifyTechJobChanged({ jobId: id, technicianId: previousTechnicianId, change: "removed" });
+  } else if (existing.technicianId && body.status === "cancelled" && existing.status !== "cancelled") {
+    techChange = await notifyTechJobChanged({ jobId: id, technicianId: existing.technicianId, change: "cancelled" });
+  } else if (
+    job.technicianId &&
+    body.scheduledAt !== undefined &&
+    (job.scheduledAt?.getTime() ?? null) !== (existing.scheduledAt?.getTime() ?? null) &&
+    job.status !== "completed" &&
+    job.status !== "cancelled"
+  ) {
+    techChange = await notifyTechJobChanged({ jobId: id, technicianId: job.technicianId, change: "moved" });
+  }
+
   return NextResponse.json({
     job: serializeJob(job),
     ...(techSms ? { techSms } : {}),
+    ...(techChange ? { techChange } : {}),
     ...(invoiceSent !== undefined ? { invoiceSent } : {}),
   });
 }

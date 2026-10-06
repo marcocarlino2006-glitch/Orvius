@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { publicTechnician } from "@/lib/tech-app-link";
 import { normalizePhone } from "@/lib/customer";
 import { listCrew } from "@/lib/field";
 import { getPlanTechLimit, requirePlanModule } from "@/lib/plan-gate";
@@ -15,7 +16,7 @@ export async function GET() {
   if ("error" in planGate) return planGate.error;
 
   const technicians = await listCrew(business.id);
-  return NextResponse.json({ technicians });
+  return NextResponse.json({ technicians: technicians.map(publicTechnician) });
 }
 
 export async function POST(request: Request) {
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ technician });
+    return NextResponse.json({ technician: publicTechnician(technician) });
   } catch (error) {
     /*
       P2002 is the unique on (businessId, name). Saying so beats a 500: the

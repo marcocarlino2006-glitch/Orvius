@@ -319,6 +319,19 @@ export async function applyMessageReceipt(params: { messageSid: string; messageS
     });
     updated += result.count;
   }
+  const techTexts = await prisma.outboundSms.findMany({
+    where: { sid: params.messageSid, audience: "tech" },
+    select: { id: true, deliveryStatus: true },
+  });
+  for (const row of techTexts) {
+    const current = row.deliveryStatus ? (RECEIPT_RANK[row.deliveryStatus] ?? -1) : -1;
+    if (RECEIPT_RANK[next] <= current) continue;
+    const result = await prisma.outboundSms.updateMany({
+      where: { id: row.id, deliveryStatus: row.deliveryStatus },
+      data: { deliveryStatus: next === "read" ? "delivered" : next },
+    });
+    updated += result.count;
+  }
   return updated;
 }
 

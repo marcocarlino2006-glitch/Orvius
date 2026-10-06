@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicTechnician } from "@/lib/tech-app-link";
 import { prisma } from "@/lib/prisma";
 import { recordAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/tenant";
@@ -91,7 +92,7 @@ export async function GET() {
     estimates,
     invoices,
     payments,
-    technicians,
+    technicians: technicians.map(publicTechnician),
     auditEvents,
   };
 

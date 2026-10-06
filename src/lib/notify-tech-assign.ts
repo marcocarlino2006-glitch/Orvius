@@ -2,6 +2,7 @@ import { ensureJobTechToken, retireTechLink } from "@/lib/ensure-tech-token";
 import { JOB_INCLUDE, serializeJob } from "@/lib/job";
 import { prisma } from "@/lib/prisma";
 import { buildTechJobAssignMessage } from "@/lib/tech-assign-sms";
+import { ensureTechAppToken, techAppUrl } from "@/lib/tech-app-link";
 import { sendSms } from "@/lib/twilio-sms";
 
 /**
@@ -47,6 +48,7 @@ export async function notifyTechOnAssign(params: {
       lead: job.lead,
       business: job.business,
       techToken,
+      openUrl: techAppUrl(await ensureTechAppToken(job.technician.id), job.id),
     });
 
     const result = await sendSms({

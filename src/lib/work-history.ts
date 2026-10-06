@@ -38,9 +38,9 @@ function tone(action: string): HistoryTone {
   return "info";
 }
 
-function whoFor(actor: string, email: string | null): { who: HistoryWho; whoLabel: string } {
+function whoFor(actor: string, email: string | null, technician?: string | null): { who: HistoryWho; whoLabel: string } {
   if (actor === "orvius" || actor === "system") return { who: "orvius", whoLabel: "Orvius" };
-  if (actor === "technician") return { who: "technician", whoLabel: email ?? "Technician" };
+  if (actor === "technician") return { who: "technician", whoLabel: email ?? technician ?? "Technician" };
   if (actor === "customer") return { who: "customer", whoLabel: "Customer" };
   return { who: "person", whoLabel: email ?? (actor === "owner" ? "You" : "Your team") };
 }
@@ -102,8 +102,8 @@ export async function workHistory(businessId: string, target: { kind: "request" 
     }),
     /* Texts to the technician about this job: the proof they were told. */
     techPhone && job
-      ? prisma.message.findMany({
-          where: { businessId, phoneNormalized: techPhone, direction: "out", createdAt: { gte: job.createdAt } },
+      ? prisma.outboundSms.findMany({
+          where: { businessId, toNormalized: techPhone, audience: "tech", body: { not: null }, createdAt: { gte: job.createdAt } },
           orderBy: { createdAt: "asc" },
           take: 20,
         })
@@ -132,7 +132,7 @@ export async function workHistory(businessId: string, target: { kind: "request" 
         id: `audit:${a.id}`,
         at: a.createdAt.toISOString(),
         kind: a.action.startsWith("owner.alert") ? "alert" : "change",
-        ...whoFor(a.actor, a.actorEmail),
+        ...whoFor(a.actor, a.actorEmail, job?.technician?.name),
         title: a.summary,
         tone: tone(a.action),
       }),
@@ -158,10 +158,10 @@ export async function workHistory(businessId: string, target: { kind: "request" 
         id: `tech-text:${m.id}`,
         at: m.createdAt.toISOString(),
         kind: "text",
-        who: m.author === "orvius" ? "orvius" : "person",
-        whoLabel: m.author === "orvius" ? "Orvius" : "You",
+        who: "orvius",
+        whoLabel: "Orvius",
         title: `Texted ${job?.technician?.name ?? "the technician"}`,
-        detail: `${m.body.slice(0, 280)}${m.deliveryStatus ? ` — ${m.deliveryStatus}` : ""}`,
+        detail: `${(m.body ?? "").slice(0, 280)}${m.deliveryStatus ? ` — ${m.deliveryStatus}` : ""}`,
         tone: m.deliveryStatus && FAILED.test(m.deliveryStatus) ? "failed" : m.deliveryStatus === "delivered" ? "ok" : "info",
         simulated: isSimulatedSid(m.sid),
       }),
