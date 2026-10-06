@@ -77,7 +77,7 @@ test("Command opens with what needs you, one composer with starter chips, then t
   assert.match(page, /setup=\{/);
   assert.match(board, /<textarea/);
   assert.match(board, /Nothing changes until you approve/);
-  for (const chip of ["Book a job", "Move a job", "Send a tech", "Open inbox", "More"]) assert.match(board, new RegExp(chip));
+  for (const chip of ["Book a job", "Move a job", "Send a tech", "Open Work", "More"]) assert.match(board, new RegExp(chip));
   assert.doesNotMatch(board, /export function CommandBoard/, "Command's lanes are gone; what needs you is read from Work");
 });
 

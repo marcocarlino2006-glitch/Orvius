@@ -131,8 +131,8 @@ export default function CustomersPage() {
               action={
                 <div className="flex flex-wrap gap-2">
                   <ProShopLineCta showNumber={false} />
-                  <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
-                    Open inbox
+                  <Link href="/dashboard/work" className="btn btn-secondary text-sm">
+                    Open Work
                   </Link>
                 </div>
               }
