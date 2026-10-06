@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     key: `signup:${clientIp(request)}`,
     limit: 10,
     windowMs: 60 * 60 * 1000,
+    failClosed: true,
   });
   if (!limit.ok) {
     return NextResponse.json(
@@ -35,6 +36,22 @@ export async function POST(request: NextRequest) {
     publicSignupReady: getPublicLaunchReadiness().ready,
   });
   if (result.ok) return NextResponse.json({ ok: true } satisfies SignUpResponse);
+
+  /*
+    Signup signs straight in, so "that email already has an account" cannot be
+    hidden from the person typing it. What can be stopped is checking a list:
+    a few known-address answers per connection a day is a forgetful owner,
+    more is someone mapping which shops use Orvius.
+  */
+  if (result.reason === "exists" || result.reason === "claimed") {
+    const probing = await sharedRateLimit({ key: `signup-known:${clientIp(request)}`, limit: 3, windowMs: 24 * 60 * 60 * 1000 });
+    if (!probing.ok) {
+      return NextResponse.json(
+        { ok: false, message: "Too many signups from here. Try again later." } satisfies SignUpResponse,
+        { status: 429, headers: { "Retry-After": String(probing.retryAfterSec) } },
+      );
+    }
+  }
 
   const status =
     result.reason === "closed" ? 403 : result.reason === "exists" || result.reason === "claimed" ? 409 : 400;

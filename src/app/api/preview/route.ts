@@ -16,7 +16,7 @@ const previewSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const limited = await sharedRateLimit({ key: `preview:${clientIp(request)}`, limit: 3, windowMs: 60 * 60 * 1000 });
+  const limited = await sharedRateLimit({ key: `preview:${clientIp(request)}`, limit: 3, windowMs: 60 * 60 * 1000, failClosed: true });
   if (!limited.ok) {
     return NextResponse.json(
       { error: "Too many previews from this network. Try again in an hour." },

@@ -17,6 +17,7 @@ async function limited(request: NextRequest, action: string) {
     key: `password-reset-${action}:${clientIp(request)}`,
     limit: 10,
     windowMs: 60 * 60 * 1000,
+    failClosed: true,
   });
   return limit.ok
     ? null

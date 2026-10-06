@@ -30,7 +30,7 @@ const ChatBody = z.object({
 export async function POST(request: Request, { params }: Params) {
   const limited = await publicTokenLimited(request, "chat", "POST");
   if (limited) return limited;
-  const perIp = await sharedRateLimit({ key: `chat:ip:${clientIp(request)}`, limit: 5, windowMs: 60 * 60_000 });
+  const perIp = await sharedRateLimit({ key: `chat:ip:${clientIp(request)}`, limit: 5, windowMs: 60 * 60_000, failClosed: true });
   if (!perIp.ok) return tooManyRequests(perIp.retryAfterSec, "Too many messages from this connection. Call the business instead.");
 
   const shop = await publicShop((await params).slug, "webChatOn");
