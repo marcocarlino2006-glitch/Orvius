@@ -1,5 +1,3 @@
-import { randomBytes } from "node:crypto";
-
 /*
   When the receptionist gets something wrong for a shop — a service it
   doesn't do, a word the shop never uses, a caller it should send elsewhere —
@@ -39,7 +37,7 @@ export function addRule(rules: ReceptionistRule[], text: string, opts: { callId?
   if (existing) return { ok: true, rules, rule: existing };
   if (rules.length >= MAX_RULES) return { ok: false, error: `Up to ${MAX_RULES} corrections. Remove one in Settings first.` };
   const rule: ReceptionistRule = {
-    id: randomBytes(6).toString("base64url"),
+    id: globalThis.crypto.randomUUID().slice(0, 8),
     text: clean,
     createdAt: (opts.now ?? new Date()).toISOString(),
     ...(opts.callId ? { callId: opts.callId } : {}),
