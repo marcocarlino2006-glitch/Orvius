@@ -478,3 +478,23 @@ test("15. retention keeps up at scale: expired call content drains past one batc
   );
   assert.ok(![oldSent.id, oldSkipped.id].some((id) => alerts.some((a) => a.id === id)));
 });
+
+test("17. the status probe says whether the database answers from the functions' region", async () => {
+  const { GET } = await import("../src/app/api/status/route.ts");
+  const near = await (await GET()).json();
+  assert.equal(near.database, "near");
+
+  const real = prisma.$queryRaw;
+  prisma.$queryRaw = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 70));
+    return [{ 1: 1 }];
+  };
+  try {
+    const far = await (await GET()).json();
+    assert.equal(far.database, "far");
+  } finally {
+    prisma.$queryRaw = real;
+  }
+  const workflow = readFileSync(new URL("../.github/workflows/uptime.yml", import.meta.url), "utf8");
+  assert.match(workflow, /"database":"near"/);
+});
