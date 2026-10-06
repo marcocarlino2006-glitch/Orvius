@@ -1,7 +1,7 @@
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { recordAudit, type AuditQueue } from "@/lib/audit";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
-import { createJobFromLead, findOpenSlots, SlotTakenError } from "@/lib/job";
+import { createJobFromLead, findOpenSlots, RepeatCallerError, SlotTakenError } from "@/lib/job";
 import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
 import { callerWords } from "@/lib/transcript";
 import { getEffectivePlanId } from "@/lib/plan-features";
@@ -445,9 +445,34 @@ export async function maybeAutoBookLead(
       leadId,
       scheduledAt: held,
       enforceCapacity: Boolean(held),
+      repeatSince: { at: new Date(Date.now() - REPEAT_WINDOW_MS), statuses: OPEN_JOB_STATUSES },
       notes: held ? "Booked on the call — the caller picked this time" : "Auto-booked from inbound lead",
     });
   } catch (error) {
+    if (error instanceof RepeatCallerError) {
+      await decide("lead.follow_up", `Called again about ${error.job.title ?? "a job already booked"} — no duplicate job created`, {
+        jobId: error.job.id,
+      });
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "existing_job",
+        classification,
+        intent,
+        existingJob: error.job,
+      };
+    }
+    if (error instanceof SlotTakenError && !held) {
+      await decide("lead.held", "Every open time Orvius tried filled while booking — held for the owner to schedule");
+      return {
+        jobId: null,
+        created: false,
+        qualified: true,
+        skipReason: "capacity_unavailable",
+        classification,
+      };
+    }
     if (error instanceof SlotTakenError) {
       await decide("lead.held", "The time held on the call filled while booking — held for the owner to reschedule the caller", {
         heldSlotAt: held?.toISOString() ?? null,

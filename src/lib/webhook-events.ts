@@ -20,6 +20,12 @@ function isUniqueConstraintError(error: unknown) {
   );
 }
 
+/** SQLite's write lock was held past the wait (libsql reports SQLITE_BUSY as a socket timeout) or a transaction expired queued behind it. */
+export function isDatabaseBusy(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /SocketTimeout|Socket timeout|database is locked|SQLITE_BUSY|Transaction (already closed|not found)|Unable to start a transaction/i.test(message);
+}
+
 export async function recordWebhookEvent(input: RecordWebhookEventInput) {
   try {
     await prisma.webhookEvent.create({

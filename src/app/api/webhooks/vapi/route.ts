@@ -8,7 +8,7 @@ import { captureEndOfCallReport, finishCallReport } from "@/lib/call-ingest";
 import { linkTouchToCustomer } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
-import { recordWebhookEvent } from "@/lib/webhook-events";
+import { isDatabaseBusy, recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
@@ -280,7 +280,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
     after(async () => {
-      await finishCallReport(captured).catch((error: unknown) =>
+      // A burst queues writers on the one SQLite lock; a short retry books the caller now instead of on the next sweep.
+      const finish = async (attempt = 0): Promise<unknown> =>
+        finishCallReport(captured).catch(async (error: unknown) => {
+          if (attempt >= 2 || !isDatabaseBusy(error)) throw error;
+          await new Promise((resolve) => setTimeout(resolve, 500 + Math.random() * 1500 * (attempt + 1)));
+          return finish(attempt + 1);
+        });
+      await finish().catch((error: unknown) =>
         logError("vapi.call_report_finish_failed", {
           vapiCallId,
           businessId: business.id,

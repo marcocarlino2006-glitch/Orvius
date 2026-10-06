@@ -59,6 +59,11 @@ export const DEMAND_CATEGORIES = [
       "lower your rate",
       "merchant services",
       "insurance quote",
+      "business funding",
+      "line of credit",
+      "business loan",
+      "press one to",
+      "press 1 to",
     ],
   },
 

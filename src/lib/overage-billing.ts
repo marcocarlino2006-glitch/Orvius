@@ -54,38 +54,55 @@ export function decideOverage(params: {
   };
 }
 
+const overageSelect = {
+  id: true,
+  name: true,
+  billingStatus: true,
+  billingPlan: true,
+  stripeCustomerId: true,
+  stripeSubscriptionId: true,
+  overageBilledPeriod: true,
+} as const;
+
 /**
  * Invoice last month's overage for every subscribed shop. Safe to run daily:
  * the period stamp and Stripe idempotency keys make each month bill once.
  */
-export async function billPreviousMonthOverage(now = new Date()) {
+export async function billPreviousMonthOverage(now = new Date(), { budgetMs = 40_000, page = 200 } = {}) {
   if (!process.env.STRIPE_SECRET_KEY?.trim()) return { skipped: "stripe_unconfigured" as const };
 
   const period = previousPeriod(now);
-  const shops = await prisma.business.findMany({
-    where: {
-      billingStatus: { in: ["active", "past_due"] },
-      stripeCustomerId: { not: null },
-      environment: { not: "test" },
-      OR: [{ overageBilledPeriod: null }, { overageBilledPeriod: { lt: period.key } }],
-    },
-    select: {
-      id: true,
-      name: true,
-      billingStatus: true,
-      billingPlan: true,
-      stripeCustomerId: true,
-      stripeSubscriptionId: true,
-      overageBilledPeriod: true,
-    },
-    take: 500,
-  });
+  const where = {
+    billingStatus: { in: ["active", "past_due"] },
+    stripeCustomerId: { not: null },
+    environment: { not: "test" },
+    OR: [{ overageBilledPeriod: null }, { overageBilledPeriod: { lt: period.key } }],
+  };
+  /*
+    Each shop is a few Stripe calls, so one run cannot reach every shop on a
+    large platform, and a shop whose billing keeps failing never leaves this
+    list. Starting each run at a random point and wrapping means neither can
+    keep the shops behind them from ever being invoiced.
+  */
+  const pending = await prisma.business.count({ where });
+  const start = pending > page ? Math.floor(Math.random() * pending) : 0;
+  const take = Math.min(page, pending);
+  const shops = (
+    await Promise.all([
+      prisma.business.findMany({ where, orderBy: { id: "asc" }, skip: start, take, select: overageSelect }),
+      start + take > pending
+        ? prisma.business.findMany({ where, orderBy: { id: "asc" }, take: start + take - pending, select: overageSelect })
+        : [],
+    ])
+  ).flat();
+  const started = Date.now();
 
   const stripe = getStripe();
   let billed = 0;
   let billedCents = 0;
 
   for (const shop of shops) {
+    if (Date.now() - started > budgetMs) break;
     const countSince = (since: Date) =>
       prisma.call.count({
         where: { businessId: shop.id, direction: "inbound", createdAt: { gte: since, lt: period.end } },

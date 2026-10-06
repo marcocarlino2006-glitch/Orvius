@@ -97,6 +97,7 @@ const PLUMBING: TradePlaybook = {
   fallback: { key: "plumbing_diagnostic", label: "Plumbing diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
     { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing|ed)? (like |of )?(natural )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
+    { key: "water_on_electrical", label: "Water reaching the electrical panel or outlets", instruction: "Tell the caller to stay out of the water and away from the panel, and call 911 or the utility if anything sparks. Call them back now.", keywords: [/water.{0,40}\b(electrical panel|breaker (box|panel)|fuse box|outlets?|wiring)\b/, /\b(electrical panel|breaker (box|panel)|fuse box|outlets?)\b.{0,30}\b(wet|under water|flooded|flooding|soaked)\b/] },
     { key: "sewage_backup", label: "Sewage backing up into the home", instruction: "Tell the caller to stop using water and keep people away from it. Call them back now.", keywords: [/sewage (backing|coming) (up|in)/, /raw sewage/] },
   ],
   emergency: [/burst/, /flood/, /water everywhere/, /can'?t (shut|turn) (it |the water )?off/],
@@ -238,7 +239,18 @@ const GARAGE_DOORS: TradePlaybook = {
     { key: "new_door", label: "New door estimate", durationMin: 60, skill: "sales", keywords: [/new (garage )?door/, /replace(ment)?/, /quote/, /estimate/] },
   ],
   fallback: general("garage_door_repair", "Garage door repair", 90),
-  safety: [],
+  safety: [
+    {
+      key: "door_injury",
+      label: "Someone trapped or hurt by the door",
+      instruction: "The caller was told to call 911 if anyone is pinned or hurt. Call them back now.",
+      keywords: [
+        /\b(someone|somebody|a person|my (son|daughter|kid|child|wife|husband|dad|mom|father|mother)|(the|a) (kid|child))\b.{0,15}\b(is |was |got )?(trapped|pinned|stuck under)\b/,
+        /\b(trapped|pinned) (under|beneath) (the )?(garage )?door/,
+        /\b(fell|came down|closed) on (someone|somebody|a person|my (son|daughter|kid|child|wife|husband|dad|mom|dog)|him|her|me)\b/,
+      ],
+    },
+  ],
   emergency: [/car (is )?(stuck|trapped)/, /(stuck|won'?t close) open/, /door (fell|came down)/],
   sameDay: [/won'?t (open|close)/, /\btoday\b/, /\basap\b/, /\burgent\b/],
 };

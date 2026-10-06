@@ -72,9 +72,17 @@ export function weeklyReportDue(business: Pick<Business, "weeklyReportSentAt" | 
 
 export async function sendDueWeeklyReports(now = new Date(), limit = 50) {
   if (!isEmailConfigured()) return { sent: 0, skipped: "email not configured" };
+  // Due shops only, longest-waiting first: a fixed first 500 left every shop past them without a report.
   const shops = await prisma.business.findMany({
-    where: { isActive: true, environment: { notIn: ["test", "demo"] }, ownerEmail: { not: null } },
-    take: 500,
+    where: {
+      isActive: true,
+      environment: { notIn: ["test", "demo"] },
+      ownerEmail: { not: null },
+      createdAt: { lte: new Date(now.getTime() - 7 * 24 * 60 * 60_000) },
+      OR: [{ weeklyReportSentAt: null }, { weeklyReportSentAt: { lte: new Date(now.getTime() - WEEKLY_REPORT_INTERVAL_MS) } }],
+    },
+    orderBy: { weeklyReportSentAt: { sort: "asc", nulls: "first" } },
+    take: limit * 2,
   });
   let sent = 0;
   for (const shop of shops) {

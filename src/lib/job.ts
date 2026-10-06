@@ -242,6 +242,9 @@ export class SlotTakenError extends Error {
   }
 }
 
+/** A cold snap lands dozens of calls at once; each losing race re-picks. */
+const AUTO_PICK_ATTEMPTS = 12;
+
 type BookingTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 /**
@@ -285,6 +288,16 @@ async function assertSlotOpen(
   if (overlapping >= Math.max(1, pool.length)) throw new SlotTakenError(params.at);
 }
 
+/** Thrown inside the booking transaction when the same caller's other call booked first. */
+export class RepeatCallerError extends Error {
+  readonly job: { id: string; title: string | null; scheduledAt: Date | null };
+  constructor(job: { id: string; title: string | null; scheduledAt: Date | null }) {
+    super(`Caller already has job ${job.id}`);
+    this.job = job;
+    this.name = "RepeatCallerError";
+  }
+}
+
 export async function createJobFromLead(params: {
   leadId: string;
   scheduledAt?: Date | string | null;
@@ -298,6 +311,12 @@ export async function createJobFromLead(params: {
    * overbook on purpose; a time a caller was promised may not.
    */
   enforceCapacity?: boolean;
+  /**
+   * Refuse when this caller already has an open job created since then. Auto-book
+   * checks before booking, but a dropped call and its callback can both pass that
+   * read; the check inside the transaction is the one that holds.
+   */
+  repeatSince?: { at: Date; statuses: string[] };
 }) {
   // Parallel instead of `include`, which Prisma runs as one query after another here.
   const [leadRow, existingJob, business] = await Promise.all([
@@ -386,15 +405,24 @@ export async function createJobFromLead(params: {
   });
   const durationMin = playbook.service.durationMin;
 
-  const pickSlot = async () => {
-    const available = await findOpenSlot({
-      businessId: lead.businessId!,
-      urgency: lead.urgency,
-      durationMin,
-      skill: playbook.service.skill,
-      hoursJson: lead.business?.hoursJson ?? "{}",
-      timezone: lead.business?.timezone ?? "America/New_York",
-    });
+  /*
+    The first pick is the earliest open time. After losing a race, every other
+    loser would re-pick the same next time and collide again, so a retry takes
+    one of the next few at random and a burst spreads across them.
+  */
+  const pickSlot = async (spread = 1) => {
+    const open = await findOpenSlots(
+      {
+        businessId: lead.businessId!,
+        urgency: lead.urgency,
+        durationMin,
+        skill: playbook.service.skill,
+        hoursJson: lead.business?.hoursJson ?? "{}",
+        timezone: lead.business?.timezone ?? "America/New_York",
+      },
+      { count: spread },
+    );
+    const available = open[Math.floor(Math.random() * open.length)];
     if (!available) {
       throw new Error(
         "No appointment capacity in the next 14 days. Keep the lead open for manual scheduling.",
@@ -439,8 +467,9 @@ export async function createJobFromLead(params: {
         break;
       } catch (error) {
         // A time Orvius picked is re-picked; a promised or owner-chosen time is reported, never moved.
-        if (!(error instanceof SlotTakenError) || params.scheduledAt || attempt >= 2) throw error;
-        scheduledAt = await pickSlot();
+        if (!(error instanceof SlotTakenError) || params.scheduledAt || attempt >= AUTO_PICK_ATTEMPTS - 1) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 15 + Math.random() * 60 * (attempt + 1)));
+        scheduledAt = await pickSlot(3 + attempt * 3);
       }
     }
   } catch (error) {
@@ -460,6 +489,22 @@ export async function createJobFromLead(params: {
 
   async function bookInTransaction() {
     return prisma.$transaction(async (tx) => {
+      if (params.repeatSince && (customerId || lead.phone)) {
+        const earlier = await tx.job.findFirst({
+          where: {
+            businessId: lead.businessId!,
+            leadId: { not: lead.id },
+            status: { in: params.repeatSince.statuses },
+            createdAt: { gte: params.repeatSince.at },
+            AND: [
+              { OR: [...(customerId ? [{ customerId }] : []), ...(lead.phone ? [{ lead: { phone: lead.phone } }] : [])] },
+              ...(demand.categoryCode ? [{ OR: [{ categoryCode: demand.categoryCode }, { categoryCode: null }] }] : []),
+            ],
+          },
+          select: { id: true, title: true, scheduledAt: true },
+        });
+        if (earlier) throw new RepeatCallerError(earlier);
+      }
       if (checkSlot) {
         await assertSlotOpen(tx, {
           businessId: lead.businessId!,
