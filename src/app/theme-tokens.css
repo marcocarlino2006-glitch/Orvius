@@ -52,8 +52,8 @@
 [data-theme="day"] {
   color-scheme: light;
 
-  --ui-bg: #f7f7f4;
-  --ui-surface: #ffffff;
+  --ui-bg: #f4f1e8;
+  --ui-surface: #f4f1e8;
   /* Hover is derived from the border tone; the brief fixes only the resting
      values for this colorway. */
   --ui-surface-hover: #f2f1ed;

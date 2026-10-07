@@ -1046,6 +1046,98 @@ a.cmd-feed-text:hover {
 
 /* ── The visit on a job: facts first, changes on request, one next step ── */
 
+/* A person, on paper — not a card warehouse. */
+.rec {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.rec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ox-line);
+}
+
+.rec-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ox-mute);
+}
+
+.rec-add {
+  padding-top: 0.25rem;
+}
+
+.rec-add-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 0;
+}
+
+.rec-add-link,
+.rec-cancel {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.rec-cancel {
+  font-weight: 500;
+  color: var(--ox-mute);
+  text-decoration: none;
+}
+
+.rec-cancel:hover,
+.rec-add-link:hover {
+  color: var(--ox-text);
+}
+
+.rec-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.625rem 0.75rem;
+}
+
+.rec-field {
+  flex: 1 1 12rem;
+  min-width: 8rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--ox-line-strong);
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--ox-text);
+}
+
+.rec-field--short {
+  flex: 0 1 8rem;
+}
+
+.rec-field:focus,
+.rec-field:focus-visible {
+  outline: none;
+  border-bottom-color: var(--ox-text);
+}
+
 .jv-facts {
   display: grid;
   gap: 0.75rem;
