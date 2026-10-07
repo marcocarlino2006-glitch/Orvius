@@ -256,6 +256,7 @@ async function runWindowProposal(
   if (job.technician?.phone) {
     techSent = await notifyTechOnReschedule({
       businessId: business.id,
+      jobId: job.id,
       businessName: business.name,
       techPhone: job.technician.phone,
       title: job.title,

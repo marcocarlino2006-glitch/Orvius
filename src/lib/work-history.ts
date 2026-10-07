@@ -71,9 +71,8 @@ export async function workHistory(businessId: string, target: { kind: "request" 
   const phone = normalizePhone(lead?.phone ?? job?.customer?.phone ?? null);
   const startedAt = lead?.createdAt ?? job!.createdAt;
   const from = new Date(startedAt.getTime() - 60 * 60_000);
-  const techPhone = normalizePhone(job?.technician?.phone ?? null);
 
-  const [audits, messages, alerts, calls, techTexts] = await Promise.all([
+  const [audits, messages, alerts, calls, techTexts, crew] = await Promise.all([
     prisma.auditEvent.findMany({
       where: {
         businessId,
@@ -101,15 +100,20 @@ export async function workHistory(businessId: string, target: { kind: "request" 
       take: 20,
     }),
     /* Texts to the technician about this job: the proof they were told. */
-    techPhone && job
+    job
       ? prisma.outboundSms.findMany({
-          where: { businessId, toNormalized: techPhone, audience: "tech", body: { not: null }, createdAt: { gte: job.createdAt } },
+          where: { businessId, jobId: job.id, audience: "tech", body: { not: null } },
           orderBy: { createdAt: "asc" },
-          take: 20,
+          take: 50,
         })
       : [],
+    job ? prisma.technician.findMany({ where: { businessId }, select: { name: true, phone: true } }) : [],
   ]);
 
+  const techByPhone = new Map(crew.flatMap((t) => {
+    const p = normalizePhone(t.phone);
+    return p ? [[p, t.name] as const] : [];
+  }));
   const seen = new Set<string>();
   const once = <T extends { id: string }>(e: T) => (seen.has(e.id) ? false : (seen.add(e.id), true));
 
@@ -160,7 +164,7 @@ export async function workHistory(businessId: string, target: { kind: "request" 
         kind: "text",
         who: "orvius",
         whoLabel: "Orvius",
-        title: `Texted ${job?.technician?.name ?? "the technician"}`,
+        title: `Texted ${techByPhone.get(m.toNormalized) ?? "the technician"}`,
         detail: `${(m.body ?? "").slice(0, 280)}${m.deliveryStatus ? ` — ${m.deliveryStatus}` : ""}`,
         tone: m.deliveryStatus && FAILED.test(m.deliveryStatus) ? "failed" : m.deliveryStatus === "delivered" ? "ok" : "info",
         simulated: isSimulatedSid(m.sid),

@@ -49,6 +49,7 @@ export async function recordOutboundSms(params: {
   audience: SmsAudience;
   sid?: string | null;
   body?: string | null;
+  jobId?: string | null;
 }): Promise<void> {
   const toNormalized = normalizePhone(params.to);
   if (!toNormalized) return;
@@ -60,6 +61,7 @@ export async function recordOutboundSms(params: {
         audience: params.audience,
         sid: params.sid ?? null,
         body: params.audience === "tech" ? (params.body?.trim().slice(0, 1600) ?? null) : null,
+        jobId: params.audience === "tech" ? (params.jobId ?? null) : null,
       },
     });
   } catch (error) {
@@ -79,6 +81,8 @@ export async function sendSms(params: {
   audience: SmsAudience;
   /** Who wrote a customer text; only customer texts land in the inbox thread. */
   author?: Exclude<MessageAuthor, "customer">;
+  /** The job a technician text is about. */
+  jobId?: string;
 }): Promise<{ sid: string } | null> {
   const simulated = await isSimulatedWorkspace(params.businessId);
   /* A customer or tech hears from the shop's own number once carriers approve it;
@@ -128,6 +132,7 @@ export async function sendSms(params: {
       audience: params.audience,
       sid: sms.sid,
       body: params.body,
+      jobId: params.jobId,
     });
     if (params.audience === "customer") {
       await recordMessage({

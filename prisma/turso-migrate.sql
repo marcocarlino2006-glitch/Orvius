@@ -862,3 +862,5 @@ CREATE INDEX IF NOT EXISTS "PriceBookItem_businessId_isActive_idx" ON "PriceBook
 ALTER TABLE "OutboundSms" ADD COLUMN "body" TEXT;
 ALTER TABLE "OutboundSms" ADD COLUMN "deliveryStatus" TEXT;
 CREATE INDEX IF NOT EXISTS "OutboundSms_sid_idx" ON "OutboundSms"("sid");
+ALTER TABLE "OutboundSms" ADD COLUMN "jobId" TEXT;
+CREATE INDEX IF NOT EXISTS "OutboundSms_jobId_idx" ON "OutboundSms"("jobId");
