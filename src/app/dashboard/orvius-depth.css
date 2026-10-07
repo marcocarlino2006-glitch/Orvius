@@ -678,12 +678,12 @@ html[data-theme="day"] body .os-shell.os-shell-night .wc-list {
   gap: 0;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc {
-  padding: 1.125rem 0;
-  border: 0;
-  border-bottom: 1px solid var(--ox-line);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  padding: 1.125rem 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ox-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc::before {
   inset: 1.125rem auto 1.125rem 0;
@@ -714,10 +714,21 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-today {
   gap: 0;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-today-lane {
-  border: 0;
-  border-bottom: 1px solid var(--ox-line);
-  border-radius: 0;
-  background: transparent;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ox-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-theme="day"] body .os-shell.os-shell-night .cmd-feed {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-theme="day"] body .os-shell.os-shell-night .cmd-feed li {
+  padding-left: 0;
+  padding-right: 0;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .cc-rail .cs-card {
   border: 0;
