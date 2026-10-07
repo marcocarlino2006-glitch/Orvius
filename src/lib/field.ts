@@ -90,12 +90,27 @@ export async function getDispatchBoard(
       technician: { select: { id: true, name: true, phone: true } },
     },
   });
-  const [crew, jobs] = await Promise.all([crewP, jobsP]);
+  const timeOffP = prisma.technicianTimeOff.findMany({
+    where: { businessId, endsAt: { gt: start } },
+    orderBy: { startsAt: "asc" },
+    select: { id: true, technicianId: true, startsAt: true, endsAt: true, reason: true },
+  });
+  const [crew, jobs, timeOff] = await Promise.all([crewP, jobsP, timeOffP]);
+  const offFor = (techId: string) => timeOff.filter((t) => t.technicianId === techId);
 
   const schedule = buildDispatchSchedule({
     timezone,
     business: business ?? {},
-    crew: crew.map((t) => ({ id: t.id, name: t.name, phone: t.phone, skills: parseSkills(t.skillsJson) })),
+    crew: crew.map((t) => ({
+      id: t.id,
+      name: t.name,
+      phone: t.phone,
+      skills: parseSkills(t.skillsJson),
+      hoursJson: t.hoursJson,
+      timeOff: offFor(t.id)
+        .filter((o) => o.startsAt < end)
+        .map((o) => ({ start: o.startsAt, end: o.endsAt, reason: o.reason })),
+    })),
     jobs: jobs.map((j) => ({
       id: j.id,
       title: j.title,
@@ -125,7 +140,15 @@ export async function getDispatchBoard(
     today: shopDayBounds(null, timezone).day,
     dayStart: start.toISOString(),
     timezone,
-    crew: crew.map(publicTechnician),
+    crew: crew.map((t) => ({
+      ...publicTechnician(t),
+      timeOff: offFor(t.id).map((o) => ({
+        id: o.id,
+        startsAt: o.startsAt.toISOString(),
+        endsAt: o.endsAt.toISOString(),
+        reason: o.reason,
+      })),
+    })),
     unassigned,
     columns,
     jobCount: jobs.length,

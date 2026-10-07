@@ -1,5 +1,7 @@
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { rankTechnicians, type TechCandidate } from "@/lib/technician-match";
+import { fitsShopHours, type BusyWindow } from "@/lib/availability";
+import { hasOwnHours, techUnavailable, unavailableWords } from "@/lib/tech-hours";
 import { classifyRequest } from "@/lib/trade-playbooks";
 
 export type ScheduleJobInput = {
@@ -17,7 +19,15 @@ export type ScheduleJobInput = {
   customerName: string | null;
 };
 
-export type ScheduleTech = { id: string; name: string; phone: string | null; skills: string[] };
+export type ScheduleTech = {
+  id: string;
+  name: string;
+  phone: string | null;
+  skills: string[];
+  hoursJson?: string | null;
+  /** Time off touching this day. */
+  timeOff?: (BusyWindow & { reason?: string | null })[];
+};
 
 export type ScheduleBlock = {
   id: string;
@@ -36,6 +46,10 @@ export type ScheduleLane = {
   technician: ScheduleTech;
   blocks: ScheduleBlock[];
   bookedMin: number;
+  /** "Off · Vacation", "Off until 1:00 PM", "Works 7:00 AM–3:00 PM", or null on a normal day. */
+  availability: string | null;
+  /** Off for the whole working day: nothing should be booked on them. */
+  offAllDay: boolean;
 };
 
 export type UnassignedItem = {
@@ -108,6 +122,15 @@ export function buildDispatchSchedule(input: {
         conflict: null,
       };
     });
+    for (const [i, block] of blocks.entries()) {
+      const job = mine[i]!;
+      const why = techUnavailable(technician, job.scheduledAt!, block.endMin - block.startMin, input.timezone ?? "America/New_York");
+      if (why) {
+        const message = `${unavailableWords(technician.name, why)}: ${block.title} at ${clock(block.startMin, input.dayStart, input.timezone)} needs someone else.`;
+        block.conflict = message;
+        conflicts.push({ technicianId: technician.id, jobIds: [block.id, block.id], message });
+      }
+    }
     for (let i = 1; i < blocks.length; i++) {
       const prev = blocks[i - 1]!;
       const cur = blocks[i]!;
@@ -130,13 +153,20 @@ export function buildDispatchSchedule(input: {
         conflicts.push({ technicianId: technician.id, jobIds: [prev.id, cur.id], message });
       }
     }
-    return { technician, blocks, bookedMin: blocks.reduce((sum, b) => sum + (b.endMin - b.startMin), 0) };
+    return {
+      technician,
+      blocks,
+      bookedMin: blocks.reduce((sum, b) => sum + (b.endMin - b.startMin), 0),
+      ...laneAvailability(technician, input.dayStart, input.timezone ?? "America/New_York"),
+    };
   });
 
   const candidates: TechCandidate[] = lanes.map((lane) => ({
     id: lane.technician.id,
     name: lane.technician.name,
     skills: lane.technician.skills,
+    hoursJson: lane.technician.hoursJson,
+    timeOff: lane.technician.timeOff,
     jobs: lane.blocks.map((b) => ({
       id: b.id,
       scheduledAt: new Date(input.dayStart.getTime() + b.startMin * 60_000),
@@ -177,6 +207,7 @@ export function buildDispatchSchedule(input: {
       scheduledAt: job.scheduledAt,
       durationMin: minutes,
       skill: playbook.service.skill,
+      timezone: input.timezone,
     });
     if (ranking.pick) {
       candidates
@@ -208,4 +239,42 @@ function clock(min: number, dayStart: Date, timeZone?: string) {
     minute: "2-digit",
     timeZone,
   });
+}
+
+const DAY_MIN = 24 * 60;
+
+function laneAvailability(
+  tech: ScheduleTech,
+  dayStart: Date,
+  timezone: string,
+): { availability: string | null; offAllDay: boolean } {
+  const dayEnd = new Date(dayStart.getTime() + DAY_MIN * 60_000);
+  const off = (tech.timeOff ?? []).filter((t) => t.start < dayEnd && t.end > dayStart);
+  if (off.some((t) => t.start <= dayStart && t.end >= dayEnd)) {
+    const reason = off.find((t) => t.reason)?.reason;
+    return { availability: reason ? `Off · ${reason}` : "Off today", offAllDay: true };
+  }
+  if (off.length) {
+    const first = off[0]!;
+    const words =
+      first.start <= dayStart
+        ? `Off until ${clock(minutesInto(first.end, dayStart), dayStart, timezone)}`
+        : `Off from ${clock(minutesInto(first.start, dayStart), dayStart, timezone)}`;
+    return { availability: words, offAllDay: false };
+  }
+  if (!hasOwnHours(tech.hoursJson)) return { availability: null, offAllDay: false };
+  let first: number | null = null;
+  let last: number | null = null;
+  for (let m = 0; m < DAY_MIN; m += 30) {
+    const at = new Date(dayStart.getTime() + m * 60_000);
+    if (fitsShopHours({ start: at, durationMin: 30, hoursJson: tech.hoursJson!, timezone })) {
+      first ??= m;
+      last = m + 30;
+    }
+  }
+  if (first == null || last == null) return { availability: "Not working today", offAllDay: true };
+  return {
+    availability: `Works ${clock(first, dayStart, timezone)}–${clock(last, dayStart, timezone)}`,
+    offAllDay: false,
+  };
 }
