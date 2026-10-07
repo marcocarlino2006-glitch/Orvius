@@ -54,11 +54,26 @@ export function billingRequiredResponse(business: BusinessBillingFields) {
   );
 }
 
-/** Hard gate: expired / canceled shops cannot use product APIs. */
+/*
+  A shop whose access ended can still read its own records: it signs in to its
+  calls, customers and jobs, not to a wall. Anything that writes or sends stays
+  locked. The session gate marks the business object for a read request only.
+*/
+const readOnlyLocked = new WeakSet<object>();
+
+export function allowLockedRead(business: object) {
+  readOnlyLocked.add(business);
+}
+
+export function isLockedRead(business: object) {
+  return readOnlyLocked.has(business);
+}
+
+/** Hard gate: expired / canceled shops cannot use product APIs, beyond reading. */
 export function requireActiveBilling(
   business: BusinessBillingFields,
 ): { ok: true } | { error: NextResponse } {
-  if (!isBillingEntitled(business)) {
+  if (!isBillingEntitled(business) && !isLockedRead(business)) {
     return { error: billingRequiredResponse(business) };
   }
   return { ok: true };
@@ -76,7 +91,7 @@ export function requirePlanModule(
   if ("error" in billing) return billing;
 
   const plan = getEffectivePlanId(business);
-  if (!canAccessModule(plan, module)) {
+  if (plan !== "expired" && !canAccessModule(plan, module)) {
     return { error: planUpgradeResponse(module) };
   }
   return { plan };

@@ -1,10 +1,20 @@
 import { auth } from "@/auth";
-import { requireActiveBilling } from "@/lib/plan-gate";
+import { allowLockedRead, requireActiveBilling } from "@/lib/plan-gate";
+import { LOCKED_READ_HEADER } from "@/lib/locked-read";
+import { headers } from "next/headers";
 import { getShopAccessWithAutoLine } from "@/lib/provision-business";
 import { can, type Permission } from "@/lib/workspace-access";
 import { verifyAdminRequest } from "@/lib/env";
 import { NextResponse } from "next/server";
 import type { Business } from "@prisma/client";
+
+async function isReadRequest() {
+  try {
+    return (await headers()).get(LOCKED_READ_HEADER) === "1";
+  } catch {
+    return false;
+  }
+}
 
 export function unauthorizedResponse() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -70,6 +80,7 @@ export async function requirePermission(permission: Permission, options: { entit
 export async function requireEntitledSession() {
   const authResult = await requireBusinessSession();
   if ("error" in authResult) return authResult;
+  if (await isReadRequest()) allowLockedRead(authResult.business);
   const billing = requireActiveBilling(authResult.business);
   if ("error" in billing) return { error: billing.error };
   return authResult;

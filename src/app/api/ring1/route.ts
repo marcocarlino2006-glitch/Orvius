@@ -35,20 +35,8 @@ export async function GET(request: Request) {
     return authResult.error;
   }
   const { business, session, role, email } = authResult;
-  // A shop whose access ended still has a name and a line; Command shows how to reopen it, not a failure.
-  if (!isBillingEntitled(business)) {
-    return NextResponse.json({
-      locked: billingLock(business),
-      business: {
-        name: business.name,
-        trade: business.trade,
-        line: getShopLineForBusiness(business),
-        ownerPhone: business.ownerPhone,
-        billingStatus: business.billingStatus,
-        referenceImplementation: isDemoBusiness(business),
-      },
-    });
-  }
+  // A shop whose access ended still reads its own shop; Command says how to reopen it.
+  const locked = isBillingEntitled(business) ? null : billingLock(business);
   const now = new Date();
   // A tab that already pinned its anchor sends it; a fresh visit uses the account's last look.
   const sinceParam = new URL(request.url).searchParams.get("since");
@@ -71,7 +59,7 @@ export async function GET(request: Request) {
     );
   }
 
-  after(() => runAutopilot(business.id).catch(() => null));
+  if (!locked) after(() => runAutopilot(business.id).catch(() => null));
 
   // The 30s poll mostly finds nothing new; answer that from four indexed reads.
   const versionP = shopVersion(business.id).then((data) => commandVersion(data, now, since));
@@ -257,6 +245,7 @@ export async function GET(request: Request) {
     !proofAt || Date.now() - proofAt.getTime() > 7 * 24 * 60 * 60 * 1000;
 
   return NextResponse.json({
+    locked,
     business: {
       name: business.name,
       trade: business.trade,
