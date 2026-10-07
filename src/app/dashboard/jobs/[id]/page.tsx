@@ -211,7 +211,13 @@ export default function JobDetailPage() {
                   {job.scheduledAt ? formatShopTime(job.scheduledAt, job.business?.timezone) : "Not scheduled"}
                 </p>
                 <p className="os-kv-note">
-                  {job.customerConfirmedAt
+                  {job.status === "completed"
+                    ? job.completedAt
+                      ? `Finished ${formatShopTime(job.completedAt, job.business?.timezone)}`
+                      : "Finished"
+                    : job.status === "cancelled"
+                      ? "Cancelled"
+                      : job.customerConfirmedAt
                     ? `Customer confirmed ${formatShopTime(job.customerConfirmedAt, job.business?.timezone)}`
                     : job.status === "confirmed"
                       ? "Confirmed with the customer"

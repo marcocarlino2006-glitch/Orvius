@@ -309,7 +309,7 @@ export function JobMoneyPanel({
       </div>
       ) : null}
 
-      {!estimate ? (
+      {!estimate && jobClosed ? null : !estimate ? (
         <>
           {/*
             This used to say card payments settle on Orvius "until Connect".
