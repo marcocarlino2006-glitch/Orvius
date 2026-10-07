@@ -581,10 +581,12 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
             <dt>Customer</dt>
             <dd>{job.customerName ?? (job.customerPhone ? phoneLabel(job.customerPhone) : "Unknown")}</dd>
           </div>
-          <div>
-            <dt>Time</dt>
-            <dd>{job.customerConfirmed ? "Customer confirmed" : "Not confirmed by the customer yet"}</dd>
-          </div>
+          {job.status === "scheduled" || job.status === "confirmed" ? (
+            <div>
+              <dt>Time</dt>
+              <dd>{job.customerConfirmed ? "Customer confirmed" : "Not confirmed by the customer yet"}</dd>
+            </div>
+          ) : null}
           {job.serviceType && job.serviceType !== job.title ? (
             <div>
               <dt>Request</dt>
