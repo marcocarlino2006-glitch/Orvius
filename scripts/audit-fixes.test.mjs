@@ -640,7 +640,7 @@ test("21. no customer data on open links or in logs: voicemail plays only signed
   const { POST: signup } = await import("../src/app/api/auth/signup/route.ts");
   const known = `known-${uid()}@example.test`;
   await prisma.passwordLogin.create({ data: { email: known, passwordHash: "x" } });
-  const ip = `203.0.113.${Math.floor(Math.random() * 250)}`;
+  const ip = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`;
   const probe = () =>
     signup(new Request("http://localhost/api/auth/signup", {
       method: "POST",

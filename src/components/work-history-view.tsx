@@ -9,6 +9,7 @@ const WHO_FILTERS: Array<{ id: "all" | HistoryWho; label: string }> = [
   { id: "all", label: "Everything" },
   { id: "orvius", label: "Orvius" },
   { id: "person", label: "People" },
+  { id: "technician", label: "Technician" },
   { id: "customer", label: "Customer" },
 ];
 

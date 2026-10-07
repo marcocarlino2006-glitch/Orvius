@@ -2,12 +2,14 @@ import { shopDayBounds } from "@/lib/availability";
 import { buildDispatchSchedule } from "@/lib/dispatch-schedule";
 import { prisma } from "@/lib/prisma";
 import { serializeJob } from "@/lib/job";
+import { publicTechnician } from "@/lib/tech-app-link";
 import { parseSkills } from "@/lib/technician-match";
 
 /** Ring 4 — every shop gets a crew so dispatch is never empty. */
 export async function ensureCrew(businessId: string) {
   const existing = await prisma.technician.findMany({
     where: { businessId, isActive: true },
+    omit: { appToken: true },
     orderBy: { createdAt: "asc" },
   });
   if (existing.length) return existing;
@@ -38,6 +40,7 @@ export async function ensureCrew(businessId: string) {
   */
   const owner = await prisma.technician.upsert({
     where: { businessId_name: { businessId, name } },
+    omit: { appToken: true },
     update: {},
     create: {
       businessId,
@@ -113,7 +116,7 @@ export async function getDispatchBoard(
   const serialized = jobs.map(serializeJob);
   const unassigned = serialized.filter((job) => !job.technicianId);
   const columns = crew.map((tech) => ({
-    technician: tech,
+    technician: publicTechnician(tech),
     jobs: serialized.filter((job) => job.technicianId === tech.id),
   }));
 
@@ -122,7 +125,7 @@ export async function getDispatchBoard(
     today: shopDayBounds(null, timezone).day,
     dayStart: start.toISOString(),
     timezone,
-    crew,
+    crew: crew.map(publicTechnician),
     unassigned,
     columns,
     jobCount: jobs.length,

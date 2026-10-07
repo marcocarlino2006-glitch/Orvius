@@ -319,7 +319,7 @@ test("a booked request opens as its job, and its history runs from the call to t
   const t0 = booked.createdAt.getTime() + 5000;
   await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: caller, direction: "in", author: "customer", body: "Pipe burst under the sink", createdAt: new Date(t0 - 3000) } });
   await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: caller, direction: "out", author: "orvius", body: "You're booked", deliveryStatus: "failed", createdAt: new Date(t0 - 2000) } });
-  await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: techPhone, direction: "out", author: "orvius", body: "New job: Ana, Leak repair", createdAt: new Date(t0 - 1000) } });
+  await prisma.outboundSms.create({ data: { businessId: shop.id, toNormalized: techPhone, audience: "tech", sid: "SIM_tech", body: "New job: Ana, Leak repair", createdAt: new Date(t0 - 1000) } });
   await prisma.auditEvent.create({ data: { businessId: shop.id, actor: "owner", actorEmail: shop.ownerEmail, action: "job.status", entityType: "job", entityId: booked.id, summary: "Moved to tomorrow" } });
 
   const item = await work.getWorkItem(shop.id, "request", request.id);

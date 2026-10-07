@@ -150,6 +150,10 @@ model Business {
   planMembers        PlanMember[]
   auditEvents        AuditEvent[]
   memberships        Membership[]
+  jobPhotos          JobPhoto[]
+  jobNotes           JobNote[]
+  jobLineItems       JobLineItem[]
+  priceBookItems     PriceBookItem[]
   /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
   overageBilledPeriod String?
   /** When Stripe first reported the subscription past due; the grace period runs from here. */
@@ -246,10 +250,14 @@ model OutboundSms {
   toNormalized String
   audience     String
   sid          String?
+  /** Kept for texts to technicians, the proof on a job that they were told. Customer texts live in Message. */
+  body           String?
+  deliveryStatus String?
   createdAt    DateTime @default(now())
 
   @@index([toNormalized, createdAt])
   @@index([businessId, createdAt])
+  @@index([sid])
 }
 
 /** A membership or maintenance plan customers pay for monthly or yearly. */
@@ -553,6 +561,9 @@ model Job {
   estimate Estimate?
   deposits Deposit[]
   invoices Invoice[]
+  photos   JobPhoto[]
+  fieldNotes JobNote[]
+  lineItems JobLineItem[]
 
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
@@ -572,6 +583,9 @@ model Technician {
   isActive   Boolean  @default(true)
   /** Playbook skill keys (e.g. ["cooling","heating"]). Empty means generalist. */
   skillsJson String   @default("[]")
+  /** The technician's own app link (/tech/[token]). Sending a new link retires the old one. */
+  appToken   String?   @unique
+  appTokenAt DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -588,6 +602,83 @@ model Technician {
     enter "Ray" twice and then have no way to tell the two Rays apart when
     assigning a job.
   */
+  @@unique([businessId, name])
+  @@index([businessId, isActive])
+}
+
+/** A photo taken on a job. Resized on the phone before upload, so a row stays well under a megabyte. */
+model JobPhoto {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId        String
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  /** "before" | "after" | "other" */
+  kind         String   @default("other")
+  mime         String
+  bytes        Bytes
+  sizeBytes    Int
+  width        Int?
+  height       Int?
+  caption      String?
+  /** Who took it: a technician's name, or a teammate's email. */
+  takenBy      String?
+  technicianId String?
+  createdAt    DateTime @default(now())
+
+  @@index([jobId, createdAt])
+  @@index([businessId, createdAt])
+}
+
+/** A note on a job from the field or the office. */
+model JobNote {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId        String
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  /** "technician" | "person" */
+  authorKind   String
+  authorName   String
+  body         String
+  createdAt    DateTime @default(now())
+
+  @@index([jobId, createdAt])
+}
+
+/** One line of work on a job. A job with lines is billed their total. */
+model JobLineItem {
+  id              String   @id @default(cuid())
+  businessId      String
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId           String
+  job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  priceBookItemId String?
+  name            String
+  /** "service" | "labor" | "part" */
+  kind            String   @default("service")
+  quantity        Float    @default(1)
+  unitCents       Int
+  position        Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([jobId, position])
+}
+
+/** The shop's saved services, labor and parts with prices. */
+model PriceBookItem {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  /** "service" | "labor" | "part" */
+  kind        String   @default("service")
+  unitCents   Int
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   @@unique([businessId, name])
   @@index([businessId, isActive])
 }

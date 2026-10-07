@@ -48,6 +48,7 @@ export async function recordOutboundSms(params: {
   to: string;
   audience: SmsAudience;
   sid?: string | null;
+  body?: string | null;
 }): Promise<void> {
   const toNormalized = normalizePhone(params.to);
   if (!toNormalized) return;
@@ -58,6 +59,7 @@ export async function recordOutboundSms(params: {
         toNormalized,
         audience: params.audience,
         sid: params.sid ?? null,
+        body: params.audience === "tech" ? (params.body?.trim().slice(0, 1600) ?? null) : null,
       },
     });
   } catch (error) {
@@ -125,6 +127,7 @@ export async function sendSms(params: {
       to,
       audience: params.audience,
       sid: sms.sid,
+      body: params.body,
     });
     if (params.audience === "customer") {
       await recordMessage({

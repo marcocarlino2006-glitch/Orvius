@@ -1,6 +1,7 @@
 "use client";
 
 import { JobBillSection, type JobBill } from "@/components/job-bill-section";
+import { JobFieldPanel } from "@/components/job-field-panel";
 import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
 import {
@@ -210,7 +211,13 @@ export default function JobDetailPage() {
                   {job.scheduledAt ? formatShopTime(job.scheduledAt, job.business?.timezone) : "Not scheduled"}
                 </p>
                 <p className="os-kv-note">
-                  {job.customerConfirmedAt
+                  {job.status === "completed"
+                    ? job.completedAt
+                      ? `Finished ${formatShopTime(job.completedAt, job.business?.timezone)}`
+                      : "Finished"
+                    : job.status === "cancelled"
+                      ? "Cancelled"
+                      : job.customerConfirmedAt
                     ? `Customer confirmed ${formatShopTime(job.customerConfirmedAt, job.business?.timezone)}`
                     : job.status === "confirmed"
                       ? "Confirmed with the customer"
@@ -339,6 +346,9 @@ export default function JobDetailPage() {
               </button>
             ) : null}
           </div>
+        </ShellPanel>
+        <ShellPanel title="The work" dense>
+          <JobFieldPanel jobId={job.id} locked={bill?.invoice?.status === "paid"} onChange={load} />
         </ShellPanel>
         </WorkPanel>
         </div>

@@ -14,7 +14,7 @@ import { toast } from "@/components/toaster";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Tech = { id: string; name: string; phone: string | null; skillsJson?: string };
+type Tech = { id: string; name: string; phone: string | null; skillsJson?: string; hasAppLink?: boolean; appLinkAt?: string | null };
 
 type Board = {
   business: { id: string; name: string };
@@ -224,6 +224,78 @@ function Decision({
   );
 }
 
+function TechAppLink({ tech, onChanged }: { tech: Tech; onChanged: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  async function call(method: "GET" | "POST" | "DELETE", body?: unknown) {
+    const res = await fetch(`/api/technicians/${tech.id}/app-link`, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = (await res.json().catch(() => ({}))) as { url?: string | null; sent?: boolean; reason?: string | null; error?: string };
+    if (!res.ok) throw new Error(data.error ?? "That didn't work.");
+    return data;
+  }
+
+  async function run(label: string, work: () => Promise<string>) {
+    setBusy(true);
+    setNote(null);
+    try {
+      setNote(await work());
+      onChanged();
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : `${label} didn't work.`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const send = () =>
+    run("Sending", async () => {
+      const data = await call("POST", { send: true });
+      if (data.sent) return `Texted to ${tech.name}.`;
+      if (data.url) await navigator.clipboard?.writeText(data.url).catch(() => undefined);
+      return data.reason === "no_phone" ? "No mobile on file, so the link was copied instead." : "Texting is off, so the link was copied instead.";
+    });
+
+  const copy = () =>
+    run("Copying", async () => {
+      const data = tech.hasAppLink ? await call("GET") : await call("POST", { send: false });
+      const url = data.url ?? (await call("POST", { send: false })).url;
+      if (!url) throw new Error("No link to copy.");
+      await navigator.clipboard.writeText(url);
+      return "Link copied.";
+    });
+
+  const turnOff = () => {
+    if (!window.confirm(`Turn off ${tech.name}'s app link? It stops working right away.`)) return;
+    void run("Turning off", async () => {
+      await call("DELETE");
+      return "Link turned off.";
+    });
+  };
+
+  return (
+    <div className="dsp-app-link">
+      <span className="dsp-skill-note">{tech.hasAppLink ? "Has the technician app" : "No app link yet"}</span>
+      <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void send()}>
+        {tech.hasAppLink ? "Text a new link" : "Text app link"}
+      </button>
+      <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void copy()}>
+        Copy link
+      </button>
+      {tech.hasAppLink ? (
+        <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={turnOff}>
+          Turn off
+        </button>
+      ) : null}
+      {note ? <span className="dsp-skill-note" role="status">{note}</span> : null}
+    </div>
+  );
+}
+
 function CrewMember({
   tech,
   trade,
@@ -300,6 +372,7 @@ function CrewMember({
           {saving ? "Saving…" : "Save"}
         </button>
       </div>
+      <TechAppLink tech={tech} onChanged={onSaved} />
     </form>
   );
 }
@@ -640,7 +713,7 @@ export default function DispatchPage() {
             )}
 
             <details className="dsp-section dsp-crew" open={!crew.length}>
-              <summary className="dsp-h">Crew and skills · {crew.length}</summary>
+              <summary className="dsp-h">Crew, skills and app links · {crew.length}</summary>
               <p className="dsp-crew-help">
                 Orvius sends each booking to someone with the right skill. Leave a technician without skills to let them take
                 any job.

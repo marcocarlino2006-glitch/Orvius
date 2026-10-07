@@ -3325,6 +3325,14 @@ html[data-theme="day"] .os-shell .dsp-date {
   gap: 0.3rem;
 }
 
+.dsp-app-link {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+}
+
 .os-shell.os-shell-night .dsp-crew-name {
   font-size: 0.875rem;
   font-weight: 600;

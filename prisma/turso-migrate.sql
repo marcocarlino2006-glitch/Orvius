@@ -794,3 +794,71 @@ ALTER TABLE "Business" ADD COLUMN "receptionistRulesJson" TEXT NOT NULL DEFAULT 
 -- Work: the teammate responsible for a request or a job.
 ALTER TABLE "Lead" ADD COLUMN "assigneeEmail" TEXT;
 ALTER TABLE "Job" ADD COLUMN "assigneeEmail" TEXT;
+
+-- Technician app: each technician's own link, photos, notes, line items and the price book.
+ALTER TABLE "Technician" ADD COLUMN "appToken" TEXT;
+ALTER TABLE "Technician" ADD COLUMN "appTokenAt" DATETIME;
+CREATE UNIQUE INDEX IF NOT EXISTS "Technician_appToken_key" ON "Technician"("appToken");
+CREATE TABLE IF NOT EXISTS "JobPhoto" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "jobId" TEXT NOT NULL,
+  "kind" TEXT NOT NULL DEFAULT 'other',
+  "mime" TEXT NOT NULL,
+  "bytes" BLOB NOT NULL,
+  "sizeBytes" INTEGER NOT NULL,
+  "width" INTEGER,
+  "height" INTEGER,
+  "caption" TEXT,
+  "takenBy" TEXT,
+  "technicianId" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "JobPhoto_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "JobPhoto_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "JobPhoto_jobId_createdAt_idx" ON "JobPhoto"("jobId", "createdAt");
+CREATE INDEX IF NOT EXISTS "JobPhoto_businessId_createdAt_idx" ON "JobPhoto"("businessId", "createdAt");
+CREATE TABLE IF NOT EXISTS "JobNote" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "jobId" TEXT NOT NULL,
+  "authorKind" TEXT NOT NULL,
+  "authorName" TEXT NOT NULL,
+  "body" TEXT NOT NULL,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "JobNote_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "JobNote_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "JobNote_jobId_createdAt_idx" ON "JobNote"("jobId", "createdAt");
+CREATE TABLE IF NOT EXISTS "JobLineItem" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "jobId" TEXT NOT NULL,
+  "priceBookItemId" TEXT,
+  "name" TEXT NOT NULL,
+  "kind" TEXT NOT NULL DEFAULT 'service',
+  "quantity" REAL NOT NULL DEFAULT 1,
+  "unitCents" INTEGER NOT NULL,
+  "position" INTEGER NOT NULL DEFAULT 0,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "JobLineItem_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "JobLineItem_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "JobLineItem_jobId_position_idx" ON "JobLineItem"("jobId", "position");
+CREATE TABLE IF NOT EXISTS "PriceBookItem" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "name" TEXT NOT NULL,
+  "kind" TEXT NOT NULL DEFAULT 'service',
+  "unitCents" INTEGER NOT NULL,
+  "description" TEXT,
+  "isActive" BOOLEAN NOT NULL DEFAULT true,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "PriceBookItem_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PriceBookItem_businessId_name_key" ON "PriceBookItem"("businessId", "name");
+CREATE INDEX IF NOT EXISTS "PriceBookItem_businessId_isActive_idx" ON "PriceBookItem"("businessId", "isActive");
+ALTER TABLE "OutboundSms" ADD COLUMN "body" TEXT;
+ALTER TABLE "OutboundSms" ADD COLUMN "deliveryStatus" TEXT;
+CREATE INDEX IF NOT EXISTS "OutboundSms_sid_idx" ON "OutboundSms"("sid");
