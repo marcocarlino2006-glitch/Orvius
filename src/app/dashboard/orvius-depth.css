@@ -350,7 +350,7 @@ html body .os-shell.os-shell-night .tse-mode button.is-on {
   color: color-mix(in srgb, var(--os-ink) 50%, transparent);
 }
 .tse-day-times .input {
-  width: 7.25rem;
+  width: 8.5rem;
   padding-block: 0.3rem;
 }
 .tse-day-off,
