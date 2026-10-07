@@ -239,6 +239,8 @@ export type TimelineEvent = {
   urgency: string | null;
   status: string | null;
   amountCents?: number | null;
+  /** The job a money row belongs to, so the row opens it. */
+  jobId?: string | null;
 };
 
 function formatMoney(cents: number): string {
@@ -334,6 +336,7 @@ export async function getCustomerTimeline(
         urgency: null,
         status: estimate.status,
         amountCents: estimate.amountCents,
+        jobId: job.id,
       });
 
       const invoice = estimate.invoice;
@@ -343,11 +346,12 @@ export async function getCustomerTimeline(
           type: "invoice",
           at: invoice.createdAt.toISOString(),
           title: `Invoice · ${formatMoney(invoice.amountCents)}`,
-          summary: `Linked to ${job.title}`,
+          summary: `For ${job.title}`,
           source: "invoice",
           urgency: null,
           status: invoice.status,
           amountCents: invoice.amountCents,
+          jobId: job.id,
         });
         for (const payment of invoice.payments) {
           events.push({
@@ -360,6 +364,7 @@ export async function getCustomerTimeline(
             urgency: null,
             status: payment.status,
             amountCents: payment.amountCents,
+            jobId: job.id,
           });
         }
       }
@@ -377,6 +382,7 @@ export async function getCustomerTimeline(
       urgency: null,
       status: invoice.status,
       amountCents: invoice.amountCents,
+      jobId: invoice.jobId,
     });
     for (const payment of invoice.payments) {
       events.push({
@@ -389,6 +395,7 @@ export async function getCustomerTimeline(
         urgency: null,
         status: payment.status,
         amountCents: payment.amountCents,
+        jobId: invoice.jobId,
       });
     }
   }
