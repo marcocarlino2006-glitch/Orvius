@@ -24,6 +24,8 @@ type CustomerDetail = {
   phone: string;
   email: string | null;
   address: string | null;
+  addresses: Array<{ label: string; line: string }>;
+  equipment: Array<{ name: string; brand: string; model: string; notes: string }>;
   notes: string | null;
   interactionCount: number;
   firstSeenAt: string;
@@ -37,7 +39,7 @@ type CustomerDetail = {
 
 type TimelineEvent = {
   id: string;
-  type: "call" | "lead" | "job" | "estimate" | "invoice" | "payment";
+  type: "call" | "lead" | "job" | "estimate" | "invoice" | "payment" | "text";
   at: string;
   title: string;
   summary: string | null;
@@ -148,6 +150,32 @@ export default function CustomerDetailPage() {
                 <dt>Address</dt>
                 <dd className={customer.address ? undefined : "jv-missing"}>{customer.address ?? "None on file"}</dd>
               </div>
+              {customer.addresses?.length ? (
+                <div>
+                  <dt>Also at</dt>
+                  <dd>
+                    {customer.addresses.map((row) => (
+                      <p key={row.line} style={{ margin: "0 0 0.25rem" }}>
+                        {row.label ? `${row.label}: ` : ""}
+                        {row.line}
+                      </p>
+                    ))}
+                  </dd>
+                </div>
+              ) : null}
+              {customer.equipment?.length ? (
+                <div>
+                  <dt>Equipment</dt>
+                  <dd>
+                    {customer.equipment.map((row) => (
+                      <p key={`${row.name}-${row.model}`} style={{ margin: "0 0 0.25rem" }}>
+                        {[row.brand, row.name, row.model].filter(Boolean).join(" ")}
+                        {row.notes ? ` — ${row.notes}` : ""}
+                      </p>
+                    ))}
+                  </dd>
+                </div>
+              ) : null}
               <div>
                 <dt>Last heard from</dt>
                 <dd>{formatWhen(customer.lastSeenAt)}</dd>
@@ -160,6 +188,7 @@ export default function CustomerDetailPage() {
               ) : null}
             </dl>
           </ShellPanel>
+          <CustomerRecordEditor customerId={customer.id} addresses={customer.addresses ?? []} equipment={customer.equipment ?? []} onSaved={(next) => setCustomer((c) => (c ? { ...c, ...next } : c))} />
         </div>
 
         <div className="os-detail-side">
@@ -169,5 +198,89 @@ export default function CustomerDetailPage() {
         </div>
       </div>
     </OsShell>
+  );
+}
+
+function CustomerRecordEditor({
+  customerId,
+  addresses,
+  equipment,
+  onSaved,
+}: {
+  customerId: string;
+  addresses: Array<{ label: string; line: string }>;
+  equipment: Array<{ name: string; brand: string; model: string; notes: string }>;
+  onSaved: (next: { addresses: Array<{ label: string; line: string }>; equipment: Array<{ name: string; brand: string; model: string; notes: string }> }) => void;
+}) {
+  const [line, setLine] = useState("");
+  const [label, setLabel] = useState("Rental");
+  const [name, setName] = useState("");
+  const [brand, setBrand] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(body: Record<string, unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/customers/${customerId}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "That didn't save.");
+      onSaved({ addresses: data.addresses ?? addresses, equipment: data.equipment ?? equipment });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't save.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <ShellPanel title="Add to this record" dense>
+      <form
+        className="jv-facts font-sans"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!line.trim()) return;
+          void save({ addresses: [...addresses, { label, line: line.trim() }] }).then(() => setLine(""));
+        }}
+      >
+        <label>
+          Another address
+          <input className="sc-input" value={line} onChange={(e) => setLine(e.target.value)} placeholder="4120 Duval St, Austin" />
+        </label>
+        <label>
+          What it is
+          <input className="sc-input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Rental" />
+        </label>
+        <button type="submit" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy || !line.trim()}>
+          Save address
+        </button>
+      </form>
+      <form
+        className="jv-facts font-sans"
+        style={{ marginTop: "1rem" }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!name.trim()) return;
+          void save({ equipment: [...equipment, { name: name.trim(), brand: brand.trim(), model: "", notes: "" }] }).then(() => {
+            setName("");
+            setBrand("");
+          });
+        }}
+      >
+        <label>
+          Equipment
+          <input className="sc-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Furnace" />
+        </label>
+        <label>
+          Brand
+          <input className="sc-input" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Carrier" />
+        </label>
+        <button type="submit" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy || !name.trim()}>
+          Save equipment
+        </button>
+      </form>
+      {error ? <p className="cb-error">{error}</p> : null}
+    </ShellPanel>
   );
 }
