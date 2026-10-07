@@ -11,6 +11,7 @@ import "./orvius-craft.css";
 import "./orvius-texture.css";
 import "./work.css";
 import "./orvius-finish.css";
+import "./orvius-depth.css";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
