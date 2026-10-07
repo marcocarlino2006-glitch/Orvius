@@ -17,7 +17,7 @@ const TYPES = [
   ["", "Everything"],
   ["shop", "Settings and team"],
   ["call", "Calls"],
-  ["lead", "Leads"],
+  ["lead", "Requests"],
   ["job", "Jobs"],
   ["customer", "Customers"],
   ["technician", "Technicians"],

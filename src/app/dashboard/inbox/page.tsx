@@ -149,7 +149,7 @@ export default function InboxPage() {
               action={<ProShopLineCta showNumber={false} />}
             />
           ) : !leads.length ? null : (
-            <div className="dt dt--leads font-sans" role="table" aria-label="Leads">
+            <div className="dt dt--leads font-sans" role="table" aria-label="Requests">
               <LeadTableHead />
               {leads.map((lead) => (
                   <LeadInboxCard
