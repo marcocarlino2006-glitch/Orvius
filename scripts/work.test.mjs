@@ -388,6 +388,15 @@ test("a time typed on a request or a job is read on the shop's clock, not the br
   assert.equal(moved.status, 200);
   const row = await prisma.job.findUnique({ where: { id: body.job.id } });
   assert.equal(row.scheduledAt.toISOString(), "2026-11-04T20:15:00.000Z");
+
+  await prisma.job.update({ where: { id: body.job.id }, data: { status: "confirmed", customerConfirmedAt: new Date() } });
+  await jobRoute.PATCH(
+    new Request(`http://localhost/api/jobs/${body.job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ scheduledLocal: "2026-11-05T08:00" }) }),
+    { params: Promise.resolve({ id: body.job.id }) },
+  );
+  const reopened = await prisma.job.findUnique({ where: { id: body.job.id } });
+  assert.equal(reopened.status, "scheduled", "a new time is not confirmed until the customer says so");
+  assert.equal(reopened.customerConfirmedAt, null);
   const bad = await jobRoute.PATCH(
     new Request(`http://localhost/api/jobs/${body.job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ scheduledLocal: "soon" }) }),
     { params: Promise.resolve({ id: body.job.id }) },

@@ -159,6 +159,7 @@ export async function PATCH(request: Request, { params }: Params) {
                 return {
                   scheduledAt: next,
                   ...(changed ? { customerConfirmedAt: null } : {}),
+                  ...(changed && !body.status && existing.status === "confirmed" ? { status: "scheduled" } : {}),
                 };
               })()
             : {}),
@@ -191,7 +192,7 @@ export async function PATCH(request: Request, { params }: Params) {
     await recordAudit({
       ...auditBase,
       action: "job.status_changed",
-      summary: `Owner moved the job from ${jobStatusLabel(existing.status)} to ${jobStatusLabel(body.status)}.`,
+      summary: `Moved the job from ${jobStatusLabel(existing.status)} to ${jobStatusLabel(body.status)}.`,
       detail: { from: existing.status, to: body.status },
     });
   }

@@ -13,8 +13,15 @@ export function isJobStatus(value: string): value is JobStatus {
   return JOB_STATUSES.includes(value as JobStatus);
 }
 
+const STATUS_WORDS: Record<string, string> = {
+  en_route: "on the way",
+  on_site: "on site",
+  completed: "done",
+};
+
+/** "en_route" → "on the way": the words the owner and the technician use. */
 export function jobStatusLabel(status: string) {
-  return status.replace(/_/g, " ");
+  return STATUS_WORDS[status] ?? status.replace(/_/g, " ");
 }
 
 /** Next actionable status for the field loop — null when terminal. */
