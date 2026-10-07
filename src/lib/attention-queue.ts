@@ -12,6 +12,7 @@ import {
   concurrentCallsRecommendedAction,
 } from "@/lib/concurrent-calls";
 import { isOwnerAlertUnacked } from "@/lib/owner-alert-unacked";
+import { isEmergency } from "@/lib/urgency";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { leadIsPartialCapture } from "@/lib/lead-partial-capture";
 import { leadHasTranscriptDispute } from "@/lib/lead-transcript-dispute";
@@ -937,6 +938,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         firstContactedAt: lead.firstContactedAt,
         now,
         afterHours,
+        emergency: isEmergency(lead.urgency),
       }) &&
       alertedAtByLead.has(lead.id)
     ) {

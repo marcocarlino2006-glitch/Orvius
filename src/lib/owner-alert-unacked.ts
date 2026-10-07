@@ -3,7 +3,8 @@
  * Delivery succeeded; silence is the failure mode.
  */
 
-export function ownerAlertUnackedWaitMs(afterHours: boolean) {
+export function ownerAlertUnackedWaitMs(afterHours: boolean, emergency = false) {
+  if (emergency) return 10 * 60_000;
   return (afterHours ? 30 : 120) * 60_000;
 }
 
@@ -12,6 +13,7 @@ export function isOwnerAlertUnacked(params: {
   firstContactedAt?: Date | string | null;
   now?: Date;
   afterHours?: boolean;
+  emergency?: boolean;
 }): boolean {
   if (params.firstContactedAt) return false;
   const alertedAt =
@@ -20,6 +22,6 @@ export function isOwnerAlertUnacked(params: {
       : new Date(params.alertedAt);
   if (Number.isNaN(alertedAt.getTime())) return false;
   const now = params.now ?? new Date();
-  const wait = ownerAlertUnackedWaitMs(Boolean(params.afterHours));
+  const wait = ownerAlertUnackedWaitMs(Boolean(params.afterHours), Boolean(params.emergency));
   return now.getTime() - alertedAt.getTime() >= wait;
 }
