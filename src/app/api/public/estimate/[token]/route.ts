@@ -110,7 +110,7 @@ export async function POST(request: Request, { params }: Params) {
         estimateId: estimate.id,
         optionKey: body.option,
         by: "customer",
-        actor: "system",
+        actor: "customer",
       });
       if (!result.ok) {
         return NextResponse.json({ error: result.error }, { status: result.status });

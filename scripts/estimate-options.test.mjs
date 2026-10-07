@@ -93,6 +93,7 @@ test("the customer must pick one, and the picked price is what is invoiced and p
 
     const audit = await prisma.auditEvent.findFirstOrThrow({ where: { jobId: job.id, action: "estimate.accepted" } });
     assert.equal(audit.summary, "The customer chose Better · $890.");
+    assert.equal(audit.actor, "customer", "history shows the customer, not Orvius, made the choice");
 
     await call("POST", estimate.publicToken, { action: "pay_manual" });
     const payment = await prisma.payment.findFirstOrThrow({ where: { invoiceId: invoice.id } });
