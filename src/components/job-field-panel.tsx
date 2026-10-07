@@ -22,13 +22,14 @@ function usd(cents: number) {
  * The work on a job, the same record the technician fills in from the field:
  * what was done and what it costs, the photos, and the notes.
  */
-export function JobFieldPanel({ jobId, locked, onChange }: { jobId: string; locked: boolean; onChange?: () => void }) {
+export function JobFieldPanel({ jobId, locked, timezone, onChange }: { jobId: string; locked: boolean; timezone?: string | null; onChange?: () => void }) {
   const [field, setField] = useState<Field | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [pick, setPick] = useState("");
   const [custom, setCustom] = useState({ name: "", price: "", kind: "service" });
   const [note, setNote] = useState("");
+  const [adding, setAdding] = useState<"work" | "note" | null>(null);
   const [viewing, setViewing] = useState<Photo | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -110,6 +111,7 @@ export function JobFieldPanel({ jobId, locked, onChange }: { jobId: string; lock
     if (!res.ok || !data.note) return toast({ title: data.error ?? "Couldn't save the note.", tone: "error" });
     setField((f) => (f ? { ...f, notes: [...f.notes, data.note!] } : f));
     setNote("");
+    setAdding(null);
     onChange?.();
   }
 
@@ -128,7 +130,12 @@ export function JobFieldPanel({ jobId, locked, onChange }: { jobId: string; lock
     <section className="jf" aria-label="Work on this job">
       <div className="jf-head">
         <h3 className="jf-title">Work and price</h3>
-        <span className="jf-total">{field.lines.length ? usd(total) : "No lines yet"}</span>
+        {field.lines.length ? <span className="jf-total">{usd(total)}</span> : null}
+        {!locked && adding !== "work" ? (
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm jf-head-btn" onClick={() => setAdding("work")}>
+            Add work
+          </button>
+        ) : null}
       </div>
       {field.lines.length ? (
         <table className="jf-lines">
@@ -174,11 +181,11 @@ export function JobFieldPanel({ jobId, locked, onChange }: { jobId: string; lock
           </tbody>
         </table>
       ) : (
-        <p className="jf-muted">Add what was done. The customer is billed this total, and the technician sees the same list.</p>
+        <p className="jf-muted">Nothing added yet. The customer is billed this list, and the technician sees it too.</p>
       )}
       {locked ? (
         <p className="jf-muted">Paid, so the work is locked.</p>
-      ) : (
+      ) : adding !== "work" ? null : (
         <div className="jf-add">
           <select
             className="wc-select"
@@ -218,15 +225,20 @@ export function JobFieldPanel({ jobId, locked, onChange }: { jobId: string; lock
               Add
             </button>
           </form>
-          <Link href="/dashboard/price-book" className="jf-link">
-            Edit price book →
-          </Link>
+          <div className="jf-add-foot">
+            <Link href="/dashboard/price-book" className="jf-link">
+              Edit price book →
+            </Link>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setAdding(null)}>
+              Done
+            </button>
+          </div>
         </div>
       )}
 
       <div className="jf-head jf-head--rule">
         <h3 className="jf-title">Photos</h3>
-        <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => fileRef.current?.click()}>
+        <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm jf-head-btn" disabled={busy} onClick={() => fileRef.current?.click()}>
           Add photos
         </button>
         <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => void upload(e.target.files).then(() => (e.target.value = ""))} />
@@ -246,11 +258,16 @@ export function JobFieldPanel({ jobId, locked, onChange }: { jobId: string; lock
           </div>
         ))
       ) : (
-        <p className="jf-muted">No photos yet. The technician adds before and after photos from their phone.</p>
+        <p className="jf-muted">None yet. The technician adds before and after photos from their phone.</p>
       )}
 
       <div className="jf-head jf-head--rule">
         <h3 className="jf-title">Notes</h3>
+        {adding !== "note" ? (
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm jf-head-btn" onClick={() => setAdding("note")}>
+            Add note
+          </button>
+        ) : null}
       </div>
       {field.notes.length ? (
         <ul className="jf-notes">
@@ -258,19 +275,28 @@ export function JobFieldPanel({ jobId, locked, onChange }: { jobId: string; lock
             <li key={n.id} className={`jf-note${n.authorKind === "technician" ? " jf-note--field" : ""}`}>
               <p className="jf-note-who">
                 {n.authorName}
-                {n.authorKind === "technician" ? " · technician" : ""} · {formatWhen(n.createdAt)}
+                {n.authorKind === "technician" ? " · technician" : ""} · {formatWhen(n.createdAt, undefined, timezone)}
               </p>
               <p className="jf-note-body">{n.body}</p>
             </li>
           ))}
         </ul>
+      ) : adding !== "note" ? (
+        <p className="jf-muted">None yet.</p>
       ) : null}
-      <form className="jf-note-form" onSubmit={addNote}>
-        <textarea className="input" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="A note the technician sees on their phone" maxLength={2000} aria-label="New note" />
-        <button type="submit" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy || !note.trim()}>
-          Save note
-        </button>
-      </form>
+      {adding === "note" ? (
+        <form className="jf-note-form" onSubmit={addNote}>
+          <textarea className="input" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="The technician sees this on their phone" maxLength={2000} aria-label="New note" autoFocus />
+          <div className="jf-add-foot">
+            <button type="submit" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy || !note.trim()}>
+              Save note
+            </button>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => { setAdding(null); setNote(""); }}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : null}
 
       {viewing ? (
         <div className="jf-viewer" role="dialog" aria-label="Photo" onClick={() => setViewing(null)}>
@@ -278,7 +304,7 @@ export function JobFieldPanel({ jobId, locked, onChange }: { jobId: string; lock
           <img src={`/api/jobs/${jobId}/photos/${viewing.id}`} alt="" />
           <div className="jf-viewer-bar" onClick={(e) => e.stopPropagation()}>
             <span>
-              {viewing.kind === "other" ? "Photo" : viewing.kind === "before" ? "Before" : "After"} · {viewing.takenBy ?? ""} · {formatWhen(viewing.createdAt)}
+              {viewing.kind === "other" ? "Photo" : viewing.kind === "before" ? "Before" : "After"} · {viewing.takenBy ?? ""} · {formatWhen(viewing.createdAt, undefined, timezone)}
             </span>
             <a className="ox-btn ox-btn--quiet ox-btn--sm" href={`/api/jobs/${jobId}/photos/${viewing.id}`} target="_blank" rel="noreferrer">
               Full size

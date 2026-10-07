@@ -13,6 +13,7 @@ type Payload = {
   history: HistoryEvent[];
   assignees: Array<{ email: string; role: string }>;
   technicians: Array<{ id: string; name: string }>;
+  timezone: string | null;
 };
 
 const TRACK = ["Request", "Booked", "Confirmed", "On the way", "On site", "Done"] as const;
@@ -60,6 +61,7 @@ export function WorkPanel({
   onChange,
   refreshKey = 0,
   children,
+  beforeHistory,
 }: {
   kind: "request" | "job";
   id: string;
@@ -68,6 +70,8 @@ export function WorkPanel({
   refreshKey?: number;
   /** Page-specific detail, shown between where the work stands and its history. */
   children?: ReactNode;
+  /** Shown just above the history, e.g. money on a phone where there is no side column. */
+  beforeHistory?: ReactNode;
 }) {
   const [data, setData] = useState<Payload | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -112,6 +116,7 @@ export function WorkPanel({
       <div className="wp-stack">
         <p className="cb-error" role="alert">{error}</p>
         {children}
+        {beforeHistory}
       </div>
     );
   }
@@ -123,6 +128,7 @@ export function WorkPanel({
           <span className="skeleton" style={{ width: "35%", height: 12 }} />
         </div>
         {children}
+        {beforeHistory}
       </div>
     );
   }
@@ -163,7 +169,8 @@ export function WorkPanel({
         </ul>
       </section>
       {children}
-      <WorkHistory events={data.history} />
+      {beforeHistory}
+      <WorkHistory events={data.history} timezone={data.timezone} />
     </div>
   );
 }
