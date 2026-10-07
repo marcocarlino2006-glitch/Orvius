@@ -150,7 +150,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const brief = data?.personalBrief ?? null;
   const demo = Boolean(data?.business?.referenceImplementation);
   const needsYou = work?.needsYou ?? 0;
-  const shopIssues = work?.shopIssues ?? [];
+  const shopIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action");
   const handled = data?.handled;
 
   return (
@@ -168,10 +168,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           ))}
         </p>
       </header>
-
-      <div className="cmd-ask">
-        <AskBar onChange={() => void refresh()} below={setup} />
-      </div>
 
       <section className="cc" aria-label="Command">
         <div className="cc-main">
@@ -231,6 +227,10 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             </div>
             {data ? <TodaySchedule jobs={data.dispatchToday?.jobs ?? []} /> : <p className="cmd-empty">Reading the schedule…</p>}
           </section>
+
+          <div className="cmd-ask">
+            <AskBar onChange={() => void refresh()} below={setup} />
+          </div>
 
           <section className="cmd-section" aria-labelledby="cmd-handled">
             <div className="cmd-section-head">

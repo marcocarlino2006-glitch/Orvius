@@ -289,11 +289,24 @@ function TechAppLink({ tech, onChanged }: { tech: Tech; onChanged: () => void })
     });
   };
 
+  const first = tech.name.split(/\s+/)[0] ?? tech.name;
+  const openDay = () =>
+    run("Opening", async () => {
+      const data = tech.hasAppLink ? await call("GET") : await call("POST", { send: false });
+      const url = data.url ?? (await call("POST", { send: false })).url;
+      if (!url) throw new Error("No link to open.");
+      window.open(url, "_blank", "noopener");
+      return `Opened ${first}'s day.`;
+    });
+
   return (
     <div className="dsp-app-link">
-      <span className="dsp-skill-note">{tech.hasAppLink ? "Has the technician app" : "No app link yet"}</span>
+      <span className="dsp-skill-note">{tech.hasAppLink ? `${first} has the day on their phone` : `${first} doesn't have the day on their phone yet`}</span>
       <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void send()}>
-        {tech.hasAppLink ? "Text a new link" : "Text app link"}
+        {tech.hasAppLink ? `Text ${first} a new link` : `Text ${first} their day`}
+      </button>
+      <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void openDay()}>
+        Open their day
       </button>
       <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void copy()}>
         Copy link
