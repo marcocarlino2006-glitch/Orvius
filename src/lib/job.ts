@@ -572,7 +572,7 @@ export async function createJobFromLead(params: {
       entityId: job.id,
       actor,
       action: "job.booked",
-      summary: `Booked ${playbook.service.label} for ${formatShopTime(scheduledAt, lead.business?.timezone ?? "America/New_York")} (${durationMin} min)`,
+      summary: `Booked ${job.title || playbook.service.label} for ${formatShopTime(scheduledAt, lead.business?.timezone ?? "America/New_York")} (${durationMin} min)`,
       detail: {
         scheduledAt: scheduledAt.toISOString(),
         durationMin,
