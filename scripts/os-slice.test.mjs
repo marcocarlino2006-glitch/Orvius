@@ -257,6 +257,28 @@ test("ask to act: real choices or a plan to approve — never an invented time",
   assert.equal(sundayAsk.kind, "refused", "the shop is closed Sunday");
   assert.equal(await prisma.copilotAction.count({ where: { businessId: shop.id } }), 0, "nothing was proposed from a bad time");
   assert.equal(await askToAct(shop, "what's on today"), null, "questions go to Ask, not to actions");
+
+  const dana = await prisma.technician.create({ data: { businessId: shop.id, name: "Dana West" } });
+  const eli = await prisma.technician.create({ data: { businessId: shop.id, name: "Eli Park" } });
+  const titled = await prisma.job.create({
+    data: {
+      businessId: shop.id,
+      title: "Water pooling under the furnace",
+      serviceType: "Water pooling under the furnace",
+      status: "scheduled",
+      technicianId: eli.id,
+      scheduledAt: new Date(Date.now() + 86_400_000),
+    },
+  });
+  const assign = await askToAct(shop, "Send Dana West to Water pooling under the furnace");
+  assert.equal(assign.kind, "proposal", assign.message);
+  const ran = await executeProposal({ business: shop, proposalId: assign.proposal.proposalId });
+  assert.equal(ran.ok, true, ran.error);
+  assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: titled.id } })).technicianId, dana.id);
+  const { undoProposal } = await import("../src/lib/copilot-undo.ts");
+  const undone = await undoProposal({ business: shop, proposalId: assign.proposal.proposalId });
+  assert.equal(undone.ok, true, undone.error);
+  assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: titled.id } })).technicianId, eli.id);
 });
 
 test("production workspaces never simulate", async () => {
