@@ -29,6 +29,13 @@ import type {
   AttentionKind,
 } from "@/lib/attention-types";
 
+/** "45 min ago", "3 hr ago". */
+function sinceWords(at: Date | null, now: Date): string {
+  if (!at) return "a while ago";
+  const min = Math.max(1, Math.round((now.getTime() - at.getTime()) / 60_000));
+  return min < 90 ? `${min} min ago` : `${Math.round(min / 60)} hr ago`;
+}
+
 export type {
   AttentionImpact,
   AttentionItem,
@@ -1174,9 +1181,12 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         rank: kindRank("tech_no_show", urgency, afterHours),
         impact: "critical",
         title: job.technician?.name ?? who,
-        detail: `${job.technician?.name ? "Your tech" : "Nobody"} hasn't rolled on ${
-          who && who !== job.technician?.name ? `${who}'s` : "the"
-        } ${job.title} job — call ${job.technician?.name ? "them" : "the customer"}.`,
+        detail:
+          job.status === "en_route"
+            ? `${job.technician?.name ?? "Your tech"} left for ${who && who !== job.technician?.name ? `${who}'s` : "the"} ${job.title} job ${sinceWords(job.dispatchedAt ?? job.scheduledAt, now)} and hasn't marked arrived — call them.`
+            : `${job.technician?.name ? "Your tech" : "Nobody"} hasn't rolled on ${
+                who && who !== job.technician?.name ? `${who}'s` : "the"
+              } ${job.title} job — call ${job.technician?.name ? "them" : "the customer"}.`,
         recommendedAction: "Call tech",
         href: `/dashboard/jobs/${job.id}`,
         entityType: "job",
