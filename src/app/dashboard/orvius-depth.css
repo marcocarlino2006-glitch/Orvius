@@ -695,8 +695,11 @@ html[data-theme="day"] body .os-shell.os-shell-night .os-nav-link:hover {
   background: rgb(22 21 19 / 0.04) !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .mx-env {
+  display: none;
+}
+html[data-theme="day"] body .os-shell.os-shell-night .jv-missing {
   color: #6b675f !important;
-  font-weight: 400;
+  font-weight: 450 !important;
 }
 
 /* Nothing lifts. A bank statement is ink on paper. */
