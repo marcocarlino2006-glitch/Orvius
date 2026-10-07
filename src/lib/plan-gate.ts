@@ -26,18 +26,26 @@ export function planUpgradeResponse(module: PlanModule) {
   );
 }
 
-export function billingRequiredResponse(business: BusinessBillingFields) {
+export type BillingLock = { reason: NonNullable<ReturnType<typeof billingLockReason>>; message: string };
+
+export function billingLock(business: BusinessBillingFields): BillingLock {
   const reason = billingLockReason(business) ?? "unpaid";
+  const message =
+    reason === "trial_ended"
+      ? "Your access ended. Pay with card to keep using Orvius."
+      : reason === "canceled"
+        ? "Subscription canceled. Pay with card to reopen your shop."
+        : reason === "past_due"
+          ? "Payment failed. Update billing to continue."
+          : "Pay with card to use Orvius.";
+  return { reason, message };
+}
+
+export function billingRequiredResponse(business: BusinessBillingFields) {
+  const { reason, message } = billingLock(business);
   return NextResponse.json(
     {
-      error:
-        reason === "trial_ended"
-          ? "Your access ended. Pay with card to keep using Orvius."
-          : reason === "canceled"
-            ? "Subscription canceled. Pay with card to reopen your shop."
-            : reason === "past_due"
-              ? "Payment failed. Update billing to continue."
-              : "Pay with card to use Orvius.",
+      error: message,
       code: "billing_required",
       reason,
       upgrade: "pro",

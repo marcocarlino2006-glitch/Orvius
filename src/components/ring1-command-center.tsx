@@ -91,7 +91,7 @@ function TodaySchedule({ jobs }: { jobs: TodayJob[] }) {
  * rail holds the numbers and the health of the line.
  */
 export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
-  const { data, loading, loadError, lastUpdatedAt, refresh } = useRing1();
+  const { data, locked, loading, loadError, lastUpdatedAt, refresh } = useRing1();
   const [refreshing, setRefreshing] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
@@ -105,6 +105,35 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
     () => (data?.commandCounts ? buildCommandSignals(data.commandCounts, groupWorkItems(data.attention ?? [])) : null),
     [data?.commandCounts, data?.attention],
   );
+
+  if (locked) {
+    const title =
+      locked.reason === "trial_ended"
+        ? "Your pilot ended"
+        : locked.reason === "canceled"
+          ? "Your plan is canceled"
+          : locked.reason === "past_due"
+            ? "Your last payment failed"
+            : "Pick a plan to start";
+    return (
+      <section className="cc" aria-label="Command">
+        <div className="ox-state cmd-locked" role="status">
+          <p className="ox-state-title">{title}</p>
+          <p className="ox-state-copy">
+            {locked.message} Your calls, customers and jobs are kept, and everything opens again the moment you pay.
+          </p>
+          <div className="cmd-locked-actions">
+            <Link href="/dashboard/billing" className="ox-btn ox-btn--primary">
+              {locked.reason === "past_due" ? "Update payment" : "Pay with card"}
+            </Link>
+            <Link href="/dashboard/pricing" className="ox-btn">
+              See plans
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (!data && loadError && !loading) {
     return (
