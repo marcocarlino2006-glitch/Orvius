@@ -4,7 +4,6 @@ import { CustomerTimeline } from "@/components/customer-timeline";
 import { OsShell } from "@/components/os-shell";
 import {
   ShellAlert,
-  ShellBadge,
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
@@ -12,7 +11,11 @@ import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { formatWhen } from "@/lib/when";
+import { formatDay, formatWhen } from "@/lib/when";
+
+function usd(cents: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100);
+}
 
 type CustomerDetail = {
   id: string;
@@ -87,15 +90,26 @@ export default function CustomerDetailPage() {
     );
   }
 
+  const paidCents = timeline.filter((e) => e.type === "payment" && (e.status ?? "").toLowerCase() !== "failed").reduce((sum, e) => sum + (e.amountCents ?? 0), 0);
+  const summary = [
+    `Customer since ${formatDay(customer.firstSeenAt)}`,
+    `${customer.callCount} call${customer.callCount === 1 ? "" : "s"}`,
+    `${customer.jobCount ?? 0} job${customer.jobCount === 1 ? "" : "s"}`,
+    paidCents ? `${usd(paidCents)} paid` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <OsShell
       title={customer.displayName}
+      subtitle={summary}
       actions={
         customer.phone ? (
           <div className="flex flex-wrap gap-2">
             <Link
               href={`/dashboard/inbox/messages?phone=${encodeURIComponent(customer.phone)}`}
-              className="btn btn-secondary text-sm"
+              className="ox-btn ox-btn--quiet ox-btn--sm"
             >
               Text
             </Link>
@@ -105,11 +119,11 @@ export default function CustomerDetailPage() {
                 ...(customer.name ? { name: customer.name } : {}),
                 ...(customer.address ? { address: customer.address } : {}),
               })}`}
-              className="btn btn-secondary text-sm"
+              className="ox-btn ox-btn--quiet ox-btn--sm"
             >
-              Book
+              Book a job
             </Link>
-            <a href={`tel:${customer.phone}`} className="btn btn-void text-sm">
+            <a href={`tel:${customer.phone}`} className="ox-btn ox-btn--primary ox-btn--sm">
               Call
             </a>
           </div>
@@ -117,75 +131,42 @@ export default function CustomerDetailPage() {
       }
     >
       <div className="os-detail-grid">
-        <ShellPanel title="Profile" dense>
-          <div className="flex flex-wrap gap-2">
-            {/*
-              The interaction count was a flare pill here and a Calls figure in
-              the stat row twelve lines down — the same number twice, one of
-              them in the colour the product reserves for emergencies.
-            */}
-            {customer.returning ? (
-              <ShellBadge tone="live">Returning customer</ShellBadge>
-            ) : (
-              <ShellBadge tone="neutral">First contact</ShellBadge>
-            )}
-          </div>
-
-          <dl className="os-kv font-sans">
-            <div>
-              <dt>Phone</dt>
-              <dd className="tabular-nums">{displayPhone(customer.phone)}</dd>
-            </div>
-            {customer.email ? (
+        <div className="os-detail-primary">
+          <ShellPanel title="Profile" dense action={customer.returning ? <span className="ct-kind ct-kind--money">Returning</span> : null}>
+            <dl className="jv-facts font-sans">
               <div>
-                <dt>Email</dt>
-                <dd>{customer.email}</dd>
+                <dt>Phone</dt>
+                <dd className="tabular-nums">{displayPhone(customer.phone)}</dd>
               </div>
-            ) : null}
-            {customer.address ? (
+              {customer.email ? (
+                <div>
+                  <dt>Email</dt>
+                  <dd>{customer.email}</dd>
+                </div>
+              ) : null}
               <div>
                 <dt>Address</dt>
-                <dd>{customer.address}</dd>
+                <dd className={customer.address ? undefined : "jv-missing"}>{customer.address ?? "None on file"}</dd>
               </div>
-            ) : null}
-            <div>
-              <dt>First seen</dt>
-              <dd>{formatWhen(customer.firstSeenAt)}</dd>
-            </div>
-            <div>
-              <dt>Last seen</dt>
-              <dd>{formatWhen(customer.lastSeenAt)}</dd>
-            </div>
-          </dl>
+              <div>
+                <dt>Last heard from</dt>
+                <dd>{formatWhen(customer.lastSeenAt)}</dd>
+              </div>
+              {customer.notes ? (
+                <div>
+                  <dt>Notes</dt>
+                  <dd className="jv-notes">{customer.notes}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </ShellPanel>
+        </div>
 
-          <div className="os-kv-stats font-sans">
-            <div>
-              <span className="os-kv-stats-label">Calls</span>
-              <span className="os-kv-stats-value">{customer.callCount}</span>
-            </div>
-            <div>
-              <span className="os-kv-stats-label">Leads</span>
-              <span className="os-kv-stats-value">{customer.leadCount}</span>
-            </div>
-            <div>
-              <span className="os-kv-stats-label">Jobs</span>
-              <span className="os-kv-stats-value">{customer.jobCount ?? 0}</span>
-            </div>
-          </div>
-
-          {customer.notes ? (
-            <div className="os-kv-notes">
-              <p className="os-kv-notes-label font-sans">Notes</p>
-              <p className="font-sans text-sm leading-relaxed text-void whitespace-pre-wrap">
-                {customer.notes}
-              </p>
-            </div>
-          ) : null}
-        </ShellPanel>
-
-        <ShellPanel title="History" dense>
-          <CustomerTimeline events={timeline} />
-        </ShellPanel>
+        <div className="os-detail-side">
+          <ShellPanel title="History" dense>
+            <CustomerTimeline events={timeline} />
+          </ShellPanel>
+        </div>
       </div>
     </OsShell>
   );

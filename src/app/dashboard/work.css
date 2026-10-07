@@ -700,6 +700,11 @@ a.cmd-feed-text:hover {
   border-bottom: 1px solid var(--ox-line);
 }
 
+.wp-owner:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
 .wp-owner-label {
   font-size: 0.75rem;
   font-weight: 650;
@@ -830,6 +835,21 @@ a.cmd-feed-text:hover {
 
 .wh-event--failed .wh-event-title {
   color: var(--ox-red);
+}
+
+.ct-kind {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ox-mute);
+}
+
+.ct-kind--money {
+  color: var(--ox-green);
+}
+
+.ct-list > .wh-event:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .wh-sim-note {

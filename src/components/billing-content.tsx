@@ -165,7 +165,7 @@ export function BillingContent() {
           {loading ? (
             <ShellLoading />
           ) : (
-            <>
+            <section className="billing-summary" aria-label="Your plan">
               <div className="sc-plan">
                 <div>
                   <p className="sc-plan-kicker">Plan</p>
@@ -208,7 +208,7 @@ export function BillingContent() {
                 </div>
               ) : null}
               {account?.billing.valueLine ? <p className="billing-value-line font-sans">{account.billing.valueLine}</p> : null}
-            </>
+            </section>
           )}
 
           {loading || status === "active" || (status === "past_due" && hasStripeCustomer) ? null : (

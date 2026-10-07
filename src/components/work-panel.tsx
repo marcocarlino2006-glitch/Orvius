@@ -165,9 +165,11 @@ export function WorkPanel({
               ))}
           </select>
         </div>
-        <ul className="wc-list">
-          <WorkCard item={item} technicians={data.technicians} onChange={changed} variant="page" />
-        </ul>
+        {kind === "job" && !item.problems.length && !item.urgent ? null : (
+          <ul className="wc-list">
+            <WorkCard item={item} technicians={data.technicians} onChange={changed} variant="page" />
+          </ul>
+        )}
       </section>
       {children}
       {beforeHistory}

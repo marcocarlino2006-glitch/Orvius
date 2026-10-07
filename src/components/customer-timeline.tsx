@@ -1,108 +1,64 @@
 import Link from "next/link";
-import { ShellBadge } from "@/components/shell-primitives";
 import type { TimelineEvent } from "@/lib/customer";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 import { formatWhen, statusWord } from "@/lib/when";
 
 /*
-  Colour on this timeline means urgency, not what kind of record it is.
-
-  It used to mean both, and the fallback arm of this switch was `flare` — so
-  every lead on a customer's history wore the colour the product reserves for a
-  burst pipe. One record had twenty-three emergency-red pills on it and two of
-  them were emergencies. A payment stays green because money arriving is the
-  one event type that is itself good news.
+  Colour on this timeline means urgency or money arriving, not what kind of
+  record it is. Every row reads the same way as a job's history: what kind of
+  thing, what it was, when.
 */
-function badgeTone(type: TimelineEvent["type"]) {
-  return type === "payment" ? ("live" as const) : ("muted" as const);
+const KIND: Record<TimelineEvent["type"], string> = {
+  call: "Call",
+  lead: "Request",
+  job: "Job",
+  estimate: "Estimate",
+  invoice: "Invoice",
+  payment: "Payment",
+};
+
+function hrefFor(event: TimelineEvent): string | null {
+  if (event.type === "lead") return `/dashboard/inbox/${event.id}`;
+  if (event.type === "call") return `/dashboard/calls/${event.id}`;
+  if (event.type === "job") return `/dashboard/jobs/${event.id}`;
+  return null;
+}
+
+/** "Maria Lopez: AC not cooling" under a row titled "AC not cooling" says nothing new. */
+function freshSummary(event: TimelineEvent): string | null {
+  const summary = event.summary?.trim();
+  if (!summary) return null;
+  const title = event.title.trim().toLowerCase();
+  return summary.toLowerCase().includes(title) ? null : summary;
 }
 
 export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
   if (!events.length) {
-    return (
-      <p className="font-sans text-sm text-ash">
-        No interactions yet. Calls, jobs, estimates, and payments will appear here.
-      </p>
-    );
+    return <p className="cmd-empty">Nothing yet. Calls, jobs, estimates and payments show up here.</p>;
   }
 
   return (
-    <ol className="customer-timeline">
-      {events.map((event, index) => (
-        <li key={`${event.type}-${event.id}`} className="customer-timeline-item">
-          <div className="customer-timeline-marker" aria-hidden />
-          <div className="customer-timeline-card">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="font-sans text-sm font-semibold text-void">
-                  {event.title}
-                </p>
-                <p className="mt-1 font-sans text-xs text-ash">
-                  {formatWhen(event.at)}
-                  {/*
-                    The source is only worth printing when it is not the type
-                    said again. It is hardcoded to the type for calls, jobs,
-                    estimates, invoices and payments, so this line read
-                    "Sep 11, 7:43 AM · call · completed" beside a CALL pill
-                    above a "View call →" link — the same word three times.
-                    A lead is the exception: its source is the channel it came
-                    in on, so an SMS lead still says so.
-                  */}
-                  {event.source && event.source !== event.type
-                    ? ` · ${statusWord(event.source)}`
-                    : ""}
-                  {event.status ? ` · ${statusWord(event.status)}` : ""}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {/* Money rows already open with their kind ("Invoice · $385"); the pill would say it twice. */}
-                {event.title.toLowerCase().startsWith(event.type) ? null : (
-                  <ShellBadge tone={badgeTone(event.type)}>{statusWord(event.type)}</ShellBadge>
-                )}
-                {isEmergency(event.urgency) ? (
-                  <ShellBadge tone="flare">Emergency</ShellBadge>
-                ) : notableUrgency(event.urgency) ? (
-                  <ShellBadge tone="neutral">
-                    {statusWord(notableUrgency(event.urgency))}
-                  </ShellBadge>
-                ) : null}
-              </div>
+    <ol className="wh-list ct-list">
+      {events.map((event) => {
+        const href = hrefFor(event);
+        const summary = freshSummary(event);
+        const urgency = isEmergency(event.urgency) ? "Emergency" : notableUrgency(event.urgency) ? statusWord(notableUrgency(event.urgency)) : null;
+        const meta = [event.source && event.source !== event.type && event.source !== "call" ? statusWord(event.source) : null, event.status ? statusWord(event.status) : null, urgency]
+          .filter(Boolean)
+          .join(" · ");
+        return (
+          <li key={`${event.type}-${event.id}`} className={`wh-event${isEmergency(event.urgency) ? " wh-event--failed" : ""}`}>
+            <span className={`ct-kind${event.type === "payment" ? " ct-kind--money" : ""}`}>{KIND[event.type]}</span>
+            <div className="wh-body">
+              <p className="wh-event-title">{href ? <Link href={href}>{event.title}</Link> : event.title}</p>
+              {meta || summary ? <p className="wh-event-detail">{[meta, summary].filter(Boolean).join(" — ")}</p> : null}
             </div>
-            {event.summary ? (
-              <p className="mt-3 font-sans text-sm leading-relaxed text-ash">
-                {event.summary}
-              </p>
-            ) : null}
-            {event.type === "lead" ? (
-              <Link
-                href={`/dashboard/inbox/${event.id}`}
-                className="customer-timeline-link font-sans"
-              >
-                View lead →
-              </Link>
-            ) : null}
-            {event.type === "call" ? (
-              <Link
-                href={`/dashboard/calls/${event.id}`}
-                className="customer-timeline-link font-sans"
-              >
-                View call →
-              </Link>
-            ) : null}
-            {event.type === "job" ? (
-              <Link
-                href={`/dashboard/jobs/${event.id}`}
-                className="customer-timeline-link font-sans"
-              >
-                View job →
-              </Link>
-            ) : null}
-          </div>
-          {index < events.length - 1 ? (
-            <span className="customer-timeline-line" aria-hidden />
-          ) : null}
-        </li>
-      ))}
+            <time className="wh-at" dateTime={event.at}>
+              {formatWhen(event.at)}
+            </time>
+          </li>
+        );
+      })}
     </ol>
   );
 }

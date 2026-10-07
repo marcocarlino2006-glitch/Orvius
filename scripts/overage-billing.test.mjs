@@ -65,6 +65,6 @@ test("the month-value line names only what happened, in plain English", async ()
   );
   assert.equal(
     monthValueLine({ callsAnswered: 212, leadsCaptured: 64, jobsBooked: 31, collectedCents: 842_000 }),
-    "This month Orvius answered 212 calls, captured 64 leads, booked 31 jobs, and collected $8,420 by card.",
+    "This month Orvius answered 212 calls, took 64 requests, booked 31 jobs, and collected $8,420 by card.",
   );
 });
