@@ -633,6 +633,38 @@ html body .os-shell.os-shell-night .dwk-chip.is-urgent {
   Bank-quiet Command: paper, one number, a list you tap.
   Ask chips wait until the field is in use. Work is a statement, not a toolbar.
 */
+html[data-theme="day"] body .os-shell.os-shell-night {
+  --dp-canvas: #f4f5f7;
+  --dp-side: #ffffff;
+  --dp-card: #ffffff;
+  --dp-card-top: transparent;
+  --dp-well: #eef0f3;
+  --dp-edge: #e6e8ec;
+  --dp-edge-hi: #d5d8de;
+  --dp-lift: 0 1px 2px rgb(16 18 22 / 0.04);
+  --dp-press: inset 0 0 0 1px #e6e8ec;
+  --dp-copper: #c44a00;
+  background: #f4f5f7 !important;
+  color: #111316 !important;
+}
+html[data-theme="day"] body .os-shell.os-shell-night .os-main {
+  background: #f4f5f7 !important;
+}
+html[data-theme="day"] body .os-shell.os-shell-night .os-sidebar {
+  background: #fff !important;
+  border-right: 1px solid #e6e8ec !important;
+  box-shadow: none !important;
+}
+html[data-theme="day"] body .os-shell.os-shell-night .os-topbar {
+  background: #f4f5f7 !important;
+  border-bottom: 1px solid #e6e8ec !important;
+  box-shadow: none !important;
+}
+html[data-theme="day"] body .os-shell.os-shell-night .os-nav-link[aria-current="page"] {
+  background: #f0f1f4 !important;
+  box-shadow: none !important;
+  color: #111316 !important;
+}
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-headline {
   font-size: 2rem;
   font-weight: 650;
