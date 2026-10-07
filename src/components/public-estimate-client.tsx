@@ -2,8 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+type PublicOption = {
+  key: string;
+  label: string;
+  description: string | null;
+  amountCents: number;
+  amountLabel: string;
+};
+
 type PublicEstimate = {
   token: string;
+  options?: PublicOption[];
+  chosenOption?: string | null;
   status: string;
   amountCents: number;
   amountLabel: string | null;
@@ -21,6 +31,7 @@ export function PublicEstimateClient({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [pick, setPick] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -78,7 +89,7 @@ export function PublicEstimateClient({ token }: { token: string }) {
       const res = await fetch(`/api/public/estimate/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify(action === "accept" && pick ? { action, option: pick } : { action }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Action failed");
@@ -89,7 +100,7 @@ export function PublicEstimateClient({ token }: { token: string }) {
       setEstimate(data.estimate);
       setNote(
         action === "accept"
-          ? "Estimate accepted. Thank you."
+          ? "Estimate accepted. Thank you. The shop has it."
           : "Payment recorded. The shop has been notified.",
       );
     } catch (err) {
@@ -114,6 +125,10 @@ export function PublicEstimateClient({ token }: { token: string }) {
   const paid = estimate.invoice?.paid || estimate.invoice?.status === "paid";
   const accepted = estimate.status === "accepted" || Boolean(estimate.invoice);
   const cardReady = Boolean(estimate.cardPayAvailable);
+  const options = estimate.options ?? [];
+  const chosen = options.find((o) => o.key === estimate.chosenOption) ?? null;
+  const picked = options.find((o) => o.key === pick) ?? null;
+  const needsPick = options.length > 0 && !picked;
 
   return (
     <div className="public-money font-sans">
@@ -122,9 +137,44 @@ export function PublicEstimateClient({ token }: { token: string }) {
       {estimate.jobAddress ? (
         <p className="public-money-meta">{estimate.jobAddress}</p>
       ) : null}
-      <p className="public-money-amount">{estimate.amountLabel}</p>
+      {options.length ? (
+        accepted && chosen ? (
+          <>
+            <p className="public-money-amount">{chosen.amountLabel}</p>
+            <p className="public-money-meta">
+              {chosen.label}
+              {chosen.description ? ` · ${chosen.description}` : ""}
+            </p>
+          </>
+        ) : (
+          <div className="public-options" role="radiogroup" aria-label="Choose an option">
+            <p className="public-money-meta">Pick the option you want.</p>
+            {options.map((o) => (
+              <button
+                key={o.key}
+                type="button"
+                role="radio"
+                aria-checked={pick === o.key}
+                className={`public-option${pick === o.key ? " is-on" : ""}`}
+                disabled={busy}
+                onClick={() => setPick(o.key)}
+              >
+                <span className="public-option-head">
+                  <span className="public-option-name">{o.label}</span>
+                  <span className="public-option-price">{o.amountLabel}</span>
+                </span>
+                {o.description ? <span className="public-option-desc">{o.description}</span> : null}
+              </button>
+            ))}
+          </div>
+        )
+      ) : (
+        <p className="public-money-amount">{estimate.amountLabel}</p>
+      )}
       {estimate.notes ? <p className="public-money-notes">{estimate.notes}</p> : null}
-      <p className="public-money-status">Status · {estimate.status}</p>
+      <p className="public-money-status">
+        {paid ? "Paid" : accepted ? "Accepted" : "Waiting for your answer"}
+      </p>
 
       {error ? <p className="public-money-error">{error}</p> : null}
       {note ? <p className="public-money-ok">{note}</p> : null}
@@ -134,10 +184,16 @@ export function PublicEstimateClient({ token }: { token: string }) {
           <button
             type="button"
             className="btn btn-void"
-            disabled={busy}
+            disabled={busy || needsPick}
             onClick={() => void run("accept")}
           >
-            {busy ? "Working…" : "Accept estimate"}
+            {busy
+              ? "Working…"
+              : picked
+                ? `Accept ${picked.label} · ${picked.amountLabel}`
+                : needsPick
+                  ? "Pick an option to accept"
+                  : "Accept estimate"}
           </button>
         ) : null}
 
