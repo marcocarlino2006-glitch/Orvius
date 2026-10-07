@@ -8,7 +8,7 @@ import { workHistory } from "@/lib/work-history";
 export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business } = authResult;
+  const { business, email } = authResult;
   const url = new URL(request.url);
   const kind = url.searchParams.get("kind");
   const id = url.searchParams.get("id")?.trim() ?? "";
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const item = await getWorkItem(business.id, kind, id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const [history, assignees, technicians] = await Promise.all([
-    workHistory(business.id, { kind: item.kind, id: item.id }),
+    workHistory(business.id, { kind: item.kind, id: item.id }, email),
     workAssignees(business),
     prisma.technician.findMany({ where: { businessId: business.id, isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
   ]);

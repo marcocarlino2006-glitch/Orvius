@@ -117,7 +117,7 @@ test("owners can repair incomplete qualification and retry automation", () => {
   assert.match(form, /Lead completed and booked automatically/);
   assert.match(form, /Lead updated and deposit delivery retried/);
   assert.doesNotMatch(form, /location\.reload/);
-  assert.match(detail, /Correct call details/);
+  assert.match(detail, /Edit details/);
   assert.match(detail, /retries an unsent\s+booking deposit/);
 });
 

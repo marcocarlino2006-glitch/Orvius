@@ -53,7 +53,7 @@ export function CustomerRecordCard({
       <div className="lead-rail-main">
         <div className="lead-rail-meta">
           {returning ? (
-            <p className="lead-rail-count is-live">{interactionCount} touchpoints</p>
+            <p className="lead-rail-count is-live">{interactionCount} interaction{interactionCount === 1 ? "" : "s"}</p>
           ) : null}
           <time dateTime={lastSeenAt} className="lead-rail-time">
             {when}

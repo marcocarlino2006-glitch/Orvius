@@ -832,10 +832,19 @@ a.cmd-feed-text:hover {
   color: var(--ox-red);
 }
 
-.wh-sim {
-  font-style: normal;
-  font-weight: 450;
+.wh-sim-note {
+  margin: 0;
+  padding: 0.625rem 0 0.75rem;
+  border-top: 1px solid var(--ox-line);
+  font-size: 0.75rem;
   color: var(--ox-mute);
+}
+
+.wh-link {
+  font-weight: 600;
+  color: var(--ox-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .wh-event-detail {
@@ -1132,6 +1141,108 @@ a.cmd-feed-text:hover {
 
 .jv-links a:hover {
   color: var(--ox-text);
+}
+
+.jv-lede {
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ox-text);
+}
+
+.jv-missing {
+  color: var(--ox-amber) !important;
+  font-weight: 500 !important;
+}
+
+/* ── A call: what was said, what came of it ── */
+
+.cl-outcome {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--ox-dur-fast) var(--ox-ease), background var(--ox-dur-fast) var(--ox-ease);
+}
+
+.cl-outcome:hover {
+  border-color: var(--ox-line-strong);
+  background: var(--ox-fill-light);
+}
+
+.cl-outcome-label {
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--ox-mute);
+}
+
+.cl-outcome--ok .cl-outcome-label {
+  color: var(--ox-green);
+}
+
+.cl-outcome-title {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: var(--ox-text);
+}
+
+.cl-did {
+  margin-top: 0.75rem;
+}
+
+.cl-did::first-letter {
+  text-transform: uppercase;
+}
+
+.cl-prior {
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--ox-line);
+}
+
+.cl-prior ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.cl-prior a {
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.cl-score {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-text-2);
+}
+
+.cl-score--fix {
+  color: var(--ox-red);
+}
+
+.cl-score--watch {
+  color: var(--ox-amber);
+}
+
+@media (max-width: 1023px) {
+  .cl-grid .os-detail-side {
+    order: -1;
+  }
+}
+
+.cr-closed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
 }
 
 @media (max-width: 640px) {

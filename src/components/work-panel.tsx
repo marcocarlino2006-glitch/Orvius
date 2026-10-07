@@ -1,5 +1,6 @@
 "use client";
 
+import { teammateLabel } from "@/lib/people";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { toast } from "@/components/toaster";
@@ -159,7 +160,7 @@ export function WorkPanel({
               .filter((a) => a.role !== "owner")
               .map((a) => (
                 <option key={a.email} value={a.email}>
-                  {a.email}
+                  {teammateLabel(a.email, data.assignees ?? [])}
                 </option>
               ))}
           </select>

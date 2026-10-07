@@ -11,6 +11,8 @@ import {
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
+import { displayPhone } from "@/lib/customer";
+import { formatWhen, statusWord } from "@/lib/when";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -108,6 +110,9 @@ export default function LeadDetailPage() {
     void loadLead();
   };
   const booked = (jobId: string) => router.push(`/dashboard/jobs/${jobId}`);
+  const notes = lead.notes?.trim() && lead.notes.trim() !== lead.call?.summary?.trim() ? lead.notes.trim() : null;
+  const seconds = lead.call?.durationSec ?? 0;
+  const callLength = seconds ? (seconds >= 60 ? `${Math.round(seconds / 60)} min` : `${seconds}s`) : null;
   return (
     <OsShell
       title={lead.name ?? "Unknown caller"}
@@ -135,8 +140,8 @@ export default function LeadDetailPage() {
           {!lead.job ? (
             <ShellPanel title="What the call captured" dense>
               <p className="mb-4 font-sans text-sm leading-relaxed text-ash">
-                Fix anything the call missed. Saving books it automatically once
-                the phone and the job are known.
+                Fix anything the call got wrong. It books itself once the phone
+                and the problem are known.
               </p>
               <LeadQualificationForm
                 leadId={lead.id}
@@ -148,29 +153,55 @@ export default function LeadDetailPage() {
           ) : null}
 
           {lead.job ? (
-            <ShellPanel title="Captured details" dense>
-              <p className="font-sans text-sm leading-relaxed text-ash">
-                Fix anything the call missed. Saving also retries an unsent
-                booking deposit when payments are enabled.
-              </p>
-              <button
-                type="button"
-                className="btn btn-secondary mt-4 text-sm"
-                aria-expanded={showBookedLeadRepair}
-                onClick={() => setShowBookedLeadRepair((open) => !open)}
-              >
-                {showBookedLeadRepair ? "Close details" : "Correct call details"}
-              </button>
+            <ShellPanel
+              title="The call"
+              dense
+              action={
+                <button
+                  type="button"
+                  className="ox-btn ox-btn--quiet ox-btn--sm"
+                  aria-expanded={showBookedLeadRepair}
+                  onClick={() => setShowBookedLeadRepair((open) => !open)}
+                >
+                  {showBookedLeadRepair ? "Done" : "Edit details"}
+                </button>
+              }
+            >
               {showBookedLeadRepair ? (
-                <div className="mt-4">
-                  <LeadQualificationForm
-                    leadId={lead.id}
-                    lead={lead}
-                    onDraftChange={updateDraft}
-                    onSaved={refresh}
-                  />
-                </div>
-              ) : null}
+                <>
+                  <p className="jv-sub mb-3 font-sans">Saving also retries an unsent booking deposit.</p>
+                  <LeadQualificationForm leadId={lead.id} lead={lead} onDraftChange={updateDraft} onSaved={refresh} />
+                </>
+              ) : (
+                <dl className="jv-facts font-sans">
+                  <div>
+                    <dt>Phone</dt>
+                    <dd>{lead.phone ? displayPhone(lead.phone) : "Unknown"}</dd>
+                  </div>
+                  {lead.serviceType ? (
+                    <div>
+                      <dt>Problem</dt>
+                      <dd>{lead.serviceType}</dd>
+                    </div>
+                  ) : null}
+                  {lead.urgency ? (
+                    <div>
+                      <dt>Urgency</dt>
+                      <dd>{statusWord(lead.urgency)}</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>Address</dt>
+                    <dd className={lead.address ? undefined : "jv-missing"}>{lead.address ?? "Not given on the call"}</dd>
+                  </div>
+                  {notes ? (
+                    <div>
+                      <dt>Notes</dt>
+                      <dd className="jv-notes">{notes}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              )}
             </ShellPanel>
           ) : null}
 
@@ -185,58 +216,35 @@ export default function LeadDetailPage() {
         </div>
 
         <div className="os-detail-side">
-          <ShellPanel title="Status" dense>
-            <LeadStatusActions
-              leadId={lead.id}
-              status={lead.status}
-              compact
-              onUpdated={(status) => {
-                setLead({ ...lead, status });
-                setWorkVersion((v) => v + 1);
-              }}
-            />
-          </ShellPanel>
+          {!lead.job ? (
+            <ShellPanel title="Status" dense>
+              <LeadStatusActions
+                leadId={lead.id}
+                status={lead.status}
+                compact
+                onUpdated={(status) => {
+                  setLead({ ...lead, status });
+                  setWorkVersion((v) => v + 1);
+                }}
+              />
+            </ShellPanel>
+          ) : null}
 
-          {lead.customer ? (
+          {lead.customer || lead.call ? (
             <ShellPanel title="Customer" dense>
-              <p className="font-sans text-sm text-ash">
-                {lead.customer.interactionCount} interaction
-                {lead.customer.interactionCount === 1 ? "" : "s"} on record.
+              <p className="jv-who font-sans">{lead.customer?.name ?? lead.name ?? (lead.phone ? displayPhone(lead.phone) : "Unknown caller")}</p>
+              <p className="jv-sub font-sans">
+                {[
+                  lead.customer ? `${lead.customer.interactionCount} interaction${lead.customer.interactionCount === 1 ? "" : "s"}` : null,
+                  lead.call ? `called ${formatWhen(lead.call.createdAt)}${callLength ? ` for ${callLength}` : ""}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
-              <Link
-                href={`/dashboard/customers/${lead.customer.id}`}
-                className="customer-timeline-link mt-3 inline-block font-sans"
-              >
-                Open customer →
-              </Link>
-            </ShellPanel>
-          ) : null}
-
-          {lead.call ? (
-            <ShellPanel title="Call record" dense>
-              <p className="font-sans text-sm text-ash">
-                {lead.call.status}
-                {lead.call.durationSec ? ` · ${lead.call.durationSec}s` : ""}
-              </p>
-              {lead.call.summary ? (
-                <p className="mt-3 font-sans text-sm leading-relaxed text-void">
-                  {lead.call.summary}
-                </p>
-              ) : null}
-              <Link
-                href={`/dashboard/calls/${lead.call.id}`}
-                className="customer-timeline-link mt-3 inline-block font-sans"
-              >
-                Full call record →
-              </Link>
-            </ShellPanel>
-          ) : null}
-
-          {lead.job && !showBookedLeadRepair && lead.notes?.trim() && lead.notes.trim() !== lead.call?.summary?.trim() ? (
-            <ShellPanel title="Notes" dense>
-              <p className="font-sans text-sm leading-relaxed text-void whitespace-pre-wrap">
-                {lead.notes}
-              </p>
+              <div className="jv-links font-sans">
+                {lead.customer ? <Link href={`/dashboard/customers/${lead.customer.id}`}>Customer profile →</Link> : null}
+                {lead.call ? <Link href={`/dashboard/calls/${lead.call.id}`}>The call →</Link> : null}
+              </div>
             </ShellPanel>
           ) : null}
         </div>

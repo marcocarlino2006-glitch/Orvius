@@ -1,4 +1,5 @@
 import { normalizePhone } from "@/lib/customer";
+import { actorName } from "@/lib/people";
 import { prisma } from "@/lib/prisma";
 import { isSimulatedSid } from "@/lib/sms-simulation";
 
@@ -18,7 +19,7 @@ export type HistoryEvent = {
   at: string;
   kind: HistoryKind;
   who: HistoryWho;
-  /** "Orvius", a teammate's email, "Customer" or the technician's name. */
+  /** "Orvius", "You", a teammate's first name, "Customer" or the technician's name. */
   whoLabel: string;
   title: string;
   detail?: string | null;
@@ -38,11 +39,12 @@ function tone(action: string): HistoryTone {
   return "info";
 }
 
-function whoFor(actor: string, email: string | null, technician?: string | null): { who: HistoryWho; whoLabel: string } {
+function whoFor(actor: string, email: string | null, technician: string | null | undefined, viewerEmail: string | null): { who: HistoryWho; whoLabel: string } {
   if (actor === "orvius" || actor === "system") return { who: "orvius", whoLabel: "Orvius" };
   if (actor === "technician") return { who: "technician", whoLabel: email ?? technician ?? "Technician" };
   if (actor === "customer") return { who: "customer", whoLabel: "Customer" };
-  return { who: "person", whoLabel: email ?? (actor === "owner" ? "You" : "Your team") };
+  if (email) return { who: "person", whoLabel: actorName(email, viewerEmail) };
+  return { who: "person", whoLabel: actor === "owner" ? "Owner" : "Your team" };
 }
 
 function seconds(n: number | null) {
@@ -51,7 +53,11 @@ function seconds(n: number | null) {
 }
 
 /** The history of a request or a job. Null when it is not this shop's. */
-export async function workHistory(businessId: string, target: { kind: "request" | "job"; id: string }): Promise<HistoryEvent[] | null> {
+export async function workHistory(
+  businessId: string,
+  target: { kind: "request" | "job"; id: string },
+  viewerEmail: string | null = null,
+): Promise<HistoryEvent[] | null> {
   const job =
     target.kind === "job"
       ? await prisma.job.findFirst({
@@ -136,8 +142,8 @@ export async function workHistory(businessId: string, target: { kind: "request" 
         id: `audit:${a.id}`,
         at: a.createdAt.toISOString(),
         kind: a.action.startsWith("owner.alert") ? "alert" : "change",
-        ...whoFor(a.actor, a.actorEmail, job?.technician?.name),
-        title: a.summary,
+        ...whoFor(a.actor, a.actorEmail, job?.technician?.name, viewerEmail),
+        title: a.summary.replace(/^Owner (\w)/, (_, c: string) => c.toUpperCase()),
         tone: tone(a.action),
       }),
     ),

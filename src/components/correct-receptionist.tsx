@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { ShellPanel } from "@/components/shell-primitives";
 
 const MAX = 200;
 
-/** One correction from this call, followed on every call after it. */
+/** One correction from this call, followed on every call after it. Closed until asked for. */
 export function CorrectReceptionist({ callId }: { callId: string }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const [open, setOpen] = useState(false);
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -25,6 +25,7 @@ export function CorrectReceptionist({ callId }: { callId: string }) {
       const data = (await res.json().catch(() => ({}))) as { error?: string; synced?: boolean };
       if (!res.ok) throw new Error(data.error ?? "Could not save the correction. Try again.");
       setText("");
+      setOpen(false);
       setNote({
         tone: "ok",
         text: data.synced
@@ -38,32 +39,46 @@ export function CorrectReceptionist({ callId }: { callId: string }) {
     }
   }
 
+  if (!open) {
+    return (
+      <div className="cr-closed font-sans">
+        <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOpen(true)}>
+          Teach Orvius
+        </button>
+        {note ? (
+          <span className={`text-sm ${note.tone === "error" ? "text-flare-dim" : "text-ash"}`} role="status">
+            {note.text}
+          </span>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
-    <ShellPanel title="Correct the receptionist" dense>
-      <form onSubmit={(e) => void save(e)} className="font-sans">
-        <p className="text-sm text-ash">
-          Something it should do differently next time? Write it the way you&apos;d tell a new hire.
-        </p>
-        <textarea
-          className="input mt-2 w-full"
-          rows={2}
-          maxLength={MAX}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="We don't do gas lines. Tell callers to call the gas company first."
-          aria-label="Correction for the receptionist"
-        />
-        <div className="mt-2 flex items-center gap-3">
-          <button type="submit" className="btn btn-secondary text-sm" disabled={busy || text.trim().length < 4}>
-            {busy ? "Saving…" : "Save correction"}
-          </button>
-          {note ? (
-            <span className={`text-sm ${note.tone === "error" ? "text-flare-dim" : "text-ash"}`} role="status">
-              {note.text}
-            </span>
-          ) : null}
-        </div>
-      </form>
-    </ShellPanel>
+    <form onSubmit={(e) => void save(e)} className="cr-form font-sans">
+      <textarea
+        className="input w-full"
+        rows={3}
+        maxLength={MAX}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Tell it like you'd tell a new hire: we don't do gas lines, tell callers to call the gas company first."
+        aria-label="Something Orvius should do differently next time"
+        autoFocus
+      />
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <button type="submit" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy || text.trim().length < 4}>
+          {busy ? "Saving…" : "Save"}
+        </button>
+        <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => { setOpen(false); setText(""); }}>
+          Cancel
+        </button>
+        {note?.tone === "error" ? (
+          <span className="text-sm text-flare-dim" role="status">
+            {note.text}
+          </span>
+        ) : null}
+      </div>
+    </form>
   );
 }

@@ -24,6 +24,12 @@ export function jobStatusLabel(status: string) {
   return STATUS_WORDS[status] ?? status.replace(/_/g, " ");
 }
 
+/** "On the way", for the start of a line. */
+export function jobStatusTitle(status: string) {
+  const word = jobStatusLabel(status);
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 /** Next actionable status for the field loop — null when terminal. */
 export function nextJobStatus(
   status: string,
