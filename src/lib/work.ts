@@ -1,4 +1,5 @@
 import { collectAttention } from "@/lib/attention-queue";
+import { personName } from "@/lib/people";
 import type { AttentionItem, AttentionKind } from "@/lib/attention-types";
 import { buildCommandBoard, type BoardItem, type ExceptionKind } from "@/lib/command-board";
 import { prisma } from "@/lib/prisma";
@@ -153,7 +154,7 @@ function responsibleFor(
   technician: { name: string } | null,
   fieldStage: boolean,
 ): WorkItem["responsible"] {
-  if (assigneeEmail) return { kind: "teammate", label: assigneeEmail, email: assigneeEmail };
+  if (assigneeEmail) return { kind: "teammate", label: personName(assigneeEmail), email: assigneeEmail };
   if (technician && fieldStage) return { kind: "technician", label: technician.name, email: null };
   return { kind: "owner", label: "You", email: null };
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/components/toaster";
 import { shrinkPhoto } from "@/components/tech-app/photo";
+import { personName } from "@/lib/people";
 import { formatWhen } from "@/lib/when";
 
 type Line = { id?: string; name: string; kind: string; quantity: number; unitCents: number; priceBookItemId: string | null };
@@ -274,7 +275,7 @@ export function JobFieldPanel({ jobId, locked, timezone, onChange }: { jobId: st
           {field.notes.map((n) => (
             <li key={n.id} className={`jf-note${n.authorKind === "technician" ? " jf-note--field" : ""}`}>
               <p className="jf-note-who">
-                {n.authorName}
+                {n.authorName.includes("@") ? personName(n.authorName) : n.authorName}
                 {n.authorKind === "technician" ? " · technician" : ""} · {formatWhen(n.createdAt, undefined, timezone)}
               </p>
               <p className="jf-note-body">{n.body}</p>

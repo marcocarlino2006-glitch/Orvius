@@ -338,6 +338,9 @@ test("a booked request opens as its job, and its history runs from the call to t
   assert.ok(titles.includes("Moved to tomorrow"));
   assert.equal(fromJob.find((e) => e.title === "Texted the customer").tone, "failed");
   assert.equal(fromJob.find((e) => e.title === "Moved to tomorrow").who, "person");
+  const asOwner = await workHistory(shop.id, { kind: "job", id: booked.id }, shop.ownerEmail);
+  assert.equal(asOwner.find((e) => e.title === "Moved to tomorrow").whoLabel, "You", "your own changes read as you, not your email");
+  assert.ok(!fromJob.some((e) => e.whoLabel.includes("@")), "nobody is shown as an email address");
   const at = fromJob.map((e) => new Date(e.at).getTime());
   assert.deepEqual(at, [...at].sort((a, b) => a - b), "in the order it happened");
 
@@ -405,4 +408,17 @@ test("a time typed on a request or a job is read on the shop's clock, not the br
     { params: Promise.resolve({ id: body.job.id }) },
   );
   assert.equal(bad.status, 422);
+});
+
+test("teammates are named, not shown as email addresses", async () => {
+  const { personName, teammateLabel, actorName } = await import("../src/lib/people.ts");
+  assert.equal(personName("maria.lopez@shop.com"), "Maria");
+  assert.equal(personName("DISPATCH@shop.com"), "Dispatch");
+  assert.equal(personName("j@shop.com"), "j");
+  assert.equal(personName(null), "Someone");
+  const team = [{ email: "sam.ortiz@shop.com" }, { email: "sam.lee@shop.com" }, { email: "ana@shop.com" }];
+  assert.equal(teammateLabel("ana@shop.com", team), "Ana");
+  assert.equal(teammateLabel("sam.lee@shop.com", team), "sam.lee@shop.com", "two Sams keep their emails apart");
+  assert.equal(actorName("Ana@Shop.com", "ana@shop.com"), "You");
+  assert.equal(actorName("ana@shop.com", "boss@shop.com"), "Ana");
 });

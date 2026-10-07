@@ -1,5 +1,6 @@
 "use client";
 
+import { teammateLabel } from "@/lib/people";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { OsShell } from "@/components/os-shell";
@@ -95,7 +96,7 @@ export default function WorkPage() {
 
       <div className="jobs-pipeline font-sans" role="tablist" aria-label="Work">
         {view === "open"
-          ? FILTERS.map((f) => (
+          ? FILTERS.filter((f) => f.id === "you" || f.id === "all" || f.id === filter || counts[f.id] > 0).map((f) => (
               <button
                 key={f.id}
                 type="button"
@@ -178,7 +179,7 @@ export default function WorkPage() {
                     .filter((a) => a.role !== "owner")
                     .map((a) => (
                       <option key={a.email} value={a.email}>
-                        {a.email}
+                        {teammateLabel(a.email, data.assignees ?? [])}
                       </option>
                     ))}
                 </select>
