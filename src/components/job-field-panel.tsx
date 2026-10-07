@@ -130,7 +130,7 @@ export function JobFieldPanel({ jobId, locked, timezone, onChange }: { jobId: st
   return (
     <section className="jf" aria-label="Work on this job">
       <div className="jf-head">
-        <h3 className="jf-title">Work and price</h3>
+        <h3 className="jf-title">Line items</h3>
         {field.lines.length ? <span className="jf-total">{usd(total)}</span> : null}
         {!locked && adding !== "work" ? (
           <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm jf-head-btn" onClick={() => setAdding("work")}>
