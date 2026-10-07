@@ -83,6 +83,17 @@ export async function publicShop(slug: string, feature: "bookingPageOn" | "webCh
   return shop;
 }
 
+/** Who a customer can still call when a shop's public page is off. */
+export async function shopContact(slug: string): Promise<{ name: string; phone: string | null } | null> {
+  if (!/^[a-z0-9-]{2,80}$/.test(slug)) return null;
+  const shop = await prisma.business.findUnique({
+    where: { slug },
+    select: { name: true, isActive: true, environment: true, vapiPhoneNumber: true, twilioPhone: true },
+  });
+  if (!shop || !shop.isActive || shop.environment === "test") return null;
+  return { name: shop.name, phone: shop.vapiPhoneNumber ?? shop.twilioPhone ?? null };
+}
+
 export function bookableShop(slug: string) {
   return publicShop(slug, "bookingPageOn");
 }

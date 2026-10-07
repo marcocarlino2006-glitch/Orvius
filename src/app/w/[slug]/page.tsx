@@ -17,7 +17,7 @@ function Chat() {
   const search = useSearchParams();
   const embedded = search.get("embed") === "1";
   const [info, setInfo] = useState<Info | null>(null);
-  const [missing, setMissing] = useState(false);
+  const [missing, setMissing] = useState<{ phone: string | null } | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", message: "", website: "" });
   const [sent, setSent] = useState<{ message: string; texted: boolean; safety: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +25,10 @@ function Chat() {
 
   useEffect(() => {
     void fetch(`/api/public/chat/${encodeURIComponent(slug)}`).then(async (res) => {
-      if (res.status === 404) return setMissing(true);
+      if (res.status === 404) {
+        const body = await res.json().catch(() => null);
+        return setMissing({ phone: body?.business?.phone ?? null });
+      }
       if (res.ok) setInfo(await res.json());
     });
   }, [slug]);
@@ -58,7 +61,15 @@ function Chat() {
   if (missing) {
     return (
       <main className={`wc ${embedded ? "is-embedded" : ""}`}>
-        <p className="wc-note">Chat isn&apos;t available right now.</p>
+        <p className="wc-note">
+          Chat isn&apos;t available right now.
+          {missing.phone ? (
+            <>
+              {" "}
+              <a href={`tel:${missing.phone}`}>Call {formatPhone(missing.phone)}</a>
+            </>
+          ) : null}
+        </p>
       </main>
     );
   }

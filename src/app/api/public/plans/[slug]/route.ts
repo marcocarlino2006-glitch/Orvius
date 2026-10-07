@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { clientIp, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { shopContact } from "@/lib/online-booking";
 import { createPlanCheckout, publicPlansShop } from "@/lib/service-plans";
 
 type Params = { params: Promise<{ slug: string }> };
 
-const notFound = () => NextResponse.json({ error: "This business isn't selling plans online right now." }, { status: 404 });
-
 export async function GET(request: Request, { params }: Params) {
   const limited = await publicTokenLimited(request, "plans", "GET");
   if (limited) return limited;
-  const found = await publicPlansShop((await params).slug);
-  if (!found) return notFound();
+  const { slug } = await params;
+  const found = await publicPlansShop(slug);
+  if (!found) return NextResponse.json({ error: "This business isn't selling plans online right now.", business: await shopContact(slug) }, { status: 404 });
   return NextResponse.json({
     business: { name: found.shop.name, phone: found.shop.vapiPhoneNumber ?? found.shop.twilioPhone ?? null },
     plans: found.plans,
