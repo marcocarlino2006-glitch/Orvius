@@ -157,9 +157,9 @@ async function main() {
     await step("Command names the shop and what Orvius did", async () => {
       await open("/dashboard");
       await page.getByText(shop.name).first().waitFor();
-      const brief = page.locator(".cc-brief-headline, .cc-brief-text").first();
-      await brief.filter({ hasNotText: "Reading the shop" }).waitFor();
-      return (await brief.innerText()).slice(0, 90);
+      const handled = page.locator(".cmd-feed-text").first();
+      await handled.waitFor();
+      return (await handled.innerText()).slice(0, 90);
     });
 
     await step("Inbox lists the caller", async () => {
