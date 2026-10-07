@@ -2,12 +2,10 @@
 
 import { CallPlayer } from "@/components/call-player";
 import { CorrectReceptionist } from "@/components/correct-receptionist";
-import { OwnerAlertCard } from "@/components/owner-alert-card";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
 import {
   ShellAlert,
-  ShellBadge,
   ShellLoading,
   ShellPanel,
 } from "@/components/shell-primitives";
@@ -15,7 +13,9 @@ import type { CallGrade } from "@/lib/call-quality";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { formatWhen, statusWord } from "@/lib/when";
+import { displayPhone } from "@/lib/customer";
+import { jobStatusTitle } from "@/lib/job-status";
+import { formatDay, formatWhen, statusWord } from "@/lib/when";
 
 type CallDetail = {
   id: string;
@@ -127,78 +127,77 @@ export default function CallDetailPage() {
     call.callerPhone ??
     "Unknown caller";
 
+  const phone = call.lead?.phone ?? call.callerPhone;
+  const address = call.lead?.address ?? call.customer?.address ?? null;
+  const service = call.lead?.serviceType ?? null;
+  /* The summary is often just "Name: service", which the facts already say. */
+  const summary = call.summary && !(service && call.summary.toLowerCase().includes(service.toLowerCase())) ? call.summary : null;
+  const length = call.durationSec ? (call.durationSec >= 60 ? `${Math.floor(call.durationSec / 60)}:${String(call.durationSec % 60).padStart(2, "0")}` : `${call.durationSec}s`) : null;
+  const quality = situation?.quality ?? null;
+
   return (
     <OsShell
       title={who}
-      
+      subtitle={[service, formatWhen(call.createdAt)].filter(Boolean).join(" · ")}
       businessName={call.business?.name ?? "Your shop"}
       actions={
         <div className="flex flex-wrap gap-2">
           {call.callerPhone ? (
-            <a href={`tel:${call.callerPhone}`} className="btn btn-void text-sm">
+            <a href={`tel:${call.callerPhone}`} className="ox-btn ox-btn--primary ox-btn--sm">
               Call back
             </a>
           ) : null}
           {call.lead ? (
-            <Link href={`/dashboard/inbox/${call.lead.id}`} className="btn btn-secondary text-sm">
-              Open lead
+            <Link href={`/dashboard/inbox/${call.lead.id}`} className="ox-btn ox-btn--quiet ox-btn--sm">
+              Open request
             </Link>
           ) : null}
         </div>
       }
     >
-      {situation?.quality.verdict === "fix" ? (
+      {quality?.verdict === "fix" ? (
         <div className="mb-6">
-          <ShellAlert tone="error">
-            {situation.quality.headline} Take over from the lead or call the customer directly.
-          </ShellAlert>
+          <ShellAlert tone="error">{quality.headline} Call the customer to make it right.</ShellAlert>
         </div>
       ) : null}
 
-      <div className="os-detail-grid">
+      <div className="os-detail-grid cl-grid">
         <div className="os-detail-primary">
-          {call.lead ? (
-            <OwnerAlertCard
-              variant="void"
-              lead={{
-                name: call.lead.name ?? undefined,
-                phone: call.lead.phone ?? call.callerPhone ?? undefined,
-                service: call.lead.serviceType ?? undefined,
-                urgency: formatUrgency(call.lead.urgency),
-                address: call.lead.address ?? call.customer?.address ?? undefined,
-                channel: `Inbound call · ${call.business?.name ?? "Orvius"}`,
-              }}
-            />
-          ) : (
-            <ShellPanel title="Call summary" dense>
-              <div className="flex flex-wrap gap-2">
-                <ShellBadge tone="live">{call.status === "ended" ? "Completed" : statusWord(call.status)}</ShellBadge>
-                {call.durationSec ? (
-                  <ShellBadge tone="neutral">{call.durationSec}s</ShellBadge>
-                ) : null}
+          <ShellPanel title="The call" dense>
+            {summary ? <p className="jv-lede font-sans">{summary}</p> : null}
+            <dl className="jv-facts font-sans">
+              <div>
+                <dt>Phone</dt>
+                <dd>{phone ? displayPhone(phone) : "Unknown"}</dd>
               </div>
-              <p className="mt-4 font-sans text-sm tabular-nums text-void">
-                {call.callerPhone ?? "Unknown caller"}
-              </p>
-              {call.summary ? (
-                <p className="mt-3 font-sans text-sm leading-relaxed text-void">
-                  {call.summary}
-                </p>
+              {service ? (
+                <div>
+                  <dt>Problem</dt>
+                  <dd>{service}</dd>
+                </div>
               ) : null}
-            </ShellPanel>
-          )}
-
-          {call.summary && call.lead ? (
-            <ShellPanel title="AI summary" dense>
-              <p className="font-sans text-sm leading-relaxed text-void">{call.summary}</p>
-            </ShellPanel>
-          ) : null}
+              {call.lead?.urgency ? (
+                <div>
+                  <dt>Urgency</dt>
+                  <dd>{formatUrgency(call.lead.urgency)}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>Address</dt>
+                <dd className={address ? undefined : "jv-missing"}>{address ?? "Not given on the call"}</dd>
+              </div>
+              {length ? (
+                <div>
+                  <dt>Length</dt>
+                  <dd>{length}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </ShellPanel>
 
           {/*
             Audio above the words. An owner working through the night's calls
-            plays first and reads only when the summary is ambiguous, and the
-            player used to sit below a full transcript — off the bottom of the
-            screen on any call longer than a minute.
+            plays first and reads only when the summary is ambiguous.
           */}
           {call.recordingUrl ? (
             <CallPlayer src={`/api/calls/${callId}/recording`} durationSec={call.durationSec} />
@@ -216,131 +215,82 @@ export default function CallDetailPage() {
         </div>
 
         <div className="os-detail-side">
-          <ShellPanel title="What Orvius did" dense>
-            {call.successEvaluation ? (
-              <p className="call-ai-confidence font-sans">
-                AI confidence{" "}
-                <strong>{call.successEvaluation}</strong>
-                <span className="text-ash"> / 10</span>
-              </p>
-            ) : null}
-            {situation?.actionsTaken?.length ? (
-              <ul className="call-situation-list font-sans">
-                {situation.actionsTaken.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+          <ShellPanel title="What happened" dense>
+            {call.lead?.job ? (
+              <Link href={`/dashboard/jobs/${call.lead.job.id}`} className="cl-outcome cl-outcome--ok font-sans">
+                <span className="cl-outcome-label">Booked</span>
+                <span className="cl-outcome-title">{call.lead.job.title}</span>
+                <span className="jv-sub">
+                  {[jobStatusTitle(call.lead.job.status), call.lead.job.scheduledAt ? formatWhen(call.lead.job.scheduledAt) : null].filter(Boolean).join(" · ")}
+                </span>
+              </Link>
+            ) : call.lead ? (
+              <Link href={`/dashboard/inbox/${call.lead.id}`} className="cl-outcome font-sans">
+                <span className="cl-outcome-label">Not booked yet</span>
+                <span className="cl-outcome-title">Open the request</span>
+              </Link>
             ) : (
-              <p className="font-sans text-sm text-ash">No actions recorded yet.</p>
+              <p className="jv-sub font-sans">{call.status === "ended" ? "Answered. Nothing to book." : statusWord(call.status)}</p>
             )}
-            {situation && situation.quality.verdict !== "clean" ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {call.lead ? (
-                  <Link
-                    href={`/dashboard/inbox/${call.lead.id}`}
-                    className="btn btn-void text-sm"
-                  >
-                    Take over lead
-                  </Link>
-                ) : null}
-                {call.callerPhone ? (
-                  <a href={`tel:${call.callerPhone}`} className="btn btn-secondary text-sm">
-                    Human callback
-                  </a>
-                ) : null}
+            {situation?.actionsTaken?.length ? (
+              <p className="jv-sub cl-did font-sans">Orvius: {situation.actionsTaken.join(" · ").toLowerCase()}</p>
+            ) : null}
+            {call.customer ? (
+              <div className="jv-links font-sans">
+                <Link href={`/dashboard/customers/${call.customer.id}`}>
+                  {call.customer.name ? `${call.customer.name}'s profile` : "Customer profile"} →
+                </Link>
+              </div>
+            ) : null}
+            {situation?.priorJobs?.length ? (
+              <div className="cl-prior font-sans">
+                <p className="jf-label">Before this call</p>
+                <ul>
+                  {situation.priorJobs.map((job) => (
+                    <li key={job.id}>
+                      <Link href={`/dashboard/jobs/${job.id}`}>{job.title}</Link>
+                      <span className="jv-sub">
+                        {[job.scheduledAt ? formatDay(job.scheduledAt) : null, jobStatusTitle(job.status)].filter(Boolean).join(" · ")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : null}
           </ShellPanel>
 
-          {situation ? (
+          {quality ? (
             <div className="call-quality-panel">
-            <ShellPanel title="Call review" dense>
-              <p className="call-quality-score font-sans">
-                Score <strong>{situation.quality.score}</strong> / 100
-              </p>
-              <p className="mt-2 font-sans text-sm leading-relaxed text-void">
-                {situation.quality.findings.length > 1
-                  ? `${situation.quality.findings.length} things worth a listen in the recording:`
-                  : situation.quality.headline}
-              </p>
-              {situation.quality.findings.length > 1 ? (
-                <ul className="font-sans">
-                  {situation.quality.findings.map((finding) => (
-                    <li key={finding.key} className={finding.severity === "fix" ? "is-fix" : ""}>
-                      {finding.label}
-                      {finding.quote ? <q>{finding.quote}</q> : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : situation.quality.findings[0]?.quote ? (
-                <ul className="font-sans">
-                  <li>
-                    <q>{situation.quality.findings[0].quote}</q>
-                  </li>
-                </ul>
-              ) : null}
-              {situation.quality.captured.length ? (
-                <p className="mt-3 font-sans text-sm text-ash">
-                  Captured: {situation.quality.captured.join(", ")}.
+              <ShellPanel title="Call review" dense action={<span className={`cl-score cl-score--${quality.verdict}`}>{quality.score}/100</span>}>
+                <p className="font-sans text-sm leading-relaxed text-void">
+                  {quality.findings.length > 1 ? `${quality.findings.length} things worth a listen:` : quality.headline}
                 </p>
-              ) : null}
-            </ShellPanel>
+                {quality.findings.length > 1 ? (
+                  <ul className="font-sans">
+                    {quality.findings.map((finding) => (
+                      <li key={finding.key} className={finding.severity === "fix" ? "is-fix" : ""}>
+                        {finding.label}
+                        {finding.quote ? <q>{finding.quote}</q> : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : quality.findings[0]?.quote ? (
+                  <ul className="font-sans">
+                    <li>
+                      <q>{quality.findings[0].quote}</q>
+                    </li>
+                  </ul>
+                ) : null}
+                <div className="mt-3">
+                  <CorrectReceptionist callId={call.id} />
+                </div>
+              </ShellPanel>
             </div>
-          ) : null}
-
-          <CorrectReceptionist callId={call.id} />
-
-          {call.customer ? (
-            <ShellPanel title="Customer" dense>
-              <Link
-                href={`/dashboard/customers/${call.customer.id}`}
-                className="customer-timeline-link font-sans"
-              >
-                {call.customer.name ?? call.customer.phone} →
-              </Link>
-              <p className="mt-2 font-sans text-sm text-ash">
-                {call.customer.interactionCount} touch
-                {call.customer.interactionCount === 1 ? "" : "es"}
-                {call.customer.address ? ` · ${call.customer.address}` : ""}
-              </p>
+          ) : (
+            <ShellPanel title="Call review" dense>
+              <CorrectReceptionist callId={call.id} />
             </ShellPanel>
-          ) : null}
-
-          {call.lead?.job ? (
-            <ShellPanel title="Job from this call" dense>
-              <Link
-                href={`/dashboard/jobs/${call.lead.job.id}`}
-                className="customer-timeline-link font-sans"
-              >
-                {call.lead.job.title} →
-              </Link>
-              <p className="mt-2 font-sans text-sm text-ash">
-                {statusWord(call.lead.job.status)}
-                {call.lead.job.scheduledAt
-                  ? ` · ${formatWhen(call.lead.job.scheduledAt)}`
-                  : ""}
-              </p>
-            </ShellPanel>
-          ) : null}
-
-          {situation?.priorJobs?.length ? (
-            <ShellPanel title="Previous jobs" dense>
-              <ul className="call-situation-list font-sans">
-                {situation.priorJobs.map((job) => (
-                  <li key={job.id}>
-                    <Link href={`/dashboard/jobs/${job.id}`} className="customer-timeline-link">
-                      {job.title}
-                    </Link>
-                    <span className="text-ash">
-                      {" "}
-                      · {job.scheduledAt ? `${new Date(job.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })} · ` : ""}
-                      {job.status.replace(/_/g, " ")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </ShellPanel>
-          ) : null}
+          )}
         </div>
       </div>
     </OsShell>
