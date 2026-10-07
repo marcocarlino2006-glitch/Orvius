@@ -13,10 +13,32 @@ const WHO_FILTERS: Array<{ id: "all" | HistoryWho; label: string }> = [
   { id: "customer", label: "Customer" },
 ];
 
+const FINE_PRINT = /\s*Reply STOP to (opt out|unsubscribe)\.?(\s*Msg\s*&\s*data rates may apply\.?)?/gi;
+const URL = /(https?:\/\/[^\s]+)/g;
+
+/** A text as the owner reads it: no carrier fine print, links as a short "Open link". */
+function Detail({ text }: { text: string }) {
+  const parts = text.replace(FINE_PRINT, "").split(URL);
+  return (
+    <p className="wh-event-detail">
+      {parts.map((part, i) =>
+        i % 2 ? (
+          <a key={i} href={part} target="_blank" rel="noreferrer" className="wh-link">
+            Open link
+          </a>
+        ) : (
+          part
+        ),
+      )}
+    </p>
+  );
+}
+
 /** Everything that happened to one piece of work, filterable by who did it. */
 export function WorkHistory({ events, compact = false, timezone }: { events: HistoryEvent[]; compact?: boolean; timezone?: string | null }) {
   const [who, setWho] = useState<"all" | HistoryWho>("all");
   const shown = useMemo(() => (who === "all" ? events : events.filter((e) => e.who === who)), [events, who]);
+  const simulated = useMemo(() => events.some((e) => e.simulated), [events]);
   const counts = useMemo(() => Object.fromEntries(WHO_FILTERS.map((f) => [f.id, f.id === "all" ? events.length : events.filter((e) => e.who === f.id).length])), [events]);
   return (
     <section className={`wh${compact ? " wh--compact" : ""}`} aria-label="History">
@@ -39,9 +61,8 @@ export function WorkHistory({ events, compact = false, timezone }: { events: His
               <div className="wh-body">
                 <p className="wh-event-title">
                   {e.href ? <Link href={e.href}>{e.title}</Link> : e.title}
-                  {e.simulated ? <em className="wh-sim"> · simulated</em> : null}
                 </p>
-                {e.detail ? <p className="wh-event-detail">{e.detail}</p> : null}
+                {e.detail ? <Detail text={e.detail} /> : null}
               </div>
               <time className="wh-at" dateTime={e.at}>
                 {formatWhen(e.at, undefined, timezone)}
@@ -52,6 +73,7 @@ export function WorkHistory({ events, compact = false, timezone }: { events: His
       ) : (
         <p className="cmd-empty">{events.length ? "Nothing from them on this work." : "Nothing recorded yet."}</p>
       )}
+      {simulated ? <p className="wh-sim-note">Demo shop: texts are simulated, nothing reached a real phone.</p> : null}
     </section>
   );
 }
