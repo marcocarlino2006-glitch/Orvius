@@ -12,6 +12,7 @@ import type { Trade } from "@/lib/trades";
 import { industryTerms } from "@/lib/industry-terms";
 import { toast } from "@/components/toaster";
 import { TechScheduleEditor, type TechTimeOff } from "@/components/tech-schedule-editor";
+import { DispatchWeek } from "@/components/dispatch-week";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -446,6 +447,7 @@ function AddTechnician({ onAdded }: { onAdded: () => void }) {
 
 export default function DispatchPage() {
   const [picked, setPicked] = useState<string | null>(null);
+  const [view, setView] = useState<"day" | "week">("day");
   const [board, setBoard] = useState<Board | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -562,6 +564,15 @@ export default function DispatchPage() {
         />
 
         <div className="dsp-toolbar">
+          <div className="dwk-mode" role="radiogroup" aria-label="Schedule view">
+            {(["day", "week"] as const).map((v) => (
+              <button key={v} type="button" role="radio" aria-checked={view === v} className={view === v ? "is-on" : undefined} onClick={() => setView(v)}>
+                {v === "day" ? "Day" : "Week"}
+              </button>
+            ))}
+          </div>
+          {view === "day" ? (
+          <>
           <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setDay((d) => shiftDay(d, -1))} aria-label="Previous day">
             ←
           </button>
@@ -587,7 +598,9 @@ export default function DispatchPage() {
               Today
             </button>
           ) : null}
-          {loading && board ? <span className="dsp-refreshing">Refreshing…</span> : null}
+          </>
+          ) : null}
+          {loading && board && view === "day" ? <span className="dsp-refreshing">Refreshing…</span> : null}
         </div>
 
         {error ? (
@@ -611,6 +624,16 @@ export default function DispatchPage() {
           </div>
         ) : board && schedule ? (
           <>
+            {view === "week" ? (
+              <DispatchWeek
+                anchor={day}
+                onOpenDay={(d) => {
+                  setPicked(d);
+                  setView("day");
+                }}
+              />
+            ) : (
+            <>
             {decisions || conflicts.length ? (
               <section className="dsp-section" aria-labelledby="dsp-decide">
                 <h2 id="dsp-decide" className="dsp-h">
@@ -731,6 +754,8 @@ export default function DispatchPage() {
                   ))}
                 </div>
               </section>
+            )}
+            </>
             )}
 
             <details className="dsp-section dsp-crew" open={!crew.length}>
