@@ -3685,6 +3685,17 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem !important;
 }
 
+.public-shell .public-money-actions .btn-void:not(:disabled) {
+  background: #c4783a;
+  border-color: #c4783a;
+  color: #120c05;
+  font-weight: 700;
+}
+
+.public-shell .public-money-actions .btn-void:disabled {
+  opacity: 0.55;
+}
+
 /* Confirm / bare token routes */
 
 /* Night panels used by billing success / docs */
