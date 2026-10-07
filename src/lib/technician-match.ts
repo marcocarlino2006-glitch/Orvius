@@ -1,5 +1,6 @@
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
+import { techUnavailable, type TechShift } from "@/lib/tech-hours";
 
 export type TechCandidate = {
   id: string;
@@ -7,7 +8,7 @@ export type TechCandidate = {
   skills: string[];
   /** Open jobs already on this tech's calendar. */
   jobs: { id: string; scheduledAt: Date; durationMin: number }[];
-};
+} & Partial<Pick<TechShift, "hoursJson" | "timeOff">>;
 
 export type TechRecommendation = {
   technicianId: string;
@@ -19,7 +20,7 @@ export type TechRanking = {
   pick: TechRecommendation;
   /** Why nobody was picked, when nobody was. */
   blocked: string | null;
-  considered: { id: string; name: string; fit: "picked" | "busy" | "no_skill" | "available" }[];
+  considered: { id: string; name: string; fit: "picked" | "busy" | "no_skill" | "off" | "available" }[];
   /** The pick is strictly better than every alternative, so it can be made without asking. */
   clearCut?: boolean;
 };
@@ -59,6 +60,8 @@ export function rankTechnicians(input: {
   scheduledAt: Date;
   durationMin: number;
   skill: string | null;
+  /** Shop timezone; needed to read a technician's own hours. */
+  timezone?: string;
 }): TechRanking {
   const considered: TechRanking["considered"] = [];
   const eligible: { tech: TechCandidate; specialist: boolean; dayLoad: number }[] = [];
@@ -69,6 +72,10 @@ export function rankTechnicians(input: {
     const generalist = tech.skills.length === 0;
     if (needsSkill && !specialist && !generalist) {
       considered.push({ id: tech.id, name: tech.name, fit: "no_skill" });
+      continue;
+    }
+    if (techUnavailable(tech, input.scheduledAt, input.durationMin, input.timezone ?? "America/New_York")) {
+      considered.push({ id: tech.id, name: tech.name, fit: "off" });
       continue;
     }
     const busy = tech.jobs.some((j) => overlaps(input.scheduledAt, input.durationMin, j.scheduledAt, j.durationMin));
@@ -86,7 +93,9 @@ export function rankTechnicians(input: {
       ? "No active technicians on the team yet."
       : considered.every((c) => c.fit === "no_skill")
         ? `Nobody on the team has the ${needsSkill?.replace(/_/g, " ")} skill.`
-        : "Every qualified technician is already booked at that time.";
+        : considered.some((c) => c.fit === "busy")
+          ? "Every qualified technician is already booked or off at that time."
+          : "Every qualified technician is off at that time.";
     return { pick: null, blocked, considered };
   }
 
@@ -126,6 +135,10 @@ export async function loadTechCandidates(
       id: true,
       name: true,
       skillsJson: true,
+      hoursJson: true,
+      timeOff: around
+        ? { where: { endsAt: { gt: new Date(around.getTime() - DAY_MS) } }, select: { startsAt: true, endsAt: true } }
+        : { where: { endsAt: { gt: new Date() } }, select: { startsAt: true, endsAt: true } },
       jobs: {
         where: {
           status: { notIn: ["completed", "cancelled"] },
@@ -140,6 +153,8 @@ export async function loadTechCandidates(
     id: t.id,
     name: t.name,
     skills: parseSkills(t.skillsJson),
+    hoursJson: t.hoursJson,
+    timeOff: t.timeOff.map((o) => ({ start: o.startsAt, end: o.endsAt })),
     jobs: t.jobs.flatMap((j) =>
       j.scheduledAt
         ? [{ id: j.id, scheduledAt: j.scheduledAt, durationMin: j.durationMin ?? DEFAULT_JOB_DURATION_MIN }]
@@ -154,9 +169,16 @@ export async function recommendTechnician(params: {
   durationMin: number | null;
   skill: string | null;
   excludeJobId?: string;
+  timezone?: string | null;
 }): Promise<TechRanking> {
-  const candidates = await loadTechCandidates(params.businessId, params.excludeJobId, params.scheduledAt);
+  const [candidates, shop] = await Promise.all([
+    loadTechCandidates(params.businessId, params.excludeJobId, params.scheduledAt),
+    params.timezone
+      ? null
+      : prisma.business.findUnique({ where: { id: params.businessId }, select: { timezone: true } }),
+  ]);
   return rankTechnicians({
+    timezone: params.timezone ?? shop?.timezone ?? "America/New_York",
     candidates,
     scheduledAt: params.scheduledAt,
     durationMin: params.durationMin ?? DEFAULT_JOB_DURATION_MIN,

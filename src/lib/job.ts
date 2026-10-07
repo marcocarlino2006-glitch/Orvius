@@ -18,6 +18,7 @@ import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { notifyCustomerOnTheWay } from "@/lib/on-the-way";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { parseSkills, recommendTechnician } from "@/lib/technician-match";
+import { slotHasRoom, type TechShift } from "@/lib/tech-hours";
 import { prisma } from "@/lib/prisma";
 import { jobTitle } from "@/lib/job-schedule";
 import {
@@ -175,7 +176,7 @@ export async function findOpenSlots(
     }),
     prisma.technician.findMany({
       where: { businessId: params.businessId, isActive: true },
-      select: { id: true, skillsJson: true },
+      select: TECH_SHIFT_SELECT(now),
     }),
     prisma.call.findMany({
       where: {
@@ -210,6 +211,16 @@ export async function findOpenSlots(
     ? existing.filter((j) => !j.technicianId || poolIds.has(j.technicianId))
     : existing;
 
+  const shifts = pool.map(toShift);
+  const booked = [
+    ...relevant.flatMap((job) =>
+      job.scheduledAt ? [{ scheduledAt: job.scheduledAt, durationMin: job.durationMin, technicianId: job.technicianId }] : [],
+    ),
+    ...holds.flatMap((hold) =>
+      hold.heldSlotAt ? [{ scheduledAt: hold.heldSlotAt, durationMin: hold.heldSlotDurationMin, technicianId: null }] : [],
+    ),
+  ];
+
   return findAvailableSchedules(
     {
       now,
@@ -219,6 +230,8 @@ export async function findOpenSlots(
       timezone: params.timezone,
       capacity: Math.max(1, activeTechnicians),
       blocked,
+      hasRoom: (start, durationMin) =>
+        slotHasRoom({ pool: shifts, booked, start, durationMin, timezone: params.timezone }),
       existing: [
         ...relevant.flatMap((job) =>
           job.scheduledAt
@@ -234,6 +247,18 @@ export async function findOpenSlots(
     },
     options,
   );
+}
+
+/** Hours and the time off that could still matter from `from` on. */
+const TECH_SHIFT_SELECT = (from: Date) => ({
+  id: true,
+  skillsJson: true,
+  hoursJson: true,
+  timeOff: { where: { endsAt: { gt: from } }, select: { startsAt: true, endsAt: true } },
+});
+
+function toShift(t: { id: string; hoursJson: string; timeOff: { startsAt: Date; endsAt: Date }[] }): TechShift {
+  return { id: t.id, hoursJson: t.hoursJson, timeOff: t.timeOff.map((o) => ({ start: o.startsAt, end: o.endsAt })) };
 }
 
 /** Thrown inside the booking transaction when the slot filled after it was chosen. */
@@ -256,7 +281,7 @@ type BookingTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
  */
 async function assertSlotOpen(
   tx: BookingTx,
-  params: { businessId: string; at: Date; durationMin: number; skill: string },
+  params: { businessId: string; at: Date; durationMin: number; skill: string; timezone: string },
 ) {
   const startMs = params.at.getTime();
   const endMs = startMs + params.durationMin * 60_000;
@@ -271,7 +296,7 @@ async function assertSlotOpen(
     }),
     tx.technician.findMany({
       where: { businessId: params.businessId, isActive: true },
-      select: { id: true, skillsJson: true },
+      select: TECH_SHIFT_SELECT(params.at),
     }),
   ]);
   const eligible = technicians.filter((t) => {
@@ -280,14 +305,19 @@ async function assertSlotOpen(
   });
   const pool = eligible.length ? eligible : technicians;
   const poolIds = new Set(pool.map((t) => t.id));
-  const overlapping = jobs.filter((job) => {
-    if (!job.scheduledAt) return false;
-    if (eligible.length && job.technicianId && !poolIds.has(job.technicianId)) return false;
-    const otherStart = job.scheduledAt.getTime();
-    const otherEnd = otherStart + Math.max(SLOT_STEP_MIN, job.durationMin ?? DEFAULT_JOB_DURATION_MIN) * 60_000;
-    return startMs < otherEnd && otherStart < endMs;
-  }).length;
-  if (overlapping >= Math.max(1, pool.length)) throw new SlotTakenError(params.at);
+  const booked = jobs.flatMap((job) =>
+    job.scheduledAt && !(eligible.length && job.technicianId && !poolIds.has(job.technicianId))
+      ? [{ scheduledAt: job.scheduledAt, durationMin: job.durationMin, technicianId: job.technicianId }]
+      : [],
+  );
+  const open = slotHasRoom({
+    pool: pool.map(toShift),
+    booked,
+    start: params.at,
+    durationMin: params.durationMin,
+    timezone: params.timezone,
+  });
+  if (!open) throw new SlotTakenError(params.at);
 }
 
 /** Thrown inside the booking transaction when the same caller's other call booked first. */
@@ -513,6 +543,7 @@ export async function createJobFromLead(params: {
           at: scheduledAt,
           durationMin,
           skill: playbook.service.skill,
+          timezone: lead.business?.timezone ?? "America/New_York",
         });
       }
       const created = await tx.job.create({

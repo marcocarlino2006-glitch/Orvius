@@ -866,3 +866,16 @@ ALTER TABLE "OutboundSms" ADD COLUMN "jobId" TEXT;
 CREATE INDEX IF NOT EXISTS "OutboundSms_jobId_idx" ON "OutboundSms"("jobId");
 ALTER TABLE "Estimate" ADD COLUMN "optionsJson" TEXT NOT NULL DEFAULT '[]';
 ALTER TABLE "Estimate" ADD COLUMN "chosenOption" TEXT;
+ALTER TABLE "Technician" ADD COLUMN "hoursJson" TEXT NOT NULL DEFAULT '{}';
+CREATE TABLE IF NOT EXISTS "TechnicianTimeOff" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "technicianId" TEXT NOT NULL,
+  "startsAt" DATETIME NOT NULL,
+  "endsAt" DATETIME NOT NULL,
+  "reason" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "TechnicianTimeOff_technicianId_fkey" FOREIGN KEY ("technicianId") REFERENCES "Technician" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "TechnicianTimeOff_technicianId_endsAt_idx" ON "TechnicianTimeOff"("technicianId", "endsAt");
+CREATE INDEX IF NOT EXISTS "TechnicianTimeOff_businessId_endsAt_idx" ON "TechnicianTimeOff"("businessId", "endsAt");

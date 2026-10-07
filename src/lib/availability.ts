@@ -21,6 +21,8 @@ type AvailabilityInput = {
   durationMin?: number;
   /** Times the whole shop is unavailable (the owner's own calendar). */
   blocked?: BusyWindow[];
+  /** Per-technician room (hours, time off); replaces the flat `capacity` count when given. */
+  hasRoom?: (start: Date, durationMin: number) => boolean;
 };
 
 export type BusyWindow = { start: Date; end: Date };
@@ -230,6 +232,10 @@ export function findAvailableSchedules(
     input.durationMin ?? DEFAULT_JOB_DURATION_MIN,
   );
   const capacity = Math.max(1, Math.floor(input.capacity));
+  const roomAt = (at: Date) =>
+    input.hasRoom
+      ? input.hasRoom(at, durationMin)
+      : overlappingJobs({ start: at, durationMin, existing: input.existing }) < capacity;
   if (options.onlyAt) {
     const at = options.onlyAt;
     const open =
@@ -237,7 +243,7 @@ export function findAvailableSchedules(
       at.getTime() <= now.getTime() + MAX_SCHEDULE_DAYS * 24 * 60 * 60_000 &&
       fitsShopHours({ start: at, durationMin, hoursJson: input.hoursJson, timezone }) &&
       !hitsBlocked(at, durationMin, input.blocked) &&
-      overlappingJobs({ start: at, durationMin, existing: input.existing }) < capacity;
+      roomAt(at);
     return open ? [at] : [];
   }
   const earliest = roundUp(
@@ -260,9 +266,7 @@ export function findAvailableSchedules(
       continue;
     }
     if (hitsBlocked(candidate, durationMin, input.blocked)) continue;
-    if (overlappingJobs({ start: candidate, durationMin, existing: input.existing }) < capacity) {
-      found.push(candidate);
-    }
+    if (roomAt(candidate)) found.push(candidate);
   }
 
   return found;
