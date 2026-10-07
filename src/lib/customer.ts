@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { estimateTitle } from "@/lib/estimate-options";
 import { paymentMethodLabel } from "@/lib/when";
 
 export type CustomerTouch = {
@@ -330,7 +331,7 @@ export async function getCustomerTimeline(
         id: estimate.id,
         type: "estimate",
         at: estimate.createdAt.toISOString(),
-        title: `Estimate · ${formatMoney(estimate.amountCents)}`,
+        title: estimateTitle(estimate, formatMoney),
         summary: estimate.notes ?? `For job: ${job.title}`,
         source: "estimate",
         urgency: null,

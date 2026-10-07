@@ -81,6 +81,8 @@ export const JOB_INCLUDE = {
       id: true,
       amountCents: true,
       status: true,
+      optionsJson: true,
+      chosenOption: true,
       publicToken: true,
       sentAt: true,
       acceptedAt: true,

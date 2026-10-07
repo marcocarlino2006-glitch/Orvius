@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { parseEstimateOptions } from "@/lib/estimate-options";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
@@ -65,6 +66,12 @@ export async function POST(request: Request) {
       if (estimate.invoice) {
         return NextResponse.json(
           { error: "Estimate already has an invoice", invoice: estimate.invoice },
+          { status: 409 },
+        );
+      }
+      if (parseEstimateOptions(estimate.optionsJson).length && !estimate.chosenOption) {
+        return NextResponse.json(
+          { error: "Mark which option the customer chose before invoicing." },
           { status: 409 },
         );
       }

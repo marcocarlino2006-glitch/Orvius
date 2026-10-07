@@ -864,3 +864,5 @@ ALTER TABLE "OutboundSms" ADD COLUMN "deliveryStatus" TEXT;
 CREATE INDEX IF NOT EXISTS "OutboundSms_sid_idx" ON "OutboundSms"("sid");
 ALTER TABLE "OutboundSms" ADD COLUMN "jobId" TEXT;
 CREATE INDEX IF NOT EXISTS "OutboundSms_jobId_idx" ON "OutboundSms"("jobId");
+ALTER TABLE "Estimate" ADD COLUMN "optionsJson" TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE "Estimate" ADD COLUMN "chosenOption" TEXT;

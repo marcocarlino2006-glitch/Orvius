@@ -5,6 +5,8 @@ import {
   fulfillEstimateCheckoutSession,
   isEstimateCardPayReady,
 } from "@/lib/estimate-pay";
+import { acceptEstimate } from "@/lib/estimate-choice";
+import { findOption, parseEstimateOptions } from "@/lib/estimate-options";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
@@ -41,7 +43,10 @@ async function loadEstimate(token: string) {
 }
 
 function serializePublic(estimate: NonNullable<Awaited<ReturnType<typeof loadEstimate>>>) {
+  const options = parseEstimateOptions(estimate.optionsJson);
   return {
+    options: options.map((o) => ({ ...o, amountLabel: formatCents(o.amountCents) })),
+    chosenOption: findOption(options, estimate.chosenOption)?.key ?? null,
     token: estimate.publicToken,
     status: estimate.status,
     amountCents: estimate.amountCents,
@@ -78,6 +83,7 @@ export async function GET(request: Request, { params }: Params) {
 const actionSchema = z.object({
   action: z.enum(["accept", "pay_manual", "pay_card", "confirm_card"]),
   sessionId: z.string().min(1).optional(),
+  option: z.string().max(20).optional(),
 });
 
 /**
@@ -100,38 +106,25 @@ export async function POST(request: Request, { params }: Params) {
     const body = actionSchema.parse(await request.json());
 
     if (body.action === "accept") {
-      if (!estimate.invoice) {
-        await prisma.invoice.create({
-          data: {
-            businessId: estimate.businessId,
-            estimateId: estimate.id,
-            jobId: estimate.jobId,
-            amountCents: estimate.amountCents,
-            status: "open",
-          },
-        });
-      }
-
-      const updated = await prisma.estimate.update({
-        where: { id: estimate.id },
-        data: {
-          status: "accepted",
-          acceptedAt: estimate.acceptedAt ?? new Date(),
-        },
-        include: {
-          business: { select: BUSINESS_SELECT },
-          job: { select: { id: true, title: true, address: true } },
-          invoice: {
-            include: {
-              payments: {
-                select: { id: true, amountCents: true, status: true, method: true },
-              },
-            },
-          },
-        },
+      const result = await acceptEstimate({
+        estimateId: estimate.id,
+        optionKey: body.option,
+        by: "customer",
+        actor: "customer",
       });
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error }, { status: result.status });
+      }
+      const updated = await loadEstimate(token);
+      return NextResponse.json({ ok: true, estimate: updated ? serializePublic(updated) : null });
+    }
 
-      return NextResponse.json({ ok: true, estimate: serializePublic(updated) });
+    if (
+      (body.action === "pay_card" || body.action === "pay_manual") &&
+      parseEstimateOptions(estimate.optionsJson).length &&
+      !estimate.chosenOption
+    ) {
+      return NextResponse.json({ error: "Pick one of the options first." }, { status: 400 });
     }
 
     if (body.action === "confirm_card") {

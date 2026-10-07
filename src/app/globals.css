@@ -2584,6 +2584,55 @@ h3 {
   color: color-mix(in srgb, #ececec 45%, transparent);
 }
 
+.public-options {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.public-option {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 0.65rem;
+  background: rgb(255 255 255 / 0.03);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.public-option.is-on {
+  border-color: #c4783a;
+  background: color-mix(in srgb, #c4783a 12%, transparent);
+  box-shadow: 0 0 0 1px #c4783a;
+}
+
+.public-option-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.public-option-name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.public-option-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.public-option-desc {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, #ececec 70%, transparent);
+}
+
 /* Approve-first queue on Command */
 
 .public-money {
@@ -3634,6 +3683,23 @@ label:has(> input[type="radio"]) {
 .public-shell button,
 .public-shell input {
   border-radius: 0.25rem !important;
+}
+
+.public-shell .public-money-actions .btn-void:not(:disabled) {
+  background: #c4783a;
+  border-color: #c4783a;
+  color: #120c05;
+  font-weight: 700;
+}
+
+.public-shell .public-money-actions .btn-secondary {
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(255 255 255 / 0.22);
+  color: #f1f1f1;
+}
+
+.public-shell .public-money-actions .btn-void:disabled {
+  opacity: 0.55;
 }
 
 /* Confirm / bare token routes */

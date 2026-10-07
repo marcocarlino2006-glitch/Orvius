@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "@/components/toaster";
+import { DEFAULT_OPTION_LABELS, ESTIMATE_OPTION_KEYS, findOption, parseEstimateOptions } from "@/lib/estimate-options";
 import { formatCents, formatCentsExact } from "@/lib/money";
 import { useState } from "react";
 import { formatDay, statusWord } from "@/lib/when";
@@ -9,6 +10,8 @@ type EstimateState = {
   id: string;
   amountCents: number;
   status: string;
+  optionsJson?: string | null;
+  chosenOption?: string | null;
   publicToken?: string | null;
   invoice: {
     id: string;
@@ -67,6 +70,24 @@ export function JobMoneyPanel({
   const [amountDollars, setAmountDollars] = useState(
     avgTicketCents ? String(Math.round(avgTicketCents / 100)) : "",
   );
+  const [tiered, setTiered] = useState(false);
+  const [tiers, setTiers] = useState(() =>
+    ESTIMATE_OPTION_KEYS.map((key, i) => ({
+      key,
+      label: DEFAULT_OPTION_LABELS[key],
+      description: "",
+      dollars: i === 0 && avgTicketCents ? String(Math.round(avgTicketCents / 100)) : "",
+    })),
+  );
+  const options = parseEstimateOptions(estimate?.optionsJson);
+  const chosen = findOption(options, estimate?.chosenOption);
+  const pricedTiers = tiers
+    .map((t) => ({ ...t, amountCents: Math.round(Number(t.dollars.replace(/[^0-9.]/g, "")) * 100) }))
+    .filter((t) => t.dollars.trim() && Number.isFinite(t.amountCents) && t.amountCents > 0);
+
+  function setTier(index: number, patch: Partial<(typeof tiers)[number]>) {
+    setTiers((current) => current.map((t, i) => (i === index ? { ...t, ...patch } : t)));
+  }
 
   async function requestDeposit() {
     if (!leadId) return;
@@ -126,12 +147,21 @@ export function JobMoneyPanel({
       const res = await fetch("/api/estimates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobId,
-          ...(amountCents && Number.isFinite(amountCents)
-            ? { amountCents }
-            : {}),
-        }),
+        body: JSON.stringify(
+          tiered
+            ? {
+                jobId,
+                options: pricedTiers.map((t) => ({
+                  label: t.label,
+                  description: t.description,
+                  amountCents: t.amountCents,
+                })),
+              }
+            : {
+                jobId,
+                ...(amountCents && Number.isFinite(amountCents) ? { amountCents } : {}),
+              },
+        ),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not create estimate");
@@ -164,6 +194,27 @@ export function JobMoneyPanel({
       onRefresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send estimate");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function chooseOption(key: string) {
+    if (!estimate) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/estimates/${estimate.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "choose", option: key }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not save the choice");
+      toast({ title: `${data.option?.label ?? "Option"} chosen` });
+      onRefresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save the choice");
     } finally {
       setBusy(false);
     }
@@ -321,33 +372,119 @@ export function JobMoneyPanel({
             Send the customer an estimate to accept. Card payments go straight
             to your bank — Orvius never holds your money.
           </p>
-          <label className="mt-4 block">
-            <span className="label">Amount ($)</span>
-            <input
-              className="input mt-1.5"
-              inputMode="decimal"
-              value={amountDollars}
-              onChange={(e) => setAmountDollars(e.target.value)}
-              placeholder={avgTicketCents ? undefined : "e.g. 350"}
-              disabled={busy}
-            />
-          </label>
+          <div className="job-money-mode" role="radiogroup" aria-label="Estimate type">
+            <button type="button" role="radio" aria-checked={!tiered} className={!tiered ? "is-on" : undefined} onClick={() => setTiered(false)}>
+              One price
+            </button>
+            <button type="button" role="radio" aria-checked={tiered} className={tiered ? "is-on" : undefined} onClick={() => setTiered(true)}>
+              Good · Better · Best
+            </button>
+          </div>
+          {tiered ? (
+            <div className="job-money-tiers">
+              {tiers.map((t, i) => (
+                <fieldset key={t.key} className="job-money-tier">
+                  <legend className="sr-only">Option {i + 1}</legend>
+                  <div className="job-money-tier-head">
+                    <input
+                      className="input"
+                      aria-label={`Option ${i + 1} name`}
+                      value={t.label}
+                      maxLength={40}
+                      onChange={(e) => setTier(i, { label: e.target.value })}
+                      disabled={busy}
+                    />
+                    <input
+                      className="input"
+                      aria-label={`${t.label || `Option ${i + 1}`} price ($)`}
+                      inputMode="decimal"
+                      placeholder={["$", "$$", "$$$"][i]}
+                      value={t.dollars}
+                      onChange={(e) => setTier(i, { dollars: e.target.value })}
+                      disabled={busy}
+                    />
+                  </div>
+                  <input
+                    className="input"
+                    aria-label={`What ${t.label || `option ${i + 1}`} includes`}
+                    placeholder={["Repair what failed", "Repair plus the part that fails next", "Replace the unit, 10-year warranty"][i]}
+                    value={t.description}
+                    maxLength={400}
+                    onChange={(e) => setTier(i, { description: e.target.value })}
+                    disabled={busy}
+                  />
+                </fieldset>
+              ))}
+              <p className="job-money-lead">
+                The customer picks one on their link. Leave a price blank to offer two.
+              </p>
+            </div>
+          ) : (
+            <label className="mt-4 block">
+              <span className="label">Amount ($)</span>
+              <input
+                className="input mt-1.5"
+                inputMode="decimal"
+                value={amountDollars}
+                onChange={(e) => setAmountDollars(e.target.value)}
+                placeholder={avgTicketCents ? undefined : "e.g. 350"}
+                disabled={busy}
+              />
+            </label>
+          )}
           <button
             type="button"
             className="btn btn-secondary mt-4 text-sm"
-            disabled={busy || (!avgTicketCents && !amountDollars.trim())}
+            disabled={
+              busy ||
+              (tiered ? pricedTiers.length < 2 || pricedTiers.some((t) => t.amountCents < 1000) : !avgTicketCents && !amountDollars.trim())
+            }
             onClick={() => void createEstimate()}
           >
-            {busy ? "Creating…" : "Create estimate"}
+            {busy ? "Creating…" : tiered ? `Create estimate with ${pricedTiers.length >= 2 ? pricedTiers.length : "2–3"} options` : "Create estimate"}
           </button>
+          {tiered && pricedTiers.some((t) => t.amountCents < 1000) ? (
+            <p className="job-money-lead">Each option needs to be at least $10.</p>
+          ) : null}
         </>
       ) : (
         <>
+          {options.length ? (
+            <ul className="job-money-options" aria-label="Estimate options">
+              {options.map((o) => {
+                const isChosen = chosen?.key === o.key;
+                return (
+                  <li key={o.key} className={isChosen ? "is-chosen" : undefined}>
+                    <div className="job-money-option-head">
+                      <span className="job-money-option-name">{o.label}</span>
+                      <span className="job-money-option-price">{formatCents(o.amountCents)}</span>
+                    </div>
+                    {o.description ? <p className="job-money-lead">{o.description}</p> : null}
+                    {isChosen ? (
+                      <p className="job-money-option-chosen">Customer&rsquo;s choice</p>
+                    ) : !settled && !estimate.invoice?.payments.length ? (
+                      <button
+                        type="button"
+                        className="btn btn-secondary text-sm"
+                        disabled={busy}
+                        onClick={() => void chooseOption(o.key)}
+                      >
+                        {chosen ? "Switch to this one" : "Customer chose this"}
+                      </button>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
           <dl className="job-money-meta">
             <div>
               <dt>Estimate</dt>
               <dd>
-                {formatCents(estimate.amountCents)} · {statusWord(estimate.status)}
+                {options.length && !chosen
+                  ? `${options.length} options from ${formatCents(estimate.amountCents)}`
+                  : formatCents(estimate.amountCents)}{" "}
+                · {options.length && !chosen && estimate.status !== "draft" ? "waiting for the customer to pick" : statusWord(estimate.status)}
               </dd>
             </div>
             {estimate.invoice ? (
@@ -409,7 +546,7 @@ export function JobMoneyPanel({
               </div>
             ) : null}
 
-            {!estimate.invoice ? (
+            {!estimate.invoice && options.length && !chosen ? null : !estimate.invoice ? (
               <button
                 type="button"
                 className="btn btn-secondary text-sm"
