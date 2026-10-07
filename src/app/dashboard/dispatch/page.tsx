@@ -11,16 +11,27 @@ import { skillOptions } from "@/lib/trade-playbooks";
 import type { Trade } from "@/lib/trades";
 import { industryTerms } from "@/lib/industry-terms";
 import { toast } from "@/components/toaster";
+import { TechScheduleEditor, type TechTimeOff } from "@/components/tech-schedule-editor";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Tech = { id: string; name: string; phone: string | null; skillsJson?: string; hasAppLink?: boolean; appLinkAt?: string | null };
+type Tech = {
+  id: string;
+  name: string;
+  phone: string | null;
+  skillsJson?: string;
+  hoursJson?: string;
+  timeOff?: TechTimeOff[];
+  hasAppLink?: boolean;
+  appLinkAt?: string | null;
+};
 
 type Board = {
   business: { id: string; name: string };
   day: string;
   /** The shop's current day, which can differ from the browser's. */
   today: string;
+  timezone?: string;
   jobCount: number;
   crew?: Tech[];
   schedule: DispatchSchedule;
@@ -299,10 +310,14 @@ function TechAppLink({ tech, onChanged }: { tech: Tech; onChanged: () => void })
 function CrewMember({
   tech,
   trade,
+  timezone,
+  today,
   onSaved,
 }: {
   tech: Tech;
   trade: Trade | null;
+  timezone: string;
+  today: string;
   onSaved: () => void;
 }) {
   const [phone, setPhone] = useState(tech.phone ?? "");
@@ -335,7 +350,8 @@ function CrewMember({
   }
 
   return (
-    <form className="dsp-crew-row" onSubmit={save}>
+    <div className="dsp-crew-member">
+      <form className="dsp-crew-row" onSubmit={save}>
       <div className="dsp-crew-id">
         <span className="dsp-crew-name">{tech.name}</span>
         <input
@@ -373,7 +389,9 @@ function CrewMember({
         </button>
       </div>
       <TechAppLink tech={tech} onChanged={onSaved} />
-    </form>
+      </form>
+      <TechScheduleEditor tech={tech} timezone={timezone} today={today} onChanged={onSaved} />
+    </div>
   );
 }
 
@@ -669,11 +687,12 @@ export default function DispatchPage() {
                     </div>
                   ) : null}
                   {schedule.lanes.map((lane) => (
-                    <div key={lane.technician.id} className="dsp-lane" role="row">
+                    <div key={lane.technician.id} className={`dsp-lane${lane.offAllDay ? " is-off" : ""}`} role="row">
                       <div className="dsp-lane-name">
                         <span className="dsp-lane-tech">{lane.technician.name}</span>
+                        {lane.availability ? <span className="dsp-lane-off">{lane.availability}</span> : null}
                         <span className="dsp-lane-meta">
-                          {lane.blocks.length ? `${hours(lane.bookedMin)} booked` : "Free all day"}
+                          {lane.blocks.length ? `${hours(lane.bookedMin)} booked` : lane.offAllDay ? "Nothing booked" : "Free all day"}
                           {lane.technician.skills.length ? ` · ${lane.technician.skills.map(label).join(", ")}` : ""}
                         </span>
                       </div>
@@ -704,7 +723,9 @@ export default function DispatchPage() {
                     <AgendaLane
                       key={lane.technician.id}
                       name={lane.technician.name}
-                      meta={lane.blocks.length ? `${hours(lane.bookedMin)} booked` : "Free all day"}
+                      meta={[lane.availability, lane.blocks.length ? `${hours(lane.bookedMin)} booked` : lane.offAllDay ? null : "Free all day"]
+                        .filter(Boolean)
+                        .join(" · ")}
                       blocks={lane.blocks}
                     />
                   ))}
@@ -719,7 +740,14 @@ export default function DispatchPage() {
                 any job.
               </p>
               {crew.map((tech) => (
-                <CrewMember key={`${tech.id}-${tech.skillsJson}-${tech.phone}`} tech={tech} trade={trade} onSaved={load} />
+                <CrewMember
+                  key={`${tech.id}-${tech.skillsJson}-${tech.phone}`}
+                  tech={tech}
+                  trade={trade}
+                  timezone={board?.timezone ?? "America/New_York"}
+                  today={today}
+                  onSaved={load}
+                />
               ))}
               <AddTechnician onAdded={load} />
             </details>

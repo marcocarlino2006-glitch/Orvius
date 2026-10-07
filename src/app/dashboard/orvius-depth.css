@@ -259,3 +259,173 @@ html body .os-shell.os-shell-night .job-money-options .btn {
   text-transform: uppercase;
   color: color-mix(in srgb, #c4783a 85%, #fff);
 }
+
+/* Technician hours and time off on Dispatch */
+html body .os-shell.os-shell-night .dsp-crew-member {
+  border-bottom: 1px solid var(--os-line);
+  padding-bottom: 0.75rem;
+}
+html body .os-shell.os-shell-night .dsp-crew-member > .dsp-crew-row {
+  border-bottom: 0;
+}
+.tse {
+  margin-top: 0.25rem;
+}
+.tse-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  width: fit-content;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--os-ink) 82%, transparent);
+}
+.tse-summary-meta {
+  font-weight: 500;
+  color: color-mix(in srgb, var(--os-ink) 52%, transparent);
+}
+.tse-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem 1.5rem;
+  margin-top: 0.75rem;
+}
+.tse-block {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+}
+.tse-block > .ox-btn {
+  justify-self: start;
+}
+html body .os-shell.os-shell-night .tse-mode {
+  display: inline-grid;
+  grid-auto-flow: column;
+  justify-self: start;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 0.5rem;
+  background: var(--dp-canvas);
+  box-shadow: var(--dp-press);
+}
+html body .os-shell.os-shell-night .tse-mode button {
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: color-mix(in srgb, var(--os-ink) 62%, transparent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+html body .os-shell.os-shell-night .tse-mode button.is-on {
+  background: var(--dp-card);
+  color: var(--os-ink);
+  box-shadow: var(--dp-lift);
+}
+.tse-days {
+  display: grid;
+  gap: 0.3rem;
+}
+.tse-day {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+}
+.tse-day-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.tse-day-times {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--os-ink) 50%, transparent);
+}
+.tse-day-times .input {
+  width: 8.5rem;
+  padding-block: 0.3rem;
+}
+.tse-day-off,
+.tse-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: color-mix(in srgb, var(--os-ink) 50%, transparent);
+}
+.tse-day.is-off .tse-day-name {
+  color: color-mix(in srgb, var(--os-ink) 55%, transparent);
+}
+.tse-label,
+.tse-field {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--os-ink) 60%, transparent);
+}
+.tse-off-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tse-off-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--os-line);
+  border-radius: 0.4rem;
+  font-size: 0.8125rem;
+}
+.tse-add {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  align-items: end;
+}
+.tse-add label {
+  display: grid;
+  gap: 0.25rem;
+}
+.tse-add .tse-reason {
+  grid-column: 1 / -1;
+}
+.tse-add > .ox-btn {
+  justify-self: start;
+}
+.tse-affected {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid color-mix(in srgb, #e0a24a 55%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, #e0a24a 9%, transparent);
+  font-size: 0.8125rem;
+}
+.tse-affected p {
+  margin: 0 0 0.35rem;
+}
+.tse-affected ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+.tse-affected a {
+  color: inherit;
+  text-decoration: underline;
+}
+html body .os-shell.os-shell-night .dsp-lane-off {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #e0a24a;
+}
+html body .os-shell.os-shell-night .dsp-lane.is-off .dsp-track {
+  background: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.025) 0 8px, transparent 8px 16px) !important;
+}

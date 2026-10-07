@@ -5,6 +5,7 @@ import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
 import { skillOptions } from "@/lib/trade-playbooks";
+import { parseTechHours } from "@/lib/tech-hours";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -21,6 +22,8 @@ export async function PATCH(request: Request, { params }: Params) {
     name?: string;
     phone?: string | null;
     skills?: string[];
+    /** Weekday → { open, close, closed }; null goes back to the shop's hours. */
+    hours?: unknown;
   };
 
   const existing = await prisma.technician.findFirst({
@@ -30,7 +33,15 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Technician not found" }, { status: 404 });
   }
 
-  const data: { name?: string; phone?: string | null; skillsJson?: string } = {};
+  const data: { name?: string; phone?: string | null; skillsJson?: string; hoursJson?: string } = {};
+
+  if (body.hours !== undefined) {
+    const hours = body.hours === null ? {} : parseTechHours(body.hours);
+    if (!hours) {
+      return NextResponse.json({ error: "Hours need a start before the end, like 07:00 to 15:30" }, { status: 400 });
+    }
+    data.hoursJson = JSON.stringify(hours);
+  }
 
   if (body.skills !== undefined) {
     const known = new Set(skillOptions(null).map((s) => s.key));

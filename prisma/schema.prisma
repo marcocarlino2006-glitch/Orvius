@@ -589,10 +589,13 @@ model Technician {
   /** The technician's own app link (/tech/[token]). Sending a new link retires the old one. */
   appToken   String?   @unique
   appTokenAt DateTime?
+  /** This technician's own working hours, same shape as Business.hoursJson. Empty means the shop's hours. */
+  hoursJson  String   @default("{}")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  jobs Job[]
+  jobs    Job[]
+  timeOff TechnicianTimeOff[]
 
   /*
     One name, one person. ensureCrew read the table and then created the owner
@@ -1017,6 +1020,21 @@ model Membership {
 /// "Hear your shop" preview: before paying, the owner calls the demo line from
 /// their own phone and it answers as their shop. Never tied to a Business, so a
 /// preview call can never land in a real shop's records.
+/** A stretch a technician is not working: vacation, sick day, training. No booking lands on them inside it. */
+model TechnicianTimeOff {
+  id           String     @id @default(cuid())
+  businessId   String
+  technicianId String
+  technician   Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  startsAt     DateTime
+  endsAt       DateTime
+  reason       String?
+  createdAt    DateTime   @default(now())
+
+  @@index([technicianId, endsAt])
+  @@index([businessId, endsAt])
+}
+
 model ShopPreview {
   id             String    @id @default(cuid())
   token          String    @unique
