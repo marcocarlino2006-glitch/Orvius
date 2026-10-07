@@ -1,0 +1,167 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Finish. Loaded last, after every older layer, so each office screen reads
+   as one product: one surface, sentence-case words, a single title size,
+   room between things. Specificity matches the night-shell rules it settles.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Words: sentence case everywhere. Uppercase tracking reads as a form, not a product. */
+html .os-shell.os-shell-night :is(
+  .pro-panel-title,
+  .wp-owner-label,
+  .jf-label,
+  .transcript-cinema-speaker,
+  .transcript-cinema-kicker,
+  .transcript-cinema-foot,
+  .transcript-cinema-live,
+  .os-kv-stats-label,
+  .os-kv-notes-label,
+  .lead-status-actions-label,
+  .job-money-share-label,
+  .book-request-note,
+  .cb-plan-kicker,
+  .copilot-actions-kicker,
+  .today-priority-kicker,
+  .account-billing-pay-kicker,
+  .billing-lock-kicker,
+  .pay-prompt-kicker,
+  .plan-upgrade-gate-kicker,
+  .shop-operate-banner-kicker,
+  .os-palette-group-label,
+  .assign-tech-empty,
+  .os-ask-dock-kicker
+) {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Panels: one surface with the title inside it, no header band. */
+html .os-shell.os-shell-night :is(.pro-panel, .wp, .wh, .transcript-cinema) {
+  border: 1px solid var(--ox-line) !important;
+  border-radius: var(--ox-radius) !important;
+  background: var(--ox-s2) !important;
+  box-shadow: none !important;
+}
+
+html .os-shell.os-shell-night .pro-panel-head {
+  min-height: 0 !important;
+  padding: 1rem 1.25rem 0 !important;
+  border-bottom: 0 !important;
+  background: none !important;
+}
+
+html .os-shell.os-shell-night .pro-panel-title {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.005em !important;
+  color: var(--ox-text) !important;
+}
+
+html .os-shell.os-shell-night .pro-panel-body {
+  padding: 0.875rem 1.25rem 1.25rem !important;
+}
+
+html .os-shell.os-shell-night .pro-panel--dense .pro-panel-body {
+  padding: 0.75rem 1.25rem 1.125rem !important;
+}
+
+/* The two-column record pages: room between cards. */
+html .os-shell.os-shell-night :is(.os-detail-primary, .os-detail-side) {
+  gap: 1rem;
+}
+
+html .os-shell.os-shell-night .os-detail-grid {
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  html .os-shell.os-shell-night .os-detail-grid {
+    gap: 1.25rem;
+  }
+}
+
+/* A record's own label row: quiet, sentence case, aligned with the facts. */
+html .os-shell.os-shell-night .wp-owner-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+html .os-shell.os-shell-night .jf-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text-2);
+}
+
+/* Transcript: a panel like the rest; who spoke is a small label, what they said is readable. */
+html .os-shell.os-shell-night .transcript-cinema-head {
+  padding: 1rem 1.25rem 0 !important;
+  border-bottom: 0 !important;
+  background: none !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-kicker {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: var(--ox-text) !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-body {
+  padding: 0.75rem 1.25rem 1.25rem !important;
+  max-height: 28rem !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-speaker {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: var(--ox-mute) !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-line {
+  margin-top: 0.75rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+  color: var(--ox-text) !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-line-ai {
+  color: var(--ox-text-2) !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-foot {
+  padding: 0.75rem 1.25rem !important;
+  border-top: 1px solid var(--ox-line) !important;
+  background: none !important;
+}
+
+/* Page title: one size, tight, with the subtitle close under it. */
+html .os-shell.os-shell-night .os-topbar-title {
+  font-size: 1.375rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+html .os-shell.os-shell-night .os-topbar-sub {
+  margin-top: 0.125rem;
+  font-size: 0.875rem;
+  color: var(--ox-mute);
+}
+
+/* Stat strips: the number leads, the label sits quietly under it. */
+html .os-shell.os-shell-night .pro-stat {
+  background: var(--ox-s2);
+}
+
+/* Tables and lists: hairline rows, no zebra. */
+html .os-shell.os-shell-night :is(.wh-event, .jf-lines td) {
+  border-color: var(--ox-line);
+}
+
+html .os-shell.os-shell-night .sc-plan-name{color:var(--ox-text)!important}
+html .os-shell.os-shell-night .billing-settings > .billing-summary.billing-summary{display:grid!important;gap:1rem!important;padding:1.25rem!important;border:1px solid var(--ox-line)!important;border-radius:var(--ox-radius)!important;background:var(--ox-s2)!important}
+html .os-shell.os-shell-night .billing-summary .sc-plan{margin:0!important;padding:0!important;border:0!important;background:none!important}
+html .os-shell.os-shell-night .billing-summary .sc-plan-kicker{font-size:0.75rem!important;color:var(--ox-mute)!important}
+html .os-shell.os-shell-night .billing-summary .sc-plan-name{font-size:1.125rem!important;font-weight:600!important}
+html .os-shell.os-shell-night .billing-summary .billing-usage{margin:0!important;padding-top:1rem!important;border-top:1px solid var(--ox-line)!important}
+html .os-shell.os-shell-night .billing-summary .billing-usage-line{color:var(--ox-text)!important;font-size:0.875rem!important}
+html .os-shell.os-shell-night .billing-summary .billing-usage-meter{width:100%!important;max-width:none!important}
+html .os-shell.os-shell-night .billing-summary .billing-value-line{margin:0!important;color:var(--ox-text-2)!important;font-size:0.875rem!important}
