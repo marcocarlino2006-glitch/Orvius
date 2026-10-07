@@ -165,3 +165,5 @@ html .os-shell.os-shell-night .billing-summary .billing-usage{margin:0!important
 html .os-shell.os-shell-night .billing-summary .billing-usage-line{color:var(--ox-text)!important;font-size:0.875rem!important}
 html .os-shell.os-shell-night .billing-summary .billing-usage-meter{width:100%!important;max-width:none!important}
 html .os-shell.os-shell-night .billing-summary .billing-value-line{margin:0!important;color:var(--ox-text-2)!important;font-size:0.875rem!important}
+html .os-shell.os-shell-night .job-money:empty{display:none!important}
+html .os-shell.os-shell-night .job-money:empty + .job-bill{margin-top:0!important;padding-top:0!important;border-top:0!important}
