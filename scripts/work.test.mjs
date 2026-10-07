@@ -319,7 +319,9 @@ test("a booked request opens as its job, and its history runs from the call to t
   const t0 = booked.createdAt.getTime() + 5000;
   await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: caller, direction: "in", author: "customer", body: "Pipe burst under the sink", createdAt: new Date(t0 - 3000) } });
   await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: caller, direction: "out", author: "orvius", body: "You're booked", deliveryStatus: "failed", createdAt: new Date(t0 - 2000) } });
-  await prisma.outboundSms.create({ data: { businessId: shop.id, toNormalized: techPhone, audience: "tech", sid: "SIM_tech", body: "New job: Ana, Leak repair", createdAt: new Date(t0 - 1000) } });
+  await prisma.outboundSms.create({ data: { businessId: shop.id, toNormalized: techPhone, audience: "tech", sid: "SIM_tech", body: "New job: Ana, Leak repair", jobId: booked.id, createdAt: new Date(t0 - 1000) } });
+  const later = await prisma.job.create({ data: { businessId: shop.id, technicianId: tech.id, title: "Drain clog", status: "scheduled" } });
+  await prisma.outboundSms.create({ data: { businessId: shop.id, toNormalized: techPhone, audience: "tech", sid: "SIM_tech2", body: "New job: Drain clog", jobId: later.id, createdAt: new Date(t0 - 500) } });
   await prisma.auditEvent.create({ data: { businessId: shop.id, actor: "owner", actorEmail: shop.ownerEmail, action: "job.status", entityType: "job", entityId: booked.id, summary: "Moved to tomorrow" } });
 
   const item = await work.getWorkItem(shop.id, "request", request.id);
@@ -332,6 +334,7 @@ test("a booked request opens as its job, and its history runs from the call to t
   const titles = fromJob.map((e) => e.title);
   assert.ok(titles.includes("Customer texted"));
   assert.ok(titles.includes("Texted Ray Diaz"), "the proof the technician was told");
+  assert.ok(!fromJob.some((e) => /Drain clog/.test(e.detail ?? "")), "texts about the technician's other jobs stay on those jobs");
   assert.ok(titles.includes("Moved to tomorrow"));
   assert.equal(fromJob.find((e) => e.title === "Texted the customer").tone, "failed");
   assert.equal(fromJob.find((e) => e.title === "Moved to tomorrow").who, "person");
@@ -388,6 +391,15 @@ test("a time typed on a request or a job is read on the shop's clock, not the br
   assert.equal(moved.status, 200);
   const row = await prisma.job.findUnique({ where: { id: body.job.id } });
   assert.equal(row.scheduledAt.toISOString(), "2026-11-04T20:15:00.000Z");
+
+  await prisma.job.update({ where: { id: body.job.id }, data: { status: "confirmed", customerConfirmedAt: new Date() } });
+  await jobRoute.PATCH(
+    new Request(`http://localhost/api/jobs/${body.job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ scheduledLocal: "2026-11-05T08:00" }) }),
+    { params: Promise.resolve({ id: body.job.id }) },
+  );
+  const reopened = await prisma.job.findUnique({ where: { id: body.job.id } });
+  assert.equal(reopened.status, "scheduled", "a new time is not confirmed until the customer says so");
+  assert.equal(reopened.customerConfirmedAt, null);
   const bad = await jobRoute.PATCH(
     new Request(`http://localhost/api/jobs/${body.job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ scheduledLocal: "soon" }) }),
     { params: Promise.resolve({ id: body.job.id }) },

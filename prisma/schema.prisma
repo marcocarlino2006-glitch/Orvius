@@ -253,11 +253,14 @@ model OutboundSms {
   /** Kept for texts to technicians, the proof on a job that they were told. Customer texts live in Message. */
   body           String?
   deliveryStatus String?
+  /** The job a technician text is about, so its history shows only its own texts. */
+  jobId          String?
   createdAt    DateTime @default(now())
 
   @@index([toNormalized, createdAt])
   @@index([businessId, createdAt])
   @@index([sid])
+  @@index([jobId])
 }
 
 /** A membership or maintenance plan customers pay for monthly or yearly. */

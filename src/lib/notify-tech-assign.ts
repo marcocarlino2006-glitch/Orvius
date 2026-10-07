@@ -56,6 +56,7 @@ export async function notifyTechOnAssign(params: {
       body,
       businessId: job.businessId,
       audience: "tech",
+      jobId: job.id,
     });
     if (!result) {
       return { sent: false, reason: "sms_unavailable", techToken };
@@ -73,6 +74,7 @@ export { serializeJob };
 /** Tell the assigned technician their job moved. Never throws. */
 export async function notifyTechOnReschedule(params: {
   businessId: string;
+  jobId: string;
   businessName: string;
   techPhone: string;
   title: string;
@@ -85,6 +87,7 @@ export async function notifyTechOnReschedule(params: {
       body: `${params.businessName}: ${params.title} moved to ${params.when}.${params.address ? ` ${params.address}.` : ""}`,
       businessId: params.businessId,
       audience: "tech",
+      jobId: params.jobId,
     });
     return Boolean(result);
   } catch (err) {

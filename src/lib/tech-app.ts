@@ -408,7 +408,7 @@ export async function notifyTechJobChanged(params: { jobId: string; technicianId
         : params.change === "cancelled"
           ? `job cancelled: ${what} (${when}) is off your schedule.\nYour day: ${techAppUrl(token)}`
           : `you're off a job: ${what} (${when}) went to someone else.\nYour day: ${techAppUrl(token)}`;
-    const result = await sendSms({ to: tech.phone, businessId: job.businessId, audience: "tech", body: withSmsOptOutFooter(`${job.business.name}: ${line}`) });
+    const result = await sendSms({ to: tech.phone, businessId: job.businessId, audience: "tech", jobId: job.id, body: withSmsOptOutFooter(`${job.business.name}: ${line}`) });
     return { sent: Boolean(result), reason: result ? undefined : "sms_unavailable" };
   } catch (error) {
     logWarn("tech.change_notify_failed", { jobId: params.jobId, error: error instanceof Error ? error.message : String(error) });

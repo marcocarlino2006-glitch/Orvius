@@ -14,7 +14,7 @@ const WHO_FILTERS: Array<{ id: "all" | HistoryWho; label: string }> = [
 ];
 
 /** Everything that happened to one piece of work, filterable by who did it. */
-export function WorkHistory({ events, compact = false }: { events: HistoryEvent[]; compact?: boolean }) {
+export function WorkHistory({ events, compact = false, timezone }: { events: HistoryEvent[]; compact?: boolean; timezone?: string | null }) {
   const [who, setWho] = useState<"all" | HistoryWho>("all");
   const shown = useMemo(() => (who === "all" ? events : events.filter((e) => e.who === who)), [events, who]);
   const counts = useMemo(() => Object.fromEntries(WHO_FILTERS.map((f) => [f.id, f.id === "all" ? events.length : events.filter((e) => e.who === f.id).length])), [events]);
@@ -44,7 +44,7 @@ export function WorkHistory({ events, compact = false }: { events: HistoryEvent[
                 {e.detail ? <p className="wh-event-detail">{e.detail}</p> : null}
               </div>
               <time className="wh-at" dateTime={e.at}>
-                {formatWhen(e.at)}
+                {formatWhen(e.at, undefined, timezone)}
               </time>
             </li>
           ))}
@@ -59,14 +59,14 @@ export function WorkHistory({ events, compact = false }: { events: HistoryEvent[
 
 /** History fetched on demand, for a card in a list. */
 export function WorkHistoryLoader({ kind, id }: { kind: "request" | "job"; id: string }) {
-  const [events, setEvents] = useState<HistoryEvent[] | null>(null);
+  const [data, setData] = useState<{ history: HistoryEvent[]; timezone?: string | null } | null>(null);
   const [error, setError] = useState(false);
   useEffect(() => {
     fetch(`/api/work/item?kind=${kind}&id=${encodeURIComponent(id)}`)
-      .then(async (res) => (res.ok ? setEvents(((await res.json()) as { history: HistoryEvent[] }).history) : setError(true)))
+      .then(async (res) => (res.ok ? setData((await res.json()) as { history: HistoryEvent[]; timezone?: string | null }) : setError(true)))
       .catch(() => setError(true));
   }, [kind, id]);
   if (error) return <p className="cb-error">History could not load.</p>;
-  if (!events) return <p className="cb-muted">Reading the history…</p>;
-  return <WorkHistory events={events} compact />;
+  if (!data) return <p className="cb-muted">Reading the history…</p>;
+  return <WorkHistory events={data.history} timezone={data.timezone} compact />;
 }
