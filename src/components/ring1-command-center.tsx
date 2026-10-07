@@ -106,34 +106,25 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
     [data?.commandCounts, data?.attention],
   );
 
-  if (locked) {
-    const title =
-      locked.reason === "trial_ended"
-        ? "Your pilot ended"
-        : locked.reason === "canceled"
-          ? "Your plan is canceled"
-          : locked.reason === "past_due"
-            ? "Your last payment failed"
-            : "Pick a plan to start";
-    return (
-      <section className="cc" aria-label="Command">
-        <div className="ox-state cmd-locked" role="status">
-          <p className="ox-state-title">{title}</p>
-          <p className="ox-state-copy">
-            {locked.message} Your calls, customers and jobs are kept, and everything opens again the moment you pay.
-          </p>
-          <div className="cmd-locked-actions">
-            <Link href="/dashboard/billing" className="ox-btn ox-btn--primary">
-              {locked.reason === "past_due" ? "Update payment" : "Pay with card"}
-            </Link>
-            <Link href="/dashboard/pricing" className="ox-btn">
-              See plans
-            </Link>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const lockBar = locked ? (
+    <div className="cmd-lockbar" role="status">
+      <p className="cmd-lockbar-text">
+        <strong>
+          {locked.reason === "trial_ended"
+            ? "Your pilot ended."
+            : locked.reason === "canceled"
+              ? "Your plan is canceled."
+              : locked.reason === "past_due"
+                ? "Your last payment failed."
+                : "Pick a plan to start."}
+        </strong>{" "}
+        Everything is here to read. Pay to book, text and dispatch again.
+      </p>
+      <Link href="/dashboard/billing" className="ox-btn ox-btn--primary ox-btn--sm">
+        {locked.reason === "past_due" ? "Update payment" : "Pay with card"}
+      </Link>
+    </div>
+  ) : null;
 
   if (!data && loadError && !loading) {
     return (
@@ -164,6 +155,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
 
   return (
     <div className="cmd">
+      {lockBar}
       <header className="cmd-head">
         <p className="cmd-greeting os-own-color">{brief?.greeting ?? "Command"}</p>
         <h2 className="cmd-headline os-own-color" aria-live="polite">

@@ -28,7 +28,14 @@ import type {
   BusinessSnapshot,
 } from "@/lib/business-snapshot";
 
+/** The shop's access ended or was never paid: it reads its records, and Command says how to reopen it. */
+export type Ring1Lock = {
+  reason: "past_due" | "canceled" | "trial_ended" | "unpaid";
+  message: string;
+};
+
 export type Ring1Data = {
+  locked?: Ring1Lock | null;
   business?: {
     name?: string;
     trade?: string | null;
@@ -83,12 +90,6 @@ export type Ring1Data = {
   };
 };
 
-/** The shop exists but its access ended or was never paid; Command shows how to reopen it. */
-export type Ring1Lock = {
-  reason: "past_due" | "canceled" | "trial_ended" | "unpaid";
-  message: string;
-  business: NonNullable<Ring1Data["business"]>;
-};
 
 type Ring1ContextValue = {
   data: Ring1Data | null;
@@ -104,16 +105,6 @@ type Ring1ContextValue = {
 const Ring1Context = createContext<Ring1ContextValue | null>(null);
 
 const DEFAULT_REFRESH_MS = 30_000;
-const ZERO_METRICS: BusinessMetrics = {
-  callsToday: 0,
-  leadsToday: 0,
-  newLeads: 0,
-  totalCalls: 0,
-  totalLeads: 0,
-  leadBookingRate: null,
-  lastCallAt: null,
-  lastCaller: null,
-};
 const SESSION_SINCE_KEY = "orvius.command.since";
 const AWAY_MS = 30 * 60_000;
 
@@ -183,7 +174,6 @@ export function Ring1Provider({
   const [data, setData] = useState<Ring1Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [locked, setLocked] = useState<Ring1Lock | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
   const version = useRef<string | null>(null);
 
@@ -212,15 +202,7 @@ export function Ring1Provider({
       const json = (await res.json()) as
         | Ring1Data
         | { unchanged: true; version: string; sinceUsed?: string | null }
-        | { noShop: true }
-        | { locked: Omit<Ring1Lock, "business">; business: Ring1Lock["business"] };
-      if ("locked" in json) {
-        setData(null);
-        setLoadError(null);
-        setLocked({ ...json.locked, business: json.business });
-        return "no-shop";
-      }
-      setLocked(null);
+        | { noShop: true };
       if ("noShop" in json) {
         setData(null);
         setLoadError(null);
@@ -315,14 +297,14 @@ export function Ring1Provider({
   const value = useMemo<Ring1ContextValue>(
     () => ({
       data,
-      locked,
+      locked: data?.locked ?? null,
       loading,
       loadError,
       lastUpdatedAt,
       refresh,
-      business: toBusiness(data) ?? (locked ? toBusiness({ business: locked.business, metrics: ZERO_METRICS }) : null),
+      business: toBusiness(data),
     }),
-    [data, locked, loading, loadError, lastUpdatedAt, refresh],
+    [data, loading, loadError, lastUpdatedAt, refresh],
   );
 
   return (

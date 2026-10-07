@@ -54,6 +54,9 @@ export function OsShell({
   const newLeads = business?.metrics.newLeads ?? 0;
   const needsYou = business?.signals.needsYou ?? 0;
   const showAskDock = access?.canAccess("ask") ?? false;
+  /* A shop whose access ended still opens every screen to read; the pay prompt lives on Command. */
+  const navAllowed = (module: NonNullable<ReturnType<typeof navHrefToModule>>) =>
+    access?.entitled === false || (access?.canAccess(module) ?? true);
   const unassignedJobs = business?.signals.unassignedJobs ?? 0;
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -80,7 +83,7 @@ export function OsShell({
     .filter((item) => TAB_HREFS.includes(item.href))
     .filter((item) => {
       const navModule = navHrefToModule(item.href);
-      return (item.ring ?? osCurrentRing) <= osCurrentRing + 1 && (navModule ? (access?.canAccess(navModule) ?? true) : true);
+      return (item.ring ?? osCurrentRing) <= osCurrentRing + 1 && (navModule ? navAllowed(navModule) : true);
     })
     .map((item) => ({
       href: item.href,
@@ -158,9 +161,7 @@ export function OsShell({
             const ring = item.ring ?? osCurrentRing;
             const ringEnabled = ring <= osCurrentRing + 1;
             const navModule = navHrefToModule(item.href);
-            const planAllowed = navModule
-              ? (access?.canAccess(navModule) ?? true)
-              : true;
+            const planAllowed = navModule ? navAllowed(navModule) : true;
             const enabled = ringEnabled && planAllowed;
             const active = navActive(pathname, item.href);
             const badge =
@@ -194,18 +195,6 @@ export function OsShell({
                         {badge}
                       </span>
                     ) : null}
-                  </Link>
-                ) : planAllowed === false &&
-                  (access?.effectivePlan === "expired" ||
-                    access?.entitled === false) ? (
-                  <Link
-                    href="/dashboard/billing"
-                    className="os-nav-link os-nav-link-locked font-sans"
-                    title="Pay to continue"
-                  >
-                    <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{navLabel(item)}</span>
-                    <span className="os-nav-lock">Pay</span>
                   </Link>
                 ) : planAllowed === false && upgradePlan ? (
                   <Link

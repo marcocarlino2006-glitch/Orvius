@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
-import { BillingLockScreen } from "@/components/billing-lock-screen";
 import { CheckoutButton } from "@/components/checkout-button";
 import { pricing } from "@/lib/pricing-plans";
 import {
@@ -74,9 +73,9 @@ export function PayPromptModal() {
           return;
         }
 
-        // Hard lock always shows — no snooze escape for expired / past_due.
-        if (next.hard && (next.tone === "locked" || next.tone === "past_due")) {
-          setOpen(true);
+        // A locked shop still reads its records; the bar on Command asks it to pay, not a wall over every page.
+        if (next.hard || next.tone === "locked" || next.tone === "past_due") {
+          setOpen(false);
           return;
         }
 
@@ -128,19 +127,6 @@ export function PayPromptModal() {
   }
 
   if (!open || !decision) return null;
-
-  if (decision.tone === "locked" || decision.tone === "past_due") {
-    return (
-      <BillingLockScreen
-        tone={decision.tone}
-        headline={decision.headline}
-        body={decision.body}
-        email={email}
-        checkoutReady={checkoutReady}
-        hasStripeCustomer={hasStripeCustomer}
-      />
-    );
-  }
 
   const featured = pricing.pro;
 

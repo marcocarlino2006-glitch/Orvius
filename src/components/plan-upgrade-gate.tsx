@@ -39,7 +39,11 @@ export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
     return children;
   }
 
-  if (effectivePlan === "expired" || access?.entitled === false) {
+  const locked = effectivePlan === "expired" || access?.entitled === false;
+  /* A shop whose access ended still reads its records; Ask only acts, so it stays behind pay. */
+  if (locked && module !== "ask") return children;
+
+  if (locked) {
     return (
       <div className="plan-upgrade-gate">
         <div className="plan-upgrade-gate-inner font-sans">
