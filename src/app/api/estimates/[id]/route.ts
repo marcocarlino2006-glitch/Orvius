@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
 import { getAppBaseUrl } from "@/lib/domains";
+import { acceptEstimate } from "@/lib/estimate-choice";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { mintPublicToken } from "@/lib/public-tokens";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
+import { personActor } from "@/lib/audit";
 import { z } from "zod";
 
-const patchSchema = z.object({
-  action: z.enum(["send"]),
-});
+const patchSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("send") }),
+  z.object({ action: z.literal("choose"), option: z.string().min(1).max(20) }),
+]);
 
 type Params = { params: Promise<{ id: string }> };
 
-/** Send estimate — mint public token and mark sent. */
+/** Send mints the customer link; choose records the option a customer picked by phone. */
 export async function PATCH(request: Request, { params }: Params) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
@@ -25,14 +28,24 @@ export async function PATCH(request: Request, { params }: Params) {
 
   try {
     const body = patchSchema.parse(await request.json());
-    if (body.action !== "send") {
-      return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
-    }
 
     const estimate = await prisma.estimate.findFirst({
       where: { id, businessId: business.id },
     });
     if (!estimate) return forbiddenResponse();
+
+    if (body.action === "choose") {
+      const result = await acceptEstimate({
+        estimateId: estimate.id,
+        optionKey: body.option,
+        by: "shop",
+        ...personActor(authResult),
+      });
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error }, { status: result.status });
+      }
+      return NextResponse.json({ ok: true, option: result.option });
+    }
 
     const publicToken = estimate.publicToken ?? mintPublicToken();
     const updated = await prisma.estimate.update({

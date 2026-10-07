@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildEstimateOptions, estimateOptionsInput, startingAmountCents } from "@/lib/estimate-options";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
@@ -8,6 +9,7 @@ const createSchema = z.object({
   jobId: z.string().min(1),
   amountCents: z.number().int().min(1000).max(5_000_000).optional(),
   notes: z.string().max(2000).optional(),
+  options: estimateOptionsInput.optional(),
 });
 
 export async function GET() {
@@ -59,10 +61,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const amountCents =
-      body.amountCents ??
-      business.avgTicketCents ??
-      null;
+    const options = body.options ? buildEstimateOptions(body.options) : [];
+    const amountCents = options.length
+      ? startingAmountCents(options)
+      : (body.amountCents ?? business.avgTicketCents ?? null);
     if (amountCents == null) {
       return NextResponse.json(
         {
@@ -79,6 +81,7 @@ export async function POST(request: Request) {
         jobId: job.id,
         leadId: job.leadId ?? job.lead?.id ?? null,
         amountCents,
+        optionsJson: JSON.stringify(options),
         status: "draft",
         notes: body.notes?.trim() || null,
       },

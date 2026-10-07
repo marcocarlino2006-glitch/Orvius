@@ -698,6 +698,9 @@ model Estimate {
   amountCents   Int
   status        String    @default("draft")
   lineItemsJson String    @default("[]")
+  /** Good / Better / Best: the customer picks one, and its price becomes amountCents. */
+  optionsJson   String    @default("[]")
+  chosenOption  String?
   notes         String?
   /** Public magic-link token for customer view/accept/pay (/e/[token]). */
   publicToken   String?   @unique
