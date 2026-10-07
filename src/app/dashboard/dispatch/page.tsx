@@ -633,7 +633,7 @@ export default function DispatchPage() {
               </button>
             ))}
           </div>
-          {view !== "week" ? (}
+          {view !== "week" ? (
           <>
           <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setDay((d) => shiftDay(d, -1))} aria-label="Previous day">
             ←
