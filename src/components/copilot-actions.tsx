@@ -27,7 +27,7 @@ export type CopilotRecommendation = {
   phone?: string;
 };
 
-type Confirmation = { summary: string; at: string };
+type Confirmation = { summary: string; at: string; proposalId?: string };
 
 type CopilotActionsProps = {
   hits?: CopilotHit[];
@@ -104,6 +104,7 @@ export function CopilotActions({ hits = [], compact, recommendation }: CopilotAc
       setDone({
         summary: data.confirmation?.summary ?? proposal.preview,
         at: data.confirmation?.at ?? new Date().toISOString(),
+        proposalId: proposal.proposalId,
       });
       setProposal(null);
     } catch (err) {
@@ -215,6 +216,37 @@ export function CopilotActions({ hits = [], compact, recommendation }: CopilotAc
         <p className="copilot-actions-done" role="status">
           Done — {done.summary} Recorded in the timeline at{" "}
           {new Date(done.at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}.
+          {done.proposalId ? (
+            <>
+              {" "}
+              <button
+                type="button"
+                className="rec-add-link"
+                disabled={busy}
+                onClick={() => {
+                  void (async () => {
+                    setBusy(true);
+                    try {
+                      const res = await fetch("/api/copilot?mode=undo", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ proposalId: done.proposalId }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error ?? "Could not undo");
+                      setDone({ summary: data.summary ?? "Undone", at: new Date().toISOString() });
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : "Could not undo");
+                    } finally {
+                      setBusy(false);
+                    }
+                  })();
+                }}
+              >
+                Undo
+              </button>
+            </>
+          ) : null}
         </p>
       ) : null}
       {error ? (

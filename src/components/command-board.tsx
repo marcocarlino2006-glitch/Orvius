@@ -27,7 +27,24 @@ export function PlanCard({ proposal, onDone }: { proposal: Proposal; onDone: () 
     setError(null);
     try {
       const data = await post(`/api/copilot?mode=${mode}`, mode === "execute" ? { proposalId: proposal.proposalId, approved: true } : { proposalId: proposal.proposalId });
-      toast({ title: mode === "execute" ? (data.confirmation?.summary ?? "Done") : "Dismissed" });
+      toast({
+        title: mode === "execute" ? (data.confirmation?.summary ?? "Done") : "Dismissed",
+        action:
+          mode === "execute"
+            ? {
+                label: "Undo",
+                run: async () => {
+                  try {
+                    const undone = await post("/api/copilot?mode=undo", { proposalId: proposal.proposalId });
+                    toast({ title: (undone as { summary?: string }).summary ?? "Undone" });
+                    onDone();
+                  } catch (err) {
+                    toast({ title: err instanceof Error ? err.message : "Could not undo", tone: "error" });
+                  }
+                },
+              }
+            : undefined,
+      });
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "That did not work");

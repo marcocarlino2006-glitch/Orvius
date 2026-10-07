@@ -13,6 +13,7 @@ import { industryTerms } from "@/lib/industry-terms";
 import { toast } from "@/components/toaster";
 import { TechScheduleEditor, type TechTimeOff } from "@/components/tech-schedule-editor";
 import { DispatchWeek } from "@/components/dispatch-week";
+import { formatHours } from "@/lib/tech-timesheet";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -458,9 +459,44 @@ function AddTechnician({ onAdded }: { onAdded: () => void }) {
   );
 }
 
+function DispatchHours({
+  lanes,
+}: {
+  lanes: Array<{ technicianId: string; name: string; minutes: number; jobs: Array<{ id: string; title: string; minutes: number }> }>;
+}) {
+  if (!lanes.length) {
+    return <p className="cmd-empty">No completed or on-site time this week yet.</p>;
+  }
+  return (
+    <div className="rec">
+      {lanes.map((lane) => (
+        <section key={lane.technicianId} className="rec" style={{ marginBottom: "1.5rem" }}>
+          <header className="rec-head">
+            <h2 className="rec-title">{lane.name}</h2>
+            <span className="ct-kind">{formatHours(lane.minutes)}</span>
+          </header>
+          <ul className="wh-list ct-list">
+            {lane.jobs.map((job) => (
+              <li key={job.id} className="wh-event">
+                <span className="ct-kind">{formatHours(job.minutes)}</span>
+                <div className="wh-body">
+                  <p className="wh-event-title">
+                    <Link href={`/dashboard/jobs/${job.id}`}>{job.title}</Link>
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
 export default function DispatchPage() {
   const [picked, setPicked] = useState<string | null>(null);
-  const [view, setView] = useState<"day" | "week">("day");
+  const [view, setView] = useState<"day" | "week" | "hours">("day");
+  const [hoursSheet, setHoursSheet] = useState<{ lanes: Array<{ technicianId: string; name: string; minutes: number; jobs: Array<{ id: string; title: string; minutes: number }> }> } | null>(null);
   const [board, setBoard] = useState<Board | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -484,6 +520,17 @@ export default function DispatchPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (view !== "hours") return;
+    const day = picked ?? new Date().toISOString().slice(0, 10);
+    fetch(`/api/dispatch?view=hours&day=${day}`)
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.lanes) setHoursSheet(data);
+      })
+      .catch(() => undefined);
+  }, [view, picked]);
 
   const [drag, setDrag] = useState<Drag | null>(null);
   const [dropLane, setDropLane] = useState<string | null>(null);
@@ -580,9 +627,9 @@ export default function DispatchPage() {
 
         <div className="dsp-toolbar">
           <div className="dwk-mode" role="radiogroup" aria-label="Schedule view">
-            {(["day", "week"] as const).map((v) => (
+            {(["day", "week", "hours"] as const).map((v) => (
               <button key={v} type="button" role="radio" aria-checked={view === v} className={view === v ? "is-on" : undefined} onClick={() => setView(v)}>
-                {v === "day" ? "Day" : "Week"}
+                {v === "day" ? "Day" : v === "week" ? "Week" : "Hours"}
               </button>
             ))}
           </div>
@@ -639,7 +686,9 @@ export default function DispatchPage() {
           </div>
         ) : board && schedule ? (
           <>
-            {view === "week" ? (
+            {view === "hours" ? (
+              <DispatchHours lanes={hoursSheet?.lanes ?? []} />
+            ) : view === "week" ? (
               <DispatchWeek
                 anchor={day}
                 onOpenDay={(d) => {

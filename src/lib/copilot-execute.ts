@@ -65,7 +65,7 @@ async function runProposal(
       nextTechnicianId: tech.id,
     });
     return {
-      result: { jobId: job.id, technicianId: tech.id, techSms: sms },
+      result: { jobId: job.id, technicianId: tech.id, previousTechnicianId: job.technicianId, techSms: sms },
       summary: `Assigned ${tech.name} to ${job.title}${
         sms.sent
           ? " and texted them the details"
@@ -104,6 +104,8 @@ async function runProposal(
       }
       smsSid = sms.sid;
     }
+    const previousStatus = lead.status;
+    const previousFirstContactedAt = lead.firstContactedAt?.toISOString() ?? null;
     if (lead.status === "new") {
       await prisma.lead.update({
         where: { id: lead.id },
@@ -111,7 +113,7 @@ async function runProposal(
       });
     }
     return {
-      result: { leadId: lead.id, status: "contacted", ...(smsSid ? { smsSid } : {}) },
+      result: { leadId: lead.id, status: "contacted", previousStatus, previousFirstContactedAt, ...(smsSid ? { smsSid } : {}) },
       summary: action === "sms_followup" ? `Texted ${who} a follow-up and marked them contacted.` : `Marked ${who} as contacted.`,
       entity: { type: "lead", id: lead.id },
       links: { leadId: lead.id, customerId: lead.customerId },
@@ -179,7 +181,13 @@ async function runWindowProposal(
     });
     const who = lead.name ?? lead.phone ?? "the caller";
     return {
-      result: { jobId: job.id, leadId: lead.id, scheduledAt: at.toISOString(), technician: booked.technician?.name ?? null },
+      result: {
+        jobId: job.id,
+        leadId: lead.id,
+        scheduledAt: at.toISOString(),
+        technician: booked.technician?.name ?? null,
+        previousLeadStatus: lead.status,
+      },
       summary: `Booked ${who} for ${when} as a proposed window${
         booked.technician ? ` with ${booked.technician.name}` : " — no technician was free to assign, so pick one"
       }. ${lead.phone ? "The confirmation text is on its way; the trace shows when it lands." : "No phone on file — call to confirm."}`,
