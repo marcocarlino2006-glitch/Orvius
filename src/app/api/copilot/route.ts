@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { executeProposal, type ProposalParams } from "@/lib/copilot-execute";
+import { undoProposal } from "@/lib/copilot-undo";
 import { COPILOT_ACTIONS, proposeAction } from "@/lib/copilot-propose";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -119,6 +120,15 @@ export async function POST(request: Request) {
       const outcome = await executeProposal({ business, proposalId: body.proposalId, by: authResult });
       if (!outcome.ok) {
         return NextResponse.json({ error: outcome.error, reason: outcome.reason }, { status: outcome.status });
+      }
+      return NextResponse.json(outcome);
+    }
+
+    if (mode === "undo") {
+      const body = cancelSchema.parse(await request.json());
+      const outcome = await undoProposal({ business, proposalId: body.proposalId, by: authResult });
+      if (!outcome.ok) {
+        return NextResponse.json({ error: outcome.error }, { status: outcome.status });
       }
       return NextResponse.json(outcome);
     }

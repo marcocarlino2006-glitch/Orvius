@@ -38,31 +38,31 @@
 
 html[data-theme="day"] .os-shell.os-shell-night,
 html[data-theme="day"] .os-shell-night {
-  --ox-bg: #f8f8f7;
-  --ox-s1: #ffffff;
-  --ox-s2: #f3f3f3;
-  --ox-s3: #f0f0f0;
-  --ox-s4: #e8e8e7;
-  --ox-line: #0000000f;
-  --ox-line-strong: #0000001f;
-  --ox-text: #1a1a1a;
-  --ox-text-2: #4d4d4d;
-  --ox-mute: #737373;
-  --ox-tint: 55 53 47;
-  --ox-legacy-text: #1a1a1a;
-  --ox-legacy-text-2: #4d4d4d;
-  --ox-legacy-mute: #737373;
-  --ox-day-surface: #ffffff;
-  --ox-day-sunk: #f8f8f7;
-  --ox-day-line: #0000000f;
-  --ox-day-ink: #1a1a1a;
-  --ox-day-soft: #737373;
-  --ox-panel: #ffffff;
-  --ox-rail: #f0f0f0;
-  --ox-btn-fill: #1a1a19;
+  --ox-bg: #f4f1e8;
+  --ox-s1: #f4f1e8;
+  --ox-s2: #f4f1e8;
+  --ox-s3: #ebe6db;
+  --ox-s4: #e4dfd4;
+  --ox-line: #e4dfd4;
+  --ox-line-strong: #d4cec2;
+  --ox-text: #161513;
+  --ox-text-2: #3f3c36;
+  --ox-mute: #6b675f;
+  --ox-tint: 22 21 19;
+  --ox-legacy-text: #161513;
+  --ox-legacy-text-2: #3f3c36;
+  --ox-legacy-mute: #6b675f;
+  --ox-day-surface: #f4f1e8;
+  --ox-day-sunk: #f4f1e8;
+  --ox-day-line: #e4dfd4;
+  --ox-day-ink: #161513;
+  --ox-day-soft: #6b675f;
+  --ox-panel: #f4f1e8;
+  --ox-rail: #f4f1e8;
+  --ox-btn-fill: #161513;
   --ox-btn-fill-hi: #000000;
-  --ox-btn-on-fill: #ffffff;
-  --ox-btn-hover: #37352f0a;
+  --ox-btn-on-fill: #f4f1e8;
+  --ox-btn-hover: rgb(22 21 19 / 0.05);
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px #0000004d;
 }
 
@@ -208,7 +208,7 @@ html .os-shell.os-shell-night .os-topbar-search:hover {
 }
 
 html[data-theme="day"] .os-shell.os-shell-night :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
-  background: #ffffff;
+  background: transparent;
 }
 
 .os-shell.os-shell-night :is(input, select, textarea):focus-visible {
@@ -227,8 +227,8 @@ html[data-theme="day"] .os-shell.os-shell-night :is(input, select, textarea):not
 }
 
 html[data-theme="day"] .os-shell.os-shell-night .os-nav-link-active {
-  background: rgb(0 0 0 / 0.06) !important;
-  color: #111111 !important;
+  background: transparent !important;
+  color: #161513 !important;
 }
 
 .os-shell.os-shell-night .os-nav-link {

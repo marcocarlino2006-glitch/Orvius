@@ -53,6 +53,16 @@ test("the customer history includes texts, and a failed one says it didn't arriv
   }
 });
 
+test("the customer page is a record on paper, not a form warehouse", () => {
+  const page = readFileSync(new URL("../src/app/dashboard/customers/[id]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /Add address/);
+  assert.match(page, /Add equipment/);
+  assert.match(page, /className="rec"/);
+  assert.doesNotMatch(page, /Add to this record/);
+  assert.doesNotMatch(page, /ShellPanel/);
+  assert.doesNotMatch(page, /sc-input/);
+});
+
 test("an old per-job tech link sends the technician into their day", () => {
   const page = readFileSync(new URL("../src/app/t/[token]/page.tsx", import.meta.url), "utf8");
   assert.match(page, /redirect\(`\/tech\/\$\{appToken\}\/jobs\/\$\{job\.id\}`\)/);

@@ -68,10 +68,17 @@ export async function askToAct(shop: Shop, text: string, now = new Date()): Prom
     ]);
     const tech = matchName(parsed.rest, techs);
     if (!tech || "ambiguous" in tech) return { kind: "clarify", message: `Which technician? On the crew: ${techs.map((t) => t.name).join(", ") || "nobody yet"}.` };
-    const named = jobs.map((j) => ({ ...j, name: j.customer?.name ?? j.lead?.name ?? null }));
-    const job = matchName(tech.rest, named);
+    const byPerson = matchName(
+      tech.rest,
+      jobs.map((j) => ({ ...j, name: j.customer?.name ?? j.lead?.name ?? null })),
+    );
+    const byTitle = matchName(
+      tech.rest,
+      jobs.map((j) => ({ ...j, name: j.title })),
+    );
+    const job = byPerson && !("ambiguous" in byPerson) ? byPerson : byTitle ?? byPerson;
     if (!job) return { kind: "clarify", message: `Which customer's job should ${tech.match.name} take?` };
-    if ("ambiguous" in job) return { kind: "clarify", message: `More than one open job matches: ${job.ambiguous.map((j) => j.name).join(", ")}. Use the full name.` };
+    if ("ambiguous" in job) return { kind: "clarify", message: `More than one open job matches: ${job.ambiguous.map((j) => j.name ?? j.title).join(", ")}. Use the full name.` };
     const outcome = await proposeAction(shop, { action: "assign_tech", jobId: job.match.id, technicianId: tech.match.id });
     return outcome.ok
       ? { kind: "proposal", proposal: outcome, message: "Here's the plan. Nothing changes until you approve it." }
