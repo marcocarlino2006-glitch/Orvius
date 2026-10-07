@@ -21,5 +21,5 @@ export async function GET(request: Request) {
     workAssignees(business),
     prisma.technician.findMany({ where: { businessId: business.id, isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
   ]);
-  return NextResponse.json({ item, history: history ?? [], assignees, technicians });
+  return NextResponse.json({ item, history: history ?? [], assignees, technicians, timezone: business.timezone ?? null });
 }

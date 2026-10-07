@@ -1,5 +1,5 @@
-/** "Sep 25, 5:53 AM" — the year only when it is not this one, never seconds. */
-export function formatWhen(value: Date | string | number | null | undefined, now = new Date()): string {
+/** "Sep 25, 5:53 AM" — the year only when it is not this one, never seconds. Pass the shop's timezone to read it on the shop's clock. */
+export function formatWhen(value: Date | string | number | null | undefined, now = new Date(), timezone?: string | null): string {
   if (value == null) return "";
   const at = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(at.getTime())) return "";
@@ -9,6 +9,7 @@ export function formatWhen(value: Date | string | number | null | undefined, now
     ...(at.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }),
     hour: "numeric",
     minute: "2-digit",
+    ...(timezone ? { timeZone: timezone } : {}),
   });
 }
 
