@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: Params) {
       jobId,
       action: "job.photo",
       actor: "technician",
-      summary: `${tech.name} added a ${photo.kind === "other" ? "" : `${photo.kind} `}photo`,
+      summary: `${tech.name} added ${photo.kind === "before" ? "a before photo" : photo.kind === "after" ? "an after photo" : "a photo"}`,
       detail: { photoId: photo.id },
     });
     return { photo };
