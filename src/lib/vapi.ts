@@ -241,6 +241,20 @@ export async function removeVapiNumber(number: string) {
   return entries.length;
 }
 
+/**
+ * The recording and automated-receptionist notice is part of the opening line,
+ * so every caller hears it before giving details instead of relying on the
+ * model to say it. An owner's own opening line that already says it is kept as is.
+ */
+export function openingWithNotice(greeting: string, businessName: string): string {
+  const line = greeting.trim();
+  if (/record/i.test(line) && /(automated|virtual|\bAI\b|assistant)/i.test(line)) return line;
+  const notice = `This call may be recorded and is answered by an automated receptionist for ${businessName}.`;
+  if (!line) return notice;
+  const question = line.match(/^(.*[.!])\s+([^.!?]+\?)$/);
+  return question ? `${question[1]} ${notice} ${question[2]}` : `${line} ${notice}`;
+}
+
 export function buildVapiAssistantConfig(params: {
   businessName: string;
   systemPrompt: string;
@@ -299,7 +313,7 @@ export function buildVapiAssistantConfig(params: {
   ];
   const config: VapiAssistantPayload = {
     name: `${params.businessName} Receptionist`,
-    firstMessage: params.greeting,
+    firstMessage: openingWithNotice(params.greeting, params.businessName),
     model: {
       provider: receptionist.provider,
       model: receptionist.model,
