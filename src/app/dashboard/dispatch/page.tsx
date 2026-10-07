@@ -741,7 +741,7 @@ export default function DispatchPage() {
               </p>
               {crew.map((tech) => (
                 <CrewMember
-                  key={`${tech.id}-${tech.skillsJson}-${tech.phone}-${tech.hoursJson}-${tech.timeOff?.length ?? 0}`}
+                  key={`${tech.id}-${tech.skillsJson}-${tech.phone}`}
                   tech={tech}
                   trade={trade}
                   timezone={board?.timezone ?? "America/New_York"}
