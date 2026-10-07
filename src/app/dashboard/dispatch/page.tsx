@@ -552,6 +552,7 @@ export default function DispatchPage() {
   return (
     <OsShell title={terms.Dispatch}>
       <PlanUpgradeGate module="dispatch">
+        {view === "day" ? (
         <ProLead
           loading={loading && !board}
           figure={String(board?.jobCount ?? 0)}
@@ -562,6 +563,7 @@ export default function DispatchPage() {
             { label: "Conflicts", value: conflicts.length, live: conflicts.length > 0 },
           ]}
         />
+        ) : null}
 
         <div className="dsp-toolbar">
           <div className="dwk-mode" role="radiogroup" aria-label="Schedule view">
