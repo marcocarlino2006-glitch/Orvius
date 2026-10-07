@@ -380,6 +380,10 @@ model Customer {
   jobberClientId    String?
   email             String?
   address           String?
+  /** Extra places this customer is served, JSON [{label, line}]. The primary address stays on `address`. */
+  addressesJson     String   @default("[]")
+  /** Equipment on file, JSON [{name, brand, model, notes}]. */
+  equipmentJson     String   @default("[]")
   notes             String?
   interactionCount  Int      @default(1)
   /** Last "we miss you" text; one per customer every 90 days. */

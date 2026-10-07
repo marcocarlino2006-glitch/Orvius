@@ -232,7 +232,7 @@ export async function linkTouchToCustomerDetailed(params: {
 
 export type TimelineEvent = {
   id: string;
-  type: "call" | "lead" | "job" | "estimate" | "invoice" | "payment";
+  type: "call" | "lead" | "job" | "estimate" | "invoice" | "payment" | "text";
   at: string;
   title: string;
   summary: string | null;
@@ -242,6 +242,8 @@ export type TimelineEvent = {
   amountCents?: number | null;
   /** The job a money row belongs to, so the row opens it. */
   jobId?: string | null;
+  /** Inbox thread for a text. */
+  href?: string | null;
 };
 
 function formatMoney(cents: number): string {
@@ -255,7 +257,11 @@ function formatMoney(cents: number): string {
 export async function getCustomerTimeline(
   customerId: string,
 ): Promise<TimelineEvent[]> {
-  const [calls, leads, jobs] = await Promise.all([
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: { businessId: true, phone: true, phoneNormalized: true },
+  });
+  const [calls, leads, jobs, messages] = await Promise.all([
     prisma.call.findMany({
       where: { customerId },
       orderBy: { createdAt: "desc" },
@@ -277,6 +283,13 @@ export async function getCustomerTimeline(
         },
       },
     }),
+    customer
+      ? prisma.message.findMany({
+          where: { businessId: customer.businessId, phoneNormalized: customer.phoneNormalized },
+          orderBy: { createdAt: "desc" },
+          take: 80,
+        })
+      : Promise.resolve([]),
   ]);
 
   const jobIds = jobs.map((j) => j.id);
@@ -322,6 +335,26 @@ export async function getCustomerTimeline(
       urgency: job.urgency,
       status: job.status,
     })),
+    ...messages.map((message) => {
+      const failed = message.deliveryStatus === "failed" || message.deliveryStatus === "undelivered";
+      const who =
+        message.direction === "in"
+          ? "They texted"
+          : message.author === "owner"
+            ? "You texted"
+            : "Orvius texted";
+      return {
+        id: message.id,
+        type: "text" as const,
+        at: message.createdAt.toISOString(),
+        title: failed ? `${who} — didn't arrive` : who,
+        summary: message.body,
+        source: message.author,
+        urgency: null,
+        status: failed ? "failed" : message.deliveryStatus,
+        href: customer?.phone ? `/dashboard/inbox/messages?phone=${encodeURIComponent(customer.phone)}` : "/dashboard/inbox/messages",
+      };
+    }),
   ];
 
   for (const job of jobs) {

@@ -15,9 +15,11 @@ const KIND: Record<TimelineEvent["type"], string> = {
   estimate: "Estimate",
   invoice: "Invoice",
   payment: "Payment",
+  text: "Text",
 };
 
 function hrefFor(event: TimelineEvent): string | null {
+  if (event.type === "text") return event.href ?? "/dashboard/inbox/messages";
   if (event.type === "lead") return `/dashboard/inbox/${event.id}`;
   if (event.type === "call") return `/dashboard/calls/${event.id}`;
   if (event.type === "job") return `/dashboard/jobs/${event.id}`;
@@ -34,7 +36,7 @@ function freshSummary(event: TimelineEvent): string | null {
 
 export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
   if (!events.length) {
-    return <p className="cmd-empty">Nothing yet. Calls, jobs, estimates and payments show up here.</p>;
+    return <p className="cmd-empty">Nothing yet. Calls, texts, jobs, estimates and payments show up here.</p>;
   }
 
   return (
@@ -47,7 +49,7 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
           .filter(Boolean)
           .join(" · ");
         return (
-          <li key={`${event.type}-${event.id}`} className={`wh-event${isEmergency(event.urgency) ? " wh-event--failed" : ""}`}>
+          <li key={`${event.type}-${event.id}`} className={`wh-event${isEmergency(event.urgency) || event.status === "failed" ? " wh-event--failed" : ""}`}>
             <span className={`ct-kind${event.type === "payment" ? " ct-kind--money" : ""}`}>{KIND[event.type]}</span>
             <div className="wh-body">
               <p className="wh-event-title">{href ? <Link href={href}>{event.title}</Link> : event.title}</p>

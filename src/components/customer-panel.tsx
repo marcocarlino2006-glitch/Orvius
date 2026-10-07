@@ -27,6 +27,7 @@ const KIND: Record<TimelineEvent["type"], string> = {
   estimate: "Estimate",
   invoice: "Invoice",
   payment: "Payment",
+  text: "Text",
 };
 
 function when(iso: string) {

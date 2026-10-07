@@ -879,3 +879,5 @@ CREATE TABLE IF NOT EXISTS "TechnicianTimeOff" (
 );
 CREATE INDEX IF NOT EXISTS "TechnicianTimeOff_technicianId_endsAt_idx" ON "TechnicianTimeOff"("technicianId", "endsAt");
 CREATE INDEX IF NOT EXISTS "TechnicianTimeOff_businessId_endsAt_idx" ON "TechnicianTimeOff"("businessId", "endsAt");
+ALTER TABLE "Customer" ADD COLUMN "addressesJson" TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE "Customer" ADD COLUMN "equipmentJson" TEXT NOT NULL DEFAULT '[]';
