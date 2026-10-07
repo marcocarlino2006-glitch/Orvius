@@ -11,11 +11,10 @@ export const THEME_STORAGE_KEY = "orvius-theme";
 export const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 /**
- * Night is the fallback for a first-time visitor. Orvius is a command center
- * for work that happens after dark, and the dark canvas is the identity, not a
- * preference. Paper stays one click away.
+ * Paper is the first canvas, the way a bank app is: light, quiet, one list.
+ * Night stays one click away for shops that run after dark.
  */
-export const DEFAULT_THEME_CHOICE: ThemeChoice = "night";
+export const DEFAULT_THEME_CHOICE: ThemeChoice = "day";
 
 export function readThemeChoice(): ThemeChoice {
   try {

@@ -127,14 +127,24 @@ export function WorkCard({
       <div className="wc-head">
         <div className="wc-main">
           <p className="wc-tags">
-            {item.problems.map((p) => (
-              <span key={p.kind} className={`wc-tag ${SEVERITY_CLASS[p.severity]}`}>
-                {p.label}
-              </span>
-            ))}
-            {item.urgent && !kinds.has("emergency") ? <span className="wc-tag wc-tag--high">Urgent</span> : null}
-            {item.takenOver ? <span className="wc-tag wc-tag--you">You have the texts</span> : null}
-            <span className="wc-stage">{item.stageLabel}</span>
+            {inList ? (
+              top ? (
+                <span className={`wc-tag ${SEVERITY_CLASS[top.severity]}`}>{top.label}</span>
+              ) : (
+                <span className="wc-stage">{item.stageLabel}</span>
+              )
+            ) : (
+              <>
+                {item.problems.map((p) => (
+                  <span key={p.kind} className={`wc-tag ${SEVERITY_CLASS[p.severity]}`}>
+                    {p.label}
+                  </span>
+                ))}
+                {item.urgent && !kinds.has("emergency") ? <span className="wc-tag wc-tag--high">Urgent</span> : null}
+                {item.takenOver ? <span className="wc-tag wc-tag--you">You have the texts</span> : null}
+                <span className="wc-stage">{item.stageLabel}</span>
+              </>
+            )}
           </p>
           {inList ? (
             <Link href={item.href} className="wc-title">
@@ -145,7 +155,7 @@ export function WorkCard({
           <p className="wc-detail">
             {top?.detail ?? item.nextAction ?? (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : "Nothing to do")}
           </p>
-          {top && item.nextAction ? <p className="wc-next">Next: {item.nextAction}</p> : null}
+          {!inList && top && item.nextAction ? <p className="wc-next">Next: {item.nextAction}</p> : null}
         </div>
         <div className="wc-meta" hidden={!inList}>
           {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt)}</span> : <span className="wc-when">{formatWhen(item.createdAt)}</span>}
@@ -161,6 +171,47 @@ export function WorkCard({
             onChange();
           }}
         />
+      ) : inList ? (
+        <div className="wc-actions">
+          {needsTech && technicians.length ? (
+            <label className="wc-assign">
+              <span className="sr-only">Assign a technician to {item.title}</span>
+              <select
+                className="wc-select"
+                defaultValue=""
+                disabled={busy}
+                onChange={(e) => e.target.value && void setJob({ technicianId: e.target.value }, "Technician assigned")}
+              >
+                <option value="">Assign a technician…</option>
+                {technicians.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : primaryCall && item.phone ? (
+            <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
+              Call {item.customer?.split(" ")[0] || "them"}
+            </a>
+          ) : unconfirmed && item.waitingOn !== "customer" ? (
+            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void textConfirm()}>
+              Text a confirmation
+            </button>
+          ) : kinds.has("alert_failed") ? (
+            <TestAlertButton onDone={onChange} />
+          ) : fieldStatus ? (
+            <JobStatusAdvance jobId={item.id} status={fieldStatus} onAdvanced={() => onChange()} compact />
+          ) : isJob && late && item.technician?.phone ? (
+            <a href={tel(item.technician.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
+              Call {item.technician.name.split(" ")[0]}
+            </a>
+          ) : canMove ? (
+            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}>
+              {isJob ? (late ? "Move it" : "Change the time") : "Offer a time"}
+            </button>
+          ) : null}
+        </div>
       ) : (
         <div className="wc-actions">
           {primaryCall && item.phone ? (
@@ -212,16 +263,6 @@ export function WorkCard({
             <a href={tel(item.technician.phone)} className="ox-btn ox-btn--quiet ox-btn--sm">
               Call {item.technician.name.split(" ")[0]}
             </a>
-          ) : null}
-          {inList ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOpen(open === "history" ? null : "history")}>
-              {open === "history" ? "Hide history" : "History"}
-            </button>
-          ) : null}
-          {inList ? (
-            <Link href={item.href} className="ox-btn ox-btn--quiet ox-btn--sm">
-              Open
-            </Link>
           ) : null}
           {item.phone ? (
             <details className="wc-more">

@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import { CommandReceptionist } from "@/components/command-receptionist";
-import { CommandRecovered } from "@/components/command-recovered";
 import { CommandSignals } from "@/components/command-signals";
-import { AskBar, DemoPanel, PlanCard, TryDemo } from "@/components/command-board";
+import { AskBar, PlanCard, TryDemo } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
@@ -148,7 +146,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const approvalFor = (id: string | null) => (id ? approvals.find((a) => a.proposalId === id) ?? null : null);
   const shown = showAll ? items : items.slice(0, NEEDS_YOU_SHOWN);
   const brief = data?.personalBrief ?? null;
-  const demo = Boolean(data?.business?.referenceImplementation);
   const needsYou = work?.needsYou ?? 0;
   const shopIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action");
   const handled = data?.handled;
@@ -262,7 +259,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             )}
           </section>
 
-          {demo ? <DemoPanel onChange={() => void refresh()} /> : data && !data.metrics.totalCalls ? <TryDemo empty /> : null}
+          {data && !data.business?.referenceImplementation && !data.metrics.totalCalls ? <TryDemo empty /> : null}
         </div>
 
         <aside className="cc-rail" aria-label="The shop">
@@ -290,8 +287,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             </section>
           ) : null}
           <CommandSignals signals={signals} loading={loading} />
-          <CommandReceptionist week={data?.receptionist} />
-          <CommandRecovered outcomes={data?.outcomes} />
           <OrviusPulse
             health={data?.health}
             lastUpdatedAt={lastUpdatedAt}

@@ -78,11 +78,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Night is the server default so [data-theme] is never absent and the token
-  // set is unambiguous. The boot script rewrites it before paint, which is the
-  // one divergence suppressHydrationWarning is here to cover.
+  // Paper is the server default so a first paint matches Chase/Amex: light,
+  // quiet, one list. The boot script rewrites it before paint if they pinned
+  // night or follow the OS, which is the one divergence suppressHydrationWarning covers.
   return (
-    <html lang="en" data-theme="night" suppressHydrationWarning>
+    <html lang="en" data-theme="day" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         <script

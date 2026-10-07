@@ -62,12 +62,10 @@ test("the week counts calls, real callers, bookings, hand-offs and filtered call
   }
 });
 
-test("Command loads the week with the rest of its data and shows it in the rail", () => {
+test("Command loads the week with the rest of its data", () => {
   const route = read("src/app/api/ring1/route.ts");
   assert.match(route, /getReceptionistWeek\(business\.id, 7, now\)/);
   assert.match(route, /outcomes,\n\s*receptionist,/);
-  const command = read("src/components/ring1-command-center.tsx");
-  assert.match(command, /<CommandReceptionist week=\{data\?\.receptionist\} \/>/);
 });
 
 test.after(() => prisma.$disconnect());
