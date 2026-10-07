@@ -40,7 +40,7 @@ export function monthValueLine(value: MonthValue): string | null {
   const fmt = (n: number) => n.toLocaleString("en-US");
   const parts = [
     value.callsAnswered ? `answered ${fmt(value.callsAnswered)} call${value.callsAnswered === 1 ? "" : "s"}` : null,
-    value.leadsCaptured ? `captured ${fmt(value.leadsCaptured)} lead${value.leadsCaptured === 1 ? "" : "s"}` : null,
+    value.leadsCaptured ? `took ${fmt(value.leadsCaptured)} request${value.leadsCaptured === 1 ? "" : "s"}` : null,
     value.jobsBooked ? `booked ${fmt(value.jobsBooked)} job${value.jobsBooked === 1 ? "" : "s"}` : null,
     value.collectedCents
       ? `collected ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value.collectedCents / 100)} by card`
