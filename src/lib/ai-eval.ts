@@ -189,7 +189,7 @@ export function runAiReadinessEval(): AiReadinessEval {
   const promptChecks = [
     {
       name: "automated disclosure",
-      passed: /recorded and assisted by an automated receptionist/i.test(prompt),
+      passed: /may be recorded and is answered by an automated receptionist/i.test(prompt),
     },
     {
       name: "identity isolation",
