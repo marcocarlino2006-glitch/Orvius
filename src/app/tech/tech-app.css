@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
-  padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(6.75rem + env(safe-area-inset-bottom));
+  padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(8.5rem + env(safe-area-inset-bottom));
   background: var(--ta-bg);
   color: var(--ta-text);
   font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
@@ -577,7 +577,7 @@ textarea.ta-input {
 
 /* Focused fields and scrolled-to cards stop above the dock, not under it. */
 html:has(.ta-dock) {
-  scroll-padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  scroll-padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
 }
 .ta-dock {
   position: fixed;
