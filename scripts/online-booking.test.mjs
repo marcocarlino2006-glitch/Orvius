@@ -62,6 +62,19 @@ test("the page exists only when the owner turns it on and the workspace is paid"
   }
 });
 
+test("a page that is off still hands the customer the shop's number, but never a test shop's", async () => {
+  const off = await shop({ bookingPageOn: false, vapiPhoneNumber: "+13125550199" });
+  const testShop = await shop({ bookingPageOn: false, environment: "test", vapiPhoneNumber: "+13125550198" });
+  try {
+    const res = await call(route.GET, off.slug);
+    assert.equal(res.status, 404);
+    assert.deepEqual((await res.json()).business, { name: "Bright Smile Dental", phone: "+13125550199" });
+    assert.equal((await (await call(route.GET, testShop.slug)).json()).business, null);
+  } finally {
+    for (const s of [off, testShop]) await drop(s.id);
+  }
+});
+
 test("services: the shop's own list first, the trade's defaults otherwise", () => {
   assert.deepEqual(bookingServices({ servicesJson: '[{"name":"Cleaning"},"Whitening"]', trade: "Dental", name: "x" }), ["Cleaning", "Whitening"]);
   const hvac = bookingServices({ servicesJson: "[]", trade: "HVAC", name: "Cole Heating" });

@@ -75,7 +75,7 @@ export function ProEconomicsPanel({
 
   const funnel = [
     { label: "Calls", value: String(outcomes.calls) },
-    { label: "Leads", value: String(outcomes.leads) },
+    { label: "Requests", value: String(outcomes.leads) },
     { label: "Booked", value: String(outcomes.leadsBooked) },
     {
       label: "Booking rate",

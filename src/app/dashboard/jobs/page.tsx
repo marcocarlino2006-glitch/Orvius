@@ -170,7 +170,7 @@ export default function JobsPage() {
               className="jobs-pipeline-stage"
               role="tab"
             >
-              <span className="jobs-pipeline-label">New leads</span>
+              <span className="jobs-pipeline-label">New requests</span>
               <span className="jobs-pipeline-count">{newLeadCount}</span>
             </Link>
             {STAGES.map((stage) => (

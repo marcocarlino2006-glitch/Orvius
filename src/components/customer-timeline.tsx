@@ -21,7 +21,7 @@ function hrefFor(event: TimelineEvent): string | null {
   if (event.type === "lead") return `/dashboard/inbox/${event.id}`;
   if (event.type === "call") return `/dashboard/calls/${event.id}`;
   if (event.type === "job") return `/dashboard/jobs/${event.id}`;
-  return null;
+  return event.jobId ? `/dashboard/jobs/${event.jobId}` : null;
 }
 
 /** "Maria Lopez: AC not cooling" under a row titled "AC not cooling" says nothing new. */

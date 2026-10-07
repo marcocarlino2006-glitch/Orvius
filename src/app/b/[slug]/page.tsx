@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { PublicShopFallback, type ShopContact } from "@/components/public-shop-fallback";
 import "@/app/public-field.css";
 import "./book.css";
 
@@ -39,7 +40,7 @@ function formatPhone(raw: string) {
 export default function BookPage() {
   const { slug } = useParams<{ slug: string }>();
   const [info, setInfo] = useState<Info | null>(null);
-  const [missing, setMissing] = useState(false);
+  const [missing, setMissing] = useState<{ contact: ShopContact } | null>(null);
   const [service, setService] = useState<string | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slot, setSlot] = useState<Slot | null>(null);
@@ -52,7 +53,8 @@ export default function BookPage() {
     const qs = nextService ? `?${new URLSearchParams({ service: nextService })}` : "";
     const res = await fetch(`/api/public/book/${encodeURIComponent(slug)}${qs}`);
     if (res.status === 404) {
-      setMissing(true);
+      const body = await res.json().catch(() => null);
+      setMissing({ contact: body?.business ?? null });
       return null;
     }
     if (!res.ok) {
@@ -118,14 +120,7 @@ export default function BookPage() {
   };
 
   if (missing) {
-    return (
-      <main className="pf pf--center">
-        <div className="pf-head">
-          <h1 className="pf-title">Online booking isn&apos;t available</h1>
-          <p className="pf-sub">Call the business directly to book.</p>
-        </div>
-      </main>
-    );
+    return <PublicShopFallback title="Online booking isn't available" contact={missing.contact} ask="to book" />;
   }
 
   if (!info) {

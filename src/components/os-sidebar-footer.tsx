@@ -47,6 +47,7 @@ type IconName =
   | "home"
   | "help"
   | "docs"
+  | "pricebook"
   | "external"
   | "signout"
   | "updown"
@@ -67,6 +68,7 @@ type MenuItem = {
 const accountLinks: MenuItem[] = [
   { href: "/dashboard?settings=account", label: "Account", icon: "account" },
   { href: "/dashboard?settings=receptionist", label: "Receptionist", icon: "personalization" },
+  { href: "/dashboard/price-book", label: "Price book", icon: "pricebook" },
   { href: "/dashboard?settings=general", label: "Settings", icon: "settings" },
 ];
 
@@ -399,6 +401,7 @@ const MENU_PATHS: Record<IconName, string[]> = {
     "M12 16.6v.1",
   ],
   docs: ["M6 5.5A1.5 1.5 0 0 1 7.5 4H18v14H7.5A1.5 1.5 0 0 0 6 19.5v-14Z", "M6 19.5A1.5 1.5 0 0 0 7.5 21H18v-3"],
+  pricebook: ["M4.5 12.4V5.5a1 1 0 0 1 1-1h6.9l7.1 7.1-7.9 7.9-7.1-7.1Z", "M8.5 8.5h.01"],
   external: ["M7.5 16.5 16.5 7.5", "M9 7.5h7.5V15"],
   signout: ["M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14", "M10.5 12H20", "M16.5 8.5 20 12l-3.5 3.5"],
   updown: ["M8.5 9.5 12 6l3.5 3.5", "M8.5 14.5 12 18l3.5-3.5"],

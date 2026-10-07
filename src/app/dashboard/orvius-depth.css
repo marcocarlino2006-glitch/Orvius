@@ -1,0 +1,171 @@
+/*
+ * Depth: the same light the homepage console is drawn with. A dark canvas lit
+ * by a faint copper worklight, cards lifted off it with a top highlight and a
+ * soft drop, inputs and tracks pressed into the card. Loaded last.
+ */
+
+html body .os-shell.os-shell-night {
+  --dp-canvas: #101012;
+  --dp-side: #0e0e10;
+  --dp-card: #1d1d20;
+  --dp-card-top: rgb(255 255 255 / 0.045);
+  --dp-well: #151517;
+  --dp-edge: rgb(255 255 255 / 0.075);
+  --dp-edge-hi: rgb(255 255 255 / 0.12);
+  --dp-lift: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.35), 0 18px 44px -26px rgb(0 0 0 / 0.9);
+  --dp-press: inset 0 1px 2px rgb(0 0 0 / 0.45), inset 0 0 0 1px rgb(255 255 255 / 0.045);
+  --dp-copper: #f54e00;
+  background: var(--dp-canvas) !important;
+}
+
+/* ── Canvas and chrome ─────────────────────────────────────────────────── */
+
+html body .os-shell.os-shell-night .os-main {
+  background:
+    radial-gradient(60rem 34rem at 92% -12%, color-mix(in srgb, var(--dp-copper) 13%, transparent), transparent 70%),
+    radial-gradient(44rem 30rem at -6% 108%, color-mix(in srgb, var(--dp-copper) 7%, transparent), transparent 72%),
+    radial-gradient(50rem 22rem at 30% -10%, rgb(160 180 255 / 0.05), transparent 70%),
+    var(--dp-canvas) !important;
+  background-attachment: fixed !important;
+}
+
+html body .os-shell.os-shell-night :is(.os-content, .os-main > .page-enter) {
+  background: transparent !important;
+}
+
+html body .os-shell.os-shell-night .os-sidebar {
+  background: var(--dp-side) !important;
+  border-right: 1px solid var(--dp-edge) !important;
+  box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.4) !important;
+}
+
+html body .os-shell.os-shell-night .os-nav-link[aria-current="page"] {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.035)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 1px 2px rgb(0 0 0 / 0.4) !important;
+  color: var(--ox-text) !important;
+}
+
+html body .os-shell.os-shell-night .os-topbar {
+  background: rgb(16 16 18 / 0.6) !important;
+  border-bottom: 1px solid var(--dp-edge) !important;
+  backdrop-filter: saturate(140%) blur(18px);
+  -webkit-backdrop-filter: saturate(140%) blur(18px);
+}
+
+/* ── Raised: every card lifts off the canvas ───────────────────────────── */
+
+html body .os-shell.os-shell-night :is(
+  .pro-panel, .wp, .wh, .transcript-cinema, .billing-summary, .op-panel,
+  .cb-ask-stack, .cmd-today-lane, .cmd-feed, .cs-grid, .dt, .ms-row,
+  .os-lead-rail, .cp-panel, .wb.pc, .ask-composer, .cb-demo, .pro-stat, .wq
+) {
+  border: 1px solid var(--dp-edge) !important;
+  border-radius: 0.875rem !important;
+  background: linear-gradient(180deg, var(--dp-card-top), transparent 7rem), var(--dp-card) !important;
+  box-shadow: var(--dp-lift) !important;
+}
+
+html body .os-shell.os-shell-night .dsp-section:has(> .dsp-grid) {
+  padding: 1rem 1.25rem 1.25rem !important;
+  border: 1px solid var(--dp-edge) !important;
+  border-radius: 0.875rem !important;
+  background: linear-gradient(180deg, var(--dp-card-top), transparent 7rem), var(--dp-card) !important;
+  box-shadow: var(--dp-lift) !important;
+}
+
+/* Work cards keep their severity edge; only the surface and lift change. */
+html body .os-shell.os-shell-night .wc-list > .wc:not(.wc--page) {
+  border-top-color: var(--dp-edge) !important;
+  border-right-color: var(--dp-edge) !important;
+  border-bottom-color: var(--dp-edge) !important;
+  border-radius: 0.875rem !important;
+  background: linear-gradient(180deg, var(--dp-card-top), transparent 6rem), var(--dp-card) !important;
+  box-shadow: var(--dp-lift) !important;
+}
+
+/* A card inside a card does not lift twice. */
+html body .os-shell.os-shell-night :is(.pro-panel, .wp, .wh, .op-panel, .cp-panel) :is(.pro-panel, .wp, .wh, .op-panel) {
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* ── Pressed: wells, tracks, fields ────────────────────────────────────── */
+
+html body .os-shell.os-shell-night :is(.dsp-track:not(.dsp-axis), .jf-note, .cp-prop, .cl-outcome, .wc--page, .cb-ask-form) {
+  border-color: transparent !important;
+  background: var(--dp-well) !important;
+  box-shadow: var(--dp-press) !important;
+}
+
+html body .os-shell.os-shell-night :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .wc-select) {
+  border-color: var(--dp-edge) !important;
+  background-color: var(--dp-well) !important;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4) !important;
+}
+
+html body .os-shell.os-shell-night :is(input, select, textarea, .wc-select):focus-visible {
+  border-color: var(--dp-edge-hi) !important;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4), 0 0 0 3px rgb(255 255 255 / 0.06) !important;
+}
+
+/* ── Buttons: lit from above, like the homepage ones ───────────────────── */
+
+html body .os-shell.os-shell-night :is(.ox-btn--primary, .btn-void, .assign-tech-btn, .job-status-advance-btn, .attention-item-btn-primary),
+html body .os-shell .sc-btn--primary {
+  background: linear-gradient(180deg, #ffffff, #e6e6e6) !important;
+  border-color: rgb(255 255 255 / 0.9) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 20px -10px rgb(0 0 0 / 0.8) !important;
+}
+
+html body .os-shell.os-shell-night :is(.ox-btn--primary, .btn-void, .assign-tech-btn, .job-status-advance-btn, .attention-item-btn-primary):hover:not(:disabled),
+html body .os-shell .sc-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffffff, #f2f2f2) !important;
+}
+
+html body .os-shell.os-shell-night :is(.ox-btn--quiet, .btn-secondary, .os-topbar-search, .wc-more > summary),
+html body .os-shell .sc-btn:not(.sc-btn--primary) {
+  border-color: var(--dp-edge-hi) !important;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.025)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.4) !important;
+}
+
+html body .os-shell.os-shell-night :is(.ox-btn--quiet, .btn-secondary, .os-topbar-search, .wc-more > summary):hover:not(:disabled),
+html body .os-shell .sc-btn:not(.sc-btn--primary):hover:not(:disabled) {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.05)) !important;
+}
+
+/* ── Status color glows a little, the way the live dot does ────────────── */
+
+html body .os-shell.os-shell-night .os-ring-status-dot {
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent), 0 0 10px currentColor;
+}
+
+html body .os-shell.os-shell-night .wc-tag {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent) !important;
+}
+
+/* ── Headline numbers carry weight ─────────────────────────────────────── */
+
+html body .os-shell.os-shell-night :is(.ms-cell dd, .pro-stat-value) {
+  font-weight: 650 !important;
+  letter-spacing: -0.02em !important;
+  font-variant-numeric: tabular-nums;
+}
+
+html body .os-shell.os-shell-night .os-topbar-title {
+  letter-spacing: -0.02em !important;
+}
+
+/* ── Segmented filters: a pressed rail with the chosen tab lifted ──────── */
+
+html body .os-shell.os-shell-night :is(.jobs-pipeline, .pro-filter-bar) {
+  border: 0 !important;
+  background: var(--dp-well) !important;
+  box-shadow: var(--dp-press) !important;
+}
+
+html body .os-shell.os-shell-night :is(.jobs-pipeline-stage-active, .pro-filter-tab-active) {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.05)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 1px 2px rgb(0 0 0 / 0.5) !important;
+  color: var(--ox-text) !important;
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { PublicShopFallback, type ShopContact } from "@/components/public-shop-fallback";
 import "@/app/public-field.css";
 import "@/app/b/[slug]/book.css";
 import "./plans.css";
@@ -30,7 +31,7 @@ export default function PlansPage() {
   const { slug } = useParams<{ slug: string }>();
   const [joined, setJoined] = useState(false);
   const [info, setInfo] = useState<Info | null>(null);
-  const [missing, setMissing] = useState(false);
+  const [missing, setMissing] = useState<{ contact: ShopContact } | null>(null);
   const [planId, setPlanId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", email: "", website: "" });
   const [busy, setBusy] = useState(false);
@@ -39,7 +40,10 @@ export default function PlansPage() {
   useEffect(() => {
     setJoined(new URLSearchParams(window.location.search).get("joined") === "1");
     void fetch(`/api/public/plans/${encodeURIComponent(slug)}`).then(async (res) => {
-      if (res.status === 404) return setMissing(true);
+      if (res.status === 404) {
+        const body = await res.json().catch(() => null);
+        return setMissing({ contact: body?.business ?? null });
+      }
       if (!res.ok) return setError("Plans didn't load. Refresh to try again.");
       const data: Info = await res.json();
       setInfo(data);
@@ -83,14 +87,7 @@ export default function PlansPage() {
   }
 
   if (missing) {
-    return (
-      <main className="pf pf--center">
-        <div className="pf-head">
-          <h1 className="pf-title">Plans aren&apos;t available online</h1>
-          <p className="pf-sub">Call the business to ask about a maintenance plan.</p>
-        </div>
-      </main>
-    );
+    return <PublicShopFallback title="Plans aren't available online" contact={missing.contact} ask="to ask about a maintenance plan" />;
   }
 
   if (!info) {

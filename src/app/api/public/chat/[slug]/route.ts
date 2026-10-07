@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { publicShop } from "@/lib/online-booking";
+import { publicShop, shopContact } from "@/lib/online-booking";
 import { clientIp, publicTextLimited, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { startWebChat } from "@/lib/web-chat";
 
@@ -11,8 +11,9 @@ const notFound = () => NextResponse.json({ error: "Chat isn't available for this
 export async function GET(request: Request, { params }: Params) {
   const limited = await publicTokenLimited(request, "chat", "GET");
   if (limited) return limited;
-  const shop = await publicShop((await params).slug, "webChatOn");
-  if (!shop) return notFound();
+  const { slug } = await params;
+  const shop = await publicShop(slug, "webChatOn");
+  if (!shop) return NextResponse.json({ error: "Chat isn't available for this business.", business: await shopContact(slug) }, { status: 404 });
   return NextResponse.json({
     business: { name: shop.name, phone: shop.vapiPhoneNumber ?? shop.twilioPhone ?? null },
     booking: shop.bookingPageOn ? `/b/${shop.slug}` : null,

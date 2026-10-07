@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { bookableShop, bookingServices, bookingSlots, bookOnline } from "@/lib/online-booking";
+import { bookableShop, bookingServices, bookingSlots, bookOnline, shopContact } from "@/lib/online-booking";
 import { clientIp, publicTextLimited, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -10,8 +10,9 @@ const notFound = () => NextResponse.json({ error: "Online booking isn't availabl
 export async function GET(request: Request, { params }: Params) {
   const limited = await publicTokenLimited(request, "book", "GET");
   if (limited) return limited;
-  const shop = await bookableShop((await params).slug);
-  if (!shop) return notFound();
+  const { slug } = await params;
+  const shop = await bookableShop(slug);
+  if (!shop) return NextResponse.json({ error: "Online booking isn't available for this business.", business: await shopContact(slug) }, { status: 404 });
 
   const services = bookingServices(shop);
   const requested = new URL(request.url).searchParams.get("service");

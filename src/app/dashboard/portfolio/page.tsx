@@ -148,7 +148,7 @@ export default function PortfolioPage() {
             <div className="dt-head" role="row">
               <span role="columnheader">Location</span>
               <span role="columnheader" className="dt-num">Calls</span>
-              <span role="columnheader" className="dt-num">Leads</span>
+              <span role="columnheader" className="dt-num">Requests</span>
               <span role="columnheader" className="dt-num">Booked</span>
               <span role="columnheader" className="dt-num">Done</span>
               <span role="columnheader" className="dt-num">Collected</span>
@@ -174,7 +174,7 @@ export default function PortfolioPage() {
                     </span>
                   </span>
                   <span className="dt-num" role="cell" data-label="Calls">{shop.calls}</span>
-                  <span className="dt-num" role="cell" data-label="Leads">{shop.leads}</span>
+                  <span className="dt-num" role="cell" data-label="Requests">{shop.leads}</span>
                   <span className="dt-num" role="cell" data-label="Booked">{shop.booked}</span>
                   <span className="dt-num" role="cell" data-label="Done">{shop.completed}</span>
                   <span className="dt-num" role="cell" data-label="Collected">{money(shop.collectedCents)}</span>
@@ -196,8 +196,8 @@ export default function PortfolioPage() {
             <p className="pf-foot">Showing the first {data.shops.length} locations this sign-in can open.</p>
           ) : null}
           <p className="pf-foot">
-            Calls, leads, bookings, completions and money are counted over the last {data.days} days. Waiting counts every
-            lead with no callback yet, however old. Collected is every recorded payment and paid deposit, the same figure as each shop&apos;s Performance page.
+            Calls, requests, bookings, completions and money are counted over the last {data.days} days. Waiting counts every
+            request with no callback yet, however old. Collected is every recorded payment and paid deposit, the same figure as each shop&apos;s Performance page.
           </p>
         </>
       )}
