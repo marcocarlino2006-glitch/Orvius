@@ -10,6 +10,7 @@ import {
   ShellPanel,
 } from "@/components/shell-primitives";
 import { WorkPanel } from "@/components/work-panel";
+import { displayPhone } from "@/lib/customer";
 import { nextJobStatus } from "@/lib/job-status";
 import { formatShopTime, shopWallInput } from "@/lib/when";
 import Link from "next/link";
@@ -225,10 +226,10 @@ export default function JobDetailPage() {
     <>
       {job.customer || job.lead ? (
         <ShellPanel title="Customer" dense>
-          <p className="jv-who font-sans">{job.customer?.name ?? job.lead?.name ?? phone}</p>
+          <p className="jv-who font-sans">{job.customer?.name ?? job.lead?.name ?? (phone ? displayPhone(phone) : null)}</p>
           <p className="jv-sub font-sans">
             {[
-              job.customer && (job.customer.name ? job.customer.phone : null),
+              job.customer?.name ? displayPhone(job.customer.phone) : null,
               job.customer ? `${job.customer.interactionCount} interaction${job.customer.interactionCount === 1 ? "" : "s"}` : null,
               job.lead ? "booked from their request" : null,
             ]
