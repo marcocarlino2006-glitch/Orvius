@@ -31,6 +31,7 @@ type Sandbox = {
   team: "solo" | "crew" | null;
   crew: number;
   hours: HoursPresetId | null;
+  services: { options: string[]; chosen: string[] };
   zips: string[];
   needsServiceArea: boolean;
   calendar: string | null;
@@ -350,9 +351,25 @@ function DayStep({
 }: {
   sandbox: Sandbox;
   busy: boolean;
-  onSave: (body: { hours: HoursPresetId; zips?: string[]; team?: "solo" | "crew"; crew?: Array<{ name: string; phone: string }> }) => void;
+  onSave: (body: {
+    hours: HoursPresetId;
+    services: string[];
+    zips?: string[];
+    team?: "solo" | "crew";
+    crew?: Array<{ name: string; phone: string }>;
+  }) => void;
 }) {
   const [hours, setHours] = useState<HoursPresetId>(sandbox.hours ?? "weekdays");
+  const [serviceOptions, setServiceOptions] = useState(sandbox.services.options);
+  const [services, setServices] = useState<string[]>(sandbox.services.chosen.length ? sandbox.services.chosen : sandbox.services.options);
+  const [extra, setExtra] = useState("");
+  function addExtra() {
+    const name = extra.trim().replace(/\s+/g, " ").slice(0, 60);
+    if (!name) return;
+    if (!serviceOptions.some((o) => o.toLowerCase() === name.toLowerCase())) setServiceOptions([...serviceOptions, name]);
+    if (!services.some((o) => o.toLowerCase() === name.toLowerCase())) setServices([...services, name]);
+    setExtra("");
+  }
   const [zips, setZips] = useState(sandbox.zips.join(", "));
   const [team, setTeam] = useState<"solo" | "crew">(sandbox.team ?? "solo");
   const [crew, setCrew] = useState([{ name: "", phone: "" }]);
@@ -403,6 +420,50 @@ function DayStep({
           ))}
         </div>
         <p className="ton-note">Different every day? Pick the closest; set exact hours in Settings later.</p>
+      </fieldset>
+
+      <fieldset className="ton-group">
+        <legend className="ton-group-title">The work you take</legend>
+        <div className="ton-chips" role="group" aria-label="The work you take">
+          {serviceOptions.map((name) => {
+            const on = services.includes(name);
+            return (
+              <button
+                key={name}
+                type="button"
+                aria-pressed={on}
+                className={`ton-chip ${on ? "is-on" : ""}`}
+                onClick={() => setServices(on ? services.filter((s) => s !== name) : [...services, name])}
+              >
+                {name}
+              </button>
+            );
+          })}
+        </div>
+        <div className="ton-inline">
+          <input
+            className="ton-input"
+            value={extra}
+            onChange={(e) => setExtra(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addExtra();
+              }
+            }}
+            placeholder="Something else you do"
+            aria-label="Add a kind of work"
+            maxLength={60}
+          />
+          <button type="button" className="ton-secondary" disabled={!extra.trim() || services.length >= 12} onClick={addExtra}>
+            Add
+          </button>
+        </div>
+        <p className="ton-note">
+          {services.length
+            ? "Orvius tells callers this is the work you do. Calls about anything else still land in Command for you to decide."
+            : "Pick at least one."}
+        </p>
       </fieldset>
 
       <fieldset className="ton-group">
@@ -508,10 +569,11 @@ function DayStep({
       ) : null}
 
       <Primary
-        disabled={busy}
+        disabled={busy || services.length === 0}
         onClick={() =>
           onSave({
             hours,
+            services,
             ...(sandbox.needsServiceArea
               ? {
                   zips: zipList,
@@ -880,8 +942,8 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
               />
             </div>
             <p className="ton-note">
-              Alerts and safety calls go to this mobile. You get a local Orvius number in this area code, then forward your
-              existing number to it or put it on your website.
+              Alerts and safety calls go to this mobile. You get a local Orvius number in this area code. Right after, we
+              walk you through connecting your business number: you keep it, and you choose which calls Orvius takes.
             </p>
           </fieldset>
 

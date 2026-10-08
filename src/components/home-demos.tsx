@@ -198,6 +198,7 @@ function Shell({ ctl, children }: { ctl: ReturnType<typeof useBusiness>; childre
   return (
     <div ref={ctl.ref} className={`hd-demo ${ctl.inView ? "is-in" : ""}`}>
       {children}
+      <p className="hd-example">Example business, not a customer. This is how Orvius looks with sample calls.</p>
       <Pills index={ctl.index} pick={ctl.pick} />
     </div>
   );

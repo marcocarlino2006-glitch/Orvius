@@ -5,7 +5,7 @@ import { ingestEndOfCallReport } from "@/lib/call-ingest";
 import { normalizePhone } from "@/lib/customer";
 import { processNotificationQueue } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_HOURS_JSON, servicesForTrade, uniqueSlug } from "@/lib/provision-business";
+import { chosenServicesJson, DEFAULT_HOURS_JSON, servicesForTrade, uniqueSlug } from "@/lib/provision-business";
 import { clearTestRecords } from "@/lib/setup-test-records";
 import {
   HOURS_PRESETS,
@@ -122,11 +122,19 @@ export async function saveSetupGoal(email: string, goal: SetupGoal): Promise<Bus
 
 export async function saveSetupDay(
   email: string,
-  input: { hours: HoursPresetId; zips?: string[]; team?: "solo" | "crew"; crew?: Array<{ name: string; phone: string }> },
+  input: {
+    hours: HoursPresetId;
+    services?: string[];
+    zips?: string[];
+    team?: "solo" | "crew";
+    crew?: Array<{ name: string; phone: string }>;
+  },
 ): Promise<Business> {
   const business = await requireSandbox(email);
   const preset = HOURS_PRESETS.find((item) => item.id === input.hours);
   if (!preset) throw new SetupError("Pick the hours that fit your week.");
+  const servicesJson = input.services && business.trade ? chosenServicesJson(business.trade as Trade, input.services) : undefined;
+  if (input.services && !servicesJson) throw new SetupError("Pick at least one kind of work you take.");
   if (input.team === "crew" && input.crew?.length) {
     const existing = await prisma.technician.findMany({ where: { businessId: business.id }, select: { phone: true } });
     const known = new Set(existing.map((t) => normalizePhone(t.phone)).filter(Boolean));
@@ -142,6 +150,7 @@ export async function saveSetupDay(
     where: { id: business.id },
     data: {
       hoursJson: preset.hoursJson,
+      ...(servicesJson ? { servicesJson } : {}),
       ...(input.zips ? { serviceZipsJson: JSON.stringify(input.zips) } : {}),
       setupJson: mergeSetup(business, { step: "permissions", ...(input.team ? { team: input.team } : {}) }),
     },

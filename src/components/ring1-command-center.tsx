@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { CommandSignals } from "@/components/command-signals";
+import { ActivationChecklist } from "@/components/activation-checklist";
 import { AskBar, PlanCard, TryDemo } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { TestAlertButton } from "@/components/test-alert-button";
@@ -239,8 +240,17 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               </ul>
             ) : (
               <div className="cmd-clear">
-                <p className="cmd-clear-title">You&apos;re clear.</p>
-                <p className="cmd-clear-copy">Every open request and job is with Orvius, a technician or the customer. Anything that needs a person lands here first.</p>
+                {data.metrics.totalCalls ? (
+                  <>
+                    <p className="cmd-clear-title">You&apos;re clear.</p>
+                    <p className="cmd-clear-copy">Every open request and job is with Orvius, a technician or the customer. Anything that needs a person lands here first.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="cmd-clear-title">Waiting for your first customer call.</p>
+                    <p className="cmd-clear-copy">Requests land here the moment Orvius takes one. Anything that needs a person comes first.</p>
+                  </>
+                )}
               </div>
             )}
             {items.length > NEEDS_YOU_SHOWN ? (
@@ -297,6 +307,11 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             {data ? <TodaySchedule jobs={data.dispatchToday?.jobs ?? []} /> : <p className="cmd-empty">Reading the schedule…</p>}
           </section>
 
+          {data && !data.business?.testMode && !data.business?.referenceImplementation ? (
+            <section className="cmd-section" aria-label="Left to turn on">
+              <ActivationChecklist onlyLeft />
+            </section>
+          ) : null}
           {data && !data.business?.referenceImplementation && !data.metrics.totalCalls ? <TryDemo empty /> : null}
         </div>
 

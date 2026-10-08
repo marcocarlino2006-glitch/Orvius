@@ -575,3 +575,18 @@
     opacity: 1;
   }
 }
+
+.hd-example {
+  position: absolute;
+  bottom: 3%;
+  left: 8%;
+  z-index: 2;
+  max-width: 84%;
+  margin: 0;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #fff;
+  background: rgb(0 0 0 / 0.62);
+}

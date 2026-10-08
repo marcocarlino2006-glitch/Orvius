@@ -164,6 +164,24 @@ export function servicesForTrade(trade: Trade): string {
   return JSON.stringify(TRADE_SERVICES[trade]);
 }
 
+/** The owner's pick of the trade's standard work, plus anything they typed. Never empty. */
+export function chosenServicesJson(trade: Trade, names: string[]): string | null {
+  const seen = new Set<string>();
+  const chosen: ServiceOffering[] = [];
+  for (const raw of names) {
+    const name = raw.trim().replace(/\s+/g, " ").slice(0, 60);
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) continue;
+    seen.add(key);
+    chosen.push(TRADE_SERVICES[trade].find((s) => s.name.toLowerCase() === key) ?? { name });
+  }
+  return chosen.length ? JSON.stringify(chosen.slice(0, 12)) : null;
+}
+
+export function standardServiceNames(trade: Trade): string[] {
+  return TRADE_SERVICES[trade].map((s) => s.name);
+}
+
 export async function findBusinessForOwner(email: string) {
   return prisma.business.findFirst({
     where: { ownerEmail: email.toLowerCase() },
