@@ -6,8 +6,8 @@
    ────────────────────────────────────────────────────────────────────────── */
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro {
-  --m-bg: #111113;
-  --m-side: #0d0d0f;
+  --m-bg: #0e0e10;
+  --m-side: #0b0b0d;
   --m-card: #18181b;
   --m-raise: #1f1f23;
   --m-hover: rgb(255 255 255 / 0.045);
@@ -29,6 +29,10 @@
   --m-r: 0.75rem;
   --m-r-sm: 0.5rem;
   --m-ring: 0 0 0 3px rgb(255 255 255 / 0.12);
+  --m-shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.035), 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 12px -4px rgb(0 0 0 / 0.35);
+  --m-shadow-quiet: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 1px 2px rgb(0 0 0 / 0.3);
+  --m-shadow-btn: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 1px 2px rgb(0 0 0 / 0.45);
+  --m-shadow-pop: 0 0 0 1px rgb(255 255 255 / 0.08), 0 8px 16px -4px rgb(0 0 0 / 0.5), 0 24px 48px -12px rgb(0 0 0 / 0.6);
 
   --ox-bg: var(--m-bg);
   --ox-s1: var(--m-card);
@@ -51,8 +55,8 @@
 }
 
 :root[data-theme="day"] body .os-shell.os-shell-night.os-shell-pro.os-shell-pro {
-  --m-bg: #ffffff;
-  --m-side: #f9f9f8;
+  --m-bg: #fafafa;
+  --m-side: #f4f4f5;
   --m-card: #ffffff;
   --m-raise: #f6f6f5;
   --m-hover: rgb(0 0 0 / 0.035);
@@ -72,6 +76,10 @@
   --m-green-bg: rgb(22 163 74 / 0.09);
   --m-blue: #2563eb;
   --m-ring: 0 0 0 3px rgb(0 0 0 / 0.08);
+  --m-shadow-card: 0 0 0 0.5px rgb(0 0 0 / 0.02), 0 1px 2px rgb(0 0 0 / 0.04), 0 2px 6px -2px rgb(0 0 0 / 0.04);
+  --m-shadow-quiet: 0 1px 2px rgb(0 0 0 / 0.05);
+  --m-shadow-btn: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.18), 0 0 0 0.5px rgb(0 0 0 / 0.6);
+  --m-shadow-pop: 0 0 0 1px rgb(0 0 0 / 0.06), 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 16px 32px -8px rgb(0 0 0 / 0.14);
 }
 
 /* ── Chrome: flat canvas, quiet sidebar, thin top bar ──────────────────── */
@@ -561,7 +569,7 @@
 
 /* ── Fields: flat, ring on focus ───────────────────────────────────────── */
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .wc-select):not(.cb-ask-input, .sc-nav-search > input) {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .wc-select):not(.cb-ask-input, .ask-composer-input, .sc-nav-search > input) {
   border: 1px solid var(--m-line-2) !important;
   border-radius: var(--m-r-sm) !important;
   background-color: var(--m-card) !important;
@@ -570,7 +578,7 @@
   color: var(--m-text) !important;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(input, select, textarea, .wc-select):not(.cb-ask-input, .sc-nav-search > input):focus-visible {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(input, select, textarea, .wc-select):not(.cb-ask-input, .ask-composer-input, .sc-nav-search > input):focus-visible {
   outline: none !important;
   border-color: var(--m-mute) !important;
   box-shadow: var(--m-ring) !important;
@@ -644,4 +652,175 @@
   background: transparent !important;
   box-shadow: none !important;
   outline: none !important;
+}
+
+
+/* ── Depth: soft, physical, never lit ──────────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .pro-panel, .wp, .wh, .transcript-cinema, .billing-summary, .op-panel,
+  .cmd-today-lane, .cmd-feed, .cs-grid, .dt, .ms-row, .os-lead-rail,
+  .cp-panel, .wb.pc, .ask-composer, .cb-demo, .pro-stat, .wq, .cmd-issues
+),
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list:not(:has(> .wc--page)),
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dsp-section:has(> .dsp-grid) {
+  box-shadow: var(--m-shadow-card) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pro-panel, .wp, .wh, .op-panel, .cp-panel) :is(.pro-panel, .wp, .wh, .op-panel, .dt, .cs-grid) {
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .ox-btn--primary, .btn-void, .assign-tech-btn, .job-status-advance-btn,
+  .attention-item-btn-primary, .lead-quick-btn-primary, .sc-btn--primary
+) {
+  box-shadow: var(--m-shadow-btn) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .ox-btn--quiet, .btn-secondary, .lead-quick-btn:not(.lead-quick-btn-primary),
+  .wc-more > summary, .sc-btn:not(.sc-btn--primary), .os-topbar-search, .cb-ask-chip
+),
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-actions :is(.ox-btn--primary, .btn-void),
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-actions :is(.btn, .ox-btn, .lead-quick-btn) {
+  background: var(--m-card) !important;
+  box-shadow: var(--m-shadow-quiet) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list > .wc--critical .wc-actions :is(.ox-btn--primary, .btn-void) {
+  background: var(--m-solid) !important;
+  box-shadow: var(--m-shadow-btn) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ox-btn--quiet, .btn-secondary, .lead-quick-btn:not(.lead-quick-btn-primary), .sc-btn:not(.sc-btn--primary), .os-topbar-search, .cb-ask-chip):hover:not(:disabled),
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-actions :is(.ox-btn--primary, .btn-void):hover:not(:disabled),
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-actions :is(.btn, .ox-btn, .lead-quick-btn):hover {
+  background: var(--m-raise) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ox-btn, .btn, .lead-quick-btn, .sc-btn):active:not(:disabled) {
+  transform: translateY(0.5px) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .wc-select):not(.cb-ask-input, .ask-composer-input, .sc-nav-search > input) {
+  box-shadow: var(--m-shadow-quiet) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pro-filter-tab-active, .jobs-pipeline-stage-active) {
+  background: var(--m-card) !important;
+  box-shadow: var(--m-shadow-quiet) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cb-ask-stack {
+  box-shadow: var(--m-shadow-card) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pm-panel, .mx-menu, .sc-dialog, .os-palette, [role="menu"], [role="listbox"], [role="dialog"]:not(.sc-dialog *)) {
+  box-shadow: var(--m-shadow-pop) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro a.cs-card {
+  transition: background var(--ox-dur-fast) var(--ox-ease);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro a.cs-card:hover {
+  background: var(--m-hover) !important;
+}
+
+/* ── Type scale: 12 · 13 · 14 · 16 · 20 · 24 · 30 ──────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.lead-rail-name, .op-row-value, .ask-suggest, .dsp-h, .ask-intro-copy) {
+  font-size: 0.875rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.sc-title, .sc-plan-name) {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cs-value {
+  font-size: 1.5rem !important;
+  font-variant-numeric: tabular-nums;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.account-billing-pay-price, .ask-intro-title) {
+  font-size: 1.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.025em !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(time, .dt-num, .dt-when, .dt-mono, .cs-value, .wc-when, .cmd-feed-at, .cmd-today-time) {
+  font-variant-numeric: tabular-nums;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-nav-badge {
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* ── Shape: 6 tags · 8 controls · 12 cards · 16 dialogs · round pills ──── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.dsp-skill, .wc-tag, .cb-tag, .dt-tag) {
+  border-radius: 0.375rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ask-suggest, .sc-nav-item, .os-nav-link, .ox-btn, .btn, .lead-quick-btn, .sc-btn, .pro-filter-tab, .jobs-pipeline-stage, .dsp-block) {
+  border-radius: 0.5rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.account-billing-plan, .cb-ask-result) {
+  border-radius: 0.75rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cb-ask-send {
+  border-radius: 999px !important;
+}
+
+/* ── Controls: one height per size ─────────────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ox-btn, .btn, .sc-btn, .inst-btn) {
+  min-height: 2.25rem;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ox-btn--sm, .btn.text-sm, .lead-quick-btn, .pro-filter-tab, .jobs-pipeline-stage, .dsp-skill) {
+  min-height: 2rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(input.input, .sc-input, .pro-search-input) {
+  min-height: 2.25rem !important;
+}
+
+/* ── Spacing: one inset for every card with content in it ──────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.op-panel, .cp-panel, .wb.pc, .cmd-issues, .pro-panel:not(.pro-panel--dense)) {
+  padding: 1rem 1.25rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dsp-section:has(> .dsp-grid) {
+  padding: 1rem 1.25rem 1.25rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cc-rail .cs-card {
+  padding: 0.75rem 1rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list .wc-head {
+  padding-left: 0 !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .mx-chip {
+  color: var(--m-text-2) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .mx-chip:hover {
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .ask-composer-input {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }

@@ -95,8 +95,9 @@ html[data-theme="day"] {
  * font-family that references them silently invalidates.
  */
 body {
+  --font-ui: var(--font-sans);
   --ov-font: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
-  --ov-mono: var(--font-mono), ui-monospace, monospace;
+  --ov-mono: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
   font-family: var(--ov-font);
 }
 
@@ -169,7 +170,7 @@ body {
   font-family: var(--ov-mono);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
   line-height: 1.5;
   white-space: nowrap;
   text-decoration: none;
@@ -390,6 +391,7 @@ body {
  */
 .ov-public .ov-console-frame,
 .ov-public .mkt-proof-section,
+.ov-public .ov-hero--atmosphere,
 .ov-signin {
   --ov-headline: #ffffff;
   --ov-ink: #edecec;
@@ -423,7 +425,7 @@ body {
   margin: 0 !important;
   color: var(--ov-headline) !important;
   font-family: var(--ov-font) !important;
-  font-size: 1.0625rem !important;
+  font-size: 1.125rem !important;
   font-weight: 600 !important;
   letter-spacing: -0.02em !important;
 }
@@ -706,7 +708,7 @@ body {
   margin: 1.1rem 0 0;
   max-width: 52ch;
   color: #9c9a92;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.6;
 }
 
@@ -738,8 +740,8 @@ body {
   font-family: var(--ov-mono);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ov-signin-feed {
@@ -785,7 +787,7 @@ body {
   color: #918f87;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -799,7 +801,7 @@ body {
   font-family: var(--ov-mono);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0;
 }
 
 .ov-signin-row-tag--intake {
@@ -888,8 +890,8 @@ body {
   font-family: var(--ov-mono);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ov-signin-title {
@@ -927,7 +929,7 @@ body {
   background: transparent;
   color: #ffffff;
   font-family: var(--ov-font);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -963,8 +965,8 @@ body {
   color: #8c8c90;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ov-signin-label {
@@ -974,8 +976,8 @@ body {
   font-family: var(--ov-mono);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ov-signin-input {
@@ -987,7 +989,7 @@ body {
   background: #171717;
   color: #ffffff;
   font-family: var(--ov-font);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease;
@@ -1017,7 +1019,7 @@ body {
   background: #ffffff;
   color: #18181a;
   font-family: var(--ov-font);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -1161,7 +1163,7 @@ body {
 .ov-signin-verify h1 {
   margin: 0;
   color: #ffffff;
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: -0.024em;
 }
@@ -1221,8 +1223,8 @@ body {
   font-family: var(--ov-mono) !important;
   font-size: 0.75rem !important;
   font-weight: 500 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }
 
 /* Headlines carry Archivo's weight; the old 400 read thin and generic. */
@@ -1620,8 +1622,8 @@ body {
   color: var(--ov-muted);
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ov-public .ov-hero-liveline-number {
@@ -1631,7 +1633,7 @@ body {
   font-size: var(--fs-display-sm);
   font-weight: 600;
   line-height: 1.05;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   transition: color 140ms ease;
 }
@@ -1846,8 +1848,8 @@ body {
   color: color-mix(in srgb, #edecec 62%, transparent);
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ov-public .ov-console-lights {
@@ -1869,7 +1871,7 @@ body {
 
 .ov-public .ov-console-menutitle {
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0;
   color: color-mix(in srgb, #edecec 82%, transparent);
 }
 
@@ -1908,7 +1910,7 @@ body {
   background: #1a1a1c;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
 }
 
 .ov-public .ov-console-shop {
@@ -1932,8 +1934,8 @@ body {
   background: rgb(16 185 129 / 0.1);
   color: var(--ov-emerald-text);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .ov-public .ov-console-live i {
@@ -1995,8 +1997,8 @@ body {
 .ov-public .ov-wire-who {
   color: #918f87;
   font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   padding-top: 0.15rem;
 }
 
@@ -2039,8 +2041,8 @@ body {
   color: #918f87;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ov-public .ov-capture-list {
@@ -2068,8 +2070,8 @@ body {
   color: #9c9a92;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* An empty field should read as pending, so it stays quieter than its label —
@@ -2197,7 +2199,7 @@ body {
   color: #9c9a92;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2210,8 +2212,8 @@ body {
   background: #1a1a1c;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ov-public .ov-rail-step {
@@ -2284,12 +2286,12 @@ body {
   justify-content: space-between;
   color: rgb(243 239 230 / 0.6);
   font-size: 0.75rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .ov-public .ov-owner-text-app {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .ov-public .ov-owner-text-from {
@@ -2406,7 +2408,7 @@ body {
   max-width: 18ch;
   /* Whisper authority — size + tracking, not weight (Cursor gothic 400) */
   font-size: var(--fs-display-xl);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.04;
   letter-spacing: -0.038em;
   animation: ov-world-copy-in 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -2481,7 +2483,7 @@ body {
 .ov-public .mkt-law-index {
   font-family: var(--ov-mono, ui-monospace, monospace);
   font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   opacity: 0.55;
   padding-top: 0.2rem;
 }
@@ -2522,7 +2524,7 @@ body {
   font-family: var(--ov-mono);
   font-size: var(--fs-display-sm);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   color: inherit;
   text-decoration: none;
   border-bottom: 1px solid color-mix(in srgb, currentColor 35%, transparent);
@@ -2561,7 +2563,7 @@ body {
 
 .ov-public .ov-hero-liveline-number {
   font-size: var(--fs-display-sm);
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
 }
 
 .ov-public .ov-hero-liveline-number::after {
@@ -2603,7 +2605,7 @@ body {
 .ov-public .ov-console-caption {
   margin-top: 0.7rem;
   font-size: 0.75rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   opacity: 0.58;
 }
 
@@ -2636,7 +2638,7 @@ body {
 
 /* Capture panel: instrument plate, not marketing card */
 .ov-public .ov-capture-label {
-  letter-spacing: 0.14em;
+  letter-spacing: 0;
   opacity: 1;
 }
 
@@ -2697,7 +2699,7 @@ body {
 .ov-public .ov-console-live {
   border-radius: 4px;
   padding: 0.15rem 0.5rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0;
 }
 
 .ov-public .ov-console-live i {
@@ -2708,7 +2710,7 @@ body {
 /* Rail: quieter pending, crisper active — stages as machine state */
 .ov-public .ov-rail-step {
   color: #8a877e;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
 }
 
 .ov-public .ov-rail-step.is-active,
@@ -2783,7 +2785,7 @@ body {
 /* Restore liveline emerald after poster-weight rewrite */
 .ov-public .ov-hero-liveline-label {
   color: var(--ov-emerald-text, #6ee7a8) !important;
-  letter-spacing: 0.14em;
+  letter-spacing: 0;
   opacity: 1;
 }
 
@@ -2807,7 +2809,7 @@ body {
 }
 
 .ov-public .mkt-manifesto-kicker {
-  letter-spacing: 0.16em;
+  letter-spacing: 0;
   opacity: 1;
 }
 
@@ -3050,7 +3052,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
 }
 
 .ov-public .mkt-nav-brand .orvius-logo-word {
-  font-size: 1.375rem !important;
+  font-size: 1.5rem !important;
   letter-spacing: -0.07em !important;
   font-weight: 500 !important;
 }
@@ -3105,7 +3107,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   padding: 0 0.75rem;
   gap: 0.75rem;
   font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-transform: none;
   color: color-mix(in srgb, #edecec 78%, transparent);
   border-bottom: 1px solid color-mix(in srgb, #fff 6%, transparent);
@@ -3144,7 +3146,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 
 .ov-public .ov-console-menuclock {
   font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   color: color-mix(in srgb, #edecec 55%, transparent);
 }
 
@@ -3153,7 +3155,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   min-height: 44px;
   padding: 0.85rem 1.15rem;
   font-size: 0.75rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   gap: 0.55rem;
 }
 
@@ -3217,7 +3219,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   min-height: 44px;
   padding: 0 1.25rem;
   border-radius: 9999px !important;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0;
   text-decoration: none;
@@ -3324,21 +3326,21 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   min-height: 44px !important;
   padding: 0 1.25rem !important;
   border-radius: 9999px !important;
-  font-size: 0.9375rem !important;
+  font-size: 1rem !important;
   font-weight: 600 !important;
   letter-spacing: 0 !important;
 }
 
 .ov-public .shell-page-actions .ov-btn--solid {
-  background: #edecec !important;
-  color: #18181a !important;
-  border: 1px solid #edecec !important;
+  background: var(--ov-headline) !important;
+  color: var(--ov-paper) !important;
+  border: 1px solid var(--ov-headline) !important;
 }
 
 .ov-public .shell-page-actions .ov-btn--quiet {
   background: transparent !important;
-  color: #edecec !important;
-  border: 1px solid color-mix(in srgb, #edecec 32%, transparent) !important;
+  color: var(--ov-headline) !important;
+  border: 1px solid var(--ov-hairline-strong) !important;
 }
 
 .ov-public .tier1-page-title {
@@ -3377,7 +3379,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   display: inline-flex;
   align-items: baseline;
   gap: 0.35rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   padding: 0.2rem 0;
 }
 
@@ -3712,8 +3714,8 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   font-family: var(--ov-mono);
   font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ov-muted);
 }
 
@@ -3758,7 +3760,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .help-empty,
 .help-contact {
   font-family: var(--ov-font);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: var(--ov-muted);
 }
 
@@ -3872,7 +3874,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .ov-public .hx-fact-title {
   margin: 0;
   color: var(--ov-headline);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -3989,8 +3991,8 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   color: var(--ov-muted);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .pd-kicker:first-child {
   margin-top: 0;

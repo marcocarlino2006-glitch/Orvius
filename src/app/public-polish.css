@@ -105,3 +105,8 @@ html .ov-signin .ov-signin-row-tag--confirm::before {
 html .ov-signin .ov-signin-row-tag--intake::before {
   background: #6ea8fe;
 }
+
+/* Buttons and table heads share the 14px control size used across the product. */
+.ov-public :is(.ov-btn, th) {
+  font-size: 0.875rem;
+}

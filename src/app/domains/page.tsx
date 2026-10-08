@@ -250,7 +250,7 @@ export default function DomainsPage() {
 function HostCard({ label, host }: { label: string; host: string }) {
   return (
     <div className="rounded-md border border-rule bg-white px-4 py-3 transition-shadow hover:shadow-[var(--shadow-soft)]">
-      <p className="font-sans text-xs font-semibold tracking-wide text-ash uppercase">
+      <p className="font-sans text-xs font-semibold text-ash">
         {label}
       </p>
       <p className="mt-1 font-mono text-sm text-void">{host}</p>

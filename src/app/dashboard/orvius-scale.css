@@ -91,7 +91,7 @@
   color: hsl(var(--avatar-hue, 220) 70% 84%);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   user-select: none;
 }
 

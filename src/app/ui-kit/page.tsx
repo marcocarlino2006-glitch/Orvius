@@ -61,7 +61,7 @@ function Colorway({ theme, title }: { theme: "night" | "day"; title: string }) {
     >
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-lg font-medium tracking-tight">{title}</h2>
-        <p className="font-mono text-xs tracking-wide text-ui-muted uppercase">
+        <p className="font-mono text-xs text-ui-muted">
           data-theme=&quot;{theme}&quot;
         </p>
       </div>

@@ -23,7 +23,7 @@ export function LegalDocument({
       <section className="tier1-hero tier1-hero-compact mkt-doc-hero">
         <div className="editorial-wrap max-w-3xl">
           <ShellPageIntro label={label} title={title} description={description} />
-          <p className="mt-6 font-sans text-xs tracking-wide text-ash uppercase">
+          <p className="mt-6 font-sans text-xs text-ash">
             Last updated {updated} · {company.legalName}
           </p>
         </div>
