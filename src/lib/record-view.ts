@@ -378,7 +378,7 @@ function buildDecisions(g: Graph): string[] {
 function buildNext(g: Graph): RecordView["next"] {
   if (g.job) {
     if (!g.job.technician && g.job.status !== "completed" && g.job.status !== "cancelled") {
-      return { label: "Assign technician", href: "/dashboard/dispatch", detail: "Job is booked but nobody owns it." };
+      return { label: "Assign technician", href: "/dashboard/schedule", detail: "Job is booked but nobody owns it." };
     }
     const step = nextJobStatus(g.job.status);
     if (step) {

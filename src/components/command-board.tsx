@@ -10,7 +10,10 @@ export type Proposal = { proposalId: string; preview: string };
 type AskResult =
   | { kind: "proposal"; proposal: Proposal; message: string }
   | { kind: "choices"; message: string; options: { label: string; action: string; at: string; leadId?: string; jobId?: string }[] }
+  | { kind: "answer"; message: string; records?: { href: string; title: string; summary: string }[] }
   | { kind: "refused" | "clarify"; message: string };
+
+export type PlanOutcome = { ok: boolean; text: string };
 
 async function post(url: string, body: unknown) {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -19,7 +22,16 @@ async function post(url: string, body: unknown) {
   return data;
 }
 
-export function PlanCard({ proposal, onDone }: { proposal: Proposal; onDone: () => void }) {
+export function PlanCard({
+  proposal,
+  onDone,
+  onResult,
+}: {
+  proposal: Proposal;
+  onDone: () => void;
+  /** Lets the caller keep the outcome on screen instead of only a toast. */
+  onResult?: (outcome: PlanOutcome) => void;
+}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function act(mode: "execute" | "cancel") {
@@ -27,10 +39,12 @@ export function PlanCard({ proposal, onDone }: { proposal: Proposal; onDone: () 
     setError(null);
     try {
       const data = await post(`/api/copilot?mode=${mode}`, mode === "execute" ? { proposalId: proposal.proposalId, approved: true } : { proposalId: proposal.proposalId });
-      toast({ title: mode === "execute" ? (data.confirmation?.summary ?? "Done") : "Dismissed" });
+      const text = mode === "execute" ? (data.confirmation?.summary ?? "Done") : "Dismissed. Nothing changed.";
+      if (onResult) onResult({ ok: mode === "execute", text });
+      else toast({ title: text });
       onDone();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That did not work");
+      setError(`${err instanceof Error ? err.message : "That did not work"}. Nothing changed.`);
     } finally {
       setBusy(false);
     }
@@ -102,6 +116,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<AskResult | null>(null);
+  const [outcome, setOutcome] = useState<PlanOutcome | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   function start(prefix: string) {
@@ -119,6 +134,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
     event?.preventDefault();
     if (busy || text.trim().length < 2) return;
     setBusy(true);
+    setOutcome(null);
     try {
       setResult(await post("/api/command/ask", { text }));
     } catch (err) {
@@ -145,7 +161,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
       <div className="cb-ask-stack">
         <form className="cb-ask-form" onSubmit={(e) => void ask(e)}>
           <label className="sr-only" htmlFor="cb-ask-input">
-            Ask Orvius to act
+            Ask Orvius to book, move, assign, or check work
           </label>
           <textarea
             id="cb-ask-input"
@@ -160,7 +176,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
                 void ask();
               }
             }}
-            placeholder="Book, move or assign a job — “book Maria tomorrow at 2”"
+            placeholder="Ask Orvius to book, move, assign, or check work."
             autoComplete="off"
           />
           <div className="cb-ask-bar">
@@ -193,16 +209,49 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
               ))}
             </div>
           ) : null}
-          {result.kind === "proposal" ? (
-            <PlanCard
-              proposal={result.proposal}
-              onDone={() => {
-                setResult(null);
-                setText("");
-                onChange();
-              }}
-            />
+          {result.kind === "answer" && result.records?.length ? (
+            <ul className="cb-records">
+              {result.records.map((r) => (
+                <li key={r.href}>
+                  <a href={r.href} className="cb-record">
+                    <span className="cb-record-title">{r.title}</span>
+                    <span className="cb-record-sum">{r.summary}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
           ) : null}
+          {result.kind === "proposal" ? (
+            <>
+              <ol className="cb-steps" aria-label="Progress">
+                <li className="is-done">Proposed change</li>
+                <li className="is-now">Your approval</li>
+                <li>Result</li>
+              </ol>
+              <PlanCard
+                proposal={result.proposal}
+                onResult={setOutcome}
+                onDone={() => {
+                  setResult(null);
+                  setText("");
+                  onChange();
+                }}
+              />
+            </>
+          ) : null}
+        </div>
+      ) : null}
+      {outcome ? (
+        <div className={`cb-outcome${outcome.ok ? " is-ok" : ""}`} role="status">
+          <ol className="cb-steps" aria-label="Progress">
+            <li className="is-done">Proposed change</li>
+            <li className="is-done">{outcome.ok ? "Approved" : "Dismissed"}</li>
+            <li className="is-done">Result</li>
+          </ol>
+          <p className="cb-outcome-text">{outcome.text}</p>
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOutcome(null)}>
+            Clear
+          </button>
         </div>
       ) : null}
       <div className="cb-ask-chips" aria-label="Start with">

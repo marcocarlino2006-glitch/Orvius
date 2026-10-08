@@ -41,6 +41,7 @@ function span(ms: number) {
 /** What makes one job different from the next: who owns it, how late it is, and what it is worth. */
 export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
   const open = OPEN.has(job.status);
+  const notStarted = open && job.status !== "en_route" && job.status !== "on_site";
   const at = job.scheduledAt ? new Date(job.scheduledAt).getTime() : null;
   const age = now - new Date(job.createdAt).getTime();
 
@@ -92,9 +93,9 @@ export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
   else if (money.kind === "due") attention = { reason: "Invoice is waiting on payment.", weight: 2 };
   else if (job.status === "completed" && !job.finalAmountCents && !invoice) {
     attention = { reason: "Completed without a final amount.", weight: 1 };
-  } else if (open && at != null && !job.customerConfirmedAt && at - now < 2 * HOUR) {
+  } else if (notStarted && at != null && !job.customerConfirmedAt && at - now < 2 * HOUR) {
     attention = { reason: "Starts within 2 hours and the customer has not confirmed. Call them.", weight: 3 };
-  } else if (open && at != null && !job.customerConfirmedAt && at - now < 24 * HOUR && job.business?.autopilot === false) {
+  } else if (notStarted && at != null && !job.customerConfirmedAt && at - now < 24 * HOUR && job.business?.autopilot === false) {
     // With autopilot on, Orvius texts for confirmation until two hours out.
     attention = { reason: "Customer has not confirmed the time.", weight: 1 };
   }

@@ -153,7 +153,39 @@ export function resetAutopilotThrottle() {
   lastRun.clear();
 }
 
-export type HandledEvent = { id: string; at: string; summary: string; jobId: string | null; leadId: string | null };
+export type HandledEvent = {
+  id: string;
+  at: string;
+  summary: string;
+  jobId: string | null;
+  leadId: string | null;
+  /** What came of it, in one or two words: Booked, Held for a person, Declined. */
+  result: string;
+  /** "Orvius" or the person who acted. */
+  by: string;
+};
+
+const RESULT: Record<string, string> = {
+  "job.booked": "Booked",
+  "technician.assigned": "Assigned",
+  "autopilot.assigned": "Assigned",
+  "autopilot.confirm_sent": "Confirmation sent",
+  "lead.escalated": "Held for a person",
+  "lead.held": "Held for a person",
+  "copilot.executed": "Done",
+  "copilot.declined": "Declined",
+  "job.rescheduled": "Moved",
+  "job.status_changed": "Status changed",
+};
+
+/** Things people did from Command or a record, shown beside what Orvius did. */
+const PERSON_ACTIONS = ["copilot.executed", "copilot.declined", "job.rescheduled", "job.status_changed", "technician.assigned"];
+
+function actedBy(actor: string, email: string | null) {
+  if (actor === "orvius" || actor === "system") return "Orvius";
+  if (actor === "owner") return "Owner";
+  return email ? email.split("@")[0]! : "A teammate";
+}
 
 export type Handled = {
   calls: number;
@@ -177,10 +209,17 @@ export async function listHandled(businessId: string, sinceMs = 24 * 60 * 60 * 1
       _count: { _all: true },
     }),
     prisma.auditEvent.findMany({
-      where: { ...where, action: { in: FEED_ACTIONS } },
+      where: {
+        businessId,
+        createdAt: { gte: since },
+        OR: [
+          { actor: { in: ["orvius", "system"] }, action: { in: FEED_ACTIONS } },
+          { actor: { in: ["owner", "teammate"] }, action: { in: PERSON_ACTIONS } },
+        ],
+      },
       orderBy: { createdAt: "desc" },
-      take: 6,
-      select: { id: true, createdAt: true, summary: true, jobId: true, leadId: true },
+      take: 8,
+      select: { id: true, createdAt: true, summary: true, jobId: true, leadId: true, action: true, actor: true, actorEmail: true },
     }),
   ]);
   const n = (...actions: string[]) =>
@@ -191,6 +230,14 @@ export async function listHandled(businessId: string, sinceMs = 24 * 60 * 60 * 1
     assigned: n("technician.assigned", "autopilot.assigned"),
     confirmations: n("autopilot.confirm_sent"),
     escalated: n("lead.escalated", "lead.held"),
-    events: feed.map((r) => ({ id: r.id, at: r.createdAt.toISOString(), summary: r.summary, jobId: r.jobId, leadId: r.leadId })),
+    events: feed.map((r) => ({
+      id: r.id,
+      at: r.createdAt.toISOString(),
+      summary: r.summary,
+      jobId: r.jobId,
+      leadId: r.leadId,
+      result: RESULT[r.action] ?? "Done",
+      by: actedBy(r.actor, r.actorEmail),
+    })),
   };
 }

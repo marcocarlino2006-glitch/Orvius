@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAfterHours } from "@/lib/business";
 import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall, summarizeCallQuality } from "@/lib/call-quality";
+import { callOutcome } from "@/lib/call-outcome";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
 
@@ -19,7 +20,21 @@ export async function GET(request: NextRequest) {
     MAX_LIMIT,
   );
   const cursor = searchParams.get("cursor")?.trim() || null;
+  const q = searchParams.get("q")?.trim().slice(0, 80) || null;
   const tenant = { businessId: business.id };
+  const digits = q?.replace(/\D/g, "") ?? "";
+  const where = q
+    ? {
+        ...tenant,
+        OR: [
+          ...(digits.length >= 3 ? [{ callerPhone: { contains: digits.slice(-10) } }] : []),
+          { summary: { contains: q } },
+          { lead: { is: { name: { contains: q } } } },
+          { lead: { is: { serviceType: { contains: q } } } },
+          { customer: { is: { name: { contains: q } } } },
+        ],
+      }
+    : tenant;
 
   /*
     Classified here, not in the browser.
@@ -41,7 +56,7 @@ export async function GET(request: NextRequest) {
   const calls = await prisma.call.findMany({
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    where: tenant,
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       business: { select: { name: true } },
@@ -70,6 +85,17 @@ export async function GET(request: NextRequest) {
     business.id,
     items.flatMap((call) => (call.lead && !call.lead.job ? [call.lead.id] : [])),
   );
+  const leadIds = items.flatMap((call) => (call.lead ? [call.lead.id] : []));
+  const escalated = new Set(
+    leadIds.length
+      ? (
+          await prisma.auditEvent.findMany({
+            where: { businessId: business.id, leadId: { in: leadIds }, action: "lead.escalated" },
+            select: { leadId: true },
+          })
+        ).map((e) => e.leadId)
+      : [],
+  );
   const grades = items.map((call) =>
     gradeCall({
       call,
@@ -90,6 +116,14 @@ export async function GET(request: NextRequest) {
       booked: call.booked,
       createdAt: call.createdAt.toISOString(),
       afterHours: isAfterHours(call.createdAt, hoursJson, timezone),
+      outcome: callOutcome({
+        status: call.status,
+        booked: call.booked,
+        durationSec: call.durationSec,
+        endedReason: call.endedReason,
+        lead: call.lead,
+        escalated: call.lead ? escalated.has(call.lead.id) : false,
+      }),
       business: call.business,
       customer: call.customer
         ? { id: call.customer.id, name: call.customer.name, interactionCount: call.customer.interactionCount }
@@ -100,6 +134,7 @@ export async function GET(request: NextRequest) {
             name: call.lead.name,
             serviceType: call.lead.serviceType,
             urgency: call.lead.urgency,
+            jobId: call.lead.job?.id ?? null,
           }
         : null,
       quality: {
@@ -110,6 +145,6 @@ export async function GET(request: NextRequest) {
     })),
     quality: summarizeCallQuality(grades),
     nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
-    total: await prisma.call.count({ where: tenant }),
+    total: await prisma.call.count({ where }),
   });
 }

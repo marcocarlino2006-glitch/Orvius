@@ -450,6 +450,8 @@ model Call {
   costJson   String?
   /** Transcript and recording deleted here and at Vapi after the retention period (lib/retention.ts). */
   contentPurgedAt DateTime?
+  /** Vapi's endedReason, e.g. "assistant-forwarded-call" when the caller was transferred to a person. */
+  endedReason String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

@@ -1197,7 +1197,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         estimatedRevenueCents: jobValue,
         // One late technician is one call, however many of their jobs are late.
         group: job.technician
-          ? { key: `tech:${job.technician.id}`, label: job.technician.name, href: "/dashboard/dispatch" }
+          ? { key: `tech:${job.technician.id}`, label: job.technician.name, href: "/dashboard/schedule" }
           : group,
         meta: {
           urgency,
@@ -1250,7 +1250,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         title: tech.name,
         detail: "No mobile on file — SMS assign and field links will not reach them.",
         recommendedAction: "Add phone",
-        href: "/dashboard/dispatch",
+        href: "/dashboard/schedule",
         entityType: "technician",
         entityId: tech.id,
         createdAt: now.toISOString(),

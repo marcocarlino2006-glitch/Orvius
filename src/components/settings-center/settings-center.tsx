@@ -37,9 +37,11 @@ import { ReceptionistSection } from "./sections/receptionist-section";
 import { TeamSection } from "./sections/team-section";
 
 const GROUP_LABELS: Record<string, string | null> = {
-  you: "You",
-  shop: "Shop",
-  workspace: "Workspace",
+  business: "Business",
+  connections: "Connections",
+  authority: "AI authority",
+  escalation: "Escalation",
+  account: "Account",
   founder: "Founder",
 };
 

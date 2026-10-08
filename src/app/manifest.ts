@@ -21,7 +21,7 @@ export default function manifest(): MetadataRoute.Manifest {
     shortcuts: [
       { name: "Command", url: "/dashboard" },
       { name: "Calls", url: "/dashboard/calls" },
-      { name: "Dispatch", url: "/dashboard/dispatch" },
+      { name: "Schedule", url: "/dashboard/schedule" },
     ],
   };
 }

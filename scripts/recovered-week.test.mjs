@@ -50,9 +50,10 @@ test("an empty week has no headline, and callers alone still count", () => {
   assert.deepEqual(buildRecoveredWeek({ ...base, leads: 1 }).headline, { value: "1 caller", label: "captured this week", estimate: false });
 });
 
-test("Command keeps the rail to signals and the line", async () => {
+test("Command keeps the summary up top and the rail to the line", async () => {
   const { readFileSync } = await import("node:fs");
   const src = readFileSync(new URL("../src/components/ring1-command-center.tsx", import.meta.url), "utf8");
-  assert.match(src, /<CommandSignals[\s\S]{0,80}<OrviusPulse/);
+  assert.match(src, /<CommandSignals[\s\S]*<AskBar/);
+  assert.match(src, /<aside[\s\S]{0,200}<OrviusPulse/);
   assert.doesNotMatch(src, /<CommandRecovered/);
 });

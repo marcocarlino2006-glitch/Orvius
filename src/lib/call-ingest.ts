@@ -130,6 +130,7 @@ export async function captureEndOfCallReport(params: {
           durationSec,
           recordingUrl,
           successEvaluation,
+          endedReason: message.endedReason ?? null,
           ...latency,
         },
         update: {
@@ -139,6 +140,7 @@ export async function captureEndOfCallReport(params: {
           durationSec,
           recordingUrl,
           successEvaluation: successEvaluation ?? undefined,
+          endedReason: message.endedReason ?? undefined,
           callerPhone: message.call?.customer?.number ?? structured.phone ?? undefined,
           ...latency,
         },

@@ -4,8 +4,8 @@ import Link from "next/link";
 import type { CommandSignal } from "@/lib/command-model";
 
 /**
- * Five truthful signals. Each one is a count of records and links to the
- * surface that holds them; nothing here is sampled, projected, or simulated.
+ * Three counts of records, each linking to the screen that holds them;
+ * nothing here is sampled, projected, or simulated.
  */
 export function CommandSignals({
   signals,
@@ -16,8 +16,8 @@ export function CommandSignals({
 }) {
   if (!signals) {
     return (
-      <ul className="cs-grid" aria-label="Business signals" aria-busy={loading}>
-        {["New demand", "Qualified", "Jobs in motion", "Needs you", "Revenue at risk"].map(
+      <ul className="cs-grid" aria-label="Summary" aria-busy={loading}>
+        {["Requests awaiting a response", "Upcoming jobs", "Exceptions"].map(
           (label) => (
             <li key={label} className="cs-card cs-card--loading">
               <p className="cs-label">{label}</p>
@@ -31,7 +31,7 @@ export function CommandSignals({
   }
 
   return (
-    <ul className="cs-grid" aria-label="Business signals">
+    <ul className="cs-grid" aria-label="Summary">
       {signals.map((signal) => (
         <li key={signal.id}>
           <Link href={signal.href} className={`cs-card cs-tone--${signal.tone}`}>

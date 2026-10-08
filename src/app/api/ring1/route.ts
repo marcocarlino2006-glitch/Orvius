@@ -99,6 +99,8 @@ export async function GET(request: Request) {
     jobsUnassigned,
     receptionist,
     work,
+    awaitingResponse,
+    upcomingJobs,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -174,6 +176,14 @@ export async function GET(request: Request) {
     }),
     getReceptionistWeek(business.id, 7, now),
     listWork(business.id, "open", now, { attention: attentionP }),
+    prisma.lead.count({ where: { ...businessFilter, status: "new", job: { is: null } } }),
+    prisma.job.count({
+      where: {
+        ...businessFilter,
+        status: { notIn: ["completed", "cancelled"] },
+        scheduledAt: { gte: now, lt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) },
+      },
+    }),
   ]);
   const crew = dispatchBoard.crew;
   const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
@@ -293,6 +303,8 @@ export async function GET(request: Request) {
       jobsInMotion,
       jobsUnassigned,
       avgTicketSet: Boolean(business.avgTicketCents),
+      awaitingResponse,
+      upcomingJobs,
     },
     attention,
     work: {

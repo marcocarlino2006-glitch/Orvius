@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { aiAuthority } from "@/lib/ai-authority";
 import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import { VoiceSampleButton } from "../settings-controls";
 import { dollars, type Business, type PatchFn } from "../settings-model";
@@ -16,9 +17,29 @@ export function ReceptionistSection({
   patch: PatchFn;
   setError: (message: string) => void;
 }) {
+  const authority = aiAuthority(b);
   return (
     <>
-      <ScGroup>
+      <ScGroup title="What Orvius may do right now">
+        {(
+          [
+            ["Proceeds on its own", authority.automatic, "auto"],
+            ["Waits for your approval", authority.approval, "approval"],
+            ["Never does", authority.blocked, "blocked"],
+          ] as const
+        ).map(([title, lines, tone]) => (
+          <div key={tone} className={`sc-authority sc-authority--${tone}`}>
+            <p className="sc-authority-title">{title}</p>
+            <ul>
+              {lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        <p className="sc-muted sc-pad">Change these with the switches below; the lists update as you do.</p>
+      </ScGroup>
+      <ScGroup title="On the phone">
         <ScRow stack label="Opening line" hint="The first thing every caller hears.">
           <ScField
             multiline

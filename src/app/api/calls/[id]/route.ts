@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { callOutcome } from "@/lib/call-outcome";
 import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall } from "@/lib/call-quality";
 import { getCustomerTimeline } from "@/lib/customer";
@@ -85,6 +86,10 @@ export async function GET(_request: Request, { params }: Params) {
     call.lead && !call.lead.job
       ? await holdDecisionsByLead(call.businessId, [call.lead.id])
       : new Map<string, string>();
+  const escalated = call.lead
+    ? (await prisma.auditEvent.count({ where: { businessId: call.businessId, leadId: call.lead.id, action: "lead.escalated" } })) > 0
+    : false;
+  const outcome = callOutcome({ ...call, escalated });
   const quality = gradeCall({
     call,
     lead: call.lead,
@@ -122,6 +127,7 @@ export async function GET(_request: Request, { params }: Params) {
         : null,
     },
     situation: {
+      outcome,
       actionsTaken,
       quality,
       priorJobs: priorJobs.map((job) => ({

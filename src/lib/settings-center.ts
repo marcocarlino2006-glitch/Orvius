@@ -1,17 +1,22 @@
+/**
+ * Settings answer "how is Orvius allowed to run?", in five groups: the
+ * business it serves, what it is connected to, what it may do alone, when it
+ * hands off to a person, and the account itself.
+ */
 export const SETTINGS_SECTIONS = [
-  { id: "general", label: "General", group: "you" },
-  { id: "account", label: "Account", group: "you" },
-  { id: "business", label: "Business", group: "shop" },
-  { id: "phone", label: "Phone line", group: "shop" },
-  { id: "hours", label: "Hours & area", group: "shop" },
-  { id: "receptionist", label: "Receptionist", group: "shop" },
-  { id: "notifications", label: "Notifications", group: "shop" },
-  { id: "team", label: "Team", group: "shop" },
-  { id: "integrations", label: "Integrations", group: "workspace" },
-  { id: "billing", label: "Billing", group: "workspace" },
-  { id: "performance", label: "Performance", group: "workspace" },
-  { id: "activity", label: "Activity log", group: "workspace" },
-  { id: "data", label: "Data controls", group: "workspace" },
+  { id: "business", label: "Business profile", group: "business" },
+  { id: "hours", label: "Hours, services & area", group: "business" },
+  { id: "phone", label: "Phone forwarding", group: "connections" },
+  { id: "integrations", label: "Calendar, payments & texting", group: "connections" },
+  { id: "receptionist", label: "What Orvius may do", group: "authority" },
+  { id: "notifications", label: "Alerts & escalation", group: "escalation" },
+  { id: "account", label: "Profile & security", group: "account" },
+  { id: "general", label: "Preferences", group: "account" },
+  { id: "team", label: "Team access", group: "account" },
+  { id: "billing", label: "Billing", group: "account" },
+  { id: "performance", label: "Performance", group: "account" },
+  { id: "activity", label: "Activity log", group: "account" },
+  { id: "data", label: "Data controls", group: "account" },
   { id: "internal", label: "Internal", group: "founder" },
 ] as const;
 

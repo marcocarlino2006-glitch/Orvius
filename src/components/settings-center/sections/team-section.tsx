@@ -29,8 +29,8 @@ export function TeamSection({ crew, onClose }: { crew: Technician[] | null; onCl
         )}
       </ScGroup>
       <div className="sc-actions">
-        <Link href="/dashboard/dispatch" className="sc-btn" onClick={onClose}>
-          Manage crew and schedule
+        <Link href="/dashboard/team" className="sc-btn" onClick={onClose}>
+          Skills, hours and phones in Team
         </Link>
       </div>
     </>

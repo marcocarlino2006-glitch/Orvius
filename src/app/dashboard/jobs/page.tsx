@@ -12,11 +12,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { industryTerms } from "@/lib/industry-terms";
 import { useBusiness } from "@/lib/use-business";
+import { JOB_STATE_LABEL, jobLifecycle, type JobState } from "@/lib/job-lifecycle";
 
 type JobRow = JobRowInput & {
   id: string;
   title: string;
   address: string | null;
+  serviceType?: string | null;
+  durationMin?: number | null;
+  outcomeCapturedAt?: string | null;
+  resolutionCode?: string | null;
   customer: { name: string | null; phone: string } | null;
   lead: { name: string | null; phone: string | null } | null;
   estimate?: (NonNullable<JobRowInput["estimate"]> & {
@@ -25,48 +30,20 @@ type JobRow = JobRowInput & {
   }) | null;
 };
 
-type PipelineStage = {
-  id: string;
-  label: string;
-  hint?: string;
-  empty: string;
-  match: (job: JobRow) => boolean;
-};
+type Tab = { id: "open" | JobState; label: string; empty: string };
 
-const STAGES: PipelineStage[] = [
-  {
-    id: "booked",
-    empty: "Nothing booked right now",
-    label: "Booked",
-    match: (j) => j.status === "scheduled" || j.status === "confirmed",
-  },
-  {
-    id: "in_progress",
-    empty: "Nobody's on a job right now",
-    label: "In progress",
-    match: (j) => j.status === "en_route" || j.status === "on_site",
-  },
-  {
-    id: "completed",
-    empty: "Nothing completed yet",
-    label: "Completed",
-    match: (j) => j.status === "completed",
-  },
-  {
-    id: "estimate",
-    empty: "No estimates waiting",
-    label: "Estimates",
-    hint: "Drafts waiting for invoice",
-    match: (j) => Boolean(j.estimate && !j.estimate.invoice),
-  },
-  {
-    id: "invoice",
-    empty: "No invoices out",
-    label: "Invoices",
-    hint: "Invoices from estimates",
-    match: (j) => Boolean(j.estimate?.invoice),
-  },
+const TABS: Tab[] = [
+  { id: "open", label: "All open", empty: "No open work right now" },
+  { id: "awaiting_confirmation", label: JOB_STATE_LABEL.awaiting_confirmation, empty: "Nobody is waiting to confirm" },
+  { id: "confirmed", label: JOB_STATE_LABEL.confirmed, empty: "Every confirmed job has someone going" },
+  { id: "assigned", label: JOB_STATE_LABEL.assigned, empty: "Nothing assigned and waiting" },
+  { id: "in_progress", label: JOB_STATE_LABEL.in_progress, empty: "Nobody is on a job right now" },
+  { id: "completion_reported", label: JOB_STATE_LABEL.completion_reported, empty: "No finished work waiting on an outcome" },
+  { id: "closed", label: JOB_STATE_LABEL.closed, empty: "Nothing closed yet" },
 ];
+
+const matchesTab = (tab: Tab["id"], state: JobState) =>
+  tab === "open" ? state !== "closed" : state === tab;
 
 export default function JobsPage() {
   const terms = industryTerms(useBusiness().business?.trade);
@@ -74,13 +51,14 @@ export default function JobsPage() {
   const [newLeadCount, setNewLeadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [stageId, setStageId] = useState("booked");
+  const [tabId, setTabId] = useState<Tab["id"]>("open");
+  const [query, setQuery] = useState("");
   const [timeZone, setTimeZone] = useState<string | undefined>();
 
   useEffect(() => {
     Promise.all([
       fetch("/api/jobs").then(async (res) => {
-        if (!res.ok) throw new Error("Failed to load jobs");
+        if (!res.ok) throw new Error(res.status === 401 ? "Your session expired. Sign in again." : "Jobs didn't load. Nothing changed; try again.");
         return res.json();
       }),
       fetch("/api/leads?limit=1").then(async (res) =>
@@ -96,28 +74,32 @@ export default function JobsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const withState = useMemo(() => jobs.map((job) => ({ job, state: jobLifecycle(job).state })), [jobs]);
+
   const filtered = useMemo(() => {
-    const stage = STAGES.find((s) => s.id === stageId);
-    if (!stage) return [];
     const now = Date.now();
-    return jobs
-      .filter(stage.match)
-      .map((job) => ({ job, facts: jobRowFacts(job, now) }))
+    const q = query.trim().toLowerCase();
+    return withState
+      .filter(({ state }) => matchesTab(tabId, state))
+      .filter(({ job }) =>
+        !q ||
+        [job.title, job.serviceType, job.address, job.customer?.name, job.customer?.phone, job.lead?.name, job.lead?.phone, job.technician?.name]
+          .some((v) => v?.toLowerCase().includes(q)),
+      )
+      .map(({ job }) => ({ job, facts: jobRowFacts(job, now) }))
       .sort((a, b) => (b.facts.attention?.weight ?? 0) - (a.facts.attention?.weight ?? 0));
-  }, [jobs, stageId]);
+  }, [withState, tabId, query]);
 
   const stageValue = useMemo(() => {
-    const cents = filtered.reduce((sum, row) => sum + (row.facts.money.cents ?? 0), 0);
+    const cents = filtered.reduce((sum, row) => sum + (row.facts.money.kind === "expected" ? 0 : (row.facts.money.cents ?? 0)), 0);
     return cents ? formatCents(cents) : null;
   }, [filtered]);
 
-  const stageCounts = useMemo(() => {
+  const tabCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const stage of STAGES) {
-      counts[stage.id] = jobs.filter(stage.match).length;
-    }
+    for (const tab of TABS) counts[tab.id] = withState.filter(({ state }) => matchesTab(tab.id, state)).length;
     return counts;
-  }, [jobs]);
+  }, [withState]);
 
   /*
     Open work, not total work. A shop that closed four hundred jobs last year
@@ -139,7 +121,7 @@ export default function JobsPage() {
       actions={
         <>
           {unassigned > 0 ? (
-            <Link href="/dashboard/dispatch" className="btn btn-void text-sm">
+            <Link href="/dashboard/schedule" className="btn btn-void text-sm">
               Assign {unassigned}
             </Link>
           ) : null}
@@ -164,32 +146,39 @@ export default function JobsPage() {
             </div>
           ) : null}
 
-          <div className="jobs-pipeline font-sans" role="tablist" aria-label="Job pipeline">
-            <Link
-              href="/dashboard/inbox"
-              className="jobs-pipeline-stage"
-              role="tab"
-            >
-              <span className="jobs-pipeline-label">New requests</span>
-              <span className="jobs-pipeline-count">{newLeadCount}</span>
-            </Link>
-            {STAGES.map((stage) => (
+          <p className="pg-purpose font-sans">
+            What you&apos;re committed to doing. Requests that haven&apos;t been booked yet stay in{" "}
+            <Link href="/dashboard/inbox">Inbox{newLeadCount ? ` (${newLeadCount} new)` : ""}</Link>.
+          </p>
+
+          <div className="jobs-pipeline font-sans" role="tablist" aria-label="Job status">
+            {TABS.map((tab) => (
               <button
-                key={stage.id}
+                key={tab.id}
                 type="button"
                 role="tab"
-                aria-selected={stageId === stage.id}
-                className={`jobs-pipeline-stage ${stageId === stage.id ? "jobs-pipeline-stage-active" : ""}`}
-                onClick={() => setStageId(stage.id)}
-                title={stage.hint}
+                aria-selected={tabId === tab.id}
+                className={`jobs-pipeline-stage ${tabId === tab.id ? "jobs-pipeline-stage-active" : ""}`}
+                onClick={() => setTabId(tab.id)}
               >
-                <span className="jobs-pipeline-label">{stage.label}</span>
-                <span className="jobs-pipeline-count">{stageCounts[stage.id]}</span>
+                <span className="jobs-pipeline-label">{tab.label}</span>
+                <span className="jobs-pipeline-count">{tabCounts[tab.id]}</span>
               </button>
             ))}
           </div>
 
-          {!jobs.length && !newLeadCount ? (
+          {jobs.length ? (
+            <input
+              type="search"
+              className="input pg-search font-sans"
+              placeholder="Search by customer, address, work or technician"
+              aria-label="Search jobs"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          ) : null}
+
+          {error && !jobs.length ? null : !jobs.length ? (
             <ProEmptyState
               title={`No ${terms.jobs} booked yet`}
               body={`Calls Orvius books land here on their own. Took one yourself? Put it on the schedule.`}
@@ -201,8 +190,8 @@ export default function JobsPage() {
             />
           ) : !filtered.length ? (
             <ProEmptyState
-              title={STAGES.find((s) => s.id === stageId)?.empty ?? "Nothing here right now"}
-              body="Switch stages, or book one yourself."
+              title={query ? `No ${terms.jobs} match "${query}"` : (TABS.find((t) => t.id === tabId)?.empty ?? "Nothing here right now")}
+              body={query ? "Try a name, a street, or a phone number." : "Pick another status, or book one yourself."}
               action={
                 <Link href="/dashboard/jobs/new" className="btn btn-void text-sm">
                   New {terms.job}
@@ -220,6 +209,9 @@ export default function JobsPage() {
                 scheduledAt: job.scheduledAt,
                 address: job.address,
                 urgency: job.urgency,
+                workType: job.serviceType,
+                durationMin: job.durationMin,
+                lifecycle: job,
                 customerName: job.customer?.name ?? job.lead?.name,
                 phone: job.customer?.phone ?? job.lead?.phone,
                 facts,
@@ -227,7 +219,7 @@ export default function JobsPage() {
             />
             <p className="dt-foot">
               {filtered.length} job{filtered.length === 1 ? "" : "s"}
-              {stageValue ? ` · ${stageValue} total` : ""}
+              {stageValue ? ` · ${stageValue} on estimates, invoices and recorded totals (average-ticket guesses left out)` : ""}
             </p>
             </>
           )}

@@ -149,7 +149,7 @@ export function buildShopSetupChecklist(input: ShopSetupInput): ShopSetupCheckli
       detail: crewOk
         ? "Jobs book onto the Orvius schedule for your crew"
         : "Add at least one technician so booked jobs have an owner",
-      href: "/dashboard/dispatch",
+      href: "/dashboard/schedule",
       done: crewOk,
     },
     {

@@ -83,10 +83,10 @@ function TodaySchedule({ jobs }: { jobs: TodayJob[] }) {
 }
 
 /**
- * Command: open it in the morning and run the shop. What needs you comes
- * from Work — the same items, problems and count as the Work screen and the
- * nav badge — then today's schedule, then what Orvius did on its own. The
- * rail holds the numbers and the health of the line.
+ * Command answers "what needs my attention?". A banner only when something is
+ * disconnected or failing, three counts, the one bar that directs Orvius, the
+ * action queue (read from Work, so counts match everywhere), and what was done
+ * with its result. Records live on their own screens.
  */
 export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const { data, locked, loading, loadError, lastUpdatedAt, refresh } = useRing1();
@@ -148,15 +148,46 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const brief = data?.personalBrief ?? null;
   const needsYou = work?.needsYou ?? 0;
   const shopIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action");
+  /* The banner is for what is disconnected or failing; smaller setup gaps wait in the rail. */
+  const blocking = shopIssues.filter((issue) => issue.severity === "critical" || issue.severity === "high");
+  const minor = shopIssues.filter((issue) => issue.severity !== "critical" && issue.severity !== "high");
   const handled = data?.handled;
+
+  const issueList = (list: typeof shopIssues) => (
+    <ul>
+      {list.map((issue) => (
+        <li key={issue.id} className={`cmd-issue cmd-issue--${issue.severity}`}>
+          <p className="cmd-issue-title">{issue.title}</p>
+          <p className="cmd-issue-detail">{issue.detail}</p>
+          <div className="cmd-issue-actions">
+            {ALERT_KINDS.has(issue.kind) ? <TestAlertButton onDone={() => void refresh()} /> : null}
+            {issue.href ? (
+              <Link href={issue.href} className="cmd-issue-action">
+                {issue.action} →
+              </Link>
+            ) : null}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <div className="cmd">
       {lockBar}
+      {blocking.length ? (
+        <section className="cmd-issues cmd-readiness" role="alert" aria-labelledby="cmd-readiness">
+          <h3 id="cmd-readiness" className="cmd-issues-title">
+            {blocking.length === 1 ? "Something needs fixing before Orvius can run normally" : `${blocking.length} things need fixing before Orvius can run normally`}
+          </h3>
+          {issueList(blocking)}
+        </section>
+      ) : null}
+
       <header className="cmd-head">
         <p className="cmd-greeting os-own-color">{brief?.greeting ?? "Command"}</p>
         <h2 className="cmd-headline os-own-color" aria-live="polite">
-          {!data ? "Reading the shop…" : needsYou ? `${plural(needsYou, "thing")} ${needsYou === 1 ? "needs" : "need"} you` : "Nothing needs you right now"}
+          {!data ? "Reading the shop…" : needsYou ? `${plural(needsYou, "thing")} ${needsYou === 1 ? "needs" : "need"} your attention` : "Nothing needs your attention right now"}
         </h2>
         <p className="cmd-sub os-own-color">
           {data ? handledLine(handled) : null}
@@ -166,15 +197,21 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         </p>
       </header>
 
+      <CommandSignals signals={signals} loading={loading} />
+
+      <div className="cmd-ask">
+        <AskBar onChange={() => void refresh()} below={setup} />
+      </div>
+
       <section className="cc" aria-label="Command">
         <div className="cc-main">
           <section className="cmd-section" aria-labelledby="cmd-needs">
             <div className="cmd-section-head">
               <h3 id="cmd-needs" className="cmd-section-title">
-                Needs you <span className="cmd-count">{data ? needsYou : "–"}</span>
+                Action queue <span className="cmd-count">{data ? needsYou : "–"}</span>
               </h3>
               <Link href="/dashboard/work" className="cmd-section-link">
-                All work{work ? ` · ${work.open} open` : ""} →
+                All open work{work ? ` · ${work.open}` : ""} →
               </Link>
             </div>
             {!data ? (
@@ -213,26 +250,10 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             ) : null}
           </section>
 
-          <section className="cmd-section" aria-labelledby="cmd-today">
-            <div className="cmd-section-head">
-              <h3 id="cmd-today" className="cmd-section-title">
-                Today <span className="cmd-count">{data?.dispatchToday?.jobCount ?? "–"}</span>
-              </h3>
-              <Link href="/dashboard/dispatch" className="cmd-section-link">
-                Dispatch →
-              </Link>
-            </div>
-            {data ? <TodaySchedule jobs={data.dispatchToday?.jobs ?? []} /> : <p className="cmd-empty">Reading the schedule…</p>}
-          </section>
-
-          <div className="cmd-ask">
-            <AskBar onChange={() => void refresh()} below={setup} />
-          </div>
-
           <section className="cmd-section" aria-labelledby="cmd-handled">
             <div className="cmd-section-head">
               <h3 id="cmd-handled" className="cmd-section-title">
-                Orvius handled
+                Recent actions
               </h3>
               <span className="cmd-section-note">Last 24 hours</span>
             </div>
@@ -241,13 +262,18 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
                 {handled.events.map((e) => (
                   <li key={e.id}>
                     <span className="cmd-feed-dot" aria-hidden />
-                    {e.jobId || e.leadId ? (
-                      <Link href={e.jobId ? `/dashboard/jobs/${e.jobId}` : `/dashboard/inbox/${e.leadId}`} className="cmd-feed-text">
-                        {e.summary}
-                      </Link>
-                    ) : (
-                      <span className="cmd-feed-text">{e.summary}</span>
-                    )}
+                    <span className="cmd-feed-body">
+                      {e.jobId || e.leadId ? (
+                        <Link href={e.jobId ? `/dashboard/jobs/${e.jobId}` : `/dashboard/inbox/${e.leadId}`} className="cmd-feed-text">
+                          {e.summary}
+                        </Link>
+                      ) : (
+                        <span className="cmd-feed-text">{e.summary}</span>
+                      )}
+                      <span className="cmd-feed-result">
+                        {e.result} · {e.by}
+                      </span>
+                    </span>
                     <time className="cmd-feed-at" dateTime={e.at}>
                       {formatWhen(e.at)}
                     </time>
@@ -255,38 +281,26 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
                 ))}
               </ul>
             ) : (
-              <p className="cmd-empty">{data ? "Nothing Orvius did on its own in the last day." : "Reading…"}</p>
+              <p className="cmd-empty">{data ? "No actions in the last day." : "Reading…"}</p>
             )}
+          </section>
+
+          <section className="cmd-section" aria-labelledby="cmd-today">
+            <div className="cmd-section-head">
+              <h3 id="cmd-today" className="cmd-section-title">
+                Today <span className="cmd-count">{data?.dispatchToday?.jobCount ?? "–"}</span>
+              </h3>
+              <Link href="/dashboard/schedule" className="cmd-section-link">
+                Schedule →
+              </Link>
+            </div>
+            {data ? <TodaySchedule jobs={data.dispatchToday?.jobs ?? []} /> : <p className="cmd-empty">Reading the schedule…</p>}
           </section>
 
           {data && !data.business?.referenceImplementation && !data.metrics.totalCalls ? <TryDemo empty /> : null}
         </div>
 
         <aside className="cc-rail" aria-label="The shop">
-          {shopIssues.length ? (
-            <section className="cmd-issues" aria-labelledby="cmd-issues">
-              <h3 id="cmd-issues" className="cmd-issues-title">
-                Shop setup needs you
-              </h3>
-              <ul>
-                {shopIssues.map((issue) => (
-                  <li key={issue.id} className={`cmd-issue cmd-issue--${issue.severity}`}>
-                    <p className="cmd-issue-title">{issue.title}</p>
-                    <p className="cmd-issue-detail">{issue.detail}</p>
-                    <div className="cmd-issue-actions">
-                      {ALERT_KINDS.has(issue.kind) ? <TestAlertButton onDone={() => void refresh()} /> : null}
-                      {issue.href ? (
-                        <Link href={issue.href} className="cmd-issue-action">
-                          {issue.action} →
-                        </Link>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-          <CommandSignals signals={signals} loading={loading} />
           <OrviusPulse
             health={data?.health}
             lastUpdatedAt={lastUpdatedAt}
@@ -297,6 +311,14 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             referenceImplementation={data?.business?.referenceImplementation}
             testMode={data?.business?.testMode}
           />
+          {minor.length ? (
+            <section className="cmd-issues" aria-labelledby="cmd-issues">
+              <h3 id="cmd-issues" className="cmd-issues-title">
+                Worth setting up
+              </h3>
+              {issueList(minor)}
+            </section>
+          ) : null}
         </aside>
       </section>
     </div>

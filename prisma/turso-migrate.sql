@@ -883,3 +883,4 @@ ALTER TABLE "Customer" ADD COLUMN "addressesJson" TEXT NOT NULL DEFAULT '[]';
 ALTER TABLE "Customer" ADD COLUMN "equipmentJson" TEXT NOT NULL DEFAULT '[]';
 ALTER TABLE "Business" ADD COLUMN "bookingMode" TEXT NOT NULL DEFAULT 'book';
 ALTER TABLE "Business" ADD COLUMN "setupJson" TEXT NOT NULL DEFAULT '{}';
+ALTER TABLE "Call" ADD COLUMN "endedReason" TEXT;
