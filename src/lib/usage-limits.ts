@@ -14,3 +14,12 @@ export const DEFAULT_ASK_DAILY_LIMIT = 150;
 
 /** Days a canceled shop keeps its number, so coming back doesn't mean a new number on every truck. */
 export const LINE_RETENTION_DAYS = 30;
+
+/** Call recordings, transcripts and voicemail are deleted this long after the call. */
+export const CALL_CONTENT_RETENTION_MONTHS = 24;
+
+/** Raw provider deliveries (webhook payloads) are pruned after this. */
+export const WEBHOOK_EVENT_RETENTION_DAYS = 90;
+
+/** Owner alert history is pruned after this. The activity log is kept. */
+export const OWNER_NOTIFICATION_RETENTION_DAYS = 180;

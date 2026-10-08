@@ -1,6 +1,7 @@
 import { LegalDocument, LegalSection } from "@/components/legal-document";
 import { company } from "@/lib/company";
 import { subprocessors } from "@/lib/subprocessors";
+import { CALL_CONTENT_RETENTION_MONTHS } from "@/lib/usage-limits";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -209,7 +210,7 @@ export default function PrivacyPage() {
           marketing waitlist entries).
         </p>
         <p>
-          Call recordings, call transcripts, and voicemail recordings are deleted 24 months after
+          Call recordings, call transcripts, and voicemail recordings are deleted {CALL_CONTENT_RETENTION_MONTHS} months after
           the call, both in Orvius and at the voice and telephony providers that hold copies. The
           call&apos;s summary and the resulting lead and job history stay with the shop&apos;s account.
           Appointment confirmation links stop working a day after the visit or once the job is

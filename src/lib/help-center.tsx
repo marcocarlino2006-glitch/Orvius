@@ -2,6 +2,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { CARRIERS } from "@/lib/carrier-forward";
 import { company } from "@/lib/company";
+import {
+  CALL_CONTENT_RETENTION_MONTHS,
+  LINE_RETENTION_DAYS,
+  OWNER_NOTIFICATION_RETENTION_DAYS,
+  WEBHOOK_EVENT_RETENTION_DAYS,
+} from "@/lib/usage-limits";
 
 export type HelpCategory = "Get started" | "Calls" | "Your day" | "Account";
 
@@ -364,23 +370,100 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "your-data",
     title: "Your data",
-    summary: "Export everything, delete your workspace, and where to read how data is handled.",
+    summary: "Export everything, how long call recordings are kept, and deleting your workspace.",
     category: "Account",
-    keywords: "export download delete privacy security gdpr ccpa recordings transcripts",
+    keywords: "export download delete privacy security gdpr ccpa recordings transcripts retention keep how long",
     body: (
       <>
         <ul>
           <li>
             <strong>Settings → Data controls → Export</strong> downloads your customers, leads, jobs and money records as
-            one file.
+            one file. It works even if your plan has ended: the lock screen has <strong>Download my data</strong>.
+          </li>
+          <li>
+            <strong>Settings → Activity log</strong> shows what Orvius did on each call and what your team changed, and
+            downloads as CSV.
           </li>
           <li>
             <strong>Settings → Data controls → Danger zone</strong> deletes your workspace.
           </li>
         </ul>
+        <h2>How long things are kept</h2>
+        <ul>
+          <li>
+            Call recordings, transcripts and voicemail: deleted {CALL_CONTENT_RETENTION_MONTHS} months after the call.
+          </li>
+          <li>Alert history: {OWNER_NOTIFICATION_RETENTION_DAYS} days. Raw provider logs: {WEBHOOK_EVENT_RETENTION_DAYS} days.</li>
+          <li>Customers, jobs, invoices and the activity log: kept while your workspace exists.</li>
+        </ul>
         <p>
-          How call recordings, transcripts and records are stored and who processes them:{" "}
-          <Link href="/privacy">Privacy policy</Link> and <Link href="/security">Security</Link>.
+          Every call opens by telling the caller it may be recorded and is answered by an automated receptionist. Who
+          processes your data: <Link href="/privacy">Privacy policy</Link> and <Link href="/security">Security</Link>.
+        </p>
+      </>
+    ),
+  },
+  {
+    slug: "leaving-orvius",
+    title: "Leaving Orvius",
+    summary: "Cancel, take your records, and keep your phone number.",
+    category: "Account",
+    keywords: "cancel leave quit close stop port number transfer move carrier export switch",
+    body: (
+      <>
+        <ol>
+          <li>
+            <strong>Download your records</strong> from Settings → Data controls → Export. You can still do this after
+            the plan ends.
+          </li>
+          <li>
+            <strong>Cancel</strong> from Settings → Billing → Manage, which opens Stripe. Everything keeps working until
+            the end of the period you paid for. See <Link href="/refunds">Refunds &amp; cancellation</Link>.
+          </li>
+          <li>
+            <strong>Your number.</strong> If you forwarded your number, it never left your carrier. Turn forwarding off
+            and calls ring your phone as before: on Verizon dial *73, on AT&amp;T or T-Mobile dial ##004#, or turn it off
+            in your carrier&apos;s app or account. If you moved your number to Orvius, email{" "}
+            <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a> before you cancel. We give your new
+            carrier what it needs to move the number, and we don&apos;t hold it back.
+          </li>
+        </ol>
+        <p>
+          After the plan ends, your Orvius line stops answering and its number is held for {LINE_RETENTION_DAYS} days in
+          case you come back.
+        </p>
+      </>
+    ),
+  },
+  {
+    slug: "when-something-breaks",
+    title: "When something breaks",
+    summary: "What happens to your calls if Orvius has a problem, and how we tell you.",
+    category: "Account",
+    keywords: "outage down incident status broken not answering support emergency",
+    body: (
+      <>
+        <ul>
+          <li>
+            <strong>If the voice AI can&apos;t be reached</strong>, your line still answers. It rings your handoff
+            number, or your own mobile if you haven&apos;t set one, then takes a message and texts you.
+          </li>
+          <li>
+            <strong>If your line stops answering</strong>, Orvius checks shop lines on a schedule and texts you when one
+            stops working.
+          </li>
+          <li>
+            <strong>Live provider status</strong> for calls, texts and payments is on the <Link href="/status">status
+            page</Link>.
+          </li>
+          <li>
+            <strong>After a problem on our side</strong>, we email the shops it affected: what happened, what it affected
+            and what we changed. Billing affected by an outage we caused is refunded.
+          </li>
+        </ul>
+        <p>
+          Something wrong right now: email <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a> with
+          your shop name. A person answers, normally within a business day.
         </p>
       </>
     ),
