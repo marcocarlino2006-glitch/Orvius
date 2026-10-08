@@ -220,6 +220,11 @@ const TEST_EMERGENCY_CALLER = { name: "Sam Whitley", phone: "+13125550162" };
 /* The routine call should read as everyday work, never as the trade's emergency. */
 const URGENT_SERVICE = /burst|leak|power loss|lockout|broken|emergency|no heat/i;
 
+/** "No cooling / AC repair" as a caller says it: lower case, acronyms kept. */
+function asSpoken(label: string): string {
+  return label.replace(/\b([A-Z])([a-z])/g, (_, a: string, b: string) => a.toLowerCase() + b);
+}
+
 export function setupScenarios(input: {
   trade: Trade;
   serviceZips?: string[];
@@ -232,7 +237,8 @@ export function setupScenarios(input: {
   const address = field
     ? `1842 Oak Street${zip ? `, ${zip}` : ""}`
     : input.shopAddress?.trim() || "At your location";
-  const want = service.label.toLowerCase();
+  const want = asSpoken(service.label);
+  const asked = /^no /.test(want) ? want : `${/^[aeiou]/.test(want) ? "an" : "a"} ${want}`;
 
   const routine: SetupScenario = {
     id: "routine",
@@ -243,7 +249,7 @@ export function setupScenarios(input: {
     urgency: "this-week",
     address,
     lines: [
-      `User: Hi, I'm calling about ${want}. Sometime this week would be great.`,
+      `User: Hi, I'm calling about ${asked}. Sometime this week would be great.`,
       "AI: I can help with that. Can I get your name and the best number to reach you?",
       `User: ${TEST_CALLER.name}, 312 555 0161.`,
       ...(field ? ["AI: And the address for the visit?", `User: ${address}.`] : []),
@@ -278,7 +284,7 @@ export function setupScenarios(input: {
         urgency: "same-day",
         address,
         lines: [
-          `User: You came out last week for ${want} and it's still not fixed. I want my money back.`,
+          `User: You came out last week for ${asked} and it's still not fixed. I want my money back.`,
           "AI: I'm sorry about that. I'll make sure the owner calls you back today.",
           `User: It's ${TEST_EMERGENCY_CALLER.name}, 312 555 0162.`,
         ],

@@ -663,7 +663,7 @@ function TestStep({
                   <dt>Needs</dt>
                   <dd>{result.request.need ?? "Not given"}</dd>
                   <dt>When</dt>
-                  <dd>{result.request.urgency ?? "Not given"}</dd>
+                  <dd>{URGENCY_LABEL[result.request.urgency ?? ""] ?? "Not given"}</dd>
                   {result.request.address ? (
                     <>
                       <dt>Where</dt>
@@ -725,6 +725,13 @@ function TestStep({
 }
 
 /* ── 6. Go live ────────────────────────────────────────────────────────── */
+
+const URGENCY_LABEL: Record<string, string> = {
+  emergency: "Emergency",
+  "same-day": "Today",
+  "this-week": "This week",
+  flexible: "Whenever works",
+};
 
 const STATE_LABEL: Record<GoLiveItem["state"], string> = {
   live: "Live",
@@ -931,7 +938,7 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
           ) : null}
 
           <Primary disabled={!canGo} onClick={() => void goLive()}>
-            {busy ? "Opening checkout…" : "Approve and choose a plan"}
+            {busy ? "Opening checkout…" : "Approve and continue to checkout"}
           </Primary>
           <p className="ton-fine">Your test records are cleared when you go live. Your settings carry over.</p>
         </>

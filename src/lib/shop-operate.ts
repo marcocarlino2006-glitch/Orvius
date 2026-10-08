@@ -26,6 +26,8 @@ export type ShopOperateInput = {
   attentionCount: number;
   proofStale: boolean;
   economicsReady: boolean;
+  /** Still in setup: the only real move is going live, and the shell already says so. */
+  testMode?: boolean;
 };
 
 const SETUP_COPY: Record<
@@ -92,6 +94,17 @@ export function isNextActionQuestion(question: string): boolean {
 export function resolveShopOperateNext(
   input: ShopOperateInput,
 ): ShopOperateNext {
+  if (input.testMode) {
+    return {
+      id: "go-live",
+      title: "You're in test mode",
+      detail: "Nothing answers real callers yet. Go live when the test call looks right.",
+      href: "/dashboard/onboarding?step=live",
+      cta: "Go live",
+      tone: "attention",
+    };
+  }
+
   if (input.failedAlerts > 0 || input.stuckAlerts > 0) {
     const n = input.failedAlerts || input.stuckAlerts;
     return {
@@ -162,7 +175,7 @@ export function resolveShopOperateNext(
 
 /** Command already owns this state — painting a second CTA is ceremony. */
 export function shopOperateBannerVisible(next: ShopOperateNext): boolean {
-  if (next.id === "covered") return false;
+  if (next.id === "covered" || next.id === "go-live") return false;
   if (next.id === "board" || next.id === "board-critical") return false;
   return true;
 }

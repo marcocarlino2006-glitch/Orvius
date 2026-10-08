@@ -845,7 +845,7 @@
   color: var(--m-text);
 }
 
-.os-test-banner-cta {
+.os-shell .os-test-banner a.os-test-banner-cta {
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -853,7 +853,7 @@
   padding: 0 0.875rem;
   border-radius: 999px;
   background: var(--m-solid);
-  color: var(--m-on-solid);
+  color: var(--m-on-solid) !important;
   font-size: 0.8125rem;
   font-weight: 600;
   text-decoration: none;

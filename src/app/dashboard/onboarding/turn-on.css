@@ -478,6 +478,7 @@
 .ton-person ul {
   margin: 0;
   padding-left: 1.125rem;
+  list-style: disc;
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
@@ -598,6 +599,7 @@
 .ton-trail ol {
   margin: 0.625rem 0 0;
   padding-left: 1.125rem;
+  list-style: decimal;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;

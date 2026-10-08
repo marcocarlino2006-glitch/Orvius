@@ -47,6 +47,7 @@ export function OrviusPulse({
   onRetry,
   billingStatus,
   referenceImplementation,
+  testMode,
 }: {
   health: ShopHealth | null | undefined;
   lastUpdatedAt: number | null;
@@ -55,6 +56,7 @@ export function OrviusPulse({
   onRetry: () => void;
   billingStatus?: string | null;
   referenceImplementation?: boolean;
+  testMode?: boolean;
 }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -64,7 +66,7 @@ export function OrviusPulse({
 
   const failed = health?.failedAlerts24h ?? 0;
   const stuck = health?.stuckPendingAlerts ?? 0;
-  const unreachable = Boolean(health && !health.alertsReachable && !referenceImplementation);
+  const unreachable = Boolean(health && !health.alertsReachable && !referenceImplementation && !testMode);
   const pastDue = (billingStatus ?? "").toLowerCase() === "past_due";
 
   return (
@@ -83,6 +85,19 @@ export function OrviusPulse({
         </div>
       ) : (
         <>
+          {testMode ? (
+            <PulseRow
+              label="Phone line"
+              value="Test mode"
+              detail="Calls and texts are simulated. Your number is assigned when you go live."
+              tone="attention"
+              action={
+                <Link href="/dashboard/onboarding?step=live" className="ox-btn ox-btn--quiet ox-btn--sm">
+                  Go live
+                </Link>
+              }
+            />
+          ) : (
           <PulseRow
             label="Phone line"
             value={health.line ? displayPhone(health.line) : referenceImplementation ? "Simulated" : "No line yet"}
@@ -106,10 +121,13 @@ export function OrviusPulse({
               ) : null
             }
           />
+          )}
           <PulseRow
             label="Alert delivery"
             value={
-              unreachable
+              testMode
+                ? "Simulated"
+                : unreachable
                 ? "Nowhere to send"
                 : failed > 0
                   ? `${failed} failed in 24h`
@@ -120,7 +138,9 @@ export function OrviusPulse({
                       : "No alerts sent yet"
             }
             detail={
-              unreachable
+              testMode
+                ? "Alerts are written here, not sent. They reach your mobile once you go live."
+                : unreachable
                 ? "No text or email can reach you yet."
                 : failed > 0
                   ? "Grouped as one incident in the work queue."
@@ -130,7 +150,7 @@ export function OrviusPulse({
                     }`
                   : null
             }
-            tone={unreachable || failed > 0 ? "risk" : stuck > 0 ? "attention" : health.lastAlertAt ? "ok" : "neutral"}
+            tone={testMode ? "neutral" : unreachable || failed > 0 ? "risk" : stuck > 0 ? "attention" : health.lastAlertAt ? "ok" : "neutral"}
             action={
               unreachable ? (
                 <Link href="/dashboard?settings=notifications" className="ox-btn ox-btn--quiet ox-btn--sm">
