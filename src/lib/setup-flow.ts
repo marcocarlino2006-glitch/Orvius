@@ -84,7 +84,7 @@ export function setupTradeGroups(): Array<{ title: string; trades: Trade[] }> {
   return [
     { title: "We come to you", trades: SETUP_TRADES.filter((t) => INDUSTRY_KIND[t] === "field") },
     { title: "Customers come to us", trades: SETUP_TRADES.filter((t) => INDUSTRY_KIND[t] === "office") },
-  ];
+  ].filter((g) => g.trades.length > 0);
 }
 
 export function isSetupTrade(value: unknown): value is Trade {

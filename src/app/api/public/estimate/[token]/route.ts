@@ -12,6 +12,8 @@ import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { z } from "zod";
 import { publicTokenLimited } from "@/lib/rate-limit";
+import { enqueueOwnerAlert } from "@/lib/notification-queue";
+import { recordCustomerClaim } from "@/lib/payment-record";
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -63,6 +65,7 @@ function serializePublic(estimate: NonNullable<Awaited<ReturnType<typeof loadEst
           status: estimate.invoice.status,
           amountCents: estimate.invoice.amountCents,
           paid: estimate.invoice.status === "paid",
+          claimed: estimate.invoice.status !== "paid" && estimate.invoice.payments.some((p) => p.status === "claimed"),
         }
       : null,
     cardPayAvailable: isEstimateCardPayReady(estimate.business),
@@ -202,21 +205,28 @@ export async function POST(request: Request, { params }: Params) {
       });
     }
 
-    await prisma.$transaction([
-      prisma.payment.create({
-        data: {
+    const claim = await recordCustomerClaim({
+      businessId: estimate.businessId,
+      invoiceId,
+      amountCents: estimate.amountCents,
+      jobId: estimate.job?.id ?? null,
+    });
+    if (claim.created) {
+      const shop = await prisma.business.findUnique({
+        where: { id: estimate.businessId },
+        select: { name: true, ownerPhone: true, ownerEmail: true },
+      });
+      if (shop) {
+        await enqueueOwnerAlert({
           businessId: estimate.businessId,
-          invoiceId,
-          amountCents: estimate.amountCents,
-          status: "recorded",
-          method: "customer_attested",
-        },
-      }),
-      prisma.invoice.update({
-        where: { id: invoiceId },
-        data: { status: "paid" },
-      }),
-    ]);
+          businessName: shop.name,
+          ownerPhone: shop.ownerPhone,
+          ownerEmail: shop.ownerEmail,
+          dedupeKey: `payment-claimed:${invoiceId}`,
+          message: `Orvius: a customer says they paid ${formatCents(estimate.amountCents)} for ${estimate.job?.title ?? "an estimate"} outside card checkout. It isn't counted as collected until you confirm it on the job.`,
+        }).catch(() => undefined);
+      }
+    }
 
     const fresh = await loadEstimate(token);
     return NextResponse.json({

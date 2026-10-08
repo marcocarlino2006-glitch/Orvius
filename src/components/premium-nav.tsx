@@ -15,7 +15,7 @@ const MENUS: Record<MenuId, { items: MenuItem[]; feature: { title: string; body:
       { href: "/#command", label: "Command board", detail: "The morning list, sorted by what's at stake." },
       { href: "/#calls", label: "Calls and inbox", detail: "Every call recorded, summarized and graded." },
       { href: "/#field", label: "Confirm and dispatch", detail: "One tap for the customer, one page for your team." },
-      { href: "/#industries", label: "Industries", detail: "Field trades, offices, salons, clinics and more." },
+      { href: "/#industries", label: "Industries", detail: "Heating & cooling, plumbing and electrical." },
       { href: "/enterprise", label: "Multi-location", detail: "Many lines, one board, roles for every seat." },
     ],
     feature: {

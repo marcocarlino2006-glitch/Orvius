@@ -534,6 +534,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         status: true,
         jobId: true,
         createdAt: true,
+        payments: { where: { status: "claimed" }, select: { id: true } },
         job: {
           select: {
             lead: { select: { phone: true, name: true } },
@@ -595,6 +596,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
 
   for (const invoice of openMoney[0]) {
     if (invoice.status === "paid" || invoice.status === "void" || invoice.status === "refunded") continue;
+    const claimed = invoice.payments.length > 0;
     const phone =
       invoice.job?.customer?.phone ?? invoice.job?.lead?.phone ?? null;
     const who =
@@ -607,13 +609,14 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
       title: who
         ? `${who} · invoice`
         : "Open invoice",
-      detail:
-        invoice.status === "draft"
+      detail: claimed
+        ? "The customer says they paid you directly. It isn't counted as collected until you confirm the money arrived."
+        : invoice.status === "draft"
           ? "Invoice drafted but never sent — send it while the visit is fresh."
           : invoice.status === "overdue"
             ? "Invoice is overdue — call to collect."
             : "Invoice sent, not paid yet — follow up to collect.",
-      recommendedAction: phone ? "Call to collect" : "Review invoice",
+      recommendedAction: claimed ? "Confirm payment" : phone ? "Call to collect" : "Review invoice",
       href: invoice.jobId ? `/dashboard/jobs/${invoice.jobId}` : "/dashboard#shop-economics",
       entityType: "shop",
       entityId: businessId,

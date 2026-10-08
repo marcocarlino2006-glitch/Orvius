@@ -1,4 +1,5 @@
 import { unitEconomicsSince, type UnitEconomics } from "@/lib/call-cost";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { unitCostLines } from "@/lib/unit-cost-lines";
 import { company } from "@/lib/company";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
@@ -74,7 +75,7 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
       prisma.lead.count({ where: { business: realShop, createdAt: inWindow, job: { isNot: null } } }),
       prisma.job.count({ where: { business: realShop, createdAt: inWindow } }),
       prisma.payment.aggregate({
-        where: { business: realShop, createdAt: inWindow, status: { not: "refunded" } },
+        where: { business: realShop, createdAt: inWindow, status: { in: COLLECTED_STATUSES } },
         _sum: { amountCents: true },
       }),
     ]);

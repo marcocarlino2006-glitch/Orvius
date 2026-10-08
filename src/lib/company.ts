@@ -24,12 +24,12 @@ export const company = {
    */
   mission: "Give every small business in the world the front office of a Fortune 500 company.",
   missionWhy:
-    "A big company has a call center, a booking team, follow-up staff and a billing department. A plumber, a dentist or a salon owner has one phone and two hands. Orvius closes that gap.",
+    "A big company has a call center, a booking team, follow-up staff and a billing department. A plumber or an electrician has one phone and two hands. Orvius closes that gap.",
   /** Where the mission goes, in order. Each step is earned by the one before it. */
   vision: [
     {
       title: "The front desk for every business",
-      body: "Orvius answers the phone for millions of businesses, in any industry and any language, day and night.",
+      body: "We start with heating & cooling, plumbing and electrical, and add an industry only when its playbook passes testing — until Orvius can answer for any business, in any language, day and night.",
     },
     {
       title: "The operating system for small business",
@@ -42,12 +42,12 @@ export const company = {
   ],
   tagline: "The operating system for businesses that run on the phone.",
   /** The blue link in search results: brand first, then the words people search for. */
-  searchTitle: "Orvius — AI Receptionist and Operating System for Business",
+  searchTitle: "Orvius — AI Receptionist for HVAC, Plumbing & Electrical",
   /** The caption under it. Google cuts at about 155 characters. */
   searchDescription:
     "Orvius answers your calls, books the work on your real schedule, sends your people, follows up with customers and shows you what happened.",
   categoryClaim:
-    "The operating system for trades, clinics, salons, shops and offices — the receptionist answers and brings in the work; Command schedules it, assigns your people, follows up and shows the owner what happened. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
+    "For heating & cooling, plumbing and electrical businesses: the receptionist answers and brings in the work; Command qualifies it, schedules it, assigns your people, keeps the customer updated, records the finished job and follows up. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
   proofLine: "Missed calls become booked customers.",
   strategy: [
     "Win home services first — the deepest packs, the most urgent calls.",

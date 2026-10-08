@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { collectedCents, isCollected } from "@/lib/payment-math";
 import { estimateTitle } from "@/lib/estimate-options";
 import { paymentMethodLabel } from "@/lib/when";
 
@@ -388,11 +389,12 @@ export async function getCustomerTimeline(
           jobId: job.id,
         });
         for (const payment of invoice.payments) {
+          if (!isCollected(payment.status) && payment.status !== "claimed") continue;
           events.push({
             id: payment.id,
             type: "payment",
             at: payment.createdAt.toISOString(),
-            title: `Payment · ${formatMoney(payment.amountCents)}`,
+            title: `${payment.status === "claimed" ? "Customer says paid" : "Payment"} · ${formatMoney(payment.amountCents)}`,
             summary: paymentMethodLabel(payment.method),
             source: "payment",
             urgency: null,
@@ -419,11 +421,12 @@ export async function getCustomerTimeline(
       jobId: invoice.jobId,
     });
     for (const payment of invoice.payments) {
+      if (!isCollected(payment.status) && payment.status !== "claimed") continue;
       events.push({
         id: payment.id,
         type: "payment",
         at: payment.createdAt.toISOString(),
-        title: `Payment · ${formatMoney(payment.amountCents)}`,
+        title: `${payment.status === "claimed" ? "Customer says paid" : "Payment"} · ${formatMoney(payment.amountCents)}`,
         summary: paymentMethodLabel(payment.method),
         source: "payment",
         urgency: null,
@@ -503,9 +506,7 @@ export async function getCustomerProperties(
         [...job.invoices.flatMap((i) => i.payments), ...(job.estimate?.invoice?.payments ?? [])].map((p) => [p.id, p]),
       ).values(),
     ];
-    entry.paidCents += payments
-      .filter((p) => p.status !== "failed" && p.status !== "refunded")
-      .reduce((sum, p) => sum + p.amountCents, 0);
+    entry.paidCents += collectedCents(payments);
   }
 
   return [...byAddress.values()].sort((a, b) => b.jobCount - a.jobCount);

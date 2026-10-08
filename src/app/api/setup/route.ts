@@ -31,10 +31,11 @@ import {
 } from "@/lib/setup-sandbox";
 import { openingWithNotice } from "@/lib/vapi";
 import { ACTIVE_SHOP_COOKIE } from "@/lib/workspace-access";
+import { NOT_YET_TRADE } from "@/lib/trades";
 import type { Business } from "@prisma/client";
 import type { Trade } from "@/lib/trades";
 
-const tradeSchema = z.string().refine(isSetupTrade, "Pick a business type Orvius supports");
+const tradeSchema = z.string().refine(isSetupTrade, NOT_YET_TRADE);
 const goalIds = SETUP_GOALS.map((g) => g.id) as [string, ...string[]];
 const hoursIds = HOURS_PRESETS.map((h) => h.id) as [string, ...string[]];
 

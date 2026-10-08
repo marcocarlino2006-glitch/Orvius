@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { paymentMethodLabel } from "@/lib/when";
 
 export type ShiftEventKind =
@@ -144,7 +145,7 @@ export async function getShiftTimeline(
         },
       }),
       prisma.payment.findMany({
-        where: { businessId, createdAt: { gte: since } },
+        where: { businessId, createdAt: { gte: since }, status: { in: COLLECTED_STATUSES } },
         orderBy: { createdAt: "desc" },
         take: SOURCE_LIMIT,
         select: {

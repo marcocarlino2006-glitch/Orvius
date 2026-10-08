@@ -13,11 +13,6 @@ export const TRADE_PAGES: ReadonlyArray<{ slug: string; trade: Trade; noun: stri
   { slug: "hvac", trade: "HVAC", noun: "HVAC" },
   { slug: "plumbing", trade: "Plumbing", noun: "plumbing" },
   { slug: "electrical", trade: "Electrical", noun: "electrical" },
-  { slug: "roofing", trade: "Roofing", noun: "roofing" },
-  { slug: "garage-doors", trade: "Garage doors", noun: "garage door" },
-  { slug: "pest-control", trade: "Pest control", noun: "pest control" },
-  { slug: "locksmith", trade: "Locksmith", noun: "locksmith" },
-  { slug: "appliance-repair", trade: "Appliance repair", noun: "appliance repair" },
 ];
 
 const packLine = (pack: string, label: string) =>

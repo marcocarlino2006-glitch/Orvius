@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { findDuplicateJobs } from "@/lib/workspace-hygiene";
 
 export type OperatingMetric = {
@@ -106,7 +107,7 @@ export async function getOperatingMetrics(businessId: string, windowDays = 30): 
       where: {
         businessId,
         createdAt: { gte: since },
-        status: { notIn: ["failed", "refunded"] },
+        status: { in: COLLECTED_STATUSES },
         invoice: { job: { lead: { source: "call" } } },
       },
       _sum: { amountCents: true },

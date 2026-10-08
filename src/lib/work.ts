@@ -84,7 +84,7 @@ export type WorkJob = {
   assigneeEmail: string | null;
   technician: { id: string; name: string; phone?: string | null } | null;
   customer: { name: string | null; phone: string | null } | null;
-  invoices: Array<{ status: string; paidAt: Date | null; amountCents: number }>;
+  invoices: Array<{ status: string; paidAt: Date | null; amountCents: number; payments?: Array<{ status: string }> }>;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -226,6 +226,7 @@ export function jobWorkItem(job: WorkJob): WorkItem {
         return ["Mark done", "technician"];
       case "done":
         if (!owed.length) return [null, null];
+        if (owed.some((i) => i.payments?.some((p) => p.status === "claimed"))) return [`Confirm ${who}'s payment arrived`, "you"];
         return owed.some((i) => i.status === "draft") ? ["Send the invoice", "you"] : [`Waiting on ${who} to pay`, "customer"];
       default:
         return [null, null];
@@ -426,7 +427,7 @@ const jobSelect = {
   updatedAt: true,
   technician: { select: { id: true, name: true, phone: true } },
   customer: { select: { name: true, phone: true } },
-  invoices: { select: { status: true, paidAt: true, amountCents: true } },
+  invoices: { select: { status: true, paidAt: true, amountCents: true, payments: { where: { status: "claimed" }, select: { status: true } } } },
 } as const;
 
 const requestSelect = {

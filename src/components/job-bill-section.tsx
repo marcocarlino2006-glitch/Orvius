@@ -14,6 +14,9 @@ export type JobBill = {
     payUrl: string | null;
     sentAt: string | null;
     paidAt: string | null;
+    collectedCents?: number;
+    claimedCents?: number;
+    collectedHow?: string | null;
   } | null;
   finalAmountCents: number | null;
   cardPayReady: boolean;
@@ -70,6 +73,29 @@ export function JobBillSection({
     }
   }
 
+  async function settle(action: "record" | "confirm" | "reject", method?: string) {
+    if (!invoice) return;
+    setBusy(true);
+    setError(null);
+    setNote(null);
+    try {
+      const res = await fetch("/api/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId: invoice.id, action, method }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "That didn't save. Try again.");
+      if (action === "reject") setNote("Left open. The customer still owes this bill.");
+      else toast({ title: data.paid ? "Bill marked paid" : "Payment recorded" });
+      onRefresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't save. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function copy(url: string) {
     try {
       await navigator.clipboard.writeText(url);
@@ -85,7 +111,8 @@ export function JobBillSection({
         <p className="job-money-share-label">Final bill</p>
         <p className="job-money-lead">
           {formatCentsExact(invoice.amountCents)} paid
-          {invoice.paidAt ? ` on ${formatDay(invoice.paidAt)}` : ""}.
+          {invoice.paidAt ? ` on ${formatDay(invoice.paidAt)}` : ""}
+          {invoice.collectedHow ? ` · ${invoice.collectedHow}` : ""}.
         </p>
       </div>
     );
@@ -150,9 +177,43 @@ export function JobBillSection({
           </button>
         ) : null}
       </div>
+      {invoice && (invoice.claimedCents ?? 0) > 0 ? (
+        <div className="job-bill-claim" role="status">
+          <p className="job-money-lead">
+            The customer says they paid {formatCentsExact(invoice.claimedCents!)} outside card checkout. It isn&apos;t
+            counted as collected until you confirm the money arrived.
+          </p>
+          <div className="job-money-actions">
+            <button type="button" className="btn btn-void text-sm" disabled={busy} onClick={() => void settle("confirm")}>
+              The money arrived
+            </button>
+            <button type="button" className="btn btn-secondary text-sm" disabled={busy} onClick={() => void settle("reject")}>
+              It hasn&apos;t arrived
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {invoice ? (
+        <div className="job-bill-collect">
+          <p className="job-money-lead">
+            {(invoice.collectedCents ?? 0) > 0
+              ? `${formatCentsExact(invoice.collectedCents!)} collected so far · ${formatCentsExact(Math.max(0, invoice.amountCents - invoice.collectedCents!))} still owed. Record the rest:`
+              : "Got paid in person? Record how, so the bill closes:"}
+          </p>
+          <div className="job-money-actions job-bill-methods">
+            {(["cash", "check", "bank", "other"] as const).map((m) => (
+              <button key={m} type="button" className="btn btn-secondary text-sm" disabled={busy} onClick={() => void settle("record", m)}>
+                {m === "bank" ? "Bank transfer" : m === "other" ? "Other" : m === "cash" ? "Cash" : "Check"}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {note ? <p className="job-money-lead">{note}</p> : null}
       {invoice?.sentAt && !note ? (
         <p className="job-money-lead">Texted {formatWhen(invoice.sentAt)} — not paid yet.</p>
+      ) : invoice && !note ? (
+        <p className="job-money-lead">Not sent to the customer yet — the bill exists, but nobody has asked for the money.</p>
       ) : null}
     </div>
   );
