@@ -13,6 +13,7 @@ import "./work.css";
 import "./orvius-finish.css";
 import "./orvius-depth.css";
 import "./orvius-modern.css";
+import "./pages.css";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (

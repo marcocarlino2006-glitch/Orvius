@@ -68,7 +68,7 @@ test("profile popover carries identity and the account menu", () => {
   assert.match(footer, /settings=billing/);
 });
 
-test("Command opens with what needs you, today's trucks, then Ask", () => {
+test("Command opens with what needs you, one Ask bar, the action queue, then today's trucks", () => {
   const command = read("src/components/ring1-command-center.tsx");
   const board = read("src/components/command-board.tsx");
   const page = read("src/app/dashboard/page.tsx");
@@ -76,7 +76,7 @@ test("Command opens with what needs you, today's trucks, then Ask", () => {
   const needs = command.indexOf("<WorkCard");
   const trucks = command.indexOf("<TodaySchedule");
   const ask = command.indexOf("<AskBar");
-  assert.ok(headline > 0 && headline < needs && needs < trucks && trucks < ask);
+  assert.ok(headline > 0 && headline < ask && ask < needs && needs < trucks);
   assert.match(page, /setup=\{/);
   assert.match(board, /<textarea/);
   assert.match(board, /Nothing changes until you approve/);

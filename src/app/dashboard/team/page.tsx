@@ -41,6 +41,7 @@ function CrewOverview({ tech, timezone }: { tech: TeamTech; timezone: string }) 
   const off = tech.timeOff?.[0];
   return (
     <div className="tm-tech-summary">
+      <p className="tm-tech-name">{tech.name}</p>
       <p className="tm-tech-line">
         <StatusDot tone={dest.tone}>{dest.label}</StatusDot>
         <span className="tm-muted">{dest.detail}</span>
@@ -149,7 +150,10 @@ export default function TeamPage() {
                 {crew.map((tech) => (
                   <li key={`${tech.id}-${tech.skillsJson}-${tech.phone}`} className="tm-tech">
                     <CrewOverview tech={tech} timezone={data.timezone} />
-                    <CrewMember tech={tech} trade={(data.trade ?? null) as Trade | null} timezone={data.timezone} today={data.today} onSaved={load} />
+                    <details className="tm-edit">
+                      <summary>Edit {tech.name.split(" ")[0]}: phone, skills, hours</summary>
+                      <CrewMember tech={tech} trade={(data.trade ?? null) as Trade | null} timezone={data.timezone} today={data.today} onSaved={load} />
+                    </details>
                   </li>
                 ))}
               </ul>
@@ -165,7 +169,7 @@ export default function TeamPage() {
         </h2>
         <p className="tm-help">
           Where Orvius sends urgent calls and failures, and the test that proves they arrive, live in{" "}
-          <Link href="/dashboard/settings?section=notifications">Settings → Escalation</Link>.
+          <Link href="/dashboard/settings?settings=notifications">Settings → Escalation</Link>.
         </p>
       </section>
     </OsShell>
