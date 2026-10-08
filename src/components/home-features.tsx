@@ -34,7 +34,7 @@ const features: Feature[] = [
   {
     id: "field",
     title: "Your people and customers, coordinated.",
-    body: "Whoever is going gets the address and one tap to call. The customer gets the time with one tap to confirm, and callers nobody reached get a follow-up. No app to install.",
+    body: "Whoever is going gets the address and one tap to call. The customer gets the time with one tap to confirm, and callers nobody reached get a follow-up. When the work is done the bill goes out by text, and it counts as paid only once the money arrives. No app to install.",
     link: { href: "/help", label: "Read the help center" },
     art: "/marketing/art/morning.webp",
     demo: <PhonesDemo />,

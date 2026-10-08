@@ -4,6 +4,7 @@ import { ShopPreviewForm } from "@/components/shop-preview-form";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { isPreviewLive } from "@/lib/preview-live";
 import type { Metadata } from "next";
+import { SIGNUP_HREF } from "@/lib/signup-href";
 
 export const metadata: Metadata = {
   title: "Hear your business answer",
@@ -35,7 +36,7 @@ export default function TryPage() {
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">
                   Call the live line
                 </a>
-                <Link href="/signin?mode=signup" className="ov-btn ov-btn--quiet">
+                <Link href={SIGNUP_HREF} className="ov-btn ov-btn--quiet">
                   Get started
                 </Link>
               </div>

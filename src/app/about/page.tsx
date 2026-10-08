@@ -4,6 +4,7 @@ import { demoLineHref } from "@/lib/demo-line";
 import { workspaceAccessPublicClaim } from "@/lib/seats";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SIGNUP_HREF } from "@/lib/signup-href";
 
 export const metadata: Metadata = {
   title: "About",
@@ -25,7 +26,7 @@ export default function AboutPage() {
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">
                   Call the live line
                 </a>
-                <Link href="/signin?mode=signup" className="ov-btn ov-btn--quiet">
+                <Link href={SIGNUP_HREF} className="ov-btn ov-btn--quiet">
                   Get started
                 </Link>
               </>
@@ -80,7 +81,7 @@ export default function AboutPage() {
             <a href={demoLineHref()} className="ov-btn ov-btn--solid">
               Call the live line
             </a>
-            <Link href="/signin?mode=signup" className="ov-btn ov-btn--quiet">
+            <Link href={SIGNUP_HREF} className="ov-btn ov-btn--quiet">
               Get started
             </Link>
           </div>

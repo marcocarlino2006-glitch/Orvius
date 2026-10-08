@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HomeLiveCall } from "@/components/home-live-call";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
+import { SIGNUP_HREF } from "@/lib/signup-href";
 
 /*
   Digits rise in on a stagger — the line comes up as an artifact, not a string.
@@ -63,7 +64,7 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
             {signupOpen ? (
               <>
                 <Link
-                  href="/signup?callbackUrl=%2Fdashboard%2Fonboarding"
+                  href={SIGNUP_HREF}
                   className="ov-btn ov-btn--solid ov-hero-cta-primary"
                   data-i18n="hero.getLine"
                 >
