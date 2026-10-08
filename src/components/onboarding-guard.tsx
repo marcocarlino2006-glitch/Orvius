@@ -10,6 +10,7 @@ type OnboardingStatus = {
   setup?: {
     nextStep?: "line" | "owner_phone" | "capture" | "verify" | "done";
   } | null;
+  testMode?: { step: string; tested: boolean } | null;
 };
 
 const READY_KEY = "orvius:workspace-ready";
@@ -60,7 +61,8 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
         if (cancelled) return;
         rememberReady(json.ready);
 
-        if (!json.provisioned && !onOnboarding) {
+        /* A test-mode shop that has run its test call can look around Command; it goes live from setup. */
+        if (!json.provisioned && !onOnboarding && !json.testMode?.tested) {
           router.replace("/dashboard/onboarding");
           return;
         }

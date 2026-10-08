@@ -68,7 +68,7 @@ export function PayPromptModal() {
         setHasStripeCustomer(Boolean(data.business?.stripeCustomerId));
         setDecision(next);
 
-        if (!next?.show || data.business?.environment === "demo") {
+        if (!next?.show || data.business?.environment === "demo" || data.business?.environment === "test") {
           setOpen(false);
           return;
         }

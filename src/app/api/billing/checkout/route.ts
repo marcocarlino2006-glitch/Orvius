@@ -32,6 +32,7 @@ import { z } from "zod";
 import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
 import { resolveShopAccess } from "@/lib/workspace-access";
+import { isSetupSandbox } from "@/lib/setup-flow";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
 import { acquisitionMetadata, findReferrer } from "@/lib/referrals";
 
@@ -110,9 +111,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    /* A test-mode shop is turned on by this checkout, the same way a new shop is built by one. */
+    const turningOn = Boolean(business && isSetupSandbox(business));
+
     // Paying must lead to a shop: someone who can't create one yet is not charged.
     if (
-      !business &&
+      (!business || turningOn) &&
       !canCreateShopForEmail(
         sessionEmail,
         (normalized) => getAllowedEmails().includes(normalized),
@@ -129,15 +133,15 @@ export async function POST(request: NextRequest) {
     }
 
     const setupPath = `/dashboard/onboarding?plan=${body.planId}&interval=${body.interval}`;
-    if (!business && !body.shop) {
+    if ((!business || turningOn) && !body.shop) {
       return NextResponse.json(
         { error: "Tell us about your shop first.", code: "shop_details_needed", setupUrl: setupPath },
         { status: 409 },
       );
     }
     const shopMetadata =
-      !business && body.shop ? shopDraftMetadata(shopDraftSchema.parse(body.shop), new Date()) : {};
-    const acquisition = business ? null : parseAcquisition(request.cookies.get(ACQUISITION_COOKIE)?.value);
+      (!business || turningOn) && body.shop ? shopDraftMetadata(shopDraftSchema.parse(body.shop), new Date()) : {};
+    const acquisition = business && !turningOn ? null : parseAcquisition(request.cookies.get(ACQUISITION_COOKIE)?.value);
     const referralCoupon = process.env.ORVIUS_REFERRAL_COUPON_ID?.trim();
     const referred = Boolean(referralCoupon && acquisition?.ref && (await findReferrer(acquisition.ref)));
 
@@ -152,10 +156,14 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: business
+      success_url: business && !turningOn
         ? `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`
         : `${baseUrl}/dashboard/onboarding?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: business ? `${baseUrl}/pricing?canceled=1` : `${baseUrl}${setupPath}&canceled=1`,
+      cancel_url: turningOn
+        ? `${baseUrl}/dashboard/onboarding?step=live&canceled=1`
+        : business
+          ? `${baseUrl}/pricing?canceled=1`
+          : `${baseUrl}${setupPath}&canceled=1`,
       // Stripe takes either a fixed discount or a promo-code box, not both.
       ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
       ...checkoutTaxParams(Boolean(business?.stripeCustomerId)),

@@ -44,6 +44,8 @@ import {
   shopLineAttemptKey,
 } from "@/lib/provision-attempt";
 import { resolveShopAccess, type ShopAccess } from "@/lib/workspace-access";
+import { isSetupSandbox, parseSetup } from "@/lib/setup-flow";
+import { clearTestRecords } from "@/lib/setup-test-records";
 
 export type { Trade } from "@/lib/trades";
 export { TRADES } from "@/lib/trades";
@@ -169,9 +171,10 @@ export async function findBusinessForOwner(email: string) {
   });
 }
 
+/** A test-mode shop is still onboarding: it has settings but nothing is live. */
 export async function isOnboardingComplete(email: string): Promise<boolean> {
   const business = await findBusinessForOwner(email);
-  return Boolean(business);
+  return Boolean(business && !isSetupSandbox(business));
 }
 
 export type LineChoice = {
@@ -195,6 +198,8 @@ export type ProvisionInput = {
     subscriptionId: string;
     planId: string;
   };
+  /** The owner's test-mode shop. It goes live in place, keeping its settings and team. */
+  promoteBusinessId?: string;
 };
 
 export type ProvisionResult = {
@@ -202,7 +207,7 @@ export type ProvisionResult = {
   dedicatedLine: boolean;
 };
 
-async function uniqueSlug(name: string): Promise<string> {
+export async function uniqueSlug(name: string): Promise<string> {
   const base = slugify(name) || "shop";
   let candidate = base;
   let attempt = 0;
@@ -484,12 +489,14 @@ export async function repairAllCustomerShopLines(): Promise<
 export async function provisionBusiness(input: ProvisionInput): Promise<ProvisionResult> {
   const email = input.ownerEmail.toLowerCase().trim();
   const existing = await findBusinessForOwner(email);
-  if (existing) {
+  const promoting =
+    existing && input.promoteBusinessId === existing.id && isSetupSandbox(existing) ? existing : null;
+  if (existing && !promoting) {
     throw new Error("A shop is already linked to this account");
   }
 
   const name = input.name.trim();
-  const slug = await uniqueSlug(name);
+  const slug = promoting?.slug ?? (await uniqueSlug(name));
 
   const phoneCheck = validateOwnerPhoneForAlerts({
     ownerPhone: input.ownerPhone,
@@ -511,9 +518,11 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
 
   const greeting =
     input.greeting?.trim() ||
+    promoting?.greeting?.trim() ||
     `Thank you for calling ${name}. How can I help you today?`;
-  const hoursJson = input.hoursJson ?? DEFAULT_HOURS_JSON;
-  const servicesJson = servicesForTrade(input.trade);
+  const hoursJson = input.hoursJson ?? promoting?.hoursJson ?? DEFAULT_HOURS_JSON;
+  const servicesJson =
+    promoting && promoting.trade === input.trade ? promoting.servicesJson : servicesForTrade(input.trade);
 
   const systemPrompt = buildAssistantSystemPrompt({
     name,
@@ -578,28 +587,43 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
       throw new Error(postProvisionCheck.reason);
     }
 
-    const business = await prisma.business.create({
-      data: {
-        name,
-        slug,
-        ownerEmail: email,
-        ownerPhone: input.ownerPhone.trim(),
-        trade: input.trade,
-        timezone: input.timezone ?? "America/New_York",
-        address: input.address?.trim() || null,
-        greeting,
-        hoursJson,
-        servicesJson,
-        twilioPhone: shopLine,
-        vapiPhoneNumber: shopLine,
-        vapiAssistantId,
-        billingStatus: "active",
-        billingPlan: input.billing.planId,
-        stripeCustomerId: input.billing.customerId,
-        stripeSubscriptionId: input.billing.subscriptionId,
-        pilotEndsAt: null,
-      },
-    });
+    const shop = {
+      name,
+      ownerEmail: email,
+      ownerPhone: input.ownerPhone.trim(),
+      trade: input.trade,
+      timezone: input.timezone ?? promoting?.timezone ?? "America/New_York",
+      address: input.address?.trim() || promoting?.address || null,
+      greeting,
+      hoursJson,
+      servicesJson,
+      twilioPhone: shopLine,
+      vapiPhoneNumber: shopLine,
+      vapiAssistantId,
+      billingStatus: "active",
+      billingPlan: input.billing.planId,
+      stripeCustomerId: input.billing.customerId,
+      stripeSubscriptionId: input.billing.subscriptionId,
+      pilotEndsAt: null,
+    };
+    const business = promoting
+      ? await prisma.$transaction(async (tx) => {
+          await clearTestRecords(promoting.id, tx);
+          return tx.business.update({
+            where: { id: promoting.id },
+            data: {
+              ...shop,
+              environment: "production",
+              setupJson: JSON.stringify({
+                ...parseSetup(promoting.setupJson),
+                sandbox: false,
+                step: "live",
+                liveAt: new Date().toISOString(),
+              }),
+            },
+          });
+        })
+      : await prisma.business.create({ data: { ...shop, slug } });
 
     await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
     await syncBusinessAssistant(business);

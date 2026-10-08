@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
 import { resolveShopAccess } from "@/lib/workspace-access";
+import { isSetupSandbox, parseSetup } from "@/lib/setup-flow";
 import { z } from "zod";
 
 /* Details are optional: a checkout that carried them builds the shop from Stripe. */
@@ -31,12 +32,13 @@ export async function GET(request: NextRequest) {
   // The open workspace, owned or shared — an invited dispatcher owns no shop but is not unprovisioned.
   const business = (await resolveShopAccess(email))?.business ?? null;
   const setup = business ? getOwnerSetupStatus(business) : null;
+  const sandbox = business ? isSetupSandbox(business) : false;
   // A demo shop has no line to set up; it opens straight onto Command.
-  const ready = business?.environment === "demo" || (setup?.ready ?? false);
+  const ready = business?.environment === "demo" || (!sandbox && (setup?.ready ?? false));
 
   // Setup asks on open so an owner who paid and left comes back to the form, not "Pay first".
   let checkoutSessionId: string | null = null;
-  if (!business && request.nextUrl.searchParams.get("resume") === "1" && isStripeCheckoutConfigured()) {
+  if ((!business || sandbox) && request.nextUrl.searchParams.get("resume") === "1" && isStripeCheckoutConfigured()) {
     checkoutSessionId = await findPaidCheckoutSessionId(email).catch((error: unknown) => {
       logWarn("onboarding.checkout_lookup_failed", { error: error instanceof Error ? error.message : "unknown" });
       return null;
@@ -44,10 +46,12 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({
-    provisioned: Boolean(business),
+    provisioned: Boolean(business) && !sandbox,
     complete: ready,
     ready,
     setup,
+    /** Test mode: settings saved, nothing live. Command is open once a test call has run. */
+    testMode: sandbox ? { step: parseSetup(business?.setupJson).step ?? "goal", tested: Boolean(parseSetup(business?.setupJson).testedAt) } : null,
     checkoutSessionId,
     business: business
       ? {

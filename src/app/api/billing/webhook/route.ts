@@ -12,6 +12,8 @@ import { syncConnectAccount } from "@/lib/stripe-connect";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import type Stripe from "stripe";
 import { creditReferralOnPayment } from "@/lib/referrals";
+import { prisma } from "@/lib/prisma";
+import { isSetupSandbox } from "@/lib/setup-flow";
 
 /* A new shop's line is built after the response; buying a number takes seconds. */
 export const maxDuration = 60;
@@ -153,7 +155,11 @@ export async function POST(request: Request) {
           session.customer_email ?? session.customer_details?.email,
         );
         const payer = (session.customer_email ?? session.customer_details?.email)?.toLowerCase();
-        if ("unmatched" in result && payer && shopDraftFromMetadata(session.metadata)) {
+        const matched = "businessId" in result
+          ? await prisma.business.findUnique({ where: { id: result.businessId }, select: { environment: true, setupJson: true } })
+          : null;
+        const turningOn = Boolean(matched && isSetupSandbox(matched));
+        if (("unmatched" in result || turningOn) && payer && shopDraftFromMetadata(session.metadata)) {
           /* A new shop paid with its details attached: build the line now, so it
              is often ready before the owner is back from Stripe. */
           await afterResponse(() =>

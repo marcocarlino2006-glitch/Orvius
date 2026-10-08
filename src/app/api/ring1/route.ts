@@ -18,6 +18,7 @@ import { getShopOutcomes } from "@/lib/shop-outcomes";
 import { commandVersion, shopVersion } from "@/lib/shop-version";
 import { getShiftTimeline } from "@/lib/shift-timeline";
 import { requireBusinessSession } from "@/lib/tenant";
+import { isSetupSandbox } from "@/lib/setup-flow";
 import { isBillingEntitled } from "@/lib/billing-entitlement";
 import { billingLock } from "@/lib/plan-gate";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
@@ -255,6 +256,7 @@ export async function GET(request: Request) {
       pilotEndsAt: business.pilotEndsAt?.toISOString() ?? null,
       depositEnabled: business.depositEnabled,
       referenceImplementation: isDemoBusiness(business),
+      testMode: isSetupSandbox(business),
     },
     coverage: {
       afterHoursNow,

@@ -51,7 +51,7 @@ test("an owner who paid and left resumes from their paid checkout, not 'Pay firs
 
   const route = read("src/app/api/onboarding/route.ts");
   assert.match(route, /findPaidCheckoutSessionId\(email\)/);
-  assert.match(route, /!business && request\.nextUrl\.searchParams\.get\("resume"\) === "1"/, "only setup's own check asks Stripe");
+  assert.match(route, /\(!business \|\| sandbox\) && request\.nextUrl\.searchParams\.get\("resume"\) === "1"/, "only setup's own check asks Stripe, for a new or test-mode shop");
   const post = route.slice(route.indexOf("export async function POST"));
   assert.match(post, /provisionFromCheckout\(\{ sessionId: checkoutSessionId, email/, "a recovered session is still verified against the signed-in email");
   assert.match(read("src/lib/checkout-shop.ts"), /resolvePaidCheckoutActivation\(session, subscription, email\)/);

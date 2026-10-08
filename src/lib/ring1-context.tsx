@@ -44,6 +44,8 @@ export type Ring1Data = {
     billingStatus?: string | null;
     depositEnabled?: boolean;
     referenceImplementation?: boolean;
+    /** Still in setup: settings saved, no line, every text simulated. */
+    testMode?: boolean;
   } | null;
   metrics: BusinessMetrics;
   outcomes?: ShopOutcomes;

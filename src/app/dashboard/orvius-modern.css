@@ -824,3 +824,45 @@
   background: transparent !important;
   box-shadow: none !important;
 }
+
+/* Test mode: one quiet line above the content until the owner goes live. */
+.os-test-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 1.5rem;
+  padding: 0.625rem 0.875rem 0.625rem 1rem;
+  border: 1px dashed var(--m-line-2);
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--m-text-2);
+}
+
+.os-test-banner strong {
+  font-weight: 600;
+  color: var(--m-text);
+}
+
+.os-test-banner-cta {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 0.875rem;
+  border-radius: 999px;
+  background: var(--m-solid);
+  color: var(--m-on-solid);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 40rem) {
+  .os-test-banner {
+    margin: 0 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

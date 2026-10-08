@@ -19,6 +19,7 @@ import {
   NETWORK_UNAVAILABLE_REPLY,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
+  OWNER_SETS_TIMES_REPLY,
   URGENT_NO_BOOK_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
@@ -44,7 +45,7 @@ import {
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
 type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name"> &
-  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone" | "networkOn" | "networkZip3" | "address">>;
+  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone" | "networkOn" | "networkZip3" | "address" | "bookingMode">>;
 
 type CallForTools = { id: string; vapiCallId?: string | null; callerPhone?: string | null };
 
@@ -68,6 +69,7 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
     return dangerRefusal(playbook.safety.instruction);
   }
   if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
+  if (shop.bookingMode === "alert") return OWNER_SETS_TIMES_REPLY;
   const base = {
     businessId: shop.id,
     urgency: playbook.urgency ?? urgency,
@@ -136,6 +138,7 @@ async function holdAppointment(
     return dangerRefusal(playbook.safety.instruction);
   }
   if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
+  if (shop.bookingMode === "alert") return OWNER_SETS_TIMES_REPLY;
   const slot = {
     businessId: shop.id,
     urgency: null,
