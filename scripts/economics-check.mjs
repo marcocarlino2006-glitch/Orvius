@@ -92,9 +92,10 @@ const pulse = commandSrc.indexOf("<OrviusPulse");
 results.push(
   !workMode &&
     exceptionBoard >= 0 &&
-    signalsLead > exceptionBoard &&
-    pulse > signalsLead
-    ? pass("Command always-on: board + work queue → signals → Pulse (no workMode XOR)")
+    signalsLead >= 0 &&
+    exceptionBoard > signalsLead &&
+    pulse > exceptionBoard
+    ? pass("Command always-on: summary → action queue → Pulse (no workMode XOR)")
     : fail("Command must keep signals, work queue, and Pulse visible — never XOR"),
 );
 
