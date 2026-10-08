@@ -10,9 +10,9 @@ import { prisma } from "@/lib/prisma";
 import { releasePhoneNumber } from "@/lib/twilio-phone";
 import { deleteAssistant, removeVapiNumber, routeVapiNumberToServer } from "@/lib/vapi";
 import { attachAssistantToShopLine } from "@/lib/vapi-line";
+import { LINE_RETENTION_DAYS } from "@/lib/usage-limits";
 
-/** Days a canceled shop keeps its number, so coming back doesn't mean a new number on every truck. */
-export const LINE_RETENTION_DAYS = 30;
+export { LINE_RETENTION_DAYS };
 
 type LineShop = Pick<Business, "id" | "name" | "twilioPhone" | "vapiPhoneNumber" | "vapiAssistantId" | "slug">;
 

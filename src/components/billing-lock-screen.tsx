@@ -75,6 +75,9 @@ export function BillingLockScreen({
           ) : (
             <a href={`mailto:${company.contactEmail}`}>{company.contactEmail}</a>
           )}
+          <a href="/api/account/export" download>
+            Download my data
+          </a>
         </div>
       </div>
     </div>

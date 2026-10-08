@@ -1,6 +1,7 @@
 import { normalizePhone } from "@/lib/customer";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { CALLER_HOURLY_LIMIT, DEFAULT_SHOP_DAILY_CEILING } from "@/lib/usage-limits";
 
 /*
   Every answered minute is billed to Orvius by Vapi the moment it happens; the
@@ -14,8 +15,7 @@ import { prisma } from "@/lib/prisma";
   day perhaps 300, so 1,000 is a runaway, not a good day.
 */
 
-export const CALLER_HOURLY_LIMIT = 10;
-const DEFAULT_SHOP_DAILY_CEILING = 1_000;
+export { CALLER_HOURLY_LIMIT };
 
 export function shopDailyCallCeiling() {
   const raw = Number(process.env.ORVIUS_SHOP_DAILY_CALL_CEILING);

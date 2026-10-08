@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_ASK_DAILY_LIMIT } from "@/lib/usage-limits";
 
 export type ModelUsageKind = "ask";
 
@@ -11,7 +12,6 @@ const FALLBACK_PRICE = PRICE_PER_MTOK["claude-sonnet-4-5"];
 /** When a provider reports no token counts: a full context packet and a capped answer on the dearest model. */
 export const UNMETERED_CALL_MICROS = 15_000;
 
-const DEFAULT_ASK_DAILY_LIMIT = 150;
 
 export function askModelDailyLimit(env: NodeJS.ProcessEnv = process.env): number {
   const raw = Number(env.ORVIUS_ASK_MODEL_DAILY_LIMIT);

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { PricingBillingToggle } from "@/components/pricing-billing-toggle";
 import { PricingFAQ } from "@/components/pricing-faq";
 import { PricingFeatureMatrix } from "@/components/pricing-feature-matrix";
@@ -15,7 +15,7 @@ import {
   type PaidPlanId,
 } from "@/lib/pricing-plans";
 
-export function PricingPagePlans({ selfServeReady = true }: { selfServeReady?: boolean }) {
+export function PricingPagePlans({ selfServeReady = true, terms }: { selfServeReady?: boolean; terms?: ReactNode }) {
   const paidPlans = getPaidPlans();
   const multi = getPlanById("multi");
   const [interval, setInterval] = useState<BillingInterval>("year");
@@ -77,6 +77,8 @@ export function PricingPagePlans({ selfServeReady = true }: { selfServeReady?: b
       <div className="editorial-wrap">
         <PricingFeatureMatrix selfServeReady={selfServeReady} />
       </div>
+
+      {terms ? <div className="editorial-wrap">{terms}</div> : null}
 
       <div className="editorial-wrap">
         <PricingFAQ />

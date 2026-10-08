@@ -282,6 +282,9 @@ export function BillingContent() {
           )}
 
           <div id="payouts">
+            <p className="billing-split-note font-sans">
+              Everything above is your Orvius plan. Below is separate: money your customers pay you, which settles to your own bank.
+            </p>
             <ConnectPayoutsPanel />
           </div>
 
