@@ -477,7 +477,7 @@
 .pro-economics-title {
   margin: 0.2rem 0 0;
   font-size: 0.9375rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--void);
 }
 
@@ -593,24 +593,24 @@
   padding: 0.875rem 1.125rem; border-bottom: 1px solid color-mix(in srgb, var(--void) 6%, var(--rule));
   background: color-mix(in srgb, var(--fog) 50%, var(--white));
 }
-.transcript-cinema-kicker { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+.transcript-cinema-kicker { font-size: 0.75rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ash); }
 .transcript-cinema-live {
   display: inline-flex; align-items: center; gap: 0.35rem;
-  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--live);
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--live);
 }
 .transcript-cinema-body { padding: 1rem 1.125rem; max-height: 20rem; overflow: auto; }
 .transcript-cinema-line { margin-top: 0.75rem; font-size: 0.8125rem; line-height: 1.55; }
 .transcript-cinema-line:first-child { margin-top: 0; }
 .transcript-cinema-speaker {
-  display: block; margin-bottom: 0.15rem; font-size: 0.75rem; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ash);
+  display: block; margin-bottom: 0.15rem; font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0; text-transform: none; color: var(--ash);
 }
 .transcript-cinema-line-ai { color: var(--void); }
 .transcript-cinema-line-caller { color: color-mix(in srgb, var(--void) 78%, var(--ash)); }
 .transcript-cinema-foot {
   display: flex; align-items: center; gap: 0.4rem; padding: 0.75rem 1.125rem;
   border-top: 1px solid color-mix(in srgb, var(--void) 6%, var(--rule));
-  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0; text-transform: none;
   color: var(--live); background: color-mix(in srgb, var(--live) 5%, var(--white));
 }
 
@@ -704,16 +704,16 @@
 .plan-upgrade-gate-kicker {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
 .plan-upgrade-gate-title {
   margin: 0.35rem 0 0;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--void);
 }
 
@@ -753,15 +753,15 @@
   margin: 0;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
 .account-billing-pay-price {
   margin: 0.15rem 0 0;
   font-size: 1.75rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--void);
   line-height: 1.1;
@@ -980,9 +980,9 @@
 .onboarding-eyebrow {
   margin-top: 1rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
@@ -1023,15 +1023,15 @@
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
 .onboarding-label-optional {
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-transform: none;
   opacity: 0.7;
 }
@@ -1138,7 +1138,7 @@
   display: block;
   margin-top: 1.25rem;
   font-size: var(--fs-display-md);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--void);
   text-decoration: none;
@@ -1169,7 +1169,7 @@
   flex-shrink: 0;
   border-radius: 999px;
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .onboarding-verify-badge-ok {
@@ -1202,8 +1202,8 @@
   margin: 0 0 0.35rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
@@ -1299,7 +1299,7 @@
 
 .account-settings-value {
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--void);
 }
@@ -1370,9 +1370,9 @@
   gap: 0.4rem;
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: var(--kicker-tracking);
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--ash);
 }
 
@@ -1383,7 +1383,7 @@
 .today-priority-title {
   margin: 0.35rem 0 0;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--void);
 }
@@ -1547,9 +1547,9 @@
 .job-money-share-label {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
@@ -1937,9 +1937,9 @@
 
 .os-kv-stats-label {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ox-day-soft, #9aa1ab);
 }
 
@@ -1959,9 +1959,9 @@
 .os-kv-notes-label {
   margin: 0 0 0.35rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ox-day-soft, #9aa1ab);
 }
 
@@ -2485,8 +2485,8 @@
 .os-shell-night .billing-settings .pro-panel-title {
   color: var(--ox-day-soft, #a3a9b2) !important;
   font-size: 0.75rem !important;
-  font-weight: 570 !important;
-  letter-spacing: 0.02em !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
 }
 
 .billing-settings .pro-panel-body,
@@ -2498,7 +2498,7 @@
 .billing-settings .account-plan-name {
   color: #f3f2ef !important;
   font-size: 1.0625rem;
-  font-weight: 590;
+  font-weight: 600;
   letter-spacing: -0.018em;
 }
 
@@ -2530,14 +2530,14 @@
   border-radius: 50%;
   color: var(--ox-day-soft, #a3a9b2);
   font-size: 0.75rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .payment-state-title {
   margin: 0;
   color: var(--ox-legacy-text, #e9e8e4) !important;
   font-size: 0.875rem;
-  font-weight: 580;
+  font-weight: 600;
   letter-spacing: 0;
 }
 
@@ -2618,14 +2618,14 @@
   margin: 0;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash, #888);
 }
 .shop-operate-banner-title {
   margin: 0.3rem 0 0;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--chalk, #f3f3f3);
 }
 .shop-operate-banner-detail {
@@ -2737,7 +2737,7 @@
 .os-shell-pro h1,
 .os-shell-pro h2 {
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   letter-spacing: -0.03em !important;
 }
 
@@ -2773,7 +2773,7 @@
 
 .os-shell-pro .os-topbar-title {
   letter-spacing: -0.03em;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .os-shell-pro .attention-item-btn,
@@ -2782,7 +2782,7 @@
   min-height: 2rem;
   padding: 0.35rem 0.7rem !important;
   font-size: 0.75rem !important;
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
 }
 
 .os-shell-pro button[aria-label*="Ask"][class*="fab"] {
@@ -3051,7 +3051,7 @@
 
 .os-shell-night .os-topbar-title {
   font-size: 1.25rem !important; /* Grok: tool titles stay modest */
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
@@ -3177,9 +3177,9 @@
   min-height: 2.25rem !important;
   padding: 0.4rem 0.75rem !important;
   font-size: 0.75rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600 !important;
+  letter-spacing: 0;
+  text-transform: none;
   box-shadow: none !important;
 }
 
@@ -3225,9 +3225,9 @@
 .os-shell-night .os-ask-dock-trigger-label {
   color: var(--ox-legacy-text, #e9e9e9) !important;
   font-size: 0.75rem !important;
-  font-weight: 650 !important;
-  letter-spacing: 0.06em !important;
-  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }
 
 .os-shell-night .os-ask-dock-open .os-ask-dock-trigger {
@@ -3253,7 +3253,7 @@
 
 .os-shell-night .os-ask-dock-kicker {
   color: var(--ox-day-soft, #9aa1ab) !important;
-  letter-spacing: 0.12em !important;
+  letter-spacing: 0 !important;
 }
 
 .os-shell-night .os-ask-dock-title {
@@ -3360,9 +3360,9 @@
 
 .os-shell-night .lead-status-actions-label {
   font-size: 0.75rem !important;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
@@ -3383,9 +3383,9 @@
   min-height: 1.85rem !important;
   padding: 0.3rem 0.55rem !important;
   font-size: 0.75rem !important;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
   width: auto !important;
   box-shadow: none !important;
 }
@@ -3415,7 +3415,7 @@
 .os-shell-night .os-ring-status-title {
   color: var(--ox-legacy-text, #e9e9e9) !important;
   font-size: 0.8125rem !important;
-  font-weight: 650 !important;
+  font-weight: 600 !important;
 }
 
 .os-shell-night .os-ring-status-module {
@@ -3521,7 +3521,7 @@
   box-shadow: none !important;
   color: var(--ox-day-soft, #adadac) !important;
   font-size: 0.8125rem !important;
-  font-weight: 450 !important;
+  font-weight: 400 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
   transition: background var(--ox-dur-fast) ease, color var(--ox-dur-fast) ease;
@@ -3553,7 +3553,7 @@
 .os-shell-night .os-nav-link-active {
   background: #25282e !important;
   color: #ffffff !important;
-  font-weight: 550 !important;
+  font-weight: 500 !important;
   box-shadow: none !important;
 }
 
@@ -3586,7 +3586,7 @@
   background: #d91b28 !important;
   color: #ffffff !important;
   font-size: 0.75rem !important;
-  font-weight: 650 !important;
+  font-weight: 600 !important;
   line-height: 1.15rem !important;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -3600,8 +3600,8 @@
   color: var(--ox-day-soft, #9aa1ab) !important;
   font-size: 0.75rem !important;
   font-weight: 600 !important;
-  letter-spacing: 0.1em !important;
-  text-transform: uppercase !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }
 
 .os-shell-night .os-sidebar-footer {
@@ -3952,9 +3952,9 @@
 
 .os-nav-badge {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   padding: 0.15rem 0.35rem;
   border-radius: 0.25rem;
   background: color-mix(in srgb, var(--signal) 14%, var(--white));
@@ -4123,15 +4123,15 @@
   margin: 0;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
 .pay-prompt-title {
   margin: 0.45rem 0 0;
   font-size: 1.375rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.2;
   color: var(--void);
@@ -4153,7 +4153,7 @@
 
 .pay-prompt-price-amt {
   font-size: 1.75rem;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--void);
   line-height: 1;
@@ -4224,16 +4224,16 @@
 .billing-lock-kicker {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
 .billing-lock-title {
   margin: 0.5rem 0 0;
   font-size: 1.5rem;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.2;
   color: var(--void);
@@ -4255,7 +4255,7 @@
 
 .billing-lock-price-amt {
   font-size: 1.75rem;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--void);
 }
@@ -4355,8 +4355,8 @@
   background: linear-gradient(135deg, var(--signal-dim) 0%, #6f3016 100%);
   color: #ffffff;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0;
   flex-shrink: 0;
 }
 
@@ -4444,9 +4444,9 @@
 
 .os-ask-dock-kicker {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--signal-dim);
 }
 
@@ -4683,9 +4683,9 @@
 
 .pro-panel-title {
   font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--void);
 }
 
@@ -4730,9 +4730,9 @@
 .copilot-actions-kicker {
   margin: 0 0 0.5rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ash);
 }
 
@@ -4811,9 +4811,9 @@
 .os-nav-lock {
   margin-left: auto;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--signal);
 }
 
@@ -4942,8 +4942,8 @@
   border-radius: var(--os-radius) !important;
   min-height: 2.25rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   font-size: 0.75rem !important;
 }
 
@@ -4986,10 +4986,10 @@
 }
 
 .os-shell-pro .pro-panel-title {
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .os-shell-night .pro-panel-title,
@@ -5015,8 +5015,8 @@
 .os-shell-night .pro-panel-title {
   color: var(--ox-day-soft, #9aa1ab) !important;
   font-size: 0.75rem !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }
 
 .os-shell-night .pro-panel-body,
@@ -5069,9 +5069,9 @@
 .os-kv dt {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ox-day-soft, #9aa1ab);
   padding-top: 0.15rem;
 }
@@ -5182,14 +5182,14 @@
 
 .pay-prompt-kicker {
   font-size: 0.75rem !important;
-  letter-spacing: 0.14em !important;
+  letter-spacing: 0 !important;
   color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .pay-prompt-title {
   margin-top: 0.3rem !important;
   font-size: 1.125rem !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   letter-spacing: -0.02em !important;
   color: var(--ox-legacy-text, #e9e9e9) !important;
 }
@@ -5222,7 +5222,7 @@
   color: var(--ox-day-soft, #9aa1ab) !important;
   text-decoration: none !important;
   font-size: 0.75rem !important;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .pay-prompt-later:hover {
@@ -5246,7 +5246,7 @@
 
 .billing-lock-kicker {
   font-size: 0.75rem !important;
-  letter-spacing: 0.14em !important;
+  letter-spacing: 0 !important;
   color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
@@ -5297,9 +5297,9 @@
   background: var(--ox-day-sunk, #121316) !important;
   color: var(--ox-legacy-text, #e9e9e9) !important;
   font-size: 0.75rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600 !important;
+  letter-spacing: 0;
+  text-transform: none;
   min-height: 1.85rem;
   padding: 0.25rem 0.5rem !important;
 }
@@ -5551,8 +5551,8 @@
   padding: 0.35rem 0.55rem 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: #80868f;
 }
 

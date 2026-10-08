@@ -18,8 +18,8 @@
   margin: 0;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ov-muted);
 }
 
@@ -70,8 +70,8 @@
 .rp-who {
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ov-muted);
 }
 
@@ -95,7 +95,7 @@
 .rp-typing {
   margin: 0;
   color: var(--ov-muted);
-  letter-spacing: 0.2em;
+  letter-spacing: 0;
 }
 
 .rp-card {
@@ -111,8 +111,8 @@
   margin: 0 0 0.35rem;
   font-family: var(--ov-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ov-muted);
 }
 

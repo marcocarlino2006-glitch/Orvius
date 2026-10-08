@@ -254,7 +254,7 @@ a.dt-row:focus-visible,
   gap: 0.5rem;
   min-width: 0;
   overflow: hidden;
-  font-weight: 550;
+  font-weight: 500;
   color: var(--ox-text);
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -431,7 +431,7 @@ a.dt-row:focus-visible,
 .cc-brief-headline {
   margin: 0;
   font-size: var(--fs-display-xs);
-  font-weight: 550;
+  font-weight: 500;
   line-height: 1.35;
   letter-spacing: -0.015em;
   color: var(--ox-text);
@@ -767,7 +767,7 @@ a.dt-row:focus-visible,
 .os-shell.os-shell-night .cp-row .lead-rail-title-row { grid-area: name; }
 .os-shell.os-shell-night .cp-row .lead-rail-meta { grid-area: meta; margin: 0; }
 .os-shell.os-shell-night .cp-row .lead-rail-sub { grid-area: sub; margin: 0; font-size: var(--cr-label); }
-.os-shell.os-shell-night .cp-row .lead-rail-name { font-size: var(--cr-body); font-weight: 550; }
+.os-shell.os-shell-night .cp-row .lead-rail-name { font-size: var(--cr-body); font-weight: 500; }
 
 /* Summary cells draw their own dividers so any wrap stays a clean grid. */
 .ms-row {
@@ -1119,7 +1119,7 @@ a.dt-row:focus-visible,
   background: none;
   color: var(--ox-mute);
   font-size: 0.8125rem;
-  font-weight: 550;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1185,7 +1185,7 @@ a.dt-row:focus-visible,
   gap: 0.4rem;
   margin: 0;
   font-size: 0.875rem;
-  font-weight: 550;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -1252,8 +1252,8 @@ a.dt-row:focus-visible,
   margin: 0;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ox-amber);
 }
 
@@ -1383,7 +1383,7 @@ a.dt-row:focus-visible,
 .os-shell .cc-rail .cs-value {
   margin: 0;
   font-size: 1.375rem !important;
-  font-weight: 650 !important;
+  font-weight: 600 !important;
   line-height: 1.1;
 }
 

@@ -722,8 +722,8 @@
   background: rgb(var(--ox-tint) / 0.04);
   color: var(--ox-text-2);
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .sc-actions {

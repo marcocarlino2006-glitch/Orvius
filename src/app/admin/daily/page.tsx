@@ -151,7 +151,7 @@ export default function AdminDailyPage() {
 
             {next ? (
               <div className="mb-4 rounded-md border border-flare/40 bg-flare/5 p-3">
-                <p className="font-sans text-xs uppercase tracking-wide text-flare">
+                <p className="font-sans text-xs text-flare">
                   Next — do not skip
                 </p>
                 <p className="mt-1 font-sans text-sm font-semibold text-void">

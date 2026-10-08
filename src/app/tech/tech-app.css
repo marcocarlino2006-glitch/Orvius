@@ -34,16 +34,16 @@
 .ta-kicker {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ta-mute);
 }
 .ta-title {
   margin: 0;
   font-size: 1.625rem;
   line-height: 1.2;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.015em;
   color: #fff;
 }
@@ -101,9 +101,9 @@
   align-items: baseline;
   margin: 0.5rem 0 0.5rem;
   font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ta-text-2);
 }
 .ta-h2 span {
@@ -118,7 +118,7 @@
 .ta-h3 {
   margin: 0;
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
 }
 .ta-label {
@@ -129,7 +129,7 @@
 }
 .ta-label em {
   font-style: normal;
-  font-weight: 450;
+  font-weight: 400;
   color: var(--ta-mute);
 }
 
@@ -139,7 +139,7 @@
   border-radius: 999px;
   border: 1px solid var(--ta-line-2);
   font-size: 0.75rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--ta-text-2);
   white-space: nowrap;
 }
@@ -197,7 +197,7 @@
 }
 .ta-job-time {
   font-size: 0.875rem;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--ta-text-2);
 }
@@ -209,7 +209,7 @@
 /* Wrapped, not cut: the job and where it is are what the technician came to read. */
 .ta-job-title {
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.3;
   color: #fff;
   overflow-wrap: anywhere;
@@ -283,7 +283,7 @@
 }
 .ta-action-label {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
 }
 .ta-action-detail {
@@ -306,7 +306,7 @@
   color: #fff;
   font: inherit;
   font-size: 0.9375rem;
-  font-weight: 650;
+  font-weight: 600;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
@@ -407,7 +407,7 @@ textarea.ta-input {
 
 .ta-total {
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: #fff;
 }
@@ -441,12 +441,12 @@ textarea.ta-input {
 .ta-line-name {
   display: block;
   font-size: 0.9375rem;
-  font-weight: 650;
+  font-weight: 600;
   color: #fff;
 }
 .ta-line-total {
   font-size: 0.9375rem;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .ta-line-qty {
@@ -561,7 +561,7 @@ textarea.ta-input {
 .ta-note-who {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--ta-mute);
 }
 .ta-note-body {

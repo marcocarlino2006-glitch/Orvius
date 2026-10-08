@@ -18,7 +18,7 @@ export default function LegalHubPage() {
             title="Policies & compliance"
             description={`${company.productName} is operated by ${company.legalName}. These documents govern your use of our website and services.`}
           />
-          <p className="mt-6 font-sans text-xs tracking-wide text-ash uppercase">
+          <p className="mt-6 font-sans text-xs text-ash">
             Last updated {company.legalUpdated} · {company.legalName}
           </p>
         </div>

@@ -50,8 +50,7 @@ export default function GlobalError({
             style={{
               margin: 0,
               fontSize: "0.75rem",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
+              fontWeight: 500,
               color: "#a09f9e",
             }}
           >

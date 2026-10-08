@@ -7,9 +7,9 @@ import type { PublicStatus } from "@/app/api/status/route";
 type PillState = "checking" | "operational" | "degraded";
 
 const COPY: Record<PillState, string> = {
-  checking: "CHECKING",
-  operational: "OPERATIONAL",
-  degraded: "DEGRADED",
+  checking: "Checking",
+  operational: "Operational",
+  degraded: "Degraded",
 };
 
 /**

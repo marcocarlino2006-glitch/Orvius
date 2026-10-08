@@ -30,21 +30,21 @@
   margin: 0;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: #8b919a;
 }
 .pf-title {
   margin: 0;
   font-size: 1.625rem;
   line-height: 1.2;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: #fff;
 }
 .pf-sub {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: #b4bac3;
 }
 .pf-meta {
@@ -97,7 +97,7 @@
 }
 .pf-action-label {
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: 600;
   color: #fff;
 }
 .pf-action-detail {
@@ -122,7 +122,7 @@
   display: grid;
   grid-template-columns: 5.5rem 1fr;
   gap: 0.75rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 .pf-row dt {
   color: #8b919a;
@@ -184,7 +184,7 @@
   background: #1a1d22;
   color: #fff;
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
@@ -203,7 +203,7 @@
   border-radius: 14px;
   background: #f2a93b;
   color: #1b1203;
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 .pf-btn--primary:active {
   background: #f7bb5c;
@@ -215,11 +215,11 @@
   border-radius: 10px;
   background: rgba(248, 113, 113, 0.12);
   color: #fca5a5;
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 .pf-money {
   font-size: 1.5rem;
-  font-weight: 650;
+  font-weight: 600;
   color: #fff;
 }
 .pf-done {
@@ -302,7 +302,7 @@
   gap: 0.125rem;
 }
 .pf-step-label {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 .pf-step.is-done .pf-step-label,

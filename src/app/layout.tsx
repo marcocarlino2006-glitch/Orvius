@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, IBM_Plex_Mono, Inter } from "next/font/google";
+import { IBM_Plex_Mono, Inter } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
@@ -11,26 +11,16 @@ import "./theme-tokens.css";
 import "./public-polish.css";
 
 /**
- * Archivo speaks for the brand on public pages; Inter runs the product; Plex Mono speaks
- * whenever the interface is reporting machine truth — times, numbers, statuses,
- * phone lines. Mixing a third letterset is what made the old surfaces read cheap.
+ * One face everywhere: Inter for the site, the product and every number in it
+ * (tabular figures keep columns aligned). Plex Mono is kept for code and keys only.
  */
-const sans = Archivo({
+const sans = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
-  /* 300 = Cursor-gothic whisper for display; 400–600 for UI; keep 700 for rare emphasis */
-  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
-/* The product itself reads in Inter — neutral, dense, and legible at 13–14px. */
-const ui = Inter({
-  variable: "--font-ui",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-/* Machine labels and operational evidence use the monospaced reporting voice. */
+/* Code and keyboard keys only. */
 const mono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
@@ -92,7 +82,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${sans.variable} ${mono.variable} ${ui.variable} antialiased`}>
+      <body className={`${sans.variable} ${mono.variable} antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <CookieConsent />
       </body>

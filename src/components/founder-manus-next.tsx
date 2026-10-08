@@ -37,7 +37,7 @@ export function FounderManusNext({
         <p
           className={
             isCockpit
-              ? "font-sans text-xs uppercase tracking-wide text-flare"
+              ? "font-sans text-xs text-flare"
               : "account-settings-hint font-sans mb-2"
           }
         >
@@ -64,7 +64,7 @@ export function FounderManusNext({
       <p
         className={
           isCockpit
-            ? "font-sans text-xs uppercase tracking-wide text-flare"
+            ? "font-sans text-xs text-flare"
             : "account-settings-hint font-sans mb-2"
         }
       >
