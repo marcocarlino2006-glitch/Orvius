@@ -6,7 +6,7 @@
 export const SETTINGS_SECTIONS = [
   { id: "business", label: "Business profile", group: "business" },
   { id: "hours", label: "Hours, services & area", group: "business" },
-  { id: "phone", label: "Phone forwarding", group: "connections" },
+  { id: "phone", label: "Connect your number", group: "connections" },
   { id: "integrations", label: "Calendar, payments & texting", group: "connections" },
   { id: "receptionist", label: "What Orvius may do", group: "authority" },
   { id: "notifications", label: "Alerts & escalation", group: "escalation" },

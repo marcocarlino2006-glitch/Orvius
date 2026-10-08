@@ -154,6 +154,8 @@ function lapsedWhere(before: Date, after?: Date) {
   return {
     lineReleasedAt: null,
     environment: "production",
+    // A number the owner ported in is theirs: it is never handed back to the carrier, only switched off until they port it out or return.
+    NOT: { portRequest: { is: { status: "done" } } },
     AND: [
       { OR: [{ twilioPhone: { not: null } }, { vapiPhoneNumber: { not: null } }] },
       {

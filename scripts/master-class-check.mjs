@@ -34,7 +34,7 @@ if (existsSync(join(root, "docs/MASTER-CLASS.md"))) {
 }
 
 const theaterFiles = [
-  "src/components/capture-setup-panel.tsx",
+  "src/components/connect-number.tsx",
   "src/components/onboarding-call-verify.tsx",
 ];
 const theaterPattern = /or I will before go-live|or will be my published/i;
@@ -107,7 +107,7 @@ try {
   const hasCapture =
     /needs_capture/.test(queue) &&
     /Prove your line/.test(queue) &&
-    /Confirm call capture/.test(queue) &&
+    /proven to reach Orvius/.test(queue) &&
     /impact:\s*"critical"/.test(queue);
   if (hasCapture) {
     pass("Attention capture", "Prove-first capture items at critical impact");

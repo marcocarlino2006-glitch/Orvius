@@ -127,8 +127,8 @@ section("B · Life-changing wedge product");
 
 const autoJob = fileOk("src/lib/auto-job.ts") ? read("src/lib/auto-job.ts") : "";
 const serviceArea = fileOk("src/lib/service-area.ts") ? read("src/lib/service-area.ts") : "";
-const capture = fileOk("src/components/capture-setup-panel.tsx")
-  ? read("src/components/capture-setup-panel.tsx")
+const capture = fileOk("src/lib/forward-test.ts")
+  ? read("src/lib/forward-test.ts")
   : "";
 const accountApi = fileOk("src/app/api/account/route.ts")
   ? read("src/app/api/account/route.ts")
