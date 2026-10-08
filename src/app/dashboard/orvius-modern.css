@@ -1,0 +1,647 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Modern. Loaded after every older layer. Flat surfaces, hairlines, one
+   radius family, solid buttons, quiet tags, no glows or gradients — the
+   Linear / Vercel / Manus register. Every rule is scoped one class above the
+   depth and finish sheets so it settles them without touching their markup.
+   ────────────────────────────────────────────────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro {
+  --m-bg: #111113;
+  --m-side: #0d0d0f;
+  --m-card: #18181b;
+  --m-raise: #1f1f23;
+  --m-hover: rgb(255 255 255 / 0.045);
+  --m-active: rgb(255 255 255 / 0.075);
+  --m-line: rgb(255 255 255 / 0.075);
+  --m-line-2: rgb(255 255 255 / 0.13);
+  --m-text: #ededef;
+  --m-text-2: #a6a6ad;
+  --m-mute: #85858d;
+  --m-solid: #ededef;
+  --m-on-solid: #111113;
+  --m-red: #f87171;
+  --m-red-bg: rgb(248 113 113 / 0.12);
+  --m-amber: #fbbf24;
+  --m-amber-bg: rgb(251 191 36 / 0.12);
+  --m-green: #4ade80;
+  --m-green-bg: rgb(74 222 128 / 0.12);
+  --m-blue: #60a5fa;
+  --m-r: 0.75rem;
+  --m-r-sm: 0.5rem;
+  --m-ring: 0 0 0 3px rgb(255 255 255 / 0.12);
+
+  --ox-bg: var(--m-bg);
+  --ox-s1: var(--m-card);
+  --ox-s2: var(--m-raise);
+  --ox-line: var(--m-line);
+  --ox-line-strong: var(--m-line-2);
+  --ox-text: var(--m-text);
+  --ox-text-2: var(--m-text-2);
+  --ox-mute: var(--m-mute);
+  --ox-fill: var(--m-hover);
+  --ox-fill-hover: var(--m-active);
+  --ox-fill-light: var(--m-hover);
+  --ox-radius: var(--m-r);
+  --ox-radius-sm: var(--m-r-sm);
+
+  background: var(--m-bg) !important;
+  color: var(--m-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme="day"] body .os-shell.os-shell-night.os-shell-pro.os-shell-pro {
+  --m-bg: #ffffff;
+  --m-side: #f9f9f8;
+  --m-card: #ffffff;
+  --m-raise: #f6f6f5;
+  --m-hover: rgb(0 0 0 / 0.035);
+  --m-active: rgb(0 0 0 / 0.06);
+  --m-line: rgb(0 0 0 / 0.08);
+  --m-line-2: rgb(0 0 0 / 0.14);
+  --m-text: #18181b;
+  --m-text-2: #52525b;
+  --m-mute: #71717a;
+  --m-solid: #18181b;
+  --m-on-solid: #ffffff;
+  --m-red: #dc2626;
+  --m-red-bg: rgb(220 38 38 / 0.08);
+  --m-amber: #b45309;
+  --m-amber-bg: rgb(217 119 6 / 0.1);
+  --m-green: #15803d;
+  --m-green-bg: rgb(22 163 74 / 0.09);
+  --m-blue: #2563eb;
+  --m-ring: 0 0 0 3px rgb(0 0 0 / 0.08);
+}
+
+/* ── Chrome: flat canvas, quiet sidebar, thin top bar ──────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-main {
+  background: var(--m-bg) !important;
+  background-image: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-sidebar {
+  background: var(--m-side) !important;
+  border-right: 1px solid var(--m-line) !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-sidebar-brand .orvius-logo-word {
+  font-size: 1.125rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-ring-status-title {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.005em !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-ring-status-module {
+  font-size: 0.75rem !important;
+  color: var(--m-mute) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-ring-status-dot {
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-nav-link {
+  min-height: 2rem;
+  padding: 0 0.625rem !important;
+  border: 0 !important;
+  border-radius: var(--m-r-sm) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: var(--m-text-2) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-nav-link:hover {
+  background: var(--m-hover) !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.os-nav-link-active, .os-nav-link[aria-current="page"]) {
+  background: var(--m-active) !important;
+  color: var(--m-text) !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.os-nav-link-active, .os-nav-link[aria-current="page"]) svg {
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-nav-badge {
+  min-width: 1.25rem;
+  padding: 0 0.375rem !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--m-active) !important;
+  box-shadow: none !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: var(--m-text-2) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-topbar {
+  background: color-mix(in srgb, var(--m-bg) 86%, transparent) !important;
+  border-bottom: 1px solid var(--m-line) !important;
+  box-shadow: none !important;
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-topbar-title {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--m-text) !important;
+  text-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.os-topbar-search, .os-line-alert) {
+  border: 1px solid var(--m-line) !important;
+  border-radius: var(--m-r-sm) !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--m-text-2) !important;
+}
+
+@media (min-width: 641px) {
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.os-topbar-search, .os-line-alert) {
+    min-height: 2rem;
+    padding: 0 0.75rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+  }
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-topbar-search:hover {
+  background: var(--m-hover) !important;
+  color: var(--m-text) !important;
+}
+
+/* ── Type: one scale, medium weights, no shouting ──────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-content :is(h1, h2, h3) {
+  text-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cmd-headline, .cc-brief-headline, .cc-brief-text) {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.25 !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cmd-greeting, .cmd-sub, .cc-brief-detail) {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  color: var(--m-text-2) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cmd-section-title, .cmd-issues-title, .op-title, .pro-panel-title, .cp-name) {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.005em !important;
+  text-transform: none !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cmd-count, .pro-filter-count, .jobs-pipeline-count, .cb-tab-count) {
+  padding: 0 0.375rem !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--m-active) !important;
+  box-shadow: none !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: var(--m-text-2) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ms-cell dd, .pro-stat-value, .cs-value) {
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: none !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cs-label, .ms-cell dt, .cp-label) {
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--m-mute) !important;
+}
+
+/* ── Surfaces: flat, one hairline, one radius ──────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .pro-panel, .wp, .wh, .transcript-cinema, .billing-summary, .op-panel,
+  .cmd-today-lane, .cmd-feed, .cs-grid, .dt, .ms-row, .os-lead-rail,
+  .cp-panel, .wb.pc, .ask-composer, .cb-demo, .pro-stat, .wq, .cmd-issues
+) {
+  border: 1px solid var(--m-line) !important;
+  border-radius: var(--m-r) !important;
+  background: var(--m-card) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dsp-section:has(> .dsp-grid) {
+  border: 1px solid var(--m-line) !important;
+  border-radius: var(--m-r) !important;
+  background: var(--m-card) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pro-panel, .wp, .wh, .op-panel, .cp-panel) :is(.pro-panel, .wp, .wh, .op-panel) {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.dsp-track:not(.dsp-axis), .jf-note, .cp-prop, .cl-outcome, .wc--page) {
+  border: 1px solid var(--m-line) !important;
+  background: var(--m-raise) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* A shop problem is a row with a dot, not a pink alert box. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-issue-title::before {
+  content: "";
+  display: inline-block;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  margin-right: 0.5rem;
+  border-radius: 999px;
+  background: var(--m-amber);
+  vertical-align: 0.0625rem;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-issue--high .cmd-issue-title::before {
+  background: var(--m-red);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cmd-issue-detail, .cs-detail, .op-row-detail) {
+  font-size: 0.8125rem !important;
+  color: var(--m-mute) !important;
+}
+
+/* ── Work: one divided list, not a stack of striped cards ──────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list:not(:has(> .wc--page)) {
+  gap: 0 !important;
+  overflow: hidden;
+  border: 1px solid var(--m-line) !important;
+  border-radius: var(--m-r) !important;
+  background: var(--m-card) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list > .wc:not(.wc--page) {
+  padding: 0.875rem 1rem !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transition: background var(--ox-dur-fast) var(--ox-ease);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list > .wc + .wc {
+  border-top: 1px solid var(--m-line) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list > .wc:not(.wc--page):hover {
+  background: var(--m-hover) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc::before {
+  content: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-title {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.005em !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-who {
+  font-weight: 400 !important;
+  color: var(--m-mute) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.wc-detail, .wc-next) {
+  font-size: 0.8125rem !important;
+  color: var(--m-text-2) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.wc-when, .wc-owner, .wc-stage, .cmd-feed-at) {
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  color: var(--m-mute) !important;
+}
+
+/* ── Tags: tinted text, no borders, no glow ────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.wc-tag, .cb-tag, .dt-tag) {
+  display: inline-flex;
+  align-items: center;
+  height: 1.25rem;
+  padding: 0 0.4375rem !important;
+  border: 0 !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  background: var(--m-active) !important;
+  color: var(--m-text-2) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.wc-tag--critical, .cb-tag--emergency, .cb-tag--failed_message) {
+  background: var(--m-red-bg) !important;
+  color: var(--m-red) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.wc-tag--high, .cb-tag--stale, .cb-tag--unconfirmed_soon, .cb-tag--duplicate) {
+  background: var(--m-amber-bg) !important;
+  color: var(--m-amber) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-flag {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: var(--m-red) !important;
+}
+
+/* ── Buttons: solid or outlined, never lit ─────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ox-btn, .btn, .lead-quick-btn, .sc-btn, .cmd-issue-action.ox-btn) {
+  min-height: 2rem;
+  border-radius: var(--m-r-sm) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  transition: background-color var(--ox-dur-fast) var(--ox-ease), border-color var(--ox-dur-fast) var(--ox-ease), color var(--ox-dur-fast) var(--ox-ease);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ox-btn--sm, .btn.text-sm, .lead-quick-btn) {
+  min-height: 1.875rem;
+  padding: 0 0.75rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .ox-btn--primary, .btn-void, .assign-tech-btn, .job-status-advance-btn,
+  .attention-item-btn-primary, .lead-quick-btn-primary, .sc-btn--primary
+) {
+  border: 1px solid var(--m-solid) !important;
+  background: var(--m-solid) !important;
+  color: var(--m-on-solid) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .ox-btn--primary, .btn-void, .assign-tech-btn, .job-status-advance-btn,
+  .attention-item-btn-primary, .lead-quick-btn-primary, .sc-btn--primary
+):hover:not(:disabled) {
+  background: color-mix(in srgb, var(--m-solid) 86%, var(--m-bg)) !important;
+  transform: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .ox-btn--quiet, .btn-secondary, .lead-quick-btn:not(.lead-quick-btn-primary),
+  .wc-more > summary, .sc-btn:not(.sc-btn--primary), .dt-actions .btn:not(.btn-void)
+) {
+  border: 1px solid var(--m-line-2) !important;
+  background: transparent !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .ox-btn--quiet, .btn-secondary, .lead-quick-btn:not(.lead-quick-btn-primary),
+  .wc-more > summary, .sc-btn:not(.sc-btn--primary)
+):hover:not(:disabled) {
+  background: var(--m-hover) !important;
+  transform: none !important;
+}
+
+/* In a list, the row action is secondary: the row itself is the target. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-actions :is(.ox-btn--primary, .btn-void) {
+  border-color: var(--m-line-2) !important;
+  background: transparent !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list > .wc--critical .wc-actions :is(.ox-btn--primary, .btn-void) {
+  border-color: var(--m-solid) !important;
+  background: var(--m-solid) !important;
+  color: var(--m-on-solid) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-actions :is(.ox-btn--primary, .btn-void):hover:not(:disabled) {
+  background: var(--m-hover) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-list > .wc--critical .wc-actions :is(.ox-btn--primary, .btn-void):hover:not(:disabled) {
+  background: color-mix(in srgb, var(--m-solid) 86%, var(--m-bg)) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ox-btn, .btn, .lead-quick-btn, .sc-btn):focus-visible {
+  outline: none !important;
+  box-shadow: var(--m-ring) !important;
+}
+
+/* ── Filters: flat segmented tabs ──────────────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pro-filter-bar, .jobs-pipeline) {
+  gap: 0.25rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pro-filter-tab, .jobs-pipeline-stage) {
+  min-height: 2rem;
+  padding: 0 0.75rem !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--m-r-sm) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  color: var(--m-text-2) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pro-filter-tab, .jobs-pipeline-stage):hover {
+  background: var(--m-hover) !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pro-filter-tab-active, .jobs-pipeline-stage-active) {
+  border-color: var(--m-line) !important;
+  background: var(--m-active) !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.pro-filter-tab-active, .jobs-pipeline-stage-active) :is(.pro-filter-count, .jobs-pipeline-count) {
+  background: var(--m-card) !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cb-tab--on {
+  color: var(--m-text) !important;
+  box-shadow: inset 0 -2px 0 var(--m-solid) !important;
+}
+
+/* ── Tables: airy rows, hairlines, hover ───────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-head {
+  background: transparent !important;
+  border-bottom: 1px solid var(--m-line) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--m-mute) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-row {
+  border-color: var(--m-line) !important;
+  background: transparent !important;
+  transition: background var(--ox-dur-fast) var(--ox-ease);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-row:hover {
+  background: var(--m-hover) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.dt-title, .dt-primary) {
+  font-weight: 500 !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.dt-sub, .dt-muted, .dt-when, .dt-mono, .dt-foot) {
+  color: var(--m-mute) !important;
+}
+
+/* Row buttons stay out of the way until the row is pointed at. */
+@media (hover: hover) {
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-row .dt-actions {
+    opacity: 0.55;
+    transition: opacity var(--ox-dur-fast) var(--ox-ease);
+  }
+
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-row:is(:hover, :focus-within) .dt-actions {
+    opacity: 1;
+  }
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-actions :is(.btn, .ox-btn, .lead-quick-btn) {
+  border: 1px solid var(--m-line-2) !important;
+  background: transparent !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-actions :is(.btn, .ox-btn, .lead-quick-btn):hover {
+  background: var(--m-hover) !important;
+}
+
+/* ── Fields: flat, ring on focus ───────────────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .wc-select):not(.cb-ask-input, .sc-nav-search > input) {
+  border: 1px solid var(--m-line-2) !important;
+  border-radius: var(--m-r-sm) !important;
+  background-color: var(--m-card) !important;
+  background-image: none;
+  box-shadow: none !important;
+  color: var(--m-text) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(input, select, textarea, .wc-select):not(.cb-ask-input, .sc-nav-search > input):focus-visible {
+  outline: none !important;
+  border-color: var(--m-mute) !important;
+  box-shadow: var(--m-ring) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .pro-search {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ── Composer: one flat field ──────────────────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cb-ask-stack {
+  border: 1px solid var(--m-line-2) !important;
+  border-radius: 1rem !important;
+  background: var(--m-raise) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cb-ask-form {
+  border: 0 !important;
+  border-radius: 1rem !important;
+  background: var(--m-card) !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cb-ask-stack:focus-within {
+  border-color: var(--m-mute) !important;
+  box-shadow: var(--m-ring) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cb-ask-chip {
+  border: 1px solid var(--m-line-2) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cb-ask-chip:hover {
+  background: var(--m-hover) !important;
+}
+
+/* ── Avatars, dots and status ──────────────────────────────────────────── */
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.record-avatar, .os-sidebar-avatar) {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: var(--m-active) !important;
+  color: var(--m-text-2) !important;
+  font-weight: 600 !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.sd-dot, .op-dot, .cmd-feed-dot) {
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cp-row {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cp-row.is-selected,
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cp-row.is-selected .lead-rail-row {
+  background: var(--m-active) !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .sc-nav-search > input {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
