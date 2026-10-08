@@ -1,6 +1,8 @@
 "use client";
 
 import { CustomerTimeline } from "@/components/customer-timeline";
+import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
+import { RecordLoadFailure } from "@/components/record-load-failure";
 import { OsShell } from "@/components/os-shell";
 import {
   ShellAlert,
@@ -54,24 +56,26 @@ export default function CustomerDetailPage() {
   const customerId = params.id;
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ReturnType<typeof recordFailureFrom> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!customerId) return;
 
     fetch(`/api/customers/${customerId}`)
       .then(async (res) => {
-        if (!res.ok) throw new Error("Customer not found");
+        if (!res.ok) throw new RecordFetchError(res.status);
         return res.json();
       })
       .then((data) => {
         setCustomer(data.customer);
         setTimeline(data.timeline ?? []);
+        setFailure(null);
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setFailure(recordFailureFrom("customer", err)))
       .finally(() => setLoading(false));
-  }, [customerId]);
+  }, [customerId, attempt]);
 
   if (loading) {
     return (
@@ -81,18 +85,23 @@ export default function CustomerDetailPage() {
     );
   }
 
-  if (error || !customer) {
+  if (failure || !customer) {
     return (
-      <OsShell title="Customer" subtitle="Record not found">
-        <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/customers" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← All customers
-        </Link>
+      <OsShell title="Customer" subtitle={failure?.status === 404 ? "Not on this account" : "Couldn't load"}>
+        <RecordLoadFailure
+          failure={failure ?? recordFailureFrom("customer", null)}
+          backHref="/dashboard/customers"
+          backLabel="All customers"
+          onRetry={() => {
+            setLoading(true);
+            setAttempt((n) => n + 1);
+          }}
+        />
       </OsShell>
     );
   }
 
-  const paidCents = timeline.filter((e) => e.type === "payment" && (e.status ?? "").toLowerCase() !== "failed").reduce((sum, e) => sum + (e.amountCents ?? 0), 0);
+  const paidCents = timeline.filter((e) => e.type === "payment" && !["failed", "claimed", "refunded"].includes((e.status ?? "").toLowerCase())).reduce((sum, e) => sum + (e.amountCents ?? 0), 0);
   const summary = [
     `Customer since ${formatDay(customer.firstSeenAt)}`,
     `${customer.callCount} call${customer.callCount === 1 ? "" : "s"}`,

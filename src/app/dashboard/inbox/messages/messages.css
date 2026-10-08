@@ -370,3 +370,17 @@
 .msg-failed {
   color: var(--ox-red);
 }
+
+.msg-takeover {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--void, #111) 8%, transparent);
+}
+
+.msg-takeover .msg-note {
+  margin: 0;
+  padding: 0;
+}

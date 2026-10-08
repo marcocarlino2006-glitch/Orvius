@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { toast } from "@/components/toaster";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
@@ -184,6 +185,8 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
       window.location.assign("/dashboard");
       return;
     }
+    const data = (await res?.json().catch(() => null)) as { error?: string } | null;
+    toast({ title: data?.error ?? "Couldn't switch shops. You're still in this one — try again.", tone: "error" });
     setSwitching(null);
   }
 

@@ -244,6 +244,10 @@ export async function getThread(businessId: string, phone: string) {
       select: { clearedAt: true },
     }),
   ]);
+  const takeover = await prisma.takeover.findUnique({
+    where: { businessId_phoneNormalized: { businessId, phoneNormalized } },
+    select: { releasedAt: true, takenBy: true, createdAt: true },
+  });
 
   const calls = await prisma.call.findMany({
     where: {
@@ -295,6 +299,7 @@ export async function getThread(businessId: string, phone: string) {
     phone: phoneNormalized,
     customer,
     optedOut: Boolean(optOut && !optOut.clearedAt),
+    takenOver: takeover && !takeover.releasedAt ? { by: takeover.takenBy, since: takeover.createdAt.toISOString() } : null,
     entries,
   };
 }

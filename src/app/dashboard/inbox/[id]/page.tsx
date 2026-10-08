@@ -1,6 +1,8 @@
 "use client";
 
 import { BookRequest } from "@/components/book-request";
+import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
+import { RecordLoadFailure } from "@/components/record-load-failure";
 import { LeadStatusActions } from "@/components/lead-status-actions";
 import { LeadQualificationForm } from "@/components/lead-qualification-form";
 import { TranscriptCinema } from "@/components/transcript-cinema";
@@ -52,7 +54,7 @@ export default function LeadDetailPage() {
   const router = useRouter();
   const leadId = params.id;
   const [lead, setLead] = useState<LeadDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ReturnType<typeof recordFailureFrom> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showBookedLeadRepair, setShowBookedLeadRepair] = useState(false);
   const [workVersion, setWorkVersion] = useState(0);
@@ -62,12 +64,12 @@ export default function LeadDetailPage() {
 
     try {
       const res = await fetch(`/api/leads/${leadId}`);
-      if (!res.ok) throw new Error("Request not found");
+      if (!res.ok) throw new RecordFetchError(res.status);
       const data = await res.json();
       setLead(data.lead);
-      setError(null);
+      setFailure(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request not found");
+      setFailure(recordFailureFrom("request", err));
     } finally {
       setLoading(false);
     }
@@ -85,13 +87,18 @@ export default function LeadDetailPage() {
     );
   }
 
-  if (error || !lead) {
+  if (failure || !lead) {
     return (
-      <OsShell title="Request" subtitle="Not found">
-        <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/work" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Work
-        </Link>
+      <OsShell title="Request" subtitle={failure?.status === 404 ? "Not on this account" : "Couldn't load"}>
+        <RecordLoadFailure
+          failure={failure ?? recordFailureFrom("request", null)}
+          backHref="/dashboard/inbox"
+          backLabel="Inbox"
+          onRetry={() => {
+            setLoading(true);
+            void loadLead();
+          }}
+        />
       </OsShell>
     );
   }

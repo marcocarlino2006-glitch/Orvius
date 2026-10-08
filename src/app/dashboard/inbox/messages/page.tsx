@@ -45,6 +45,7 @@ type ThreadDetail = {
   phone: string;
   customer: { id: string; name: string | null; address: string | null; interactionCount: number } | null;
   optedOut: boolean;
+  takenOver: { by: string; since: string } | null;
   entries: Entry[];
 };
 
@@ -87,6 +88,7 @@ function MessagesInner() {
   const [detail, setDetail] = useState<ThreadDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [draft, setDraft] = useState("");
+  const [handing, setHanding] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
@@ -122,6 +124,8 @@ function MessagesInner() {
         setDetail(null);
         setError((await res.json().catch(() => null))?.error ?? "That conversation didn't load.");
       }
+    } catch {
+      if (!quiet) setError("Network error. That conversation didn't load — pick it again to retry.");
     } finally {
       if (!quiet) setDetailLoading(false);
     }
@@ -150,6 +154,29 @@ function MessagesInner() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [detail?.entries.length, detail?.phone]);
+
+  const toggleTakeover = async () => {
+    if (!detail || handing) return;
+    setHanding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/command/takeover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: detail.phone, release: Boolean(detail.takenOver) }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error ?? "That didn't save. Orvius is still handling texts as before.");
+        return;
+      }
+      await loadThread(detail.phone, true);
+    } catch {
+      setError("Network error. Nothing changed.");
+    } finally {
+      setHanding(false);
+    }
+  };
 
   const send = async () => {
     const body = draft.trim();
@@ -351,6 +378,19 @@ function MessagesInner() {
                 )
               )}
             </div>
+
+            {detail ? (
+              <div className="msg-takeover" role="status">
+                <p className="msg-note">
+                  {detail.takenOver
+                    ? `You have this conversation (${detail.takenOver.by}). Orvius won't text this customer until you hand it back.`
+                    : "Orvius handles texts with this customer. Take over to stop its automatic texts while you talk to them."}
+                </p>
+                <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={handing} onClick={() => void toggleTakeover()}>
+                  {handing ? "Saving…" : detail.takenOver ? "Hand back to Orvius" : "Take over"}
+                </button>
+              </div>
+            ) : null}
 
             {detail?.optedOut ? (
               <p className="msg-note msg-note--warn">
