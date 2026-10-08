@@ -155,11 +155,13 @@ export function WorkCard({
           <p className="wc-detail">
             {top?.detail ?? item.nextAction ?? (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : "Nothing to do")}
           </p>
-          {!inList && top && item.nextAction ? <p className="wc-next">Next: {item.nextAction}</p> : null}
+          {top && item.nextAction ? <p className="wc-next">Recommended: {item.nextAction}</p> : null}
         </div>
         <div className="wc-meta" hidden={!inList}>
           {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt)}</span> : <span className="wc-when">{formatWhen(item.createdAt)}</span>}
-          <span className="wc-owner">{item.responsible.label}</span>
+          <span className="wc-owner">
+            <span className="wc-owner-k">Responsible</span> {item.responsible.label}
+          </span>
         </div>
       </div>
 

@@ -35,7 +35,7 @@ export function AssignTechButton({
   if (!technicians.length) {
     return (
       <Link
-        href="/dashboard/dispatch"
+        href="/dashboard/schedule"
         className={`assign-tech-empty font-sans ${className}`.trim()}
         onClick={(e) => e.stopPropagation()}
       >

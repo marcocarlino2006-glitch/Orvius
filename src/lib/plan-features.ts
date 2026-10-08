@@ -149,7 +149,7 @@ export function navHrefToModule(href: string): PlanModule | null {
   if (href.startsWith("/dashboard/calls")) return "calls";
   if (href.startsWith("/dashboard/customers")) return "customers";
   if (href.startsWith("/dashboard/jobs") || href.startsWith("/dashboard/price-book")) return "jobs";
-  if (href.startsWith("/dashboard/dispatch")) return "dispatch";
+  if (href.startsWith("/dashboard/schedule")) return "dispatch";
   if (href.startsWith("/dashboard/ask")) return "ask";
   return null;
 }

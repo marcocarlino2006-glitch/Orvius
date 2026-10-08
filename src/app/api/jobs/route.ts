@@ -15,12 +15,22 @@ export async function GET() {
   const planGate = requirePlanModule(business, "jobs");
   if ("error" in planGate) return planGate.error;
 
-  const jobs = await prisma.job.findMany({
-    where: { businessId: business.id },
-    take: 80,
-    orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
-    include: JOB_INCLUDE,
-  });
+  /* Every open job, then the latest closed ones; one oldest-first cap would drop next week's work. */
+  const [open, closed] = await Promise.all([
+    prisma.job.findMany({
+      where: { businessId: business.id, status: { notIn: ["completed", "cancelled"] } },
+      take: 300,
+      orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
+      include: JOB_INCLUDE,
+    }),
+    prisma.job.findMany({
+      where: { businessId: business.id, status: { in: ["completed", "cancelled"] } },
+      take: 60,
+      orderBy: { updatedAt: "desc" },
+      include: JOB_INCLUDE,
+    }),
+  ]);
+  const jobs = [...open, ...closed];
 
   return NextResponse.json({
     jobs: jobs.map(serializeJob),

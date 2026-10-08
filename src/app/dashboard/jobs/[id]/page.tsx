@@ -12,6 +12,8 @@ import {
 import { WorkPanel } from "@/components/work-panel";
 import { displayPhone } from "@/lib/customer";
 import { nextJobStatus } from "@/lib/job-status";
+import { jobLifecycle } from "@/lib/job-lifecycle";
+import { StatusDot } from "@/components/status-dot";
 import { formatShopTime, shopWallInput } from "@/lib/when";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -61,6 +63,8 @@ type JobDetail = {
   dispatchedAt: string | null;
   onSiteAt: string | null;
   completedAt: string | null;
+  outcomeCapturedAt?: string | null;
+  resolutionCode?: string | null;
   technicianId: string | null;
   technician: Tech | null;
   business: { id: string; name: string; timezone: string | null; avgTicketCents: number | null } | null;
@@ -111,6 +115,7 @@ export default function JobDetailPage() {
   const [confirmMsg, setConfirmMsg] = useState<string | null>(null);
   const [workVersion, setWorkVersion] = useState(0);
   const [changing, setChanging] = useState(false);
+  const [changeReason, setChangeReason] = useState("");
   const wide = useWide();
 
   const load = useCallback(() => {
@@ -176,8 +181,8 @@ export default function JobDetailPage() {
     return (
       <OsShell title="Job" subtitle="Not found">
         <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/work" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Work
+        <Link href="/dashboard/jobs" className="customer-timeline-link mt-4 inline-block font-sans">
+          ← Jobs
         </Link>
       </OsShell>
     );
@@ -190,6 +195,8 @@ export default function JobDetailPage() {
   const tz = job.business?.timezone ?? null;
   const open = job.status !== "completed" && job.status !== "cancelled";
   const needsConfirm = open && Boolean(job.scheduledAt) && !job.customerConfirmedAt && job.status !== "confirmed";
+  const lifecycle = jobLifecycle(job);
+  const reasonBody = changeReason.trim() ? { reason: changeReason.trim() } : {};
   const whenNote =
     job.status === "completed"
       ? job.completedAt
@@ -287,7 +294,7 @@ export default function JobDetailPage() {
               </a>
             </>
           ) : null}
-          <Link href="/dashboard/dispatch" className="ox-btn ox-btn--quiet ox-btn--sm">
+          <Link href="/dashboard/schedule" className="ox-btn ox-btn--quiet ox-btn--sm">
             Schedule
           </Link>
         </div>
@@ -314,6 +321,13 @@ export default function JobDetailPage() {
               }
             >
               <dl className="jv-facts font-sans">
+                <div>
+                  <dt>Status</dt>
+                  <dd>
+                    <StatusDot tone={lifecycle.tone}>{lifecycle.label}</StatusDot>
+                    <span className="jv-sub">{lifecycle.detail}</span>
+                  </dd>
+                </div>
                 <div>
                   <dt>When</dt>
                   <dd>
@@ -364,7 +378,8 @@ export default function JobDetailPage() {
                       className="ox-btn ox-btn--quiet ox-btn--sm"
                       disabled={saving || !scheduleDraft || scheduleDraft === shopWallInput(job.scheduledAt, tz)}
                       onClick={() =>
-                        void patch({ scheduledLocal: scheduleDraft }).then(() => {
+                        void patch({ scheduledLocal: scheduleDraft, ...reasonBody }).then(() => {
+                          setChangeReason("");
                           setConfirmMsg("Moved. Text the customer so they confirm the new time.");
                         })
                       }
@@ -378,7 +393,7 @@ export default function JobDetailPage() {
                       className="input"
                       disabled={saving}
                       value={job.technicianId ?? ""}
-                      onChange={(e) => void patch({ technicianId: e.target.value || null })}
+                      onChange={(e) => void patch({ technicianId: e.target.value || null, ...reasonBody }).then(() => setChangeReason(""))}
                     >
                       <option value="">Nobody yet</option>
                       {crew.map((tech) => (
@@ -388,11 +403,26 @@ export default function JobDetailPage() {
                       ))}
                     </select>
                   </label>
+                  <label className="jv-field">
+                    <span className="label">Reason (kept in the history)</span>
+                    <input
+                      className="input"
+                      disabled={saving}
+                      value={changeReason}
+                      maxLength={300}
+                      placeholder="e.g. Customer asked for the afternoon"
+                      onChange={(e) => setChangeReason(e.target.value)}
+                    />
+                  </label>
                   <button
                     type="button"
                     disabled={saving}
                     onClick={() => {
-                      if (window.confirm("Cancel this job? The technician's day updates right away.")) void patch({ status: "cancelled" });
+                      const reason = changeReason.trim() || window.prompt("Why is this job being cancelled? This goes in the history.")?.trim();
+                      if (reason === undefined) return;
+                      if (window.confirm("Cancel this job? The technician's day updates right away.")) {
+                        void patch({ status: "cancelled", ...(reason ? { reason } : {}) }).then(() => setChangeReason(""));
+                      }
                     }}
                     className="jv-cancel"
                   >

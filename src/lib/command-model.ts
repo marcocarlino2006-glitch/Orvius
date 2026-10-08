@@ -19,12 +19,16 @@ export type CommandCounts = {
   jobsUnassigned: number;
   /** False until the shop sets an average ticket — dollars are never guessed. */
   avgTicketSet: boolean;
+  /** New requests nobody has answered and that aren't a job yet. */
+  awaitingResponse?: number;
+  /** Open jobs with a time in the next seven days. */
+  upcomingJobs?: number;
 };
 
 export type SignalTone = "neutral" | "success" | "attention" | "risk";
 
 export type CommandSignal = {
-  id: "demand" | "qualified" | "motion" | "attention" | "risk";
+  id: "requests" | "upcoming" | "exceptions";
   label: string;
   value: string;
   detail: string;
@@ -168,51 +172,54 @@ export function formatWholeDollars(cents: number): string {
   }).format(cents / 100);
 }
 
+/*
+  What needs attention, in three counts read straight from records. No dollar
+  figure sits here: an "at risk" number built from average tickets is a guess,
+  and next to real counts it reads as money already lost.
+*/
 export function buildCommandSignals(
   counts: CommandCounts,
   work: WorkItem[],
 ): CommandSignal[] {
-  const demand = counts.calls + counts.messagesAndWeb;
-  const risk = revenueAtRiskCents(work);
-  const window = `last ${counts.windowDays} days`;
+  const awaiting = counts.awaitingResponse ?? 0;
+  const upcoming = counts.upcomingJobs ?? 0;
+  const exceptions = work.filter((w) => w.severity === "critical" || w.severity === "high");
+  const failures = exceptions.filter((w) => w.source.entityType === "shop").length;
 
   return [
     {
-      id: "demand",
-      label: "New demand",
-      value: String(demand),
-      detail:
-        demand === 0
-          ? `No calls or messages ${window}`
-          : `${plural(counts.calls, "call")} · ${plural(counts.messagesAndWeb, "message")}`,
-      href: "/dashboard/calls",
-      tone: "neutral",
+      id: "requests",
+      label: "Requests awaiting a response",
+      value: String(awaiting),
+      detail: awaiting === 0 ? "Every new request has an answer" : "New calls, texts and web requests nobody has answered",
+      href: "/dashboard/inbox",
+      tone: awaiting > 0 ? "attention" : "neutral",
     },
     {
-      id: "motion",
-      label: "Jobs in motion",
-      value: String(counts.jobsInMotion),
+      id: "upcoming",
+      label: "Upcoming jobs",
+      value: String(upcoming),
       detail:
-        counts.jobsInMotion === 0
-          ? "No open jobs"
+        upcoming === 0
+          ? "Nothing booked in the next 7 days"
           : counts.jobsUnassigned > 0
-            ? `${counts.jobsUnassigned} unassigned`
-            : "All assigned",
-      href: counts.jobsUnassigned > 0 ? "/dashboard/dispatch" : "/dashboard/work",
+            ? `Next 7 days · ${counts.jobsUnassigned} open ${counts.jobsUnassigned === 1 ? "job has" : "jobs have"} nobody assigned`
+            : "Next 7 days · everyone assigned",
+      href: "/dashboard/schedule",
       tone: counts.jobsUnassigned > 0 ? "attention" : "neutral",
     },
     {
-      id: "risk",
-      label: "Revenue at risk",
-      value: risk > 0 ? formatWholeDollars(risk) : counts.avgTicketSet ? "None" : "Not set",
+      id: "exceptions",
+      label: "Exceptions",
+      value: String(exceptions.length),
       detail:
-        risk > 0
-          ? "Estimated from open work × avg ticket"
-          : counts.avgTicketSet
-            ? "No open work carries value"
-            : "Add average ticket in Settings",
-      href: risk > 0 || counts.avgTicketSet ? "/dashboard/work" : "/dashboard/settings#economics-baseline",
-      tone: risk > 0 ? "risk" : "neutral",
+        exceptions.length === 0
+          ? "No safety calls, failures or overdue work"
+          : failures
+            ? `${plural(failures, "system failure")} · ${plural(exceptions.length - failures, "urgent item")}`
+            : "Safety calls, overdue work and held requests",
+      href: "/dashboard/work",
+      tone: exceptions.some((w) => w.severity === "critical") ? "risk" : exceptions.length ? "attention" : "neutral",
     },
   ];
 }

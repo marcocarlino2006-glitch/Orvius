@@ -793,10 +793,6 @@ a.dt-row:focus-visible,
 }
 
 @media (max-width: 720px) {
-  .os-shell.os-shell-night .os-topbar-ask {
-    display: none;
-  }
-
   .dt--jobs .dt-row,
   .dt--leads .dt-row,
   .dt--work .dt-row,

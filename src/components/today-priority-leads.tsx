@@ -188,7 +188,7 @@ export function TodayPriorityLeads({
                     Open job
                   </Link>
                   {canDispatch ? (
-                    <Link href="/dashboard/dispatch" className="today-priority-btn">
+                    <Link href="/dashboard/schedule" className="today-priority-btn">
                       Dispatch
                     </Link>
                   ) : null}

@@ -10,6 +10,7 @@ import {
   ShellPanel,
 } from "@/components/shell-primitives";
 import type { CallGrade } from "@/lib/call-quality";
+import { CALL_OUTCOME_LABEL, type CallOutcome } from "@/lib/call-outcome";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -56,6 +57,7 @@ type CallDetail = {
 };
 
 type Situation = {
+  outcome?: CallOutcome;
   actionsTaken: string[];
   quality: CallGrade;
   priorJobs: Array<{
@@ -130,8 +132,7 @@ export default function CallDetailPage() {
   const phone = call.lead?.phone ?? call.callerPhone;
   const address = call.lead?.address ?? call.customer?.address ?? null;
   const service = call.lead?.serviceType ?? null;
-  /* The summary is often just "Name: service", which the facts already say. */
-  const summary = call.summary && !(service && call.summary.toLowerCase().includes(service.toLowerCase())) ? call.summary : null;
+  const summary = call.summary?.trim() || null;
   const length = call.durationSec ? (call.durationSec >= 60 ? `${Math.floor(call.durationSec / 60)}:${String(call.durationSec % 60).padStart(2, "0")}` : `${call.durationSec}s`) : null;
   const quality = situation?.quality ?? null;
 
@@ -163,8 +164,11 @@ export default function CallDetailPage() {
 
       <div className="os-detail-grid cl-grid">
         <div className="os-detail-primary">
-          <ShellPanel title="The call" dense>
-            {summary ? <p className="jv-lede font-sans">{summary}</p> : null}
+          <ShellPanel title="AI summary" dense action={<span className="cl-source font-sans">Written by Orvius · can be wrong</span>}>
+            {summary ? <p className="jv-lede font-sans">{summary}</p> : <p className="jv-sub font-sans">No summary for this call.</p>}
+          </ShellPanel>
+
+          <ShellPanel title="Details Orvius took down" dense action={<span className="cl-source font-sans">Extracted from the call · check before relying on it</span>}>
             <dl className="jv-facts font-sans">
               <div>
                 <dt>Phone</dt>
@@ -203,19 +207,27 @@ export default function CallDetailPage() {
             <CallPlayer src={`/api/calls/${callId}/recording`} durationSec={call.durationSec} />
           ) : null}
 
-          {call.transcript ? (
-            <TranscriptCinema transcript={call.transcript} variant="void" />
-          ) : null}
-
-          {call.contentPurgedAt ? (
-            <p className="font-sans text-sm leading-relaxed text-void">
-              The recording and transcript were deleted 24 months after the call. The summary and job history stay.
-            </p>
-          ) : null}
+          <ShellPanel title="Original transcript" dense action={<span className="cl-source font-sans">Word for word, as transcribed</span>}>
+            {call.transcript ? (
+              <TranscriptCinema transcript={call.transcript} variant="void" />
+            ) : call.contentPurgedAt ? (
+              <p className="jv-sub font-sans">
+                The recording and transcript were deleted under your retention setting. The summary and job history stay.
+              </p>
+            ) : (
+              <p className="jv-sub font-sans">
+                {call.recordingUrl ? "No transcript was kept for this call." : "No recording or transcript was kept for this call."}
+              </p>
+            )}
+          </ShellPanel>
         </div>
 
         <div className="os-detail-side">
-          <ShellPanel title="What happened" dense>
+          <ShellPanel
+            title="What happened"
+            dense
+            action={situation?.outcome ? <span className={`cl-outcome-tag cl-outcome-tag--${situation.outcome}`}>{CALL_OUTCOME_LABEL[situation.outcome]}</span> : null}
+          >
             {call.lead?.job ? (
               <Link href={`/dashboard/jobs/${call.lead.job.id}`} className="cl-outcome cl-outcome--ok font-sans">
                 <span className="cl-outcome-label">Booked</span>

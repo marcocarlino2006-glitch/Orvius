@@ -14,7 +14,7 @@ import manifest from "../src/app/manifest.ts";
 
 test("g-then-letter jumps to every main screen, and never fires while typing", () => {
   assert.equal(goToHref("c"), "/dashboard");
-  assert.equal(goToHref("D"), "/dashboard/dispatch");
+  assert.equal(goToHref("D"), "/dashboard/schedule");
   assert.equal(goToHref("z"), null);
   assert.equal(new Set(GO_TO.map((g) => g.key)).size, GO_TO.length, "no two screens share a key");
   assert.ok(SHORTCUT_GROUPS.flatMap((g) => g.items).some((i) => i.keys.includes("?")));

@@ -102,7 +102,11 @@ export async function PATCH(request: Request, { params }: Params) {
     scheduledLocal?: string | null;
     notes?: string | null;
     technicianId?: string | null;
+    /** Why the owner cancelled, moved or reassigned it; kept in the job's history. */
+    reason?: string | null;
   };
+  const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 300) || null : null;
+  const because = reason ? ` Reason: ${reason}` : "";
   if (body.scheduledLocal) {
     const at = shopWallInputToUtc(body.scheduledLocal, business.timezone);
     if (!at) return NextResponse.json({ error: "Pick a time." }, { status: 422 });
@@ -192,8 +196,8 @@ export async function PATCH(request: Request, { params }: Params) {
     await recordAudit({
       ...auditBase,
       action: "job.status_changed",
-      summary: `Moved the job from ${jobStatusLabel(existing.status)} to ${jobStatusLabel(body.status)}.`,
-      detail: { from: existing.status, to: body.status },
+      summary: `Moved the job from ${jobStatusLabel(existing.status)} to ${jobStatusLabel(body.status)}.${because}`,
+      detail: { from: existing.status, to: body.status, reason },
     });
   }
   if (assigningTech) {
@@ -201,9 +205,9 @@ export async function PATCH(request: Request, { params }: Params) {
       ...auditBase,
       action: job.technician ? "technician.assigned" : "technician.unassigned",
       summary: job.technician
-        ? `Owner assigned ${job.technician.name}.`
-        : "Owner removed the technician.",
-      detail: { from: previousTechnicianId, to: job.technicianId },
+        ? `Owner assigned ${job.technician.name}.${because}`
+        : `Owner removed the technician.${because}`,
+      detail: { from: previousTechnicianId, to: job.technicianId, reason },
     });
   }
   if (
@@ -214,9 +218,9 @@ export async function PATCH(request: Request, { params }: Params) {
       ...auditBase,
       action: "job.rescheduled",
       summary: job.scheduledAt
-        ? `Owner moved the appointment to ${job.scheduledAt.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: business.timezone ?? undefined })}.`
-        : "Owner cleared the appointment time.",
-      detail: { from: existing.scheduledAt?.toISOString() ?? null, to: job.scheduledAt?.toISOString() ?? null },
+        ? `Owner moved the appointment to ${job.scheduledAt.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: business.timezone ?? undefined })}.${because}`
+        : `Owner cleared the appointment time.${because}`,
+      detail: { from: existing.scheduledAt?.toISOString() ?? null, to: job.scheduledAt?.toISOString() ?? null, reason },
     });
   }
 

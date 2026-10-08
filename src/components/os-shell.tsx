@@ -13,7 +13,6 @@ import { getPlanById } from "@/lib/pricing-plans";
 import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { OsIcon } from "@/components/os-icons";
-import { ASK_OPEN_EVENT, OsAskDock } from "@/components/os-ask-dock";
 import { OsCommandPalette } from "@/components/os-command-palette";
 import { OsMobileNavBackdrop, OsTabBar, type OsTab } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
@@ -30,11 +29,11 @@ type OsShellProps = {
   actions?: React.ReactNode;
 };
 
-const TAB_HREFS = ["/dashboard", "/dashboard/work", "/dashboard/calls", "/dashboard/dispatch"];
+const TAB_HREFS = ["/dashboard", "/dashboard/inbox", "/dashboard/jobs", "/dashboard/schedule"];
 
 function navActive(pathname: string, href: string) {
-  if (href === "/dashboard") return pathname === "/dashboard";
-  return [href, ...(OS_NAV_ALIASES[href] ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`));
+  if (href === "/dashboard" && pathname === "/dashboard") return true;
+  return [...(href === "/dashboard" ? [] : [href]), ...(OS_NAV_ALIASES[href] ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`));
 }
 
 export function OsShell({
@@ -50,10 +49,8 @@ export function OsShell({
   const businessName = businessNameProp ?? business?.name ?? "Your business";
   const terms = industryTerms(business?.trade);
   const navLabel = (item: { href: string; label: string }) =>
-    item.href === "/dashboard/jobs" ? terms.Jobs : item.href === "/dashboard/dispatch" ? terms.Dispatch : item.label;
+    item.href === "/dashboard/jobs" ? terms.Jobs : item.label;
   const newLeads = business?.metrics.newLeads ?? 0;
-  const needsYou = business?.signals.needsYou ?? 0;
-  const showAskDock = access?.canAccess("ask") ?? false;
   /* A shop whose access ended still opens every screen to read; the pay prompt lives on Command. */
   const navAllowed = (module: NonNullable<ReturnType<typeof navHrefToModule>>) =>
     access?.entitled === false || (access?.canAccess(module) ?? true);
@@ -90,7 +87,7 @@ export function OsShell({
       label: navLabel(item),
       icon: item.icon,
       active: navActive(pathname, item.href),
-      badge: item.href === "/dashboard/work" && needsYou > 0 ? String(needsYou) : undefined,
+      badge: item.href === "/dashboard/inbox" && newLeads > 0 ? String(newLeads) : undefined,
     }));
 
   useEffect(() => {
@@ -172,12 +169,12 @@ export function OsShell({
             const enabled = ringEnabled && planAllowed;
             const active = navActive(pathname, item.href);
             const badge =
-              item.href === "/dashboard/work" && needsYou > 0
-                ? String(needsYou)
-                : item.href === "/dashboard/dispatch" && unassignedJobs > 0
+              item.href === "/dashboard/inbox" && newLeads > 0
+                ? String(newLeads)
+                : item.href === "/dashboard/schedule" && unassignedJobs > 0
                   ? String(unassignedJobs)
                   : item.badge;
-            const badgeWarn = item.href === "/dashboard/dispatch" && unassignedJobs > 0;
+            const badgeWarn = item.href === "/dashboard/schedule" && unassignedJobs > 0;
             const upgradePlan = navModule
               ? getPlanById(minimumPlanForModule(navModule))
               : null;
@@ -196,7 +193,7 @@ export function OsShell({
                       <span
                         className={`os-nav-badge ${badgeWarn ? "os-nav-badge-warn" : ""}`}
                         title={
-                          badgeWarn ? `${terms.Jobs} with no ${terms.worker} assigned` : "Work waiting on you"
+                          badgeWarn ? `${terms.Jobs} with no ${terms.worker} assigned` : "Requests waiting for a response"
                         }
                       >
                         {badge}
@@ -280,18 +277,10 @@ export function OsShell({
               <span className="os-topbar-search-label">Search</span>
               <kbd>⌘K</kbd>
             </button>
-            {showAskDock && pathname !== "/dashboard" && !navActive(pathname, "/dashboard/ask") ? (
-              <button
-                type="button"
-                className="os-topbar-search os-topbar-ask font-sans"
-                aria-label="Ask"
-                onClick={() => window.dispatchEvent(new Event(ASK_OPEN_EVENT))}
-              >
-                <OsIcon name="ask" />
-                <span className="os-topbar-search-label">Ask</span>
-                <kbd>⌘J</kbd>
-              </button>
-            ) : null}
+            <Link href="/help" className="os-topbar-search os-topbar-help font-sans" aria-label="Help" target="_blank" rel="noopener">
+              <OsIcon name="ask" />
+              <span className="os-topbar-search-label">Help</span>
+            </Link>
             {actions}
           </div>
         </header>
@@ -308,7 +297,6 @@ export function OsShell({
         ) : null}
         <main className="os-content os-content-pro">{children}</main>
         <OsTabBar tabs={tabs} moreOpen={navOpen} onMore={() => setNavOpen((v) => !v)} />
-        {showAskDock ? <OsAskDock /> : null}
         <KeyboardShortcuts />
         <OsCommandPalette
           open={paletteOpen}

@@ -114,7 +114,7 @@ test("list pages open records in the shared drawer", () => {
     "src/components/call-record-card.tsx",
     "src/components/customer-record-card.tsx",
     "src/components/job-card.tsx",
-    "src/app/dashboard/dispatch/page.tsx",
+    "src/app/dashboard/schedule/page.tsx",
   ]) {
     assert.match(read(file), /<RecordLink/, file);
   }

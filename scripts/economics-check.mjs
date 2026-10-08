@@ -78,7 +78,7 @@ results.push(
     outcomesOnCommand === 0 &&
     signalsOnCommand === 1
     ? pass(
-        "Command uses one signal row — Revenue at risk is the money signal, no XOR pulse",
+        "Command uses one summary row of record counts, no guessed dollars",
       )
     : fail(
         `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand} signals=${signalsOnCommand}`,

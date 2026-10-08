@@ -3,6 +3,7 @@
 import { RecordLink } from "@/components/record-drawer";
 import { StatusDot, type StatusTone } from "@/components/status-dot";
 import { displayPhone, normalizePhone } from "@/lib/customer";
+import { CALL_OUTCOME_LABEL, type CallOutcome } from "@/lib/call-outcome";
 import { isEmergency } from "@/lib/urgency";
 
 type CallRecordCardProps = {
@@ -18,6 +19,15 @@ type CallRecordCardProps = {
   urgency?: string | null;
   returning?: boolean;
   quality?: { verdict: "clean" | "listen" | "fix"; headline: string };
+  outcome?: CallOutcome;
+};
+
+const OUTCOME_TONE: Record<CallOutcome, StatusTone> = {
+  booked: "good",
+  held: "attention",
+  transferred: "live",
+  incomplete: "muted",
+  safety: "risk",
 };
 
 const squash = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -36,23 +46,6 @@ function summaryAddsSomething(
   return rest.length > 12;
 }
 
-/** The call was answered and ended normally — the unremarkable outcome. */
-function isSettled(status: string) {
-  const s = status.trim().toLowerCase();
-  return s === "completed" || s === "ended";
-}
-
-function statusTone(status: string): StatusTone {
-  const s = status.toLowerCase();
-  if (s === "failed" || s === "busy" || s === "no-answer") return "risk";
-  if (s === "in-progress" || s === "ringing") return "live";
-  return "muted";
-}
-
-function formatStatus(status: string) {
-  return status.replace(/-/g, " ");
-}
-
 /** Cursor-grade call row. */
 export function CallRecordCard({
   id,
@@ -67,6 +60,7 @@ export function CallRecordCard({
   urgency,
   returning,
   quality,
+  outcome: outcomeKind,
 }: CallRecordCardProps) {
   const emergency = isEmergency(urgency);
   const when = new Date(createdAt).toLocaleString(undefined, {
@@ -79,12 +73,11 @@ export function CallRecordCard({
   const need = [serviceType, summaryAddsSomething(summary, serviceType, leadName) ? summary : null]
     .filter(Boolean)
     .join(". ");
-  const settled = isSettled(status);
-  const outcome: { tone: StatusTone; label: string } = !settled
-    ? { tone: statusTone(status), label: formatStatus(status) }
-    : booked
-      ? { tone: "good", label: "Booked" }
-      : { tone: "neutral", label: "Answered" };
+  const live = status === "in-progress" || status === "ringing";
+  const kind: CallOutcome = outcomeKind ?? (booked ? "booked" : "held");
+  const outcome: { tone: StatusTone; label: string } = live
+    ? { tone: "live", label: "On the call now" }
+    : { tone: OUTCOME_TONE[kind], label: CALL_OUTCOME_LABEL[kind] };
 
   return (
     <div className="dt-row dt-row--link" role="row">
@@ -102,7 +95,7 @@ export function CallRecordCard({
         ) : null}
       </span>
       <span role="cell">
-        <StatusDot tone={outcome.tone}>{outcome.label.charAt(0).toUpperCase() + outcome.label.slice(1)}</StatusDot>
+        <StatusDot tone={outcome.tone}>{outcome.label}</StatusDot>
       </span>
       <span role="cell" className="dt-mono">{phone ?? <span className="dt-muted">—</span>}</span>
       <span role="cell" className="dt-when">

@@ -10,21 +10,23 @@ export type OsNavItem = {
 };
 
 /**
- * Command, then Work: every request and job in one list. The inbox and jobs
- * screens still hold each item's detail page, so Work stays lit on them.
+ * Command is where the owner directs Orvius; every other screen holds the
+ * records it acts on. A request lives in Inbox until it becomes a job.
  */
 export const osProductNav: OsNavItem[] = [
   { href: "/dashboard", label: "Command", icon: "command", ring: 1 },
-  { href: "/dashboard/work", label: "Work", icon: "jobs", ring: 1 },
+  { href: "/dashboard/inbox", label: "Inbox", icon: "inbox", ring: 1 },
   { href: "/dashboard/calls", label: "Calls", icon: "calls", ring: 1 },
-  { href: "/dashboard/customers", label: "Customers", icon: "customers", ring: 2 },
-  { href: "/dashboard/dispatch", label: "Dispatch", icon: "dispatch", ring: 4 },
-  { href: "/dashboard/ask", label: "Ask", icon: "ask" },
+  { href: "/dashboard/jobs", label: "Jobs", icon: "jobs", ring: 1 },
+  { href: "/dashboard/schedule", label: "Schedule", icon: "dispatch", ring: 1 },
+  { href: "/dashboard/customers", label: "Customers", icon: "customers", ring: 1 },
+  { href: "/dashboard/team", label: "Team", icon: "profile", ring: 1 },
 ];
 
 /** Screens that belong to a nav item without living under its path. */
 export const OS_NAV_ALIASES: Record<string, string[]> = {
-  "/dashboard/work": ["/dashboard/inbox", "/dashboard/jobs", "/dashboard/price-book"],
+  "/dashboard": ["/dashboard/work", "/dashboard/ask"],
+  "/dashboard/jobs": ["/dashboard/price-book"],
 };
 
 export const osWorkspaceNav: OsNavItem[] = [

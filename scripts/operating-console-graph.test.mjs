@@ -41,6 +41,8 @@ const counts = {
   jobsInMotion: 2,
   jobsUnassigned: 1,
   avgTicketSet: true,
+  awaitingResponse: 3,
+  upcomingJobs: 4,
 };
 
 test("repeated alert failures collapse into one incident row", () => {
@@ -73,7 +75,7 @@ test("work rows never repeat the customer name in the request line", () => {
   assert.equal(bare.kindLabel, "$99 deposit");
 });
 
-test("Command ships three truthful signals and never a bare $0", () => {
+test("Command's summary is three counts from records, with no guessed dollars", () => {
   const work = groupWorkItems([
     item({ id: "l1", impact: "critical", estimatedRevenueCents: 45000 }),
     item({ id: "l2", estimatedRevenueCents: 30000 }),
@@ -81,22 +83,21 @@ test("Command ships three truthful signals and never a bare $0", () => {
   const signals = buildCommandSignals(counts, work);
   assert.deepEqual(
     signals.map((s) => s.label),
-    ["New demand", "Jobs in motion", "Revenue at risk"],
+    ["Requests awaiting a response", "Upcoming jobs", "Exceptions"],
   );
-  assert.equal(signals[0].value, "5");
-  assert.equal(signals[2].value, "$750");
+  assert.equal(signals[0].value, "3");
+  assert.equal(signals[1].value, "4");
+  assert.match(signals[1].detail, /1 open job has nobody assigned/);
+  assert.equal(signals[2].value, "1", "only critical and high items are exceptions");
   assert.equal(signals[2].tone, "risk");
+  assert.ok(signals.every((s) => !/\$/.test(s.value) && !/\$/.test(s.detail)), "no dollar figure on Command");
   assert.equal(revenueAtRiskCents(work), 75000);
   for (const s of signals) assert.ok(s.href, `${s.id} is clickable`);
 
-  const empty = buildCommandSignals(
-    { ...counts, calls: 0, messagesAndWeb: 0, avgTicketSet: false },
-    [],
-  );
-  assert.equal(empty[2].value, "Not set");
-  assert.match(empty[0].detail, /No calls or messages/);
-  assert.ok(empty.every((s) => s.value !== "$0"));
-  assert.equal(buildCommandSignals(counts, [])[2].value, "None");
+  const empty = buildCommandSignals({ ...counts, awaitingResponse: 0, upcomingJobs: 0, jobsUnassigned: 0 }, []);
+  assert.deepEqual(empty.map((s) => s.value), ["0", "0", "0"]);
+  assert.match(empty[1].detail, /Nothing booked/);
+  assert.ok(empty.every((s) => s.tone === "neutral"));
 });
 
 test("work age is human, not a timestamp", () => {
@@ -107,15 +108,19 @@ test("work age is human, not a timestamp", () => {
   assert.equal(formatAge("2026-09-22T12:00:00.000Z", now), "2d");
 });
 
-test("Command is one list of what needs you, read from Work, with signals and Pulse in the rail", () => {
+test("Command reads summary, command bar, action queue, then results; Pulse in the rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
   assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes/);
-  const workIdx = command.indexOf("<WorkCard");
   const signalsIdx = command.indexOf("<CommandSignals");
+  const askIdx = command.indexOf("<AskBar");
+  const workIdx = command.indexOf("<WorkCard");
+  const recentIdx = command.indexOf("Recent actions");
   const pulseIdx = command.indexOf("<OrviusPulse");
-  assert.ok(workIdx >= 0 && signalsIdx > workIdx && pulseIdx > signalsIdx);
-  assert.ok(command.indexOf('<aside className="cc-rail"') < signalsIdx, "signals live in the rail");
+  assert.ok(signalsIdx >= 0 && askIdx > signalsIdx && workIdx > askIdx && recentIdx > workIdx && pulseIdx > recentIdx);
+  assert.ok(command.indexOf('<aside className="cc-rail"') < pulseIdx, "Pulse lives in the rail");
+  assert.match(command, /issue\.severity === "critical" \|\| issue\.severity === "high"/, "the readiness banner is only for what is failing");
+  assert.match(command, /\{e\.result\} · \{e\.by\}/, "recent actions show what came of them");
   assert.match(command, /groupWorkItems/);
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
 

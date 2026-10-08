@@ -189,9 +189,9 @@ test("an account with no shop yet stops polling Command instead of failing every
   assert.match(client, /"noShop" in json[\s\S]{0,80}return "no-shop"/);
 });
 
-test("the top bar Ask button keeps an icon when its label is hidden", () => {
+test("the top bar Help link keeps an icon when its label is hidden", () => {
   const shell = read("src/components/os-shell.tsx");
-  assert.match(shell, /os-topbar-ask[\s\S]{0,200}aria-label="Ask"[\s\S]{0,200}<OsIcon name="ask" \/>/);
+  assert.match(shell, /os-topbar-help[\s\S]{0,200}aria-label="Help"[\s\S]{0,200}<OsIcon name="ask" \/>/);
 });
 
 test("without the rail, Command puts the numbers above the board and System last", () => {
@@ -220,7 +220,7 @@ test("Command's headline keeps its own color past the night theme's muted paragr
 });
 
 test("Dispatch names the day in words and leads with the day's jobs", () => {
-  const dispatch = read("src/app/dashboard/dispatch/page.tsx");
+  const dispatch = read("src/app/dashboard/schedule/page.tsx");
   assert.match(dispatch, /<label className="dsp-day">[\s\S]{0,200}\{dayLabel\}[\s\S]{0,200}type="date"/);
   assert.match(dispatch, /figure=\{String\(board\?\.jobCount \?\? 0\)\}/);
   assert.match(dispatch, /label: "Unassigned", value: decisions, live: decisions > 0/);

@@ -8,8 +8,8 @@ export const GO_TO: Array<{ key: string; href: string; label: string }> = [
   { key: "l", href: "/dashboard/calls", label: "Calls" },
   { key: "u", href: "/dashboard/customers", label: "Customers" },
   { key: "j", href: "/dashboard/jobs", label: "Jobs" },
-  { key: "d", href: "/dashboard/dispatch", label: "Dispatch" },
-  { key: "a", href: "/dashboard/ask", label: "Ask" },
+  { key: "d", href: "/dashboard/schedule", label: "Schedule" },
+  { key: "t", href: "/dashboard/team", label: "Team" },
   { key: "s", href: "/dashboard/settings", label: "Settings" },
 ];
 
@@ -18,7 +18,6 @@ export const SHORTCUT_GROUPS: Array<{ title: string; items: Array<{ keys: string
     title: "Anywhere",
     items: [
       { keys: ["⌘", "K"], label: "Search callers, customers and jobs" },
-      { keys: ["⌘", "J"], label: "Ask about your shop" },
       { keys: ["?"], label: "Show these shortcuts" },
       { keys: ["Esc"], label: "Close" },
     ],
