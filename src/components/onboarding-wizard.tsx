@@ -5,7 +5,7 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { company } from "@/lib/company";
 import { readPreviewDraft } from "@/lib/preview-draft";
 import { getPlanById, type BillingInterval, type PaidPlanId } from "@/lib/pricing-plans";
-import { HIPAA_TRADE_REFUSAL, OFFERED_TRADES, isHipaaTrade, isTrade, type Trade } from "@/lib/trades";
+import { HIPAA_TRADE_REFUSAL, NOT_YET_TRADE, OFFERED_TRADES, isHipaaTrade, isLaunchTrade, isTrade, type Trade } from "@/lib/trades";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -151,6 +151,11 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     if (shop.trade && isHipaaTrade(shop.trade)) {
       setLookupResults(null);
       setLookupNote(HIPAA_TRADE_REFUSAL);
+      return;
+    }
+    if (shop.trade && !isLaunchTrade(shop.trade)) {
+      setLookupResults(null);
+      setLookupNote(NOT_YET_TRADE);
       return;
     }
     if (shop.trade) setTrade(shop.trade);

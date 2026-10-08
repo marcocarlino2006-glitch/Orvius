@@ -25,7 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function TradePage({ params }: Props) {
-  const page = tradePage((await params).trade);
+  const slug = (await params).trade;
+  const page = tradePage(slug);
   if (!page) notFound();
 
   return (

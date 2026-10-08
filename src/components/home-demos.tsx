@@ -20,32 +20,32 @@ type Biz = {
 
 const BIZ: Biz[] = [
   {
-    id: "salon",
-    name: "Luxe Hair Studio",
-    kind: "Salon & spa",
-    owner: "Jade",
-    greeting: "Thanks for calling Luxe Hair Studio. What can we book for you?",
-    asks: ["Service", "Stylist", "Preferred day", "Name"],
-    safety: "Reaction to a product: told to rinse and call 911 if it's severe",
+    id: "hvac",
+    name: "Summit Heating & Air",
+    kind: "Heating & cooling",
+    owner: "Dana",
+    greeting: "Thanks for calling Summit Heating & Air, this is Orvius. What's going on?",
+    asks: ["Problem", "Address", "Callback number", "Urgency"],
+    safety: "Carbon monoxide alarm: told to get everyone outside and call 911, then you're paged",
     queue: [
-      { who: "Ava Brooks", what: "Color and cut with Mia", tag: "Booked", when: "Sat 11:00", value: "$240" },
-      { who: "Nora Kim", what: "Bridal trial, party of 4", tag: "Call back", when: "Today", value: "$680" },
-      { who: "Zoe Hart", what: "Balayage touch-up", tag: "Booked", when: "Fri 2:30", value: "$190" },
-      { who: "Ella Ruiz", what: "Asked about keratin pricing", tag: "New", when: "—", value: "$300" },
+      { who: "Priya Raman", what: "No heat, furnace lockout", tag: "Emergency", when: "6:30 PM", value: "Diagnostic" },
+      { who: "Hal Bergstrom", what: "AC tune-up before summer", tag: "Booked", when: "Thu 9–11", value: "Tune-up" },
+      { who: "Junie Alvarez", what: "Quote for a new system", tag: "Call back", when: "Today", value: "Estimate" },
+      { who: "Wes Trahan", what: "Thermostat keeps resetting", tag: "New", when: "—", value: "Repair" },
     ],
     calls: [
-      { who: "Ava Brooks", what: "Color and cut", grade: "Clean" },
-      { who: "Nora Kim", what: "Bridal trial", grade: "Worth a listen" },
-      { who: "Zoe Hart", what: "Balayage touch-up", grade: "Clean" },
-      { who: "Ella Ruiz", what: "Keratin pricing", grade: "Clean" },
+      { who: "Priya Raman", what: "No heat", grade: "Clean" },
+      { who: "Hal Bergstrom", what: "AC tune-up", grade: "Clean" },
+      { who: "Junie Alvarez", what: "System quote", grade: "Worth a listen" },
+      { who: "Wes Trahan", what: "Thermostat", grade: "Clean" },
     ],
     transcript: [
-      ["Caller", "Can I get a color and cut with Mia this weekend?"],
-      ["Orvius", "Mia has Saturday at 11 or 2. Which works better?"],
-      ["Caller", "11, please."],
-      ["Orvius", "You're booked Saturday at 11. I'll text you the details."],
+      ["Caller", "Our furnace stopped and the house is getting cold."],
+      ["Orvius", "Is a carbon monoxide alarm going off, or does anyone feel dizzy?"],
+      ["Caller", "No, it's just not coming on."],
+      ["Orvius", "I can get a technician there at 6:30 tonight. What's the address?"],
     ],
-    confirm: { when: "Sat 11:00 AM", with: "Mia", service: "Color and cut", place: "Chair 3" },
+    confirm: { when: "Tonight 6:30 PM", with: "Ray", service: "No heat", place: "418 Quarry Rd" },
   },
   {
     id: "plumbing",
@@ -56,10 +56,10 @@ const BIZ: Biz[] = [
     asks: ["Issue", "Address", "Callback number", "Urgency"],
     safety: "Gas smell: told to leave the house and call 911, then you're paged",
     queue: [
-      { who: "Tom Becker", what: "Water heater leaking into garage", tag: "Emergency", when: "7:00 AM", value: "$1,450" },
-      { who: "Grace Lin", what: "Kitchen drain backing up", tag: "Booked", when: "Today 2–4", value: "$260" },
-      { who: "Owen Park", what: "Quote for repiping", tag: "Call back", when: "Today", value: "$6,800" },
-      { who: "Rosa Diaz", what: "Running toilet", tag: "New", when: "—", value: "$150" },
+      { who: "Tom Becker", what: "Water heater leaking into garage", tag: "Emergency", when: "7:00 AM", value: "Emergency" },
+      { who: "Grace Lin", what: "Kitchen drain backing up", tag: "Booked", when: "Today 2–4", value: "Repair" },
+      { who: "Owen Park", what: "Quote for repiping", tag: "Call back", when: "Today", value: "Estimate" },
+      { who: "Rosa Diaz", what: "Running toilet", tag: "New", when: "—", value: "Repair" },
     ],
     calls: [
       { who: "Tom Becker", what: "Water heater leak", grade: "Clean" },
@@ -104,7 +104,7 @@ function useReducedMotion() {
   return reduced;
 }
 
-/** Rotates through the three businesses while on screen; a pill click pins one. */
+/** Rotates through the example businesses while on screen; a pill click pins one. */
 function useBusiness() {
   const [ref, inView] = useInView<HTMLDivElement>();
   const reduced = useReducedMotion();

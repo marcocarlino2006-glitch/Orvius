@@ -284,7 +284,10 @@ function BusinessStep({
           </div>
         </fieldset>
       ))}
-      <p className="ton-note">Dental and medical offices aren&apos;t supported yet.</p>
+      <p className="ton-note">
+        Orvius launches for heating &amp; cooling, plumbing and electrical. Another kind of business?{" "}
+        <Link href="/pilot#waitlist">Join the waitlist</Link> and we&apos;ll tell you when yours is ready.
+      </p>
       {trade ? (
         <label className="ton-field">
           <span className="ton-label">What&apos;s it called?</span>

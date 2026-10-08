@@ -19,10 +19,10 @@ test("the search title and caption fit and say what we do", () => {
   assert.match(company.searchTitle, /AI Receptionist/i);
   assert.ok(company.searchDescription.length <= 155, `caption is ${company.searchDescription.length} chars`);
   assert.ok(company.searchDescription.length >= 110, "caption uses the space it has");
-  for (const text of [company.searchTitle, company.searchDescription]) {
-    assert.doesNotMatch(text, /HVAC/, "the listing speaks to every business");
-    assert.doesNotMatch(text, ABSOLUTIST);
-  }
+  assert.match(company.searchTitle, /HVAC/, "the listing names the trades we launch for");
+  assert.match(company.searchTitle, /Plumbing/);
+  assert.match(company.searchTitle, /Electrical/);
+  for (const text of [company.searchTitle, company.searchDescription]) assert.doesNotMatch(text, ABSOLUTIST);
 });
 
 test("structured data names the site and prices it from the real plans", () => {

@@ -55,9 +55,10 @@ export default function AboutPage() {
         <div className="editorial-wrap max-w-3xl">
           <h2 className="tier1-section-title type-headline">Where we are today.</h2>
           <p className="tier1-section-lead font-sans">
-            We started with home services — heating, plumbing and electrical — where a missed call at 11 PM is
-            often an urgent job. Orvius now sets up for trades, clinics, salons, shops and offices, each with its own
-            rules for what to ask and what counts as an emergency. It answers in English and Spanish today.
+            Orvius launches for heating &amp; cooling, plumbing and electrical businesses, where a missed call at 11 PM
+            is often an urgent job. Each of those trades has its own rules for what to ask and what counts as an
+            emergency. Other kinds of business are on the waitlist until theirs gets the same depth. It answers in
+            English and Spanish today.
           </p>
           <p className="tier1-section-lead font-sans">
             Built by {company.legalName}. We use replaceable AI models and own the workflow, data, and actions around

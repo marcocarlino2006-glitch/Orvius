@@ -51,11 +51,9 @@ const features: Feature[] = [
 ];
 
 const industries = [
-  { name: "Home services", detail: "HVAC, plumbing, electrical, roofing, garage doors, appliance repair" },
-  { name: "On-site services", detail: "Pest control, cleaning, moving, locksmiths" },
-  { name: "Beauty", detail: "Salons and spas" },
-  { name: "Professional", detail: "Law offices and real estate" },
-  { name: "Auto", detail: "Repair shops and service bays" },
+  { name: "Heating & cooling", detail: "No heat, no cooling, carbon monoxide and gas calls handled by its own safety rules" },
+  { name: "Plumbing", detail: "Leaks, backups and water heaters, with flooding and gas sent straight to you" },
+  { name: "Electrical", detail: "Outages and repairs, with sparking, burning smells and shocks sent straight to you" },
 ];
 
 function Arrow() {
@@ -97,11 +95,11 @@ export function HomeFeatures() {
         <div className="hf-wrap">
           <header className="hf-industries-head" data-reveal>
             <h2 id="home-industries-heading" className="hf-title">
-              Built for every business that runs on the phone.
+              Built for heating &amp; cooling, plumbing and electrical.
             </h2>
             <p className="hf-body font-sans">
-              Pick your business type and it asks the right questions. Field businesses get an address and a window;
-              offices get an appointment, never a home address.
+              Each trade has its own questions, services and emergency rules, tested before launch. Other kinds of
+              business can <Link href="/pilot#waitlist">join the waitlist</Link>.
             </p>
           </header>
           <ul className="hf-grid" data-reveal>

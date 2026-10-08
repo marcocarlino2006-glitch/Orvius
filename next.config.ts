@@ -7,7 +7,11 @@ const nextConfig: NextConfig = {
     ? { output: "standalone" as const }
     : {}),
   async redirects() {
-    return [{ source: "/demo", destination: "/product", permanent: true }];
+    return [
+      { source: "/demo", destination: "/product", permanent: true },
+      // Trades Orvius no longer advertises until each has its own tested playbook.
+      { source: "/for/:trade(roofing|garage-doors|pest-control|locksmith|appliance-repair)", destination: "/", permanent: true },
+    ];
   },
   async headers() {
     return [
